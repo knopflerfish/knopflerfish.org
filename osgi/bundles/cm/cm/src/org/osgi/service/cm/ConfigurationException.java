@@ -1,112 +1,86 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.cm/src/org/osgi/service/cm/ConfigurationException.java,v 1.12 2006/06/16 16:31:28 hargrave Exp $
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * All rights reserved.
  *
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package org.osgi.service.cm;
 
 /**
- * An <code>Exception</code> class to inform the Configuration Admin service
- * of problems with configuration data.
+ * An <tt>Exception</tt> class to inform the Configuration Admin service of
+ * problems with configuration data.
  * 
- * @version $Revision: 1.12 $
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  */
 public class ConfigurationException extends Exception {
-	static final long	serialVersionUID	= -1690090413441769377L;
 
-	private String		property;
-	private String		reason;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * Nested exception.
-	 */
-	private Throwable	cause;
+    String property;
 
-	/**
-	 * Create a <code>ConfigurationException</code> object.
-	 * 
-	 * @param property name of the property that caused the problem,
-	 *        <code>null</code> if no specific property was the cause
-	 * @param reason reason for failure
-	 */
-	public ConfigurationException(String property, String reason) {
-		super(property + " : " + reason);
-		this.property = property;
-		this.reason = reason;
-		this.cause = null;
-	}
+    String reason;
 
-	/**
-	 * Create a <code>ConfigurationException</code> object.
-	 * 
-	 * @param property name of the property that caused the problem,
-	 *        <code>null</code> if no specific property was the cause
-	 * @param reason reason for failure
-	 * @param cause The cause of this exception.
-	 * @since 1.2
-	 */
-	public ConfigurationException(String property, String reason,
-			Throwable cause) {
-		super(property + " : " + reason);
-		this.property = property;
-		this.reason = reason;
-		this.cause = cause;
-	}
+    /**
+     * Create a <tt>ConfigurationException</tt> object.
+     * 
+     * @param property
+     *            name of the property that caused the problem, <tt>null</tt>
+     *            if no specific property was the cause
+     * @param reason
+     *            reason for failure
+     */
+    public ConfigurationException(String property, String reason) {
+        super(property + " : " + reason);
+        this.property = property;
+        this.reason = reason;
+    }
 
-	/**
-	 * Return the property name that caused the failure or null.
-	 * 
-	 * @return name of property or null if no specific property caused the
-	 *         problem
-	 */
-	public String getProperty() {
-		return property;
-	}
+    /**
+     * Return the property name that caused the failure or null.
+     * 
+     * @return name of property or null if no specific property caused the
+     *         problem
+     */
+    public String getProperty() {
+        return property;
+    }
 
-	/**
-	 * Return the reason for this exception.
-	 * 
-	 * @return reason of the failure
-	 */
-	public String getReason() {
-		return reason;
-	}
+    /**
+     * Return the reason for this exception.
+     * 
+     * @return reason of the failure
+     */
+    public String getReason() {
+        return reason;
+    }
 
-	/**
-	 * Returns the cause of this exception or <code>null</code> if no cause
-	 * was specified when this exception was created.
-	 * 
-	 * @return The cause of this exception or <code>null</code> if no cause
-	 *         was specified.
-	 * @since 1.2
-	 */
-	public Throwable getCause() {
-		return cause;
-	}
-
-	/**
-	 * The cause of this exception can only be set when constructed.
-	 * 
-	 * @param cause Cause of the exception.
-	 * @return This object.
-	 * @throws java.lang.IllegalStateException This method will always throw an
-	 *         <code>IllegalStateException</code> since the cause of this
-	 *         exception can only be set when constructed.
-	 * @since 1.2
-	 */
-	public Throwable initCause(Throwable cause) {
-		throw new IllegalStateException();
-	}
 }

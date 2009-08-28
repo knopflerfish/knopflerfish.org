@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,13 +50,11 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 class HttpTestServlet extends HttpServlet {
-  boolean destroyCalled = false;
-
   public HttpTestServlet() {
   }
 
-  public void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException,IOException
+  public void doGet(HttpServletRequest request, HttpServletResponse response) 
+    throws ServletException,IOException 
   {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -71,14 +69,7 @@ class HttpTestServlet extends HttpServlet {
     out.println("</BODY>");
     out.println("</HTML>");
   }
-
-  public void destroy()
-  {
-    destroyCalled = true;
-    log("HttpTestServlet.destroy() called");
-    super.destroy();
-  }
-
+  
   void checkRequest(HttpServletRequest request) throws ServletException {
     ServletConfig config = getServletConfig();
     if (config == null) {
@@ -91,5 +82,5 @@ class HttpTestServlet extends HttpServlet {
       // log.log(LogService.LOG_ERROR, "Failed to get context object");
       throw new ServletException("Failed to get ServletContext");
     }
-  }
-}
+  }    
+}    

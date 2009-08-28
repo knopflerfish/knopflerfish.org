@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,13 +49,12 @@ public class ConsoleServlet extends HttpServlet {
 
   // the fime install command is special
   // since it requires a multipart/form-data
-  // form encoding.
+  // form encoding. 
   InstallFileCommand installFileCommand;
 
-  Login login;
-
-  public ConsoleServlet(BundleContext bc) {
-    login = new Login(bc);
+  Login login = new Login();
+  
+  public ConsoleServlet() {
 
     commands = new Command[] {
       new ReloadCommand(),
@@ -85,18 +84,18 @@ public class ConsoleServlet extends HttpServlet {
   }
 
 
-  public void doPost(HttpServletRequest  request,
-                     HttpServletResponse response)
+  public void doPost(HttpServletRequest  request, 
+		     HttpServletResponse response) 
     throws ServletException,
-           IOException
+	   IOException 
   {
     // Handle just as GET
     doGet(request, response);
   }
 
-
-  public void doGet(HttpServletRequest  request,
-                     HttpServletResponse response)
+  
+  public void doGet(HttpServletRequest  request, 
+		     HttpServletResponse response) 
     throws ServletException, IOException {
     if(iconView == null) {
       iconView = new IconView(this);
@@ -108,12 +107,12 @@ public class ConsoleServlet extends HttpServlet {
   }
 
 
+  
 
+  
 
-
-
-  public void doGet2(HttpServletRequest  request,
-                    HttpServletResponse response)
+  public void doGet2(HttpServletRequest  request, 
+		    HttpServletResponse response) 
     throws ServletException, IOException {
 
     String uapixels = request.getHeader("ua-pixels");
@@ -123,12 +122,12 @@ public class ConsoleServlet extends HttpServlet {
     if(uapixels != null) {
       int ix = uapixels.indexOf("x");
       if(ix != -1) {
-        try {
-          width  = Integer.parseInt(uapixels.substring(0, ix));
-          height = Integer.parseInt(uapixels.substring(ix + 1));
-        } catch (Exception ignored) {
-          ignored.printStackTrace();
-        }
+	try {
+	  width  = Integer.parseInt(uapixels.substring(0, ix));
+	  height = Integer.parseInt(uapixels.substring(ix + 1));
+	} catch (Exception ignored) {
+	  ignored.printStackTrace();
+	}
       }
     }
 
@@ -156,11 +155,11 @@ public class ConsoleServlet extends HttpServlet {
     if(installFileCommand.installFile2.redir != null) {
       String base  = request.getScheme() + "://" + request.getServerName();
       int    port = request.getServerPort();
-
+      
       if("https".equals(request.getScheme())) {
-        if(port != 443) base = base + ":" + port;
+	if(port != 443) base = base + ":" + port;
       } else {
-        if(port != 80) base = base + ":" + port;
+	if(port != 80) base = base + ":" + port;
       }
       String url = base + installFileCommand.installFile2.redir;
       installFileCommand.installFile2.redir = null;
@@ -177,15 +176,15 @@ public class ConsoleServlet extends HttpServlet {
 
     if(false) {
       for(Enumeration e = request.getHeaderNames(); e.hasMoreElements();) {
-        String key = (String)e.nextElement();
-        String val = request.getHeader(key);
-        System.out.println("header: " + key + "=" + val);
+	String key = (String)e.nextElement();
+	String val = request.getHeader(key);
+	System.out.println("header: " + key + "=" + val);
       }
-
+      
       for(Enumeration e = request.getParameterNames(); e.hasMoreElements();) {
-        String key = (String)e.nextElement();
-        String val = request.getParameter(key);
-        System.out.println("param: " + key + "=" + val);
+	String key = (String)e.nextElement();
+	String val = request.getParameter(key);
+	System.out.println("param: " + key + "=" + val);
       }
     }
 
@@ -193,7 +192,7 @@ public class ConsoleServlet extends HttpServlet {
 
 
     Util.formStart(out, installFileCommand.isTrigger(request));
-
+        
     try {
       out.println("<table width=\"100%\" class=\"maintable\">");
 
@@ -211,13 +210,13 @@ public class ConsoleServlet extends HttpServlet {
 
       out.println("<td class=\"maininfo\">");
       if(sb.length() > 0) {
-        out.println("<div class=\"cmdresult\">");
-        out.println(sb.toString());
-        out.println("</div>");
+	out.println("<div class=\"cmdresult\">");
+	out.println(sb.toString());
+	out.println("</div>");
       } else {
-        out.println("<div class=\"shadow\">&nbsp;</div>");
+	out.println("<div class=\"shadow\">&nbsp;</div>");
       }
-      out.println("</td>");
+      out.println("</td>");      
       out.println("</tr>");
 
       out.println("<tr class=\"toolview\">");
@@ -238,55 +237,55 @@ public class ConsoleServlet extends HttpServlet {
     } catch (Exception e) {
       out.println("<pre>");
       e.printStackTrace(out);
-      out.println("</pre>");
+      out.println("</pre>");      
     }
 
   }
 
   IconView iconView;
 
-  int handleCommands(HttpServletRequest request,
-                      StringBuffer       sb) throws Exception {
+  int handleCommands(HttpServletRequest request, 
+		      StringBuffer       sb) throws Exception {
     int displayFlags = 0;
     for(int i = 0; i < commands.length; i++) {
       if(commands[i].isTrigger(request)) {
-        StringBuffer s = commands[i].run(request);
-        sb.append(s.toString());
-        displayFlags |= commands[i].getDisplayFlags();
+	StringBuffer s = commands[i].run(request);
+	sb.append(s.toString());
+	displayFlags |= commands[i].getDisplayFlags();
       }
     }
     return displayFlags;
   }
 
-  void printMain(HttpServletRequest request,
-                 PrintWriter out,
-                 int displayFlags) throws IOException {
-
+  void printMain(HttpServletRequest request, 
+		 PrintWriter out,
+		 int displayFlags) throws IOException {
+    
     if(0 != (displayFlags & Command.DISPLAY_FULLSCREEN)) {
       out.println("full screen");
     } else {
       iconView.toHTML(request,out, displayFlags);
     }
-
+    
   }
 
 
-  void printToolbar(HttpServletRequest request, PrintWriter out,
-                    int width) throws IOException {
-
+  void printToolbar(HttpServletRequest request, PrintWriter out, 
+		    int width) throws IOException {
+    
     out.println("<div class=\"toolbar\">");
-
+    
     for(int i = 0; i < commands.length; i++) {
 
       // break before status info on small screens
       if(commands[i] instanceof StatusCommand) {
-        if(width < 300) {
-          out.print("<br/>");
-        }
+	if(width < 300) {
+	  out.print("<br/>");
+	}
       }
       commands[i].toHTML(request, out);
     }
-
+    
     out.println("</div>");
   }
 
@@ -295,15 +294,15 @@ public class ConsoleServlet extends HttpServlet {
     out.println("<html>");
     out.println("<head>");
     out.println("<title>Knopflerfish OSGi console</title>");
-
+    
     out.println("<LINK href=\"" + Activator.RES_ALIAS + "/console.css\" rel=\"stylesheet\" type=\"text/css\">");
     out.println("</head>");
     out.println("<body>");
-
+    
   }
 
   void printFooter(PrintWriter out) throws IOException {
     out.println("</body>");
-    out.println("</html>");
+    out.println("</html>");  
   }
 }

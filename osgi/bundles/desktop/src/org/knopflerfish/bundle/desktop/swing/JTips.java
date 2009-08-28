@@ -34,35 +34,26 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import org.osgi.framework.*;
+import org.osgi.service.packageadmin.*;
+import org.osgi.service.startlevel.*;
+import org.osgi.util.tracker.*;
+
+import javax.swing.table.*;
+import javax.swing.*;
+import javax.swing.event.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.datatransfer.*;
+import java.awt.dnd.*;
+
+import java.util.*;
+import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-
-import org.knopflerfish.util.Text;
-
+import org.knopflerfish.service.desktop.*;
+import org.knopflerfish.util.*;
 
 public class JTips extends JPanel {
   JFrame frame = null;
@@ -244,7 +235,7 @@ public class JTips extends JPanel {
     if(b) {
       if(frame == null) {
 	frame = new JFrame(title);
-	Activator.desktop.setIcon(frame, "/kf_");
+	Activator.desktop.setIcon(frame, "/fish");
 
 	frame.getContentPane().setLayout(new BorderLayout());
 	frame.getContentPane().add(this, BorderLayout.CENTER);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,6 @@ import java.io.*;
 
 import org.knopflerfish.service.junit.*;
 import org.osgi.framework.*;
-import org.osgi.util.tracker.ServiceTracker;
 import junit.framework.*;
 import java.lang.reflect.*;
 
@@ -74,9 +73,9 @@ public class JUnitServiceImpl implements JUnitService {
     try {
       runTestCase(out, suite);
     } catch (Exception e) {
-      out.println(" <fail " +
-                  "  message=\"" + e.getMessage() + "\"" +
-                  "  exception=\"" + e.getClass().getName() + "\">");
+      out.println(" <fail " + 
+		  "  message=\"" + e.getMessage() + "\"" + 
+		  "  exception=\"" + e.getClass().getName() + "\">");
       toXMLException(e, out);
       out.println(" </fail>");
     }
@@ -108,17 +107,17 @@ public class JUnitServiceImpl implements JUnitService {
     }
   }
 
-  void dumpProps(PrintWriter out,
-                 Dictionary props,
-                 String name) throws IOException {
+  void dumpProps(PrintWriter out, 
+		 Dictionary props, 
+		 String name) throws IOException {
     out.println("<properties name=\"" + name + "\">");
     try {
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-        String key = (String)e.nextElement();
-        Object val = props.get(key);
-        out.print(" <value key=\"" + key + "\">");
-        out.print("<![CDATA[" + val + "]]>");
-        out.println("</value>");
+	String key = (String)e.nextElement();
+	Object val = props.get(key);
+	out.print(" <value key=\"" + key + "\">");
+	out.print("<![CDATA[" + val + "]]>");
+	out.println("</value>");
       }
     } catch (Exception e) {
       out.println("<!--");
@@ -128,8 +127,8 @@ public class JUnitServiceImpl implements JUnitService {
     out.println("</properties>");
   }
 
-  protected void runTestCase(PrintWriter out,
-                             TestSuite suite)  throws Exception {
+  protected void runTestCase(PrintWriter out, 
+			     TestSuite suite)  throws Exception {
 
     out.println(" <testcase id=\"" + suite.getName() + "\">");
 
@@ -142,29 +141,12 @@ public class JUnitServiceImpl implements JUnitService {
     out.print("  <docurl>");
     out.print("<![CDATA[" + docurl + "]]>");
     out.println("</docurl>");
-
-    ServiceTracker testListenerTracker = null;
-
+    
     try {
+
       System.out.println("run test on " + suite);
 
-      final TestResult tr = new TestResult();
-      testListenerTracker = new ServiceTracker(Activator.bc,
-                                               TestListener.class.getName(),
-                                               null) {
-          public Object addingService(ServiceReference reference)
-          {
-            TestListener tl = (TestListener) Activator.bc.getService(reference);
-            tr.addListener(tl);
-            return tl;
-          }
-          public void removedService(ServiceReference reference, Object service)
-          {
-            TestListener tl = (TestListener) service;
-            tr.removeListener(tl);
-          }
-        };
-      testListenerTracker.open();
+      TestResult tr = new TestResult();
 
       long start = System.currentTimeMillis();
       suite.run(tr);
@@ -172,106 +154,102 @@ public class JUnitServiceImpl implements JUnitService {
 
       toXMLSuite(suite, tr, stop - start, out, 2);
       toXMLResult(tr, out);
-      testListenerTracker.close();
     } finally {
       out.println(" </testcase>");
-      if (null!=testListenerTracker){
-        testListenerTracker.close();
-      }
     }
   }
 
-  public TestSuite getTestSuite(final String id,
-                                final String subid) {
+  public TestSuite getTestSuite(final String id, 
+				final String subid) {
     Object obj = null;
-
+    
     try {
-      ServiceReference[] srl =
-        Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
+      ServiceReference[] srl = 
+	Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
 
       if(srl == null || srl.length == 0) {
-        obj = new TestCase("No id=" + id) {
-            public void runTest() {
-              throw new IllegalArgumentException("No test with id=" + id);
-            }
-          };
+	obj = new TestCase("No id=" + id) {
+	    public void runTest() {
+	      throw new IllegalArgumentException("No test with id=" + id);
+	    }
+	  };
       }
       if(srl != null && srl.length != 1) {
-        obj = new TestCase("Multiple id=" + id) {
-            public void runTest() {
-              throw new IllegalArgumentException("More than one test with id=" + id);
-            }
-          };
+	obj = new TestCase("Multiple id=" + id) {
+	    public void runTest() {
+	      throw new IllegalArgumentException("More than one test with id=" + id);
+	    }
+	  };
       }
       if(obj == null) {
-        obj = Activator.bc.getService(srl[0]);
+	obj = Activator.bc.getService(srl[0]);
       }
     } catch (Exception e) {
       obj = new TestCase("Bad filter syntax id=" + id) {
-          public void runTest() {
-            throw new IllegalArgumentException("Bad syntax id=" + id);
-          }
-        };
+	  public void runTest() {
+	    throw new IllegalArgumentException("Bad syntax id=" + id);
+	  }
+	};
     }
-
+    
     if(!(obj instanceof Test)) {
       final Object oldObj = obj;
       obj = new TestCase("ClassCastException") {
-          public void runTest() {
-            throw new ClassCastException("Service implements " +
-                                         oldObj.getClass().getName() +
-                                         " instead of " +
-                                         Test.class.getName());
-          }
-        };
+	  public void runTest() {
+	    throw new ClassCastException("Service implements " + 
+					 oldObj.getClass().getName() + 
+					 " instead of " + 
+					 Test.class.getName());
+	  }
+	};
     }
-
+    
     Test test = (Test)obj;
-
+    
     TestSuite suite;
-
+    
     if(subid != null && !"".equals(subid)) {
-      Test subtest = findTest(test, subid);
+      Test subtest = findTest(test, subid);      
       if(subtest != null) {
-        test = subtest;
+	test = subtest;
       } else {
-        test = new TestCase("IllegalArgumentException") {
-            public void runTest() {
-              throw new ClassCastException("subtest " + subid + " not found");
-            }
-          };
+	test = new TestCase("IllegalArgumentException") {
+	    public void runTest() {
+	      throw new ClassCastException("subtest " + subid + " not found");
+	    }
+	  };
       }
     }
-
+    
     if(test instanceof TestSuite) {
       suite = (TestSuite)test;
     } else {
       suite = new TestSuite(id);
       suite.addTest(test);
     }
-
-
+    
+    
     return suite;
   }
-
+  
   protected Test findTest(Test test, String id) {
     if(test instanceof TestSuite) {
       TestSuite ts = (TestSuite)test;
       if(id.equals(ts.getName()) || id.equals(ts.getClass().getName())) {
-        return ts;
+	return ts;
       }
       for(int i = 0; i < ts.testCount(); i++) {
-        Test child = ts.testAt(i);
-        Test r = findTest(child, id);
-        if(r != null) {
-          return r;
-        }
+	Test child = ts.testAt(i);
+	Test r = findTest(child, id);
+	if(r != null) {
+	  return r;
+	}
       }
     }
     if(test instanceof TestCase) {
       TestCase tc = (TestCase)test;
       if(id.equals(tc.getName())) {
-        return tc;
+	return tc;
       }
     }
     if(id.equals(test.getClass().getName())) {
@@ -288,13 +266,13 @@ public class JUnitServiceImpl implements JUnitService {
     return sb.toString();
   }
 
-  protected void toXMLSuite(TestSuite suite,
-                            TestResult tr,
-                            long time,
-                            PrintWriter out,
-                            int n) throws IOException {
-    out.print(indent(n) + "  <suite class = \"" +
-              suite.getClass().getName() + "\"");
+  protected void toXMLSuite(TestSuite suite, 
+			    TestResult tr,
+			    long time,
+			    PrintWriter out, 
+			    int n) throws IOException {
+    out.print(indent(n) + "  <suite class = \"" + 
+	      suite.getClass().getName() + "\"");
     out.print(" name  = \"" + suite.getName() + "\"");
     out.print(" time  = \"" + time + "\"");
     out.println(">");
@@ -304,25 +282,25 @@ public class JUnitServiceImpl implements JUnitService {
       String clazz = test.getClass().getName();
       String name  = null;
       if(test instanceof TestCase) {
-        name = ((TestCase)test).getName();
+	name = ((TestCase)test).getName();
       }
       if(name == null) {
-        name = clazz;
+	name = clazz;
       }
       if(test instanceof TestSuite) {
-        toXMLSuite((TestSuite)test, tr, 0, out, n + 1);
+	toXMLSuite((TestSuite)test, tr, 0, out, n + 1);
       } else {
-        out.print(indent(n) + "   <case class = \"" + clazz + "\"");
-        out.print(" name  = \"" + name + "\"");
-        out.print(" status = \"" + getTestCaseStatus(tr, test) + "\"");
-        out.println(">");
+	out.print(indent(n) + "   <case class = \"" + clazz + "\"");
+	out.print(" name  = \"" + name + "\"");
+	out.print(" status = \"" + getTestCaseStatus(tr, test) + "\"");
+	out.println(">");
 
-        String desc   = getBeanString(test, "getDescription", "");
-        out.print("  <description>");
-        out.print("<![CDATA[" + desc + "]]>");
-        out.println("</description>");
-
-        out.println("</case>");
+	String desc   = getBeanString(test, "getDescription", "");
+	out.print("  <description>");
+	out.print("<![CDATA[" + desc + "]]>");
+	out.println("</description>");
+	
+	out.println("</case>");
       }
     }
     out.println(indent(n) + "  </suite>");
@@ -333,13 +311,13 @@ public class JUnitServiceImpl implements JUnitService {
     for(Enumeration e = tr.failures(); e.hasMoreElements(); ) {
       TestFailure tf = (TestFailure)e.nextElement();
       if(tf.failedTest() == test) {
-        return "failed";
+	return "failed";
       }
     }
     for(Enumeration e = tr.errors(); e.hasMoreElements(); ) {
       TestFailure tf = (TestFailure)e.nextElement();
       if(tf.failedTest() == test) {
-        return "error";
+	return "error";
       }
     }
     return "passed";
@@ -355,17 +333,17 @@ public class JUnitServiceImpl implements JUnitService {
     if(tr.failureCount() > 0 ) {
       out.println("   <failures>");
       for(Enumeration e = tr.failures(); e.hasMoreElements(); ) {
-        TestFailure tf = (TestFailure)e.nextElement();
-        toXMLFailure(tf, out);
+	TestFailure tf = (TestFailure)e.nextElement();
+	toXMLFailure(tf, out);
       }
       out.println("   </failures>");
     }
     if(tr.errorCount() > 0 ) {
       out.println("   <errors>");
       for(Enumeration e = tr.errors(); e.hasMoreElements(); ) {
-
-        TestFailure tf = (TestFailure)e.nextElement();
-        toXMLFailure(tf, out);
+	
+	TestFailure tf = (TestFailure)e.nextElement();
+	toXMLFailure(tf, out);
       }
       out.println("   </errors>");
     }
@@ -381,7 +359,7 @@ public class JUnitServiceImpl implements JUnitService {
       TestCase tc = (TestCase)failedTest;
       String name = tc.getName();
       if(name == null) {
-        name = tc.getClass().getName();
+	name = tc.getClass().getName();
       }
 
       out.println("      failedTestCaseName=\"" + escape(name) + "\"");
@@ -393,7 +371,7 @@ public class JUnitServiceImpl implements JUnitService {
     out.print("     <trace><![CDATA[");
     out.print(tf.trace());
     out.println("]]></trace>");
-
+    
     out.println("    </failure>");
   }
 
@@ -425,13 +403,13 @@ public class JUnitServiceImpl implements JUnitService {
     out.println("]]></exception>");
   }
 
-  static String getBeanString(Object target,
-                              String methodName,
-                              String defVal) {
+  static String getBeanString(Object target, 
+			      String methodName, 
+			      String defVal) {
     String val = defVal;
     try {
-      Method m = target.getClass().getMethod(methodName,
-                                             new Class[] { });
+      Method m = target.getClass().getMethod(methodName, 
+					     new Class[] { });
       val = (String)m.invoke(target, null);
     } catch (Exception e) {
       return defVal;
@@ -449,7 +427,7 @@ public class JUnitServiceImpl implements JUnitService {
    *
    * <p>
    * Implementation note: This method avoids using the standard String
-   * manipulation methods to increase execution speed.
+   * manipulation methods to increase execution speed. 
    * Using the <tt>replace</tt> method does however
    * include two <tt>new</tt> operations in the case when matches are found.
    * </p>
@@ -457,28 +435,28 @@ public class JUnitServiceImpl implements JUnitService {
    *
    * @param s  Source string.
    * @param v1 String to be replaced with <code>v2</code>.
-   * @param v2 String replacing <code>v1</code>.
+   * @param v2 String replacing <code>v1</code>. 
    * @return Modified string. If any of the input strings are <tt>null</tt>,
-   *         the source string <tt>s</tt> will be returned unmodified.
+   *         the source string <tt>s</tt> will be returned unmodified. 
    *         If <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or
-   *         no occurances of <tt>v1</tt> is found, also
+   *         no occurances of <tt>v1</tt> is found, also 
    *         return <tt>s</tt> unmodified.
    */
-  public static String replace(final String s,
-                               final String v1,
-                               final String v2) {
-
+  public static String replace(final String s, 
+			       final String v1, 
+			       final String v2) {
+    
     // return quick when nothing to do
-    if(s == null
-       || v1 == null
-       || v2 == null
-       || v1.length() == 0
+    if(s == null 
+       || v1 == null 
+       || v2 == null 
+       || v1.length() == 0 
        || v1.equals(v2)) {
       return s;
     }
 
     int ix       = 0;
-    int v1Len    = v1.length();
+    int v1Len    = v1.length(); 
     int n        = 0;
 
     // count number of occurances to be able to correctly size
@@ -503,15 +481,15 @@ public class JUnitServiceImpl implements JUnitService {
     while(-1 != (ix = s.indexOf(v1, start))) {
       while(start < ix) r[rPos++] = s.charAt(start++);
       for(int j = 0; j < v2Len; j++) {
-        r[rPos++] = v2.charAt(j);
+	r[rPos++] = v2.charAt(j);
       }
       start += v1Len;
     }
 
     // ...and add all remaining chars
-    ix = s.length();
+    ix = s.length(); 
     while(start < ix) r[rPos++] = s.charAt(start++);
-
+    
     // ..ouch. this hurts.
     return new String(r);
   }

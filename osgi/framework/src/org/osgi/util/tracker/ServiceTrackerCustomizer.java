@@ -1,19 +1,35 @@
 /*
- * $Header: /cvshome/build/org.osgi.util.tracker/src/org/osgi/util/tracker/ServiceTrackerCustomizer.java,v 1.10 2006/06/16 16:31:13 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) 2003, KNOPFLERFISH project
+ * All rights reserved.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 package org.osgi.util.tracker;
@@ -21,72 +37,61 @@ package org.osgi.util.tracker;
 import org.osgi.framework.ServiceReference;
 
 /**
- * The <code>ServiceTrackerCustomizer</code> interface allows a
- * <code>ServiceTracker</code> object to customize the service objects that are
- * tracked. The <code>ServiceTrackerCustomizer</code> object is called when a
- * service is being added to the <code>ServiceTracker</code> object. The
- * <code>ServiceTrackerCustomizer</code> can then return an object for the tracked
- * service. The <code>ServiceTrackerCustomizer</code> object is also called when a
- * tracked service is modified or has been removed from the
- * <code>ServiceTracker</code> object.
- * 
- * <p>
- * The methods in this interface may be called as the result of a
- * <code>ServiceEvent</code> being received by a <code>ServiceTracker</code> object.
- * Since <code>ServiceEvent</code> s are synchronously delivered by the Framework,
- * it is highly recommended that implementations of these methods do not
- * register (<code>BundleContext.registerService</code>), modify (
- * <code>ServiceRegistration.setProperties</code>) or unregister (
- * <code>ServiceRegistration.unregister</code>) a service while being
- * synchronized on any object.
- * 
- * @version $Revision: 1.10 $
+ * Interface allowing users of <tt>ServiceTracker</tt> to modify the behavior
+ * and selection of tracked services.
+ *
+ * <p><b>Note:</b>
+ * <tt>ServiceTracker</tt> itself implements 
+ * <tt>ServiceTrackerCustomizer</tt>, and in many cases it might be easier
+ * to override the one of the <tt><i>xxxxx</i>Service</tt> methods 
+ * directly in <tt>ServiceTracker</tt>
+ *
+ * <p><b>Note II:</b>
+ * If you <b>really</b> need to monitor the lifecycle of one ore 
+ * more services (not just use it) it's higly recommended to use 
+ * the <tt>ServiceListener</tt> interface
+ * directly.
  */
 public interface ServiceTrackerCustomizer {
-	/**
-	 * A service is being added to the <code>ServiceTracker</code> object.
-	 * 
-	 * <p>
-	 * This method is called before a service which matched the search
-	 * parameters of the <code>ServiceTracker</code> object is added to it. This
-	 * method should return the service object to be tracked for this
-	 * <code>ServiceReference</code> object. The returned service object is stored
-	 * in the <code>ServiceTracker</code> object and is available from the
-	 * <code>getService</code> and <code>getServices</code> methods.
-	 * 
-	 * @param reference Reference to service being added to the
-	 *        <code>ServiceTracker</code> object.
-	 * @return The service object to be tracked for the
-	 *         <code>ServiceReference</code> object or <code>null</code> if the
-	 *         <code>ServiceReference</code> object should not be tracked.
-	 */
-	public Object addingService(ServiceReference reference);
 
-	/**
-	 * A service tracked by the <code>ServiceTracker</code> object has been
-	 * modified.
-	 * 
-	 * <p>
-	 * This method is called when a service being tracked by the
-	 * <code>ServiceTracker</code> object has had it properties modified.
-	 * 
-	 * @param reference Reference to service that has been modified.
-	 * @param service The service object for the modified service.
-	 */
-	public void modifiedService(ServiceReference reference,
-			Object service);
-
-	/**
-	 * A service tracked by the <code>ServiceTracker</code> object has been
-	 * removed.
-	 * 
-	 * <p>
-	 * This method is called after a service is no longer being tracked by the
-	 * <code>ServiceTracker</code> object.
-	 * 
-	 * @param reference Reference to service that has been removed.
-	 * @param service The service object for the removed service.
-	 */
-	public void removedService(ServiceReference reference,
-			Object service);
+  /**
+   * A service is being added to the <tt>ServiceTracker</tt> object.
+   *
+   * <p>This method is called before a service which matched
+   * the search parameters of the <tt>ServiceTracker</tt> object is
+   * added to it. This method should return the
+   * service object to be tracked for this <tt>ServiceReference</tt> object,
+   * typically by calling <tt>context.getServiceReference(reference)</tt>
+   * 
+   *
+   * @param reference Reference to service being added
+   * @return The service object to be tracked for the
+   *         <tt>ServiceReference</tt> or <tt>null</tt> if the 
+   *         <tt>ServiceReference</tt> should not be tracked.
+   */
+  public Object addingService(ServiceReference reference);
+  
+  /**
+   * A service tracked by the <tt>ServiceTracker</tt> object has been modified.
+   *
+   * <p>This method is called when a service being tracked
+   * by the <tt>ServiceTracker</tt> object has had it properties modified.
+   *
+   * @param reference Service that has been modified.
+   * @param service The service for the modified service.
+   */
+  public void modifiedService(ServiceReference reference, Object service);
+  
+  /**
+   * A service tracked by the <tt>ServiceTracker</tt> object has been removed.
+   *
+   * <p>This method is called after a service is no longer being tracked
+   * by the <tt>ServiceTracker</tt> object. The action should be the inverse
+   * of the action in <tt>addingService</tt>, typically by calling
+   * <tt>context.ungetService(reference)</tt>
+   *
+   * @param reference Service that has been removed.
+   * @param service service that has been removed.
+   */
+  public void removedService(ServiceReference reference, Object service);
 }

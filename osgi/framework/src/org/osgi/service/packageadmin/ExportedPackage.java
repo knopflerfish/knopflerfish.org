@@ -1,110 +1,99 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.packageadmin/src/org/osgi/service/packageadmin/ExportedPackage.java,v 1.14 2006/06/16 16:31:49 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) The Open Services Gateway Initiative (2001).
+ * All Rights Reserved.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Implementation of certain elements of the Open Services Gateway Initiative
+ * (OSGI) Specification may be subject to third party intellectual property
+ * rights, including without limitation, patent rights (such a third party may
+ * or may not be a member of OSGi). OSGi is not responsible and shall not be
+ * held responsible in any manner for identifying or failing to identify any or
+ * all such third party intellectual property rights.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This document and the information contained herein are provided on an "AS
+ * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+ * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
+ * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
+ * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
+ * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
+ * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH LOSS OR DAMAGE.
+ *
+ * All Company, brand and product names may be trademarks that are the sole
+ * property of their respective owners. All rights reserved.
  */
-
 package org.osgi.service.packageadmin;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.Version;
 
 /**
  * An exported package.
- * 
- * Objects implementing this interface are created by the Package Admin service.
- * 
- * <p>
- * The term <i>exported package</i> refers to a package that has been exported
- * from a resolved bundle. This package may or may not be currently wired to
- * other bundles.
- * 
- * <p>
- * The information about an exported package provided by this object may change.
- * An <code>ExportedPackage</code> object becomes stale if the package it
- * references has been updated or removed as a result of calling
- * <code>PackageAdmin.refreshPackages()</code>.
- * 
- * If this object becomes stale, its <code>getName()</code> and
- * <code>getVersion()</code> methods continue to return their original values,
- * <code>isRemovalPending()</code> returns <code>true</code>, and
- * <code>getExportingBundle()</code> and <code>getImportingBundles()</code>
- * return <code>null</code>.
- * 
- * @version $Revision: 1.14 $
+ *
+ * Instances implementing this interface are created by the
+ * Package Admin service.
+ *
+ * <p>The information about an exported package provided by
+ * this object is valid only until the next time
+ * <tt>PackageAdmin.refreshPackages()</tt> is
+ * called.
+ * If an <tt>ExportedPackage</tt> object becomes stale (that is, the package it references
+ * has been updated or removed as a result of calling
+ * <tt>PackageAdmin.refreshPackages()</tt>),
+ * its <tt>getName()</tt> and <tt>getSpecificationVersion()</tt> continue to return their
+ * old values, <tt>isRemovalPending()</tt> returns <tt>true</tt>, and <tt>getExportingBundle()</tt>
+ * and <tt>getImportingBundles()</tt> return <tt>null</tt>.
+ *
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  */
 public interface ExportedPackage {
-	/**
-	 * Returns the name of the package associated with this exported package.
-	 * 
-	 * @return The name of this exported package.
-	 */
-	public String getName();
 
-	/**
-	 * Returns the bundle exporting the package associated with this exported
-	 * package.
-	 * 
-	 * @return The exporting bundle, or <code>null</code> if this
-	 *         <code>ExportedPackage</code> object has become stale.
-	 */
-	public Bundle getExportingBundle();
+    /**
+     * Returns the name of the package associated with this <tt>ExportedPackage</tt> object.
+     *
+     * @return The name of this <tt>ExportedPackage</tt> object.
+     */
+    public String getName();
 
-	/**
-	 * Returns the resolved bundles that are currently wired to this exported
-	 * package.
-	 * 
-	 * <p>
-	 * Bundles which require the exporting bundle associated with this exported
-	 * package are considered to be wired to this exported package are included
-	 * in the returned array. See {@link RequiredBundle#getRequiringBundles()}.
-	 * 
-	 * @return The array of resolved bundles currently wired to this exported
-	 *         package, or <code>null</code> if this
-	 *         <code>ExportedPackage</code> object has become stale.
-	 */
-	public Bundle[] getImportingBundles();
+    /**
+     * Returns the bundle exporting the package associated with this <tt>ExportedPackage</tt> object.
+     *
+     * @return The exporting bundle, or <tt>null</tt> if this <tt>ExportedPackage</tt> object
+     *         has become stale.
+     */
+    public Bundle getExportingBundle();
 
-	/**
-	 * Returns the version of this exported package.
-	 * 
-	 * @return The version of this exported package, or <code>null</code> if
-	 *         no version information is available.
-	 * @deprecated As of 1.2, replaced by {@link #getVersion}.
-	 */
-	public String getSpecificationVersion();
+    /**
+     * Returns the resolved bundles that are currently importing the package
+     * associated with this <tt>ExportedPackage</tt> object.
+     *
+     * <p> The returned array always includes the bundle returned by
+     * {@link #getExportingBundle}since an exporter always implicitly
+     * imports its exported packages.
+     *
+     * @return The array of resolved bundles currently importing the package
+     * associated with this <tt>ExportedPackage</tt> object, or <tt>null</tt> if this <tt>ExportedPackage</tt>
+     * object has become stale.
+     */
+    public Bundle[] getImportingBundles();
 
-	/**
-	 * Returns the version of this exported package.
-	 * 
-	 * @return The version of this exported package, or
-	 *         {@link Version#emptyVersion} if no version information is
-	 *         available.
-	 * @since 1.2
-	 */
-	public Version getVersion();
+    /**
+     * Returns the specification version of this <tt>ExportedPackage</tt>, as
+     * specified in the exporting bundle's manifest file.
+     *
+     * @return The specification version of this <tt>ExportedPackage</tt> object, or
+     *         <tt>null</tt> if no version information is available.
+     */
+    public String getSpecificationVersion();
 
-	/**
-	 * Returns <code>true</code> if the package associated with this
-	 * <code>ExportedPackage</code> object has been exported by a bundle that
-	 * has been updated or uninstalled.
-	 * 
-	 * @return <code>true</code> if the associated package is being exported
-	 *         by a bundle that has been updated or uninstalled, or if this
-	 *         <code>ExportedPackage</code> object has become stale;
-	 *         <code>false</code> otherwise.
-	 */
-	public boolean isRemovalPending();
+    /**
+     * Returns <tt>true</tt> if the package associated with this <tt>ExportedPackage</tt> object has been
+     * exported by a bundle that has been updated or uninstalled.
+     *
+     * @return <tt>true</tt> if the associated package is being
+     * exported by a bundle that has been updated or uninstalled, or if this
+     * <tt>ExportedPackage</tt> object has become stale; <tt>false</tt> otherwise.
+     */
+    public boolean isRemovalPending();
 }

@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="junit-example1" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.junit-example1}"/>
-  <property name="topdir"       location="${proj.dir}/../../../.."/>
+  <property name="topdir"       location="../../../.."/>
 
   <property name = "bundle.build.api"   value = "false"/>
   <property name = "bundle.build.impl"  value = "true"/>
@@ -20,19 +23,20 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="junit_all-N.N.N.jar"/>
-   <pathelement location="demo1_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/demo1/demo1_api-1.0.0.jar"/>
    <pathelement location="${topdir}/bundles_opt/junit/junit/resources/junit.jar"/>
    <pathelement location="${topdir}/bundles/xml/crimson/resources/crimson.jar"/>
   </path>
 
 
-  <property name="bmfa.Bundle-Description"    value="JUnit example1"/>
-  <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
-  <property name="bmfa.Import-Package"
+  <property name="bundle.description"    value="JUnit example1"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="import.package"
             value="junit.framework,org.osgi.framework,org.knopflerfish.service.demo1"/>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  &bundlebuild_include;
+
 
 </project>

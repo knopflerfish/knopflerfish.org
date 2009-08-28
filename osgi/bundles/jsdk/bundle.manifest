@@ -1,18 +1,15 @@
 Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: JSDK
-Bundle-SymbolicName: org.knopflerfish.bundle.jsdk
-Bundle-Version: 2.5
-Bundle-UUID: org.knopflerfish:jsdk:2.5
-Bundle-Description: The servlet API classes from SUN jsdk
-Bundle-Vendor: Knopflerfish/Sun/Apache
-Bundle-APIVendor: Sun
-Bundle-License: http://www.apache.org/licenses/LICENSE-2.0
-Bundle-DocURL: http://www.knopflerfish.org
+Export-Package: javax.servlet ; specification-version=2.2,javax.servle
+ t.http ; specification-version=2.2,javax.servlet.jsp ; specification-
+ version=2.2
+Bundle-Version: 2.2
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Classpath: .
+Bundle-Name: JSDK
+Bundle-Description: The servlet.jar from SUN jsdk lib
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-Vendor: Knopflerfish/Sun
+Bundle-APIVendor: Sun
+Bundle-SymbolicName: org.knopflerfish.jsdk
 Bundle-Category: lib
-Export-Package: javax.servlet;specification-version=2.5,
- javax.servlet.http;specification-version=2.5
-Import-Package: javax.servlet;specification-version=2.5,
- javax.servlet.http;specification-version=2.5
+Bundle-ClassPath: ., servlet.jar
+

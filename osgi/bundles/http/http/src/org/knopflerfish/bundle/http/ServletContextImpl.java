@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.Set;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
@@ -65,12 +64,9 @@ public class ServletContextImpl implements ServletContext {
 
     // constructors
 
-    ServletContextImpl(final HttpContext httpContext,
-                       final String realPath,
-                       final HttpConfig httpConfig,
-                       final LogRef log,
-                       final Registrations registrations)
-    {
+    ServletContextImpl(final HttpContext httpContext, final String realPath,
+            final HttpConfig httpConfig, final LogRef log,
+            final Registrations registrations) {
 
         this.httpContext = httpContext;
         this.realPath = realPath;
@@ -81,31 +77,16 @@ public class ServletContextImpl implements ServletContext {
 
     // implements ServletContext
 
-  public ServletContext getContext(final String uri) {
-    return null; // NYI: OK
-  }
-
-  public String getContextPath() {
-    System.err.println("***NYI." + getClass().getName());
-    throw new RuntimeException("NYI");
-  }
-
-  public String getServletContextName() {
-    System.err.println("***NYI." + getClass().getName());
-    throw new RuntimeException("NYI");
-  }
-
-  public Set getResourcePaths(String path) {
-    System.err.println("***NYI." + getClass().getName());
-    throw new RuntimeException("NYI");
-  }
+    public ServletContext getContext(final String uri) {
+        return null; // NYI: OK
+    }
 
     public int getMajorVersion() {
         return 2;
     }
 
     public int getMinorVersion() {
-        return 5;
+        return 1;
     }
 
     public String getMimeType(final String file) {

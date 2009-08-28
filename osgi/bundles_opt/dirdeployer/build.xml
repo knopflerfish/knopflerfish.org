@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="dirdeployer" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.dirdeployer}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
   <property name = "ee.check.foundation"   value = "true"/>
 
@@ -11,7 +14,6 @@
   <property name = "bundle.build.impl"     value = "false"/>
   <property name = "bundle.build.lib"      value = "false"/>
   <property name = "bundle.build.all"      value = "true"/>
-  <property name = "bundle.build.doc"      value = "true"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
@@ -21,10 +23,21 @@
 
 
   <path id="bundle.compile.path">
-    <pathelement location="log_api-N.N.N.jar"/>  
-    <pathelement location="cm_api-N.N.N.jar"/>  
+    <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>  
+    <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>  
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <property name="bundle.description"    value="Monitors a file system directory for bundles to deploy"/>
+  <property name="bundle.category"       value="example"/>
+  <property name="bundle.name"           value="Directory deployer"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/readme.html"/>
+
+  &bundlebuild_include;
 
 </project>

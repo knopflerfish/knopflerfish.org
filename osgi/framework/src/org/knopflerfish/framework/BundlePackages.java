@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,161 +34,112 @@
 
 package org.knopflerfish.framework;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.Dictionary;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Iterator;
+
 
 import org.osgi.framework.*;
 
 
 /**
  * Class representing all packages imported and exported.
- *
- * @author Jan Stein
- * @author Mats-Ola Persson
- * @author Gunnar Ekolin
  */
 class BundlePackages {
 
   final BundleImpl bundle;
 
-  final int generation;
+  private ArrayList /* PkgEntry */ exports = new ArrayList(1);
 
-  private ClassLoader classLoader = null;
-
-  /* Sorted list of exports */
-  private ArrayList /* ExportPkg */ exports = new ArrayList(1);
-
-  /* Sorted list of imports */
-  private ArrayList /* ImportPkg */ imports = new ArrayList(1);
+  private ArrayList /* PkgEntry */ imports = new ArrayList(1);
 
   private ArrayList /* String */ dImportPatterns = new ArrayList(1);
 
-  private HashMap /* BundlePackages -> {List(Required),List(ExportPkg),List(ImportPkg)} */ fragments = null;
+  private HashMap /* String -> PkgEntry */ okImports = null;
 
-  /* List of RequireBundle entries. */
-  ArrayList /* RequireBundle */ require;
-
-  /* List of BundlePackages that require us. */
-  ArrayList /* BundlePackages */ requiredBy = null;
-
-  /* Sorted list of active imports */
-  private ArrayList /* ImportPkg */ okImports = null;
-
-  /* Is our packages registered */
-  private boolean registered = false;
-
-  /* Reason we failed to resolve */
   private String failReason = null;
-
-  final static String EMPTY_STRING = "";
 
   /**
    * Create package entry.
    */
-  BundlePackages(BundleImpl b,
-                 int gen,
-                 String exportStr,
-                 String importStr,
-                 String dimportStr,
-                 String requireStr) {
+  BundlePackages(BundleImpl b, 
+		 String exportStr, 
+		 String importStr, 
+		 String dimportStr) {
     this.bundle = b;
-    this.generation = gen;
 
-    Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, false, true, false);
-    while (i.hasNext()) {
-      Map e = (Map)i.next();
-      Iterator pi = ((List)e.remove("$keys")).iterator();
-      ImportPkg ip = new ImportPkg((String)pi.next(), e, this);
-      for (;;) {
-        int ii = Util.binarySearch(imports, ipComp, ip);
-        if (ii < 0) {
-          imports.add(-ii - 1, ip);
-        } else {
-          throw new IllegalArgumentException("Duplicate import definitions for - " + ip.name);
-        }
-        if (pi.hasNext()) {
-          ip = new ImportPkg(ip, (String)pi.next());
-        } else {
-          break;
-        }
+    if(b.getBundleArchive() != null) {
+      String fakeString = b.getBundleArchive().getAttribute("fakeheader");
+      if(fakeString != null) {
+	if(Debug.packages) {
+	  Debug.println(("Fake bundle #" + b.getBundleId() + ": " + fakeString));
+	}
       }
     }
-
-    i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, false, true, false);
-    while (i.hasNext()) {
-      Map e = (Map)i.next();
-      Iterator pi = ((List)e.remove("$keys")).iterator();
-      ExportPkg ep = new ExportPkg((String)pi.next(), e, this);
-      for (;;) {
-        int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
-        exports.add(ei, ep);
-        if (!b.v2Manifest) {
-          ImportPkg ip = new ImportPkg(ep);
-          int ii = Util.binarySearch(imports, ipComp, ip);
-          if (ii < 0) {
-            imports.add(-ii - 1, ip);
-          }
-        }
-        if (pi.hasNext()) {
-          ep = new ExportPkg(ep, (String)pi.next());
-        } else {
-          break;
-        }
+    
+    try {
+      Iterator i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, true);
+      while (i.hasNext()) {
+	Map e = (Map)i.next();
+	PkgEntry p = new PkgEntry((String)e.get("key"), 
+				  (String)e.get(Constants.PACKAGE_SPECIFICATION_VERSION),
+				  bundle);
+	exports.add(p);
+	imports.add(new PkgEntry(p));
       }
+    } catch (IllegalArgumentException e) {
+      b.framework.listeners.frameworkError(b, e);
     }
-
-    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE, dimportStr, false, true, false);
-    while (i.hasNext()) {
-      Map e = (Map)i.next();
-      if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
-        throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-                                           " entry illegal contains a " +
-                                           Constants.RESOLUTION_DIRECTIVE +
-                                           " directive.");
+    try {
+      Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, true);
+    wloop:
+      while (i.hasNext()) {
+	Map e = (Map)i.next();
+	PkgEntry pe = new PkgEntry((String)e.get("key"), 
+				  (String)e.get(Constants.PACKAGE_SPECIFICATION_VERSION),
+				  bundle);
+	for (int x = imports.size() - 1; x >= 0; x--) {
+	  PkgEntry ip = (PkgEntry)imports.get(x);
+	  if (pe.packageEqual(ip)) {
+	    if (pe.compareVersion(ip) < 0) {
+	      imports.set(x, pe);
+	    }
+	    continue wloop;
+	  }
+	}
+	imports.add(pe);
       }
-      ImportPkg tmpl = null;
-      for (Iterator pi = ((List)e.remove("$keys")).iterator(); pi.hasNext(); ) {
-        String key = (String)pi.next();
-        if (key.equals("*")) {
-          key = EMPTY_STRING;
-        } else if (key.endsWith(".*")) {
-          key = key.substring(0, key.length() - 1);
-        } else if (key.endsWith(".")) {
-          throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-                                             " entry ends with '.': " + key);
-        } else if (key.indexOf("*") != - 1) {
-          throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-                                           " entry contains a '*': " + key);
-        }
-        if (tmpl != null) {
-          dImportPatterns.add(new ImportPkg(tmpl, key));
-        } else {
-          tmpl = new ImportPkg(key, e, this);
-          dImportPatterns.add(tmpl);
-        }
+    } catch (IllegalArgumentException e) {
+      b.framework.listeners.frameworkError(b, e);
+    }
+    dImportPatterns.add("java.");
+    try {
+      Iterator i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE, dimportStr, true);
+      while (i.hasNext()) {
+	Map e = (Map)i.next();
+	String key = (String)e.get("key");
+	if (key.equals("*")) {
+	  dImportPatterns = null;
+	} else if (key.endsWith(".*")) {
+	  dImportPatterns.add(key.substring(0, key.length() - 1));
+	} else if (key.endsWith(".")) {
+	  b.framework.listeners.frameworkError(b, new IllegalArgumentException(
+            Constants.DYNAMICIMPORT_PACKAGE + " entry ends with '.': " + key));
+	} else if (key.indexOf("*") != - 1) {
+	  b.framework.listeners.frameworkError(b, new IllegalArgumentException(
+            Constants.DYNAMICIMPORT_PACKAGE + " entry contains a '*': " + key));
+	} else {
+	  dImportPatterns.add(key);
+	}
       }
+    } catch (IllegalArgumentException e) {
+      b.framework.listeners.frameworkError(b, e);
     }
-    i = Util.parseEntries(Constants.REQUIRE_BUNDLE, requireStr, true, true, false);
-    if (i.hasNext()) {
-      require = new ArrayList();
-      do {
-        Map e = (Map)i.next();
-        require.add(new RequireBundle(this,
-                                      (String)e.get("$key"),
-                                      (String)e.get(Constants.VISIBILITY_DIRECTIVE),
-                                      (String)e.get(Constants.RESOLUTION_DIRECTIVE),
-                                      (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE)));
-        // NYI warn about unknown directives?
-      } while (i.hasNext());
-    } else {
-      require = null;
-    }
-
   }
 
 
@@ -198,56 +149,138 @@ class BundlePackages {
    */
   void registerPackages() {
     bundle.framework.packages.registerPackages(exports.iterator(), imports.iterator());
-    registered = true;
   }
 
 
   /**
-   * Unregister bundle packages in framework.
+   * Register bundle packages in framework.
    *
    */
   synchronized boolean unregisterPackages(boolean force) {
-    if (registered) {
-      List i = okImports != null ? okImports : imports;
-      if (bundle.framework.packages.unregisterPackages(exports, i, force)) {
-        okImports = null;
-        registered = false;
-        unRequireBundles();
-        detachFragments();
-      } else {
-        return false;
-      }
+    Iterator i = (okImports != null ? okImports.values() : imports).iterator();
+    if (bundle.framework.packages.unregisterPackages(exports.iterator(), i, force)) {
+      okImports = null;
+      return true;
+    } else {
+      return false;
     }
-    return true;
   }
 
 
   /**
-   * Resolve all the bundles' packages.
+   * Resolve all the bundles packages.
    *
    * @return true if we resolved all packages. If we failed
    *         return false. Reason for fail can be fetched with
    *         getResolveFailReason().
    */
   boolean resolvePackages() {
-    ArrayList permImports = new ArrayList(imports.size());
-    failReason = bundle.framework.perm.missingMandatoryPackagePermissions(this, permImports);
-    if (failReason != null) {
-      return false;
-    }
-    failReason = bundle.framework.packages.resolve(bundle, permImports.iterator());
-    if (failReason == null) {
-      for (Iterator i = permImports.iterator(); i.hasNext(); ) {
-        ImportPkg ip = (ImportPkg)i.next();
-        if (ip.provider == null) { // <=> optional import with unresolved provider
-          i.remove();
-        }
+    if (bundle.framework.bPermissions) {
+      String e = checkPackagePermission(exports, PackagePermission.EXPORT);
+      if (e != null) {
+	failReason = "missing export permission for package(s): " + e;
+	return false;
       }
-      okImports = permImports;
-      return true;
-    } else {
-      return false;
+      String i = checkPackagePermission(imports, PackagePermission.IMPORT);
+      if (i != null) {
+	failReason = "missing import permission for package(s): " + i;
+	return false;
+      }
     }
+    List m = bundle.framework.packages.checkResolve(bundle, imports.iterator());
+    if (m != null) {
+      StringBuffer r = new StringBuffer("missing package(s) or can not resolve all of the them: ");
+      Iterator mi = m.iterator();
+      r.append(((PkgEntry)mi.next()).pkgString());
+      while (mi.hasNext()) {
+	r.append(", ");
+	r.append(((PkgEntry)mi.next()).pkgString());
+      }
+      failReason = r.toString();
+      return false;
+    } else {
+      failReason = null;
+      okImports = new HashMap();
+      for (Iterator i = imports.iterator(); i.hasNext(); ) {
+	PkgEntry pe = (PkgEntry)i.next();
+	okImports.put(pe.name, pe);
+      }
+      return true;
+    }
+  }
+
+
+  /**
+   * If bundle packages has been resolved look for a bundle
+   * that provides the requested package.
+   * If found, check we import it. If not imported, check
+   * if we can dynamicly import the package.
+   *
+   * @param pkg Package name
+   * @return Bundle exporting
+   */
+  BundleImpl getProviderBundle(String pkg) {
+    synchronized (this) {
+      if (okImports == null) {
+	return null;
+      }
+      PkgEntry pe = (PkgEntry)okImports.get(pkg);
+      if (pe != null) {
+	Pkg p = pe.getPkg();
+	if (p != null) {
+	  PkgEntry ppe = p.getProvider();
+	  if (ppe != null) {
+	    return ppe.bundle;
+	  }
+	}
+	return null;
+      }
+    }
+    boolean match = false;
+    if (dImportPatterns == null) {
+      match = true;
+    } else {
+      for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
+	String ps = (String)i.next();
+	if ((ps.endsWith(".") && pkg.startsWith(ps)) || pkg.equals(ps)) {
+	  match = true;
+	  break;
+	}
+      }
+    }
+    if (match && checkPackagePermission(pkg, PackagePermission.IMPORT)) {
+      synchronized (bundle.framework.packages) {
+	synchronized (this) {
+	  PkgEntry pe = new PkgEntry(pkg, (String)null, bundle);
+	  PkgEntry ppe = bundle.framework.packages.registerDynamicImport(pe);
+	  if (ppe != null) {
+	    okImports.put(pkg, pe);
+	    return ppe.bundle;
+	  }
+	}
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Get an iterator over all exported packages.
+   *
+   * @return An Iterator over PkgEntry.
+   */
+  Iterator getExports() {
+    return exports.iterator();
+  }
+
+
+  /**
+   * Get an iterator over all static imported packages.
+   *
+   * @return An Iterator over PkgEntry.
+   */
+  Iterator getImports() {
+    return imports.iterator();
   }
 
 
@@ -260,528 +293,52 @@ class BundlePackages {
     return failReason;
   }
 
-
-  /**
-   * If bundle package has been resolved look for a BundlePackages
-   * that provides the requested package.
-   *
-   * @param pkg Package name
-   * @return BundlePackages exporting the pkg.
-   */
-  synchronized BundlePackages getProviderBundlePackages(String pkg) {
-    // The SystemBundle does not import its own packges (okImports
-    // will be null) but it is using them...
-    if (bundle instanceof SystemBundle) {
-      return null!=getExport(pkg) ? this : null;
-    }
-
-    if (okImports == null) {
-      return null;
-    }
-    int ii = Util.binarySearch(okImports, ipFind, pkg);
-    if (ii >= 0) {
-      return ((ImportPkg)okImports.get(ii)).provider.bpkgs;
-    }
-    return null;
-  }
-
-
-  /**
-   * Check if we can dynamically import a package. Re-check
-   * that we haven't gotten a provider. (Do we need to do that?)
-   *
-   * @param pkg Package name
-   * @return Bundle exporting
-   */
-  synchronized BundlePackages getDynamicProviderBundlePackages(String pkg) {
-    if (okImports == null) {
-      return null;
-    }
-    int ii = Util.binarySearch(okImports, ipFind, pkg);
-    if (ii >= 0) {
-      return ((ImportPkg)okImports.get(ii)).provider.bpkgs;
-    }
-    if (bundle.framework.perm.hasImportPackagePermission(bundle, pkg)) {
-      for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
-        ImportPkg ip = (ImportPkg)i.next();
-        if (ip.name == EMPTY_STRING ||
-            (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
-            pkg.equals(ip.name)) {
-          ImportPkg nip = new ImportPkg(ip, pkg);
-          ExportPkg ep = bundle.framework.packages.registerDynamicImport(nip);
-          if (ep != null) {
-            nip.provider = ep;
-            okImports.add(-ii - 1, nip);
-            return ep.bpkgs;
-          }
-        }
-      }
-    }
-    return null;
-  }
-
-
-  /**
-   * Get a list of all BundlePackages that exports package <code>pkg</code>
-   * that comes from bundles that we have required, in correct order.
-   * Correct order is a depth first search order.
-   *
-   * @param pkg String with package name we are searching for.
-   * @return List of required BundlePackages or null we don't require any bundles.
-   */
-  ArrayList getRequiredBundlePackages(String pkg) {
-    if (require != null) {
-      ArrayList res = new ArrayList();
-      for (Iterator i = require.iterator(); i.hasNext(); ) {
-        RequireBundle rb = (RequireBundle)i.next();
-        if (rb.bpkgs != null && rb.bpkgs.getExport(pkg) != null) {
-          res.add(rb.bpkgs);
-        }
-      }
-      if (!res.isEmpty()) {
-        return res;
-      }
-    }
-    return null;
-  }
-
-
-  /**
-   * Check if this BundlePackages is required by another Bundle.
-   *
-   * @return True if is required
-   */
-  boolean isRequired() {
-    return requiredBy != null && !requiredBy.isEmpty();
-  }
-
-
-  /**
-   * Get a list of all BundlePackages that requires the exported packages
-   * that comes from the bundle owning this object.
-   *
-   * @return List of required BundlePackages
-   */
-  List getRequiredBy() {
-    if (requiredBy != null) {
-      return (List)requiredBy.clone();
-    }
-    return new ArrayList(0);
-  }
-
-
-  /**
-   * Remove this bundle packages from the requiredBy list in the
-   * wired required bundle package.
-   */
-  private void unRequireBundles()
-  {
-    if (require != null) {
-      for (Iterator iter=require.iterator(); iter.hasNext(); ) {
-        RequireBundle req = (RequireBundle) iter.next();
-        if (null!=req.bpkgs && null!=req.bpkgs.requiredBy) {
-          req.bpkgs.requiredBy.remove(this);
-        }
-      }
-    }
-  }
-
-  /**
-   * Check if package needs to be added as re-exported package.
-   *
-   * @param ep ExportPkg to re-export.
-   */
-  void checkReExport(ExportPkg ep) {
-    int i = Util.binarySearch(exports, epFind, ep.name);
-    if (i < 0) {
-      ExportPkg nep = new ExportPkg(ep, this);
-      exports.add(-i - 1, nep);
-      // Perhaps we should avoid this shortcut and go through Packages.
-      ep.pkg.addExporter(nep);
-    }
-  }
-
-
-  /**
-   * Get ExportPkg for exported package.
-   *
-   * @return ExportPkg entry or null if package is not exported.
-   */
-  ExportPkg getExport(String pkg) {
-    int i = Util.binarySearch(exports, epFind, pkg);
-    if (i >= 0) {
-      return (ExportPkg)exports.get(i);
-    } else {
-      return null;
-    }
-  }
-
-
-  /**
-   * Get an iterator over all exported packages.
-   *
-   * @return An Iterator over ExportPkg.
-   */
-  Iterator getExports() {
-    return exports.iterator();
-  }
-
-
-  /**
-   * Get a specific import
-   * @return an import
-   */
-  ImportPkg getImport(String pkg) {
-    int i = Util.binarySearch(imports, ipFind, pkg);
-    if (i >= 0) {
-      return (ImportPkg)imports.get(i);
-    } else {
-      return null;
-    }
-  }
-
-
-  /**
-   * Get an iterator over all static imported packages.
-   *
-   * @return An Iterator over ImportPkg.
-   */
-  Iterator getImports() {
-    return imports.iterator();
-  }
-
-
-  /**
-   * Get an iterator over all active imported packages.
-   *
-   * @return An Iterator over ImportPkg.
-   */
-  Iterator getActiveImports() {
-    return okImports.iterator();
-  }
-
-
-  /**
-   * Get class loader for these packages.
-   *
-   * @return ClassLoader handling these packages.
-   */
-  ClassLoader getClassLoader() {
-    if (classLoader == null) {
-      classLoader = bundle.getClassLoader(this);
-    }
-    return classLoader;
-  }
-
-
-  /**
-   * Invalidate class loader for these packages.
-   *
-   */
-  void invalidateClassLoader() {
-    classLoader = null;
-  }
-
-
-  /**
-   * Is these packages registered in the Packages object.
-   *
-   * @return True if packages are registered otherwise false.
-   */
-  boolean isRegistered() {
-    return registered;
-  }
-
-
-  /**
-   * Attach a fragment bundle packages.
-   *
-   * @param fbpkgs The BundlePackages of the fragment to be attached.
-   * @return null if okay, otherwise a String with fail reason.
-   */
-  String attachFragment(BundlePackages fbpkgs) {
-    if (fragments == null) {
-      fragments = new HashMap();
-    } else if (fragments.containsKey(fbpkgs.bundle)) {
-      throw new RuntimeException("Fragments packages already attached: "
-                                 +fbpkgs);
-    }
-
-    /* make sure that the fragment's bundle does not
-       conflict with this bundle's (see 3.1.4 r4-core) */
-    for (Iterator iiter = fbpkgs.getImports(); iiter.hasNext(); ) {
-      ImportPkg fip = (ImportPkg)iiter.next();
-      ImportPkg ip = getImport(fip.name);
-
-      if (ip == null && bundle.state != Bundle.INSTALLED) {
-        return "Can not dynamicly attach, because host has no import for: "
-          +fip;
-      }
-
-      if (ip != null) {
-        if (!fip.overlap(ip)) {
-          return "Host bundle import package constraints need to be stricter " +
-            "then the import package contraints in the attaching fragment.";
-        }
-      }
-    }
-
-    ArrayList newRequired = new ArrayList();
-    if (fbpkgs.require != null) {
-      for (Iterator iter = fbpkgs.require.iterator(); iter.hasNext(); ) {
-        RequireBundle fragReq = (RequireBundle)iter.next();
-        boolean match = false;
-
-        if (require != null) {
-          // check for conflicts
-          for (Iterator iter2 = require.iterator(); iter2.hasNext(); ) {
-            RequireBundle req = (RequireBundle)iter2.next();
-            if (fragReq.name.equals(req.name)) {
-              if (fragReq.overlap(req)) {
-                match = true;
-              } else {
-                return "Fragment bundle required bundle does not completely "
-                  +"overlap required bundle in host bundle.";
-              }
-            }
-          }
-        }
-        if (!match) {
-          if (bundle.state != Bundle.INSTALLED) {
-            return "Can not attach a fragment with new required bundles to "
-              +"a resolved host";
-          }
-          newRequired.add(new RequireBundle(this,fragReq));
-        }
-      }
-    }
-    Iterator riter = newRequired.iterator();
-    if (riter.hasNext()) {
-      // Must insert the new required bundles right before the first
-      // one contributed by a fragment with id > fbpkgs.bundle.id if any
-      if (require == null) {
-        require = new ArrayList();
-      }
-      int rpos = require.size(); // Append
-
-      if (null!=bundle.fragments) {
-        int i = 0;
-        for (; i<bundle.fragments.size(); i++) {
-          BundleImpl b = (BundleImpl) bundle.fragments.get(i);
-          if (b.id > fbpkgs.bundle.id) {
-            break;
-          }
-        }
-        for (; i<bundle.fragments.size(); i++) {
-          BundleImpl b = (BundleImpl)bundle.fragments.get(i);
-          List[] added = (List[]) fragments.get(b);
-          if (null!=added && added[0].size()>0) {
-            rpos = require.indexOf(added[0].get(0));
-            break;
-          }
-        }
-      }
-      do {
-        require.add(rpos++,(RequireBundle)riter.next());
-      } while (riter.hasNext());
-    }
-
-    ArrayList newExports = new ArrayList();
-    for (Iterator eiter = fbpkgs.getExports(); eiter.hasNext(); ) {
-      ExportPkg fep = (ExportPkg) eiter.next();
-      int ei = Util.binarySearch(exports, epComp, fep);
-      if (ei < 0) {
-        ExportPkg tmp = new ExportPkg(fep, this);
-        exports.add(-ei - 1, tmp);
-        newExports.add(tmp);
-      }
-    }
-
-    ArrayList newImports = new ArrayList();
-    for (Iterator iiter = fbpkgs.getImports(); iiter.hasNext(); ) {
-      ImportPkg fip = (ImportPkg)iiter.next();;
-      int ii = Util.binarySearch(imports, ipComp, fip);
-      if (ii < 0) {
-        ImportPkg tmp = new ImportPkg(fip, this);
-        imports.add(-ii - 1, tmp);
-        newImports.add(tmp);
-      }
-    }
-
-    bundle.framework.packages.registerPackages(newExports.iterator(),
-                                               newImports.iterator());
-    fragments.put(fbpkgs.bundle,
-                  new ArrayList [] { newRequired, newExports, newImports });
-    return null;
-  }
-
-
-  /**
-   * An attached fragment is now a zombie since it have been updated
-   * or uninstalled. Mark all packages exported by this host as
-   * zombies, since their contents may have changed.
-   *
-   * @param fb The fragment bundle that have been updated or uninstalled.
-   */
-  void fragmentIsZombie(BundleImpl fb)
-  {
-    if (null!=exports) {
-      if(Debug.packages) {
-        Debug.println("Marking all packages exported by host bundle(id="
-                      +bundle.id +",gen=" +generation
-                      +") as zombies since the attached fragment (id="
-                      +fb.getBundleId() +") was updated/uninstalled.");
-      }
-      for (Iterator eiter = exports.iterator(); eiter.hasNext(); ) {
-        ((ExportPkg)eiter.next()).zombie = true;
-      }
-    }
-  }
-
-  /**
-   * Detach all remaining fragments.
-   */
-  private void detachFragments() {
-    if (fragments!=null) {
-      Set fbs = new HashSet(fragments.keySet());
-      for (Iterator fbIt = fbs.iterator(); fbIt.hasNext();) {
-        BundleImpl fb = (BundleImpl) fbIt.next();
-        detachFragment(fb,false);
-      }
-    }
-  }
-
-  /**
-   * Detach a fragment bundle's packages.
-   *
-   * I.e., unregister and remove the fragments import / exports from
-   * the set of packages that are imported / exported by this bundle
-   * packages.
-   *
-   * If this bundle packages is resolved, do nothing since in that
-   * case must not change the set of imports and exports.
-   *
-   * @param fb The fragment bundle to detach.
-   */
-  void detachFragment(BundleImpl fb) {
-    detachFragment(fb, true);
-  }
-
-
-  /**
-   * Detach a fragment bundle's packages.
-   *
-   * I.e., unregister and remove the fragments import / exports from
-   * the set of packages that are imported / exported by this bundle
-   * packages.
-   *
-   * If this bundle packages is resolved, do nothing since in that
-   * case must not change the set of imports and exports.
-   *
-   * @param fb         The fragment bundle to detach.
-   * @param unregister Unregister the imports and exports of the
-   *                   specified fragment.
-   */
-  private void detachFragment(BundleImpl fb, boolean unregister) {
-    if (null==okImports) {
-      List [] added = (List [])fragments.remove(fb);
-      if (null!=added) {
-        for (Iterator riter = added[0].iterator(); riter.hasNext(); ) {
-          require.remove(riter.next());
-        }
-        for (Iterator eiter = added[1].iterator(); eiter.hasNext(); ) {
-          exports.remove(eiter.next());
-        }
-        for (Iterator iiter = added[2].iterator(); iiter.hasNext(); ) {
-          imports.remove(iiter.next());
-        }
-        if (unregister) {
-          bundle.framework.packages.unregisterPackages(added[1], added[2],true);
-        }
-      }
-    }
-  }
-
-
-  /**
-   * Return a string representing this objet
-   *
-   * @return A message string.
-   */
-  public String toString() {
-    return "BundlePackages(id=" + bundle.id + ",gen=" + generation + ")";
-  }
-
   //
   // Private methods
   //
 
-  static final Util.Comparator epComp = new Util.Comparator() {
-      /**
-       * Name compare two ExportPkg objects.
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if object is not a ExportPkg object.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        ExportPkg a = (ExportPkg)oa;
-        ExportPkg b = (ExportPkg)ob;
-        return a.name.compareTo(b.name);
+  /**
+   * Check that we have right package permission for a list of packages.
+   *
+   * @param pkgs List over all packages to check. Data is
+   *             Map.Entry with a List of package names as key
+   *             and a Map of parameters as value.
+   * @param perm Package permission action to check against.
+   * @return Returns null if we have correct permission for listed package.
+   *         Otherwise a string of failed entries.
+   */
+  private String checkPackagePermission(List pkgs, String perm) {
+    String res = null;
+    if (bundle.framework.bPermissions) {
+      for (Iterator i = pkgs.iterator(); i.hasNext();) {
+	PkgEntry p = (PkgEntry)i.next();
+	if (!checkPackagePermission(p.name, perm)) {
+	  if (res != null) {
+	    res = res + ", " + p.name;
+	  } else {
+	    res = p.name;
+	  }
+	}
       }
-    };
+    }
+    return res;
+  }
 
-  static final Util.Comparator epFind = new Util.Comparator() {
-      /**
-       * Name compare ExportPkg object with String object.
-       *
-       * @param oa ExportPkg object to compare.
-       * @param ob String object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if object is not a ExportPkg object.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        ExportPkg a = (ExportPkg)oa;
-        String b = (String)ob;
-        return a.name.compareTo(b);
-      }
-    };
 
-  static final Util.Comparator ipComp = new Util.Comparator() {
-      /**
-       * Name compare two ImportPkg objects.
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if object is not a ImportPkg object.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        ImportPkg a = (ImportPkg)oa;
-        ImportPkg b = (ImportPkg)ob;
-        return a.name.compareTo(b.name);
-      }
-    };
-
-  static final Util.Comparator ipFind = new Util.Comparator() {
-      /**
-       * Name compare ImportPkg object with String object.
-       *
-       * @param oa ImportPkg object to compare.
-       * @param ob String object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if object is not a ImportPkg object.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        ImportPkg a = (ImportPkg)oa;
-        String b = (String)ob;
-        return a.name.compareTo(b);
-      }
-    };
+  /**
+   * Check that we have right package permission for a package.
+   *
+   * @param pkg Packages to check. 
+   * @param perm Package permission action to check against.
+   * @return Returns true if we have permission.
+   */
+  private boolean checkPackagePermission(String pkg, String perm) {
+    if (bundle.framework.bPermissions) {
+      return bundle.framework.permissions.getPermissionCollection(bundle)
+	.implies(new PackagePermission(pkg, perm));
+    } else {
+      return true;
+    }
+  }
 
 }

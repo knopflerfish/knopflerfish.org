@@ -1,23 +1,23 @@
 <!--
   ** Copyright (c) 2003-2008, KNOPFLERFISH project
   ** All rights reserved.
-  **
-  ** Redistribution and use in source and binary forms, with or without
-  ** modification, are permitted provided that the following conditions
+  ** 
+  ** Redistribution and use in source and binary forms, with or without 
+  ** modification, are permitted provided that the following conditions 
   ** are met:
-  **
-  ** - Redistributions of source code must retain the above copyright notice,
-  **   this list of conditions and the following disclaimer.
-  **
-  ** - Redistributions in binary form must reproduce the above copyright
-  **   notice, this list of conditions and the following disclaimer in
-  **   the documentation and/or other materials provided with the
-  **   distribution.
-  **
-  ** - Neither the name of the KNOPFLERFISH project nor the names of its
-  **   contributors may be used to endorse or promote products derived
-  **   from this software without specific prior written permission.
-  **
+  ** 
+  ** - Redistributions of source code must retain the above copyright notice, 
+  **   this list of conditions and the following disclaimer. 
+  ** 
+  ** - Redistributions in binary form must reproduce the above copyright 
+  **   notice, this list of conditions and the following disclaimer in 
+  **   the documentation and/or other materials provided with the 
+  **   distribution. 
+  ** 
+  ** - Neither the name of the KNOPFLERFISH project nor the names of its 
+  **   contributors may be used to endorse or promote products derived 
+  **   from this software without specific prior written permission. 
+  ** 
   ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
   ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
   ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -32,21 +32,732 @@
   ** OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 
-<!-- This file is now deprecated please use the new "bundlebuild.xml". -->
-<!-- See "build_example.xml" for usage details and a brief documentation. -->
-<!-- To upgrade: Remove the old doctype-line at the begining of your -->
-<!-- build file. Insert the following lines:                         -->
-<!--    <dirname  property="proj.dir" file="${ant.file.desktop}"/>   -->
-<!--    <property name="topdir"       location="${proj.dir}/../.."/> -->
-<!-- after the project-line                                          -->
-<!-- Replace the   &amp;bundlebuild_include; line at the end of the  -->
-<!-- file with                                                       -->
-<!--   <import file="${topdir}/../ant/bundlebuild.xml"/>             -->
+ <property name = "topdir"   location = "."/>
+
+ <property name = "proj.dir" location = "."/>
+
+ <property name  = "bundle.emptystring" 
+           value = "[bundle.emptystring]"/>
+
+ <property environment="sysprops"/>
+
+ <property name = "bcel.version"        value    = "5.1"/> 
+
+ <property name = "javac.target"        value    = "1.2"/>
+ <property name = "javac.source"        value="1.2"/>
+ <property name = "ant.dir"             location = "${topdir}/../ant"/>
+ <property name = "ant.lib"             location = "${ant.dir}/lib"/>
+ <property name = "antclasses"          location = "${ant.dir}/classes"/>
+
+ <property environment = "env"/>
+
+ <property name = "ee.check.foundation"   value = "false"/>
+
+ <property name = "xinclude.source"       value = "true"/>
+ <property name = "bundle.name"           value = "${ant.project.name}"/>
+ <property name = "bundle.version"        value = "${bundle.emptystring}"/>
+ <property name = "bundle.uuid"           value = "org.knopflerfish:${bundle.name}:${bundle.version}"/>
+ <property name = "bundle.symbolicname"   value = "${bundle.emptystring}"/>
+ <property name = "bundle.config"         value = "${bundle.emptystring}"/>
+ <property name = "bundle.vendor"         value = "Knopflerfish"/>
+ <property name = "bundle.description"    value = "${bundle.emptystring}"/>
+ <property name = "bundle.docurl"         value = "http://www.knopflerfish.org"/>
+ <property name = "bundle.contactaddress" value = "http://www.knopflerfish.org"/>
+ <property name = "bundle.category"       value = "${bundle.emptystring}"/>
+ <property name = "export.service"        value = "${bundle.emptystring}"/>
+ <property name = "import.service"        value = "${bundle.emptystring}"/>
+ <property name = "bundle.classpath"      value = "${bundle.emptystring}"/>
+ <property name = "dynamicimport.package"  value = "${bundle.emptystring}"/>
+ <property name = "bundle.nativecode"     value = "${bundle.emptystring}"/>
+
+ <property name = "bundle.icon"           value = "${bundle.emptystring}"/>
+
+ <property name = "console.host"        value = "localhost"/>
+ <property name = "console.port"        value = "23"/>
+ <property name = "console.user"        value = "admin"/>
+ <property name = "console.pwd"         value = "admin"/>
+ <property name = "console.welcome"     value = "Knopflerfish OSGi console"/>
+ <property name = "console.loginok"     value = "'quit' to end session"/>
+
+ <property name = "bundle.subversionurl"  value = "https://www.knopflerfish.org/svn/"/>
+ <property name = "bundle.apivendor"  value = "${bundle.emptystring}"/>
+
+
+ <property name = "bundle.uuid.impl"          value = "${bundle.uuid}:impl"/>
+ <property name = "bundle.uuid.api"           value = "${bundle.uuid}:api"/>
+ <property name = "bundle.uuid.all"           value = "${bundle.uuid}:all"/>
+
+ <property name="http.host"          value="localhost"/>
+ <property name="http.port"          value="8080"/>
+ <property name="junit.runner.class" value="junit.swingui.TestRunner"/>
+ <property name="junit.formatter"    value="plain"/>
+ <property name="junit.outfile"      value="junit"/>
+
+
+ <property name = "src.dir"        location = "src"/>
+ <property name = "resources.dir"  location = "resources"/>
+
+ <property name = "outdir"   location = "${topdir}/out/${ant.project.name}"/>
+ <property name = "jardir"   location = "${topdir}/jars/${ant.project.name}"/>
+
+ <property name = "exported.file" location = "${topdir}/out/exported.txt"/>
+ <property name = "sources.file"  location = "${topdir}/out/sources.txt"/>
+
+ <property name = "classes.out.dir"     location = "${outdir}/classes"/>
+
+ <property name = "install_url_prefix"  value = "file:"/>
+
+ <property name = "bundle.build.lib"    value = "false"/>
+ <property name = "bundle.build.api"    value = "true"/>
+ <property name = "bundle.build.impl"   value = "true"/>
+ <property name = "bundle.build.all"    value = "true"/>
+
+ 
+ <property name     = "all.suffix" value="_all-${bundle.version}"/>
+
+ <property name     = "api.jar"  
+           location = "${jardir}/${ant.project.name}_api-${bundle.version}.jar"/>
+
+ <property name     = "api_noversion.jar"  
+           location = "${jardir}/${ant.project.name}_api.jar"/>
+
+ <property name     = "impl.jar"     
+           location = "${jardir}/${ant.project.name}-${bundle.version}.jar"/>
+
+ <property name     = "impl_noversion.jar"     
+           location = "${jardir}/${ant.project.name}.jar"/>
+
+ <property name     = "all.jar"
+           location = "${jardir}/${ant.project.name}${all.suffix}.jar"/>
+
+ <property name     = "all_noversion.jar"
+           location = "${jardir}/${ant.project.name}_all.jar"/>
+
+
  
 
- <property name="topdir"   location="."/>
- <property name="proj.dir" location="."/>
- <property name="osgi.dir" location="${topdir}"/>
- <property name="ant.dir"  location="${osgi.dir}/../ant"/>
+ <path id = "framework.path">
+  <pathelement location = "${topdir}/framework.jar"/>
+ </path>
 
- <import file="${ant.dir}/bundlebuild.xml"/>
+ <path id = "bundle.api.path">
+  <pathelement location = "${api.jar}"/>
+ </path>
+
+
+ <path id = "bundle.path">
+   <path refid = "framework.path"/>
+   <path refid = "bundle.api.path"/>
+   <path refid = "bundle.compile.path"/>
+ </path>
+
+ <path id="bcel.path">
+  <pathelement location = "${ant.lib}/bcel-${bcel.version}.jar"/>
+ </path>
+
+ <path id="bundle_tasks.path">
+   <path refid="bcel.path"/>
+   <pathelement location="${antclasses}"/>
+ </path>
+
+
+
+ <target name="init" depends="setup_build">
+   <tstamp>
+    <format property = "bundle.date" 
+            pattern  = "EE MMMM d yyyy, HH:mm:ss"
+            locale   = "en"/>
+   </tstamp>
+
+   <available classname    = "org.apache.bcel.classfile.JavaClass" 
+	      classpathref = "bcel.path"
+              property     = "bcel.available"/>
+
+   <fail unless  = "bcel.available" 
+         message = "BCEL lib not available. Please download from http://jakarta.apache.org/bcel and install in bcel-${bcel.version}.jar in ${ant.lib} or $$ANT_HOME/lib. You can also try  'ant install_bcel'"/>
+ </target>
+
+ <target name="install_bcel">
+   <antcall target="download_bcel" />
+   <antcall target="unpack_bcel"   />
+ </target>
+
+ <target name="download_bcel">
+   <mkdir dir = "${ant.lib}"/>
+   <get src = "http://apache.archive.sunet.se/dist/jakarta/bcel/binaries/bcel-${bcel.version}.zip" 
+        dest = "${ant.lib}/bcel-${bcel.version}.zip"/>
+ </target>
+
+ <target name="unpack_bcel">
+   <unzip src = "${ant.lib}/bcel-${bcel.version}.zip"
+         dest = "${ant.lib}">
+    <patternset>
+     <include name="bcel-${bcel.version}/bcel-${bcel.version}.jar"/>
+    </patternset>
+   </unzip>
+   <move file   = "${ant.lib}/bcel-${bcel.version}/bcel-${bcel.version}.jar" 
+         tofile = "${ant.lib}/bcel-${bcel.version}.jar"/>
+   <delete dir  = "${ant.lib}/bcel-${bcel.version}"/>
+   <delete file = "${ant.lib}/bcel-${bcel.version}.zip"/>
+ </target>
+
+ <target name="install_netcomponents">
+   <antcall target="download_netcomponents'" />
+   <antcall target="unpack_netcomponents'"   />
+ </target>
+
+ <target name="download_netcomponents">
+   <get src = "http://www.savarese.org/oro/downloads/NetComponents-1.3.8.zip" 
+        dest = "${sysprops.ANT_HOME}/NetComponents-1.3.8.zip"/>
+ </target>
+
+ <target name="unpack_netcomponents">
+   <unzip src = "${sysprops.ANT_HOME}/NetComponents-1.3.8.zip"
+         dest = "${sysprops.ANT_HOME}/lib">
+    <patternset>
+     <include name="NetComponents-1.3.8a/NetComponents.jar"/>
+    </patternset>
+   </unzip>
+
+   <move file   = "${sysprops.ANT_HOME}/lib/NetComponents-1.3.8a/NetComponents.jar" 
+         tofile = "${sysprops.ANT_HOME}/lib/NetComponents.jar"/>
+
+ </target>
+
+
+ <target name = "all" depends = "init,compile_ant">
+   <antcall target = "try_bundle.custom.pre"/>
+   <antcall target = "jars"/>
+   <antcall target = "try_bundle.custom.post"/>
+ </target>
+
+
+ <target name        = "try_bundle.custom.pre"
+         if          = "do.bundle.custom.pre">
+   <antcall target = "bundle.custom.pre"/>
+ </target>
+
+ <target name        = "try_bundle.custom.post"
+         if          = "do.bundle.custom.post">
+   <antcall target = "bundle.custom.post"/>
+ </target>
+
+ <target name        = "compile_ant" 
+         description = "Compile and link the custom bundleinfo task">
+
+   <mkdir dir = "${antclasses}"/>
+
+   <javac destdir = "${antclasses}"
+          srcdir  = "${ant.dir}/src"
+          debug = "on">
+     <!-- Bundle.java requires Ant 1.6+ -->
+     <exclude name="org/knopflerfish/ant/taskdefs/bundle/Bundle.java"/>
+   </javac>
+
+   <taskdef name         = "bundleinfo" 
+            classpathref = "bundle_tasks.path"
+     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
+
+   <taskdef name      = "bundlemanifest" 
+            classpathref = "bundle_tasks.path"
+     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleManifestTask"/>
+
+   <taskdef name      = "bundlehtml" 
+            classpathref = "bundle_tasks.path"
+     classname = "org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
+
+   <taskdef name      = "bundleobr" 
+            classpathref = "bundle_tasks.path"
+     classname = "org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
+     
+ </target>
+
+
+ <target name        = "compile" 
+         description = "compiles all java sources">
+
+    <mkdir dir = "${classes.out.dir}"/>
+
+    <javac destdir       = "${classes.out.dir}" 
+           debug         = "on"
+           srcdir        = "${src.dir}"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+           classpathref  = "bundle.path"
+           includes      = "${impl.pattern},${api.pattern}"
+    >
+   </javac>
+  </target>
+
+ <target name        = "compile_api" 
+         description = "compiles only api java sources">
+
+    <mkdir dir = "${classes.out.dir}"/>
+
+    <javac destdir       = "${classes.out.dir}" 
+           debug         = "on"
+           srcdir        = "${src.dir}"
+           classpathref  = "bundle.path"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+           includes      = "${api.pattern}">
+   </javac>
+  </target>
+
+ <target name        = "jars"
+         description = "compile all jars">
+
+  <antcall target = "jar_api0"/>
+  <antcall target = "jar_lib"/>
+  <antcall target = "jar_impl"/>
+  <antcall target = "jar_all0"/>
+
+ </target>
+
+ <target name    = "jar_api0" 
+	 if      = "api.pattern">
+   <antcall target = "jar_api"/>
+ </target>
+
+ <target name    = "jar_all0" 
+	 if      = "api.pattern">
+   <antcall target = "jar_all"/>
+ </target>
+
+ <!-- set up build conditions -->
+ <target name = "setup_build">
+
+  <condition property="do_build_lib">
+   <equals arg1="${bundle.build.lib}" arg2="true"/>
+  </condition>
+
+  <condition property="do_build_api">
+   <equals arg1="${bundle.build.api}" arg2="true"/>
+  </condition>
+
+  <condition property="do_build_impl">
+   <equals arg1="${bundle.build.impl}" arg2="true"/>
+  </condition>
+
+  <condition property="do_build_all">
+   <equals arg1="${bundle.build.all}" arg2="true"/>
+  </condition>
+
+<!--
+  <echo message="do_build_lib  = ${do_build_lib}"/>
+  <echo message="do_build_api  = ${do_build_api}"/>
+  <echo message="do_build_impl = ${do_build_impl}"/>
+  <echo message="do_build_all  = ${do_build_all}"/>
+-->
+ </target>
+
+ <target name    = "jar_impl" 
+         if      = "do_build_impl">
+
+  <antcall target = "compile"/>
+
+  <bundleinfo activator = "bundle.activator" 
+              imports   = "import.package"
+              checkFoundationEE = "${ee.check.foundation}"
+  >
+   <fileset dir      = "${classes.out.dir}" 
+            includes = "${impl.pattern}">
+   </fileset>
+  </bundleinfo>
+
+  <property name="export.package" value=""/>
+
+  <echo message = "${impl.jar}"/>
+  <echo message = " imports   = ${import.package}"/>
+  <echo message = " exports   = ${export.package}"/>
+  <echo message = " activator = ${bundle.activator}"/>
+
+  <mkdir dir = "${jardir}"/>
+  <antcall target="make_resource_dir"/>
+
+  <bundlemanifest file="${outdir}/impl.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
+    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
+    <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
+    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
+    <attribute name = "Export-Service"        value = "${export.service}"/>
+    <attribute name = "Import-Service"        value = "${import.service}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+<!--
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+-->
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.impl}"/>
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
+    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
+    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
+    
+  </bundlemanifest>
+
+  <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${impl.jar}"
+       includes = "${impl.pattern}"
+       excludes = "**/pspbrwse.jbf"
+       manifest = "${outdir}/impl.mf"
+    >
+
+     <fileset dir = "${resources.dir}"/>
+
+    </jar>  
+
+
+ </target>
+
+ <target name    = "add_src_all"
+         if      = "include.source">
+
+  <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${all.jar}"
+       includes = "${api.pattern},${impl.pattern}"
+       update   = "true">
+
+     <zipfileset dir      = "${src.dir}"
+              includes = "**/*.java"
+              prefix = "OSGI-OPT/src"
+     />     
+  </jar>
+ </target>
+
+ <target name    = "add_src_lib"
+         if      = "include.source">
+
+ <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${impl.jar}"
+       includes = "${api.pattern}"
+       update   = "true">
+
+     <zipfileset dir      = "${src.dir}"
+              includes = "**/*.java"
+              prefix = "OSGI-OPT/src"
+     />     
+  </jar>
+ </target>
+
+ <target name    = "jar_api" 
+         depends = "init,compile_ant" 
+	 if      = "do_build_api">
+
+  <antcall target = "compile_api"/>
+
+  <bundleinfo exports = "export.package" 
+              imports = "import.package"
+              checkFoundationEE = "${ee.check.foundation}"
+  >
+   <fileset dir      = "${classes.out.dir}" 
+            includes = "${api.pattern}">
+   </fileset>
+  </bundleinfo>
+
+  <echo message = "${api.jar}"/>
+  <echo message = " exports = ${export.package}"/>
+  <echo message = " imports = ${import.package}"/>
+
+  <mkdir dir = "${jardir}"/>
+
+  <bundlemanifest file = "${outdir}/api.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}-API"/>
+<!--    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}-API"/> -->
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description} (API)"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Category"       value = "API"/>
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.api}"/>
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
+    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
+  </bundlemanifest>
+
+  <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${api.jar}"
+       includes = "${api.pattern}"
+       manifest = "${outdir}/api.mf"
+    >
+    </jar>  
+
+ </target>
+
+ <target name    = "jar_lib" 
+         depends = "init,compile_ant" 
+	 if      = "do_build_lib">
+
+  <antcall target = "compile_api"/>
+
+  <bundleinfo exports = "export.package" 
+              imports = "import.package"
+              checkFoundationEE = "${ee.check.foundation}"
+  >
+   <fileset dir      = "${classes.out.dir}" 
+            includes = "${api.pattern}">
+   </fileset>
+  </bundleinfo>
+
+  <echo message = "${impl.jar}"/>
+  <echo message = " exports = ${export.package}"/>
+  <echo message = " imports = ${import.package}"/>
+
+  <mkdir dir = "${jardir}"/>
+  <antcall target="make_resource_dir"/>
+
+  <bundlemanifest file="${outdir}/impl.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
+    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.impl}"/>
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
+    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
+  </bundlemanifest>
+
+  <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${impl.jar}"
+       includes = "${api.pattern}"
+       manifest = "${outdir}/impl.mf"
+    >
+     <fileset dir = "${resources.dir}"/>
+  </jar>  
+
+  <antcall target="add_src_lib"/>
+
+ </target>
+
+ <target name = "make_resource_dir" if = "resources.dir">
+   <mkdir dir = "${resources.dir}"/>
+ </target>
+
+ <target name    = "jar_all" 
+         depends = "init,compile_ant" 
+	 if      = "do_build_all">
+
+  <antcall target = "compile"/>
+
+  <bundleinfo exports   = "export.package"
+              checkFoundationEE = "${ee.check.foundation}"
+  >
+   <fileset dir      = "${classes.out.dir}" 
+            includes = "${api.pattern}">
+   </fileset>
+  </bundleinfo>
+
+  <bundleinfo activator = "bundle.activator" 
+              imports   = "import.package"
+              checkFoundationEE = "${ee.check.foundation}"
+>
+   <fileset dir      = "${classes.out.dir}" 
+            includes = "${impl.pattern}">
+   </fileset>
+  </bundleinfo>
+
+  <echo message = "${all.jar}"/>
+  <echo message = " imports   = ${import.package}"/>
+  <echo message = " exports   = ${export.package}"/>
+  <echo message = " activator = ${bundle.activator}"/>
+
+  <mkdir dir = "${jardir}"/>
+  <antcall target="make_resource_dir"/>
+
+  <bundlemanifest file="${outdir}/all.mf">
+    <attribute name = "Bundle-Name"           value = "${bundle.name}"/>
+    <attribute name = "Bundle-SymbolicName"   value = "${bundle.symbolicname}"/>
+    <attribute name = "Bundle-Version"        value = "${bundle.version}"/>
+    <attribute name = "Bundle-Description"    value = "${bundle.description}"/>
+    <attribute name = "Bundle-Vendor"         value = "${bundle.vendor}"/>
+    <attribute name = "Bundle-DocURL"         value = "${bundle.docurl}"/>
+    <attribute name = "Bundle-ContactAddress" value = "${bundle.contactaddress}"/>
+    <attribute name = "Bundle-Activator"      value = "${bundle.activator}"/>
+    <attribute name = "Bundle-Category"       value = "${bundle.category}"/>
+    <attribute name = "Bundle-Config"         value = "${bundle.config}"/>
+    <attribute name = "Bundle-Classpath"      value = "${bundle.classpath}"/>
+    <attribute name = "Export-Service"        value = "${export.service}"/>
+    <attribute name = "Import-Service"        value = "${import.service}"/>
+    <attribute name = "Export-Package"        value = "${export.package}"/>
+    <attribute name = "Import-Package"        value = "${import.package}"/>
+    <attribute name = "Bundle-UUID"           value = "${bundle.uuid.all}"/>
+    <attribute name = "Built-From"            value = "${proj.dir}"/>
+    <attribute name = "Build-Date"            value = "${bundle.date}"/>
+    <attribute name = "Application-Icon"      value = "${bundle.icon}"/>
+    <attribute name = "DynamicImport-Package" value = "${dynamicimport.package}"/>
+    <attribute name = "Bundle-NativeCode"     value = "${bundle.nativecode}"/>
+    <attribute name = "Bundle-SubversionURL"  value = "${bundle.subversionurl}"/>
+    <attribute name = "Bundle-APIVendor"  value = "${bundle.apivendor}"/>
+  </bundlemanifest>
+
+  <jar basedir  = "${classes.out.dir}"
+       jarfile  = "${all.jar}"
+       compress = "true"
+       includes = "${api.pattern},${impl.pattern}"
+       excludes = "**/pspbrwse.jbf"
+       manifest = "${outdir}/all.mf"
+    >
+     <fileset dir = "${resources.dir}"/>
+    </jar>
+    
+   <antcall target = "add_src_all"/>
+ </target>
+
+ <target name="check_telnet">
+   <available classname = "com.oroinc.net.telnet.TelnetCommand" 
+              property  = "telnet.available"/>
+
+   <fail unless  = "telnet.available" 
+         message = "Telnet lib is not available. Please download from http://www.savarese.org/oro/downloads/index.html#NetComponents and install in $$ANT_HOME/lib. You can also try  'ant install_netcomponents'"/>
+ </target>
+
+ <target name="install"
+         description="Install all.jar using telnet console">
+   <antcall target="send_console_cmd">
+    <param name  = "cmd"
+           value = "/fr install ${install_url_prefix}${all.jar}"/>
+   </antcall>
+
+   <!-- give it a chance to succeed -->
+   <sleep seconds="5"/>
+ </target>
+
+ <target name="install_impl"
+         description="Install impl.jar using telnet console">
+   <antcall target="send_console_cmd">
+    <param name  = "cmd"
+           value = "/fr install ${install_url_prefix}${impl.jar}"/>
+   </antcall>
+
+   <!-- give it a chance to succeed -->
+   <sleep seconds="5"/>
+ </target>
+
+ <target name="stop" 
+         description="Stop bundle.name using telnet console">
+   <antcall target="send_console_cmd">
+    <param name  = "cmd"
+           value = "/fr stop &#34;${bundle.name}&#34;"/>
+   </antcall>
+ </target>
+
+ <target name="start" 
+         description="Start bundle.name using telnet console">
+   <antcall target="send_console_cmd">
+    <param name  = "cmd"
+           value = "/fr start &#34;${bundle.name}&#34;"/>
+   </antcall>
+ </target>
+
+ <target name="update" 
+         description="Update bundle.name using telnet console">
+   <antcall target="send_console_cmd">
+    <param name  = "cmd"
+           value = "/fr update &#34;${bundle.name}&#34;"/>
+   </antcall>
+ </target>
+
+ <target name="uninstall" 
+         description="Uninstall bundle.name using telnet console">
+   <antcall target="send_console_cmd">
+    <param name  = "cmd"
+           value = "/fr uninstall &#34;${bundle.name}&#34;"/>
+   </antcall>
+ </target>
+
+ <target name="send_console_cmd" depends="check_telnet"
+ >
+  <telnet port     = "${console.port}" 
+          server   = "${console.host}"
+          timeout  = "20">
+   <read string="${console.welcome}"/>
+   <read>ogin:</read>
+   <write echo="true">${console.user}</write>
+   <read>assword:</read>
+   <write echo="false">${console.pwd}</write>
+   <read string="${console.loginok}"/>
+   <write>${cmd}</write>
+   <read/>
+ </telnet>
+</target>
+
+
+  <target name="junit_ext" 
+          description="Runs remote JUnit test using external runner">
+
+   <fail unless="test.id" message="test.id must be set to test suite id"/>
+
+
+   <java classname="${junit.runner.class}" 
+         fork="yes"
+   >
+    <classpath>
+      <path location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+      <path refid="bundle.compile.path"/>
+    </classpath>
+
+    <sysproperty key   = "suite.url" 
+                 value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
+    <arg value="org.knopflerfish.service.junit.client.JUnitClient"/>
+   </java>
+  </target>
+
+  <target name="junit_ant"
+          description="Runs remote JUnit test using Ant junit task">
+
+   <fail unless="test.id" message="test.id must be set to test suite id"/>
+
+   <echo message = "JUnit output file is '${junit.outfile}'"/> 
+   <junit fork         = "yes" 
+          showoutput   = "true" 
+          printsummary = "true">
+
+     <sysproperty key   = "suite.url" 
+                  value = "http://${http.host}:${http.port}/junit?id=${test.id}"/>
+
+     <classpath>
+       <path location="${topdir}/jars/junit/junit_all-1.0.0.jar"/>
+       <path refid="bundle.compile.path"/>
+     </classpath>
+
+     <formatter type="${junit.formatter}"/>
+
+     <test name    = "org.knopflerfish.service.junit.client.JUnitClient" 
+           outfile = "${junit.outfile}"/>
+   </junit>
+  </target>
+
+ <target name = "clean" description = "Removes all files in utput directory">
+  <delete dir = "${outdir}"/>
+  <delete dir = "${jardir}"/>
+ </target>
+
+
+
+
+
+
+

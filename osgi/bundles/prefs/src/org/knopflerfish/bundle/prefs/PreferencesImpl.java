@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,9 +48,10 @@ public class PreferencesImpl implements Preferences {
   String       parentPath;
   String       name;
 
-  public boolean bStale = false;
+  boolean      bStale = false;
+  boolean      bDirty = false;
 
-  public PreferencesImpl(PrefsStorage storage, String path) {
+  PreferencesImpl(PrefsStorage storage, String path) {
     this.storage = storage;
     this.path    = path;
 
@@ -81,7 +82,7 @@ public class PreferencesImpl implements Preferences {
     storage.removeAllKeys(path);
   }
 
-  public void flush() throws BackingStoreException {
+  public void flush() {
     assertValid();
     storage.flush(path);
   }
@@ -108,7 +109,7 @@ public class PreferencesImpl implements Preferences {
       try {
         return Base64.decode(s.getBytes());
       } catch (IOException e) {
-        storage.logWarn("Failed to decode byte array", e);
+        Activator.log.warn("Failed to decode byte array", e);
         return def;
       }
     }
@@ -150,7 +151,7 @@ public class PreferencesImpl implements Preferences {
     try {
       return storage.getKeys(path);
     } catch (Exception e) {
-      storage.logWarn("keys: Failed to get keys for " + path, null);
+      Activator.log.warn("keys: Failed to get keys for " + path);
       throw new BackingStoreException(e.getMessage());
     }
   }
@@ -183,11 +184,11 @@ public class PreferencesImpl implements Preferences {
   }
 
   public Preferences parent() {
-    assertValid();
-
     if(parentPath == null) {
       return null;
     }
+
+    assertValid();
 
     return storage.getNode(parentPath, false);
   }
@@ -253,13 +254,15 @@ public class PreferencesImpl implements Preferences {
 
   public void removeNode() {
     assertValid();
+    if("".equals(path)) {
+      throw new RuntimeException("Cannot remove root node");
+    }
     storage.removeNode(path);
     bStale = true;
   }
 
-  public void sync() throws BackingStoreException {
-    assertValid();
-    storage.sync(path);
+  public void sync() {
+    flush();
   }
 
   protected String absPath(String pathName) {

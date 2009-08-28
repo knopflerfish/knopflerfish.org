@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,11 @@
 
 package org.knopflerfish.framework;
 
+import java.io.*;
 import java.net.*;
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
+import org.osgi.util.tracker.*;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -71,9 +73,9 @@ public class ServiceURLStreamHandlerFactory
     this.framework = fw;
 
     // Initialize JVM classpath packages
-    String s = Framework.getProperty("java.protocol.handler.pkgs", "");
+    String s = System.getProperty("java.protocol.handler.pkgs", "");
     
-    jvmPkgs = Util.splitwords(s, "|");
+    jvmPkgs = Util.splitwords(s, "|", '\"');
 
     for(int i = 0; i < jvmPkgs.length; i++) {
       jvmPkgs[i] = jvmPkgs[i].trim();
@@ -135,9 +137,9 @@ public class ServiceURLStreamHandlerFactory
 	URLConstants.URL_HANDLER_PROTOCOL + 
 	"=" + protocol + 
 	")";
-//    TODO true or false?
+      
       ServiceReference[] srl = framework.services
-	.get(URLStreamHandlerService.class.getName(), filter, null, false);
+	.get(URLStreamHandlerService.class.getName(), filter);
       
       if(srl != null && srl.length > 0) {
 	URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)

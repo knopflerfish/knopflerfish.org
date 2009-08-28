@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004,2006 KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ package org.knopflerfish.bundle.framework_test;
 
 import java.util.*;
 import java.io.*;
+import java.math.*;
+import java.net.*;
 import java.lang.reflect.*;
 import java.security.*;
 
@@ -86,7 +88,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame0187a());
     addTest(new Frame0200a());
     addTest(new Frame215a());
-    addTest(new Frame220b());
+    addTest(new Frame220a());
     addTest(new Cleanup());
   }
  
@@ -411,7 +413,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       String packServiceName = "org.osgi.service.packageadmin.PackageAdmin";
-      String packageName = "org.knopflerfish.service.bundleP1_test";
+      String packageName = "org.knopflerfish.bundle.bundleP1_test";
       String expectedVersion = "1.0";
       PackageAdmin packService = null;
       Bundle fw_test = bc.getBundle();    // this bundle
@@ -458,7 +460,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	// Check the exported packages
 	// In this case the P2 test bundle should import from P1, with version 1.0
 	
-	boolean importState = checkExportVersion (out, buP1, buP2, packageName, "1.0.0");
+	boolean importState = checkExportVersion (out, buP1, buP2, packageName, "1.0");
 	if (importState != true) {
 	  teststatus = false;
 	  fail("framework test bundle , P1 to P2 export not as expected :FRAME215A:FAIL");
@@ -479,7 +481,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	  teststatus = false;
 	}
 	
-	importState = checkExportVersion (out, buP1, buP2, packageName, "1.0.0");
+	importState = checkExportVersion (out, buP1, buP2, packageName, "1.0");
 	if (importState != true) {
 	  teststatus = false;
 	  fail("framework test bundle , P1 to P2 export not as expected after P3 installation :FRAME215A:FAIL");
@@ -498,7 +500,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	}
 	catch (InterruptedException ix) {}
 	
-	importState = checkExportVersion (out, buP1, buP2, packageName, "1.0.0");
+	importState = checkExportVersion (out, buP1, buP2, packageName, "1.0");
 	if (importState != true) {
 	  teststatus = false;
 	  fail("framework test bundle , P1 to P2 export not as expected after P3 installation and refresh of P3 :FRAME215A:FAIL");
@@ -519,7 +521,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	catch (InterruptedException ix) {}
 	
 	// Test if the exported package version to bundle P2 now is bundle P3 with version 3.0
-	importState = checkExportVersion (out, buP3, buP2, packageName, "3.0.0");
+	importState = checkExportVersion (out, buP3, buP2, packageName, "3.0");
 	
 	if (importState != true) {
 	  teststatus = false;
@@ -538,15 +540,13 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	} else {
 	  fail("### framework test bundle :FRAME215A:FAIL");
 	}
+
       } finally {
 	// Uninstall and refresh as a preparation for next test case
 	try {
-	  if (buP3 != null)
-	    buP3.uninstall();
-	  if (buP2 != null)
-	    buP2.uninstall();
-	  if (buP1 != null)
-	    buP1.uninstall();
+	  buP3.uninstall();
+	  buP2.uninstall();
+	  buP1.uninstall();
 	}
 	catch (BundleException bexcA) {
 	  out.println("framework test bundle "+ bexcA +" :FRAME215A:FAIL");
@@ -564,19 +564,20 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
   }
   
 
-  public final static String [] HELP_FRAME220B =  {
+  public final static String [] HELP_FRAME220A =  {
     "Use the framework package, version management mechanism to see that version handling of",
     "exported/imported packages work, in the case that a version of a package",
-    "is already exported and that a new bundle that exports a newer package version.",
-    "Check that the new bundle gets a copy of the new package.",
+    "is already exported and that a new bundle that exports a newer package version",
+    "fails to be started du to that it implicitely requires the new version but",
+    "there is no exporter of that version."
   };
   
-  class Frame220b extends FWTestCase {
+  class Frame220a extends FWTestCase {
     public void runTest() throws Throwable {
       boolean teststatus = true;
       // String packServiceName = "org.osgi.service.packageadmin.PackageAdmin";
-      String packageName = "org.knopflerfish.service.bundleP1_test";
-      String expectedVersion = "3.0.0";
+      // String packageName = "org.knopflerfish.bundle.bundleP1_test";
+      // String expectedVersion = "1.0";
       // PackageAdmin packService = null;
       // Bundle fw_test = bc.getBundle();    // this bundle
       
@@ -595,40 +596,44 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	teststatus = true;
       }
       catch (BundleException bexcA) {
-	fail("framework test bundle "+ bexcA +" :FRAME220B:FAIL");
+	fail("framework test bundle "+ bexcA +" :FRAME220A:FAIL");
 	teststatus = false;
       }
       catch (SecurityException secA) {
-	fail("framework test bundle "+ secA +" :FRAME220B:FAIL");
+	fail("framework test bundle "+ secA +" :FRAME220A:FAIL");
 	teststatus = false;
       }
       
       // Install test bundle P3 and start it.
+      // This should fail due to no exporter of the package,version
+      // implicitly required by P3 
       
+      boolean P3 = false;
       try {
 	buP3 = Util.installBundle(bc, "bundleP3_test-1.0.0.jar");
 	buP3.start();
 	bidP3 = buP3.getBundleId();
+	P3 = false;
       }
       catch (BundleException bexcA) {
-	out.println("framework test bundle "+ bexcA +" :FRAME220B:FAIL");
-	teststatus = false;
+	// Expect this exception 
+	// out.println("framework test bundle "+ bexcA +" :FRAME220A:FAIL");
+	P3 = true;
       }
       catch (SecurityException secA) {
-	fail("framework test bundle "+ secA +" :FRAME220B:FAIL");
+	fail("framework test bundle "+ secA +" :FRAME220A:FAIL");
 	teststatus = false;
       }
       
-      // Check that we have the new version
-      if (!checkExportVersion(out, buP3, buP3, packageName, expectedVersion)) {
-	fail("framework test bundle , we didn't get expected export import wire:FRAME220B:FAIL");
+      if (P3 != true) { // exception not thrown as expected
+	fail("framework test bundle , exception not thrown as expected :FRAME220A:FAIL");
 	teststatus = false;
       }
       
       if (teststatus == true) {
-	out.println("### framework test bundle :FRAME220B:PASS");
+	out.println("### framework test bundle :FRAME220A:PASS");
       } else {
-	fail("### framework test bundle :FRAME220B:FAIL");
+	fail("### framework test bundle :FRAME220A:FAIL");
       }
     }
   }
@@ -638,8 +643,9 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
   private boolean checkExportVersion (Object _out, Bundle exporter, Bundle importer, String packName, String version) {
     String packServiceName = "org.osgi.service.packageadmin.PackageAdmin";
     PackageAdmin packService = (PackageAdmin) bc.getService(bc.getServiceReference(packServiceName));
-    boolean teststatus = false;
+    boolean teststatus = true;
     if (packService == null) {
+      teststatus  = false;
       out.println("Got null service " + packServiceName + " in FRAME215A:FAIL");
     } else {
       // Now get the array of exported packages from exporting bundle,
@@ -654,21 +660,20 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
       //
       if (exp2 != null) {
 	for (int i = 0; i < exp2.length ; i++ ) {
-	  //out.println("Got exported package " + exp2[i].getName() + " spev ver. " + exp2[i].getSpecificationVersion() + " in FRAME215A");
+	  // out.println("Got exported package " + exp2[i].getName() + " spev ver. " + exp2[i].getSpecificationVersion() + " in FRAME215A");
 	  if (version.equals(exp2[i].getSpecificationVersion()) && packName.equals(exp2[i].getName())) {
 	    Bundle [] ib = exp2[i].getImportingBundles();
-            if (ib != null) {
-              for (int j = 0; j < ib.length ; j++ ) {
-                //out.println("   Importing bundle: " + ib[j].getBundleId());
-                if (ib[j].getBundleId() ==  impId) {
-                  // out.println ("MATCH p2 p2 hurrah");
-                  teststatus = true;
-                }
+	    for (int j = 0; j < ib.length ; j++ ) {
+	      // out.println("   Importing bundle: " + ib[j].getBundleId());
+	      if (ib[j].getBundleId() ==  impId) {
+		// out.println ("MATCH p2 p2 hurrah");
+		teststatus = true;
 	      }
 	    }
 	  }
 	}
       } else {
+	teststatus  = false;
 	// out.println("Got null exported package array from bundle " + exporter.getBundleId()  +" in FRAME215A");
       }
     }
@@ -995,7 +1000,6 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
   }
 
   private String getStateString(int bundleState) {
-	//TODO use constants instead  
     switch (bundleState) {
     case 0x01: return "UNINSTALLED";
     case 0x02: return "INSTALLED";
@@ -1004,7 +1008,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
     case 0x10: return "STOPPING";
     case 0x20: return "ACTIVE";
 
-    default: return "Unknown state";
+    default: return "Unknow state";
 
     }
   }

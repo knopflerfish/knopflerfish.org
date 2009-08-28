@@ -1,4 +1,4 @@
-Unit on OSGI
+JUnit on OSGI
 =============
 
 This directory contains support for JUnit testing on a running framework. 
@@ -162,10 +162,10 @@ Note2:
   HTML.
  
 
-JUnit support in bundlebuild.xml
+JUnit support in bundlebuild_include.xml
 ----------------------------------------
 
-As a convenience, the ant/bundlebuild.xml script
+As a convenience, the ant/bundlebuild_include.xml script
 contains support for using the JUnit client.
 
 
@@ -186,7 +186,7 @@ can be installed and started by
    > ant install start
      
 
-The following Ant properties are set as default in bundlebuild.xml:
+The following Ant properties are set as default in bundlebuild_include.xml:
 
   http.host              localhost
   http.port              8080

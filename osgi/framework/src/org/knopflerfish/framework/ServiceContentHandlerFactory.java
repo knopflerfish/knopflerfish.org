@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.framework;
 
+import java.io.*;
 import java.net.*;
 import org.osgi.service.url.*;
 import java.util.Map;
@@ -59,9 +60,9 @@ public class ServiceContentHandlerFactory
     this.framework = fw;
 
     // Initialize JVM classpath handlers
-    String s = Framework.getProperty("java.content.handler.pkgs", "");
+    String s = System.getProperty("java.content.handler.pkgs", "");
     
-    jvmPkgs = Util.splitwords(s, "|");
+    jvmPkgs = Util.splitwords(s, "|", '\"');
     for(int i = 0; i < jvmPkgs.length; i++) {
       jvmPkgs[i] = jvmPkgs[i].trim();
       if(Debug.url) {
@@ -106,9 +107,9 @@ public class ServiceContentHandlerFactory
   ContentHandler getServiceHandler(String mimetype) {
     try {
       String filter = "(" + URLConstants.URL_CONTENT_MIMETYPE + "=" + mimetype + ")";
-      //TODO true or false?
+      
       ServiceReference[] srl = framework.services
-	.get(ContentHandler.class.getName(), filter, null, false);
+	.get(ContentHandler.class.getName(), filter);
       
       if(srl != null && srl.length > 0) {
 	ContentHandlerWrapper wrapper = 

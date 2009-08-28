@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,30 +34,23 @@
 
 package org.knopflerfish.framework.bundlestorage.memory;
 
-
+import org.knopflerfish.framework.*;
 import org.osgi.framework.Constants;
-
-import org.knopflerfish.framework.FileArchive;
-
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Enumeration;
+import java.net.*;
+import java.security.*;
 import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.StringTokenizer;
-import java.util.Vector;
-import java.util.jar.*;
 
+import java.util.jar.*;
+import java.util.zip.*;
 
 /**
  * JAR file handling.
  *
  * @author Jan Stein
- * @author Philippe Laporte
  * @version $Revision$
  */
-class Archive implements FileArchive {
+class Archive {
 
   /**
    * Archives manifest
@@ -69,8 +62,6 @@ class Archive implements FileArchive {
    * If not null, it is a sub jar instead.
    */
   protected HashMap /* String -> byte[] */ content;
-
-  ArrayList subDirs/*= null*/;
 
   /**
    * Create an Archive based on contents of an InputStream,
@@ -122,8 +113,18 @@ class Archive implements FileArchive {
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
    */
-  public String getAttribute(String key) {
+  String getAttribute(String key) {
     return manifest.getMainAttributes().getValue(key);
+  }
+
+
+  /**
+   * Get all attributes from the manifest of the archive.
+   *
+   * @return All attributes.
+   */
+  Attributes getAttributes() {
+    return manifest.getMainAttributes();
   }
 
 
@@ -135,27 +136,8 @@ class Archive implements FileArchive {
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  public byte[] getClassBytes(String classFile) throws IOException {
-    byte[] bytes;
-    if ((bytes = (byte[]) content.remove(classFile)) == null) {
-      if (subDirs == null) {
-        return null;
-      }
-      Iterator it = subDirs.iterator();
-      boolean found = false;
-      while (it.hasNext()) {
-        String subDir = (String) it.next();
-        bytes = (byte[]) content.remove(subDir + "/" + classFile);
-        if (bytes != null) {
-          found = true;
-          break;
-        }
-      }
-      if (!found) {
-        return null;
-      }
-    }
-    return bytes;
+  byte[] getBytes(String component) throws IOException {
+    return (byte [])content.remove(component);
   }
 
 
@@ -165,56 +147,16 @@ class Archive implements FileArchive {
    * @param component Entry to get reference to.
    * @return InputStream to entry or null if it doesn't exist.
    */
-  public InputStream getInputStream(String component) {
+  InputStream getInputStream(String component) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    byte[] b = (byte[]) content.get(component);
+    byte [] b = (byte [])content.get(component);
     if (b != null) {
       return new ByteArrayInputStream(b);
     } else {
       return null;
     }
-  }
-
-  //Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like the manifest
-  //gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
-  //investigate further later
-  public Enumeration findResourcesPath(String path) {
-    Vector answer = new Vector();
-    // "normalize" + erroneous path check: be generous
-    path.replace('\\', '/');
-    if (path.startsWith("/")) {
-      path = path.substring(1);
-    }
-    if (!path.endsWith("/") /* in case bad argument */) {
-      if (path.length() > 1) {
-        path += "/";
-      }
-    }
-
-    Iterator it = content.keySet().iterator();
-    while (it.hasNext()) {
-      String entry = (String) it.next();
-      if (entry.startsWith(path)) {
-        String terminal = entry.substring(path.length());
-        StringTokenizer st = new StringTokenizer(terminal, "/");
-        String entryPath;
-        if (st.hasMoreTokens()) {
-          entryPath = path + st.nextToken();
-        } else {// this should not happen even for "", or?
-          entryPath = path;
-        }
-        if (!answer.contains(entryPath)) {
-          answer.add(entryPath);
-        }
-      }
-    }
-
-    if (answer.size() == 0) {
-      return null;
-    }
-    return answer.elements();
   }
 
 
@@ -226,23 +168,10 @@ class Archive implements FileArchive {
    * @exception FileNotFoundException if no such Jar file in archive.
    * @exception IOException if failed to read Jar file.
    */
-  public FileArchive getSubArchive(String path) throws IOException {
-    if (path.endsWith(".jar")) {
-      return new Archive(this, path);
-    } else {
-      if (subDirs == null) {
-        subDirs = new ArrayList(1);
-      }
-      // NYI Check that it exists
-      subDirs.add(path);
-      return this;
-    }
+  Archive getSubArchive(String path) throws IOException {
+    return new Archive(this, path);
   }
 
-
-  public Manifest getManifest() {
-    return manifest;
-  }
 
   //
   // Private methods
@@ -258,30 +187,30 @@ class Archive implements FileArchive {
     JarEntry je;
     while ((je = ji.getNextJarEntry()) != null) {
       if (!je.isDirectory()) {
-        int len = (int) je.getSize();
-        if (len == -1) {
-          len = 8192;
-        }
-        byte[] b = new byte[len];
-        int pos = 0;
-        do {
-          if (pos == len) {
-            len *= 2;
-            byte[] oldb = b;
-            b = new byte[len];
-            System.arraycopy(oldb, 0, b, 0, oldb.length);
-          }
-          int n;
-          while ((len - pos) > 0 && (n = ji.read(b, pos, len - pos)) > 0) {
-            pos += n;
-          }
-        } while (ji.available() > 0);
-        if (pos != b.length) {
-          byte[] oldb = b;
-          b = new byte[pos];
-          System.arraycopy(oldb, 0, b, 0, pos);
-        }
-        files.put(je.getName(), b);
+	int len = (int)je.getSize();
+	if (len == -1) {
+	  len = 8192;
+	}
+	byte [] b = new byte[len];
+	int pos = 0;
+	do {
+	  if (pos == len) {
+	    len *= 2;
+	    byte[] oldb = b;
+	    b = new byte[len];
+	    System.arraycopy(oldb, 0, b, 0, oldb.length);
+	  }
+	  int n;
+	  while ((len - pos) > 0 && (n = ji.read(b, pos, len - pos)) > 0) {
+	    pos += n;
+	  }
+	} while (ji.available() > 0);
+	if (pos != b.length) {
+	    byte[] oldb = b;
+	    b = new byte[pos];
+	    System.arraycopy(oldb, 0, b, 0, pos);
+	}
+	files.put(je.getName(), b);
       }
     }
     return files;

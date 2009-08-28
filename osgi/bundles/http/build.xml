@@ -1,33 +1,17 @@
 <?xml version="1.0"?>
 
-<project name="http-dir" default="all">
+<project name="osgi" default="all">
 
-  <!-- Internal target that calls a specified target in all sub-dirs. -->
-  <target name="doAntBuild">
-    <ant target="${the.target}" dir="http"/>
-    <ant target="${the.target}" dir="httproot"/>
-    <ant target="${the.target}" dir="httpconsole"/>
-  </target>
-
-  <target name="all" 
-	  description="Builds all bundles">
-    <antcall target="doAntBuild">
-      <param name="the.target" value="all"/>
-    </antcall>
-  </target>
-
-  <target name="clean" 
-	  description="Cleans all bundles">
-    <antcall target="doAntBuild">
-      <param name="the.target" value="clean"/>
-    </antcall>
-  </target>
-  
-  <target name="bundle_doc" 
-	  description="Builds doc for all bundles">
-    <antcall target="doAntBuild">
-      <param name="the.target" value="bundle_doc"/>
-    </antcall>
-  </target>
+   <target name="all">
+    <ant dir="http"              target="all"/>
+    <ant dir="httproot"          target="all"/>
+    <ant dir="httpconsole"       target="all"/>
+   </target>
+ 
+   <target name="clean">
+    <ant dir="http"              target="clean"/>
+    <ant dir="httproot"          target="clean"/>
+    <ant dir="httpconsole"       target="clean"/>
+   </target>
 
 </project>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import java.util.*;
  * Storage of all bundles jar content.
  *
  * @author Jan Stein
- * @author Mats-Ola Persson
  * @version $Revision: 1.1.1.1 $
  */
 public class BundleStorageImpl implements BundleStorage {
@@ -63,11 +62,6 @@ public class BundleStorageImpl implements BundleStorage {
   private ArrayList /* BundleArchive */ archives = new ArrayList();
 
   /**
-   * If we should check if bundles are signed
-   */
-  boolean checkSigned = false;
-
-  /**
    * Create a container for all bundle data in this framework.
    * Try to restore all saved bundle archive state.
    *
@@ -83,36 +77,36 @@ public class BundleStorageImpl implements BundleStorage {
     for (int i = 0; list != null & i < list.length; i++) {
       long id;
       try {
-        id = Long.parseLong(list[i]);
+	id = Long.parseLong(list[i]);
       } catch (NumberFormatException e) {
-        continue;
+	continue;
       }
       if (id == 0) {
-        System.err.println("Saved bundle with illegal id 0 is ignored.");
+	System.err.println("Saved bundle with illegal id 0 is ignored.");
       }
       int pos = find(id);
       if (pos < archives.size() && ((BundleArchive)archives.get(pos)).getBundleId() == id) {
-        System.err.println("There are two bundle directories with id: " + id);
-        break;
+	System.err.println("There are two bundle directories with id: " + id);
+	break;
       }
       FileTree dir = new FileTree(bundlesDir, list[i]);
       if (dir.isDirectory()) {
-        try {
-          boolean bUninstalled = BundleArchiveImpl.isUninstalled(dir);
-          if(bUninstalled) {
-            // silently remove any bundle marked as uninstalled
-            dir.delete();
-          } else {
-            BundleArchive ba = new BundleArchiveImpl(this, dir, id);
-            archives.add(pos, ba);
-          }
-          if (id >= nextFreeId) {
-            nextFreeId = id + 1;
-          }
-        } catch (Exception e) {
-          dir.delete();
-          System.err.println("Removed corrupt bundle dir (" + e.getMessage() + "): " + dir);
-        }
+	try {
+	  boolean bUninstalled = BundleArchiveImpl.isUninstalled(dir);
+	  if(bUninstalled) {
+	    // silently remove any bundle marked as uninstalled
+	    dir.delete();
+	  } else {
+	    BundleArchive ba = new BundleArchiveImpl(this, dir, id);
+	    archives.add(pos, ba);
+	  }
+	  if (id >= nextFreeId) {
+	    nextFreeId = id + 1;
+	  }
+	} catch (Exception e) {
+	  dir.delete();
+	  System.err.println("Removed corrupt bundle dir (" + e.getMessage() + "): " + dir);
+	}
       }
     }
   }
@@ -144,45 +138,36 @@ public class BundleStorageImpl implements BundleStorage {
     }
   }
 
-
   /**
-   * Insert a new jar file into persistent storagedata as an update
-   * to an existing bundle archive. To commit this data a call to
-   * <code>replaceBundleArchive</code> is needed.
+   * Replace jar content for bundle in persistent storage.
    *
    * @param old BundleArchive to be replaced.
    * @param is Inputstrem with bundle content.
    * @return Bundle archive object.
    */
-  public BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
-    throws Exception
-  {
-    return new BundleArchiveImpl((BundleArchiveImpl)old, is);
-  }
-
-
-  /**
-   * Replace old bundle archive with a new updated bundle archive, that
-   * was created with updateBundleArchive.
-   *
-   * @param oldBA BundleArchive to be replaced.
-   * @param newBA Inputstrem with bundle content.
-   * @return New bundle archive object.
-   */
-  public void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
+  public BundleArchive replaceBundleJar(BundleArchive old, InputStream is)
     throws Exception
   {
     int pos;
-    long id = oldBA.getBundleId();
+    long id = old.getBundleId();
     synchronized (archives) {
       pos = find(id);
-      if (pos >= archives.size() || archives.get(pos) != oldBA) {
-        throw new Exception("replaceBundleJar: Old bundle archive not found, pos=" + pos);
+      if (pos >= archives.size() || archives.get(pos) != old) {
+	throw new Exception("No such bundle archive exists");
       }
-      archives.set(pos, newBA);
     }
+    BundleArchive ba = new BundleArchiveImpl((BundleArchiveImpl)old, is);
+    synchronized (archives) {
+      if (archives.get(pos) != old) {
+	pos = find(id);
+	if (pos >= archives.size() || archives.get(pos) != old) {
+	  throw new Exception("Bundle removed during update");
+	}
+      }
+      archives.set(pos, ba);
+    }
+    return ba;
   }
-
 
   /**
    * Get all bundle archive objects.
@@ -206,19 +191,10 @@ public class BundleStorageImpl implements BundleStorage {
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
       BundleArchive ba = (BundleArchive)i.next();
       if (ba.getStartOnLaunchFlag()) {
-        res.add(ba.getBundleLocation());
+	res.add(ba.getBundleLocation());
       }
     }
     return res;
-  }
-
-
-  /**
-   * 
-   *
-   */
-  public void setCheckSigned(boolean value) {
-    checkSigned = value;
   }
 
   //
@@ -234,11 +210,11 @@ public class BundleStorageImpl implements BundleStorage {
   boolean removeArchive(BundleArchive ba) {
     synchronized (archives) {
       int pos = find(ba.getBundleId());
-      if (archives.get(pos) == ba) {
-        archives.remove(pos);
-        return true;
+      if (pos < archives.size() && archives.get(pos) == ba) {
+	archives.remove(pos);
+	return true;
       } else {
-        return false;
+	return false;
       }
     }
   }
@@ -256,19 +232,16 @@ public class BundleStorageImpl implements BundleStorage {
    */
   private int find(long id) {
     int lb = 0;
-    int ub = archives.size() - 1;
+    int ub = archives.size();
     int x = 0;
-    while (lb < ub) {
+    while (lb != ub) {
       x = (lb + ub) / 2;
       long xid = ((BundleArchive)archives.get(x)).getBundleId();
       if (id <= xid) {
-        ub = x;
+	ub = x;
       } else {
-        lb = x+1;
+	lb = x+1;
       }
-    }
-    if (lb < archives.size() && ((BundleArchive)archives.get(lb)).getBundleId() < id) {
-      return lb + 1;
     }
     return lb;
   }

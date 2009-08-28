@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -194,27 +194,15 @@ public class Main {
       } catch (Exception ignored) {     }
 
       try {
-        licenseResName
-          = mf.getMainAttributes().getValue("jarunpacker-licensepath");
-        if (null!=licenseResName) {
-          licenseResName = licenseResName.trim();
-        }
+        licenseResName = mf.getMainAttributes().getValue("jarunpacker-licensepath");
       } catch (Exception ignored) {     }
 
       try {
-        licenseTitle
-          = mf.getMainAttributes().getValue("jarunpacker-licensetitle");
-        if (null!=licenseTitle) {
-          licenseTitle = licenseTitle.trim();
-        }
+        licenseTitle = mf.getMainAttributes().getValue("jarunpacker-licensetitle");
       } catch (Exception ignored) {     }
 
       try {
-        windowTitle
-          = mf.getMainAttributes().getValue("jarunpacker-windowtitle");
-        if (null!=windowTitle) {
-          windowTitle = windowTitle.trim();
-        }
+        windowTitle = mf.getMainAttributes().getValue("jarunpacker-windowtitle");
       } catch (Exception ignored) {     }
 
 

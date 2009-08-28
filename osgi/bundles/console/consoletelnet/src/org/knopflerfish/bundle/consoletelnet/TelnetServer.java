@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,16 +53,23 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
 /**
- * The telnet console server listens to a port for connections and
- * upon accept, creates a telnet session to handle that connection.
+ * * The telnet console server listens to a port for connections * and upon
+ * accept, creates a telnet session to handle that connection *
  */
 public class TelnetServer implements org.osgi.framework.BundleActivator,
         Runnable, ManagedService {
     private static BundleContext bc;
 
+    private static final String consoleServiceName = ConsoleService.class
+            .getName();
+
     private static LogRef log = null;
 
+    private static ConsoleService cs = null;
+
     private static TelnetConfig telnetConfig = null;
+
+    private static ServiceReference servRef = null;
 
     private static ServiceRegistration configServReg = null;
 
@@ -88,12 +95,18 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
         TelnetServer.bc = bc;
 
         log = new LogRef(bc, true);
+        servRef = bc.getServiceReference(consoleServiceName);
+
+        cs = (ConsoleService) bc.getService(servRef);
+        if (cs == null) {
+            log.error("Failed to get ConsoleService");
+        }
 
         telnetSessions = new Hashtable();
 
         Hashtable conf = new Hashtable();
         try {
-            telnetConfig = new TelnetConfig(bc);
+            telnetConfig = new TelnetConfig();
             conf.put(Constants.SERVICE_PID, getClass().getName());
 
             configServReg = bc.registerService(ManagedService.class.getName(),
@@ -152,8 +165,8 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
                 try {
                     // serverSocket = new ServerSocket(telnetConfig.getPort());
                     serverSocket = new ServerSocket(telnetConfig.getPort(),
-                                                    telnetConfig.getBacklog(),
-                                                    telnetConfig.getAddress());
+                            telnetConfig.getBacklog(), telnetConfig
+                                    .getAddress());
 
                     log.info("listening on port " + telnetConfig.getPort());
 
@@ -171,13 +184,13 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
 
                     // System.out.println("accepting on " + socket);
                     TelnetSession telnetSession = new TelnetSession(socket,
-                            telnetConfig, log, bc, this);
+                            telnetConfig, cs, log, bc, this);
                     Thread telnetSessionThread = new Thread(telnetSession,
                             "TelnetConsoleSession");
                     telnetSessions.put(telnetSession, telnetSessionThread);
                     telnetSessionThread.setDaemon(false);
                     telnetSessionThread.start();
-                } catch (InterruptedIOException iox) { // Timeout
+                } catch (InterruptedIOException iox) {
                     // iox.printStackTrace();
                 } catch (IOException iox) {
                     // iox.printStackTrace();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,17 +62,16 @@ public class RestartTestSuite extends TestSuite {
     addTest(new Restart050());
     addTest(new Cleanup());
   }
-
+ 
 
   class Restart050 extends FWTestCase {
     public void runTest() throws Throwable {
       Bundle[] bl = bc.getBundles();
       for(int i = 0; i < bl.length; i++) {
-        out.println(i);
-        out.println(i + ", #" + bl[i].getBundleId() +
-                    ", " + bl[i].getHeaders().get("Bundle-UUID") +
-                    ", state=" + bl[i].getState() +
-                    ", level=" + sl.getBundleStartLevel(bl[i]));
+	out.println(i + ", #" + bl[i].getBundleId() + 
+		    ", " + bl[i].getHeaders().get("Bundle-UUID") + 
+		    ", state=" + bl[i].getState() + 
+		    ", level=" + sl.getBundleStartLevel(bl[i]));
       }
 
       state.assertBundles(bl);
@@ -81,6 +80,9 @@ public class RestartTestSuite extends TestSuite {
 
   class Setup extends FWTestCase {
     public void runTest() throws Throwable {
+      
+      assertTrue("The framework must be in ACTIVE state", 
+		 bc.getBundle(0).getState() == Bundle.ACTIVE);
 
       File f = bc.getDataFile(Activator.STATE_FILENAME);
 

@@ -1,0 +1,214 @@
+<h3>Knopflerfish 2, OSGi R4 compliant</h3>
+
+This is work in progress on Knopflerfish 2, the next major release of
+KF. The objective is to implement the OSGi R4 specifications
+fully. This includes the:
+<ul>
+<li>Core Specification
+<li>Service Compendium
+<li>Mobile Specification, MEG - Not released yet.
+</ul>
+
+A beta-3 version has been released and is available for 
+<a href="download.html">download</a>.<p>
+
+<h3>Release Schedule</h3>
+The release schedule for KF 2 is as follows:
+<ul>
+<li>Dec 2005, Alpha version (alpha-1 released 21 Dec 2005)
+<li>End Jan 2006, Beta version (beta-1 released 27 Jan 2006)
+<li>Beginning Feb 2006, 2nd Beta version (beta-2 released 10 Feb 2006)
+<li>Beginning Mar 2006, 3rd Beta version (beta-3 released 06 March 2006)
+<li>Beginning Apr 2006, 4th Beta version (beta-4 released 05 April 2006)
+<li>Mid Apr 2006, 2.0 RC1
+<li>End Apr 2006, official 2.0 release
+</ul>
+The official 2.0 release is now targeted at the end of April. The
+ release date will be set as soon as the release date of the formal
+OSGi R4 TCK is announced. 
+<p>
+A release candidate will be made available in the beginning of April 2006. This
+version can be expected to be the very close to the final 2.0 release.
+</p>
+<p>
+The 2.0 release will  not include the MEG parts due
+to the release schedule of the OSGi MEG specifications.
+</p>
+
+<h3>Status KF 2, KF 2.0-beta-4 release</h3>
+
+With this fourth beta release, the KF 2 framework is feature complete
+in all mandatory parts. Of the optional parts only minor items remain. 
+All other parts are implemented and fully functional. 
+<p>
+The Service Compendium was already in the beta-1 release feature
+complete. Minor fixes has been added in this release. 
+</p>
+<p>
+The desktop and framework commands have been updated in a number of 
+ways to reflect new features in K4.
+</p>
+<p>
+The table below describes what parts have been implemented and what parts
+are still pending in the KF 2.0 beta 2 release.
+<p>
+<table border="0" cellpadding="4" cellspacing="2">
+ <tr> <td bgcolor="#cccccc" colspan="4"><b>Core Specification - OSGi framework</b></td></tr>
+ <tr>
+  <td><b>Module</b></td>
+  <td><b>Status</b></td>  
+  <td><b>R4 Support</b></td>  
+  <td><b>Description</b></td>
+ </tr>
+
+ <tr>
+  <td class="nowrap">Security Layer  </td>
+  <td class="nowrap">In Progress  </td>
+  <td class="nowrap">Partly  </td>
+  <td>Signed bundles are not supported yet  </td>
+ </tr>
+
+ <tr>
+  <td class="nowrap">Module Layer  </td>
+  <td> In Progress </td>
+  <td> Full </td>
+
+  <td>
+      To use the extension bundle support you need to use a wrapper script
+      that will restart framework when needed. An example shell-script is
+      included (osgi/kf2).
+  </td>
+ </tr>
+
+ <tr>
+  <td> Life Cycle Layer </td>
+  <td> Done </td>
+  <td> Full </td>
+  <td> &nbsp;</td>
+ </tr>
+
+ <tr>
+  <td> Service Layer </td>
+  <td> Done </td>
+  <td> Full </td>
+  <td> &nbsp;</td>
+ </tr>
+
+ <tr>
+  <td class="nowrap"> Framework Services </td>
+  <td class="nowrap"> In Progress </td>
+  <td> Partly </td>
+  <td> Start Level, Permission Admin and URL Handler services have been updated
+    to conform to R4. <p>
+    The Conditional Permission Admin is not yet included.
+ </tr>
+
+ <tr>
+  <td colspan="4" bgcolor="#cccccc"> <b>Service Compendium</b> </td>
+ </tr>
+
+ <tr>
+  <td><b>Module</b></td>
+  <td><b>Status</b></td>  
+  <td class="nowrap"><b>R4 Support</b></td>  
+  <td><b>Description</b></td>
+ </tr>
+
+ <tr>
+  <td> Log </td>
+  <td> Done </td>
+  <td> Full</td>
+  <td> </td>
+ </tr>
+
+ <tr>
+  <td> HTTP </td>
+  <td> Done </td>
+  <td> Full</td>
+  <td> </td>
+ </tr>
+
+ <tr>
+  <td class="nowrap"> Configuration Admin </td>
+  <td> Done </td>
+  <td> Full</td>
+  <td> </td>
+ </tr>
+
+ <tr>
+  <td> Preferences </td>
+  <td> Done</td>
+  <td> Full</td>
+  <td> &nbsp; </td>
+ </tr>
+
+ <tr>
+  <td> User Admin </td>
+  <td> Done</td>
+  <td> Full</td>
+  <td> &nbsp; </td>
+ </tr>
+
+ <tr>
+  <td> IO Connector </td>
+  <td> Done </td>
+  <td> Full</td>
+  <td> &nbsp; </td>
+ </tr>
+
+ <tr>
+  <td> Metatype </td>
+  <td> Done </td>
+  <td> Full</td>
+  <td> &nbsp; </td>
+ </tr>
+
+ <tr>
+  <td> Declarative Services </td>
+  <td> Done </td>
+  <td> Full</td>
+  <td> New in R4</td>
+ </tr>
+
+ <tr>
+  <td> Event Admin </td>
+  <td> Done </td>
+  <td> Full</td>
+  <td> New in R4</td>
+ </tr>
+
+ <tr>
+  <td> Service Tracker </td>
+  <td> Done </td>
+  <td> Full</td>
+  <td> &nbsp;</td>
+ </tr>
+
+
+ <tr>
+  <td colspan="4" bgcolor="#cccccc"> <b>Knopflerfish Extras</b> </td>
+ </tr>
+
+ <tr>
+  <td> Console, Framework Commands </td>
+  <td> Done </td>
+  <td> NA</td>
+  <td> New commands: closure, resolve, findbundles.
+    The output of the bundles command has been changed (fragments and 
+    hosts are indicated, last modified is listed in verbose output, it 
+    is possible to sort on last modified)
+  </td>
+ </tr>
+
+ <tr>
+  <td> KF Desktop </td>
+  <td> Done </td>
+  <td> NA</td>
+  <td> Fragments, hosts and required bundles are listed on the Closure tab.
+    Symbolic name and last modified information is displayed on the 
+    Manifest tab.
+  </td>
+ </tr>
+
+</table>
+

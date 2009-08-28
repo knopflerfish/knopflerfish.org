@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import java.lang.reflect.Array;
 
 
 public class Util {
-  /**
+  /** 
    * Default whitespace string for splitwords().
    * Value is <tt>" \t\n\r"</tt>)
    */
@@ -55,9 +55,9 @@ public class Util {
    * Value is <tt>'"'</tt>
    */
   protected static char   CITCHAR    = '"';
-
-
-
+  
+  
+  
   /**
    * Split a string into words separated by whitespace.
    * <p>
@@ -71,48 +71,48 @@ public class Util {
    *                   whitespace between words and will be removed
    *                   from the result. If no words are found, return an
    *                   array of length zero.
-   * @param citChar    Citation character used for grouping words with
+   * @param citChar    Citation character used for grouping words with 
    *                   embedded whitespace. Typically '"'
    */
-  public static String [] splitwords(String s,
-                                     String whiteSpace,
-                                     char   citChar,
-                                     Hashtable keepWhite) {
+  public static String [] splitwords(String s, 
+				     String whiteSpace,
+				     char   citChar,
+				     Hashtable keepWhite) {
     boolean       bCit  = false;        // true when inside citation chars.
     Vector        v     = new Vector(); // (String) individual words after splitting
-    StringBuffer  buf   = null;
-    int           i     = 0;
-
+    StringBuffer  buf   = null; 
+    int           i     = 0; 
+    
     while(i < s.length()) {
       char c = s.charAt(i);
 
       if(bCit || whiteSpace.indexOf(c) == -1) {
-        // Build up word until we breaks on either a citation char or whitespace
-        if(c == citChar) {
-          bCit = !bCit;
-        } else {
-          if(buf == null) {
-            buf = new StringBuffer();
-          }
-          buf.append(c);
-        }
-        i++;
-      } else {
-        // found whitespace or end of citation, append word if we have one
-        String w = "" + c;
-        //      System.out.println("white=" + w);
-        if(whiteSpace.indexOf(c) != -1 && keepWhite.containsKey(w)) {
-          v.addElement(w);
-        }
-        if(buf != null) {
-          v.addElement(buf.toString());
-          buf = null;
-        }
+	// Build up word until we breaks on either a citation char or whitespace
+	if(c == citChar) {
+	  bCit = !bCit;
+	} else {
+	  if(buf == null) {
+	    buf = new StringBuffer();
+	  }
+	  buf.append(c);
+	}
+	i++;
+      } else {	
+	// found whitespace or end of citation, append word if we have one
+	String w = "" + c;
+	//	System.out.println("white=" + w);
+	if(whiteSpace.indexOf(c) != -1 && keepWhite.containsKey(w)) {
+	  v.addElement(w);
+	}
+	if(buf != null) {
+	  v.addElement(buf.toString());
+	  buf = null;
+	}
 
-        // and skip whitespace so we start clean on a word or citation char
-        while((i < s.length()) && (-1 != whiteSpace.indexOf(s.charAt(i)))) {
-          i++;
-        }
+	// and skip whitespace so we start clean on a word or citation char
+	while((i < s.length()) && (-1 != whiteSpace.indexOf(s.charAt(i)))) {
+	  i++;
+	}
       }
     }
 
@@ -120,11 +120,11 @@ public class Util {
     if(buf != null) {
       v.addElement(buf.toString());
     }
-
+    
     // Copy back into an array
     String [] r = new String[v.size()];
     v.copyInto(r);
-
+    
     return r;
   }
 
@@ -143,69 +143,29 @@ public class Util {
       String systemBrowser = "explorer.exe";
       Runtime rt = Runtime.getRuntime();
       Process proc = rt.exec(new String[] {
-        systemBrowser,
-        "\"" + url.toString() + "\"",
+	systemBrowser, 
+	"\"" + url.toString() + "\"",
       });
-      new StreamGobbler(proc.getErrorStream());
-      new StreamGobbler(proc.getInputStream());
-    } else if (Util.isMacOSX()) {
-      // Yes, this only works on Mac OS X
-      Runtime rt = Runtime.getRuntime();
-      Process proc = rt.exec(new String[] {
-        "/usr/bin/open",
-        url.toString(),
-      });
-      new StreamGobbler(proc.getErrorStream());
-      new StreamGobbler(proc.getInputStream());
     } else {
-      throw new IOException
-        ("Only windows and Mac OS X browsers are yet supported");
+      throw new IOException("Only windows browsers are yet supported");
     }
   }
-
+  
   public static boolean isWindows() {
-    String os = Activator.bc.getProperty("os.name");
+    String os = System.getProperty("os.name");
     if(os != null) {
       return -1 != os.toLowerCase().indexOf("win");
     }
     return false;
   }
 
-  public static boolean isMacOSX() {
-    String os = Activator.bc.getProperty("os.name");
-    return "Mac OS X".equals(os);
-  }
-
-  /** A thread that empties an input stream without complaining.*/
-  static class StreamGobbler extends Thread
-  {
-    InputStream is;
-    StreamGobbler(InputStream is)
-    {
-      this.is = is;
-      start();
-    }
-
-    public void run()
-    {
-      BufferedReader br = new BufferedReader(new InputStreamReader(is));
-      String line = "";
-      try {
-        while (null!=line) {
-          line = br.readLine();
-          //System.out.println(line);
-        }
-      } catch (IOException _ioe) {
-      }
-    }
-  }
 
   public static Object toArray(Vector v, Class clazz) {
     if(v == null) {
       return null;
     }
-    Object array = (Object)Array.newInstance(clazz,
-                                             v != null ? v.size() : 0);
+    Object array = (Object)Array.newInstance(clazz, 
+						 v != null ? v.size() : 0);
 
     for(int i = 0; i < v.size(); i++) {
       Array.set(array, i, v.elementAt(i));
@@ -228,7 +188,7 @@ public class Util {
     return v;
   }
 
-  public static String shortLocation(String s) {
+ public static String shortLocation(String s) {
     int ix = s.lastIndexOf("/");
 
     // handle eclipse extended location directory syntax
@@ -260,11 +220,11 @@ public class Util {
   public static void startFont(StringBuffer sb) {
     startFont(sb, "-2");
   }
-
+  
   public static void stopFont(StringBuffer sb) {
     sb.append("</font>");
   }
-
+  
   public static void startFont(StringBuffer sb, String size) {
     sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
@@ -278,11 +238,11 @@ public class Util {
     sb.append("</a>");
   }
 
-  public static void serviceLink(StringBuffer sb,
-                                 ServiceReference sr,
-                                 String txt) {
-    sb.append("<a href=\"" + URL_SERVICE_PREFIX +
-              sr.getProperty(Constants.SERVICE_ID) + "\">");
+  public static void serviceLink(StringBuffer sb, 
+				 ServiceReference sr,
+				 String txt) {
+    sb.append("<a href=\"" + URL_SERVICE_PREFIX + 
+	      sr.getProperty(Constants.SERVICE_ID) + "\">");
     sb.append(txt);
     sb.append("</a>");
   }
@@ -297,10 +257,11 @@ public class Util {
 
   public static long bidFromURL(URL url) {
     if(!isBundleLink(url)) {
-      throw new RuntimeException("URL '" + url + "' does not start with " +
-                                 URL_BUNDLE_PREFIX);
+      throw new RuntimeException("URL '" + url + "' does not start with " + 
+				 URL_BUNDLE_PREFIX);
     }
     return Long.parseLong(url.toString().substring(URL_BUNDLE_PREFIX.length()));
   }
-
+  
 }
+

@@ -1,119 +1,27 @@
-
 BODY  {
-  background: #ccc;
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:11px;
+ text-align:left;
+ font-weight:normal;
+ color:000000;
+ background: #ffffff;
+ margin-top: 10px;
 }
 
-#main {
-  width: 887; 
-  background: #fff;
-  border:		1px solid #000;
-	/* 	padding: 10px 50px 10px 50px;  */
-  margin: 0px auto;
-  /*   position: relative;	 */
-  font-family: Helvetica, sans-serif;
-  font-size: 12px;
-  padding: 0px 0px 0px 0px;
-}
 
-#mainblock {
-  margin-left: 210px; 
-  padding-right: 15px;
-  font-family: Helvetica, sans-serif;
-  font-size: 12px;
-}
-
-#mainblock_obr {
-  margin: 20px 10px 20px 10px;
-  font-family: Helvetica, sans-serif;
-  font-size: 12px;
-}
-
-#header {
-  margin-bottom: 30px;
-}
-
-#header_logo {
-  background: #0B2229;
-  padding: 7px 0px 0px 15px;
-  height: 65px;
-}
-
-#header_fade {
-  height: 10px;
-  background-image: url('../images/fadeout_15.png');
-  background-repeat: repeat-x;
-}
-
-#leftmenu {
-  margin-left: 10px;
-  width: 180px;
-  float:left;
-  /*  background: #f4d6ea; */
-}
-
-DL.leftmenu2,leftmenu2_last {
-  margin:	6px 0px 6px 0px;	     
-  padding:	6px 0px 6px 0px;
-  border-style: solid;
-  border-color: #802060;
-  border-width: 0px 0px 1px 0px;
-}
-
-DL.leftmenu2_last {
-  border-width: 0px 0px 0px 0px;
-}
-
-DT.leftmenu2 {
-  font-family:	Helvetica, sans-serif;
-  font-size:	13px;
-  font-weight:	bold;
-  padding:	0px 0px 0px 0px;
-  margin:	0px 0px 0px 0px;
-
-}  
-
-
-DD.leftmenu2  {
-  font-family:	Helvetica, sans-serif;
-  font-size:	12px;
-  padding:	0px 0px 0px 12px;
-  margin:	0px 0px 0px 0px;
-  background-image: url('/images/slash_small.jpg');
-  background-repeat: no-repeat;
-  background-position: 0 .5em;
-}
-
-#footer {
-  clear:both;
-  border-style: solid;
-  border-color: #802060;
-  border-width: 1px 0px 0px 0px;
-  margin:	20px 15px 15px 15px;
-}
-
-#copyright {
-  margin-left: 200px;
-  font-size:10px;
-  color: #000;
-  text-align: right;
-  padding: 5px 10px 0px 0px;
-}	  
-
-H2 {
-  font-family: Verdana, Arial, Helvetica, sans-serif;
-  font-size:18px;
-  font-weight:bold;
-  border-style: solid;
-  border-color: #802060;
-  border-width: 0px 0px 2px 0px;
-  padding-bottom: 2px;
+PRE {
+ font-family: Courier New, Courier;
+ font-size:11px;
+ color:000000;
+ text-align:left;
+ font-weight:normal;
 }
 
 H3  {
  font-family: Verdana, Arial, Helvetica, sans-serif;
- font-size:14px;
+ font-size:13px;
  font-weight:bold;
- background:          #805362;  
+ background:          #838383;  
  color:		      #ffffff;
  border-style:        solid;
  border-style: solid;
@@ -122,6 +30,96 @@ H3  {
  padding-top:         2px;
  padding-bottom:      2px;
  padding-left:        8px;
+}
+
+H4  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:11px;
+ font-weight:bold;
+ color:		      #ffffff;
+ background:          #838383;  
+ border-style:        solid;
+ border-style: solid;
+ border-color: #000000;
+ border-width: 1px;
+ padding-top:         2px;
+ padding-bottom:      2px;
+ padding-left:        8px;
+}
+
+TD  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ text-align:left;
+ vertical-align:top;
+ font-size:12px;
+}
+
+TD.menu {
+ font-size:9px;
+ font-weight:bold;
+ text-align:left;
+}
+
+.small  {
+ font-size:9px;
+}
+
+.medium  {
+ font-size:13px;
+}
+
+.big  {
+ font-size:17px;
+}
+
+
+.pageheader {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:           14px;
+ font-weight:         bold;
+ color:               #ffffff;
+ background:          #fb0b0c;
+ border-color:        #000000 #000000 #000000 #000000;
+ border-style:        solid;
+ border-left-width:   1px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
+ padding-top:         15px;
+ padding-bottom:      15px;
+ padding-left:        60px;
+ vertical-align:      middle;
+}
+
+.leftheader {
+ background:          #000000;
+ color:               #ffffff;
+ border-color:        #000000 #000000 #000000 #000000;
+ border-style:        solid;
+ border-left-width:   5px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
+ padding-left:        5px;
+ vertical-align:      middle;
+ text-decoration:     none;
+
+
+}
+
+.mainblock {
+ background:          #ffffff;
+ border-color:        #000000 #999999 #999999 #000000;
+ border-style:        solid;
+ border-left-width:   1px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
+}
+
+BODY.mainblock {
+ padding: 5px;
+ margin:  5px;
 }
 
 .navigation_enabled
@@ -138,98 +136,77 @@ H3  {
 
 .navigation_enabled:hover {
  text-decoration:  underline;
- color:		   #cc3399;
 }
 
 .navigation_disabled
 {
  text-decoration:  none;
  font-weight:      bold;
- color:		   #802060;
-
 }
 
 .navigation_disabled:visited {
  text-decoration:  none;
  font-weight:      bold;
- color:		   #802060;
+ color:            #000000;
 }
 
 A.navigation_disabled:hover {
  text-decoration:  none;
 }
 
-A {
-  color: #802060;
-}
-
-PRE {
- font-family: Courier New, Courier;
- font-size:11px;
- color:000000;
- text-align:left;
- font-weight:normal;
-}
-
-TH {
- text-align: left;
- font-family: Helvetica, sans-serif;
- font-size: 14px;
-}
-
-TH.fancy {
- text-align: center;
- font-family: Helvetica, sans-serif;
- font-size: 12px;
-}
-
-TD {
-  font-family: Helvetica, sans-serif;
-  font-size: 12px;
-  vertical-align: top;
-}
-
-TABLE.fancy {
-  border-collapse: collapse;
-}
-
-TR.fancy {
-  background: #C9C9C9;
-  border-bottom: 2px solid #A3A3A3;
-  border-top: 2px solid #A3A3A3;
-}
-
-TD.fancy {
-  padding: 2px 4px 2px 4px;
-}
-
-TD.fancy_row {
-  background: #C9C9C9;
-  border-bottom: 2px solid #A3A3A3;
-  border-top: 2px solid #A3A3A3;
+.userdoc_hdr_left {
+  font-weight: bold;		   
+  float:left;
 }
 
 
-#release_notes dt {
-  font-weight: bold;
+.userdoc_hdr_right {
+  font-weight: bold;		   
+  text-align: right;
 }
 
-#release_notes dd {
-  margin-bottom: 10px;
+.abstract {
+  font-style: italic;
 }
 
-.release_notes dt {
-  font-weight: bold;
+.manpage {
+
 }
 
-.release_notes dd {
-  margin-bottom: 10px;
+H1.man {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:24px;
+ font-weight:bold;
+ margin-left: 0;
 }
 
-.kf dt {
-  font-weight: bold;
+H2.man {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:18px;
+ font-weight:bold;
+ background:          #535353;  
+ color:		      #ffffff;
+ border-style:        solid;
+ border-style: solid;
+ border-color: #000000;
+ border-width: 1px;
+ padding-top:         2px;
+ padding-bottom:      2px;
+ padding-left:        8px;
 }
 
-.kf dd {
-    margin-bottom: 10px;
+H3.man  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:13px;
+ font-weight:bold;
+ background:          #838383;  
+ color:		      #ffffff;
+ border-style:        solid;
+ border-style: solid;
+ border-color: #000000;
+ border-width: 1px;
+ padding-top:         2px;
+ padding-bottom:      2px;
+ padding-left:        8px;
 }
+

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,23 +56,15 @@ public class ResourceRegistration implements Registration {
 
     private final ServletConfig config;
 
-    // HACK CSM
-    private long lastModificationDate;
-
     // constructors
 
-    // HACK CSM
-    public ResourceRegistration(final String alias,
-                                final String realPath,
-                                final HttpContext httpContext,
-                                final ServletContextManager contextManager,
-                                long newDate)
-    {
+    public ResourceRegistration(final String alias, final String realPath,
+            final HttpContext httpContext,
+            final ServletContextManager contextManager) {
+
         this.alias = alias;
         this.httpContext = httpContext;
         this.contextManager = contextManager;
-        //HACK CSM
-        lastModificationDate = newDate;
 
         context = contextManager.getServletContext(httpContext, realPath);
         config = new ServletConfigImpl(new Hashtable(), context);
@@ -84,7 +76,7 @@ public class ResourceRegistration implements Registration {
 
         if (path.startsWith(alias)) {
             try {
-                return context.getResource(HttpUtil.makeTarget(path, alias)) != null;
+                return context.getResource(path.substring(alias.length())) != null;
             } catch (MalformedURLException ignore) {
             }
         }
@@ -100,15 +92,10 @@ public class ResourceRegistration implements Registration {
             return null;
 
         RequestDispatcherImpl dispatcher = new RequestDispatcherImpl(alias,
-                null, httpContext, config, lastModificationDate);
+                null, httpContext, config);
         dispatcher.setURI(uri);
 
         return dispatcher;
-    }
-
-    // HACK CSM
-    public long getLastModificationDate() {
-        return lastModificationDate;
     }
 
     public void destroy() {

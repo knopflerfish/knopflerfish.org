@@ -50,8 +50,8 @@ import org.osgi.service.useradmin.UserAdminPermission;
 public class UserImpl extends RoleImpl implements User {
     protected UACredentials creds;
 
-    UserImpl(String name) {
-        super(name);
+    UserImpl(String name, UserAdminImpl uai) {
+        super(name, uai);
         creds = new UACredentials(this);
     }
 
@@ -67,10 +67,9 @@ public class UserImpl extends RoleImpl implements User {
 
     public boolean hasCredential(String key, Object value) {
         SecurityManager sm = System.getSecurityManager();
-        if(null!=sm){
+        if (null!=sm) {
             sm.checkPermission
-              (new UserAdminPermission(key,
-                                       UserAdminPermission.GET_CREDENTIAL));
+              (new UserAdminPermission(key,UserAdminPermission.GET_CREDENTIAL));
         }
         Object val = creds.get(key);
         if (val instanceof byte[] && value instanceof byte[]) {

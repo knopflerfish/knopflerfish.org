@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
 import java.util.TimeZone;
 
 import javax.servlet.http.HttpServletResponse;
@@ -68,14 +67,9 @@ public class HttpUtil {
             new SimpleDateFormat("EEEEEE, dd-MMM-yy HH:mm:ss zzz", Locale.US),
             new SimpleDateFormat("EEE MMMM d HH:mm:ss yyyy", Locale.US) };
 
-    static boolean OLD_STYLE_ROOT_ALIAS = false;
     static {
         for (int i = 0; i < DATE_FORMATS.length; i++)
             DATE_FORMATS[i].setTimeZone(TimeZone.getTimeZone("GMT"));
-
-        try {
-          OLD_STYLE_ROOT_ALIAS = "true".equals(Activator.bc.getProperty("org.knopflerfish.service.http.oldstylerootalias"));
-        } catch (Exception ignored) { }
     }
 
     public final static Enumeration EMPTY_ENUMERATION = new Enumeration() {
@@ -94,10 +88,6 @@ public class HttpUtil {
 
         statusCodes.put(new Integer(HttpServletResponse.SC_CONTINUE),
                 "Continue");
-        //HACK SMA
-        statusCodes.put(new Integer(HttpServletResponse.SC_EXPECTATION_FAILED),
-                        "Expectation Failed");
-        //END HACK SMA
         statusCodes.put(
                 new Integer(HttpServletResponse.SC_SWITCHING_PROTOCOLS),
                 "Switching Protocols");
@@ -293,100 +283,4 @@ public class HttpUtil {
         };
     }
 
-  /**
-   * Extract the <tt>charset</tt> specification from the given content
-   * type string and save the content type without charset parameter
-   * to the given StringBuffer. The <tt>charset</tt> value is returned.
-   *
-   * @param contentType The content type string to parse.
-   * @param contentTypeBare The content type string without the
-   *                        charset parameter will be appended.
-   * @return the embedded character encoding or <tt>null</tt>.
-   */
-  public static String parseContentType(String contentType,
-                                        StringBuffer contentTypeBare )
-  {
-    int    initialSbLength = contentTypeBare.length();
-    String res = null;
-
-    // Only parse if there seems to be any params at all
-    if (-1 != contentType.indexOf(";")) {
-      StringTokenizer st = new StringTokenizer(contentType, ";");
-      int count = 0;
-      while (st.hasMoreTokens()) {
-        String param = st.nextToken().trim();
-        int ix = param.indexOf("=");
-        if (ix != -1 && count > 0) { // the first token is the mime
-          // type itself
-          String attrib = param.substring(0, ix).toLowerCase();
-          String token  = param.substring(ix + 1);
-
-          if ("charset".equals(attrib)) {
-            res = token;
-          } else {
-            if (contentTypeBare.length()>initialSbLength) {
-              contentTypeBare.append(";");
-            }
-            contentTypeBare.append(param);
-          }
-        } else {
-          if (contentTypeBare.length()>initialSbLength) {
-            contentTypeBare.append(";");
-          }
-          contentTypeBare.append(param);
-        }
-        count++;
-      }
-    } else {
-      // No params present in the content type specification; retain it.
-      contentTypeBare.append(contentType);
-    }
-    return res;
-  }
-
-  /**
-   * Builds the content type by adding a <tt>charset</tt>
-   * specification to the bare content type string.
-   *
-   * @param contentTypeBare   The content type specification without charset.
-   * @param characterEncoding The charset parameter value to add.
-   *
-   * @return the content type specification with embedded character
-   *         encoding.
-   */
-  public static String buildContentType(String contentTypeBare,
-                                        String characterEncoding)
-  {
-    StringBuffer    sb = new StringBuffer(contentTypeBare.length()
-                                          +characterEncoding.length());
-    StringTokenizer st = new StringTokenizer(contentTypeBare, ";");
-    int count = 0;
-    while (st.hasMoreTokens()) {
-      String param = st.nextToken().trim();
-      if (sb.length()>0) sb.append(";");
-      sb.append(param);
-      if (0==count) {
-        sb.append(";charset=").append(characterEncoding);
-      }
-      count++;
-    }
-    return sb.toString();
-  }
-  
-  /**
-   * Get the resource target string from an uri, removing
-   * the initial alias part, except in the case when
-   * the alias is equal to "/".
-   *
-   * @param uri URI path to convert to a target path
-   * @param alias initial alias part of uri.
-   * @return if alias equals "/" return uri unchanged, otherwise
-   *         return uri with initial alias part stripped.
-   */
-  public static String makeTarget(String uri, String alias) {
-    return (!OLD_STYLE_ROOT_ALIAS && "/".equals(alias)) 
-      ? uri 
-      : uri.substring(alias.length());
-  }
-  
 } // HttpUtil

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,13 +46,12 @@ import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
 
-public class HttpServiceImpl
-  implements HttpService
-{
+public class HttpServiceImpl implements HttpService {
+
     // public constants
 
-    public final static String[] HTTP_INTERFACES
-      = new String[] { HttpService.class.getName() };
+    public final static String[] HTTP_INTERFACES = new String[] { HttpService.class
+            .getName() };
 
     // private fields
 
@@ -73,9 +72,9 @@ public class HttpServiceImpl
     // constructors
 
     public HttpServiceImpl(final Bundle bundle, final LogRef log,
-                           final Registrations registrations,
-                           final ServletContextManager contextManager)
-    {
+            final Registrations registrations,
+            final ServletContextManager contextManager) {
+
         this.bundle = bundle;
         this.log = log;
         this.registrations = registrations;
@@ -127,16 +126,14 @@ public class HttpServiceImpl
         closed = true;
 
         while (!bundleRegistrations.isEmpty())
-            unregister((String) bundleRegistrations.lastElement(), true);
+            unregister((String) bundleRegistrations.lastElement(), false);
     }
 
     // implements HttpService
 
-    public void registerResources(String alias,
-                                  String realPath,
-                                  HttpContext httpContext)
-        throws NamespaceException
-    {
+    public void registerResources(String alias, String realPath,
+            HttpContext httpContext) throws NamespaceException {
+
         if (closed)
             throw new IllegalStateException("Service has been unget");
 
@@ -151,18 +148,14 @@ public class HttpServiceImpl
             httpContext = defaultBundleContext;
         }
 
-        //HACK CSM now caching "last updated" time
         register(alias, new ResourceRegistration(alias, realPath, httpContext,
-                                                 contextManager,
-                                                 System.currentTimeMillis()));
+                contextManager));
     }
 
-    public void registerServlet(String alias,
-                                Servlet servlet,
-                                Dictionary parameters,
-                                HttpContext httpContext)
-        throws NamespaceException, ServletException
-    {
+    public void registerServlet(String alias, Servlet servlet,
+            Dictionary parameters, HttpContext httpContext)
+            throws NamespaceException, ServletException {
+
         if (closed)
             throw new IllegalStateException("Service has been unget");
 
@@ -195,8 +188,8 @@ public class HttpServiceImpl
         }
     }
 
-    public void unregister(String alias)
-    {
+    public void unregister(String alias) {
+
         if (closed)
             throw new IllegalStateException("Service has been unget");
 
@@ -212,8 +205,7 @@ public class HttpServiceImpl
         unregister(alias, true);
     }
 
-    public HttpContext createDefaultHttpContext()
-    {
+    public HttpContext createDefaultHttpContext() {
         return new DefaultHttpContext(bundle);
     }
 

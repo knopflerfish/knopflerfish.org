@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,11 @@ import org.knopflerfish.framework.*;
 import java.io.*;
 import java.util.*;
 
-
 /**
  * Storage of all bundles jar content.
  *
  * @author Jan Stein
+ * @version $Revision: 1.1.1.1 $
  */
 public class BundleStorageImpl implements BundleStorage {
 
@@ -55,12 +55,6 @@ public class BundleStorageImpl implements BundleStorage {
    * Bundle id sorted list of all active bundle archives.
    */
   private ArrayList /* BundleArchive */ archives = new ArrayList();
-
-  /**
-   * If we should check if bundles are signed
-   */
-  private boolean checkSigned = false;
-
 
   /**
    * Create a container for all bundle data in this framework.
@@ -86,45 +80,36 @@ public class BundleStorageImpl implements BundleStorage {
     return ba;
   }
 
-
   /**
-   * Insert a new jar file into persistent storagedata as an update
-   * to an existing bundle archive. To commit this data a call to
-   * <code>replaceBundleArchive</code> is needed.
+   * Replace jar content for bundle in persistent storage.
    *
    * @param old BundleArchive to be replaced.
    * @param is Inputstrem with bundle content.
    * @return Bundle archive object.
    */
-  public BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
-    throws Exception
-  {
-    return new BundleArchiveImpl((BundleArchiveImpl)old, is);
-  }
-
-
-  /**
-   * Replace old bundle archive with a new updated bundle archive, that
-   * was created with updateBundleArchive.
-   *
-   * @param oldBA BundleArchive to be replaced.
-   * @param newBA Inputstrem with bundle content.
-   * @return New bundle archive object.
-   */
-  public void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
+  public BundleArchive replaceBundleJar(BundleArchive old, InputStream is)
     throws Exception
   {
     int pos;
-    long id = oldBA.getBundleId();
+    long id = old.getBundleId();
     synchronized (archives) {
       pos = find(id);
-      if (pos >= archives.size() || archives.get(pos) != oldBA) {
-        throw new Exception("replaceBundleJar: Old bundle archive not found, pos=" + pos);
+      if (pos >= archives.size() || archives.get(pos) != old) {
+	throw new Exception("No such bundle archive exists");
       }
-      archives.set(pos, newBA);
     }
+    BundleArchive ba = new BundleArchiveImpl((BundleArchiveImpl)old, is);
+    synchronized (archives) {
+      if (archives.get(pos) != old) {
+	pos = find(id);
+	if (pos >= archives.size() || archives.get(pos) != old) {
+	  throw new Exception("Bundle removed during update");
+	}
+      }
+      archives.set(pos, ba);
+    }
+    return ba;
   }
-
 
   /**
    * Get all bundle archive objects.
@@ -137,7 +122,6 @@ public class BundleStorageImpl implements BundleStorage {
     }
   }
 
-
   /**
    * Get all bundles tagged to start at next launch of framework.
    * This list is sorted in increasing bundle id order.
@@ -149,19 +133,10 @@ public class BundleStorageImpl implements BundleStorage {
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
       BundleArchive ba = (BundleArchive)i.next();
       if (ba.getStartOnLaunchFlag()) {
-        res.add(ba.getBundleLocation());
+	res.add(ba.getBundleLocation());
       }
     }
     return res;
-  }
-
-
-  /**
-   * 
-   *
-   */
-  public void setCheckSigned(boolean value) {
-    checkSigned = value;
   }
 
   //
@@ -177,11 +152,11 @@ public class BundleStorageImpl implements BundleStorage {
   boolean removeArchive(BundleArchive ba) {
     synchronized (archives) {
       int pos = find(ba.getBundleId());
-      if (archives.get(pos) == ba) {
-        archives.remove(pos);
-        return true;
+      if (pos < archives.size() && archives.get(pos) == ba) {
+	archives.remove(pos);
+	return true;
       } else {
-        return false;
+	return false;
       }
     }
   }
@@ -205,9 +180,9 @@ public class BundleStorageImpl implements BundleStorage {
       x = (lb + ub) / 2;
       long xid = ((BundleArchive)archives.get(x)).getBundleId();
       if (id <= xid) {
-        ub = x;
+	ub = x;
       } else {
-        lb = x+1;
+	lb = x+1;
       }
     }
     return lb;

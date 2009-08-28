@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="useradmin" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.useradmin}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
   <property name="api.pattern"  
             value="org/osgi/service/useradmin/**,org/knopflerfish/service/um/useradmin/*,org/knopflerfish/service/um/ipam/*"/>
@@ -11,11 +14,19 @@
             value="org/knopflerfish/service/um/useradmin/impl/*"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="event_api-N.N.N.jar"/>
-   <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="User administration Service"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="User Admin"/>
+
+  <property name="export.package"
+            value="org.knopflerfish.service.um.ipam;specification-version=1.0,org.knopflerfish.service.um.useradmin;specification-version=1.0,org.osgi.service.useradmin;specification-version=1.0.0"/>
+  &bundlebuild_include;
 
 </project>

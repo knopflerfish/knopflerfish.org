@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,39 +35,35 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Vector;
+import java.util.Iterator;
 
 public class Util {
   /**
-   * Check for local file storage directory.
+   * Check for local file storage directory. 
    *
    * @param name local directory name.
    * @return A FileTree object of directory or null if no storage is available.
    */
   public static FileTree getFileStorage(String name) {
     // See if we have a storage directory
-    String fwdir = Framework.getProperty("org.osgi.framework.dir");
-    if (fwdir == null || Framework.bIsMemoryStorage) {
+    String fwdir = System.getProperty("org.osgi.framework.dir");
+    if (fwdir == null) {
       return null;
     }
-    FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);
+    FileTree dir = new FileTree(fwdir, name);
     if (dir != null) {
       if (dir.exists()) {
-        if (!dir.isDirectory()) {
-          throw new RuntimeException("Not a directory: " + dir);
-        }
+	if (!dir.isDirectory()) {
+	  throw new RuntimeException("Not a directory: " + dir);
+	}
       } else {
-        if (!dir.mkdirs()) {
-          throw new RuntimeException("Cannot create directory: " + dir);
-        }
+	if (!dir.mkdirs()) {
+	  throw new RuntimeException("Cannot create directory: " + dir);
+	}
       }
     }
     return dir;
@@ -88,34 +84,34 @@ public class Util {
     int i1, i2;
     while (ver1 != null || ver2 != null) {
       if (ver1 != null) {
-        int d1 = ver1.indexOf(".");
-        if (d1 == -1) {
-          i1 = Integer.parseInt(ver1.trim());
-          ver1 = null;
-        } else {
-          i1 = Integer.parseInt(ver1.substring(0, d1).trim());
-          ver1 = ver1.substring(d1 + 1);
-        }
+	int d1 = ver1.indexOf(".");
+	if (d1 == -1) {
+	  i1 = Integer.parseInt(ver1.trim());
+	  ver1 = null;
+	} else {
+	  i1 = Integer.parseInt(ver1.substring(0, d1).trim());
+	  ver1 = ver1.substring(d1 + 1);
+	}
       } else {
-        i1 = 0;
+	i1 = 0;
       }
       if (ver2 != null) {
-        int d2 = ver2.indexOf(".");
-        if (d2 == -1) {
-          i2 = Integer.parseInt(ver2.trim());
-          ver2 = null;
-        } else {
-          i2 = Integer.parseInt(ver2.substring(0, d2).trim());
-          ver2 = ver2.substring(d2 + 1);
-        }
+	int d2 = ver2.indexOf(".");
+	if (d2 == -1) {
+	  i2 = Integer.parseInt(ver2.trim());
+	  ver2 = null;
+	} else {
+	  i2 = Integer.parseInt(ver2.substring(0, d2).trim());
+	  ver2 = ver2.substring(d2 + 1);
+	}
       } else {
-        i2 = 0;
+	i2 = 0;
       }
       if (i1 < i2) {
-        return -1;
+	return -1;
       }
       if (i1 > i2) {
-        return 1;
+	return 1;
       }
     }
     return 0;
@@ -125,115 +121,64 @@ public class Util {
    * Parse strings of format:
    *
    *   ENTRY (, ENTRY)*
-   *
-   * @param d Directive being parsed
-   * @param s String to parse
-   * @return A sorted ArrayList with enumeration or null if enumeration string was null.
-   * @exception IllegalArgumentException If syntax error in input string.
-   */
-  public static ArrayList parseEnumeration(String d, String s) {
-    ArrayList result = new ArrayList();
-    if (s != null) {
-      AttributeTokenizer at = new AttributeTokenizer(s);
-      do {
-        String key = at.getKey();
-        if (key == null) {
-          throw new IllegalArgumentException("Directive " + d + ", unexpected character at: "
-                                             + at.getRest());
-        }
-        if (!at.getEntryEnd()) {
-          throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
-                                             + at.getRest());
-        }
-        int i = Math.abs(binarySearch(result, strComp, key) + 1);
-        result.add(i, key);
-      } while (!at.getEnd());
-      return result;
-    } else {
-      return null;
-    }
-  }
-
-  /**
-   * Parse strings of format:
-   *
-   *   ENTRY (, ENTRY)*
-   *   ENTRY = key (; key)* (; PARAM)*
-   *   PARAM = attribute '=' value
-   *   PARAM = directive ':=' value
+   *   ENTRY = key (; key)* (; OP)*
+   *   OP = param '=' value
    *
    * @param a Attribute being parsed
    * @param s String to parse
    * @param single If true, only allow one key per ENTRY
-   * @param unique Only allow unique parameters for each ENTRY.
-   * @param single_entry If true, only allow one ENTRY is allowed.
-   * @return Iterator(Map(param -> value)) or null if input string is null.
+   *        and only allow unique parmeters for each ENTRY.
+   * @return Iterator(Map(param -> value)).
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static Iterator parseEntries(String a, String s, boolean single, boolean unique, boolean single_entry) {
+  public static Iterator parseEntries(String a, String s, boolean single) {
     ArrayList result = new ArrayList();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        ArrayList keys = new ArrayList();
-        HashMap params = new HashMap();
-        Set directives = new TreeSet();
-        params.put("$directives", directives); // $ is not allowed in
-                                               // param names...
-        String key = at.getKey();
-        if (key == null) {
-          throw new IllegalArgumentException
-            ("Definition, " + a + ", expected key at: " + at.getRest()
-             +". Key values are terminated by a ';' or a ',' and may not "
-             +"contain ':', '='.");
-        }
-        if (!single) {
-          keys.add(key);
-          while ((key = at.getKey()) != null) {
-            keys.add(key);
-          }
-        }
-        String param;
-        while ((param = at.getParam()) != null) {
-          List old = (List)params.get(param);
-          boolean is_directive = at.isDirective();
-          if (old != null && unique) {
-            throw new IllegalArgumentException("Definition, " + a + ", duplicate " +
-                                               (is_directive ? "directive" : "attribute") +
-                                               ": " + param);
-          }
-          String value = at.getValue();
-          if (value == null) {
-            throw new IllegalArgumentException("Definition, " + a + ", expected value at: " + at.getRest());
-          }
-          if (is_directive) {
-            // NYI Handle directives and check them
-            // This method has become very ugly, please rewrite.
-            directives.add(param);
-          }
-          if (unique) {
-            params.put(param, value);
-          } else {
-            if (old == null) {
-              old = new ArrayList();
-              params.put(param, old);
-            }
-            old.add(value);
-          }
-        }
-        if (at.getEntryEnd()) {
-          if (single) {
-            params.put("$key", key);
-          } else {
-            params.put("$keys", keys);
-          }
-          result.add(params);
-        } else {
-          throw new IllegalArgumentException("Definition, " + a + ", expected end of entry at: " + at.getRest());
-        }
-        if (single_entry && !at.getEnd()) {
-          throw new IllegalArgumentException("Definition, " + a + ", expected end of single entry at: " + at.getRest());
-        }
+	ArrayList keys = new ArrayList();
+	HashMap params = new HashMap();
+	boolean doingKeys = true;
+	String key = at.getKey();
+	if (key == null) {
+	  throw new IllegalArgumentException("Attribute, " + a + ", expected key at: " + at.getRest());
+	}
+	if (!single) {
+	  keys.add(key);
+	  while ((key = at.getKey()) != null) {
+	    keys.add(key);
+	  }
+	}
+	String param;
+	while ((param = at.getParam()) != null) {
+	  List old = (List)params.get(param);
+	  if (old != null && single) {
+	    throw new IllegalArgumentException("Attribute, " + a + ", duplicate parameter: " + param);
+	  }
+	  String value = at.getValue();
+	  if (value == null) {
+	    throw new IllegalArgumentException("Attribute, " + a + ", expected value at: " + at.getRest());
+	  }
+	  if (single) {
+	    params.put(param, value);
+	  } else {
+	    if (old == null) {
+	      old = new ArrayList();
+	      params.put(param, old);
+	    }
+	    old.add(value);
+	  }
+	}
+	if (at.getEntryEnd()) {
+	  if (single) {
+	    params.put("key", key);
+	  } else {
+	    params.put("keys", keys);
+	  }
+	  result.add(params);
+	} else {
+	  throw new IllegalArgumentException("Attribute, " + a + ", expected end of entry at: " + at.getRest());
+	}
       } while (!at.getEnd());
     }
     return result.iterator();
@@ -254,24 +199,24 @@ public class Util {
     while ((n = in.read(buf)) > 0) {
       bout.write(buf, 0, n);
     }
-    try { in.close(); } catch (Exception ignored) { }
+    try { in.close(); } catch (Exception ignored) { } 
 
     return bout.toByteArray();
   }
 
-  /**
+  /** 
    * Default whitespace string for splitwords().
    * Value is <tt>" \t\n\r"</tt>)
    */
   protected static String  WHITESPACE = " \t\n\r";
-
+  
   /**
    * Default citation char for splitwords().
    * Value is <tt>'"'</tt>
    */
   protected static char   CITCHAR    = '"';
-
-
+  
+  
   /**
    * Utility method to split a string into words separated by whitespace.
    *
@@ -291,10 +236,10 @@ public class Util {
    * </p>
    */
   public static String [] splitwords(String s, String whiteSpace) {
-    return splitwords(s, whiteSpace, CITCHAR);
+    return splitwords(s, WHITESPACE, CITCHAR);
   }
 
-
+  
   /**
    * Split a string into words separated by whitespace.
    * <p>
@@ -308,42 +253,42 @@ public class Util {
    *                   whitespace between words and will be removed
    *                   from the result. If no words are found, return an
    *                   array of length zero.
-   * @param citChar    Citation character used for grouping words with
+   * @param citChar    Citation character used for grouping words with 
    *                   embedded whitespace. Typically '"'
    */
-  public static String [] splitwords(String s,
-                                     String whiteSpace,
-                                     char   citChar) {
+  public static String [] splitwords(String s, 
+				     String whiteSpace,
+				     char   citChar) {
     boolean       bCit  = false;        // true when inside citation chars.
     Vector        v     = new Vector(); // (String) individual words after splitting
-    StringBuffer  buf   = new StringBuffer();
-    int           i     = 0;
-
+    StringBuffer  buf   = null; 
+    int           i     = 0; 
+    
     while(i < s.length()) {
       char c = s.charAt(i);
 
       if(bCit || whiteSpace.indexOf(c) == -1) {
-        // Build up word until we breaks on either a citation char or whitespace
-        if(c == citChar) {
-          bCit = !bCit;
-        } else {
-          if(buf == null) {
-            buf = new StringBuffer();
-          }
-          buf.append(c);
-        }
-        i++;
-      } else {
-        // found whitespace or end of citation, append word if we have one
-        if(buf != null) {
-          v.addElement(buf.toString());
-          buf = null;
-        }
+	// Build up word until we breaks on either a citation char or whitespace
+	if(c == citChar) {
+	  bCit = !bCit;
+	} else {
+	  if(buf == null) {
+	    buf = new StringBuffer();
+	  }
+	  buf.append(c);
+	}
+	i++;
+      } else {	
+	// found whitespace or end of citation, append word if we have one
+	if(buf != null) {
+	  v.addElement(buf.toString());
+	  buf = null;
+	}
 
-        // and skip whitespace so we start clean on a word or citation char
-        while((i < s.length()) && (-1 != whiteSpace.indexOf(s.charAt(i)))) {
-          i++;
-        }
+	// and skip whitespace so we start clean on a word or citation char
+	while((i < s.length()) && (-1 != whiteSpace.indexOf(s.charAt(i)))) {
+	  i++;
+	}
       }
     }
 
@@ -351,11 +296,11 @@ public class Util {
     if(buf != null) {
       v.addElement(buf.toString());
     }
-
+    
     // Copy back into an array
     String [] r = new String[v.size()];
     v.copyInto(r);
-
+    
     return r;
   }
 
@@ -369,7 +314,7 @@ public class Util {
    *
    * <p>
    * Implementation note: This method avoids using the standard String
-   * manipulation methods to increase execution speed.
+   * manipulation methods to increase execution speed. 
    * Using the <tt>replace</tt> method does however
    * include two <tt>new</tt> operations in the case when matches are found.
    * </p>
@@ -377,30 +322,30 @@ public class Util {
    *
    * @param s  Source string.
    * @param v1 String to be replaced with <code>v2</code>.
-   * @param v2 String replacing <code>v1</code>.
+   * @param v2 String replacing <code>v1</code>. 
    * @return Modified string. If any of the input strings are <tt>null</tt>,
-   *         the source string <tt>s</tt> will be returned unmodified.
+   *         the source string <tt>s</tt> will be returned unmodified. 
    *         If <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or
-   *         no occurances of <tt>v1</tt> is found, also
+   *         no occurances of <tt>v1</tt> is found, also 
    *         return <tt>s</tt> unmodified.
-   *
+   * 
    * @author Erik Wistrand
    */
-  public static String replace(final String s,
-                               final String v1,
-                               final String v2) {
-
+  public static String replace(final String s, 
+			       final String v1, 
+			       final String v2) {
+    
     // return quick when nothing to do
-    if(s == null
-       || v1 == null
-       || v2 == null
-       || v1.length() == 0
+    if(s == null 
+       || v1 == null 
+       || v2 == null 
+       || v1.length() == 0 
        || v1.equals(v2)) {
       return s;
     }
 
     int ix       = 0;
-    int v1Len    = v1.length();
+    int v1Len    = v1.length(); 
     int n        = 0;
 
     // count number of occurances to be able to correctly size
@@ -425,15 +370,15 @@ public class Util {
     while(-1 != (ix = s.indexOf(v1, start))) {
       while(start < ix) r[rPos++] = s.charAt(start++);
       for(int j = 0; j < v2Len; j++) {
-        r[rPos++] = v2.charAt(j);
+	r[rPos++] = v2.charAt(j);
       }
       start += v1Len;
     }
 
     // ...and add all remaining chars
-    ix = s.length();
+    ix = s.length(); 
     while(start < ix) r[rPos++] = s.charAt(start++);
-
+    
     // ..ouch. this hurts.
     return new String(r);
   }
@@ -447,30 +392,22 @@ public class Util {
     } catch (IOException ignore) {
     } finally {
       if (in != null) {
-        try {
-          in.close();
-        } catch (IOException ignore) { }
+	try {
+	  in.close();
+	} catch (IOException ignore) { }
       }
     }
     return null;
   }
 
   public static void putContent(File f, String content) throws IOException {
-    putContent(f, content, true);
-  }
-
-  public static void putContent(File f, String content, boolean useUTF8) throws IOException {
     DataOutputStream out = null;
     try {
       out = new DataOutputStream(new FileOutputStream(f));
-      if (useUTF8) {
-        out.writeUTF(content);
-      } else {
-        out.writeChars(content);
-      }
+      out.writeUTF(content);
     } finally {
       if (out != null) {
-        out.close();
+	out.close();
       }
     }
   }
@@ -485,100 +422,54 @@ public class Util {
    * @param a Vector to sort
    * @param cf comparison function
    */
-  static public void sort(List a, Comparator cf, boolean bReverse) {
+  static public void sort(Vector a, Comparator cf, boolean bReverse) {
     sort(a, 0, a.size() - 1, cf, bReverse ? -1 : 1);
   }
-
+  
   /**
    * Vector QSort implementation.
    */
-  static void sort(List a, int lo0, int hi0, Comparator cf, int k) {
+  static void sort(Vector a, int lo0, int hi0, Comparator cf, int k) {
     int lo = lo0;
     int hi = hi0;
     Object mid;
-
+    
     if ( hi0 > lo0) {
-
-      mid = a.get( ( lo0 + hi0 ) / 2 );
-
+      
+      mid = a.elementAt( ( lo0 + hi0 ) / 2 );
+      
       while( lo <= hi ) {
-        while( ( lo < hi0 ) && ( k * cf.compare(a.get(lo), mid) < 0 )) {
-          ++lo;
-        }
-
-        while( ( hi > lo0 ) && ( k * cf.compare(a.get(hi), mid ) > 0 )) {
-          --hi;
-        }
-
-        if( lo <= hi ) {
-          swap(a, lo, hi);
-          ++lo;
-          --hi;
-        }
+	while( ( lo < hi0 ) && ( k * cf.compare(a.elementAt(lo), mid) < 0 )) {
+	  ++lo;
+	}
+	
+	while( ( hi > lo0 ) && ( k * cf.compare(a.elementAt(hi), mid ) > 0 )) {
+	  --hi;
+	}
+	
+	if( lo <= hi ) {
+	  swap(a, lo, hi);
+	  ++lo;
+	  --hi;
+	}
       }
-
+      
       if( lo0 < hi ) {
-        sort( a, lo0, hi, cf, k );
+	sort( a, lo0, hi, cf, k );
       }
-
+      
       if( lo < hi0 ) {
-        sort( a, lo, hi0, cf, k );
+	sort( a, lo, hi0, cf, k );
       }
     }
   }
-
-  private static void swap(List a, int i, int j) {
-    Object tmp  = a.get(i);
-    a.set(i, a.get(j));
-    a.set(j, tmp);
+  
+  private static void swap(Vector a, int i, int j) {
+    Object tmp  = a.elementAt(i); 
+    a.setElementAt(a.elementAt(j), i);
+    a.setElementAt(tmp,            j);
   }
 
-
-  /**
-   * Do binary search for a package entry in the list with the same
-   * version number add the specifies package entry.
-   *
-   * @param pl Sorted list of package entries to search.
-   * @param p Package entry to search for.
-   * @return index of the found entry. If no entry is found, return
-   *         <tt>(-(<i>insertion point</i>) - 1)</tt>.  The insertion
-   *         point is defined as the point at which the
-   *         key would be inserted into the list.
-   */
-  public static int binarySearch(List pl, Comparator c, Object p) {
-    int l = 0;
-    int u = pl.size()-1;
-
-    while (l <= u) {
-      int m = (l + u)/2;
-      int v = c.compare(pl.get(m), p);
-      if (v > 0) {
-        l = m + 1;
-      } else if (v < 0) {
-        u = m - 1;
-      } else {
-        return m;
-      }
-    }
-    return -(l + 1);  // key not found.
-  }
-
-  static final Comparator strComp = new Comparator() {
-      /**
-       * String compare
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if objects are not a String objects.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        String a = (String)oa;
-        String b = (String)ob;
-        return a.compareTo(b);
-      }
-    };
 
   private static final byte encTab[] = {
     0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f,0x50,
@@ -633,7 +524,7 @@ public class Util {
     }
   }
 
-  public static void encode(InputStream in, OutputStream out, int len)
+  public static void encode(InputStream in, OutputStream out, int len) 
     throws IOException {
 
     // Check that length is a multiple of 4 bytes
@@ -650,15 +541,15 @@ public class Util {
       bits=(bits<<8)|b;
       nbits+=8;
       while(nbits>=6) {
-        nbits-=6;
-        out.write(encTab[0x3f&(bits>>nbits)]);
-        nbytes ++;
-        // New line
-        if (len !=0 && nbytes>=len) {
-          out.write(0x0d);
-          out.write(0x0a);
-          nbytes -= len;
-        }
+	nbits-=6;
+	out.write(encTab[0x3f&(bits>>nbits)]);
+	nbytes ++;
+	// New line
+	if (len !=0 && nbytes>=len) {
+	  out.write(0x0d);
+	  out.write(0x0a);
+	  nbytes -= len;
+	}
       }
     }
 
@@ -676,65 +567,13 @@ public class Util {
 
     if (len != 0) {
       if (nbytes != 0) {
-        out.write(0x0d);
-        out.write(0x0a);
+	out.write(0x0d);
+	out.write(0x0a);
       }
       out.write(0x0d);
       out.write(0x0a);
     }
   }
-
-
-  /**
-   * Merges target with the entires in extra.
-   * After this method has returned target will contain all
-   * entires in extra that did not exist in target.
-   */
-  static void mergeDictionaries(Dictionary target, Dictionary extra) {
-    for (Enumeration e = extra.keys();
-         e.hasMoreElements(); ) {
-      Object key = e.nextElement();
-      if (target.get(key) == null) {
-        target.put(key, extra.get(key));
-      }
-    }
-  }
-
-
-  /**
-   * Check wildcard filter matches the string
-   */
-  public static boolean filterMatch(String filter, String s) {
-    return patSubstr(s.toCharArray(), 0, filter.toCharArray(), 0);
-  }
-
-
-  /**
-   */
-  private static boolean patSubstr(char[] s, int si, char[] pat, int pi) {
-    if (pat.length-pi == 0)
-      return s.length-si == 0;
-    if (pat[pi] == '*') {
-      pi++;
-      for (;;) {
-        if (patSubstr( s, si, pat, pi))
-          return true;
-        if (s.length-si == 0)
-          return false;
-        si++;
-      }
-    } else {
-      if (s.length-si==0){
-        return false;
-      }
-      if(s[si]!=pat[pi]){
-        return false;
-      }
-      return patSubstr( s, ++si, pat, ++pi);
-    }
-  }
-
-
 
 }
 
@@ -762,30 +601,30 @@ class AttributeTokenizer {
   loop:
     for (; pos < length; pos++) {
       if (backslash) {
-        backslash = false;
-        val.append(s.charAt(pos));
+	backslash = false;
+	val.append(s.charAt(pos));
       } else {
-        char c = s.charAt(pos);
-        switch (c) {
-        case '"':
-          quote = !quote;
-          end = val.length();
-          break;
-        case '\\':
-          backslash = true;
-          break;
-        case ',': case ':': case ';': case '=':
-          if (!quote) {
-            break loop;
-          }
-          // Fall through
-        default:
-          val.append(c);
-          if (!Character.isWhitespace(c)) {
-            end = val.length();
-          }
-          break;
-        }
+	char c = s.charAt(pos);
+	switch (c) {
+	case '"':
+	  quote = !quote;
+	  end = val.length();
+	  break;
+	case '\\':
+	  backslash = true;
+	  break;
+	case ',': case ';': case '=':
+	  if (!quote) {
+	    break loop;
+	  }
+	  // Fall through
+	default:
+	  val.append(c);
+	  if (!Character.isWhitespace(c)) {
+	    end = val.length();
+	  }
+	  break;
+	}
       }
     }
     if (quote || backslash || end == 0) {
@@ -807,16 +646,17 @@ class AttributeTokenizer {
     String res = getWord();
     if (res != null) {
       if (pos == length) {
-        return res;
+	return res;
       }
       char c = s.charAt(pos);
       if (c == ';' || c == ',') {
-        return res;
+	return res;
       }
     }
     pos = save;
     return null;
   }
+
 
   String getParam() {
     if (pos == length || s.charAt(pos) != ';') {
@@ -824,24 +664,11 @@ class AttributeTokenizer {
     }
     int save = pos++;
     String res = getWord();
-    if (res != null) {
-      if (pos < length && s.charAt(pos) == '=') {
-        return res;
-      } if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos+1) == '=') {
-        return res;
-      }
+    if (res != null && pos < length && s.charAt(pos) == '=') {
+      return res;
     }
     pos = save;
     return null;
-  }
-
-  boolean isDirective() {
-    if (pos + 1 < length && s.charAt(pos) == ':') {
-      pos++;
-      return true;
-    } else {
-      return false;
-    }
   }
 
   String getValue() {
@@ -891,9 +718,11 @@ class AttributeTokenizer {
   private void skipWhite() {
     for (; pos < length; pos++) {
       if (!Character.isWhitespace(s.charAt(pos))) {
-        break;
+	break;
       }
     }
   }
+
+
 
 }

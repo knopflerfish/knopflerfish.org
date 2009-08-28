@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="depchecker" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.depchecker}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
   <property name = "ee.check.foundation"   value = "true"/>
 
@@ -15,10 +18,11 @@
   </path>
 
 
-  <property name="bmfa.Bundle-Description" value="Automatic Resolve Dependencies"/>
-  <property name="bmfa.Bundle-Category"    value="service"/>
-  <property name="bmfa.Bundle-Version"     value="1.0.0"/>
+  <property name="bundle.description"     value="Automatic Resolve Dependencies"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  &bundlebuild_include;
 
 </project>

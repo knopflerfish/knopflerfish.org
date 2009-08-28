@@ -34,20 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Image;
-import java.awt.Shape;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import java.awt.*;
+import javax.swing.*;
 import javax.swing.plaf.ComponentUI;
+import java.awt.event.*;
+import java.util.*;
+import java.lang.Thread;
 
 
 public class StatusBar extends JComponent 
@@ -284,7 +276,7 @@ public class StatusBar extends JComponent
     if(mode == MODE_PERCENTAGE) {
       for(int x = x0; x < xmax; x = x + block + pad) {
 	double k = (x - x0) / (double)diff;
-	Color c = Util.rgbInterpolate(lowColor, highColor, k);
+	Color c = Util.rgbInterPolate(lowColor, highColor, k);
 	memG.setColor(c);
 	
 	memG.fillRect(x, 3, block, h - 6);
@@ -296,7 +288,7 @@ public class StatusBar extends JComponent
 	if(xstart < x0) xstart = x0;
 	for(int x = xstart; x < xmax; x++) {
 	  double k = (x - xstart) / (double)trail;
-	  Color c = Util.rgbInterpolate(getBackground(), highColor, k);
+	  Color c = Util.rgbInterPolate(getBackground(), highColor, k);
 	  memG.setColor(c);
 	  memG.fillRect(x, 3, 1, h - 6);
 	}
@@ -305,7 +297,7 @@ public class StatusBar extends JComponent
 	if(xend > x1) xend = x1;
 	for(int x = xend; x > xmax; x--) {
 	  double k = (xend - x) / (double)trail;
-	  Color c = Util.rgbInterpolate(getBackground(), highColor, k);
+	  Color c = Util.rgbInterPolate(getBackground(), highColor, k);
 	  memG.setColor(c);
 	  memG.fillRect(x, 3, 1, h - 6);
 	}

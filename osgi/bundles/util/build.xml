@@ -1,9 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="util" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.util}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
+
 
   <path id="bundle.compile.path">
   </path>
@@ -15,6 +19,13 @@
 
   <property name="api.pattern"  value="org/knopflerfish/util/**"/>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.category"       value="util"/>
+  <property name="bundle.description"    value="Misc utilities"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.name"           value="util"/>
+
+  &bundlebuild_include;
 
 </project>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,20 +35,22 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.util.Hashtable;
+import java.util.Dictionary;
+import java.util.Enumeration;
 
 /**
  * Utility class for string localization.
  *
  * Conventions:
  * <pre>
- * button_xx      String for xx to be placed on a graphical button
+ * button_xx      String for xx to be placed on a graphical button 
  * menu_xx        String for xx to be placed in a window menu
  * tooltip_xx     String for tooltip xx text
  * str_xx         Generic string for xx
  * </pre>
  */
 public class Strings {
-
+  
   /**
    * Lookup table for strings.
    */
@@ -59,119 +61,107 @@ public class Strings {
    */
   static {
     strings = new Hashtable() {
-        {
-          put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
-          put("menu_quit",         "Quit");
-          put("menu_openbundles",  "Open Bundle File...");
-          put("menu_save",         "Save Deploy Archive...");
-          put("menu_file",         "File");
-          put("menu_edit",         "Edit");
-          put("menu_view",         "View");
-          put("menu_bundles",      "Bundles");
-          put("menu_about",        "About");
-          put("menu_help",         "Help");
-          put("menu_view_bundles",   "Bundles");
-          put("menu_view_console",   "Console");
-          put("menu_view_info",      "Bundle Info");
-          put("menu_view_toolbar",   "Toolbar");
-          put("menu_view_statusbar", "Statusbar");
-          put("menu_view_log",       "Log Window");
-          put("menu_lookandfeel",    "Look and Feel");
-          put("menu_errordialog",     "Error Dialog");
-          put("menu_errordialog_use", "Use Error Dialog");
-          put("menu_errordialoglevel",          "Default Display");
-          put("menu_errordialoglevel_normal",   "Normal");
-          put("menu_errordialoglevel_more",     "More");
-          put("menu_errordialoglevel_advanced", "Advanced");
-          put("tt_html_back",        "Back to previous bundle");
-          put("tt_html_fwd",         "Forward to next bundle");
-          put("tt_stopbundle",       "Stop Bundle");
-          put("tt_startbundle",      "Start Bundle");
-          put("tt_updatebundle",     "Update Bundle");
-          put("tt_uninstallbundle",  "Uninstall Bundle");
+	{
+	  put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
+	  put("menu_quit",         "Quit");
+	  put("menu_openbundles",  "Open bundle(s)...");
+	  put("menu_save",         "Save deploy archive...");
+	  put("menu_file",         "File");
+	  put("menu_edit",         "Edit");
+	  put("menu_view",         "View");
+	  put("menu_bundles",      "Bundles");
+	  put("menu_about",        "About");
+	  put("menu_help",         "Help");
+	  put("menu_view_bundles",   "Bundles");
+	  put("menu_view_console",   "Console");
+	  put("menu_view_info",      "Bundle info");
+	  put("menu_view_toolbar",   "Toolbar");
+	  put("menu_view_statusbar", "Statusbar");
+	  put("menu_view_log",       "Log window");
+	  put("menu_lookandfeel",    "Look and Feel");
+	  put("tt_html_back",        "Back to previous bundle");
+	  put("tt_html_fwd",         "Forward to next bundle");
+	  put("tt_stopbundle",       "Stop Bundle");
+	  put("tt_startbundle",      "Start Bundle");
+	  put("tt_updatebundle",     "Update Bundle");
+	  put("tt_uninstallbundle",  "Uninstall Bundle");
 
-          put("menu_tips",      "Show tips");
-          put("prev_tip",       "Previous tip");
-          put("next_tip",       "Next tip");
+	  put("menu_tips",      "Show tips");
+	  put("prev_tip",       "Previous tip");
+	  put("next_tip",       "Next tip");
 
-          put("item_stopbundles",       "Stop");
-          put("item_startbundles",      "Start");
-          put("item_updatebundles",     "Update");
-          put("item_uninstallbundles",  "Uninstall");
+	  put("item_stopbundles",       "Stop");
+	  put("item_startbundles",      "Start");
+	  put("item_updatebundles",     "Update");
+	  put("item_uninstallbundles",  "Uninstall");
 
-          put("menu_remotefw",          "Remote framework...");
-          put("remote_connect_msg",     "Enter address to remote framework");
-          put("remote_connect_title",   "Connect to remote framework");
+	  put("menu_remotefw",          "Remote framework...");
+	  put("remote_connect_msg",     "Enter address to remote framework");
+	  put("remote_connect_title",   "Connect to remote framework");
 
-          put("menu_openbundleurl",        "Open Bundle Location...");
-          put("dialog_addbundleurl_msg",   "Enter bundle location");
-          put("dialog_addbundleurl_title", "Open Bundle Location");
+	  put("menu_openbundleurl",        "Add bundle URL...");
+	  put("dialog_addbundleurl_msg",   "Enter bundle URL");
+	  put("dialog_addbundleurl_title", "Add bundle URL");
 
-          put("bundleinfo_startup",
-              "<html>Select on or more bundles to " +
-              "view detail information</html>");
+	  put("bundleinfo_startup", 
+	      "<html>Select on or more bundles to " + 
+	      "view detail information</html>");
 
-          put("q_stopframework",
-              "Are you sure you want stop the entire framework?\n" +
-              "All bundles will be stopped.");
+	  put("q_stopframework",     
+	      "Are you sure you want stop the entire framework?\n" + 
+	      "All bundles will be stopped.");
+	  
+	  put("msg_stopframework",   "Stop framework");
+	  
+	  put("q_stopdesktop",     
+	      "Do you want to stop the desktop bundle?\n" + 
+	      "This will also close the desktop window.");
+	  
+	  put("msg_stopdesktop",   "Stop desktop");
 
-          put("msg_stopframework",   "Stop framework");
+	  put("cancel", "Cancel");
+	  put("yes",    "Yes");
+	  put("no",     "No");
+	  put("ok",     "OK");
+	  put("close",  "Close");
 
-          put("q_stopdesktop",
-              "Do you want to stop the desktop bundle?\n" +
-              "This will also close the desktop window.");
+	  put("local",  "Local");
 
-          put("msg_stopdesktop",   "Stop desktop");
+	  put("fmt_q_stopdesktop",
+	      "Are you sure you want to stop $(1)?\n" + 
+	      "This will close the desktop window.");
+	  
 
-          put("cancel", "Cancel");
-          put("yes",    "Yes");
-          put("no",     "No");
-          put("ok",     "OK");
-          put("close",  "Close");
-
-          put("local",  "Local");
-
-          put("fmt_q_stopdesktop",
-              "Are you sure you want to stop $(1)?\n" +
-              "This will close the desktop window.");
+	  put("q_uninstallbundle",
+	      "Are you sure you want to uninstall the bundle $(1)?");
 
 
-          put("q_uninstallbundle",
-              "Are you sure you want to uninstall the bundle $(1)?");
+	  put("msg_uninstallbundle", "Uninstall bundle");
 
+	  put("menu_refreshbundles", "Refresh bundle packages");
+	  
+	  put("str_fwinfo", "Framework info");
+	  put("str_about", "About");
+	  put("str_abouttext", 
+	      "Knopflerfish OSGi desktop, version $(1)\n" + 
+	      "(c) 2004 Knopflerfish.\n\n" + 
+	      "See\n" + 
+	      "  http://www.knopflerfish.org\n" + 
+	      "for more information" + 
+	      "\n\n" + 
+	      "This release uses LGPL icons from the\n" +
+	      "Noia icon collection by Carlitus, see\n" +
+	      " http://www.carlitus.net"
+	      );
 
-          put("msg_uninstallbundle", "Uninstall bundle");
+	  put("item_selectall",       "Select all");
+	  put("item_unselectall",     "Unselect all");
+	  put("item_clear_console",   "Clear console");
 
-          put("menu_refreshbundles", "Refresh bundle packages");
-
-          put("str_fwinfo", "Framework info");
-          put("str_about", "About");
-          put("str_abouttext",
-              "Knopflerfish OSGi desktop, version $(1)\n" +
-              "Framework: $(2) $(3)\n" +
-              "(c) 2003-2006 Knopflerfish.\n\n" +
-              "See\n" +
-              "  http://www.knopflerfish.org\n" +
-              "for more information" +
-              "\n\n" +
-              "This release uses LGPL icons from the\n" +
-              "Noia icon collection by Carlitus, see\n" +
-              " http://www.carlitus.net"
-              );
-
-          put("item_selectall",       "Select all");
-          put("item_unselectall",     "Unselect all");
-          put("item_clear_console",   "Clear console");
-
-          put("startlevel.label",     "Start level: ");
-          put("menu_startlevel",      "Start level");
-          put("nostartlevel.label",   "");
-          put("str_checkupdate",      "Check for update");
-          put("item_newwindow",      "New window");
-          put("str_services",      "Services");
-          put("str_packages",      "Packages");
-          put("item_newgraphwindow",      "New graph window");
-        }
+	  put("startlevel.label",     "Start level: ");
+	  put("menu_startlevel",      "Start level");
+	  put("nostartlevel.label",   "");
+	}
       };
   }
 
@@ -192,22 +182,22 @@ public class Strings {
   /**
    * Format a string with argument.
    *
-   * @param key Key to lookup using <code>get(key)<code>.
-   *            The resulting string is used as source string for
+   * @param key Key to lookup using <code>get(key)<code>. 
+   *            The resulting string is used as source string for 
    *            argument substitution.
    *            <code>$(1)</code> is replaced with <code>arg1</code>
    * @param arg1 Replacement string.
    */
   public static String fmt(String key, Object arg1) {
-    return replace(get(key), "$(1)",
-                   arg1 != null ? arg1.toString() : "null");
+    return replace(get(key), "$(1)", 
+		   arg1 != null ? arg1.toString() : "null");
   }
 
   /**
    * Format a string with arguments.
    *
-   * @param key Key to lookup using <code>get(key)<code>.
-   *            The resulting string is used as source string for
+   * @param key Key to lookup using <code>get(key)<code>. 
+   *            The resulting string is used as source string for 
    *            argument substitution.
    *            <code>$(1)</code> is replaced with <code>arg1</code><br>
    *            <code>$(2)</code> is replaced with <code>arg2</code>
@@ -215,13 +205,8 @@ public class Strings {
    * @param arg2 Replacement string.
    */
   public static String fmt(String key, Object arg1, Object arg2) {
-    return replace(fmt(key, arg1), "$(2)",
-                   arg2 != null ? arg2.toString() : "null");
-  }
-
-  public static String fmt(String key, Object arg1, Object arg2, Object arg3) {
-    return replace(fmt(key, arg1, arg2), "$(3)",
-                   arg3 != null ? arg3.toString() : "null");
+    return replace(fmt(key, arg1), "$(2)", 
+		   arg2 != null ? arg2.toString() : "null");
   }
 
 
@@ -230,25 +215,25 @@ public class Strings {
    *
    * @param s  Source string.
    * @param v1 String to be replaced with <code>v2</code>.
-   * @param v2 String replacing <code>v1</code>.
+   * @param v2 String replacing <code>v1</code>. 
    * @return Modified string. If any of the input strings are <tt>null</tt>,
    *         the source string will be returned unmodified.
    */
-  public static String replace(final String s,
-                               final String v1,
-                               final String v2) {
-
+  public static String replace(final String s, 
+			       final String v1, 
+			       final String v2) {
+    
     // return quick when nothing to do
-    if(s == null
-       || v1 == null
-       || v2 == null
-       || v1.length() == 0
+    if(s == null 
+       || v1 == null 
+       || v2 == null 
+       || v1.length() == 0 
        || v1.equals(v2)) {
       return s;
     }
 
     int ix       = 0;
-    int v1Len    = v1.length();
+    int v1Len    = v1.length(); 
     int n        = 0;
 
     // count number of occurances to be able to correctly size
@@ -273,76 +258,18 @@ public class Strings {
     while(-1 != (ix = s.indexOf(v1, start))) {
       while(start < ix) r[rPos++] = s.charAt(start++);
       for(int j = 0; j < v2Len; j++) {
-        r[rPos++] = v2.charAt(j);
+	r[rPos++] = v2.charAt(j);
       }
       start += v1Len;
     }
 
     // ...and add all remaining chars
-    ix = s.length();
+    ix = s.length(); 
     while(start < ix) r[rPos++] = s.charAt(start++);
-
+    
     // ..ouch. this hurts.
     return new String(r);
   }
 
-  /**
-   * Group string in words, replace the word separator with a given
-   * repalcement string.
-   * <p>
-   * Citation chars may be used to group words with embedded word separators.
-   * </p>
-   *
-   * @param s
-   *            String to transform.
-   * @param separators
-   *            separators to replace. Any character in separators are
-   *            treated as a word separator.
-   * @param replacement
-   *            the string to replace the word separator with.
-   * @param citChar
-   *            Citation character used for grouping words with embedded
-   *            separators. Typically '"'.
-   */
-  public static String replaceWordSep(String s,
-                                      String separators,
-                                      String replacement,
-                                      char citChar)
-  {
-    boolean bCit = false; // true when inside citation chars.
-    boolean bSep = false; // true when inside separator chars.
-    StringBuffer buf = new StringBuffer();
-    int i = 0;
 
-    while (i < s.length()) {
-      char c = s.charAt(i);
-
-      if (bCit || separators.indexOf(c) == -1) {
-        // Build up word until we breaks on either a citation char or
-        // spearator
-        if (c == citChar) {
-          bCit = !bCit;
-          buf.append(c);
-        } else {
-          if (bSep) {
-            buf.append(replacement);
-            bSep = !bSep;
-          }
-          buf.append(c);
-        }
-        i++;
-      } else {
-        // found separator outside of citation
-        bSep = true;
-
-        // and skip separators so we start clean on a word or citation
-        // char
-        while ((i < s.length())
-               && (-1 != separators.indexOf(s.charAt(i)))) {
-          i++;
-        }
-      }
-    }
-    return buf.toString();
-  }
 }

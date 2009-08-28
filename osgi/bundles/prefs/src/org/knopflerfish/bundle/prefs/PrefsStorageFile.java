@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,112 +58,24 @@ import java.io.*;
  *
  */
 public class  PrefsStorageFile implements PrefsStorage {
-
-  /** Name of the subdir holding user preferences. */
-  private static final String USERS_BASE  = "users";
-  /** Name of the subdir holding system preferences. */
-  private static final String SYSTEM_BASE = "system";
-
-  /**
-   * The root directory of the preferences file storage.
-   *
-   * Contains one subdir for each bundle that fetches a preferences
-   * service instance. The bundle ID is the name of the subdir.
-   *
-   * Default location is a directory named <tt>prefsdir</tt> in the
-   * current working directory (as given by the system property
-   * <tt>user.dir</tt>). The root directory may be specified by setting
-   * the system property <tt>org.knopflerfish.prefs.dir</tt>.
-   */
-  private static File getRootDir()
-  {
-    if (null==Activator.bc) {
-      throw new IllegalStateException("PreferencesService has been stopped!");
-    }
-    String prefsDir = Activator.bc.getProperty("org.knopflerfish.prefs.dir");
-    if (null==prefsDir || prefsDir.length()==0 ) {
-      prefsDir = "prefsdir";
-    }
-    return new File(prefsDir);
-  }
-
-  /**
-   * Creates a prefs storage object for the system tree.
-   * @param bundle the bundle owning the prefs tree.
-   */
-  static PrefsStorage createPrefsStorageSystem(Bundle bundle)
-  {
-    File baseDir = new File(getRootDir(), SYSTEM_BASE);
-    baseDir      = new File(baseDir, String.valueOf(bundle.getBundleId()));
-    return new PrefsStorageFile(baseDir);
-  }
-
-  // User names must be encoded to avoid creating invalid file names
-  // Note that specification does not forbid '/' in user names
-  /**
-   * Creates a prefs storage object for the a user tree.
-   * @param bundle the bundle owning the prefs tree.
-   * @param user   the user that this tree applies too.
-   */
-  static PrefsStorage createPrefsStorageUser(Bundle bundle, String user)
-  {
-    File baseDir = new File(getRootDir(), USERS_BASE);
-    baseDir      = new File(baseDir, String.valueOf(bundle.getBundleId()));
-    baseDir      = new File(baseDir, encodeUser(user));
-    return new PrefsStorageFile(baseDir);
-  }
-
-  static String[] getPrefsStorageUsers(Bundle bundle)
-  {
-    File baseDir = new File(getRootDir(), USERS_BASE);
-    baseDir      = new File(baseDir, String.valueOf(bundle.getBundleId()));
-    return new PrefsStorageFile(baseDir).getChildrenNames("");
-  }
-
-
-  /**
-   * Removes all preferences trees for the given bundle.
-   */
-  static void cleanup(Bundle bundle)
-  {
-    File baseDir = new File(getRootDir(), USERS_BASE);
-    baseDir      = new File(baseDir, String.valueOf(bundle.getBundleId()));
-    deleteTree(baseDir);
-
-    baseDir = new File(getRootDir(), SYSTEM_BASE);
-    baseDir = new File(baseDir, String.valueOf(bundle.getBundleId()));
-    deleteTree(baseDir);
-  }
-
-
-  final File baseDir;
+  File baseDir;
 
   static final String KEYFILE_NAME = ".keys";
 
-  final Object lock = new Object();
-
-  /** Set to true when the entire prefs tree repesented by this storage
-   ** have been removed.
-   **/
-  boolean bStale = false;
-
-  public boolean isStale()
-  {
-    return bStale;
-  }
-
+  Object lock = new Object();
 
   boolean bDebug = false;
 
-  private PrefsStorageFile(final File baseDir) {
+  PrefsStorageFile(String base) {
+    File top = new File(System.getProperty("org.knopflerfish.prefs.dir",
+                                           "prefsdir"));
+    baseDir  = new File(top, base);
     baseDir.mkdirs();
 
     if(!baseDir.exists() || !baseDir.isDirectory()) {
-      throw new RuntimeException
-        ("Failed to create root directory for preferences storage: '"
-         +baseDir +"'.");
+      throw new RuntimeException("Failed to create base=" + base);
     }
-    this.baseDir = baseDir;
+
   }
 
   File getNodeDir(String path, boolean bCreate) {
@@ -177,7 +89,7 @@ public class  PrefsStorageFile implements PrefsStorage {
         }
         path = path.substring(1);
       }
-      final File file = new File(baseDir, encode(path));
+      File file = new File(baseDir, encode(path));
       if(bCreate) {
         file.mkdirs();
         if(!file.exists() || !file.isDirectory()) {
@@ -191,26 +103,26 @@ public class  PrefsStorageFile implements PrefsStorage {
   }
 
 
-  Dictionary loadProps(final String path) throws IOException {
+  Dictionary loadProps(String path) throws IOException {
     synchronized(lock) {
-      final Dictionary dict = (Dictionary)propsMap.get(path);
+      Dictionary dict = (Dictionary)propsMap.get(path);
       if(dict != null) {
         return dict;
       }
-      final Properties props = new Properties();
+      Properties props = new Properties();
       InputStream in = null;
       try {
-        final File f = getKeyFile(path);
+        File f = getKeyFile(path);
         if(f.exists()) {
           in = new FileInputStream(f);
           props.load(in);
 
           // We might need to decode some keys
-          final Properties p2 = new Properties();
+          Properties p2 = new Properties();
           for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-            final String key        = (String)e.nextElement();
-            final String decodedKey = decode(key);
-            final String val        = (String)props.get(key);
+            String key        = (String)e.nextElement();
+            String decodedKey = decode(key);
+            String val        = (String)props.get(key);
             p2.put(decodedKey, val);
           }
 
@@ -226,19 +138,19 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  void saveProps(final String path, final Dictionary p) throws IOException {
+  void saveProps(String path, Dictionary p) throws IOException {
     synchronized(lock) {
 
-      final Properties props = new Properties();
+      Properties props = new Properties();
       for(Enumeration e = p.keys(); e.hasMoreElements(); ) {
-        final String key = (String) e.nextElement();
-        final Object val = p.get(key);
+        String key = (String)e.nextElement();
+        Object val = p.get(key);
         props.put(encode(key), val);
       }
 
       OutputStream out = null;
       try {
-        final File f = getKeyFile(path);
+        File f = getKeyFile(path);
         out = new FileOutputStream(f);
         props.save(out, "keys for " + path);
       } catch (IOException e) {
@@ -251,38 +163,36 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  public void put(final String path, final String key, final String val) {
+  public void   put(String path, String key, String val) {
     try {
       dirtySet.add(path);
-      final Dictionary p = loadProps(path);
+      Dictionary p = loadProps(path);
 
       p.put(key, val);
 
       // System.out.println("dirty " + path);
       //      saveProps(path, p);
     } catch (Exception e) {
-      logWarn("Failed to put path=" + path +", key=" + key + ", val=" + val,
-              e);
+      Activator.log.warn("Failed to put path=" + path +
+                         ", key=" + key + ", val=" + val,
+                         e);
     }
   }
 
 
 
-  public String[] getChildrenNames(final String path) {
+  public String[] getChildrenNames(String path) {
     synchronized(lock) {
       try {
-        final File dir = getNodeDir(path, false);
-        final String[] f = dir.list();
-        final Vector v = new Vector();
+        File dir = getNodeDir(path, false);
+        String[] f = dir.list();
+        Vector v = new Vector();
         for(int i = 0; i < f.length; i++) {
           if(!f[i].startsWith(".")) {
-            // Use decodeUser() here since it may be user names and
-            // its safe to use that decoder on this type of encoded
-            // strings.
-            v.addElement(decodeUser(f[i]));
+            v.addElement(decode(f[i]));
           }
         }
-        final String[] f2 = new String[v.size()];
+        String[] f2 = new String[v.size()];
         v.copyInto(f2);
         return f2;
       } catch (Exception e) {
@@ -292,10 +202,10 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  public String[] getKeys(final String path) {
+  public String[] getKeys(String path) {
     try {
-      final Dictionary props = loadProps(path);
-      final String[]   keys  = new String[props.size()];
+      Dictionary props = loadProps(path);
+      String[]   keys  = new String[props.size()];
 
       int i = 0;
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
@@ -307,90 +217,86 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  public String get(final String path, final String key, final String def) {
+  public String get(String path, String key, String def) {
     synchronized(lock) {
       try {
-        final Dictionary props = loadProps(path);
-        final String val = (String) props.get(key);
+        Dictionary props = loadProps(path);
+        String val = (String)props.get(key);
 
         return val != null ? val : def;
 
       } catch (IOException e) {
-        logWarn("Failed to read " + path + ", key=" + key, e);
+        Activator.log.warn("Failed to read " + path + ", key=" + key);
         return def;
       }
     }
   }
 
 
-  public void removeAllKeys(final String path) {
+  public void removeAllKeys(String path) {
     synchronized(lock) {
       try {
-        final Dictionary props = new Hashtable();
+        Dictionary props = new Hashtable();
         propsMap.put(path, props);
         dirtySet.add(path);
         //        saveProps(path, props);
       } catch (Exception e) {
-        logWarn("Failed to clear " + path, e);
+        Activator.log.warn("Failed to clear " + path);
       }
     }
   }
 
-  public void removeKey(final String path, final String key) {
+  public void removeKey(String path, String key) {
     synchronized(lock) {
       try {
-        final Dictionary props = loadProps(path);
+        Dictionary props = loadProps(path);
         props.remove(key);
         propsMap.put(path, props);
         dirtySet.add(path);
         //        saveProps(path, props);
       } catch (Exception e) {
-        logWarn("Failed to remove " + path + ", key=" + key, e);
+        Activator.log.warn("Failed to remove " + path + ", key=" + key);
       }
     }
   }
 
-  public void removeNode(final String path) {
+  public void removeNode(String path) {
     synchronized(lock) {
       try {
-        if("".equals(path)) {
-          bStale = true;
-        }
-
         for(Iterator it = prefs.keySet().iterator(); it.hasNext(); ) {
-          final String p = (String) it.next();
-          final PreferencesImpl pi = (PreferencesImpl) prefs.get(p);
-          if(bStale || p.startsWith(path + "/")) {
+          String p = (String)it.next();
+          PreferencesImpl pi = (PreferencesImpl)prefs.get(p);
+          if(p.startsWith(path + "/")) {
             pi.bStale = true;
           }
         }
 
-        final File f = getNodeDir(path, false);
+        File f = getNodeDir(path, false);
         deleteTree(f);
       } catch (Exception e) {
         e.printStackTrace();
-        logWarn("Failed to remove node " + path, e);
+        Activator.log.warn("Failed to remove node " + path);
       }
     }
   }
 
   // String (path) -> PreferencesImpl
-  final Map prefs = new HashMap();
-  final Set dirtySet = new HashSet();
-  final Map propsMap = new HashMap();
+  Map prefs = new HashMap();
+  Set dirtySet = new HashSet();
+  Map propsMap = new HashMap();
 
-  public Preferences getNode(final String path, boolean bCreate) {
+  public Preferences getNode(String path, boolean bCreate) {
     try {
       PreferencesImpl pi = (PreferencesImpl)prefs.get(path);
       if(pi != null) {
         return pi;
       }
 
-      final File nodeDir = getNodeDir(path, bCreate);
-      final File keyFile = getKeyFile(path);
+      File nodeDir = getNodeDir(path, bCreate);
+      File keyFile = getKeyFile(path);
 
       if(!keyFile.exists()) {
-        final Dictionary props = new Hashtable();
+        Dictionary props = new Hashtable();
         propsMap.put(path, props);
         saveProps(path, props);
       }
@@ -403,21 +309,21 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  public boolean nodeExists(final String path) {
+  public boolean     nodeExists(String path) {
     synchronized(lock) {
       boolean b = false;
 
-      final File f = getNodeDir(path, false);
+      File f = getNodeDir(path, false);
       int ix = path.lastIndexOf('/');
 
       if(ix != -1 && path.length() > 0) {
-        final String last  = decode(path.substring(ix + 1));
+        String last  = decode(path.substring(ix + 1));
         String fname = f.getAbsolutePath();
 
         try {
           fname = f.getCanonicalPath();
         } catch (IOException e) {
-          logWarn("failed to get canonical path of " + path, e);
+          Activator.log.warn("failed to get canonical path of " + path, e);
         }
 
         fname = decode(fname);
@@ -431,107 +337,66 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  public void flush(final String path)
-    throws BackingStoreException
-  {
+  public void flush(String path) {
     synchronized(lock) {
-      // allways save all dirty nodes to the storage
-      synchronized(dirtySet) {
-        // System.out.println("flushing " + dirtySet.size() + " items");
-        for(Iterator it = dirtySet.iterator(); it.hasNext();) {
-          final String p = (String)it.next();
-          final Dictionary props = (Dictionary)propsMap.get(p);
-          if(props != null) {
-            //              System.out.println("flush '" + p + "'");
-            try {
-              saveProps(p, props);
-            } catch (Exception e) {
-              final String msg = "Failed to flush, baseDir="
-                +baseDir +"; "+e;
-              throw new BackingStoreException(msg);
+      // save any cached data to storage
+      if(path == null) {
+        // save all
+      } else {
+        synchronized(dirtySet) {
+          // System.out.println("flushing " + dirtySet.size() + " items");
+          for(Iterator it = dirtySet.iterator(); it.hasNext();) {
+            String p = (String)it.next();
+            Dictionary props = (Dictionary)propsMap.get(p);
+            if(props != null) {
+              //              System.out.println("flush '" + p + "'");
+              try {
+                saveProps(p, props);
+              } catch (Exception e) {
+              }
             }
           }
+          dirtySet.clear();
         }
-        dirtySet.clear();
       }
     }
-  }
-
-  public void sync(final String path)
-    throws BackingStoreException
-  {
-    // Save any local changes
-    flush(path);
-    // Fetch changes from backing store.
-  }
-
-  public void logWarn(final String msg, final Throwable t)
-  {
-    Activator.log.warn(msg, t);
   }
 
   /**
    * Get file which store key/value pairs
    */
-  File getKeyFile(final String path) {
+  File getKeyFile(String path) {
     return new File(getNodeDir(path, true), KEYFILE_NAME);
   }
 
-  static void deleteTree(final File f) {
-    if(f.exists()) {
-      if(f.isDirectory()) {
-        final String[] children = f.list();
-        for(int i = 0; i < children.length; i++) {
-          deleteTree(new File(f, children[i]));
+  void deleteTree(File f) {
+    synchronized(lock) {
+      if(f.exists()) {
+        if(f.isDirectory()) {
+          String[] children = f.list();
+          for(int i = 0; i < children.length; i++) {
+            deleteTree(new File(f, children[i]));
+          }
         }
+        f.delete();
       }
-      f.delete();
     }
   }
 
-  static String encode(final String s) {
-    String res = s;
-    // Must encode '__' since they are used as encoding marker.
-    res = Text.replace(res, "__", "__us__");
-    res = Text.replace(res, ".", "__dot__");
-    res = Text.replace(res, " ", "__space__");
-    res = Text.replace(res, "?", "__q__");
-    res = Text.replace(res, "\\", "__bslash__");
-    return res;
+  String encode(String s) {
+    s = Text.replace(s, ".", "__dot__");
+    s = Text.replace(s, " ", "__space__");
+    s = Text.replace(s, "?", "__q__");
+    s = Text.replace(s, "\\", "__bslash__");
+    return s;
   }
 
-  static String decode(final String s) {
-    String res = s;
-    res = Text.replace(res, "__space__",   " ");
-    res = Text.replace(res, "__dot__",   ".");
-    res = Text.replace(res, "__?__",     "?");
-    res = Text.replace(res, "__bslash__", "\\");
-    res = Text.replace(res, "__us__", "__");
-    return res;
-  }
-
-  /** Same encoding as <code>encode()</code> with the addition that
-   ** '/' is also encoded.
-   ** @param s The string to encode
-   ** @return String safe to use as file name.
-   **/
-  static String encodeUser(final String s) {
-    String res = s;
-    res = encode(res);
-    res = Text.replace(res, "/", "__slash__");
-    return res;
-  }
-
-  /** Decodes a string encoded by <code>encodeUser()</code>.
-   ** @see #encodeUser(String)
-   ** @param s The encoded string to decode
-   ** @return String decoded string.
-   **/
-  static String decodeUser(final String s) {
-    String res = s;
-    res = Text.replace(res, "__slash__", "/" );
-    res = decode(res);
-    return res;
+  String decode(String s) {
+    s = Text.replace(s, "__space__",   " ");
+    s = Text.replace(s, "__dot__",   ".");
+    s = Text.replace(s, "__?__",     "?");
+    s = Text.replace(s, "__bslash__", "\\");
+    return s;
   }
 
 }

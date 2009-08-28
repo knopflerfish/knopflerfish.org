@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,14 @@
 package org.knopflerfish.bundle.desktop.swing.fwspin;
 
 
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.Image;
-import java.awt.MediaTracker;
+import org.osgi.framework.*;
+
+import java.util.*;
+import java.awt.*;
+import java.awt.image.*;
+import java.awt.event.*;
 import java.net.URL;
 
-import org.knopflerfish.bundle.desktop.swing.Util;
 
 /**
  * @author Erik Wistrand
@@ -70,7 +69,7 @@ public class GameFrame {
   void init() {
     spin = new Spin();
     contentPane.add(spin, BorderLayout.CENTER);
-
+			 
 
     frame.pack();
     frame.invalidate();
@@ -85,7 +84,7 @@ public class GameFrame {
   public void stop() {
     //    spin.stop();
   }
-
+  
   public void close() {
     stop();
     if(frame != null) {
@@ -96,21 +95,21 @@ public class GameFrame {
 
   void setIcon() {
     String iconName = "cloud32x32.gif";
-    if (Util.isWindows()) {
+    if (System.getProperty( "os.name", "" ).startsWith("Win")) {
       iconName = "cloud16x16.gif";
     }
     String strURL = "/data/" + iconName;
     try {
       MediaTracker tracker = new MediaTracker(frame);
-
+      
       URL url = getClass().getResource(strURL);
-
+      
       if(url != null) {
-        Image image = frame.getToolkit().getImage(url);
-        tracker.addImage(image, 0);
-        tracker.waitForID(0);
-
-        frame.setIconImage(image);
+	Image image = frame.getToolkit().getImage(url);
+	tracker.addImage(image, 0);
+	tracker.waitForID(0);
+	
+	frame.setIconImage(image);
       } else {
       }
     } catch (Exception e) {
@@ -118,3 +117,6 @@ public class GameFrame {
   }
 
 }
+
+
+

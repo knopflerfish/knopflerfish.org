@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,8 +82,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public void startBundle(long bid) {
     try {
-      Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.start();
+      Activator.bc.getBundle(bid).start();
     } catch (BundleException e) {
       throw new IllegalArgumentException("Failed to start bid=" + bid);
     }
@@ -94,8 +93,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public void stopBundle(long bid) {
     try {
-      Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.stop();
+      Activator.bc.getBundle(bid).stop();
     } catch (BundleException e) {
       throw new IllegalArgumentException("Failed to stop bid=" + bid);
     }
@@ -114,8 +112,7 @@ public class RemoteFWServer implements RemoteFW {
           data = data.substring(end + Util.B64_END.length());
         }
         byte[] bytes = Base64.decode(data);
-        Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.update(new ByteArrayInputStream(bytes));
+        Activator.bc.getBundle(bid).update(new ByteArrayInputStream(bytes));
       } else {
         updateBundle(bid);
       }
@@ -133,8 +130,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public void updateBundle(long bid) {
     try {
-      Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.update();
+      Activator.bc.getBundle(bid).update();
     } catch (BundleException e) {
       Activator.log.warn("Failed to update bid=" + bid, e);
       throw new IllegalArgumentException("Failed to update bid=" + bid);
@@ -146,8 +142,7 @@ public class RemoteFWServer implements RemoteFW {
   }
   public void uninstallBundle(long bid) {
     try {
-      Bundle b = Activator.bc.getBundle(bid);
-      if (b != null) b.uninstall();
+      Activator.bc.getBundle(bid).uninstall();
     } catch (BundleException e) {
       throw new IllegalArgumentException("Failed to uninstall bid=" + bid);
     }
@@ -184,11 +179,11 @@ public class RemoteFWServer implements RemoteFW {
     }
   }
 
-  public long getBundle() {
+  public long       getBundle() {
     return Activator.bc.getBundle().getBundleId();
   }
 
-  public long[] getBundles() {
+  public long[]    getBundles() {
     Bundle[] bl = Activator.bc.getBundles();
     long[] bids = new long[bl.length];
 
@@ -198,19 +193,19 @@ public class RemoteFWServer implements RemoteFW {
     return bids;
   }
 
-  public String getBundleContextProperty(SoapPrimitive key) {
+  public String      getBundleContextProperty(SoapPrimitive key) {
     return getBundleContextProperty(key.toString());
   }
-  public String getBundleContextProperty(String key) {
+  public String      getBundleContextProperty(String key) {
     String v = Activator.bc.getProperty(key);
     return v == null ? NULL_STR : v;
   }
-  public String getBundleLocation(SoapPrimitive bid) {
+  public String  getBundleLocation(SoapPrimitive bid) {
     return getBundleLocation(Long.parseLong(bid.toString()));
   }
-  public String getBundleLocation(long bid) {
+  public String  getBundleLocation(long bid) {
     Bundle b = Activator.bc.getBundle(bid);
-    return (b == null ? null : b.getLocation());
+    return b.getLocation();
   }
 
   public int  getBundleState(SoapPrimitive bid) {
@@ -222,21 +217,20 @@ public class RemoteFWServer implements RemoteFW {
   }
 
 
-  public long[] getServicesInUse(SoapPrimitive bid) {
+  public long[]    getServicesInUse(SoapPrimitive bid) {
     return getServicesInUse(Long.parseLong(bid.toString()));
   }
-  public long[] getServicesInUse(long bid) {
+  public long[]    getServicesInUse(long bid) {
     Bundle b = Activator.bc.getBundle(bid);
-    return Util.referencesToLong(b == null ? null : b.getServicesInUse());
+    return Util.referencesToLong(b.getServicesInUse());
   }
 
-  public long[] getUsingBundles(SoapPrimitive sid) {
+  public long[]    getUsingBundles(SoapPrimitive sid) {
     return getUsingBundles(Long.parseLong(sid.toString()));
   }
-  public long[] getUsingBundles(long sid) {
+  public long[]    getUsingBundles(long sid) {
     try {
-      ServiceReference[] srl
-        = Activator.bc.getServiceReferences(null, "(service.id=" + sid + ")");
+      ServiceReference[] srl = Activator.bc.getServiceReferences(null, "(service.id=" + sid + ")");
       if (srl.length == 0) {
         return null;
       }
@@ -255,28 +249,27 @@ public class RemoteFWServer implements RemoteFW {
     }
   }
 
-  public long[] getRegisteredServices(SoapPrimitive bid) {
+  public long[]    getRegisteredServices(SoapPrimitive bid) {
     return getRegisteredServices(Long.parseLong(bid.toString()));
   }
-  public long[] getRegisteredServices(long bid) {
+  public long[]    getRegisteredServices(long bid) {
     Bundle b = Activator.bc.getBundle(bid);
     if (b == null) return new long[0];
     return Util.referencesToLong(b.getRegisteredServices());
   }
 
-  public long[] getServiceReferences(SoapPrimitive filter) {
+  public long[]    getServiceReferences(SoapPrimitive filter) {
     return getServiceReferences(filter.toString());
   }
-  public long[] getServiceReferences(String filter) {
+  public long[]    getServiceReferences(String filter) {
     return getServiceReferences2(null, filter);
   }
 
 
-  public long[] getServiceReferences2(SoapPrimitive clazz,
-                                      SoapPrimitive filter) {
+  public long[]    getServiceReferences2(SoapPrimitive clazz, SoapPrimitive filter) {
     return getServiceReferences2(clazz.toString(), filter.toString());
   }
-  public long[] getServiceReferences2(String clazz, String filter) {
+  public long[]    getServiceReferences2(String clazz, String filter) {
     try {
       if(NULL_STR.equals(clazz)) {
         clazz = null;
@@ -303,41 +296,39 @@ public class RemoteFWServer implements RemoteFW {
     }
   }
 
-  public Vector getBundleManifest(SoapPrimitive bundleId) {
+  public Vector  getBundleManifest(SoapPrimitive bundleId) {
     return getBundleManifest(Long.parseLong(bundleId.toString()));
   }
-  public Vector getBundleManifest(long bundleId) {
+  public Vector  getBundleManifest(long bundleId) {
     Bundle b = Activator.bc.getBundle(bundleId);
+
+    Dictionary d = b.getHeaders();
 
     //Map result = new HashMap();
     Vector result = new Vector();
 
-    if (b != null) {
-      Dictionary d = b.getHeaders();
+    int i = 0;
+    for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
+      String key = (String)e.nextElement();
+      String val = (String)d.get(key);
 
-      int i = 0;
-      for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
-        String key = (String)e.nextElement();
-        String val = (String)d.get(key);
-
-        if (!"Application-Icon".equals(key)) {
-          result.addElement(key);
-          result.addElement(val);
-        }
-
-        i += 2;
+      if (!"Application-Icon".equals(key)) {
+        result.addElement(key);
+        result.addElement(val);
       }
+
+      i += 2;
     }
 
     return result;
   }
 
 
-  public long[] getServices() {
+  public long[]    getServices() {
     return null;
   }
 
-  public long[] getFrameworkEvents() {
+  public long[]    getFrameworkEvents() {
     synchronized(frameworkEvents) {
       try {
 
@@ -502,7 +493,7 @@ public class RemoteFWServer implements RemoteFW {
   }
 
   //TODO!
-  public Vector getExportedPackage(String name) {
+  public Vector    getExportedPackage(String name) {
     //Map map = new HashMap();
     Vector result = new Vector();
     ExportedPackage pkg = ((PackageAdmin)pkgTracker.getService()).getExportedPackage(name);
@@ -514,9 +505,8 @@ public class RemoteFWServer implements RemoteFW {
   public Vector  getExportedPackages(SoapPrimitive sid) {
     return getExportedPackages(Long.parseLong(sid.toString()));
   }
-  // bid==-1 represents a call to getExportedPackages((Bundle)null)
   public Vector  getExportedPackages(long bid) {
-    Bundle b = -1==bid ? (Bundle)null : Activator.bc.getBundle(bid);
+    Bundle b = Activator.bc.getBundle(bid);
     ExportedPackage[] pkgs = ((PackageAdmin)pkgTracker.getService()).getExportedPackages(b);
 
     if(pkgs == null) {
@@ -530,51 +520,6 @@ public class RemoteFWServer implements RemoteFW {
       putExportPackage(map, pkgs[i]);
     }
     return maps;
-  }
-
-  public Vector  getExportedPackagesByPkgName(SoapPrimitive pkgName) {
-    return getExportedPackagesByPkgName(pkgName.toString());
-  }
-  public Vector  getExportedPackagesByPkgName(String pkgName) {
-    ExportedPackage[] pkgs = ((PackageAdmin)pkgTracker.getService())
-      .getExportedPackages(pkgName);
-
-    if(pkgs == null) {
-      return new Vector();
-    }
-
-    Vector maps = new Vector(pkgs.length);
-    for(int i = 0; i < pkgs.length; i++) {
-      Vector map = new Vector();
-      maps.addElement(map);
-      putExportPackage(map, pkgs[i]);
-    }
-    return maps;
-  }
-
-  void putExportPackage(Vector result, ExportedPackage pkg) {
-    if(pkg != null) {
-      long[] bids;
-      Bundle[] bl = pkg.getImportingBundles();
-      if(bl == null) {
-        bids = new long[0];
-      } else {
-        bids = new long[bl.length];
-        for(int i = 0; i < bids.length; i++) {
-          bids[i] = (bl[i].getBundleId());
-        }
-      }
-      result.addElement("getExportingBundle");
-      result.addElement(new Long(pkg.getExportingBundle().getBundleId()));
-      result.addElement("getImportingBundles");
-      result.addElement(bids);
-      result.addElement("getName");
-      result.addElement(pkg.getName());
-      result.addElement("getSpecificationVersion");
-      result.addElement(pkg.getSpecificationVersion());
-      result.addElement("isRemovalPending");
-      result.addElement(pkg.isRemovalPending() ? Boolean.TRUE : Boolean.FALSE);
-    }
   }
 
   public void   refreshPackages(SoapObject bids) {
@@ -593,141 +538,38 @@ public class RemoteFWServer implements RemoteFW {
     }
   }
 
-  public Vector  getRequiredBundles(SoapPrimitive sid) {
-    return getRequiredBundles(sid.toString());
-  }
-  public Vector getRequiredBundles(String sn) {
-    final String symbolicName = "00000".equals(sn) ? null: sn;
-    RequiredBundle[] rbs = ((PackageAdmin)pkgTracker.getService())
-      .getRequiredBundles(symbolicName);
-
-    if(rbs == null) {
-      return new Vector();
-    }
-
-    Vector maps = new Vector(rbs.length);
-    for(int i = 0; i < rbs.length; i++) {
-      Vector map = new Vector();
-      maps.addElement(map);
-      putRequiredBundle(map, rbs[i]);
-    }
-    return maps;
-  }
-
-  void putRequiredBundle(Vector result, RequiredBundle rb) {
-    if (null==rb) return;
-
-    long[] bids;
-    Bundle[] bl = rb.getRequiringBundles();
-    if(bl == null) {
-      bids = new long[0];
-    } else {
-      bids = new long[bl.length];
-      for(int i = 0; i < bids.length; i++) {
-        bids[i] = (bl[i].getBundleId());
+  void putExportPackage(Vector result, ExportedPackage pkg) {
+    if(pkg != null) {
+      long[] bids;
+      Bundle[] bl = pkg.getImportingBundles();
+      if(bl == null) {
+        bids = new long[0];
+      } else {
+        bids = new long[bl.length];
+        for(int i = 0; i < bids.length; i++) {
+          bids[i] = (bl[i].getBundleId());
+        }
       }
+      /*
+      map.put("getExportingBundle",
+        new Long(pkg.getExportingBundle().getBundleId()));
+      map.put("getImportingBundles",     bids);
+      map.put("getName",                 pkg.getName());
+      map.put("getSpecificationVersion", pkg.getSpecificationVersion());
+      map.put("isRemovalPending",        pkg.isRemovalPending() ? Boolean.TRUE : Boolean.FALSE);
+      */
+      result.addElement("getExportingBundle");
+      result.addElement(new Long(pkg.getExportingBundle().getBundleId()));
+      result.addElement("getImportingBundles");
+      result.addElement(bids);
+      result.addElement("getName");
+      result.addElement(pkg.getName());
+      result.addElement("getSpecificationVersion");
+      result.addElement(pkg.getSpecificationVersion());
+      result.addElement("isRemovalPending");
+      result.addElement(pkg.isRemovalPending() ? Boolean.TRUE : Boolean.FALSE);
     }
-    result.addElement("getBundle");
-    result.addElement(new Long(rb.getBundle().getBundleId()));
-    result.addElement("getRequiringBundles");
-    result.addElement(bids);
-    result.addElement("getSymbolicName");
-    result.addElement(rb.getSymbolicName());
-    result.addElement("getVersion");
-    result.addElement(rb.getVersion().toString());
-    result.addElement("isRemovalPending");
-    result.addElement(rb.isRemovalPending() ? Boolean.TRUE : Boolean.FALSE);
   }
-
-
-  public long[] getFragments(SoapPrimitive bid) {
-    return getFragments(Long.parseLong(bid.toString()));
-  }
-  public long[] getFragments(long bid) {
-    Bundle bundle = -1==bid ? null : Activator.bc.getBundle(bid);
-    Bundle[] bundles = ((PackageAdmin)pkgTracker.getService())
-      .getFragments(bundle);
-
-    if(bundles == null) {
-      return null;
-    }
-
-    long[] bids = new long[bundles.length];
-    for (int i=0; i<bundles.length; i++) {
-      bids[i] = bundles[i].getBundleId();
-    }
-    return bids;
-  }
-
-  public long[] getHosts(SoapPrimitive bid) {
-    return getHosts(Long.parseLong(bid.toString()));
-  }
-  public long[] getHosts(long bid) {
-    Bundle bundle = -1==bid ? null : Activator.bc.getBundle(bid);
-    Bundle[] bundles = ((PackageAdmin)pkgTracker.getService())
-      .getHosts(bundle);
-
-    if(bundles == null) {
-      return null;
-    }
-
-    long[] bids = new long[bundles.length];
-    for (int i=0; i<bundles.length; i++) {
-      bids[i] = bundles[i].getBundleId();
-    }
-    return bids;
-  }
-
-  public long[] getBundlesPA(SoapPrimitive symbolicName,
-                           SoapPrimitive versionRange)
-  {
-    return getBundlesPA(symbolicName.toString(), versionRange.toString());
-  }
-  public long[] getBundlesPA(String symbolicName, String versionRange) {
-    Bundle[] bundles = ((PackageAdmin)pkgTracker.getService())
-      .getBundles(symbolicName, versionRange);
-
-    if(bundles == null) {
-      return null;
-    }
-
-    long[] bids = new long[bundles.length];
-    for (int i=0; i<bundles.length; i++) {
-      bids[i] = bundles[i].getBundleId();
-    }
-    return bids;
-  }
-
-  public int getBundleType(SoapPrimitive bid) {
-    return getBundleType(Long.parseLong(bid.toString()));
-  }
-  public int getBundleType(long bid) {
-    Bundle bundle = -1==bid ? null : Activator.bc.getBundle(bid);
-    int res = ((PackageAdmin)pkgTracker.getService()).getBundleType(bundle);
-
-    return res;
-  }
-
-  public boolean resolveBundles(SoapObject so) {
-    final long[] bids = new long[null==so ? 0 : so.getPropertyCount()];
-
-    for(int i = 0; i < bids.length; i++) {
-      bids[i] = new Long(so.getProperty(i).toString()).longValue();
-    }
-    return resolveBundles(bids);
-  }
-  public boolean resolveBundles(long[] bids) {
-    Bundle[] bl = null;
-
-    if(bids != null && bids.length > 0) {
-      bl = new Bundle[bids.length];
-      for(int i = 0; i < bids.length; i++) {
-        bl[i] = Activator.bc.getBundle(bids[i]);
-      }
-    }
-    return ((PackageAdmin)pkgTracker.getService()).resolveBundles(bl);
-  }
-
 
 
   public Vector    getSystemProperties() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,6 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Erik Wistrand
- * @author Philippe Laporte
- */
-
 package org.knopflerfish.util.metatype;
 
 import org.osgi.framework.*;
@@ -55,7 +50,7 @@ import java.io.*;
  * related to constructing AttributeDefinition.
  * </p>
  */
-public class AD implements AttributeDefinition, Comparable, Cloneable {
+public class AD implements AttributeDefinition, Comparable {
   int      type;
   int      card;
   String[] defValue;
@@ -64,12 +59,9 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
   String   name;
   String[] optLabels;
   String[] optValues;
-  String min;
-  String max;
 
 
   boolean  bOptional = false;
-  boolean required;
 
   /**
    * String used for separating array and vector string 
@@ -123,7 +115,9 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       throw new IllegalArgumentException("Bad id '" + id + "'");
     }
 
-    
+    if(desc == null) {
+      throw new IllegalArgumentException("Description cannot be null");
+    }
     
     if(defValue == null) {
       String s = "";
@@ -158,35 +152,14 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
     this.desc      = desc;
     this.id        = id;
     this.name      = name;
-    setOptions(optValues, optLabels);
+    this.optLabels = optLabels;
+    this.optValues = optValues;
+
     setDefaultValue(defValue);
   }
-  
-  public AD(String   id,
-	      	int      type,
-	      	int      card,
-	      	String   name,
-	      	String   desc,
-	      	String[] defValue,
-	      	String min,
-	      	String max,
-	      	boolean required) {
-	  this(id, type, card, name, desc, defValue, null, null);
-	  this.min = min;
-	  this.max = max;
-	  this.required = required;
-  }
 
-  
-  public Object clone(){
-	  AD newI = new AD(id, type, card, name, desc, (String[]) defValue.clone(), min, max, required);
-	  if(optLabels != null){
-		  newI.optLabels = (String[]) optLabels.clone();
-	  }
-	  if(optValues != null){
-		  newI.optValues = (String[]) optValues.clone();
-	  }
-	  return newI;
+  private AD() {
+    throw new RuntimeException("Not supported");
   }
 
   public int getCardinality() {
@@ -201,37 +174,6 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
     this.desc = s;
   }
 
-  
-  AD localize(Dictionary dict){
-	  AD localized = (AD) this.clone();  
-  
-	  if(name != null && name.startsWith("%")){
-		  String sub;
-		  if((sub = (String) dict.get(name.substring(1))) != null){
-			   localized.name = sub;
-		  }
-	  }
-	  
-	  if(desc != null && desc.startsWith("%")){
-		  String sub;
-		  if((sub = (String) dict.get(desc.substring(1))) != null){
-			   localized.desc = sub;
-		  }
-	  } 
-	  
-	  if(optLabels != null){
-		  for(int i = 0; i < optLabels.length; i++){
-			  if(optLabels[i].startsWith("%")){
-				  String sub;
-				  if((sub = (String) dict.get(optLabels[i].substring(1))) != null){
-					  localized.optLabels[i] = sub;
-				  }
-			  } 
-		  }
-	  }
-	
-	  return localized;
-  }
   /**
    * Set the default value.
    *
@@ -275,18 +217,15 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
    * @throws IllegalArgumentException if optValues and optLabels are not the
    *                                  same length.
    */
-  public void setOptions(String[] optValues, String[] optLabels) {
+  public void setOptions(String[] optValues, 
+			 String[] optLabels) {
     if(optValues != null) {
       if(optLabels == null || optValues.length != optLabels.length) {
-    	  throw new IllegalArgumentException("Values must be same length as labels");
+	throw new IllegalArgumentException("Values must be same length as labels");
       }
     }
-    if(optValues != null && optValues.length != 0){
-    	this.optValues = optValues;
-    }
-    if(optLabels != null && optLabels.length != 0){
-    	this.optLabels = optLabels;
-    }
+    this.optValues = optValues;
+    this.optLabels = optLabels;
   }
 
   public String[] getOptionLabels() {
@@ -306,15 +245,6 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
    */
   public boolean isOptional() {
     return bOptional;
-  }
-  
-  public int getRequired(){
-	  if(required){
-		  return ObjectClassDefinition.REQUIRED;
-	  }
-	  else{
-		  return ObjectClassDefinition.OPTIONAL;
-	  }
   }
 
   /**
@@ -489,24 +419,15 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
    * </p>
    */
   public String validate(String value) {
-	  
-	if(value == null){
-		return null;
-	}
-  
     if(card == Integer.MIN_VALUE) {
       return validateMany(value, type, Integer.MAX_VALUE);
-    } 
-    else if(card == Integer.MAX_VALUE) {
+    } else if(card == Integer.MAX_VALUE) {
       return validateMany(value, type, Integer.MAX_VALUE);
-    } 
-    else if(card < 0) {
+    } else if(card < 0) {
       return validateMany(value, type, -card);
-    } 
-    else if(card > 0) {
+    } else if(card > 0) {
       return validateMany(value, type, card);
-    } 
-    else {
+    } else {
       return validateSingle(value, type);
     }
   }
@@ -544,7 +465,7 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
   }
 
 
-  String validateMany(String value, 
+  static String validateMany(String value, 
 			     int type,
 			     int maxItems) {
 
@@ -576,264 +497,47 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
     return sb.toString();
   }
 
-  String validateSingle(String valueS, int type) {
+  static String validateSingle(String value, int type) {
     try {
       switch(type) {
-      	case STRING: 
-      		try{
-      			if(min != null){
-      				if(valueS.compareTo(min) < 0){
-      					return "value out of range";
-      				}
-      		    }
-      			if(max != null){
-      				if(valueS.compareTo(max) > 0){
-      					return "value out of range";
-      				}
-      			}
-      			if(optValues != null){
-      				int i = 0;
-      				for(; i < optValues.length; i++){ 
-      					if(optValues[i].equals(valueS)){
-      						break;
-      					}
-      				}
-      				if(i == optValues.length){
-      					return "Value must be one of the options";
-      				}
-      			}
-      		}
-      		catch(ClassCastException cce){
-    			
-      		}
-      		break;
-      	case INTEGER: 
-      		int ivalue = Integer.parseInt(valueS.trim());
-      		try{
-      			if(min != null){
-      				int minV = Integer.parseInt(min);
-      				if(ivalue < minV){
-      					return "value out of range";
-      				}
-      			}
-      			if(max != null){
-      				int maxV = Integer.parseInt(max);
-      				if( ivalue > maxV){
-      					return "value out of range";
-      				}
-      			}
-      			if(optValues != null){
-      				int i = 0;
-      				for(; i < optValues.length; i++){ 
-      					if(Integer.parseInt(optValues[i]) == ivalue){
-      						break;
-      					}
-      				}
-      				if(i == optValues.length){
-      					return "Value must be one of the options";
-      				}
-      			}
-      		}
-      		catch(NumberFormatException nfe){
-      			
-      		}
-      		break;
-      	case LONG: 
-      		long lvalue = Long.parseLong(valueS.trim());
-      		try{
-      			if(min != null){
-      				long minV = Long.parseLong(min);
-      				if(lvalue < minV){
-      					return "value out of range";
-      				}
-      			}
-      			if(max != null){
-      				long maxV = Long.parseLong(max);
-      				if( lvalue > maxV){
-      					return "value out of range";
-      				}
-      			}
-      			if(optValues != null){
-      				int i = 0;
-      				for(; i < optValues.length; i++){ 
-      					if(Long.parseLong(optValues[i]) == lvalue){
-      						break;
-      					}
-      				}
-      				if(i == optValues.length){
-      					return "Value must be one of the options";
-      				}
-      			}
-      		}
-      		catch(NumberFormatException nfe){
-			
-      		}
-      		break;
-      	case BYTE: 
-      		byte bvalue = Byte.parseByte(valueS.trim());
-      		try{
-      			if(min != null){
-      				byte minV = Byte.parseByte(min);
-      				if(bvalue < minV){
-      					return "value out of range";
-      				}
-      			}
-      			if(max != null){
-      				byte maxV = Byte.parseByte(max);
-      				if( bvalue > maxV){
-      					return "value out of range";
-      				}
-      			}	
-      			if(optValues != null){
-      				int i = 0;
-      				for(; i < optValues.length; i++){ 
-      					if(Byte.parseByte(optValues[i]) == bvalue){
-      						break;
-      					}
-      				}
-      				if(i == optValues.length){
-      					return "Value must be one of the options";
-      				}
-      			}
-      		}
-      		catch(NumberFormatException nfe){
-			
-      		}
-      		break;
-      	case SHORT: 
-      		short svalue = Short.parseShort(valueS.trim());
-      		try{
-      			if(min != null){
-      				short minV = Short.parseShort(min);
-      				if(svalue < minV){
-      					return "value out of range";
-      				}
-      			}
-      			if(max != null){
-      				short maxV = Short.parseShort(max);
-      				if( svalue > maxV){
-      					return "value out of range";
-      				}
-      			}
-      			if(optValues != null){
-      				int i = 0;
-      				for(; i < optValues.length; i++){ 
-      					if(Short.parseShort(optValues[i]) == svalue){
-      						break;
-      					}
-      				}
-      				if(i == optValues.length){
-      					return "Value must be one of the options";
-      				}
-      			}
-      		}
-      		catch(NumberFormatException nfe){
-			
-      		}
-      		break;
-      	case CHARACTER: 
-      		if(valueS.length() != 1) {
-      			throw new IllegalArgumentException("Character strings must be of length 1");
-      		}
-      		try{
-      			if(min != null){
-      				if(valueS.compareTo(min) < 0){
-      					return "value out of range";
-      				}
-      			}
-      			if(max != null){
-      				if(valueS.compareTo(max) > 0){
-      					return "value out of range";
-      				}
-      			}
-      			if(optValues != null){
-      				int i = 0;
-      				for(; i < optValues.length; i++){ 
-      					if(optValues[i].equals(valueS)){
-      						break;
-      					}
-      				}
-      				if(i == optValues.length){
-      					return "Value must be one of the options";
-      				}
-      			}
-      		}
-      		catch(ClassCastException cce){
-    			
-      		}
-      		break;
-      	case DOUBLE: 
-      		double dvalue = Double.parseDouble(valueS.trim());
-      		try{
-      			if(min != null){
-      				double minV = Double.parseDouble(min);
-      				if(dvalue < minV){
-      					return "value out of range";
-      				}
-      			}
-      			if(max != null){
-      				double maxV = Double.parseDouble(max);
-      				if( dvalue > maxV){
-      					return "value out of range";
-      				}
-      			}	
-      			if(optValues != null){
-      				int i = 0;
-      				for(; i < optValues.length; i++){ 
-      					if(Double.parseDouble(optValues[i]) == dvalue){
-      						break;
-      					}
-      				}
-      				if(i == optValues.length){
-      					return "Value must be one of the options";
-      				}
-      			}
-      		}
-      		catch(NumberFormatException nfe){
-			
-      		}
-      		break;
-      	case FLOAT: 
-      		float fvalue = Float.parseFloat(valueS.trim());
-      		try{
-      			if(min != null){
-      				float minV = Float.parseFloat(min);
-      				if(fvalue < minV){
-      					return "value out of range";
-      				}
-      			}
-      			if(max != null){
-      				float maxV = Float.parseFloat(max);
-      				if( fvalue > maxV){
-      					return "value out of range";
-      				}
-      			}	
-      			if(optValues != null){
-      				int i = 0;
-      				for(; i < optValues.length; i++){ 
-      					if(Float.parseFloat(optValues[i]) == fvalue){
-      						break;
-      					}
-      				}
-      				if(i == optValues.length){
-      					return "Value must be one of the options";
-      				}
-      			}
-      		}
-      		catch(NumberFormatException nfe){
-      		}
-      		break;
-      	case BOOLEAN:
-      		if(!("true".equals(valueS.trim()) || "false".equals(valueS.trim()))) {
-      			throw new IllegalArgumentException("Booleans must be 'true' or 'false'");
-      		}
-      		break;
-      	default:
-      		break;
+      case STRING: 
+	if(value == null) {
+	  throw new IllegalArgumentException("Strings cannot be null");
+	}
+	break;
+      case INTEGER: 
+	Integer.parseInt(value.trim());
+	break;
+      case LONG: 
+	Long.parseLong(value.trim());
+	break;
+      case BYTE: 
+	Byte.parseByte(value.trim());
+	break;
+      case SHORT: 
+	Short.parseShort(value.trim());
+	break;
+      case CHARACTER: 
+	if(value.length() != 1) {
+	  throw new IllegalArgumentException("Character strings must be of length 1");
+	}
+	break;
+      case DOUBLE: 
+	Double.parseDouble(value.trim());
+	break;
+      case FLOAT: 
+	Float.parseFloat(value.trim());
+	break;
+      case BOOLEAN:
+	if(!("true".equals(value.trim()) || "false".equals(value.trim()))) {
+	  throw new IllegalArgumentException("Booleans must be 'true' or 'false'");
+	}
+	break;
+      default:
+	break;
       }
-    } 
-    catch (Exception e) {
-      //e.printStackTrace();
+    } catch (Exception e) {
+      e.printStackTrace();
       return e.getMessage();
     }
     return "";

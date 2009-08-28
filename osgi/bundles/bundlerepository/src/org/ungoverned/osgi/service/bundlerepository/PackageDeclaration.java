@@ -45,7 +45,7 @@ public class PackageDeclaration
 {
     public static final String PACKAGE_ATTR = "package";
     public static final String VERSION_ATTR = "specification-version";
-
+    
     private String m_name = null;
     private int[] m_version = null;
 
@@ -53,6 +53,7 @@ public class PackageDeclaration
      * Construct a package declaration.
      * @param name the name of the package.
      * @param versionString the package version as a string.
+     * @param record the bundle record associated with this package declaration.
     **/
     public PackageDeclaration(String name, String versionString)
     {
@@ -64,6 +65,7 @@ public class PackageDeclaration
      * Construct a package declaration.
      * @param name the name of the package.
      * @param version the package version as an integer triplet.
+     * @param record the bundle record associated with this package declaration.
     **/
     public PackageDeclaration(String name, int[] version)
     {
@@ -185,7 +187,7 @@ public class PackageDeclaration
                     "Improper version number: " + versionString);
             }
         }
-
+        
         return version;
     }
 }

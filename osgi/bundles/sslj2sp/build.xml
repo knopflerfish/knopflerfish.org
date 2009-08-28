@@ -1,45 +1,69 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="sslj2sp" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.sslj2sp}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
 
   <property name = "ee.check.foundation"   value = "false"/>
 
-  <property name = "do.bundle.custom.pre"  value="true"/>
+  <property name = "do.bundle.custom.pre" value="true"/>
   <property name = "do.bundle.custom.post" value="true"/>
 
   <property name = "bundle.build.api"      value = "false"/>
-  <property name = "bundle.build.impl"     value = "true"/>
+  <property name = "bundle.build.impl"     value = "false"/>
   <property name = "bundle.build.lib"      value = "false"/>
-  <property name = "bundle.build.all"      value = "false"/>
+  <property name = "bundle.build.all"      value = "true"/>
 
-  <property name="impl.pattern"            value="org/knopflerfish/**/*"/>
-  <property name="resources.dir"           value="resources"/>
+  <property name="impl.pattern"
+            value="org/knopflerfish/**/*"/>
+
+  <property name="api.pattern"
+            value=""/>
+
+  <property name="resources.dir"         value="resources"/>
 
   <path id="bundle.compile.path">
-    <pathelement location="cm_api-N.N.N.jar"/>
-    <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
   </path>
+
+  <property name="bundle.description"    value="SSL Provider using the J2 security architecture."/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.vendor"         value="Knopflerfish/Oscar"/>
+
+  <property name="bundle.activator"      value="org.knopflerfish.bundle.ssl.j2sp.Activator"/>
+
+
+  <property name="bundle.docurl"         value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/sslj2sp/readme.txt"/>
+ 
+  <!-- //TE Right now, we assume J2RE/jsse.jar is on the classpath, therefore MUST NOT show up
+   in the import statment! Later might try embedding it -->   
+  <property name="import.package"        value="org.osgi.framework,org.osgi.service.log,org.osgi.service.cm"/>
+  
+  <!-- explicit export necessary, otherwise tries to export org.knopflerfish.service.log etc--> 
+  <property name="export.package"        value="org.knopflerfish.bundle.ssl.j2sp"/>
 
   <!-- want to include the log client w/o duplicating code -->
   <target name="bundle.custom.pre">
-    <mkdir dir="src/org/knopflerfish/service/log"/>
-    <copy todir="src/org/knopflerfish/service/log">
-      <fileset dir="${topdir}/bundles/log/src/org/knopflerfish/service/log" />
-    </copy>
+     <mkdir dir="src/org/knopflerfish/service/log"/>
+     <copy todir="src/org/knopflerfish/service/log">
+	<fileset dir="${topdir}/bundles/log/src/org/knopflerfish/service/log" />
+     </copy>
+
   </target>
 
-  <!-- need to undo the bundle.custom.pre step and do not want to -->
-  <!-- overwrite clean -->
+  <!-- need to undo the bundle.custom.pre step and do not want to overwrite clean-->
   <target name="bundle.custom.post">
-    <delete dir="src/org/knopflerfish/service"
-            quiet="true"
-	    failonerror="false" />
+     <delete dir="src/org/knopflerfish/service" quiet="true" failonerror="false" />
   </target>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  &bundlebuild_include;
 
 </project>
 

@@ -1,7 +1,5 @@
 <div style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px;">
 
-<h2>Programming Knopflerfish</h2>
-
 <h3>Contents</h3>
 <ol>
   <li><a href="#eclipse_create">Using Eclipse to create bundles</a>
@@ -13,7 +11,7 @@
   <li><a href="#optimizing">Optimizing startup time, memory or disk usage</a>
   <li><a href="#custom">Details on the included ant build system</a>
   <li><a href="svn_info.html">Using the Subversion repository</a>
-  <!-- <li><a href="perf.html">Performance test</a> I don't think this is up-to-date ? [CL] -->
+  <li><a href="perf.html">Performance test</a>
 </ol>
 
 <a name="eclipse_create"></a>
@@ -178,7 +176,7 @@ console connection.
 <pre>
 &gt; ant install
 </pre>
-to install the compiled bundle. Similarly, type
+to install the compiled bundle. Similarily, type
 <pre>
 &gt; ant start
 </pre>
@@ -481,7 +479,7 @@ do a similar trick inside of these listeners.
 </p>
 
 <p>
-It is <b>not</b> recommended to set the context class loader persistently on
+It is <b>not</b> recommended to set the context class loader persistenly on
 the startup thread, since that might not be unique for your bundle.
 Effects might vary depending on OSGi vendor. If you don't spawn a new
 thread, you <b>must</b> reset the context class loader before returning.
@@ -1073,21 +1071,19 @@ the standard bundle build.
 
 <p>
 The Knopflerfish framework can be started in either disk-optimizing or
-memory-optimizing modes. This is useful for systems with lower memory or
-small or slow disks. It also affects the startup time for the framework.
+memory-optimizing modes. This is useful for systems with lowe memory or
+small or slow disks. It also affects the startup time for the farmework.
 </p>
 
-<!-- 
 <p>
 See <a href="perf.html">Knopflerfish performance test</a> for actual performance data
 with different methods.
 </p>
--->
 
 The following apply:
 
 <ol>
- <li>If you need quick startup, remember that initial startup is always
+ <li>If you need quick startup, rememeber that initial startup is always
      much slower than a restart, so
      a avoid deleting the <tt>fwdir</tt> bundle storage directory, if
      possible.

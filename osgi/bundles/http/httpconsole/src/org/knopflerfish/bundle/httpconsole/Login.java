@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,41 +51,29 @@ public class Login {
 
   static final String USER_OBJ = ConsoleServlet.class.getName() + ".user";
 
-  boolean bRequireLogin = false;
-  String adminUser  = "admin";
-  String adminPwd   = "admin";
+  boolean bRequireLogin = 
+    "true".equals(System.getProperty("org.knopflerfish.httpconsole.requirelogin", "false"));
+  
+  String adminUser  = 
+    System.getProperty("org.knopflerfish.httpconsole.user", "admin");
+    
+  String adminPwd   = 
+    System.getProperty("org.knopflerfish.httpconsole.pwd",  "admin");
+
   long expirationTime = 60 * 10; // time in seconds
 
-  public Login(BundleContext bc) {
-    String bRequireLoginS
-      = bc.getProperty("org.knopflerfish.httpconsole.requirelogin");
-    if (null!=bRequireLoginS && bRequireLoginS.length()>0) {
-      bRequireLogin = "true".equals(bRequireLoginS);
-    }
-
-    String adminUserS = bc.getProperty("org.knopflerfish.httpconsole.user");
-    if (null!=adminUserS && adminUserS.length()>0) {
-      adminUser = adminUserS;
-    }
-
-    String adminPwdS = bc.getProperty("org.knopflerfish.httpconsole.pwd");
-    if (null!=adminPwdS && adminPwdS.length()>0) {
-      adminPwd = adminPwdS;
-    }
-
+  public Login() {
     try {
-      String expirationTimeS
-        = bc.getProperty("org.knopflerfish.httpconsole.expirationtime");
-      if (null!=expirationTimeS && expirationTimeS.length()>0) {
-        expirationTime = Long.parseLong(expirationTimeS);
-      }
+      expirationTime =  
+	Long.getLong("org.knopflerfish.httpconsole.expirationtime",  
+		     expirationTime).longValue();
     } catch (Exception e) {
       Activator.log.warn("Bad expiration time", e);
     }
   }
 
   boolean isValidUser(String user, String pwd) {
-    return
+    return 
       adminUser.equals(user) &&
       adminPwd.equals(pwd);
   }
@@ -93,8 +81,8 @@ public class Login {
   /**
    * Check if the use has been logged in. If not, print a login page
    */
-  boolean checkLogin(HttpServletRequest  request,
-                     HttpServletResponse response) throws IOException {
+  boolean checkLogin(HttpServletRequest  request, 
+		     HttpServletResponse response) throws IOException {
 
     if(!bRequireLogin) {
       return true;
@@ -120,17 +108,17 @@ public class Login {
       msg = "console updated/session expired";
       session.removeAttribute(USER_OBJ);
     }
-
+    
     if(userObj != null) {
       if(userObj.hasExpired()) {
-        session.removeAttribute(USER_OBJ);
-        msg = "Session has expired";
+	session.removeAttribute(USER_OBJ);
+	msg = "Session has expired";
       } else {
-        userObj.touch();
-        return true;
+	userObj.touch();
+	return true;
       }
     }
-
+    
 
     String user = "";
     if(null != request.getParameter(LOGIN_CMD)) {
@@ -138,9 +126,9 @@ public class Login {
       String pwd  = request.getParameter(LOGIN_PWD);
 
       if(isValidUser(user, pwd)) {
-        userObj = new UserObject();
-        session.setAttribute(USER_OBJ, userObj);
-        return true;
+	userObj = new UserObject();
+	session.setAttribute(USER_OBJ, userObj);
+	return true;
       }
       msg = "Login failed";
     }
@@ -150,10 +138,10 @@ public class Login {
     }
     PrintWriter out = response.getWriter();
 
-    printHeader(out);
-
+    printHeader(out);  
+    
     Util.formStart(out, false);
-
+    
     out.println("<h4 style=\"margin: 3px;\" class=\"shadow\">Log in to HTTP console</h4>");
 
     out.println("<div style=\"margin: 5px;\">");
@@ -170,7 +158,7 @@ public class Login {
     out.println("  <td>Login name</td>");
     out.println("  <td>");
     out.println("  <input type=\"text\" name=\"" + LOGIN_USER + "\"" +
-                " value=\"" + user + "\">");
+		" value=\"" + user + "\">");
     out.println("  </td>");
     out.println(" </tr>");
 
@@ -195,7 +183,7 @@ public class Login {
     out.println("</div>");
     out.println("<div class=\"shadow\">&nbsp;</div>");
 
-    printFooter(out);
+    printFooter(out);  
 
     return false;
   }
@@ -204,39 +192,39 @@ public class Login {
     out.println("<html>");
     out.println("<head>");
     out.println("<title>Knopflerfish OSGi console</title>");
-
+    
     out.println("<LINK href=\"" + Activator.RES_ALIAS + "/console.css\" rel=\"stylesheet\" type=\"text/css\">");
     out.println("</head>");
     out.println("<body>");
-
+    
   }
 
   void printFooter(PrintWriter out) throws IOException {
     out.println("</body>");
-    out.println("</html>");
+    out.println("</html>");  
   }
 
 
   /**
-   * Simple object for storing user info in an HttpSession.
+   * Simple object for storing user info in an HttpSession. 
    * The HttpSession.setMaxInactiveInterval() could have been
-   * used instead of the custom timer...but then it would be
+   * used instead of the custom timer...but then it would be 
    * hard to give a "session expired" message at timeouts.
    */
   class UserObject {
     long touchTime;
-
+    
     public UserObject() {
       touch();
     }
-
+    
     public void touch() {
       touchTime = System.currentTimeMillis();
     }
 
     public boolean hasExpired() {
-      return
-        (System.currentTimeMillis() - touchTime) > ( 1000 * expirationTime);
+      return 
+	(System.currentTimeMillis() - touchTime) > ( 1000 * expirationTime);
     }
   }
 }

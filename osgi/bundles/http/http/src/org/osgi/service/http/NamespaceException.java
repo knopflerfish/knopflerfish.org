@@ -1,20 +1,31 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.http/src/org/osgi/service/http/NamespaceException.java,v 1.10 2006/06/16 16:31:35 hargrave Exp $
+ * $Header: /home/wistrand/cvs/knopflerfish.org/osgi/bundles/http/http/src/org/osgi/service/http/NamespaceException.java,v 1.1.1.1 2004/03/05 20:35:10 wistrand Exp $
  *
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
+ * Copyright (c) The Open Services Gateway Initiative (2000).
+ * All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Implementation of certain elements of the Open Services Gateway Initiative
+ * (OSGI) Specification may be subject to third party intellectual property
+ * rights, including without limitation, patent rights (such a third party may
+ * or may not be a member of OSGi). OSGi is not responsible and shall not be
+ * held responsible in any manner for identifying or failing to identify any or
+ * all such third party intellectual property rights.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * This document and the information contained herein are provided on an "AS
+ * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+ * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
+ * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
+ * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
+ * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
+ * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH LOSS OR DAMAGE.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All Company, brand and product names may be trademarks that are the sole
+ * property of their respective owners. All rights reserved.
  */
+
 package org.osgi.service.http;
 
 /**
@@ -22,74 +33,49 @@ package org.osgi.service.http;
  * to register a servlet or resources into the URI namespace of the Http
  * Service. This exception indicates that the requested alias already is in use.
  * 
- * @version $Revision: 1.10 $
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  */
 public class NamespaceException extends Exception {
-    static final long serialVersionUID = 7235606031147877747L;
-	/**
-	 * Nested exception.
-	 */
-	private Throwable	cause;
+    private static final long serialVersionUID = 1L;
 
-	/**
-	 * Construct a <code>NamespaceException</code> object with a detail message.
-	 * 
-	 * @param message the detail message
-	 */
-	public NamespaceException(String message) {
-		super(message);
-		cause = null;
-	}
+    /**
+     * Nested exception
+     */
+    private transient Throwable exception;
 
-	/**
-	 * Construct a <code>NamespaceException</code> object with a detail message
-	 * and a nested exception.
-	 * 
-	 * @param message The detail message.
-	 * @param cause The nested exception.
-	 */
-	public NamespaceException(String message, Throwable cause) {
-		super(message);
-		this.cause = cause;
-	}
+    /**
+     * Construct a <tt>NamespaceException</tt> object with a detail message.
+     * 
+     * @param message
+     *            the detail message
+     */
+    public NamespaceException(String message) {
+        super(message);
+        exception = null;
+    }
 
-	/**
-	 * Returns the nested exception.
-	 *
-     * <p>This method predates the general purpose exception chaining mechanism.
-     * The {@link #getCause()} method is now the preferred means of
-     * obtaining this information.
-	 * 
-	 * @return the nested exception or <code>null</code> if there is no nested
-	 *         exception.
-	 */
-	public Throwable getException() {
-		return cause;
-	}
+    /**
+     * Construct a <tt>NamespaceException</tt> object with a detail message
+     * and a nested exception.
+     * 
+     * @param message
+     *            the detail message
+     * @param exception
+     *            the nested exception
+     */
+    public NamespaceException(String message, Throwable exception) {
+        super(message);
+        this.exception = exception;
+    }
 
-	/**
-	 * Returns the cause of this exception or <code>null</code> if no
-	 * cause was specified when this exception was created.
-	 *
-	 * @return  The cause of this exception or <code>null</code> if no
-	 * cause was specified.
-	 * @since 1.2 
-	 */
-	public Throwable getCause() {
-	    return cause;
-	}
-
-	/**
-	 * The cause of this exception can only be set when constructed.
-	 *
-	 * @param cause Cause of the exception.
-	 * @return This object.
-	 * @throws java.lang.IllegalStateException
-	 * This method will always throw an <code>IllegalStateException</code>
-	 * since the cause of this exception can only be set when constructed.
-	 * @since 1.2 
-	 */
-	public Throwable initCause(Throwable cause) {
-		throw new IllegalStateException();
-	}
+    /**
+     * Returns the nested exception.
+     * 
+     * @return the nested exception or <code>null</code> if there is no nested
+     *         exception.
+     */
+    public Throwable getException() {
+        return (exception);
+    }
 }

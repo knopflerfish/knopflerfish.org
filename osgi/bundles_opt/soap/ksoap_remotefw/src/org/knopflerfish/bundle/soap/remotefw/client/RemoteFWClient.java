@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,15 +93,9 @@ public class RemoteFWClient implements RemoteFW {
     caches.put("getStartLevel",               slowCache);
     caches.put("getBundleStartLevel",         slowCache);
 
-    // Package Admin methods
-    caches.put("getExportedPackage",           slowCache);
-    caches.put("getExportedPackages",          slowCache);
-    caches.put("getExportedPackagesByPkgName", slowCache);
-    caches.put("getRequiredBundles",           slowCache);
-    caches.put("getFragments",                 slowCache);
-    caches.put("getHosts",                     slowCache);
-    caches.put("getBundlesPA",                 fastCache);
-    caches.put("getBundleType",                slowCache);
+    caches.put("getExportedPackage",  slowCache);
+    caches.put("getExportedPackages", slowCache);
+
   }
 
 
@@ -202,8 +196,7 @@ public class RemoteFWClient implements RemoteFW {
 
 
   public long    getBundle() {
-    Object obj = doCall("getBundle");
-    return (obj == null ? 0 : new Long(obj.toString()).longValue());
+    return new Long(doCall("getBundle").toString()).longValue();
   }
 
   public long[]    getBundles() {
@@ -217,12 +210,11 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public String  getBundleLocation(long bid) {
-    return toString(doCall("getBundleLocation", bid));
+    return doCall("getBundleLocation", bid).toString();
   }
 
   public int  getBundleState(long bid) {
-    Object obj = doCall("getBundleState", bid);
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
+    return new Integer(doCall("getBundleState", bid).toString()).intValue();
   }
 
 
@@ -302,8 +294,7 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public int  getStartLevel() {
-    Object obj = doCall("getStartLevel");
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
+    return new Integer(doCall("getStartLevel").toString()).intValue();
   }
 
 
@@ -317,8 +308,7 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public int  getBundleStartLevel(long bid) {
-    Object obj = doCall("getBundleStartLevel", bid);
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
+    return new Integer(doCall("getBundleStartLevel", bid).toString()).intValue();
   }
 
 
@@ -327,8 +317,7 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public int  getInitialBundleStartLevel() {
-    Object obj = doCall("getInitialBundleStartLevel");
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
+    return new Integer(doCall("getInitialBundleStartLevel").toString()).intValue();
   }
 
   public boolean isBundlePersistentlyStarted(long bid) {
@@ -347,7 +336,6 @@ public class RemoteFWClient implements RemoteFW {
     }
   }
 
-  // bid==-1 represents getExportedPackages((Bundle)null)
   public Vector  getExportedPackages(long bid) {
     Object obj = doCall("getExportedPackages", bid);
     if (obj instanceof Vector) {
@@ -359,20 +347,6 @@ public class RemoteFWClient implements RemoteFW {
     }
   }
 
-  public Vector getExportedPackagesByPkgName(String pkgName) {
-    Object obj = doCall("getExportedPackagesByPkgName", pkgName);
-    if (obj instanceof Vector) {
-      return (Vector) obj;
-    } else if (obj instanceof SoapObject) {
-      return soapObjectToVector((SoapObject) obj);
-    } else {
-      throw new RuntimeException
-        ("getExportedPackages returned something strange: " +obj
-         +" (" + obj.getClass().getName() + ")");
-    }
-  }
-
-
   public void   refreshPackages(long[] bids) {
     if(bids == null) {
       doCall("refreshPackages", new long[0]);
@@ -381,46 +355,7 @@ public class RemoteFWClient implements RemoteFW {
     }
   }
 
-  public Vector getRequiredBundles(String symbolicName) {
-    Object obj = doCall("getRequiredBundles",
-                        null==symbolicName ? "00000" : symbolicName);
-    if (obj instanceof Vector) {
-      return (Vector) obj;
-    } else if (obj instanceof SoapObject) {
-      return soapObjectToVector((SoapObject) obj);
-    } else {
-      throw new RuntimeException
-        ("getRequiredBundles returned something strange: "
-         + obj + " (" + obj.getClass().getName() + ")");
-    }
-  }
-
-  public long[] getFragments(long bid) {
-    return toLongArray(doCall("getFragments", bid));
-  }
-
-
-  public long[] getHosts(long bid) {
-    return toLongArray(doCall("getHosts", bid));
-  }
-
-  public long[] getBundlesPA(String symbolicName, String versionRange) {
-    return toLongArray(doCall("getBundlesPA",
-                              new Object[]{ symbolicName, versionRange}));
-  }
-
-  public int getBundleType(long bid) {
-    Object obj = doCall("getBundleType", bid);
-    return (obj == null ? 0 : new Integer(obj.toString()).intValue());
-  }
-
-  public boolean resolveBundles(long[] bids) {
-    Object obj = doCall("resolveBundles", null==bids ? new long[0] : bids);
-    return null==obj ? false : new Boolean(obj.toString()).booleanValue();
-  }
-
-
-  public Vector getSystemProperties() {
+  public Vector    getSystemProperties() {
     Object obj = doCall("getSystemProperties");
     if (obj instanceof Vector) {
       return (Vector) obj;
@@ -611,10 +546,6 @@ public class RemoteFWClient implements RemoteFW {
     }
 
     return la;
-  }
-
-  static String toString(Object obj) {
-    return (obj == null ? null : obj.toString());
   }
 
   public static Object toDisplay(Object val) {

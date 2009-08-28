@@ -1,30 +1,23 @@
 <?xml version="1.0"?>
 
+<!DOCTYPE project [
+  <!ENTITY test_include  SYSTEM "../test_include.xml">
+]>
+
 <project name="http_test" default="all">
 
-  <dirname property="proj.dir" file="${ant.file.http_test}"/>
-  <import  file="${proj.dir}/../test_import.xml"/>
+  <property name="topdir"       location=".."/>
 
-  <property name="bundle.build.all"  value="true"/>
-  <property name="bundle.build.api"  value="false"/>
-  <property name="bundle.build.lib"  value="false"/>
-  <property name="bundle.build.impl" value="false"/>
-  <property name="bundle.build.doc"  value="false"/>
-
-  <property name="all.suffix.name"   value=""/>
-
-  <property name="impl.pattern"
-            value="org/knopflerfish/bundle/**"/>
-  <property name="api.pattern"
-            value="org/knopflerfish/service/**"/>
+  <property name="bundle.version" value="1.0.0"/>
 
   <path id = "bundle.compile.path">
-    <pathelement location="jsdk_api-N.N.N.jar"/>
-    <pathelement location="http_api-N.N.N.jar"/>
-    <pathelement location="junit_all-N.N.N.jar"/>
-    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+    <pathelement location="${topdir}/lib/http_api-1.1.0.jar"/>
+    <pathelement location="${topdir}/lib/servlet.jar"/>
   </path>
 
-  <import file="${ant.dir}/bundlebuild.xml"/>
+  &test_include;
 
 </project>
+
+
+

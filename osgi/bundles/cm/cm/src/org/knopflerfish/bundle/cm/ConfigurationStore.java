@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,6 @@ import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
 import org.osgi.framework.Constants;
 
-import org.osgi.service.cm.ConfigurationAdmin;
-
 /**
  * Persistent storage of configuration data
  * 
@@ -73,6 +71,10 @@ class ConfigurationStore {
     private final static String factoryPidDataFile = "fpid_to_pids";
 
     private final static String generatedPids = "generated_pids";
+
+    private final static String FACTORY_PID = "service.factoryPid";
+
+    private final static String SERVICE_PID = Constants.SERVICE_PID;
 
     private final File storeDir;
 
@@ -150,7 +152,7 @@ class ConfigurationStore {
 
         ConfigurationDictionary d = loadConfigurationDictionary(fileName);
         uncacheConfigurationDictionary(fileName);
-        String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
+        String fpid = (String) d.get(FACTORY_PID);
         if (fpid != null) {
             Vector v = (Vector) factoryPidToPids.get(fpid);
             if (v.removeElement(pid)) {
@@ -354,8 +356,8 @@ class ConfigurationStore {
         PrintWriter w = new PrintWriter(new OutputStreamWriter(
                 new FileOutputStream(f), CMDataWriter.ENCODING));
 
-        String pid = (String) d.get(Constants.SERVICE_PID);
-        String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
+        String pid = (String) d.get(SERVICE_PID);
+        String fpid = (String) d.get(FACTORY_PID);
         if (fpid == null) {
             CMDataWriter.writeConfiguration(pid, d, w);
         } else {

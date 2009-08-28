@@ -88,10 +88,6 @@ public class SOAPDisplayer implements SwingBundleDisplayer {
     // ignore
   }
 
-  public void showBundle(Bundle b) {
-      // NYI
-  }
-
   public Icon       getLargeIcon() {
     return null;
   }

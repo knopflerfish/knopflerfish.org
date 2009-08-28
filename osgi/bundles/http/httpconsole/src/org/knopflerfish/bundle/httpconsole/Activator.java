@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,82 +49,97 @@ public class Activator implements BundleActivator {
   // This is my world
   static BundleContext bc;
 
-  static final String  RES_DIR       = "/www";
+  static final String  RES_DIR       = "/www";   
   static String  SERVLET_ALIAS       = "/servlet/console";
-  static final String  RES_ALIAS     = "/console/resources";
+  static final String  RES_ALIAS     = "/console/resources";  
 
   String filter = "(objectclass=" + HttpService.class.getName() + ")";
 
   Hashtable registrations = new Hashtable();
 
-  static LogRef log;
 
+
+  static LogRef log;
   public void start(BundleContext bc) throws BundleException {
     this.bc  = bc;
     this.log = new LogRef();
 
-    String alias = bc.getProperty("org.knopflerfish.httpconsole.alias");
+    String alias = 
+      System.getProperty("org.knopflerfish.httpconsole.alias");
     if(alias != null && !"".equals(alias)) {
       SERVLET_ALIAS = alias.trim();
     }
 
-    String fs = bc.getProperty("org.knopflerfish.httpconsole.filter");
+    String fs = 
+      System.getProperty("org.knopflerfish.httpconsole.filter");
     if(fs != null && !"".equals(fs)) {
       // Just do a quick syntax check
       try {
-        bc.createFilter(fs);
-        filter = fs;
+	bc.createFilter(fs);
+	filter = fs;
       } catch (Exception e) {
-        log.warn("Failed to use custom filter", e);
+	log.warn("Failed to use custom filter", e);
       }
     }
 
-    // These are registered as-in into the framework.
-    // The HttpWrapper will pick them up and handle the gory
-    // work of registering them into all actual http services
-    HttpServlet servlet = new ConsoleServlet(bc);
     // Wrap the Http service into something more
     // white-board-like
-    HttpWrapper wrapper = new HttpWrapper(bc, servlet, context);
+    HttpWrapper wrapper = new HttpWrapper(bc);
     wrapper.open();
+
+    // By registering the servlet and the context
+    // they will be picked up by the wrapper and installed
+    // in the http service
+    Hashtable props1 = new Hashtable();
+    props1.put(HttpWrapper.PROP_ALIAS, SERVLET_ALIAS);
+    bc.registerService(HttpServlet.class.getName(), servlet, props1);
+
+    Hashtable props2 = new Hashtable();
+    props2.put(HttpWrapper.PROP_ALIAS, RES_ALIAS);
+    props2.put(HttpWrapper.PROP_DIR,   RES_DIR);
+    bc.registerService(HttpContext.class.getName(), context, props2);
   }
 
   public void stop(BundleContext bc) throws BundleException {
     // all is done by FW
   }
 
+  // These are registered as-in into the framework.
+  // The HttpWrapper will pick them up and handle the gory
+  // work of registering them into all actual http services
+  HttpServlet servlet = new ConsoleServlet();
 
   HttpContext context = new HttpContext() {
       public URL getResource(String name) {
-        // and send the plain file
-        URL url = getClass().getResource(name);
-
-        return url;
+	// and send the plain file
+	URL url = getClass().getResource(name);
+	
+	return url;
       }
-
+      
       public String getMimeType(String reqEntry) {
-        return null; // server decides type
+	return null; // server decides type
       }
-
+      
       public boolean handleSecurity( HttpServletRequest request,
-                                     HttpServletResponse response )
-        throws IOException
+				     HttpServletResponse response )
+	throws IOException 
       {
-        // Security is handled by server
-        return true;
+	// Security is handled by server
+	return true;
       }
     };
-
+  
 
   class LogRef {
     void info(String msg) {
       System.out.println("INFO: " + msg);
     }
-
+    
     void error(String msg, Throwable t) {
       System.out.println("ERROR: " + msg);
       if(t != null) {
-        t.printStackTrace();
+	t.printStackTrace();
       }
     }
     void warn(String msg) {
@@ -134,7 +149,7 @@ public class Activator implements BundleActivator {
     void warn(String msg, Throwable t) {
       System.out.println("WARN: " + msg);
       if(t != null) {
-        t.printStackTrace();
+	t.printStackTrace();
       }
     }
   }

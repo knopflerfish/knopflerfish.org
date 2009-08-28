@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,10 +69,9 @@ public class HttpServer {
 
     // constructors
 
-    public HttpServer(BundleContext bc,
-                      final HttpConfig httpConfig,
-                      final LogRef log)
-    {
+    public HttpServer(BundleContext bc, final HttpConfig httpConfig,
+            final LogRef log) {
+
         this.bc = bc;
         this.httpConfig = httpConfig;
         registrations = new Registrations();
@@ -86,12 +85,10 @@ public class HttpServer {
         transactionManager = new TransactionManager(log, registrations,
                 sessionManager);
 
-        httpSocketListener
-          = new SocketListener(httpConfig.HTTP, log,
-                               transactionManager, bc, this);
-        httpsSocketListener
-          = new SocketListener(httpConfig.HTTPS, log,
-                               transactionManager, bc, this);
+        httpSocketListener = new SocketListener(httpConfig.HTTP, log,
+                transactionManager, bc);
+        httpsSocketListener = new SocketListener(httpConfig.HTTPS, log,
+                transactionManager, bc);
     }
 
     // public methods
@@ -109,7 +106,24 @@ public class HttpServer {
         try {
             httpSocketListener.updated();
             httpsSocketListener.updated();
-            doHttpReg();
+            Dictionary conf = httpConfig.getConfiguration();
+
+            Hashtable props = new Hashtable();
+            for (Enumeration e = conf.keys(); e.hasMoreElements();) {
+                Object key = e.nextElement();
+                Object val = conf.get(key);
+                props.put(key, val);
+            }
+            // UPnP Ref impl need this
+            props.put("openPort", props.get(HttpConfig.HTTP_PORT_KEY));
+
+            // register and/or update service properties
+            if (httpReg == null) {
+                httpReg = bc.registerService(HttpServiceImpl.HTTP_INTERFACES,
+                        getHttpServiceFactory(), props);
+            } else {
+                httpReg.setProperties(props);
+            }
         } catch (ConfigurationException e) {
             // If configuration failed, make sure we don't have
             // any registered service
@@ -122,8 +136,8 @@ public class HttpServer {
         }
     }
 
-    public void destroy()
-    {
+    public void destroy() {
+
         if (httpSocketListener != null) {
             httpSocketListener.destroy();
         }
@@ -133,31 +147,6 @@ public class HttpServer {
         if (httpReg != null) {
             httpReg.unregister();
             httpReg = null;
-        }
-        if (sessionManager != null) {
-            sessionManager.destroy();
-        }
-    }
-
-    synchronized void doHttpReg()
-    {
-        Dictionary conf = httpConfig.getConfiguration();
-
-        Hashtable props = new Hashtable();
-        for (Enumeration e = conf.keys(); e.hasMoreElements();) {
-            Object key = e.nextElement();
-            Object val = conf.get(key);
-            props.put(key, val);
-        }
-        // UPnP Ref impl need this
-        props.put("openPort", props.get(HttpConfig.HTTP_PORT_KEY));
-
-        // register and/or update service properties
-        if (httpReg == null) {
-          httpReg = bc.registerService(HttpServiceImpl.HTTP_INTERFACES,
-                                       getHttpServiceFactory(), props);
-        } else {
-          httpReg.setProperties(props);
         }
     }
 

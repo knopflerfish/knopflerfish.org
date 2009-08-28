@@ -84,7 +84,6 @@ public class Activator implements BundleActivator {
         lrsf.log(new LogEntryImpl(bc.getBundle(), LogService.LOG_INFO,
                 "Log stopped."));
         lrsf.stop();
-        lc.ungrabIO();
     }
 
 }

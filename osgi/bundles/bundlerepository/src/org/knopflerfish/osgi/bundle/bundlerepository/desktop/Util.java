@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ public class Util {
   public static boolean isInRepo(Bundle b, String updateURL) {
     String bundleUpLoc = (String)b.getHeaders().get(BundleRecord.BUNDLE_UPDATELOCATION);
     boolean bIsRepoBundle = false;
-
+    
     if(bundleUpLoc != null) {
       bIsRepoBundle = updateURL.equals(bundleUpLoc);
     } else {
@@ -87,7 +87,7 @@ public class Util {
     if(uuid_b != null && uuid_b.equals(uuid_br)) {
       return true;
     }
-
+    
     if(bundleAttrEqual(b, br, "Bundle-Name") &&
        bundleAttrEqual(b, br, "Bundle-Version")) {
       return true;
@@ -104,7 +104,7 @@ public class Util {
   static boolean bundleAttrEqual(Bundle b, BundleRecord br, String attr) {
     String val_br = (String)br.getAttribute(attr);
     String val_b  = (String)b.getHeaders().get(attr);
-    return
+    return 
       (val_br == val_b) ||
       (val_b != null && val_b.equals(val_br));
   }
@@ -138,14 +138,12 @@ public class Util {
         return def;
       }
     } else {
-      System.out.println(name + ", type="
-                         +(obj!=null ? obj.getClass().getName() : "?" )
-                         + " " + obj);
+      System.out.println(name + ", type=" + obj.getClass().getName() + " " + obj);
     }
     return s;
   }
-
-
+  
+  
   /**
    * Generic Object to HTML string conversion method.
    */
@@ -156,10 +154,10 @@ public class Util {
     if(obj instanceof String) {
       String s = (String)obj;
       try {
-        URL url = new URL(s);
-        return "<a href=\"" + s + "\">" + s + "</a>";
+	URL url = new URL(s);
+	return "<a href=\"" + s + "\">" + s + "</a>";
       } catch (Exception e) {
-
+	
       }
       return s;
     } else if(obj.getClass().isArray()) {
@@ -167,19 +165,19 @@ public class Util {
       int len = Array.getLength(obj);
 
       for(int i = 0; i < len; i++) {
-        sb.append(toHTML(Array.get(obj, i)));
-        if(i < len - 1) {
-          sb.append("<br>\n");
-        }
+	sb.append(toHTML(Array.get(obj, i)));
+	if(i < len - 1) {
+	  sb.append("<br>\n");
+	}
       }
       return sb.toString();
     } else {
       return obj.toString();
     }
   }
-
+  
   /**
-   * Get Name of BundleRecord by first trying "Bundle-Name" attribute,
+   * Get Name of BundleRecord by first trying "Bundle-Name" attribute, 
    * then last part of "Bundle-UpdateLocation"
    */
   public static String getBRName(BundleRecord br) {
@@ -188,93 +186,43 @@ public class Util {
       s = getAttribute(br, BundleRecord.BUNDLE_UPDATELOCATION, "no name");
       int ix = s.lastIndexOf('/');
       if(ix != -1) {
-        s = s.substring(ix + 1);
+	s = s.substring(ix + 1);
       }
     }
-    return s;
-  }
-
-  /**
-   * Get Version of BundleRecord by trying "Bundle-Version" attribute.
-   */
-  public static String getBRVersion(BundleRecord br) {
-    String s = getAttribute(br, BundleRecord.BUNDLE_VERSION, "0.0.0");
     return s;
   }
 
   public static void startFont(StringBuffer sb) {
     startFont(sb, "-2");
   }
-
+  
   public static void stopFont(StringBuffer sb) {
     sb.append("</font>");
   }
-
+  
   public static void startFont(StringBuffer sb, String size) {
     sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
   public static void openExternalURL(URL url) throws IOException {
-    if(Util.isWindows()) {
+    if(isWindows()) {
       // Yes, this only works on windows
       String systemBrowser = "explorer.exe";
       Runtime rt = Runtime.getRuntime();
       Process proc = rt.exec(new String[] {
-        systemBrowser,
-        "\"" + url.toString() + "\"",
+	systemBrowser, 
+	"\"" + url.toString() + "\"",
       });
-      new StreamGobbler(proc.getErrorStream());
-      new StreamGobbler(proc.getInputStream());
-    } else if (Util.isMacOSX()) {
-      // Yes, this only works on Mac OS X
-      Runtime rt = Runtime.getRuntime();
-      Process proc = rt.exec(new String[] {
-        "/usr/bin/open",
-        url.toString(),
-      });
-      new StreamGobbler(proc.getErrorStream());
-      new StreamGobbler(proc.getInputStream());
     } else {
-      throw new IOException
-        ("Only windows and Mac OS X browsers are yet supported");
+      throw new IOException("Only windows browsers are yet supported");
     }
   }
-
+  
   public static boolean isWindows() {
     String os = System.getProperty("os.name");
     if(os != null) {
       return -1 != os.toLowerCase().indexOf("win");
     }
     return false;
-  }
-
-
-  public static boolean isMacOSX() {
-    String os = System.getProperty("os.name");
-    return "Mac OS X".equals(os);
-  }
-
-  /** A thread that empties an input stream without complaining.*/
-  static class StreamGobbler extends Thread
-  {
-    InputStream is;
-    StreamGobbler(InputStream is)
-    {
-      this.is = is;
-      start();
-    }
-
-    public void run()
-    {
-      BufferedReader br = new BufferedReader(new InputStreamReader(is));
-      String line = "";
-      try {
-        while (null!=line) {
-          line = br.readLine();
-          //System.out.println(line);
-        }
-      } catch (IOException _ioe) {
-      }
-    }
   }
 }

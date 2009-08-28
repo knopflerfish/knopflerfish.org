@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,21 +54,13 @@ public class ServletRegistration implements Registration {
 
     private final RequestDispatcherImpl dispatcher;
 
-    /**
-     * HACK CSM
-     */
-    private long lastModificationDate;
-
     // constructors
 
-    public ServletRegistration(final String alias,
-                               final Servlet servlet,
-                               Dictionary parameters,
-                               final HttpContext httpContext,
-                               final ServletContextManager contextManager,
-                               final Registrations registrations)
-        throws ServletException
-    {
+    public ServletRegistration(final String alias, final Servlet servlet,
+            Dictionary parameters, final HttpContext httpContext,
+            final ServletContextManager contextManager,
+            final Registrations registrations) throws ServletException {
+
         if (parameters == null)
             parameters = new Hashtable();
 
@@ -79,29 +71,27 @@ public class ServletRegistration implements Registration {
         this.contextManager = contextManager;
         this.registrations = registrations;
 
-        // Fail fast if servlet already registered!
-        registrations.addServlet(servlet);
-
         final ServletContext context = contextManager.getServletContext(
                 httpContext, null);
         final ServletConfig config = new ServletConfigImpl(parameters, context);
         servlet.init(config);
 
-        dispatcher = new RequestDispatcherImpl(alias, servlet, httpContext,
-                                               lastModificationDate);
+        dispatcher = new RequestDispatcherImpl(alias, servlet, httpContext);
+
+        registrations.addServlet(servlet);
     }
 
     // implements Registration
 
-    public RequestDispatcherImpl getRequestDispatcher(final String uri)
-    {
+    public RequestDispatcherImpl getRequestDispatcher(final String uri) {
+
         dispatcher.setURI(uri);
 
         return dispatcher;
     }
 
-    public void destroy()
-    {
+    public void destroy() {
+
         final Servlet servlet = dispatcher.getServlet();
         final ServletContext context = servlet.getServletConfig()
                 .getServletContext();
@@ -109,14 +99,6 @@ public class ServletRegistration implements Registration {
         contextManager.ungetServletContext(context);
 
         registrations.removeServlet(servlet);
-    }
-
-    /**
-     * HACK CSM
-     */
-    public long getLastModificationDate()
-    {
-        return lastModificationDate;
     }
 
 } // ServletRegistration

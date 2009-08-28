@@ -112,10 +112,6 @@ public abstract class DefaultSwingBundleDisplayer
     return bDetail;
   }
 
-  public void showBundle(Bundle b) {
-      // NYI
-  }
-
   public abstract JComponent newJComponent();
 
   public void open() {

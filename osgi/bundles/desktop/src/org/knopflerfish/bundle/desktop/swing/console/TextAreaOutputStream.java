@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,52 +34,44 @@
 
 package org.knopflerfish.bundle.desktop.swing.console;
 
-import java.io.OutputStream;
+import java.util.Vector;
+import java.io.*;
 
-import javax.swing.JTextArea;
+import java.awt.*;
+import java.awt.event.*; 
+import javax.swing.*;
+
+import java.net.URL;
+
+import org.osgi.service.log.LogService;
 
 
-public class TextAreaOutputStream
-  extends OutputStream
-{
-  final SwingIO swingIO;
-  final JTextArea text;
+public class TextAreaOutputStream extends OutputStream {
 
-  final static int BUFFER_SIZE = 1024;
-  final byte[] buffer = new byte[BUFFER_SIZE];
-  int pointer = 0;
+  JTextArea     text;
+  SwingIO        swingIO;
+  StringBuffer buff = new StringBuffer();
 
-  TextAreaOutputStream(SwingIO swingIO, JTextArea text)
-  {
+  TextAreaOutputStream(SwingIO swingIO, JTextArea text) {
     this.swingIO = swingIO;
     this.text  = text;
   }
 
-  public void flush()
-  {
-    final String line = new String(buffer, 0, pointer);
-    text.append(line);
-    pointer = 0;
+  public void flush() {
+    text.append(buff.toString());
+    buff.setLength(0);
   }
 
-  public void write(int i)
-  {
-    byte b = (byte) i;
-
-    if (b == '\r') {
-      // Ignore; swing components does not use \r
-    } else if(b == '\n') {
-      final String line = new String(buffer, 0, pointer);
-      text.append(line +"\n");
-      pointer = 0;
+  public void write(int b) {
+    char c = (char)b;
+    if(c == '\r') {
+    } else if(c == '\n') {
+      text.append(buff.toString() + "\n");
+      buff.setLength(0);
       swingIO.showLastLine();
     } else {
-      buffer[pointer++] = b;
-      if(pointer>=BUFFER_SIZE){
-        final String line =new String(buffer,0,pointer);
-        text.append(line);
-        pointer = 0;
-      }
+      buff.append(c);
     }
   }
 }
+

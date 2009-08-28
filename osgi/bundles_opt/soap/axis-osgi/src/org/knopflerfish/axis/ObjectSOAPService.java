@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+ 
 package org.knopflerfish.axis;
 
 import java.io.ByteArrayInputStream;
@@ -40,18 +40,18 @@ import org.apache.axis.WSDDEngineConfiguration;
 import org.apache.axis.components.logger.LogFactory;
 import org.apache.axis.deployment.wsdd.WSDDDeployment;
 import org.apache.axis.deployment.wsdd.WSDDDocument;
+import org.apache.axis.deployment.wsdd.WSDDService;
 import org.apache.axis.server.AxisServer;
 import org.apache.axis.utils.XMLUtils;
 
 import org.apache.commons.logging.Log;
+
+import org.knopflerfish.bundle.axis.Activator;
+
 import java.lang.reflect.*;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.StringTokenizer;
 
 
-/**
- * An Axis SOAP service representation of an arbitrary object
+/** An Axis SOAP service representation of an arbitrary object
  *
  * @author Lasse Helander (lars-erik.helander@home.se)
  */
@@ -60,25 +60,27 @@ public class ObjectSOAPService {
   private AxisServer axisServer = null;
   private String serviceName = null;
   private Object serviceObject = null;
+  
+  private String[] classNames;
 
   String  allowedMethods;
 
-  public ObjectSOAPService(AxisServer server,
-                           String serviceName,
-                           Object serviceObject,
-                           String[] classNames,
-                           String   allowedMethods)
-  {
-    this.serviceObject = serviceObject;
-    this.serviceName = serviceName;
-    this.axisServer = server;
+   public ObjectSOAPService(AxisServer server, 
+			    String serviceName, 
+                            Object serviceObject,
+			    String[] classNames,
+			    String   allowedMethods) {
+      this.serviceObject = serviceObject;
+      this.serviceName = serviceName;
+      this.axisServer = server;
+      this.classNames = classNames;
 
-    if(allowedMethods == null) {
-      this.allowedMethods = getMethodNames(classNames);
-    } else {
-      this.allowedMethods = allowedMethods;
-    }
-  }
+      if(allowedMethods == null) {
+	this.allowedMethods = getMethodNames(classNames);
+      } else {
+	this.allowedMethods = allowedMethods;
+      }      
+   }
 
   /**
    * Get all method names from a set of classes, except for the
@@ -89,192 +91,104 @@ public class ObjectSOAPService {
    */
   String getMethodNames(String[] classNames) {
     StringBuffer sb = new StringBuffer();
-
+    
     try {
       Class objectClass = Object.class;
 
       for(int i = 0; i < classNames.length; i++) {
-        Class clazz = Class.forName(classNames[i]);
-        Method[] methods = clazz.getMethods();
+	Class clazz = Class.forName(classNames[i]);
+	Method[] methods = clazz.getMethods();
+	
+	for(int j = 0; j < methods.length; j++) {
+	  boolean bInObject = false;
+	  try {
+	    objectClass.getMethod(methods[i].getName(),
+				  methods[i].getParameterTypes());
+	    bInObject = true;
+	  } catch (Exception ignored) {
+	    // If not in objectClass methods
+	  }
 
-        for(int j = 0; j < methods.length; j++) {
-          boolean bInObject = false;
-          try {
-            objectClass.getMethod(methods[i].getName(),
-                                  methods[i].getParameterTypes());
-            bInObject = true;
-          } catch (Exception ignored) {
-            // If not in objectClass methods
-          }
-
-          if(!bInObject) {
-            if(sb.length() > 0) {
-              sb.append(" ");
-            }
-            sb.append(methods[j].getName());
-          }
-        }
+	  if(!bInObject) {
+	    if(sb.length() > 0) {
+	      sb.append(" ");
+	    }
+	    sb.append(methods[j].getName());
+	  }
+	}
       }
       return sb.toString();
     } catch (Exception e) {
-      log.error("Failed to analyze methods in service object:"
-                + serviceObject.getClass().getName(), e);
+      log.error("Failed to analyze methods in service object:"  + serviceObject.getClass().getName(), e);
     }
     return "*";
   }
 
 
-  /**
-   * Get all objects used in the methods of the serviceObject that do not
-   * have a standard SOAP mapping.
-   *
-   * @return a HashSet containing all unmapped object classes
-   */
-  private HashSet getMethodObjects() {
-    HashSet         classset = new HashSet();
-    HashSet allowedMethodSet = new HashSet();
+   public void deploy() {
+      Object obj = axisServer.getApplicationSession().get(serviceName);
 
-    StringTokenizer st = new StringTokenizer(allowedMethods);
-    while (st.hasMoreTokens()) allowedMethodSet.add(st.nextToken());
-
-    try {
-      Class objectClass = Object.class;
-      Class clazz       = serviceObject.getClass();
-      Method[] methods  = clazz.getMethods();
-
-      for(int i = 0; i < methods.length; i++) {
-        if(allowedMethodSet.contains(methods[i].getName())) {
-          Class params[] = methods[i].getParameterTypes();
-
-          for (int j = 0; j < params.length; j++) {
-            if (!params[j].isArray()) {
-              String paramname = params[j].getName();
-              classset.add(paramname);
-            }
-          }
-
-          if (!methods[i].getReturnType().isArray()) {
-            String returnname = methods[i].getReturnType().getName();
-            classset.add(returnname);
-          }
-        }
-      }
-
-    } catch (Exception e) {
-      log.error("Failed to analyze methods: " + e.toString());
-    }
-    allowedMethodSet.clear();
-
-    // Remove all standard mappings from the set because they already have
-    // a (de)serializer.
-    classset.remove("byte");
-    classset.remove("boolean");
-    classset.remove("double");
-    classset.remove("float");
-    classset.remove("int");
-    classset.remove("long");
-    classset.remove("short");
-    classset.remove("void");
-    classset.remove("java.util.Calendar");
-    classset.remove("java.math.BigDecimal");
-    classset.remove("java.math.BigInteger");
-    classset.remove("javax.xml.namespace.QName");
-    classset.remove("java.lang.String");
-
-    return classset;
-  }
-
-
-  public void deploy() {
-    Object obj = axisServer.getApplicationSession().get(serviceName);
-
-    if (obj == null) {
-      deployWSDD(deployDoc());
-      axisServer.getApplicationSession().set(serviceName, serviceObject);
-      log.info("deployed object=" + serviceObject.getClass().getName() +
-               ", name=" + serviceName + ", allowedMethods=" + allowedMethods);
-    } else {
-      log.error(
-                "ObjectSOAPService::deploy() service " + serviceName +
-                " do already exist");
-    }
-  }
-
-  public void undeploy() {
-    Object obj = axisServer.getApplicationSession().get(serviceName);
-
-    if (obj == null) {
-      log.error("ObjectSOAPService::undeploy() service " + serviceName +
-                " does not exist");
-    } else {
-      deployWSDD(undeployDoc());
-      axisServer.getApplicationSession().remove(serviceName);
-      log.info("undeployed object=" + serviceObject.getClass().getName() +
-               ", name=" + serviceName);
-    }
-  }
-
-  private String deployDoc() {
-    StringBuffer sb = new StringBuffer();
-
-    Iterator it =  getMethodObjects().iterator();
-    while (it.hasNext()) {
-      String classname  = (String) it.next();
-      int    qnamestart = classname.lastIndexOf('.');
-      if (qnamestart < 0) {
-        qnamestart = 0;
+      if (obj == null) {
+         deployWSDD(deployDoc());
+         axisServer.getApplicationSession().set(serviceName, serviceObject);
+	 log.info("deployed object=" + serviceObject.getClass().getName() + 
+		  ", name=" + serviceName + ", allowedMethods=" + allowedMethods);
       } else {
-        qnamestart++;
+	log.error(
+		  "ObjectSOAPService::deploy() service " + serviceName + 
+		  " do already exist");
       }
+   }
 
+   public void undeploy() {
+      Object obj = axisServer.getApplicationSession().get(serviceName);
+
+      if (obj == null) {
+         log.error(
+                "ObjectSOAPService::undeploy() service " + serviceName + 
+                " does not exist");
+      } else {
+         deployWSDD(undeployDoc());
+         axisServer.getApplicationSession().remove(serviceName);
+      }
+   }
+
+   private String deployDoc() {
+      return 
+	"<deployment" + 
+	" xmlns=\"http://xml.apache.org/axis/wsdd/\"\n" + 
+	" xmlns:java=\"http://xml.apache.org/axis/wsdd/providers/java\"\n" + 
+	">\n" + 
+	" <service name     = \"" + serviceName + "\"\n" + 
+	"          provider = \"java:RPC\">\n" + 
+	"   <parameter name  = \"allowedMethods\"\n"+ 
+	"              value = \"" + allowedMethods + "\"/>\n" + 
+	"   <parameter name  = \"className\"\n" + 
+	"              value=\""+serviceObject.getClass().getName()+"\"/>\n"+ 
+	"   <parameter name=\"scope\"\n" + 
+	"              value=\"Application\"/>\n" + 
+	" </service>\n" +
+	"</deployment>";
+   }
+  
+   private void deployWSDD(String sdoc) {
       try {
-        Class mybean = Class.forName(classname);
-        sb.append("   <beanMapping qname=\"tnsgw:"
-                  + classname.substring(qnamestart)
-                  + "\" xmlns:tnsgw=\"urn:BeanService\" "
-                  + "languageSpecificType=\"java:" + mybean.getName()
-                  + "\"/>\n");
+         WSDDEngineConfiguration config = (WSDDEngineConfiguration) axisServer.getConfig();
+         WSDDDeployment deployment = config.getDeployment();
+         WSDDDocument doc = new WSDDDocument(XMLUtils.newDocument(new ByteArrayInputStream(sdoc.getBytes())));
+
+         doc.deploy(deployment);
+         axisServer.refreshGlobalOptions();
       } catch (Exception e) {
-        log.error("Failed to get parameter class: "  + classname, e);
+         log.error("ObjectSOAPService::deployWSDD() exception", e);
       }
-    }
+   }
 
-    return
-      "<deployment" +
-      " xmlns=\"http://xml.apache.org/axis/wsdd/\"\n" +
-      " xmlns:java=\"http://xml.apache.org/axis/wsdd/providers/java\"\n" +
-      ">\n" +
-      " <service name     = \"" + serviceName + "\"\n" +
-      "          provider = \"java:RPC\">\n" +
-      "   <parameter name  = \"allowedMethods\"\n"+
-      "              value = \"" + allowedMethods + "\"/>\n" +
-      "   <parameter name  = \"className\"\n" +
-      "              value=\""+serviceObject.getClass().getName()+"\"/>\n"+
-      "   <parameter name=\"scope\"\n" +
-      "              value=\"Application\"/>\n" +
-      sb.toString() +
-      " </service>\n" +
-      "</deployment>";
-  }
-
-  private void deployWSDD(String sdoc) {
-    try {
-      WSDDEngineConfiguration config = (WSDDEngineConfiguration) axisServer.getConfig();
-      WSDDDeployment deployment = config.getDeployment();
-      WSDDDocument doc = new WSDDDocument(XMLUtils.newDocument(new ByteArrayInputStream(sdoc.getBytes())));
-
-      doc.deploy(deployment);
-      axisServer.refreshGlobalOptions();
-    } catch (Exception e) {
-      log.error("ObjectSOAPService::deployWSDD() exception", e);
-    }
-  }
-
-  private String undeployDoc() {
-    return "<undeployment" +
-      " xmlns=\"http://xml.apache.org/axis/wsdd/\">" +
-      "<service name=\"" + serviceName + "\"/>" + "</undeployment>";
-  }
+   private String undeployDoc() {
+      return "<undeployment" + 
+             " xmlns=\"http://xml.apache.org/axis/wsdd/\">" + 
+             "<service name=\"" + serviceName + "\"/>" + "</undeployment>";
+   }
 
   public Object getServiceObject() {
     return serviceObject;

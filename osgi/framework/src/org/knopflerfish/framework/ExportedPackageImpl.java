@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,17 @@
 package org.knopflerfish.framework;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Vector;
+
 
 
 import org.osgi.framework.*;
@@ -48,11 +58,11 @@ import org.osgi.service.packageadmin.ExportedPackage;
  * Instances implementing this interface are created by the
  * {@link PackageAdmin} service.
  * <p> Note that the information about an exported package provided by
- * this class is valid only until the next time
+ * this class is valid only until the next time 
  * <tt>PackageAdmin.refreshPackages()</tt> is
  * called.
  * If an ExportedPackage becomes stale (that is, the package it references
- * has been updated or removed as a result of calling
+ * has been updated or removed as a result of calling 
  * PackageAdmin.refreshPackages()),
  * its getName() and getSpecificationVersion() continue to return their
  * old values, isRemovalPending() returns true, and getExportingBundle()
@@ -60,9 +70,9 @@ import org.osgi.service.packageadmin.ExportedPackage;
  */
 public class ExportedPackageImpl implements ExportedPackage {
 
-  final private ExportPkg pkg;
+  final private PkgEntry pkg;
 
-  ExportedPackageImpl(ExportPkg pkg) {
+  ExportedPackageImpl(PkgEntry pkg) {
     this.pkg = pkg;
   }
 
@@ -84,8 +94,8 @@ public class ExportedPackageImpl implements ExportedPackage {
    *         has become stale.
    */
   public Bundle getExportingBundle() {
-    if (pkg.pkg != null) {
-      return pkg.bpkgs.bundle;
+    if (pkg.isProvider()) {
+      return pkg.bundle;
     } else {
       return null;
     }
@@ -105,23 +115,17 @@ public class ExportedPackageImpl implements ExportedPackage {
    * has become stale.
    */
   public Bundle[] getImportingBundles() {
-    Collection imps = pkg.getPackageImporters();
-    if (imps != null) {
-      int size = imps.size();
-      List rl = pkg.bpkgs.getRequiredBy();
-      int rsize = rl.size() ;
-      Bundle[] res = new Bundle[size + rsize];
-      imps.toArray(res);
-      for (int i = 0; i < rsize; i++) {
-        res[size + i] = ((BundlePackages)rl.get(i)).bundle;
-      }
-      return res;
+    Packages packages = pkg.bundle.framework.packages;
+    if (pkg.isProvider()) {
+      Collection imps = packages.getPackageImporters(pkg.name);
+      Bundle[] res = new Bundle[imps.size()];
+      return (Bundle[])imps.toArray(res);
     } else {
       return null;
     }
   }
 
-
+  
   /**
    * Returns the specification version of this <tt>ExportedPackage</tt>, as
    * specified in the exporting bundle's manifest file.
@@ -133,7 +137,7 @@ public class ExportedPackageImpl implements ExportedPackage {
     return pkg.version.toString();
   }
 
-
+  
   /**
    * Returns <tt>true</tt> if this <tt>ExportedPackage</tt> has been
    * exported by a bundle that has been updated or uninstalled.
@@ -143,20 +147,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    * <tt>false</tt> otherwise.
    */
   public boolean isRemovalPending() {
-    if (pkg.isProvider()) {
-      return pkg.zombie;
-    } else {
-      return false;
-    }
-  }
-
-
-  public Version getVersion() {
-    return pkg.version;
-  }
-
-  public String toString() {
-    return pkg.name +"(" +pkg.version +")";
+    return pkg.isZombiePackage();
   }
 
 }

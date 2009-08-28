@@ -2,99 +2,56 @@
 
 <project name="osgi" default="all">
 
-  <!-- some bundles only build on 1.4 or later -->
-  <target name="setup">
-    <condition property="is14+">
-      <or>
-	<equals arg1="${ant.java.version}" arg2="1.4"/>
-	<equals arg1="${ant.java.version}" arg2="1.5"/>
-	<equals arg1="${ant.java.version}" arg2="1.6"/>
-	<equals arg1="${ant.java.version}" arg2="1.7"/>
-      </or>
-    </condition>
-  </target>
+    <!-- build properties -->
 
-  <!-- some bundles only build on 1.4 or later -->
-  <target name="build14.all" if="is14+">
+   <!-- some bundles only build on 1.4 -->
+
+   <target name="build14" if="is14">
     <echo message="** Building 1.4 specific bundles **"/>
     <ant dir="sslj2sp"           target="all"/>
-  </target>
-  <target name="build14.clean" if="is14+">
-    <echo message="** Building 1.4 specific bundles **"/>
-    <ant dir="sslj2sp"           target="clean"/>
-  </target>
-  <target name="build14.bundle_doc" if="is14+">
-    <echo message="** Building 1.4 specific bundles **"/>
-    <ant dir="sslj2sp"           target="bundle_doc"/>
-  </target>
+   </target>
 
+   <target name="all">
 
-  <!-- Internal target that calls a specified target in all sub-dirs. -->
-  <target name="doAntBuild" depends="setup">
-    <ant target="${the.target}" dir="cm/cm"/>
-    <ant target="${the.target}" dir="event"/>
-    <ant target="${the.target}" dir="console/console"/>
-    <ant target="${the.target}" dir="io"/>
-    <ant target="${the.target}" dir="log"/>
-    <ant target="${the.target}" dir="frameworkcommands"/>
-    <ant target="${the.target}" dir="logcommands"/>
-    <ant target="${the.target}" dir="jsdk"/>
+    <condition property="is14">
+     <equals arg1="${ant.java.version}" arg2="1.4"/>
+    </condition>
 
-    <antcall target="build14.${the.target}"/>
-
-    <ant target="${the.target}" dir="http"/>
-    <ant target="${the.target}" dir="util"/>
-    <ant target="${the.target}" dir="xml"/>
-    <ant target="${the.target}" dir="useradmin"/>
-    <ant target="${the.target}" dir="component"/>
-    <ant target="${the.target}" dir="cm/cm_cmd"/>
-    <ant target="${the.target}" dir="console"/>
-    <ant target="${the.target}" dir="device"/>
-    <ant target="${the.target}" dir="wireadmin"/>
-    <ant target="${the.target}" dir="device"/>
-    <ant target="${the.target}" dir="prefs"/>
-
-    <ant target="${the.target}" dir="measurement"/>
-    <ant target="${the.target}" dir="position"/>
-    <ant target="${the.target}" dir="metatype/metatype_api"/>
-
-    <ant target="${the.target}" dir="remotefw"/>
-    <ant target="${the.target}" dir="desktop"/>
-
-    <ant target="${the.target}" dir="metatype/kf_metatype"/>
-    <ant target="${the.target}" dir="metatype/cm_desktop"/>
-
-    <ant target="${the.target}" dir="trayicon"/>
-    <ant target="${the.target}" dir="upnp"/>
-    <ant target="${the.target}" dir="provisioning"/>
-    <ant target="${the.target}" dir="bundlerepository"/>
-
-    <ant target="${the.target}" dir="demos"/>
-  </target>
-
-
-  <target name="all" 
-	  description="Builds all bundles">
-    <!-- Resolve cyclic dependecy by building selected APIs first. -->
     <ant dir="log"               target="jar_api"/>
-    <!-- Build it all. -->
-    <antcall target="doAntBuild">
-      <param name="the.target" value="all"/>
-    </antcall>
-  </target>
+    <ant dir="cm/cm"             target="all"/>
+    <ant dir="console/console"   target="all"/>
+    <ant dir="log"               target="all"/>
+    <ant dir="frameworkcommands" target="all"/>
+    <ant dir="logcommands"       target="all"/>
+    <ant dir="jsdk"              target="all"/>
 
-  <target name="clean" 
-	  description="Cleans all bundles">
-    <antcall target="doAntBuild">
-      <param name="the.target" value="clean"/>
-    </antcall>
-  </target>
-  
-  <target name="bundle_doc" 
-	  description="Builds doc for all bundles">
-    <antcall target="doAntBuild">
-      <param name="the.target" value="bundle_doc"/>
-    </antcall>
+    <antcall target="build14"/>
+
+    <ant dir="http"              target="all"/>
+    <ant dir="util"              target="all"/>
+    <ant dir="xml"               target="all"/>
+    <ant dir="useradmin"         target="all"/>
+    <ant dir="cm/cm_cmd"         target="all"/>
+    <ant dir="console"           target="all"/>
+    <ant dir="device"            target="all"/>
+    <ant dir="wireadmin"         target="all"/>
+    <ant dir="demos"             target="all"/>
+
+    <ant dir="measurement"           target="all"/>
+    <ant dir="position"              target="all"/>
+    <ant dir="metatype/metatype_api" target="all"/>
+
+    <ant dir="remotefw"              target="all"/>
+    <ant dir="desktop"               target="all"/>
+
+    <ant dir="metatype/kf_metatype"  target="all"/>
+    <ant dir="metatype/cm_desktop"   target="all"/>
+
+    <ant dir="trayicon"          target="all"/>
+    <ant dir="upnp"              target="all"/>
+    <ant dir="provisioning"      target="all"/>
+    <ant dir="prefs"             target="all"/>
+    <ant dir="bundlerepository"  target="all"/>
   </target>
 
 </project>

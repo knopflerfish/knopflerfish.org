@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="cm_cmd" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.cm_cmd}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
   <property name = "bundle.build.impl"  value = "true"/>
   <property name = "bundle.build.api"   value = "false"/>
@@ -12,12 +15,18 @@
   <property name="impl.pattern" value="org/knopflerfish/bundle/cm/**"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="cm_all-N.N.N.jar"/>
-   <pathelement location="util-N.N.N.jar"/>
-   <pathelement location="console_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_all-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/console/console_api-1.0.0.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="Commands for the CM service"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.1"/>
+  <property name="bundle.name"           value="CM Commands"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+  &bundlebuild_include;
 
 </project>

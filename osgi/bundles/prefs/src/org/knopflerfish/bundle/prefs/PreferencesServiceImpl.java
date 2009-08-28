@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,103 +36,60 @@ package org.knopflerfish.bundle.prefs;
 
 import org.osgi.framework.*;
 import org.osgi.service.prefs.*;
+import org.knopflerfish.service.log.LogRef;
 import java.util.*;
 
 
 public class PreferencesServiceImpl implements PreferencesService {
+  Bundle bundle;
 
-  /**
-   * Factory method that creates an actual PrefsStorage instance for
-   * the system tree.
-   */
-  protected PrefsStorage createPrefsStorageSystem()
-  {
-    return PrefsStorageFile.createPrefsStorageSystem(bundle);
-  }
+  static String USERS_BASE  = "users";
+  static String SYSTEM_BASE = "system";
 
-  /**
-   * Factory method that creates an actual PrefsStorage instance for
-   * a user tree.
-   */
-  protected PrefsStorage createPrefsStorageUser(String user)
-  {
-    return PrefsStorageFile.createPrefsStorageUser(bundle, user);
-  }
+  String userBase;
+  String systemBase;
 
-  /**
-   * Template method that returns a list with the name of all users
-   * that have a preferences tree.
-   */
-  protected String[] getPrefsStorageUsers()
-  {
-    return PrefsStorageFile.getPrefsStorageUsers(bundle);
-  }
+  PrefsStorageFile systemStorage;
 
-  /**
-   * Template method that removes all preferences trees for the
-   * specified bundle form the backing store.
-   * Called when the bundle is un-installed.
-   */
-  protected void cleanup()
-  {
-    PrefsStorageFile.cleanup(bundle);
-  }
-
-
-  final Bundle bundle;
-
-  PrefsStorage systemStorage;
-
-  // String -> PrefsStorage
+  // String -> PrefsStorageFile
   Map userStorage = new HashMap();
-
-  protected PreferencesServiceImpl() {
-    bundle = null;
-  }
 
   PreferencesServiceImpl(Bundle bundle) {
     this.bundle = bundle;
+    userBase   = USERS_BASE + "/" + bundle.getBundleId();
+    systemBase = SYSTEM_BASE + "/" + bundle.getBundleId();
+    systemStorage = new PrefsStorageFile(systemBase);
+    //    systemStorage.bDebug = true;
   }
 
   public Preferences getSystemPreferences() {
-    if (null==systemStorage || systemStorage.isStale()) {
-      systemStorage = createPrefsStorageSystem();
-    }
     return systemStorage.getNode("", true);
   }
 
   public Preferences getUserPreferences(String name) {
     synchronized(userStorage) {
-      PrefsStorage storage = (PrefsStorage) userStorage.get(name);
-      if(storage == null || storage.isStale()) {
-        storage   = createPrefsStorageUser(name);
-        userStorage.put(name, storage);
+      PrefsStorageFile storage = (PrefsStorageFile)userStorage.get(name);
+      if(storage == null) {
+	storage   = new PrefsStorageFile(userBase + "/" + name);
+	userStorage.put(name, storage);
       }
       return storage.getNode("", true);
     }
   }
-
+  
   public String[] getUsers() {
     synchronized(userStorage) {
-      return getPrefsStorageUsers();
-    }
+      String[] names = new String[userStorage.size()];
+      int i = 0;
+      for(Iterator it = userStorage.keySet().iterator(); it.hasNext();) {
+	names[i++] = (String)it.next();
+      }
+      return names;
+    }    
   }
 
-  public void flush() {
-    if (null!=systemStorage) {
-      try {
-        systemStorage.flush(null);
-      } catch (BackingStoreException bse) {
-        // Ignore, is logged by the actual storage impl.
-      }
-    }
-    for (Iterator it = userStorage.values().iterator(); it.hasNext(); ) {
-      PrefsStorage storage = (PrefsStorage) it.next();
-      try {
-        storage.flush(null);
-      } catch (BackingStoreException bse) {
-        // Ignore, is logged by the actual storage impl.
-      }
-    }
+  void flush() {
+    // userStorage.flush(null);
+    systemStorage.flush(null);
   }
 }

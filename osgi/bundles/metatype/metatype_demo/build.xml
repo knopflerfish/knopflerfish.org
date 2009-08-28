@@ -1,30 +1,33 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="metatype_demo" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.metatype_demo}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
-  <property name="impl.pattern"
-            value="org/knopflerfish/bundle/demo/metatype/**"/>
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/demo/metatype/**"/>
+
 
   <path id="bundle.compile.path">
-   <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="cm_api-N.N.N.jar"/>
-   <pathelement location="metatype-N.N.N.jar"/>
-   <pathelement location="kf_metatype-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/metatype/metatype-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/kf_metatype/kf_metatype-1.0.0.jar"/>
   </path>
   
-  <property name="bmfa.Bundle-Description"    value="Metatype demo"/>
-  <property name="bmfa.Bundle-Name"           value="Metatype demo"/>
-  <property name="bmfa.Bundle-Vendor"         value="knopflerfish"/>
-  <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
+  
+  <property name="bundle.description"    value="Metatype demo"/>
+  <property name="bundle.name"           value="Metatype demo"/>
+  <property name="bundle.vendor"         value="knopflerfish"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
 
-  <property name="bmfa.Import-Package"
-	    value="org.osgi.service.cm,org.knopflerfish.util.metatype,org.knopflerfish.service.log,org.osgi.framework,org.osgi.service.metatype"/>
-
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="import.package" value="org.osgi.service.cm,org.knopflerfish.util.metatype,org.knopflerfish.service.log,org.osgi.framework,org.osgi.service.metatype"/>
+  &bundlebuild_include;
 
 </project>
 

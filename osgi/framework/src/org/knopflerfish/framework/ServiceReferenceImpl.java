@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.lang.reflect.*;
+import java.security.*;
 import java.util.Set;
 import java.util.Vector;
 
@@ -168,28 +169,42 @@ public class ServiceReferenceImpl implements ServiceReference
   Object getService(final BundleImpl bundle) {
     Object s = null;
     synchronized (registration.properties) {
-      if (registration.available
-          && (!registration.unregistering
-              || Framework.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
+      if (registration.available) {
         Integer ref = (Integer)registration.dependents.get(bundle);
         if (ref == null) {
-          String[] classes =
-            (String[])registration.properties.get(Constants.OBJECTCLASS);
-          bundle.framework.perm.checkGetServicePerms(classes);
+          String[] classes = (String[])registration.properties.get(Constants.OBJECTCLASS);
+          SecurityManager sm = System.getSecurityManager();
+          if (sm!=null && bundle.framework.bPermissions) {
+            boolean perm = false;
+            AccessControlContext acc = AccessController.getContext();
+            for (int i = 0; i < classes.length; i++) {
+              try {
+                sm.checkPermission
+                  (new ServicePermission(classes[i], ServicePermission.GET),
+                   acc);
+                perm = true;
+                break;
+              } catch (AccessControlException ignore) { }
+            }
+            if (!perm) {
+              throw new SecurityException("Bundle has not permission to get service.");
+            }
+          }
           if (registration.service instanceof ServiceFactory) {
             try {
-              s = bundle.framework.perm.callGetService
-                ((ServiceFactory)registration.service, bundle, registration);
+              s = AccessController.doPrivileged(new PrivilegedAction() {
+                  public Object run() {
+                    return ((ServiceFactory)registration.service).getService(bundle, registration);
+                  }
+                });
             } catch (Throwable pe) {
-              bundle.framework.listeners.frameworkError(registration.bundle,
-                                                        pe);
+              bundle.framework.listeners.frameworkError(registration.bundle, pe);
               return null;
             }
             if (s == null) {
               return null;
             }
-            BundleClassLoader bcl
-              = (BundleClassLoader)registration.bundle.getClassLoader();
+            BundleClassLoader bcl = (BundleClassLoader)registration.bundle.getClassLoader();
             for (int i = 0; i < classes.length; i++) {
               Class c = null;
               try {
@@ -232,41 +247,27 @@ public class ServiceReferenceImpl implements ServiceReference
    */
   boolean ungetService(BundleImpl bundle, boolean checkRefCounter) {
     synchronized (registration.properties) {
-      boolean hadReferences = false;
       if (registration.reference != null) {
-        boolean removeService = false;
-
         Object countInteger = registration.dependents.remove(bundle);
-        int count = countInteger != null ? ((Integer) countInteger).intValue() : 0;
-        if (count > 0) {
-          hadReferences = true;
-        }
-
-        if(checkRefCounter) {
-            if (count > 1) {
-              registration.dependents.put(bundle, new Integer(count - 1));
-            } else if(count == 1) {
-                removeService = true;
-            }
-        } else {
-          removeService = true;
-        }
-
-        if(removeService) {
-          Object sfi = registration.serviceInstances.remove(bundle);
-          if (sfi != null) {
-            try {
-              ((ServiceFactory) registration.service).ungetService(bundle,
-                  registration, sfi);
-            } catch (Throwable e) {
-              bundle.framework.listeners.frameworkError(registration.bundle,
-                  e);
+        if (countInteger != null) {
+          int count = ((Integer) countInteger).intValue();
+          if (checkRefCounter && count > 1) {
+            registration.dependents.put(bundle, new Integer(count - 1));
+            return true;
+          } else {
+            Object sfi = registration.serviceInstances.remove(bundle);
+            if (sfi != null) {
+              try {
+                ((ServiceFactory)registration.service).ungetService(bundle, registration, sfi);
+              } catch (Throwable e) {
+                bundle.framework.listeners.frameworkError(registration.bundle, e);
+              }
             }
           }
         }
       }
-      return hadReferences;
     }
+    return false;
   }
 
 
@@ -324,54 +325,6 @@ public class ServiceReferenceImpl implements ServiceReference
       val = c;
     }
     return val;
-  }
-
-  public boolean isAssignableTo(Bundle bundle, String className) {
-    int pos = className.lastIndexOf('.');
-    if (pos != -1) {
-      final String name = className.substring(0, pos);
-      final Pkg p = registration.bundle.framework.packages.getPkg(name);
-      if (p != null) {
-        final BundlePackages pkgExporter
-          = registration.bundle.bpkgs.getProviderBundlePackages(name);
-        final BundlePackages bb = ((BundleImpl)bundle).bpkgs;
-        final BundlePackages bbp = bb.getProviderBundlePackages(name);
-        if (bbp == null) {
-          // Package not imported by bundle
-
-          // If bundle only exports a package, then it must be the provider.
-          return bb.getExport(name) == null || bb == pkgExporter;
-        } else if (pkgExporter == null) {
-          // Package not imported by registrar. E.g. proxy registration.
-
-          // Use the classloader of bundle to load the class, then check
-          // if the service's class is assignable.
-          ClassLoader bCL = bbp.getClassLoader();
-          if (bCL!=null) {
-            try {
-              Class bCls = bCL.loadClass(className);
-              return bCls.isAssignableFrom(registration.service.getClass());
-            } catch (Exception e) {
-              //e.printStackTrace();
-            }
-          }
-          // Fallback: Allways Ok when singleton provider of the package
-          return p.providers.size()==1;
-        } else { // Package imported by both parties
-          return pkgExporter == bbp;
-        }
-      } else {
-        // Not a package under package control. System package?
-        if (name.startsWith("java.")) {
-          return true;
-        } else {
-          // NYI! Check if pkg comes from system or framework.
-          return true;
-          // return registration.bundle == bundle;
-        }
-      }
-    }
-    return false;
   }
 
 }

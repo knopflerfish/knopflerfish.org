@@ -1,141 +1,144 @@
 
-KF_HOME=/home/knopflerfish
-WWW_DIR=${KF_HOME}/www
-WWW_PATH=snapshots
-OUT_DIR=${WWW_DIR}/${WWW_PATH}
-OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
+WWW_DIR=/home/wistrand/knopflerfish.org/www
+OUT_DIR=/home/wistrand/knopflerfish.org/www/snapshots/trunk
+REPO=https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 
-TAG         = trunk
-TAGs        = $(subst /,_,$(TAG))
-CURRENT_LINK=current_${TAGs}
-BUILD_KIND  = "snapshot build"
+VERSION = 1.3.2
+TAG     = trunk
+SUFFIX  = -trunk
 
-CHANGE_LOG=${KF_HOME}/ChangeLog_${TAG}
-REPO=https://www.knopflerfish.org/svn/knopflerfish.org/${TAG}
 
-ANT	= /usr/bin/ant
+CP      = /bin/cp -p
+SVN     = /usr/pkg/bin/svn
+ANT     = /home/wistrand/knopflerfish.org/build/ant
+#ANT	= /usr/pkg/bin/ant
+MAKE    = /usr/bin/make
 AWK     = /usr/bin/awk
-CAT     = /bin/cat
-CP      = /bin/cp 
-GREP    = /bin/grep
-LN      = /bin/ln
-MKDIR   = /bin/mkdir
-RM      = /bin/rm
-SED     = /bin/sed
-SVN     = /usr/bin/svn
-
-#JAVA      = java
-JAVA      = /usr/local/j2sdk1.4/bin/java
-export JAVA_HOME = /usr/local/j2sdk1.4
-
-YEAR := $(shell /bin/date '+%Y')
-DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
-# The Major.Minor.Micro part of the current (upcomming) Knopflerfish
-# release version.
-# E.g., REL_VERSION = 2.0.4
-REL_VERSION := $(shell cd ${TAGs} && ${ANT} version | \
-                       ${GREP} "Version: " | \
-                       ${SED} -e 's/.*Version: //g' \
-                              -e 's/\.[0-9]*[-a-zA-Z_][-0-9aa-zA-Z_]*//')
-
-# The current SVN revision number
-REVISION := $(shell ${SVN} info ${REPO} | \
-                    ${GREP} 'Revision: ' | \
-                    ${SED} -e 's/Revision: //')
-
-# The version of this nightly build
-VERSION := ${REL_VERSION}.snapshot_${TAGs}_${REVISION}
-
-# Ant with build properties set.
-ANTv = ${ANT} -Dversion=${VERSION} \
-              -Dsvn.tag=${TAG} \
-              -Dbuild.kind=${BUILD_KIND} \
-	      -Dbase.url=${OUT_URL}
-
-.PHONY: help all  clean version checkout update status
-.PHONY: build distrib
-.PHONY: copyout outindex clean_snapshots
-.PHONY: obr_export obr obr_install
-
+JAVA    = /usr/pkg/java/sun-1.3.1/bin/java
 
 help:
-	@echo "update       clean and update"
-	@echo "all          builds distribution, tests it and publishes it."
+	echo "all        build all"
+	echo "run_tests  run regression tests"
 
-all: version distrib copyout clean_snapshots outindex
+all: 
+	${MAKE} update && \
+	${MAKE} rebuild && \
+	${MAKE} distrib_tests && \
+	${MAKE} copyout
+	${MAKE} run_tests
 
-version:
-	@echo "Current Knopflerfish version is: ${REL_VERSION}"
-	@echo "Current repository version is: ${REVISION}"
-	@echo "Current build version is: ${VERSION}"
+obr_export:
+	(cd ${TAG} && ${ANT} obr) && \
+	cp -r ${TAG}/osgi/jars /home/wistrand/knopflerfish.org/www/repo
+	cp -r ${TAG}/repo/*.xml /home/wistrand/knopflerfish.org/www/repo
+	cp -r ${TAG}/htdocs/css/repository.xsl /home/wistrand/knopflerfish.org/www/css
+
 
 obr:
-	(cd ${TAGs} && ${ANTv} obr bindex)
+	(cd ${TAG} && ${ANT} -Dobr.basedir=/home/wistrand/knopflerfish.org/www/repo/jars obr obr_index)
 
 obr_install:
-	$(CP) ${TAGs}/repo/* ${WWW_DIR}/repo
-	${RM} -f ${WWW_DIR}/repo/jars
-	${LN} -s ${WWW_DIR}/releases/${VERSION}/jars ${WWW_DIR}/repo/
+	cp -r ${TAG}/repo ${WWW_DIR}
 
 checkout:
-	${SVN} co ${REPO} ${TAGs}
+	${SVN} co ${REPO}
 
 update:
-	(cd ${TAGs} && ${ANT} clean)
-	-${RM} -f ${TAGs}/changelog.txt
-	(cd ${TAGs} && ${SVN} update)
-	[ -r ${CHANGE_LOG} ] && cp ${CHANGE_LOG} ${TAGs}/changelog.txt
+	${SVN} update ${TAG}
 
 status:
-	(cd ${TAGs} && ${SVN} status)
+	${SVN} status ${TAG}
+
+rebuild:
+	(cd ${TAG} && ${ANT} -Dversion=${VERSION} clean all)
+	(cd ${TAG} && ${ANT} -Dversion=${VERSION} distrib)
+
+distrib_tests:
+	(cd ${TAG} && ${ANT} -Dversion=${VERSION} distrib_tests)
 
 build:
-	(cd ${TAGs} && ${ANTv} all)
+	(cd ${TAG} && ${ANT} all)
 
 distrib:
-	(cd ${TAGs} && ${ANTv} distrib)
+	(cd ${TAG} && ${ANT} distrib)
+
+public:
+	cp $TAG/*.jar TAG/*.zip \
+	$OUT_DIR
 
 clean:
-	$(RM) -rf ${TAGs}
+	rm -rf ${TAG}
+
+run_tests:
+	${MAKE} run_tests_pre
+	${MAKE} run_tests1
+	${MAKE} run_tests2
+	${MAKE} run_tests_post
+
+
+run_tests_pre:
+	mkdir -p ${TAG}/osgi/junit_grunt
+
+run_tests_post:
+	cp -r \
+		${TAG}/osgi/junit_grunt \
+		${OUT_DIR}
+
+run_tests1:
+	(\
+	cd ${TAG}/osgi && \
+	${JAVA} -jar framework.jar -xargs init-tests.xargs \
+		> junit_grunt/out.txt 2>&1 \
+	)
+
+
+run_tests2:
+	(\
+	cd ${TAG}/osgi && \
+	${JAVA} -jar framework.jar -init \
+	-xargs bundles_test/regression_tests/restart_test/test-restart1.xargs \
+		>> junit_grunt/out.txt 2>&1 \
+	)
+	(\
+	cd ${TAG}/osgi && \
+	${JAVA} -jar framework.jar  \
+	-xargs bundles_test/regression_tests/restart_test/test-restart2.xargs \
+		>> junit_grunt/out.txt 2>&1 \
+	)
+
+
 
 copyout:
-	@$(MKDIR) -p ${OUT_DIR}
-	$(CP) -r ${TAGs}/htdocs/releases/${VERSION} ${OUT_DIR}
+	@mkdir -p ${OUT_DIR}
+	@${CP} ${TAG}/knopflerfish_bin_osgi_${VERSION}.jar \
+	   ${OUT_DIR}/knopflerfish_bin_osgi_${VERSION}${SUFFIX}.jar	
 
-# Remove all but the 10 last BUILDs on the current ${TAG} from ${OUT_DIR}
-clean_snapshots:
-	@$(MKDIR) -p ${OUT_DIR}
-	@(cd ${OUT_DIR}; \
-	  BUILD_CNT=0; \
-	  for FF in `ls -1ctd *snapshot_${TAGs}*`; do \
-	    if [ -d $$FF ]; then \
-	      BUILD_CNT=`expr $$BUILD_CNT + 1`; \
-	      if [ $$BUILD_CNT -gt 10 ]; then \
-	        ${RM} -rf $$FF; \
-	      fi; \
-	    fi; \
-	  done)
+	@${CP} ${TAG}/knopflerfish_fullbin_osgi_${VERSION}.jar \
+	${OUT_DIR}/knopflerfish_fullbin_osgi_${VERSION}${SUFFIX}.jar
+
+	@${CP} ${TAG}/knopflerfish_opt_${VERSION}.jar \
+	${OUT_DIR}/knopflerfish_opt_${VERSION}${SUFFIX}.jar
+
+	@${CP} ${TAG}/knopflerfish_osgi_${VERSION}.jar \
+	${OUT_DIR}/knopflerfish_osgi_${VERSION}${SUFFIX}.jar
+
+	@${CP} ${TAG}/knopflerfish_osgi_tiny_${VERSION}.zip \
+	${OUT_DIR}/knopflerfish_osgi_tiny_${VERSION}${SUFFIX}.zip
+
+	@${CP} ${TAG}/knopflerfish_osgi_tests_${VERSION}.zip \
+	${OUT_DIR}/knopflerfish_osgi_tests_${VERSION}${SUFFIX}.zip
+
+	@(cd ${OUT_DIR} && /bin/ls -l *.jar *.zip) \
+	| ${AWK} -f outlist.awk \
+	> ${OUT_DIR}/index.html
+
+	@${CP} -r ${TAG}/osgi/jars \
+	${OUT_DIR}/jars
+
 
 outindex:
-	@${RM} -f ${OUT_DIR}/${CURRENT_LINK}
-	@${CAT} ${TAGs}/tools/nightlybuild/snap_index.html.pre | \
-            ${SED} -e "s/@DATE@/${DATE}/g" \
-                   -e "s!@REPO@!${REPO}!g" \
-                                                        > ${OUT_DIR}/index.html
-	@echo "The current build on ${TAG} is <a href=">> ${OUT_DIR}/index.html
-	@echo "\"${CURRENT_LINK}\">${VERSION}</a>.<p/>">> ${OUT_DIR}/index.html
-	@echo "<h3>All available snapshot builds</h3>" >> ${OUT_DIR}/index.html
-	@echo "Builds are listed in descending build " >> ${OUT_DIR}/index.html
-	@echo "date order, i.e., most recent first."   >> ${OUT_DIR}/index.html
-	@echo "<p>"                                    >> ${OUT_DIR}/index.html
-	@(cd ${OUT_DIR}; \
-	  for FF in `ls -1ct`; do \
-	    if [ -d $$FF ]; then \
-	      echo "<a href=\"$$FF\">$$FF</a><br/>"  >> ${OUT_DIR}/index.html; \
-	    fi; \
-	  done)
-	@${CAT} ${TAGs}/tools/nightlybuild/snap_index.html.post | \
-            ${SED} -e "s/@YEAR@/${YEAR}/g" \
-                                                       >> ${OUT_DIR}/index.html
-	@(cd ${OUT_DIR} && ${LN} -s ${VERSION} ${CURRENT_LINK})
+	@(cd ${OUT_DIR} && /bin/ls -l *.jar *.zip) \
+	| ${AWK} -f outlist.awk \
+	> ${OUT_DIR}/index.html
+
 

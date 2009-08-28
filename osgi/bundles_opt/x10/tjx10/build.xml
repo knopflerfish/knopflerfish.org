@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="tjx10" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.tjx10}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
   <property name = "include.source"       value = "true"/>
 
@@ -22,26 +25,25 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
    <pathelement location="../../serial/comm-win32/resources/comm.jar"/>
   </path>
 
 
-  <property name="bmfa.Bundle-Description"
-	    value="X10 serial device driver from The Java X10 Project. This bundle is GPL licensed and must contain full source. Other bundles depending on the tjx10 bundle must also be distributed as GPL"/>
-  <property name="bmfa.Bundle-Category"  value="driver"/>
-  <property name="bmfa.Bundle-Version"   value="1.1.0"/>
-  <property name="bmfa.Bundle-Classpath" value="."/>
-  <property name="bmfa.Bundle-Vendor"    value="The Java X10 Project/Knopflerfih"/>
+  <property name="bundle.description"    value="X10 serial device driver from The Java X10 Project. This bundle is GPL licensed and must contain full source. Other bundles depending on the tjx10 bundle must also be distributed as GPL"/>
+  <property name="bundle.category"       value="driver"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.classpath"      value="."/>
+  <property name="bundle.vendor"         value="The Java X10 Project/Knopflerfih"/>
 
 
-  <property name="bmfa.Bundle-DocURL"    value="http://x10.homelinux.org/"/>
+  <property name="bundle.docurl"         value="http://x10.homelinux.org/"/>
 
-  <property name="bmfa.Import-Package"   value="org.osgi.framework,org.osgi.service.cm,javax.comm,org.knopflerfish.service.log"/>
+  <property name="import.package"        value="org.osgi.framework,org.osgi.service.cm,javax.comm,org.knopflerfish.service.log"/>
 
-  <property name="bmfa.Export-Package"   value="x10;specification-version=1.3,x10.net;specification-version=1.3,x10.awt;specification-version=1.3,x10.util;specification-version=1.3"/>
+  <property name="export.package"        value="x10;specification-version=1.2,x10.net;specification-version=1.2,x10.awt;specification-version=1.2,x10.util;specification-version=1.2"/>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  &bundlebuild_include;
 
 </project>

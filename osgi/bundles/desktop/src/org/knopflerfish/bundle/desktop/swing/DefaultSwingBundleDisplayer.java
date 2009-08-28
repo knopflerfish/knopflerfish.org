@@ -34,29 +34,15 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import org.osgi.framework.*;
 
-import javax.swing.Icon;
-import javax.swing.JComponent;
-import javax.swing.SwingUtilities;
+import org.knopflerfish.service.desktop.*;
+import javax.swing.*;
+import javax.swing.event.*;
+import java.awt.*;
+import java.awt.event.*;
 
-import org.knopflerfish.service.desktop.BundleSelectionListener;
-import org.knopflerfish.service.desktop.BundleSelectionModel;
-import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
-import org.knopflerfish.service.desktop.SwingBundleDisplayer;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
+import java.util.*;
 
 public abstract class DefaultSwingBundleDisplayer
   implements 
@@ -76,9 +62,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   ServiceRegistration  reg  = null;
 
-  boolean bUseListeners           = true;
-  boolean bUpdateOnBundleChange   = false;
-  boolean bUpdateOnServiceChange  = false;
+  boolean bUseListeners = true;
 
   BundleContext bc;
 
@@ -181,7 +165,7 @@ public abstract class DefaultSwingBundleDisplayer
     try {
       int delay = 0;
       
-      Bundle[] bl = Activator.getBundles();
+      Bundle[] bl = Activator.getTargetBC().getBundles();
       
       // do something reasonable with bundles already installed
       for(int i = 0; bl != null && i < bl.length; i++) {
@@ -213,86 +197,23 @@ public abstract class DefaultSwingBundleDisplayer
     Activator.getTargetBC().removeBundleListener(this);
     Activator.getTargetBC().removeServiceListener(this);
 
-    for(Iterator it = components.iterator(); it.hasNext();) {
-      JComponent comp = (JComponent)it.next();
-      disposeJComponent(comp);
-    }
-    components.clear();
   }
 
-  protected boolean bInValueChanged = false;
-
-  public void valueChangedLazy(long bid) {
+  public void valueChanged(long bid) {
+    //    System.out.println(getClass().getName() + ".valueChanged " + (b != null ? ("#" + b.getBundleId()) : "null"));
     repaintComponents();
   }
 
-  long lastBID = -1;
-  public void valueChanged(long bid) {
-    boolean bHasVisible = false;
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
-      if(comp.isVisible() && comp.isShowing()) {
-        bHasVisible = true;
-        break;
-      }
-    }
-    lastBID = bid;
-
-    if(bHasVisible) {
-      valueChangedLazy(bid);
-    }
-  }
-  
-  public void setTabSelected() {
-    valueChangedLazy(lastBID);
-  }
-
-
-  // BundleListener interface, only called when bUseListeners = true
   public void bundleChanged(BundleEvent ev) {
     if(!bAlive) {
       return;
     }
 
     bundles = getAndSortBundles();
-    
-    if(bUpdateOnBundleChange) {
-      updateComponents(Activator.desktop.getSelectedBundles());
-    }    
-  }
-
-  // ServiceListener interface, only called when bUseListeners = true
-  public void serviceChanged(ServiceEvent ev) {
-    if(!bAlive) {
-      return;
-    }
-
-    if(bUpdateOnServiceChange) {
-      if(Activator.desktop != null) {
-        updateComponents(Activator.desktop.getSelectedBundles());
-      }
-    }
-    
-  }
-
-  void updateComponents(final Bundle[] bl) {
-    SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          for(Iterator it = components.iterator(); it.hasNext(); ) {
-            JComponent comp = (JComponent)it.next();
-            if(comp.isVisible()) {
-              if(comp instanceof JHTMLBundle) {
-                JHTMLBundle jhtml = (JHTMLBundle)comp;
-                jhtml.valueChanged(bl);
-              }
-            }
-          }
-        }          
-      });
   }
 
   protected Bundle[] getAndSortBundles() {
-    Bundle[] bl = Activator.getBundles();
+    Bundle[] bl = Activator.getTargetBC().getBundles();
     SortedSet set = new TreeSet(Util.bundleIdComparator);
     for(int i = 0; i < bl.length; i++) {
       set.add(bl[i]);
@@ -303,7 +224,14 @@ public abstract class DefaultSwingBundleDisplayer
     return bl;
   }
 
+ 
 
+
+  public void serviceChanged(ServiceEvent ev) {
+    if(!bAlive) {
+      return;
+    }
+  }
 
   public void setBundleSelectionModel(BundleSelectionModel model) {
     if(bundleSelModel != null) {
@@ -327,6 +255,7 @@ public abstract class DefaultSwingBundleDisplayer
 
     getAllBundles();
 
+    //    System.out.println("createJComponent " + comp);
     return comp;
   }
 
@@ -337,6 +266,7 @@ public abstract class DefaultSwingBundleDisplayer
   void repaintComponents() {
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JComponent comp = (JComponent)it.next();
+      //      System.out.println("repaint "+ comp.getClass().getName());
       comp.invalidate();
       comp.repaint();
     }
@@ -355,8 +285,4 @@ public abstract class DefaultSwingBundleDisplayer
   public void       setTargetBundleContext(BundleContext bc) {
     this.bc = bc;
   }
-
-  public void showBundle(Bundle b) {
-  }
-  
 }

@@ -34,7 +34,6 @@
 
 package org.knopflerfish.service.um.useradmin.impl;
 
-import java.io.Serializable;
 import java.security.AccessController;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -50,7 +49,7 @@ import org.osgi.service.useradmin.UserAdminPermission;
  * @author Gatespace AB
  * @version $Revision: 1.1.1.1 $
  */
-public class UAProperties extends Dictionary implements Serializable {
+public class UAProperties extends Dictionary {
     protected RoleImpl role;
 
     protected Hashtable /* String -> byte[] or String */ht = new Hashtable();
@@ -97,12 +96,12 @@ public class UAProperties extends Dictionary implements Serializable {
         // synchronized (role) {
         if (key instanceof String) {
             SecurityManager sm = System.getSecurityManager();
-            if(null!=sm){
-                sm.checkPermission
-                  (new UserAdminPermission( (String) key, getChangeAction()));
+            if (null!=sm) {
+              sm.checkPermission
+                  (new UserAdminPermission((String) key, getChangeAction()));
             }
             Object res = ht.remove(key);
-            Activator.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
+            role.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
             // role.um.save();
             return res;
         }
@@ -115,10 +114,11 @@ public class UAProperties extends Dictionary implements Serializable {
         // synchronized (role) {
         if (key instanceof String) {
             SecurityManager sm = System.getSecurityManager();
-            if(null!=sm){
-                sm.checkPermission
-                  (new UserAdminPermission( (String) key, getChangeAction()));
+            if (null!=sm) {
+              sm.checkPermission
+                  (new UserAdminPermission((String) key, getChangeAction()));
             }
+
             Object res;
             // value of type byte[] or String is ok
             if (value instanceof byte[]) {
@@ -129,8 +129,8 @@ public class UAProperties extends Dictionary implements Serializable {
                 throw new IllegalArgumentException(
                         "The value must be of type byte[]"
                                 + " or String,  got " + value.getClass());
-            Activator.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
-            // Activator.uai.save();
+            role.uai.sendEvent(UserAdminEvent.ROLE_CHANGED, role);
+            // role.uai.save();
 
             return res;
         }

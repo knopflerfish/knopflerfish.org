@@ -1,19 +1,27 @@
 /*
- * $Header: /cvshome/build/org.osgi.framework/src/org/osgi/framework/FrameworkListener.java,v 1.10 2006/06/16 16:31:18 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (c) The Open Services Gateway Initiative (2000-2001).
+ * All Rights Reserved.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Implementation of certain elements of the Open Services Gateway Initiative
+ * (OSGI) Specification may be subject to third party intellectual property
+ * rights, including without limitation, patent rights (such a third party may
+ * or may not be a member of OSGi). OSGi is not responsible and shall not be
+ * held responsible in any manner for identifying or failing to identify any or
+ * all such third party intellectual property rights.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This document and the information contained herein are provided on an "AS
+ * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+ * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
+ * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
+ * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
+ * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
+ * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH LOSS OR DAMAGE.
+ *
+ * All Company, brand and product names may be trademarks that are the sole
+ * property of their respective owners. All rights reserved.
  */
 
 package org.osgi.framework;
@@ -21,28 +29,28 @@ package org.osgi.framework;
 import java.util.EventListener;
 
 /**
- * A <code>FrameworkEvent</code> listener. When a <code>FrameworkEvent</code> is
- * fired, it is asynchronously delivered to a <code>FrameworkListener</code>.
- * 
- * <p>
- * <code>FrameworkListener</code> is a listener interface that may be
- * implemented by a bundle developer. A <code>FrameworkListener</code> object
- * is registered with the Framework using the
- * {@link BundleContext#addFrameworkListener} method.
- * <code>FrameworkListener</code> objects are called with a
- * <code>FrameworkEvent</code> objects when the Framework starts and when
- * asynchronous errors occur.
- * 
- * @version $Revision: 1.10 $
+ * A <tt>FrameworkEvent</tt> listener.
+ *
+ * <p><tt>FrameworkListener</tt> is a listener interface that may be implemented by a bundle
+ * developer. A <tt>FrameworkListener</tt> object is registered with the Framework using the
+ * {@link BundleContext#addFrameworkListener}method.
+ * <tt>FrameworkListener</tt> objects are called with a <tt>FrameworkEvent</tt> objects when
+ * the Framework starts and when asynchronous errors occur.
+ *
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  * @see FrameworkEvent
  */
 
-public interface FrameworkListener extends EventListener {
+public abstract interface FrameworkListener extends EventListener
+{
 
-	/**
-	 * Receives notification of a general <code>FrameworkEvent</code> object.
-	 * 
-	 * @param event The <code>FrameworkEvent</code> object.
-	 */
-	public void frameworkEvent(FrameworkEvent event);
+    /**
+     * Receives notification of a general <tt>FrameworkEvent</tt> object.
+     *
+     * @param event The <tt>FrameworkEvent</tt> object.
+     */
+    public abstract void frameworkEvent(FrameworkEvent event);
 }
+
+

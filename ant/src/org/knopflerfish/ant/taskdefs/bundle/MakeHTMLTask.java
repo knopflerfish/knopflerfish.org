@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
- * All rights reserved.
+ * Copyright (c) 2008, KNOPFLERFISH project
+* All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following
@@ -270,14 +270,12 @@ public class MakeHTMLTask extends Task {
       // log("Project base is: " + getProject().getBaseDir());
       // log("Attempting to transform: " + fromFile);
       if (!FileUtils.isAbsolutePath(fromFile)) {
-        fromFile = getProject().getBaseDir() + File.separator + fromFile;
+	fromFile = getProject().getBaseDir() + File.separator + fromFile;
       }
       transform(fromFile, toFile.toString());
     } else {
-      if (fromFile != null)
-        throw new BuildException("Can not specify fromfile when using filesets");
-      if (toFile != null)
-        throw new BuildException("Can not specify tofile when using filesets");
+      if (fromFile != null) throw new BuildException("Can not specify fromfile when using filesets");
+      if (toFile != null) throw new BuildException("Can not specify tofile when using filesets");
 
       for (Iterator iter = filesets.iterator(); iter.hasNext(); ) {
         FileSet fs = (FileSet) iter.next();
@@ -285,8 +283,7 @@ public class MakeHTMLTask extends Task {
         String[] files = ds.getIncludedFiles();
 
         for (int i = 0; i < files.length; i++) {
-          transform(new File(fs.getDir(getProject()),
-                             files[i]).getAbsolutePath(), files[i]);
+          transform(new File(fs.getDir(getProject()), files[i]).getAbsolutePath(), files[i]);
         }
       }
     }
@@ -319,43 +316,27 @@ public class MakeHTMLTask extends Task {
       content = Util.replace(content, "$(TITLE)", title);
       content = Util.replace(content, "$(DESC)", description);
       content = Util.replace(content, "$(TSTAMP)", TIMESTAMP);
-      content = Util.replace(content, "$(USER)",
-                             System.getProperty("user.name"));
-      content = Util.replace(content, "$(VERSION)",
-                             proj.getProperty("version"));
-      content = Util.replace(content, "$(BASE_VERSION)",
-                             proj.getProperty("base_version"));
-      content = Util.replace(content, "$(DISTNAME)",
-                             proj.getProperty("distname"));
-      content = Util.replace(content, "$(DISTRIB_NAME)",
-                             proj.getProperty("distrib.name"));
-      content = Util.replace(content, "$(RELEASE_NAME)",
-                             proj.getProperty("release.name"));
-      content = Util.replace(content, "$(MESSAGE)",
-                             proj.getProperty("release"));
+      content = Util.replace(content, "$(USER)", System.getProperty("user.name"));
+      content = Util.replace(content, "$(VERSION)", proj.getProperty("version"));
+      content = Util.replace(content, "$(DISTNAME)", proj.getProperty("distname"));
+      content = Util.replace(content, "$(MESSAGE)", proj.getProperty("release"));
       content = Util.replace(content, "$(BUNDLE_LIST)", bundleList);
       content = Util.replace(content, "$(ROOT)", pathToRoot);
-      content = Util.replace(content, "$(JAVADOC)",
-                             proj.getProperty("JAVADOC"));
-      content = Util.replace(content, "$(CLASS_NAVIGATION)",
-                             proj.getProperty("css_navigation_enabled"));
-      content = Util.replace(content, "$(SVN_REPO_URL)",
-                             proj.getProperty("svn.repo.url"));
-      content = Util.replace(content, "$(SVN_TAG)",proj.getProperty("svn.tag"));
+      content = Util.replace(content, "$(JAVADOC)", proj.getProperty("JAVADOC"));
+      content = Util.replace(content, "$(CLASS_NAVIGATION)", proj.getProperty("css_navigation_enabled"));
 
       // Used for bundle_doc generation
       if (do_manpage) {
-        content = Util.replace(content, "$(BUNDLE_NAME)", this.projectName);
-        content = Util.replace(content, "$(BUNDLE_VERSION)",
-                               proj.getProperty("bmfa.Bundle-Version"));
+	content = Util.replace(content, "$(BUNDLE_NAME)", this.projectName);
+	content = Util.replace(content, "$(BUNDLE_VERSION)", proj.getProperty("bmfa.Bundle-Version"));
 
-        // Create links to generated jardoc for this bundle
-        StringBuffer sbuf = new StringBuffer();
-        generateJardocPath(sbuf, "do_build_lib", lib_suffix);
-        generateJardocPath(sbuf, "do_build_api", api_suffix);
-        generateJardocPath(sbuf, "do_build_all", all_suffix);
-        generateJardocPath(sbuf, "do_build_impl", impl_suffix);
-        content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
+	// Create links to generated jardoc for this bundle
+	StringBuffer sbuf = new StringBuffer();
+	generateJardocPath(sbuf, "bundle.build.lib", lib_suffix);
+	generateJardocPath(sbuf, "bundle.build.api", api_suffix);
+	generateJardocPath(sbuf, "bundle.build.all", all_suffix);
+	generateJardocPath(sbuf, "bundle.build.impl", impl_suffix);
+	content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
 
         String epkgs = proj.getProperty("bmfa.Export-Package");
         if ("[bundle.emptystring]".equals(epkgs)) {
@@ -363,15 +344,15 @@ public class MakeHTMLTask extends Task {
         }
 
         epkgs = Util.replace(epkgs, ",", "<br>");
-        content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", epkgs);
+	content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", epkgs);
 
-        // Replce H1-H3 headers to man page style, if manpage style
-        content = Util.replace(content, "<h1", "<h1 class=\"man\"");
-        content = Util.replace(content, "<H1", "<h1 class=\"man\"");
-        content = Util.replace(content, "<h2", "<h2 class=\"man\"");
-        content = Util.replace(content, "<H2", "<h2 class=\"man\"");
-        content = Util.replace(content, "<h3", "<h3 class=\"man\"");
-        content = Util.replace(content, "<H3", "<h3 class=\"man\"");
+	// Replce H1-H3 headers to man page style, if manpage style
+	content = Util.replace(content, "<h1", "<h1 class=\"man\"");
+	content = Util.replace(content, "<H1", "<h1 class=\"man\"");
+	content = Util.replace(content, "<h2", "<h2 class=\"man\"");
+	content = Util.replace(content, "<H2", "<h2 class=\"man\"");
+	content = Util.replace(content, "<h3", "<h3 class=\"man\"");
+	content = Util.replace(content, "<H3", "<h3 class=\"man\"");
       }
 
       String s = proj.getProperty("navigation_pages");
@@ -379,18 +360,18 @@ public class MakeHTMLTask extends Task {
       String navDisabled = proj.getProperty("css_navigation_disabled");
       // System.out.println("Navigation pages: " + s);
       if (s != null) {
-        String[] navPages = Util.splitwords(s);
-        for (int i = 0; i < navPages.length; i++) {
-          // System.out.println("Checking: " + navPages[i]);
-          if (disable != null && disable.equals(navPages[i])) {
-            // System.out.println("Disabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
-            content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navDisabled);
-          }
-          else {
-            // System.out.println("Enabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
-            content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navEnabled);
-          }
-        }
+	String[] navPages = Util.splitwords(s);
+	for (int i = 0; i < navPages.length; i++) {
+	  // System.out.println("Checking: " + navPages[i]);
+	  if (disable != null && disable.equals(navPages[i])) {
+	    // System.out.println("Disabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
+	    content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navDisabled);
+	  }
+	  else {
+	    // System.out.println("Enabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
+	    content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navEnabled);
+	  }
+	}
       }
 
       Util.writeStringToFile(new File(outdir, toFile), content);
@@ -447,8 +428,7 @@ public class MakeHTMLTask extends Task {
           cssClass = getProject().getProperty(CSS_CLASS_ENABLED);
         }
 
-        buf.append("<a class=\"" + cssClass + "\" href=\"" + url
-                   + "\">" + name + "</a><br/>\n");
+        buf.append("<a class=\"" + cssClass + "\" href=\"" + url + "\">" + name + "</a><br/>\n");
       } else {
         throw new BuildException("Do not recognize type " + type);
       }
@@ -467,10 +447,7 @@ public class MakeHTMLTask extends Task {
     return b.booleanValue();
   }
 
-  private void generateJardocPath(StringBuffer sbuf,
-                                  String prop,
-                                  String suffix)
-  {
+  private void generateJardocPath(StringBuffer sbuf, String prop, String suffix) {
     if (getBoolProperty(prop)) {
       sbuf.append("<a target=\"_blank\" href=\"../../jars/");
       sbuf.append(this.projectName);

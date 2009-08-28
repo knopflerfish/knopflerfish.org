@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="serialportdevice" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.serialportdevice}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
   <property name = "bundle.build.api"      value = "true"/>
   <property name = "bundle.build.impl"     value = "false"/>
@@ -18,15 +21,25 @@
   <property name="api.pattern"
             value="org/knopflerfish/service/**"/>
 
+
   <path id="bundle.compile.path">
-   <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="cm_api-N.N.N.jar"/>
-   <pathelement location="device_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/device/device_api-1.0.0.jar"/>
 
    <!-- just used for compilation -->
    <pathelement location="../comm-win32/resources/comm.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <property name="bundle.description"    value="Serial port device"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+  <property name="import.package" 
+            value="javax.comm,org.knopflerfish.service.log,org.knopflerfish.service.serial,org.osgi.framework,org.osgi.service.cm,org.osgi.service.device"/>
+  &bundlebuild_include;
 
 </project>

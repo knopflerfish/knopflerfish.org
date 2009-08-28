@@ -1,9 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="position" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.position}"/>
-  <property name="topdir"       location="${proj.dir}/../.."/>
+  <property name="topdir"       location="../.."/>
+
 
   <property name="api.pattern" value="org/osgi/util/**"/> 
 
@@ -13,9 +17,18 @@
   <property name = "bundle.build.all"   value = "false"/>
 
   <path id="bundle.compile.path">
-    <pathelement location="measurement-N.N.N.jar"/>
+    <pathelement location="${topdir}/jars/measurement/measurement-1.0.0.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="Position API"/>
+  <property name="bundle.category"       value="API"/>
+  <property name="bundle.vendor"         value="OSGi"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+  <property name="bundle.version"        value="1.0.0"/>
+
+
+  <property name="export.package"        value="org.osgi.util.position;specification-version=1.0"/>
+
+  &bundlebuild_include;
 
 </project>

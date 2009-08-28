@@ -1,177 +1,201 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.http/src/org/osgi/service/http/HttpService.java,v 1.11 2006/06/16 16:31:35 hargrave Exp $
+ * $Header: /home/wistrand/cvs/knopflerfish.org/osgi/bundles/http/http/src/org/osgi/service/http/HttpService.java,v 1.1.1.1 2004/03/05 20:35:10 wistrand Exp $
  *
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
+ * Copyright (c) The Open Services Gateway Initiative (2000, 2002).
+ * All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Implementation of certain elements of the Open Services Gateway Initiative
+ * (OSGI) Specification may be subject to third party intellectual property
+ * rights, including without limitation, patent rights (such a third party may
+ * or may not be a member of OSGi). OSGi is not responsible and shall not be
+ * held responsible in any manner for identifying or failing to identify any or
+ * all such third party intellectual property rights.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * This document and the information contained herein are provided on an "AS
+ * IS" basis and OSGI DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION HEREIN WILL
+ * NOT INFRINGE ANY RIGHTS AND ANY IMPLIED WARRANTIES OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL OSGI BE LIABLE FOR ANY
+ * LOSS OF PROFITS, LOSS OF BUSINESS, LOSS OF USE OF DATA, INTERRUPTION OF
+ * BUSINESS, OR FOR DIRECT, INDIRECT, SPECIAL OR EXEMPLARY, INCIDENTIAL,
+ * PUNITIVE OR CONSEQUENTIAL DAMAGES OF ANY KIND IN CONNECTION WITH THIS
+ * DOCUMENT OR THE INFORMATION CONTAINED HEREIN, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH LOSS OR DAMAGE.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * All Company, brand and product names may be trademarks that are the sole
+ * property of their respective owners. All rights reserved.
  */
+
 package org.osgi.service.http;
+
+import java.util.Dictionary;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
-import java.util.Dictionary;
 
 /**
  * The Http Service allows other bundles in the OSGi environment to dynamically
  * register resources and servlets into the URI namespace of Http Service. A
  * bundle may later unregister its resources or servlets.
  * 
- * @version $Revision: 1.11 $
+ * @version $Revision: 1.1.1.1 $
+ * @author Open Services Gateway Initiative
  * @see HttpContext
  */
-public interface HttpService {
-	/**
-	 * Registers a servlet into the URI namespace.
-	 * 
-	 * <p>
-	 * The alias is the name in the URI namespace of the Http Service at which
-	 * the registration will be mapped.
-	 * 
-	 * <p>
-	 * An alias must begin with slash ('/') and must not end with slash ('/'),
-	 * with the exception that an alias of the form &quot;/&quot; is used to
-	 * denote the root alias. See the specification text for details on how HTTP
-	 * requests are mapped to servlet and resource registrations.
-	 * 
-	 * <p>
-	 * The Http Service will call the servlet's <code>init</code> method before
-	 * returning.
-	 * 
-	 * <pre>
-	 * httpService.registerServlet(&quot;/myservlet&quot;, servlet, initparams, context);
-	 * </pre>
-	 * 
-	 * <p>
-	 * Servlets registered with the same <code>HttpContext</code> object will
-	 * share the same <code>ServletContext</code>. The Http Service will call the
-	 * <code>context</code> argument to support the <code>ServletContext</code>
-	 * methods <code>getResource</code>,<code>getResourceAsStream</code> and
-	 * <code>getMimeType</code>, and to handle security for requests. If the
-	 * <code>context</code> argument is <code>null</code>, a default
-	 * <code>HttpContext</code> object is used (see
-	 * {@link #createDefaultHttpContext}).
-	 * 
-	 * @param alias name in the URI namespace at which the servlet is registered
-	 * @param servlet the servlet object to register
-	 * @param initparams initialization arguments for the servlet or
-	 *        <code>null</code> if there are none. This argument is used by the
-	 *        servlet's <code>ServletConfig</code> object.
-	 * @param context the <code>HttpContext</code> object for the registered
-	 *        servlet, or <code>null</code> if a default <code>HttpContext</code> is
-	 *        to be created and used.
-	 * @throws NamespaceException if the registration fails because the alias
-	 *            is already in use.
-	 * @throws javax.servlet.ServletException if the servlet's <code>init</code>
-	 *            method throws an exception, or the given servlet object has
-	 *            already been registered at a different alias.
-	 * @throws java.lang.IllegalArgumentException if any of the arguments are
-	 *            invalid
-	 */
-	public void registerServlet(String alias, Servlet servlet,
-			Dictionary initparams, HttpContext context)
-			throws ServletException, NamespaceException;
+public abstract interface HttpService {
+    /**
+     * Registers a servlet into the URI namespace.
+     * 
+     * <p>
+     * The alias is the name in the URI namespace of the Http Service at which
+     * the registration will be mapped.
+     * 
+     * <p>
+     * An alias must begin with slash ('/') and must not end with slash ('/'),
+     * with the exception that an alias of the form &quot;/&quot; is used to
+     * denote the root alias. See the specification text for details on how HTTP
+     * requests are mapped to servlet and resource registrations.
+     * 
+     * <p>
+     * The Http Service will call the servlet's <tt>init</tt> method before
+     * returning.
+     * 
+     * <pre>
+     * httpService.registerServlet(&quot;/myservlet&quot;, servlet, initparams, context);
+     * </pre>
+     * 
+     * <p>
+     * Servlets registered with the same <tt>HttpContext</tt> object will
+     * share the same <tt>ServletContext</tt>. The Http Service will call the
+     * <tt>context</tt> argument to support the <tt>ServletContext</tt>
+     * methods <tt>getResource</tt>, <tt>getResourceAsStream</tt> and
+     * <tt>getMimeType</tt>, and to handle security for requests. If the
+     * <tt>context</tt> argument is <tt>null</tt>, a default
+     * <tt>HttpContext</tt> object is used (see
+     * {@link #createDefaultHttpContext}).
+     * 
+     * @param alias
+     *            name in the URI namespace at which the servlet is registered
+     * @param servlet
+     *            the servlet object to register
+     * @param initparams
+     *            initialization arguments for the servlet or <tt>null</tt> if
+     *            there are none. This argument is used by the servlet's
+     *            <tt>ServletConfig</tt> object.
+     * @param context
+     *            the <tt>HttpContext</tt> object for the registered servlet,
+     *            or <tt>null</tt> if a default <tt>HttpContext</tt> is to
+     *            be created and used.
+     * @exception NamespaceException
+     *                if the registration fails because the alias is already in
+     *                use.
+     * @exception javax.servlet.ServletException
+     *                if the servlet's <tt>init</tt> method throws an
+     *                exception, or the given servlet object has already been
+     *                registered at a different alias.
+     * @exception java.lang.IllegalArgumentException
+     *                if any of the arguments are invalid
+     */
+    public abstract void registerServlet(String alias, Servlet servlet,
+            Dictionary initparams, HttpContext context)
+            throws ServletException, NamespaceException;
 
-	/**
-	 * Registers resources into the URI namespace.
-	 * 
-	 * <p>
-	 * The alias is the name in the URI namespace of the Http Service at which
-	 * the registration will be mapped. An alias must begin with slash ('/') and
-	 * must not end with slash ('/'), with the exception that an alias of the
-	 * form &quot;/&quot; is used to denote the root alias. The name parameter
-	 * must also not end with slash ('/'). See the specification text for
-	 * details on how HTTP requests are mapped to servlet and resource
-	 * registrations.
-	 * <p>
-	 * For example, suppose the resource name /tmp is registered to the alias
-	 * /files. A request for /files/foo.txt will map to the resource name
-	 * /tmp/foo.txt.
-	 * 
-	 * <pre>
-	 * httpservice.registerResources(&quot;/files&quot;, &quot;/tmp&quot;, context);
-	 * </pre>
-	 * 
-	 * The Http Service will call the <code>HttpContext</code> argument to map
-	 * resource names to URLs and MIME types and to handle security for
-	 * requests. If the <code>HttpContext</code> argument is <code>null</code>, a
-	 * default <code>HttpContext</code> is used (see
-	 * {@link #createDefaultHttpContext}).
-	 * 
-	 * @param alias name in the URI namespace at which the resources are
-	 *        registered
-	 * @param name the base name of the resources that will be registered
-	 * @param context the <code>HttpContext</code> object for the registered
-	 *        resources, or <code>null</code> if a default <code>HttpContext</code>
-	 *        is to be created and used.
-	 * @throws NamespaceException if the registration fails because the alias
-	 *            is already in use.
-	 * @throws java.lang.IllegalArgumentException if any of the parameters
-	 *            are invalid
-	 */
-	public void registerResources(String alias, String name,
-			HttpContext context) throws NamespaceException;
+    /**
+     * Registers resources into the URI namespace.
+     * 
+     * <p>
+     * The alias is the name in the URI namespace of the Http Service at which
+     * the registration will be mapped. An alias must begin with slash ('/') and
+     * must not end with slash ('/'), with the exception that an alias of the
+     * form &quot;/&quot; is used to denote the root alias. The name parameter
+     * must also not end with slash ('/'). See the specification text for
+     * details on how HTTP requests are mapped to servlet and resource
+     * registrations.
+     * <p>
+     * For example, suppose the resource name /tmp is registered to the alias
+     * /files. A request for /files/foo.txt will map to the resource name
+     * /tmp/foo.txt.
+     * 
+     * <pre>
+     * httpservice.registerResources(&quot;/files&quot;, &quot;/tmp&quot;, context);
+     * </pre>
+     * 
+     * The Http Service will call the <tt>HttpContext</tt> argument to map
+     * resource names to URLs and MIME types and to handle security for
+     * requests. If the <tt>HttpContext</tt> argument is <tt>null</tt>, a
+     * default <tt>HttpContext</tt> is used (see
+     * {@link #createDefaultHttpContext}).
+     * 
+     * @param alias
+     *            name in the URI namespace at which the resources are
+     *            registered
+     * @param name
+     *            the base name of the resources that will be registered
+     * @param context
+     *            the <tt>HttpContext</tt> object for the registered
+     *            resources, or <tt>null</tt> if a default
+     *            <tt>HttpContext</tt> is to be created and used.
+     * @exception NamespaceException
+     *                if the registration fails because the alias is already in
+     *                use.
+     * @exception java.lang.IllegalArgumentException
+     *                if any of the parameters are invalid
+     */
+    public abstract void registerResources(String alias, String name,
+            HttpContext context) throws NamespaceException;
 
-	/**
-	 * Unregisters a previous registration done by <code>registerServlet</code> or
-	 * <code>registerResources</code> methods.
-	 * 
-	 * <p>
-	 * After this call, the registered alias in the URI name-space will no
-	 * longer be available. If the registration was for a servlet, the Http
-	 * Service must call the <code>destroy</code> method of the servlet before
-	 * returning.
-	 * <p>
-	 * If the bundle which performed the registration is stopped or otherwise
-	 * "unget"s the Http Service without calling {@link #unregister}then Http
-	 * Service must automatically unregister the registration. However, if the
-	 * registration was for a servlet, the <code>destroy</code> method of the
-	 * servlet will not be called in this case since the bundle may be stopped.
-	 * {@link #unregister}must be explicitly called to cause the
-	 * <code>destroy</code> method of the servlet to be called. This can be done
-	 * in the <code>BundleActivator.stop</code> method of the
-	 * bundle registering the servlet.
-	 * 
-	 * @param alias name in the URI name-space of the registration to unregister
-	 * @throws java.lang.IllegalArgumentException if there is no registration
-	 *            for the alias or the calling bundle was not the bundle which
-	 *            registered the alias.
-	 */
-	public void unregister(String alias);
+    /**
+     * Unregisters a previous registration done by <tt>registerServlet</tt> or
+     * <tt>registerResources</tt> methods.
+     * 
+     * <p>
+     * After this call, the registered alias in the URI name-space will no
+     * longer be available. If the registration was for a servlet, the Http
+     * Service must call the <tt>destroy</tt> method of the servlet before
+     * returning.
+     * <p>
+     * If the bundle which performed the registration is stopped or otherwise
+     * "unget"s the Http Service without calling {@link #unregister} then Http
+     * Service must automatically unregister the registration. However, if the
+     * registration was for a servlet, the <tt>destroy</tt> method of the
+     * servlet will not be called in this case since the bundle may be stopped.
+     * {@link #unregister} must be explicitly called to cause the
+     * <tt>destroy</tt> method of the servlet to be called. This can be done
+     * in the {@link org.osgi.framework.BundleActivator#stop} method of the
+     * bundle registering the servlet.
+     * 
+     * @param alias
+     *            name in the URI name-space of the registration to unregister
+     * @exception java.lang.IllegalArgumentException
+     *                if there is no registration for the alias or the calling
+     *                bundle was not the bundle which registered the alias.
+     */
+    public abstract void unregister(String alias);
 
-	/**
-	 * Creates a default <code>HttpContext</code> for registering servlets or
-	 * resources with the HttpService, a new <code>HttpContext</code> object is
-	 * created each time this method is called.
-	 * 
-	 * <p>
-	 * The behavior of the methods on the default <code>HttpContext</code> is
-	 * defined as follows:
-	 * <ul>
-	 * <li><code>getMimeType</code>- Does not define any customized MIME types
-	 * for the Content-Type header in the response, and always returns
-	 * <code>null</code>.
-	 * <li><code>handleSecurity</code>- Performs implementation-defined
-	 * authentication on the request.
-	 * <li><code>getResource</code>- Assumes the named resource is in the
-	 * context bundle; this method calls the context bundle's
-	 * <code>Bundle.getResource</code> method, and returns the appropriate URL to
-	 * access the resource. On a Java runtime environment that supports
-	 * permissions, the Http Service needs to be granted 
-	 * <code>org.osgi.framework.AdminPermission[*,RESOURCE]</code>.
-	 * </ul>
-	 * 
-	 * @return a default <code>HttpContext</code> object.
-	 * @since 1.1
-	 */
-	public HttpContext createDefaultHttpContext();
+    /**
+     * Creates a default <tt>HttpContext</tt> for registering servlets or
+     * resources with the HttpService, a new <tt>HttpContext</tt> object is
+     * created each time this method is called.
+     * 
+     * <p>
+     * The behavior of the methods on the default <tt>HttpContext</tt> is
+     * defined as follows:
+     * <ul>
+     * <li><tt>getMimeType</tt> - Does not define any customized MIME types
+     * for the Content-Type header in the response, and always returns
+     * <tt>null</tt>.
+     * <li><tt>handleSecurity</tt> - Performs implementation-defined
+     * authentication on the request.
+     * <li><tt>getResource</tt> - Assumes the named resource is in the
+     * context bundle; this method calls the context bundle's
+     * <tt>Bundle.getResource</tt> method, and returns the appropriate URL to
+     * access the resource. On a Java runtime environment that supports
+     * permissions, the Http Service needs to be granted the
+     * <tt>org.osgi.framework.AdminPermission</tt>.
+     * </ul>
+     * 
+     * @return a default <tt>HttpContext</tt> object.
+     * @since 1.1
+     */
+    public abstract HttpContext createDefaultHttpContext();
 }

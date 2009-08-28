@@ -19,9 +19,9 @@ public abstract class TimedTask {
   abstract public Object run();
 
   public String toString() {
-    return "TimedTask[" +
-      "module=" + module +
-      ", msg=" + msg +
+    return "TimedTask[" + 
+      "module=" + module + 
+      ", msg=" + msg + 
       ", time=" + time +
       ", mem=" + mem +
       "]";

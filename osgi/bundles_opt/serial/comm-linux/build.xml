@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="comm-linux" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.comm-linux}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
   <property name = "bundle.build.api"      value = "false"/>
   <property name = "bundle.build.impl"     value = "false"/>
@@ -18,13 +21,34 @@
   <property name="api.pattern"
             value="dummy"/>
 
+
+
   <path id="bundle.compile.path">
-   <pathelement location="log_api-N.N.N.jar"/>
-<!--   <pathelement location="device_api-N.N.N.jar"/>-->
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+<!--   <pathelement location="${topdir}/jars/device/device_api-1.0.0.jar"/>-->
    <pathelement location="resources/RXTXcomm.jar"/>
    <pathelement location="resources/comm.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <property name="bundle.description"    value="Native driver for linux javax.comm using the RXTX library. Note that this bundle is LGPL and contains full source to rxtx"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.1.0"/>
+  <property name="bundle.classpath"      value=".,RXTXcomm.jar,comm.jar"/>
+  <property name="bundle.vendor"         value="Piayda/RXTX"/>
+  <property name="bundle.apivendor"      value="Piayda/Sun"/>
+
+  <property name="bundle.docurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/serial/readme.txt"/>
+
+  <property name="bundle.subversionurl" 
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/serial/comm-linux/"/>
+
+  <property name="bundle.nativecode" 
+            value="librxtxParallel.so; librxtxSerial.so ; processor = i386 ; osname = Linux, librxtxParallel.so; librxtxSerial.so ; processor = x86 ; osname = Linux, librxtxParallel.so; librxtxSerial.so ; processor = i386 ; osname = NetBSD"/>
+  <property name="import.package" value="org.osgi.framework"/>
+
+  <property name="export.package" value="javax.comm;specification-version=2.0,gnu.io;specification-version=2.0"/> 
+  &bundlebuild_include;
 
 </project>

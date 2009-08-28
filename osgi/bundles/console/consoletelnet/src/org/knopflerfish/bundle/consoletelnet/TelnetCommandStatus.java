@@ -35,8 +35,8 @@
 package org.knopflerfish.bundle.consoletelnet;
 
 /**
- * The STATUS command has one sub negotiable parameter that may be IS
- * or SEND.
+ * * The STATUS command has one sub negotiable parameter * that may be IS or
+ * SEND.
  */
 
 public class TelnetCommandStatus extends TelnetCommand {
@@ -47,17 +47,16 @@ public class TelnetCommandStatus extends TelnetCommand {
     }
 
     /**
-     * Option negotiation and execution mechanism. To follow the
-     * intentions of RFC 854, a change in status is always followed by
-     * a response but if trying to enter a mode that we are already
-     * in, no response is returned. This is essential to prevent
-     * negotiation loops.
-     *
-     * @parameter action, one of the telnet protocol basic actions DO, DONT,
-     *            WILL, WONT or SE
-     * @parameter optionCode, the option code
+     * * Option negotiation and execution mechanism * * To follow the intentions
+     * of RFC 854, a change in status * is always followed by a response but if
+     * trying to enter a mode * that we are already in, no response is returned. * *
+     * This is essential to prevent negotiation loops. * *
+     * 
+     * @parameter action, one of the telnet protocol basic actions * DO, DONT,
+     *            WILL, WONT or SE *
+     * @parameter optionCode, the option code *
      * @parameter parameters, a string with optional parameters to the option
-     *            code.
+     *            code. * *
      * @return a String with the response to the command.
      */
 

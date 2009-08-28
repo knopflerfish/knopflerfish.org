@@ -1,18 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="cm" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.cm}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
-  <property name="api.pattern"      value="org/osgi/service/cm/**"/>
-  <property name="impl.pattern"     value="org/knopflerfish/bundle/**"/> 
-  <property name="impl-api.pattern" value="org/knopflerfish/shared/cm/**"/> 
+  <property name="api.pattern"  value="org/osgi/service/cm/**"/>
+  <property name="impl.pattern" value="org/knopflerfish/**"/> 
 
   <path id="bundle.compile.path">
-   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <property name="bundle.description"    value="Configuration management service"/>
+  <property name="bundle.category"       value="service"/>
+  <property name="bundle.version"        value="1.0.1"/>
+  <property name="bundle.name"           value="CM Service"/>
+  <property name="bundle.apivendor"      value="OSGi"/>
+  <property name="bundle.vendor"         value="Knopflerfish"/>
+
+  <property name="import.service"        value="org.knopflerfish.service.log.LogService,org.osgi.service.cm.ManagedService,org.osgi.service.cm.ManagedServiceFactory,org.osgi.service.cm.ConfigurationPlugin"/>
+
+  <property name="export.package"        value="org.osgi.service.cm;specification-version=1.0.0,org.knopflerfish.shared.cm;specification-version=1.0"/>
+
+  <property name="export.service"        value="org.osgi.service.cm.ConfigurationAdmin"/>
+
+
+  &bundlebuild_include;
 
 </project>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,49 +39,28 @@ import org.osgi.framework.*;
 import junit.framework.*;
 
 public class Activator implements BundleActivator {
-
+  
   public void start(BundleContext bc) {
     {
       TestSuite suite = new FrameworkTestSuite(bc);
       Hashtable props = new Hashtable();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new ServiceListenerTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      ServiceRegistration sr 
+	= bc.registerService(TestSuite.class.getName(), suite, props);
     }
     {
       TestSuite suite = new PackageAdminTestSuite(bc);
       Hashtable props = new Hashtable();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      ServiceRegistration sr 
+	= bc.registerService(TestSuite.class.getName(), suite, props);
     }
     {
       TestSuite suite = new NativeCodeTestSuite(bc);
       Hashtable props = new Hashtable();
       props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new PackageTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
-    }
-    {
-      TestSuite suite = new RequireBundleTestSuite(bc);
-      Hashtable props = new Hashtable();
-      props.put("service.pid", suite.getName());
-      ServiceRegistration sr
-        = bc.registerService(TestSuite.class.getName(), suite, props);
+      ServiceRegistration sr 
+	= bc.registerService(TestSuite.class.getName(), suite, props);
     }
   }
 

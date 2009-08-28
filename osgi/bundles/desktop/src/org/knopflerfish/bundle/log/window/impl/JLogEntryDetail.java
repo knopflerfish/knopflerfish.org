@@ -34,21 +34,21 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.*;
+import java.text.*;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
-import javax.swing.JToolBar;
-import javax.swing.JViewport;
-import javax.swing.SwingUtilities;
+import java.net.URL;
+
+import org.osgi.framework.*;
+import org.osgi.service.log.*;
+import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.util.Text;
+
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
+import javax.swing.event.*;
 
 public class JLogEntryDetail extends JPanel {
   ExtLogEntry entry;

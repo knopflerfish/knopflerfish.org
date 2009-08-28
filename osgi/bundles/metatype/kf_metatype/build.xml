@@ -1,9 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
+
+<!DOCTYPE project [
+  <!ENTITY bundlebuild_include  SYSTEM "../../../../ant/bundlebuild_include.xml">
+]>
 
 <project name="kf_metatype" default="all">
 
-  <dirname  property="proj.dir" file="${ant.file.kf_metatype}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <property name="topdir"       location="../../.."/>
 
   <property name  = "api.pattern"
             value = "org/knopflerfish/util/metatype/**"/>
@@ -18,15 +21,26 @@
 
 
   <path id="bundle.compile.path">
-   <pathelement location="cm_api-N.N.N.jar"/>
-   <pathelement location="util-N.N.N.jar"/>
-   <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="metatype-N.N.N.jar"/>
+   <pathelement location="${topdir}/jars/cm/cm_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/util/util-1.0.0.jar"/>
+   <pathelement location="${topdir}/jars/log/log_api-1.0.1.jar"/>
+   <pathelement location="${topdir}/jars/metatype/metatype-1.0.0.jar"/>
    <pathelement location="resources/nanoxml-2.2.1.jar"/>
-   <pathelement location="${topdir}/bundles/component/resources/kxml2.jar"/> 
   </path>
   
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  
+  <property name="bundle.name"           value="KF XML Metatype"/>
+  <property name="bundle.description"    value="XML format support for CM and Metatype"/>
+  <property name="bundle.vendor"         value="Knopflerfish/nanoxml"/>
+  <property name="bundle.apivendor"      value="Knopflerfish"/>
+  <property name="bundle.category"       value="util"/>
+  <property name="bundle.docurl"         value="http://www.knopflerfish.org/XMLMetatype/"/>
+  <property name="bundle.version"        value="1.0.0"/>
+  <property name="bundle.classpath"      value=".,/nanoxml-2.2.1.jar"/>
+
+  <property name="export.package"        value="org.knopflerfish.util.metatype,net.n3.nanoxml;specification-version=2.2.1"/>
+  <property name="import.package" value="org.osgi.service.cm,org.knopflerfish.util,org.knopflerfish.service.log,org.osgi.framework,org.osgi.service.metatype"/>
+  &bundlebuild_include;
 
 </project>
 

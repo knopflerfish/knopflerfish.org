@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,12 +51,12 @@ public class Activator implements BundleActivator {
   static public BundleContext bc;
 
 
-
+  
   static ServiceTracker mtpTracker;
   //  static SystemMetatypeProvider sysMTP;
 
   static CMDisplayer disp;
-
+  
   public void start(BundleContext _bc) {
     this.bc  = _bc;
     this.log = new LogRef(bc);
@@ -72,7 +72,7 @@ public class Activator implements BundleActivator {
     /*
       try {
 
-
+      
       test();
     } catch (Exception e) {
       e.printStackTrace();
@@ -80,8 +80,8 @@ public class Activator implements BundleActivator {
     */
   }
 
-  static MetaTypeInformation getMTP(Bundle b) {
-    SystemMetatypeProvider sysMTP =
+  static MTP getMTP(Bundle b) {
+    SystemMetatypeProvider sysMTP = 
       (SystemMetatypeProvider)mtpTracker.getService();
     if(sysMTP != null) {
       return sysMTP.getMTP(b);
@@ -93,23 +93,22 @@ public class Activator implements BundleActivator {
 
   void test() {
     ManagedService ms = new ManagedService() {
-        public void updated(Dictionary props) {
-          System.out.println("managedservice service got " + props);
-        }
+	public void updated(Dictionary props) {
+	  //System.out.println("managedservice service got " + props);
+	}
       };
 
     ManagedServiceFactory mf = new ManagedServiceFactory() {
-        public void deleted(java.lang.String pid) {
-          System.out.println("factory deleted " + pid);
-        }
-        public java.lang.String getName() {
-          return "my factory";
-        }
+	public void deleted(java.lang.String pid) {
+	  //System.out.println("factory deleted " + pid);
+	}
+	public java.lang.String getName() {
+	  return "my factory";
+	}
 
-        public void updated(String pid, Dictionary props) {
-          System.out.println("factory updated pid=" + pid +
-                             ", props=" + props);
-        }
+	public void updated(String pid, Dictionary props) {
+	  //System.out.println("factory updated pid=" + pid + ", props=" + props);
+	}
       };
 
     Hashtable props = new Hashtable();
@@ -127,7 +126,7 @@ public class Activator implements BundleActivator {
   public void stop(BundleContext bc) {
     try {
       if(log != null) {
-        log = null;
+	log = null;
       }
 
       disp.close();
@@ -135,7 +134,7 @@ public class Activator implements BundleActivator {
 
       mtpTracker.close();
       mtpTracker = null;
-
+	
       this.bc = null;
     } catch (Exception e) {
       e.printStackTrace();

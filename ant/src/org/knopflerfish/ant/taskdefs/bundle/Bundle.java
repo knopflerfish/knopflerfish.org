@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2009, KNOPFLERFISH project
+ * Copyright (c) 2005, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,28 +42,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.Code;
+import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantPool;
-import org.apache.bcel.classfile.DescendingVisitor;
-import org.apache.bcel.classfile.EmptyVisitor;
-import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.LocalVariable;
-import org.apache.bcel.classfile.Method;
 import org.apache.bcel.classfile.Utility;
-import org.apache.bcel.generic.BasicType;
-import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.InvokeInstruction;
-import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
-import org.apache.bcel.generic.Instruction;
-import org.apache.bcel.generic.Type;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.FileScanner;
@@ -73,7 +60,6 @@ import org.apache.tools.ant.taskdefs.Manifest;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.ZipFileSet;
-//import org.apache.tools.zip.ZipFile;
 
 
 /**
@@ -272,17 +258,6 @@ public class Bundle extends Jar {
     standardPackagePrefixes.add("java.");
   }
 
-  /**
-   * The set of classes that are refrenced from the included classes.
-   * May be used to check execution environment, see {@link BundleInfo}.
-   */
-  private Set classSet             = new TreeSet();
-  /**
-   * A mapping from package name of included classes to a set of
-   * package names that the classes in the key package references.
-   */
-  private Map packageUsingMap      = new HashMap();
-
 
   // private methods
 
@@ -306,35 +281,27 @@ public class Bundle extends Jar {
               try {
                 analyzeClass(new ClassParser(file.getAbsolutePath()));
               } catch (IOException ioe) {
-                throw new BuildException
-                  ("Failed to parse class file: " +file.getAbsolutePath(),
-                   ioe);
+                throw new BuildException("Failed to parse class file: " + file.getAbsolutePath(), ioe);
               }
             }
           }
         } else {
           try {
             ZipFile zipFile = new ZipFile(srcFile);
-            DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
-            String[] entries = ds.getIncludedFiles();
-            for (int kk = 0; kk<entries.length; kk++) {
-              if (entries[kk].endsWith(".class")) {
+            Enumeration files = zipFile.entries();
+            while (files.hasMoreElements()) {
+              ZipEntry entry = (ZipEntry) files.nextElement();
+              String name = entry.getName();
+              if (name.endsWith(".class")) {
                 try {
-                  ZipEntry entry = zipFile.getEntry(entries[kk]);
-                  analyzeClass(new ClassParser(zipFile.getInputStream(entry),
-                                               entries[kk]));
+                  analyzeClass(new ClassParser(zipFile.getInputStream(entry), name));
                 } catch (IOException ioe) {
-                  throw new BuildException
-                    ("Failed to parse class file " +entries[kk]
-                     +" from zip file: " +srcFile.getAbsolutePath(),
-                     ioe);
+                  throw new BuildException("Failed to parse class file: " + name, ioe);
                 }
               }
             }
           } catch (IOException ioe) {
-            throw new BuildException
-              ("Failed to read zip file: " +srcFile.getAbsolutePath(),
-               ioe);
+            throw new BuildException("Failed to read zip file: " + zipFile.getAbsolutePath(), ioe);
           }
         }
       }
@@ -403,91 +370,11 @@ public class Bundle extends Jar {
     }
   }
 
-  /**
-   * Get package name of class string representation.
-   */
-  private static String packageName(String s) {
-    s = s.trim();
-    int ix = s.lastIndexOf('.');
-    if(ix != -1) {
-      s = s.substring(0, ix);
-    } else {
-      s = "";
-    }
-    return s;
-  }
-
-  /**
-   * Add a type's package name to the list of referenced packages.
-   *
-   * @param usingPackage The package that the class referencing
-   *                     <tt>t</tt> belongs to.
-   * @param t Type of an object.
-   */
-  protected void addReferencedType(String usingPackage, Type t) {
-    if(t instanceof BasicType) {
-      log("   " +t +" skiped; basic", Project.MSG_DEBUG);
-    } else {
-      addReferencedClass(usingPackage, t.toString());
-    }
-  }
-
-  /**
-   * Add package names of all types in <code>ts</code> to the list of
-   * referenced packages.
-   *
-   * @param usingPackage The package that the class referencing
-   *                  <tt>ts</tt> belongs to.
-   * @param ts Array with Type objects.
-   */
-  protected void addReferencedType(String usingPackage, Type[] ts) {
-    for (int i = ts.length-1; i>-1; i-- ) {
-      addReferencedType(usingPackage, ts[i]);
-    }
-  }
-
-  /**
-   * Add data for a referenced class.
-   *
-   * @param usingPackage
-   *                  The package that the class referencing
-   *                  <tt>className</tt> belongs to.
-   * @param className Name of the referenced class.
-   */
-  protected void addReferencedClass(String usingPackage, String className)
-  {
-    if(className == null) {
-      return;
-    }
-
-    String packageName = packageName(className);
-    if("".equals(packageName)) {
-      log("   " +className +" skipped; no package name", Project.MSG_DEBUG);
-      return;
-    }
-
-    classSet.add(className);
-    referencedPackages.add(packageName);
-    if (null!=usingPackage) {
-      Set usingSet = (Set) packageUsingMap.get(usingPackage);
-      if (null==usingSet) {
-        usingSet = new TreeSet();
-        packageUsingMap.put(usingPackage, usingSet);
-      }
-      usingSet.add(packageName);
-    }
-  }
-
-
   private void analyzeClass(ClassParser parser) throws IOException {
-    final JavaClass       javaClass        = parser.parse();
-    final String          javaPackage      = javaClass.getPackageName();
-    final ConstantPool    constant_pool    = javaClass.getConstantPool();
-    final ConstantPoolGen constant_poolGen = new ConstantPoolGen(constant_pool);
-
+    JavaClass javaClass = parser.parse();
     availablePackages.add(javaClass.getPackageName());
 
-    final String[] interfaces = javaClass.getInterfaceNames();
+    String[] interfaces = javaClass.getInterfaceNames();
     for (int i = 0; i < interfaces.length; i++) {
       if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
         activatorClasses.add(javaClass.getClassName());
@@ -495,134 +382,30 @@ public class Bundle extends Jar {
       }
     }
 
-    /**
-     * Use a descending visitor to find all classes that the given
-     * clazz refers to and add them to the set of imported classes.
-     */
-    DescendingVisitor v = new DescendingVisitor(javaClass, new EmptyVisitor() {
-        /**
-         * Keep track of the signatures visited to avoid processing
-         * them more than once. The same signature may apply to
-         * many methods or fields.
-         */
-        boolean[] visitedSignatures = new boolean[constant_pool.getLength()];
-
-        /**
-         * Add the class that the given ConstantClass object
-         * represents to the set of imported classes.
-         *
-         * @param obj The ConstantClass object
-         */
-        public void visitConstantClass( ConstantClass obj ) {
-          log(" visit constant class " +obj, Project.MSG_DEBUG);
-
-          String referencedClass = obj.getBytes(constant_pool);
-          referencedClass = referencedClass.charAt(0) == '['
-            ? Utility.signatureToString(referencedClass, false)
-            : Utility.compactClassName(referencedClass,  false);
-          addReferencedClass(javaPackage,referencedClass);
+    ConstantPool constantPool = javaClass.getConstantPool();
+    Constant[] constants = constantPool.getConstantPool();
+    for (int i = 0; i < constants.length; i++) {
+      Constant constant = constants[i];
+      if (constant instanceof ConstantClass) {
+        ConstantClass constantClass = (ConstantClass) constant;
+        String referencedClass = constantClass.getBytes(constantPool);
+        if (referencedClass.charAt(0) == '[') {
+          referencedClass = Utility.signatureToString(referencedClass, false);
+        } else {
+          referencedClass = Utility.compactClassName(referencedClass, false);
         }
-
-        /**
-         * Add the class used as types for the given field.
-         * This is necessary since if no method is applied to an
-         * object valued field there will be no ConstantClass object
-         * in the ConstantPool for the class that is the type of the
-         * field.
-         *
-         * @param obj A Field object
-         */
-        public void visitField( Field obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit field " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type type = Type.getType(signature);
-            addReferencedType(javaPackage, type);
-          }
+        int lastDotIndex = referencedClass.lastIndexOf('.');
+        if (lastDotIndex >= 0) {
+          String packageName = referencedClass.substring(0, lastDotIndex);
+          referencedPackages.add(packageName);
         }
-
-        /**
-         * Add all classes used as types for a local variable in the
-         * class we are analyzing. This is necessary since if no
-         * method is applied to an object valued local variable
-         * there will be no ConstantClass object in the ConstantPool
-         * for the class that is the type of the local variable.
-         *
-         * @param obj A LocalVariable object
-         */
-        public void visitLocalVariable( LocalVariable obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit local variable " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type type = Type.getType(signature);
-            addReferencedType(javaPackage, type);
-          }
-        }
-
-        /**
-         * Add all classes mentioned in the signature of the given
-         * method. This is necessary since if no method is applied
-         * to a parameter (return type) there will be no
-         * ConstantClass object in the ConstantPool for the class
-         * that is the type of that parameter (return type).
-         *
-         * @param obj A Method object
-         */
-        public void visitMethod( Method obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit method " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type returnType = Type.getReturnType(signature);
-            final Type[] argTypes = Type.getArgumentTypes(signature);
-            addReferencedType(javaPackage, returnType);
-            addReferencedType(javaPackage, argTypes);
-          }
-        }
-
-        /**
-         * Look for packages for types in signatures of methods
-         * invoked from code in the class.
-         *
-         * This typically finds packages from arguments in calls to a
-         * superclass method in the current class where no local
-         * variable (or field) was used for intermediate storage of
-         * the parameter.
-         *
-         * @param obj The Code object to visit
-         */
-        public void visitCode( Code obj ) {
-          final InstructionList il = new InstructionList(obj.getCode());
-          for (InstructionHandle ih=il.getStart(); ih!=null; ih=ih.getNext()) {
-            final Instruction inst = ih.getInstruction();
-            if (inst instanceof InvokeInstruction) {
-              final InvokeInstruction ii = (InvokeInstruction) inst;
-              log("   " +ii.toString(constant_pool), Project.MSG_DEBUG);
-
-              // These signatures have no index in the constant pool
-              // thus no check/update in visitedSignatures[].
-              final String signature = ii.getSignature(constant_poolGen);
-              final Type returnType = Type.getReturnType(signature);
-              final Type[] argTypes = Type.getArgumentTypes(signature);
-              addReferencedType(javaPackage, returnType);
-              addReferencedType(javaPackage, argTypes);
-            }
-          }
-        }
-
-      } );
-    // Run the scanner on the loaded class
-    v.visit();
+      }
+    }
   }
 
   private boolean isStandardPackage(String packageName) {
     for (Iterator i = standardPackagePrefixes.iterator(); i.hasNext();) {
-      final String prefix = (String) i.next();
+      String prefix = (String) i.next();
       if (packageName.startsWith(prefix)) {
         return true;
       }
@@ -660,7 +443,7 @@ public class Bundle extends Jar {
   }
 
   private void handleClassPath() throws ManifestException {
-    final StringBuffer value = new StringBuffer();
+    StringBuffer value = new StringBuffer();
 
     boolean rootIncluded = false;
     if (baseDir != null || classes.size() == 0) {
@@ -670,8 +453,8 @@ public class Bundle extends Jar {
 
     Iterator i = classes.iterator();
     while (i.hasNext()) {
-      final ZipFileSet zipFileSet = (ZipFileSet) i.next();
-      final String prefix = zipFileSet.getPrefix(getProject());
+      ZipFileSet zipFileSet = (ZipFileSet) i.next();
+      String prefix = zipFileSet.getPrefix(getProject());
       if (prefix.length() > 0) {
         value.append(prefix);
         value.append(',');
@@ -683,13 +466,13 @@ public class Bundle extends Jar {
 
     i = libs.iterator();
     while (i.hasNext()) {
-      final ZipFileSet fileset = (ZipFileSet) i.next();
+      ZipFileSet fileset = (ZipFileSet) i.next();
       if (fileset.getSrc(getProject()) == null) {
-        final DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
-        final String[] files = ds.getIncludedFiles();
+        DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
+        String[] files = ds.getIncludedFiles();
         if (files.length != 0) {
           zipgroups.add(fileset);
-          final String prefix = fixPrefix(fileset.getPrefix(getProject()));
+          String prefix = fixPrefix(fileset.getPrefix(getProject()));
           for (int j = 0; j < files.length; j++) {
             value.append(prefix.replace('\\', '/'));
             value.append(files[j].replace('\\', '/'));
@@ -706,7 +489,7 @@ public class Bundle extends Jar {
 
   private static String fixPrefix(String prefix) {
     if (prefix.length() > 0) {
-      final char c = prefix.charAt(prefix.length() - 1);
+      char c = prefix.charAt(prefix.length() - 1);
       if (c != '/' && c != '\\') {
         prefix = prefix + "/";
       }
@@ -715,13 +498,13 @@ public class Bundle extends Jar {
   }
 
   private void addPackageHeader(String headerName, Map packageMap) throws ManifestException {
-    final Iterator i = packageMap.entrySet().iterator();
+    Iterator i = packageMap.entrySet().iterator();
     if (i.hasNext()) {
-      final StringBuffer valueBuffer = new StringBuffer();
+      StringBuffer valueBuffer = new StringBuffer();
       while (i.hasNext()) {
         Map.Entry entry = (Map.Entry) i.next();
-        final String name = (String) entry.getKey();
-        final String version = (String) entry.getValue();
+        String name = (String) entry.getKey();
+        String version = (String) entry.getValue();
         valueBuffer.append(name);
         if (version != null) {
           valueBuffer.append(";specification-version=");
@@ -730,14 +513,14 @@ public class Bundle extends Jar {
         valueBuffer.append(',');
       }
       valueBuffer.setLength(valueBuffer.length() - 1);
-      final String value = valueBuffer.toString();
+      String value = valueBuffer.toString();
       generatedManifest.addConfiguredAttribute(createAttribute(headerName, value));
       log(headerName + ": " + value, Project.MSG_INFO);
     }
   }
 
   private static Manifest.Attribute createAttribute(String name, String value) {
-    final Manifest.Attribute attribute = new Manifest.Attribute();
+    Manifest.Attribute attribute = new Manifest.Attribute();
     attribute.setName(name);
     attribute.setValue(value);
     return attribute;
@@ -770,8 +553,8 @@ public class Bundle extends Jar {
   }
 
   public void addConfiguredStandardPackage(OSGiPackage osgiPackage) {
-    final String name = osgiPackage.getName();
-    final String prefix = osgiPackage.getPrefix();
+    String name = osgiPackage.getName();
+    String prefix = osgiPackage.getPrefix();
     if (name != null && prefix == null) {
       availablePackages.add(name);
     } else if (prefix != null && name == null) {
@@ -782,7 +565,7 @@ public class Bundle extends Jar {
   }
 
   public void addConfiguredImportPackage(OSGiPackage osgiPackage) {
-    final String name = osgiPackage.getName();
+    String name = osgiPackage.getName();
     if (name == null) {
       throw new BuildException("ImportPackage must have a name");
     } else if (osgiPackage.getPrefix() != null) {
@@ -793,7 +576,7 @@ public class Bundle extends Jar {
   }
 
   public void addConfiguredExportPackage(OSGiPackage osgiPackage) {
-    final String name = osgiPackage.getName();
+    String name = osgiPackage.getName();
     if (name == null) {
       throw new BuildException("ExportPackage must have a name");
     } else if (osgiPackage.getPrefix() != null) {

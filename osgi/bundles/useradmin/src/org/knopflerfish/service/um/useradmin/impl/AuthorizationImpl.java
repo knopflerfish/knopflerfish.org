@@ -63,8 +63,11 @@ public class AuthorizationImpl implements ContextualAuthorization {
 
     protected Dictionary context;
 
-    AuthorizationImpl(RoleImpl user) {
+    private UserAdminImpl uai;
+
+    AuthorizationImpl(RoleImpl user, UserAdminImpl uai) {
         this.user = user;
+        this.uai = uai;
 
         // Default context:
         context = new Hashtable();
@@ -80,7 +83,7 @@ public class AuthorizationImpl implements ContextualAuthorization {
     // - interface org.osgi.service.useradmin.Authorization
     // ---------------------
     public String getName() {
-        if (user.getName().equals(Role.USER_ANYONE))
+        if (user.getName().equals(UserAdminImpl.ANYONE))
             return null;
 
         return user.getName();
@@ -94,11 +97,10 @@ public class AuthorizationImpl implements ContextualAuthorization {
         // This is probably not the best implementation...
         Vector result = new Vector();
         try {
-            Role[] roles = Activator.uai.getRoles(null);
+            Role[] roles = uai.getRoles(null);
             for (int i = 0; i < roles.length; i++) {
-                String roleName = roles[i].getName();
-                if (hasRole(roleName) && !Role.USER_ANYONE.equals(roleName)) {
-                    result.addElement(roleName);
+                if (hasRole(roles[i].getName())) {
+                    result.addElement(roles[i].getName());
                 }
             }
         } catch (InvalidSyntaxException ex) {
@@ -118,10 +120,10 @@ public class AuthorizationImpl implements ContextualAuthorization {
         int authLevel = Levels.LOWEST;
         int confLevel = Levels.LOWEST;
         int integrLevel = Levels.LOWEST;
-        ServiceReference ipamsr = Activator.bc
+        ServiceReference ipamsr = uai.bc
                 .getServiceReference(IPAMValuationService.class.getName());
         if (ipamsr != null) {
-            IPAMValuationService ipam = (IPAMValuationService) Activator.bc
+            IPAMValuationService ipam = (IPAMValuationService) uai.bc
                     .getService(ipamsr);
             if (ipam != null) {
                 Levels levels = ipam.getLevels(inputPath, authMethod);
@@ -129,14 +131,14 @@ public class AuthorizationImpl implements ContextualAuthorization {
                 confLevel = levels.getConfLevel();
                 integrLevel = levels.getIntegrLevel();
             } else {
-                if (Activator.log.doWarn())
-                    Activator.log.warn("IPAM service is not available. "
+                if (uai.log.doWarn())
+                    uai.log.warn("IPAM service is not available. "
                             + "Using fallback IPAM context");
             }
-            Activator.bc.ungetService(ipamsr);
+            uai.bc.ungetService(ipamsr);
         } else {
-            if (Activator.log.doWarn())
-                Activator.log.warn("IPAM service is not available. "
+            if (uai.log.doWarn())
+                uai.log.warn("IPAM service is not available. "
                         + "Using fallback IPAM context");
         }
         context.put(CONTEXT_AUTH_LEVEL, new Integer(authLevel));

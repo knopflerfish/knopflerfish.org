@@ -1,15 +1,15 @@
-<h2>Knopflerfish Components </h2>
+<h2>Contents of the Knopflerfish OSGi release</h2>
 
 The Knopflerfish release contains:
 <ul>
- <li><a href="#osgi">Components defined by OSGi R4</a>
+ <li><a href="#osgi">Components defined by OSGi R3</a>
  <li><a href="#knopflerfish">Knopflerfish components</a>
  <li><a href="#knopflerfish_opt">Knopflerfish optional components</a>	
 </ul>
 
 <p>
-  See <a href="jars/index.html">bundle docs</a> for detail 
-  information on all bundles.
+See <a href="releases/$(VERSION)/jars/index.html">bundle docs</a> for detail 
+information on all bundles.
 </p>
 
 <p>
@@ -19,15 +19,15 @@ bundles.
 </p>
 
 <a name="osgi"></a>
-<h3>Components defined by OSGi R4</h3>
+<h3>Components defined by OSGi R3</h3>
 <p>      
-The OSGi R4 specification defines several components, which could be 
+The OSGi R3 specification defines several components, which could be 
 expected to exist in OSGi implementations. However, it should be noted that no
 service is required to be present.
 </p>
 <p>
-The OSGi specification currently supported by Knopflerfish is R4 and includes
-the the R4 components listed below.
+The OSGi specification currently supported by Knopflerfish is R3 and includes
+the the R3 components listed below.
 </p>
 
 <ul>
@@ -40,52 +40,48 @@ the the R4 components listed below.
 
   The framework contains the following internal components:
    <ul>
-    <li><b>Conditional Permission Admin service</b>. (New in R4)
-    The Conditional Permission Admin service allows bundles to manage
-    the permissions of other bundles. This service is not yet implemented
-    in Knopflerfish.
-
-    <li><b>Package Admin service</b>. The PackageAdmin service allows
+    <li><b>PackageAdmin service</b>. The PackageAdmin service allows
     bundles to inspect other bundles packages.
 
-    <li><b>Permission Admin service</b>. The PermissionAdmin service allows
+    <li><b>PermissionAdmin service</b>. The PermissionAdmin service allows
     bundles to manage the permissions of other bundles.
 
-    <li><b>Start Level service</b>.
+    <li><b>StartLevel service</b>. (new in R3) 
     The StartLevel service allows grouping of bundles into startlevels.
 
-    <li><b>URL service</b>.
+    <li><b>URL service</b>. (new in R3) 
     The URL service allows bundles to safely add URL schemas to
     the framework.
 
    </ul>
 
-  <li><b>Configuration Admin service</b> The Configuration Manager
-  manages persistent storage of application data.
-
-  <li><b>Device Access</b> The Device Manager manages software
-  components related to physical device drivers.
-
-  <li><b>Declarative services</b> (New in R4)
-  The Service Component Runtime (SCR) provides support for a declarative
-  model for publishing services without the need to start the bundle until
-  the service is needed.
-
-  <li><b>Event Admin service</b> (New in R4)
-  Event Admin provides an inter-bundle communication service, based on
-  an event publish and subscribe model.
-
-  <li><b>HTTP service</b> The HTTP service provides a web server where
-  applications can publish servlets or data.
-
-  <li><b>IO Connector service</b> Provides a flexible and extendable
-  communication model based on the <code>javax.microedition.io</code>
-  package from Java 2 Micro Edition (J2ME). 
+  <li><b>ServiceTracker utility</b> The ServiceTracker provides utilities
+  for handling dynamic services.
 
   <li><b>Log service</b> The log service provides logging functions for
   other bundles.
 
-  <li><b>Measurement API</b>
+  <li><b>HTTP service</b> The HTTP service provides a web server where
+  applications can publish servlets or data.
+
+  <li><b>Configuration Manager</b> The Configuration Manager
+  manages persistant storage of application data.
+
+  <li><b>Device Manager</b> The Device Manager manages software
+  components related to physical device drivers.
+
+  <li><b>UserAdmin service</b> The UserAdmin service provides functionality
+  for users, groups and access control.
+
+  <li><b>Preferences service</b> (new in R3) 
+  The Preferences service provides API and
+  functionality for storing bundle preferences.
+
+  <li><b>Position API</b> (new in R3) 
+  The Position API allows applications to
+  handle position-ralated data in a uniform way.
+
+  <li><b>Measurement API</b> (new in R3) 
   The Measurement API allows applications to
   handle measurements in well-defined units.
 
@@ -93,37 +89,15 @@ the the R4 components listed below.
   The Metatype API allows applications to publish typing information
   for configuration data.
 
-  <li><b>Preferences service</b>
-  The Preferences service provides API and
-  functionality for storing bundle preferences.
-
-  <li><b>Position API</b>
-  The Position API allows applications to
-  handle position-related data in a uniform way.
-
-  <li><b>ServiceTracker utility</b> The ServiceTracker provides utilities
-  for handling dynamic services.
-
-  <li><b>UPnP Device service</b> Specifies a services model for cooperation
-  between OSGi bundles and UPnP devices. Knopflerfish only contains the
-  service interface for this.
-
-  <li><b>User Admin service</b> The UserAdmin service provides functionality
-  for users, groups and access control.
-
   <li><b>XML utility</b> 
-  The XML utility class provides a template class for publishing
+  The XML utility class privides a template class for publishing
   XML parsers.
 </ul>
 
 <p>
-<b>Note</b>: All components following the OSGi R4 specification has been 
-known to pass the OSGi R4 TCK (in external tests performed by Makewave AB).
-
-The Knopflerfish distributions cannot formally call itself "OSGi R4
-certified", since only OSGi members are allowed to use this
-term. Instead, we use the term "designed to be compliant with OSGi
-R4", which is an allowed term. 
+<b>Note</b>: All components following the OSGi R3 specification has been 
+known to pass the OSGi R3 tests (in external tests performed by Gatespace Teletics).
+The Knopflerfish distributions cannot formally call itself "OSGi R3 certified", since only OSGi members are allowed to use this term. Instead, we use the term "designed to be compliant with OSGi R3", which is an allowed term.
 </p>
 
 <a name="knopflerfish"></a>
@@ -159,7 +133,7 @@ The Knopflerfish distributions contains a set of other useful components:
    Command for handling the OSGi log
 
    <li><b>Framework commands</b>
-   Command for handling basic OSGi life-cycles
+   Command for handling basic OSGi lifecycles
 
    <li><b>CM commands</b>
    Command for handling the Configuration Management data
@@ -192,7 +166,7 @@ bundles:
  <li><b>SOAP</b> The SOAP connectivity kit allows for easy export of
      OSGi services as SOAP services, using the Apache Axis SOAP lib.
 <br>
-See the <a href="bundledoc/index.html?docpage=soap/index.html">SOAP and WebService page</a> for more information.
+See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt</a>
 
 
 

@@ -1,54 +1,48 @@
-======================================================================
-	Knopflerfish Release  @VERSION@
-======================================================================
-
-Contents:
-----------------------------------------
- README.txt       - this file.
- release_notes.*  - the release notes for the current release.
- changelog.html   - the subversion change log for this release.
- NOTICE.txt       - notice file on included third party software.
- LICENSE.txt      - notice file.
-
- ant              - Ant related code and build include files.
- docs             - online documentation (html),
- docs/index.html  - Starting point for reading the documentation.
- osgi             - all OSGi related code.
- osgi/bundles     - bundles included in distribution.
- osgi/bundles_opt - some extra bundles.
- osgi/framework   - core OSGi framework.
+*******************************************
+** Knopflerfish OSGi README
+**
+** For more information, please visit 
+**   http://www.knopflerfish.org
+**
+*******************************************
 
 
-Basic: How to start
-----------------------------------------
+--- Building ---
+
  Prerequisites
 
-   - JRE 1.3 (1.4 if you want security) or later, available from
-     java.sun.com 
+   - JDK 1.3 or later, available from java.sun.com 
+   - Ant, available from ant.apache.org 
+   - BCEL, available from jakarta.apache.org/bcel 
+     install in ant/lib or system wide in $ANTHOME/lib.
 
-1. Step into the osgi dir
-2. Start the OSGi framework by:
-   > java -jar framework.jar
+ > ant                   # builds framework and all bundle jar files
 
-3. This starts the framework + a large set of bundles, including
-   the desktop
+ > ant htdocs            # builds HTML site (in htdocs)
+ 
+ > ant distrib           # builds distribution file
+   
 
+--- Running   ---
 
-Building:
-----------------------------------------
- Prerequisites
+After building, the framework kan be run using
 
-   - JDK 1.3(1.4 if you want security) or later, available from java.sun.com
-   - Ant 1.7 or later, available from ant.apache.org
-   - BCEL, available from jakarta.apache.org/bcel
-     BCEL is automtically downloaded to ant/lib during the build
-     process, you may also choose to install it locally in
-     $ANTHOME/lib to chare it between many build trees.
-   - openssl, to create and manipulate certificates when using
-     security and the Conditional Permission Admin (CPA) service. Test
-     suites for CPA can not be built and executed without openssl.
+ > cd osgi
+ > java -jar framework.jar
+               
 
+--- Directories ---
 
-1. Step into the knopflerfish.org directory.
-2. Start the build by:
-   > ant all
+ osgi             - all OSGi related code
+ osgi/framework   - core OSGi framework
+ osgi/bundles     - bundles incluced in distribution
+ osgi/bundles_opt - some extra bundles
+
+ ant              - Ant related code and build include files
+
+ htdocs           - www.knopflerfish.org web site
+
+                    The htdocs files *must* be built using
+                    > ant htdocs
+
+                    "htdocs" is also part of the "distrib" target
