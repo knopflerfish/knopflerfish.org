@@ -1325,9 +1325,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // framework_tests bundle is changed in such a way that new
       // files or directories are added or removed to / from the top
       // level of the bundle jar-file.
-      if(i != 46){
+      if(i != 47){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"46 != "+ i);
+               +"47 != "+ i);
       }
 
       //another existing directory
@@ -1347,9 +1347,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // FrameworkTestSuite is changed in such a way that new files
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
-      if(i!=116){
+      if(i!=117){
           fail("GetEntryPaths did not retrieve the correct number of elements, "
-               +"116 != " + i);
+               +"117 != " + i);
       }
 
 
