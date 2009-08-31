@@ -375,7 +375,7 @@ public class ServiceReferenceImpl implements ServiceReference
   public boolean isAssignableTo(Bundle bundle, String className) {
     FrameworkContext fwCtx = registration.bundle.fwCtx;
     if (((BundleImpl)bundle).fwCtx != fwCtx) {
-      throw new IllegalArgumentException("Bundle is not from this framework");
+      throw new IllegalArgumentException("Bundle is not from same framework as service");
     }
     // Check if bootdelegated
     if (fwCtx.isBootDelegated(className)) {
@@ -384,7 +384,7 @@ public class ServiceReferenceImpl implements ServiceReference
     int pos = className.lastIndexOf('.');
     if (pos != -1) {
       final String name = className.substring(0, pos);
-      final Pkg p = registration.bundle.fwCtx.packages.getPkg(name);
+      final Pkg p = fwCtx.packages.getPkg(name);
       // Is package exported by a bundle
       if (p != null) {
         final BundlePackages pkgExporter
