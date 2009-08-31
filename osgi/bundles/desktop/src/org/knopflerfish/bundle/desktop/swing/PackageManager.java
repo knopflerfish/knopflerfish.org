@@ -37,11 +37,11 @@ public class PackageManager  {
 
   // RequiredBundle -> Boolean
   Map isRequiringMap = new HashMap();
-  
+
   // int maxSize = 0;
 
   Object lock = new Object();
-  
+
   /*
   public int getMaxSize() {
     synchronized(lock) {
@@ -86,7 +86,7 @@ public class PackageManager  {
   public Collection getManifestImports(Bundle b) {
     synchronized(lock) {
       Collection c = (Collection)manifestImports.get(b);
-      if(c == null) {        
+      if(c == null) {
         c = getPackageNames(b, "Import-Package");
         manifestImports.put(b, c);
       }
@@ -98,12 +98,12 @@ public class PackageManager  {
   public Collection getMissingImports(Bundle b) {
     synchronized(lock) {
       Collection missing = (Collection)missingImports.get(b);
-      if(missing == null) {        
+      if(missing == null) {
         missing = new TreeSet();
         missing.addAll(getManifestImports(b));
-        
+
         Collection okSet  = getImportedPackages(b);
-        
+
         for(Iterator it = okSet.iterator(); it.hasNext(); ) {
           ExportedPackage pkg = (ExportedPackage)it.next();
           missing.remove(pkg.getName());
@@ -111,13 +111,13 @@ public class PackageManager  {
 
         missingImports.put(b, missing);
       }
-      
+
       return missing;
     }
   }
 
   /**
-   * Get the specified header name from a bundle and parse 
+   * Get the specified header name from a bundle and parse
    * the value as package names (ignoring any version info)
    *
    * @return a collection of strings
@@ -146,7 +146,7 @@ public class PackageManager  {
       if(r == null) {
         r = new TreeSet(pkgComparator);
         PackageAdmin pkgAdmin = getPackageAdmin();
-        ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(b);                
+        ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(b);
         for(int i = 0; pkgs != null && i < pkgs.length; i++) {
           if(accept(pkgs[i])) {
             r.add(pkgs[i]);
@@ -160,7 +160,7 @@ public class PackageManager  {
 
   PackageFilter packageFilter = null;
   // new NoCommonPackagesFilter();
-  
+
   public void setPackageFilter(PackageFilter filter) {
     this.packageFilter = filter;
     refresh();
@@ -194,7 +194,7 @@ public class PackageManager  {
           return false;
         }
       }
-      if(name.startsWith("javax.")) {        
+      if(name.startsWith("javax.")) {
         return false;
       }
       if(name.startsWith("org.omg.")) {
@@ -231,8 +231,8 @@ public class PackageManager  {
         if(accept(pkgs[i])) {
           Bundle   fromB = pkgs[i].getExportingBundle();
           Bundle[] bl    = pkgs[i].getImportingBundles();
-          
-          for(int j = 0; bl != null && j < bl.length; j++) {        
+
+          for(int j = 0; bl != null && j < bl.length; j++) {
             /*
             set(fromB, bl[j], EXPORT);
             set(bl[j], fromB, IMPORT);
@@ -244,7 +244,7 @@ public class PackageManager  {
                 reqs = new TreeSet(pkgComparator);
                 bundleReqs.put(bl[j], reqs);
               }
-              
+
               reqs.add(pkgs[i]);
             } else {
               Set imports = (Set)bundleImports.get(bl[j]);
@@ -257,7 +257,7 @@ public class PackageManager  {
           }
         }
       }
-      
+
       long t1 = System.currentTimeMillis();
     }
   }
@@ -287,7 +287,7 @@ public class PackageManager  {
     }
     return false;
   }
-  
+
 
 
   /**
@@ -314,7 +314,7 @@ public class PackageManager  {
     requiredBundleMap.put(b, null);
     return null;
   }
-  
+
   static public Comparator pkgComparator = new ExportedPackageComparator();
 
   static class ExportedPackageComparator implements Comparator
@@ -337,4 +337,3 @@ public class PackageManager  {
   }
 
 }
-

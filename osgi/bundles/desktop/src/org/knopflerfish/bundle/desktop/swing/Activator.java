@@ -311,8 +311,6 @@ public class Activator implements BundleActivator {
         remoteBC = null;
       }
 
-      log = null;
-
     } catch (Exception e) {
       log.error("Failed to close desktop", e);
     }
@@ -327,8 +325,12 @@ public class Activator implements BundleActivator {
         remoteTracker = null;
       }
 
-      this.bc     = null;
-      this.myself = null;
+      Activator.bc     = null;
+      Activator.myself = null;
+      if (null!=Activator.log) {
+        Activator.log.close();
+        Activator.log = null;
+      }
     } catch (Exception e) {
       e.printStackTrace();
     }
