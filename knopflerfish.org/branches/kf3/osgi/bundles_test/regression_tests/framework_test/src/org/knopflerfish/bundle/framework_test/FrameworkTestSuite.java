@@ -1386,7 +1386,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // files or directories are added or removed to / from the top
       // level of the bundle jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number "
-                   +"of elements.", 49, i);
+                   +"of elements.", 51, i);
 
       //another existing directory
       out.println("getEntryPaths(\"/org/knopflerfish/bundle/framework_test\")");
@@ -1404,7 +1404,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number of "
-                   +"elements.", 121, i);
+                   +"elements.", 123, i);
 
       //existing file, non-directory, ending with slash
       enume = bc.getBundle().getEntryPaths("/bundleA_test-1.0.0.jar/");
