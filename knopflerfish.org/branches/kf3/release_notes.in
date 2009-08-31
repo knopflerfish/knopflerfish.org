@@ -16,18 +16,18 @@ Framework - Security
 
 Framework - Module
  - Minor updates and clarifications (Done)
- - Support for multi host Fragments (In Progress)
+ - Support for multi host Fragments (Done)
 
 Framework - Life-Cycle
- - Minor updates and clarifications (In Progress)
+ - Minor updates and clarifications (Done)
  - Lazy Activation (Done)
- - Framework Launcher (Framework and Bootclasspath extensions remain)
+ - Framework Launcher (Multiple frameworks and Bootclasspath extensions remain)
 
 Framework - Service Layer
- - Minor updates and clarifications (In Progress)
+ - Minor updates and clarifications (Done)
 
 Package Admin Service Specification
- - Support for multi host Fragments (In Progress)
+ - Support for multi host Fragments (Done)
 
 Start Level Service Specification
  - New method: isBundleActivationPolicyUsed (Done)
@@ -37,7 +37,7 @@ Conditional Permission Admin Specification
  - ConditionalPermitionUpdate (In Progress)
 
 URL Handlers Service Specification
- - Minor updates and clarifications (In Progress)
+ - Minor updates and clarifications (Done)
 
 Service Hooks Specification
  - Support for Service Hooks (Done)
@@ -63,7 +63,7 @@ Knopflerfish Specific
 ----------------------------------------------
 
 Console
- - Migration to new OSGi Standard (In Progress)
+ - Migration to new OSGi Standard (Done)
  - Support for new Activation Commands (In Progress)
 
 Desktop
