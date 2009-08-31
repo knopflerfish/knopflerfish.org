@@ -2,6 +2,8 @@
 # Properties used by both init.xargs (and restart.xargs)
 #
 
+-Forg.knopflerfish.osgi.registerbundleurlhandler=true
+
 #-Forg.osgi.framework.storage=fwdir
 
 # The Service Platform ID should be used by bundles needing to
@@ -12,9 +14,10 @@
 -Dorg.knopflerfish.framework.main.verbosity=0
 
 # Security
-#-Forg.osgi.framework.security=osgi
-#-Forg.knopflerfish.framework.all_signed=false
-#-Forg.knopflerfish.framework.validator=JKSValidator
+-Forg.osgi.framework.security=osgi
+-Forg.knopflerfish.framework.all_signed=false
+-Forg.knopflerfish.framework.validator=JKSValidator
+-Forg.knopflerfish.framework.service.permissionadmin=true
 
 # File storage properties
 #-Forg.knopflerfish.framework.bundlestorage.file.trusted=false
