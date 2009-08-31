@@ -197,6 +197,8 @@ public class FrameworkContext  {
     buildBootDelegationPatterns();
     selectBootDelegationParentClassLoader();
 
+    perm.init();
+
     String v = props.getProperty("org.knopflerfish.framework.validator");
     ProtectionDomain pd = null;
     if (System.getSecurityManager() != null) {
