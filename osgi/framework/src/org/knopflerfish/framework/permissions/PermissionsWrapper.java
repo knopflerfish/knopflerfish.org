@@ -43,7 +43,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.AdminPermission;
 import org.osgi.service.permissionadmin.*;
 
-import org.knopflerfish.framework.Framework;
+import org.knopflerfish.framework.FrameworkContext;
 
 
 /**
@@ -67,17 +67,18 @@ public class PermissionsWrapper extends PermissionCollection {
   private File dataRoot;
   private boolean readOnly = false;
   private ArrayList condPermList = null;
-
+  private FrameworkContext framework;
 
   /**
    *
    */
-  PermissionsWrapper(Framework fw,
+  PermissionsWrapper(FrameworkContext fw,
                      PermissionInfoStorage pis,
                      ConditionalPermissionInfoStorage cpis,
                      String loc,
                      Bundle b,
                      InputStream localPerms) {
+    this.framework = fw;
     pinfos = pis;
     cpinfos = cpis;
     location = loc;
@@ -241,7 +242,7 @@ public class PermissionsWrapper extends PermissionCollection {
    *
    */
   private PermissionCollection getPerms() {
-    if (Framework.isDoubleCheckedLockingSafe) {
+    if (framework.props.isDoubleCheckedLockingSafe) {
        if (systemPermissions == null) {
         synchronized (this) {
           return getPerms0();
@@ -291,19 +292,24 @@ public class PermissionsWrapper extends PermissionCollection {
 
 
   /**
-   *
+   * 
    */
-  private PermissionCollection makeImplicitPermissionCollection(Framework fw, Bundle b) {
+  private PermissionCollection makeImplicitPermissionCollection(FrameworkContext fw, Bundle b) {
+    // NYI, perhaps we should optimize this collection.
     Permissions pc = new Permissions();
     if (dataRoot != null) {
       pc.add(new FilePermission(dataRoot.getPath(), "read,write"));
       pc.add(new FilePermission((new File(dataRoot, "-")).getPath(),
                                 "read,write,delete"));
     }
-    pc.add(new AdminPermission(b,
+    StringBuffer sb = new StringBuffer("(id=");
+    sb.append(b.getBundleId());
+    sb.append(")");
+    pc.add(new AdminPermission(sb.toString(),
                                AdminPermission.RESOURCE + "," +
                                AdminPermission.METADATA + "," +
                                AdminPermission.CLASS));
+    pc.add(new PropertyPermission("org.osgi.framework.*", "read"));
     return pc;
   }
 

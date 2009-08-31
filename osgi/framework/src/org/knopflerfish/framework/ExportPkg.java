@@ -48,10 +48,10 @@ import org.osgi.framework.Version;
 class ExportPkg {
   final String name;
   final BundlePackages bpkgs;
-  final ArrayList /* String */ uses;
-  final ArrayList /* String */ mandatory;
-  final ArrayList /* String */ include;
-  final ArrayList /* String */ exclude;
+  final HashSet /* String */ uses;
+  final HashSet /* String */ mandatory;
+  final HashSet /* String */ include;
+  final HashSet /* String */ exclude;
   final Version version;
   final Map attributes;
   boolean zombie = false;
@@ -246,7 +246,7 @@ class ExportPkg {
       synchronized (pkg) {
         for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
           ImportPkg ip = (ImportPkg)i.next();
-          if (ip.provider == this) {
+          if (ip.provider == this && ip.bpkgs != bpkgs) {
             res.add(ip.bpkgs.bundle);
           }
         }
@@ -276,9 +276,29 @@ class ExportPkg {
     hasPermission = perm;
   }
 
-  //
-  // Private
-  //
+
+  /**
+   * Check if the name, version, attributes and directoves are equal.
+   *
+   * @return true if all package information is equal, otherwise false.
+   */
+  boolean pkgEquals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (null == o) {
+      return false;
+    }
+    ExportPkg ep = (ExportPkg)o;
+    return name.equals(ep.name) &&
+      version.equals(ep.version) &&
+      (uses == null ? ep.uses == null : uses.equals(ep.uses)) &&
+      (mandatory == null ? ep.mandatory == null : mandatory.equals(ep.mandatory)) &&
+      (include == null ? ep.include == null : include.equals(ep.include)) &&
+      (exclude == null ? ep.exclude == null : exclude.equals(ep.exclude)) &&
+      attributes.equals(ep.attributes);
+  }
+
 
   /**
    * String describing package name and specification version, if specified.

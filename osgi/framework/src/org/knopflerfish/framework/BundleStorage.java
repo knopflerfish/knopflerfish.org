@@ -47,8 +47,9 @@ public interface BundleStorage {
   /**
    * Insert bundle into persistent storagedata.
    *
-   * @param key Name of attribute to get.
-   * @return 
+   * @param location Locaion of bundle to install.
+   * @param is Inputstream containing bundle.
+   * @return BundleArchive representing installed bundle.
    */
   BundleArchive insertBundleJar(String location, InputStream is)
     throws Exception;
@@ -97,5 +98,10 @@ public interface BundleStorage {
    * @param value If true check for certificates.
    */
   public void setCheckSigned(boolean value);
+
+  /**
+   * Close this bundle storage and all bundles in it.
+   */
+  void close();
 
 }

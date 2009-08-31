@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,13 +44,13 @@ import java.util.HashMap;
  * Factory creating URLStreamHandlers from both built-in
  * handlers and OSGi-registered URLStreamHandlerServices.
  */
-public class ServiceURLStreamHandlerFactory 
+public class ServiceURLStreamHandlerFactory
   implements URLStreamHandlerFactory
 {
-  Framework framework;
+  FrameworkContext framework;
 
   //
-  // Special framework handlers 
+  // Special framework handlers
   //
   // String protocol -> URLStreamHandler
   Map handlers = new HashMap();
@@ -62,23 +62,23 @@ public class ServiceURLStreamHandlerFactory
   // OSGi URLStreamHandlerService wrappers
   // This map is not really necessary since the JVM
   // caches handlers anyway, but it just seems nice to have.
-  // 
+  //
   // String (protocol) -> URLStreamHandlerWrapper
   Map wrapMap   = new HashMap();
 
 
-  ServiceURLStreamHandlerFactory(Framework fw) {
+  ServiceURLStreamHandlerFactory(FrameworkContext fw) {
     this.framework = fw;
 
     // Initialize JVM classpath packages
-    String s = Framework.getProperty("java.protocol.handler.pkgs", "");
-    
+    String s = framework.props.getProperty("java.protocol.handler.pkgs", "");
+
     jvmPkgs = Util.splitwords(s, "|");
 
     for(int i = 0; i < jvmPkgs.length; i++) {
       jvmPkgs[i] = jvmPkgs[i].trim();
-      if(Debug.url) {
-	Debug.println("JVMClassPath - URLHandler jvmPkgs[" + i + "]=" + jvmPkgs[i]);
+      if(framework.props.debug.url) {
+        framework.props.debug.println("JVMClassPath - URLHandler jvmPkgs[" + i + "]=" + jvmPkgs[i]);
       }
     }
   }
@@ -86,8 +86,8 @@ public class ServiceURLStreamHandlerFactory
   public URLStreamHandler createURLStreamHandler(String protocol) {
     synchronized(handlers) {
 
-      if(Debug.url) {
-	Debug.println("createURLStreamHandler protocol=" + protocol);
+      if(framework.props.debug.url) {
+        framework.props.debug.println("createURLStreamHandler protocol=" + protocol);
       }
 
       // Check for
@@ -98,31 +98,31 @@ public class ServiceURLStreamHandlerFactory
 
       URLStreamHandler handler = getJVMClassPathHandler(protocol);
       if(handler != null) {
-	if(Debug.url) {
-	  Debug.println("using JVMClassPath handler for " + protocol);
-	}
-	return handler;
+        if(framework.props.debug.url) {
+          framework.props.debug.println("using JVMClassPath handler for " + protocol);
+        }
+        return handler;
       }
 
-	
+
       handler = (URLStreamHandler)handlers.get(protocol);
       if(handler != null) {
-	if(Debug.url) {
-	  Debug.println("using predefined handler for " + protocol);
-	}
-	return handler;
+        if(framework.props.debug.url) {
+          framework.props.debug.println("using predefined handler for " + protocol);
+        }
+        return handler;
       }
 
       handler = getServiceHandler(protocol);
       if(handler != null) {
-	if(Debug.url) {
-	  Debug.println("Using service URLHandler for " + protocol);
-	}
-	return handler;
+        if(framework.props.debug.url) {
+          framework.props.debug.println("Using service URLHandler for " + protocol);
+        }
+        return handler;
       }
 
-      if(Debug.url) {
-	Debug.println("Using default URLHandler for " + protocol);
+      if(framework.props.debug.url) {
+        framework.props.debug.println("Using default URLHandler for " + protocol);
       }
       return null;
     }
@@ -130,25 +130,25 @@ public class ServiceURLStreamHandlerFactory
 
   URLStreamHandler getServiceHandler(String protocol) {
     try {
-      String filter = 
-	"(" + 
-	URLConstants.URL_HANDLER_PROTOCOL + 
-	"=" + protocol + 
-	")";
+      String filter =
+        "(" +
+        URLConstants.URL_HANDLER_PROTOCOL +
+        "=" + protocol +
+        ")";
 //    TODO true or false?
       ServiceReference[] srl = framework.services
-	.get(URLStreamHandlerService.class.getName(), filter, null, false);
-      
-      if(srl != null && srl.length > 0) {
-	URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)
-	  wrapMap.get(protocol);
-	
-	if(wrapper == null) {
-	  wrapper = new URLStreamHandlerWrapper(framework, protocol);
-	  wrapMap.put(protocol, wrapper);
-	}
+        .get(URLStreamHandlerService.class.getName(), filter, null);
 
-	return wrapper;
+      if(srl != null && srl.length > 0) {
+        URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)
+          wrapMap.get(protocol);
+
+        if(wrapper == null) {
+          wrapper = new URLStreamHandlerWrapper(framework, protocol);
+          wrapMap.put(protocol, wrapper);
+        }
+
+        return wrapper;
       }
     } catch (InvalidSyntaxException e) {
       throw new RuntimeException("Failed to get service: " + e);
@@ -166,35 +166,35 @@ public class ServiceURLStreamHandlerFactory
 
     for(int i = 0; i < jvmPkgs.length; i++) {
       String className = jvmPkgs[i] + "." + protocol + ".Handler";
-      try { 
-	if(Debug.url) {
-	  Debug.println("JVMClassPath - trying URLHandler class=" + className);
-	}
-	Class clazz = Class.forName(className);
-	URLStreamHandler handler = (URLStreamHandler)clazz.newInstance();
+      try {
+        if(framework.props.debug.url) {
+          framework.props.debug.println("JVMClassPath - trying URLHandler class=" + className);
+        }
+        Class clazz = Class.forName(className);
+        URLStreamHandler handler = (URLStreamHandler)clazz.newInstance();
 
-	if(Debug.url) {
-	  Debug.println("JVMClassPath - created URLHandler class=" + className);
-	}
+        if(framework.props.debug.url) {
+          framework.props.debug.println("JVMClassPath - created URLHandler class=" + className);
+        }
 
-	return handler;
+        return handler;
       } catch (Throwable t) {
-	if(Debug.url) {
-	  Debug.println("JVMClassPath - no URLHandler class " + className);
-	}
+        if(framework.props.debug.url) {
+          framework.props.debug.println("JVMClassPath - no URLHandler class " + className);
+        }
       }
     }
-    
-    if(Debug.url) {
-      Debug.println("JVMClassPath - no URLHandler for " + protocol);
+
+    if(framework.props.debug.url) {
+      framework.props.debug.println("JVMClassPath - no URLHandler for " + protocol);
     }
-    
+
     return null;
   }
 
 
   /**
-   * Sets the handler for a named protocol. 
+   * Sets the handler for a named protocol.
    *
    * <p>
    * Any old handler for the specified protocol will be lost.
@@ -207,4 +207,3 @@ public class ServiceURLStreamHandlerFactory
     handlers.put(protocol, handler);
   }
 }
-

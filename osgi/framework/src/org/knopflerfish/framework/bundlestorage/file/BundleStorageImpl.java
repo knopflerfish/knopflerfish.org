@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,11 @@ import org.knopflerfish.framework.*;
 import java.io.*;
 import java.util.*;
 
+
 /**
  * Storage of all bundles jar content.
  *
- * @author Jan Stein
- * @author Mats-Ola Persson
- * @version $Revision: 1.1.1.1 $
+ * @author Jan Stein, Mats-Ola Persson, Gunnar Ekolin
  */
 public class BundleStorageImpl implements BundleStorage {
 
@@ -63,6 +62,12 @@ public class BundleStorageImpl implements BundleStorage {
   private ArrayList /* BundleArchive */ archives = new ArrayList();
 
   /**
+   * Framework handle.
+   * Package protected to allow BundleArchiveImpl to get framework.
+   */
+  FrameworkContext     framework;
+
+  /**
    * If we should check if bundles are signed
    */
   boolean checkSigned = false;
@@ -72,9 +77,10 @@ public class BundleStorageImpl implements BundleStorage {
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl() {
+  public BundleStorageImpl(FrameworkContext framework) {
+    this.framework = framework;
     // See if we have a storage directory
-    bundlesDir = Util.getFileStorage("bs");
+    bundlesDir = Util.getFileStorage(framework, "bs");
     if (bundlesDir == null) {
       throw new RuntimeException("No bundle storage area available!");
     }
@@ -116,6 +122,7 @@ public class BundleStorageImpl implements BundleStorage {
       }
     }
   }
+
 
   /**
    * Insert bundle into persistent storage
@@ -195,8 +202,9 @@ public class BundleStorageImpl implements BundleStorage {
     }
   }
 
+
   /**
-   * Get all bundles tagged to start at next launch of framework.
+   * Get all bundles to start at next launch of framework.
    * This list is sorted in increasing bundle id order.
    *
    * @return Private copy of a List with bundle id's.
@@ -205,7 +213,7 @@ public class BundleStorageImpl implements BundleStorage {
     ArrayList res = new ArrayList();
     for (Iterator i = archives.iterator(); i.hasNext(); ) {
       BundleArchive ba = (BundleArchive)i.next();
-      if (ba.getStartOnLaunchFlag()) {
+      if (ba.getAutostartSetting()!=-1) {
         res.add(ba.getBundleLocation());
       }
     }
@@ -214,11 +222,28 @@ public class BundleStorageImpl implements BundleStorage {
 
 
   /**
-   * 
+   * Mark if we want to check if bundles are signed.
    *
+   * @param value True if we to check.
    */
   public void setCheckSigned(boolean value) {
     checkSigned = value;
+  }
+  
+
+  /**
+   * Close bundle storage.
+   *
+   */
+  public void close()
+  {
+    for (Iterator i = archives.iterator(); i.hasNext(); ) {
+      BundleArchive ba = (BundleArchive) i.next();
+      ba.close();
+      i.remove();
+    }
+    framework = null;
+    bundlesDir = null;
   }
 
   //
@@ -234,7 +259,7 @@ public class BundleStorageImpl implements BundleStorage {
   boolean removeArchive(BundleArchive ba) {
     synchronized (archives) {
       int pos = find(ba.getBundleId());
-      if (archives.get(pos) == ba) {
+      if (pos < archives.size() && archives.get(pos) == ba) {
         archives.remove(pos);
         return true;
       } else {
@@ -261,7 +286,9 @@ public class BundleStorageImpl implements BundleStorage {
     while (lb < ub) {
       x = (lb + ub) / 2;
       long xid = ((BundleArchive)archives.get(x)).getBundleId();
-      if (id <= xid) {
+      if (id == xid) {
+        return x;
+      } else if (id < xid) {
         ub = x;
       } else {
         lb = x+1;

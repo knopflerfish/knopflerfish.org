@@ -133,8 +133,19 @@ class Pkg {
   synchronized ExportPkg getBestProvider() {
     if (!providers.isEmpty()) {
       return (ExportPkg)providers.get(0);
+    } else {
+      ExportPkg best = null;
+      // See if there are any resolved exporters.
+      for (Iterator i = exporters.iterator(); i.hasNext(); ) {
+        ExportPkg ep = (ExportPkg)i.next();
+        if ((ep.bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
+          if (best == null || best.version.compareTo(ep.version) < 0) {
+            best = ep;
+          }
+        }
+      }
+      return best;
     }
-    return null;
   }
 
 

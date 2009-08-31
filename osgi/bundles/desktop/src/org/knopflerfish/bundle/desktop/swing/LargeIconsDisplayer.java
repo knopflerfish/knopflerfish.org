@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,27 +81,31 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     super(bc, NAME, "Large icon display of bundles", false);
   }
 
-  public void bundleChanged(BundleEvent ev) {
+  public void bundleChanged(final BundleEvent ev) {
     super.bundleChanged(ev);
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JLargeIcons comp = (JLargeIcons)it.next();
-      switch(ev.getType()) {
-      case BundleEvent.INSTALLED:
-        comp.addBundle(ev.getBundle());
-        break;
-      case BundleEvent.UNINSTALLED:
-        comp.removeBundle(ev.getBundle());
-        break;
-      default:
-        comp.updateBundleComp(ev.getBundle());
-        break;
-      }
-    }
+    SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          for(Iterator it = components.iterator(); it.hasNext(); ) {
+            JLargeIcons comp = (JLargeIcons)it.next();
+            switch(ev.getType()) {
+            case BundleEvent.INSTALLED:
+              comp.addBundle(ev.getBundle());
+              break;
+            case BundleEvent.UNINSTALLED:
+              comp.removeBundle(ev.getBundle());
+              break;
+            default:
+              comp.updateBundleComp(ev.getBundle());
+              break;
+            }
+          }
 
-    repaintComponents();
+          repaintComponents();
+        }
+      });
   }
-  
+
   public void showBundle(Bundle b) {
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JLargeIcons comp = (JLargeIcons)it.next();
@@ -245,10 +249,10 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
           });
       }
     }
-                                 
+
     public void addBundle0(final Bundle b) {
       final long bid = b.getBundleId();
-      
+
       if(null == getBundleComponent(b)) {
         JLabel c = new JLabel(Util.getBundleName(b),
                               bundleIcon,
@@ -271,15 +275,15 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               setOpaque(true);
               setBackground(Color.yellow);
             }
-            
-            
+
+
             public Color getBackground() {
-              
+
               try {
                 boolean bSel = bundleSelModel != null
                   ? bundleSelModel.isSelected(b.getBundleId())
                   : false;
-                      
+
                 return bSel
                         ? selColor
                   : JLargeIcons.this.getBackground();
@@ -288,21 +292,21 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               }
             }
           };
-        
-        
+
+
         c.setToolTipText(Util.bundleInfo(b));
         c.setVerticalTextPosition(AbstractButton.BOTTOM);
         c.setHorizontalTextPosition(AbstractButton.CENTER);
-        
+
         c.setPreferredSize(new Dimension(96, 64));
         c.setBorder(null);
         c.setFont(getFont());
-        
+
         bundleMap.put(new Long(b.getBundleId()), c);
-        
+
         updateBundleComp(b);
-        
-        rebuildPanel();        
+
+        rebuildPanel();
       }
     }
 
@@ -320,13 +324,13 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
           });
       }
     }
-    
+
     void rebuildPanel0() {
       panel.removeAll();
-      
+
       Set set = new TreeSet(iconComparator);
       set.addAll(bundleMap.keySet());
-      
+
       int w = 0;
       int h = 0;
       for(Iterator it = set.iterator(); it.hasNext(); ) {
@@ -336,21 +340,21 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         w = Math.max(w, size.width);
         h = Math.max(h, size.height);
       }
-      
-      
+
+
       Dimension size = scroll.getViewport().getExtentSize();
-      
+
       if(size.width != 0) {
         grid.setColumns(size.width<w ? 1 : size.width / w);
           grid.setRows(0);
       }
-      
+
       for(Iterator it = set.iterator(); it.hasNext(); ) {
         Long      bid = (Long)it.next();
         Component c   = (Component)bundleMap.get(bid);
         panel.add(c);
       }
-      
+
       revalidate();
       repaint();
     }
@@ -372,14 +376,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       icons.remove(b);
       rebuildPanel();
     }
-    
+
     JComponent getBundleComponent(Bundle b) {
       return (JComponent)bundleMap.get(new Long(b.getBundleId()));
     }
 
     // Bundle -> BundleImageIcon
     Map icons = new HashMap();
-    
+
     public void updateBundleComp(Bundle b) {
       JLabel c = (JLabel)getBundleComponent(b);
 
@@ -407,7 +411,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
           Activator.getTargetBC().getBundle(((Long)o1).longValue());
         Bundle b2 =
           Activator.getTargetBC().getBundle(((Long)o2).longValue());
-        
+
         if(b1 == b2) {
           return 0;
         }
@@ -417,11 +421,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         if(b2 == null) {
           return 1;
         }
-        
+
         return
           Util.getBundleName(b1).compareToIgnoreCase(Util.getBundleName(b2));
       }
     };
 }
-
-

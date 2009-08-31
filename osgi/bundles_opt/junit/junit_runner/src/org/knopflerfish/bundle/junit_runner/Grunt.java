@@ -52,7 +52,7 @@ class Grunt  implements TestListener {
   static final String DEFAULT_TESTS  = "filter:(objectclass=junit.framework.TestSuite)";
   static final String INDEX_FILE     = "index.xml";
 
-  BundleContext bc;
+  final BundleContext bc;
 
   public Grunt(BundleContext bc) {
     this.bc = bc;
@@ -63,7 +63,7 @@ class Grunt  implements TestListener {
   boolean bWait = false;
 
   void doGrunt() throws BundleException {
-    bWait = "true".equals(System.getProperty("org.knopflerfish.junit_runner.wait"));
+    bWait = "true".equals(bc.getProperty("org.knopflerfish.junit_runner.wait"));
     if(bWait) {
       Thread t = new Thread() {
           public void run() {
@@ -80,11 +80,12 @@ class Grunt  implements TestListener {
     }
   }
 
+	private BundleContext targetContext = null;
   public void doRun() throws BundleException {
-    String tests = System.getProperty("org.knopflerfish.junit_runner.tests");
-    String outdir = System.getProperty("org.knopflerfish.junit_runner.outdir");
-    boolean bQuit = "true".equals(System.getProperty("org.knopflerfish.junit_runner.quit"));
-    boolean bWait = "true".equals(System.getProperty("org.knopflerfish.junit_runner.wait"));
+    String tests = bc.getProperty("org.knopflerfish.junit_runner.tests");
+    String outdir = bc.getProperty("org.knopflerfish.junit_runner.outdir");
+    boolean bQuit = "true".equals(bc.getProperty("org.knopflerfish.junit_runner.quit"));
+    boolean bWait = "true".equals(bc.getProperty("org.knopflerfish.junit_runner.wait"));
 
     if(bWait) {
       Bundle system = bc.getBundle(0);
@@ -195,6 +196,7 @@ class Grunt  implements TestListener {
           log("run test '" + ids[i] + "', out=" + outPath);
           pw = new PrintWriter(new FileOutputStream(outFile));
           TestSuite suite = ju.getTestSuite(ids[i], null);
+						targetContext = bc.getServiceReferences(null, "(service.pid=" +  suite.getName() + ")")[0].getBundle().getBundleContext();
           ju.runTest(pw, suite);
 
         } catch (Exception e) {
@@ -219,7 +221,6 @@ class Grunt  implements TestListener {
         log("outDir.list() failed: " +ace.toString());
       }
       indexPW.println("</junit_index>");
-
 
       String outDirAbs = "?outDirAbs?";
       try {
@@ -318,6 +319,17 @@ class Grunt  implements TestListener {
   // TestListener method
   public void startTest(Test test)
   {
+	  try {
+	  java.lang.reflect.Method m = test.getClass().getMethod("setBundleContext",
+										   new Class[] { BundleContext.class });
+	  if(m != null) {
+
+		  m.invoke(test, new Object[] { targetContext });
+	  }
+	  } catch(Exception e) {
+		  e.printStackTrace();
+	  }
+	  
     log("Starting test " +test );
   }
   // TestListener method

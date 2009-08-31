@@ -41,6 +41,7 @@ import java.util.*;
 import org.osgi.service.condpermadmin.*;
 import org.osgi.service.permissionadmin.*;
 import org.knopflerfish.framework.Util;
+import org.knopflerfish.framework.FrameworkContext;
 
 
 class ConditionalPermissionInfoStorage {
@@ -61,7 +62,7 @@ class ConditionalPermissionInfoStorage {
    */
   ConditionalPermissionInfoStorage(PermissionsHandle ph) {
     this.ph = ph;
-    condPermDir = Util.getFileStorage("condperm");
+    condPermDir = Util.getFileStorage(ph.framework, "condperm");
     if (condPermDir == null) {
       System.err.println("Property org.osgi.framework.dir not set," +
                          "conditional permission info will not be saved between sessions");
