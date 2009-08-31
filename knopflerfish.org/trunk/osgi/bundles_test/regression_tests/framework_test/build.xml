@@ -71,6 +71,7 @@
     <antcall target="bundleR6_test"/>
     <antcall target="bundleSL1"/>
     <antcall target="bundleSL2"/>
+    <antcall target="bundleSL3"/>
     <antcall target="resexp_test"/>
     <antcall target="resimp_test"/>
     <antcall target="require_bundle"/>
@@ -300,6 +301,13 @@
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/bundleSL2_test"/>
+    </ant>
+  </target>
+  <target name="bundleSL3">
+    <ant dir="test_target_bundles/bundleSL3" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSL3_test"/>
     </ant>
   </target>
   <target name="resexp_test">
