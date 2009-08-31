@@ -49,6 +49,9 @@ import org.osgi.framework.*;
  */
 class PermissionOps {
 
+  void init() {
+  }
+
   void registerService() {
   }
 

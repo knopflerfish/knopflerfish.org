@@ -73,7 +73,7 @@ class SecurePermissionOps extends PermissionOps {
   };
 
   private final FrameworkContext framework;
-  private final PermissionsHandle ph;
+  private PermissionsHandle ph;
 
   private AdminPermission ap_resolve = null;
   private AdminPermission ap_startlevel = null;
@@ -81,35 +81,24 @@ class SecurePermissionOps extends PermissionOps {
   private RuntimePermission rp_getprotectiondomain = null;
 
 
-  /**
-   * Controls if we should register PermisionAdminService.
-   */
-  private boolean regPA;
-
-  /**
-   * Controls if we should register ConditionalPermisionAdminService.
-   */
-  private boolean regCPA;
-
-
   Hashtable /* Bundle -> AdminPermission [] */ adminPerms = new Hashtable();
 
 
   SecurePermissionOps(FrameworkContext fw) {
     framework = fw;
+  }
 
-
-    regPA = new Boolean(framework.props.getProperty("org.knopflerfish.framework.service.permissionadmin", "true")).booleanValue();
-
-
-    regCPA = new Boolean(framework.props.getProperty("org.knopflerfish.framework.service.conditionalpermissionadmin", "true")).booleanValue();
-
-    ph = new PermissionsHandle(fw);
-
+  
+  void init() {
+    ph = new PermissionsHandle(framework);
   }
 
 
   void registerService() {
+    final boolean regPA = new Boolean(framework.props.getProperty("org.knopflerfish.framework.service.permissionadmin", "true")).booleanValue();
+
+    final boolean regCPA = new Boolean(framework.props.getProperty("org.knopflerfish.framework.service.conditionalpermissionadmin", "true")).booleanValue();
+
     if (regPA) {
       String[] classes = new String [] { PermissionAdmin.class.getName() };
       framework.services.register(framework.systemBundle, classes,
