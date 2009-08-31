@@ -1,0 +1,573 @@
+2009-08-31 15:16:21 +0200 (Mon, 31 Aug 2009), revision 2932, jan
+Updated framework version and improved an error message.
+U   knopflerfish.org/branches/kf3/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+
+2009-08-31 14:54:31 +0200 (Mon, 31 Aug 2009), revision 2931, perg
+rollback
+U   knopflerfish.org/branches/kf3/osgi/props.xargs
+
+2009-08-31 14:52:32 +0200 (Mon, 31 Aug 2009), revision 2930, ekolin
+svn merge -r 2924:HEAD https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+_U  knopflerfish.org/branches/kf3/
+_U  knopflerfish.org/branches/kf3/ant/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/component/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/desktop/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component-api_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/connectorservice_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/constants_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/test_target_bundles/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/eventadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/filter_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy2/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy3/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy4/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleE_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleG_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleH_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleJ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleQ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR4_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR5_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR6_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/foo/Activator3.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/bar/ActivatorSL4.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleU_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleV_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_A/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_B/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_C/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_D/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resexp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resimp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/http_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/lifecycle_mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/test_target_bundles/bundleP_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/registryperformance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/test_target_bundles/bundleS_test/
+_U  knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+
+2009-08-31 14:32:49 +0200 (Mon, 31 Aug 2009), revision 2928, perg
+updated
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/junit/junit_runner/src/org/knopflerfish/bundle/junit_runner/Grunt.java
+U   knopflerfish.org/branches/kf3/osgi/props.xargs
+U   knopflerfish.org/branches/kf3/release_notes.in
+
+2009-08-31 14:16:29 +0200 (Mon, 31 Aug 2009), revision 2927, jan
+Updated framework status
+U   knopflerfish.org/branches/kf3/release_notes.in
+
+2009-08-31 14:10:49 +0200 (Mon, 31 Aug 2009), revision 2926, jan
+Fixed isAssignableTo and PermissionOps initialization
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/FrameworkContext.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/PermissionOps.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/SecurePermissionOps.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+
+2009-08-31 11:57:16 +0200 (Mon, 31 Aug 2009), revision 2925, ekolin
+svn merge -r 2917:HEAD https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+_U  knopflerfish.org/branches/kf3/
+_U  knopflerfish.org/branches/kf3/ant/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/component/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/desktop/
+U   knopflerfish.org/branches/kf3/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PackageManager.java
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/ksoap_remotefw/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/ksoap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/RemoteFWServer.java
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/ksoap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/client/PackageAdminImpl.java
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/ksoap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/client/RemoteFWClient.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component-api_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/connectorservice_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/constants_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/test_target_bundles/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/eventadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/filter_test/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/build.xml
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/resources/
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/ServiceListenerTestSuite.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy2/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy3/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy4/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleE_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleG_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleH_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleJ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleQ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR4_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR5_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR6_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR_test/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/build.xml
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/build.xml
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/bundle.manifest
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/bundle.manifest
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/foo/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/foo/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/foo/Activator3.java
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/foo/Activator3.java
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/build.xml
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/build.xml
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/bundle.manifest
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/bundle.manifest
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/bar/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/bar/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/bar/ActivatorSL4.java
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/bar/ActivatorSL4.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleU_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleV_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_A/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_B/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_C/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_D/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resexp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resimp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/http_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/lifecycle_mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/test_target_bundles/bundleP_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/registryperformance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/test_target_bundles/bundleS_test/
+_U  knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+
+2009-08-28 15:35:15 +0200 (Fri, 28 Aug 2009), revision 2922, jan
+Updated launcher code to handle framework restarts
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/readme.txt
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/FrameworkContext.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/PackageAdminImpl.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/PermissionOps.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/SecurePermissionOps.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+
+2009-08-25 15:43:25 +0200 (Tue, 25 Aug 2009), revision 2916, ekolin
+Add support for using links to the svn repository for source files in the bundle jar doc pages. Using this feature we do not have to have two copies of each source file in the SDK deliverable, reduces the size of it wiht almost 3 MiB.
+U   knopflerfish.org/branches/kf3/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+U   knopflerfish.org/branches/kf3/ant/src/org/knopflerfish/ant/taskdefs/bundle/ExtraBundleDocTask.java
+U   knopflerfish.org/branches/kf3/ant/src/org/knopflerfish/ant/taskdefs/bundle/MakeHTMLTask.java
+U   knopflerfish.org/branches/kf3/build.xml
+
+2009-08-25 11:43:34 +0200 (Tue, 25 Aug 2009), revision 2915, ekolin
+svn merge -r 2907:HEAD https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+_U  knopflerfish.org/branches/kf3/
+_U  knopflerfish.org/branches/kf3/ant/
+U   knopflerfish.org/branches/kf3/build.xml
+U   knopflerfish.org/branches/kf3/htdocs/build.xml
+_U  knopflerfish.org/branches/kf3/osgi/bundles/component/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/desktop/
+U   knopflerfish.org/branches/kf3/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/TextAreaOutputStream.java
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/kxml/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component-api_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/connectorservice_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/constants_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/test_target_bundles/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/eventadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/filter_test/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/build.xml
+UU  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/resources/
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/ServiceListenerTestSuite.java
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/Util.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy2/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy3/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy4/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleE_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleG_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleH_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleJ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleQ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR4_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR5_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR6_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR_test/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/build.xml
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/build.xml
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/bundle.manifest
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/bundle.manifest
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/foo/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/foo/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/foo/Activator.java
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/foo/Activator.java
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/foo/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/foo/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/foo/FooService.java
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/foo/FooService.java
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/build.xml
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/build.xml
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/bundle.manifest
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/bundle.manifest
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/bar/
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/bar/
+D   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/bar/Activator.java
+A   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/bar/Activator.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleU_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleV_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_A/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_B/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_C/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_D/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resexp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resimp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/http_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/lifecycle_mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/test_target_bundles/bundleP_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/registryperformance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleF_test/
+UU  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/src/org/knopflerfish/bundle/servicetracker_test/ServiceTrackerTestSuite.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/test_target_bundles/bundleS_test/
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+_U  knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+
+2009-08-24 15:58:05 +0200 (Mon, 24 Aug 2009), revision 2913, jan
+Fixed attribute parsing.
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/LDAPExpr.java
+
+2009-08-24 15:16:53 +0200 (Mon, 24 Aug 2009), revision 2912, jan
+Updated ServiceHooks code
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/BundleContextImpl.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/FrameworkContext.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/Hooks.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ListenerEntry.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/Listeners.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceContentHandlerFactory.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceListenerState.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceURLStreamHandlerFactory.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/Services.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/permissions/PermissionsWrapper.java
+
+2009-08-20 10:32:24 +0200 (Thu, 20 Aug 2009), revision 2908, ekolin
+svn merge -r 2879:HEAD https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+_U  knopflerfish.org/branches/kf3/
+_U  knopflerfish.org/branches/kf3/ant/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/component/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/desktop/
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HeaderBase.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServer.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServiceImpl.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpUtil.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Registrations.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestDispatcherImpl.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestWrapper.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResourceRegistration.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResponseImpl.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResponseWrapper.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ServletRegistration.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Transaction.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component-api_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/connectorservice_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/constants_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/test_target_bundles/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/eventadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/filter_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy2/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy3/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy4/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleE_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleG_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleH_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleJ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleQ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR4_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR5_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR6_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleU_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleV_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_A/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_B/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_C/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_D/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resexp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resimp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/http_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/lifecycle_mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/test_target_bundles/bundleP_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/registryperformance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/test_target_bundles/bundleS_test/
+_U  knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/Util.java
+U   knopflerfish.org/branches/kf3/release_notes.in
+
+2009-08-19 11:30:47 +0200 (Wed, 19 Aug 2009), revision 2905, perg
+updated version numbers of exported packages
+U   knopflerfish.org/branches/kf3/osgi/bundles/cm/cm/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/event/build.xml
+
+2009-08-13 14:44:47 +0200 (Thu, 13 Aug 2009), revision 2903, jan
+Updated framework classes from OSGi
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/osgi/framework/AdminPermission.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/osgi/framework/FrameworkUtil.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/osgi/framework/PackagePermission.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/osgi/framework/ServicePermission.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/osgi/framework/package.html
+
+2009-08-13 12:24:54 +0200 (Thu, 13 Aug 2009), revision 2902, jan
+Fixed Filter implementation, matchCase faulty plus minor parsing errors.
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/filter_test/src/org/knopflerfish/bundle/filter_test/FilterTestSuite.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/FilterImpl.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/LDAPExpr.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceListenerState.java
+
+2009-08-13 09:30:47 +0200 (Thu, 13 Aug 2009), revision 2901, jan
+Fixed missing ServiceExceptions in framework error events.
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+
+2009-08-12 13:53:18 +0200 (Wed, 12 Aug 2009), revision 2900, jan
+Fixed ServiceReference compareTo
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+
+2009-08-12 11:53:49 +0200 (Wed, 12 Aug 2009), revision 2899, jan
+Fixed append of fragment exports with different directives and/or attributes.
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ExportPkg.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/ImportPkg.java
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/Util.java
+
+2009-07-20 11:41:15 +0200 (Mon, 20 Jul 2009), revision 2898, ekolin
+Add a framework property that may be used to specify the base set of system pacakges (i.e., all non-osgi system packages).
+U   knopflerfish.org/branches/kf3/osgi/framework/readme.txt
+U   knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/branches/kf3/osgi/props.xargs
+
+2009-07-17 17:19:34 +0200 (Fri, 17 Jul 2009), revision 2895, ekolin
+Update changelog for 3.0.0.alfa-1
+U   knopflerfish.org/branches/kf3/changelog.txt
+
+2009-07-17 17:02:32 +0200 (Fri, 17 Jul 2009), revision 2894, perg
+Added suggestions from Gunnar
+U   knopflerfish.org/branches/kf3/release_notes.in
+
+2009-07-17 16:46:39 +0200 (Fri, 17 Jul 2009), revision 2893, perg
+Filled with content
+U   knopflerfish.org/branches/kf3/release_notes.in
+
+2009-07-17 13:47:35 +0200 (Fri, 17 Jul 2009), revision 2892, ekolin
+*** empty log message ***
+U   knopflerfish.org/branches/kf3/tools/nightlybuild/Makefile
+
+2009-07-17 10:32:37 +0200 (Fri, 17 Jul 2009), revision 2891, ekolin
+If the new build result uses the same directory as on existing build
+result remove the old directory before copying the new build result.
+U   knopflerfish.org/branches/kf3/tools/nightlybuild/Makefile
+
+2009-07-17 09:29:27 +0200 (Fri, 17 Jul 2009), revision 2890, ekolin
+spelling
+U   knopflerfish.org/branches/kf3/htdocs/html_src/release_page.html.in
+
+2009-07-16 14:47:24 +0200 (Thu, 16 Jul 2009), revision 2889, ekolin
+Do not point the repositry file for the current release as external
+repository, since that would hide all bundles in this build.
+U   knopflerfish.org/branches/kf3/build.xml
+
+2009-07-16 14:41:23 +0200 (Thu, 16 Jul 2009), revision 2888, ekolin
+Wrong variable used when building the path to the change log file for
+a tag wiht a '/' in it.
+U   knopflerfish.org/branches/kf3/tools/nightlybuild/Makefile
+
+2009-07-16 13:47:25 +0200 (Thu, 16 Jul 2009), revision 2887, ekolin
+Add property that points to the KF repository for the bundlerepository-bundle in distrib builds.
+U   knopflerfish.org/branches/kf3/build.xml
+
+2009-07-16 13:44:57 +0200 (Thu, 16 Jul 2009), revision 2886, ekolin
+Only add KF-default URLs when no explicit repository URL has been given as (system) property.
+U   knopflerfish.org/branches/kf3/osgi/bundles/bundlerepository/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/bundlerepository/src/org/knopflerfish/osgi/bundle/bundlerepository/Activator.java
+

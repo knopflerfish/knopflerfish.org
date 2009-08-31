@@ -1,0 +1,11 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleSL3
+Bundle-SymbolicName: org.knopflerfish.bundle.foo.bundleSL3
+Bundle-Version: 1.0.0
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-Description: Test bundle for SF Bugs-tracker issue 2833557.
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.foo.Activator3
+Bundle-Category: test
+Require-Bundle: org.knopflerfish.bundle.foo.bundleSL1

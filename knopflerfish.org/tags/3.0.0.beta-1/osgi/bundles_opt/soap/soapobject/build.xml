@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="soapobject" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.soapobject}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "bundle.build.doc"   value = "true"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/soapobject/**"/>
+
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <!-- set do.bundle.custom.post to anything to trigger post target --> 
+  <property name="do.bundle.custom.post" value="do"/>
+
+  <target name="bundle.custom.post">
+   <jar jarfile  = "${impl.jar}"  update   = "true">
+    <manifest>
+      <attribute name = "Export-Package"        value = "org.knopflerfish.bundle.soapobject"/>
+    </manifest>
+   </jar>
+  </target>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

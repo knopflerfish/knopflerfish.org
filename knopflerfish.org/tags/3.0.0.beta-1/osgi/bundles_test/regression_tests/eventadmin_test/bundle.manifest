@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-Name: eventadmin_test
+Bundle-SymbolicName: eventadmin_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for EventAdmin service
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.eventadmin_test.Activator
+Bundle-Category: test
+Import-Package: junit.framework,
+ org.osgi.framework,
+ org.osgi.service.event,
+ org.knopflerfish.service.log
+

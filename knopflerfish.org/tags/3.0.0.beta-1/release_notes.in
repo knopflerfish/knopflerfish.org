@@ -1,0 +1,83 @@
+Release Notes Knopflerfish @VERSION@ (OSGi R4.2)
+----------------------------------------------
+
+  Work in progress release of Knopflerfish 3 available from
+  @DOWNLOAD_URL@
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+----------------------------------------------
+OSGi Core Specification
+----------------------------------------------
+
+Framework - Security
+ - Minor updates and clarifications (In Progress)
+
+Framework - Module
+ - Minor updates and clarifications (Done)
+ - Support for multi host Fragments (Done)
+
+Framework - Life-Cycle
+ - Minor updates and clarifications (Done)
+ - Lazy Activation (Done)
+ - Framework Launcher (Multiple frameworks and Bootclasspath extensions remain)
+
+Framework - Service Layer
+ - Minor updates and clarifications (Done)
+
+Package Admin Service Specification
+ - Support for multi host Fragments (Done)
+
+Start Level Service Specification
+ - New method: isBundleActivationPolicyUsed (Done)
+
+Conditional Permission Admin Specification
+ - Allow-Deny Conditions (In Progress)
+ - ConditionalPermitionUpdate (In Progress)
+
+URL Handlers Service Specification
+ - Minor updates and clarifications (Done)
+
+Service Hooks Specification
+ - Support for Service Hooks (Done)
+
+----------------------------------------------
+OSGi Compendium Specification
+----------------------------------------------
+
+Declarative Services Specification
+ - Many updates (In Progress)
+
+Event Admin Service Specification
+ - API updates (Done)
+ - 3 test cases malfunction (Under Investigation)
+
+Tracker Specification
+ - BundleTracker (Done)
+  - 1 test case in the CT fails (Under Investigation)
+ - Service Tracker
+  - 1 test case malfunctions (Under Investigation)
+
+Configuration Admin Specification
+ - 6 test cases malfunction (Under Investigation)
+
+All the other Compendium Specification Services
+are up to date and pass the CT.
+
+----------------------------------------------
+Knopflerfish Specific
+----------------------------------------------
+
+Console
+ - Migration to new OSGi Standard (Done)
+ - Support for new Activation Commands (In Progress)
+
+Desktop
+ - Support for new Activation Commands (In Progress)
+
+----------------------------------------------
+
+Please read the KF blog for updated progress.
+
+ http://knopflerfish.blogspot.com/
