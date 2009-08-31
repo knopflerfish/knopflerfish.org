@@ -10,7 +10,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
-  Framework 4.1.9
+  Framework 4.1.10
+
+  The correction of SercviceReference.isAssignableTo(...) in 4.1.9
+  did not handle services registered by a bundle acsessing the serivce
+  package through Require-Bundle. This was fixed in 4.1.10.
+
+  This problem was reported the SourceForge bug tracker, item 2844362:
+  https://sourceforge.net/tracker/index.php?func=detail&aid=2844362&group_id=82798&atid=567241
 
   Fixed an error in the implementation of SercviceReference.isAssignableTo(...). 
   The symptom of this problem where that service listeners was
