@@ -133,6 +133,7 @@ public abstract class DefaultSwingBundleDisplayer
     }
 
     reg.unregister();
+    close();
     reg = null;
   }
 

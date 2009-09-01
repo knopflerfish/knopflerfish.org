@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ public class JLogEntryDetail extends JPanel {
   JLogTable table;
 
   JToolBar   cmdPanel;
-  
+
   JButton  nextButton;
   JButton  prevButton;
   JButton  lastButton;
@@ -73,7 +73,7 @@ public class JLogEntryDetail extends JPanel {
   JDetail  info;
 
   LogTableModel model;
-  
+
   public JLogEntryDetail(JLogTable table, ExtLogEntry entry) {
     //    super(new Date(entry.getTime()).toString() + ": " + entry.getMessage());
 
@@ -86,7 +86,7 @@ public class JLogEntryDetail extends JPanel {
     arrowUp2Icon   = new ImageIcon(getClass().getResource("/2uparrow.png"));
     arrowDownIcon  = new ImageIcon(getClass().getResource("/1downarrow.png"));
     arrowDown2Icon = new ImageIcon(getClass().getResource("/2downarrow.png"));
-    reloadIcon     = new ImageIcon(getClass().getResource("/reload_green16.png"));    
+    reloadIcon     = new ImageIcon(getClass().getResource("/reload_green16.png"));
     info = new JDetail(entry);
 
     scrollPane = new JScrollPane(info);
@@ -95,50 +95,50 @@ public class JLogEntryDetail extends JPanel {
     cmdPanel = new JToolBar(JToolBar.VERTICAL);
     cmdPanel.setFloatable(false);
 
-    nextButton = new JButton(arrowDownIcon) {	{
+    nextButton = new JButton(arrowDownIcon) {   {
       setToolTipText("Next log entry");
       addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    showNext(1);
-	  }
-	});
+          public void actionPerformed(ActionEvent ev) {
+            showNext(1);
+          }
+        });
     }};
-    
+
     prevButton = new JButton(arrowUpIcon) { {
       setToolTipText("Previous log entry");
       addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    showNext(-1);
-	  }
-	});
+          public void actionPerformed(ActionEvent ev) {
+            showNext(-1);
+          }
+        });
     }};
 
-    firstButton = new JButton(arrowUp2Icon) {	{
+    firstButton = new JButton(arrowUp2Icon) {   {
       setToolTipText("First log entry");
       addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    showFirst();
-	  }
-	});
+          public void actionPerformed(ActionEvent ev) {
+            showFirst();
+          }
+        });
     }};
-    
-    lastButton = new JButton(arrowDown2Icon) {	{
+
+    lastButton = new JButton(arrowDown2Icon) {  {
       setToolTipText("Last log entry");
       addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    showLast();
-	  }
-	});
+          public void actionPerformed(ActionEvent ev) {
+            showLast();
+          }
+        });
     }};
 
     /*
-    JButton reloadButton = new JButton(reloadIcon) {	{
+    JButton reloadButton = new JButton(reloadIcon) {    {
       setToolTipText("Reload log entries");
       addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    System.out.println("TBD: reload");
-	  }
-	});
+          public void actionPerformed(ActionEvent ev) {
+            System.out.println("TBD: reload");
+          }
+        });
     }};
     */
 
@@ -150,7 +150,7 @@ public class JLogEntryDetail extends JPanel {
     //    cmdPanel.add(reloadButton);
 
     add(scrollPane, BorderLayout.CENTER);
-    add(cmdPanel,   BorderLayout.WEST);    
+    add(cmdPanel,   BorderLayout.WEST);
 
     syncUI();
   }
@@ -160,7 +160,7 @@ public class JLogEntryDetail extends JPanel {
   }
 
   synchronized public void setParentAndEntry(JLogTable table,
-					     ExtLogEntry entry) {
+                                             ExtLogEntry entry) {
     this.table = table;
     setEntry(entry);
     syncUI();
@@ -168,23 +168,23 @@ public class JLogEntryDetail extends JPanel {
 
   synchronized public void setEntry( ExtLogEntry _entry) {
     this.entry = _entry;
-    
+
     info.setEntry(entry);
 
     SwingUtilities.invokeLater(new Runnable() {
-	public void run() {
-	  JViewport vp = scrollPane.getViewport();
-	  if(vp != null) {
-	    vp.setViewPosition(new Point(0,0));
-	    scrollPane.setViewport(vp);
-	  } 
-	  if(table != null && model !=  null) {
-	    int row = model.getEntries().indexOf(entry);
-	    Rectangle r = table.getCellRect(row, 0, true);
-	    table.scrollRectToVisible(r);
-	    revalidate();
-	  }
-	}
+        public void run() {
+          JViewport vp = scrollPane.getViewport();
+          if(vp != null) {
+            vp.setViewPosition(new Point(0,0));
+            scrollPane.setViewport(vp);
+          }
+          if(table != null && model !=  null) {
+            int row = model.getEntries().indexOf(entry);
+            Rectangle r = table.getCellRect(row, 0, true);
+            table.scrollRectToVisible(r);
+            revalidate();
+          }
+        }
       });
 
   }
@@ -194,23 +194,23 @@ public class JLogEntryDetail extends JPanel {
     if(entry != null && table != null) {
       ExtLogEntry e = table.getLogEntry(entry, delta);
       if(e != null) {
-	setEntry(e);
-	
-	syncUI();
+        setEntry(e);
+
+        syncUI();
       }
     }
   }
-  
+
   void showFirst() {
     if(entry != null && table != null) {
       try {
-	java.util.List entries = table.model.getEntries();
-	ExtLogEntry e = (ExtLogEntry)entries.get(0);
-	if(e != null) {
-	  setEntry(e);
-	  
-	  syncUI();
-	}
+        java.util.List entries = table.model.getEntries();
+        ExtLogEntry e = (ExtLogEntry)entries.get(0);
+        if(e != null) {
+          setEntry(e);
+
+          syncUI();
+        }
       } catch (Exception e) {
       }
     }
@@ -219,27 +219,27 @@ public class JLogEntryDetail extends JPanel {
   void showLast() {
     if(entry != null && table != null) {
       try {
-	java.util.List entries = table.model.getEntries();
-	ExtLogEntry e = (ExtLogEntry)entries.get(entries.size() - 1);
-	if(e != null) {
-	  setEntry(e);
-	  
-	  syncUI();
-	}
+        java.util.List entries = table.model.getEntries();
+        ExtLogEntry e = (ExtLogEntry)entries.get(entries.size() - 1);
+        if(e != null) {
+          setEntry(e);
+
+          syncUI();
+        }
       } catch (Exception e) {
       }
     }
   }
-  
+
   void syncUI() {
     if(entry != null && table != null) {
       ExtLogEntry prevE = table.getLogEntry(entry, -1);
       ExtLogEntry nextE = table.getLogEntry(entry, 1);
-      
+
       prevButton.setEnabled(prevE != null);
-      
+
       nextButton.setEnabled(nextE != null);
-      
+
       table.setSelectedRowFromEntry(entry);
     } else {
       prevButton.setEnabled(false);
