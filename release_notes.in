@@ -39,6 +39,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Services (Compendium) ===
 
 
+  Declarative-Services 2.0.1
+
+  A service that is optional (cardinality 0..1) and dynamically bound
+  that is not present when the component is activated was never bound.
+  Such services is now bound when the first matching service becomes
+  available.
+
+  This problem was reported the SourceForge bug tracker, item 2556558
+  and 2843399:
+  https://sourceforge.net/tracker/index.php?func=detail&aid=2556558&group_id=82798&atid=567241
+
+
+
   Http 2.1.4
 
   Added support for a couple of HTTP 1.1 features:
