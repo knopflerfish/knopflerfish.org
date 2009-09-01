@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ import org.osgi.framework.ServiceReference;
 
 
 public class Reference extends ExtendedServiceTracker {
-  
+
   private boolean optional;
   private boolean multiple;
   private boolean dynamic;
@@ -56,17 +56,17 @@ public class Reference extends ExtendedServiceTracker {
   private String unbindMethodName;
   private String refName;
   private String interfaceName;
-  
+
   /* If unary, this is the choosen one. */
   private ServiceReference bound;
   private boolean doneBound = false;
-  
+
   private Collection instances = new ArrayList();
-  
+
   private Config config;
-  
+
   private boolean overrideUnsatisfied = false;
-  
+
   public Reference(String refName, Filter filter, String interfaceName,
                    boolean optional, boolean multiple, boolean dynamic,
                    String bindMethodName, String unbindMethodName,
@@ -85,11 +85,16 @@ public class Reference extends ExtendedServiceTracker {
   public void setConfig(Config config) {
     this.config = config;
   }
-  
+
   public void addedService(ServiceReference ref, Object service) {
-    if (doneBound && multiple) {
-      for (Iterator iter = instances.iterator(); iter.hasNext();) {
-        invokeEventMethod(iter.next(), bindMethodName, ref);
+    if (doneBound) {
+      if (multiple || (null==bound && dynamic && optional)) {
+        for (Iterator iter = instances.iterator(); iter.hasNext();) {
+          invokeEventMethod(iter.next(), bindMethodName, ref);
+        }
+        if (!multiple) {
+          bound = ref;
+        }
       }
     } else if (bound != null && !multiple) {
       ServiceReference newBound = getServiceReference();
@@ -110,7 +115,7 @@ public class Reference extends ExtendedServiceTracker {
         }
       }
     }
-    
+
     if (!isSatisfied(1) && isSatisfied() && config != null) {
       config.referenceSatisfied();
     }
@@ -159,7 +164,7 @@ public class Reference extends ExtendedServiceTracker {
       config.referenceSatisfied();
     }
   }
-      
+
   public boolean isSatisfied() {
     if (overrideUnsatisfied) return false;
     return isSatisfied(0);
@@ -185,7 +190,7 @@ public class Reference extends ExtendedServiceTracker {
     }
   }
 
-  
+
   public void unbind(Object instance) {
     instances.remove(instance);
     if (!doneBound) return;
@@ -207,14 +212,14 @@ public class Reference extends ExtendedServiceTracker {
 
   /**
    * Will search for the <methodName>(<type>) in the given class
-   * by first looking in class after 
+   * by first looking in class after
    * <methodName>(ServiceReference) then
    * <methodName>(Interface of Service).
-   * 
+   *
    * If no method is found it will then continue to the super class.
    */
   private void invokeEventMethod(Object instance,
-                                 String methodName, 
+                                 String methodName,
                                  ServiceReference ref) {
 
     if(ref == null) {
@@ -242,16 +247,16 @@ public class Reference extends ExtendedServiceTracker {
     }
 
     while (instanceClass != null && method == null) {
-      Method[] ms = instanceClass.getDeclaredMethods(); 
+      Method[] ms = instanceClass.getDeclaredMethods();
 
       // searches this class for a suitable method.
       for (int i = 0; i < ms.length; i++) {
         if (methodName.equals(ms[i].getName()) &&
             (Modifier.isProtected(ms[i].getModifiers()) ||
              Modifier.isPublic(ms[i].getModifiers()))) {
-      
+
           Class[] parms = ms[i].getParameterTypes();
-      
+
           if (parms.length == 1) {
             try {
               if (ServiceReference.class.equals(parms[0])) {
@@ -265,21 +270,21 @@ public class Reference extends ExtendedServiceTracker {
                 return ;
               }
             } catch (IllegalAccessException e) {
-              Activator.log.error("Declarative Services could not access the method \"" + methodName + 
+              Activator.log.error("Declarative Services could not access the method \"" + methodName +
                                   "\" used by component \"" + config.getName() + "\". Got exception.", e);
             } catch (InvocationTargetException e) {
-              Activator.log.error("Declarative Services got exception while invoking \"" + methodName 
+              Activator.log.error("Declarative Services got exception while invoking \"" + methodName
                                   + "\" used by component \"" + config.getName() + "\". Got exception.", e);
             }
           }
         }
       }
-      
+
       instanceClass = instanceClass.getSuperclass();
     }
-    
+
     // did not find any such method.
-    Activator.log.error("Declarative Services could not find bind/unbind method \"" + methodName + 
+    Activator.log.error("Declarative Services could not find bind/unbind method \"" + methodName +
                         "\" in class \"" + config.getImplementation() + "\" used by component " + config.getName() + "\".");
   }
 
@@ -287,11 +292,11 @@ public class Reference extends ExtendedServiceTracker {
     return new Reference(refName, filter, interfaceName, optional, multiple, dynamic,
                          bindMethodName, unbindMethodName, context);
   }
-  
+
   public String getName() {
     return refName;
   }
-  
+
   public String getInterfaceName() {
     return interfaceName;
   }
