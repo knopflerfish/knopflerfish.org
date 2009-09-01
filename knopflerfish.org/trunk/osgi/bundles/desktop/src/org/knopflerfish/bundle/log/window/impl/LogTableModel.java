@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,10 @@ import java.util.Date;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+
+
 /**
  * Table model which keeps track of <tt>ExtLogEntry</tt> items.
  *
@@ -47,8 +51,13 @@ import javax.swing.table.AbstractTableModel;
  * </p>
  */
 public class LogTableModel extends AbstractTableModel {
-  
-  private ArrayList entries = new ArrayList();
+
+  private static final String CAPACITY_PROP_NAME
+    = LogTableModel.class.getName() + ".capacity";
+
+  private int capacity = 342;
+
+  private final ArrayList entries = new ArrayList();
 
   static final int COL_ID        = 0;
   static final int COL_BID       = 1;
@@ -60,19 +69,19 @@ public class LogTableModel extends AbstractTableModel {
   /**
    * Name of column headers
    */
-  String[] headers = { 
-    "#", 
-    "bid", 
-    "Time", 
-    "Level", 
-    "Message", 
+  final String[] headers = {
+    "#",
+    "bid",
+    "Time",
+    "Level",
+    "Message",
     "Exception",
   };
 
   /**
    * Column classes.
    */
-  Class [] clazzes = {
+  final Class [] clazzes = {
     Long.class, // ID
     Long.class, // BID
     Date.class,   // TIME
@@ -82,10 +91,21 @@ public class LogTableModel extends AbstractTableModel {
   };
 
 
-  public LogTableModel() {
+  public LogTableModel(BundleContext bc) {
     super();
+
+    final String capacityS = bc.getProperty(CAPACITY_PROP_NAME);
+    if (null!=capacityS && capacityS.length()>0) {
+      try {
+        capacity = Integer.parseInt(capacityS.trim());
+      } catch (NumberFormatException nfe){
+      }
+    }
+    if (capacity>0) {
+      entries.ensureCapacity(capacity);
+    }
   }
-  
+
   public Class getColumnClass(int c) {
     return clazzes[c];
   }
@@ -108,7 +128,7 @@ public class LogTableModel extends AbstractTableModel {
   }
 
   ExtLogEntry getEntry(int row) {
-    ExtLogEntry e = (ExtLogEntry)entries.get(row);
+    final ExtLogEntry e = (ExtLogEntry)entries.get(row);
     return e;
   }
 
@@ -119,17 +139,17 @@ public class LogTableModel extends AbstractTableModel {
 
   public Object getValueAt(ExtLogEntry e, int col) {
 
-    if(col >= getColumnCount()) { 
-      throw new ArrayIndexOutOfBoundsException("Column " + col + 
-					       " is larger than " + 
-					       (getColumnCount() - 1));
+    if(col >= getColumnCount()) {
+      throw new ArrayIndexOutOfBoundsException
+        ("Column " +col +" is larger than " +(getColumnCount() - 1));
     }
 
     switch(col) {
     case COL_ID:
       return new Long(e.getId());
     case COL_BID:
-      return new Long(e.getBundle().getBundleId());
+      final Bundle b = e.getBundle();
+      return null!=b ? (Object) new Long(b.getBundleId()) : (Object)"";
     case COL_LEVEL:
       return Util.levelString(e.getLevel());
     case COL_TIME:
@@ -148,6 +168,11 @@ public class LogTableModel extends AbstractTableModel {
   }
 
   public void logged(ExtLogEntry entry) {
+    if (capacity>0 && capacity == entries.size()) {
+      // List is full; remove oldest (first) entry.
+      ExtLogEntry oldEntry = (ExtLogEntry) entries.remove(0);
+      fireTableRowsDeleted(0, 0);
+    }
     entries.add(entry);
     fireTableRowsInserted(entries.size() - 1, entries.size());
   }

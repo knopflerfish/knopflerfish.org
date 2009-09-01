@@ -35,6 +35,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   caused the framework to save files when we run in memory mode.
   These changes was supplied by Dimitry Polivaev.
 
+  The framework event for packages refreshed now uses the system
+  bundle as the bundle associated with the event (as mandated in the
+  4.2 specification).
+
+
 
 === Services (Compendium) ===
 
@@ -49,7 +54,6 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   This problem was reported the SourceForge bug tracker, item 2556558
   and 2843399:
   https://sourceforge.net/tracker/index.php?func=detail&aid=2556558&group_id=82798&atid=567241
-
 
 
   Http 2.1.4
@@ -68,7 +72,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
-  Desktop Bundle 2.3.9
+  Desktop Bundle 2.3.10
+
+  The number of log entries hold in memory by the log view is now
+  limited. The default value is 342. It may be changed by setting the
+  property named
+  "org.knopflerfish.bundle.log.window.impl.LogTableModel.capacity" to
+  whatever value you want. Negative values means no limit (other than
+  the currently available memory) on the number of entries kept.
+  
+  The log view now presents service properties in the log entry
+  details pane when a service reference are included in the log
+  entry.
 
   When connecting to a remote desktop a NullPointerException was
   triggered, since the log-object that should be available during the
@@ -94,6 +109,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Added implementations of a number of previously unimplemented
   methods in the remote version of the PackageAdmin-service.
+
 
 
 ========================================================================

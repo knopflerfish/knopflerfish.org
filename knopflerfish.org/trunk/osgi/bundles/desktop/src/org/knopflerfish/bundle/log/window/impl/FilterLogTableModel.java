@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,25 +43,27 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 
 import org.osgi.framework.Bundle;
-
+import org.osgi.framework.BundleContext;
 
 /**
  * Table model which filters events from a set of bundles.
  *
  */
-public class FilterLogTableModel 
+public class FilterLogTableModel
   extends    LogTableModel
-  implements TableModelListener  
+  implements TableModelListener
 {
-  
+
   Object lock = new Object();
 
   LogTableModel model;
   Set           bundles         = new HashSet();
   ArrayList     filteredEntries = new ArrayList();
 
-  public FilterLogTableModel(LogTableModel model) {
-    super();
+  public FilterLogTableModel(BundleContext bc,
+                             LogTableModel model)
+  {
+    super(bc);
     this.model = model;
     model.addTableModelListener(this);
   }
@@ -70,7 +72,7 @@ public class FilterLogTableModel
     synchronized(lock) {
       bundles.clear();
       for(int i = 0; bl != null && i < bl.length; i++) {
-	bundles.add(bl[i]);
+        bundles.add(bl[i]);
       }
     }
     fireTableDataChanged();
@@ -101,21 +103,21 @@ public class FilterLogTableModel
   boolean isValidEntry(ExtLogEntry e) {
     synchronized(lock) {
       if(bundles.size() == 0) {
-	return true;
+        return true;
       }
-      
+
       for(Iterator it = bundles.iterator(); it.hasNext();) {
-	Bundle b = (Bundle)it.next();
-	if((e.getBundle() != null) &&
-	   (b.getBundleId() == e.getBundle().getBundleId())) {
-	  return true;
-	}
+        Bundle b = (Bundle)it.next();
+        if((e.getBundle() != null) &&
+           (b.getBundleId() == e.getBundle().getBundleId())) {
+          return true;
+        }
       }
-    
+
       return false;
     }
   }
-  
+
   public Object getValueAt(int row, int col) {
     synchronized(lock) {
       return model.getValueAt(getEntry(row), col);
@@ -155,12 +157,12 @@ public class FilterLogTableModel
   private void filterEntries() {
     synchronized(lock) {
       filteredEntries.clear();
-      
+
       for(Iterator it = model.getEntries().iterator(); it.hasNext(); ) {
-	ExtLogEntry e = (ExtLogEntry)it.next();
-	if(isValidEntry(e)) {
-	  filteredEntries.add(e);
-	}
+        ExtLogEntry e = (ExtLogEntry)it.next();
+        if(isValidEntry(e)) {
+          filteredEntries.add(e);
+        }
       }
     }
   }
@@ -173,5 +175,5 @@ public class FilterLogTableModel
 
   public void tableChanged(TableModelEvent e) {
     fireTableDataChanged();
-  }  
+  }
 }
