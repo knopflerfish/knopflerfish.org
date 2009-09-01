@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,20 +48,20 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 /**
- * Class that listens for all log entries and dispatches them to 
+ * Class that listens for all log entries and dispatches them to
  * a LogTableModel.
  */
-public class LogReaderDispatcher 
-  implements 
-    LogListener, 
+public class LogReaderDispatcher
+  implements
+    LogListener,
     ServiceListener
 {
 
   BundleContext bc;
   LogTableModel model;
-  
+
   public LogReaderDispatcher(BundleContext bc,
-			     LogTableModel model) {
+                             LogTableModel model) {
     this.bc    = bc;
     this.model = model;
   }
@@ -73,12 +73,12 @@ public class LogReaderDispatcher
       ServiceReference [] srl = bc.getServiceReferences(null, filter);
       for(int i = 0; srl != null && i < srl.length; i++) {
 
-	serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
+        serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
       bc.addServiceListener(this, filter);
     } catch (Exception e) {
       e.printStackTrace();
-    }    
+    }
   }
 
   Hashtable logReaders = new Hashtable();
@@ -91,14 +91,14 @@ public class LogReaderDispatcher
     for(Enumeration e = logReaders.keys(); e.hasMoreElements(); ) {
       ServiceReference sr = (ServiceReference)e.nextElement();
       LogReaderService lr = (LogReaderService)logReaders.get(sr);
-      
+
       for(Enumeration e2 = lr.getLog(); e2.hasMoreElements(); ) {
-	LogEntry entry = (LogEntry)e2.nextElement();
-	logged(entry);
+        LogEntry entry = (LogEntry)e2.nextElement();
+        logged(entry);
       }
     }
   }
-  
+
   public void close() {
     bc.removeServiceListener(this);
 
@@ -112,12 +112,12 @@ public class LogReaderDispatcher
   public void serviceChanged(ServiceEvent ev) {
     ServiceReference sr = ev.getServiceReference();
 
-    
-    LogReaderService lr = 
-      logReaders.containsKey(sr) 
+
+    LogReaderService lr =
+      logReaders.containsKey(sr)
       ? (LogReaderService)logReaders.get(sr)
       : (LogReaderService)bc.getService(sr);
-    
+
     switch(ev.getType()) {
     case ServiceEvent.REGISTERED:
       lr.addLogListener(this);
@@ -134,7 +134,7 @@ public class LogReaderDispatcher
   }
 
   static long idCount = 0;
-  
+
   /**
    * Listener method called for each LogEntry created.
    * As with all event listeners, this method should return to its
@@ -147,18 +147,13 @@ public class LogReaderDispatcher
   public void logged(LogEntry entry) {
     final ExtLogEntry extEntry = new ExtLogEntry(entry, idCount++);
     SwingUtilities.invokeLater(new Runnable() {
-	public void run() {
-	  try {
-	    model.logged(extEntry);
-	  } catch (Exception e) {
-	    e.printStackTrace();
-	  }
-	}
+        public void run() {
+          try {
+            model.logged(extEntry);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
       });
   }
 }
-
-
-
-
-

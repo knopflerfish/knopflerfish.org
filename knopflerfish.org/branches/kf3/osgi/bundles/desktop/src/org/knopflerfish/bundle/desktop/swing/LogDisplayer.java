@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,9 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
 
   LogTableModel       logModel;
   LogReaderDispatcher logDispatcher;
-    
+
   public LogDisplayer(BundleContext bc) {
-    super(bc, "Log", "Shows framework log", true); 
+    super(bc, "Log", "Shows framework log", true);
 
     // We're not interested in bundle events, nor in service events
     bUseListeners = false;
@@ -64,9 +64,9 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
 
   public void open() {
     super.open();
-    logModel = new LogTableModel();
+    logModel = new LogTableModel(bc);
     logDispatcher = new LogReaderDispatcher(bc, logModel);
-    
+
     logDispatcher.open();
     logDispatcher.getAll();
   }
@@ -77,14 +77,14 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
 
     super.close();
   }
-  
+
   public JComponent newJComponent() {
     return new JLog();
   }
 
   public void valueChanged(long  bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
-    
+
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JLog comp = (JLog)it.next();
       comp.valueChanged(bl);
@@ -96,12 +96,12 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
 
     JLogEntryDetail     logDetail;
     FilterLogTableModel filterLogModel;
-    
+
     JLog() {
       setLayout(new BorderLayout());
 
 
-      filterLogModel = new FilterLogTableModel(logModel);
+      filterLogModel = new FilterLogTableModel(bc, logModel);
       filterLogModel.setBundles(null);
 
       // construct in two steps
@@ -112,13 +112,13 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
       logDetail.setModel(filterLogModel);
 
 
-      
-      
-      JSplitPane splitPane = 
-	new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-		       logPanel,
-		       logDetail);
-      
+
+
+      JSplitPane splitPane =
+        new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                       logPanel,
+                       logDetail);
+
       splitPane.setDividerLocation(120);
 
       add(splitPane, BorderLayout.CENTER);
@@ -130,9 +130,8 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
       JTable table = logPanel.getJLogTable();
 
       if(table.getRowCount() > 0) {
-	table.setRowSelectionInterval(0, 0);
+        table.setRowSelectionInterval(0, 0);
       }
     }
   }
 }
-

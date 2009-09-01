@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -312,8 +312,9 @@ public class PackageAdminImpl implements PackageAdmin {
 
     // Restart previously active bundles in normal start order
     framework.bundles.startBundles(startList);
-    framework.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED, this));
-
+    framework.listeners
+      .frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
+                                         framework.systemBundle, null));
     if(framework.props.debug.packages) {
       framework.props.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
