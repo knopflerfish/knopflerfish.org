@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -41,6 +42,7 @@ import java.util.Date;
 
 import org.knopflerfish.util.Text;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
 
 
@@ -106,17 +108,17 @@ public class Util {
     sb.append("<table border=0 width=\"100%\">");
     sb.append("<tr bgcolor=\"#eeeeee\">");
 
-    sb.append("<td width=50 valign=top align=left bgcolor=\"#eeeeee\">" + 
-	      fontify(e.getId() + 
-		      ", "+ shortName(e.getBundle())) + "</td>")
+    sb.append("<td width=50 valign=top align=left bgcolor=\"#eeeeee\">" +
+              fontify(e.getId() +
+                      ", "+ shortName(e.getBundle())) + "</td>")
       ;
-    
-    sb.append("<td  valign=top  align=left bgcolor=\"#eeeeee\">" + 
-	      fontify(tf.format(new Date(e.getTime()))) + "</td>")
+
+    sb.append("<td  valign=top  align=left bgcolor=\"#eeeeee\">" +
+              fontify(tf.format(new Date(e.getTime()))) + "</td>")
 ;
 
-    sb.append("<td valign=top align=right bgcolor=\"#eeeeee\">" + 
-	      fontify(levelString(e.getLevel())) + "</td>");
+    sb.append("<td valign=top align=right bgcolor=\"#eeeeee\">" +
+              fontify(levelString(e.getLevel())) + "</td>");
 
 
     sb.append("</tr>");
@@ -126,31 +128,59 @@ public class Util {
     sb.append(fontify(e.getMessage()));
     sb.append("</td>");
     sb.append("</tr>");
-    
+
+    ServiceReference sr = e.getServiceReference();
+    if (null!=sr) {
+      sb.append("<tr bgcolor=\"#eeeeee\">");
+      sb.append("<td width=\"100%\" colspan=\"3\">");
+      sb.append(fontify("Service Properties"));
+      sb.append("</td>");
+      sb.append("</tr>");
+      String[] propKeys = sr.getPropertyKeys();
+      for (int i=0; i<propKeys.length; i++) {
+        // Reuse service reference properties presentation form the
+        // services tab.
+        StringWriter sw = new StringWriter();
+        PrintWriter  pr = new PrintWriter(sw);
+        try {
+          org.knopflerfish.bundle.desktop.swing.Util
+            .printObject(pr, sr.getProperty(propKeys[i]));
+        } catch (IOException ioe) {
+        }
+
+        sb.append("<tr>");
+        sb.append("<td valign=top align=left>" +fontify(propKeys[i]) +"</td>");
+        sb.append("<td valign=top align=left colspan=\"2\">"
+                  +fontify(sw.toString())
+                  +"</td>");
+        sb.append("</tr>");
+      }
+    }
+
     Throwable t = e.getException();
     if(t != null) {
       sb.append("<tr bgcolor=\"#eeeeee\">");
-      
-      sb.append("<td colspan=3 align=left bgcolor=\"#eeeeee\">" + 
-		fontify("Exception"));
+
+      sb.append("<td colspan=3 align=left bgcolor=\"#eeeeee\">" +
+                fontify("Exception"));
       sb.append("</td>");
       sb.append("</tr>");
 
       sb.append("<tr>");
       sb.append("<td colspan=3>");
-      
+
       StringWriter w = new StringWriter();
       t.printStackTrace(new PrintWriter(w));
       sb.append(fontify(Text.replace(w.toString(), "\n", "<br>")));
       sb.append("</td>");
       sb.append("</tr>");
-    } 
-    
+    }
+
     sb.append("</table>");
 
     sb.append("</font>\n");
     sb.append("</html>");
-    
+
     return sb.toString();
   }
 
@@ -163,16 +193,16 @@ public class Util {
   }
 
   public static String toString(LogEntry e) {
-    String s = 
-      "Time: "      + tf.format(new Date(e.getTime())) + "\n" + 
-      "Level: "     + levelString(e.getLevel()) + "\n" + 
+    String s =
+      "Time: "      + tf.format(new Date(e.getTime())) + "\n" +
+      "Level: "     + levelString(e.getLevel()) + "\n" +
       "Message: "   + e.getMessage() + "\n";
     Throwable t = e.getException();
     if(t != null) {
       StringWriter w = new StringWriter();
       t.printStackTrace(new PrintWriter(w));
       s = s + w.toString();
-    } 
+    }
 
     return s;
   }
@@ -183,7 +213,7 @@ public class Util {
   static String[] levels = {
     "error",
     "warning",
-    "info", 
+    "info",
     "debug",
   };
 
@@ -201,8 +231,3 @@ public class Util {
   }
 
 }
-
-
-
-
-

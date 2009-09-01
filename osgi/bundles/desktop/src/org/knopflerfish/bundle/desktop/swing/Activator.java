@@ -240,13 +240,11 @@ public class Activator implements BundleActivator {
 
     for(int i = 0; i < dispClassNames.length; i++) {
       String className = dispClassNames[i];
-
       try {
         Class       clazz = Class.forName(className);
         Constructor cons  = clazz.getConstructor(new Class[] { BundleContext.class });
 
         disp = (DefaultSwingBundleDisplayer)cons.newInstance(new Object[] { getTargetBC() });
-        disp.open();
         reg = disp.register();
         displayers.put(disp, reg);
       } catch (Exception e) {
@@ -296,7 +294,6 @@ public class Activator implements BundleActivator {
         ServiceRegistration reg = (ServiceRegistration)displayers.get(disp);
 
         disp.unregister();
-        disp.close();
       }
       displayers.clear();
 
