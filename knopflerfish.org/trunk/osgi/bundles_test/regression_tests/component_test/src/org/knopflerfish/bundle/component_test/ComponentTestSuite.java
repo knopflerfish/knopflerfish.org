@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,13 @@
 package org.knopflerfish.bundle.component_test;
 
 import java.io.*;
-import java.lang.reflect.Array;
+import java.lang.reflect.*;
 import java.util.*;
-import org.osgi.framework.*;
-import org.osgi.service.component.*;
 
 import junit.framework.*;
+
+import org.osgi.framework.*;
+import org.osgi.service.component.*;
 
 import org.knopflerfish.service.component_test.*;
 
@@ -56,6 +57,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test1());
     addTest(new Test2());
     addTest(new Test3());
+    addTest(new TestSfBugs32556558());
   }
 
   public void bump() {counter++;}
@@ -385,6 +387,134 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     }
 
   }
+
+  private class TestSfBugs32556558 extends FWTestCase {
+    /**
+     * This test case is a regression test for SF Bugs item 32556558.
+     *
+     * How it works:
+     * - A service publishing component, ComponentE1, with an optional,
+     *   dynamic dependency on ComponentE2, is registered by bundleE_test.
+     * - A factory component, ComponentE2, that will register a
+     *   service is also provided by bundleE_test.
+     * - First check that the ComponentE1 serivce is published when
+     *   bundleE_test is started and the it have not been given a
+     *   ComponentE2-service.
+     * - Create an instance of ComponentE2, check that it is bound as
+     *   the ComponentE2-service in ComponentE1.
+     */
+
+    public void runTest() {
+      try {
+         Bundle buE = Util.installBundle(bc, "componentE_test-1.0.0.jar");
+         buE.start();
+
+         try {
+           Thread.sleep(1000);
+         } catch (InterruptedException ie) {}
+
+         ServiceReference e1SR = bc.getServiceReference
+           ("org.knopflerfish.service.componentE_test.ComponentE1");
+
+         assertNotNull("Could not get service reference for E1", e1SR);
+
+         // Check that the component name is available as service property
+         String compName
+           = (String) e1SR.getProperty(ComponentConstants.COMPONENT_NAME);
+         System.out.println("component.name= " +compName);
+         assertEquals("component name valid", "componentE_test.E1", compName);
+
+         Object e1 = bc.getService(e1SR);
+         assertNotNull("Could not get service object for E1", e1);
+
+         // Check that no E2 instance have been injected into e1 yet.
+         Method getE2Method = e1.getClass().getMethod("getE2", null);
+         assertNull("No E2 service yet",
+                    getE2Method.invoke(e1, new Object[]{}));
+         System.out.println("Initially no E2 service bound to E1.");
+
+         // Prepare to create an E2 component instance
+         ServiceReference[] e2FactorySRs = bc.getServiceReferences
+           (ComponentFactory.class.getName(),
+            "(" +ComponentConstants.COMPONENT_FACTORY
+            +"=componentE_test.E2-factory)");
+         assertNotNull("No E2 component factory service ref", e2FactorySRs);
+         assertEquals("One E2 component factory service ref",
+                      1, e2FactorySRs.length);
+
+         ComponentFactory e2Factory
+           = (ComponentFactory) bc.getService(e2FactorySRs[0]);
+         assertNotNull("No E2 component factory", e2Factory);
+
+         // Create an E2 component instance
+         System.out.println("Creating E2 component instance.");
+         ComponentInstance e2Inst = e2Factory.newInstance((Dictionary) null);
+         assertNotNull("No E2 instance", e2Inst);
+
+         try {
+           Thread.sleep(1000);
+         } catch (InterruptedException ie) {}
+
+
+         // Check that the E2 instance have been bound to e1.
+         Object e2 = getE2Method.invoke(e1, new Object[]{});
+         System.out.println("E2 service bound to E1: " +e2);
+         assertNotNull("E2 service should now be bound to e1", e2);
+
+         // Destroy the E2 component instance
+         System.out.println("Disposing E2 component instance.");
+         e2Inst.dispose();
+         e2Inst = null;
+
+         try {
+           Thread.sleep(1000);
+         } catch (InterruptedException ie) {}
+
+         // Check that the E2 instance have been unbound from e1.
+         e2 = getE2Method.invoke(e1, new Object[]{});
+         System.out.println("E2 service bound to E1 after disposal: " +e2);
+         assertNull("E2 service should be unbound from e1 after dispose", e2);
+
+         // Create a second E2 component instance
+         System.out.println("Creating second E2 component instance.");
+         e2Inst = e2Factory.newInstance((Dictionary) null);
+         assertNotNull("No E2 instance (2)", e2Inst);
+
+         try {
+           Thread.sleep(1000);
+         } catch (InterruptedException ie) {}
+
+
+         // Check that the second E2 instance have been bound to e1 now.
+         e2 = getE2Method.invoke(e1, new Object[]{});
+         System.out.println("Second E2 service bound to e1: " +e2);
+         assertNotNull("E2 service should now be bound to e1", e2);
+
+         // Destroy the second E2 component instance
+         System.out.println("Disposing second E2 component instance.");
+         e2Inst.dispose();
+         e2Inst = null;
+
+         try {
+           Thread.sleep(1000);
+         } catch (InterruptedException ie) {}
+
+         // Check that the second E2 instance have been unbound from e1.
+         e2 = getE2Method.invoke(e1, new Object[]{});
+         System.out.println("E2 service bound to E1 after disposal (2): " +e2);
+         assertNull("E2 service bound to E1 after disposal (2).", e2);
+
+         // Cleanup
+         bc.ungetService(e2FactorySRs[0]);
+         bc.ungetService(e1SR);
+         buE.uninstall();
+      } catch (Exception e ) {
+        e.printStackTrace();
+        fail("Got unexpected exception: " +e);
+      }
+    }
+  }
+
 
 
 }
