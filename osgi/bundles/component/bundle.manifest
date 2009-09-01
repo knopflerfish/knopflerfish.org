@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Declarative-Services
 Bundle-SymbolicName: org.knopflerfish.bundle.component
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:component:2.0.0
+Bundle-Version: 2.0.1
 Bundle-Category: service
 Bundle-Description: Declarative Services
 Bundle-Vendor: Knopflerfish
