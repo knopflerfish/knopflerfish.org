@@ -1,0 +1,13 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: componentE_test
+Bundle-SymbolicName: org.knopflerfish.bundle.componentE_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for SCR, SF Bugs item 2556558.
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Import-Package: org.osgi.service.component,
+ org.osgi.framework
+Service-Component: service.xml
+
