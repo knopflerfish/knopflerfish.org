@@ -143,6 +143,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame162a());
     addTest(new Frame163a());
     addTest(new Frame164a());
+    addTest(new Frame165a());
     addTest(new Frame170a());
     addTest(new Frame175a());
     addTest(new Frame180a());
@@ -1404,7 +1405,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number of "
-                   +"elements.", 123, i);
+                   +"elements.", 124, i);
 
       //existing file, non-directory, ending with slash
       enume = bc.getBundle().getEntryPaths("/bundleA_test-1.0.0.jar/");
@@ -2894,9 +2895,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame161a extends FWTestCase {
     public void runTest() throws Throwable {
-      out.println("### framework test bundle :FRAME161A start");
-      boolean pass = true;
-
       String resourceName = "java/lang/Thread.class";
 
       URL url1 = bc.getBundle().getResource(resourceName);
@@ -2913,11 +2911,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       assertNotNull("bundleClassLoader.getResource(\""+resourceName+"\")",url2);
       assertEquals("Same URL returned from booth classloader and bundle",
                    url1,url2);
-      if (pass == true) {
-        out.println("### framework test bundle :FRAME161A:PASS");
-      } else {
-        fail("### framework test bundle :FRAME161A:FAIL");
-      }
     }
   }
 
@@ -3034,6 +3027,34 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       assertNotNull("url3 = new URL(baseURL, \""+path +"\")",url3);
       assertEquals("url2 and url3 shall be equal.", url2, url3);
       assertEquals("url2.getPath()", resPath, url2.getPath());
+    }
+
+  }
+
+  public final static String [] HELP_FRAME165A =  {
+    "bundle.getResource(\"/META-INF\") and "
+    +"bundle.getResource(\"/META-INF/\")"
+    +" i.e., asking for directory with or without trailing file separator."
+  };
+
+  class Frame165a extends FWTestCase {
+    public void runTest() throws Throwable {
+
+      final String res1 = "/META-INF";
+      final String res2 = res1 +"/";
+
+      URL url1 = bc.getBundle().getResource(res1);
+      URL url2 = bc.getBundle().getResource(res2);
+
+      System.out.println("URL from bundle.getResource(\"" +res1+"\") = "+url1);
+      System.out.println("URL from bundle.getResource(\"" +res2+"\") = "+url2);
+
+      assertNotNull("bundle.getResource(\"" +res1+"\")" , url1);
+      assertNotNull("bundle.getResource(\"" +res2+"\")" , url2);
+
+      assertEquals("Same URL returned from booth calls.",
+                   url1.toString() +"/",
+                   url2.toString());
     }
 
   }
