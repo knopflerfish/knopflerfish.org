@@ -607,6 +607,20 @@ public class Archive implements FileArchive {
         if (subJar != null) {
           if (subJar.isDirectory()) {
             ze = jar.getEntry(subJar.getName() + component);
+            if (null!=ze) {
+              InputStream is = jar.getInputStream(ze);
+              if (null!=is) {
+                return new InputFlow(is, ze.getSize());
+              } else {
+                // Workaround for directories given without trailing
+                // "/"; they will not yield an input-stream.
+                if (!component.endsWith("/")) {
+                  ZipEntry ze2 = jar.getEntry(subJar.getName() +component +"/");
+                  is = jar.getInputStream(ze2);
+                }
+                return new InputFlow(is, ze.getSize());
+              }
+            }
           } else {
             if (component.equals("")) {
               // Return a stream to the entire Jar.
@@ -630,16 +644,29 @@ public class Archive implements FileArchive {
             return new InputFlow(new FileInputStream(f), f.length() );
           } else {
             ze = jar.getEntry(component);
+            if (null!=ze) {
+              InputStream is = jar.getInputStream(ze);
+              if (null!=is) {
+                return new InputFlow(is, ze.getSize());
+              } else {
+                // Workaround for directories given without trailing
+                // "/"; they will not yield an input-stream.
+                if (!component.endsWith("/")) {
+                  ZipEntry ze2 = jar.getEntry(component +"/");
+                  is = jar.getInputStream(ze2);
+                }
+                return new InputFlow(is, ze.getSize());
+              }
+            }
           }
         }
-        return ze != null ? new InputFlow(jar.getInputStream(ze), ze.getSize()) : null;
       } else {
         File f = findFile(file, component);
         return f.exists() ? new InputFlow(new FileInputStream(f), f.length()) : null;
       }
     } catch (IOException ignore) {
-      return null;
     }
+    return null;
   }
 
 
