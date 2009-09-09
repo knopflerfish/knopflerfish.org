@@ -237,7 +237,7 @@ final public class BundleClassLoader extends ClassLoader {
    * @exception ClassNotFoundException if the class could not be found
    * @see java.lang.ClassLoader#loadClass
    */
-  protected synchronized Class loadClass(String name, boolean resolve)
+  protected Class loadClass(String name, boolean resolve)
     throws ClassNotFoundException
   {
     Class c = findLoadedClass(name);

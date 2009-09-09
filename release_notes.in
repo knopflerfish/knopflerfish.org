@@ -6,6 +6,12 @@ Release Notes Knopflerfish @VERSION@
   Here follows a breakdown of the most important changes since the 
   last release.
 
+=== Framework (Core) ===
+
+  Remove an unnecessary synchronized in BundleClassLoader that blocked
+  circular classloads. For this to work you also need a JVM that has
+  an unsynchronized classloader.
+
 
 ========================================================================
 
