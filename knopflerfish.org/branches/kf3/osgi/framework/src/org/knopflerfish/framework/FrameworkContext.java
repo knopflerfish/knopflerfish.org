@@ -141,7 +141,6 @@ public class FrameworkContext  {
    */
   StartLevelController startLevelController;
 
-
   /**
    * Factory for handling service-based URLs
    */
@@ -152,6 +151,16 @@ public class FrameworkContext  {
    */
   ServiceContentHandlerFactory   contentHandlerFactory;
 
+  /**
+   * Factory for handling service-based URLs
+   */
+  static ServiceURLStreamHandlerFactory systemUrlStreamHandlerFactory;
+
+  /**
+   * Factory for handling service-based URL contents
+   */
+  static ServiceContentHandlerFactory   systemContentHandlerFactory;
+
 
   /**
    * Cached value of
@@ -161,7 +170,11 @@ public class FrameworkContext  {
   private Set    eeCacheSet = new HashSet();
   private String eeCache = null;
 
+  final private int id;
+
   public FWProps props;
+
+  static int globalId = 1;
 
   /**
    * Contruct a framework context
@@ -175,6 +188,8 @@ public class FrameworkContext  {
       perm = new PermissionOps();
     }
     systemBundle = new SystemBundle(this);
+
+    id = globalId++;
 
     log("created");
   }
@@ -232,33 +247,35 @@ public class FrameworkContext  {
       }
     }
 
-    boolean createHandlers = null==urlStreamHandlerFactory;
-    if (createHandlers) {
+    if (null == urlStreamHandlerFactory) {
       // Set up URL handlers before creating the storage
       // implementation, with the exception of the bundle: URL
       // handler, since this requires an intialized framework to work
-      urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
-      contentHandlerFactory   = new ServiceContentHandlerFactory(this);
-    }
-
-    urlStreamHandlerFactory
-      .setURLStreamHandler(ReferenceURLStreamHandler.PROTOCOL,
-                           new ReferenceURLStreamHandler());
-
-    // Install newly created service based URL stream handler. This
-    // can be turned off if there is need
-    if(createHandlers && props.REGISTERSERVICEURLHANDLER) {
-      try {
-        URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
-
-        URLConnection.setContentHandlerFactory(contentHandlerFactory);
-      } catch (Throwable e) {
-        props.debug.printStackTrace
-          ("Cannot set global URL handlers, "
-           +"continuing without OSGi service URL handler (" +e +")", e);
+      if (props.REGISTERSERVICEURLHANDLER) {
+        // Check if we already have registered one
+        if (systemUrlStreamHandlerFactory != null) {
+          urlStreamHandlerFactory = systemUrlStreamHandlerFactory;
+          contentHandlerFactory   = systemContentHandlerFactory;
+          urlStreamHandlerFactory.addFramework(this);
+        } else {
+          urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
+          contentHandlerFactory   = new ServiceContentHandlerFactory(this);
+          try {
+            URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
+            URLConnection.setContentHandlerFactory(contentHandlerFactory);
+            systemUrlStreamHandlerFactory = urlStreamHandlerFactory;
+            systemContentHandlerFactory   = contentHandlerFactory;
+          } catch (Throwable e) {
+            props.debug.printStackTrace
+              ("Cannot set global URL handlers, "
+               +"continuing without OSGi service URL handler (" +e +")", e);
+          }
+        }
+      } else {
+        urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
+        contentHandlerFactory   = new ServiceContentHandlerFactory(this);
       }
     }
-
 
     try {
       Class storageImpl = Class.forName(props.whichStorageImpl);
@@ -294,10 +311,8 @@ public class FrameworkContext  {
                       new PackageAdminImpl(this),
                       null);
 
-    // ...and create the bundle URL handle, now that we have the set of bundles
-    urlStreamHandlerFactory
-      .setURLStreamHandler(BundleURLStreamHandler.PROTOCOL,
-                           new BundleURLStreamHandler(this));
+    // Add this framework to the bundle URL handle, now that we have the set of bundles
+    urlStreamHandlerFactory.addFramework(this);
 
     registerStartLevel();
 
@@ -354,6 +369,14 @@ public class FrameworkContext  {
 
     parentClassLoader = null;
     bootDelegationPatterns = null;
+  }
+
+
+  /**
+   *
+   */
+  int getId() {
+    return id;
   }
 
 
@@ -623,6 +646,7 @@ public class FrameworkContext  {
       props.debug.println("Framework instance " +hashCode() +": " +msg);
     }
   }
+
 
   void log(String msg, Throwable t)
   {

@@ -84,7 +84,11 @@ class BundleURLConnection extends URLConnection {
     long fi = -1;
     try {
       String s = url.getHost();
-      int i = s.indexOf('_');
+      int i = s.indexOf('!');
+      if (i >= 0) {
+        s = s.substring(0,i);
+      }
+      i = s.indexOf('_');
       if (i >= 0) {
         fi = Long.parseLong(s.substring(i+1));
         s = s.substring(0,i);
