@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
+import java.util.*;
 
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
@@ -55,155 +56,165 @@ public class URLStreamHandlerWrapper
   extends    URLStreamHandler 
   implements URLStreamHandlerSetter
 {
-
-  FrameworkContext          framework;
-  String                 protocol;
-  String                 filter;
+  ArrayList /* FrameworkContext */ framework = new ArrayList(2);
+  final String protocol;
+  final String filter;
+  final ServiceListener serviceListener;
   
+  // NYI! Fix synchronization
   private ServiceReference best;
+  private URLStreamHandlerService bestService;
+  private FrameworkContext currentFw;
 
-  URLStreamHandlerWrapper(FrameworkContext  fw,
-			  String     proto) {
-
-    this.framework = fw;
-    this.protocol  = proto;
-
-    filter = 
-      "(&" + 
-      "(" + Constants.OBJECTCLASS + "=" + 
+  URLStreamHandlerWrapper(final FrameworkContext  fw,
+			  final String proto)
+  {
+    protocol  = proto;
+    filter = "(&(" + Constants.OBJECTCLASS + "=" + 
       URLStreamHandlerService.class.getName() + ")" + 
       "(" + URLConstants.URL_HANDLER_PROTOCOL + "=" + protocol + 
-      ")" + 
-      ")";
+      "))";
 
-    ServiceListener serviceListener = 
-      new ServiceListener() {
+    serviceListener = new ServiceListener() {
         public void serviceChanged(ServiceEvent evt) {
           ServiceReference ref = 
             evt.getServiceReference();
-            
-          switch (evt.getType()) {
-          case ServiceEvent.MODIFIED: {
-            // fall through
-          } 
-          case ServiceEvent.REGISTERED: {
-            if (best == null) {
-              updateBest();
-              return ;
+          FrameworkContext fw = ((BundleImpl)ref.getBundle()).fwCtx;
+          if (fw == currentFw) {
+            switch (evt.getType()) {
+            case ServiceEvent.MODIFIED:
+              // fall through
+            case ServiceEvent.REGISTERED:
+              if (best != null && best.compareTo(ref) < 0) {
+                best = ref;
+                bestService = null;
+              }
+              break;
+            case ServiceEvent.MODIFIED_ENDMATCH:
+              // fall through
+            case ServiceEvent.UNREGISTERING:
+              if (best.equals(ref)) {
+                best = null;
+                bestService = null;
+              }
             }
-            if (compare(best, ref) > 0) {
-              best = ref;
-            }
-            
-          }; break;
-          case ServiceEvent.MODIFIED_ENDMATCH: {
-            // fall through
-          } 
-          case ServiceEvent.UNREGISTERING: {
-            if (best.equals(ref)) {
-              best = null;
-            }
-          }
           }
         }
       };
-    
+
+    framework.add(fw);
     try {
-      framework.systemBC.addServiceListener(serviceListener, filter);
-      
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Could not register service listener for url handler: " + e);
+      fw.systemBC.addServiceListener(serviceListener, filter);
+    } catch (InvalidSyntaxException e) {
+      throw new IllegalArgumentException("Protocol name contains illegal characters: " + proto);
     }
-    
-    if(framework.props.debug.url) {
-      framework.props.debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
+
+    if (fw.props.debug.url) {
+      fw.props.debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
     }
   }
 
-  private int compare(ServiceReference ref1, ServiceReference ref2) {
-    Object tmp1 = ref1.getProperty(Constants.SERVICE_RANKING);
-    Object tmp2 = ref2.getProperty(Constants.SERVICE_RANKING);
-    
-    int r1 = (tmp1 instanceof Integer) ? ((Integer)tmp1).intValue() : 0;
-    int r2 = (tmp2 instanceof Integer) ? ((Integer)tmp2).intValue() : 0;
 
-    if (r2 == r1) {
-      Long i1 = (Long)ref1.getProperty(Constants.SERVICE_ID);      
-      Long i2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
-      return i1.compareTo(i2);
-
-    } else {
-      return r2 -r1;
-    }
-  }
-
-  private void updateBest() {
+  /**
+   *
+   */
+  void addFramework(FrameworkContext fw) {
     try {
-      ServiceReference[] refs =
-        framework.systemBC.getServiceReferences(URLStreamHandlerService.class.getName(), 
-                                                filter);
-      if (refs != null) {
-        best = refs[0];
-      } 
-
-      for (int i = 1; i < refs.length; i++) {
-        if (compare(best, refs[i]) > 0) {
-          best = refs[i];
-        }
+      fw.systemBC.addServiceListener(serviceListener, filter);
+      framework.add(fw);
+      if (fw.props.debug.url) {
+        fw.props.debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
       }
-
-    } catch (Exception e) {
-      // this should not happen.
-      throw new IllegalArgumentException("Could not register url handler: " + e);
-    }
+    } catch (InvalidSyntaxException _no) { }
   }
 
 
+  /**
+   *
+   */
+  void removeFramework(FrameworkContext fw) {
+    framework.remove(fw);
+  }
 
+
+  /**
+   *
+   */
   private URLStreamHandlerService getService() {
-    URLStreamHandlerService obj;
-
-    try {
-      if (best == null) {
-        updateBest();
-      }
-
-      if (best == null) {
-        throw new IllegalStateException("null: Lost service for protocol="+ protocol);
-      }
-      obj = (URLStreamHandlerService)framework.systemBC.getService(best);
-
-      if (obj == null) {
-        throw new IllegalStateException("null: Lost service for protocol=" + protocol);
-      }
-      
-    } catch (Exception e) {
+    FrameworkContext fw;
+    if (framework.size() == 1) {
+      fw = (FrameworkContext)framework.get(0);
+    } else {
+      // Get current FrameworkContext
+      throw new RuntimeException("NYI - walk stack to get framework");
+    }
+    if (best == null) {
+      try {
+        ServiceReference[] refs =
+          fw.systemBC.getServiceReferences(URLStreamHandlerService.class.getName(), filter);
+        if (refs != null) {
+          // KF gives us highest ranked first.
+          best = refs[0];
+        }
+      } catch (InvalidSyntaxException _no) { }
+    }
+    if (best == null) {
+      throw new IllegalStateException("null: Lost service for protocol="+ protocol);
+    }
+    if (bestService == null) {
+      bestService = (URLStreamHandlerService)fw.systemBC.getService(best);
+    }
+    if (bestService == null) {
       throw new IllegalStateException("null: Lost service for protocol=" + protocol);
     }
-
-    return obj;
+    currentFw = fw;
+    return bestService;
   }
 
+
+  /**
+   *
+   */
   public boolean equals(URL u1, URL u2) {
     return getService().equals(u1, u2);
   }
 
+
+  /**
+   *
+   */
   protected int getDefaultPort() {
     return getService().getDefaultPort();
   }
 
+
+  /**
+   *
+   */
   protected InetAddress getHostAddress(URL u) {
     return getService().getHostAddress(u);
   }
 
+
+  /**
+   *
+   */
   protected int hashCode(URL u) {
     return getService().hashCode(u);
   }
 
+
+  /**
+   *
+   */
   protected boolean hostsEqual(URL u1, URL u2) {
     return getService().hostsEqual(u1, u2);
   }
 
+
+  /**
+   *
+   */
   protected URLConnection openConnection(URL u) throws IOException {
     try {
       return getService().openConnection(u);
@@ -212,10 +223,18 @@ public class URLStreamHandlerWrapper
     }
   }
 
+
+  /**
+   *
+   */
   protected  void parseURL(URL u, String spec, int start, int limit) {
     getService().parseURL(this, u, spec, start, limit);
   }
     
+
+  /**
+   *
+   */
   protected  boolean sameFile(URL u1, URL u2) {
     return getService().sameFile(u1, u2);
   }

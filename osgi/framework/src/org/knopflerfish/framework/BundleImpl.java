@@ -934,6 +934,7 @@ public class BundleImpl implements Bundle {
             try {
               archive.setStartLevel(-2); // Mark as uninstalled
             } catch (Exception e) {
+              // NYI! Generate FrameworkError if dir still exists!?
               fwCtx.props.debug.println("Failed to mark bundle " + id +
                                         " as uninstalled, " + bundleDir +
                                         " must be deleted manually: " + e);

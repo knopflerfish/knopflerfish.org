@@ -584,22 +584,6 @@ public class Util {
     return -(l + 1);  // key not found.
   }
 
-  static final Comparator strComp = new Comparator() {
-      /**
-       * String compare
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if objects are not a String objects.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        String a = (String)oa;
-        String b = (String)ob;
-        return a.compareTo(b);
-      }
-    };
 
   private static final byte encTab[] = {
     0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f,0x50,

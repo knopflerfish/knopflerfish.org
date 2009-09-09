@@ -64,6 +64,8 @@ class Services {
 
   /**
    * Mapping of classname to registered service.
+   * The List of registered service are order in with highest
+   * ranked service first.
    */
   private HashMap /* String->List(ServiceRegistration) */ classServices = new HashMap();
 
@@ -152,7 +154,8 @@ class Services {
           s = new ArrayList(1);
           classServices.put(classes[i], s);
         }
-        s.add(res);
+        int ip = Math.abs(Util.binarySearch(s, sComp, res) + 1);
+        s.add(ip, res);
       }
     }
     ServiceReference r = res.getReference();
@@ -162,6 +165,24 @@ class Services {
                      null);
     return res;
   }
+
+
+  /**
+   * Service ranking changed reorder registered services
+   * according to ranking.
+   *
+   * @param serviceRegistration The serviceRegistration object.
+   * @param rank New rank of object.
+   */
+  synchronized void updateServiceRegistrationOrder(ServiceRegistrationImpl sr,
+                                                   String[] classes) {
+    for (int i = 0; i < classes.length; i++) {
+      ArrayList s = (ArrayList) classServices.get(classes[i]);
+      s.remove(sr);
+      s.add(Math.abs(Util.binarySearch(s, sComp, sr) + 1), sr);
+    }
+  }
+
 
   /**
    * Checks that a given service object is an instance of the given
@@ -206,6 +227,23 @@ class Services {
 
 
   /**
+   * Get all service implementing a certain class.
+   * Only used internaly by framework.
+   *
+   * @param clazz The class name of requested service.
+   * @return A sorted list of {@link ServiceRegistrationImpl} objects
+   *         or null if no services is available.
+   */
+  synchronized ArrayList get(String clazz) {
+    ArrayList v = (ArrayList) classServices.get(clazz);
+    if (v != null) {
+      return (ArrayList)v.clone();
+    }
+    return null;
+  }
+
+
+  /**
    * Get a service implementing a certain class.
    *
    * @param bundle bundle requesting reference
@@ -216,19 +254,7 @@ class Services {
     try {
       ServiceReference [] srs = get(clazz, null, bundle);
       if (srs != null) {
-        ServiceReference lowestId = srs[0];
-        ServiceReference res = lowestId;
-        if (srs.length > 1) {
-          int rank_res = ranking(res);
-          for (int i = 1; i < srs.length; i++) {
-            int rank_s = ranking(srs[i]);
-            if (rank_s > rank_res) {
-              res = srs[i];
-              rank_res = rank_s;
-            }
-          }
-        }
-        return res;
+        return srs[0];
       }
     } catch (InvalidSyntaxException _never) { }
     return null;
@@ -292,7 +318,11 @@ class Services {
       } else {
         framework.hooks.filterServiceReferences(null, clazz, filter, true, res);
       }
-      return (ServiceReference [])res.toArray(new ServiceReference [res.size()]);
+      if (res.isEmpty()) {
+        return null;
+      } else {
+        return (ServiceReference [])res.toArray(new ServiceReference [res.size()]);
+      }
     }
   }
 
@@ -351,23 +381,22 @@ class Services {
     return res;
   }
 
-  //
-  // Private methods
-  //
 
-  /**
-   * Get service ranking from a service reference.
-   *
-   * @param s The service reference
-   * @return Ranking value of service, default value is zero
-   */
-  private int ranking(ServiceReference s) {
-    Object v = s.getProperty(Constants.SERVICE_RANKING);
-    if (v != null && v instanceof Integer) {
-      return ((Integer)v).intValue();
-    } else {
-      return 0;
-    }
-  }
+  static final Util.Comparator sComp = new Util.Comparator() {
+      /**
+       * Name compare two ServiceRegistrationImpl objects according
+       * to the ServiceReference compareTo.
+       *
+       * @param oa ServiceRegistrationImpl to compare.
+       * @param ob ServiceRegistrationImpl to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and postive if first object is larger then second object.
+       */
+      public int compare(Object oa, Object ob) {
+        ServiceRegistrationImpl a = (ServiceRegistrationImpl)oa;
+        ServiceRegistrationImpl b = (ServiceRegistrationImpl)ob;
+        return a.reference.compareTo(b.reference);
+      }
+    };
 
 }

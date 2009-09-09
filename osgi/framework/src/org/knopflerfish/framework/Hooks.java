@@ -46,17 +46,14 @@ import org.osgi.framework.hooks.service.*;
  */
 class Hooks {
 
-  final static String FIND_HOOK = FindHook.class.getName();
-  FrameworkContext context;
+  final private FrameworkContext fwCtx;
   ServiceTracker listenerHookTracker;
-  ServiceTracker findHookTracker;
-  ServiceTracker eventHookTracker;
 
   boolean bOpen;
 
 
-  Hooks(FrameworkContext context) {
-    this.context = context;
+  Hooks(FrameworkContext fwCtx) {
+    this.fwCtx = fwCtx;
   }
 
 
@@ -64,20 +61,20 @@ class Hooks {
    *
    */
   synchronized void open() {
-    if(context.props.debug.hooks) {
-      context.props.debug.println("opening hooks");
+    if(fwCtx.props.debug.hooks) {
+      fwCtx.props.debug.println("opening hooks");
     }
 
     listenerHookTracker = new ServiceTracker
-      (context.systemBC, 
+      (fwCtx.systemBC, 
        ListenerHook.class.getName(), 
        new ServiceTrackerCustomizer() {
          public Object addingService(ServiceReference reference) {           
-           ListenerHook lh = (ListenerHook)context.systemBC.getService(reference);
+           ListenerHook lh = (ListenerHook)fwCtx.systemBC.getService(reference);
            try {
              lh.added(getServiceCollection());
            } catch (Exception e) {
-             context.props.debug.printStackTrace("Failed to call listener hook  #" + reference.getProperty(Constants.SERVICE_ID), e);
+             fwCtx.props.debug.printStackTrace("Failed to call listener hook  #" + reference.getProperty(Constants.SERVICE_ID), e);
            }
            return lh;
          }
@@ -87,19 +84,13 @@ class Hooks {
          }
 
          public void removedService(ServiceReference reference, Object service) {
-           context.systemBC.ungetService(reference);
+           fwCtx.systemBC.ungetService(reference);
          }
 
        });
 
 
-
-    findHookTracker  = new ServiceTracker(context.systemBC, FindHook.class.getName(), null);
-    eventHookTracker = new ServiceTracker(context.systemBC, EventHook.class.getName(), null);
-
     listenerHookTracker.open();
-    findHookTracker.open();
-    eventHookTracker.open();
 
     bOpen = true;
   }
@@ -111,12 +102,6 @@ class Hooks {
   synchronized void close() {
     listenerHookTracker.close();
     listenerHookTracker = null;
-
-    findHookTracker.close();
-    findHookTracker = null;
-
-    eventHookTracker.close();
-    eventHookTracker = null;
 
     bOpen = false;
   }
@@ -138,18 +123,20 @@ class Hooks {
                                String filter,
                                boolean allServices,
                                Collection /*<ServiceReference>*/ refs) {
-    if(isOpen() && findHookTracker.size() > 0) {
+    ArrayList srl = fwCtx.services.get(FindHook.class.getName());
+    if (srl != null) {
       RemoveOnlyCollection filtered = new RemoveOnlyCollection(refs);
-      ServiceReference[] srl = findHookTracker.getServiceReferences();
 
-      Arrays.sort(srl);
-      for(int i = srl.length-1; i >= 0; i--) {
-        FindHook fh = (FindHook)findHookTracker.getService(srl[i]);      
-        try {
-          fh.find(bc, service, filter, allServices, filtered);
-        } catch (Exception e) {
-          context.props.debug.printStackTrace("Failed to call find hook  #" +
-                                              srl[i].getProperty(Constants.SERVICE_ID), e);
+      for (Iterator i = srl.iterator(); i.hasNext(); ) {
+        ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;
+        FindHook fh = (FindHook)sr.getService(fwCtx.systemBundle);
+        if (fh != null) {
+          try {
+            fh.find(bc, service, filter, allServices, filtered);
+          } catch (Exception e) {
+            fwCtx.props.debug.printStackTrace("Failed to call find hook  #" +
+                                              sr.getProperty(Constants.SERVICE_ID), e);
+          }
         }
       }
     }
@@ -161,23 +148,25 @@ class Hooks {
    */
   void filterServiceEventReceivers(final ServiceEvent evt, 
                                    final Collection /*<ServiceListenerEntry>*/ receivers) {
-    if(isOpen() && eventHookTracker.size() > 0) {
+    ArrayList srl = fwCtx.services.get(EventHook.class.getName());
+    if (srl != null) {
       HashSet ctxs = new HashSet();
       for (Iterator ir = receivers.iterator(); ir.hasNext(); ) {
         ctxs.add(((ServiceListenerEntry)ir.next()).getBundleContext());
       }
       int start_size = ctxs.size();
       RemoveOnlyCollection filtered = new RemoveOnlyCollection(ctxs);
-      ServiceReference[] srl        = eventHookTracker.getServiceReferences();    
     
-      Arrays.sort(srl);
-      for(int i = srl.length-1; i >= 0; i--) {
-        EventHook fh = (EventHook)eventHookTracker.getService(srl[i]);      
-        try {
-          fh.event(evt, filtered);
-        } catch (Exception e) {
-          context.props.debug.printStackTrace("Failed to call event hook  #" +
-                                              srl[i].getProperty(Constants.SERVICE_ID), e);
+      for (Iterator i = srl.iterator(); i.hasNext(); ) {
+        ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;
+        EventHook eh = (EventHook)sr.getService(fwCtx.systemBundle);
+        if (eh != null) {
+          try {
+            eh.event(evt, filtered);
+          } catch (Exception e) {
+            fwCtx.props.debug.printStackTrace("Failed to call event hook  #" +
+                                              sr.getProperty(Constants.SERVICE_ID), e);
+          }
         }
       }
       // NYI, refactor this for speed!?
@@ -197,7 +186,7 @@ class Hooks {
    */
   Collection getServiceCollection() {
     // TBD think about threads?!
-    return Collections.unmodifiableSet(context.listeners.serviceListeners.serviceSet);
+    return Collections.unmodifiableSet(fwCtx.listeners.serviceListeners.serviceSet);
   }
   
 
@@ -213,12 +202,12 @@ class Hooks {
     
     Set set = toImmutableSet(sle);
 
-    for(int i = 0; srl != null && i < srl.length; i++) {
+    for (int i = 0; srl != null && i < srl.length; i++) {
       ListenerHook lh = (ListenerHook)listenerHookTracker.getService(srl[i]);
       try {
         lh.added(set);
       } catch (Exception e) {
-        context.props.debug.printStackTrace("Failed to call listener hook #" + srl[i].getProperty(Constants.SERVICE_ID), e);
+        fwCtx.props.debug.printStackTrace("Failed to call listener hook #" + srl[i].getProperty(Constants.SERVICE_ID), e);
       }
 
     }
@@ -244,12 +233,12 @@ class Hooks {
     }
     ServiceReference[] srl = listenerHookTracker.getServiceReferences();    
     
-    for(int i = 0; srl != null && i < srl.length; i++) {
+    for (int i = 0; srl != null && i < srl.length; i++) {
       ListenerHook lh = (ListenerHook)listenerHookTracker.getService(srl[i]);
       try {
         lh.removed(set);
       } catch (Exception e) {
-        context.props.debug.printStackTrace("Failed to call listener hook #" +
+        fwCtx.props.debug.printStackTrace("Failed to call listener hook #" +
                                             srl[i].getProperty(Constants.SERVICE_ID), e);
       }
     }

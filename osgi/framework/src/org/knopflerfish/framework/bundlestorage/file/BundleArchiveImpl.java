@@ -75,7 +75,7 @@ class BundleArchiveImpl implements BundleArchive
 
   private BundleStorageImpl storage;
 
-  private ArrayList archives;
+  private ArrayList /* FileArchive */ archives;
 
   private int startLevel = -1;
 
@@ -318,7 +318,7 @@ class BundleArchiveImpl implements BundleArchive
     if (ix == 0) {
       return archive.getInputStream(component);
     } else {
-      return ((Archive)archives.get(ix - 1)).getInputStream(component);
+      return ((FileArchive)archives.get(ix - 1)).getInputStream(component);
     }
   }
 

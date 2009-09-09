@@ -142,10 +142,16 @@ public class ServiceRegistrationImpl implements ServiceRegistration
       synchronized (properties) {
         if (available) {
           // NYI! Optimize the MODIFIED_ENDMATCH code
+          Object old_rank = properties.get(Constants.SERVICE_RANKING);
           before = bundle.fwCtx.listeners.getMatchingServiceListeners(reference);
           String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
           Long sid = (Long)properties.get(Constants.SERVICE_ID);
           properties = new PropertiesDictionary(props, classes, sid);
+          Object new_rank = properties.get(Constants.SERVICE_RANKING);
+          if (old_rank != new_rank && new_rank instanceof Integer &&
+              !((Integer)new_rank).equals(old_rank)) {
+            bundle.fwCtx.services.updateServiceRegistrationOrder(this, classes);
+          }
         } else {
           throw new IllegalStateException("Service is unregistered");
         }

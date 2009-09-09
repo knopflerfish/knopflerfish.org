@@ -193,7 +193,7 @@ public class PackageAdminImpl implements PackageAdmin {
     boolean restart = false;
     if (bundles != null) {
       for (int i = 0; i < bundles.length; i++) {
-        if(bundles[i] == null) {
+        if (bundles[i] == null) {
           throw new NullPointerException("bundle[" + i + "] cannot be null");
         }
         if (((BundleImpl)bundles[i]).extensionNeedsRestart()) {
@@ -232,7 +232,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   void refreshPackages0(final Bundle[] bundles) {
-    if(framework.props.debug.packages) {
+    if (framework.props.debug.packages) {
       framework.props.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
 
@@ -305,7 +305,7 @@ public class PackageAdminImpl implements PackageAdmin {
         framework.listeners.frameworkEvent((FrameworkEvent)e);
       }
     }
-    if(framework.props.debug.packages) {
+    if (framework.props.debug.packages) {
       framework.props.debug.println("PackageAdminImpl.refreshPackages() "
                                     +"all affected bundles now in state INSTALLED");
     }
@@ -315,7 +315,7 @@ public class PackageAdminImpl implements PackageAdmin {
     framework.listeners
       .frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                          framework.systemBundle, null));
-    if(framework.props.debug.packages) {
+    if (framework.props.debug.packages) {
       framework.props.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
   }
