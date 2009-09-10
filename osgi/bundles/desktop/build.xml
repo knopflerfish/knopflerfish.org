@@ -10,7 +10,7 @@
   <property name = "bundle.build.doc"   value = "true"/>
 
   <property name="api.pattern"  value="org/knopflerfish/service/desktop/**,org/knopflerfish/service/**,org/knopflerfish/util/**,org/knopflerfish/shared/cm/**,org/osgi/service/event/**,org/osgi/service/prefs/**,org/osgi/service/log/**,org/osgi/service/cm/**"/> 
-  <property name="impl.pattern" value="org/knopflerfish/**"/> 
+  <property name="impl.pattern" value="org/knopflerfish/**,apple/**"/> 
 
   <property name="do.bundle.custom.pre" value="true"/>
 
