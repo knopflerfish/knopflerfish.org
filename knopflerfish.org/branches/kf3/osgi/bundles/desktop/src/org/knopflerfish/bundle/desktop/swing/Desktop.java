@@ -241,8 +241,6 @@ public class Desktop
   
   // Check that we are on Mac OS X.  This is crucial to loading and using the OSXAdapter class.
   public static boolean bMacOS = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
-
-  OSXAdapter osx;
   
   public Desktop() {
     theDesktop = this;
@@ -354,17 +352,13 @@ public class Desktop
     // quit and about events
     if(bMacOS) {
       try {
-        OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("macOSXHandleQuit", (Class[])null));
-        OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("macOSXHandleAbout", (Class[])null));
+        OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("stopFramework", (Class[])null));
+        OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("showVersion", (Class[])null));
       } catch (Exception e) {
         Activator.log.warn("Error while loading the OSXAdapter", e);
-        e.printStackTrace();
         bMacOS = false;
       }
     }
-
-
-
 
     contentPane = frame.getContentPane();
     contentPane.setLayout(new BorderLayout());
@@ -2693,13 +2687,5 @@ public class Desktop
     case BundleEvent.UPDATED:     return updateIcon;
     default:                      return null;
     }
-  }
-
-  public void macOSXHandleAbout() {
-    showVersion();
-  }
-
-  public void macOSXHandleQuit() {
-    stopFramework();
   }
 }
