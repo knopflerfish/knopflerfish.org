@@ -1,3 +1,5 @@
+com.apple.eawt
+com.apple.eio
 com.sun.java.swing.plaf.motif
 com.sun.java.swing.plaf.windows
 javax.accessibility
