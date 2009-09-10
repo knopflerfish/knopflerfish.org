@@ -2637,7 +2637,7 @@ public class Desktop
                                   null);
   }
 
-  void showVersion() {
+  public void showVersion() {
     BundleContext bc = Activator.getBC();
     String version = (String)bc.getBundle().getHeaders().get("Bundle-Version");
     String txt = Strings.fmt("str_abouttext",
