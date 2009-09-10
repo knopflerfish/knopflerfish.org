@@ -127,6 +127,8 @@ import javax.swing.event.ChangeListener;
 import java.util.prefs.Preferences;
 import javax.swing.ToolTipManager;
 
+import apple.dts.samplecode.osxadapter.OSXAdapter;
+
 import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
@@ -236,14 +238,13 @@ public class Desktop
   static Desktop theDesktop;
 
   Set sizesavers = new HashSet();
-  boolean bMacOS = false;
+  
+  // Check that we are on Mac OS X.  This is crucial to loading and using the OSXAdapter class.
+  public static boolean bMacOS = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
 
+  OSXAdapter osx;
+  
   public Desktop() {
-    try {
-      bMacOS = System.getProperty("mrj.version") != null;
-    } catch (Exception ignored) {
-    }
-
     theDesktop = this;
   }
 
@@ -266,8 +267,6 @@ public class Desktop
   Map menuMap    = new HashMap();
   Map detailMap  = new HashMap();
 
-  Object macApp;
-  Method macAppStop;
 
 
   public void start() {
@@ -352,17 +351,14 @@ public class Desktop
       });
 
     // If running on Mac OS, create eawt Application to catch Mac OS
-    // quit events
+    // quit and about events
     if(bMacOS) {
       try {
-        Class clazz
-          = Class.forName("org.knopflerfish.bundle.desktop.swing.MacApp");
-        Constructor cons = clazz.getConstructor(new Class[] { Desktop.class });
-        macAppStop = clazz.getMethod("stop", new Class[0]);
-
-        macApp = cons.newInstance(new Object[] { this });
+        OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("macOSXHandleQuit", (Class[])null));
+        OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("macOSXHandleAbout", (Class[])null));
       } catch (Exception e) {
-        Activator.log.warn("Failed to make MacApp", e);
+        Activator.log.warn("Error while loading the OSXAdapter", e);
+        e.printStackTrace();
         bMacOS = false;
       }
     }
@@ -2502,13 +2498,9 @@ public class Desktop
     }
 
     // If running on Mac OS, remove eawt Application handlers
-    if(bMacOS && null!=macApp && null!=macAppStop) {
-      try {
-        macAppStop.invoke(macApp, new Object[0]);
-      } catch (Exception e) {
-        Activator.log.warn("Failed to stop make MacApp", e);
-      }
-    }
+    // if(bMacOS) {
+      // Seems OSXAdapter doesn't need any cleaning up
+    // }
 
   }
 
@@ -2703,4 +2695,11 @@ public class Desktop
     }
   }
 
+  public void macOSXHandleAbout() {
+    showVersion();
+  }
+
+  public void macOSXHandleQuit() {
+    stopFramework();
+  }
 }
