@@ -12,14 +12,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Framework 4.1.10
 
-  The correction of SercviceReference.isAssignableTo(...) in 4.1.9
-  did not handle services registered by a bundle acsessing the serivce
-  package through Require-Bundle. This was fixed in 4.1.10.
-
-  This problem was reported the SourceForge bug tracker, item 2844362:
-  https://sourceforge.net/tracker/index.php?func=detail&aid=2844362&group_id=82798&atid=567241
-
-  Fixed an error in the implementation of SercviceReference.isAssignableTo(...). 
+  Fixed an error in the implementation of
+  SercviceReference.isAssignableTo(...). 
   The symptom of this problem where that service listeners was
   notified about services of types that where not compatible with the
   set of packages available to the bundle that has registered the
@@ -27,17 +21,30 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   tried to use the service.
 
   This problem was reported the SourceForge bug tracker, item 2833557:
-  https://sourceforge.net/tracker/index.php?func=detail&aid=2833557&group_id=82798&atid=567241
+  https://sourceforge.net/tracker/?func=detail&aid=2833557&group_id=82798&atid=567241
 
-  Added support for loading data on demand from bundles installed via a file
-  reference URLs when org.knopflerfish.framework.bundlestorage is set to memory.
-  This reduces memory usage and start-up time. Also fixed some bugs which
-  caused the framework to save files when we run in memory mode.
-  These changes was supplied by Dimitry Polivaev.
+  The first correction of SercviceReference.isAssignableTo(...) in 4.1.9
+  did not handle services registered by a bundle accessing the service
+  package through Require-Bundle. This was fixed in 4.1.10.
+
+  This problem was reported the SourceForge bug tracker, item 2844362:
+  https://sourceforge.net/tracker/?func=detail&aid=2844362&group_id=82798&atid=567241
+
+  Added support for loading data on demand from bundles installed via
+  a file reference URLs when org.knopflerfish.framework.bundlestorage
+  is set to memory.  This reduces memory usage and start-up time. Also
+  fixed some bugs which caused the framework to save files when we run
+  in memory mode.  These changes was supplied by Dimitry Polivaev.
 
   The framework event for packages refreshed now uses the system
   bundle as the bundle associated with the event (as mandated in the
   4.2 specification).
+
+  The Java package provided by Apple JREs for application integration
+  where not properly exported by the SystemBundle when running on Java
+  6, causing bad behavior in the desktop bundle. This problem was
+  reported in the SourceForge bug tracker. item 2851929:
+  https://sourceforge.net/tracker/?func=detail&aid=2851929&group_id=82798&atid=567241
 
 
 
@@ -68,11 +75,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   (https://forge.soa4d.org/).
 
 
+  User Admin 2.0.2
+
+  Eliminated a null pointer exception that could occur after
+  reloading the user database.
+
+
 
 === Misc (KF specific, start scripts, build system etc ===
 
 
-  Desktop Bundle 2.3.10
+  Desktop Bundle 2.3.11
 
   The number of log entries hold in memory by the log view is now
   limited. The default value is 342. It may be changed by setting the
@@ -92,10 +105,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   the desktop bundle is stopped.
 
   Added support for multi-byte characters in the console output
-  presentation.
-
-  These changes was proposed in the Sourceforge bug tracker, item 2817205:
+  presentation. This changes was proposed in the SourceForge bug
+  tracker, item 2817205:
   https://sourceforge.net/tracker/?func=detail&aid=2817205&group_id=82798&atid=567241
+
+  The Mac OS X integration has been rewritten using the Apple provided
+  OSXAdapter-class. Suggested in the SourceForge bug tracker. item 2851929:
+  https://sourceforge.net/tracker/?func=detail&aid=2851929&group_id=82798&atid=567241
 
 
   kXML Bundle 1.0.1
