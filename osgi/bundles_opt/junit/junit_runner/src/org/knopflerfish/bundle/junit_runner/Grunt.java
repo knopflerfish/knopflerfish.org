@@ -80,7 +80,6 @@ class Grunt  implements TestListener {
     }
   }
 
-	private BundleContext targetContext = null;
   public void doRun() throws BundleException {
     String tests = bc.getProperty("org.knopflerfish.junit_runner.tests");
     String outdir = bc.getProperty("org.knopflerfish.junit_runner.outdir");
@@ -196,7 +195,6 @@ class Grunt  implements TestListener {
           log("run test '" + ids[i] + "', out=" + outPath);
           pw = new PrintWriter(new FileOutputStream(outFile));
           TestSuite suite = ju.getTestSuite(ids[i], null);
-						targetContext = bc.getServiceReferences(null, "(service.pid=" +  suite.getName() + ")")[0].getBundle().getBundleContext();
           ju.runTest(pw, suite);
 
         } catch (Exception e) {
@@ -318,18 +316,7 @@ class Grunt  implements TestListener {
 
   // TestListener method
   public void startTest(Test test)
-  {
-	  try {
-	  java.lang.reflect.Method m = test.getClass().getMethod("setBundleContext",
-										   new Class[] { BundleContext.class });
-	  if(m != null) {
-
-		  m.invoke(test, new Object[] { targetContext });
-	  }
-	  } catch(Exception e) {
-		  e.printStackTrace();
-	  }
-	  
+  {	  
     log("Starting test " +test );
   }
   // TestListener method
