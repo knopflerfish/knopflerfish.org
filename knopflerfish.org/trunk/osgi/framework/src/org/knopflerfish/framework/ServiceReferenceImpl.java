@@ -365,7 +365,7 @@ public class ServiceReferenceImpl implements ServiceReference
           if (bb.getExport(name) != null) {
             // If bundle only exports package, then return true if
             // bundle is provider.
-            return pkgProvider.contains(bb);
+            return pkgProvider!=null ? pkgProvider.contains(bb) : true;
           } else {
             // If bundle doesn't import or export package, then return true and
             // assume that the bundle only uses reflection to access service.
