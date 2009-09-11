@@ -1,3 +1,249 @@
+2009-09-11 13:53:33 +0200 (Fri, 11 Sep 2009), revision 2956, ekolin
+Fix null pointer excpetion reported in SF bugs tracke, item 2556558.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+
+2009-09-11 11:37:32 +0200 (Fri, 11 Sep 2009), revision 2955, ekolin
+Preparing for 2.3.3 release
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-09-11 11:27:45 +0200 (Fri, 11 Sep 2009), revision 2954, ekolin
+Removed a null pointer exception that could occure after reloading
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/UserAdminImpl.java
+
+2009-09-11 11:14:55 +0200 (Fri, 11 Sep 2009), revision 2953, ekolin
+Version bump, for OSXAdapter.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+
+2009-09-11 01:26:28 +0200 (Fri, 11 Sep 2009), revision 2951, perg
+changed showVersion to public
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+
+2009-09-11 01:21:04 +0200 (Fri, 11 Sep 2009), revision 2949, perg
+refactored to use OSXAdapter.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/apple/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/apple/dts/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/apple/dts/samplecode/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/apple/dts/samplecode/osxadapter/
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/apple/dts/samplecode/osxadapter/OSXAdapter.java
+D   knopflerfish.org/trunk/osgi/bundles/desktop/src/com/
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+D   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/MacApp.java
+
+2009-09-10 15:07:25 +0200 (Thu, 10 Sep 2009), revision 2947, perg
+added some apple packages
+U   knopflerfish.org/trunk/osgi/framework/resources/packages1.6.txt
+
+2009-09-04 12:46:33 +0200 (Fri, 04 Sep 2009), revision 2942, ekolin
+Fix bundle.getResource(/META-INF)
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/osgi/init-tests.xargs.in
+
+2009-09-01 16:03:53 +0200 (Tue, 01 Sep 2009), revision 2940, ekolin
+Add property for controlling number of log entries that are held in memory by the log view in the desktop bundle. Show service reference details when a service refrence is set in a log entry.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/EventTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/DefaultSwingBundleDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LogDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/FilterLogTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/JLogEntryDetail.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/LogTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/Util.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-09-01 14:01:55 +0200 (Tue, 01 Sep 2009), revision 2939, ekolin
+Whitespace cleanup
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/LogReaderDispatcher.java
+
+2009-09-01 13:32:05 +0200 (Tue, 01 Sep 2009), revision 2938, ekolin
+The system bundle is now used as the source of a FrameworkEvent of type packages refreshed. The source is unspecified in the 4.0.1 but specifed as the SystemBUndle in 4.2.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PackageAdminImpl.java
+
+2009-09-01 10:58:30 +0200 (Tue, 01 Sep 2009), revision 2936, ekolin
+Fix SF Bugs item 2556558 and 2843399. SCR did not bind an optional, dynamic service that was not present at component initialization when the service actually become available.
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-09-01 10:57:09 +0200 (Tue, 01 Sep 2009), revision 2935, ekolin
+Fix SF Bugs item 2556558 and 2843399. SCR did not bind an optional, dynamic service that was not present at component initialization when the service actually become available.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+_U  knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/resources/
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/resources/service.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/bundle/componentE_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/bundle/componentE_test/ComponentE1Impl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/bundle/componentE_test/ComponentE2Impl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/service/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/service/componentE_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/service/componentE_test/ComponentE1.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org/knopflerfish/service/componentE_test/ComponentE2.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentE_test/src/org.knopflerfish.bundle.componentE_test/
+
+2009-08-31 14:38:09 +0200 (Mon, 31 Aug 2009), revision 2929, ekolin
+Correct error in implemtation of SerivceReference.isAssignableTo() when the service belongs to a package required by the service providing bundle. SF Bugs-tracker id 2844362.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-08-31 11:07:17 +0200 (Mon, 31 Aug 2009), revision 2924, ekolin
+Added ServiceListener test case where the service registrar bundle uses Require-Bundle to access the service package. See Bug-tracker item with id 2844362 on SourceFourge.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/ServiceListenerTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/bundle.manifest
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/bar/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/src/org/knopflerfish/bundle/bar/ActivatorSL4.java
+
+2009-08-31 10:27:11 +0200 (Mon, 31 Aug 2009), revision 2923, ekolin
+Added ServiceListener test case where the service consumer uses Require-Bundle to access the service package.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/build.xml
+_U  knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/resources/
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/ServiceListenerTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/bundle.manifest
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/foo/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/bundle/foo/Activator3.java
+D   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/src/org/knopflerfish/service/
+
+2009-08-26 18:56:21 +0200 (Wed, 26 Aug 2009), revision 2917, ekolin
+Fixed a remote framework related problem in the Desktop. Added missing implementation of some PackageAdmin methods in the PackageAdmin-service returned by the kSoap remote-framework bundle.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PackageManager.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/RemoteFWServer.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/client/PackageAdminImpl.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/client/RemoteFWClient.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-08-24 17:40:00 +0200 (Mon, 24 Aug 2009), revision 2914, ekolin
+Added regression test case for sf bug-tracker item with id 2833557 (ServiceReference.isAssginbleTo() after update of bundle).
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/build.xml
+_U  knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/resources/
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/ServiceListenerTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/Util.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/foo/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/bundle/foo/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/foo/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL1/src/org/knopflerfish/service/foo/FooService.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/bar/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL2/src/org/knopflerfish/bundle/bar/Activator.java
+
+2009-08-21 16:49:00 +0200 (Fri, 21 Aug 2009), revision 2911, ekolin
+Fixed a problem in the implenetation of ServiceReference.isAssignableTo(...). See sf bug-tracker item with id 2833557.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/ServiceListenerTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/servicetracker_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/servicetracker_test/src/org/knopflerfish/bundle/servicetracker_test/ServiceTrackerTestSuite.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+U   knopflerfish.org/trunk/osgi/props.xargs
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-08-20 12:02:48 +0200 (Thu, 20 Aug 2009), revision 2910, ekolin
+Add supporot for multi-byte characters in the console output presentation. See sf bug-tracker item with id 2817205.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/TextAreaOutputStream.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-08-20 11:07:22 +0200 (Thu, 20 Aug 2009), revision 2909, ekolin
+Add export of the package org.kxml2.kdom to the manifest of the kxml bundle. See sf bug-tracker item with id 2840884.
+U   knopflerfish.org/trunk/osgi/bundles_opt/kxml/bundle.manifest
+
+2009-08-20 10:00:24 +0200 (Thu, 20 Aug 2009), revision 2907, ekolin
+Trust the contentLength returned from an URLConnection if it is >0,
+otherwise read and buffer the data to measure the length.
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestDispatcherImpl.java
+
+2009-08-19 17:40:37 +0200 (Wed, 19 Aug 2009), revision 2906, ekolin
+Http 2.1.4: Support for the Http 1.1 features expect 100-continue and last modification time. Changes supplied by Sylvain MARIE on behalf of the DPWS Base Driver project (https://forge.soa4d.org).
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HeaderBase.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServer.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServiceImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpUtil.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Registrations.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestDispatcherImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestWrapper.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResourceRegistration.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResponseImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResponseWrapper.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ServletRegistration.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Transaction.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-08-17 16:30:16 +0200 (Mon, 17 Aug 2009), revision 2904, jan
+Fixed bugs and lazy loading of reference URLs in memory based bundlestorage. Submited by Dimitri Polivaev.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+A   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/FileArchive.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Framework.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/StartLevelImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Util.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/BundleArchiveImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/memory/Archive.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/memory/BundleArchiveImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-07-09 22:12:52 +0200 (Thu, 09 Jul 2009), revision 2873, ekolin
+Post 2.3.2 release update.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2009-07-09 21:14:48 +0200 (Thu, 09 Jul 2009), revision 2871, ekolin
+Remove obsolete osgi copyright file.
+D   knopflerfish.org/trunk/tools/jarunpacker/resources/osgi_copyright.txt
+
+2009-07-09 20:22:53 +0200 (Thu, 09 Jul 2009), revision 2870, ekolin
+Save some time when doing distrib builds.
+U   knopflerfish.org/trunk/build.xml
+
+2009-07-09 19:53:44 +0200 (Thu, 09 Jul 2009), revision 2868, ekolin
+Fix license page
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/htdocs/build.xml
+U   knopflerfish.org/trunk/htdocs/html_src/license.html
+
+2009-07-09 18:08:16 +0200 (Thu, 09 Jul 2009), revision 2865, ekolin
+Update changelog for the 2.3.2 release.
+U   knopflerfish.org/trunk/changelog.txt
+
 2009-07-09 17:54:03 +0200 (Thu, 09 Jul 2009), revision 2863, ekolin
 Clarify the requirement on openssl.
 U   knopflerfish.org/trunk/README.txt
