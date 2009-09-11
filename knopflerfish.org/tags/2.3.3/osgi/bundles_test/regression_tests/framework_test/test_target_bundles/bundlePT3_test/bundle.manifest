@@ -1,0 +1,12 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundlePT3_test
+Bundle-SymbolicName: PT3_test
+Bundle-Version: 1.0.0
+Bundle-Description: PT3 bundle
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundlePT3_test.BundleActivator
+Bundle-Category: test
+Import-Package: org.knopflerfish.service.bundleA_test;version="(0.5.2,1.0.0)",org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundlePT3_test:1.0.0:all

@@ -1,0 +1,7 @@
+Bundle-Name: bundleP4_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleP4_test is used
+  for conditional permission tests
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-Activator: org.knopflerfish.bundle.bundleP4_test.BundleActivator
+Bundle-Category: test

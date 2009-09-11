@@ -1,0 +1,12 @@
+Bundle-Name: bundleV_test
+Bundle-SymbolicName: bundleV_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleV_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleV_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleV_test
+Import-Package: org.knopflerfish.service.bundleV_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleV_test:1.0.0:all
