@@ -420,6 +420,9 @@ public class FWProps  {
       }
       setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
                   defaultExecutionEnvironment);
+    } else {
+      // Unknown, set minimum
+      setProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, "OSGi/Minimum-1.2");
     }
 
     // Various framework properties
