@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -271,6 +271,7 @@ public class Util {
 
     sb.append("<html>");
     sb.append(" Id: "       + b.getBundleId() + "<br>");
+    sb.append(" Name: "     + Util.getBundleName(b) + "<br>");
     sb.append(" State: "    + Util.stateName(b.getState()) + "<br>");
 
     StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
@@ -298,14 +299,14 @@ public class Util {
       if(icon != null) {
         return icon;
       }
-      
+
       URL appURL = null;
       String iconName = (String)b.getHeaders().get("Application-Icon");
       if(iconName == null) {
         iconName = "";
       }
       iconName = iconName.trim();
-      
+
       if(iconName != null && !"".equals(iconName)) {
         try {
           appURL = b.getResource(iconName);
@@ -313,7 +314,7 @@ public class Util {
           Activator.log.error("Failed to load icon", e);
         }
       }
-      
+
       try {
         if(Util.hasMainClass(b)) {
           icon = new BundleImageIcon(b,
@@ -462,7 +463,7 @@ public class Util {
       Set closure = new TreeSet(Util.bundleIdComparator);
 
       Collection importedPkgs = pm.getImportedPackages(target);
-      
+
       for(Iterator it = importedPkgs.iterator(); it.hasNext();) {
         ExportedPackage pkg = (ExportedPackage)it.next();
 
@@ -906,18 +907,18 @@ public class Util {
    */
   public static BundleContext getBundleContext(Bundle b) {
     Class clazz = b.getClass();
-    try {      
-      // getBundleContext() is an R4.1 method, but try to grab it 
-      // using reflection and punch a hole in the method modifiers. 
+    try {
+      // getBundleContext() is an R4.1 method, but try to grab it
+      // using reflection and punch a hole in the method modifiers.
       // Should work on recent KF and recent Felix.
       Method m =  clazz.getMethod("getBundleContext", new Class[] { });
-      
+
       m.setAccessible(true);
       return (BundleContext)m.invoke(b, new Object[] { });
     } catch (Exception e) {
       Activator.log.debug("Failed to call Bundle.getBundleContext()", e);
 
-      // Try some known private fields. 
+      // Try some known private fields.
       String[] fieldNames = new String[] {
         "bundleContext", // available in KF
         "context",       // available in Equinox and Concierge
@@ -925,7 +926,7 @@ public class Util {
       for(int i = 0; i < fieldNames.length; i++) {
         try {
           Activator.log.debug("Try field " + clazz.getName() + "." + fieldNames[i]);
-          
+
           Field field = clazz.getDeclaredField(fieldNames[i]);
           field.setAccessible(true);
           return (BundleContext)field.get(b);
@@ -946,7 +947,7 @@ public class Util {
     sb.append("from #" + sr.getBundle().getBundleId());
     sb.append(" " + Util.getBundleName(sr.getBundle()));
 
-    
+
 
     Bundle[] bl = sr.getUsingBundles();
     if(bl != null) {
@@ -983,10 +984,10 @@ public class Util {
   static public void setAntialias(Graphics g, boolean b) {
     Graphics2D g2 = (Graphics2D)g;
     if(b) {
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                           RenderingHints.VALUE_ANTIALIAS_ON);
     } else {
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                           RenderingHints.VALUE_ANTIALIAS_OFF);
     }
   }

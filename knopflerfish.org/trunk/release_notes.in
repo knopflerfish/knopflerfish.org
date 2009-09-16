@@ -8,6 +8,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Misc (KF specific, start scripts, build system etc ===
+
+
+  Desktop Bundle 2.3.12
+
+  The larg icon display now uses the system text highlight color as
+  background color for selected bundle. The tooltips in the large icon
+  displayer now includes the full bundle name.
+
+
 
 ========================================================================
 
