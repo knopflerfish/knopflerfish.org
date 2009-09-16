@@ -345,6 +345,13 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
           ois.close();
           if (obj instanceof Hashtable) {
             roles = (Hashtable) obj;
+            if (null!=roles) {
+              anyone = (RoleImpl) roles.get(Role.USER_ANYONE);
+              if (null==anyone) {
+                roles.put(Role.USER_ANYONE,
+                          anyone = new RoleImpl(Role.USER_ANYONE));
+              }
+            }
             if (Activator.log.doDebug()) Activator.log.debug("roles reverted");
           } else {
             Activator.log.error("ua_store corrupted");
