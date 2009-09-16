@@ -46,6 +46,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.SystemColor;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -129,7 +130,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     MouseListener contextMenuListener = null;
     JPopupMenu    contextPopupMenu;
 
-    Color       selColor = new Color(200, 200, 255);
+    Color       selColor = SystemColor.textHighlight;
 
     public JLargeIcons() {
       setLayout(new BorderLayout());

@@ -238,10 +238,10 @@ public class Desktop
   static Desktop theDesktop;
 
   Set sizesavers = new HashSet();
-  
+
   // Check that we are on Mac OS X.  This is crucial to loading and using the OSXAdapter class.
   public static boolean bMacOS = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
-  
+
   public Desktop() {
     theDesktop = this;
   }
