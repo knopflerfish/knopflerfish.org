@@ -4,30 +4,31 @@
 
   <!-- build properties -->
 
-  <property name="topdir"        location=".."/>
-  <property name="osgi.dir"      location="${topdir}"/>
-  <property name="ant.dir"       location="${topdir}/../ant"/>
+  <property name="topdir"       location=".."/>
+  <property name="osgi.dir"     location="${topdir}"/>
+  <property name="ant.dir"      location="${topdir}/../ant"/>
 
-  <property name="outdir"        location="${topdir}/out/${ant.project.name}"/>
-  <property name="classout"      location="${outdir}/classes"/>
-  <property name="docdir"        location="${ant.project.name}/apidoc"/>
+  <property name="root.out.dir" location="${topdir}/out"/>
+  <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
+  <property name="classout"     location="${outdir}/classes"/>
+  <property name="docdir"       location="${ant.project.name}/apidoc"/>
 
-  <property name="jarfile"       location="${topdir}/${ant.project.name}.jar"/>
+  <property name="jarfile"      location="${topdir}/${ant.project.name}.jar"/>
 
-  <property name = "javac.target"    value="1.1"/>
-  <property name = "javac.source"    value="1.2"/>
+  <property name="javac.target" value="1.1"/>
+  <property name="javac.source" value="1.2"/>
 
-  <property name="src.dir" location = "src"/>
+  <property name="src.dir" location="src"/>
 
-  <property name="printClasses" location = "true"/>
+  <property name="printClasses" location="true"/>
 
-  <path id = "compile.path">
+  <path id="compile.path">
    <pathelement location="${topdir}/framework/resources"/>
    <pathelement location="libs/asm-3.1.jar"/>
   </path>
 
   <!-- targets -->
-  <target name="all" depends="compile,jar">
+  <target name="all" depends="jar">
    <antcall target="list"/>
   </target>
 
@@ -147,8 +148,7 @@
  <target name="run">
   <java fork="true"
         jar="${outdir}/${ant.project.name}.jar"
->
-  </java>
+	/>
  </target>
 
  <target name="writerelease" if="version.isset">

@@ -11,9 +11,10 @@
   <property name="gosg.jars"       value="file:jars/"/>
 
   <!-- Properties controling javadoc generation -->
-  <property name="javadoc.out.dir" location="out/javadoc"/>
-  <property name="exported.file"   location="out/exported.txt"/>
-  <property name="sources.file"    location="out/sources.txt"/>
+  <property name="root.out.dir"    location="out"/>
+  <property name="javadoc.out.dir" location="${root.out.dir}/javadoc"/>
+  <property name="exported.file"   location="${root.out.dir}/exported.txt"/>
+  <property name="sources.file"    location="${root.out.dir}/sources.txt"/>
 
   <!-- The initial part of the URL to use for the default jars -->
   <!-- location in the remote xargs files.  -->
@@ -34,7 +35,7 @@
 
   <!-- targets -->
   <target name="init">
-    <mkdir dir="out"/>
+    <mkdir dir="${root.out.dir}"/>
     <available property="dir.bundles_opt.present"  file="bundles_opt"/>
     <available property="dir.bundles_test.present" file="bundles_test"/>
   </target>
@@ -89,6 +90,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
   </target>
 
@@ -99,6 +101,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${base.url}/${version}/osgi/jars/"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
   </target>
 
@@ -109,6 +112,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
 
     <antcall target="xargs_filter">
@@ -118,6 +122,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
 
     <antcall target="xargs_filter">
@@ -127,6 +132,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
   </target>
 
@@ -137,6 +143,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${test.jars.dir}"/>
       <param name="gosg.jars"     value="${test.gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
 
     <antcall target="xargs_filter">
@@ -147,6 +154,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${test.jars.dir}"/>
       <param name="gosg.jars"     value="${test.gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
 
     <antcall target="xargs_filter">
@@ -157,6 +165,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${test.jars.dir}"/>
       <param name="gosg.jars"     value="${test.gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
     <antcall target="xargs_filter">
       <param name="xargs.template.in"
@@ -166,6 +175,7 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${test.jars.dir}"/>
       <param name="gosg.jars"     value="${test.gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
   </target>
 
@@ -396,7 +406,7 @@
 	 description="removes all generated files"
 	 depends="init,clean_bundles_test">
   <delete file="framework.jar"/>
-  <delete dir="out"/>
+  <delete dir="${root.out.dir}"/>
   <delete dir="jars"/>
   <delete dir="${ant.dir}/classes"/>
   <delete file="minimal.xargs"/>
