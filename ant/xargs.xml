@@ -8,7 +8,7 @@
   <import file="${ant.dir}/bundletasks.xml"/>
 
   <!-- Use this target in KF 2 -->
-  <target name="xargs_build" depends="bundle_tasks">
+  <target name="xargs_build" depends="bundle_tasks,load_os_xargs">
     <property name="bundleVersionFilter" location="out/bundleVersions.props"/>
     <property name="xargs.jars.pattern"  value="**/*.jar"/>
     <property name="xargs.test.jars.patten" value=""/>
@@ -21,8 +21,7 @@
       </fileset>
     </bundle_locator>
 
-    <antcall target="load_os_xargs"/>
-    <!-- Set xargs.os.args if not set from template above -->
+    <!-- Set xargs.os.args if not set when callin load_os_xargs -->
     <property name="xargs.os.args" value=""/>
 
     <copy file="${xargs.template.in}"
@@ -48,7 +47,7 @@
   <!--   test_jars            Replacement value for $(TESTJARS)    -->
   <!--   xargs.os.template    File with replacement for $(OS_ARGS) -->
   <target name="xargs_filter"
-	  depends="bundle_tasks,check_openssl">
+	  depends="bundle_tasks,check_openssl,load_os_xargs">
     <property name="bundleVersionFilter"
               location="out/bundleVersionsXargs.props"/>
     <delete file="${bundleVersionFilter}"/>
@@ -69,8 +68,7 @@
       </fileset>
     </bundle_locator>
 
-    <antcall target="load_os_xargs"/>
-    <!-- Set xargs.os.args if not set from template above -->
+    <!-- Set xargs.os.args if not set by load_os_xargs -->
     <property name="xargs.os.args" value=""/>
 
     <condition property="do.cpa.test" value="" else="#">
