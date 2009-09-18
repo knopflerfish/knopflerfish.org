@@ -4,10 +4,10 @@
 
   <!-- build properties -->
 
-  <property name="topdir"   location="."/>
-  <property name="out"      location="${topdir}/out"/>
-  <property name="outdir"   location="${out}/${ant.project.name}"/>
-  <property name="classout" location="${outdir}/classes"/>
+  <property name="topdir"       location="."/>
+  <property name="root.out.dir" location="${topdir}/out"/>
+  <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
+  <property name="classout"     location="${outdir}/classes"/>
 
   <property name="src.dir" location = "src"/>
 
@@ -56,7 +56,6 @@
     
  <target name="clean" description="removes all generated files">
   <delete dir="${outdir}"/>
-  <delete dir="${out}"/>
  </target>
 
 </project>

@@ -142,8 +142,11 @@
   <!-- The deault resoruces directory to search.                       -->
   <property name="resources.dir"  location="resources"/>
 
+  <!-- The root directory to place all intermediate build producs in.  -->
+  <property name="root.out.dir"   location="${topdir}/out"/>
+  
   <!-- Directory to place all intermediate build products for this project. -->
-  <property name="outdir"   location="${topdir}/out/${ant.project.name}"/>
+  <property name="outdir"   location="${root.out.dir}/${ant.project.name}"/>
 
   <!-- The root of the default bundle repository. -->
   <property name="osgi.jars.dir" location="${osgi.dir}/jars"/>
@@ -156,7 +159,7 @@
   <property name="jardir"   location="${jars.dir}/${ant.project.name}"/>
 
   <!-- The root if the local bundle docs direcotry. -->
-  <property name="docs.dir" location="${topdir}/out/doc"/>
+  <property name="docs.dir" location="${root.out.dir}/doc"/>
 
   <!-- Directory to place generate bundle documentation in. -->
   <property name="outdocdir"   location="${docs.dir}/${ant.project.name}"/>
@@ -166,10 +169,10 @@
 	    location="${ant.dir}/html_template/bundledoc.html"/>
 
   <!-- Name of file to record the name of all exported package in. -->
-  <property name="exported.file" location="${topdir}/out/exported.txt"/>
+  <property name="exported.file" location="${root.out.dir}/exported.txt"/>
 
   <!-- Name of file to record the soruce tree roots in. -->
-  <property name="sources.file"  location="${topdir}/out/sources.txt"/>
+  <property name="sources.file"  location="${root.out.dir}/sources.txt"/>
 
   <!-- Where to store compiler output. -->
   <property name="classes.out.dir"     location="${outdir}/classes"/>
@@ -355,7 +358,7 @@
 
   <target name="compile" description="compiles all java sources"
 	  if="src.dir.exists">
-    <mkdir dir = "${classes.out.dir}"/>
+    <mkdir dir="${classes.out.dir}"/>
 
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
@@ -382,7 +385,7 @@
   <target name="compile_api"
 	  description="Compiles api java sources"
 	  if="do_compile_api">
-    <mkdir dir = "${classes.out.dir}"/>
+    <mkdir dir="${classes.out.dir}"/>
 
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
@@ -463,7 +466,7 @@
 
     <!-- Ensure that the compiler output dir exists (required since -->
     <!-- it is used as the "dir"-attribute in a <fileset>.    -->
-    <mkdir dir = "${classes.out.dir}"/>
+    <mkdir dir="${classes.out.dir}"/>
   </target>
 
 

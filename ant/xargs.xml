@@ -9,7 +9,9 @@
 
   <!-- Use this target in KF 2 -->
   <target name="xargs_build" depends="bundle_tasks,load_os_xargs">
-    <property name="bundleVersionFilter" location="out/bundleVersions.props"/>
+    <property name="root.out.dir" location="out"/>
+    <property name="bundleVersionFilter"
+	      location="${root.out.dir}/bundleVersions.props"/>
     <property name="xargs.jars.pattern"  value="**/*.jar"/>
     <property name="xargs.test.jars.patten" value=""/>
     <property name="xargs.jar_prefix" value="file:jars/"/>
@@ -48,8 +50,9 @@
   <!--   xargs.os.template    File with replacement for $(OS_ARGS) -->
   <target name="xargs_filter"
 	  depends="bundle_tasks,check_openssl,load_os_xargs">
+    <property name="root.out.dir" location="out"/>
     <property name="bundleVersionFilter"
-              location="out/bundleVersionsXargs.props"/>
+              location="${root.out.dir}/bundleVersionsXargs.props"/>
     <delete file="${bundleVersionFilter}"/>
     <delete file="${xargs.out.file}"/>
 

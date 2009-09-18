@@ -141,6 +141,7 @@
     <ant dir="${osgi.dir}/framework" inheritall="false">
       <property name="jarfile" location="${distrib.osgi.dir}/framework.jar"/>
       <property name="version" value="${version}"/>
+      <property name="root.out.dir" location="${distrib.out.dir}/tmp"/>
     </ant>
   </target>
 
@@ -154,6 +155,7 @@
       <property name="generate.javadoc.data" value="true"/>
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
+      <property name="root.out.dir"  location="${distrib.out.dir}/tmp"/>
     </ant>
   </target>
 
@@ -167,6 +169,7 @@
       <property name="generate.javadoc.data" value="true"/>
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
+      <property name="root.out.dir"  location="${distrib.out.dir}/tmp"/>
     </ant>
   </target>
 
@@ -177,6 +180,7 @@
       <property name="ant.dir"       location="${ant.dir}"/>
       <property name="osgi.jars.dir" location="${distrib.osgi.dir}/jars"/>
       <property name="jars.dir"      location="${distrib.osgi.dir}/test_jars"/>
+      <property name="root.out.dir"  location="${distrib.out.dir}/tmp"/>
     </ant>
   </target>
 
@@ -186,7 +190,9 @@
     <mkdir dir="${distrib.osgi.dir}"/>
 
     <ant dir="ant"                 target="all" />
-    <ant dir="${jarunpacker.dir}"  target="jar"/>
+    <ant dir="${jarunpacker.dir}"  target="jar">
+      <property name="root.out.dir"  location="${distrib.out.dir}/tmp"/>
+    </ant>
     <antcall target="distrib_build_framework"/>
     <antcall target="distrib_build_bundles"/>
     <antcall target="distrib_build_bundles_opt"/>
@@ -203,6 +209,7 @@
       <property name="gosg.jars"     value="file:jars/"/>
       <property name="base.url"      value="${base.url}"/>
       <property name="version"       value="${version}"/>
+      <property name="root.out.dir"  location="${distrib.out.dir}/tmp"/>
     </ant>
     <copy file="${osgi.dir}/props.xargs" todir="${distrib.osgi.dir}"/>
     <echo file="${distrib.osgi.dir}/props.xargs" append="true">
@@ -220,6 +227,7 @@
       <property name="ant.dir"         location="${ant.dir}"/>
       <property name="framework.dir"   location="${osgi.dir}/framework"/>
       <property name="osgi.dir"        location="${osgi.dir}"/>
+      <property name="root.out.dir"    location="${distrib.out.dir}/tmp"/>
     </ant>
   </target>
 
@@ -258,10 +266,12 @@
 
     <!-- Get documentation from the bundles -->
     <ant dir="${osgi.dir}/bundles"      target="bundle_doc">
-      <property name="docs.dir" location="${distrib.bundledoc.dir}"/>
+      <property name="docs.dir"     location="${distrib.bundledoc.dir}"/>
+      <property name="root.out.dir" location="${distrib.out.dir}/tmp"/>
     </ant>
     <ant dir="${osgi.dir}/bundles_opt"  target="bundle_doc">
-      <property name="docs.dir" location="${distrib.bundledoc.dir}"/>
+      <property name="docs.dir"     location="${distrib.bundledoc.dir}"/>
+      <property name="root.out.dir" location="${distrib.out.dir}/tmp"/>
     </ant>
 
     <!-- Add navigation and header pages from the templates -->
@@ -351,6 +361,7 @@
       <property name="test.jars.dir" location="${distrib.osgi.dir}/test_jars"/>
       <property name="xargs.out.dir" location="${distrib.osgi.dir}"/>
       <property name="run.test.dir"  location="${distrib.osgi.dir}"/>
+      <property name="root.out.dir"  location="${distrib.out.dir}/tmp"/>
     </ant>
   </target>
 
@@ -480,7 +491,7 @@
           <include name="osgi/bundles_test/regression_tests/framework_test/resources/subdir/**/*.class"/>
         </zipfileset>
 
-        <zipfileset dir="${jarunpacker.dir}/out/jarunpacker/classes">
+        <zipfileset dir="${distrib.out.dir}/tmp/jarunpacker/classes">
           <include name="**"/>
         </zipfileset>
 
