@@ -126,7 +126,6 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     MouseListener contextMenuListener = null;
     JPopupMenu    contextPopupMenu;
 
-    Color       selColor = SystemColor.textHighlight;
 
     public JLargeIcons() {
       setLayout(new BorderLayout());
@@ -135,7 +134,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       grid  = new GridLayout(0, 4);
       panel = new JPanel(grid);
 
-      panel.setBackground(getBackground());
+      panel.setBackground(SystemColor.text);
 
       contextPopupMenu = new JPopupMenu();
 
@@ -273,17 +272,31 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               setBackground(Color.yellow);
             }
 
-
-            public Color getBackground() {
-
+            public boolean isBackgroundSet() { return true;}
+            public Color   getBackground() {
               try {
                 boolean bSel = bundleSelModel != null
                   ? bundleSelModel.isSelected(b.getBundleId())
                   : false;
 
                 return bSel
-                        ? selColor
+                  ? SystemColor.textHighlight
                   : JLargeIcons.this.getBackground();
+              } catch (Exception e) {
+                return Color.black;
+              }
+            }
+
+            public boolean isForegroundSet() { return true; }
+            public Color   getForeground() {
+              try {
+                boolean bSel = bundleSelModel != null
+                  ? bundleSelModel.isSelected(b.getBundleId())
+                  : false;
+
+                return bSel
+                  ? SystemColor.textHighlightText
+                  : JLargeIcons.this.getForeground();
               } catch (Exception e) {
                 return Color.black;
               }
