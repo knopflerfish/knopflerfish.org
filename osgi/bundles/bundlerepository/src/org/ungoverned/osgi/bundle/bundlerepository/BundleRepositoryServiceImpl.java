@@ -73,6 +73,13 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
 
     public static final String EXTERN_REPOSITORY_TAG = "extern-repositories";
 
+    // These repositories are no more. Silently ignore them.
+    private String[] noMoreHosts = new String[]{
+        "domoware.isti.cnr.it",
+        "update.cainenable.org",
+    };
+
+
     public BundleRepositoryServiceImpl(BundleContext context)
     {
         m_context = context;
@@ -679,16 +686,18 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         InputStreamReader isr = null;
         BufferedReader br = null;
 
-        try
-        {
+        try {
             // Do it the manual way to have a chance to
             // set request properties as proxy auth (EW).
             URL url = new URL(urlStr);
 
             // This repository is no more. Silently ignore it.
-            if("update.cainenable.org".equals(url.getHost())) {
-              return;
+            for (int i=0; i<noMoreHosts.length; i++) {
+                if(noMoreHosts[i].equals(url.getHost())) {
+                    return;
+                }
             }
+
             URLConnection conn = url.openConnection();
 
             // Support for http proxy authentication
@@ -863,11 +872,11 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         }
         catch (MalformedURLException ex)
         {
-            System.err.println("Error: " + ex);
+            System.err.println("Error malformed URL, '" +urlStr +"': " + ex);
         }
         catch (IOException ex)
         {
-            System.err.println("Error: " + ex);
+            System.err.println("Error when conncting to '" +urlStr +"': " +ex);
         }
         finally
         {

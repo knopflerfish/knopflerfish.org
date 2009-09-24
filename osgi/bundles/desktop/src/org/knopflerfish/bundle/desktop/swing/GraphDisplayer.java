@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -121,8 +121,14 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       public void    removeBundleSelectionListener(BundleSelectionListener l) {
         bundleSelModel.removeBundleSelectionListener(l);
       }
+      public int getSelectionCount() {
+        return bundleSelModel.getSelectionCount();
+      }
+      public long getSelected() {
+        return bundleSelModel.getSelected();
+      }
     };
-  
+
   class JMainBundles extends JPanel {
     JPanel panel;
 
@@ -168,16 +174,16 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
         menu.add(item);
         menu.add(new JPopupMenu.Separator());
       }
-      
+
       {
         JMenuItem item = new JMenuItem("New window");
-        
+
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
               addWindow();
             }
           });
-        
+
         menu.add(item);
         menu.add(new JPopupMenu.Separator());
       }
@@ -202,7 +208,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
               for(Iterator it = views.iterator(); it.hasNext(); ) {
                 JSoftGraphBundle view = (JSoftGraphBundle)it.next();
                 view.startFade();
-              }            
+              }
             }
           }
         });
@@ -243,16 +249,16 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
       return menu;
     }
-    
+
     boolean isAutoRefresh() {
       return autorefreshCB == null || autorefreshCB.isSelected();
     }
 
     JMenuItem makeBundleItem(final Bundle bundle, String txt) {
-      JMenuItem item = new JMenuItem(txt != null 
-                                     ? txt 
+      JMenuItem item = new JMenuItem(txt != null
+                                     ? txt
                                      : (bundle.getBundleId() + " " + Util.getBundleName(bundle)));
-      
+
       item.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             for(Iterator it = views.iterator(); it.hasNext(); ) {
@@ -309,7 +315,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       comp.frame.getContentPane().add(comp);
       comp.frame.pack();
       comp.frame.setVisible(true);
-      
+
       windows.add(comp);
     }
 
@@ -340,7 +346,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
               view.setBundle(b);
             }
           }
-          
+
           void bundleSelected(Bundle b) {
             bsmProxy.clearSelection();
             bsmProxy.setSelected(b.getBundleId(), true);
@@ -351,7 +357,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
           }
         };
-      
+
       final JSoftGraphBundle view1 = new JServiceView(this, bc, b, bsmProxy) {
           public void nodeClicked(Node node, MouseEvent ev) {
             super.nodeClicked(node, ev);
@@ -388,7 +394,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
             }
           }
         };
-      // view2.setMaxDepth(9);      
+      // view2.setMaxDepth(9);
       view2.addMouseListener(contextMenuListener);
       view2.setPaintRootName(true);
 
@@ -399,7 +405,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       bundleHistory.setBackground(view1.bottomColor);
       JPanel vp = new JPanel();
       vp.setLayout(new BoxLayout(vp, BoxLayout.X_AXIS));
-      
+
       for(Iterator it = views.iterator(); it.hasNext(); ) {
         JSoftGraphBundle view = (JSoftGraphBundle)it.next();
         vp.add(view);
@@ -416,16 +422,16 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     Bundle bundle;
-    
+
     String makeTitle(Bundle b) {
-      return "OSGi Garden: " + 
-        (b != null 
+      return "OSGi Garden: " +
+        (b != null
          ? ("#" + b.getBundleId() + " " + Util.getBundleName(b))
          : "no bundle");
     }
 
     void setBundle(Bundle b) {
-      bundle = b;      
+      bundle = b;
       setTitle(b);
       for(Iterator it = views.iterator(); it.hasNext(); ) {
         JSoftGraphBundle view = (JSoftGraphBundle)it.next();
@@ -473,5 +479,3 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     }
   }
 }
-
-

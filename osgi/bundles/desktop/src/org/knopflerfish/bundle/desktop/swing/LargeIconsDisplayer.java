@@ -38,15 +38,19 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.SystemColor;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.SystemColor;
 import java.net.URL;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -57,21 +61,27 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.swing.AbstractButton;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
+
+import org.osgi.service.startlevel.StartLevel;
 
 
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
@@ -126,6 +136,59 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     MouseListener contextMenuListener = null;
     JPopupMenu    contextPopupMenu;
 
+    static final String moveSelUpAction    = "moveSelUpAction";
+    static final String moveSelDownAction  = "moveSelDownAction";
+    static final String moveSelLeftAction  = "moveSelLeftAction";
+    static final String moveSelRightAction = "moveSelRightAction";
+
+    class MoveSelectionAction extends AbstractAction
+    {
+      final int dir;
+
+      public MoveSelectionAction(int dir)
+      {
+        this.dir = dir;
+      }
+
+      public void actionPerformed(ActionEvent e)
+      {
+        final long bid = bundleSelModel.getSelected();
+        if (2>bundleSelModel.getSelectionCount()) {
+          JComponent cNew = null;
+          final int columns = grid.getColumns();
+          int delta = dir;
+          if (-2==delta) delta = -columns;
+          if (2==delta)  delta = columns;
+
+          if (0<=bid) {
+            final JComponent cOld = getBundleComponent(bid);
+            final Component[] comps = panel.getComponents();
+            for (int i=0; i<comps.length; i++) {
+              if (cOld==comps[i]) {
+                int iNew = i+delta;
+                if (iNew>=comps.length || iNew<0) iNew = i;
+                cNew = (JComponent) comps[iNew];
+              }
+            }
+          } else {
+            cNew = getBundleComponent(0L);
+          }
+          Long newBid = null;
+          if (null!=cNew) {
+            newBid = (Long)
+              cNew.getClientProperty(LargeIconsDisplayer.class.getName()
+                                     +".bid");
+          }
+          if (null!=newBid) {
+            if (0<=bid) { // De-select old.
+              bundleSelModel.setSelected(bid, false);
+            }
+            bundleSelModel.setSelected(newBid.longValue(), true);
+            compToShow = cNew;
+          }
+        }
+      }
+    }
 
     public JLargeIcons() {
       setLayout(new BorderLayout());
@@ -135,6 +198,32 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       panel = new JPanel(grid);
 
       panel.setBackground(SystemColor.text);
+      panel.setFocusable(true);
+
+      ActionMap actionMap = panel.getActionMap();
+      actionMap.put(moveSelUpAction,    new MoveSelectionAction(-2));
+      actionMap.put(moveSelDownAction,  new MoveSelectionAction(2));
+      actionMap.put(moveSelLeftAction,  new MoveSelectionAction(-1));
+      actionMap.put(moveSelRightAction, new MoveSelectionAction(1));
+
+      final InputMap inputMap
+        = panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+      final KeyStroke up = KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0);
+      inputMap.put(up, moveSelUpAction);
+      final KeyStroke kpUp = KeyStroke.getKeyStroke(KeyEvent.VK_KP_UP, 0);
+      inputMap.put(kpUp, moveSelUpAction);
+      final KeyStroke down = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0);
+      inputMap.put(down, moveSelDownAction);
+      final KeyStroke kpDown = KeyStroke.getKeyStroke(KeyEvent.VK_KP_DOWN, 0);
+      inputMap.put(kpDown, moveSelDownAction);
+      final KeyStroke left = KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0);
+      inputMap.put(left, moveSelLeftAction);
+      final KeyStroke kpLeft = KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT, 0);
+      inputMap.put(kpLeft, moveSelLeftAction);
+      final KeyStroke right = KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0);
+      inputMap.put(right, moveSelRightAction);
+      final KeyStroke kpRight = KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT, 0);
+      inputMap.put(kpRight, moveSelRightAction);
 
       contextPopupMenu = new JPopupMenu();
 
@@ -145,6 +234,17 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       item.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             iconComparator = nameComparator;
+            rebuildPanel();
+          }
+        });
+      contextPopupMenu.add(item);
+      group.add(item);
+
+      item = new JCheckBoxMenuItem("Sort by start-level");
+      item.setState(iconComparator == startLevelComparator);
+      item.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            iconComparator = startLevelComparator;
             rebuildPanel();
           }
         });
@@ -200,8 +300,28 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
             super.paintComponent(g);
             if(compToShow != null) {
               JComponent c = compToShow;
+              final Rectangle cBounds = c.getBounds();
+              scroll.getViewport().scrollRectToVisible(cBounds);
               compToShow = null;
-              scroll.getViewport().scrollRectToVisible(c.getBounds());
+              // Work around for viewPort.scrollRectToVisible
+              // which never scrolls to the right or up...
+              final Rectangle viewRect = scroll.getViewport().getViewRect();
+
+              if (!viewRect.contains(cBounds)) {
+                final Point p = new Point(viewRect.x, viewRect.y);
+
+                if (cBounds.x < viewRect.x) {
+                  p.x = cBounds.x;
+                } else if (cBounds.x+cBounds.width>viewRect.x+viewRect.width) {
+                  p.x = cBounds.x+cBounds.width - viewRect.width;
+                }
+                if (cBounds.y < viewRect.y) {
+                  p.y = cBounds.y;
+                } else if (cBounds.y+cBounds.height>viewRect.y+viewRect.height){
+                  p.y = cBounds.y+cBounds.height - viewRect.height;
+                }
+                scroll.getViewport().setViewPosition(p);
+              }
             }
           }
 
@@ -256,7 +376,10 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
             {
               addMouseListener(new MouseAdapter() {
                   public void mousePressed(MouseEvent ev) {
-                    if((ev.getModifiers() & InputEvent.CTRL_MASK) != 0) {
+                    final int mask
+                      = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+
+                    if((ev.getModifiers() & mask) != 0) {
                       bundleSelModel
                         .setSelected(bid, !bundleSelModel.isSelected(bid));
                     } else {
@@ -264,12 +387,15 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
                       bundleSelModel.setSelected(bid, true);
                     }
                     setBackground(getBackground());
+                    panel.requestFocus();
                   }
                 });
               addMouseListener(contextMenuListener);
               setBorder(null);
               setOpaque(true);
               setBackground(Color.yellow);
+              putClientProperty(LargeIconsDisplayer.class.getName()+".bid",
+                                new Long(bid));
             }
 
             public boolean isBackgroundSet() { return true;}
@@ -366,6 +492,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       revalidate();
+      panel.requestFocus();
       repaint();
     }
 
@@ -385,6 +512,10 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       bundleMap.remove(new Long(b.getBundleId()));
       icons.remove(b);
       rebuildPanel();
+    }
+
+    JComponent getBundleComponent(long bid) {
+      return (JComponent) bundleMap.get(new Long(bid));
     }
 
     JComponent getBundleComponent(Bundle b) {
@@ -434,6 +565,38 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
         return
           Util.getBundleName(b1).compareToIgnoreCase(Util.getBundleName(b2));
+      }
+    };
+
+  static Comparator startLevelComparator = new Comparator() {
+      public int compare(Object o1, Object o2) {
+        Bundle b1 =
+          Activator.getTargetBC().getBundle(((Long)o1).longValue());
+        Bundle b2 =
+          Activator.getTargetBC().getBundle(((Long)o2).longValue());
+
+        if(b1 == b2) {
+          return 0;
+        }
+        if(b1 == null) {
+          return -1;
+        }
+        if(b2 == null) {
+          return 1;
+        }
+        long bidDiff = b1.getBundleId() - b2.getBundleId();
+        int  bidRes = bidDiff < 0 ? -1 : (bidDiff==0 ? 0 : 1);
+
+        StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
+        if(sls != null) {
+          try {
+            int sl1 = sls.getBundleStartLevel(b1);
+            int sl2 = sls.getBundleStartLevel(b2);
+            return sl1==sl2 ? bidRes : sl1 - sl2;
+          } catch (IllegalArgumentException _e) {
+          }
+        }
+        return bidRes;
       }
     };
 }

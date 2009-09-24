@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: bundlerepository
 Bundle-SymbolicName: org.knopflerfish.bundle.bundlerepository
-Bundle-Version: 2.0.3
-Bundle-UUID: org.knopflerfish:bundlerepository:2.0.3
+Bundle-Version: 2.0.4
 Bundle-Category: service
 Bundle-Description: OBR bundle repository using the KF console and des
  ktop
