@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,20 +54,32 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
 
   }
 
-  public void    clearSelection() {
+  public void clearSelection() {
     selection.clear();
     fireChange(-1);
+  }
+
+  public int getSelectionCount()
+  {
+    return selection.size();
+  }
+
+  public long getSelected()
+  {
+    return selection.size()>0
+      ? ((Long) selection.iterator().next()).longValue()
+      : -1;
   }
 
   public boolean isSelected(long bid) {
     return selection.contains(new Long(bid));
   }
-  
+
   public void    setSelected(long bid, boolean bSelected) {
     if(bSelected) {
-      selection.add(new Long(bid)); 
+      selection.add(new Long(bid));
     } else {
-      selection.remove(new Long(bid)); 
+      selection.remove(new Long(bid));
     }
     fireChange(bid);
   }
@@ -77,7 +89,7 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
       listeners.add(l);
     }
   }
-  
+
   public void    removeBundleSelectionListener(BundleSelectionListener l) {
     synchronized(listeners) {
       listeners.remove(l);
@@ -101,11 +113,7 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
         }
       } finally {
         bInFireChange = false;
-      }      
+      }
     }
   }
 }
-
-
-
-
