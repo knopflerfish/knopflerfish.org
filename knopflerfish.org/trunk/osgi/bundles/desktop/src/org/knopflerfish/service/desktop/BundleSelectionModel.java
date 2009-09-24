@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,10 +48,26 @@ public interface BundleSelectionModel {
   public void    clearSelection();
 
   /**
+   * Get the number of selected bundles.
+   *
+   * @return Number of selected bundles.
+   */
+  public int getSelectionCount();
+
+  /**
+   * Get selected bundle. Return the bundle id of one of the selected
+   * bundles.
+   *
+   * @return The bundle ID of one of the selected bundles
+   * (arbitrary). If no selection this method returns -1.
+   */
+  public long getSelected();
+
+  /**
    * Get selection status of a bundle Id.
    *
    * @param bid Bundle Id to check.
-   * @return <tt>true</tt> if <tt>bid</tt> is selected by the 
+   * @return <tt>true</tt> if <tt>bid</tt> is selected by the
    *         model, <tt>false</tt> otherwise.
    */
   public boolean isSelected(long bid);
@@ -80,7 +96,3 @@ public interface BundleSelectionModel {
    */
   public void    removeBundleSelectionListener(BundleSelectionListener l);
 }
-
-
-
-

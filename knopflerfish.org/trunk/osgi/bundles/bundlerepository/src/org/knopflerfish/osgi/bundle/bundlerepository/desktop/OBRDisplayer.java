@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -211,10 +211,12 @@ public class OBRDisplayer
 
   public void valueChanged(final long bid) {
     super.valueChanged(bid);
-
+    // If unselection adn multiple selected bundles, choose another one.
+    long selectedBid = bundleSelModel.getSelectionCount()>1
+      ? bundleSelModel.getSelected() : bid;
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JOBRAdmin obrAdmin = (JOBRAdmin)(JComponent)it.next();
-      obrAdmin.valueChanged(bid);
+      obrAdmin.valueChanged(selectedBid);
     }
   }
 
@@ -512,9 +514,13 @@ public class OBRDisplayer
           Bundle b = bc.getBundle(bid);
           if(b != null) {
             OBRNode obrNode = getOBRNode(b);
-            if(obrNode != null && obrNode != brSelected) {
-              TreePath tp = new TreePath(obrNode.getPath());
-              showPath(tp, null);
+            if(obrNode != null) {
+              if (obrNode != brSelected) {
+                TreePath tp = new TreePath(obrNode.getPath());
+                showPath(tp, null);
+              }
+            } else {
+              setSelected(null);
             }
           }
         }
@@ -1098,8 +1104,10 @@ public class OBRDisplayer
   }
 
   void gotoBid(long bid) {
-    getBundleSelectionModel().clearSelection();
-    getBundleSelectionModel().setSelected(bid, true);
+    if (!getBundleSelectionModel().isSelected(bid)) {
+      getBundleSelectionModel().clearSelection();
+      getBundleSelectionModel().setSelected(bid, true);
+    }
   }
 
   /**

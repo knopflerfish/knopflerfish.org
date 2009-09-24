@@ -11,11 +11,29 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
-  Desktop Bundle 2.3.12
+  Desktop Bundle 2.3.13
 
-  The larg icon display now uses the system text highlight color as
+  The selection in the large icon displayer may now be changed using
+  the arrow-keys. Multiple selections using the mouse on the Mac now
+  uses the Command-key (was Control) as modifier.
+
+  Added a new sort order based on start level to the large icon
+  displayer.
+
+  The large icon display now uses the system text highlight color as
   background color for selected bundle. The tooltips in the large icon
   displayer now includes the full bundle name.
+
+
+  Bundlerepository 2.0.3
+
+  The bundle repository tab in the desktop listens to bundles
+  selections and when it received such event it cleared the current
+  selection and re-selected the bundle that the event was
+  for. Effectively stopping multi-selections of bundles. This
+  behaviour is now fixed, it will allways show one of the selected
+  bundles (currently no support for multiple bundles selections in
+  this view).
 
 
 
