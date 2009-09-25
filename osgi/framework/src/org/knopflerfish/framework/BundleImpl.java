@@ -1154,8 +1154,17 @@ public class BundleImpl implements Bundle {
             attachFragments();
             if (bpkgs.resolvePackages()) {
               try {
-                classLoader = new BundleClassLoader(bpkgs, archive, fragments,
-                                                    protectionDomain, secure);
+                try {
+                // TODO: Verify  
+                classLoader = (ClassLoader)AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                                                           public Object run() throws Exception {
+                                                                         return  new BundleClassLoader(bpkgs, archive, fragments,
+                                                                                                       protectionDomain, secure);
+                                                           }
+                                                           });
+              } catch (PrivilegedActionException pe) {
+                throw (BundleException)pe.getException();
+              }
                 resolveFailException = null;
                 state = RESOLVED;
                 if (fragments != null) {

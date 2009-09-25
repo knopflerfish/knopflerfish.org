@@ -34,6 +34,7 @@
 
 package org.knopflerfish.framework;
 
+import java.security.*;
 import java.util.Set;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -196,7 +197,12 @@ class Services {
   static boolean checkServiceClass(Object service, String cls)
   {
     final Class sc = service.getClass();
-    final ClassLoader scl = sc.getClassLoader();
+    // TODO: Verify
+    final ClassLoader scl = (ClassLoader)AccessController.doPrivileged(new PrivilegedAction() {
+                                               public Object run() {
+                                               return sc.getClassLoader();
+                                               }
+                                               });
     Class c = null;
     boolean ok = false;
     try {
