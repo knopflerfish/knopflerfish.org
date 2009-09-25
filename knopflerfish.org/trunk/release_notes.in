@@ -8,6 +8,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   last release.
 
 
+=== Framework (Core) ===
+
+  Framework 4.1.11
+
+  When using the default non-strict classloading the bundle
+  classloader now also skips instances of java.lang.reflect.Proxy on
+  the call stack.
+
+
+
 === Misc (KF specific, start scripts, build system etc ===
 
 

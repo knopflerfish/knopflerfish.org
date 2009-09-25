@@ -61,14 +61,17 @@ import org.osgi.framework.*;
  */
 final public class BundleClassLoader extends ClassLoader {
 
-  // If set to true, use strict rules for loading classes from the boot class loader.
-  // If false, accept class loading from the boot class path from classes themselves
-  // on the boot class, but which incorrectly assumes they may access all of the boot
-  // classes on any class loader (such as the bundle class loader).
-  // 
-  // Setting this to TRUE will, for example, result in broken serialization on the Sun JVM
-  // It's debatable what is the correct OSGi R4 behavior.
-  static boolean STRICTBOOTCLASSLOADING = 
+  // If set to true, use strict rules for loading classes from the
+  // boot class loader.  If false, accept class loading from the boot
+  // class path from classes themselves on the boot class, but which
+  // incorrectly assumes (from an OSGi point of view) that they may
+  // access all of the boot classes on any class loader (such as the
+  // bundle class loader).
+  //
+  // Setting this to TRUE will, for example, result in broken
+  // serialization on the Sun JVM. It's debatable what is the correct
+  // OSGi R4 behavior.
+  static boolean STRICTBOOTCLASSLOADING =
     Framework.TRUE.equals(Framework.getProperty("org.knopflerfish.framework.strictbootclassloading", Framework.FALSE));
 
 
@@ -120,13 +123,13 @@ final public class BundleClassLoader extends ClassLoader {
   private static Method      dexFileClassLoadClassMethod;
 
   // bDalvik will be set to true if we're running on the android
-  // dalvik VM. 
-  // package protected to enable other parts of framework to check 
+  // dalvik VM.
+  // package protected to enable other parts of framework to check
   // for dalvik VM
   static boolean bDalvik = false;
-  
+
   private Object dexFile = null;
-  
+
   static {
     try {
       Class dexFileClass;
@@ -135,16 +138,16 @@ final public class BundleClassLoader extends ClassLoader {
       } catch( Exception ex ) {
         dexFileClass = Class.forName("dalvik.system.DexFile");
       }
-      
-      dexFileClassCons = 
+
+      dexFileClassCons =
         dexFileClass.getConstructor( new Class[] { File.class });
-      
-      dexFileClassLoadClassMethod = 
-        dexFileClass.getMethod("loadClass", 
-                               new Class[] { String.class, 
-                                             ClassLoader.class 
+
+      dexFileClassLoadClassMethod =
+        dexFileClass.getMethod("loadClass",
+                               new Class[] { String.class,
+                                             ClassLoader.class
                                });
-      
+
       bDalvik = true;
       if(Debug.classLoader) {
 	  Debug.println("running on dalvik VM");
@@ -156,7 +159,7 @@ final public class BundleClassLoader extends ClassLoader {
   }
 
 
-  // oota add for debug 
+  // oota add for debug
   private static void dprintln( String msg ) {
     if(true) {
       Debug.println(msg);
@@ -316,7 +319,7 @@ final public class BundleClassLoader extends ClassLoader {
       pkg = null;
     }
     Class res = (Class)secure.callSearchFor(this, name, pkg, path + ".class",
-					    classSearch, true, this, null);
+                                            classSearch, true, this, null);
     if (res != null) {
       return res;
     }
@@ -324,9 +327,10 @@ final public class BundleClassLoader extends ClassLoader {
     if(!STRICTBOOTCLASSLOADING) {
       if(isBootClassContext(name)) {
         if(debug) {
-          Debug.println(this + " trying parent loader for class=" + name + ", since it was loaded on the system loader itself");
+          Debug.println(this +" trying parent loader for class=" +name
+                        +", since it was loaded on the system loader itself");
         }
-	res = parent.loadClass(name);
+        res = parent.loadClass(name);
         if(res != null) {
           if(debug) {
             Debug.println(this + " loaded " + name + " from " + parent);
@@ -388,31 +392,44 @@ final public class BundleClassLoader extends ClassLoader {
       return super.getClassContext();
     }
   }
-    
+
   static protected SecurityManagerExposer smex = new SecurityManagerExposer();
-  
+
   /**
-   * Check if the current call is made from a class loaded on the 
+   * @return <code>true</code> if the given class is not loaded by a
+   * bundle class loader, <code>false</false> otherwise.
+   */
+  private boolean isNonBundleClass(Class cls)
+  {
+    return (this.getClass().getClassLoader() != cls.getClassLoader())
+      && !ClassLoader.class.isAssignableFrom(cls)
+      && !Class.class.equals(cls)
+      && !Proxy.class.equals(cls);
+  }
+
+  /**
+   * Check if the current call is made from a class loaded on the
    * boot class path (or rather, on a class loaded from something else
    * than a bundle class loader)
+   * @param name The name of the class to load.
    */
-  public boolean isBootClassContext(String msg) {
+  public boolean isBootClassContext(String name) {
     Class[] classStack = smex.getClassContext();
 
     for (int i = 1; i < classStack.length; i++) {
-      if ((this.getClass().getClassLoader() != classStack[i].getClassLoader())
-          && !ClassLoader.class.isAssignableFrom(classStack[i])
-          && !Class.class.equals(classStack[i])) {
-        
+      final Class currentCls = classStack[i];
+      if (isNonBundleClass(currentCls)) {
+        final ClassLoader currentCL = currentCls.getClassLoader();
+
         // If any of the classloaders for the caller's class is
         // a BundleClassLoader, we're not in a VM class context
-        for (ClassLoader cl = classStack[i].getClassLoader(); 
-             cl != null; cl = cl.getClass().getClassLoader()) {
+        for (ClassLoader cl = currentCL;  cl != null;
+             cl = cl.getClass().getClassLoader()) {
           if (BundleClassLoader.class.isInstance(cl)) {
             return false;
           }
         }
-        return true;
+        return !Bundle.class.isInstance(classStack[i-1]);
       }
     }
     return false;
@@ -977,7 +994,7 @@ final public class BundleClassLoader extends ClassLoader {
 		      throw new IOException("Failed to load dex class '" + name + "', " + e);
 		  }
 	      }
-              
+
               if(c == null) {
                 if (cl.protectionDomain == null) {
                   // Kaffe can't handle null protectiondomain
@@ -995,27 +1012,27 @@ final public class BundleClassLoader extends ClassLoader {
       }
     };
 
-  
+
     /**
      * Load a class using the Dalvik DexFile API.
      * <p>
      * This relies in the bundle having a "classes.dex"
      * in its root
      * <p>
-     * 
+     *
      * To create such a bundle, do
      * <ol>
      *  <li><code>dx --dex --output=classes.dex bundle.jar</code>
      *  <li><code>aapt add bundle.jar classes.dex</code>
      * </ol>
      */
-    private Class getDexFileClass(String name) 
+    private Class getDexFileClass(String name)
 	throws Exception {
-	
+
 	if (debug) {
 	    Debug.println("loading dex class " + name);
 	}
-	
+
 	if (dexFile == null) {
 	    File f  = new File(archive.getJarLocation());
 	    dexFile = dexFileClassCons.newInstance(new Object[] { f });
@@ -1023,7 +1040,7 @@ final public class BundleClassLoader extends ClassLoader {
 		Debug.println("created DexFile from " + f);
 	    }
 	}
-    
+
 	String path = name.replace('.','/');
 
 	return (Class)dexFileClassLoadClassMethod
@@ -1032,7 +1049,7 @@ final public class BundleClassLoader extends ClassLoader {
 
 
 
-  
+
   /**
    *  Search action for resource searching
    */
