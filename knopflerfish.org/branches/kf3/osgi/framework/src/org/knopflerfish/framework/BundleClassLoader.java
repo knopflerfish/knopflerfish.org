@@ -241,7 +241,8 @@ final public class BundleClassLoader
     if(!bpkgs.bundle.fwCtx.props.STRICTBOOTCLASSLOADING) {
       if(isBootClassContext(name)) {
         if(debug.classLoader) {
-          debug.println(this + " trying parent loader for class=" + name + ", since it was loaded on the system loader itself");
+          debug.println(this + " trying parent loader for class=" +name
+                        +", since it was loaded on the system loader itself");
         }
         res = parent.loadClass(name);
         if(res != null) {
@@ -309,27 +310,40 @@ final public class BundleClassLoader
   static protected SecurityManagerExposer smex = new SecurityManagerExposer();
 
   /**
+   * @return <code>true</code> if the given class is not loaded by a
+   * bundle class loader, <code>false</false> otherwise.
+   */
+  private boolean isNonBundleClass(Class cls)
+  {
+    return (this.getClass().getClassLoader() != cls.getClassLoader())
+      && !ClassLoader.class.isAssignableFrom(cls)
+      && !Class.class.equals(cls)
+      && !Proxy.class.equals(cls);
+  }
+
+  /**
    * Check if the current call is made from a class loaded on the
    * boot class path (or rather, on a class loaded from something else
    * than a bundle class loader)
+   * @param name The name of the class to load.
    */
-  public boolean isBootClassContext(String msg) {
+  public boolean isBootClassContext(String name) {
     Class[] classStack = smex.getClassContext();
 
     for (int i = 1; i < classStack.length; i++) {
-      if ((this.getClass().getClassLoader() != classStack[i].getClassLoader())
-          && !ClassLoader.class.isAssignableFrom(classStack[i])
-          && !Class.class.equals(classStack[i])) {
+      final Class currentCls = classStack[i];
+      if (isNonBundleClass(currentCls)) {
+        final ClassLoader currentCL = currentCls.getClassLoader();
 
         // If any of the classloaders for the caller's class is
         // a BundleClassLoader, we're not in a VM class context
-        for (ClassLoader cl = classStack[i].getClassLoader();
-             cl != null; cl = cl.getClass().getClassLoader()) {
+        for (ClassLoader cl = currentCL;  cl != null;
+             cl = cl.getClass().getClassLoader()) {
           if (BundleClassLoader.class.isInstance(cl)) {
             return false;
           }
         }
-        return true;
+        return !Bundle.class.isInstance(classStack[i-1]);
       }
     }
     return false;
