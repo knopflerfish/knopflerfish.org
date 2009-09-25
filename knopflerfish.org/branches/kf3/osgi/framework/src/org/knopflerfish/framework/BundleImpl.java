@@ -945,18 +945,21 @@ public class BundleImpl implements Bundle {
       }
 
       // id, location and headers survives after uninstall.
-      state = UNINSTALLED;
+      // TODO: UNRESOLVED must be sent out during installed state
+      // This needs to be reviewed. See OSGi bug #1374
+      state = INSTALLED; 
       modified();
 
       // Broadcast events
       if (wasResolved) {
         savedEvent.add(new BundleEvent(BundleEvent.UNRESOLVED, this));
-        
       }
-      savedEvent.add(new BundleEvent(BundleEvent.UNINSTALLED, this));
       for (Iterator i = savedEvent.iterator(); i.hasNext();) {
-        fwCtx.listeners.bundleChanged((BundleEvent)i.next());
+          fwCtx.listeners.bundleChanged((BundleEvent)i.next());
       }
+      state = UNINSTALLED;  
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.UNINSTALLED, this));
+
       break;
     }
   }
