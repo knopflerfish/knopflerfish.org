@@ -49,6 +49,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 import org.osgi.framework.*;
 
