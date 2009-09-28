@@ -194,15 +194,10 @@ class Services {
    * @throws IllegalArgumentException if the given class is not an
    *            instance of the given class name.
    */
-  static boolean checkServiceClass(Object service, String cls)
+  boolean checkServiceClass(Object service, String cls)
   {
     final Class sc = service.getClass();
-    // TODO: Verify
-    final ClassLoader scl = (ClassLoader)AccessController.doPrivileged(new PrivilegedAction() {
-                                               public Object run() {
-                                               return sc.getClassLoader();
-                                               }
-                                               });
+    final ClassLoader scl = secure.getClassLoaderOf(sc);
     Class c = null;
     boolean ok = false;
     try {

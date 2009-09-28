@@ -236,7 +236,7 @@ public class ServiceReferenceImpl implements ServiceReference
             final Class sc = s.getClass();
             for (int i = 0; i < classes.length; i++) {
               final String cls = classes[i];
-              if (!Services.checkServiceClass(s, cls)) {
+              if (!registration.bundle.fwCtx.services.checkServiceClass(s, cls)) {
                 bundle.fwCtx.listeners.frameworkError
                   (registration.bundle,
                    new ServiceException("ServiceFactory produced an object " +

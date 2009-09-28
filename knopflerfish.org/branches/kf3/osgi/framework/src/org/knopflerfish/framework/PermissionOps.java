@@ -209,6 +209,12 @@ class PermissionOps {
                           final String name) {
     return cl.findLibrary0(name);
   }
+  
+  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs, final BundleArchive archive, final ArrayList fragments,
+                                   final ProtectionDomain protectionDomain) throws BundleException {
+    return new BundleClassLoader(bpkgs, archive, fragments,
+                                  protectionDomain, this);
+  }
 
   //
   // BundleImpl Secure operations
@@ -260,6 +266,8 @@ class PermissionOps {
     return b.findEntries0(path, filePattern, recurse);
   }
 
+
+  
   //
   // Bundles Secure operation
   //
@@ -332,7 +340,15 @@ class PermissionOps {
   URL getBundleURL(FrameworkContext fwCtx, String s) throws MalformedURLException {
     return new URL(null, s, fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
   }
-
+  
+  //
+  // Privileged system calls
+  //
+  
+  ClassLoader getClassLoaderOf(final Class c) {
+    return c.getClassLoader();
+  }
+  
   //
   // Cleaning
   //

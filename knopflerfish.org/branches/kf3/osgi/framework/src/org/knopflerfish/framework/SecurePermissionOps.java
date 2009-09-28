@@ -473,7 +473,20 @@ class SecurePermissionOps extends PermissionOps {
       });
   }
 
-
+  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs, final BundleArchive archive, final ArrayList fragments,
+                                   final ProtectionDomain protectionDomain) throws BundleException {
+    try {
+      return (BundleClassLoader)AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                                                        public Object run() throws Exception {
+                                                        return  new BundleClassLoader(bpkgs, archive, fragments,
+                                                                                      protectionDomain, SecurePermissionOps.this);
+                                                        }
+                                                        });
+    } catch (PrivilegedActionException pe) {
+      throw (BundleException)pe.getException();
+    }    
+  }
+  
   //
   // BundleImpl secure operations
   //
@@ -580,7 +593,7 @@ class SecurePermissionOps extends PermissionOps {
           }
         });
   }
-
+  
   //
   // Bundles Secure operation
   //
@@ -711,6 +724,17 @@ class SecurePermissionOps extends PermissionOps {
     }
   }
 
+  //
+  // Privileged system calls
+  //
+  
+  ClassLoader getClassLoaderOf(final Class c) {
+    return (ClassLoader)AccessController.doPrivileged(new PrivilegedAction() {
+                                                                       public Object run() {
+                                                                       return c.getClassLoader();
+                                                                       }
+                                                                       });
+  }
 
   //
   // Cleaning
