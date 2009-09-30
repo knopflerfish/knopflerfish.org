@@ -46,6 +46,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   this view).
 
 
+  axis-osgi 0.1.0.1
+
+  All classes refrenced from jars inside this bundle are now imported
+  using resolution=optional for those that should not be needed. Added
+  explicit export and import of the org.xml.transform packages to
+  avoid a linkage error on the method 
+  "org.apache.axis.SOAPPart.setContent(Ljavax/xml/transform/Source;)V"
+
+
 
 ========================================================================
 
