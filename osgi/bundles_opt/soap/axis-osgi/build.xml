@@ -17,11 +17,6 @@
   <property name = "bundle.build.impl" value="false"/>
   <property name = "bundle.build.doc"  value="true"/>
 
-  <!-- Don't complain about the follwoing intentionally missing imports.  -->
-  <!-- I.e., Packages referenced from unused classes in the embedded jars.-->
-  <property name="bundle.stdimports"
-	    value="java.,com.sun.jimi.core,com.sun.net.ssl,com.sun.net.ssl.internal.ssl,javax.activation,javax.imageio,javax.imageio.metadata,javax.imageio.stream,javax.jms,javax.mail,javax.mail.internet,javax.naming,javax.naming.spi,javax.net,javax.net.ssl,javax.rmi,javax.swing,javax.swing.border,javax.swing.event,javax.swing.plaf.basic,javax.swing.table,javax.swing.text,javax.xml.parsers,junit.framework,org.omg.CORBA,org.omg.CosNaming,org.w3c.dom,org.xml.sax,org.xml.sax.ext,org.xml.sax.helpers,sun.awt.image.codec,sun.security.provider,test.wsdl.import2.types"/>
-
   <path id="bundle.compile.path">
    <pathelement location="jsdk_api-N.N.N.jar"/>
    <pathelement location="http_api-N.N.N.jar"/>
