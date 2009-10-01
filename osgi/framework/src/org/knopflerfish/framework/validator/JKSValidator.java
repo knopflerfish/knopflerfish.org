@@ -127,73 +127,21 @@ public class JKSValidator implements Validator {
 
 
   /**
-   * Check that certificates are valid:
-   * 
-   */
-  public Certificate [] checkCertificates(Certificate [] certs) {
-    List failed = new ArrayList();
-    for (Iterator i = getCertificateChains(certs, failed).iterator(); i.hasNext();) {
-      CertPath c = (CertPath)i.next();
-      try {
-        CertPathValidator cpv = getCertPathValidator(certAlgorithm);
-        CertPathParameters params = getCertPathParameters(keystore, certAlgorithm);
-        cpv.validate(c, params);
-      } catch (GeneralSecurityException gse) {
-        // NYI! Log this?
-        failed.addAll(c.getCertificates());
-      }
-    }
-    return (Certificate [])failed.toArray(new Certificate[failed.size()]);
-  }
-
-
-  /**
-   * Take an array of certificates and arrange them as a list
-   * of CertPath objects.
+   * Check if a certificate chain is to be trusted.
    *
+   * @return true, if validator trusts certificate chain, otherwise false.
    */
-  private List getCertificateChains(Certificate [] c, List failed) {
-    ArrayList res = new ArrayList();
-    ArrayList chain = new ArrayList();
-    String certPathType = null;
-    boolean foundAnchor = false;
-    int i = 0;
-    while (i < c.length) {
-      if (certPathType == null) {
-        certPathType = c[i].getType();
-      } else if (certPathType != c[i].getType()) {
-        // Broken chain, we fail everything after this
-        break;
-      }
-      if (certPathType == CERT_TYPE_X509) {
-        X509Certificate cert = (X509Certificate) c[i];
-        // TBD, can we use == and do we need to check uniqID?
-        if (cert.getIssuerX500Principal().equals(cert.getSubjectX500Principal())) {
-          foundAnchor = true;
-        }
-      } else {
-        // Unsupported type
-        failed.add(c[i++]);
-        continue;
-      }
-      chain.add(c[i++]);
-      if (foundAnchor) {
-        try {
-          res.add(getCertificateFactory(certPathType).generateCertPath(chain));
-        } catch (GeneralSecurityException gse) {
-          failed.addAll(chain);
-        }
-        chain.clear();
-        foundAnchor = false;
-      }
+  public boolean validateCertificateChain(List /* X509Certificate */ chain) {
+    try {
+      CertPath c = getCertificateFactory(CERT_TYPE_X509).generateCertPath(chain);
+      CertPathValidator cpv = getCertPathValidator(certAlgorithm);
+      CertPathParameters params = getCertPathParameters(keystore, certAlgorithm);
+      cpv.validate(c, params);
+    } catch (GeneralSecurityException gse) {
+      // NYI! Log this?
+      return false;
     }
-    // Add remaining certs as failed
-    failed.addAll(chain);
-    while (i < c.length) {
-      failed.add(c[i++]);
-    }
-
-    return res;
+    return true;
   }
 
 

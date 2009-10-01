@@ -36,7 +36,9 @@ package org.knopflerfish.framework.bundlestorage.file;
 
 import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
+import org.knopflerfish.framework.bundlestorage.Util;
 import java.io.*;
+import java.security.GeneralSecurityException;
 import java.security.cert.Certificate;
 import java.util.*;
 import java.net.URL;
@@ -81,6 +83,11 @@ class BundleArchiveImpl implements BundleArchive
 
   private long lastModified = 0;
 
+  private ArrayList /* List(X509Certificate) */ trustedCerts = null;
+
+  private ArrayList /* List(X509Certificate) */ untrustedCerts = null;
+
+  private boolean checkCerts = true;
 
   /**
    * Construct new bundle archive.
@@ -153,6 +160,7 @@ class BundleArchiveImpl implements BundleArchive
     storage       = bundleStorage;
     archive       = new Archive(storage, bundleDir, rev, location, id);
   }
+
 
   /**
    * Construct new bundle archive in an existing bundle archive.
@@ -361,18 +369,50 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
+   * Return certificates for signed bundle, otherwise null.
+   *
+   * @return An array of certificates or null.
    */
-  public Certificate [] getCertificates() {
-    return archive.getCertificates();
+  public ArrayList getCertificateChains(boolean onlyTrusted) {
+    if (checkCerts) {
+      Certificate [] c = archive.getCertificates();
+      checkCerts = false;
+      if (c != null) {
+        ArrayList failed = new ArrayList();
+        untrustedCerts = Util.getCertificateChains(c, failed);
+        if (!failed.isEmpty()) {
+          // NYI, log Bundle archive has invalid certificates
+          untrustedCerts = null;
+        }
+      }
+    }
+    ArrayList res = trustedCerts;
+    if (!onlyTrusted && untrustedCerts != null) {
+      if (res == null) {
+        res = untrustedCerts;
+      } else {
+        res = new ArrayList(trustedCerts.size() + untrustedCerts.size());
+        res.addAll(trustedCerts);
+        res.addAll(untrustedCerts);
+      }        
+    }
+    return res;
   }
 
 
   /**
-   * Invalidate certificates associated with with bundle archive.
+   * Mark certificate chain as trusted.
    *
    */
-  public void invalidateCertificates() {
-    archive.invalidateCertificates();
+  public void trustCertificateChain(List trustedChain) {
+    if (trustedCerts == null) {
+      trustedCerts = new ArrayList(untrustedCerts.size());
+    }
+    trustedCerts.add(trustedChain);
+    untrustedCerts.remove(trustedChain);
+    if (untrustedCerts.isEmpty()) {
+      untrustedCerts = null;
+    }
   }
 
 

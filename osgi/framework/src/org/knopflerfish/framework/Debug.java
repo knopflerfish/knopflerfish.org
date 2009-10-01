@@ -47,6 +47,12 @@ public class Debug {
 
   FWProps props;
 
+  /**
+   * Thread local storage to prevent recursive debug message
+   * in permission checks
+   */
+  private ThreadLocal insideDebug;
+
 
   /**
    * Report whenever the bundle classloader does something.
@@ -129,32 +135,91 @@ public class Debug {
    */
   boolean use_do_privilege;
 
-
   /**
    * Report hooks handling
    */
   boolean hooks;
 
+  /**
+   * Report permission handling
+   */
+  public boolean permissions;
+
+  /**
+   * Report certificate matching
+   */
+  public boolean certificates;
+
+
   public Debug(FWProps props) {
     this.props = props;
-    classLoader = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.classloader"));
-    errors = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.errors"));
-    packages = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.packages"));
-    startlevel = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.startlevel"));
-    url = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.url"));
-    service_reference = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.service_reference"));
-    bundle_resource = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.bundle_resource"));
-    bundle_context = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.bundle_context"));
-    patch = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.patch"));
-    automanifest = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.automanifest"));
-    use_do_privilege
-      = System.getSecurityManager() != null
-      && "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","true"));
-    lazyActivation = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.lazy_activation"));
-    framework = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.framework"));
-    hooks = "true".equalsIgnoreCase(props.getProperty("org.knopflerfish.framework.debug.hooks"));
+    classLoader =
+      props.getProperty("org.knopflerfish.framework.debug.classloader", false);
+    errors =
+      props.getProperty("org.knopflerfish.framework.debug.errors", false);
+    packages =
+      props.getProperty("org.knopflerfish.framework.debug.packages", false);
+    startlevel =
+      props.getProperty("org.knopflerfish.framework.debug.startlevel", false);
+    url =
+      props.getProperty("org.knopflerfish.framework.debug.url", false);
+    service_reference =
+      props.getProperty("org.knopflerfish.framework.debug.service_reference", false);
+    bundle_resource =
+      props.getProperty("org.knopflerfish.framework.debug.bundle_resource", false);
+    bundle_context =
+      props.getProperty("org.knopflerfish.framework.debug.bundle_context", false);
+    patch =
+      props.getProperty("org.knopflerfish.framework.debug.patch", false);
+    automanifest =
+      props.getProperty("org.knopflerfish.framework.debug.automanifest", false);
+    lazyActivation =
+      props.getProperty("org.knopflerfish.framework.debug.lazy_activation", false);
+    framework =
+      props.getProperty("org.knopflerfish.framework.debug.framework", false);
+    hooks =
+      props.getProperty("org.knopflerfish.framework.debug.hooks", false);
+    permissions =
+      props.getProperty("org.knopflerfish.framework.debug.permissions", false);;
+    certificates =
+      props.getProperty("org.knopflerfish.framework.debug.certificates", false);
   }
 
+
+  /**
+   * Check if we should use doPriviledged
+   */
+  private boolean useDoPrivileged() {
+    if (System.getSecurityManager() != null) {
+      if (insideDebug == null) {
+        insideDebug = new ThreadLocal() {
+            protected synchronized Object initialValue() {
+              return new Boolean(false);
+            }
+          };
+      }
+      return true;
+    }
+    return false;
+  }
+
+
+  /**
+   * Are we already inside a debug print?
+   */
+  private void inside(boolean b) {
+    insideDebug.set(new Boolean(b));
+  }
+
+  
+  /**
+   * Are we already inside a debug print?
+   */
+  private boolean isInside() {
+    return ((Boolean) (insideDebug.get())).booleanValue();
+  }
+
+  
   /**
    * The actual println implementation.
    *
@@ -169,8 +234,8 @@ public class Debug {
    *
    * @param str the message to print.
    */
-  void println(final String str) {
-    if(use_do_privilege) {
+  public void println(final String str) {
+    if(useDoPrivileged()) {
       // The call to this method can be made from a the framework on
       // behalf of a bundle that have no permissions at all assinged
       // to it.
@@ -178,12 +243,16 @@ public class Debug {
       // Use doPrivileged() here to protect the Framework from
       // PrintStream implementations that does not wrapp calls needing
       // premissions in their own doPrivileged().
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            println0(str);
-            return null;
-          }
-        });
+      if (!isInside()) {
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              inside(true);
+              println0(str);
+              inside(false);
+              return null;
+            }
+          });
+      }
     } else {
       println0(str);
     }
@@ -213,8 +282,8 @@ public class Debug {
    * @param str the message to print.
    * @param t   the throwable to print a stack trace for.
    */
-  void printStackTrace(final String str, final Throwable t) {
-    if(use_do_privilege) {
+  public void printStackTrace(final String str, final Throwable t) {
+    if(useDoPrivileged()) {
       // The call to this method can be made from a the framework on
       // behalf of a bundle that have no permissions at all assinged
       // to it.
@@ -222,12 +291,16 @@ public class Debug {
       // Use doPrivileged() here to protect the Framework from
       // PrintStream implementations that does not wrapp calls needing
       // premissions in their own doPrivileged().
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            printStackTrace0(str,t);
-            return null;
-          }
-        });
+      if (!isInside()) {
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              inside(true);
+              printStackTrace0(str,t);
+              inside(false);
+              return null;
+            }
+          });
+      }
     } else {
       printStackTrace0(str,t);
     }

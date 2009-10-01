@@ -36,13 +36,9 @@ package org.knopflerfish.framework.validator;
 
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Validator;
-import java.io.*;
 import java.security.cert.*;
-import java.security.GeneralSecurityException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.util.*;
-import javax.security.auth.x500.X500Principal;
+
 
 
 /**
@@ -53,13 +49,7 @@ import javax.security.auth.x500.X500Principal;
 public class SelfSignedValidator implements Validator {
 
   /**
-   * X509 certificate type string.
-   */
-  final private static String CERT_TYPE_X509 = "X.509";
-
-
-  /**
-   * Create a JKS based validator.
+   * Create a SelfSignedCertificate validator.
    *
    * @param fw FrameworkContext used to get configuration properties.
    */
@@ -68,59 +58,21 @@ public class SelfSignedValidator implements Validator {
 
 
   /**
-   * Check that certificates are valid:
-   * 
+   * Check if a certificate chain is to be trusted. We expect the input
+   * to be a correc chain.
+   *
+   * @return true, if validator trusts certificate chain, otherwise false.
    */
-  public Certificate [] checkCertificates(Certificate [] certs) {
-    ArrayList failed = new ArrayList();
-    ArrayList chain = new ArrayList();
+  public boolean validateCertificateChain(List /* X509Certificate */ chain) {
     String certPathType = null;
-    boolean chainEnd = false;
-    X500Principal prevIssuer = null;
-    int i = 0;
-    while (i < certs.length) {
-      if (certPathType == null) {
-        certPathType = certs[i].getType();
-      } else if (certPathType != certs[i].getType()) {
-        // Broken chain, we fail everything after this
-        break;
+    try {
+      for (Iterator i = chain.iterator(); i.hasNext(); ) {
+        ((X509Certificate)i.next()).checkValidity();
       }
-      if (certPathType == CERT_TYPE_X509) {
-        X509Certificate cert = (X509Certificate) certs[i];
-        X500Principal issuer = cert.getIssuerX500Principal();
-        X500Principal subject = cert.getSubjectX500Principal();
-        // TBD, can we use == and do we need to check uniqID?
-        if (prevIssuer != null && !prevIssuer.equals(subject)) {
-          // Broken chain, we fail everything after this
-          break;
-        }
-        // TBD, should we test date and other attributes?
-        if (subject.equals(issuer)) {
-          chainEnd = true;
-          prevIssuer = null;
-        } else {
-          prevIssuer = issuer;
-        }
-      } else {
-        // Unsupported type
-        failed.add(certs[i++]);
-        continue;
-      }
-      if (chainEnd) {
-        chain.clear();
-        chainEnd = false;
-        i++;
-      } else {
-        chain.add(certs[i++]);
-      }
+    } catch (CertificateException _) {
+      return false;
     }
-    // Add remaining certs as failed
-    failed.addAll(chain);
-    while (i < certs.length) {
-      failed.add(certs[i++]);
-    }
-
-    return (Certificate [])failed.toArray(new Certificate[failed.size()]);
+    return true;
   }
 
 }

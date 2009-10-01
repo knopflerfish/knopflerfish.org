@@ -260,7 +260,7 @@ class ExportPkg {
   /**
    * Check if we have export permissions.
    *
-   * @return trList of bundles importering, null export is not active.
+   * @return true if we have export permission
    */
   boolean checkPermission() {
     return hasPermission;
@@ -270,7 +270,6 @@ class ExportPkg {
   /**
    * Check if we have export permissions.
    *
-   * @return trList of bundles importering, null export is not active.
    */
   void setPermission(boolean perm) {
     hasPermission = perm;

@@ -34,20 +34,20 @@
 
 package org.knopflerfish.framework;
 
-import java.security.cert.Certificate;
+import java.util.List;
 
 /**
- * Interface for managing certificate validators.
+ * Interface for certificate validators.
  *
  * @author Jan Stein
  */
 public interface Validator {
 
   /**
-   * Check if certificates are valid.
+   * Check if a certificate chain is to be trusted.
    *
-   * @return Array of certificates that we could not validate.
+   * @return true, if validator trusts certificate chain, otherwise false.
    */
-  public Certificate [] checkCertificates(Certificate [] certs);
+   boolean validateCertificateChain(List /* X509Certificate */ certs);
 
 }

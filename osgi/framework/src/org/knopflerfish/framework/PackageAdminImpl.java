@@ -257,7 +257,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
     ArrayList savedEvent = new ArrayList();
 
-    synchronized (framework.packages) {
+//TBD    synchronized (framework.packages) {
       // Do this again in case something changed during the stop
       // phase, this time synchronized with packages to prevent
       // resolving of bundles.
@@ -295,7 +295,7 @@ public class PackageAdminImpl implements PackageAdmin {
           savedEvent.add(new FrameworkEvent(FrameworkEvent.ERROR, bi[bx], be));
         }
       }
-    }
+//    }
     // Broadcast events
     for (Iterator i = savedEvent.iterator(); i.hasNext();) {
       Object e = i.next();

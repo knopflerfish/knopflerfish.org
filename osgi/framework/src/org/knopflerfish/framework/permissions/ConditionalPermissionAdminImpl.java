@@ -35,11 +35,13 @@
 package org.knopflerfish.framework.permissions;
 
 import java.security.*;
-import java.util.Enumeration;
+import java.util.*;
 
 import org.osgi.service.permissionadmin.PermissionInfo;
 
 import org.osgi.service.condpermadmin.*;
+
+import org.knopflerfish.framework.Debug;
 
 /**
  * Framework service to administer Conditional Permissions. Conditional
@@ -52,12 +54,16 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
 
   private ConditionalPermissionInfoStorage cpis;
 
+  final private Debug debug;
+
 
   /**
    *
    */
-  public ConditionalPermissionAdminImpl(ConditionalPermissionInfoStorage cpis) {
+  public ConditionalPermissionAdminImpl(ConditionalPermissionInfoStorage cpis,
+                                        Debug debug) {
     this.cpis = cpis;
+    this.debug = debug;
   }
 
 
@@ -124,7 +130,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
    *         currently managed by Conditional Permission Admin.
    */
   public Enumeration getConditionalPermissionInfos() {
-    return cpis.getAll();
+    return cpis.getAllEnumeration();
   }
 
 
@@ -150,7 +156,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
   public AccessControlContext getAccessControlContext(String[] signers) {
     Permissions perms = new Permissions();
     if (signers != null && signers.length > 0) {
-      for (Enumeration e = cpis.getAll(); e.hasMoreElements(); ) {
+      for (Enumeration e = cpis.getAllEnumeration(); e.hasMoreElements(); ) {
 	ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl) e.nextElement();
 	if (cpi.hasSigners(signers)) {
 	  for (Enumeration e2 = cpi.getPermissions().elements(); e2.hasMoreElements(); ) {
@@ -160,6 +166,52 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       }
     }
     return new AccessControlContext(new ProtectionDomain[] {new ProtectionDomain(null, perms)});
+  }
+
+
+
+  /**
+   *
+   * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionUpdate()
+   */
+  public ConditionalPermissionUpdate newConditionalPermissionUpdate() {
+    return cpis.getUpdate();
+  }
+
+
+  /**
+   *
+   * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionInfo()
+   */
+  public ConditionalPermissionInfo
+      newConditionalPermissionInfo(String name,
+                                   ConditionInfo conditions[],
+                                   PermissionInfo permissions[],
+                                   String access) {
+    if (ConditionalPermissionInfo.ALLOW.equalsIgnoreCase(access)) {
+      access = ConditionalPermissionInfo.ALLOW;
+    } else if (ConditionalPermissionInfo.DENY.equalsIgnoreCase(access)) {
+      access = ConditionalPermissionInfo.DENY;
+    } else {
+      throw new IllegalArgumentException("access must be " +
+                                         ConditionalPermissionInfo.ALLOW +
+                                         " or " +
+                                         ConditionalPermissionInfo.DENY);
+    }
+    if (permissions == null || permissions.length == 0) {
+      throw new IllegalArgumentException("permissions must contain atleast one element");
+    }
+    return new ConditionalPermissionInfoImpl(cpis, name, conditions,
+                                             permissions, access, debug);
+  }
+
+
+  /**
+   *
+   * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionInfo()
+   */
+  public ConditionalPermissionInfo newConditionalPermissionInfo(String encoded)  {
+    return new ConditionalPermissionInfoImpl(cpis, encoded, debug);
   }
 
 }

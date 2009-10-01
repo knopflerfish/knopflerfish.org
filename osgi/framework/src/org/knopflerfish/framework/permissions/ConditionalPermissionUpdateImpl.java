@@ -34,15 +34,49 @@
 
 package org.knopflerfish.framework.permissions;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 
 
 /**
- * Interface for SecurityManager that fully supports condtional permissions.
+ * Framework service to administer Conditional Permissions. Conditional
+ * Permissions can be added to, retrieved from, and removed from the framework.
+ * 
  */
-interface ConditionalPermissionSecurityManager {
+public class ConditionalPermissionUpdateImpl implements ConditionalPermissionUpdate {
 
-  public boolean isPostponeAvailable();
+  private final ConditionalPermissionInfoStorage storage;
 
-  public void savePostponement(List postponement, Object debug);
+  private final ArrayList cpiTable;
+
+  private final int parent;
+
+ 
+  /**
+   *
+   */
+  ConditionalPermissionUpdateImpl(ConditionalPermissionInfoStorage cpis,
+                                  ArrayList org, int generation) {
+    storage = cpis;
+    cpiTable = org;
+    parent = generation;
+  }
+
+
+  /**
+   *
+   */
+  public List /* ConditionalPermissionInfo */ getConditionalPermissionInfos() {
+    return cpiTable;
+  }
+
+
+  /**
+   *
+   */
+  public boolean commit() {
+    return storage.commitUpdate(cpiTable, parent);
+  }
 }
