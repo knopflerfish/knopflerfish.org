@@ -926,7 +926,8 @@ public class Archive implements FileArchive {
               if (sb.length()>0) sb.append(" ");
               sb.append(cmd[i]);
             }
-            System.out.println("Failed to execute: '" +sb.toString() +"':");
+            // NYI! Log error
+            System.err.println("Failed to execute: '" +sb.toString() +"':");
             cmd = null;
           }
           if (copyToStdout) System.out.println(line);
@@ -986,15 +987,6 @@ public class Archive implements FileArchive {
    */
   Certificate [] getCertificates() {
     return certs;
-  }
-
-
-  /**
-   * Invalidate certificates associated with with bundle archive.
-   *
-   */
-  void invalidateCertificates() {
-    certs = null;
   }
 
   //

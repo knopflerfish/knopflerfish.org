@@ -132,7 +132,7 @@ public class BundleImpl implements Bundle {
   /**
    * Classloader for bundle.
    */
-  private volatile ClassLoader classLoader = null;
+  protected volatile ClassLoader classLoader = null;
 
   /**
    * Zombie packages for bundle.
@@ -433,17 +433,13 @@ public class BundleImpl implements Bundle {
     final String ba = archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
     boolean bStarted = false;
 
-    ClassLoader oldLoader = null;
-
-    if (fwCtx.props.SETCONTEXTCLASSLOADER) {
-      oldLoader = Thread.currentThread().getContextClassLoader();
-    }
-
     // If SETCONTEXTCLASSLOADER, set the thread's context
     // class loader to the bundle class loader. This
     // is useful for debugging external libs using
     // the context class loader.
+    ClassLoader oldLoader = null;
     if (fwCtx.props.SETCONTEXTCLASSLOADER) {
+      oldLoader = Thread.currentThread().getContextClassLoader();
       Thread.currentThread().setContextClassLoader(classLoader);
     }
 
@@ -1100,13 +1096,52 @@ public class BundleImpl implements Bundle {
   }
 
 
+
+
   /**
-   * Get protection domain for bundle. Used by BundleSignerCondition.
+   *
+   * @see org.osgi.framework.Bundle#getLastModified()
    */
-  public Certificate [] getCertificates() {
-    // If we have protection domain priviledges then we can get certs.
-    secure.checkGetProtectionDomain();
-    return archive!=null ? archive.getCertificates() : null;
+  public long getLastModified() {
+    return lastModified;
+  }
+
+
+  /**
+   *
+   * @see org.osgi.framework.Bundle#getSignerCertificates()
+   */
+  public Map/* X509Certificate -> List(X509Certificate) */getSignerCertificates(int signersType) {
+    boolean onlyTrusted;
+    if (signersType == SIGNERS_ALL) {
+      onlyTrusted = false;
+    } else if (signersType == SIGNERS_TRUSTED) {
+      onlyTrusted = true;
+    } else {
+      throw new IllegalArgumentException("signersType not SIGNER_ALL or SIGNERS_TRUSTED");
+    }
+
+    if (archive != null) {
+      List cs = archive.getCertificateChains(onlyTrusted);
+      if (cs != null) {
+        Map res = new HashMap();
+        for (Iterator i = cs.iterator(); i.hasNext(); ) {
+          ArrayList chain = (ArrayList)i.next();
+          res.put(chain.get(0), chain.clone());
+        }
+        return res;
+      }
+    }
+    return Collections.EMPTY_MAP;
+  }
+
+
+  /**
+   *
+   * @see org.osgi.framework.Bundle#getVersion()
+   */
+  public Version getVersion() {
+    return version;
   }
 
 
@@ -1146,6 +1181,7 @@ public class BundleImpl implements Bundle {
                 BundleImpl host = (BundleImpl)i.next();
                 if (host.state == INSTALLED) {
                   // Try resolve our host
+                  // NYI! Detect circular attach
                   host.getUpdatedState();
                 } else {
                   // NYI! dynamic attach?
@@ -2029,45 +2065,6 @@ public class BundleImpl implements Bundle {
       catch(IOException e){}
     }
   }
-
-
-  /**
-   *
-   * @see org.osgi.framework.Bundle#getLastModified()
-   */
-  public long getLastModified() {
-    return lastModified;
-  }
-
-
-  /**
-   *
-   * @see org.osgi.framework.Bundle#getSignerCertificates()
-   */
-  public Map/* <X509Certificate, List<X509Certificate>> */getSignerCertificates(int signersType) {
-    if (signersType == SIGNERS_ALL) {
-    } else if (signersType == SIGNERS_TRUSTED) {
-    } else {
-      throw new IllegalArgumentException("signersType not SIGNER_ALL or SIGNERS_TRUSTED");
-    }
-
-    if (archive != null && archive.getCertificates() != null) {
-      throw new RuntimeException("NYI");
-    } else {
-      return new HashMap();
-    }
-  }
-
-
-  /**
-   *
-   * @see org.osgi.framework.Bundle#getVersion()
-   */
-  public Version getVersion() {
-    return version;
-  }
-
-
   /**
    *
    * @see org.osgi.framework.Bundle#getResources(String name)

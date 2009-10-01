@@ -707,7 +707,18 @@ class SecurePermissionOps extends PermissionOps {
 
       InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
       PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
-      return new ProtectionDomain(new CodeSource(bundleUrl, b.archive.getCertificates()), pc);
+      List cc = b.archive.getCertificateChains(false);
+      Certificate [] cca;
+      if (cc != null) {
+        ArrayList tmp = new ArrayList();
+        for (Iterator i = cc.iterator(); i.hasNext();) {
+          tmp.addAll((List)i.next());
+        }
+        cca = (Certificate [])tmp.toArray(new Certificate [tmp.size()]);
+      } else {
+        cca = null;
+      }
+      return new ProtectionDomain(new CodeSource(bundleUrl, cca), pc);
     } catch (MalformedURLException _ignore) { }
     return null;
   }

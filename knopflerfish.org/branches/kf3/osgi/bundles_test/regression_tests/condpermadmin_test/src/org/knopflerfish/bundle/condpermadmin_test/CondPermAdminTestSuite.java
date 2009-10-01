@@ -402,7 +402,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
       ci3 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
 			      new String[] {"*, st=*, c=*"});
       ci4 = new ConditionInfo(BUNDLE_SIGNER_CONDITION,
-			      new String[] {"cn=test dude, ou=*, o=*, l=*, c=se"});
+			      new String[] {"cn=test dude, ou=*, o=*, l=*, c=se ; -"});
       
       pi1 = new PermissionInfo("org.osgi.framework.PackagePermission",
 			       "org.osgi.framework", "import");

@@ -43,6 +43,7 @@ import java.util.Iterator;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.knopflerfish.framework.Util;
 import org.knopflerfish.framework.FrameworkContext;
+import org.knopflerfish.framework.Debug;
 
 
 class PermissionInfoStorage {
@@ -61,19 +62,24 @@ class PermissionInfoStorage {
 
   private HashMap defaultInvalidateCallbacks = new HashMap();
 
+  final private Debug debug;
 
+  /**
+   *
+   */
   public PermissionInfoStorage(FrameworkContext ctx) {
-     initialDefault = new PermissionInfo[] { new PermissionInfo(DEFAULTPERM) };
-     defaultPermissions = initialDefault;
+    debug = ctx.props.debug;
+    initialDefault = new PermissionInfo[] { new PermissionInfo(DEFAULTPERM) };
+    defaultPermissions = initialDefault;
 
-     permDir = Util.getFileStorage(ctx, "perms");
-     if (permDir == null) {
-       System.err.println("Property org.osgi.framework.dir not set," +
-       "permission data will not be saved between sessions");
-     } else {
-       load();
-     }
-   }
+    permDir = Util.getFileStorage(ctx, "perms");
+    if (permDir == null) {
+      System.err.println("Property org.osgi.framework.dir not set," +
+                         "permission data will not be saved between sessions");
+    } else {
+      load();
+    }
+  }
 
 
   /**
@@ -279,7 +285,7 @@ class PermissionInfoStorage {
                 } catch (IOException ignore) { }
                 f.delete();
               }
-              Debug.printStackTrace("NYI! Report error", e);
+              debug.printStackTrace("NYI! Report error", e);
             }
             return null;
           }
@@ -360,7 +366,7 @@ class PermissionInfoStorage {
           in.close();
         } catch (IOException ignore) { }
       }
-      Debug.printStackTrace("NYI! Report error", e);
+      debug.printStackTrace("NYI! Report error", e);
     }
   }
 

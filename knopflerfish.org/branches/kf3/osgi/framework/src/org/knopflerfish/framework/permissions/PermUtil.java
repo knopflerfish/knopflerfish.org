@@ -77,10 +77,20 @@ class PermUtil {
   /**
    */
   public static int skipWhite(char [] ca, int pos) {
-    while (ca[pos] == ' ' || ca[pos] == '\t') {
+    while (Character.isWhitespace(ca[pos])) {
       pos++;
     }
     return pos;
+  }
+
+
+  /**
+   */
+  public static int endOfString(char [] ca, int pos, int len) {
+    while (pos < len && Character.isWhitespace(ca[pos])) {
+      pos++;
+    }
+    return pos == len ? -1 : pos;
   }
 
 

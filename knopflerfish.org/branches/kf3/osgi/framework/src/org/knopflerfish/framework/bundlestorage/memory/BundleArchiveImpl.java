@@ -399,22 +399,22 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
-   * Get certificates associated with with bundle archive.
+   * Return certificates for signed bundle, otherwise null.
    *
-   * @return All certificates or null if bundle is unsigned.
+   * @return An array of certificates or null.
    */
-  public Certificate [] getCertificates() {
-    // NYI
-    return null;
+  public ArrayList getCertificateChains(boolean onlyTrusted) {
+    throw new RuntimeException("NYI");
   }
 
 
 
   /**
-   * Invalidate certificates associated with with bundle archive.
+   * Mark certificate chain as trusted.
    *
    */
-  public void invalidateCertificates() {
+  public void trustCertificateChain(List trustedChain) {
+    throw new RuntimeException("NYI");
   }
 
 }

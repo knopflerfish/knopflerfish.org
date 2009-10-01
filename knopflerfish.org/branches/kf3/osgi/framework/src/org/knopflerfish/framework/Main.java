@@ -112,11 +112,11 @@ public class Main
 
   public Main()
   {
-    populateSysProps();
     try { // Set the initial verbosity level.
-      final String vpv = (String) sysProps.get(VERBOSITY_PROP);
+      final String vpv = (String) System.getProperty(VERBOSITY_PROP);
       verbosity = Integer.parseInt(null==vpv ? VERBOSITY_DEFAULT: vpv);
     } catch (Exception ignored) { }
+    populateSysProps();
   }
 
   protected void start(String[] args) {
@@ -789,65 +789,6 @@ public class Main
   }
 
 
-  /**
-   * Shutdown framework.
-   *
-   * <p>
-   * This code is called in SystemBundle.stop(), which is the
-   * preferred way to shut down the framework.
-   * </p>
-   */
-  /*
-  public void shutdown(final int exitcode) {
-    if (restarting) return;
-    Thread t = new Thread() {
-        public void run() {
-          try {
-            framework.stop();
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-          if("true".equals(System.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
-            System.exit(exitcode);
-          } else {
-            println("Framework shutdown, skipped System.exit()", 0);
-          }
-        }
-      };
-    t.setDaemon(false);
-    t.start();
-  }
-  */
-
-  /**
-   * Restart framework.
-   * <p>
-   * This code is called in SystemBundle.update()
-   * </p>
-   */
-  /*
-  public void restart() {
-    restarting = true;
-    Thread t = new Thread() {
-        public void run() {
-          try {
-            framework.stop();
-            try {
-              framework.start();
-            } catch (Exception e) {
-              println("Failed to restart framework", 0);
-            }
-          } catch (Exception e) {
-            e.printStackTrace();
-          } finally {
-            restarting = false;
-          }
-        }
-      };
-    t.setDaemon(false);
-    t.start();
-  }
-  */
   /**
    * Expand all occurance of <tt>-xarg &lt;URL&gt;</tt> and <tt>--xarg
    * &lt;URL&gt;</tt> into a new array without any <tt>-xargs</tt>,

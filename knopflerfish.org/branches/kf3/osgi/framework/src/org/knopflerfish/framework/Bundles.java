@@ -151,22 +151,22 @@ public class Bundles {
         bin.close();
       }
 
-      Certificate [] cs = ba.getCertificates();
-      if (cs != null && fwCtx.validator != null) {
-        for (Iterator i = fwCtx.validator.iterator(); i.hasNext();) {
-          cs = ((Validator)i.next()).checkCertificates(cs);
-        }
-        // OSGi requires that all certs must be valid in a bundle.
-        if (cs.length > 0) {
-          // NYI?! Log invalid bundle certificates
-          for (int i = 0; i < cs.length; i++) {
-            System.err.println("Invalid certificate, " + cs[i]);
+      ArrayList cs = ba.getCertificateChains(false);
+      if (cs != null) {
+        if (fwCtx.validator != null) {
+          cs = (ArrayList)cs.clone();
+          for (Iterator vi = fwCtx.validator.iterator(); !cs.isEmpty() && vi.hasNext();) {
+            Validator v = (Validator)vi.next();
+            for (Iterator ci = cs.iterator(); ci.hasNext();) {
+              List c = (List)ci.next();
+              if (v.validateCertificateChain(c)) {
+                ba.trustCertificateChain(c);
+                ci.remove();
+              }
+            }
           }
-          ba.invalidateCertificates();
-          cs = null;
         }
-      }
-      if (allSigned && cs == null) {
+      } else if (allSigned) {
         throw new BundleException("All installed bundles must be signed!");
       }
 
@@ -190,6 +190,7 @@ public class Bundles {
       if (ba != null) {
         ba.purge();
       }
+e.printStackTrace();
       throw new BundleException("Failed to install bundle: " + e,
                                 BundleException.UNSPECIFIED, e);
     }

@@ -36,11 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.security.cert.Certificate;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -195,18 +191,19 @@ public interface BundleArchive {
 
 
   /**
-   * Get certificates associated with with bundle archive.
+   * Get certificate chains associated with with bundle archive.
    *
+   * @param onlyTrusted Only return trusted certificates.
    * @return All certificates or null if bundle is unsigned.
    */
-  Certificate [] getCertificates();
-
+  ArrayList getCertificateChains(boolean onlyTrusted);
+ 
 
   /**
-   * Invalidate certificates associated with with bundle archive.
+   * Mark certificate associated with with bundle archive as trusted.
    *
    */
-  void invalidateCertificates();
+  void trustCertificateChain(List trustedChain);
 
 
   /**

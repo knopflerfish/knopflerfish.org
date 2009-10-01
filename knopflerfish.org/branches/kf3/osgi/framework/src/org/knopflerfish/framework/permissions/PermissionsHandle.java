@@ -71,7 +71,7 @@ public class PermissionsHandle {
     //    if (System.getSecurityManager() instanceof ConditionalPermissionSecurityManager) {
     if (System.getSecurityManager() instanceof SecurityManager) {
       cpinfos = new ConditionalPermissionInfoStorage(this);
-      cpa = new ConditionalPermissionAdminImpl(cpinfos);
+      cpa = new ConditionalPermissionAdminImpl(cpinfos, fw.props.debug);
     } else {
       cpinfos = null;
       cpa = null;
@@ -131,8 +131,12 @@ public class PermissionsHandle {
                                                           Bundle b,
                                                           InputStream localPerms) {
     Long bid = new Long(b.getBundleId());
-    PermissionCollection pc = new PermissionsWrapper(framework, pinfos, cpinfos, loc, b, localPerms);
-    pcCache.put(bid, pc);
+    // Need to lock cond.perm. changes, when adding a new PermissionsWrapper
+    PermissionCollection pc;
+    synchronized (cpinfos) {
+      pc = new PermissionsWrapper(framework, pinfos, cpinfos, loc, b, localPerms);
+      pcCache.put(bid, pc);
+    }
     return pc;
   }
 
