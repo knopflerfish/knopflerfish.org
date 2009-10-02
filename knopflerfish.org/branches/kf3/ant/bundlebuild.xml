@@ -439,12 +439,22 @@
       </and>
     </condition>
     <condition property="do_build_impl">
-      <equals arg1="${bundle.build.impl}" arg2="true"/>
+      <and>
+	<equals arg1="${bundle.build.impl}" arg2="true"/>
+        <or>
+          <isset property="impl.pattern"/>
+          <isset property="impl-api.pattern"/>
+	</or>
+      </and>
     </condition>
     <condition property="do_build_all" value="true">
       <and>
 	<equals arg1="${bundle.build.all}"  arg2="true"/>
-	<isset property="api.pattern"/>
+	<or>
+	  <isset property="api.pattern"/>
+	  <isset property="impl.pattern"/>
+          <isset property="impl-api.pattern"/>
+	</or>
       </and>
     </condition>
     <condition property="do_build_doc">
