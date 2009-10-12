@@ -159,6 +159,7 @@
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
 
@@ -173,6 +174,7 @@
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
 
@@ -184,6 +186,7 @@
       <property name="osgi.jars.dir" location="${distrib.osgi.dir}/jars"/>
       <property name="jars.dir"      location="${distrib.osgi.dir}/test_jars"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
 
