@@ -135,22 +135,12 @@ class PermissionOps {
   // Package permission checks
   //
 
-  boolean hasImportPackagePermission(BundleImpl b, String pkg) {
+  boolean hasExportPackagePermission(ExportPkg ep) {
     return true;
   }
 
-
-  /**
-   * Check that we have right export and import package permission for the bundle.
-   *
-   * @return Returns null if we have correct permission for listed package.
-   *         Otherwise a string of failed entries.
-   */
-  String missingMandatoryPackagePermissions(BundlePackages bpkgs, List okImports) {
-    for (Iterator i = bpkgs.getImports(); i.hasNext(); ) {
-      okImports.add(i.next());
-    }
-    return null;
+  boolean hasImportPackagePermission(BundleImpl b, ExportPkg ep) {
+    return true;
   }
 
   //
@@ -160,14 +150,10 @@ class PermissionOps {
   void checkRegisterServicePerm(String clazz) {
   }
 
-  boolean okGetServicePerm(String clazz) {
-    return true;
+  void checkGetServicePerms(ServiceReference sr) {
   }
 
-  void checkGetServicePerms(String [] classes) {
-  }
-
-  boolean okGetServicePerms(String [] classes) {
+  boolean okGetServicePerms(ServiceReference sr) {
     return true;
   }
 

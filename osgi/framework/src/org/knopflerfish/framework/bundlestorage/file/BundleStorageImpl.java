@@ -70,15 +70,16 @@ public class BundleStorageImpl implements BundleStorage {
   /**
    * If we should check if bundles are signed
    */
-  boolean checkSigned = false;
+  boolean checkSigned;
 
   /**
    * Create a container for all bundle data in this framework.
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl(FrameworkContext framework) {
+  public BundleStorageImpl(FrameworkContext framework, boolean loadCert) {
     this.framework = framework;
+    checkSigned = loadCert;
     // See if we have a storage directory
     bundlesDir = Util.getFileStorage(framework, "bs");
     if (bundlesDir == null) {
@@ -220,16 +221,6 @@ public class BundleStorageImpl implements BundleStorage {
     return res;
   }
 
-
-  /**
-   * Mark if we want to check if bundles are signed.
-   *
-   * @param value True if we to check.
-   */
-  public void setCheckSigned(boolean value) {
-    checkSigned = value;
-  }
-  
 
   /**
    * Close bundle storage.

@@ -545,12 +545,15 @@ class Packages {
                           + provider);
           }
           provider = null;
-        } else if (!ip.okPackageVersion(provider.version)) {
+        } else if (!ip.checkAttributes(provider)) {
           if (framework.props.debug.packages) {
             framework.props.debug.println("resolvePackages: " + ip.name +
-                          " - provider has wrong version - " + provider +
-                          ", need " + ip.packageRange + ", has " + provider.version);
+                                          " - provider has wrong attributes - " + provider);
+            // NYI, print what is missing
           }
+          provider = null;
+        } else if (!ip.checkPermission(provider)) {
+          // We can not make internal wire because it could collide with the provided version.
           provider = null;
         }
       } else {
@@ -565,18 +568,24 @@ class Packages {
             // TBD! Should we refrain from using a zombie package and try a new provider instead?
             continue;
           }
-          if (ip.okPackageVersion(ep.version)) {
+          if (ip.checkAttributes(ep)) {
             if (framework.props.debug.packages) {
               framework.props.debug.println("resolvePackages: " + ip.name + " - has provider - " + ep);
             }
-            HashMap oldTempProvider = (HashMap)tempProvider.clone();
-            if (!checkUses(ep)) {
-              tempProvider = oldTempProvider;
-              tempBlackList.add(ep);
-              continue;
+            if (ip.checkPermission(ep)) {
+              HashMap oldTempProvider = (HashMap)tempProvider.clone();
+              if (!checkUses(ep)) {
+                tempProvider = oldTempProvider;
+                tempBlackList.add(ep);
+                continue;
+              }
+              provider = ep;
+              break;
+            } else {
+              if (framework.props.debug.packages) {
+                framework.props.debug.println("resolvePackages: no permission for - " + ep);
+              }
             }
-            provider = ep;
-            break;
           }
         }
         if (provider == null) {
@@ -587,7 +596,7 @@ class Packages {
         }
       }
       if (provider == null) {
-        if (ip.resolution == Constants.RESOLUTION_MANDATORY) {
+        if (ip.mustBeResolved()) {
           res.add(ip);
         } else {
           if (framework.props.debug.packages) {
@@ -618,20 +627,37 @@ class Packages {
         tempBlackListHits++;
         continue;
       }
-      if (!checkAttributes(ep, ip)) {
+      if (!ip.checkAttributes(ep)) {
         if (framework.props.debug.packages) {
           framework.props.debug.println("pickProvider: attribute match failed for - " + ep);
         }
         continue;
       }
-      if (tempResolved.contains(ep.bpkgs.bundle) &&
-          ep.checkPermission()) {
+      if (!ip.checkPermission(ep)) {
+        if (ip.bpkgs == ep.bpkgs) {
+          if (framework.props.debug.packages) {
+            framework.props.debug.println("pickProvider: internal wire ok for - " + ep);
+          }
+          ip.internalOk = ep;
+        }
+        if (framework.props.debug.packages) {
+          framework.props.debug.println("pickProvider: no import permission for - " + ep);
+        }
+        continue;
+      }
+      if (!ep.checkPermission()) {
+        if (framework.props.debug.packages) {
+          framework.props.debug.println("pickProvider: no export permission for - " + ep);
+        }
+        continue;
+      }
+      if (tempResolved.contains(ep.bpkgs.bundle)) {
         provider = ep;
         break;
       }
       if ((ep.bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
         HashMap oldTempProvider = (HashMap)tempProvider.clone();
-        if (ep.checkPermission() && checkUses(ep)) {
+        if (checkUses(ep)) {
           provider = ep;
           break;
         } else {
@@ -640,7 +666,7 @@ class Packages {
           continue;
         }
       }
-      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle, ep)) {
+      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle)) {
         provider = ep;
         break;
       }
@@ -657,57 +683,22 @@ class Packages {
 
 
   /**
-   * Check that all package attributes match.
-   *
-   * @param ep Exported package.
-   * @param ip Imported package.
-   * @return True if okay, otherwise false.
-   */
-  private boolean checkAttributes(ExportPkg ep, ImportPkg ip) {
-    /* Mandatory attributes */
-    if (!ip.checkMandatory(ep.mandatory)) {
-      return false;
-    }
-    /* Predefined attributes */
-    if (!ip.okPackageVersion(ep.version) ||
-        (ip.bundleSymbolicName != null &&
-         !ip.bundleSymbolicName.equals(ep.bpkgs.bundle.symbolicName)) ||
-        !ip.bundleRange.withinRange(ep.bpkgs.bundle.version)) {
-      return false;
-    }
-    /* Other attributes */
-    for (Iterator i = ip.attributes.entrySet().iterator(); i.hasNext(); ) {
-      Map.Entry e = (Map.Entry)i.next();
-      String a = (String)ep.attributes.get(e.getKey());
-      if (a == null || !a.equals(e.getValue())) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-
-  /**
    * Check if a bundle can be resolved. If resolvable, then the
    * objects tempResolved, tempProvider and tempBlackList are updated.
    * Bundle must be in installed state.
    *
    * @param b Bundle to be checked.
-   * @param ep Exported package that is required.
    * @return true if resolvable otherwise false.
    */
-  private boolean checkResolve(BundleImpl b, ExportPkg ep) {
-    ArrayList okImports = new ArrayList();
-    if (framework.perm.missingMandatoryPackagePermissions(b.bpkgs, okImports) == null &&
-        checkBundleSingleton(b) == null &&
-        (ep == null || ep.checkPermission())) {
+  private boolean checkResolve(BundleImpl b) {
+    if (checkBundleSingleton(b) == null) {
       HashSet oldTempResolved = (HashSet)tempResolved.clone();
       HashMap oldTempProvider = (HashMap)tempProvider.clone();
       HashMap oldTempRequired = (HashMap)tempRequired.clone();
       HashSet oldTempBlackList = (HashSet)tempBlackList.clone();
       tempResolved.add(b);
       if (checkRequireBundle(b) == null) {
-        List r = resolvePackages(okImports.iterator());
+        List r = resolvePackages(b.bpkgs.getImports());
         if (r.size() == 0) {
           return true;
         }
@@ -854,7 +845,7 @@ class Packages {
             }
           } else if (b2.state == Bundle.INSTALLED &&
                      framework.perm.okProvideBundlePerm(b2) &&
-                     checkResolve(b2, null)) {
+                     checkResolve(b2)) {
             ok = b2;
           }
         }
@@ -918,7 +909,42 @@ class Packages {
       if (bs.getState() == Bundle.INSTALLED) {
         for (Iterator bi = bs.bpkgs.getImports(); bi.hasNext(); ) {
           ImportPkg ip = (ImportPkg)bi.next();
-          ip.provider = (ExportPkg)tempProvider.get(ip.name);
+          ExportPkg ep = (ExportPkg)tempProvider.get(ip.name);
+          if (ep == null) {
+            // There could be an internal connection, that should export a package
+            if (ip.internalOk != null) {
+              if (ip.internalOk.pkg.providers.isEmpty() &&
+                  ip.internalOk.checkPermission()) {
+                ip.internalOk.pkg.addProvider(ip.internalOk);
+                if (framework.props.debug.packages) {
+                  framework.props.debug.println("registerNewProviders: exported internal wire, " + ip + " -> " + ip.internalOk);
+                }
+              } else {
+                if (framework.props.debug.packages) {
+                  framework.props.debug.println("registerNewProviders: internal wire, " + ip + " -> " + ip.internalOk);
+                }
+              }
+            }
+          } else {
+            // NYI! This check is already done, we should cache result
+            if (ip.checkPermission(ep)) {
+              ip.provider = ep;
+            } else {
+              // Check if got a missmatching internal wire.
+              if (ip.internalOk != null) {
+                if (ip.internalOk == ep) {
+                  if (framework.props.debug.packages) {
+                    framework.props.debug.println("registerNewProviders: internal wire, " + ip + ", " + ep);
+                  }
+                } else {
+                  // TBD, should we resolve when this happens!?
+                  framework.listeners.frameworkError(bs,
+                       new Exception("registerNewProviders: Warning! Internal wire for, " + ip +
+                                     ", does not match exported. " + ep));
+                }
+              }
+            }
+          }
         }
         if (bs != bundle) {
           if (bs.getUpdatedState() == Bundle.INSTALLED) {

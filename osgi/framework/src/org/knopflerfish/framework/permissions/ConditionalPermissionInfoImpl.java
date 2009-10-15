@@ -44,6 +44,7 @@ import org.osgi.service.condpermadmin.*;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
 import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.FrameworkContext;
 
 
 /**
@@ -59,6 +60,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   final private ConditionInfo [] conditionInfos;
   final private PermissionInfo [] permissionInfos;
   final private String access;
+  final private FrameworkContext framework;
   final private Debug debug;
 
   private String name;
@@ -69,13 +71,14 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
    */
   ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cpis, String name,
                                 ConditionInfo [] conds, PermissionInfo [] perms,
-                                String access, Debug debug) {
+                                String access, FrameworkContext fw) {
     this.cpis = cpis;
     this.name = name;
     conditionInfos = conds;
     permissionInfos = perms;
     this.access = access;
-    this.debug = debug;
+    framework = fw;
+    debug = fw.props.debug;
     permissions = null;
   }
 
@@ -83,9 +86,10 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   /**
    */
   ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cpis,
-                                String encoded, Debug debug) {
+                                String encoded, FrameworkContext fw) {
     this.cpis = cpis;
-    this.debug = debug;
+    framework = fw;
+    debug = fw.props.debug;
     try {
       char [] eca = encoded.toCharArray();
       int pos = PermUtil.skipWhite(eca, 0);
@@ -365,7 +369,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
    */
   PermissionCollection getPermissions() {
     if (permissions == null) {
-      permissions = PermUtil.makePermissionCollection(permissionInfos, null);
+      permissions = new PermissionInfoPermissions(framework, null, permissionInfos);
     }
     return permissions;
   }

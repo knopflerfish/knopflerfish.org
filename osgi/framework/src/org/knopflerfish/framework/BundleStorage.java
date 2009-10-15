@@ -54,6 +54,7 @@ public interface BundleStorage {
   BundleArchive insertBundleJar(String location, InputStream is)
     throws Exception;
 
+
   /**
    * Insert a new jar file into persistent storagedata as an update
    * to an existing bundle archive. To commit this data a call to
@@ -66,6 +67,7 @@ public interface BundleStorage {
   BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
     throws Exception;
 
+
   /**
    * Replace old bundle archive with a new updated bundle archive, that
    * was created with updateBundleArchive.
@@ -77,12 +79,14 @@ public interface BundleStorage {
   void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
     throws Exception;
 
+
   /**
    * Get all bundle archive objects.
    *
    * @return Private copy of a List with bundle id's.
    */
   BundleArchive [] getAllBundleArchives();
+
 
   /**
    * Get all bundles tagged to start at next launch of framework.
@@ -92,12 +96,6 @@ public interface BundleStorage {
    */
   List getStartOnLaunchBundles();
 
-  /**
-   * Set if bundles in this storage should check if they are signed.
-   *
-   * @param value If true check for certificates.
-   */
-  public void setCheckSigned(boolean value);
 
   /**
    * Close this bundle storage and all bundles in it.

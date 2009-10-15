@@ -282,11 +282,7 @@ public class BundleContextImpl
    */
   public ServiceReference getServiceReference(String clazz) {
     isBCvalid();
-    if (bundle.fwCtx.perm.okGetServicePerm(clazz)) {
-      return bundle.fwCtx.services.get(bundle, clazz);
-    } else {
-      return null;
-    }
+    return bundle.fwCtx.services.get(bundle, clazz);
   }
 
 

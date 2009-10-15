@@ -41,7 +41,7 @@ import org.osgi.service.permissionadmin.PermissionInfo;
 
 import org.osgi.service.condpermadmin.*;
 
-import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.FrameworkContext;
 
 /**
  * Framework service to administer Conditional Permissions. Conditional
@@ -54,16 +54,16 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
 
   private ConditionalPermissionInfoStorage cpis;
 
-  final private Debug debug;
+  final private FrameworkContext framework;
 
 
   /**
    *
    */
   public ConditionalPermissionAdminImpl(ConditionalPermissionInfoStorage cpis,
-                                        Debug debug) {
+                                        FrameworkContext framework) {
     this.cpis = cpis;
-    this.debug = debug;
+    this.framework = framework;
   }
 
 
@@ -202,7 +202,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       throw new IllegalArgumentException("permissions must contain atleast one element");
     }
     return new ConditionalPermissionInfoImpl(cpis, name, conditions,
-                                             permissions, access, debug);
+                                             permissions, access, framework);
   }
 
 
@@ -211,7 +211,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
    * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionInfo()
    */
   public ConditionalPermissionInfo newConditionalPermissionInfo(String encoded)  {
-    return new ConditionalPermissionInfoImpl(cpis, encoded, debug);
+    return new ConditionalPermissionInfoImpl(cpis, encoded, framework);
   }
 
 }

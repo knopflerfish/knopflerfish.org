@@ -151,24 +151,7 @@ public class Bundles {
         bin.close();
       }
 
-      ArrayList cs = ba.getCertificateChains(false);
-      if (cs != null) {
-        if (fwCtx.validator != null) {
-          cs = (ArrayList)cs.clone();
-          for (Iterator vi = fwCtx.validator.iterator(); !cs.isEmpty() && vi.hasNext();) {
-            Validator v = (Validator)vi.next();
-            for (Iterator ci = cs.iterator(); ci.hasNext();) {
-              List c = (List)ci.next();
-              if (v.validateCertificateChain(c)) {
-                ba.trustCertificateChain(c);
-                ci.remove();
-              }
-            }
-          }
-        }
-      } else if (allSigned) {
-        throw new BundleException("All installed bundles must be signed!");
-      }
+      checkCertificates(ba);
 
       res = new BundleImpl(fwCtx, ba);
 
@@ -375,6 +358,7 @@ e.printStackTrace();
     BundleArchive [] bas = fwCtx.storage.getAllBundleArchives();
     for (int i = 0; i < bas.length; i++) {
       try {
+        checkCertificates(bas[i]);
         BundleImpl b = new BundleImpl(fwCtx, bas[i]);
         bundles.put(b.location, b);
       } catch (Exception e) {
@@ -432,4 +416,40 @@ e.printStackTrace();
     }
     return retval;
   }
+
+
+  /**
+   *
+   */
+  private void checkCertificates(BundleArchive ba) throws BundleException {
+    ArrayList cs = ba.getCertificateChains(false);
+    if (cs != null) {
+      if (fwCtx.validator != null) {
+        if (fwCtx.props.debug.certificates) {
+          fwCtx.props.debug.println("Validate certs for bundle #" + ba.getBundleId());
+        }
+        cs = (ArrayList)cs.clone();
+        for (Iterator vi = fwCtx.validator.iterator(); !cs.isEmpty() && vi.hasNext();) {
+          Validator v = (Validator)vi.next();
+          for (Iterator ci = cs.iterator(); ci.hasNext();) {
+            List c = (List)ci.next();
+            if (v.validateCertificateChain(c)) {
+              ba.trustCertificateChain(c);
+              ci.remove();
+              if (fwCtx.props.debug.certificates) {
+                fwCtx.props.debug.println("Validated cert: " + c.get(0));
+              }
+            } else {
+              if (fwCtx.props.debug.certificates) {
+                fwCtx.props.debug.println("Failed to validate cert: " + c.get(0));
+              }
+            }
+          }
+        }
+      }
+    } else if (allSigned) {
+      throw new BundleException("All installed bundles must be signed!");
+    }
+  }
+
 }

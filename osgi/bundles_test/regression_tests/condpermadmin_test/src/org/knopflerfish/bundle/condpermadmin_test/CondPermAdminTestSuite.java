@@ -579,7 +579,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
         buP3 = null;
 	buP3 = Util.installBundle(bc, "bundleP3_test-1.0.0.jar");
       }	catch (Exception e) {
-	fail("install framework test bundle "+ e +" :CONDPERM220A:FAIL");
+	fail("install framework test bundle 2 "+ e +" :CONDPERM220A:FAIL");
 	teststatus = false;
       }
 
@@ -591,7 +591,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
 	buP3.start();
 	teststatus = true;
       }	catch (Exception e) {
-	fail("framework test bundle "+ e +" :CONDPERM220A:FAIL");
+	fail("framework test bundle 2 "+ e +" :CONDPERM220A:FAIL");
 	teststatus = false;
       }
 
@@ -599,7 +599,7 @@ public class CondPermAdminTestSuite extends TestSuite  {
 	buP4.start();
 	teststatus = true;
       }	catch (Exception e) {
-	fail("framework test bundle "+ e +" :CONDPERM220A:FAIL");
+	fail("framework test bundle 3 "+ e +" :CONDPERM220A:FAIL");
 	teststatus = false;
       }
 

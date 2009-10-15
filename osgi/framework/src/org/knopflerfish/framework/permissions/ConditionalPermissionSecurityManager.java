@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * Interface for SecurityManager that fully supports condtional permissions.
  */
-interface ConditionalPermissionSecurityManager {
+public interface ConditionalPermissionSecurityManager {
 
   public boolean isPostponeAvailable();
 

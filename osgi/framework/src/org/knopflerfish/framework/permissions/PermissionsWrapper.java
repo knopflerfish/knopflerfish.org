@@ -90,7 +90,7 @@ public class PermissionsWrapper extends PermissionCollection {
     bundle = b;
     dataRoot = fw.getDataStorage(b.getBundleId());
     if (localPerms != null) {
-      localPermissions = makeLocalPermissionCollection(localPerms);
+      localPermissions = new PermissionInfoPermissions(fw, dataRoot, localPerms);
     } else {
       localPermissions = null;
     }
@@ -153,7 +153,7 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
-  public boolean implies(Permission permission) {
+  public boolean implies(final Permission permission) {
     String me = "PermissionWrapper.implies: ";
     if (implicitPermissions.implies(permission)) {
       if (debug.permissions) {
@@ -219,18 +219,6 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
-  synchronized void updateLocalPermissions(InputStream localPerms) {
-    if (localPerms != null) {
-      localPermissions = makeLocalPermissionCollection(localPerms);
-    } else {
-      localPermissions = null;
-    }
-  }
-
-
-  /**
-   *
-   */
   private PermissionCollection getPerms0() {
     if (systemPermissions == null) {
       PermissionCollection p = makePermissionCollection();
@@ -258,40 +246,6 @@ public class PermissionsWrapper extends PermissionCollection {
       synchronized(this) {
         return getPerms0();
       }
-    }
-  }
-
-
-  /**
-   *
-   */
-  private PermissionCollection makeLocalPermissionCollection(InputStream localPerms) {
-    try {
-      DataInputStream dis = new DataInputStream(localPerms);
-      String l;
-      Permissions res = new Permissions();
-      while ((l = dis.readLine()) != null) {
-        l = l.trim();
-        if (l.startsWith("#") || l.startsWith("//") || l.length() == 0) {
-          continue;
-        }
-        try {
-          Permission p = PermUtil.makePermission(new PermissionInfo(l), null);
-          if (p != null) {
-            res.add(p);
-          }
-        } catch (Exception e) {
-          // TODO, handle this error
-        }
-      }
-      return res;
-    } catch (IOException e) {
-      // TODO, handle this error
-      return null;
-    } finally {
-      try {
-        localPerms.close();
-      } catch (IOException _ignore) { }
     }
   }
 
@@ -333,7 +287,6 @@ public class PermissionsWrapper extends PermissionCollection {
   private PermissionCollection makePermissionCollection() {
     PermissionInfo[] pi = pinfos.get(location, this);
     final boolean useDefault = (pi == null);
-    Permissions res = new Permissions();
     if (useDefault) {
       if (true) {
         if (condPermList.size() > 0) {
@@ -350,13 +303,7 @@ public class PermissionsWrapper extends PermissionCollection {
       }
       pi = pinfos.getDefault(this);
     }
-    for (int i = pi.length - 1; i >= 0; i--) {
-      Permission p = PermUtil.makePermission(pi[i], useDefault ? null : dataRoot);
-      if (p != null) {
-        res.add(p);
-      }
-    }
-    return res;
+    return new PermissionInfoPermissions(framework, useDefault ? null : dataRoot, pi);
   }
 
 

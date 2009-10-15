@@ -143,7 +143,7 @@ class ConditionalPermissionInfoStorage {
       oldIx = find(name);
     }
     ConditionalPermissionInfoImpl old;
-    ConditionalPermissionInfoImpl res = new ConditionalPermissionInfoImpl(this, name, conds, perms, ConditionalPermissionInfo.ALLOW, debug);
+    ConditionalPermissionInfoImpl res = new ConditionalPermissionInfoImpl(this, name, conds, perms, ConditionalPermissionInfo.ALLOW, ph.framework);
     if (oldIx >= 0) {
       old = (ConditionalPermissionInfoImpl)cpiTable.set(oldIx, res);
       updateChangedConditionalPermission(res, oldIx, oldIx);
@@ -437,7 +437,7 @@ class ConditionalPermissionInfoStorage {
           cpiTable = loadTable;
           return true;
         } else {
-          ConditionalPermissionInfo res = new ConditionalPermissionInfoImpl(this, l, debug);
+          ConditionalPermissionInfo res = new ConditionalPermissionInfoImpl(this, l, ph.framework);
           loadTable.add(res);
         }
       }
