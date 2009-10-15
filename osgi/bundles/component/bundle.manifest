@@ -13,7 +13,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Classpath: .,kxml2.jar
 DynamicImport-Package: *
 Bundle-Activator: org.knopflerfish.bundle.component.Activator
-Export-Package: org.osgi.service.component;specification-version=1.0
+Export-Package: org.osgi.service.component;specification-version=1.1
 Import-Package: org.osgi.framework,
  org.osgi.service.cm,
  org.osgi.service.component,

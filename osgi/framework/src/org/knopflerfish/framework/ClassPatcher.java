@@ -107,9 +107,10 @@ public class ClassPatcher {
   // to be applied.
   protected Map      wrappers      = new HashMap();
 
+  FrameworkContext framework;
   protected ClassPatcher(BundleClassLoader classLoader) {
     this.classLoader = classLoader;
-
+    this.framework = classLoader.bpkgs.bundle.fwCtx;
     init();
   }
 
@@ -126,11 +127,11 @@ public class ClassPatcher {
 
 
   protected void init() {
-    bDumpClasses = "true".equals(Framework.getProperty("org.knopflerfish.framework.patch.dumpclasses"));
+    bDumpClasses = "true".equals(framework.props.getProperty("org.knopflerfish.framework.patch.dumpclasses"));
     String urlS = classLoader.archive.getAttribute("Bundle-ClassPatcher-Config");
 
     if(urlS == null || "".equals(urlS)) {
-      urlS = Framework.getProperty("org.knopflerfish.framework.patch.configurl",
+      urlS = framework.props.getProperty("org.knopflerfish.framework.patch.configurl",
                                 "!!/patches.props");
     } else if("none".equals(urlS)) {
       urlS = null;
@@ -201,7 +202,7 @@ public class ClassPatcher {
       is = url.openStream();
       loadWrappersFromInputStream(is);
     } catch (Exception e) {
-      Debug.printStackTrace("Failed to load patches conf from " + url, e);
+      framework.props.debug.printStackTrace("Failed to load patches conf from " + url, e);
     } finally {
       try { is.close(); } catch (Exception ignored) { }
     }
@@ -216,7 +217,7 @@ public class ClassPatcher {
       try {
         patchesFilter = new LDAPExpr(f);
       } catch (Exception e) {
-        Debug.printStackTrace("Failed to set patches filter", e);
+        framework.props.debug.printStackTrace("Failed to set patches filter", e);
       }
     }
 
@@ -231,8 +232,8 @@ public class ClassPatcher {
           String to   = (String)props.get(PRE + id + ".to");
 
           if(to == null) {
-            if(Debug.patch) {
-              Debug.println("No key=" + (PRE + id + ".to"));
+            if(framework.props.debug.patch) {
+              framework.props.debug.println("No key=" + (PRE + id + ".to"));
               continue;
             }
           }
@@ -283,14 +284,14 @@ public class ClassPatcher {
     String targetOwner = r[0];
     String targetName = r[1];
 
-    if(BundleClassLoader.isBundlePatch() &&
-       "true".equals(Framework.getProperty("kf.patch." + targetName, "" + defActive))) {
+    if(classLoader.isBundlePatch() &&
+       "true".equals(framework.props.getProperty("kf.patch." + targetName, "" + defActive))) {
       MethodInfo mi     = new MethodInfo(owner, name, desc, bStatic);
       if(filter != null) {
         try {
           mi.filter = new LDAPExpr(filter);
         } catch (Exception e) {
-          Debug.printStackTrace("Bad filter for " + mi, e);
+          framework.props.debug.printStackTrace("Bad filter for " + mi, e);
         }
       }
       int    ix0        = desc.lastIndexOf("(");
@@ -322,10 +323,10 @@ public class ClassPatcher {
       MethodInfo mi   = (MethodInfo)wrappers.get(from);
       if(mi.nPatches > 0) {
         if(bFirst) {
-          Debug.println("Patches in " + mi.className);
+          framework.props.debug.println("Patches in " + mi.className);
           bFirst = false;
         }
-        Debug.println(" " + mi.nPatches + " " +
+        framework.props.debug.println(" " + mi.nPatches + " " +
                       (mi.nPatches == 1 ? "occurance " : "occurances") +
                       " of " + from.owner + "." + from.name);
       }
@@ -363,7 +364,7 @@ public class ClassPatcher {
   protected void dumpClassBytes(String className, byte[] classBytes) {
     OutputStream os = null;
     try {
-      String dirName = Framework.getProperty("org.knopflerfish.framework.patch.dumpclasses.dir",
+      String dirName = framework.props.getProperty("org.knopflerfish.framework.patch.dumpclasses.dir",
                                           "patchedclasses");
       File dir = new File(dirName);
 
@@ -377,14 +378,14 @@ public class ClassPatcher {
       }
       dir.mkdirs();
       file = new File(dir, classFileName);
-      if(Debug.patch) {
-        Debug.println("dump " + className + " to " + file.getAbsolutePath());
+      if(framework.props.debug.patch) {
+        framework.props.debug.println("dump " + className + " to " + file.getAbsolutePath());
       }
       os = new FileOutputStream(file);
       os.write(classBytes);
       os.flush();
     } catch (Exception e) {
-      Debug.printStackTrace("Failed to dump class=" + className, e);
+      framework.props.debug.printStackTrace("Failed to dump class=" + className, e);
     } finally {
       try { os.close(); } catch (Exception ignored) { }
     }
@@ -409,6 +410,8 @@ class ClassAdapterPatcher extends ClassAdapter {
   // magic name of bundle id field added to all processed classes.
   static final String FIELD_BID = "__kf_asm_bid_" + ClassPatcher.class.hashCode()+ "__";
 
+  FrameworkContext framework;
+
   ClassAdapterPatcher(ClassVisitor      cv,
                       String            className,
                       BundleClassLoader bcl,
@@ -419,6 +422,7 @@ class ClassAdapterPatcher extends ClassAdapter {
     this.bcl       = bcl;
     this.bid       = bid;
     this.cp        = cp;
+    this.framework = bcl.bpkgs.bundle.fwCtx;
   }
 
   public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -444,7 +448,7 @@ class ClassAdapterPatcher extends ClassAdapter {
 
     super.visitEnd();
 
-    if(Debug.patch) {
+    if(bcl.bpkgs.bundle.fwCtx.props.debug.patch) {
       cp.dumpInfo();
     }
   }
@@ -468,10 +472,11 @@ class ClassAdapterPatcher extends ClassAdapter {
 class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
   ClassAdapterPatcher ca;
   int access;
-
+  FrameworkContext framework;
   public ReplaceMethodAdapter(MethodVisitor mv, ClassAdapterPatcher ca) {
     super(mv);
     this.ca = ca;
+    this.framework = ca.framework;
   }
 
   public void visitMethodInsn(int opcode, String owner, String name, String desc) {
@@ -491,8 +496,8 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
         }
       }
 
-      if(Debug.patch) {
-        Debug.println("patch " + ca.className + "/" + ca.currentSuperName + "." + ca.currentMethodName + "\n" +
+      if(framework.props.debug.patch) {
+        framework.props.debug.println("patch " + ca.className + "/" + ca.currentSuperName + "." + ca.currentMethodName + "\n" +
                       " " + from0.owner +
                       "." + from.name + "\n" +
                       " " + mi.owner + "." + mi.name);

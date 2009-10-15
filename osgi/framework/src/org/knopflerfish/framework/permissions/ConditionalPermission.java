@@ -51,14 +51,16 @@ public class ConditionalPermission
   final private PermissionCollection permissions;
   private List postponed = null;
 
+  final String access;
 
   /**
    */
-  ConditionalPermission(Condition [] conds, PermissionCollection perms,
+  ConditionalPermission(Condition [] conds, PermissionCollection perms, String access,
                         ConditionalPermissionInfoImpl cpi) {
-    parent = cpi;
     conditions = conds;
     permissions = perms;
+    this.access = access;
+    parent = cpi;
   }
 
 
@@ -79,7 +81,7 @@ public class ConditionalPermission
         continue;
       }
       if (checkPostponed || !c.isPostponed()) {
-        boolean mutable = c.isMutable(); // TCK wrongly requires mutable before isSatisfied.
+        boolean mutable = c.isMutable(); // TBD, 4.0.1 TCK wrongly requires mutable before isSatisfied.
         if (c.isSatisfied()) {
           if (!mutable) {
             // Mark always ok by clearing condition element.

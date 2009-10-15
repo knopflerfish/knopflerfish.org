@@ -41,6 +41,7 @@ import java.util.*;
 import org.osgi.service.condpermadmin.*;
 import org.osgi.service.permissionadmin.*;
 import org.knopflerfish.framework.Util;
+import org.knopflerfish.framework.Debug;
 
 
 class ConditionalPermissionInfoStorage {
@@ -49,19 +50,21 @@ class ConditionalPermissionInfoStorage {
 
   private long lastFile;
 
-  private HashMap /* String -> ConditionalPermissionInfoImpl */ cpiMap = new HashMap();
-
-  private long unique_id = 0;
+  private ArrayList /* ConditionalPermissionInfoImpl */ cpiTable = new ArrayList();
 
   private PermissionsHandle ph;
 
+  private int generation = 0;
+
+  final private Debug debug;
 
   /**
    *
    */
   ConditionalPermissionInfoStorage(PermissionsHandle ph) {
     this.ph = ph;
-    condPermDir = Util.getFileStorage("condperm");
+    debug = ph.framework.props.debug;
+    condPermDir = Util.getFileStorage(ph.framework, "condperm");
     if (condPermDir == null) {
       System.err.println("Property org.osgi.framework.dir not set," +
                          "conditional permission info will not be saved between sessions");
@@ -78,17 +81,42 @@ class ConditionalPermissionInfoStorage {
    * @return The Conditional Permission Info with the specified name.
    */
   synchronized ConditionalPermissionInfo get(String name) {
-    return (ConditionalPermissionInfo)cpiMap.get(name);
+    int i = find(name);
+    if (i >= 0) {
+      return (ConditionalPermissionInfo)cpiTable.get(i);
+    }
+    return null;
   }
 
 
   /**
-   * Get enumeration of all stored conditional permissions.
+   * Get an enumeration of copied conditional permission info table.
    *
    * @return Enumeration of Conditional Permission Info objects.
    */
-  synchronized Enumeration getAll() {
-    return (new Vector(cpiMap.values())).elements();
+  synchronized Enumeration getAllEnumeration() {
+    return (new Vector(cpiTable)).elements();
+  }
+
+
+  /**
+   * Get conditional permission info table.
+   * Should be called from synchronized code.
+   *
+   * @return ArrayList of Conditional Permission Info objects.
+   */
+  ArrayList getAll() {
+    return cpiTable;
+  }
+
+
+  /**
+   * Get a copy conditional permission info table.
+   *
+   * @return Enumeration of Conditional Permission Info objects.
+   */
+  synchronized ConditionalPermissionUpdate getUpdate() {
+    return new ConditionalPermissionUpdateImpl(this, cpiTable, generation);
   }
 
 
@@ -105,21 +133,33 @@ class ConditionalPermissionInfoStorage {
    */
   synchronized ConditionalPermissionInfo
   put(String name, ConditionInfo conds[], PermissionInfo perms[]) {
+    int oldIx;
     if (name == null) {
       name = uniqueName();
+      oldIx = -1;
     } else if (name.equals("")) {
       throw new IllegalArgumentException("Name can not be an empty string");
+    } else {
+      oldIx = find(name);
     }
-    ConditionalPermissionInfoImpl res = new ConditionalPermissionInfoImpl(this, name, conds, perms);
-    ConditionalPermissionInfoImpl old = (ConditionalPermissionInfoImpl)cpiMap.put(name, res);
-    save(name, res);
-    if (Debug.permissions) {
-      Debug.println("CondPermStorage set " + res);
+    ConditionalPermissionInfoImpl old;
+    ConditionalPermissionInfoImpl res = new ConditionalPermissionInfoImpl(this, name, conds, perms, ConditionalPermissionInfo.ALLOW, ph.framework);
+    if (oldIx >= 0) {
+      old = (ConditionalPermissionInfoImpl)cpiTable.set(oldIx, res);
+      updateChangedConditionalPermission(res, oldIx, oldIx);
+    } else {
+      old = null;
+      cpiTable.add(0, res);
+      updateChangedConditionalPermission(res, 0, -1);
+    }
+    generation++;
+    save();
+    if (debug.permissions) {
+      debug.println("CondPermStorage set " + res);
       if (old != null) {
-        Debug.println("CondPermStorage replaced " + old);
+        debug.println("CondPermStorage replaced " + old);
       }
     }
-    updateChangedConditionalPermission(res, old);
     return res;
   }
 
@@ -129,15 +169,140 @@ class ConditionalPermissionInfoStorage {
    * 
    * @param name The name of the Conditional Permission Info to be changed.
    */
-  synchronized void remove(String name) {
-    ConditionalPermissionInfoImpl old = (ConditionalPermissionInfoImpl)cpiMap.remove(name);
-    if (old != null) {
-      save(name, null);
-      if (Debug.permissions) {
-        Debug.println("CondPermStorage removed " + old);
-      }
-      updateChangedConditionalPermission(null, old);
+  synchronized void remove(ConditionalPermissionInfoImpl obj) {
+    int pos = cpiTable.indexOf(obj);
+    if (debug.permissions) {
+      debug.println("CondPermStorage remove " + obj + ", pos=" + pos);
     }
+    if (pos >= 0) {
+      cpiTable.remove(pos);
+      updateChangedConditionalPermission(null, -1, pos);
+      generation++;
+      save();
+      if (debug.permissions) {
+        debug.println("CondPermStorage removed " + obj);
+      }
+    }
+  }
+
+
+  /**
+   * Commit a new cpi table.
+   * 
+   * @param name The name of the Conditional Permission Info to be changed.
+   */
+  synchronized boolean commitUpdate(List updatedTable, int parentGen) {
+    if (parentGen != generation) {
+      return false;
+    }
+    ArrayList checkTable = new ArrayList(updatedTable);
+    HashSet /* String */ names = new HashSet();
+    int oi = 0;
+    ConditionalPermissionInfoImpl ocpi = (ConditionalPermissionInfoImpl)(oi < cpiTable.size() ? cpiTable.get(oi) : null);
+    int [] update = new int[cpiTable.size() + checkTable.size()];
+    int ui = 0;
+    String uniqueNameBase = Integer.toString(generation, Character.MAX_RADIX) + "_";
+    int i = 0;
+    for ( ; i < checkTable.size(); i++) {
+      ConditionalPermissionInfoImpl cpi;
+      try {
+        cpi = (ConditionalPermissionInfoImpl)checkTable.get(i);
+      } catch (ClassCastException _) {
+        throw new IllegalStateException("Illegal class of element in updated table, index=" + i);
+      }
+      if (cpi == null) {
+        throw new IllegalStateException("Updated table contains null element, index=" + i);
+      }
+      String name = cpi.getName();
+      if (name != null) {
+        if (!names.add(name)) {
+          throw new IllegalStateException("Updated table contains elements with same name, name=" + name);
+        }
+        while (name.startsWith(uniqueNameBase)) {
+          uniqueNameBase += "_";
+        }
+      }
+      if (cpi == ocpi) {
+        // Update doesn't differ check next
+        ocpi = (ConditionalPermissionInfoImpl)(++oi < cpiTable.size() ? cpiTable.get(oi) : null);
+      } else {
+        int removed = 0;
+        for (int j = oi + 1; j < cpiTable.size(); j++) {
+          if (cpiTable.get(j) == cpi) {
+            // Found updated, further down the table, removed or moved intermediate.
+            removed = j;
+            break;
+          }
+        }
+        if (removed != 0) {
+          // remove intermediate objects
+          while (oi < removed) {
+            update[ui++] = -i;
+          }
+          ocpi = (ConditionalPermissionInfoImpl)(++oi < cpiTable.size() ? cpiTable.get(oi) : null);
+        } else {
+          // New element add it
+          update[ui++] = i;
+        }
+      }
+    }
+    // remove trailing objects
+    while (oi < cpiTable.size()) {
+      update[ui++] = -i;
+    }
+
+    // If no updates just return
+    if (ui == 0) {
+      return true;
+    }
+
+    // Perform updateds on caches and set null names
+    final int NOP = Integer.MIN_VALUE;
+    int uniqueCounter = 0;
+    int rememberLastInsert = 0;
+    for (int pui = 0; pui < ui; pui++) {
+      int u = update[pui];
+      if (u >= 0) {
+        // We have an insert, see if we find a matching remove to avoid array shuffling
+        int remove = -1;
+        int rMatch;
+        int ipui;
+        if (pui < rememberLastInsert) {
+          rMatch = u + rememberLastInsert - pui;
+          ipui = rememberLastInsert;
+        } else {
+          rMatch = u + rememberLastInsert - pui;
+          ipui = pui;
+        }
+        while (++ipui < ui) {
+          int iu = update[ipui];
+          if (iu == -rMatch) {
+            remove = u;
+            update[ipui] = NOP;
+          } else if (iu != rMatch) {
+            rememberLastInsert = iu;
+            rMatch++;
+            continue;
+          }
+          break;
+        }
+        ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl)checkTable.get(u);
+        if (cpi.getName() == null) {
+          cpi.setName(uniqueNameBase + uniqueCounter++);
+        }
+        cpi.setPermissionInfoStorage(this);
+        updateChangedConditionalPermission((ConditionalPermissionInfoImpl)checkTable.get(u),
+                                           u, remove);
+      } else if (u != NOP) {
+        updateChangedConditionalPermission(null, -1, -u);
+      }
+    }
+    generation++;
+    save();
+    if (debug.permissions) {
+      debug.println("CondPermStorage commited update, " + ui + " changes");
+    }
+    return true;
   }
 
 
@@ -147,7 +312,7 @@ class ConditionalPermissionInfoStorage {
    * @return Number of ConditionPermissionInfos objects as an int.
    */
   synchronized int size() {
-    return cpiMap.size();
+    return cpiTable.size();
   }
 
 
@@ -155,15 +320,29 @@ class ConditionalPermissionInfoStorage {
   // Private methods
   //
 
+
+  private int find(String name) {
+    for (int i = 0; i < cpiTable.size(); i++) {
+      if (((ConditionalPermissionInfo)cpiTable.get(i)).getName().equals(name)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+
   /**
    * Find a unique name.
    */
   private String uniqueName() {
-    String res;
-    do {
-      res = "ucpi" + Long.toString(unique_id++);
-    } while (cpiMap.containsKey(res));
-    return res;
+    String uniqueNameBase = Integer.toString(generation, Character.MAX_RADIX) + "_";
+    for (Iterator i = cpiTable.iterator(); i.hasNext(); ) {
+      String name = ((ConditionalPermissionInfoImpl)i.next()).getName();
+      while (name.startsWith(uniqueNameBase)) {
+        uniqueNameBase += "_";
+      }
+    }
+    return uniqueNameBase + "0";
   }
 
 
@@ -171,36 +350,33 @@ class ConditionalPermissionInfoStorage {
    * Update cached information.
    */
   private void updateChangedConditionalPermission(ConditionalPermissionInfoImpl cpi,
-                                                  ConditionalPermissionInfoImpl old) {
+                                                  int pos,
+                                                  int removePos) {
     for (Iterator i = ph.getPermissionWrappers(); i.hasNext();) {
-      ((PermissionsWrapper)i.next()).updateChangedConditionalPermission(cpi, old);
+      ((PermissionsWrapper)i.next()).updateChangedConditionalPermission(cpi, pos, removePos);
     }
   }
 
 
+  final static String END_MARKER = "END";
+
   /**
    * Save a permission array.
    */
-  private void save(final String name, final ConditionalPermissionInfo cpi) {
+  private void save() {
     if (condPermDir != null) {
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
-            if (lastFile % 20 == 0) {
-              purge();
-            }
+            purge();
             File f = new File(condPermDir, Long.toString(++lastFile));
-            StringBuffer buf = new StringBuffer();
-            if (cpi != null) {
-              buf.append(cpi.toString());
-            } else {
-              buf.append('!');
-              PermUtil.quote(name, buf);
-            }
-            buf.append('\n');
             BufferedWriter out = null;
             try {
               out = new BufferedWriter(new FileWriter(f));
-              out.write(buf.toString());
+              out.write("# Save at: " +  System.currentTimeMillis());
+              for (Iterator i = cpiTable.iterator(); i.hasNext(); ) {
+                out.write(((ConditionalPermissionInfoImpl)i.next()).toString());
+              }
+              out.write(END_MARKER);
               out.close();
             } catch (IOException e) {
               if (out != null) {
@@ -209,7 +385,7 @@ class ConditionalPermissionInfoStorage {
                 } catch (IOException ignore) { }
                 f.delete();
               }
-              Debug.printStackTrace("NYI! Report error", e);
+              debug.printStackTrace("NYI! Report error", e);
             }
             return null;
           }
@@ -223,13 +399,23 @@ class ConditionalPermissionInfoStorage {
    */
   private void load() {
     File[] files = PermUtil.getSortedFiles(condPermDir);
-    for (int i = 0; i < files.length; i++) {
-      load(files[i]);
-    }
-    try {
-      lastFile = Long.parseLong(files[files.length - 1].getName());
-    } catch (Exception e) {
-      lastFile = -1;
+    lastFile = -1;
+    for (int i = files.length - 1; i >= 0; i--) {
+      try {
+        long l = Long.parseLong(files[i].getName());
+        if (l > lastFile) {
+          lastFile = l;
+        }
+      } catch (Exception ignore) {
+        // Ignore file that isn't a number
+        continue;
+      }
+      if (load(files[i])) {
+        break;
+      } else {
+        // Load failed, purge file
+        files[i].delete();
+      }
     }
   }
 
@@ -237,21 +423,22 @@ class ConditionalPermissionInfoStorage {
   /**
    * Load saved conditional permission data from specified file.
    */
-  private void load(File fh) {
+  private boolean load(File fh) {
     BufferedReader in = null;
+    ArrayList loadTable = new ArrayList();
     try {
       in = new BufferedReader(new FileReader(fh));
       for (String l = in.readLine(); l != null; l = in.readLine()) {
         l = l.trim();
         if (l.equals("") || l.startsWith("#")) {
           continue;
-        } else if (l.startsWith("!")) {
-          StringBuffer buf = new StringBuffer();
-          PermUtil.unquote(l.toCharArray(), 1, buf);
-          cpiMap.remove(buf.toString());
+        } else if (l.equals(END_MARKER)) {
+          in.close();
+          cpiTable = loadTable;
+          return true;
         } else {
-          ConditionalPermissionInfo res = new ConditionalPermissionInfoImpl(this, l);
-          cpiMap.put(res.getName(), res);
+          ConditionalPermissionInfo res = new ConditionalPermissionInfoImpl(this, l, ph.framework);
+          loadTable.add(res);
         }
       }
       in.close();
@@ -261,8 +448,9 @@ class ConditionalPermissionInfoStorage {
           in.close();
         } catch (IOException ignore) { }
       }
-      Debug.printStackTrace("NYI! Report error", e);
+      debug.printStackTrace("NYI! Report error", e);
     }
+    return false;
   }
 
 
@@ -270,53 +458,17 @@ class ConditionalPermissionInfoStorage {
    * Prune unused data files in conditional permission directory.
    */
   private void purge() {
-    HashSet found = new HashSet();
     File[] files = PermUtil.getSortedFiles(condPermDir);
-    ArrayList remove = new ArrayList();
-    StringBuffer buf = new StringBuffer();
-    boolean empty = false;
+    int okName = 0;
     for (int i = files.length - 1; i >= 0; i--) {
-      BufferedReader in = null;
       try {
-        in = new BufferedReader(new FileReader(files[i]));
-        for (String l = in.readLine(); l != null; l = in.readLine()) {
-          l = l.trim();
-          if (l.equals("") || l.startsWith("#")) {
-            continue;
-          } else {
-            empty = l.startsWith("!");
-            PermUtil.unquote(l.toCharArray(), empty ? 1 : 0, buf);
-            break;
-          }
+        Long.parseLong(files[i].getName());
+        if (++okName > 2) {
+          files[i].delete();
         }
-      } catch (IOException ignore) {
-        // Remove faulty file, should we log?
-        files[i].delete();
-        continue;
-      } finally {
-        if (in != null) {
-          try {
-            in.close();
-          } catch (IOException ignore) { }
-        }
+      } catch (Exception ignore) {
+        // Ignore files which aren't a number.
       }
-      if (buf.length() > 0) {
-        if (found.add(buf.toString())) {
-          if (empty) {
-            remove.add(files[i]);
-          }
-        } else {
-          // Already found entry for this name remove old file
-          if (!files[i].delete()) {
-            // Don't remove active empty entry if we failed too remove old.
-            remove.remove(files[i]);
-          }
-        }
-        buf.setLength(0);
-      }
-    }
-    for (Iterator i = remove.iterator(); i.hasNext(); ) {
-      ((File)i.next()).delete();
     }
   }
 

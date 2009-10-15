@@ -110,6 +110,7 @@ public class TelnetServer implements org.osgi.framework.BundleActivator,
     public void stop(BundleContext bc) {
         // Stop accepting new connections
         accept = false;
+        telnetServerThread.interrupt();
 
         // Close all pending sessions
 

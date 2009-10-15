@@ -35,27 +35,49 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Vector;
+import java.util.*;
+
+import org.osgi.framework.Constants;
 
 public class Util {
+
+  /** Pre OSGi 4.2 propetry used by KF, replaced by
+   * Constants.FRAMEWORK_STORAGE as of OSGi R4 v4.2. */
+  static public final String FWDIR_PROP      = "org.osgi.framework.dir";
+  static public final String FWDIR_DEFAULT   = "fwdir";
+
+  public static String getFrameworkDir(Map props) {
+    String s = (String)props.get(Constants.FRAMEWORK_STORAGE);
+    if (s==null || s.length()==0) {
+      s = (String)props.get(FWDIR_PROP);
+    }
+    if (s==null || s.length()==0) {
+      s = FWDIR_DEFAULT;
+    }
+    return s;
+  }
+
+  public static String getFrameworkDir(FrameworkContext ctx) {
+    String s = ctx.props.getProperty(Constants.FRAMEWORK_STORAGE);
+    if (s==null || s.length()==0) {
+      s = ctx.props.getProperty(FWDIR_PROP);
+    }
+    if (s==null || s.length()==0) {
+      s = FWDIR_DEFAULT;
+    }
+    return s;
+  }
+
   /**
    * Check for local file storage directory.
    *
    * @param name local directory name.
    * @return A FileTree object of directory or null if no storage is available.
    */
-  public static FileTree getFileStorage(String name) {
+  public static FileTree getFileStorage(FrameworkContext ctx, String name) {
     // See if we have a storage directory
-    String fwdir = Framework.getProperty("org.osgi.framework.dir");
-    if (fwdir == null || Framework.bIsMemoryStorage) {
+    String fwdir = getFrameworkDir(ctx);
+    if (fwdir == null || ctx.props.bIsMemoryStorage) {
       return null;
     }
     FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);
@@ -128,11 +150,11 @@ public class Util {
    *
    * @param d Directive being parsed
    * @param s String to parse
-   * @return A sorted ArrayList with enumeration or null if enumeration string was null.
+   * @return A HashSet with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static ArrayList parseEnumeration(String d, String s) {
-    ArrayList result = new ArrayList();
+  public static HashSet parseEnumeration(String d, String s) {
+    HashSet result = new HashSet();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
@@ -145,8 +167,7 @@ public class Util {
           throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
                                              + at.getRest());
         }
-        int i = Math.abs(binarySearch(result, strComp, key) + 1);
-        result.add(i, key);
+        result.add(key);
       } while (!at.getEnd());
       return result;
     } else {
@@ -248,7 +269,7 @@ public class Util {
   static byte[] readResource(String name) throws IOException  {
     byte[] buf = new byte[1024];
 
-    InputStream           in = Main.class.getResourceAsStream(name);
+    InputStream           in = Util.class.getResourceAsStream(name);
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
     int n;
     while ((n = in.read(buf)) > 0) {
@@ -563,22 +584,6 @@ public class Util {
     return -(l + 1);  // key not found.
   }
 
-  static final Comparator strComp = new Comparator() {
-      /**
-       * String compare
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if objects are not a String objects.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        String a = (String)oa;
-        String b = (String)ob;
-        return a.compareTo(b);
-      }
-    };
 
   private static final byte encTab[] = {
     0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f,0x50,

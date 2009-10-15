@@ -47,4 +47,8 @@ public class StartLevelImpl implements StartLevel {
   public void setStartLevel(int startlevel) {
     fw.setStartLevel(startlevel);
   }
+
+  public boolean isBundleActivationPolicyUsed(Bundle bundle) {
+    return fw.isBundleActivationPolicyUsed(bundle.getBundleId());
+  }
 }

@@ -252,17 +252,20 @@ public class Activator implements BundleActivator {
       }
     }
 
+    // Must be executed even later, to allow for plugin comps to be ready.
+    javax.swing.SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
+                                            LargeIconsDisplayer.NAME);
+          // We really want this one to be displayed.
+          desktop.bundlePanelShowTab(defDisp);
 
-    String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
-                                      LargeIconsDisplayer.NAME);
-
-    // We really want this one to be displayed.
-    desktop.bundlePanelShowTab(defDisp);
-
-    int ix = desktop.detailPanel.indexOfTab("Manifest");
-    if(ix != -1) {
-      desktop.detailPanel.setSelectedIndex(ix);
-    }
+          int ix = desktop.detailPanel.indexOfTab("Manifest");
+          if(ix != -1) {
+            desktop.detailPanel.setSelectedIndex(ix);
+          }
+        }
+      });
   }
 
   // Shutdown code that must exectue on the EDT

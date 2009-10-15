@@ -1,16 +1,16 @@
 
-KF_HOME=/home/knopflerfish
-WWW_DIR=${KF_HOME}/www
-WWW_PATH=snapshots
-OUT_DIR=${WWW_DIR}/${WWW_PATH}
-OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
-
 TAG         = trunk
 TAGs        = $(subst /,_,$(TAG))
 CURRENT_LINK=current_${TAGs}
 BUILD_KIND  = "snapshot build"
 
-CHANGE_LOG=${KF_HOME}/ChangeLog_${TAG}
+KF_HOME=/home/knopflerfish
+WWW_DIR=${KF_HOME}/www
+WWW_PATH=snapshots_${TAGs}
+OUT_DIR=${WWW_DIR}/${WWW_PATH}
+OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
+
+CHANGE_LOG=${KF_HOME}/ChangeLog_${TAGs}
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/${TAG}
 
 ANT	= /usr/bin/ant
@@ -100,7 +100,8 @@ clean:
 
 copyout:
 	@$(MKDIR) -p ${OUT_DIR}
-	$(CP) -r ${TAGs}/htdocs/releases/${VERSION} ${OUT_DIR}
+	-${RM} -rf ${OUT_DIR}/${VERSION}
+	$(CP) -r ${TAGs}/out/distrib_${VERSION} ${OUT_DIR}/${VERSION}
 
 # Remove all but the 10 last BUILDs on the current ${TAG} from ${OUT_DIR}
 clean_snapshots:

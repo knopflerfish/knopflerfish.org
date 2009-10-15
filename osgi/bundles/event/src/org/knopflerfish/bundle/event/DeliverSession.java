@@ -153,7 +153,10 @@ public class DeliverSession {
           = currentHandlerSR.getProperty(EventConstants.EVENT_TOPIC);
         try {
           /* get the topics */
-          String[] topics = (String[]) topic;
+          String[] topics =
+              (topic instanceof String) ?
+              new String[] {(String)topic} :
+              (String[]) topic;
           /* check if topic is null */
           if (topics != null) {
             /* check the lenght of the topic */

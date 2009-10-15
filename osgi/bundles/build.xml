@@ -33,6 +33,8 @@
   <target name="doAntBuild" depends="setup">
     <ant target="${the.target}" dir="cm/cm"/>
     <ant target="${the.target}" dir="event"/>
+    <ant target="${the.target}" dir="threadio"/>
+    <ant target="${the.target}" dir="command"/>
     <ant target="${the.target}" dir="console/console"/>
     <ant target="${the.target}" dir="io"/>
     <ant target="${the.target}" dir="log"/>

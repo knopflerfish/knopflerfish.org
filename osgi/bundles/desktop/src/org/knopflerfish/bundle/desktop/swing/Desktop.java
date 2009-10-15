@@ -238,7 +238,7 @@ public class Desktop
   static Desktop theDesktop;
 
   Set sizesavers = new HashSet();
-  
+
   // Check that we are on Mac OS X.  This is crucial to loading and using the OSXAdapter class.
   public static boolean bMacOS = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
 
@@ -265,8 +265,7 @@ public class Desktop
   Map menuMap    = new HashMap();
   Map detailMap  = new HashMap();
 
-  Object macApp;
-  Method macAppStop;
+
 
   public void start() {
 
@@ -327,8 +326,7 @@ public class Desktop
     statusBar     = new StatusBar("");
 
     String rName = Activator.remoteHost;
-    Map    props = Activator.getSystemProperties();
-    String spid  = (String)props.get("org.osgi.provisioning.spid");
+    String spid  = Activator.getBC().getProperty("org.osgi.provisioning.spid");
 
     if(spid == null) {
       spid = "";
@@ -361,7 +359,7 @@ public class Desktop
         bMacOS = false;
       }
     }
- 
+
     contentPane = frame.getContentPane();
     contentPane.setLayout(new BorderLayout());
 
@@ -486,103 +484,111 @@ public class Desktop
                            Activator.getBC().createFilter(dispFilter),
                            null)
         {
-          public Object addingService(ServiceReference sr) {
-            SwingBundleDisplayer disp =
+          public Object addingService(final ServiceReference sr) {
+            final SwingBundleDisplayer disp =
               (SwingBundleDisplayer)super.addingService(sr);
 
-            Icon   icon = disp.getSmallIcon();
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
 
-            String  name =
-              Util.getStringProp(sr,
-                                 SwingBundleDisplayer.PROP_NAME,
-                                 disp.getClass().getName());
-            String  desc =
-              Util.getStringProp(sr,
-                                 SwingBundleDisplayer.PROP_DESCRIPTION,
-                                 "");
+                  Icon   icon = disp.getSmallIcon();
 
-            boolean bDetail    =
-              Util.getBooleanProp(sr,
-                                  SwingBundleDisplayer.PROP_ISDETAIL,
-                                  false);
+                  String  name =
+                    Util.getStringProp(sr,
+                                       SwingBundleDisplayer.PROP_NAME,
+                                       disp.getClass().getName());
+                  String  desc =
+                    Util.getStringProp(sr,
+                                       SwingBundleDisplayer.PROP_DESCRIPTION,
+                                       "");
 
-            JComponent comp = disp.createJComponent();
+                  boolean bDetail    =
+                    Util.getBooleanProp(sr,
+                                        SwingBundleDisplayer.PROP_ISDETAIL,
+                                        false);
 
-            JFloatable wrapper = new JFloatable(comp, name);
+                  JComponent comp = disp.createJComponent();
 
-            // floating windows shouldn't be closed when
-            // the tabbed pane swaps components
-            wrapper.setAutoClose(false);
+                  JFloatable wrapper = new JFloatable(comp, name);
 
-            disp.setBundleSelectionModel(bundleSelModel);
+                  // floating windows shouldn't be closed when
+                  // the tabbed pane swaps components
+                  wrapper.setAutoClose(false);
 
-            if(bDetail) {
-              detailMap.put(sr, disp);
+                  disp.setBundleSelectionModel(bundleSelModel);
 
-              //              JPanel wrapper2 = new JPanel(new BorderLayout());
-              //              wrapper2.add(wrapper, BorderLayout.CENTER);
+                  if(bDetail) {
+                    detailMap.put(sr, disp);
 
-              detailPanel.addTab(name, icon, wrapper, desc);
-            } else {
-              displayMap.put(sr, disp);
+                    //              JPanel wrapper2 = new JPanel(new BorderLayout());
+                    //              wrapper2.add(wrapper, BorderLayout.CENTER);
 
-              bundlePanel.addTab(name, wrapper);
+                    detailPanel.addTab(name, icon, wrapper, desc);
+                  } else {
+                    displayMap.put(sr, disp);
 
-              makeViewPopupMenu();
+                    bundlePanel.addTab(name, wrapper);
 
-              viewMenu = makeViewMenu(viewMenu);
-            }
+                    makeViewPopupMenu();
 
+                    viewMenu = makeViewMenu(viewMenu);
+                  }
+
+                }
+              });
             return disp;
           }
 
-          public void removedService(ServiceReference sr, Object service) {
-            SwingBundleDisplayer disp = (SwingBundleDisplayer)service;
+          public void removedService(final ServiceReference sr,
+                                     final Object service) {
+            final SwingBundleDisplayer disp = (SwingBundleDisplayer)service;
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                  String  name =
+                    Util.getStringProp(sr,
+                                       SwingBundleDisplayer.PROP_NAME,
+                                       disp.getClass().getName());
+                  boolean bDetail    =
+                    Util.getBooleanProp(sr,
+                                        SwingBundleDisplayer.PROP_ISDETAIL,
+                                        false);
 
-            String  name =
-              Util.getStringProp(sr,
-                                 SwingBundleDisplayer.PROP_NAME,
-                                 disp.getClass().getName());
-            boolean bDetail    =
-              Util.getBooleanProp(sr,
-                                  SwingBundleDisplayer.PROP_ISDETAIL,
-                                  false);
 
+                  if(bDetail) {
+                    Component comp = null;
+                    for(int i = 0; i < detailPanel.getTabCount(); i++) {
+                      if(detailPanel.getTitleAt(i).equals(name)) {
+                        comp = detailPanel.getComponentAt(i);
+                      }
+                    }
+                    if(comp != null) {
+                      // Make sure floating windows are closed
+                      if(comp instanceof JFloatable) {
+                        ((JFloatable)comp).setAutoClose(true);
+                        ((JFloatable)comp).doUnfloat();
+                      }
+                      detailPanel.remove(comp);
+                      detailMap.remove(sr);
+                    }
+                  } else {
+                    Component comp = bundlePanel.getTab(name);
+                    if(comp != null) {
+                      if(comp instanceof JFloatable) {
+                        ((JFloatable)comp).setAutoClose(true);
+                        ((JFloatable)comp).doUnfloat();
+                      }
+                    }
 
-            if(bDetail) {
-              Component comp = null;
-              for(int i = 0; i < detailPanel.getTabCount(); i++) {
-                if(detailPanel.getTitleAt(i).equals(name)) {
-                  comp = detailPanel.getComponentAt(i);
+                    displayMap.remove(sr);
+                    bundlePanel.removeTab(name);
+
+                    makeViewPopupMenu();
+                    viewMenu = makeViewMenu(viewMenu);
+
+                  }
                 }
-              }
-              if(comp != null) {
-                // Make sure floating windows are closed
-                if(comp instanceof JFloatable) {
-                  ((JFloatable)comp).setAutoClose(true);
-                  ((JFloatable)comp).doUnfloat();
-                }
-                detailPanel.remove(comp);
-                detailMap.remove(sr);
-              }
-            } else {
-              Component comp = bundlePanel.getTab(name);
-              if(comp != null) {
-                if(comp instanceof JFloatable) {
-                  ((JFloatable)comp).setAutoClose(true);
-                  ((JFloatable)comp).doUnfloat();
-                }
-              }
-
-              displayMap.remove(sr);
-              bundlePanel.removeTab(name);
-
-              makeViewPopupMenu();
-              viewMenu = makeViewMenu(viewMenu);
-
-            }
+              });
             super.removedService(sr, service);
-
           }
         };
       dispTracker.open();
@@ -961,7 +967,9 @@ public class Desktop
     final String key = (String)sr.getProperty(SwingBundleDisplayer.PROP_NAME);
     bundlePanel.showTab(key);
     JRadioButtonMenuItem item = (JRadioButtonMenuItem) menuMap.get(sr);
-    item.setSelected(true);
+    if (null!=item) {
+      item.setSelected(true);
+    }
   }
 
 
@@ -1339,6 +1347,8 @@ public class Desktop
   JMenu editMenu = null;
 
   JMenu makeViewMenu(JMenu oldMenu) {
+    if (consoleSwing==null) return null; // Desktop already stopped
+
     JMenu menu;
     final int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
@@ -1422,12 +1432,12 @@ public class Desktop
             setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1 + c2,
                                                   mask));
             setMnemonic(KeyEvent.VK_1 + c2);
+            menuMap.put(sr, this);
             addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent ev) {
                   bundlePanelShowTab(sr);
                 }
               });
-            menuMap.put(sr, this);
             group.add(this);
           }});
     }
@@ -2519,10 +2529,14 @@ public class Desktop
     }
     bundleCache = Activator.getBundles();
 
-    updateStatusBar();
-    updateMenus();
-    toolBar.revalidate();
-    toolBar.repaint();
+    SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          updateStatusBar();
+          updateMenus();
+          toolBar.revalidate();
+          toolBar.repaint();
+        }
+      });
   }
 
   void updateStatusBar() {

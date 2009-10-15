@@ -38,7 +38,10 @@ import java.security.*;
 import java.util.*;
 
 import org.osgi.service.condpermadmin.Condition;
+import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.framework.AdminPermission;
+
+import org.knopflerfish.framework.Debug;
 
 
 class PostponementCheck implements PrivilegedAction {
@@ -46,17 +49,17 @@ class PostponementCheck implements PrivilegedAction {
   private AccessControlContext acc;
   private Permission perm;
   private ArrayList checkedClasses;
-  private ArrayList ppList;
+  private ArrayList ppList = null;
 
-  private int [] perms;
-  private int [] curr;
+  private Debug debug = null;
 
-
+  /**
+   *
+   */
   PostponementCheck(AccessControlContext acc, Permission perm, PostponementCheck previous) {
     this.acc = acc;
     this.perm = perm;
     checkedClasses = previous != null ? previous.getCheckedClasses() : null;
-    ppList = null;
   }
 
 
@@ -74,9 +77,10 @@ class PostponementCheck implements PrivilegedAction {
   /**
    *
    */
-  public void savePostponement(List postponement) {
+  public void savePostponement(List postponement, Object debug) {
     if (ppList == null) {
       ppList = new ArrayList(2);
+      this.debug = (Debug)debug;
     }
     ppList.add(postponement);
   }
@@ -95,57 +99,6 @@ class PostponementCheck implements PrivilegedAction {
   /**
    *
    */
-  private void initPermutations() {
-    int depth = ppList.size();
-    perms = new int[depth];
-    curr = new int[depth];
-    for (int i = 0; i < depth; i++) {
-      perms[i] = ((List)ppList.get(i)).size();
-      curr[i] = 0;
-    }
-  }
-
-
-  /**
-   * This code became ugly and needs to be rewritten and optimized.
-   */
-  private Map getNextPermutation() {
-    if (curr != null) {
-      HashMap res = new HashMap();
-      boolean increment = true;
-      for (int i = 0; i < curr.length; i++) {
-        ConditionalPermission cp = (ConditionalPermission)((List)ppList.get(i)).get(curr[i]);
-        for (Iterator pi = cp.getPostponed(); pi.hasNext();) {
-          Object o = pi.next();
-          Class co = o.getClass();
-          ArrayList x = (ArrayList)res.get(co);
-          if (x == null) {
-            x = new ArrayList(2);
-          }
-          x.add(0, o);
-          x.add(cp);
-          res.put(co, x);
-        }
-        if (increment) {
-          if (++curr[i] == perms[i]) {
-            curr[i] = 0;
-          } else {
-            increment = false;
-          }
-        }
-      }
-      if (increment) {
-        curr = null;
-      }
-      return res;
-    }
-    return null;
-  }
-
-
-  /**
-   *
-   */
   private void checkPostponements() {
     if (ppList != null) {
       HashMap condDict = new HashMap();
@@ -153,59 +106,61 @@ class PostponementCheck implements PrivilegedAction {
       if (checkedClasses == null) {
         checkedClasses = new ArrayList();
       }
-      initPermutations();
-      int permcount = 1;
-      while ((cm = getNextPermutation()) != null) {
-        boolean ok = true;
-        for (Iterator i = cm.entrySet().iterator(); i.hasNext();) {
-          Map.Entry me = (Map.Entry)i.next();
-          Class cc = (Class)me.getKey();
-          if (checkedClasses.contains(cc)) {
-            ok = false;
-            break;
-          }
-          ArrayList cs = (ArrayList)me.getValue();
-          Dictionary d = (Dictionary)condDict.get(cc);
-          if (d == null) {
-            d = new Hashtable();
-            condDict.put(cc, d);
-          }
-          checkedClasses.add(cc);
-          try {
-            int size = cs.size() / 2;
-            Condition [] conditions = new Condition[size];
-            ConditionalPermission [] immutables = new ConditionalPermission[size];
-            for (int j = 0; j < size; j++) {
-              Condition ce = (Condition)cs.get(size - j - 1);
-              conditions[j] = ce;
-              immutables[j] = ce.isMutable() ? null : (ConditionalPermission)cs.get(size + j);
-            }
-            ok = conditions[0].isSatisfied(conditions, d);
-            for (int j = 0; j < size; j++) {
-              if (immutables[j] != null) {
-                immutables[j].setImmutable(conditions[j], ok);
+      // Loop through all bundle protection domains found on stack
+    pdloop:
+      for (Iterator ppi = ppList.iterator(); ppi.hasNext(); ) {
+        // Loop through all matching ConditionalPermissions
+      cploop:
+        for (Iterator pi = ((List)ppi.next()).iterator(); pi.hasNext(); ) {
+          ConditionalPermission cp = (ConditionalPermission)pi.next();
+          // Loop through all postponed Conditions for ConditionalPermissions
+          // List ends with an immediate conditions, if not assume an implicity
+          // DENY ConditionalPermission.
+          for (Iterator ci = cp.getPostponed(); ci.hasNext();) {
+            Condition c = (Condition)ci.next();
+            if (c.isPostponed()) {
+              Class cc = c.getClass();
+              if (checkedClasses.contains(cc)) {
+                if (debug.permissions) {
+                  debug.println("CHECK_POSTPONE: recursive postponement, class=" + cc);
+                }
+                throw new SecurityException("Postponement condition check recursive for class: " + cc);
               }
+              Dictionary d = (Dictionary)condDict.get(cc);
+              if (d == null) {
+                d = new Hashtable();
+                condDict.put(cc, d);
+              }
+              checkedClasses.add(cc);
+              try {
+                // NYI! Optimize immutables!
+                if (!c.isSatisfied(new Condition [] {c}, d)) {
+                  // ConditionPermissional didn't match, check next
+                  continue cploop;
+                }
+              } catch (Throwable ignore) {
+                // NYI, Log this failure
+                // ConditionPermissional couldn't be evaluated, treat as fail
+                // TBD should we do this even if we have a DENY CondPerm.
+                continue cploop;
+              } finally {
+                checkedClasses.remove(checkedClasses.size() - 1);
+              }
+            } else if (cp.access == ConditionalPermissionInfo.ALLOW) {
+              // We allow, check next protection domain
+              continue pdloop;
             }
-          } catch (Throwable t) {
-            // NYI, Log this
-            ok = false;
           }
-          checkedClasses.remove(checkedClasses.size() - 1);
-          if (!ok) {
-            break;
+          // Denied
+          if (debug.permissions) {
+            debug.println("CHECK_POSTPONE: postponement failed");
           }
-        }
-        if (ok) {
-          if (Debug.permissions) {
-            Debug.println("CHECK_POSTPONE: postponement ok");
-          }
-          return;
+          throw new SecurityException("Postponed conditions failed");
         }
       }
-      if (Debug.permissions) {
-        Debug.println("CHECK_POSTPONE: postponement failed");
+      if (debug.permissions) {
+        debug.println("CHECK_POSTPONE: postponement ok");
       }
-      throw new SecurityException("Postponed conditions failed");
     }
   }
 

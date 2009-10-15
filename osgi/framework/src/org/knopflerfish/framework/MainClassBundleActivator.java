@@ -84,7 +84,8 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
                           + bc.getBundle().getBundleId());
       runner.start();
     } catch (Exception e) {
-      throw new BundleException("Failed to start main class", e);
+      throw new BundleException("Failed to start main class",
+                                BundleException.UNSPECIFIED, e);
     }
   }
 
@@ -93,7 +94,8 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
       try {
         stopMethod.invoke(null, new Object[] { } );
       } catch (Exception e) {
-        throw new BundleException("Failed to stop main class", e);
+        throw new BundleException("Failed to stop main class",
+                                  BundleException.UNSPECIFIED, e);
       }
     }
   }

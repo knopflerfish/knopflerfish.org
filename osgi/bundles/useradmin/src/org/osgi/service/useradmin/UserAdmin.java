@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.useradmin/src/org/osgi/service/useradmin/UserAdmin.java,v 1.10 2006/06/16 16:31:41 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +15,7 @@
  */
 package org.osgi.service.useradmin;
 
-import org.osgi.framework.*;
+import org.osgi.framework.InvalidSyntaxException;
 
 /**
  * This interface is used to manage a database of named <code>Role</code> objects,
@@ -34,18 +32,18 @@ import org.osgi.framework.*;
  * Every role has a name and a type.
  * 
  * <p>
- * A {@link User}object can be configured with credentials (e.g., a password)
+ * A {@link User} object can be configured with credentials (e.g., a password)
  * and properties (e.g., a street address, phone number, etc.).
  * <p>
- * A {@link Group}object represents an aggregation of {@link User}and
- * {@link Group}objects. In other words, the members of a <code>Group</code>
+ * A {@link Group} object represents an aggregation of {@link User} and
+ * {@link Group} objects. In other words, the members of a <code>Group</code>
  * object are roles themselves.
  * <p>
  * Every User Admin service manages and maintains its own namespace of
  * <code>Role</code> objects, in which each <code>Role</code> object has a unique
  * name.
  * 
- * @version $Revision: 1.10 $
+ * @version $Revision: 5673 $
  */
 public interface UserAdmin {
 	/**
@@ -54,12 +52,12 @@ public interface UserAdmin {
 	 * 
 	 * <p>
 	 * If a <code>Role</code> object was created, a <code>UserAdminEvent</code>
-	 * object of type {@link UserAdminEvent#ROLE_CREATED}is broadcast to any
+	 * object of type {@link UserAdminEvent#ROLE_CREATED} is broadcast to any
 	 * <code>UserAdminListener</code> object.
 	 * 
 	 * @param name The <code>name</code> of the <code>Role</code> object to create.
 	 * @param type The type of the <code>Role</code> object to create. Must be
-	 *        either a {@link Role#USER}type or {@link Role#GROUP}type.
+	 *        either a {@link Role#USER} type or {@link Role#GROUP} type.
 	 * 
 	 * @return The newly created <code>Role</code> object, or <code>null</code> if a
 	 *         role with the given name already exists.
@@ -74,11 +72,11 @@ public interface UserAdmin {
 
 	/**
 	 * Removes the <code>Role</code> object with the given name from this User
-	 * Admin service.
+	 * Admin service and all groups it is a member of.
 	 * 
 	 * <p>
 	 * If the <code>Role</code> object was removed, a <code>UserAdminEvent</code>
-	 * object of type {@link UserAdminEvent#ROLE_REMOVED}is broadcast to any
+	 * object of type {@link UserAdminEvent#ROLE_REMOVED} is broadcast to any
 	 * <code>UserAdminListener</code> object.
 	 * 
 	 * @param name The name of the <code>Role</code> object to remove.

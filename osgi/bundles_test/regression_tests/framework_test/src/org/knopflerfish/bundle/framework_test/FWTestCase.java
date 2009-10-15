@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ public class FWTestCase extends TestCase {
   }
 
   /**
-   * Magic to extract HELP_<ID> string from parent class. This is just 
+   * Magic to extract HELP_<ID> string from parent class. This is just
    * a convenience to avoid changing the old syntax
    * in the test suite.
    */
@@ -61,24 +61,23 @@ public class FWTestCase extends TestCase {
     int ix = name.lastIndexOf("$");
     if(ix != -1) {
       try {
-	Class        clazz = Class.forName(name.substring(0, ix));
-	Field        f     = clazz.getField("HELP_" + 
-					    getName().toUpperCase());
-	String[]     lines = (String[])f.get(null);
-	StringBuffer sb    = new StringBuffer();
+        Class        clazz = Class.forName(name.substring(0, ix));
+        Field        f     = clazz.getField("HELP_" +
+                                            getName().toUpperCase());
+        String[]     lines = (String[])f.get(null);
+        StringBuffer sb    = new StringBuffer();
 
-	for(int i = 0; i < lines.length; i++) {
-	  sb.append(lines[i]);
-	  if(i < lines.length - 1) {
-	    sb.append("\n");
-	  }
-	}
-	return sb.toString();
+        for(int i = 0; i < lines.length; i++) {
+          sb.append(lines[i]);
+          if(i < lines.length - 1) {
+            sb.append("\n");
+          }
+        }
+        return sb.toString();
       } catch (Exception e) {
-	return "";
+        return "";
       }
     }
     return "";
   }
 }
-

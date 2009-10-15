@@ -49,7 +49,7 @@ import org.osgi.framework.BundleContext;
 
 /**
  * Implementation of the service interface ConsoleService.
- * 
+ *
  * @see org.knopflerfish.service.console.ConsoleService
  * @author Jan Stein
  */
@@ -72,6 +72,8 @@ public class SessionImpl extends Thread implements Session {
     String name = "UNKNOWN";
 
     boolean closed = false;
+
+    boolean stopped = false;
 
     StreamTokenizer cmd;
 
@@ -99,6 +101,7 @@ public class SessionImpl extends Thread implements Session {
             this.aliases.setDefault();
         }
 
+        Activator.sessions.add(this);
         /*
          * AccessController.doPrivileged( new PrivilegedAction() { public Object
          * run() { File as = bc.getDataFile(ALIAS_SAVE); if (as.exists()) { try {
@@ -108,13 +111,22 @@ public class SessionImpl extends Thread implements Session {
          */
     }
 
+    // Called when the console bundle is stopped.
+    void bundleStopped()
+    {
+        Activator.sessions.remove(this);
+        stopped = true;
+        this.interrupt();
+    }
+
+
     //
     // Session implementation
     //
 
     /**
      * Abort current command in session
-     * 
+     *
      */
     public void abortCommand() {
         if (closed) {
@@ -132,7 +144,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Get escape character.
-     * 
+     *
      * @return Current escape character
      */
     public char getEscapeChar() {
@@ -144,7 +156,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Set escape character.
-     * 
+     *
      * @param ch
      *            New escape character
      */
@@ -157,7 +169,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Get interrupt string.
-     * 
+     *
      * @return Current interrupt string
      */
     public String getInterruptString() {
@@ -169,7 +181,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Set interrupt string.
-     * 
+     *
      * @param str
      *            New interrupt string
      */
@@ -182,7 +194,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Close session
-     * 
+     *
      */
     public void close() {
         if (closed) {
@@ -206,7 +218,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Add session event listener.
-     * 
+     *
      * @param l
      *            Session listener
      */
@@ -219,7 +231,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Remove session event listener.
-     * 
+     *
      * @param l
      *            Session listener
      */
@@ -232,7 +244,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Returns the property information tied to this session.
-     * 
+     *
      * @return Property Dictionary.
      */
     public Dictionary getProperties() {
@@ -245,11 +257,11 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Run command dispatcher thread
-     * 
+     *
      */
     public void run() {
         readT.start();
-        while (true) {
+        while (!stopped) {
             cmdline.removeAllElements();
             Command c = null;
             if (prompt != null) {
@@ -329,7 +341,7 @@ public class SessionImpl extends Thread implements Session {
 
     /**
      * Setup a tokenizer with following properties:
-     * 
+     *
      * @param in
      *            Input reader
      * @return Configured StreamTokenizer

@@ -71,10 +71,10 @@ public class PackageAdminImpl implements PackageAdmin {
 
   final static String SPEC_VERSION = "1.2";
 
-  private Framework framework;
+  private FrameworkContext framework;
 
 
-  PackageAdminImpl(Framework fw) {
+  PackageAdminImpl(FrameworkContext fw) {
     framework = fw;
   }
 
@@ -193,7 +193,7 @@ public class PackageAdminImpl implements PackageAdmin {
     boolean restart = false;
     if (bundles != null) {
       for (int i = 0; i < bundles.length; i++) {
-        if(bundles[i] == null) {
+        if (bundles[i] == null) {
           throw new NullPointerException("bundle[" + i + "] cannot be null");
         }
         if (((BundleImpl)bundles[i]).extensionNeedsRestart()) {
@@ -213,7 +213,7 @@ public class PackageAdminImpl implements PackageAdmin {
     if (restart) {
       try {
         // will restart the framework.
-        framework.systemBundle.stop(Framework.EXIT_CODE_RESTART);
+        framework.systemBundle.update();
       } catch (BundleException ignored) {
         /* this can't be happening. */
       }
@@ -232,8 +232,8 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   void refreshPackages0(final Bundle[] bundles) {
-    if(Debug.packages) {
-      Debug.println("PackageAdminImpl.refreshPackages() starting");
+    if (framework.props.debug.packages) {
+      framework.props.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
 
     BundleImpl bi[] = (BundleImpl[])framework.packages
@@ -244,10 +244,10 @@ public class PackageAdminImpl implements PackageAdmin {
     // in reverse start order
     for (int bx = bi.length; bx-- > 0; ) {
       BundleException be = null;
-      synchronized (bi[bx]) {
+      synchronized (bi[bx].lock) {
         if (bi[bx].state == Bundle.ACTIVE) {
           startList.add(0, bi[bx]);
-          be = bi[bx].stop0(false);
+          be = bi[bx].stop0();
         }
       }
       if (be != null) {
@@ -257,7 +257,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
     ArrayList savedEvent = new ArrayList();
 
-    synchronized (framework.packages) {
+//TBD    synchronized (framework.packages) {
       // Do this again in case something changed during the stop
       // phase, this time synchronized with packages to prevent
       // resolving of bundles.
@@ -269,16 +269,14 @@ public class PackageAdminImpl implements PackageAdmin {
       BundleImpl nextStart =  startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
       for (int bx = bi.length; bx-- > 0; ) {
         BundleException be = null;
-        synchronized (bi[bx]) {
+        synchronized (bi[bx].lock) {
           switch (bi[bx].state) {
           case Bundle.STARTING:
           case Bundle.ACTIVE:
-            synchronized (bi[bx]) {
-              if (bi[bx].state == Bundle.ACTIVE) {
-                be = bi[bx].stop0(false);
-                if (nextStart != bi[bx]) {
-                  startList.add(startPos + 1, bi[bx]);
-                }
+            if (bi[bx].state == Bundle.ACTIVE) {
+              be = bi[bx].stop0();
+              if (nextStart != bi[bx]) {
+                startList.add(startPos + 1, bi[bx]);
               }
             }
           case Bundle.STOPPING:
@@ -297,7 +295,7 @@ public class PackageAdminImpl implements PackageAdmin {
           savedEvent.add(new FrameworkEvent(FrameworkEvent.ERROR, bi[bx], be));
         }
       }
-    }
+//    }
     // Broadcast events
     for (Iterator i = savedEvent.iterator(); i.hasNext();) {
       Object e = i.next();
@@ -307,9 +305,9 @@ public class PackageAdminImpl implements PackageAdmin {
         framework.listeners.frameworkEvent((FrameworkEvent)e);
       }
     }
-    if(Debug.packages) {
-      Debug.println("PackageAdminImpl.refreshPackages() "
-                    +"all affected bundles now in state INSTALLED");
+    if (framework.props.debug.packages) {
+      framework.props.debug.println("PackageAdminImpl.refreshPackages() "
+                                    +"all affected bundles now in state INSTALLED");
     }
 
     // Restart previously active bundles in normal start order
@@ -317,8 +315,8 @@ public class PackageAdminImpl implements PackageAdmin {
     framework.listeners
       .frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                          framework.systemBundle, null));
-    if(Debug.packages) {
-      Debug.println("PackageAdminImpl.refreshPackages() done.");
+    if (framework.props.debug.packages) {
+      framework.props.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
   }
 
@@ -407,16 +405,10 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   public Bundle[] getHosts(Bundle bundle) {
-    if (bundle == null) {
-      return null;
-    }
-
     BundleImpl b = (BundleImpl)bundle;
-    if (b.isFragment() &&
-        b.isAttached()) {
-      return new Bundle[]{b.getFragmentHost()};
+    if (b != null && b.isFragment() && b.isAttached()) {
+      return b.fragment.hostsArray();
     }
-
     return null;
   }
 

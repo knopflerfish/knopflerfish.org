@@ -657,7 +657,7 @@ public class Util {
       sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
       sb.append(fontify("Framework properties", -1));
 
-      String spid = (String)props.get("org.osgi.provisioning.spid");
+      String spid = Activator.getBC().getProperty("org.osgi.provisioning.spid");
       if(spid != null && !"".equals(spid)) {
         sb.append(fontify(" (" + spid + ")", -1));
       }
