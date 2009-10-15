@@ -68,11 +68,6 @@ public class BundleImpl implements Bundle {
   final FrameworkContext fwCtx;
 
   /**
-   * Handle to secure operations.
-   */
-  final protected PermissionOps secure;
-
-  /**
    * Bundle identifier.
    */
   final long id;
@@ -81,6 +76,11 @@ public class BundleImpl implements Bundle {
    * Bundle location identifier.
    */
   final String location;
+
+  /**
+   * Handle to secure operations.
+   */
+  PermissionOps secure;
 
   /**
    * Does bundle have a version 2 manifest.
@@ -1018,12 +1018,16 @@ public class BundleImpl implements Bundle {
   public ServiceReference[] getServicesInUse() {
     Set sr = fwCtx.services.getUsedByBundle(this);
     secure.filterGetServicePermission(sr);
-    ServiceReference[] res = new ServiceReference[sr.size()];
-    int pos = 0;
-    for (Iterator i = sr.iterator(); i.hasNext(); ) {
-      res[pos++] = ((ServiceRegistration)i.next()).getReference();
+    if (sr.size() > 0) {
+      ServiceReference[] res = new ServiceReference[sr.size()];
+      int pos = 0;
+      for (Iterator i = sr.iterator(); i.hasNext(); ) {
+        res[pos++] = ((ServiceRegistration)i.next()).getReference();
+      }
+      return res;
+    } else {
+      return null;
     }
-    return res;
   }
 
 

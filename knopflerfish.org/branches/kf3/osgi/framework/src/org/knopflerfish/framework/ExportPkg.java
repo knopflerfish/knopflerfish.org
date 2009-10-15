@@ -222,11 +222,13 @@ class ExportPkg {
    * Check if ExportPkg is exported from its bundle. A package is deemed to
    * be exported if its bundle is resolved and hasn't been replaced by a
    * conflicting import (see resolving process chapter in core spec.).
+   * Bundle must also have export permission.
    *
    * @return True if pkg exports the package.
    */
   synchronized boolean isExported() {
-    if (pkg != null && ((bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
+    if (checkPermission() && pkg != null &&
+        ((bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
       BundlePackages bp = bpkgs.getProviderBundlePackages(name);
       return bp == null || bp.bundle == bpkgs.bundle;
     }
@@ -263,16 +265,11 @@ class ExportPkg {
    * @return true if we have export permission
    */
   boolean checkPermission() {
+    // NYI! cache permission when we have resolved and while resolving
+    if (bpkgs.bundle.state == BundleImpl.INSTALLED) {
+      hasPermission = bpkgs.bundle.fwCtx.perm.hasExportPackagePermission(this);
+    }
     return hasPermission;
-  }
-
-
-  /**
-   * Check if we have export permissions.
-   *
-   */
-  void setPermission(boolean perm) {
-    hasPermission = perm;
   }
 
 

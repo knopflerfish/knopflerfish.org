@@ -291,13 +291,13 @@ class Services {
     Collection res = new ArrayList();
     while (s.hasNext()) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
-      String[] classes = (String[]) services.get(sr);
-      if (!secure.okGetServicePerms(classes)) {
+      ServiceReference sri = sr.getReference();
+      if (!secure.okGetServicePerms(sri)) {
         continue; //sr not part of returned set
       }
       if (filter == null || LDAPExpr.query(filter, sr.properties)) {
-        ServiceReference sri = sr.getReference();
         if (bundle != null) {
+          String[] classes = (String[]) services.get(sr);
           for (int i = 0; i < classes.length; i++) {
             if (!sri.isAssignableTo(bundle, classes[i])){
               sri = null;
@@ -314,7 +314,7 @@ class Services {
       return null;
     } else {
       if (bundle != null) {
-        framework.hooks.filterServiceReferences(bundle.getBundleContext(),
+        framework.hooks.filterServiceReferences(bundle.getBundleContext0(),
                                                 clazz, filter, false, res);
       } else {
         framework.hooks.filterServiceReferences(null, clazz, filter, true, res);

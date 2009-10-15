@@ -68,14 +68,8 @@ public class PermissionsHandle {
     framework = fw;
     pinfos = new PermissionInfoStorage(fw);
     pa = new PermissionAdminImpl(pinfos);
-    //    if (System.getSecurityManager() instanceof ConditionalPermissionSecurityManager) {
-    if (System.getSecurityManager() instanceof SecurityManager) {
-      cpinfos = new ConditionalPermissionInfoStorage(this);
-      cpa = new ConditionalPermissionAdminImpl(cpinfos, fw.props.debug);
-    } else {
-      cpinfos = null;
-      cpa = null;
-    }
+    cpinfos = new ConditionalPermissionInfoStorage(this);
+    cpa = new ConditionalPermissionAdminImpl(cpinfos, fw);
     Policy.setPolicy(new FrameworkPolicy(Policy.getPolicy(), this));
   }
 

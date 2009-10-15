@@ -230,20 +230,15 @@ class BundlePackages {
    *         getResolveFailReason().
    */
   boolean resolvePackages() {
-    ArrayList permImports = new ArrayList(imports.size());
-    failReason = bundle.fwCtx.perm.missingMandatoryPackagePermissions(this, permImports);
-    if (failReason != null) {
-      return false;
-    }
-    failReason = bundle.fwCtx.packages.resolve(bundle, permImports.iterator());
+    failReason = bundle.fwCtx.packages.resolve(bundle, imports.iterator());
     if (failReason == null) {
-      for (Iterator i = permImports.iterator(); i.hasNext(); ) {
+      okImports = new ArrayList(imports.size());
+      for (Iterator i = imports.iterator(); i.hasNext(); ) {
         ImportPkg ip = (ImportPkg)i.next();
-        if (ip.provider == null) { // <=> optional import with unresolved provider
-          i.remove();
+        if (ip.provider != null) { // <=> optional import with unresolved provider
+          okImports.add(ip);
         }
       }
-      okImports = permImports;
       return true;
     } else {
       return false;
@@ -298,19 +293,17 @@ class BundlePackages {
     if (ii >= 0) {
       return ((ImportPkg)okImports.get(ii)).provider.bpkgs;
     }
-    if (bundle.fwCtx.perm.hasImportPackagePermission(bundle, pkg)) {
-      for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
-        ImportPkg ip = (ImportPkg)i.next();
-        if (ip.name == EMPTY_STRING ||
-            (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
-            pkg.equals(ip.name)) {
-          ImportPkg nip = new ImportPkg(ip, pkg);
-          ExportPkg ep = bundle.fwCtx.packages.registerDynamicImport(nip);
-          if (ep != null) {
-            nip.provider = ep;
-            okImports.add(-ii - 1, nip);
-            return ep.bpkgs;
-          }
+    for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
+      ImportPkg ip = (ImportPkg)i.next();
+      if (ip.name == EMPTY_STRING ||
+          (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
+          pkg.equals(ip.name)) {
+        ImportPkg nip = new ImportPkg(ip, pkg);
+        ExportPkg ep = bundle.fwCtx.packages.registerDynamicImport(nip);
+        if (ep != null) {
+          nip.provider = ep;
+          okImports.add(-ii - 1, nip);
+          return ep.bpkgs;
         }
       }
     }

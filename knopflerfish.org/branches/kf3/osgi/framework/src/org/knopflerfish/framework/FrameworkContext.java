@@ -35,27 +35,18 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
+import java.lang.reflect.*;
 import java.net.*;
 import java.security.*;
-
-import java.util.Set;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.lang.reflect.Constructor;
+import java.util.*;
 
 import org.osgi.framework.*;
 import org.osgi.framework.launch.Framework;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 
+// NYI, make these imports dynamic!
+import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
 
 
@@ -174,24 +165,42 @@ public class FrameworkContext  {
 
   public FWProps props;
 
+  static Object globalFwLock = new Object();
   static int globalId = 1;
+  static int smUse = 0;
 
   /**
    * Contruct a framework context
    *
    */
-  public FrameworkContext(Map initProps, FrameworkContext parent)  {
-    props        = new FWProps(initProps, parent);
-    if (setSecurityManager()) {
-      perm = new SecurePermissionOps(this);
-    } else {
-      perm = new PermissionOps();
-    }
+  FrameworkContext(Map initProps, FrameworkContext parent)  {
+    props = new FWProps(initProps, parent);
+    perm = new SecurePermissionOps(this);
     systemBundle = new SystemBundle(this);
 
-    id = globalId++;
+    synchronized (globalFwLock) {
+      id = globalId++;
+    }
 
     log("created");
+  }
+
+
+  //
+  // Public method used by permissionshandling
+  //
+  public ClassLoader getClassLoader(String clazz) {
+    int pos = clazz.lastIndexOf('.');
+    if (pos != -1) {
+      Pkg p = packages.getPkg(clazz.substring(0, pos));
+      if (p != null) {
+        ExportPkg ep = p.getBestProvider();
+        if (ep != null) {
+          return ep.bpkgs.bundle.getClassLoader();
+        }
+      }
+    }
+    return systemBundle.getClassLoader();
   }
 
 
@@ -212,11 +221,17 @@ public class FrameworkContext  {
     buildBootDelegationPatterns();
     selectBootDelegationParentClassLoader();
 
+    if (setSecurityManager()) {
+      systemBundle.secure = perm;
+    } else {
+      perm = new PermissionOps();
+    }
     perm.init();
 
     String v = props.getProperty("org.knopflerfish.framework.validator");
     ProtectionDomain pd = null;
-    if (System.getSecurityManager() != null) {
+    final boolean checkSigned = (System.getSecurityManager() != null) || (v != null);
+    if (checkSigned) {
       try {
         pd = getClass().getProtectionDomain();
       } catch (Throwable t) {
@@ -240,6 +255,9 @@ public class FrameworkContext  {
           Class vi = Class.forName(vs);
           Constructor vc = vi.getConstructor(new Class[] { FrameworkContext.class });
           validator.add((Validator)vc.newInstance(new Object[] { this }));
+        } catch (InvocationTargetException ite) {
+          // NYI, log error from validator
+          System.err.println("Construct of " + vs + " failed: " + ite.getTargetException());
         } catch (Exception e) {
           throw new RuntimeException(vs + " is not a Validator", e);
         }
@@ -281,14 +299,14 @@ public class FrameworkContext  {
       Class storageImpl = Class.forName(props.whichStorageImpl);
 
       Constructor cons
-        = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
+        = storageImpl.getConstructor(new Class[] { FrameworkContext.class,
+                                                   Boolean.TYPE });
       storage
-        = (BundleStorage) cons.newInstance(new Object[] { this });
+        = (BundleStorage) cons.newInstance(new Object[] { this, new Boolean(checkSigned) });
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize storage "
                                  +props.whichStorageImpl +": ", e);
     }
-    storage.setCheckSigned(validator != null);
     dataStorage       = Util.getFileStorage(this, "data");
     packages          = new Packages(this);
 
@@ -367,6 +385,14 @@ public class FrameworkContext  {
       contentHandlerFactory   = null;
     }
 
+    perm = new SecurePermissionOps(this);
+
+    synchronized (globalFwLock) {
+      if (--smUse == 0) {
+        System.setSecurityManager(null);
+      }
+    }
+
     parentClassLoader = null;
     bootDelegationPatterns = null;
   }
@@ -386,59 +412,37 @@ public class FrameworkContext  {
    *
    */
   private boolean setSecurityManager() {
-    final String osgiSecurity = props.getProperty(Constants.FRAMEWORK_SECURITY);
-    final boolean useOSGiSecurityManager
-      = Constants.FRAMEWORK_SECURITY_OSGI.equals(osgiSecurity);
+    synchronized (globalFwLock) {
+      SecurityManager current = System.getSecurityManager();
+      final String osgiSecurity = props.getProperty(Constants.FRAMEWORK_SECURITY);
 
-    if (useOSGiSecurityManager && null!=System.getSecurityManager()) {
-      // NYI! Check if we have expected security manager
-      throw new SecurityException
-        ("Can not install OSGi security manager, another security manager "
-         +"is already installed.");
-    } else if (useOSGiSecurityManager) {
-      final String defaultPolicy
-        = this.getClass().getResource("/framework.policy").toString();
-      final String policy
-        = props.getProperty(POLICY_PROPERTY, defaultPolicy);
-      if (props.debug.framework) {
-        props.debug.println("Installing OSGi security manager, policy="+policy);
-      }
-      System.setProperty(POLICY_PROPERTY, policy);
-      System.setSecurityManager(new KFSecurityManager());
-      return true;
-    } else {
-      try {
-        final String manager = props.getProperty("java.security.manager");
-        final String policy  = props.getProperty(POLICY_PROPERTY);
-
-        if(manager != null) {
-          if(System.getSecurityManager() == null) {
-            if (props.debug.framework) {
-              props.debug.println("Installing security manager=" + manager +
-                                  ", policy=" + policy);
-            }
-            // If policy was given as a framework property export it
-            // as a system property.
-            System.setProperty(POLICY_PROPERTY, policy);
-            SecurityManager sm = null;
-            if("".equals(manager)) {
-              sm = new SecurityManager();
-            } else {
-              Class       clazz = Class.forName(manager);
-              Constructor cons  = clazz.getConstructor(new Class[0]);
-
-              sm = (SecurityManager)cons.newInstance(new Object[0]);
-            }
-            System.setSecurityManager(sm);
-            return true;
-          }
+      if (osgiSecurity != null) {
+        if (!Constants.FRAMEWORK_SECURITY_OSGI.equals(osgiSecurity)) {
+          throw new SecurityException("Unknown OSGi security, " + osgiSecurity);
         }
-      } catch (Exception e) {
-        throw new IllegalArgumentException
-          ("Failed to install security manager." + e);
+        if (current == null) {
+          final String defaultPolicy
+            = this.getClass().getResource("/framework.policy").toString();
+          final String policy = props.getProperty(POLICY_PROPERTY, defaultPolicy);
+          if (props.debug.framework) {
+            props.debug.println("Installing OSGi security manager, policy="+policy);
+          }
+          System.setProperty(POLICY_PROPERTY, policy);
+          current = new KFSecurityManager(props.debug);
+          System.setSecurityManager(current);
+          smUse = 1;
+        } else if (current instanceof ConditionalPermissionSecurityManager) {
+          if (smUse == 0) {
+            smUse = 2;
+          } else {
+            smUse++;
+          }
+        } else if (!(current instanceof ConditionalPermissionSecurityManager)) {
+          throw new SecurityException("Incompatible security manager installed");
+        }
       }
+      return current != null;
     }
-    return false;
   }
 
 

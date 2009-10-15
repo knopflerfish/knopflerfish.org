@@ -59,7 +59,7 @@ public class BundleStorageImpl implements BundleStorage {
   /**
    * If we should check if bundles are signed
    */
-  boolean checkSigned = false;
+  final boolean checkSigned;
 
 
   /**
@@ -67,7 +67,8 @@ public class BundleStorageImpl implements BundleStorage {
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl(FrameworkContext framework) {
+  public BundleStorageImpl(FrameworkContext framework, boolean loadCert) {
+    checkSigned = loadCert;
   }
 
   /**
@@ -153,16 +154,6 @@ public class BundleStorageImpl implements BundleStorage {
       }
     }
     return res;
-  }
-
-
-  /**
-   * Mark if we want to check if bundles are signed.
-   *
-   * @param value True if we to check.
-   */
-  public void setCheckSigned(boolean value) {
-    checkSigned = value;
   }
 
 

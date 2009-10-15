@@ -287,56 +287,22 @@ class SecurePermissionOps extends PermissionOps {
   // Package permission checks
   //
 
-  boolean hasImportPackagePermission(BundleImpl b, String pkg) {
+  boolean hasExportPackagePermission(ExportPkg ep) {
+    BundleImpl b = ep.bpkgs.bundle;
     if (b.id != 0) {
       PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-      return pc.implies(new PackagePermission(pkg, PackagePermission.IMPORT));
+      return pc.implies(new PackagePermission(ep.name, PackagePermission.EXPORTONLY));
     }
     return true;
   }
 
-  /**
-   * Check that we have right export and import package permission for the bundle.
-   *
-   * @return Returns null if we have correct permission for listed package.
-   *         Otherwise a string of failed entries.
-   */
-  String missingMandatoryPackagePermissions(BundlePackages bpkgs, List okImports) {
-    if (bpkgs.bundle.id == 0) {
-      return null;
+  boolean hasImportPackagePermission(BundleImpl b, ExportPkg ep) {
+    if (b.id != 0) {
+      PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
+      return pc.implies(new PackagePermission(ep.name, ep.bpkgs.bundle,
+                                              PackagePermission.IMPORT));
     }
-    PermissionCollection pc = ph.getPermissionCollection(new Long(bpkgs.bundle.id));
-    String e_res = null;
-    for (Iterator i = bpkgs.getExports(); i.hasNext();) {
-      ExportPkg p = (ExportPkg)i.next();
-      p.setPermission(pc.implies(new PackagePermission(p.name, PackagePermission.EXPORT)));
-    }
-    String i_res = null;
-    for (Iterator i = bpkgs.getImports(); i.hasNext();) {
-      ImportPkg p = (ImportPkg)i.next();
-      if (!pc.implies(new PackagePermission(p.name, PackagePermission.IMPORT))) {
-        if (p.resolution == Constants.RESOLUTION_OPTIONAL) {
-          // Ok, that we do not have permission to optional packages
-          continue;
-        }
-        if (i_res != null) {
-          i_res = i_res + ", " + p.name;
-        } else {
-          i_res = "missing import permission for package(s): " + p.name;
-        }
-      } else {
-        okImports.add(p);
-      }
-    }
-    if (e_res != null) {
-      if (i_res != null) {
-        return e_res + "; " + i_res;
-      } else {
-        return e_res;
-      }
-    } else {
-      return i_res;
-    }
+    return true;
   }
 
   //
@@ -345,59 +311,26 @@ class SecurePermissionOps extends PermissionOps {
 
   void checkRegisterServicePerm(String clazz) {
     SecurityManager sm = System.getSecurityManager();
-    if(null!=sm){
-      sm.checkPermission
-        (new ServicePermission(clazz, ServicePermission.REGISTER));
+    if (null != sm){
+      sm.checkPermission(new ServicePermission(clazz, ServicePermission.REGISTER));
     }
   }
 
-  boolean okGetServicePerm(String clazz) {
-    String c = (clazz != null) ? clazz : "*";
+  void checkGetServicePerms(ServiceReference sr) {
+    SecurityManager sm = System.getSecurityManager();
+    if (null != sm) {
+      sm.checkPermission(new ServicePermission(sr, ServicePermission.GET));
+    }
+  }
+
+  boolean okGetServicePerms(ServiceReference sr) {
     try {
-      SecurityManager sm = System.getSecurityManager();
-      if(null!=sm){
-        sm.checkPermission
-          (new ServicePermission(c, ServicePermission.GET));
-      }
+      checkGetServicePerms(sr);
       return true;
     } catch (SecurityException ignore) {
       if (framework.props.debug.service_reference) {
         framework.props.debug.printStackTrace
-          ("No permission to get service of class \""+c+"\".",
-           ignore );
-      }
-      return false;
-    }
-  }
-
-  void checkGetServicePerms(String [] classes) {
-    if (!okGetServicePerms(classes)) {
-      throw new SecurityException("Missing permission to get the service.");
-    }
-  }
-
-  boolean okGetServicePerms(String [] classes) {
-    SecurityManager sm = System.getSecurityManager();
-    return null!=sm ? okGetServicePerms(sm.getSecurityContext(), classes)
-      : true;
-  }
-
-  // The type of acc must be AccessControlContext
-  private boolean okGetServicePerms(Object acc, String [] classes) {
-    SecurityManager sm = System.getSecurityManager();
-    if (null==sm) return true;
-    for (int i = 0; i < classes.length; i++) {
-      try {
-        sm.checkPermission(new ServicePermission(classes[i],
-                                                 ServicePermission.GET),
-                           acc);
-        return true;
-      } catch (SecurityException ignore) {
-        if (framework.props.debug.service_reference) {
-          framework.props.debug.printStackTrace
-            ("No permission to get service of class \""+classes[i]+"\".",
-             ignore );
-        }
+          ("No permission to get service ref: " + sr, ignore);
       }
     }
     return false;
@@ -409,13 +342,9 @@ class SecurePermissionOps extends PermissionOps {
    * @param srs Set of ServiceRegistrationImpls to check.
    */
   void filterGetServicePermission(Set srs) {
-    SecurityManager sm = System.getSecurityManager();
-    if (null==sm) return;
-    Object acc = sm.getSecurityContext();
     for (Iterator i = srs.iterator(); i.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)i.next();;
-      String[] classes = (String[])sr.properties.get(Constants.OBJECTCLASS);
-      if (!okGetServicePerms(acc, classes)) {
+      if (!okGetServicePerms(sr.getReference())) {
         i.remove();
       }
     }

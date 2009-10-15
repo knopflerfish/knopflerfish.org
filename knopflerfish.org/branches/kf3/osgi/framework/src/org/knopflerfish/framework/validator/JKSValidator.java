@@ -36,6 +36,10 @@ package org.knopflerfish.framework.validator;
 
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Validator;
+import org.knopflerfish.framework.Util;
+
+import org.osgi.framework.Constants;
+
 import java.io.*;
 import java.security.cert.*;
 import java.security.GeneralSecurityException;
@@ -65,16 +69,6 @@ public class JKSValidator implements Validator {
    * Property base string.
    */
   final private static String PROP_BASE = "org.knopflerfish.framework.validator.jks.";
-
-  /**
-   * CA certificates repository.
-   */
-  private String caCertsFileName;
-
-  /**
-   * CA certificates repository password.
-   */
-  private String caCertsPassword;
 
   /**
    * Certificate provider;
@@ -111,18 +105,40 @@ public class JKSValidator implements Validator {
    */
   private KeyStore keystore;
 
+  /**
+   * NYI make it configurable
+   */
+  private boolean trustKeys = true;
+
 
   /**
    * Create a JKS based validator.
    *
    * @param fw FrameworkContext used to get configuration properties.
    */
-  public JKSValidator(FrameworkContext fw)
+  public JKSValidator(FrameworkContext fw) throws KeyStoreException  
   {
-    caCertsFileName = fw.props.getProperty(PROP_BASE + "ca_certs");
-    caCertsPassword = fw.props.getProperty(PROP_BASE + "ca_certs_password");
+    keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+    // NYI! Handle serveral repositories.
+    String repos = fw.props.getProperty(Constants.FRAMEWORK_TRUST_REPOSITORIES);
+    if (repos != null) {
+      String [] l = Util.splitwords(repos, File.pathSeparator);
+      for (int i = 0; i < l.length; i++) {
+        String certRepo = l[i].trim();
+        if (certRepo.length() > 0) {
+          loadKeyStore(certRepo, null);
+        }
+      }
+    }
+    String caCertsFileName = fw.props.getProperty(PROP_BASE + "ca_certs");
+    String caCertsPassword = fw.props.getProperty(PROP_BASE + "ca_certs_password");
+    if (caCertsFileName != null) {
+      loadKeyStore(caCertsFileName, caCertsPassword);
+    }
     certProvider = fw.props.getProperty(PROP_BASE + "cert_provider");
-    keystore = getKeyStore();
+    if (keystore == null || keystore.size() == 0) {
+      throw new IllegalStateException("No keystore or keystore empty");
+    }
   }
 
 
@@ -170,7 +186,17 @@ public class JKSValidator implements Validator {
     throws GeneralSecurityException
   {
     if (CERT_ALGORITHM_PKIX.equals(certAlgo)) {
-      PKIXParameters p = new PKIXParameters(keystore);
+      HashSet tas = new HashSet();
+      for (Enumeration e = keystore.aliases(); e.hasMoreElements(); ) {
+        String name = (String)e.nextElement();
+        Certificate c = keystore.getCertificate(name);
+        if (c != null) {
+          if (trustKeys || keystore.isCertificateEntry(name)) {
+            tas.add(new TrustAnchor((X509Certificate)c, null)); 
+          }
+        }
+      }
+      PKIXParameters p = new PKIXParameters(tas);
       // NYI! Handle CRLs
       p.setRevocationEnabled(false);
       return p;
@@ -201,24 +227,14 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  KeyStore getKeyStore() {
-    if (caCertsFileName == null) {
-      caCertsFileName = System.getProperty("java.home")
-        + "/lib/security/cacerts".replace('/', File.separatorChar);
-    }
-    if (caCertsPassword == null) {
-      caCertsPassword = "changeit";
-    }
+  void loadKeyStore(String file, String password) {
     try {
-      FileInputStream is = new FileInputStream(caCertsFileName);
-      KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-      keystore.load(is, caCertsPassword.toCharArray());
-      return keystore;
+      FileInputStream is = new FileInputStream(file);
+      keystore.load(is, password != null ? password.toCharArray() : null);
     } catch (Exception e) {
-      System.err.println("Failed to load keystore, " + caCertsFileName + ": " + e);
+      System.err.println("Failed to load keystore, " + file + ": " + e);
       // NYI! Log
     }
-    return null;
   }
 
 }

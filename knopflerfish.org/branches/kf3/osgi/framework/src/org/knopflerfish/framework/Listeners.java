@@ -315,13 +315,11 @@ class Listeners {
         testAssignable = true;
       }
       try {
-        int length = classes.length;
-        for (int i = 0; i < length; i++) {
-          if(testAssignable && !sr.isAssignableTo(l.bundle, classes[i])){
-            continue;
-          }
-          if (l.bundle.hasPermission(new ServicePermission(classes[i],
-                                                           ServicePermission.GET))) {
+        if (l.bundle.hasPermission(new ServicePermission(sr, ServicePermission.GET))) {
+          for (int i = 0; i < classes.length; i++) {
+            if(testAssignable && !sr.isAssignableTo(l.bundle, classes[i])){
+              continue;
+            }
             try {
               secure.callServiceChanged((ServiceListener)l.listener, evt);
             } catch (Throwable pe) {
@@ -329,11 +327,11 @@ class Listeners {
             }
             break;
           }
-        }//for
+        }
       } catch (Exception le) {
         frameworkError(l.bundle, le);
       }
-    }//for
+    }
     if (framework.props.debug.ldap) {
       framework.props.debug.println("Notified " + n + " listeners");
     }

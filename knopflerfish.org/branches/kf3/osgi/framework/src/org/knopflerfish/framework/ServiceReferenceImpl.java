@@ -209,11 +209,11 @@ public class ServiceReferenceImpl implements ServiceReference
       if (registration.available
           && (!registration.unregistering
               || bundle.fwCtx.props.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
+        bundle.fwCtx.perm.checkGetServicePerms(this);
         Integer ref = (Integer)registration.dependents.get(bundle);
         if (ref == null) {
           String[] classes =
             (String[])registration.properties.get(Constants.OBJECTCLASS);
-          bundle.fwCtx.perm.checkGetServicePerms(classes);
           registration.dependents.put(bundle, new Integer(1));
           if (registration.service instanceof ServiceFactory) {
             try {

@@ -37,6 +37,7 @@ package org.knopflerfish.framework.permissions;
 import java.security.*;
 import java.util.List;
 
+import org.knopflerfish.framework.Debug;
 
 
 public class KFSecurityManager extends SecurityManager
@@ -44,6 +45,11 @@ public class KFSecurityManager extends SecurityManager
 
   private final ThreadLocal postponementCheck = new ThreadLocal();
 
+  private final Debug debug;
+
+  public KFSecurityManager(Debug debug) {
+    this.debug = debug;
+  }
 
   /**
    *
