@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="**/*.java" excluding="**/.svn/**|**/CVS/**" kind="src" path="src"/>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.EXECUTION_ENVIRONMENT_CONTAINER"/>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.FRAMEWORK_CONTAINER">
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/osgi/framework/"/>
+			<accessrule kind="nonaccessible" pattern="**/*"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.BUNDLE_CONTAINER/org.knopflerfish.console">
+		<attributes>
+			<attribute value="Console" name="bundle-name"/>
+			<attribute value="0.0.0" name="org.knopflerfish.service.console"/>
+		</attributes>
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/knopflerfish/service/console/"/>
+			<accessrule kind="nonaccessible" pattern="**/*"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.BUNDLE_CONTAINER/org.knopflerfish.cm">
+		<attributes>
+			<attribute value="CMService" name="bundle-name"/>
+			<attribute value="0.0.0" name="org.knopflerfish.shared.cm"/>
+			<attribute value="0.0.0" name="org.osgi.service.cm"/>
+		</attributes>
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/osgi/service/cm/"/>
+			<accessrule kind="accessible" pattern="org/knopflerfish/shared/cm/"/>
+			<accessrule kind="nonaccessible" pattern="**/*"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="con" path="org.knopflerfish.eclipse.core.BUNDLE_CONTAINER/org.knopflerfish.uti">
+		<attributes>
+			<attribute value="util" name="bundle-name"/>
+			<attribute value="0.0.0" name="org.knopflerfish.util.sort"/>
+		</attributes>
+		<accessrules>
+			<accessrule kind="accessible" pattern="org/knopflerfish/util/sort/"/>
+			<accessrule kind="nonaccessible" pattern="**/*"/>
+		</accessrules>
+	</classpathentry>
+	<classpathentry kind="output" path="out"/>
+</classpath>

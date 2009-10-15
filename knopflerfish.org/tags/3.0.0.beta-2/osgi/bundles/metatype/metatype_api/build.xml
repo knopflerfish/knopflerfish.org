@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="metatype" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.metatype}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="api.pattern" value="org/osgi/**"/> 
+
+  <property name = "bundle.build.lib"   value = "true"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.all"   value = "false"/>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>
