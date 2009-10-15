@@ -37,18 +37,8 @@ OSGi Compendium Specification
 Declarative Services Specification
  - Many updates (In Progress)
 
-Event Admin Service Specification
- - API updates (Done)
- - 3 test cases malfunction (Under Investigation)
-
-Tracker Specification
- - BundleTracker (Done)
-  - 1 test case in the CT fails (Under Investigation)
- - Service Tracker
-  - 1 test case malfunctions (Under Investigation)
-
 Configuration Admin Specification
- - 6 test cases malfunction (Under Investigation)
+ - 3 test cases testing very unusual scenarios fail
 
 All the other Compendium Specification Services
 are up to date and pass the CT.
