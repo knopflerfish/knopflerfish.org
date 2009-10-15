@@ -861,7 +861,7 @@ public class BundleImpl implements Bundle {
     case STOPPING:
       // Wait for RESOLVED state, this doesn't happen now
       // since we are synchronized.
-      throw new IllegalStateException("Bundle is in STOPPING state");
+//      throw new IllegalStateException("Bundle is in STOPPING state");
 
     case STARTING: // Lazy start
     case ACTIVE:
