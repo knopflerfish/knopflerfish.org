@@ -50,6 +50,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import org.osgi.framework.Version;
+import org.osgi.framework.Constants;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -548,9 +549,9 @@ public class BundleLocator extends Task {
    */
   private String getBundleSymbolicName(final Attributes attributes)
   {
-    String name = attributes.getValue("Bundle-SymbolicName");
+    String name = attributes.getValue(Constants.BUNDLE_SYMBOLICNAME);
     if (null==name) {
-      name = attributes.getValue("Bundle-Name");
+      name = attributes.getValue(Constants.BUNDLE_NAME);
     }
     return encodeBundleName(name);
   }
@@ -563,14 +564,21 @@ public class BundleLocator extends Task {
                                    final Attributes attributes)
     throws NumberFormatException
   {
-    String versionS = attributes.getValue("Bundle-Version");
+    final String versionS = attributes.getValue(Constants.BUNDLE_VERSION);
     if (null==versionS) {
-      versionS = "0.0.0";
+      return Version.emptyVersion;
     }
 
     try {
       return new Version(versionS);
     } catch (NumberFormatException nfe) {
+      final String manifestVersion
+        = attributes.getValue(Constants.BUNDLE_MANIFESTVERSION);
+      if (null==manifestVersion || "1".equals(manifestVersion.trim())) {
+        // Pre OSGi R4 bundle with non-standard version format; use
+        // the default version.
+        return Version.emptyVersion;
+      }
       log("Invalid bundle version '" +versionS +"' found in " +file +": "+nfe,
           Project.MSG_ERR);
       throw nfe;

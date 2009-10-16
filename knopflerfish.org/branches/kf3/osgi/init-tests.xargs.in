@@ -61,6 +61,9 @@
 # in the state unregistering or not.
 -Forg.knopflerfish.servicereference.valid.during.unregistering=true
 
+# Directory to store preferences in.
+-Dorg.knopflerfish.prefs.dir=junit_grunt/prefs
+
 -init
 
 -initlevel 1
@@ -70,12 +73,14 @@
 -install @event_all-N.N.N.jar@
 
 -initlevel 2
+-install @util-N.N.N.jar@
 -install @jsdk_api-N.N.N.jar@
 -istart  @junit_all-N.N.N.jar@
 
 -initlevel 4
 -install @http_all-N.N.N.jar@
 -install @io_all-N.N.N.jar@
+-install @prefs_all-N.N.N.jar@
 
 # the test cases
 -istart @framework_test-N.N.N.jar@
@@ -87,6 +92,7 @@
 #-istart @eventadmin_test-N.N.N.jar@
 -istart @http_test-N.N.N.jar@
 -istart @io_test-N.N.N.jar@
+-istart @preferences_test-N.N.N.jar@
 $(DO_CPA_TEST)-istart @condpermadmin_test-N.N.N.jar@
 
 # packages required by component_test
@@ -95,11 +101,13 @@ $(DO_CPA_TEST)-istart @condpermadmin_test-N.N.N.jar@
 -istart @component_all-N.N.N.jar@
 -istart @component_test-N.N.N.jar@
 
+
 -startlevel 7
 
 -start  @http_all-N.N.N.jar@
 -start  @event_all-N.N.N.jar@
 -start  @io_all-N.N.N.jar@
+-start  @prefs_all-N.N.N.jar@
 
 -launch
 
