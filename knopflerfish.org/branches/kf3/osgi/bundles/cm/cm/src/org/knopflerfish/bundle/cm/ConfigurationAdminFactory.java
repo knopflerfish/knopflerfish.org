@@ -44,6 +44,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Iterator;
+import java.util.Collection;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -95,26 +96,12 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
 
     static final String DYNAMIC_BUNDLE_LOCATION = "dynamic.service.bundleLocation";
 
-    static final String DUMMY_PROPERTY = "org.knopflerfish.dummy.property";
-
-//    static final String ANY_LOCATION = "*";
-
-
     static void checkConfigPerm(){
       SecurityManager sm = System.getSecurityManager();
       if(null!=sm){
         sm.checkPermission(CONFIGURATION_PERMISSION);
       }
     }
-
-    /*
-    //TODO IF use these, the constants are ints: use strings!
-    static final String EVENT_TOPIC_CM_DELETED = "org/osgi/service/cm/ConfigurationEvent/" + "CM_DELETED";
-    static final String EVENT_TOPIC_CM_UPDATED = "org/osgi/service/cm/ConfigurationEvent/" + "CM_UPDATED";
-
-    static final String CM_FACTORYPID = "cm.factoryPid";
-    static final String CM_PID = "cm.pid";
-    */
 
     public ConfigurationAdminFactory(File storeDir) {
         storeDir.mkdirs();
@@ -443,8 +430,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             String bundleLocation) throws IOException {
         ServiceReference[] srs = getTargetServiceReferences(
                 ManagedService.class, servicePid);
-        ConfigurationDictionary cd = /*store.*/load(servicePid);
-        //printMatching(cd, "(service.pid=*pid22)");
+        ConfigurationDictionary cd = load(servicePid);
         if (cd == null) {
             updateManagedServices(srs, servicePid, bundleLocation);
         } else {
@@ -539,7 +525,6 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
                     
                     store.store(c.getPid(), c.getFactoryPid(), c.properties);
                                           if(dispatchUpdate) {
-                                          //printMatching(c.properties, "(service.pid=*pid22)");
                     updateTargetServicesMatching(c.properties);
                                           }
                     return null;
@@ -570,7 +555,6 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
                         public Object run() throws IOException {
                                   ConfigurationDictionary cd = store.load(pid);
                                   unbindIfNecessary(cd);
-                                  //printMatching(cd, "(service.pid=*pid22)");
                                   return cd;
                         }
                     });
@@ -600,50 +584,43 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
           InvalidSyntaxException {
             return listConfigurations(filterString, callingBundleLocation, false);
           }
-    Configuration[] listConfigurations(String filterString, String callingBundleLocation, boolean activeOnly) throws IOException,
-            InvalidSyntaxException {
-        Enumeration configurationPids = store.listPids();
-        Vector matchingConfigurations = new Vector();
-        while (configurationPids.hasMoreElements()) {
-            String pid = (String) configurationPids.nextElement();
-            ConfigurationDictionary d = load(pid);
-            if (d == null) {
+          
+          Configuration[] listConfigurations(String filterString, String callingBundleLocation, boolean activeOnly) throws IOException,
+          InvalidSyntaxException {
+            Enumeration configurationPids = store.listPids();
+            Vector matchingConfigurations = new Vector();
+            while (configurationPids.hasMoreElements()) {
+              String pid = (String) configurationPids.nextElement();
+              ConfigurationDictionary d = load(pid);
+              if (d == null) {
                 continue;
-            }
-          if(activeOnly && d.doesNotContainRealProperties()) {
-            //System.out.println("Skipping INACTIVE " + pid);
-            continue;
-          }
-            if (filterString == null) {
-              //System.out.println("Adding NOFILTER " + pid);
+              }
+              if(activeOnly && d.isNullDictionary()) {
+                continue;
+              }
+              if (filterString == null) {
                 matchingConfigurations.addElement(new ConfigurationImpl(d));
-            }
-            else {
+              }
+              else {
                 Filter filter = Activator.bc.createFilter(filterString);
-                if (filter.match(d)) {
-                  //System.out.println("Matching " + pid);
-                        if(callingBundleLocation == null){
-                          //System.out.println("Adding NOCALLINGLOC " + pid);
-                                matchingConfigurations.addElement(new ConfigurationImpl(d));
-                        }
-                        else{
-                                if(callingBundleLocation.equals((String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION))){
-                                  //System.out.println("Adding MATCHINGLOC " + pid);
-                                        matchingConfigurations.addElement(new ConfigurationImpl(d));
-                                } else {
-                                  //System.out.println("Skipping " + pid + " NOMATCH " + callingBundleLocation + " != " + d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION));
-                                }
-                        }
+                if (filter.match(d)) {                        if(callingBundleLocation == null){
+                  matchingConfigurations.addElement(new ConfigurationImpl(d));
                 }
+                else{
+                  if(callingBundleLocation.equals((String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION))){
+                    matchingConfigurations.addElement(new ConfigurationImpl(d));
+                  }
+                }
+                }
+              }
             }
-        }
-        Configuration[] c = null;
-        if (matchingConfigurations.size() > 0) {
-            c = new Configuration[matchingConfigurations.size()];
-            matchingConfigurations.copyInto(c);
-        }
-        return c;
-    }
+            Configuration[] c = null;
+            if (matchingConfigurations.size() > 0) {
+              c = new Configuration[matchingConfigurations.size()];
+              matchingConfigurations.copyInto(c);
+            }
+            return c;
+          }
 
     // /////////////////////////////////////////////////////////////////////////
     // ServiceFactory Implementation
@@ -680,9 +657,11 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
                 String servicePid, ConfigurationDictionary properties) {
             this.factoryPid = factoryPid;
             this.servicePid = servicePid;
+            
+          if (properties == null) {
+            this.properties = new ConfigurationDictionary();
+          } else {
             this.properties = properties;
-          if (this.properties == null) {
-                this.properties = new ConfigurationDictionary();
           }
           putLocation(bundleLocation);
         }
@@ -810,6 +789,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             throwIfDeleted();
             ensureAutoPropertiesAreWritten();
             ConfigurationAdminFactory.this.update(this, dispatchUpdate);
+          
           if(!dispatchUpdate) return;
             ServiceReference reference = Activator.serviceRegistration.getReference();
             if(reference == null)
@@ -832,13 +812,14 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             ConfigurationDictionary.validateDictionary(properties);
 
             ConfigurationDictionary old = this.properties;
-
             if (properties == null) {
                 this.properties = new ConfigurationDictionary();
             } else {
                 this.properties = ConfigurationDictionary
                         .createDeepCopy(properties);
             }
+          
+          copyBundleLocationFrom(old);
 
             try {
                 update();
@@ -850,6 +831,18 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
                 this.properties = old;
             }
         }
+      
+      void copyBundleLocationFrom(ConfigurationDictionary old) {
+          Object location = old.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+        if(location != null) {
+          properties.put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, location);
+        }
+        
+        Object dynamic = old.get(DYNAMIC_BUNDLE_LOCATION);
+        if(dynamic != null) {
+          properties.put(DYNAMIC_BUNDLE_LOCATION, dynamic);
+        }
+      }
 
         void ensureAutoPropertiesAreWritten() {
             if (this.properties == null)
@@ -939,9 +932,10 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
           }
           if (d == null) {
             ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, null, pid);
-            c.setBundleLocationAndPersist(callingBundleLocation, true);
+            c.setBundleLocationAndPersist(callingBundleLocation);
             return c;
           }
+
           String bundleLocation = (String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
           if(bundleLocation == null) {
             ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, null, pid, d);
@@ -969,7 +963,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             if (d == null) {
                 ConfigurationImpl c = new ConfigurationImpl(location, null, pid);
               if (location != null) {
-                    c.setBundleLocation(location);
+                    c.setBundleLocationAndPersist(location);
               } else {
                 try {
                   c.update(false);
@@ -1083,10 +1077,15 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         }
     }
 
-          String[] getPids(ServiceReference sr) {
+          static String[] getPids(ServiceReference sr) {
             Object prop = sr.getProperty(Constants.SERVICE_PID);
-            return ((prop == null) || (prop instanceof String[])) ? (String[])prop : new String[]{(String)prop};
+            if(prop == null) return null;
+            else if(prop instanceof String) return new String[]{(String)prop};
+            else if(prop instanceof String[]) return (String[])prop;
+            else if(prop instanceof Collection) return (String[])((Collection)prop).toArray(new String[((Collection)prop).size()]);
+            else return new String[0];
           }
+          
     private void managedServiceChanged(ServiceReference sr, int eventType) {
       String[] servicePids = getPids(sr);
         switch (eventType) {
@@ -1118,7 +1117,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             break;
         }
     }
-    
+/*    
           ConfigurationDictionary matchesFilter(ConfigurationDictionary d, String filterString) {
             Filter filter = null;
             try {
@@ -1132,12 +1131,13 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             }
           }
           
-          void printMatching(ConfigurationDictionary d, String filterString)  {
-            print(matchesFilter(d, filterString));
+          void printMatching(String m, ConfigurationDictionary d, String filterString)  {
+            print(m, matchesFilter(d, filterString));
           }
           
-          void print(ConfigurationDictionary d) {
+          void print(String m, ConfigurationDictionary d) {
             if(d == null) return;
-            System.out.println("" + d);
+            System.out.println("" + m + d);
           }
+ */
 }

@@ -55,7 +55,9 @@ import org.osgi.service.cm.ConfigurationAdmin;
  */
 
 final class ConfigurationDictionary extends Dictionary {
-
+  
+    private final static String IS_NULL_DICTIONARY = "org.knopflerfish.is.null.dictionary";
+  
     /**
      * * Use BigDecimal if available.
      */
@@ -134,8 +136,7 @@ final class ConfigurationDictionary extends Dictionary {
 
     public ConfigurationDictionary() {
         this(new Hashtable());
-        put(ConfigurationAdminFactory.DUMMY_PROPERTY,
-                ConfigurationAdminFactory.DUMMY_PROPERTY);
+      setNullDictionary(true);
     }
 
     /**
@@ -242,7 +243,7 @@ final class ConfigurationDictionary extends Dictionary {
     }
 
     ConfigurationDictionary createCopyIfRealAndRemoveLocation() {
-        if (doesNotContainRealProperties()) {
+        if (isNullDictionary()) {
             return null;
         }
         return createCopyAndRemoveLocation();
@@ -255,24 +256,19 @@ final class ConfigurationDictionary extends Dictionary {
         return cd;
     }
 
-    boolean doesNotContainRealProperties() {
-        int numberOfProperties = size();
-        if (numberOfProperties > 5) {
-            return false;
-        }
-        if (get(Constants.SERVICE_PID) != null)
-            --numberOfProperties;
-        if (get(ConfigurationAdmin.SERVICE_FACTORYPID) != null)
-            --numberOfProperties;
-        if (get(ConfigurationAdmin.SERVICE_BUNDLELOCATION) != null)
-            --numberOfProperties;
-        if (get(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION) != null)
-            --numberOfProperties;
-        if (get(ConfigurationAdminFactory.DUMMY_PROPERTY) != null)
-            --numberOfProperties;
-        return numberOfProperties == 0;
+  boolean isNullDictionary() {
+    Boolean b = (Boolean)get(IS_NULL_DICTIONARY);
+    return b != null && b.booleanValue();
+  }
+  
+  void setNullDictionary(boolean b) {
+    if(b) {
+      put(IS_NULL_DICTIONARY, Boolean.TRUE);
+    } else {
+      remove(IS_NULL_DICTIONARY);
     }
-
+  }
+  
     private void updateLowercaseToOriginalCase() {
         Enumeration keys = originalCase.keys();
         while (keys.hasMoreElements()) {

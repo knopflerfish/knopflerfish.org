@@ -277,7 +277,7 @@ final class PluginManager {
             ServiceReference targetServiceReference,
             ConfigurationDictionary dictionary, Vector plugins,
             boolean allowModification) {
-        String pid = (String) targetServiceReference.getProperty(SERVICE_PID);
+        String pid = (String)dictionary.get(SERVICE_PID);
         ConfigurationDictionary currentDictionary = dictionary;
         Enumeration e = plugins.elements();
         while (e.hasMoreElements()) {
