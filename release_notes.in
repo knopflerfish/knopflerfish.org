@@ -18,6 +18,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 
 
+=== Services (Compendium) ===
+
+
+  Preferences 2.0.4
+
+  Removing a node, calling flush and then creating a new node with the
+  same name resulted in an IllegalStateException when trying to put a
+  value to the re-created node. The implementation erroneously
+  returned the old, stale, instance of the Preferences-object for the
+  node.
+
+
+
 === Misc (KF specific, start scripts, build system etc ===
 
 
