@@ -357,11 +357,14 @@ public class  PrefsStorageFile implements PrefsStorage {
           bStale = true;
         }
 
-        for(Iterator it = prefs.keySet().iterator(); it.hasNext(); ) {
-          final String p = (String) it.next();
-          final PreferencesImpl pi = (PreferencesImpl) prefs.get(p);
-          if(bStale || p.startsWith(path + "/")) {
+        for(Iterator it = prefs.entrySet().iterator(); it.hasNext(); ) {
+          final Map.Entry entry = (Map.Entry) it.next();
+          final String p = (String) entry.getKey();
+          final PreferencesImpl pi = (PreferencesImpl) entry.getValue();
+
+          if(bStale || p.equals(path) || p.startsWith(path + "/")) {
             pi.bStale = true;
+            it.remove();
           }
         }
 

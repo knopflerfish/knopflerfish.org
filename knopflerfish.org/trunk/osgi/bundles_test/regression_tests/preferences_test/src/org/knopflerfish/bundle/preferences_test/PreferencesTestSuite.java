@@ -92,6 +92,7 @@ public class PreferencesTestSuite
 
   public class Preferences0100a extends FWTestCase {
     public String getDescription() {
+      // Test case for bug fixed in 2.0.4
       return "Test that a deleted preferences node can be re-used"
         +" after a flush.";
     }
@@ -115,6 +116,13 @@ public class PreferencesTestSuite
 
       p2 = p.node("child");
       p2.put("newkey", "newdata");
+
+      p.removeNode();
+      try {
+        p.flush();
+      } catch (IllegalStateException ise) {
+        // Expected exception in some implementations...
+      }
     }
   }
 
