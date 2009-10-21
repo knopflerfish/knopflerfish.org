@@ -127,8 +127,6 @@ import javax.swing.event.ChangeListener;
 import java.util.prefs.Preferences;
 import javax.swing.ToolTipManager;
 
-import apple.dts.samplecode.osxadapter.OSXAdapter;
-
 import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
@@ -239,8 +237,8 @@ public class Desktop
 
   Set sizesavers = new HashSet();
 
-  // Check that we are on Mac OS X.  This is crucial to loading and using the OSXAdapter class.
-  public static boolean bMacOS = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
+  // Check that we are on Mac OS X.  This is crucial to using the OSXAdapter class.
+  public static boolean bMacOS = OSXAdapter.isMacOSX();
 
   public Desktop() {
     theDesktop = this;
