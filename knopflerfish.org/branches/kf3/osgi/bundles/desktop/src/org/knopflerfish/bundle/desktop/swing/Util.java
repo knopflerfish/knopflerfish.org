@@ -818,7 +818,7 @@ public class Util {
       });
       new StreamGobbler(proc.getErrorStream());
       new StreamGobbler(proc.getInputStream());
-    } else if (Util.isMacOSX()) {
+    } else if (OSXAdapter.isMacOSX()) {
       // Yes, this only works on Mac OS X
       Runtime rt = Runtime.getRuntime();
       Process proc = rt.exec(new String[] {
@@ -839,11 +839,6 @@ public class Util {
       return -1 != os.toLowerCase().indexOf("win");
     }
     return false;
-  }
-
-  public static boolean isMacOSX() {
-    String os = Util.getProperty("os.name", null);
-    return "Mac OS X".equals(os);
   }
 
   /** A thread that empties an input stream without complaining.*/
