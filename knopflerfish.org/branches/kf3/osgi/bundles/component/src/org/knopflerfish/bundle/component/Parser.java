@@ -144,7 +144,7 @@ public class Parser {
         } catch (Exception e) {
 
           Activator.log.error("Got exception when reading component-tag", e);
-          continue;
+
         }
       }
 
