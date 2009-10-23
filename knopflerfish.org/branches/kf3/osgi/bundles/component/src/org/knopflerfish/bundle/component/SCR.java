@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,30 +118,44 @@ class SCR implements SynchronousBundleListener {
     case BundleEvent.STARTED:
 
       if(manifestEntry.length() == 0) {
-        Activator.log.error("bundle #" + bundle.getBundleId() + ": header " + ComponentConstants.SERVICE_COMPONENT + " present but empty");
+        Activator.log.error("bundle #" +bundle.getBundleId() +": header "
+                            +ComponentConstants.SERVICE_COMPONENT
+                            +" present but empty");
         return;
       }
-      
+
       // Create components
       Collection addedConfigs = new ArrayList();
       String[] manifestEntries = Parser.splitwords(manifestEntry, ",");
 
       for (int i = 0; i < manifestEntries.length; i++) {
+        // Do not trim the file name here (a file name starting/ending
+        // with spaces should be allowed)
         URL resourceURL = bundle.getResource(manifestEntries[i]);
         if (resourceURL == null) {
-          Activator.log.error("Resource not found: " + manifestEntries[i]);
-          continue;
+          // Try with the trimmed file name.
+          resourceURL = bundle.getResource(manifestEntries[i].trim());
+          if (null==resourceURL) {
+            Activator.log.error("Resource not found: '" +manifestEntries[i]
+                                +"'.");
+            continue;
+          }
         }
         try {
           Collection configs = Parser.readXML(bundle, resourceURL);
           if (configs.isEmpty()) {
-            Activator.log.warn("bundle #" + bundle.getBundleId() + ": xml-file did not contain any valid component declarations");
-            
+            Activator.log.warn("bundle #" +bundle.getBundleId()
+                               +": xml-file, '" +resourceURL
+                               +"', did not contain any valid component "
+                               +"declarations");
           }
           addedConfigs.addAll(configs);
 
         } catch (Throwable e) {
-          Activator.log.error("bundle #" + bundle.getBundleId() + ": Failed to parse " + resourceURL +": " + e.getCause(), e);
+          Activator.log.error("bundle #" + bundle.getBundleId()
+                              +": Failed to parse '"
+                              +resourceURL +"': " +e.getCause(),
+                              e);
         }
       }
 
