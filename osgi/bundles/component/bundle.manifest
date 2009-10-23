@@ -2,14 +2,14 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Declarative-Services
 Bundle-SymbolicName: org.knopflerfish.bundle.component
-Bundle-Version: 2.0.1
+Bundle-Version: 2.0.2
 Bundle-Category: service
 Bundle-Description: Declarative Services
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/component
 Bundle-Classpath: .,kxml2.jar
 DynamicImport-Package: *
 Bundle-Activator: org.knopflerfish.bundle.component.Activator
