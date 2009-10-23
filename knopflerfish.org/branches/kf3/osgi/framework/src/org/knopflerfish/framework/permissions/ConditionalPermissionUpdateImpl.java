@@ -60,7 +60,7 @@ public class ConditionalPermissionUpdateImpl implements ConditionalPermissionUpd
   ConditionalPermissionUpdateImpl(ConditionalPermissionInfoStorage cpis,
                                   ArrayList org, int generation) {
     storage = cpis;
-    cpiTable = org;
+    cpiTable = (ArrayList)org.clone();
     parent = generation;
   }
 

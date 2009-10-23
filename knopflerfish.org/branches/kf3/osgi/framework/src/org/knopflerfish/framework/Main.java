@@ -450,11 +450,11 @@ public class Main
                   break;
                 case FrameworkEvent.STOPPED_UPDATE:
                   // Automatic FW restart, wait again.
-                  println("Framework unexpectedly stopped for update", 0);
+                  println("Framework stopped for update", 0);
                   break;
                 case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
                   // A manual FW restart with new boot class path is needed.
-                  println("Framework unexpectedly stopped for update", 0);
+                  println("Framework stopped for bootclasspath update", 0);
                   break;
                 case FrameworkEvent.ERROR:
                   // Stop failed or other error, give up.

@@ -110,7 +110,6 @@ public class FrameworkContext  {
    */
   SystemBundle systemBundle;
 
-  BundleContextImpl systemBC;
 
   /**
    * Bundle Storage
@@ -190,13 +189,15 @@ public class FrameworkContext  {
   // Public method used by permissionshandling
   //
   public ClassLoader getClassLoader(String clazz) {
-    int pos = clazz.lastIndexOf('.');
-    if (pos != -1) {
-      Pkg p = packages.getPkg(clazz.substring(0, pos));
-      if (p != null) {
-        ExportPkg ep = p.getBestProvider();
-        if (ep != null) {
-          return ep.bpkgs.bundle.getClassLoader();
+    if (clazz != null) {
+      int pos = clazz.lastIndexOf('.');
+      if (pos != -1) {
+        Pkg p = packages.getPkg(clazz.substring(0, pos));
+        if (p != null) {
+          ExportPkg ep = p.getBestProvider();
+          if (ep != null) {
+            return ep.bpkgs.bundle.getClassLoader();
+          }
         }
       }
     }
@@ -295,6 +296,9 @@ public class FrameworkContext  {
       }
     }
 
+    // Add this framework to the bundle URL handle
+    urlStreamHandlerFactory.addFramework(this);
+
     try {
       Class storageImpl = Class.forName(props.whichStorageImpl);
 
@@ -313,8 +317,7 @@ public class FrameworkContext  {
     listeners         = new Listeners(this, perm);
     services          = new Services(this, perm);
 
-    systemBC          = new BundleContextImpl(systemBundle);
-    systemBundle.setBundleContext(systemBC);
+    systemBundle.initSystemBundle();
 
     bundles           = new Bundles(this);
 
@@ -329,12 +332,11 @@ public class FrameworkContext  {
                       new PackageAdminImpl(this),
                       null);
 
-    // Add this framework to the bundle URL handle, now that we have the set of bundles
-    urlStreamHandlerFactory.addFramework(this);
-
     registerStartLevel();
 
     bundles.load();
+    // Set framework classloader.
+    systemBundle.setClassLoader(getClass().getClassLoader());
 
     log("inited");
 
@@ -354,14 +356,13 @@ public class FrameworkContext  {
    */
   void uninit()
   {
+    log("uninit");
     startLevelController = null;
+
+    systemBundle.uninitSystemBundle();
 
     bundles.clear();
     bundles = null;
-
-    systemBC.invalidate();
-    systemBC = null;
-    systemBundle.setBundleContext(systemBC);
 
     services.clear();
     services = null;
@@ -531,13 +532,6 @@ public class FrameworkContext  {
     return false;
   }
 
-
-  /**
-   * Get the bundle context used by the system bundle.
-   */
-  public BundleContext getSystemBundleContext() {
-    return systemBC;
-  }
 
   ArrayList /* String */ bootDelegationPatterns;
   boolean bootDelegationUsed /*= false*/;

@@ -45,6 +45,7 @@ import org.osgi.service.permissionadmin.PermissionInfo;
 
 import org.knopflerfish.framework.Debug;
 import org.knopflerfish.framework.FrameworkContext;
+import org.knopflerfish.framework.Util;
 
 
 /**
@@ -310,7 +311,8 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       Class clazz;
       Condition c;
       try {
-        clazz = Class.forName(conditionInfos[i].getType());
+        clazz = Class.forName(conditionInfos[i].getType(),
+                              true, framework.getClassLoader(null));
         Constructor cons = null;
         Method method = null;
         try {
@@ -372,39 +374,6 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       permissions = new PermissionInfoPermissions(framework, null, permissionInfos);
     }
     return permissions;
-  }
-
-
-  /**
-   *
-   */
-  boolean hasSigners(String [] signers) {
-    for (int i = 0; i < conditionInfos.length; i++) {
-      if (SIGNER_CONDITION_TYPE.equals(conditionInfos[i].getType())) {
-        String[] args = conditionInfos[i].getArgs();
-        if (args.length > 0) {
-          final boolean neg = args.length == 2 && "!".equals(args[1]); 
-          boolean match = false;
-          ArrayList tmp = new ArrayList(1);
-          for (int j = 0; j < signers.length; j++) {
-            tmp.add(signers[j]);
-            if (FrameworkUtil.matchDistinguishedNameChain(args[0], tmp)) {
-              // match, if we have a deny we abort
-              match = !neg;
-              break;
-            }
-            tmp.clear();
-          }
-          if (match) {
-            // Found matching allow signer, check next condition
-            continue;
-          }
-        }
-      }
-      // No signer condition, no match or a deny match.
-      return false;
-    }
-    return true;
   }
 
 

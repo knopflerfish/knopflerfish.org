@@ -245,7 +245,6 @@ class ServiceListenerState {
           addToSet(set, SERVICE_PID_IX, sa[i]);
         }
       } else if (service_pid instanceof Collection) {
-//        String [] sa = (String [])service_pid;
         for (Iterator i = ((Collection)service_pid).iterator(); i.hasNext(); ) {
           // TBD should we report if type isn't a String?
           addToSet(set, SERVICE_PID_IX, i.next());

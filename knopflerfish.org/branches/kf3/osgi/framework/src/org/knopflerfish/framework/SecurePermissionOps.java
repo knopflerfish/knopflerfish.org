@@ -330,7 +330,7 @@ class SecurePermissionOps extends PermissionOps {
     } catch (SecurityException ignore) {
       if (framework.props.debug.service_reference) {
         framework.props.debug.printStackTrace
-          ("No permission to get service ref: " + sr, ignore);
+          ("No permission to get service ref: " + sr.getProperty(Constants.OBJECTCLASS), ignore);
       }
     }
     return false;

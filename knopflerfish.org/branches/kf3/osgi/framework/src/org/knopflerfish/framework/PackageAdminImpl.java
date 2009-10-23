@@ -236,8 +236,20 @@ public class PackageAdminImpl implements PackageAdmin {
       framework.props.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
 
-    BundleImpl bi[] = (BundleImpl[])framework.packages
-      .getZombieAffected(bundles).toArray(new BundleImpl[0]);
+    Collection zombies = framework.packages.getZombieAffected(bundles);
+    if (zombies.contains(framework.systemBundle)) {
+      // Extension bundle affected, we need to restart
+      if (framework.props.debug.packages) {
+        framework.props.debug.println("Extension bundle refresh, restart framework.");
+      }
+      try {
+        framework.systemBundle.update();
+      } catch (BundleException be) {
+        // NYI, log this
+      }
+      return;
+    }
+    BundleImpl bi[] = (BundleImpl[])zombies.toArray(new BundleImpl[0]);
     ArrayList startList = new ArrayList();
 
     // Stop affected bundles and remove their classloaders
