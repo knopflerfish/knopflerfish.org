@@ -33,6 +33,7 @@
     <antcall target="component-api_test"/>
     <antcall target="componentA_test"/>
     <antcall target="componentE_test"/>
+    <antcall target="component2_test"/>
   </target>
 
   <target name="component-api_test">
@@ -54,6 +55,13 @@
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/componentE_test"/>
+    </ant>
+  </target>
+  <target name="component2_test">
+    <ant dir="test_target_bundles/component2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/component2_test"/>
     </ant>
   </target>
 

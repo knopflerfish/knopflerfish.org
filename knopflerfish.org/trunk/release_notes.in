@@ -21,6 +21,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Services (Compendium) ===
 
 
+  Declarative-Services 2.0.2 (aka SCR)
+
+  The Service-Component header in the manifest file now supports
+  "spaces" to separate between DS files.
+
+  This problem was reported the SourceForge bug tracker, item 2556558:
+  https://sourceforge.net/tracker/index.php?func=detail&aid=2883959&group_id=82798&atid=567241
+
+
   Preferences 2.0.4
 
   Removing a node, calling flush and then creating a new node with the
