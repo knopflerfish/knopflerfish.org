@@ -124,7 +124,7 @@ public class FWProps  {
    * Whether the framework supports extension bundles or not.
    * This will be false if bIsMemoryStorage is false.
    */
-  boolean SUPPORTS_EXTENSION_BUNDLES;
+  boolean SUPPORTS_BOOT_EXTENSION_BUNDLES;
 
 
   public static int javaVersionMajor = -1;
@@ -194,12 +194,11 @@ public class FWProps  {
 
     bIsMemoryStorage = whichStorageImpl.equals("org.knopflerfish.framework.bundlestorage.memory.BundleStorageImpl");
 
-    if (bIsMemoryStorage ||
-        !USING_WRAPPER_SCRIPT) {
-      SUPPORTS_EXTENSION_BUNDLES = false;
+    if (bIsMemoryStorage || !USING_WRAPPER_SCRIPT) {
+      SUPPORTS_BOOT_EXTENSION_BUNDLES = false;
       // we can not support this in this mode.
     } else {
-      SUPPORTS_EXTENSION_BUNDLES = true;
+      SUPPORTS_BOOT_EXTENSION_BUNDLES = true;
     }
 
     // Set up some instance variables that depends on the properties
@@ -428,10 +427,9 @@ public class FWProps  {
     // Various framework properties
     setProperty(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
     setProperty(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
-    setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
-                SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+    setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION,TRUE);
     setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
-                SUPPORTS_EXTENSION_BUNDLES ? TRUE : FALSE);
+                SUPPORTS_BOOT_EXTENSION_BUNDLES ? TRUE : FALSE);
   }
 
   /**

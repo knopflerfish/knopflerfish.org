@@ -66,11 +66,11 @@ class Hooks {
     }
 
     listenerHookTracker = new ServiceTracker
-      (fwCtx.systemBC, 
+      (fwCtx.systemBundle.bundleContext, 
        ListenerHook.class.getName(), 
        new ServiceTrackerCustomizer() {
          public Object addingService(ServiceReference reference) {           
-           ListenerHook lh = (ListenerHook)fwCtx.systemBC.getService(reference);
+           ListenerHook lh = (ListenerHook)fwCtx.systemBundle.bundleContext.getService(reference);
            try {
              lh.added(getServiceCollection());
            } catch (Exception e) {
@@ -84,7 +84,7 @@ class Hooks {
          }
 
          public void removedService(ServiceReference reference, Object service) {
-           fwCtx.systemBC.ungetService(reference);
+           fwCtx.systemBundle.bundleContext.ungetService(reference);
          }
 
        });

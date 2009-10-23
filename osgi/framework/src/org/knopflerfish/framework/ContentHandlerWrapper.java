@@ -102,7 +102,7 @@ import org.osgi.framework.*;
       };
     
     try {
-      framework.systemBC.addServiceListener(serviceListener, filter);
+      framework.systemBundle.bundleContext.addServiceListener(serviceListener, filter);
       
     } catch (Exception e) {
       throw new IllegalArgumentException("Could not register service listener for content handler: " + e);
@@ -133,8 +133,8 @@ import org.osgi.framework.*;
   private void updateBest() {
     try {
       ServiceReference[] refs =
-        framework.systemBC.getServiceReferences(ContentHandler.class.getName(), 
-                                                filter);
+        framework.systemBundle.bundleContext.getServiceReferences(ContentHandler.class.getName(), 
+                                                                  filter);
       if (refs != null) {
         best = refs[0];
       } 
@@ -164,7 +164,7 @@ import org.osgi.framework.*;
         throw new IllegalStateException("null: Lost service for protocol="+ mimetype);
       }
 
-      obj = (ContentHandler)framework.systemBC.getService(best);
+      obj = (ContentHandler)framework.systemBundle.bundleContext.getService(best);
 
       if (obj == null) {
         throw new IllegalStateException("null: Lost service for protocol=" + mimetype);

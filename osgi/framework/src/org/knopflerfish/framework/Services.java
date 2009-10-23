@@ -254,6 +254,10 @@ class Services {
   synchronized ServiceReference get(BundleImpl bundle, String clazz) {
     try {
       ServiceReference [] srs = get(clazz, null, bundle);
+      if (framework.props.debug.service_reference) {
+        framework.props.debug.println
+          ("get service ref " + clazz + " for bundle " + bundle.location + " = " + srs);
+      }
       if (srs != null) {
         return srs[0];
       }

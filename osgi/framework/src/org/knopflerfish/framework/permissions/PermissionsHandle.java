@@ -69,7 +69,7 @@ public class PermissionsHandle {
     pinfos = new PermissionInfoStorage(fw);
     pa = new PermissionAdminImpl(pinfos);
     cpinfos = new ConditionalPermissionInfoStorage(this);
-    cpa = new ConditionalPermissionAdminImpl(cpinfos, fw);
+    cpa = new ConditionalPermissionAdminImpl(cpinfos, pinfos, fw);
     Policy.setPolicy(new FrameworkPolicy(Policy.getPolicy(), this));
   }
 

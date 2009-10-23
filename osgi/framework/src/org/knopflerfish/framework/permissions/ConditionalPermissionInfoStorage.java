@@ -54,7 +54,7 @@ class ConditionalPermissionInfoStorage {
 
   private PermissionsHandle ph;
 
-  private int generation = 0;
+  private int generation = -1;
 
   final private Debug debug;
 
@@ -236,10 +236,10 @@ class ConditionalPermissionInfoStorage {
         }
         if (removed != 0) {
           // remove intermediate objects
-          while (oi < removed) {
-            update[ui++] = -i;
+          while (oi++ < removed) {
+            update[ui++] = -i - 1;
           }
-          ocpi = (ConditionalPermissionInfoImpl)(++oi < cpiTable.size() ? cpiTable.get(oi) : null);
+          ocpi = (ConditionalPermissionInfoImpl)(oi < cpiTable.size() ? cpiTable.get(oi) : null);
         } else {
           // New element add it
           update[ui++] = i;
@@ -247,8 +247,8 @@ class ConditionalPermissionInfoStorage {
       }
     }
     // remove trailing objects
-    while (oi < cpiTable.size()) {
-      update[ui++] = -i;
+    while (oi++ < cpiTable.size()) {
+      update[ui++] = -i - 1;
     }
 
     // If no updates just return
@@ -291,10 +291,19 @@ class ConditionalPermissionInfoStorage {
           cpi.setName(uniqueNameBase + uniqueCounter++);
         }
         cpi.setPermissionInfoStorage(this);
-        updateChangedConditionalPermission((ConditionalPermissionInfoImpl)checkTable.get(u),
-                                           u, remove);
+        if (u == remove) {
+          cpiTable.set(u, cpi);
+        } else if (remove == -1) {
+          cpiTable.add(u, cpi);
+        } else {
+          // Case with different remove & insert position not used, yet
+          throw new RuntimeException("NYI");
+        }
+        updateChangedConditionalPermission(cpi, u, remove);
       } else if (u != NOP) {
-        updateChangedConditionalPermission(null, -1, -u);
+        u = -1 - u;
+        cpiTable.remove(u);
+        updateChangedConditionalPermission(null, -1, u);
       }
     }
     generation++;
@@ -353,7 +362,7 @@ class ConditionalPermissionInfoStorage {
                                                   int pos,
                                                   int removePos) {
     for (Iterator i = ph.getPermissionWrappers(); i.hasNext();) {
-      ((PermissionsWrapper)i.next()).updateChangedConditionalPermission(cpi, pos, removePos);
+      ((PermissionsWrapper)i.next()).updateChangedConditionalPermission(cpi, pos, removePos, cpiTable.size());
     }
   }
 
@@ -364,6 +373,9 @@ class ConditionalPermissionInfoStorage {
    * Save a permission array.
    */
   private void save() {
+    if (debug.permissions) {
+      debug.println("CondPermStorage save " + size() + " cpis, gen=" + generation);
+    }
     if (condPermDir != null) {
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
@@ -372,11 +384,14 @@ class ConditionalPermissionInfoStorage {
             BufferedWriter out = null;
             try {
               out = new BufferedWriter(new FileWriter(f));
-              out.write("# Save at: " +  System.currentTimeMillis());
+              out.write("# Save generation " + generation + " at: " +  System.currentTimeMillis());
+              out.newLine();
               for (Iterator i = cpiTable.iterator(); i.hasNext(); ) {
                 out.write(((ConditionalPermissionInfoImpl)i.next()).toString());
+                out.newLine();
               }
               out.write(END_MARKER);
+              out.newLine();
               out.close();
             } catch (IOException e) {
               if (out != null) {

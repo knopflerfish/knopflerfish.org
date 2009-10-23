@@ -112,7 +112,7 @@ class PermissionInfoStorage {
    * @return the default permissions.
    */
   synchronized PermissionInfo[] getDefault(PermissionsWrapper callInvalidate) {
-    if (callInvalidate != null) {
+    if (callInvalidate != null && callInvalidate.location != null) {
       ArrayList cil = (ArrayList)defaultInvalidateCallbacks.get(callInvalidate.location);
       if (cil == null) {
         cil = new ArrayList(2);

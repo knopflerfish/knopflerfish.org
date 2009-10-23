@@ -104,7 +104,7 @@ public class URLStreamHandlerWrapper
 
     framework.add(fw);
     try {
-      fw.systemBC.addServiceListener(serviceListener, filter);
+      fw.systemBundle.bundleContext.addServiceListener(serviceListener, filter);
     } catch (InvalidSyntaxException e) {
       throw new IllegalArgumentException("Protocol name contains illegal characters: " + proto);
     }
@@ -120,7 +120,7 @@ public class URLStreamHandlerWrapper
    */
   void addFramework(FrameworkContext fw) {
     try {
-      fw.systemBC.addServiceListener(serviceListener, filter);
+      fw.systemBundle.bundleContext.addServiceListener(serviceListener, filter);
       framework.add(fw);
       if (fw.props.debug.url) {
         fw.props.debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
@@ -151,7 +151,7 @@ public class URLStreamHandlerWrapper
     if (best == null) {
       try {
         ServiceReference[] refs =
-          fw.systemBC.getServiceReferences(URLStreamHandlerService.class.getName(), filter);
+          fw.systemBundle.bundleContext.getServiceReferences(URLStreamHandlerService.class.getName(), filter);
         if (refs != null) {
           // KF gives us highest ranked first.
           best = refs[0];
@@ -162,7 +162,7 @@ public class URLStreamHandlerWrapper
       throw new IllegalStateException("null: Lost service for protocol="+ protocol);
     }
     if (bestService == null) {
-      bestService = (URLStreamHandlerService)fw.systemBC.getService(best);
+      bestService = (URLStreamHandlerService)fw.systemBundle.bundleContext.getService(best);
     }
     if (bestService == null) {
       throw new IllegalStateException("null: Lost service for protocol=" + protocol);

@@ -173,7 +173,6 @@ public class Bundles {
       if (ba != null) {
         ba.purge();
       }
-e.printStackTrace();
       throw new BundleException("Failed to install bundle: " + e,
                                 BundleException.UNSPECIFIED, e);
     }

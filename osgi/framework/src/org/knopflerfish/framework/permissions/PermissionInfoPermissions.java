@@ -219,7 +219,7 @@ class PermissionInfoPermissions extends PermissionCollection {
     try {
       Class pc = Class.forName(t, true, framework.getClassLoader(t));
       Constructor c = pc.getConstructor(new Class[] { String.class, String.class });
-      if (FilePermission.class.equals(pc)) {
+      if (FilePermission.class.equals(pc) && !"<<ALL FILES>>".equals(n)) {
         File f = new File(n);
         // NYI! How should we handle different seperator chars.
         if (!f.isAbsolute()) {

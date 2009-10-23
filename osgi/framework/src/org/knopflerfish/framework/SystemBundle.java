@@ -35,7 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.net.URL;
+import java.net.*;
 import java.security.ProtectionDomain;
 import java.util.*;
 
@@ -110,9 +110,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * The file where we store the class path
    */
-  private final static String CLASSPATH_DIR = "classpath";
-  private final static String BOOT_CLASSPATH_FILE = "boot";
-  private final static String FRAMEWORK_CLASSPATH_FILE = "framework";
+  private final static String BOOT_CLASSPATH_FILE = "boot_cp";
 
   /**
    * Export-Package string for system packages
@@ -129,6 +127,12 @@ public class SystemBundle extends BundleImpl implements Framework {
    * The thread that performs shutdown of this framework instance.
    */
   private Thread shutdownThread = null;
+
+
+  /**
+   * Marker that we need to restart JVM.
+   */
+  boolean bootClassPathHasChanged;
 
 
   /**
@@ -372,19 +376,6 @@ public class SystemBundle extends BundleImpl implements Framework {
   //
 
   /**
-   * Get class loader for this bundle.
-   */
-  ClassLoader getClassLoader() {
-    return getClass().getClassLoader();
-  }
-
-
-  void setBundleContext(BundleContextImpl bc) {
-    this.bundleContext = bc;
-  }
-
-
-  /**
    * Set system bundle state to stopping
    */
   void systemShuttingdown(final boolean restart) throws BundleException {
@@ -407,35 +398,29 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Checks whether a path is included in the path.
-   */
-  private boolean isInClassPath(BundleImpl extension) {
-    String cps = extension.isBootClassPathExtension() ?
-      "sun.boot.class.path" : "java.class.path";
-    String cp = fwCtx.props.getProperty(cps);
-    String[] scp = Util.splitwords(cp, ":");
-    String path = extension.archive.getJarLocation();
-
-    for (int i = 0; i < scp.length; i++) {
-      if (scp[i].equals(path)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-
-  /**
    * Adds an bundle as an extension that will be included
    * in the boot class path on restart.
    */
   void attachFragment(BundleImpl extension) {
-    // NYI! Plugin VM specific functionality, dynamic classpath additions
-    if (isInClassPath(extension)) {
-      super.attachFragment(extension);
+    if (extension.isBootClassPathExtension()) {
+      // if we attach during startup, we assume that bundle is in BCP.
+      if (getClassLoader() == null) {
+        super.attachFragment(extension);
+      } else {
+        throw new UnsupportedOperationException("Bootclasspath extension can not be dynamicly activated");
+      }
     } else {
-      throw new UnsupportedOperationException("Extension can not be dynamicly activated");
+      super.attachFragment(extension);
+      // TBD, should we us Bundle-ClassPath? Not according to 3.14.2
+      // NYI, warn when in memory mode.
+      try {
+        URL u = new URL("file:" + extension.archive.getJarLocation());
+        synchronized (lock) {
+          setClassLoader(new URLClassLoader(new URL[] { u }, getClassLoader()));
+        }
+      } catch (MalformedURLException ignore) {
+        // NYI, log this
+      }
     }
   }
 
@@ -483,18 +468,12 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
   }
 
-  //
-  // Private methods
-  //
 
   /**
    *
    */
-  private void doInit() throws BundleException {
-    state = STARTING;
-
-    fwCtx.init();
-
+  void initSystemBundle() {
+    bundleContext = new BundleContextImpl(this);
     StringBuffer sp = new StringBuffer
       (fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
     if (sp.length()==0) {
@@ -545,6 +524,37 @@ public class SystemBundle extends BundleImpl implements Framework {
     bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
     bpkgs.registerPackages();
     bpkgs.resolvePackages();
+  }
+
+
+  /**
+   *
+   */
+  void uninitSystemBundle() {
+    bundleContext.invalidate();
+    bundleContext = null;
+    if (!bootClassPathHasChanged) {
+      for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator(); i.hasNext(); ) {
+        BundleImpl b = (BundleImpl)i.next();
+        if (b.isBootClassPathExtension() && b.extensionNeedsRestart()) {
+          bootClassPathHasChanged = true;
+          break;
+        }
+      }
+    }
+  }
+
+  //
+  // Private methods
+  //
+
+  /**
+   *
+   */
+  private void doInit() throws BundleException {
+    state = STARTING;
+    bootClassPathHasChanged = false;
+    fwCtx.init();
   }
 
 
@@ -778,7 +788,12 @@ public class SystemBundle extends BundleImpl implements Framework {
    * Tell system bundle shutdown finished.
    */
   private void shutdownDone(boolean restart) {
-    int t = restart ? FrameworkEvent.STOPPED_UPDATE : FrameworkEvent.STOPPED;
+    int t;
+    if (bootClassPathHasChanged) {
+      t = FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED;
+    } else {
+      t = restart ? FrameworkEvent.STOPPED_UPDATE : FrameworkEvent.STOPPED;
+    }
     systemShuttingdownDone(new FrameworkEvent(t, this, null));
   }
 
@@ -826,36 +841,29 @@ public class SystemBundle extends BundleImpl implements Framework {
   private void saveClasspaths()
   {
     StringBuffer bootClasspath = new StringBuffer();
-    StringBuffer frameworkClasspath = new StringBuffer();
     for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator();
          i.hasNext(); ) {
       BundleImpl eb = (BundleImpl)i.next();
       String path = eb.archive.getJarLocation();
-      StringBuffer sb = eb.isBootClassPathExtension()
-        ? bootClasspath : frameworkClasspath;
-      if (sb.length()>0) {
-        sb.append(File.pathSeparator);
+      if (eb.isBootClassPathExtension()) {
+        if (bootClasspath.length()>0) {
+          bootClasspath.append(File.pathSeparator);
+        }
+        bootClasspath.append(path);
       }
-      sb.append(path);
     }
 
     // Post processing to handle boot class extension
     try {
-      FileTree storage = Util.getFileStorage(fwCtx, CLASSPATH_DIR);
-      File bcpf = new File(storage, BOOT_CLASSPATH_FILE);
-      File fcpf = new File(storage, FRAMEWORK_CLASSPATH_FILE);
+      File bcpf = new File(Util.getFrameworkDir(fwCtx), BOOT_CLASSPATH_FILE);
       if (bootClasspath.length() > 0) {
         saveStringBuffer(bcpf, bootClasspath);
       } else {
         bcpf.delete();
       }
-      if (frameworkClasspath.length() > 0) {
-        saveStringBuffer(fcpf, frameworkClasspath);
-      } else {
-        fcpf.delete();
-      }
     } catch (IOException e) {
-      System.err.println("Could not save classpath " + e);
+      // NYI! Log this!?
+      fwCtx.props.debug.println("Could not save classpath " + e);
     }
   }
 
@@ -873,5 +881,4 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
     }
   }
-
 }

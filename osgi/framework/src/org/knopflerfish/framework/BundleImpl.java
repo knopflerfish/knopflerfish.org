@@ -132,7 +132,7 @@ public class BundleImpl implements Bundle {
   /**
    * Classloader for bundle.
    */
-  protected volatile ClassLoader classLoader = null;
+  private volatile ClassLoader classLoader = null;
 
   /**
    * Zombie packages for bundle.
@@ -758,8 +758,14 @@ public class BundleImpl implements Bundle {
 
     if (isFragment()) {
       if (isAttached()) {
-        for (Iterator i = fragment.getHosts(); i.hasNext(); ) {
-          ((BundleImpl)i.next()).bpkgs.fragmentIsZombie(this);
+        if (isExtension()) {
+          if (isBootClassPathExtension()) {
+            fwCtx.systemBundle.bootClassPathHasChanged = true;
+          }
+        } else {
+          for (Iterator i = fragment.getHosts(); i.hasNext(); ) {
+            ((BundleImpl)i.next()).bpkgs.fragmentIsZombie(this);
+          }
         }
         fragment.removeHost(null);
         purgeOld = false;
@@ -861,7 +867,7 @@ public class BundleImpl implements Bundle {
     case STOPPING:
       // Wait for RESOLVED state, this doesn't happen now
       // since we are synchronized.
-//      throw new IllegalStateException("Bundle is in STOPPING state");
+      throw new IllegalStateException("Bundle is in STOPPING state");
 
     case STARTING: // Lazy start
     case ACTIVE:
@@ -881,16 +887,21 @@ public class BundleImpl implements Bundle {
 
       if (isFragment()) {
         if (isAttached()) {
-          for (Iterator i = fragment.getHosts(); i.hasNext(); ) {
-            BundleImpl hb = (BundleImpl)i.next();
-            if (hb.bpkgs != null) {
-              hb.bpkgs.fragmentIsZombie(this);
-            } else {
-              // System.out.println("BPGKS null for " + hb.location);
+          if (isExtension()) {
+            if (isBootClassPathExtension()) {
+              fwCtx.systemBundle.bootClassPathHasChanged = true;
+            }
+          } else {
+            for (Iterator i = fragment.getHosts(); i.hasNext(); ) {
+              BundleImpl hb = (BundleImpl)i.next();
+              if (hb.bpkgs != null) {
+                hb.bpkgs.fragmentIsZombie(this);
+              } else {
+                // System.out.println("BPGKS null for " + hb.location);
+              }
             }
           }
           fragment.removeHost(null);
-          classLoader = null; // TBD necessary?
         } else {
           secure.purge(this, protectionDomain);
           if (null!=archive) archive.purge();
@@ -999,14 +1010,18 @@ public class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#getRegisteredServices
    */
   public ServiceReference[] getRegisteredServices() {
+    checkUninstalled();
     Set sr = fwCtx.services.getRegisteredByBundle(this);
     secure.filterGetServicePermission(sr);
-    ServiceReference[] res = new ServiceReference[sr.size()];
-    int pos = 0;
-    for (Iterator i = sr.iterator(); i.hasNext(); ) {
-      res[pos++] = ((ServiceRegistration)i.next()).getReference();
+    if (sr.size() > 0) {
+      ServiceReference[] res = new ServiceReference[sr.size()];
+      int pos = 0;
+      for (Iterator i = sr.iterator(); i.hasNext(); ) {
+        res[pos++] = ((ServiceRegistration)i.next()).getReference();
+      }
+      return res;
     }
-    return res;
+    return null;
   }
 
 
@@ -1016,6 +1031,7 @@ public class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#getServicesInUse
    */
   public ServiceReference[] getServicesInUse() {
+    checkUninstalled();
     Set sr = fwCtx.services.getUsedByBundle(this);
     secure.filterGetServicePermission(sr);
     if (sr.size() > 0) {
@@ -1025,9 +1041,8 @@ public class BundleImpl implements Bundle {
         res[pos++] = ((ServiceRegistration)i.next()).getReference();
       }
       return res;
-    } else {
-      return null;
     }
+    return null;
   }
 
 
@@ -1244,9 +1259,10 @@ public class BundleImpl implements Bundle {
         host.attachFragment(this);
         fragment.addHost(host);
         return true;
-      } catch (Exception _ignore) { }
+      } catch (Exception _ignore) { 
+        // TODO, Log this?
+      }
     }
-    // TODO, Log this?
     return false;
   }
 
@@ -1270,6 +1286,18 @@ public class BundleImpl implements Bundle {
    */
   ClassLoader getClassLoader() {
     return classLoader;
+  }
+
+
+  /**
+   * Get class loader for this bundle.
+   * Create the classloader if we haven't done this previously.
+   * This method can only be called when the bundle is resolved.
+   *
+   * @return Bundles classloader.
+   */
+  void setClassLoader(ClassLoader cl) {
+    classLoader = cl;
   }
 
 
@@ -1474,7 +1502,6 @@ public class BundleImpl implements Bundle {
       u.append(path);
       return secure.getBundleURL(fwCtx, u.toString());
     } catch (MalformedURLException e) {
-      e.printStackTrace();
       return null;
     }
   }
@@ -1578,14 +1605,14 @@ public class BundleImpl implements Bundle {
                                              Constants.DYNAMICIMPORT_PACKAGE + " or " +
                                              Constants.BUNDLE_ACTIVATOR);
         }
-        if (!fwCtx.props.SUPPORTS_EXTENSION_BUNDLES) {
+        if (!fwCtx.props.SUPPORTS_BOOT_EXTENSION_BUNDLES &&
+            Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
           if (fwCtx.props.bIsMemoryStorage) {
             throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
-          } else if (!fwCtx.props.USING_WRAPPER_SCRIPT) {
-            throw new UnsupportedOperationException("Extension bundles require the use of a wrapper script. " +
-                                                    "Consult the documentation");
           } else {
-            throw new UnsupportedOperationException("Extension bundles are not supported.");
+            throw new UnsupportedOperationException("Extension bundles not supported, " +
+                                                    "require the use of a wrapper script. " +
+                                                    "Consult the documentation");
           }
         }
       } else {
@@ -2004,6 +2031,10 @@ public class BundleImpl implements Bundle {
             best = b;
           }
         }
+        if (best == fwCtx.systemBundle) {
+          best.readLocalization(locale, localization_entries, baseName);
+          return;
+        }
         cl = (BundleClassLoader)best.getClassLoader();
       } else {
         cl = (BundleClassLoader)classLoader;
@@ -2104,8 +2135,8 @@ public class BundleImpl implements Bundle {
   public Class loadClass(final String name) throws ClassNotFoundException {
     if (secure.okClassAdminPerm(this)) {
       checkUninstalled();
-      if (isFragment() && !isExtension()) {
-        throw new ClassNotFoundException("Can not load classes from fragment bundles");
+      if (isFragment()) {
+        throw new ClassNotFoundException("Can not load classes from fragment/extension bundles");
       }
       if (getUpdatedState() == INSTALLED) {
         throw new ClassNotFoundException(resolveFailException.getMessage());
@@ -2143,11 +2174,7 @@ public class BundleImpl implements Bundle {
    * is updated/uninstalled and needs to be restarted.
    */
   boolean extensionNeedsRestart() {
-    return isExtension() &&
-      (state & (INSTALLED|UNINSTALLED)) != 0;
-    // &&
-//      fwCtx.systemBundle.fragments != null &&
-//      fwCtx.systemBundle.fragments.contains(this);
+    return isExtension() && (state & (INSTALLED|UNINSTALLED)) != 0;
   }
 
   /**

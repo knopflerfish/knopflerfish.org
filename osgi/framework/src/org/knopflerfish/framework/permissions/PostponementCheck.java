@@ -107,50 +107,22 @@ class PostponementCheck implements PrivilegedAction {
         checkedClasses = new ArrayList();
       }
       // Loop through all bundle protection domains found on stack
-    pdloop:
       for (Iterator ppi = ppList.iterator(); ppi.hasNext(); ) {
         // Loop through all matching ConditionalPermissions
-      cploop:
+        boolean deny = true;
         for (Iterator pi = ((List)ppi.next()).iterator(); pi.hasNext(); ) {
           ConditionalPermission cp = (ConditionalPermission)pi.next();
-          // Loop through all postponed Conditions for ConditionalPermissions
-          // List ends with an immediate conditions, if not assume an implicity
-          // DENY ConditionalPermission.
-          for (Iterator ci = cp.getPostponed(); ci.hasNext();) {
-            Condition c = (Condition)ci.next();
-            if (c.isPostponed()) {
-              Class cc = c.getClass();
-              if (checkedClasses.contains(cc)) {
-                if (debug.permissions) {
-                  debug.println("CHECK_POSTPONE: recursive postponement, class=" + cc);
-                }
-                throw new SecurityException("Postponement condition check recursive for class: " + cc);
-              }
-              Dictionary d = (Dictionary)condDict.get(cc);
-              if (d == null) {
-                d = new Hashtable();
-                condDict.put(cc, d);
-              }
-              checkedClasses.add(cc);
-              try {
-                // NYI! Optimize immutables!
-                if (!c.isSatisfied(new Condition [] {c}, d)) {
-                  // ConditionPermissional didn't match, check next
-                  continue cploop;
-                }
-              } catch (Throwable ignore) {
-                // NYI, Log this failure
-                // ConditionPermissional couldn't be evaluated, treat as fail
-                // TBD should we do this even if we have a DENY CondPerm.
-                continue cploop;
-              } finally {
-                checkedClasses.remove(checkedClasses.size() - 1);
-              }
-            } else if (cp.access == ConditionalPermissionInfo.ALLOW) {
-              // We allow, check next protection domain
-              continue pdloop;
-            }
+          if (!cp.checkPostponedOk(condDict, checkedClasses)) {
+            // ConditionPermissional didn't match, check next
+            continue;
           }
+          if (cp.access == ConditionalPermissionInfo.ALLOW) {
+            // We allow, check next protection domain
+            deny = false;
+          }
+          break;
+        }
+        if (deny) {
           // Denied
           if (debug.permissions) {
             debug.println("CHECK_POSTPONE: postponement failed");
