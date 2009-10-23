@@ -58,6 +58,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test2());
     addTest(new Test3());
     addTest(new TestSfBugs32556558());
+    addTest(new TestSfBugs2883959());
   }
 
   public void bump() {counter++;}
@@ -516,5 +517,57 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
   }
 
 
+  private class TestSfBugs2883959 extends FWTestCase {
+    /**
+     * This test case is a regression test for SF Bugs item 2883959.
+     *
+     * How it works:
+     * - Install a bundle, Component2_test, with two component
+     *   specifing XML-documents. Each of the XML-files specifies a
+     *   single component providing a service (same service interface
+     *   for both components).
+     * - There are extra spaces in between those files in the
+     *   Service-Component header.
+     * - Check that both services are registered.
+     */
+    public void runTest() {
+      try {
+         final Bundle bu2 = Util.installBundle(bc, "component2_test-1.0.0.jar");
+         bu2.start();
+
+         try {
+           Thread.sleep(1000);
+         } catch (InterruptedException ie) {}
+
+         final ServiceReference[] srs = bc.getServiceReferences
+           ("org.knopflerfish.service.component2_test.Component", null);
+
+         assertEquals("Expected 2 service references", 2, srs.length);
+
+         for (int i=0; i<2; i++) {
+           // Check that the service is registered by bu2.
+           assertEquals("Service registered by component2_test-bundle "+i,
+                        srs[i].getBundle(), bu2);
+
+           final Object s = bc.getService(srs[i]);
+           assertNotNull("Could not get service object "+i, s);
+
+           // Call the service method to double check.
+           final Method getMethod = s.getClass().getMethod("get", null);
+
+           final String v = (String) getMethod.invoke(s, new Object[]{});
+           assertEquals("s.get(" +i +")", "C"+(i+1), v);
+         }
+
+         // Cleanup
+         bc.ungetService(srs[0]);
+         bc.ungetService(srs[1]);
+         bu2.uninstall();
+      } catch (Exception e ) {
+        e.printStackTrace();
+        fail("Got unexpected exception: " +e);
+      }
+    }
+  }
 
 }
