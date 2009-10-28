@@ -160,7 +160,7 @@ public class FrameworkContext  {
   private Set    eeCacheSet = new HashSet();
   private String eeCache = null;
 
-  final private int id;
+  final int id;
 
   public FWProps props;
 
@@ -172,15 +172,13 @@ public class FrameworkContext  {
    * Contruct a framework context
    *
    */
-  FrameworkContext(Map initProps, FrameworkContext parent)  {
-    props = new FWProps(initProps, parent);
-    perm = new SecurePermissionOps(this);
-    systemBundle = new SystemBundle(this);
-
+  FrameworkContext(Map initProps)  {
     synchronized (globalFwLock) {
       id = globalId++;
     }
-
+    props = new FWProps(initProps, this);
+    perm = new SecurePermissionOps(this);
+    systemBundle = new SystemBundle(this);
     log("created");
   }
 

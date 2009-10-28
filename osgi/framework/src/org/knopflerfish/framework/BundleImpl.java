@@ -236,28 +236,44 @@ public class BundleImpl implements Bundle {
     modified();
   }
 
+
   /**
    * Construct a new Bundle based on a BundleArchive.
    *
    * @param fw FrameworkContext for this bundle.
    * @param ba Bundle archive with holding the contents of the bundle.
+   * @param checkContext AccessConrolContext to do permission checks against.
    * @exception IOException If we fail to read and store our JAR bundle or if
    *            the input data is corrupted.
    * @exception SecurityException If we don't have permission to
-   *            import and export bundle packages.
+   *            install extension.
+   * @exception IllegalArgumentException Faulty manifest for bundle
    */
-  BundleImpl(FrameworkContext fw, BundleArchive ba) {
+  BundleImpl(FrameworkContext fw, BundleArchive ba, Object checkContext) {
     fwCtx = fw;
     secure = fwCtx.perm;
     id = ba.getBundleId();
     location = ba.getBundleLocation();
     archive = ba;
     state = INSTALLED;
-    checkManifestHeaders();
+    checkCertificates(ba);
     protectionDomain = secure.getProtectionDomain(this);
+    try {
+      secure.checkLifecycleAdminPerm(this, checkContext);
+      checkManifestHeaders(checkContext);
+      bpkgs = new BundlePackages(this,
+                                 generation++,
+                                 archive.getAttribute(Constants.EXPORT_PACKAGE),
+                                 archive.getAttribute(Constants.IMPORT_PACKAGE),
+                                 archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
+                                 archive.getAttribute(Constants.REQUIRE_BUNDLE));
+    } catch (RuntimeException re) {
+      secure.purge(this, protectionDomain);
+      throw re;
+    }
+
     doExportImport();
     bundleDir = fwCtx.getDataStorage(id);
-
     int oldStartLevel = archive.getStartLevel();
     try {
       if (fwCtx.startLevelController == null) {
@@ -271,15 +287,15 @@ public class BundleImpl implements Bundle {
       fwCtx.props.debug.println("Failed to set start level on #" + id + ": " + e);
     }
 
+    lastModified = archive.getLastModified();
+    if (lastModified == 0) {
+      modified();
+    }
+    
     // Activate extension as soon as they are installed so that
     // they get added in bundle id order.
     if (isExtension() && resolveFragment(fwCtx.systemBundle)) {
       state = RESOLVED;
-    }
-
-    lastModified = archive.getLastModified();
-    if (lastModified == 0) {
-      modified();
     }
   }
 
@@ -693,10 +709,12 @@ public class BundleImpl implements Bundle {
   }
 
 
-  void update0(InputStream in, boolean wasActive) throws BundleException {
+  void update0(InputStream in, boolean wasActive, Object checkContext) throws BundleException {
     final boolean wasResolved = state == RESOLVED;
+    final Fragment oldFragment = fragment;
     final int oldStartLevel = getStartLevel();
     BundleArchive newArchive = null;
+    BundlePackages newBpkgs = null;
     //HeaderDictionary newHeaders;
     try {
       // New bundle as stream supplied?
@@ -730,7 +748,14 @@ public class BundleImpl implements Bundle {
       }
 
       newArchive = fwCtx.storage.updateBundleArchive(archive, bin);
-      checkManifestHeaders();
+      checkCertificates(newArchive);
+      checkManifestHeaders(checkContext);
+      newBpkgs = new BundlePackages(this,
+                                    generation,
+                                    archive.getAttribute(Constants.EXPORT_PACKAGE),
+                                    archive.getAttribute(Constants.IMPORT_PACKAGE),
+                                    archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
+                                    archive.getAttribute(Constants.REQUIRE_BUNDLE));
       newArchive.setStartLevel(oldStartLevel);
       fwCtx.storage.replaceBundleArchive(archive, newArchive);
     } catch (Exception e) {
@@ -756,18 +781,18 @@ public class BundleImpl implements Bundle {
     boolean purgeOld;
     ArrayList savedEvent = new ArrayList();
 
-    if (isFragment()) {
-      if (isAttached()) {
-        if (isExtension()) {
-          if (isBootClassPathExtension()) {
+    if (oldFragment != null) {
+      if (oldFragment.hasHosts()) {
+        if (oldFragment.extension != null) {
+          if (oldFragment.extension.equals(Constants.EXTENSION_BOOTCLASSPATH)) {
             fwCtx.systemBundle.bootClassPathHasChanged = true;
           }
         } else {
-          for (Iterator i = fragment.getHosts(); i.hasNext(); ) {
+          for (Iterator i = oldFragment.getHosts(); i.hasNext(); ) {
             ((BundleImpl)i.next()).bpkgs.fragmentIsZombie(this);
           }
         }
-        fragment.removeHost(null);
+        oldFragment.removeHost(null);
         purgeOld = false;
       } else {
         purgeOld = true;
@@ -802,6 +827,7 @@ public class BundleImpl implements Bundle {
     state = INSTALLED;
     ProtectionDomain oldProtectionDomain = protectionDomain;
     protectionDomain = secure.getProtectionDomain(this);
+    bpkgs = newBpkgs;
     doExportImport();
 
     // Purge old archive
@@ -1512,60 +1538,107 @@ public class BundleImpl implements Bundle {
   //
 
   /**
+   * Check bundle certificates
+   */
+  private void checkCertificates(BundleArchive ba) {
+    ArrayList cs = ba.getCertificateChains(false);
+    if (cs != null) {
+      if (fwCtx.validator != null) {
+        if (fwCtx.props.debug.certificates) {
+          fwCtx.props.debug.println("Validate certs for bundle #" + ba.getBundleId());
+        }
+        cs = (ArrayList)cs.clone();
+        for (Iterator vi = fwCtx.validator.iterator(); !cs.isEmpty() && vi.hasNext();) {
+          Validator v = (Validator)vi.next();
+          for (Iterator ci = cs.iterator(); ci.hasNext();) {
+            List c = (List)ci.next();
+            if (v.validateCertificateChain(c)) {
+              ba.trustCertificateChain(c);
+              ci.remove();
+              if (fwCtx.props.debug.certificates) {
+                fwCtx.props.debug.println("Validated cert: " + c.get(0));
+              }
+            } else {
+              if (fwCtx.props.debug.certificates) {
+                fwCtx.props.debug.println("Failed to validate cert: " + c.get(0));
+              }
+            }
+          }
+        }
+        if (cs.isEmpty()) {
+          // Ok, bundle is signed and validated!
+          return;
+        }
+      }
+    }
+    if (fwCtx.props.getProperty("org.knopflerfish.framework.all_signed", false)) {
+      throw new IllegalArgumentException("All installed bundles must be signed!");
+    }
+  }
+
+
+  /**
    * Check manifest and cache certain manifest headers as variables.
    */
-  private void checkManifestHeaders() {
-    if (null==archive) return; // System bundle; nothing to check.
-
+  private void checkManifestHeaders(Object checkContext) {
+    boolean newV2Manifest;
+    String newSymbolicName;
+    Version newVersion;
+    String newAttachPolicy;
+    boolean newSingleton;
+    Fragment newFragment;
+    boolean newLazyActivation;
+    HashSet newLazyIncludes;
+    HashSet newLazyExcludes;
     // TBD, v2Manifest unnecessary to cache?
     String mv = archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION);
-    v2Manifest = mv != null && mv.trim().equals("2");
+    newV2Manifest = mv != null && mv.trim().equals("2");
     Iterator i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
                                    archive.getAttribute(Constants.BUNDLE_SYMBOLICNAME),
                                    true, true, true);
     Map e = null;
     if (i.hasNext()) {
       e = (Map)i.next();
-      symbolicName = (String)e.get("$key");
+      newSymbolicName = (String)e.get("$key");
     } else {
-      if (v2Manifest) {
+      if (newV2Manifest) {
         throw new IllegalArgumentException("Bundle has no symbolic name, location=" +
                                            location);
       } else {
-        symbolicName = null;
+        newSymbolicName = null;
       }
     }
     String mbv = archive.getAttribute(Constants.BUNDLE_VERSION);
     if (mbv != null) {
       try {
-        version = new Version(mbv);
+        newVersion = new Version(mbv);
       } catch (Throwable ee) {
-        if (v2Manifest) {
+        if (newV2Manifest) {
           throw new IllegalArgumentException("Bundle does not specify a valid " +
               Constants.BUNDLE_VERSION + " header. Got exception: " + ee.getMessage());
         } else {
-          version = Version.emptyVersion;
+          newVersion = Version.emptyVersion;
         }
       }
 
     } else {
-      version = Version.emptyVersion;
+      newVersion = Version.emptyVersion;
     }
 
-    attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
+    newAttachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
     if (e != null) {
-      singleton = "true".equals((String)e.get(Constants.SINGLETON_DIRECTIVE));
-      BundleImpl snb = fwCtx.bundles.getBundle(symbolicName, version);
+      newSingleton = "true".equals((String)e.get(Constants.SINGLETON_DIRECTIVE));
+      BundleImpl snb = fwCtx.bundles.getBundle(newSymbolicName, newVersion);
       String tmp = (String)e.get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
-      attachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
+      newAttachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
       // TBD! Should we allow update to same version?
       if (snb != null && snb != this) {
         throw new IllegalArgumentException("Bundle with same symbolic name and version " +
-                                           "is already installed (" + symbolicName + ", " +
-                                           version);
+                                           "is already installed (" + newSymbolicName + ", " +
+                                           newVersion);
       }
     } else {
-      singleton = false;
+      newSingleton = false;
     }
 
     i = Util.parseEntries(Constants.FRAGMENT_HOST,
@@ -1605,6 +1678,12 @@ public class BundleImpl implements Bundle {
                                              Constants.DYNAMICIMPORT_PACKAGE + " or " +
                                              Constants.BUNDLE_ACTIVATOR);
         }
+
+        secure.checkExtensionLifecycleAdminPerm(this, checkContext);
+        if (!secure.okAllPerm(this)) {
+          throw new IllegalArgumentException("An extension bundle must have AllPermission");
+        }
+
         if (!fwCtx.props.SUPPORTS_BOOT_EXTENSION_BUNDLES &&
             Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
           if (fwCtx.props.bIsMemoryStorage) {
@@ -1623,36 +1702,37 @@ public class BundleImpl implements Bundle {
         }
       }
 
-      if (fragment == null) {
-        fragment = new Fragment(key,
-                                extension,
-                                (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
-      }
+      newFragment = new Fragment(key,
+                                 extension,
+                                 (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
+    } else {
+      newFragment = null;
     }
 
     i = Util.parseEntries(Constants.BUNDLE_ACTIVATIONPOLICY,
                           archive.getAttribute(Constants.BUNDLE_ACTIVATIONPOLICY),
                           true, true, true);
+    newLazyIncludes = null;
+    newLazyExcludes = null;
     if (i.hasNext()) {
       e = (Map)i.next();
-      lazyActivation = Constants.ACTIVATION_LAZY.equals(e.get("$key"));
-
-      if (lazyActivation) {
+      newLazyActivation = Constants.ACTIVATION_LAZY.equals(e.get("$key"));
+      if (newLazyActivation) {
         if (e.containsKey(Constants.INCLUDE_DIRECTIVE)) {
-          lazyIncludes = 
+          newLazyIncludes = 
             Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
                                   (String) e.get(Constants.INCLUDE_DIRECTIVE));
         }
 
         if (e.containsKey(Constants.EXCLUDE_DIRECTIVE)) {
-          lazyExcludes =
+          newLazyExcludes =
             Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
                                   (String) e.get(Constants.EXCLUDE_DIRECTIVE));
 
-          if (lazyIncludes != null) {
-            for (Iterator excsIter = lazyExcludes.iterator(); excsIter.hasNext();) {
+          if (newLazyIncludes != null) {
+            for (Iterator excsIter = newLazyExcludes.iterator(); excsIter.hasNext();) {
               String entry = (String)excsIter.next();
-              if (lazyIncludes.contains(entry)) {
+              if (newLazyIncludes.contains(entry)) {
                 throw new IllegalArgumentException
                   ("Conflicting " +Constants.INCLUDE_DIRECTIVE
                    +"/" +Constants.EXCLUDE_DIRECTIVE
@@ -1663,7 +1743,18 @@ public class BundleImpl implements Bundle {
           }
         }
       }
+    } else {
+      newLazyActivation = false;
     }
+    v2Manifest = newV2Manifest;
+    symbolicName = newSymbolicName;
+    version = newVersion;
+    attachPolicy = newAttachPolicy;
+    singleton = newSingleton;
+    fragment = newFragment;
+    lazyActivation = newLazyActivation;
+    lazyIncludes = newLazyIncludes;
+    lazyExcludes = newLazyExcludes;
   }
 
 
@@ -1703,18 +1794,12 @@ public class BundleImpl implements Bundle {
     return archive!=null ? archive.getAutostartSetting() : -1;
   }
 
+
   /**
-   * Look at our manifest and register all our import and export
-   * packages.
+   * Register all our import and export packages.
    *
    */
-  void doExportImport() {
-    bpkgs = new BundlePackages(this,
-                               generation++,
-                               archive.getAttribute(Constants.EXPORT_PACKAGE),
-                               archive.getAttribute(Constants.IMPORT_PACKAGE),
-                               archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
-                               archive.getAttribute(Constants.REQUIRE_BUNDLE));
+  private void doExportImport() {
     if (!isFragment()) {
       // fragments don't export anything themselves.
       bpkgs.registerPackages();
@@ -2093,11 +2178,12 @@ public class BundleImpl implements Bundle {
   private void modified() {
     lastModified = System.currentTimeMillis();
     //TODO make sure it is persistent
-    if(archive != null){
-      try{
+    if (archive != null) {
+      try {
         archive.setLastModified(lastModified);
+      } catch(IOException e) {
+        // NYI! Log this
       }
-      catch(IOException e){}
     }
   }
   /**
