@@ -131,6 +131,10 @@ class PermissionOps {
     return true;
   }
 
+  boolean okAllPerm(BundleImpl b) {
+    return true;
+  }
+
   //
   // Package permission checks
   //
@@ -223,7 +227,7 @@ class PermissionOps {
 
   void callUpdate0(final BundleImpl b, final InputStream in, final boolean wasActive)
     throws BundleException {
-    b.update0(in, wasActive);
+    b.update0(in, wasActive, null);
   }
 
 
@@ -252,8 +256,6 @@ class PermissionOps {
     return b.findEntries0(path, filePattern, recurse);
   }
 
-
-  
   //
   // Bundles Secure operation
   //

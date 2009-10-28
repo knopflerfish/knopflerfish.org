@@ -44,7 +44,7 @@ public class FrameworkFactoryImpl implements FrameworkFactory {
   }
 
   public Framework newFramework(Map configuration) {
-    FrameworkContext ctx = new FrameworkContext(configuration, null);
+    FrameworkContext ctx = new FrameworkContext(configuration);
 
     return ctx.systemBundle;
   }

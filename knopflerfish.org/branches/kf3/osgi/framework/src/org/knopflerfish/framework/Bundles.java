@@ -63,10 +63,6 @@ public class Bundles {
    */
   private FrameworkContext fwCtx;
 
-  /**
-   * True we require all bundles to correctly signed.
-   */
-  final private boolean allSigned;
 
   /**
    * Create a container for all bundles in this framework.
@@ -74,14 +70,15 @@ public class Bundles {
   Bundles(FrameworkContext fw) {
     fwCtx = fw;
     bundles.put(fw.systemBundle.location, fw.systemBundle);
-    allSigned = fwCtx.props.getProperty("org.knopflerfish.framework.all_signed", false);
   }
+
 
   void clear()
   {
     bundles.clear();
     fwCtx = null;
   }
+
 
   /**
    * Install a new bundle.
@@ -144,37 +141,24 @@ public class Bundles {
       } else {
         bin = in;
       }
-      BundleImpl res = null;
       try {
         ba = fwCtx.storage.insertBundleJar(location, bin);
       } finally {
         bin.close();
       }
-
-      checkCertificates(ba);
-
-      res = new BundleImpl(fwCtx, ba);
-
-      fwCtx.perm.checkLifecycleAdminPerm(res, checkContext);
-      if (res.isExtension()) {
-        fwCtx.perm.checkExtensionLifecycleAdminPerm(res, checkContext);
-        if (!res.hasPermission(new AllPermission())) {
-          throw new SecurityException();
-        }
-      }
-
-      /* Commit bundle to storage */
-      ba.setLastModified(res.getLastModified());
-
+      BundleImpl res = new BundleImpl(fwCtx, ba, checkContext);
       bundles.put(location, res);
-
       return res;
     } catch (Exception e) {
       if (ba != null) {
         ba.purge();
       }
-      throw new BundleException("Failed to install bundle: " + e,
-                                BundleException.UNSPECIFIED, e);
+      if (e instanceof SecurityException) {
+        throw (SecurityException)e;
+      } else {
+        throw new BundleException("Failed to install bundle: " + e,
+                                  BundleException.UNSPECIFIED, e);
+      }
     }
   }
 
@@ -357,8 +341,7 @@ public class Bundles {
     BundleArchive [] bas = fwCtx.storage.getAllBundleArchives();
     for (int i = 0; i < bas.length; i++) {
       try {
-        checkCertificates(bas[i]);
-        BundleImpl b = new BundleImpl(fwCtx, bas[i]);
+        BundleImpl b = new BundleImpl(fwCtx, bas[i], null);
         bundles.put(b.location, b);
       } catch (Exception e) {
         try {
@@ -414,41 +397,6 @@ public class Bundles {
       }
     }
     return retval;
-  }
-
-
-  /**
-   *
-   */
-  private void checkCertificates(BundleArchive ba) throws BundleException {
-    ArrayList cs = ba.getCertificateChains(false);
-    if (cs != null) {
-      if (fwCtx.validator != null) {
-        if (fwCtx.props.debug.certificates) {
-          fwCtx.props.debug.println("Validate certs for bundle #" + ba.getBundleId());
-        }
-        cs = (ArrayList)cs.clone();
-        for (Iterator vi = fwCtx.validator.iterator(); !cs.isEmpty() && vi.hasNext();) {
-          Validator v = (Validator)vi.next();
-          for (Iterator ci = cs.iterator(); ci.hasNext();) {
-            List c = (List)ci.next();
-            if (v.validateCertificateChain(c)) {
-              ba.trustCertificateChain(c);
-              ci.remove();
-              if (fwCtx.props.debug.certificates) {
-                fwCtx.props.debug.println("Validated cert: " + c.get(0));
-              }
-            } else {
-              if (fwCtx.props.debug.certificates) {
-                fwCtx.props.debug.println("Failed to validate cert: " + c.get(0));
-              }
-            }
-          }
-        }
-      }
-    } else if (allSigned) {
-      throw new BundleException("All installed bundles must be signed!");
-    }
   }
 
 }

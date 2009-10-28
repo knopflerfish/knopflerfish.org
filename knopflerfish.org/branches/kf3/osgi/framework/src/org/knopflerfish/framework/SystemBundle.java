@@ -35,6 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.*;
 import java.security.ProtectionDomain;
 import java.util.*;
@@ -410,16 +411,11 @@ public class SystemBundle extends BundleImpl implements Framework {
         throw new UnsupportedOperationException("Bootclasspath extension can not be dynamicly activated");
       }
     } else {
-      super.attachFragment(extension);
-      // TBD, should we us Bundle-ClassPath? Not according to 3.14.2
-      // NYI, warn when in memory mode.
       try {
-        URL u = new URL("file:" + extension.archive.getJarLocation());
-        synchronized (lock) {
-          setClassLoader(new URLClassLoader(new URL[] { u }, getClassLoader()));
-        }
-      } catch (MalformedURLException ignore) {
-        // NYI, log this
+        addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
+        super.attachFragment(extension);
+      } catch (Exception e) {
+        throw new UnsupportedOperationException("Framework extension could not be dynamicly activated, " + e);
       }
     }
   }
@@ -881,4 +877,25 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
     }
   }
+
+
+  private void addClassPathURL(URL url) throws Exception {
+    ClassLoader cl = getClassLoader();
+    Method m = null;
+    Class c = cl.getClass();
+    while (true) {
+      try {
+        m = c.getDeclaredMethod("addURL", new Class[] {URL.class});
+        break;
+      } catch (NoSuchMethodException e) {
+        c = c.getSuperclass();
+        if (c == null) {
+          throw e;
+        }
+      }
+    }
+    m.setAccessible(true);
+    m.invoke(cl, new Object[] { url });
+  }
+
 }

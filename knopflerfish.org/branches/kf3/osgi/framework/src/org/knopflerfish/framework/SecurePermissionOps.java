@@ -150,7 +150,7 @@ class SecurePermissionOps extends PermissionOps {
 
   void checkExtensionLifecycleAdminPerm(Bundle b, Object checkContext) {
     SecurityManager sm = System.getSecurityManager();
-    if(null!=sm){
+    if(null != sm && checkContext != null){
       sm.checkPermission(getAdminPermission(b, AP_EXTENSIONLIFECYCLE),
                          checkContext);
     }
@@ -165,7 +165,7 @@ class SecurePermissionOps extends PermissionOps {
 
   void checkLifecycleAdminPerm(Bundle b, Object checkContext) {
     SecurityManager sm = System.getSecurityManager();
-    if(null!=sm){
+    if(null != sm && checkContext != null){
       sm.checkPermission(getAdminPermission(b, AP_LIFECYCLE),
                          checkContext);
     }
@@ -281,6 +281,11 @@ class SecurePermissionOps extends PermissionOps {
   boolean okRequireBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
     return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.REQUIRE));
+  }
+
+  boolean okAllPerm(BundleImpl b) {
+    PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
+    return pc.implies(new AllPermission());
   }
 
   //
@@ -461,9 +466,10 @@ class SecurePermissionOps extends PermissionOps {
   void callUpdate0(final BundleImpl b, final InputStream in, final boolean wasActive)
     throws BundleException {
     try {
+      final AccessControlContext acc = AccessController.getContext();
       AccessController.doPrivileged(new PrivilegedExceptionAction() {
           public Object run() throws BundleException {
-            b.update0(in, wasActive);
+            b.update0(in, wasActive, acc);
             return null;
           }
         });

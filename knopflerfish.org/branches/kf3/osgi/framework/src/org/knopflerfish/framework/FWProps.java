@@ -39,6 +39,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.net.URLClassLoader;
 
 import java.util.Set;
 import java.util.Map;
@@ -177,10 +178,10 @@ public class FWProps  {
   public boolean isDoubleCheckedLockingSafe;
 
 
-  FrameworkContext parent;
+  FrameworkContext fwCtx;
 
-  public FWProps(Map initProps, FrameworkContext parent) {
-    this.parent = parent;
+  public FWProps(Map initProps, FrameworkContext fwCtx) {
+    this.fwCtx = fwCtx;
 
     // Setup default (launch) properties, see OSGi R4 v4.2 sec 4.2.2
     initProperties();
@@ -427,7 +428,9 @@ public class FWProps  {
     // Various framework properties
     setProperty(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
     setProperty(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
-    setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION,TRUE);
+    // Only first framework support framework extension
+    // NYI! Improve this in the future
+    setProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION, getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 1 ? TRUE : FALSE);
     setProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION,
                 SUPPORTS_BOOT_EXTENSION_BUNDLES ? TRUE : FALSE);
   }
