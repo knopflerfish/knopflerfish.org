@@ -1,0 +1,12 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleEnd5_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleEnd5_test
+Bundle-Version: 1.0.0
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleEnd5_test.Activator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleEnd5_test
+Import-Package: org.osgi.framework
+

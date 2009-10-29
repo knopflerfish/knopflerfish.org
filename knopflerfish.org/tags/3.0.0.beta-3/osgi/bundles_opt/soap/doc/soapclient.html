@@ -1,0 +1,32 @@
+<h1>SOAP Client</h1>
+
+<div class="abstract">
+This is an example of a Java client using a SOAP object.
+</div>
+
+<p> The program is part of the <a href="../soap/index.html#axis1">The
+Knopflerfish Axis 1</a> package.  </p>
+
+
+<h2>Description</h2>
+
+<p> <tt>soapclient</tt> is an example of a client side program. The
+client calls the "remoteFW" service methods, so you need to have the
+soapobject bundle installed and started. The <tt>build.xml</tt>
+performs all required steps for the creation and and execution of the
+client program. The only hand coded module is the <tt>Test.java</tt>
+(main class of the client program). The build file will automatically
+fetch the WSDL from the running OSGi framework, generate the client
+side stubs and support classes, compile the generated classes as well
+as <tt>Test.java</tt>.  </p>
+
+<p> When all have been built (compiled) the client program is executed
+and the results are displayed.  </p>
+
+
+The source code is available on <a target="_top"
+href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/soapclient/">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/soapclient/</a>.
+
+<h2>See Also</h2>
+<a href="../soap/index.html">SOAP - WebServices</a>
+

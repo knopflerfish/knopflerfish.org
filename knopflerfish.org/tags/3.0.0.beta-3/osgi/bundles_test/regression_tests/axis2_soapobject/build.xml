@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="axis2_soapobject" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.axis2_soapobject}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name = "bundle.build.all"  value="true"/>
+  <property name = "bundle.build.api"  value="true"/>
+  <property name = "bundle.build.lib"  value="false"/>
+  <property name = "bundle.build.impl" value="true"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/**"/>
+  <property name  = "api.pattern"
+            value = "org/knopflerfish/service/**"/>
+
+  <path id = "bundle.compile.path">
+   <pathelement location="axis2-osgi_all-N.N.N.jar"/>
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>
+
+
+

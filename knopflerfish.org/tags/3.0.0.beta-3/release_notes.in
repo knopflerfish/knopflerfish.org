@@ -1,0 +1,57 @@
+Release Notes Knopflerfish @VERSION@ (OSGi R4.2)
+----------------------------------------------
+
+  Work in progress release of Knopflerfish 3 available from
+  @DOWNLOAD_URL@
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+----------------------------------------------
+OSGi Core Specification
+----------------------------------------------
+
+Framework - Security (Done)
+
+Framework - Module (Done)
+
+Framework - Life-Cycle (Done)
+
+Framework - Service Layer (Done)
+
+Package Admin Service Specification (Done)
+
+Start Level Service Specification (Done)
+
+Conditional Permission Admin Specification (Done)
+
+URL Handlers Service Specification (Done)
+
+Service Hooks Specification (Done)
+
+----------------------------------------------
+OSGi Compendium Specification
+----------------------------------------------
+
+Declarative Services Specification
+ - Many updates (In Progress)
+
+All the other Compendium Specification Services
+are up to date and pass the CT.
+
+----------------------------------------------
+Knopflerfish Specific
+----------------------------------------------
+
+Console
+ - Migration to new OSGi Standard (Done)
+ - Support for new Activation Commands (In Progress)
+
+Desktop
+ - Support for new Activation Commands (In Progress)
+
+----------------------------------------------
+
+Please read the KF blog for updated progress.
+
+ http://knopflerfish.blogspot.com/
