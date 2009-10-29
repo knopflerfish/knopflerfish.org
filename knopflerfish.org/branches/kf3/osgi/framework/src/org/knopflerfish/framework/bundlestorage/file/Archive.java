@@ -234,11 +234,13 @@ public class Archive implements FileArchive {
 
     BufferedInputStream bis =  null;
     JarInputStream ji = null;
+    boolean doUnpack = false;;
     if (manifest == null) {
       bis = new BufferedInputStream(is);
       if (alwaysUnpack) {
         ji = new JarInputStream(bis, storage.checkSigned);
         manifest = ji.getManifest();
+        doUnpack = true;
       } else if (unpack) {
         // Is 1000000 enough, Must be big enough to hold the MANIFEST.MF entry
         // Hope implement of BufferedInputStream allocates dynamicly.
@@ -248,11 +250,12 @@ public class Archive implements FileArchive {
         // If manifest == null then, Manifest probably not first in JAR, should we complain?
         // Now, try to use the jar anyway. Maybe the manifest is there.
         if (manifest == null || !needUnpack(manifest.getMainAttributes())) {
-          ji = null;
           bis.reset();
+        } else {
+          doUnpack = true;
         }
       }
-      if (ji != null) {
+      if (doUnpack) {
         file.mkdirs();
         if (manifest == null) {
           if (storage.checkSigned) {
@@ -287,7 +290,7 @@ public class Archive implements FileArchive {
         jar = null;
       }
     }
-    if (ji == null) {
+    if (!doUnpack) {
       if (isDirectory) {
         if (!fileIsReference) {
           sourceFile.copyTo(file);

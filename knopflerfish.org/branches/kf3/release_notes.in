@@ -15,8 +15,7 @@ Framework - Security (Done)
 
 Framework - Module (Done)
 
-Framework - Life-Cycle
- - Framework Launcher (Extensionbundles not properly supported)
+Framework - Life-Cycle (Done)
 
 Framework - Service Layer (Done)
 
@@ -36,9 +35,6 @@ OSGi Compendium Specification
 
 Declarative Services Specification
  - Many updates (In Progress)
-
-Configuration Admin Specification
- - 3 test cases testing very unusual scenarios fail
 
 All the other Compendium Specification Services
 are up to date and pass the CT.

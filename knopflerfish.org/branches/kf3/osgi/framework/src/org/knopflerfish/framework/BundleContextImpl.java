@@ -361,7 +361,7 @@ public class BundleContextImpl
    */
   public Filter createFilter(String filter) throws InvalidSyntaxException {
     isBCvalid();
-    return new FilterImpl(filter);
+    return FrameworkUtil.createFilter(filter);
   }
 
   //

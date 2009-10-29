@@ -750,12 +750,13 @@ public class BundleImpl implements Bundle {
       newArchive = fwCtx.storage.updateBundleArchive(archive, bin);
       checkCertificates(newArchive);
       checkManifestHeaders(checkContext);
+      // Increment generation when we have decide to commit this version
       newBpkgs = new BundlePackages(this,
                                     generation,
-                                    archive.getAttribute(Constants.EXPORT_PACKAGE),
-                                    archive.getAttribute(Constants.IMPORT_PACKAGE),
-                                    archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
-                                    archive.getAttribute(Constants.REQUIRE_BUNDLE));
+                                    newArchive.getAttribute(Constants.EXPORT_PACKAGE),
+                                    newArchive.getAttribute(Constants.IMPORT_PACKAGE),
+                                    newArchive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
+                                    newArchive.getAttribute(Constants.REQUIRE_BUNDLE));
       newArchive.setStartLevel(oldStartLevel);
       fwCtx.storage.replaceBundleArchive(archive, newArchive);
     } catch (Exception e) {
