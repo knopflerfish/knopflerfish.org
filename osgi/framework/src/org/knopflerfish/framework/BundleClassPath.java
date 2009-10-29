@@ -352,7 +352,7 @@ public class BundleClassPath
           String sfs = (String)sf.get(0);
           if (sf.size() == 1) {
             try {
-              if (!(new FilterImpl(sfs)).match(props.getProperties())) {
+              if (!(FrameworkUtil.createFilter(sfs)).match(props.getProperties())) {
                 continue;
               }
             } catch (InvalidSyntaxException ise) {
