@@ -44,6 +44,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 import java.util.Iterator;
+import java.util.Collection;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -95,26 +96,12 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
 
     static final String DYNAMIC_BUNDLE_LOCATION = "dynamic.service.bundleLocation";
 
-    static final String DUMMY_PROPERTY = "org.knopflerfish.dummy.property";
-
-    static final String ANY_LOCATION = "*";
-
-
     static void checkConfigPerm(){
       SecurityManager sm = System.getSecurityManager();
       if(null!=sm){
         sm.checkPermission(CONFIGURATION_PERMISSION);
       }
     }
-
-    /*
-    //TODO IF use these, the constants are ints: use strings!
-    static final String EVENT_TOPIC_CM_DELETED = "org/osgi/service/cm/ConfigurationEvent/" + "CM_DELETED";
-    static final String EVENT_TOPIC_CM_UPDATED = "org/osgi/service/cm/ConfigurationEvent/" + "CM_UPDATED";
-
-    static final String CM_FACTORYPID = "cm.factoryPid";
-    static final String CM_PID = "cm.pid";
-    */
 
     public ConfigurationAdminFactory(File storeDir) {
         storeDir.mkdirs();
@@ -213,7 +200,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
                 && existingBundleLocations.get(bundleLocation) == null;
     }
 
-    private ConfigurationDictionary bindLocationIfNeccesary(
+    private ConfigurationDictionary bindLocationIfNecessary(
             ServiceReference[] srs, ConfigurationDictionary d)
             throws IOException {
         if (d == null) {
@@ -228,6 +215,8 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             Boolean dynamicLocation = (Boolean) d.get(DYNAMIC_BUNDLE_LOCATION);
             if (dynamicLocation != null && dynamicLocation.booleanValue()) {
                 configLocation = null;
+              d.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+                       d.remove(DYNAMIC_BUNDLE_LOCATION);
             }
         }
 
@@ -254,7 +243,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         try {
             Configuration[] configurations = listConfigurations(filter, null);
             for (int i = 0; configurations != null && i < configurations.length; ++i) {
-                configurations[i].setBundleLocation(null);
+                ((ConfigurationImpl)configurations[i]).setBundleLocationAndPersist(null);
             }
         } catch (Exception e) {
             Activator.log.error(
@@ -263,6 +252,23 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         }
     }
 
+   private void unbindIfNecessary(final ConfigurationDictionary d) throws IOException {
+     if (d == null) {
+       return;
+     }
+     String configLocation = (String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+     if (isNonExistingBundleLocation(configLocation)) {
+       Boolean dynamicLocation = (Boolean) d.get(DYNAMIC_BUNDLE_LOCATION);
+       if (dynamicLocation != null && dynamicLocation.booleanValue()) {
+         d.remove(DYNAMIC_BUNDLE_LOCATION);
+         d.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+         String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
+         String pid = (String) d.get(Constants.SERVICE_PID);
+         store.store(pid, fpid, d);
+       }
+     }
+     
+   }
     private ServiceReference[] filterOnMatchingLocations(
             ServiceReference[] srs, String configLocation) {
         if (srs.length == 1) {
@@ -298,8 +304,6 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     private boolean locationsMatch(String serviceLocation, String configLocation) {
         if (configLocation == null) {
             return false;
-        } else if (configLocation.equals(ANY_LOCATION)) {
-            return true;
         } else if (configLocation.equals(serviceLocation)) {
             return true;
         } else {
@@ -312,8 +316,8 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             return;
         }
         String bundleLocation = sr.getBundle().getLocation();
-        String pid = (String) sr.getProperty(Constants.SERVICE_PID);
-        if (pid == null) {
+        String[] pids = getPids(sr);
+        if (pids == null) {
             return;
         }
         Hashtable pidsForLocation = (Hashtable) locationToPids
@@ -322,12 +326,15 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             pidsForLocation = new Hashtable();
             locationToPids.put(bundleLocation, pidsForLocation);
         }
+      for(int i = 0; i < pids.length; ++i) {
+        String pid = pids[i];
         if (pidsForLocation.contains(pid)) {
             Activator.log
                     .error("[CM] Multiple ManagedServices registered from bundle "
                             + bundleLocation + " for " + pid);
         }
         pidsForLocation.put(sr, pid);
+      }
     }
 
     private void removeFromLocationToPids(ServiceReference sr) {
@@ -352,6 +359,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         String factoryPid = (String) cd.get(ConfigurationAdmin.SERVICE_FACTORYPID);
         String bundleLocation = (String) cd.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
 
+
         if (servicePid == null) {
             return;
         }
@@ -367,7 +375,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             String factoryPid, String bundleLocation) throws IOException {
         ServiceReference[] srs = getTargetServiceReferences(
                 ManagedServiceFactory.class, factoryPid);
-        ConfigurationDictionary cd = store.load(servicePid);
+        ConfigurationDictionary cd = /*store.*/load(servicePid);
         if (cd == null) {
             updateManagedServiceFactories(srs, servicePid, factoryPid,
                     bundleLocation);
@@ -379,7 +387,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     void updateManagedServiceFactories(ServiceReference[] srs,
             String servicePid, String factoryPid, ConfigurationDictionary cd)
             throws IOException {
-        ConfigurationDictionary bound = bindLocationIfNeccesary(srs, cd);
+        ConfigurationDictionary bound = bindLocationIfNecessary(srs, cd);
         String boundLocation = (String) bound.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
         ServiceReference[] filtered = filterOnMatchingLocations(srs,
                 boundLocation);
@@ -402,7 +410,9 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
 
     private void updateManagedServiceFactory(ServiceReference sr)
             throws IOException {
-        final String factoryPid = (String) sr.getProperty(Constants.SERVICE_PID);
+        final String[] factoryPids = getPids(sr);
+              for(int j = 0; j < factoryPids.length; ++j) {
+                String factoryPid = factoryPids[j];
         ConfigurationDictionary[] cds = store.loadAll(factoryPid);
         if (cds == null || cds.length == 0) {
             return;
@@ -412,6 +422,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             String servicePid = (String) cds[i].get(Constants.SERVICE_PID);
             updateManagedServiceFactories(srs, servicePid, factoryPid, cds[i]);
         }
+              }
     }
 
     // //
@@ -419,7 +430,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             String bundleLocation) throws IOException {
         ServiceReference[] srs = getTargetServiceReferences(
                 ManagedService.class, servicePid);
-        ConfigurationDictionary cd = store.load(servicePid);
+        ConfigurationDictionary cd = load(servicePid);
         if (cd == null) {
             updateManagedServices(srs, servicePid, bundleLocation);
         } else {
@@ -439,7 +450,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
 
     private void updateManagedServices(ServiceReference[] srs,
             String servicePid, ConfigurationDictionary cd) throws IOException {
-        ConfigurationDictionary bound = bindLocationIfNeccesary(srs, cd);
+        ConfigurationDictionary bound = bindLocationIfNecessary(srs, cd);
         String boundLocation = (String) bound.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
         ServiceReference[] filtered = filterOnMatchingLocations(srs,
                 boundLocation);
@@ -450,16 +461,18 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     }
 
     private void updateManagedService(ServiceReference sr) throws IOException {
-        final String servicePid = (String) sr.getProperty(Constants.SERVICE_PID);
+      String[] servicePids = getPids(sr);
+      for(int j = 0; j < servicePids.length; ++j) {
+        String servicePid = servicePids[j];
         ServiceReference[] srs = new ServiceReference[] { sr };
-        ConfigurationDictionary cd = store.load(servicePid);
+        ConfigurationDictionary cd = /*store.*/load(servicePid);
         if (cd == null) {
             for (int i = 0; i < srs.length; ++i) {
                 configurationDispatcher.dispatchUpdateFor(srs[i], servicePid,
                         null, null);
             }
         } else {
-            cd = bindLocationIfNeccesary(srs, cd);
+            cd = bindLocationIfNecessary(srs, cd);
             String boundLocation = (String) cd.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
             srs = filterOnMatchingLocations(srs, boundLocation);
             for (int i = 0; i < srs.length; ++i) {
@@ -467,6 +480,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
                         null, cd);
             }
         }
+      }
     }
 
     ServiceReference[] getTargetServiceReferences(Class c, String pid) {
@@ -497,7 +511,10 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         }
     }
 
-    void update(final ConfigurationImpl c) throws IOException {
+          void update(final ConfigurationImpl c) throws IOException {
+            update(c,true);
+          }
+    void update(final ConfigurationImpl c, final boolean dispatchUpdate) throws IOException {
         // TODO:
         // Should plugins still be called if service with
         // servicePid is not registered?
@@ -505,8 +522,11 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         try {
             AccessController.doPrivileged(new PrivilegedExceptionAction() {
                 public Object run() throws IOException {
+                    
                     store.store(c.getPid(), c.getFactoryPid(), c.properties);
+                                          if(dispatchUpdate) {
                     updateTargetServicesMatching(c.properties);
+                                          }
                     return null;
                 }
             });
@@ -533,7 +553,9 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             return (ConfigurationDictionary) AccessController
                     .doPrivileged(new PrivilegedExceptionAction() {
                         public Object run() throws IOException {
-                            return store.load(pid);
+                                  ConfigurationDictionary cd = store.load(pid);
+                                  unbindIfNecessary(cd);
+                                  return cd;
                         }
                     });
         } catch (PrivilegedActionException e) {
@@ -546,48 +568,59 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             return (ConfigurationDictionary[]) AccessController
                     .doPrivileged(new PrivilegedExceptionAction() {
                         public Object run() throws IOException {
-                            return store.loadAll(factoryPid);
+                                  ConfigurationDictionary[] cds = store.loadAll(factoryPid);
+                                  for(int i = 0; cds != null && i < cds.length; ++i) {
+                                    unbindIfNecessary(cds[i]);
+                                  }
+                                  return cds;
                         }
                     });
+
         } catch (PrivilegedActionException e) {
             throw (IOException) e.getException();
         }
     }
-
-    Configuration[] listConfigurations(String filterString, String callingBundleLocation) throws IOException,
-            InvalidSyntaxException {
-        Enumeration configurationPids = store.listPids();
-        Vector matchingConfigurations = new Vector();
-        while (configurationPids.hasMoreElements()) {
-            String pid = (String) configurationPids.nextElement();
-            ConfigurationDictionary d = store.load(pid);
-            if (d == null) {
+          Configuration[] listConfigurations(String filterString, String callingBundleLocation) throws IOException,
+          InvalidSyntaxException {
+            return listConfigurations(filterString, callingBundleLocation, false);
+          }
+          
+          Configuration[] listConfigurations(String filterString, String callingBundleLocation, boolean activeOnly) throws IOException,
+          InvalidSyntaxException {
+            Enumeration configurationPids = store.listPids();
+            Vector matchingConfigurations = new Vector();
+            while (configurationPids.hasMoreElements()) {
+              String pid = (String) configurationPids.nextElement();
+              ConfigurationDictionary d = load(pid);
+              if (d == null) {
                 continue;
-            }
-            if (filterString == null) {
+              }
+              if(activeOnly && d.isNullDictionary()) {
+                continue;
+              }
+              if (filterString == null) {
                 matchingConfigurations.addElement(new ConfigurationImpl(d));
-            }
-            else {
+              }
+              else {
                 Filter filter = Activator.bc.createFilter(filterString);
-                if (filter.match(d)) {
-                        if(callingBundleLocation == null){
-                                matchingConfigurations.addElement(new ConfigurationImpl(d));
-                        }
-                        else{
-                                if(callingBundleLocation.equals((String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION))){
-                                        matchingConfigurations.addElement(new ConfigurationImpl(d));
-                                }
-                        }
+                if (filter.match(d)) {                        if(callingBundleLocation == null){
+                  matchingConfigurations.addElement(new ConfigurationImpl(d));
                 }
+                else{
+                  if(callingBundleLocation.equals((String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION))){
+                    matchingConfigurations.addElement(new ConfigurationImpl(d));
+                  }
+                }
+                }
+              }
             }
-        }
-        Configuration[] c = null;
-        if (matchingConfigurations.size() > 0) {
-            c = new Configuration[matchingConfigurations.size()];
-            matchingConfigurations.copyInto(c);
-        }
-        return c;
-    }
+            Configuration[] c = null;
+            if (matchingConfigurations.size() > 0) {
+              c = new Configuration[matchingConfigurations.size()];
+              matchingConfigurations.copyInto(c);
+            }
+            return c;
+          }
 
     // /////////////////////////////////////////////////////////////////////////
     // ServiceFactory Implementation
@@ -606,7 +639,6 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     // Configuration implementation
     // /////////////////////////////////////////////////////////////////////////
     class ConfigurationImpl implements Configuration {
-        private String bundleLocation;
 
         private final String factoryPid; //Factory PID
 
@@ -623,20 +655,31 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
 
         ConfigurationImpl(String bundleLocation, String factoryPid,
                 String servicePid, ConfigurationDictionary properties) {
-            this.bundleLocation = bundleLocation;
             this.factoryPid = factoryPid;
             this.servicePid = servicePid;
+            
+          if (properties == null) {
+            this.properties = new ConfigurationDictionary();
+          } else {
             this.properties = properties;
-            if (this.properties == null)
-                this.properties = new ConfigurationDictionary();
+          }
+          putLocation(bundleLocation);
         }
 
         ConfigurationImpl(ConfigurationDictionary properties) {
-            this.bundleLocation = (String) properties.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
             this.factoryPid = (String) properties.get(ConfigurationAdmin.SERVICE_FACTORYPID);
             this.servicePid = (String) properties.get(Constants.SERVICE_PID);
             this.properties = properties;
         }
+
+      private void putLocation(String l) {
+        if(l == null) return;
+        if (this.properties == null) {
+          this.properties = new ConfigurationDictionary();
+        }
+        this.properties.put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, l);
+      }
+      
 
         public void delete() throws IOException {
             throwIfDeleted();
@@ -664,7 +707,13 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         public String getBundleLocation() {
             throwIfDeleted();
             checkConfigPerm();
-            return bundleLocation;
+                      ConfigurationDictionary old = properties;
+          try {
+            properties = ConfigurationAdminFactory.this.load(servicePid);
+          } catch (IOException e) {
+            this.properties = old;
+          }
+          return properties == null ? null : (String) properties.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
         }
 
         public String getFactoryPid() {
@@ -686,38 +735,66 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         }
 
         public void setBundleLocation(String bundleLocation) {
-            throwIfDeleted();
-            checkConfigPerm();
-            this.bundleLocation = bundleLocation;
-            ConfigurationDictionary old = properties;
-            if (properties == null) {
-                properties = new ConfigurationDictionary();
+          throwIfDeleted();
+          checkConfigPerm();
+          setBundleLocationAndPersist(bundleLocation);
+          // Check if we should Dynamically rebind
+          if(bundleLocation == null) {
+            ServiceReference[] srs = null; 
+            if(factoryPid == null) {
+              srs = ConfigurationAdminFactory.this.getTargetServiceReferences(ManagedService.class, servicePid);
             } else {
-                properties = properties.createCopy();
+              srs = ConfigurationAdminFactory.this.getTargetServiceReferences(ManagedServiceFactory.class, factoryPid);
             }
-
-            properties.remove(DYNAMIC_BUNDLE_LOCATION);
-            if (bundleLocation == null) {
-                properties.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
-            } else {
-                properties.put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, bundleLocation);
+            if(srs != null && srs.length > 0) {
+                setBundleLocationAndPersist(srs[0].getBundle().getLocation(), true);
             }
-            try {
-                update();
-            } catch (IOException e) {
-                this.properties = old;
-            }
+          }
         }
+      
+      void setBundleLocationAndPersist(String bundleLocation) {
+        setBundleLocationAndPersist(bundleLocation, false);
+      }
+      void setBundleLocationAndPersist(String bundleLocation, boolean dynamic) {
+        ConfigurationDictionary old = properties;
+        if (properties == null) {
+          properties = new ConfigurationDictionary();
+        } else {
+          properties = properties.createCopy();
+        }
+        if(dynamic) {
+          properties.put(DYNAMIC_BUNDLE_LOCATION, Boolean.TRUE);
+        } else {
+          properties.remove(DYNAMIC_BUNDLE_LOCATION);
+        }
+        
+        if (bundleLocation == null) {
+          properties.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+        } else {
 
-        public void update() throws IOException {
+          putLocation(bundleLocation);
+        }
+        try {
+          update(false);
+        } catch (IOException e) {
+          e.printStackTrace();
+          this.properties = old;
+        }
+      }
+
+      public void update() throws IOException {
+        update(true);
+      }
+        void update(boolean dispatchUpdate) throws IOException {
             throwIfDeleted();
             ensureAutoPropertiesAreWritten();
-            ConfigurationAdminFactory.this.update(this);
-
+            ConfigurationAdminFactory.this.update(this, dispatchUpdate);
+          
+          if(!dispatchUpdate) return;
             ServiceReference reference = Activator.serviceRegistration.getReference();
             if(reference == null)
             {
-                Activator.log.error("ConfigurationImpl.update: Could not get service reference");
+                Activator.log.error("ConfigurationImpl.update: Could not get service reference for event delivery");
                 return;
             }
             //TODO join this with the update call. no need for parallel async delivery
@@ -735,13 +812,14 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             ConfigurationDictionary.validateDictionary(properties);
 
             ConfigurationDictionary old = this.properties;
-
             if (properties == null) {
                 this.properties = new ConfigurationDictionary();
             } else {
                 this.properties = ConfigurationDictionary
                         .createDeepCopy(properties);
             }
+          
+          copyBundleLocationFrom(old);
 
             try {
                 update();
@@ -753,6 +831,18 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
                 this.properties = old;
             }
         }
+      
+      void copyBundleLocationFrom(ConfigurationDictionary old) {
+          Object location = old.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+        if(location != null) {
+          properties.put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, location);
+        }
+        
+        Object dynamic = old.get(DYNAMIC_BUNDLE_LOCATION);
+        if(dynamic != null) {
+          properties.put(DYNAMIC_BUNDLE_LOCATION, dynamic);
+        }
+      }
 
         void ensureAutoPropertiesAreWritten() {
             if (this.properties == null)
@@ -761,9 +851,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             if (getFactoryPid() != null) {
                 this.properties.put(ConfigurationAdmin.SERVICE_FACTORYPID, getFactoryPid());
             }
-            if (getBundleLocation() != null) {
-                this.properties.put(ConfigurationAdmin.SERVICE_BUNDLELOCATION, getBundleLocation());
-            }
+
         }
 
         private void throwIfDeleted() {
@@ -788,84 +876,80 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     // /////////////////////////////////////////////////////////////////////////
     // ConfigurationAdmin implementation
     // /////////////////////////////////////////////////////////////////////////
-    class ConfigurationAdminImpl implements ConfigurationAdmin {
-        private Bundle callingBundle;
-
-        private String callingBundleLocation;
-
-        ConfigurationAdminImpl(Bundle callingBundle) {
-            this.callingBundle = callingBundle;
-            this.callingBundleLocation = callingBundle.getLocation();
-        }
-
-        public Configuration createFactoryConfiguration(String factoryPid)
-                throws IOException {
-                ConfigurationDictionary[] d;
-                try{
+          class ConfigurationAdminImpl implements ConfigurationAdmin {
+            private Bundle callingBundle;
+            
+            private String callingBundleLocation;
+            
+            ConfigurationAdminImpl(Bundle callingBundle) {
+              this.callingBundle = callingBundle;
+              this.callingBundleLocation = callingBundle.getLocation();
+            }
+            
+            public Configuration createFactoryConfiguration(String factoryPid)
+            throws IOException {
+              ConfigurationDictionary[] d;
+              try{
                 checkConfigPerm();
+              } catch(SecurityException e) {
+                try {
+                  d = ConfigurationAdminFactory.this.loadAll(factoryPid);
+                } catch (IOException ex) {
+                  d = null;
+                }
+                
+                String locationFactoryPidIsBoundTo = null;
+                if (d != null && d.length > 0) {
+                  locationFactoryPidIsBoundTo = (String)d[0].get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+                }
+                if(locationFactoryPidIsBoundTo != null && 
+                   !callingBundleLocation.equals(locationFactoryPidIsBoundTo)) {
+                  throw new SecurityException("Not owner of the factoryPid");
+                  
+                }
+              }
+              ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, factoryPid,
+                                                          ConfigurationAdminFactory.this.generatePid(factoryPid));
+              c.update(false);
+              return c;
             }
-            catch(SecurityException e){
-                //TODO surely this could be improved
-                Hashtable pidsForLocation = (Hashtable) locationToPids.get(callingBundleLocation);
-                if (pidsForLocation == null) {
-                        throw new SecurityException("Not owner of the factoryPid");
-                }
-                boolean found = false;
-                Iterator it = pidsForLocation.entrySet().iterator();
-
-                while(it.hasNext()){
-                        String pid = (String) it.next();
-                        if(pid.equals(factoryPid)){
-                                found = true;
-                                break;
-                        }
-                }
-                if(!found){
-                        try {
-                        d = ConfigurationAdminFactory.this.loadAll(factoryPid);
-                    } catch (IOException ex) {
-                        d = null;
-                    }
-                    if (d != null){
-                        throw new SecurityException("Not owner of the factoryPid");
-
-                    }
-                }
-            }
-            ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, factoryPid,
-                    ConfigurationAdminFactory.this.generatePid(factoryPid));
-            return c;
-        }
 
         public Configuration createFactoryConfiguration(String factoryPid,
                 String location) throws IOException {
                 checkConfigPerm();
             ConfigurationImpl c = new ConfigurationImpl(location, factoryPid,
                     ConfigurationAdminFactory.this.generatePid(factoryPid));
+          c.update(false);
             return c;
         }
 
         public Configuration getConfiguration(String pid) {
-            ConfigurationDictionary d;
-            try {
-                d = ConfigurationAdminFactory.this.load(pid);
-            } catch (IOException e) {
-                d = null;
-            }
-            if (d == null) {
-                return new ConfigurationImpl(callingBundleLocation, null, pid);
-            }
-            String bundleLocation = (String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
-            if (bundleLocation != null
-                    && !bundleLocation.equals(callingBundleLocation)
-                    && !callingBundle.hasPermission(CONFIGURATION_PERMISSION)) {
-                throw new SecurityException(
-                        "Not owner of the requested configuration, owned by "
-                                + bundleLocation + " caller is "
-                                + callingBundleLocation);
-            }
-            String factoryPid = (String) d.get(SERVICE_FACTORYPID);
-            return new ConfigurationImpl(bundleLocation, factoryPid, pid, d);
+          ConfigurationDictionary d;
+          try {
+            d = ConfigurationAdminFactory.this.load(pid);
+          } catch (IOException e) {
+            d = null;
+          }
+          if (d == null) {
+            ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, null, pid);
+            c.setBundleLocationAndPersist(callingBundleLocation);
+            return c;
+          }
+
+          String bundleLocation = (String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+          if(bundleLocation == null) {
+            ConfigurationImpl c = new ConfigurationImpl(callingBundleLocation, null, pid, d);
+            c.setBundleLocationAndPersist(callingBundleLocation);
+            return c;
+          } else if (!bundleLocation.equals(callingBundleLocation)
+                     && !callingBundle.hasPermission(CONFIGURATION_PERMISSION)) {
+            throw new SecurityException(
+                                        "Not owner of the requested configuration, owned by "
+                                        + bundleLocation + " caller is "
+                                        + callingBundleLocation);
+          }
+          String factoryPid = (String) d.get(SERVICE_FACTORYPID);
+          return new ConfigurationImpl(bundleLocation, factoryPid, pid, d);
         }
 
         public Configuration getConfiguration(String pid, String location) {
@@ -878,8 +962,15 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             }
             if (d == null) {
                 ConfigurationImpl c = new ConfigurationImpl(location, null, pid);
-                if (location != null)
-                    c.setBundleLocation(location);
+              if (location != null) {
+                    c.setBundleLocationAndPersist(location);
+              } else {
+                try {
+                  c.update(false);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                }
+              }
                 return c;
             }
             String bundleLocation = (String) d.get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
@@ -905,7 +996,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
                             public Object run() throws IOException,
                                     InvalidSyntaxException {
                                 return ConfigurationAdminFactory.this
-                                        .listConfigurations(filterString, callingBundleLocation);
+                                        .listConfigurations(filterString, callingBundleLocation, true);
                             }
                         });
             } catch (PrivilegedActionException e) {
@@ -955,11 +1046,11 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
     }
 
     private void managedServiceFactoryChanged(ServiceReference sr, int eventType) {
-        final String factoryPid = (String) sr.getProperty(Constants.SERVICE_PID);
+      String[] factoryPids = getPids(sr);
         switch (eventType) {
         case ServiceEvent.REGISTERED:
             configurationDispatcher.addQueueFor(sr);
-            if (factoryPid == null) {
+            if (factoryPids == null) {
                 String bundleLocation = sr.getBundle().getLocation();
                 Activator.log
                         .error("[CM] ManagedServiceFactory w/o valid service.pid registered by "
@@ -969,7 +1060,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             addToLocationToPidsAndCheck(sr);
             if (Activator.log.doDebug()) {
                 Activator.log.debug("[CM] ManagedServiceFactory registered: "
-                        + factoryPid);
+                        + factoryPids);
             }
             try {
                 updateManagedServiceFactory(sr);
@@ -986,12 +1077,21 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
         }
     }
 
+          static String[] getPids(ServiceReference sr) {
+            Object prop = sr.getProperty(Constants.SERVICE_PID);
+            if(prop == null) return null;
+            else if(prop instanceof String) return new String[]{(String)prop};
+            else if(prop instanceof String[]) return (String[])prop;
+            else if(prop instanceof Collection) return (String[])((Collection)prop).toArray(new String[((Collection)prop).size()]);
+            else return new String[0];
+          }
+          
     private void managedServiceChanged(ServiceReference sr, int eventType) {
-        final String servicePid = (String) sr.getProperty(Constants.SERVICE_PID);
+      String[] servicePids = getPids(sr);
         switch (eventType) {
         case ServiceEvent.REGISTERED:
             configurationDispatcher.addQueueFor(sr);
-            if (servicePid == null) {
+            if (servicePids == null) {
                 String bundleLocation = sr.getBundle().getLocation();
                 Activator.log
                         .error("[CM] ManagedService w/o valid service.pid registered by "
@@ -1001,7 +1101,7 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             addToLocationToPidsAndCheck(sr);
             if (Activator.log.doDebug()) {
                 Activator.log.debug("[CM] ManagedService registered: "
-                        + servicePid);
+                        + servicePids);
             }
             try {
                 updateManagedService(sr);
@@ -1017,4 +1117,27 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             break;
         }
     }
+/*    
+          ConfigurationDictionary matchesFilter(ConfigurationDictionary d, String filterString) {
+            Filter filter = null;
+            try {
+            filter = Activator.bc.createFilter(filterString);
+            } catch(Exception ignored) {
+            }
+            if (filter.match(d)) {
+              return d;
+            } else {
+              return null;
+            }
+          }
+          
+          void printMatching(String m, ConfigurationDictionary d, String filterString)  {
+            print(m, matchesFilter(d, filterString));
+          }
+          
+          void print(String m, ConfigurationDictionary d) {
+            if(d == null) return;
+            System.out.println("" + m + d);
+          }
+ */
 }

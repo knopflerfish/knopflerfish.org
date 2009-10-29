@@ -77,10 +77,20 @@ class PermUtil {
   /**
    */
   public static int skipWhite(char [] ca, int pos) {
-    while (ca[pos] == ' ' || ca[pos] == '\t') {
+    while (Character.isWhitespace(ca[pos])) {
       pos++;
     }
     return pos;
+  }
+
+
+  /**
+   */
+  public static int endOfString(char [] ca, int pos, int len) {
+    while (pos < len && Character.isWhitespace(ca[pos])) {
+      pos++;
+    }
+    return pos == len ? -1 : pos;
   }
 
 
@@ -155,56 +165,6 @@ class PermUtil {
       res[pos++] = new File(dir, Long.toString(lfiles[i]));
     }
     return res;
-  }
-
-
-  /**
-   */
-  static PermissionCollection makePermissionCollection(PermissionInfo[] pi, File dataRoot) {
-    Permissions res = new Permissions();
-    for (int i = 0; i < pi.length; i++) {
-      Permission p = makePermission(pi[i], dataRoot);
-      if (p != null) {
-        res.add(p);
-      }
-    }
-    return res;
-  }
-
-
-  /**
-   *
-   * @param pi PermissionInfo to enter into the PermissionCollection.
-   *
-   * @return
-   */
-  static Permission makePermission(PermissionInfo pi, File dataRoot) {
-    String a = pi.getActions();
-    String n = pi.getName();
-    String t = pi.getType();
-    try {
-      Class pc = Class.forName(t);
-      Constructor c = pc.getConstructor(new Class[] { String.class, String.class });
-      if (FilePermission.class.equals(pc)) {
-        File f = new File(n);
-        // NYI! How should we handle different seperator chars.
-        if (!f.isAbsolute()) {
-          if (dataRoot == null) {
-            return null;
-          }
-          f = new File(dataRoot, n);
-        }
-        n = f.getPath();
-      }
-      return (Permission) c.newInstance(new Object[] { n, a });
-    } catch (ClassNotFoundException e) {
-      return new UnresolvedPermission(t, n, a, null);
-    } catch (NoSuchMethodException ignore) {
-    } catch (InstantiationException ignore) {
-    } catch (IllegalAccessException ignore) {
-    } catch (InvocationTargetException ignore) {
-    }
-    return null;
   }
 
 }

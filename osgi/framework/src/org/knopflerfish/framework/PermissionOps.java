@@ -49,6 +49,9 @@ import org.osgi.framework.*;
  */
 class PermissionOps {
 
+  void init() {
+  }
+
   void registerService() {
   }
 
@@ -128,26 +131,20 @@ class PermissionOps {
     return true;
   }
 
+  boolean okAllPerm(BundleImpl b) {
+    return true;
+  }
+
   //
   // Package permission checks
   //
 
-  boolean hasImportPackagePermission(BundleImpl b, String pkg) {
+  boolean hasExportPackagePermission(ExportPkg ep) {
     return true;
   }
 
-
-  /**
-   * Check that we have right export and import package permission for the bundle.
-   *
-   * @return Returns null if we have correct permission for listed package.
-   *         Otherwise a string of failed entries.
-   */
-  String missingMandatoryPackagePermissions(BundlePackages bpkgs, List okImports) {
-    for (Iterator i = bpkgs.getImports(); i.hasNext(); ) {
-      okImports.add(i.next());
-    }
-    return null;
+  boolean hasImportPackagePermission(BundleImpl b, ExportPkg ep) {
+    return true;
   }
 
   //
@@ -157,14 +154,10 @@ class PermissionOps {
   void checkRegisterServicePerm(String clazz) {
   }
 
-  boolean okGetServicePerm(String clazz) {
-    return true;
+  void checkGetServicePerms(ServiceReference sr) {
   }
 
-  void checkGetServicePerms(String [] classes) {
-  }
-
-  boolean okGetServicePerms(String [] classes) {
+  boolean okGetServicePerms(ServiceReference sr) {
     return true;
   }
 
@@ -206,6 +199,12 @@ class PermissionOps {
                           final String name) {
     return cl.findLibrary0(name);
   }
+  
+  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs, final BundleArchive archive, final ArrayList fragments,
+                                   final ProtectionDomain protectionDomain) throws BundleException {
+    return new BundleClassLoader(bpkgs, archive, fragments,
+                                  protectionDomain, this);
+  }
 
   //
   // BundleImpl Secure operations
@@ -216,14 +215,19 @@ class PermissionOps {
   }
 
 
-  BundleException callStop0(final BundleImpl b, final boolean resetPersistent)  {
-    return b.stop0(resetPersistent);
+  void callFinalizeActivation(final BundleImpl b) throws BundleException {
+    b.finalizeActivation();
+  }
+
+
+  BundleException callStop0(final BundleImpl b)  {
+    return b.stop0();
   }
 
 
   void callUpdate0(final BundleImpl b, final InputStream in, final boolean wasActive)
     throws BundleException {
-    b.update0(in, wasActive);
+    b.update0(in, wasActive, null);
   }
 
 
@@ -232,19 +236,10 @@ class PermissionOps {
   }
 
 
-  void callStartOnLaunch(final BundleImpl b, final boolean flag) {
-    b.startOnLaunch(flag);
+  void callSetAutostartSetting(final BundleImpl b, final int setting) {
+    b.setAutostartSetting0(setting);
   }
 
-
-  void callSetPersistent(final BundleImpl b, final boolean flag) {
-    b.setPersistent(flag);
-  }
-
-
-  ClassLoader callGetClassLoader0(final BundleImpl b) {
-    return b.getClassLoader0();
-  }
 
   BundleContext callGetBundleContext0(final BundleImpl b) {
     return b.getBundleContext0();
@@ -284,18 +279,6 @@ class PermissionOps {
 
   void callServiceChanged(final ServiceListener sl, final ServiceEvent evt) {
      sl.serviceChanged(evt);
-  }
-
-  //
-  // Main Secure operations
-  //
-
-  void callMainRestart() {
-     Main.restart();
-  }
-
-  void callMainShutdown(final int exitcode) {
-     Main.shutdown(exitcode);
   }
 
   //
@@ -342,10 +325,18 @@ class PermissionOps {
    * off.
    * </p>
    */
-  URL getBundleURL(BundleImpl b, String s) throws MalformedURLException {
-    return new URL(null, s, b.framework.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
+  URL getBundleURL(FrameworkContext fwCtx, String s) throws MalformedURLException {
+    return new URL(null, s, fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
   }
-
+  
+  //
+  // Privileged system calls
+  //
+  
+  ClassLoader getClassLoaderOf(final Class c) {
+    return c.getClassLoader();
+  }
+  
   //
   // Cleaning
   //

@@ -60,10 +60,10 @@ import org.apache.tools.ant.util.FileUtils;
  *
  * <p>
  *  Task that creates web sites given a template and a source file.
- *  Currently used to create the htdocs directory in the KF dist.
- *  It does this by simply replacing certain text strings with
- *  others. For more information on which text strings this is
- *  please check the source code.
+ *  Currently used to create parts of the docs directory in the KF
+ *  dist.  It does this by simply replacing certain text strings with
+ *  others. For more information on which text strings this is please
+ *  check the source code.
  * </p>
  *
  * <p>
@@ -472,7 +472,7 @@ public class MakeHTMLTask extends Task {
                                   String suffix)
   {
     if (getBoolProperty(prop)) {
-      sbuf.append("<a target=\"_blank\" href=\"../../jars/");
+      sbuf.append("<a target=\"_top\" href=\"../../jars/index.html?bundle=");
       sbuf.append(this.projectName);
       sbuf.append("/");
       sbuf.append(this.projectName);

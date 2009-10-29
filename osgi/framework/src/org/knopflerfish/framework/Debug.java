@@ -39,76 +39,93 @@ import java.security.PrivilegedAction;
 import org.osgi.framework.BundleException;
 
 /**
- * Static variables that controls debugging of the framework code.
+ * Variables that controls debugging of the framework code.
  *
  * @author Jan Stein
  */
 public class Debug {
 
+  FWProps props;
+
+  /**
+   * Thread local storage to prevent recursive debug message
+   * in permission checks
+   */
+  private ThreadLocal insideDebug;
+
+
   /**
    * Report whenever the bundle classloader does something.
    */
-  static boolean classLoader = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.classloader"));
+  boolean classLoader;
 
 
   /**
    * Report event handling events.
    */
-  static boolean errors = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.errors"));
+  boolean errors;
 
 
   /**
    * Report package handling events.
    */
-  static boolean packages = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.packages"));
+  boolean packages;
 
   /**
    * Report startlevel.
    */
-  static boolean startlevel = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.startlevel"));
+  boolean startlevel;
 
   /**
    * Report url
    */
-  static boolean url = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.url"));
+  boolean url;
 
   /**
    * Report LDAP handling
    */
-  static boolean ldap = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.ldap"));
+  boolean ldap;
 
   /**
    * When security is enabled, print information about service
    * reference lookups that are rejected due to missing permissions
    * for calling bundle.
    */
-  static boolean service_reference = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.service_reference"));
+  boolean service_reference;
 
   /**
    * When security is enabled, print information about resource
    * lookups that are rejected due to missing permissions for the
    * calling bundle.
    */
-  static boolean bundle_resource = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.bundle_resource"));
+  boolean bundle_resource;
 
   /**
    * When security is enabled, print information about context
    * lookups that are rejected due to missing permissions for the
    * calling bundle.
    */
-  static boolean bundle_context = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.bundle_context"));
+  boolean bundle_context;
 
   /**
    * Report Class patching handling
    */
-  static boolean patch = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.patch"));
+  boolean patch;
+
+  /**
+   * Report triggering of lazy activation
+   */
+  boolean lazyActivation;
+
+  /**
+   * Report framework create, init, start, stop
+   */
+  boolean framework;
 
   /**
    * Report Automanifest handling
    */
-  static boolean automanifest = "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.automanifest"));
-
-
+  boolean automanifest;
 
   /**
    * When security is enabled, use a doPrivileged() around
@@ -116,17 +133,99 @@ public class Debug {
    * implementations that does not handle the case with limited
    * priviledges themselfs.
    */
-  static boolean use_do_privilege
-    = System.getSecurityManager() != null
-    && "true".equalsIgnoreCase(Framework.getProperty("org.knopflerfish.framework.debug.print_with_do_privileged","true"));
+  boolean use_do_privilege;
+
+  /**
+   * Report hooks handling
+   */
+  boolean hooks;
+
+  /**
+   * Report permission handling
+   */
+  public boolean permissions;
+
+  /**
+   * Report certificate matching
+   */
+  public boolean certificates;
 
 
+  public Debug(FWProps props) {
+    this.props = props;
+    classLoader =
+      props.getProperty("org.knopflerfish.framework.debug.classloader", false);
+    errors =
+      props.getProperty("org.knopflerfish.framework.debug.errors", false);
+    packages =
+      props.getProperty("org.knopflerfish.framework.debug.packages", false);
+    startlevel =
+      props.getProperty("org.knopflerfish.framework.debug.startlevel", false);
+    url =
+      props.getProperty("org.knopflerfish.framework.debug.url", false);
+    service_reference =
+      props.getProperty("org.knopflerfish.framework.debug.service_reference", false);
+    bundle_resource =
+      props.getProperty("org.knopflerfish.framework.debug.bundle_resource", false);
+    bundle_context =
+      props.getProperty("org.knopflerfish.framework.debug.bundle_context", false);
+    patch =
+      props.getProperty("org.knopflerfish.framework.debug.patch", false);
+    automanifest =
+      props.getProperty("org.knopflerfish.framework.debug.automanifest", false);
+    lazyActivation =
+      props.getProperty("org.knopflerfish.framework.debug.lazy_activation", false);
+    framework =
+      props.getProperty("org.knopflerfish.framework.debug.framework", false);
+    hooks =
+      props.getProperty("org.knopflerfish.framework.debug.hooks", false);
+    permissions =
+      props.getProperty("org.knopflerfish.framework.debug.permissions", false);;
+    certificates =
+      props.getProperty("org.knopflerfish.framework.debug.certificates", false);
+  }
+
+
+  /**
+   * Check if we should use doPriviledged
+   */
+  private boolean useDoPrivileged() {
+    if (System.getSecurityManager() != null) {
+      if (insideDebug == null) {
+        insideDebug = new ThreadLocal() {
+            protected synchronized Object initialValue() {
+              return new Boolean(false);
+            }
+          };
+      }
+      return true;
+    }
+    return false;
+  }
+
+
+  /**
+   * Are we already inside a debug print?
+   */
+  private void inside(boolean b) {
+    insideDebug.set(new Boolean(b));
+  }
+
+  
+  /**
+   * Are we already inside a debug print?
+   */
+  private boolean isInside() {
+    return ((Boolean) (insideDebug.get())).booleanValue();
+  }
+
+  
   /**
    * The actual println implementation.
    *
    * @param str the message to print.
    */
-  private static void println0(final String str) {
+  private void println0(final String str) {
     System.out.println("## DEBUG: " + str);
   }
 
@@ -135,8 +234,8 @@ public class Debug {
    *
    * @param str the message to print.
    */
-  static void println(final String str) {
-    if(use_do_privilege) {
+  public void println(final String str) {
+    if(useDoPrivileged()) {
       // The call to this method can be made from a the framework on
       // behalf of a bundle that have no permissions at all assinged
       // to it.
@@ -144,12 +243,16 @@ public class Debug {
       // Use doPrivileged() here to protect the Framework from
       // PrintStream implementations that does not wrapp calls needing
       // premissions in their own doPrivileged().
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            println0(str);
-            return null;
-          }
-        });
+      if (!isInside()) {
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              inside(true);
+              println0(str);
+              inside(false);
+              return null;
+            }
+          });
+      }
     } else {
       println0(str);
     }
@@ -161,7 +264,7 @@ public class Debug {
    * @param str the message to print.
    * @param t   the throwable to print a stack trace for.
    */
-  private static void printStackTrace0(final String str, final Throwable t) {
+  private void printStackTrace0(final String str, final Throwable t) {
     System.out.println("## DEBUG: " + str);
     t.printStackTrace();
     if (t instanceof BundleException) {
@@ -179,8 +282,8 @@ public class Debug {
    * @param str the message to print.
    * @param t   the throwable to print a stack trace for.
    */
-  static void printStackTrace(final String str, final Throwable t) {
-    if(use_do_privilege) {
+  public void printStackTrace(final String str, final Throwable t) {
+    if(useDoPrivileged()) {
       // The call to this method can be made from a the framework on
       // behalf of a bundle that have no permissions at all assinged
       // to it.
@@ -188,12 +291,16 @@ public class Debug {
       // Use doPrivileged() here to protect the Framework from
       // PrintStream implementations that does not wrapp calls needing
       // premissions in their own doPrivileged().
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            printStackTrace0(str,t);
-            return null;
-          }
-        });
+      if (!isInside()) {
+        AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              inside(true);
+              printStackTrace0(str,t);
+              inside(false);
+              return null;
+            }
+          });
+      }
     } else {
       printStackTrace0(str,t);
     }

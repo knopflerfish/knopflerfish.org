@@ -59,31 +59,6 @@
     </ant>
   </target>
 
-
-  <property name="do.bundle.custom.post" value="true"/>
-  <property name="xargs1" location="test-restart1.xargs"/>
-  <property name="xargs2" location="test-restart2.xargs"/>
-  <target name="bundle.custom.post">
-    <property name="bundleVersionFilterTester"
-	      location="${outdir}/${ant.project.name}.props"/>
-    <bundle_locator replacefilterfile="${bundleVersionFilterTester}">
-      <fileset dir="${osgi.dir}">
-	<include name="jars/**/*.jar"/>
-	<include name="bundles_test/regression_tests/jars/**/*.jar"/>
-      </fileset>
-    </bundle_locator>
-    <copy file="${xargs1}.in" tofile="${xargs1}" overwrite="true"/>
-    <replace file="${xargs1}"
-	     replacefilterfile="${bundleVersionFilterTester}">
-      <replacefilter token="$(OSGI_DIR)" value="${osgi.dir}"/>
-    </replace>
-    <copy file="${xargs2}.in" tofile="${xargs2}" overwrite="true"/>
-    <replace file="${xargs2}"
-	     replacefilterfile="${bundleVersionFilterTester}">
-      <replacefilter token="$(OSGI_DIR)" value="${osgi.dir}"/>
-    </replace>
-  </target>
-
   <import file="${ant.dir}/bundlebuild.xml"/>
 
 </project>

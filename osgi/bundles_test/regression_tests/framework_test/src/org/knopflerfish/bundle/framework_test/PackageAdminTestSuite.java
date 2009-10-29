@@ -351,21 +351,16 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	    fail("Expected version: " + expectedVersion + " got: " + version + "in FRAME200A:FAIL");
 	  }
 	  
-	  // Expect only one importer of this bundle, itself
+	  // Expect no importers of this package
 	  
 	  Bundle [] b2 = exp1.getImportingBundles();
 	  
-	  if (b2.length != 1) {
+	  if (b2.length != 0) {
 	    pass = false;
-	    fail("Got more then expected importing bundles, FRAME200A:FAIL");
 	    for (int i = 0; i < b2.length; i++) {
 	      out.println("Package importing bundles: " + b2[i].getLocation());
 	    }
-	  } else {
-	    if (b2[0] != fw_test) {
-	      pass = false;
-	      fail("Did not get expected importing bundle, got: " + b2[0].getLocation() + " FRAME200A:FAIL");
-	    } 
+	    fail("Got more then expected importing bundles, FRAME200A:FAIL");
 	  }
 	  
 	  // no removal should be pending
@@ -620,7 +615,7 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
       }
       
       // Check that we have the new version
-      if (!checkExportVersion(out, buP3, buP3, packageName, expectedVersion)) {
+      if (!checkExportVersion(out, buP3, null, packageName, expectedVersion)) {
 	fail("framework test bundle , we didn't get expected export import wire:FRAME220B:FAIL");
 	teststatus = false;
       }
@@ -645,7 +640,6 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
       // Now get the array of exported packages from exporting bundle,
       // with one expected package
       long expId = exporter.getBundleId();
-      long impId = importer.getBundleId();
       
       ExportedPackage [] exp2 = packService.getExportedPackages(exporter);
 
@@ -658,11 +652,19 @@ public class PackageAdminTestSuite extends TestSuite implements FrameworkTest {
 	  if (version.equals(exp2[i].getSpecificationVersion()) && packName.equals(exp2[i].getName())) {
 	    Bundle [] ib = exp2[i].getImportingBundles();
             if (ib != null) {
-              for (int j = 0; j < ib.length ; j++ ) {
-                //out.println("   Importing bundle: " + ib[j].getBundleId());
-                if (ib[j].getBundleId() ==  impId) {
-                  // out.println ("MATCH p2 p2 hurrah");
+              if (importer == null) {
+                // Except no importers
+                if (ib.length == 0) {
                   teststatus = true;
+                }
+              } else {
+                long impId = importer.getBundleId();
+                for (int j = 0; j < ib.length ; j++ ) {
+                  //out.println("   Importing bundle: " + ib[j].getBundleId());
+                  if (ib[j].getBundleId() ==  impId) {
+                    // out.println ("MATCH p2 p2 hurrah");
+                    teststatus = true;
+                  }
                 }
 	      }
 	    }

@@ -36,87 +36,138 @@ package org.knopflerfish.framework.permissions;
 
 import java.lang.reflect.*;
 import java.security.*;
-import java.util.ArrayList;
+import java.util.*;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.condpermadmin.*;
 import org.osgi.service.permissionadmin.PermissionInfo;
+
+import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.FrameworkContext;
+import org.knopflerfish.framework.Util;
 
 
 /**
  * A binding of a set of Conditions to a set of Permissions.
  * 
  */
-public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
+class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 {
   static final private String SIGNER_CONDITION_TYPE = "org.osgi.service.condpermadmin.BundleSignerCondition";
 
-  final private ConditionalPermissionInfoStorage cps;
-  final private String name;
+  private ConditionalPermissionInfoStorage cpis;
 
   final private ConditionInfo [] conditionInfos;
   final private PermissionInfo [] permissionInfos;
+  final private String access;
+  final private FrameworkContext framework;
+  final private Debug debug;
 
+  private String name;
   private PermissionCollection permissions;
+
 
   /**
    */
-  ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cps, String name,
-                                ConditionInfo [] conds, PermissionInfo [] perms) {
-    this.cps = cps;
+  ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cpis, String name,
+                                ConditionInfo [] conds, PermissionInfo [] perms,
+                                String access, FrameworkContext fw) {
+    this.cpis = cpis;
     this.name = name;
     conditionInfos = conds;
     permissionInfos = perms;
+    this.access = access;
+    framework = fw;
+    debug = fw.props.debug;
     permissions = null;
   }
 
 
   /**
    */
-  ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cps, String encoded) {
-    this.cps = cps;
-    char [] eca = encoded.toCharArray();
-    StringBuffer buf = new StringBuffer();
-    int pos = PermUtil.skipWhite(eca, 0);
-    pos = PermUtil.unquote(eca, pos, buf);
-    name = buf.toString();
-    ArrayList cal = new ArrayList();
-    ArrayList pal = new ArrayList();
-    pos = PermUtil.skipWhite(eca, pos);
-    if (eca[pos++] != '{') {
-      throw new IllegalArgumentException("Missing open brace");
-    }
-    while (true) {
+  ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cpis,
+                                String encoded, FrameworkContext fw) {
+    this.cpis = cpis;
+    framework = fw;
+    debug = fw.props.debug;
+    try {
+      char [] eca = encoded.toCharArray();
+      int pos = PermUtil.skipWhite(eca, 0);
+      if ((eca[pos] == 'A' || eca[pos] == 'a') &&
+          (eca[pos+1] == 'L' || eca[pos+1] == 'l') &&
+          (eca[pos+2] == 'L' || eca[pos+2] == 'l') &&
+          (eca[pos+3] == 'O' || eca[pos+3] == 'o') &&
+          (eca[pos+4] == 'W' || eca[pos+4] == 'w') && eca[pos+5] == ' ') {
+        pos += 6;
+        access = ConditionalPermissionInfo.ALLOW;
+      } else if ((eca[pos] == 'D' || eca[pos] == 'd') &&
+                 (eca[pos+1] == 'E' || eca[pos+1] == 'e') &&
+                 (eca[pos+2] == 'N' || eca[pos+2] == 'n') &&
+                 (eca[pos+3] == 'Y' || eca[pos+3] == 'y') && eca[pos+4] == ' ') {
+        pos += 5;
+        access = ConditionalPermissionInfo.DENY;
+      } else {
+        throw new IllegalArgumentException("Access must be allow or deny");
+      }
       pos = PermUtil.skipWhite(eca, pos);
-      char c = eca[pos];
-      char ec;
-      if (c == '[') {
-        ec = ']';
-      } else if (c == '(') {
-        ec = ')';
-      } else if (c == '}') {
-        break;
-      } else {
-        throw new IllegalArgumentException("Unexpected char '" + c + "' at pos " + pos);
+      if (eca[pos++] != '{') {
+        throw new IllegalArgumentException("Missing open brace");
       }
-      int start_pos = pos++;
-      do {
-        c = eca[pos];
-        if (c == '"') {
-          pos = PermUtil.unquote(eca, pos, null);
-        } else {
+      ArrayList cal = new ArrayList();
+      ArrayList pal = new ArrayList();
+      boolean seenPermInfo = false;
+      while (true) {
+        pos = PermUtil.skipWhite(eca, pos);
+        char c = eca[pos];
+        char ec;
+        if (!seenPermInfo && c == '[') {
+          ec = ']';
+        } else if (c == '(') {
+          ec = ')';
+          seenPermInfo = true;
+        } else if (c == '}') {
           pos++;
+          break;
+        } else {
+          throw new IllegalArgumentException("Unexpected char '" + c + "' at pos " + pos);
         }
-      } while(c != ec);
-      String info = new String(eca, start_pos, pos - start_pos);
-      if (c == ']') {
-        cal.add(new ConditionInfo(info));
-      } else {
-        pal.add(new PermissionInfo(info));
+        int start_pos = pos++;
+        do {
+          c = eca[pos];
+          if (c == '"') {
+            pos = PermUtil.unquote(eca, pos, null);
+          } else {
+            pos++;
+          }
+        } while(c != ec);
+        String info = new String(eca, start_pos, pos - start_pos);
+        if (c == ']') {
+          cal.add(new ConditionInfo(info));
+        } else {
+          pal.add(new PermissionInfo(info));
+        }
       }
+      if (!seenPermInfo) {
+        throw new IllegalArgumentException("Permissions must contain atleast one element");
+      }
+      pos = PermUtil.endOfString(eca, pos, eca.length);
+      if (pos != -1) {
+        StringBuffer buf = new StringBuffer();
+        PermUtil.unquote(eca, pos, buf);
+        name = buf.toString();
+        if ((pos = PermUtil.endOfString(eca, pos, eca.length)) != -1) {
+          throw new IllegalArgumentException("Unexpected characters at end of string: " +
+                                             new String(eca, pos, eca.length - pos));
+        }
+      } else {
+        name = null;
+      }
+      conditionInfos = (ConditionInfo [])cal.toArray(new ConditionInfo [cal.size()]);
+      permissionInfos = (PermissionInfo [])pal.toArray(new PermissionInfo [pal.size()]);
+    } catch (ArrayIndexOutOfBoundsException e) {
+      throw new IllegalArgumentException("Unexpected end of string");
     }
-    conditionInfos = (ConditionInfo [])cal.toArray(new ConditionInfo [cal.size()]);
-    permissionInfos = (PermissionInfo [])pal.toArray(new PermissionInfo [pal.size()]);
   }
 
   // Interface ConditionalPermissionInfo
@@ -153,7 +204,10 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
    *         <code>AllPermission</code>.
    */
   public void delete() {
-    cps.remove(name);
+    if (cpis == null) {
+      throw new UnsupportedOperationException("Not in use");
+    }
+    cpis.remove(this);
   }
 
 
@@ -167,12 +221,13 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   }
 
 
-  /**
-   * Returns a string representation of this object.
-   * 
-   */
-  public String toString() {
-    StringBuffer res = PermUtil.quote(name, null);
+  public String getAccessDecision() {
+    return access;
+  }
+
+
+  public String getEncoded() {
+    StringBuffer res = new StringBuffer(access);
     res.append(" { ");
     if (conditionInfos != null) {
       for (int i = 0; i < conditionInfos.length; i++) {
@@ -187,7 +242,56 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       }
     }
     res.append('}');
+    if (name != null) {
+      res.append(' ');
+      PermUtil.quote(name, res);
+    }
     return res.toString();
+  }
+
+
+  /**
+   * Returns a string representation of this object.
+   * 
+   */
+  public String toString() {
+    return getEncoded();
+  }
+
+
+  /**
+   *
+   */
+  public final boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    ConditionalPermissionInfo cpi = (ConditionalPermissionInfo)obj;
+    if (name == null ? cpi.getName() != null : !name.equals(cpi.getName())) {
+      return false;
+    }
+    // NYI, we should allow permuted arrays, also affects hashCode.
+    if (!Arrays.equals(permissionInfos, cpi.getPermissionInfos())) {
+      return false;
+    }
+    if (!Arrays.equals(conditionInfos, cpi.getConditionInfos())) {
+      return false;
+    }
+    return access == cpi.getAccessDecision();
+  }
+
+ 
+  /**
+   *
+   */
+  public final int hashCode() {
+    if (name != null) {
+      return name.hashCode();
+    }
+    int res = conditionInfos != null && conditionInfos.length > 0
+      ? conditionInfos[0].hashCode()
+      : 0;
+    return res = permissionInfos[0].hashCode();
   }
 
   //
@@ -207,7 +311,8 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       Class clazz;
       Condition c;
       try {
-        clazz = Class.forName(conditionInfos[i].getType());
+        clazz = Class.forName(conditionInfos[i].getType(),
+                              true, framework.getClassLoader(null));
         Constructor cons = null;
         Method method = null;
         try {
@@ -217,8 +322,8 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
           }
         } catch (NoSuchMethodException ignore) { }
         if (method != null) {
-          if (Debug.permissions) {
-            Debug.println(me + "Invoke, " + method + " for bundle " + bundle);
+          if (debug.permissions) {
+            debug.println(me + "Invoke, " + method + " for bundle " + bundle);
           }
           c = (Condition) method.invoke(null, new Object [] {bundle, conditionInfos[i]});
         } else {
@@ -226,25 +331,25 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
             cons = clazz.getConstructor(argClasses);
           } catch (NoSuchMethodException ignore) { }
           if (cons != null) {
-            if (Debug.permissions) {
-              Debug.println(me + "Construct, " + cons + " for bundle " + bundle);
+            if (debug.permissions) {
+              debug.println(me + "Construct, " + cons + " for bundle " + bundle);
             }
             c = (Condition) cons.newInstance(new Object [] {bundle, conditionInfos[i]});
           } else {
-            Debug.println("NYI! Log faulty ConditionInfo object!?");
+            debug.println("NYI! Log faulty ConditionInfo object!?");
             continue;
           }
         }
         if (!c.isMutable()) {
-          if (!c.isPostponed() || Debug.tck401compat) {
+          if (!c.isPostponed() /* || debug.tck401compat */ ) {
             if (c.isSatisfied()) {
-              if (Debug.permissions) {
-                Debug.println(me + "Immutable condition ok, continue");
+              if (debug.permissions) {
+                debug.println(me + "Immutable condition ok, continue");
               }
               continue;
             } else {
-              if (Debug.permissions) {
-                Debug.println(me + "Immutable condition NOT ok, abort");
+              if (debug.permissions) {
+                debug.println(me + "Immutable condition NOT ok, abort");
               }
               return null;
             }
@@ -252,12 +357,12 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
         }
         conds.add(c);
       } catch (Throwable t) {
-        Debug.printStackTrace("NYI! Log failed Condition creation", t);
+        debug.printStackTrace("NYI! Log failed Condition creation", t);
         return null;
       }
     }
     return new ConditionalPermission((Condition [])conds.toArray(new Condition[conds.size()]),
-                                     getPermissions(), this);
+                                     getPermissions(), access, this);
   }
 
 
@@ -266,27 +371,27 @@ public class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
    */
   PermissionCollection getPermissions() {
     if (permissions == null) {
-      permissions = PermUtil.makePermissionCollection(permissionInfos, null);
+      permissions = new PermissionInfoPermissions(framework, null, permissionInfos);
     }
     return permissions;
   }
 
 
   /**
-   *
+   * Set storage for this Conditional Permission Info.
+   * 
    */
-  boolean hasSigners(String [] signers) {
-    for (int i = 0; i < conditionInfos.length; i++) {
-      if (SIGNER_CONDITION_TYPE.equals(conditionInfos[i].getType())) {
-        String[] args = conditionInfos[i].getArgs();
-        if (args.length != 1 || CertificateUtil.matchSigners(signers, args[0]) < 0) {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    }
-    return true;
+  void setPermissionInfoStorage(ConditionalPermissionInfoStorage storage) {
+    cpis = storage;
+  }
+
+
+  /**
+   * Set the name of this Conditional Permission Info.
+   * 
+   */
+  void setName(String newName) {
+    name = newName;
   }
 
 }

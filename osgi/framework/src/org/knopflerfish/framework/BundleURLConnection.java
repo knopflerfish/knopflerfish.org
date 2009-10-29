@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import org.osgi.framework.AdminPermission;
 /**
  * Bundle URL handling.
  *
- * @author Jan Stein
+ * @author Jan Stein, Gunnar Ekolin
  */
 class BundleURLConnection extends URLConnection {
   // Should maybe only allow the bundle that fetched the URL to connect?
@@ -52,24 +52,27 @@ class BundleURLConnection extends URLConnection {
     = new AdminPermission( (String)null, AdminPermission.RESOURCE);
 
   private InputStream is = null;
-  /** The collection of available bundles. */
-  private Bundles bundles;
+  /**
+   * Handle to the current framework instance used in the conversion
+   * from bundle id on string form in the URL to the actual bundle
+   * instance. */
+  private FrameworkContext fwCtx;
   /** The bundle that provides the data for this URL. */
   private BundleImpl bundle;
   private int contentLength;
   private String contentType;
   private long lastModified;
 
-  BundleURLConnection(URL u, Bundles b) {
+  BundleURLConnection(URL u, FrameworkContext fwCtx) {
     super(u);
-    bundles = b;
+    this.fwCtx = fwCtx;
   }
 
   /**
    * Analyzes the URL to determine the bundle and which of its related
    * bundle archives that actually provides the contents of this
    * URL. The bundle is stored in the private member field
-   * <tt>bundle</tt>, the bundle archive is returned.
+   * <tt>bundle</tt> for later use, the bundle archive is returned.
    *
    * @return The bundle archive that provides the contents of this
    *         bundle URL.
@@ -81,22 +84,26 @@ class BundleURLConnection extends URLConnection {
     long fi = -1;
     try {
       String s = url.getHost();
-      int i = s.indexOf('_');
+      int i = s.indexOf('!');
+      if (i >= 0) {
+        s = s.substring(0,i);
+      }
+      i = s.indexOf('_');
       if (i >= 0) {
         fi = Long.parseLong(s.substring(i+1));
         s = s.substring(0,i);
       }
       i = s.indexOf('.');
       if (i >= 0) {
-          ai = Long.parseLong(s.substring(i+1));
-          s = s.substring(0,i);
-        }
-        bundle = (BundleImpl)bundles.getBundle(Long.parseLong(s));
-      } catch (NumberFormatException _ignore) { }
-      if (bundle != null) {
-        return bundle.getBundleArchive(ai, fi);
+        ai = Long.parseLong(s.substring(i+1));
+        s = s.substring(0,i);
       }
-      return null;
+      bundle = (BundleImpl) fwCtx.bundles.getBundle(Long.parseLong(s));
+    } catch (NumberFormatException _ignore) { }
+    if (bundle != null) {
+      return bundle.getBundleArchive(ai, fi);
+    }
+    return null;
   }
 
   public void connect() throws IOException {
@@ -107,13 +114,14 @@ class BundleURLConnection extends URLConnection {
         // requieres the Framework's permisisons to allow access
         // thus we must call bundleArchive.getInputStream()
         // via doPrivileged().
-        is = bundle.secure.callGetInputStream(a, url.getFile(), url.getPort());
+        int port = url.getPort();
+        is = bundle.secure.callGetInputStream(a, url.getFile(), port != -1 ? port : 0);
       }
       if (is != null) {
         connected = true;
-	if(BundleClassLoader.bDalvik) {
+        if(BundleClassLoader.bDalvik) {
           contentLength = -1;
-	} else {
+        } else {
           contentLength = is.available();
         }
         contentType = URLConnection.guessContentTypeFromName(url.getFile());

@@ -34,66 +34,82 @@
 
 package org.knopflerfish.framework;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
+import java.security.cert.Certificate;
+import java.util.Hashtable;
 import java.util.Enumeration;
-import java.util.jar.Manifest;
+import java.util.List;
 
 
+/**
+ * Interface for managing bundle contents.
+ *
+ * @author Jan Stein
+ */
 public interface FileArchive {
 
   /**
-   * Get an attribute from the manifest of the archive.
-   *
-   * @param key Name of attribute to get.
-   * @return A string with result or null if the entry doesn't exists.
-   */
-  public String getAttribute(String key);
-
-
-  /**
-   * Get a byte array containg the contents of named file from
-   * the archive.
+   * Get a byte array containg the contents of named file from a bundle
+   * archive.
    *
    * @param component File to get.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  public byte[] getClassBytes(String classFile) throws IOException;
+  byte[] getClassBytes(String component) throws IOException;
 
 
   /**
-   * Get an InputStream to named entry inside an Archive.
+   * Get an specific InputStream to named entry inside a bundle.
+   * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
+   * @param ix index of sub archives. A postive number is the classpath entry
+   *            index. -1 means look in the main bundle.
    * @return InputStream to entry or null if it doesn't exist.
    */
-  public InputStream getInputStream(String component);
-
-
-  //Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like the manifest
-  //gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
-  //investigate further later
-  public Enumeration findResourcesPath(String path);
+  InputStream getInputStream(String component);
 
 
   /**
-   * Get an Archive handle to a named Jar file within this archive.
+   * Returns an Enumeration of all the paths (<code>String</code> objects)
+   * to entries within the bundle whose longest sub-path matches the supplied
+   * path argument.
    *
-   * @param path Name of Jar file to get.
-   * @return An Archive object representing new archive.
-   * @exception FileNotFoundException if no such Jar file in archive.
-   * @exception IOException if failed to read Jar file.
+   * @param name
+   * @return
    */
-  public FileArchive getSubArchive(String path) throws IOException;
+  Enumeration findResourcesPath(String path);
 
 
   /**
-   * Get manifest for this archive.
+   * Check for native library in archive.
    *
-   * @return A Manifest object representing the manifest.
+   * @param path Name of native code file to get.
+   * @return If native library exist return libname, otherwise null.
    */
-  public Manifest getManifest();
+  String checkNativeLibrary(String path);
+
+
+  /**
+   * Get native code library filename.
+   *
+   * @param libNameKey Key for native lib to get.
+   * @return A string with the path to the native library.
+   */
+  String getNativeLibrary(String libNameKey);
+
+
+  /**
+   * Get bundle id for this archive.
+   */
+  long getBundleId();
+
+
+  /**
+   * Get sub-archive id for this archive.
+   */
+  int getSubId();
 
 }
