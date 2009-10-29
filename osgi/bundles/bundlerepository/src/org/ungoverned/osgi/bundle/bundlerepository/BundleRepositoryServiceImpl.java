@@ -876,7 +876,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         }
         catch (IOException ex)
         {
-            System.err.println("Error when conncting to '" +urlStr +"': " +ex);
+            System.err.println("Error when connecting to '" +urlStr +"': " +ex);
         }
         finally
         {
