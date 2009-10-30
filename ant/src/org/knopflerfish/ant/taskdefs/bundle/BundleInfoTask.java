@@ -42,29 +42,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
-import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.Code;
-import org.apache.bcel.classfile.ConstantClass;
-import org.apache.bcel.classfile.ConstantPool;
-import org.apache.bcel.classfile.DescendingVisitor;
-import org.apache.bcel.classfile.EmptyVisitor;
-import org.apache.bcel.classfile.Field;
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.LocalVariable;
-import org.apache.bcel.classfile.Method;
-import org.apache.bcel.classfile.Utility;
-import org.apache.bcel.generic.BasicType;
-import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.InvokeInstruction;
-import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
-import org.apache.bcel.generic.Instruction;
-import org.apache.bcel.generic.Type;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
@@ -83,8 +66,7 @@ import org.osgi.framework.Version;
  * <ul>
  * <li><b>Class files</b>
  * <p>
- * Java class files are analyzed using the BCEL lib available from
- * <a href="http://jakarta.apache.org/bcel">http://jakarta.apache.org/bcel</a>.
+ * Java class files are analyzed using the ASM library.
  * <br>
  * <b>Note</b>: Scanning <i>only</i> applies
  * to the listed files - a complete closure of all referenced classes is
@@ -101,7 +83,7 @@ import org.osgi.framework.Version;
  *
  * <li><b>Jar files</b>
  * <p>
- * Jar file analysis is not yet implemented
+ * All classes in jar files are analysed.
  * </p>
  *
  * </ul>
@@ -449,14 +431,6 @@ public class BundleInfoTask extends Task {
   private boolean failOnActivator    = true;
   private boolean bImportsOnly       = false;
 
-  /** The set of packages that are provided by the inlcuded classes. */
-  private Set providedSet          = new TreeSet();
-
-  /** The set of packages that are referenced by the inlcuded classes. */
-  private Set referencedSet        = new TreeSet();
-
-  /** The sub set of the included classes that implements BundleActivator. */
-  private Set activatorSet         = new TreeSet();
   /**
    * The set of packages referenced by the included classes but not
    * provided by them.
@@ -468,20 +442,9 @@ public class BundleInfoTask extends Task {
    */
   private Set extraImportSet       = new TreeSet();
 
-  /**
-   * The set of classes that are refrenced from the included classes.
-   */
-  private Set classSet             = new TreeSet();
-  /**
-   * The set of included classes.
-   */
-  private Set ownClasses           = new TreeSet();
-  /**
-   * A mapping from package name of included classes to a set of
-   * package names that the classes in the key package references.
-   */
-  private Map packageUsingMap      = new HashMap();
-
+  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo();
+  private final ClassAnalyserASM asmAnalyser
+    = new ClassAnalyserASM(bpInfo, this);
 
   public BundleInfoTask() {
     fileUtils = FileUtils.newFileUtils();
@@ -644,7 +607,8 @@ public class BundleInfoTask extends Task {
   }
 
   /**
-   * Shall uses directives be added to the Export-Package header or not.
+   * If set to <tt>true</tt> then do not update Export-Package
+   * manifest header.
    */
   public void setImportsOnly(boolean importsOnly) {
     this.bImportsOnly = importsOnly;
@@ -675,49 +639,51 @@ public class BundleInfoTask extends Task {
         analyze(new File(fromDir, srcDirs[j]));
       }
     }// Scan done
+    bpInfo.toJavaNames();
+    log("Provided packages: " +bpInfo.getProvidedPackages(), Project.MSG_DEBUG);
 
-    // created importSet from referencedSet
-    for (Iterator refIt=referencedSet.iterator(); refIt.hasNext(); ) {
-      final String refPkg = (String) refIt.next();
-      // only packages defined outside this set of files
-      if(!providedSet.contains(refPkg)) {
-        // ...and only add non-std packages
-        if(!isStdImport(refPkg)) {
-          log("   " +refPkg +" added ; un-provided non-standard package.",
-              Project.MSG_DEBUG);
-          importSet.add(refPkg);
-        } else {
-          log("   " +refPkg +" skiped; standard import.", Project.MSG_DEBUG);
-        }
-      } else {
-        log("   " +refPkg +" skiped; package provided.", Project.MSG_DEBUG);
+    // created importSet from the set of unprovided referenced packages
+    final SortedSet unprovidedReferencedPackages
+      = bpInfo.getUnprovidedReferencedPackages();
+    log("Un-provided referenced packages: " +unprovidedReferencedPackages,
+        Project.MSG_DEBUG);
+
+    // The set of referenced packages that matches one of the
+    // stdImport patterns.
+    final SortedSet ignoredReferencedPackages = new TreeSet();
+
+    // Remove all packages with names like "java.*" (full set of
+    // patterns are given by the stdImports set). Such packages must
+    // not be present in the importSet.
+    for (Iterator urpIt = unprovidedReferencedPackages.iterator();
+         urpIt.hasNext(); ) {
+      final String pkgName = (String) urpIt.next();
+      if (isStdImport(pkgName)) {
+        urpIt.remove();
+        ignoredReferencedPackages.add(pkgName);
       }
     }
-    final TreeSet unprovidedExtraImportSet = new TreeSet(extraImportSet);
-    unprovidedExtraImportSet.removeAll(providedSet);
+    log("Referenced packages to import: " +unprovidedReferencedPackages,
+        Project.MSG_DEBUG);
+    importSet.addAll(unprovidedReferencedPackages);
+
+    final SortedSet unprovidedExtraImportSet = new TreeSet(extraImportSet);
+    unprovidedExtraImportSet.removeAll(bpInfo.getProvidedPackages());
+    log("Un-provided extra packages to import: " +unprovidedExtraImportSet,
+        Project.MSG_DEBUG);
     importSet.addAll(unprovidedExtraImportSet);
 
-    // The sub-set of the provided packages that export
+    // The sub-set of the provided packages that will be exported
     final Set providedExportSet = getProvidedExportSet();
+    log("Provided packages to export: " +providedExportSet, Project.MSG_DEBUG);
 
     // The set of packages that will be mentioned in the
     // Export-Package or the Import-Package header.
     final Set allImpExpPkgs = new TreeSet(providedExportSet);
     allImpExpPkgs.addAll(importSet);
 
-    // Clean up the usingPackageMap; remove all stdimports, any self
-    // reference, ensure that it only contains imported or exported packages.
-    for (Iterator usingMapEntryIt=packageUsingMap.entrySet().iterator();
-         usingMapEntryIt.hasNext(); ) {
-      final Map.Entry entry = (Map.Entry) usingMapEntryIt.next();
-      final Set usedSet = (Set) entry.getValue();
-      usedSet.remove((String) entry.getKey());
-      for (Iterator usedIt=usedSet.iterator(); usedIt.hasNext(); ) {
-        final String usedPkg = (String) usedIt.next();
-        if (isStdImport(usedPkg)) usedIt.remove();
-      }
-      usedSet.retainAll(allImpExpPkgs);
-    }
+    bpInfo.postProcessUsingMap(ignoredReferencedPackages, allImpExpPkgs);
+    //log(bpInfo.toString(), Project.MSG_INFO);
 
     // Data collection done - write back properties
     final Project proj = getProject();
@@ -726,14 +692,14 @@ public class BundleInfoTask extends Task {
       String exportsVal = proj.getProperty(exportsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
         if (!bImportsOnly) {
-          if (0==providedSet.size()) {
+          if (0==providedExportSet.size()) {
             proj.setProperty(exportsProperty,
                              BundleManifestTask.BUNDLE_EMPTY_STRING);
-            log("No packages exported, leaving \"" +exportsProperty +"\" empty.",
+            log("No packages exported, leaving '" +exportsProperty +"' empty.",
                 Project.MSG_VERBOSE);
           } else {
-            exportsVal = buildExportPackagesValue();
-            log("Setting \"" +exportsProperty +"\" to \""+exportsVal +"\"",
+            exportsVal = buildExportPackagesValue(providedExportSet);
+            log("Setting '" +exportsProperty +"' to '"+exportsVal +"'",
                 Project.MSG_VERBOSE);
             proj.setProperty(exportsProperty, exportsVal);
           }
@@ -741,9 +707,11 @@ public class BundleInfoTask extends Task {
       } else {
         // Export-Package given; check that they are provided.
         final String newExportsVal = validateExportPackagesValue(exportsVal);
-        log("Updating \"" +exportsProperty +"\" to \""+newExportsVal +"\"",
-            Project.MSG_VERBOSE);
-        proj.setProperty(exportsProperty, newExportsVal);
+        if (!exportsVal.equals(newExportsVal)) {
+          log("Updating \"" +exportsProperty +"\" to \""+newExportsVal +"\"",
+              Project.MSG_VERBOSE);
+          proj.setProperty(exportsProperty, newExportsVal);
+        }
       }
     }
 
@@ -752,7 +720,6 @@ public class BundleInfoTask extends Task {
       String importsVal = proj.getProperty(importsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(importsVal)) {
         // No Import-Package given; use derived value.
-        log("importSet.size()="+importSet.size(),Project.MSG_VERBOSE);
         if (0==importSet.size()) {
           log("No packages to import, leaving \"" +importsProperty +"\" empty.",
               Project.MSG_VERBOSE);
@@ -781,13 +748,14 @@ public class BundleInfoTask extends Task {
             throw new BuildException(msg, getLocation());
           }
         }
-        givenImportSet.removeAll(providedSet);
+        givenImportSet.removeAll(bpInfo.getProvidedPackages());
         final TreeSet missingImports = new TreeSet(importSet);
         missingImports.removeAll(givenImportSet);
         if (0<missingImports.size()) {
           log("External packages: "+importSet,      Project.MSG_ERR);
           log("Imported packages: "+givenImportSet, Project.MSG_ERR);
-          log("Provided packages: "+providedSet,    Project.MSG_ERR);
+          log("Provided packages: "+bpInfo.getProvidedPackages(),
+              Project.MSG_ERR);
 
           final String msg = "The following external packages are used by "
             +"the bundle but not mentioned in the Import-Package manifest "
@@ -815,7 +783,7 @@ public class BundleInfoTask extends Task {
       final String activatorVal = proj.getProperty(activatorProperty);
       if (BundleManifestTask.isPropertyValueEmpty(activatorVal)) {
         // No Bundle-Activator given; use derived value if possible.
-        switch(activatorSet.size()) {
+        switch(bpInfo.countProvidedActivatorClasses()) {
         case 0:
           final String msg1 = "Requested to derive Bundle-Activator but "
             +"there is no class implementing BundleActivator.";
@@ -825,13 +793,14 @@ public class BundleInfoTask extends Task {
           }
           break;
         case 1:
-          String clazz = (String)activatorSet.iterator().next();
+          String clazz = bpInfo.getActivatorClass();
           proj.setProperty(activatorProperty, clazz);
           break;
         default:
           final String msg2 = "Manual selection of Bundle-Activator "
             +"is needed since the set of included classes contains "
-            +"more than one candidate: "+activatorSet;
+            +"more than one candidate: "
+            +bpInfo.providedActivatorClassesAsString();
           log(msg2, Project.MSG_ERR);
           if (failOnActivator) {
             throw new BuildException(msg2, getLocation());
@@ -839,14 +808,15 @@ public class BundleInfoTask extends Task {
         }
       } else {
         // Bundle-Activator given; check that it is correct.
-        if (0==activatorSet.size()) {
+        if (0==bpInfo.countProvidedActivatorClasses()) {
           log("No class implementing BundleActivator found", Project.MSG_ERR);
         } else {
           final String givenClazz = proj.getProperty(activatorProperty).trim();
-          final String msg = "The specified BundleActivator '" +givenClazz
-                +"' is not a member of the set of included classes that"
-                +"  implements BundleActivator: " +activatorSet;
-          if (!activatorSet.contains(givenClazz)) {
+          if (!bpInfo.providesActivatorClass(givenClazz)) {
+            final String msg = "The specified BundleActivator '" +givenClazz
+              +"' is not a member of the set of included classes that"
+              +"  implements BundleActivator: "
+              +bpInfo.providedActivatorClassesAsString();
             log(msg, Project.MSG_WARN);
             if (failOnActivator) {
               throw new BuildException(msg, getLocation());
@@ -860,11 +830,11 @@ public class BundleInfoTask extends Task {
     final Set minimumMissing    = new TreeSet();
     final Set smfMissing        = new TreeSet();
 
-    for(Iterator it = classSet.iterator(); it.hasNext();) {
+    for(Iterator it = bpInfo.getReferencedClasses().iterator(); it.hasNext();) {
       final String s = (String)it.next();
       if(s.endsWith("[]")) {
       } else {
-        if(!ownClasses.contains(s)) {
+        if(!bpInfo.providesClass(s)) {
           if(bPrintClasses) {
             System.out.println(s);
           }
@@ -970,63 +940,84 @@ public class BundleInfoTask extends Task {
     return bUses && manifestVersion.compareTo(new Version("1")) > 0;
   }
 
+
   /**
-   * The sub-set of the provided packages that are exported.
+   * The sub-set of the provided packages that will be exported.
    */
-  private Set getProvidedExportSet()
+  private SortedSet getProvidedExportSet()
   {
-    final Set res = new TreeSet();
+    final SortedSet res = new TreeSet();
 
     if(!"".equals(exportsProperty)) {
+      log("Exports property set", Project.MSG_DEBUG);
+
       final String exportsVal = getProject().getProperty(exportsProperty);
       if (!BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
+        log("Found non-empty Export-Package attribute: '" +exportsVal +"'",
+            Project.MSG_DEBUG);
 
         final Iterator expIt = Util.parseEntries("export.package", exportsVal,
                                                  true, true, false );
         while (expIt.hasNext()) {
           final Map expEntry = (Map) expIt.next();
           final String pkgName = (String) expEntry.get("$key");
-          if (providedSet.contains(pkgName)) {
+          if (bpInfo.providesPackage(pkgName)) {
             res.add(pkgName);
           }
         }
+      } else if (!bImportsOnly) {
+        log("Empty Export-Package, importsOnly not set; will export all "
+            +"provided packages.", Project.MSG_DEBUG);
+        res.addAll(bpInfo.getProvidedPackages());
+      } else {
+        log("Empty Export-Package, importsOnly set; will not export.",
+            Project.MSG_DEBUG);
       }
     } else {
-      res.addAll(providedSet);
+      log("Exports property set to all provided packages.", Project.MSG_DEBUG);
+      res.addAll(bpInfo.getProvidedPackages());
     }
     return res;
   }
 
-  /**
-   * Return the value of the ExportPackage based on the analyzis.
-   */
-  protected String buildExportPackagesValue() {
-    final String sep = ",";
-    final StringBuffer sb = new StringBuffer();
-    final boolean addUses = doUses();
+  private void appendUsesDirective(final StringBuffer sb, final String pkgName)
+  {
+    if (doUses()) {
+      final String sep = ",";
+      final Set usesPkgs = bpInfo.getPackagesReferencedFromPackage(pkgName);
 
-    for(Iterator it = providedSet.iterator(); it.hasNext(); ) {
-      final String name = (String)it.next();
-      sb.append(name);
-      if (addUses) {
-        final Set usesPkgs = (Set) packageUsingMap.get(name);
-        if (0<usesPkgs.size()) {
-          sb.append(";uses:=");
-          if (1<usesPkgs.size()) {
-            sb.append("\"");
-          }
-          for (Iterator usesIt = usesPkgs.iterator(); usesIt.hasNext(); ) {
-            final String usesPkg = (String) usesIt.next();
-            sb.append(usesPkg);
-            if (usesIt.hasNext()) {
-              sb.append(sep);
-            }
-          }
-          if (1<usesPkgs.size()) {
-            sb.append("\"");
+      if (null!=usesPkgs && 0<usesPkgs.size()) {
+        sb.append(";uses:=");
+        if (1<usesPkgs.size()) {
+          sb.append("\"");
+        }
+        for (Iterator usesIt = usesPkgs.iterator(); usesIt.hasNext(); ) {
+          final String usesPkg = (String) usesIt.next();
+          sb.append(usesPkg);
+          if (usesIt.hasNext()) {
+            sb.append(sep);
           }
         }
+        if (1<usesPkgs.size()) {
+          sb.append("\"");
+        }
       }
+    }
+  }
+
+  /**
+   * Return the value of the Export-Package based on the analyzis.
+   * @param exportPackages The set of provided packages to export.
+   */
+  protected String buildExportPackagesValue(final Set exportPackages) {
+    final String sep = ",";
+    final StringBuffer sb = new StringBuffer();
+
+    for(Iterator it = exportPackages.iterator(); it.hasNext(); ) {
+      final String pkgName = (String) it.next();
+      sb.append(pkgName);
+      appendUsesDirective(sb, pkgName);
+
       if(it.hasNext()) {
         sb.append(sep);
       }
@@ -1044,16 +1035,16 @@ public class BundleInfoTask extends Task {
   {
     final StringBuffer sb = new StringBuffer();
     final String sep = ",";
-    final boolean doUses = doUses();
     final Iterator expIt = Util.parseEntries("export.package", oldExportsVal,
                                              true, true, false );
     while (expIt.hasNext()) {
       final Map expEntry = (Map) expIt.next();
       final String pkgName = (String) expEntry.get("$key");
-      if (!providedSet.contains(pkgName)) {
+      if (!bpInfo.providesPackage(pkgName)) {
         final String msg = "The package '"+pkgName +"' is in the Export-Package"
           +" manifest header, but there is no class belonging to it."
-          +" The following packages are provided: "+providedSet;
+          +" The following packages are provided: "
+          +bpInfo.getProvidedPackages();
         log(msg, Project.MSG_ERR );
         if (failOnExports) {
           throw new BuildException(msg, getLocation());
@@ -1061,28 +1052,12 @@ public class BundleInfoTask extends Task {
       }
       final Set directives = (Set) expEntry.get("$directives");
       sb.append(pkgName);
-      if (doUses) {
-        final Set usesPkgs = (Set) packageUsingMap.get(pkgName);
+      if (doUses()) {
         if (!directives.contains("uses")) {
-          // Add a new uses directive.
-          if (null!=usesPkgs && 0<usesPkgs.size()) {
-            sb.append(";uses:=");
-            if (1<usesPkgs.size()) {
-              sb.append("\"");
-            }
-            for (Iterator usesIt=usesPkgs.iterator(); usesIt.hasNext(); ) {
-              final String usesPkg = (String) usesIt.next();
-              sb.append(usesPkg);
-              if (usesIt.hasNext()) {
-                sb.append(sep);
-              }
-            }
-            if (1<usesPkgs.size()) {
-              sb.append("\"");
-            }
-          }
+          appendUsesDirective(sb, pkgName);
         } else {
           // Validate the given uses directive.
+          final Set usesPkgs = bpInfo.getPackagesReferencedFromPackage(pkgName);
           final String usesValue = (String) expEntry.get("uses");
           final Set uPkgsMan = new TreeSet
             (Arrays.asList(Util.splitwords(usesValue, ", \t", '"')));
@@ -1151,81 +1126,6 @@ public class BundleInfoTask extends Task {
     }
   }
 
-
-  protected void addProvidedPackage(String name) {
-    if(name == null || "".equals(name)) {
-      return;
-    }
-    log(" Provides package: " + name, Project.MSG_DEBUG);
-    providedSet.add(name);
-  }
-
-
-  protected void addActivator(String s) {
-    activatorSet.add(s);
-  }
-
-  /**
-   * Add a type's package name to the list of referenced packages.
-   *
-   * @param usingPackage The package that the class referencing
-   *                     <tt>t</tt> belongs to.
-   * @param t Type of an object.
-   */
-  protected void addReferencedType(String usingPackage, Type t) {
-    if(t instanceof BasicType) {
-      log("   " +t +" skiped; basic", Project.MSG_DEBUG);
-    } else {
-      addReferencedClass(usingPackage, t.toString());
-    }
-  }
-
-  /**
-   * Add package names of all types in <code>ts</code> to the list of
-   * referenced packages.
-   *
-   * @param usingPackage The package that the class referencing
-   *                  <tt>ts</tt> belongs to.
-   * @param ts Array with Type objects.
-   */
-  protected void addReferencedType(String usingPackage, Type[] ts) {
-    for (int i = ts.length-1; i>-1; i-- ) {
-      addReferencedType(usingPackage, ts[i]);
-    }
-  }
-
-  /**
-   * Add data for a referenced class.
-   *
-   * @param usingPackage
-   *                  The package that the class referencing
-   *                  <tt>className</tt> belongs to.
-   * @param className Name of the referenced class.
-   */
-  protected void addReferencedClass(String usingPackage, String className)
-  {
-    if(className == null) {
-      return;
-    }
-
-    final String packageName = packageName(className);
-    if("".equals(packageName)) {
-      log("   " +className +" skipped; no package name", Project.MSG_DEBUG);
-      return;
-    }
-
-    classSet.add(className);
-    referencedSet.add(packageName);
-    if (null!=usingPackage) {
-      Set usingSet = (Set) packageUsingMap.get(usingPackage);
-      if (null==usingSet) {
-        usingSet = new TreeSet();
-        packageUsingMap.put(usingPackage, usingSet);
-      }
-      usingSet.add(packageName);
-    }
-  }
-
   protected boolean isImported(String className) {
     for(Iterator it = importSet.iterator(); it.hasNext(); ) {
       final String pkg = (String)it.next();
@@ -1269,8 +1169,7 @@ public class BundleInfoTask extends Task {
         final String fileName = ze.getName();
         if (fileName.endsWith(".class")) {
           log("Analyze jar class file " + fileName, Project.MSG_VERBOSE);
-          final InputStream  is = jarFile.getInputStream(ze);
-          analyzeClass( new ClassParser(is, fileName ) );
+          asmAnalyser.analyseClass(jarFile.getInputStream(ze), fileName);
         }
       }
     } catch (Exception e) {
@@ -1284,158 +1183,15 @@ public class BundleInfoTask extends Task {
     log("Analyze class file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
 
     try {
-      analyzeClass( new ClassParser(file.getAbsolutePath()) );
+      asmAnalyser.analyseClass(file);
     } catch (Exception e) {
       e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " +
-                               file + ", exception=" + e, getLocation());
+      throw new BuildException("Failed to analyze class-file "
+                               +file + ", exception=" + e,
+                               getLocation());
     }
   }
 
-  protected void analyzeClass(ClassParser parser) throws Exception {
-    final JavaClass       clazz            = parser.parse();
-    final ConstantPool    constant_pool    = clazz.getConstantPool();
-    final ConstantPoolGen constant_poolGen = new ConstantPoolGen(constant_pool);
-    final String          clazzPackage     = clazz.getPackageName();
-
-    ownClasses.add(clazz.getClassName());
-    addProvidedPackage(clazzPackage);
-
-    // Scan all implemented interfaces to find
-    // candidates for the activator AND to find
-    // all referenced packages.
-    final String[] interfaces = clazz.getInterfaceNames();
-    for(int i = 0; i < interfaces.length; i++) {
-      if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
-        addActivator(clazz.getClassName());
-        break;
-      }
-    }
-
-    /**
-     * Use a descending visitor to find all classes that the given
-     * clazz refers to and add them to the set of imported classes.
-     */
-    DescendingVisitor v = new DescendingVisitor(clazz, new EmptyVisitor() {
-        /**
-         * Keep track of the signatures visited to avoid processing
-         * them more than once. The same signature may apply to
-         * many methods or fields.
-         */
-        boolean[] visitedSignatures = new boolean[constant_pool.getLength()];
-
-        /**
-         * Add the class that the given ConstantClass object
-         * represents to the set of imported classes.
-         *
-         * @param obj The ConstantClass object
-         */
-        public void visitConstantClass( ConstantClass obj ) {
-          log(" visit constant class " +obj, Project.MSG_DEBUG);
-
-          String referencedClass = obj.getBytes(constant_pool);
-          referencedClass = referencedClass.charAt(0) == '['
-            ? Utility.signatureToString(referencedClass, false)
-            : Utility.compactClassName(referencedClass,  false);
-          addReferencedClass(clazzPackage, referencedClass);
-        }
-
-        /**
-         * Add the class used as types for the given field.
-         * This is necessary since if no method is applied to an
-         * object valued field there will be no ConstantClass object
-         * in the ConstantPool for the class that is the type of the
-         * field.
-         *
-         * @param obj A Field object
-         */
-        public void visitField( Field obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit field " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type type = Type.getType(signature);
-            addReferencedType(clazzPackage, type);
-          }
-        }
-
-        /**
-         * Add all classes used as types for a local variable in the
-         * class we are analyzing. This is necessary since if no
-         * method is applied to an object valued local variable
-         * there will be no ConstantClass object in the ConstantPool
-         * for the class that is the type of the local variable.
-         *
-         * @param obj A LocalVariable object
-         */
-        public void visitLocalVariable( LocalVariable obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit local variable " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type type = Type.getType(signature);
-            addReferencedType(clazzPackage, type);
-          }
-        }
-
-        /**
-         * Add all classes mentioned in the signature of the given
-         * method. This is necessary since if no method is applied
-         * to a parameter (return type) there will be no
-         * ConstantClass object in the ConstantPool for the class
-         * that is the type of that parameter (return type).
-         *
-         * @param obj A Method object
-         */
-        public void visitMethod( Method obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit method " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type returnType = Type.getReturnType(signature);
-            final Type[] argTypes = Type.getArgumentTypes(signature);
-            addReferencedType(clazzPackage, returnType);
-            addReferencedType(clazzPackage, argTypes);
-          }
-        }
-
-        /**
-         * Look for packages for types in signatures of methods
-         * invoked from code in the class.
-         *
-         * This typically finds packages from arguments in calls to a
-         * superclass method in the current class where no local
-         * variable (or field) was used for intermediate storage of
-         * the parameter.
-         *
-         * @param obj The Code object to visit
-         */
-        public void visitCode( Code obj ) {
-          final InstructionList il = new InstructionList(obj.getCode());
-          for (InstructionHandle ih=il.getStart(); ih!=null; ih=ih.getNext()) {
-            final Instruction inst = ih.getInstruction();
-            if (inst instanceof InvokeInstruction) {
-              final InvokeInstruction ii = (InvokeInstruction) inst;
-              log("   " +ii.toString(constant_pool), Project.MSG_DEBUG);
-
-              // These signatures have no index in the constant pool
-              // thus no check/update in visitedSignatures[].
-              final String signature = ii.getSignature(constant_poolGen);
-              final Type returnType = Type.getReturnType(signature);
-              final Type[] argTypes = Type.getArgumentTypes(signature);
-              addReferencedType(clazzPackage, returnType);
-              addReferencedType(clazzPackage, argTypes);
-            }
-          }
-        }
-
-      } );
-    // Run the scanner on the loaded class
-    v.visit();
-  }
 
   /**
    * Analyze java source file by reading line by line and looking
@@ -1468,14 +1224,14 @@ public class BundleInfoTask extends Task {
           final Vector v = StringUtils.split(line, ' ');
           if(v.size() > 1 && "package".equals(v.elementAt(0))) {
             packageName = (String)v.elementAt(1);
-            addProvidedPackage(packageName);
+            bpInfo.addProvidedPackage(packageName);
           }
         }
         if(line.startsWith("import")) {
           final Vector v = StringUtils.split(line, ' ');
           if(v.size() > 1 && "import".equals(v.elementAt(0))) {
             final String name = (String)v.elementAt(1);
-            addReferencedClass(packageName, name);
+            bpInfo.addReferencedClass(packageName, name);
           }
         }
       }
@@ -1487,20 +1243,6 @@ public class BundleInfoTask extends Task {
         try { reader.close(); } catch (Exception ignored) { }
       }
     }
-  }
-
-  /**
-   * Get package name of class string representation.
-   */
-  static String packageName(String s) {
-    s = s.trim();
-    int ix = s.lastIndexOf('.');
-    if(ix != -1) {
-      s = s.substring(0, ix);
-    } else {
-      s = "";
-    }
-    return s;
   }
 
   /**
