@@ -79,6 +79,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   "org.apache.axis.SOAPPart.setContent(Ljavax/xml/transform/Source;)V"
 
 
+  Build System
+
+  The bundle tasks that performs analysis of a bundle to derive and
+  validate manifest headers like Import-Package, Export-Package and
+  Bundle-Activator now uses the ASM 3.2 library that is included in
+  the deliverables (knopflerfish.org/osgi/framework/libs/). These
+  tasks was previously based on the BCEL library which each user had
+  to download herself.
+
+
 
 ========================================================================
 

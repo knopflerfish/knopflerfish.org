@@ -242,7 +242,7 @@
   <import file="${ant.dir}/bundletasks.xml"/>
 
   <target name="init"
-          depends="setup_build,check_bcel,bundle_tasks,setup_manifest_props">
+          depends="setup_build,bundle_tasks,setup_manifest_props">
     <tstamp>
       <format property="bundle.date"
               pattern="EE MMMM d yyyy, HH:mm:ss"

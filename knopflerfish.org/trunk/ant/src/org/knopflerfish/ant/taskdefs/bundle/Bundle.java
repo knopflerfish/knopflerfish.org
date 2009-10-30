@@ -42,28 +42,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.bcel.classfile.ClassParser;
-import org.apache.bcel.classfile.Code;
-import org.apache.bcel.classfile.ConstantClass;
-import org.apache.bcel.classfile.ConstantPool;
-import org.apache.bcel.classfile.DescendingVisitor;
-import org.apache.bcel.classfile.EmptyVisitor;
-import org.apache.bcel.classfile.Field;
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.LocalVariable;
-import org.apache.bcel.classfile.Method;
-import org.apache.bcel.classfile.Utility;
-import org.apache.bcel.generic.BasicType;
-import org.apache.bcel.generic.ConstantPoolGen;
-import org.apache.bcel.generic.InvokeInstruction;
-import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.InstructionList;
-import org.apache.bcel.generic.Instruction;
-import org.apache.bcel.generic.Type;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.FileScanner;
@@ -83,12 +66,6 @@ import org.apache.tools.ant.types.ZipFileSet;
  * builds an OSGi bundle. It can generate the Bundle-Activator,
  * Bundle-ClassPath and Import-Package manifest headers based on the content
  * specified in the task.
- * </p>
- *
- * <p>
- * <b>Note:</b> This task depends on the
- * <a href="http://jakarta.apache.org/bcel/">Apache Jakarta BCEL</a> library,
- * not included in the Ant distribution.
  * </p>
  *
  * <h3>Parameters</h3>
@@ -265,12 +242,15 @@ public class Bundle extends Jar {
 
   private Manifest generatedManifest = new Manifest();
 
-  private Set activatorClasses = new HashSet();
-  private Set availablePackages = new HashSet();
   private Set referencedPackages = new HashSet();
   private Set standardPackagePrefixes = new HashSet(); {
     standardPackagePrefixes.add("java.");
   }
+
+  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo();
+  private final ClassAnalyserASM   asmAnalyser
+    = new ClassAnalyserASM(bpInfo, this);
+
 
   /**
    * The set of classes that are refrenced from the included classes.
@@ -304,11 +284,12 @@ public class Bundle extends Jar {
             if (fileName.endsWith(".class")) {
               File file = new File(filesetBaseDir, fileName);
               try {
-                analyzeClass(new ClassParser(file.getAbsolutePath()));
-              } catch (IOException ioe) {
+                asmAnalyser.analyseClass(file);
+              } catch (Exception e) {
+                e.printStackTrace();
                 throw new BuildException
-                  ("Failed to parse class file: " +file.getAbsolutePath(),
-                   ioe);
+                  ("Failed to analyze class file " +file +", exception=" +e,
+                   getLocation());
               }
             }
           }
@@ -321,12 +302,12 @@ public class Bundle extends Jar {
               if (entries[kk].endsWith(".class")) {
                 try {
                   ZipEntry entry = zipFile.getEntry(entries[kk]);
-                  analyzeClass(new ClassParser(zipFile.getInputStream(entry),
-                                               entries[kk]));
+                  asmAnalyser.analyseClass(zipFile.getInputStream(entry),
+                                           entries[kk]);
                 } catch (IOException ioe) {
                   throw new BuildException
-                    ("Failed to parse class file " +entries[kk]
-                     +" from zip file: " +srcFile.getAbsolutePath(),
+                    ("Failed to parse analyze class file " +entries[kk]
+                     +" from zip archive: " +srcFile.getAbsolutePath(),
                      ioe);
                 }
               }
@@ -338,34 +319,42 @@ public class Bundle extends Jar {
           }
         }
       }
+      // Scan done
+      bpInfo.toJavaNames();
 
       Set publicPackages = exportPackage.keySet();
 
       if (packageAnalysis != PACKAGE_ANALYSIS_NONE) {
         for (Iterator i = publicPackages.iterator(); i.hasNext();) {
           String packageName = (String) i.next();
-          if (!availablePackages.contains(packageName)) {
-            log("Exported package not found in bundle: " + packageName, Project.MSG_WARN);
+          if (!bpInfo.providesPackage(packageName)) {
+            log("Exported package not provided by bundle: " +packageName,
+                Project.MSG_WARN);
           }
         }
       }
 
-      Set privatePackages = new HashSet(availablePackages);
+      final SortedSet privatePackages = bpInfo.getProvidedPackages();
       privatePackages.removeAll(publicPackages);
 
+      final SortedSet referencedPackages = bpInfo.getReferencedPackages();
       referencedPackages.removeAll(privatePackages);
-      for (Iterator iterator = referencedPackages.iterator(); iterator.hasNext();) {
-        String packageName = (String) iterator.next();
+      for (Iterator iterator = referencedPackages.iterator();
+           iterator.hasNext();) {
+        final String packageName = (String) iterator.next();
         if (!isStandardPackage(packageName) &&
             !importPackage.containsKey(packageName)) {
           if (packageAnalysis == PACKAGE_ANALYSIS_AUTO) {
             if (exportPackage.containsKey(packageName)) {
-              importPackage.put(packageName, exportPackage.get(packageName)); // TODO: do we want to import with version?
+              // TODO: do we want to import with version?
+              importPackage.put(packageName, exportPackage.get(packageName));
             } else {
               importPackage.put(packageName, null);
             }
           } else if (packageAnalysis == PACKAGE_ANALYSIS_WARN) {
-            log("Referenced package not found in bundle or imports: " + packageName, Project.MSG_WARN);
+            log("Referenced package not found in bundle or imports: "
+                +packageName,
+                Project.MSG_WARN);
           }
         }
       }
@@ -403,223 +392,6 @@ public class Bundle extends Jar {
     }
   }
 
-  /**
-   * Get package name of class string representation.
-   */
-  private static String packageName(String s) {
-    s = s.trim();
-    int ix = s.lastIndexOf('.');
-    if(ix != -1) {
-      s = s.substring(0, ix);
-    } else {
-      s = "";
-    }
-    return s;
-  }
-
-  /**
-   * Add a type's package name to the list of referenced packages.
-   *
-   * @param usingPackage The package that the class referencing
-   *                     <tt>t</tt> belongs to.
-   * @param t Type of an object.
-   */
-  protected void addReferencedType(String usingPackage, Type t) {
-    if(t instanceof BasicType) {
-      log("   " +t +" skiped; basic", Project.MSG_DEBUG);
-    } else {
-      addReferencedClass(usingPackage, t.toString());
-    }
-  }
-
-  /**
-   * Add package names of all types in <code>ts</code> to the list of
-   * referenced packages.
-   *
-   * @param usingPackage The package that the class referencing
-   *                  <tt>ts</tt> belongs to.
-   * @param ts Array with Type objects.
-   */
-  protected void addReferencedType(String usingPackage, Type[] ts) {
-    for (int i = ts.length-1; i>-1; i-- ) {
-      addReferencedType(usingPackage, ts[i]);
-    }
-  }
-
-  /**
-   * Add data for a referenced class.
-   *
-   * @param usingPackage
-   *                  The package that the class referencing
-   *                  <tt>className</tt> belongs to.
-   * @param className Name of the referenced class.
-   */
-  protected void addReferencedClass(String usingPackage, String className)
-  {
-    if(className == null) {
-      return;
-    }
-
-    String packageName = packageName(className);
-    if("".equals(packageName)) {
-      log("   " +className +" skipped; no package name", Project.MSG_DEBUG);
-      return;
-    }
-
-    classSet.add(className);
-    referencedPackages.add(packageName);
-    if (null!=usingPackage) {
-      Set usingSet = (Set) packageUsingMap.get(usingPackage);
-      if (null==usingSet) {
-        usingSet = new TreeSet();
-        packageUsingMap.put(usingPackage, usingSet);
-      }
-      usingSet.add(packageName);
-    }
-  }
-
-
-  private void analyzeClass(ClassParser parser) throws IOException {
-    final JavaClass       javaClass        = parser.parse();
-    final String          javaPackage      = javaClass.getPackageName();
-    final ConstantPool    constant_pool    = javaClass.getConstantPool();
-    final ConstantPoolGen constant_poolGen = new ConstantPoolGen(constant_pool);
-
-    availablePackages.add(javaClass.getPackageName());
-
-    final String[] interfaces = javaClass.getInterfaceNames();
-    for (int i = 0; i < interfaces.length; i++) {
-      if("org.osgi.framework.BundleActivator".equals(interfaces[i])) {
-        activatorClasses.add(javaClass.getClassName());
-        break;
-      }
-    }
-
-    /**
-     * Use a descending visitor to find all classes that the given
-     * clazz refers to and add them to the set of imported classes.
-     */
-    DescendingVisitor v = new DescendingVisitor(javaClass, new EmptyVisitor() {
-        /**
-         * Keep track of the signatures visited to avoid processing
-         * them more than once. The same signature may apply to
-         * many methods or fields.
-         */
-        boolean[] visitedSignatures = new boolean[constant_pool.getLength()];
-
-        /**
-         * Add the class that the given ConstantClass object
-         * represents to the set of imported classes.
-         *
-         * @param obj The ConstantClass object
-         */
-        public void visitConstantClass( ConstantClass obj ) {
-          log(" visit constant class " +obj, Project.MSG_DEBUG);
-
-          String referencedClass = obj.getBytes(constant_pool);
-          referencedClass = referencedClass.charAt(0) == '['
-            ? Utility.signatureToString(referencedClass, false)
-            : Utility.compactClassName(referencedClass,  false);
-          addReferencedClass(javaPackage,referencedClass);
-        }
-
-        /**
-         * Add the class used as types for the given field.
-         * This is necessary since if no method is applied to an
-         * object valued field there will be no ConstantClass object
-         * in the ConstantPool for the class that is the type of the
-         * field.
-         *
-         * @param obj A Field object
-         */
-        public void visitField( Field obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit field " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type type = Type.getType(signature);
-            addReferencedType(javaPackage, type);
-          }
-        }
-
-        /**
-         * Add all classes used as types for a local variable in the
-         * class we are analyzing. This is necessary since if no
-         * method is applied to an object valued local variable
-         * there will be no ConstantClass object in the ConstantPool
-         * for the class that is the type of the local variable.
-         *
-         * @param obj A LocalVariable object
-         */
-        public void visitLocalVariable( LocalVariable obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit local variable " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type type = Type.getType(signature);
-            addReferencedType(javaPackage, type);
-          }
-        }
-
-        /**
-         * Add all classes mentioned in the signature of the given
-         * method. This is necessary since if no method is applied
-         * to a parameter (return type) there will be no
-         * ConstantClass object in the ConstantPool for the class
-         * that is the type of that parameter (return type).
-         *
-         * @param obj A Method object
-         */
-        public void visitMethod( Method obj ) {
-          if (!visitedSignatures[obj.getSignatureIndex()]) {
-            log(" visit method " +obj, Project.MSG_DEBUG);
-
-            visitedSignatures[obj.getSignatureIndex()] = true;
-            final String signature = obj.getSignature();
-            final Type returnType = Type.getReturnType(signature);
-            final Type[] argTypes = Type.getArgumentTypes(signature);
-            addReferencedType(javaPackage, returnType);
-            addReferencedType(javaPackage, argTypes);
-          }
-        }
-
-        /**
-         * Look for packages for types in signatures of methods
-         * invoked from code in the class.
-         *
-         * This typically finds packages from arguments in calls to a
-         * superclass method in the current class where no local
-         * variable (or field) was used for intermediate storage of
-         * the parameter.
-         *
-         * @param obj The Code object to visit
-         */
-        public void visitCode( Code obj ) {
-          final InstructionList il = new InstructionList(obj.getCode());
-          for (InstructionHandle ih=il.getStart(); ih!=null; ih=ih.getNext()) {
-            final Instruction inst = ih.getInstruction();
-            if (inst instanceof InvokeInstruction) {
-              final InvokeInstruction ii = (InvokeInstruction) inst;
-              log("   " +ii.toString(constant_pool), Project.MSG_DEBUG);
-
-              // These signatures have no index in the constant pool
-              // thus no check/update in visitedSignatures[].
-              final String signature = ii.getSignature(constant_poolGen);
-              final Type returnType = Type.getReturnType(signature);
-              final Type[] argTypes = Type.getArgumentTypes(signature);
-              addReferencedType(javaPackage, returnType);
-              addReferencedType(javaPackage, argTypes);
-            }
-          }
-        }
-
-      } );
-    // Run the scanner on the loaded class
-    v.visit();
-  }
-
   private boolean isStandardPackage(String packageName) {
     for (Iterator i = standardPackagePrefixes.iterator(); i.hasNext();) {
       final String prefix = (String) i.next();
@@ -634,21 +406,19 @@ public class Bundle extends Jar {
     if (activator == ACTIVATOR_NONE) {
       log("No BundleActivator set", Project.MSG_DEBUG);
     } else if (activator == ACTIVATOR_AUTO) {
-      switch (activatorClasses.size()) {
+      switch (bpInfo.countProvidedActivatorClasses()) {
         case 0: {
           log("No class implementing BundleActivator found", Project.MSG_INFO);
           break;
         }
         case 1: {
-          activator = (String) activatorClasses.iterator().next();
+          activator = bpInfo.getActivatorClass();
           break;
         }
         default: {
-          log("More than one class implementing BundleActivator found:", Project.MSG_WARN);
-          for (Iterator i = activatorClasses.iterator(); i.hasNext();) {
-            String activator = (String) i.next();
-            log("  " + activator, Project.MSG_WARN);
-          }
+          log("More than one class implementing BundleActivator found: "
+              +bpInfo.providedActivatorClassesAsString(),
+              Project.MSG_WARN);
           break;
         }
       }
@@ -773,7 +543,7 @@ public class Bundle extends Jar {
     final String name = osgiPackage.getName();
     final String prefix = osgiPackage.getPrefix();
     if (name != null && prefix == null) {
-      availablePackages.add(name);
+      bpInfo.addProvidedPackage(name);
     } else if (prefix != null && name == null) {
       standardPackagePrefixes.add(prefix);
     } else {

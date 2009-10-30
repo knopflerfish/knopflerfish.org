@@ -1244,11 +1244,6 @@
     </jar>
   </target>
 
- <target name="install_bcel"
-         description="Download and install bcel in the ant/lib.">
-   <ant dir="osgi" target="install_bcel" />
- </target>
-
  <target name="build_distrib_docs"
 	 description="Builds the distrib docs"
 	 depends="htdocs, docs, bundle_doc, javadoc, jardocs"/>
