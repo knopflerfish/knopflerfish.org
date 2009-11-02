@@ -1,4 +1,4 @@
-This is the Licence for the ASM library, from http://asm.objectweb.org
+This is the Licence for the ASM library, from http://asm.ow2.org/
 ----------------------------------------------------------------------
 
 Copyright (c) 2000-2005 INRIA, France Telecom

@@ -2,7 +2,7 @@
 
 ANT_HOME=/usr/pkg
 
-if [ -f $HOME/.antrc ] ; then 
+if [ -f $HOME/.antrc ] ; then
   . $HOME/.antrc
 fi
 
@@ -12,19 +12,19 @@ if [ "$ANT_HOME" = "" ] ; then
 fi
 
 if [ "$JAVA_HOME" != "" ] ; then
-  if [ "$JAVACMD" = "" ] ; then 
+  if [ "$JAVACMD" = "" ] ; then
     JAVACMD=$JAVA_HOME/bin/java
   fi
 else
   JAVA_HOME=/usr/pkg/java/sun-1.3.1
-  if [ "$JAVACMD" = "" ] ; then 
+  if [ "$JAVACMD" = "" ] ; then
     JAVACMD=$JAVA_HOME/bin/java
   fi
 fi
- 
+
 # add in the dependency .jar files
 DIRLIBS="${ANT_HOME}/lib/java/ant/ant.jar ${ANT_HOME}/lib/java/ant/ant-nodeps.jar ${ANT_HOME}/lib/java/crimson.jar"
-LOCALLIBS="/home/wistrand/knopflerfish.org/build/lib/bcel-5.1.jar /home/wistrand/knopflerfish.org/build/lib/xalan.jar"
+LOCALLIBS="/home/wistrand/knopflerfish.org/build/lib/xalan.jar"
 
 for i in ${DIRLIBS} ${LOCALLIBS}
 do
