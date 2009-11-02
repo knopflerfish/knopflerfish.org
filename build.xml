@@ -414,6 +414,7 @@
 
           <include name="ant/**"/>
           <exclude name="ant/classes/**"/>
+          <exclude name="ant/lib/bindex.jar"/>
 
           <!--<include name="build.xml"/>-->
 
@@ -772,7 +773,6 @@
       <arg value="${obr.html.file}"/>
     </java>
   </target>
-
 
   <!--|
       | The program used to check for broken links is the W3C checklink program:

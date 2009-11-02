@@ -559,13 +559,13 @@ Framework System Properties
 
    org.knopflerfish.framework.patch
      If true AND the class org.objectweb.asm.ClassReader is available
-     (by putting the asm-3.1.jar library on the system class path), enable
+     (by putting the asm-3.2.jar library on the system class path), enable
      runtime class patching.
 
      Example:
 
      java -Dorg.knopflerfish.framework.patch=true\
-          -cp framework.jar:asm-3.1.jar \
+          -cp framework.jar:asm-3.2.jar \
          org.knopflerfish.framework.Main        
 
      Default: false
