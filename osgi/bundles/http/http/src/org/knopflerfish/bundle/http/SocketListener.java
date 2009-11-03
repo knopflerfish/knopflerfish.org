@@ -343,21 +343,32 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
         if (thread != null)
             thread.interrupt();
 
-        try {
-            if (socket != null) {
-
-                // ?? why is close not always called if socket != NULL
-
-                int port = socket.getLocalPort();
-                InetAddress address = socket.getInetAddress();
-                if (address.getHostAddress().equals(zeroAddress))
+        if (socket != null) {
+            // Try different ways to find out local address.
+            int port = socket.getLocalPort();
+            InetAddress address = socket.getInetAddress();
+            if (address.getHostAddress().equals(zeroAddress)) {
+                try {
                     address = InetAddress.getLocalHost();
-                (new Socket(address, port)).close();
-
+                } catch (UnknownHostException ignore) {
+                    try {
+                        address = InetAddress.getByName("localhost");
+                    } catch (UnknownHostException ignore2) {
+                        try {
+                            address = InetAddress.getByName("127.0.0.1");
+                        } catch (UnknownHostException e) {
+                            log.error("Failed to get local address", e);
+                        }
+                    }
+                }
             }
-        } catch (IOException ignore) {
-        } finally {
-            socket = null;
+            try {
+                (new Socket(address, port)).close();
+            } catch (IOException ignore) {
+                // Socket could already be closed?!
+            } finally {
+                socket = null;
+            }
         }
 
         try {
@@ -366,7 +377,6 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
         } catch (InterruptedException ignore) {
         }
         thread = null;
-
     }
 
     public void destroy() {
