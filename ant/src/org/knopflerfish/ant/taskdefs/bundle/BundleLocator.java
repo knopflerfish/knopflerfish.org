@@ -36,18 +36,19 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.osgi.framework.Version;
 import org.osgi.framework.Constants;
@@ -76,10 +77,10 @@ import org.apache.tools.ant.util.FileUtils;
  * <tt><em>Major</em>.<em>Minor</em>.<em>Micro</em>.<em>Qualifier</em></tt>
  * where major, minor and micro are integers, and all parts of the
  * version except major are optional. See {@link
- * org.osgi.framework.Version#Version(java.lang.String) org.osgi.framework.Version}
- * for details. The version formatting used by Maven 2 is also
- * recognized, i.e., a '&#x2011;' between the micro and qualifier
- * fields:
+ * org.osgi.framework.Version#Version(java.lang.String)
+ * org.osgi.framework.Version} for details. The version formatting
+ * used by Maven 2 is also recognized, i.e., a '&#x2011;' between the
+ * micro and qualifier fields:
  * <tt><em>Major</em>.<em>Minor</em>.<em>Micro</em>&#x2011;<em>Qualifier</em></tt>.
  *
  * <p>
@@ -98,20 +99,25 @@ import org.apache.tools.ant.util.FileUtils;
  *
  * will set the project property <tt>http.path</tt> to the absolute
  * path of the highest version of the bundle named <tt>http</tt>
- * within the given file set.
+ * within the given file set. By setting the <tt>bundleName</tt>
+ * to <tt>http-1.N.N</tt> the task will select the highest version of
+ * the <tt>http</tt>-bundle with the restriction that the Major part
+ * of the version number of the selection must be exactly <tt>1</tt>.
  *
  * <p>
  *
  * The bundle locator task can also iterate over a path and replace
- * all non-existing file resources in it that either has a name
- * ending with <tt>-N.N.N.jar</tt> or that is the symbolic name of a
- * bundle with the corresponding bundle with the highest version of
- * the matching bundle from the given file set. Non-existing path
- * entries that does not end in <tt>.jar</tt> or <tt>.zip</tt> that
- * does not match a symbolic bundle name will trigger a build error if
+ * all non-existing file resources in it that either has a name ending
+ * with <tt>-N.N.N.jar</tt> or that is the symbolic name of a bundle
+ * with the corresponding bundle with the highest version of the
+ * matching bundle from the given file set. Non-existing path entries
+ * that does not end in <tt>.jar</tt> or <tt>.zip</tt> that does not
+ * match a symbolic bundle name will trigger a build error if
  * <tt>failOnMissingBundles</tt> is set to <tt>true</tt>. The same
  * applies to path entries ending with <tt>-N.N.N.jar</tt> that does
- * not yield a match.
+ * not yield a match. The search may be further restricted to specific
+ * versions by replacing the <tt>N</tt> in the resource name with a
+ * specific version number.
  *
  * <pre>
  *   &lt;bundle_locator classPathRef="bundle.path"
@@ -157,9 +163,9 @@ import org.apache.tools.ant.util.FileUtils;
  * Finally this task may also be used to create a properties file
  * suitable for using as a replacement filter that will replace bundle
  * names on the form <tt>@name-N.N.N.jar@</tt> or bundle symbolic
- * names on the form <tt>@bundleSymbolicName@</tt> with the relative
- * path within the given file set of the bundle with the given name
- * and the highest version.
+ * names on the form <tt>@bundleSymbolicName.jar@</tt> with the
+ * relative path within the given file set of the bundle with the
+ * given name and the highest version.
  *
  * <pre>
  *   &lt;bundle_locator replacefilterfile="my.filter"&gt;
@@ -269,7 +275,7 @@ import org.apache.tools.ant.util.FileUtils;
  *   <td valign=top>failOnMissingBundles</td>
  *   <td valign=top>
  *
- *     If an entry with the file with name
+ *     If an entry with a file name like
  *     <tt><em>bundleName</em>-N.N.N.jar</tt> is found on the
  *     classpath to transform and there is no matching bundle in the
  *     file set then a build failure is triggered if this attribute is
@@ -393,18 +399,18 @@ public class BundleLocator extends Task {
    * A list with all BundeInfo-objects that has been created in the
    * order that they are specified through the included file sets.
    */
-  final private List allBis = new ArrayList();
+  final private SortedSet allBis = new TreeSet();
 
   /**
-   * Mapping from bundle symbolic name to the BundleInfo object of the
-   * bundle within the file set with the highest version.
+   * Mapping from bundle symbolic name to a sorted set with all
+   * BundleInfo objects of that bundle.
    */
   final private Map bsnMap = new HashMap();
 
   /**
    * Mapping that for bundles named like <tt>bundleName-N.N.N.jar</tt>
-   * maos from the <tt>bundleName</tt> part to the BundleInfo object
-   * of the bundle within the file set with the highest version.
+   * maps from the <tt>bundleName</tt> part to a sorted set of
+   * BundleInfo objects for all matching bundles.
    */
   final private Map bundleMap = new HashMap();
 
@@ -486,7 +492,7 @@ public class BundleLocator extends Task {
   /**
    * Holder of the value in the bundle version map.
    */
-  static class BundleInfo
+  static class BundleInfo implements Comparable
   {
     /** The short bundle name. I.e., the name to the left of the last '-'.*/
     public String  name;
@@ -500,6 +506,20 @@ public class BundleLocator extends Task {
     public String  relPath;
     /** The absolute path of the bundle. */
     public File file;
+
+    /** Sort on bundle symbolic name then on the bundle version. */
+    public int compareTo(Object o)
+    {
+      BundleInfo other = (BundleInfo) o;
+
+      // The bsn may be null for pre OSGi R4 bundles!
+      if (null==this.bsn || null==other.bsn) {
+        return this.name.compareTo(other.name);
+      }
+
+      int res = this.bsn.compareTo(other.bsn);
+      return res!=0 ? res : this.version.compareTo(other.version);
+    }
 
     public String toString()
     {
@@ -662,15 +682,165 @@ public class BundleLocator extends Task {
   {
     if (null==key) return;
 
-    final BundleInfo oldBi = (BundleInfo) map.get(key);
-    if (null==oldBi) {
-      map.put(key, bi);
+    SortedSet bis = (SortedSet) map.get(key);
+    if (null==bis) {
+      bis = new TreeSet();
+      map.put(key, bis);
       log("Found bundle '" +key +"'.", Project.MSG_DEBUG);
-    } else if (bi.version.compareTo(oldBi.version)>0) {
-      map.put(key, bi);
-      log("Found better version of '" +key +"'.", Project.MSG_DEBUG);
+    }
+    if (bis.add(bi)) {
+      log("Found bundle '" +key +"' '" +bi.version +"'.", Project.MSG_DEBUG);
     }
   }
+
+  /**
+   * Chgeck if the given bundle name contains a wildcard version descriptor.
+   *
+   *
+   * @param name The bundle name to check.
+   *
+   * @return <code>true</code> if a bundle version with wildcard is
+   *         part of the bundle name, <code>false</code> otherwise.
+   */
+  private boolean isBundleNameWithWildcardVersion(final String name)
+  {
+    final Pattern pattern = Pattern.compile
+      ("^(.+)-(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.([-_0-9a-zA-Z]+))))(?:.jar|.zip)$");
+    final Matcher matcher = pattern.matcher(name);
+    if (matcher.matches()) {
+      for (int i=2; i<6; i++) {
+        final String s = matcher.group(i);
+        if ("N".equals(s)) return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Get the bundle info for the given bundle name.
+   *
+   * <ol>
+   *  <li> Remove any <tt>.jar</tt> or <tt>.zip</tt> suffix form the name.
+   *  <li> If <code>name</code> is a bundle name prefix return the
+   *       highest version of that bundle.
+   *  <li> If <code>name</code> is a symbolic bundle name return the
+   *       highest version of that bundle.
+   *  <li> Try to find a bundle version as part if the bundle name,
+   *       use that version to select the bundle.
+   * </ol>
+   *
+   * @param name Name of the bundle to look for. May contain a version
+   *             suffix.
+   *
+   * @return <code>null</code> if no matching bundle info was found.
+   */
+  private BundleInfo getBundleInfo(String name)
+  {
+    log("getBundleInfo("+name +")", Project.MSG_DEBUG);
+    if (null==name || 0==name.length()) return null;
+
+    if (name.endsWith(".jar")) name = name.substring(0, name.length()-4);
+    if (name.endsWith(".zip")) name = name.substring(0, name.length()-4);
+    if (name.endsWith("-N.N.N")) name = name.substring(0, name.length() -6);
+
+    SortedSet bis = (SortedSet) bundleMap.get(name);
+    if (null==bis) bis = (SortedSet) bsnMap.get(name);
+    if (null!=bis) {
+      final BundleInfo bi = (BundleInfo) bis.last();
+      log("getBundleInfo("+name +")->"+bi, Project.MSG_VERBOSE);
+      return bi;
+    }
+
+    final Pattern pattern = Pattern.compile
+      ("^(.+)-(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.([-_0-9a-zA-Z]+))))$");
+    final Matcher matcher = pattern.matcher(name);
+    if (matcher.matches()) {
+      int groupCount = matcher.groupCount();
+      name = matcher.group(1);
+      String version = "";
+      int level = -1;
+
+      for (int i=2; i<6; i++) {
+        final String s = matcher.group(i);
+        if (null==s || "N".equals(s)) {// Done;
+          break;
+        }
+        level++;
+        if (version.length()>0) version += ".";
+        version += s;
+      }
+      if (level<0) {
+        return getBundleInfo(name, null, null);
+      } else {
+        Version min = new Version(version);
+        Version max = null;
+
+        switch(level) {
+        case 0:
+          max = new Version(min.getMajor()+1, 0, 0,"");
+          break;
+        case 1:
+          max = new Version(min.getMajor(), min.getMinor()+1, 0,"");
+          break;
+        case 2:
+          max = new Version(min.getMajor(), min.getMinor(), min.getMicro()+1,
+                            "");
+          break;
+        default:
+          max = min;
+        }
+        return getBundleInfo(name, min, max);
+      }
+    } else {
+      log("getBundleInfo(" +name +") no valid version found in the name.",
+          Project.MSG_VERBOSE);
+    }
+    return null;
+  }
+
+  /**
+   * Get the bundle info with the highest version within the given
+   * intervall for the given bundle.
+   *
+   * @param name Name of the bundle to look for. Either the part of
+   *             the file name that cames before the file version or
+   *             the bundle symbolic name.
+   * @param min  The lowest acceptable version number (inclusive).
+   * @param max  The highest acceptable version number (exclusive). If
+   *             null the highest version of this bundle will be
+   *             selected.
+   * @return <code>null</code> if no matching bundle info was found.
+   *
+   */
+  private BundleInfo getBundleInfo(final String name,
+                                   Version min,
+                                   final Version max)
+  {
+    SortedSet bis = (SortedSet)  bundleMap.get(name);
+    if (null==bis) {
+      bis = (SortedSet) bsnMap.get(encodeBundleName(name));
+    }
+    BundleInfo bi = null;
+
+    if (null!=bis) {
+      if (null==max) { // Select highest available version
+        bi = (BundleInfo) bis.last();
+      } else {
+        if (null==min) min = Version.emptyVersion;
+        for (Iterator it = bis.iterator(); it.hasNext(); ) {
+          final BundleInfo candBi = (BundleInfo) it.next();
+          if (candBi.version.compareTo(min)<0) continue;
+          if (candBi.version.compareTo(max)>=0) break;
+          bi = candBi;
+        }
+      }
+    }
+
+    log("getBundleInfo("+name +", " +min +", " +max +")->"+bi,
+        Project.MSG_VERBOSE);
+    return bi;
+  }
+
 
   /**
    * Traverses the given file sets, identify files that are bundles
@@ -714,8 +884,7 @@ public class BundleLocator extends Task {
                            final String propName)
   {
     log("Searching for a bundle with name '" +bn +"'.", Project.MSG_DEBUG);
-    BundleInfo bi = (BundleInfo) bundleMap.get(bn);
-    if (null==bi) bi = (BundleInfo) bsnMap.get(encodeBundleName(bn));
+    BundleInfo bi = getBundleInfo(bn);
 
     if (bi!=null) {
       project.setProperty(propName, bi.file.getAbsolutePath());
@@ -724,9 +893,10 @@ public class BundleLocator extends Task {
       final int logLevel = failOnMissingBundles
         ? Project.MSG_ERR : Project.MSG_INFO;
       log("No bundle with name '" +bn +"' found.", logLevel);
-      TreeSet knownNames = new TreeSet(bundleMap.keySet());
+      final TreeSet knownNames = new TreeSet(bundleMap.keySet());
       knownNames.addAll(bsnMap.keySet());
       log("Known bundles names: " +knownNames, logLevel);
+
       if (failOnMissingBundles) {
         throw new BuildException("No bundle with name '" +bn+"' found.");
       }
@@ -782,22 +952,13 @@ public class BundleLocator extends Task {
           log("Found non existing path element: " +pathElement,
               Project.MSG_DEBUG);
           final String fileName = pathElement.getName();
-          BundleInfo bi = null;
-          boolean doTransformPathElement = false;
-          if (fileName.endsWith("-N.N.N.jar")) {
-            doTransformPathElement |= true;
-            final String key = fileName.substring(0,fileName.length() -10);
-            bi = (BundleInfo) bundleMap.get(key);
-          } else if (!fileName.endsWith(".jar") && !fileName.endsWith(".zip")) {
-            doTransformPathElement |= true;
-            bi = (BundleInfo) bsnMap.get(encodeBundleName(fileName));
-          }
+          final BundleInfo bi = getBundleInfo(fileName);
           if (bi!=null) {
             final String filePath = bi.file.getAbsolutePath();
             newPath.setPath(filePath);
             added = true;
             log(fileName +" => " +filePath, Project.MSG_VERBOSE);
-          } else if (doTransformPathElement) {
+          } else if (isBundleNameWithWildcardVersion(fileName)) {
             final int logLevel = failOnMissingBundles
               ? Project.MSG_ERR : Project.MSG_INFO;
             log("No match for '" +fileName +"' when expanding the path named '"
@@ -809,6 +970,9 @@ public class BundleLocator extends Task {
               throw new BuildException
                 ("No bundle with name like '" +fileName+"' found.");
             }
+          } else {
+            log("No match for '" +fileName +"' when expanding the path named '"
+                +classPathRef.getRefId() +"'.", Project.MSG_VERBOSE);
           }
         }
         if (!added) {
@@ -837,6 +1001,35 @@ public class BundleLocator extends Task {
   } // end of create pattern set for bundles
 
 
+  /**
+   * Get the set of version patterns (partial versions) used in the
+   * keys in replacement filters for the given version.
+   * @param version The version to create patterns for.
+   * @return Set of version patterns.
+   */
+  private String[] getVersionPatterns(Version version)
+  {
+    if (null==version) {
+      return new String[]{"-N.N.N"};
+    }
+
+    final String qualifier = version.getQualifier();
+    final boolean usesQualifier = null != qualifier && qualifier.length() > 0;
+    final String[] res = new String[usesQualifier ? 5 : 4];
+
+    res[0] = "-N.N.N";
+    res[1] = "-" +version.getMajor() +".N.N";
+    res[2] = "-" +version.getMajor() +"." +version.getMinor() +".N";
+    res[3] = "-" +version.getMajor() +"." +version.getMinor()
+      +"." +version.getMicro();
+    if (usesQualifier) {
+      res[4] = "-" +version.getMajor() +"." +version.getMinor()
+        +"." +version.getMicro() +"." +version.getQualifier();
+    }
+
+    return res;
+  }
+
   private void writeReplaceFilterFile()
   {
     final Properties props = new Properties();
@@ -844,12 +1037,38 @@ public class BundleLocator extends Task {
       final BundleInfo bi = (BundleInfo) it.next();
       //Note: since the path is an URL we must ensure that '/' is used.
       final String relPath = bi.relPath.replace('\\','/');
-      props.put("@" +bi.bsn +".jar@", relPath);
-      if (null!=bi.name) {
-        props.put("@" +bi.name +"-N.N.N.jar@", relPath);
+      final String[] versPatterns = getVersionPatterns(bi.version);
+
+      if (null!=bi.bsn) {
+        props.put("@" +bi.bsn +".jar@", relPath);
+        if (extendedReplaceFilter) {
+          props.put("@" +bi.bsn +".location@", bi.file.getAbsolutePath());
+          props.put("@" +bi.bsn +".name@", bi.bsn);
+          props.put("@" +bi.bsn +".version@", bi.version.toString());
+        }
+        for (int i=0; i<versPatterns.length; i++) {
+          final String prefix = "@" +bi.bsn +versPatterns[i];
+          props.put(prefix +".jar@", relPath);
+          if (extendedReplaceFilter) {
+            props.put(prefix +".location@", bi.file.getAbsolutePath());
+            props.put(prefix +".name@", bi.bsn);
+            props.put(prefix +".version@", bi.version.toString());
+          }
+        }
       }
-      if (extendedReplaceFilter) {
-        addExtendedProps(props, bi);
+
+      if (null!=bi.name) {
+        for (int i=0; i<versPatterns.length; i++) {
+          final String prefix = "@" +bi.name +versPatterns[i];
+          props.put(prefix +".jar@", relPath);
+          if (extendedReplaceFilter) {
+            props.put(prefix +".location@", bi.file.getAbsolutePath());
+            if (null!=bi.bsn) {
+              props.put(prefix +".name@", bi.bsn);
+            }
+            props.put(prefix +".version@", bi.version.toString());
+          }
+        }
       }
     }
     OutputStream out = null;
@@ -866,21 +1085,6 @@ public class BundleLocator extends Task {
         try { out.close(); } catch (IOException _ioe) {}
         log("Created: "+replacefilterfile, Project.MSG_VERBOSE);
       }
-    }
-  }
-
-  private void addExtendedProps(final Properties props, final BundleInfo bi)
-  {
-    if (null!=bi.name) {
-      final String prefix = "@" +bi.name +"-N.N.N.";
-      props.put(prefix +"location@", bi.file.getAbsolutePath());
-      if (null!=bi.bsn)     props.put(prefix +"name@",   bi.bsn);
-      if (null!=bi.version) props.put(prefix +"version@",bi.version.toString());
-    }
-    if (null!=bi.bsn) {
-      props.put("@" +bi.bsn +".location@", bi.file.getAbsolutePath());
-      props.put("@" +bi.bsn +".name@",     bi.bsn);
-      props.put("@" +bi.bsn +".version@",  bi.version.toString());
     }
   }
 

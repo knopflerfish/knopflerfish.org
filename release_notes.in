@@ -88,6 +88,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   tasks was previously based on the BCEL library which each user had
   to download herself.
 
+  The BundleLocator task now supports version wild-cards like 1.N.N
+  and 3.2.N to search for bundles with major (major and minor) version
+  parts locked. Previously it only supported wild-cards selecting the
+  highest available version.
 
 
 ========================================================================
