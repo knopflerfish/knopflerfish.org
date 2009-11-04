@@ -22,6 +22,8 @@
  <target name="clean" description="removes all generated files">
   <delete dir="javadoc"/>
   <delete dir="classes"/>
+  <!-- Remove the now obsolete BCEL jar if still present. -->
+  <delete dir="lib" includes="bcel-*.jar"/>
  </target>
 
 </project>
