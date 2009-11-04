@@ -124,10 +124,10 @@
     <delete dir="repo"/>
     <delete dir="${distrib.out.dir}"      />
     <delete dir="${javadoc.out.dir}"      />
-    <ant    dir="htdocs"            target="clean" />
-    <ant    dir="osgi"              target="clean" />
+    <ant    dir="htdocs"             target="clean" />
+    <ant    dir="osgi"               target="clean" />
     <ant    dir="${jarunpacker.dir}" target="clean"/>
-    <ant    dir="ant"               target="clean" />
+    <ant    dir="ant"                target="clean" />
   </target>
 
   <target name = "version"
