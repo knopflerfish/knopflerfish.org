@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import org.osgi.framework.ServiceReference;
 public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
   public ServiceHTMLDisplayer(BundleContext bc) {
-    super(bc, "Services", "Shows bundle services", true); 
+    super(bc, "Services", "Shows bundle services", true);
 
     bUseListeners          = true;
     bUpdateOnBundleChange  = true;
@@ -61,7 +61,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
   public void valueChanged(long bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
-    
+
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JHTML comp = (JHTML)it.next();
       comp.valueChanged(bl);
@@ -73,91 +73,91 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
     JHTML(DefaultSwingBundleDisplayer displayer) {
       super(displayer);
     }
-    
+
     public StringBuffer  bundleInfo(Bundle b) {
       StringBuffer sb = new StringBuffer();
-     
+
       try {
-	ServiceReference[] srl = Activator.getTargetBC().getServiceReferences(null, null);
-	
-	int nExport = 0;
-	int nImport = 0;
-	for(int i = 0; srl != null && i < srl.length; i++) {
-	  if(srl[i].getBundle().getBundleId() == b.getBundleId()) {
-	    nExport++;
-	  }
-	  Bundle[] bl = srl[i].getUsingBundles();
-	  for(int j = 0; bl != null && j < bl.length; j++) {
-	    if(bl[j].getBundleId() == b.getBundleId()) {
-	      nImport++;
-	    }
-	  }
-	}
+        ServiceReference[] srl = Activator.getTargetBC().getServiceReferences(null, null);
 
-	startFont(sb);
+        int nExport = 0;
+        int nImport = 0;
+        for(int i = 0; srl != null && i < srl.length; i++) {
+          if(srl[i].getBundle().getBundleId() == b.getBundleId()) {
+            nExport++;
+          }
+          Bundle[] bl = srl[i].getUsingBundles();
+          for(int j = 0; bl != null && j < bl.length; j++) {
+            if(bl[j].getBundleId() == b.getBundleId()) {
+              nImport++;
+            }
+          }
+        }
 
-	if(nExport > 0) {
-	  sb.append("<b>Exported services</b>");
-	  
-	  for(int i = 0; srl != null && i < srl.length; i++) {
-	    if(srl[i].getBundle().getBundleId() == b.getBundleId()) {
-	      String[] cl = (String[])srl[i].getProperty(Constants.OBJECTCLASS);
-	      Bundle[] bl = srl[i].getUsingBundles();
-	      
-	      for(int j = 0; j < cl.length; j++) {
-		sb.append("<br>");
-		sb.append("#");
-		Util.serviceLink(sb, srl[i], "" + srl[i].getProperty(Constants.SERVICE_ID));
-		sb.append(" ");
-		sb.append(cl[j]);
-	      }
-	      
-	      if(bl != null && bl.length > 0) {
-		//	      sb.append("<b>Used by</b><br>");
-		for(int j = 0; bl != null && j < bl.length; j++) {
-		  sb.append("<br>");
-		  sb.append("&nbsp;&nbsp;");
-		  Util.bundleLink(sb, bl[j]);
-		}
-	      }
-	    }
-	  }
-	}
+        startFont(sb);
 
-	if(nImport > 0) {
-	  sb.append("<br><b>Imported services</b>");
-	  for(int i = 0; srl != null && i < srl.length; i++) {
-	    Bundle[] bl = srl[i].getUsingBundles();
-	    for(int j = 0; bl != null && j < bl.length; j++) {
-	      if(bl[j].getBundleId() == b.getBundleId()) {
-		String[] cl = (String[])srl[i].getProperty(Constants.OBJECTCLASS);
-		for(int k = 0; k < cl.length; k++) {
-		  sb.append("<br>");
-		  sb.append("#");
-		  Util.serviceLink(sb, srl[i], "" + srl[i].getProperty(Constants.SERVICE_ID));
-		  sb.append(" ");
-		  sb.append(cl[k]);
-		}
-		sb.append("<br>");
-		sb.append("&nbsp;&nbsp;");
-		Util.bundleLink(sb, bl[j]);
-	      }
-	    }
-	  }
-	}
-	sb.append("</font>");
+        if(nExport > 0) {
+          sb.append("<b>Exported services</b>");
+
+          for(int i = 0; srl != null && i < srl.length; i++) {
+            Bundle srlb = srl[i].getBundle();
+            if(null!=srlb && srlb.getBundleId() == b.getBundleId()) {
+              String[] cl = (String[])srl[i].getProperty(Constants.OBJECTCLASS);
+              Bundle[] bl = srl[i].getUsingBundles();
+
+              for(int j = 0; j < cl.length; j++) {
+                sb.append("<br>");
+                sb.append("#");
+                Util.serviceLink(sb, srl[i], "" + srl[i].getProperty(Constants.SERVICE_ID));
+                sb.append(" ");
+                sb.append(cl[j]);
+              }
+
+              if(bl != null && bl.length > 0) {
+                //            sb.append("<b>Used by</b><br>");
+                for(int j = 0; bl != null && j < bl.length; j++) {
+                  sb.append("<br>");
+                  sb.append("&nbsp;&nbsp;");
+                  Util.bundleLink(sb, bl[j]);
+                }
+              }
+            }
+          }
+        }
+
+        if(nImport > 0) {
+          sb.append("<br><b>Imported services</b>");
+          for(int i = 0; srl != null && i < srl.length; i++) {
+            Bundle[] bl = srl[i].getUsingBundles();
+            for(int j = 0; bl != null && j < bl.length; j++) {
+              if(bl[j].getBundleId() == b.getBundleId()) {
+                String[] cl = (String[])srl[i].getProperty(Constants.OBJECTCLASS);
+                for(int k = 0; k < cl.length; k++) {
+                  sb.append("<br>");
+                  sb.append("#");
+                  Util.serviceLink(sb, srl[i], "" + srl[i].getProperty(Constants.SERVICE_ID));
+                  sb.append(" ");
+                  sb.append(cl[k]);
+                }
+                sb.append("<br>");
+                sb.append("&nbsp;&nbsp;");
+                Util.bundleLink(sb, bl[j]);
+              }
+            }
+          }
+        }
+        sb.append("</font>");
       } catch (Exception e) {
-	e.printStackTrace();
+        e.printStackTrace();
       }
       Dictionary headers = b.getHeaders();
-      
+
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
-      
+
       sb.append("</table>");
       return sb;
     }
 
   }
-  
-}
 
+}
