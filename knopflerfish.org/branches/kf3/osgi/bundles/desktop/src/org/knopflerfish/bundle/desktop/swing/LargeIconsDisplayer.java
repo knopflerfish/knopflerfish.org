@@ -73,6 +73,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -194,6 +195,29 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
+    class SelectAllAction extends AbstractAction
+    {
+      static final String SELECT_ALL = "selectAll";
+
+      public SelectAllAction()
+      {
+      }
+
+      public void actionPerformed(ActionEvent e)
+      {
+        final Component[] comps = panel.getComponents();
+        final String bidKey = LargeIconsDisplayer.class.getName() +".bid";
+        for (int i=0; i<comps.length; i++) {
+          final JComponent comp = (JComponent) comps[i];
+          final Long bidL = (Long) comp.getClientProperty(bidKey);
+          final long bid = null==bidL ? -1 : bidL.longValue();
+          if (0<=bid) {
+            bundleSelModel.setSelected(bid, true);
+          }
+        }
+      }
+    }
+
     public JLargeIcons() {
       setLayout(new BorderLayout());
       setBackground(Color.white);
@@ -209,6 +233,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       actionMap.put(moveSelDownAction,  new MoveSelectionAction(2));
       actionMap.put(moveSelLeftAction,  new MoveSelectionAction(-1));
       actionMap.put(moveSelRightAction, new MoveSelectionAction(1));
+      actionMap.put(SelectAllAction.SELECT_ALL, new SelectAllAction());
 
       final InputMap inputMap
         = panel.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
@@ -228,6 +253,10 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       inputMap.put(right, moveSelRightAction);
       final KeyStroke kpRight = KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT, 0);
       inputMap.put(kpRight, moveSelRightAction);
+
+      final int mask = getToolkit().getMenuShortcutKeyMask();
+      final KeyStroke ctrlA = KeyStroke.getKeyStroke(KeyEvent.VK_A, mask);
+      inputMap.put(ctrlA, SelectAllAction.SELECT_ALL);
 
       contextPopupMenu = new JPopupMenu();
 
@@ -307,7 +336,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               final Rectangle cBounds = c.getBounds();
               scroll.getViewport().scrollRectToVisible(cBounds);
               compToShow = null;
-              // Work around for viewPort.scrollRectToVisible
+              // Work around for viewport.scrollRectToVisible
               // which never scrolls to the right or up...
               final Rectangle viewRect = scroll.getViewport().getViewRect();
 
@@ -466,6 +495,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     void rebuildPanel0() {
+
       panel.removeAll();
 
       Set set = new TreeSet(iconComparator);
@@ -481,17 +511,31 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         h = Math.max(h, size.height);
       }
 
+      // The viewport extent and size will be 0 during the first
+      // layout (i.e., first call here) but the size of the panel will
+      // be set, thus use it to guestimate the number of columns to
+      // use.
+      final JViewport viewport = scroll.getViewport();
+      final Dimension viewportExtent = viewport.getExtentSize();
+      final Dimension viewportSize = viewport.getSize();
+      final Dimension size = getSize();
 
-      Dimension size = scroll.getViewport().getExtentSize();
-
-      if(size.width != 0) {
+      if(viewportExtent.width != 0) {
+        grid.setColumns(viewportExtent.width<w ? 1 : viewportExtent.width / w);
+        grid.setRows(0);
+      } else if (0!=viewportSize.width) {
+        // Use viewport width as approximation to viewport extent width.
+        grid.setColumns(viewportSize.width<w ? 1 : viewportSize.width / w);
+        grid.setRows(0);
+      } else if (0!=size.width) {
+        // Use panel width as approximation to viewport extent width.
         grid.setColumns(size.width<w ? 1 : size.width / w);
-          grid.setRows(0);
+        grid.setRows(0);
       }
 
       for(Iterator it = set.iterator(); it.hasNext(); ) {
-        Long      bid = (Long)it.next();
-        Component c   = (Component)bundleMap.get(bid);
+        final Long bid = (Long)it.next();
+        final Component c = (Component)bundleMap.get(bid);
         panel.add(c);
       }
 

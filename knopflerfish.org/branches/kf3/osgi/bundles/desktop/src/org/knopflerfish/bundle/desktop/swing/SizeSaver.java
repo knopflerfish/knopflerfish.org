@@ -93,7 +93,7 @@ public class SizeSaver extends ComponentAdapter {
     Preferences prefs = getPrefs();
 
     if(comp instanceof JFrame) {
-      Toolkit tk = Toolkit.getDefaultToolkit();
+      Toolkit tk = comp.getToolkit();
       if(tk.isFrameStateSupported(Frame.MAXIMIZED_VERT) ||
          tk.isFrameStateSupported(Frame.MAXIMIZED_HORIZ) ||
          tk.isFrameStateSupported(Frame.MAXIMIZED_BOTH)) {
@@ -112,6 +112,13 @@ public class SizeSaver extends ComponentAdapter {
       if(pos != -1) {
         // System.out.println("attach " + id + " split=" + pos);
         split.setDividerLocation(pos);
+        // Tell components that they may want to redo its layout
+        Component parent = split.getParent();
+        if (null!=parent) {
+          parent.invalidate();
+        } else {
+          split.invalidate();
+        }
       }
 
       splitListener = new ComponentAdapter() {
@@ -172,6 +179,14 @@ public class SizeSaver extends ComponentAdapter {
     }
 
     Preferences prefs     = prefsBase.node(NODE_NAME + "/" + spid + "/" + id);
+    try {
+      prefs.sync(); // Get the latest version of the node.
+    } catch (Exception e) {
+      errCount++;
+      if(errCount < maxErr) {
+        Activator.log.warn("Failed to get id=" + id, e);
+      }
+    }
     return prefs;
   }
 
