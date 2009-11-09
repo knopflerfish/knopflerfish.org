@@ -1074,6 +1074,10 @@ public class Desktop
 
   public void setSelected(Bundle b) {
     bundleSelModel.clearSelection();
+    ensureSelected(b);
+  }
+
+  public void ensureSelected(Bundle b) {
     bundleSelModel.setSelected(b.getBundleId(), true);
     updateStatusBar();
   }
@@ -2280,7 +2284,7 @@ public class Desktop
                                   true);
       if(bUpdateIsUpdate || b == Activator.getBC().getBundle()) {
         b.update();
-        if (wasSelected) setSelected(b);
+        if (wasSelected) ensureSelected(b);
       } else {
         String location = (String)b.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
         if(location == null || "".equals(location)) {
@@ -2293,7 +2297,7 @@ public class Desktop
           if(Util.canBeStarted(newBundle)) {
             startBundle(newBundle);
           }
-          if (wasSelected) setSelected(newBundle);
+          if (wasSelected) ensureSelected(newBundle);
         }
       }
     } catch (Exception e) {

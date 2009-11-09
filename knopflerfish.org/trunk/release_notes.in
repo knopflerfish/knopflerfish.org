@@ -45,6 +45,20 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
+  Desktop Bundle 2.3.14
+
+  If multiple bundles where selected when doing an update all bundles
+  but one was de-selected after the update. The pre-update selection
+  state is now preserved.
+
+  The initial number of columns in the bundles display is now adjusted
+  based on the size of that display (as when manually moving the split
+  pane divider).
+
+  Pressing Control-A (Command-A) in the large icons displayer now
+  selects all bundles.
+
+
   Desktop Bundle 2.3.13
 
   The selection in the large icon displayer may now be changed using
