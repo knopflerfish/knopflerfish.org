@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop
-Bundle-Version: 2.3.13
+Bundle-Version: 2.3.14
 Bundle-Category: console
-Bundle-Description: Swing framework desktop
+Bundle-Description: Swing based OSGi desktop
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
 Bundle-DocURL: http://www.knopflerfish.org/desktop.html

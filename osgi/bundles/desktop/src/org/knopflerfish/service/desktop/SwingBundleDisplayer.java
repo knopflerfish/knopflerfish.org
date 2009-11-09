@@ -87,17 +87,17 @@ import javax.swing.Icon;
  * The bundle selection is described by an <a href="BundleSelectionModel.html"><tt>BundleSelectionModel</tt></a>,
  * and displayer should be prepared to display different content
  * depending on which bundles are selected. To modify the selection
- * (and thus update all other registered displayers), use the 
- * <tt>setSelection</tt> and <tt>clearSelection</tt> methods in the 
- * <tt>BundleSelectionModel</tt> 
+ * (and thus update all other registered displayers), use the
+ * <tt>setSelection</tt> and <tt>clearSelection</tt> methods in the
+ * <tt>BundleSelectionModel</tt>
  * </p>
  *
  * <h3>Desktop usage of Bundle attributes</h3>
- * 
+ *
  * When the desktop displays bundle information, some bundle
  * attributes are used. The same method should be used by bundle
  * displayers.
- * 
+ *
  * <dl>
  * <dt><b>Bundle-Activator</b>
  * <dd>The <tt>Bundle-Activator</tt> is used to select from
@@ -114,7 +114,7 @@ import javax.swing.Icon;
  */
 public interface SwingBundleDisplayer {
 
-  /** 
+  /**
    * Service Property (String)
    * <p>
    * Value is <tt>org.knopflerfish.service.desktop.displayer.name</tt>
@@ -122,7 +122,7 @@ public interface SwingBundleDisplayer {
    */
   public final static String PROP_NAME =
     "org.knopflerfish.service.desktop.displayer.name";
-  
+
   /**
    * Service Property (String)
    * <p>
@@ -141,7 +141,7 @@ public interface SwingBundleDisplayer {
   public final static String PROP_ISDETAIL =
     "org.knopflerfish.service.desktop.displayer.isdetail";
 
-  
+
   /**
    * Create the actual component that should be displayed.
    *
@@ -187,14 +187,14 @@ public interface SwingBundleDisplayer {
   /**
    * Allow access to another bundle context than the displayer's
    * own. This might be used to set a remote bundle context.
-   * 
+   *
    * <p>
    * This method might never be called - the displayer should
    * in that case use its own context. The normal case is to start
    * with the displayer's own context and later switch to another
    * context.
    * </p>
-   * 
+   *
    * <p>
    * If <t>setTargetBundleContext</tt> is called, the displayer
    * must update all components with this context.
@@ -208,7 +208,3 @@ public interface SwingBundleDisplayer {
   public void showBundle(Bundle b);
 
 }
-
-
-
-
