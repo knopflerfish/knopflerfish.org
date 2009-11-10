@@ -45,6 +45,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
+  Desktop Bundle 2.3.15
+
+  Application listeners on Mac OS X was not properly un-installed when
+  the desktop was stopped, this showed up as a null-pointer exception
+  in the BundleClassLoader when Quit was called from the application
+  menu. Back-ported the OSXAdapter changes from KF-3. The desktop now
+  installs its icon as the Mac OS X dock icon of the JVM it executes
+  in.
+
+
   Desktop Bundle 2.3.14
 
   If multiple bundles where selected when doing an update all bundles
