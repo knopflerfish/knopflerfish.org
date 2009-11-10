@@ -127,8 +127,6 @@ import javax.swing.event.ChangeListener;
 import java.util.prefs.Preferences;
 import javax.swing.ToolTipManager;
 
-import apple.dts.samplecode.osxadapter.OSXAdapter;
-
 import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
@@ -238,9 +236,10 @@ public class Desktop
   static Desktop theDesktop;
 
   Set sizesavers = new HashSet();
-  
-  // Check that we are on Mac OS X.  This is crucial to loading and using the OSXAdapter class.
-  public static boolean bMacOS = (System.getProperty("os.name").toLowerCase().startsWith("mac os x"));
+
+  // Check that we are on Mac OS X.  This is crucial to loading and
+  // using the OSXAdapter class.
+  public static boolean bMacOS = OSXAdapter.isMacOSX();
 
   public Desktop() {
     theDesktop = this;
@@ -354,14 +353,18 @@ public class Desktop
     // quit and about events
     if(bMacOS) {
       try {
-        OSXAdapter.setQuitHandler(this, getClass().getDeclaredMethod("stopFramework", (Class[])null));
-        OSXAdapter.setAboutHandler(this, getClass().getDeclaredMethod("showVersion", (Class[])null));
+        OSXAdapter.setQuitHandler(this,
+                                  getClass().getDeclaredMethod("stopFramework",
+                                                               (Class[])null));
+        OSXAdapter.setAboutHandler(this,
+                                   getClass().getDeclaredMethod("showVersion",
+                                                                (Class[])null));
       } catch (Exception e) {
         Activator.log.warn("Error while loading the OSXAdapter", e);
         bMacOS = false;
       }
     }
- 
+
     contentPane = frame.getContentPane();
     contentPane.setLayout(new BorderLayout());
 
@@ -2485,10 +2488,15 @@ public class Desktop
       frame = null;
     }
 
-    // If running on Mac OS, remove eawt Application handlers
-    // if(bMacOS) {
-      // Seems OSXAdapter doesn't need any cleaning up
-    // }
+    // If running on Mac OS, remove eawt Application handlers.
+    if(bMacOS) {
+      try {
+        OSXAdapter.clearApplicationListeners();
+      } catch (Exception e) {
+        Activator.log.warn("Error while using the OSXAdapter", e);
+        bMacOS = false;
+      }
+    }
 
   }
 
@@ -2662,6 +2670,13 @@ public class Desktop
         tracker.waitForID(0);
 
         frame.setIconImage(image);
+        if(bMacOS) {
+          try {
+            OSXAdapter.setDockIconImage(image);
+          } catch (Exception e) {
+            Activator.log.warn("Error while loading the OSXAdapter", e);
+          }
+        }
       } else {
       }
     } catch (Exception e) {
