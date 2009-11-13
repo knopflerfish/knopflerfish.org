@@ -129,6 +129,11 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   private Thread shutdownThread = null;
 
+  /**
+   * Lock object
+   */
+  private Object lock = new Object();
+
 
   /**
    * Marker that we need to restart JVM.
@@ -159,7 +164,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     secure.checkExecuteAdminPerm(this);
 
     synchronized (lock) {
-      waitOnActivation("Framework.init", true);
+      waitOnActivation(lock, "Framework.init", true);
 
       switch (state) {
       case INSTALLED:
@@ -184,7 +189,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   public void start(int options) throws BundleException {
     List bundlesToStart = null;
     synchronized (lock) {
-      waitOnActivation("Framework.start", true);
+      waitOnActivation(lock, "Framework.start", true);
 
       switch (state) {
       case INSTALLED:
@@ -751,7 +756,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   {
     try {
       synchronized (lock) {
-        waitOnActivation("Framework." + (restart ? "update" : "stop"), true);
+        waitOnActivation(lock, "Framework." + (restart ? "update" : "stop"), true);
         deactivating = true;
         state = STOPPING;
       }

@@ -622,7 +622,8 @@ final public class BundleClassLoader
    *
    */
   Enumeration getBundleResources(String name, boolean onlyFirst) {
-    if (secure.okResourceAdminPerm(bpkgs.bundle)) {
+// Removed this check pending outcome of OSGi bug 1489.
+//    if (secure.okResourceAdminPerm(bpkgs.bundle)) {
       if (debug.classLoader) {
         debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s")
                       + ": " + name);
@@ -638,9 +639,9 @@ final public class BundleClassLoader
       return (Enumeration)secure.callSearchFor(this, null, pkg, name,
                                                resourceSearch,
                                                onlyFirst, this, null);
-    } else {
-      return null;
-    }
+//     } else {
+//       return null;
+//     }
   }
 
 

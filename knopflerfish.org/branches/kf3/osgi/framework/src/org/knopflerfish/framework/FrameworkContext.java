@@ -75,6 +75,11 @@ public class FrameworkContext  {
   static final String HOOKS_VERSION = "1.0";
 
   /**
+   * Default validator.
+   */
+  static final String DEFAULT_VALIDATOR = "JKSValidator";
+
+  /**
    * All bundle in this framework.
    */
   public Bundles bundles;
@@ -227,22 +232,9 @@ public class FrameworkContext  {
     }
     perm.init();
 
-    String v = props.getProperty("org.knopflerfish.framework.validator");
-    ProtectionDomain pd = null;
-    final boolean checkSigned = (System.getSecurityManager() != null) || (v != null);
-    if (checkSigned) {
-      try {
-        pd = getClass().getProtectionDomain();
-      } catch (Throwable t) {
-        if(props.debug.classLoader) {
-          props.debug.println("Failed to get protection domain: " + t);
-        }
-      }
-      if (v == null) {
-        v = "JKSValidator";
-      }
-    }
-    if (v != null && !v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
+    String v = props.getProperty("org.knopflerfish.framework.validator", DEFAULT_VALIDATOR);
+    boolean checkSigned = false;
+    if (!v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
       validator = new ArrayList();
       for (int start = 0; start < v.length(); ) {
         int end = v.indexOf(',', start);
@@ -254,11 +246,17 @@ public class FrameworkContext  {
           Class vi = Class.forName(vs);
           Constructor vc = vi.getConstructor(new Class[] { FrameworkContext.class });
           validator.add((Validator)vc.newInstance(new Object[] { this }));
+          checkSigned = true;
         } catch (InvocationTargetException ite) {
           // NYI, log error from validator
           System.err.println("Construct of " + vs + " failed: " + ite.getTargetException());
+        } catch (NoSuchMethodException e) {
+          // If no default validator, probably stripped framework
+          if (DEFAULT_VALIDATOR != v) {
+            throw new RuntimeException(vs + ", found no such Validator", e);
+          }
         } catch (Exception e) {
-          throw new RuntimeException(vs + " is not a Validator", e);
+          throw new RuntimeException(vs + ", failed to construct Validator", e);
         }
         start = end + 1;
       }
@@ -494,6 +492,17 @@ public class FrameworkContext  {
       return new FileTree(dataStorage, Long.toString(id));
     }
     return null;
+  }
+
+
+  /**
+   * Check that bundle belongs to this framework instance.
+   *
+   */
+  void checkOurBundle(Bundle b) {
+    if (this != ((BundleImpl)b).fwCtx) {
+      throw new IllegalArgumentException("Bundle does not belong to this framework: " + b);
+    }
   }
 
 

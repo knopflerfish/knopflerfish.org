@@ -366,6 +366,11 @@ public class Bundles {
    */
   void startBundles(List slist) {
     // Sort in start order
+    // Resolve first to avoid dead lock
+    for (Iterator i = slist.iterator(); i.hasNext();) {
+      BundleImpl rb = (BundleImpl)i.next();
+      rb.getUpdatedState();
+    }
     for (Iterator i = slist.iterator(); i.hasNext();) {
       BundleImpl rb = (BundleImpl)i.next();
       if (rb.getUpdatedState() == Bundle.RESOLVED) {

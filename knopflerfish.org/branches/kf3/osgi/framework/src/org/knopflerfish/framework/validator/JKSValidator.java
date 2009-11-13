@@ -56,16 +56,6 @@ import java.util.*;
 public class JKSValidator implements Validator {
 
   /**
-   * PKIX algorithm provider string.
-   */
-  final private static String CERT_ALGORITHM_PKIX = "PKIX";
-
-  /**
-   * X509 certificate type string.
-   */
-  final private static String CERT_TYPE_X509 = "X.509";
-
-  /**
    * Property base string.
    */
   final private static String PROP_BASE = "org.knopflerfish.framework.validator.jks.";
@@ -74,11 +64,6 @@ public class JKSValidator implements Validator {
    * Certificate provider;
    */
   private String certProvider;
-
-  /**
-   * Certificate algorithm, only supports PKIX now.
-   */
-  private String certAlgorithm = CERT_ALGORITHM_PKIX;
 
   /**
    * 
@@ -136,9 +121,6 @@ public class JKSValidator implements Validator {
       loadKeyStore(caCertsFileName, caCertsPassword);
     }
     certProvider = fw.props.getProperty(PROP_BASE + "cert_provider");
-    if (keystore == null || keystore.size() == 0) {
-      throw new IllegalStateException("No keystore or keystore empty");
-    }
   }
 
 
@@ -148,10 +130,13 @@ public class JKSValidator implements Validator {
    * @return true, if validator trusts certificate chain, otherwise false.
    */
   public boolean validateCertificateChain(List /* X509Certificate */ chain) {
+    if (keystore == null) {
+      return false;
+    }
     try {
-      CertPath c = getCertificateFactory(CERT_TYPE_X509).generateCertPath(chain);
-      CertPathValidator cpv = getCertPathValidator(certAlgorithm);
-      CertPathParameters params = getCertPathParameters(keystore, certAlgorithm);
+      CertPath c = getCertificateFactory().generateCertPath(chain);
+      CertPathValidator cpv = getCertPathValidator();
+      CertPathParameters params = getCertPathParameters(keystore);
       cpv.validate(c, params);
     } catch (GeneralSecurityException gse) {
       // NYI! Log this?
@@ -164,15 +149,14 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  CertificateFactory getCertificateFactory(String certType)
+  private CertificateFactory getCertificateFactory()
     throws GeneralSecurityException
   {
-    if (certFactory == null || certFactoryType != certType) {
-      certFactoryType = certType;
+    if (certFactory == null) {
       if (certProvider != null) {
-        certFactory = CertificateFactory.getInstance(certType, certProvider);
+        certFactory = CertificateFactory.getInstance("X.509", certProvider);
       } else {
-        certFactory = CertificateFactory.getInstance(certType);
+        certFactory = CertificateFactory.getInstance("X.509");
       }
     }
     return certFactory;
@@ -182,42 +166,37 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  CertPathParameters getCertPathParameters(KeyStore keystore, String certAlgo)
+  private CertPathParameters getCertPathParameters(KeyStore keystore)
     throws GeneralSecurityException
   {
-    if (CERT_ALGORITHM_PKIX.equals(certAlgo)) {
-      HashSet tas = new HashSet();
-      for (Enumeration e = keystore.aliases(); e.hasMoreElements(); ) {
-        String name = (String)e.nextElement();
-        Certificate c = keystore.getCertificate(name);
-        if (c != null) {
-          if (trustKeys || keystore.isCertificateEntry(name)) {
-            tas.add(new TrustAnchor((X509Certificate)c, null)); 
-          }
+    HashSet tas = new HashSet();
+    for (Enumeration e = keystore.aliases(); e.hasMoreElements(); ) {
+      String name = (String)e.nextElement();
+      Certificate c = keystore.getCertificate(name);
+      if (c != null) {
+        if (trustKeys || keystore.isCertificateEntry(name)) {
+          tas.add(new TrustAnchor((X509Certificate)c, null)); 
         }
       }
-      PKIXParameters p = new PKIXParameters(tas);
-      // NYI! Handle CRLs
-      p.setRevocationEnabled(false);
-      return p;
-    } else {
-      throw new GeneralSecurityException(certAlgo + " not supported");
     }
+    PKIXParameters p = new PKIXParameters(tas);
+    // NYI! Handle CRLs
+    p.setRevocationEnabled(false);
+    return p;
   }
 
 
   /**
    * 
    */
-  CertPathValidator getCertPathValidator(String certAlgo)
+  private CertPathValidator getCertPathValidator()
     throws GeneralSecurityException
   {
-    if (certValidator == null || certValidatorAlgorithm != certAlgo) {
-      certValidatorAlgorithm = certAlgo;
+    if (certValidator == null) {
       if (certProvider != null) {
-        certValidator = CertPathValidator.getInstance(certAlgo, certProvider);
+        certValidator = CertPathValidator.getInstance("PKIX", certProvider);
       } else {
-        certValidator = CertPathValidator.getInstance(certAlgo);
+        certValidator = CertPathValidator.getInstance("PKIX");
       }
     }
     return certValidator;
@@ -227,7 +206,7 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  void loadKeyStore(String file, String password) {
+  private void loadKeyStore(String file, String password) {
     try {
       FileInputStream is = new FileInputStream(file);
       keystore.load(is, password != null ? password.toCharArray() : null);
