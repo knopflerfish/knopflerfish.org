@@ -200,28 +200,17 @@ class PermissionOps {
     return cl.findLibrary0(name);
   }
   
-  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs, final BundleArchive archive, final ArrayList fragments,
-                                   final ProtectionDomain protectionDomain) throws BundleException {
-    return new BundleClassLoader(bpkgs, archive, fragments,
-                                  protectionDomain, this);
-  }
-
   //
   // BundleImpl Secure operations
   //
-
-  void callStart0(final BundleImpl b) throws BundleException {
-    b.start0();
-  }
-
 
   void callFinalizeActivation(final BundleImpl b) throws BundleException {
     b.finalizeActivation();
   }
 
 
-  BundleException callStop0(final BundleImpl b)  {
-    return b.stop0();
+  Exception callStop1(final BundleImpl b, final boolean wasStarted)  {
+    return b.stop1(wasStarted);
   }
 
 
@@ -254,6 +243,15 @@ class PermissionOps {
   Enumeration callFindEntries0(final BundleImpl b, final String path,
                                final String filePattern, final boolean recurse) {
     return b.findEntries0(path, filePattern, recurse);
+  }
+
+
+  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs,
+                                         final BundleArchive archive,
+                                         final ArrayList fragments,
+                                         final ProtectionDomain protectionDomain)
+    throws BundleException {
+    return new BundleClassLoader(bpkgs, archive, fragments, protectionDomain, this);
   }
 
   //

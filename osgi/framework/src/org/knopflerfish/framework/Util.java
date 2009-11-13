@@ -740,165 +740,161 @@ public class Util {
   }
 
 
+  /**
+   * Class for tokenize an attribute string.
+   */
+  static class AttributeTokenizer {
 
-}
+    String s;
+    int length;
+    int pos = 0;
 
+    AttributeTokenizer(String input) {
+      s = input;
+      length = s.length();
+    }
 
-/**
- * Class for tokenize an attribute string.
- */
-class AttributeTokenizer {
-
-  String s;
-  int length;
-  int pos = 0;
-
-  AttributeTokenizer(String input) {
-    s = input;
-    length = s.length();
-  }
-
-  String getWord() {
-    skipWhite();
-    boolean backslash = false;
-    boolean quote = false;
-    StringBuffer val = new StringBuffer();
-    int end = 0;
-  loop:
-    for (; pos < length; pos++) {
-      if (backslash) {
-        backslash = false;
-        val.append(s.charAt(pos));
-      } else {
-        char c = s.charAt(pos);
-        switch (c) {
-        case '"':
-          quote = !quote;
-          end = val.length();
-          break;
-        case '\\':
-          backslash = true;
-          break;
-        case ',': case ':': case ';': case '=':
-          if (!quote) {
-            break loop;
-          }
-          // Fall through
-        default:
-          val.append(c);
-          if (!Character.isWhitespace(c)) {
+    String getWord() {
+      skipWhite();
+      boolean backslash = false;
+      boolean quote = false;
+      StringBuffer val = new StringBuffer();
+      int end = 0;
+    loop:
+      for (; pos < length; pos++) {
+        if (backslash) {
+          backslash = false;
+          val.append(s.charAt(pos));
+        } else {
+          char c = s.charAt(pos);
+          switch (c) {
+          case '"':
+            quote = !quote;
             end = val.length();
+            break;
+          case '\\':
+            backslash = true;
+            break;
+          case ',': case ':': case ';': case '=':
+            if (!quote) {
+              break loop;
+            }
+            // Fall through
+          default:
+            val.append(c);
+            if (!Character.isWhitespace(c)) {
+              end = val.length();
+            }
+            break;
           }
+        }
+      }
+      if (quote || backslash || end == 0) {
+        return null;
+      }
+      char [] res = new char [end];
+      val.getChars(0, end, res, 0);
+      return new String(res);
+    }
+
+    String getKey() {
+      if (pos >= length) {
+        return null;
+      }
+      int save = pos;
+      if (s.charAt(pos) == ';') {
+        pos++;
+      }
+      String res = getWord();
+      if (res != null) {
+        if (pos == length) {
+          return res;
+        }
+        char c = s.charAt(pos);
+        if (c == ';' || c == ',') {
+          return res;
+        }
+      }
+      pos = save;
+      return null;
+    }
+
+    String getParam() {
+      if (pos == length || s.charAt(pos) != ';') {
+        return null;
+      }
+      int save = pos++;
+      String res = getWord();
+      if (res != null) {
+        if (pos < length && s.charAt(pos) == '=') {
+          return res;
+        } if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos+1) == '=') {
+          return res;
+        }
+      }
+      pos = save;
+      return null;
+    }
+
+    boolean isDirective() {
+      if (pos + 1 < length && s.charAt(pos) == ':') {
+        pos++;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    String getValue() {
+      if (s.charAt(pos) != '=') {
+        return null;
+      }
+      int save = pos++;
+      skipWhite();
+      String val = getWord();
+      if (val == null) {
+        pos = save;
+        return null;
+      }
+      return val;
+    }
+
+    boolean getEntryEnd() {
+      int save = pos;
+      skipWhite();
+      if (pos == length) {
+        return true;
+      } else if (s.charAt(pos) == ',') {
+        pos++;
+        return true;
+      } else {
+        pos = save;
+        return false;
+      }
+    }
+
+    boolean getEnd() {
+      int save = pos;
+      skipWhite();
+      if (pos == length) {
+        return true;
+      } else {
+        pos = save;
+        return false;
+      }
+    }
+
+    String getRest() {
+      String res = s.substring(pos).trim();
+      return res.length() == 0 ? "<END OF LINE>" : res;
+    }
+
+    private void skipWhite() {
+      for (; pos < length; pos++) {
+        if (!Character.isWhitespace(s.charAt(pos))) {
           break;
         }
       }
     }
-    if (quote || backslash || end == 0) {
-      return null;
-    }
-    char [] res = new char [end];
-    val.getChars(0, end, res, 0);
-    return new String(res);
   }
-
-  String getKey() {
-    if (pos >= length) {
-      return null;
-    }
-    int save = pos;
-    if (s.charAt(pos) == ';') {
-      pos++;
-    }
-    String res = getWord();
-    if (res != null) {
-      if (pos == length) {
-        return res;
-      }
-      char c = s.charAt(pos);
-      if (c == ';' || c == ',') {
-        return res;
-      }
-    }
-    pos = save;
-    return null;
-  }
-
-  String getParam() {
-    if (pos == length || s.charAt(pos) != ';') {
-      return null;
-    }
-    int save = pos++;
-    String res = getWord();
-    if (res != null) {
-      if (pos < length && s.charAt(pos) == '=') {
-        return res;
-      } if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos+1) == '=') {
-        return res;
-      }
-    }
-    pos = save;
-    return null;
-  }
-
-  boolean isDirective() {
-    if (pos + 1 < length && s.charAt(pos) == ':') {
-      pos++;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  String getValue() {
-    if (s.charAt(pos) != '=') {
-      return null;
-    }
-    int save = pos++;
-    skipWhite();
-    String val = getWord();
-    if (val == null) {
-      pos = save;
-      return null;
-    }
-    return val;
-  }
-
-  boolean getEntryEnd() {
-    int save = pos;
-    skipWhite();
-    if (pos == length) {
-      return true;
-    } else if (s.charAt(pos) == ',') {
-      pos++;
-      return true;
-    } else {
-      pos = save;
-      return false;
-    }
-  }
-
-  boolean getEnd() {
-    int save = pos;
-    skipWhite();
-    if (pos == length) {
-      return true;
-    } else {
-      pos = save;
-      return false;
-    }
-  }
-
-  String getRest() {
-    String res = s.substring(pos).trim();
-    return res.length() == 0 ? "<END OF LINE>" : res;
-  }
-
-  private void skipWhite() {
-    for (; pos < length; pos++) {
-      if (!Character.isWhitespace(s.charAt(pos))) {
-        break;
-      }
-    }
-  }
-
 }

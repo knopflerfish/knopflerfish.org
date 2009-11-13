@@ -71,11 +71,13 @@ public class PackageAdminImpl implements PackageAdmin {
 
   final static String SPEC_VERSION = "1.2";
 
-  private FrameworkContext framework;
+  private FrameworkContext fwCtx;
+
+  volatile private Object refreshSync;
 
 
   PackageAdminImpl(FrameworkContext fw) {
-    framework = fw;
+    fwCtx = fw;
   }
 
 
@@ -108,7 +110,7 @@ public class PackageAdminImpl implements PackageAdmin {
         }
       }
     } else {
-      for (Iterator bi = framework.bundles.getBundles().iterator(); bi.hasNext(); ) {
+      for (Iterator bi = fwCtx.bundles.getBundles().iterator(); bi.hasNext(); ) {
         for (Iterator i = ((BundleImpl)bi.next()).getExports(); i.hasNext(); ) {
           ExportPkg ep = (ExportPkg)i.next();
           if (ep.isExported()) {
@@ -135,7 +137,7 @@ public class PackageAdminImpl implements PackageAdmin {
    *         exported packages with the specified name exists.
    */
   public ExportedPackage[] getExportedPackages(String name) {
-    Pkg pkg = framework.packages.getPkg(name);
+    Pkg pkg = fwCtx.packages.getPkg(name);
     ExportedPackage[] res = null;
     if (pkg != null) {
       synchronized (pkg) {
@@ -170,7 +172,7 @@ public class PackageAdminImpl implements PackageAdmin {
    *         if no expored package with that name exists.
    */
   public ExportedPackage getExportedPackage(String name) {
-    Pkg p = (Pkg)framework.packages.getPkg(name);
+    Pkg p = (Pkg)fwCtx.packages.getPkg(name);
     if (p != null) {
       ExportPkg ep = p.getBestProvider();
       if (ep != null) {
@@ -188,7 +190,7 @@ public class PackageAdminImpl implements PackageAdmin {
    * @see org.osgi.service.packageadmin.PackageAdmin#refreshPackages
    */
   public void refreshPackages(final Bundle[] bundles) {
-    framework.perm.checkResolveAdminPerm();
+    fwCtx.perm.checkResolveAdminPerm();
 
     boolean restart = false;
     if (bundles != null) {
@@ -196,13 +198,14 @@ public class PackageAdminImpl implements PackageAdmin {
         if (bundles[i] == null) {
           throw new NullPointerException("bundle[" + i + "] cannot be null");
         }
+        fwCtx.checkOurBundle(bundles[i]);
         if (((BundleImpl)bundles[i]).extensionNeedsRestart()) {
           restart = true;
           break;
         }
       }
     } else {
-      for (Iterator iter = framework.bundles.getBundles().iterator();
+      for (Iterator iter = fwCtx.bundles.getBundles().iterator();
            iter.hasNext(); ) {
         if (((BundleImpl)iter.next()).extensionNeedsRestart()) {
           restart = true;
@@ -213,7 +216,7 @@ public class PackageAdminImpl implements PackageAdmin {
     if (restart) {
       try {
         // will restart the framework.
-        framework.systemBundle.update();
+        fwCtx.systemBundle.update();
       } catch (BundleException ignored) {
         /* this can't be happening. */
       }
@@ -221,136 +224,134 @@ public class PackageAdminImpl implements PackageAdmin {
     }
 
     final PackageAdminImpl thisClass = this;
-    Thread t = new Thread() {
-        public void run() {
-           framework.perm.callRefreshPackages0(thisClass, bundles);
-        }
-      };
-    t.setDaemon(false);
-    t.start();
+    refreshSync = new Object();
+    synchronized (refreshSync) {
+      Thread t = new Thread() {
+          public void run() {
+            fwCtx.perm.callRefreshPackages0(thisClass, bundles);
+          }
+        };
+      t.setDaemon(false);
+      t.start();
+      // Wait for refresh thread to start
+      try {
+        refreshSync.wait(500);
+      } catch (InterruptedException ignore) { }
+    }
   }
 
 
   void refreshPackages0(final Bundle[] bundles) {
-    if (framework.props.debug.packages) {
-      framework.props.debug.println("PackageAdminImpl.refreshPackages() starting");
+    if (fwCtx.props.debug.packages) {
+      fwCtx.props.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
 
-    Collection zombies = framework.packages.getZombieAffected(bundles);
-    if (zombies.contains(framework.systemBundle)) {
-      // Extension bundle affected, we need to restart
-      if (framework.props.debug.packages) {
-        framework.props.debug.println("Extension bundle refresh, restart framework.");
-      }
-      try {
-        framework.systemBundle.update();
-      } catch (BundleException be) {
-        // NYI, log this
-      }
-      return;
-    }
+    Collection zombies = fwCtx.packages.getZombieAffected(bundles);
     BundleImpl bi[] = (BundleImpl[])zombies.toArray(new BundleImpl[0]);
     ArrayList startList = new ArrayList();
 
-    // Stop affected bundles and remove their classloaders
-    // in reverse start order
-    for (int bx = bi.length; bx-- > 0; ) {
-      BundleException be = null;
-      synchronized (bi[bx].lock) {
-        if (bi[bx].state == Bundle.ACTIVE) {
-          startList.add(0, bi[bx]);
-          be = bi[bx].stop0();
-        }
-      }
-      if (be != null) {
-        framework.listeners.frameworkError(bi[bx], be);
-      }
-    }
-
     ArrayList savedEvent = new ArrayList();
 
-//TBD    synchronized (framework.packages) {
+    synchronized (fwCtx.packages) {
+      synchronized (refreshSync) {
+        refreshSync.notify();
+        refreshSync = null;
+      }
+      // Stop affected bundles and remove their classloaders
+      // in reverse start order
+      for (int bx = bi.length; bx-- > 0; ) {
+        Exception be = null;
+        if (bi[bx].state == Bundle.ACTIVE || bi[bx].state == Bundle.STARTING) {
+          startList.add(0, bi[bx]);
+          be = bi[bx].stop0(bi[bx].state == Bundle.ACTIVE);
+        }
+        if (be != null) {
+          savedEvent.add(new FrameworkEvent(FrameworkEvent.ERROR, bi[bx], be));
+        }
+      }
+
       // Do this again in case something changed during the stop
       // phase, this time synchronized with packages to prevent
-      // resolving of bundles.
-      bi = (BundleImpl[])framework.packages
+      // resolving of bundles. TBD! do we need this with a central lock?
+      bi = (BundleImpl[])fwCtx.packages
         .getZombieAffected(bundles).toArray(new BundleImpl[0]);
 
       // Update the affected bundle states in normal start order
       int startPos = startList.size() - 1;
       BundleImpl nextStart =  startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
       for (int bx = bi.length; bx-- > 0; ) {
-        BundleException be = null;
-        synchronized (bi[bx].lock) {
-          switch (bi[bx].state) {
-          case Bundle.STARTING:
-          case Bundle.ACTIVE:
-            if (bi[bx].state == Bundle.ACTIVE) {
-              be = bi[bx].stop0();
-              if (nextStart != bi[bx]) {
-                startList.add(startPos + 1, bi[bx]);
-              }
-            }
-          case Bundle.STOPPING:
-          case Bundle.RESOLVED:
-            bi[bx].setStateInstalled(savedEvent);
-            if (bi[bx] == nextStart) {
-              nextStart = --startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
-            }
-          case Bundle.INSTALLED:
-          case Bundle.UNINSTALLED:
-            break;
+        Exception be = null;
+        switch (bi[bx].state) {
+        case Bundle.STARTING:
+        case Bundle.ACTIVE:
+          be = bi[bx].stop0(bi[bx].state == Bundle.ACTIVE);
+          if (nextStart != bi[bx]) {
+            startList.add(startPos + 1, bi[bx]);
           }
-          bi[bx].purge();
+          // Fall through...
+        case Bundle.STOPPING:
+        case Bundle.RESOLVED:
+          bi[bx].setStateInstalled(savedEvent);
+          if (bi[bx] == nextStart) {
+            nextStart = --startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
+          }
+          // Fall through...
+        case Bundle.INSTALLED:
+        case Bundle.UNINSTALLED:
+          break;
         }
+        bi[bx].purge();
         if (be != null) {
           savedEvent.add(new FrameworkEvent(FrameworkEvent.ERROR, bi[bx], be));
         }
       }
-//    }
+    }
     // Broadcast events
     for (Iterator i = savedEvent.iterator(); i.hasNext();) {
       Object e = i.next();
       if (e instanceof BundleEvent) {
-        framework.listeners.bundleChanged((BundleEvent)e);
+        fwCtx.listeners.bundleChanged((BundleEvent)e);
       } else {
-        framework.listeners.frameworkEvent((FrameworkEvent)e);
+        fwCtx.listeners.frameworkEvent((FrameworkEvent)e);
       }
     }
-    if (framework.props.debug.packages) {
-      framework.props.debug.println("PackageAdminImpl.refreshPackages() "
+    if (fwCtx.props.debug.packages) {
+      fwCtx.props.debug.println("PackageAdminImpl.refreshPackages() "
                                     +"all affected bundles now in state INSTALLED");
     }
 
     // Restart previously active bundles in normal start order
-    framework.bundles.startBundles(startList);
-    framework.listeners
+    fwCtx.bundles.startBundles(startList);
+    fwCtx.listeners
       .frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
-                                         framework.systemBundle, null));
-    if (framework.props.debug.packages) {
-      framework.props.debug.println("PackageAdminImpl.refreshPackages() done.");
+                                         fwCtx.systemBundle, null));
+    if (fwCtx.props.debug.packages) {
+      fwCtx.props.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
   }
 
   public boolean resolveBundles(Bundle[] bundles) {
-    framework.perm.checkResolveAdminPerm();
-    List bl;
-    if (bundles != null) {
-      bl =  new ArrayList();
-      for (int bx = 0 ; bx < bundles.length; bx++ ) {
-        bl.add(bundles[bx]);
+    fwCtx.perm.checkResolveAdminPerm();
+    synchronized (fwCtx.packages) {
+      List bl;
+      if (bundles != null) {
+        bl =  new ArrayList();
+        for (int bx = 0 ; bx < bundles.length; bx++ ) {
+          bl.add(bundles[bx]);
+        }
+      } else {
+        bl = fwCtx.bundles.getBundles();
       }
-    } else {
-      bl = framework.bundles.getBundles();
-    }
-    boolean res = true;
-    for (Iterator i = bl.iterator(); i.hasNext(); ) {
-      BundleImpl b = (BundleImpl)i.next();
-      if (b.getUpdatedState() == Bundle.INSTALLED) {
-        res = false;
+      boolean res = true;
+
+      for (Iterator i = bl.iterator(); i.hasNext(); ) {
+        BundleImpl b = (BundleImpl)i.next();
+        if (b.getUpdatedState() == Bundle.INSTALLED) {
+          res = false;
+        }
       }
+      return res;
     }
-    return res;
   }
 
 
@@ -358,9 +359,9 @@ public class PackageAdminImpl implements PackageAdmin {
     List bs;
     ArrayList res = new ArrayList();
     if (symbolicName != null) {
-      bs = framework.bundles.getBundles(symbolicName);
+      bs = fwCtx.bundles.getBundles(symbolicName);
     } else {
-      bs = framework.bundles.getBundles();
+      bs = fwCtx.bundles.getBundles();
     }
     for (Iterator i = bs.iterator(); i.hasNext(); ) {
       BundleImpl b = (BundleImpl)i.next();
@@ -382,7 +383,7 @@ public class PackageAdminImpl implements PackageAdmin {
   public Bundle[] getBundles(String symbolicName, String versionRange) {
     VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) :
       VersionRange.defaultVersionRange;
-    List bs = framework.bundles.getBundles(symbolicName, vr);
+    List bs = fwCtx.bundles.getBundles(symbolicName, vr);
     int size = bs.size();
     if (size > 0) {
       Bundle[] res = new Bundle[size];
