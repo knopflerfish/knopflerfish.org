@@ -271,6 +271,10 @@
               value="Knopflerfish OSGi ${version}"/>
 
     <!-- Get documentation from the bundles -->
+    <ant dir="${osgi.dir}/framework"      target="framework_doc">
+      <property name="docs.dir"     location="${distrib.bundledoc.dir}"/>
+      <property name="root.out.dir" location="${distrib.tmp.dir}"/>
+    </ant>
     <ant dir="${osgi.dir}/bundles"      target="bundle_doc">
       <property name="docs.dir"     location="${distrib.bundledoc.dir}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>

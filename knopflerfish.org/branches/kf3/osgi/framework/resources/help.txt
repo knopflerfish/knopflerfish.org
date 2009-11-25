@@ -1,11 +1,10 @@
- Usage:  java [properties] org.knopflerfish.framework.Main [-init] [options]
-      or java [properties] -jar framework.jar [-init] [options]
-      or ./kf2 [-init] [options] [-- [properties]]  [--- [extra]] (*)
+ Usage:  java [properties] org.knopflerfish.framework.Main [options]
+      or java [properties] -jar framework.jar [options]
+      or ./kf2 [options] [-- [properties]]  [--- [extra]] (*)
 
  Options:
    -exit          Exit the JVM process
    -help          Print this text and exit
-   -readme        Print a longer startup readme and exit
    -version       Print version and exit
    -jvminfo       Print system and framework properties and exit
    -sleep SEC     Sleep a while before next command.
@@ -43,8 +42,9 @@
 
  The default directory used for storing bundle data is  "fwdir".
 
- (*) Fully R4 compatible, enables support for extension bundles. (Shell script)
+ (*) Fully R4 compatible, enables support for bootclasspath extension bundles.
 
- For extended help and list of all available system properties, see
+ For extended help and list of all available system properties, see online
+ documentation or visit:
 
-  https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/framework/readme.txt
+ http://www.knopflerfish.org/releases/current/docs/bundledoc/framework/index.html

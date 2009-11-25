@@ -139,21 +139,24 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   public void setProperties(Dictionary props) {
     synchronized (eventLock) {
       Set before;
-      synchronized (properties) {
-        if (available) {
-          // NYI! Optimize the MODIFIED_ENDMATCH code
-          Object old_rank = properties.get(Constants.SERVICE_RANKING);
-          before = bundle.fwCtx.listeners.getMatchingServiceListeners(reference);
-          String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
-          Long sid = (Long)properties.get(Constants.SERVICE_ID);
-          properties = new PropertiesDictionary(props, classes, sid);
-          Object new_rank = properties.get(Constants.SERVICE_RANKING);
-          if (old_rank != new_rank && new_rank instanceof Integer &&
-              !((Integer)new_rank).equals(old_rank)) {
-            bundle.fwCtx.services.updateServiceRegistrationOrder(this, classes);
+      // TBD, optimize the locking of services
+      synchronized (bundle.fwCtx.services) {
+        synchronized (properties) {
+          if (available) {
+            // NYI! Optimize the MODIFIED_ENDMATCH code
+            Object old_rank = properties.get(Constants.SERVICE_RANKING);
+            before = bundle.fwCtx.listeners.getMatchingServiceListeners(reference);
+            String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
+            Long sid = (Long)properties.get(Constants.SERVICE_ID);
+            properties = new PropertiesDictionary(props, classes, sid);
+            Object new_rank = properties.get(Constants.SERVICE_RANKING);
+            if (old_rank != new_rank && new_rank instanceof Integer &&
+                !((Integer)new_rank).equals(old_rank)) {
+              bundle.fwCtx.services.updateServiceRegistrationOrder(this, classes);
+            }
+          } else {
+            throw new IllegalStateException("Service is unregistered");
           }
-        } else {
-          throw new IllegalStateException("Service is unregistered");
         }
       }
       bundle.fwCtx.listeners
@@ -178,13 +181,12 @@ public class ServiceRegistrationImpl implements ServiceRegistration
       if (unregistering) return;
       unregistering = true;
 
-      synchronized (properties) {
-        if (available) {
-          if (null!=bundle)
-            bundle.fwCtx.services.removeServiceRegistration(this);
-        } else {
-          throw new IllegalStateException("Service is unregistered");
+      if (available) {
+        if (null!=bundle) {
+          bundle.fwCtx.services.removeServiceRegistration(this);
         }
+      } else {
+        throw new IllegalStateException("Service is unregistered");
       }
     }
 
@@ -216,6 +218,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
       Map.Entry e = (Map.Entry)i.next();
       try {
+        // NYI, don't call inside lock
         ((ServiceFactory)service).ungetService((Bundle)e.getKey(),
                                                this,
                                                e.getValue());

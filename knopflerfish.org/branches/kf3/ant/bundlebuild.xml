@@ -158,7 +158,7 @@
   <!-- Subdirectory of jars.dir where this projects bundles shall live. -->
   <property name="jardir"   location="${jars.dir}/${ant.project.name}"/>
 
-  <!-- The root if the local bundle docs direcotry. -->
+  <!-- The root if the local bundle docs directory. -->
   <property name="docs.dir" location="${root.out.dir}/doc"/>
 
   <!-- Directory to place generate bundle documentation in. -->

@@ -375,9 +375,6 @@ public class Main
         } else if ("-help".equals(args[i])) {
           printResource("/help.txt");
           System.exit(0);
-        } else if ("-readme".equals(args[i])) {
-          printResource("/readme.txt");
-          System.exit(0);
         } else if ("-jvminfo".equals(args[i])) {
           assertFramework();
           printJVMInfo(framework);
@@ -847,15 +844,6 @@ public class Main
     }
   }
 
-  public final String[] FWPROPS = new String[] {
-    Constants.FRAMEWORK_VENDOR,
-    Constants.FRAMEWORK_VERSION,
-    Constants.FRAMEWORK_LANGUAGE,
-    Constants.FRAMEWORK_OS_NAME ,
-    Constants.FRAMEWORK_OS_VERSION,
-    Constants.FRAMEWORK_PROCESSOR,
-    Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
-  };
 
   /**
    * Print help for starting the platform.
