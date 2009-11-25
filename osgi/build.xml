@@ -434,6 +434,7 @@
 
  <target name="bundle_doc"
          description="Builds bundle specific docs">
+   <ant dir="framework"	   target="framework_doc"/>
    <ant dir="bundles"	   target="bundle_doc"/>
    <ant dir="bundles_opt"  target="bundle_doc"/>
  </target>

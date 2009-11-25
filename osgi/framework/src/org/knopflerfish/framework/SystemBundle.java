@@ -65,9 +65,8 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Property name pointing to file listing of system-exported packages
    */
-  private final static String SYSPKG_FILE
-    = Constants.FRAMEWORK_SYSTEMPACKAGES + ".file";
-
+  private final static String SYSPKG_FILE =
+    "org.knopflerfish.framework.system.packages.file";
 
   /**
    * Name of system property for basic system packages to be exported.
@@ -76,37 +75,11 @@ public class SystemBundle extends BundleImpl implements Framework {
   private final static String SYSTEMPACKAGES_BASE =
     "org.knopflerfish.framework.system.packages.base";
 
-
   /**
-   * Name of system property for exporting all packages for according
-   * to version of the running JRE.
+   * Name of system property for exporting profile.
    */
-  private final static String EXPORT_ALL_CURRENT =
-    "org.knopflerfish.framework.system.export.all";
-
-  /**
-   * Name of system property for exporting all J2SE 1.3 packages.
-   */
-  private final static String EXPORT13 =
-    "org.knopflerfish.framework.system.export.all_13";
-
-  /**
-   * Name of system property for exporting all J2SE 1.4 packages.
-   */
-  private final static String EXPORT14 =
-    "org.knopflerfish.framework.system.export.all_14";
-
-  /**
-   * Name of system property for exporting all J2SE 1.5 packages.
-   */
-  private final static String EXPORT15 =
-    "org.knopflerfish.framework.system.export.all_15";
-
-  /**
-   * Name of system property for exporting all J2SE 1.6 packages.
-   */
-  private final static String EXPORT16 =
-    "org.knopflerfish.framework.system.export.all_16";
+  private final static String SYSTEM_EXPORT =
+    "org.knopflerfish.framework.system.packages.version";
 
   /**
    * The file where we store the class path
@@ -477,40 +450,32 @@ public class SystemBundle extends BundleImpl implements Framework {
     bundleContext = new BundleContextImpl(this);
     StringBuffer sp = new StringBuffer
       (fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
-    if (sp.length()==0) {
+    if (sp.length() == 0) {
       // Try the system packages file
       addSysPackagesFromFile(sp, fwCtx.props.getProperty(SYSPKG_FILE, null));
-      if (sp.length()==0) {
+      if (sp.length() == 0) {
         // Try the system packages base property.
         sp.append(fwCtx.props.getProperty(SYSTEMPACKAGES_BASE, "").trim());
 
         if (sp.length()==0) {
           // use default set of packages.
-          String pkgFile = "packages1.6.txt";
+          String jver = fwCtx.props.getProperty(SYSTEM_EXPORT);
 
-          if("true".equals(fwCtx.props.getProperty(EXPORT13, "").trim())) {
-            pkgFile = "packages1.3.txt";
-          } else if("true".equals(fwCtx.props.getProperty(EXPORT14, "").trim())) {
-            pkgFile = "packages1.4.txt";
-          } else if("true".equals(fwCtx.props.getProperty(EXPORT15, "").trim())) {
-            pkgFile = "packages1.5.txt";
-          } else if("true".equals(fwCtx.props.getProperty(EXPORT16, "").trim())) {
-            pkgFile = "packages1.6.txt";
-          } else {
-            if (1==fwCtx.props.javaVersionMajor
-                && (3<=fwCtx.props.javaVersionMinor
-                    && fwCtx.props.javaVersionMinor<=6 )) {
-              pkgFile = "packages" +fwCtx.props.javaVersionMajor
-                +"." +fwCtx.props.javaVersionMinor +".txt";
-            } else {
+          if (jver == null) {
+            jver = Integer.toString(fwCtx.props.javaVersionMajor)
+              + "." + fwCtx.props.javaVersionMinor;
+          }
+          try {
+            addSysPackagesFromFile(sp, "packages" + jver + ".txt");
+          } catch (IllegalArgumentException iae) {
+            if (fwCtx.props.debug.framework) {
               fwCtx.props.debug.println
                 ("No built in list of Java packages to be exported by the "
-                 +"system bundle for JRE with version '"
-                 +System.getProperty("java.version")
-                 +"', using the list for 1.6.");
+                 + "system bundle for JRE with version '" + jver
+                 + "', using the list for 1.6.");
             }
+            addSysPackagesFromFile(sp, "packages1.6.txt");
           }
-          addSysPackagesFromFile(sp, pkgFile);
         }
         addSystemPackages(sp);
       }
