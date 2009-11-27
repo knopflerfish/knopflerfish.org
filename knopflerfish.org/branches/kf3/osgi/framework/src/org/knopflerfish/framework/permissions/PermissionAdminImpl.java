@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.security.AccessController;
 import java.security.AllPermission;
 
 import org.osgi.service.permissionadmin.*;

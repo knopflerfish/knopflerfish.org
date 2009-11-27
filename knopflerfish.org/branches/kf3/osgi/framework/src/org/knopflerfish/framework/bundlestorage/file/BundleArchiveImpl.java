@@ -34,11 +34,9 @@
 
 package org.knopflerfish.framework.bundlestorage.file;
 
-import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import org.knopflerfish.framework.bundlestorage.Util;
 import java.io.*;
-import java.security.GeneralSecurityException;
 import java.security.cert.Certificate;
 import java.util.*;
 import java.net.URL;

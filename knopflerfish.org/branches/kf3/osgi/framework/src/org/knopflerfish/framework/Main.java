@@ -59,6 +59,9 @@ import java.lang.reflect.Constructor;
  */
 public class Main
 {
+  // Main object
+  static Main main;
+  
   // Verbosity level of printouts. 0 is low.
   int verbosity /*= 0*/;
 
@@ -105,7 +108,7 @@ public class Main
    * Help class for starting the OSGi framework.
    */
   public static void main(String[] args) {
-    Main main = new Main();
+    main = new Main();
     main.start(args);
     System.exit(0);
   }

@@ -34,14 +34,11 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
 import java.lang.reflect.*;
 import java.net.*;
-import java.security.*;
 import java.util.*;
 
 import org.osgi.framework.*;
-import org.osgi.framework.launch.Framework;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 

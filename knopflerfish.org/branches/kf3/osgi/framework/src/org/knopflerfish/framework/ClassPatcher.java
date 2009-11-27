@@ -51,14 +51,10 @@ import java.io.OutputStream;
 
 import java.net.URL;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -223,7 +219,6 @@ public class ClassPatcher {
 
     for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
       String key = (String)it.next();
-      String val = (String)props.get(key);
       if(key.startsWith(PRE)) {
         int ix = key.lastIndexOf(".from");
         if(ix != -1) {
@@ -520,7 +515,7 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
                          ClassAdapterPatcher.FIELD_BID,
                          "J");
 
-    if((ca.currentMethodAccess | ACC_STATIC) != 0) {
+    if((ca.currentMethodAccess & ACC_STATIC) != 0) {
       // push NULL context object if it's a static context
       super.visitInsn(ACONST_NULL);
     } else {

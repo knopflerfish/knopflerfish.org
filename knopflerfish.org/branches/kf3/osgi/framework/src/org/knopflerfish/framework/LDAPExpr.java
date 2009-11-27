@@ -39,11 +39,9 @@ import org.osgi.framework.InvalidSyntaxException;
 import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Iterator;
-import java.util.Vector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Enumeration;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -69,8 +67,6 @@ public class LDAPExpr {
   private static final String GARBAGE   = "Trailing garbage";
   private static final String EOS       = "Unexpected end of query";
   private static final String MALFORMED = "Malformed query";
-  private static final String EMPTY     = "Empty list";
-  private static final String SUBEXPR   = "No subexpression";
   private static final String OPERATOR  = "Undefined operator";
 
   private static Class classBigDecimal;
@@ -556,10 +552,6 @@ public class LDAPExpr {
       if (str.length() == 0)
         error(NULL);
       pos = 0;
-    }
-
-    public int getPos() {
-      return pos;
     }
 
     public boolean prefix(String pre) {

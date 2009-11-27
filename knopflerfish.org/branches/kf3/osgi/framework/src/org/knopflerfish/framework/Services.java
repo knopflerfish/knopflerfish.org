@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.security.*;
 import java.util.Set;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -115,7 +114,6 @@ class Services {
       throw new IllegalArgumentException("Can't register null as a service");
     }
     // Check if service implements claimed classes and that they exist.
-    Class sc = service.getClass();
     for (int i = 0; i < classes.length; i++) {
       String cls = classes[i];
       if (cls == null) {

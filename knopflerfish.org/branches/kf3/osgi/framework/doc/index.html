@@ -235,7 +235,7 @@ must explictly set this header themselves.
       framework to the parent classloader. The package specified can contain
       a wildcard at the end, which matches any sub-packages.
     </td>
-    <td>String,...</td>
+    <td>String , ...</td>
     <td></td>
   </tr>
   <tr>
@@ -295,7 +295,7 @@ must explictly set this header themselves.
       .a and .so, but System.mapLibraryName(String) will only return
       names with the .a extension.
     </td>
-    <td>String,...</td>
+    <td>String , ...</td>
     <td>-</td>
   </tr>
   <tr>
@@ -386,7 +386,7 @@ must explictly set this header themselves.
       JRE. See also "org.knopflerfish.framework.system.export"
       and "org.osgi.framework.system.packages.extra"
     </td>
-    <td>String,...</td>
+    <td>String , ...</td>
     <td>Default is based on other properties</td>
   </tr>
   <tr>
@@ -395,7 +395,7 @@ must explictly set this header themselves.
       Packages to add to the default list of packages exported by the
       system bundle.
     </td>
-    <td>String,...</td>
+    <td>String , ...</td>
     <td>-</td>
   </tr>
   <tr>
@@ -483,7 +483,7 @@ must explictly set this header themselves.
 
      If set to true, unpack all bundle jars.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -502,7 +502,7 @@ must explictly set this header themselves.
            This works even if the global reference flag
            is not enabled.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -514,7 +514,7 @@ must explictly set this header themselves.
 
      If set to true, trust bundles in bundle storage.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>True</td>
   </tr>
   <tr>
@@ -526,7 +526,7 @@ must explictly set this header themselves.
 
      If set to true, unpack needed bundle jars.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>True</td>
   </tr>
   <tr>
@@ -537,16 +537,16 @@ must explictly set this header themselves.
      appended with the default set of osgi-packges for the current
      framework and then used as the exports of the system bundle.
     </td>
-    <td></td>
-    <td></td>
+    <td>String , ...</td>
+    <td>-</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.system.packages.file</td>
     <td>
       File containing list of packages exported by the system bundle.
     </td>
-    <td></td>
-    <td></td>
+    <td>String</td>
+    <td>-</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.debug.automanifest</td>
@@ -563,7 +563,7 @@ must explictly set this header themselves.
      lookups that are rejected due to missing permissions for the
      calling bundle.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -571,7 +571,7 @@ must explictly set this header themselves.
     <td>
      Print debug information about certficate handling.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -579,7 +579,7 @@ must explictly set this header themselves.
     <td>
      Print debug information from classloader
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -588,7 +588,7 @@ must explictly set this header themselves.
      Print debug information about life-cycle events for the
      current framework instance.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -596,7 +596,7 @@ must explictly set this header themselves.
     <td>
      Print all FrameworkEvents of type ERROR
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -604,7 +604,7 @@ must explictly set this header themselves.
     <td>
      Print debug information about LDAP filters
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -612,7 +612,7 @@ must explictly set this header themselves.
     <td>
      Print debug information about packages
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -620,7 +620,7 @@ must explictly set this header themselves.
     <td>
      Print debug information about class patching
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -628,7 +628,7 @@ must explictly set this header themselves.
     <td>
      Print debug information about permission evaluation.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -638,15 +638,15 @@ must explictly set this header themselves.
      setting org.knopflerfish.debug.* properties with a
      doPrivileged() wrapper.
     </td>
-    <td></td>
-    <td>true</td>
+    <td>Boolean</td>
+    <td>True</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.debug.startlevel</td>
     <td>
      Print debug information about startlevel service
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -656,7 +656,7 @@ must explictly set this header themselves.
      reference lookups that are rejected due to missing permissions
      for calling bundle.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -664,7 +664,7 @@ must explictly set this header themselves.
     <td>
       Print debug information about URL services
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -674,10 +674,10 @@ must explictly set this header themselves.
      It is safe if JSR 133 is included in the running JRE. I.e., for
      Java SE if version is 1.5 or higher.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>
-      true if value of the system property java.version >= 1.5,
-      false otherwise
+      True if value of the system property java.version >= 1.5,
+      False otherwise
     </td>
   </tr>
   <tr>
@@ -687,7 +687,7 @@ must explictly set this header themselves.
      speeds up framework filters considerably, but uses
      more memory.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>False</td>
   </tr>
   <tr>
@@ -713,7 +713,7 @@ must explictly set this header themselves.
      Verbosity level of the Main class starting the framework. 0 means
      few messages.
     </td>
-    <td></td>
+    <td>Integer</td>
     <td>0</td>
   </tr>
   <tr>
@@ -783,8 +783,8 @@ must explictly set this header themselves.
       able to use new KF2 features such as extension bundles. 
       This flag is set to "true" by the "kf2" shell script.
     </td>
-    <td></td>
-    <td></td>
+    <td>Boolean</td>
+    <td>False</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.validator</td>
@@ -865,7 +865,7 @@ must explictly set this header themselves.
       we do not create a non daemon thread that will keep a jvm
       with only daemon threads alive.
     </td>
-    <td></td>
+    <td>Boolean</td>
     <td>True</td>
   </tr>
   <tr>
@@ -873,7 +873,7 @@ must explictly set this header themselves.
     <td>
      level of start level service if used.
     </td>
-    <td></td>
+    <td>Integer > 0</td>
     <td>1</td>
   </tr>
   <tr>
@@ -882,7 +882,7 @@ must explictly set this header themselves.
      Initial start level of bundles if start level
      service if used.
     </td>
-    <td></td>
+    <td>Integer > 0</td>
     <td>1</td>
   </tr>
   <tr>

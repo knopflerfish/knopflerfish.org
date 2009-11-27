@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import org.knopflerfish.framework.*;
 import org.osgi.framework.*;
 import java.io.*;
 import java.util.jar.*;
@@ -47,7 +46,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Hashtable;
 import java.util.TreeSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.net.URL;
 
@@ -499,7 +497,6 @@ public class AutoManifest extends Manifest {
 
     for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
       String key = (String)it.next();
-      String val = (String)props.get(key);
       int ix = key.indexOf(".");
       if(ix != -1) {
         String id = key.substring(0, ix);

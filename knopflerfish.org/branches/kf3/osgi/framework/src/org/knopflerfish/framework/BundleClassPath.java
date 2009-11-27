@@ -36,10 +36,6 @@ package org.knopflerfish.framework;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.security.ProtectionDomain;
 import java.util.*;
 
 import org.osgi.framework.*;

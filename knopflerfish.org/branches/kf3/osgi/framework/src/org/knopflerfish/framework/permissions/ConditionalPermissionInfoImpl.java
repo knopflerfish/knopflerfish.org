@@ -39,13 +39,11 @@ import java.security.*;
 import java.util.*;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.service.condpermadmin.*;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
 import org.knopflerfish.framework.Debug;
 import org.knopflerfish.framework.FrameworkContext;
-import org.knopflerfish.framework.Util;
 
 
 /**
@@ -54,8 +52,6 @@ import org.knopflerfish.framework.Util;
  */
 class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 {
-  static final private String SIGNER_CONDITION_TYPE = "org.osgi.service.condpermadmin.BundleSignerCondition";
-
   private ConditionalPermissionInfoStorage cpis;
 
   final private ConditionInfo [] conditionInfos;
@@ -291,7 +287,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
     int res = conditionInfos != null && conditionInfos.length > 0
       ? conditionInfos[0].hashCode()
       : 0;
-    return res = permissionInfos[0].hashCode();
+    return res + permissionInfos[0].hashCode();
   }
 
   //
