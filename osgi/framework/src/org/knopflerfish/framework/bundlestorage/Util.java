@@ -38,8 +38,6 @@ package org.knopflerfish.framework.bundlestorage;
 import java.security.cert.*;
 import java.util.*;
 
-import javax.security.auth.x500.X500Principal;
-
 
 /**
  * Interface for managing bundle contents.
@@ -60,8 +58,6 @@ public class Util {
     }
     ArrayList res = new ArrayList(3);
     ArrayList chain = new ArrayList(3);
-    String certPathType = null;
-    boolean foundAnchor = false;
     int i = 0;
     while (i < c.length) {
       if (c[i] instanceof X509Certificate) {

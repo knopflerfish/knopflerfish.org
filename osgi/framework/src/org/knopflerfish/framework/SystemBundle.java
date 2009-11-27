@@ -37,7 +37,6 @@ package org.knopflerfish.framework;
 import java.io.*;
 import java.lang.reflect.Method;
 import java.net.*;
-import java.security.ProtectionDomain;
 import java.util.*;
 
 import org.knopflerfish.framework.permissions.PermissionAdminImpl;
@@ -269,6 +268,9 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   public void update(InputStream in) throws BundleException {
     secure.checkLifecycleAdminPerm(this);
+    try {
+      in.close();
+    } catch (IOException ignore) {}
     shutdown(true);
   }
 
@@ -425,7 +427,6 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     while (true) {
       String l = baseName + locale + ".properties";
-      Hashtable res;
       for (int i = fragments.size() - 1; i >= 0; i--) {
         BundleImpl b = (BundleImpl)fragments.get(i);
         Hashtable tmp = b.archive.getLocalizationEntries(l);

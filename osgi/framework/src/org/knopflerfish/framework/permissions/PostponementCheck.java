@@ -37,9 +37,7 @@ package org.knopflerfish.framework.permissions;
 import java.security.*;
 import java.util.*;
 
-import org.osgi.service.condpermadmin.Condition;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
-import org.osgi.framework.AdminPermission;
 
 import org.knopflerfish.framework.Debug;
 
@@ -102,7 +100,6 @@ class PostponementCheck implements PrivilegedAction {
   private void checkPostponements() {
     if (ppList != null) {
       HashMap condDict = new HashMap();
-      Map cm;
       if (checkedClasses == null) {
         checkedClasses = new ArrayList();
       }

@@ -35,16 +35,11 @@
 package org.knopflerfish.framework.permissions;
 
 import java.io.*;
-import java.net.URL;
 import java.security.*;
-import java.security.cert.Certificate;
 import java.util.*;
 
-import org.osgi.framework.AdminPermission;
 import org.osgi.framework.Bundle;
-import org.osgi.service.permissionadmin.PermissionInfo;
 import org.knopflerfish.framework.FrameworkContext;
-import org.knopflerfish.framework.Util;
 
 
 /**

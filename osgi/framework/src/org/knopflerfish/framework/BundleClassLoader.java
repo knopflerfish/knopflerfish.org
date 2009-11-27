@@ -41,16 +41,12 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -185,7 +181,7 @@ final public class BundleClassLoader
   boolean isBundlePatch() {
     if(!bHasCheckedASM) {
       try {
-        Class clazz = Class.forName("org.objectweb.asm.ClassReader");
+        Class.forName("org.objectweb.asm.ClassReader");
         bHasASM = true;
       } catch (Exception no_asm_class) {
         bHasASM = false;

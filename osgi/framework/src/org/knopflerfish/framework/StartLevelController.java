@@ -486,7 +486,7 @@ public class StartLevelController
   public Object getService(Bundle bundle,
                            ServiceRegistration registration)
   {
-    return new StartLevelImpl(this, bundle);
+    return new StartLevelImpl(this);
   }
 
   public void ungetService(Bundle bundle,
@@ -499,10 +499,8 @@ public class StartLevelController
     implements StartLevel
   {
     private StartLevelController st;
-    private Bundle bundle;
 
-    StartLevelImpl(StartLevelController st, Bundle bundle) {
-      this.bundle = bundle;
+    StartLevelImpl(StartLevelController st) {
       this.st = st;
     }
 

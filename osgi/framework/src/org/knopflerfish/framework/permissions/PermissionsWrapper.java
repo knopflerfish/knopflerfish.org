@@ -35,7 +35,6 @@
 package org.knopflerfish.framework.permissions;
 
 import java.io.*;
-import java.lang.reflect.*;
 import java.security.*;
 import java.util.*;
 

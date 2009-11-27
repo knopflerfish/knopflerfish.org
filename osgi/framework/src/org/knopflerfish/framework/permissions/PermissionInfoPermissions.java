@@ -39,7 +39,6 @@ import java.lang.reflect.*;
 import java.security.*;
 import java.util.*;
 
-import org.osgi.framework.Bundle;
 import org.osgi.service.permissionadmin.*;
 
 import org.knopflerfish.framework.Debug;

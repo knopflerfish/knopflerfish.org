@@ -36,10 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.security.cert.Certificate;
-import java.util.Hashtable;
 import java.util.Enumeration;
-import java.util.List;
 
 
 /**

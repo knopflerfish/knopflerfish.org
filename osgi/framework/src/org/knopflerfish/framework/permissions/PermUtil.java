@@ -35,10 +35,6 @@
 package org.knopflerfish.framework.permissions;
 
 import java.io.*;
-import java.lang.reflect.*;
-import java.security.*;
-
-import org.osgi.service.permissionadmin.PermissionInfo;
 
 
 class PermUtil {

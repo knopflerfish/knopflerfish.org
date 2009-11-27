@@ -36,9 +36,6 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.net.*;
-import java.security.cert.Certificate;
-import java.security.AllPermission;
-import java.security.GeneralSecurityException;
 import java.util.*;
 
 import org.osgi.framework.*;
