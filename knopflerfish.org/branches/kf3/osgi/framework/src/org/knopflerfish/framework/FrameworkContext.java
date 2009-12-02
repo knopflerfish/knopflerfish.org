@@ -79,7 +79,7 @@ public class FrameworkContext  {
   /**
    * All bundle in this framework.
    */
-  public Bundles bundles;
+  Bundles bundles;
 
   /**
    * All listeners in this framework.
@@ -106,12 +106,10 @@ public class FrameworkContext  {
    */
   PermissionOps perm;
 
-
   /**
    * System bundle
    */
   SystemBundle systemBundle;
-
 
   /**
    * Bundle Storage
@@ -141,7 +139,36 @@ public class FrameworkContext  {
   /**
    * Factory for handling service-based URL contents
    */
-  ServiceContentHandlerFactory   contentHandlerFactory;
+  ServiceContentHandlerFactory contentHandlerFactory;
+
+  /**
+   * Patterns from the boot delegation property.
+   */
+  ArrayList /* String */ bootDelegationPatterns;
+  boolean bootDelegationUsed /*= false*/;
+
+  /**
+   * The parent class loader for bundle classloaders.
+   */
+  ClassLoader parentClassLoader;
+
+  /**
+   * Cached value of
+   * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
+   * Used and updated by isValidEE()
+   */
+  private Set    eeCacheSet = new HashSet();
+  private String eeCache = null;
+
+  /**
+   * Framework id.
+   */
+  final int id;
+
+  /**
+   * Framework properties.
+   */
+  public FWProps props;
 
   /**
    * Factory for handling service-based URLs
@@ -153,22 +180,21 @@ public class FrameworkContext  {
    */
   static ServiceContentHandlerFactory   systemContentHandlerFactory;
 
+  /**
+   * JVM global lock.
+   */
+  static Object globalFwLock = new Object();
 
   /**
-   * Cached value of
-   * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
-   * Used and updated by isValidEE()
+   * Id to use for next instance of KF framework.
    */
-  private Set    eeCacheSet = new HashSet();
-  private String eeCache = null;
-
-  final int id;
-
-  public FWProps props;
-
-  static Object globalFwLock = new Object();
   static int globalId = 1;
+
+  /**
+   * Reference counter for security manager.
+   */
   static int smUse = 0;
+
 
   /**
    * Contruct a framework context
@@ -185,9 +211,11 @@ public class FrameworkContext  {
   }
 
 
-  //
-  // Public method used by permissionshandling
-  //
+  /**
+   * Public method used by permissionshandling for fetching
+   * the class loader used for named class.
+   *
+   */
   public ClassLoader getClassLoader(String clazz) {
     if (clazz != null) {
       int pos = clazz.lastIndexOf('.');
@@ -205,7 +233,10 @@ public class FrameworkContext  {
   }
 
 
-  // Initialize the framework, see spec v4.2 sec 4.2.4
+  /**
+   * Initialize the framework, see spec v4.2 sec 4.2.4
+   *
+   */
   void init()
   {
     log("initializing");
@@ -344,8 +375,10 @@ public class FrameworkContext  {
     }
   }
 
+
   /**
    * Undo as much as possible of what init() does.
+   *
    */
   void uninit()
   {
@@ -400,9 +433,8 @@ public class FrameworkContext  {
   }
 
 
-  private static final String POLICY_PROPERTY = "java.security.policy";
-
   /**
+   * Check and/or set security manager.
    *
    */
   private boolean setSecurityManager() {
@@ -415,6 +447,7 @@ public class FrameworkContext  {
           throw new SecurityException("Unknown OSGi security, " + osgiSecurity);
         }
         if (current == null) {
+          final String POLICY_PROPERTY = "java.security.policy";
           final String defaultPolicy
             = this.getClass().getResource("/framework.policy").toString();
           final String policy = props.getProperty(POLICY_PROPERTY, defaultPolicy);
@@ -440,6 +473,10 @@ public class FrameworkContext  {
   }
 
 
+  /**
+   * Delete framework direcory if it exists.
+   *
+   */
   private void deleteFWDir() {
     String d = Util.getFrameworkDir(this);
 
@@ -457,10 +494,13 @@ public class FrameworkContext  {
   }
 
 
-  private final String USESTARTLEVEL_PROP = "org.knopflerfish.startlevel.use";
-
+  /**
+   * Setup start level service, if enabled.
+   *
+   */
   private void registerStartLevel() {
-    String useStartLevel = props.getProperty(USESTARTLEVEL_PROP, FWProps.TRUE);
+    String useStartLevel = props.getProperty("org.knopflerfish.startlevel.use",
+                                             FWProps.TRUE);
 
     if(FWProps.TRUE.equals(useStartLevel)) {
       if(props.debug.startlevel) {
@@ -483,6 +523,7 @@ public class FrameworkContext  {
 
   /**
    * Get private bundle data storage file handle.
+   *
    */
   public FileTree getDataStorage(long id) {
     if (dataStorage != null) {
@@ -505,6 +546,7 @@ public class FrameworkContext  {
 
   /**
    * Check if an execution environment string is accepted
+   *
    */
   boolean isValidEE(String ee) {
     ee = ee.trim();
@@ -537,9 +579,10 @@ public class FrameworkContext  {
   }
 
 
-  ArrayList /* String */ bootDelegationPatterns;
-  boolean bootDelegationUsed /*= false*/;
-
+  /**
+   * Parse bootdelegation pattern property.
+   *
+   */
   void buildBootDelegationPatterns() {
     final String bootDelegationString
       = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
@@ -551,7 +594,6 @@ public class FrameworkContext  {
       Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
                                      bootDelegationString,
                                      true, true, false);
-
       while (i.hasNext()) {
         Map e = (Map)i.next();
         String key = (String)e.get("$key");
@@ -583,6 +625,11 @@ public class FrameworkContext  {
     }
   }
 
+
+  /**
+   * Check if named resource is matched by the bootdelegation pattern
+   *
+   */
   boolean isBootDelegatedResource(String name) {
     // Convert resource name to class name format, preserving the
     // package part of the path/name.
@@ -592,6 +639,11 @@ public class FrameworkContext  {
       : false;
   }
 
+
+  /**
+   * Check if named class is matched by the bootdelegation pattern
+   *
+   */
   boolean isBootDelegated(String className){
     if(!bootDelegationUsed){
       return false;
@@ -614,48 +666,62 @@ public class FrameworkContext  {
     return false;
   }
 
-  /** The parent class loader for to be used by bundle classloaders. */
-  ClassLoader parentClassLoader;
-  void selectBootDelegationParentClassLoader() {
-    final ArrayList cls = new ArrayList();
-    ClassLoader cl = this.getClass().getClassLoader();
-    cls.add(cl);
-    while (null!=cl.getParent()) {
-      cl = cl.getParent();
-      cls.add(cl);
-    }
 
+  /**
+   * Select the parent class loader,to be used by bundle classloaders.
+   *
+   */
+  private void selectBootDelegationParentClassLoader() {
     final String s = props.getProperty(Constants.FRAMEWORK_BUNDLE_PARENT);
     if (Constants.FRAMEWORK_BUNDLE_PARENT_EXT.equals(s)) {
-      // Is this what the OSGi spec means by the "extension" loader?
-      parentClassLoader = cls.size()>=1 ?
-        (ClassLoader) cls.get(1) : (ClassLoader) cls.get(0);
+      parentClassLoader = ClassLoader.getSystemClassLoader();
+      if (parentClassLoader != null) {
+        parentClassLoader = parentClassLoader.getParent();
+      }
     } else if (Constants.FRAMEWORK_BUNDLE_PARENT_APP.equals(s)) {
-      // Is this what the OSGi spec means by the "application" loader?
       parentClassLoader = ClassLoader.getSystemClassLoader();
     } else if (Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK.equals(s)) {
-      parentClassLoader = (ClassLoader) cls.get(0);
-    } else { // Default: Constants.FRAMEWORK_BUNDLE_PARENT_BOOT
-      parentClassLoader = (ClassLoader) cls.get(cls.size()-1);
+      parentClassLoader = this.getClass().getClassLoader();
+    } else {
+      parentClassLoader = null;
     }
-    cls.clear();
+    // If bootclassloader, wrap it
+    if (parentClassLoader == null) {
+      parentClassLoader = new BCLoader();
+    }
   }
 
 
-  void log(String msg)
-  {
+  /**
+   * Log message for debugging framework
+   *
+   */
+  void log(String msg) {
     if (props.debug.framework) {
       props.debug.println("Framework instance " +hashCode() +": " +msg);
     }
   }
 
 
-  void log(String msg, Throwable t)
-  {
+  /**
+   * Log message for debugging framework
+   *
+   */
+  void log(String msg, Throwable t) {
     if (props.debug.framework) {
       props.debug.printStackTrace("Framework instance " +hashCode() +": "
                                   +msg, t);
     }
   }
 
+
+  /**
+   * Wrapper class for BootClassLoader.
+   *
+   */
+  private static class BCLoader extends ClassLoader {
+    protected BCLoader() {
+      super(null);
+    }
+  }
 }
