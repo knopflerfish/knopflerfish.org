@@ -268,9 +268,11 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   public void update(InputStream in) throws BundleException {
     secure.checkLifecycleAdminPerm(this);
-    try {
-      in.close();
-    } catch (IOException ignore) {}
+    if (in != null) {
+      try {
+        in.close();
+      } catch (IOException ignore) {}
+    }
     shutdown(true);
   }
 
