@@ -75,6 +75,8 @@ public class TelnetConfig {
 
   private static String defaultPassword = "admin";
 
+  private static boolean busyWait = false;
+
   // constructors
 
   public TelnetConfig(BundleContext bc)
@@ -94,6 +96,11 @@ public class TelnetConfig {
     final String pswd = bc.getProperty("org.knopflerfish.consoletelnet.pwd");
     if (null!=pswd && 0<pswd.length()) {
       defaultPassword = pswd;
+    }
+
+    final String bw = bc.getProperty("org.knopflerfish.consoletelnet.busywait");
+    if (null!=bw) {
+      busyWait = bw.trim().equalsIgnoreCase("true");
     }
 
     final String po = bc.getProperty("org.knopflerfish.consoletelnet.port");
@@ -246,6 +253,10 @@ public class TelnetConfig {
 
   String getAuthorizationMethod() {
     return "passwd"; // To be defined
+  }
+
+  boolean getBusyWait() {
+    return busyWait;
   }
 
 } // TelnetConfig
