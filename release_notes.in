@@ -103,6 +103,21 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   "org.apache.axis.SOAPPart.setContent(Ljavax/xml/transform/Source;)V"
 
 
+  consoletelnet 2.0.3
+
+  Fixed problem with double CR generated when using most clients.
+  Added configuration prorperty "org.knopflerfish.consoletelnet.busywait",
+  which causes the telnet input reader to do busy wait (useful if you
+  don't have real threads). Default value "false". Earlier versions
+  of consoletelnet always did busy wait.
+
+
+  httpclient_connector 2.1.1
+
+  Made SSL support optional (i.e. Import-Package of javax.crypto,
+  javax.crypto.spec, javax.net and javax.net.ssl are now optional).
+
+
   Build System
 
   The bundle tasks that performs analysis of a bundle to derive and
