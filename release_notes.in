@@ -132,6 +132,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   parts locked. Previously it only supported wild-cards selecting the
   highest available version.
 
+  The search order when expanding the bundle compile path has been
+  changed. Bundles are now search for in "${jars.dir}" (the local
+  repository) and if not found there the search continues in
+  "${osgi.dir}/jars" (the default repository).
+
+
 
 ========================================================================
 
