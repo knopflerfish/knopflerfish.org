@@ -10,6 +10,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
+  Framework 4.1.13
+
+  Fixed a problem with the start level service. Changing the start
+  level of an installed bundle that where resolved but not to marked
+  to be started resulted in a start of that bundle if the new
+  start-level was such that bundles should be started on it.
+
+
   Framework 4.1.12
 
   When using the default non-strict classloading the bundle
@@ -23,7 +31,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Services (Compendium) ===
 
 
-  Declarative-Services 2.0.2 (aka SCR)
+  Declarative-Services 2.0.2 (aka SCR (Service Component Runtime))
 
   The Service-Component header in the manifest file now supports
   "spaces" to separate between DS files.

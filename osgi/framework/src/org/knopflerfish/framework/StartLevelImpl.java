@@ -392,7 +392,7 @@ public class StartLevelImpl implements StartLevel, Runnable {
 
       if (bs.getStartLevel() <= currentLevel) {
         if (canStart(bs)) {
-          if (bs.archive.isPersistent() ||  (bs.getState() == Bundle.RESOLVED)) {
+          if (bs.archive.isPersistent()) {
             try {
               if (Debug.startlevel) {
                 Debug.println("startlevel: start " + bs);
