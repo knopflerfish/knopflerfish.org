@@ -506,8 +506,8 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         w = Math.max(w, size.width);
         h = Math.max(h, size.height);
       }
-      w = 0==w ? 30; // Avoid division by zero.
-      h = 0==h ? 30;
+      w = 0==w ? 30 : w; // Avoid division by zero.
+      h = 0==h ? 30 : h;
 
       // The viewport extent and size will be 0 during the first
       // layout (i.e., first call here) but the size of the panel will
