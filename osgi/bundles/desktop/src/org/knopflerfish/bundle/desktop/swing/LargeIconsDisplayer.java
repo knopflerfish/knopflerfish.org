@@ -501,8 +501,8 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       Set set = new TreeSet(iconComparator);
       set.addAll(bundleMap.keySet());
 
-      int w = 0;
-      int h = 0;
+      int w = 0; // Width of widest icon
+      int h = 0; // Height of higest icon
       for(Iterator it = set.iterator(); it.hasNext(); ) {
         Long      bid = (Long)it.next();
         JComponent c   = (JComponent)bundleMap.get(bid);
@@ -510,6 +510,8 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         w = Math.max(w, size.width);
         h = Math.max(h, size.height);
       }
+      w = 0==w ? 30 : w; // Avoid division by zero.
+      h = 0==h ? 30 : h;
 
       // The viewport extent and size will be 0 during the first
       // layout (i.e., first call here) but the size of the panel will
