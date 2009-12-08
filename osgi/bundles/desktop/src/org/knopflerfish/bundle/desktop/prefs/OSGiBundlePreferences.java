@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,20 +34,30 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-
-import org.osgi.framework.*;
 import java.util.*;
 import java.util.prefs.*;
+
 import org.knopflerfish.bundle.desktop.swing.Activator;
 import org.knopflerfish.bundle.desktop.swing.Util;
 
-import org.osgi.service.prefs.PreferencesService;
+import org.osgi.framework.*;
 import org.osgi.util.tracker.ServiceTracker;
-/**
 
+import org.knopflerfish.service.log.LogRef;
+
+import org.osgi.service.prefs.PreferencesService;
+
+
+/**
+ *
  */
 public class OSGiBundlePreferences extends MountedPreferences
 {
+  // A local copy of the log owned by our Activator since the EDT
+  // scheduled jobs may refer to Activator.log after it has been set
+  // to null.
+  static public LogRef    log = Activator.log;
+
   protected Bundle        bundle;
   protected BundleContext bc;
   OSGiPreferences         sysNode;
@@ -64,17 +74,17 @@ public class OSGiBundlePreferences extends MountedPreferences
     this.bc     = Util.getBundleContext(bundle);
 
     if(bc == null) {
-      Activator.log.debug("No BC for " + Util.getBundleName(bundle));
+      log.debug("No BC for " + Util.getBundleName(bundle));
     } else {
-      psTracker = new ServiceTracker(bc, 
-                                     PreferencesService.class.getName(), 
+      psTracker = new ServiceTracker(bc,
+                                     PreferencesService.class.getName(),
                                      null) {
           public Object addingService(ServiceReference sr) {
             Object obj = super.addingService(sr);
             ps = (PreferencesService)obj;
-            
+
             mountService();
-            
+
             return obj;
           }
           public void removedService(ServiceReference sr, Object service) {
@@ -102,15 +112,15 @@ public class OSGiBundlePreferences extends MountedPreferences
   public void close() {
     if(psTracker != null) {
       int state = bundle.getState();
-      if(0 != (state & (Bundle.ACTIVE | Bundle.STARTING | Bundle.STOPPING))) {        
+      if(0 != (state & (Bundle.ACTIVE | Bundle.STARTING | Bundle.STOPPING))) {
         try {
-          Activator.log.debug("close tracker for " + bundle + ", state=" + state);
-          psTracker.close();        
+          log.debug("close tracker for " + bundle + ", state=" + state);
+          psTracker.close();
         } catch (Exception e) {
-          Activator.log.debug("Failed to close tracker", e);
+          log.debug("Failed to close tracker", e);
         }
       } else {
-        Activator.log.debug("skip tracker close since state=" + state);
+        log.debug("skip tracker close since state=" + state);
       }
     }
     bundle    = null;
@@ -140,13 +150,14 @@ public class OSGiBundlePreferences extends MountedPreferences
         sysNode   = new OSGiPreferences(null, ps.getSystemPreferences());
         mount(sysNode, SYS_NAME);
       }
-      
+
       if(usersNode == null) {
-        usersNode = new OSGiUsersPreferences(null, ps);    
-        mount(usersNode, USERS_NAME);   
+        usersNode = new OSGiUsersPreferences(null, ps);
+        mount(usersNode, USERS_NAME);
       }
     } else {
-      Activator.log.warn("mount failed, no PreferencesService, " + Util.getBundleName(bundle));
+      log.warn("mount failed, no PreferencesService, "
+               +Util.getBundleName(bundle));
     }
   }
 }
