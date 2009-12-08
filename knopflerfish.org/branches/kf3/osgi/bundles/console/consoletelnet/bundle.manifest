@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Telnet-Console
 Bundle-SymbolicName: org.knopflerfish.bundle.consoletelnet
-Bundle-Version: 2.0.2
+Bundle-Version: 2.0.4
 Bundle-Description: Telnet console 
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
@@ -18,7 +18,5 @@ Import-Package:  org.osgi.framework,
  org.knopflerfish.service.console,
  org.knopflerfish.service.log,
  org.knopflerfish.service.um.useradmin
-Bundle-UUID: org.knopflerfish:consoletelnet:2.0.2
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles/console/consoletelnet/
-

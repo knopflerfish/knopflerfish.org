@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ public abstract class JHTMLBundle extends JPanel  {
   JPanel      panel;
   JTextPane   html;
   JScrollPane scroll;
-  
+
   DefaultSwingBundleDisplayer displayer;
 
   ArrayList historyBack    = new ArrayList();
@@ -91,129 +91,129 @@ public abstract class JHTMLBundle extends JPanel  {
   private long currentBid = -1;
 
   JHTMLBundle(DefaultSwingBundleDisplayer _displayer) {
-    
+
     setLayout(new BorderLayout());
-    
+
     this.displayer = _displayer;
-    
+
     html = new JTextPane();
     html.setText(Strings.get("bundleinfo_startup"));
     html.setContentType("text/html");
-    
+
     html.setEditable(false);
-    
-      html.addHyperlinkListener(new HyperlinkListener() 
-	{
-	  public void hyperlinkUpdate(HyperlinkEvent e) {
-	    if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-	      URL url = e.getURL();
-	      
-	      if(Util.isBundleLink(url)) {
-		long bid = Util.bidFromURL(url);
 
-		if(getCurrentBID() != -1) {
-		  historyBack.add(new Long(getCurrentBID()));
-		  
-		  backButton.setEnabled(!historyBack.isEmpty());
-		}
+      html.addHyperlinkListener(new HyperlinkListener()
+        {
+          public void hyperlinkUpdate(HyperlinkEvent e) {
+            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+              URL url = e.getURL();
 
-		displayer.getBundleSelectionModel().clearSelection();
-		displayer.getBundleSelectionModel().setSelected(bid, true);
+              if(Util.isBundleLink(url)) {
+                long bid = Util.bidFromURL(url);
+
+                if(getCurrentBID() != -1) {
+                  historyBack.add(new Long(getCurrentBID()));
+
+                  backButton.setEnabled(!historyBack.isEmpty());
+                }
+
+                displayer.getBundleSelectionModel().clearSelection();
+                displayer.getBundleSelectionModel().setSelected(bid, true);
 
 
-	      } else if(Util.isServiceLink(url)) {
-		long sid = Util.sidFromURL(url);
+              } else if(Util.isServiceLink(url)) {
+                long sid = Util.sidFromURL(url);
 
-		if(getCurrentBID() != -1) {
-		  historyBack.add(new Long(getCurrentBID()));
-		  
-		  backButton.setEnabled(!historyBack.isEmpty());
-		}
+                if(getCurrentBID() != -1) {
+                  historyBack.add(new Long(getCurrentBID()));
 
-		setServiceHTML(sid);
+                  backButton.setEnabled(!historyBack.isEmpty());
+                }
 
-	      } else if(Util.isResourceLink(url)) {
-		String path = Util.resourcePathFromURL(url);
+                setServiceHTML(sid);
 
-                
+              } else if(Util.isResourceLink(url)) {
+                String path = Util.resourcePathFromURL(url);
 
-		if(getCurrentBID() != -1) {
-		  historyBack.add(new Long(getCurrentBID()));
-		  
-		  backButton.setEnabled(!historyBack.isEmpty());
+
+
+                if(getCurrentBID() != -1) {
+                  historyBack.add(new Long(getCurrentBID()));
+
+                  backButton.setEnabled(!historyBack.isEmpty());
 
                   setResourceHTML(Activator.getBC().getBundle(getCurrentBID()), path);
-		}
+                }
 
-	      } else {
-		try {
-		  Util.openExternalURL(url);
-		} catch (Exception e2) {
-		  Activator.log.error("Failed to open url " + url, e2);
-		}
-	      }
-	    }
-	  }
-	}
-				);
-      
-      scroll = 
-	new JScrollPane(html, 
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-      
+              } else {
+                try {
+                  Util.openExternalURL(url);
+                } catch (Exception e2) {
+                  Activator.log.error("Failed to open url " + url, e2);
+                }
+              }
+            }
+          }
+        }
+                                );
+
+      scroll =
+        new JScrollPane(html,
+                        JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                        JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
       html.setPreferredSize(new Dimension(300, 300));
 
       JToolBar cmds = new JToolBar() {
-	  {
-	    add(backButton = new JButton(Activator.desktop.prevIcon) { 
-		{ 
-		  addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent ev) {
-		      if(!historyBack.isEmpty()) {
-			Long bid = (Long)historyBack.get(historyBack.size()-1);
-			historyBack.remove(historyBack.size()-1);
+          {
+            add(backButton = new JButton(Activator.desktop.prevIcon) {
+                {
+                  addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent ev) {
+                      if(!historyBack.isEmpty()) {
+                        Long bid = (Long)historyBack.get(historyBack.size()-1);
+                        historyBack.remove(historyBack.size()-1);
 
-			if(getCurrentBID() != -1) {
-			  historyFwd.add(new Long(getCurrentBID()));
-			}
+                        if(getCurrentBID() != -1) {
+                          historyFwd.add(new Long(getCurrentBID()));
+                        }
 
-			gotoBid(bid.longValue());
-		      }
-		      backButton.setEnabled(historyBack.size() > 0);
-		      fwdButton.setEnabled(historyFwd.size() > 0);
-		    }
-		  });
-		  setToolTipText(Strings.get("tt_html_back"));
-		}
-	      });
+                        gotoBid(bid.longValue());
+                      }
+                      backButton.setEnabled(historyBack.size() > 0);
+                      fwdButton.setEnabled(historyFwd.size() > 0);
+                    }
+                  });
+                  setToolTipText(Strings.get("tt_html_back"));
+                }
+              });
 
-	    add(fwdButton = new JButton(Activator.desktop.nextIcon) { 
-		{ 
-		  addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent ev) {
-		      if(historyFwd.size() > 0) {
-			Long bid = (Long)historyFwd.get(historyFwd.size()-1);
-			historyFwd.remove(historyFwd.size()-1);
+            add(fwdButton = new JButton(Activator.desktop.nextIcon) {
+                {
+                  addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent ev) {
+                      if(historyFwd.size() > 0) {
+                        Long bid = (Long)historyFwd.get(historyFwd.size()-1);
+                        historyFwd.remove(historyFwd.size()-1);
 
-			if(getCurrentBID() != -1) {
-			  historyBack.add(new Long(getCurrentBID()));
-			}
+                        if(getCurrentBID() != -1) {
+                          historyBack.add(new Long(getCurrentBID()));
+                        }
 
-			gotoBid(bid.longValue());
-		      }
-		      backButton.setEnabled(historyBack.size() > 0);
-		      fwdButton.setEnabled(historyFwd.size() > 0);
-		    }
-		  });
-		  setToolTipText(Strings.get("tt_html_back"));
-		}
-	      });
-	    backButton.setEnabled(historyBack.size() > 0);
-	    fwdButton.setEnabled(historyFwd.size() > 0);
-	  }
-	};
-      
+                        gotoBid(bid.longValue());
+                      }
+                      backButton.setEnabled(historyBack.size() > 0);
+                      fwdButton.setEnabled(historyFwd.size() > 0);
+                    }
+                  });
+                  setToolTipText(Strings.get("tt_html_back"));
+                }
+              });
+            backButton.setEnabled(historyBack.size() > 0);
+            fwdButton.setEnabled(historyFwd.size() > 0);
+          }
+        };
+
       cmds.setFloatable(false);
 
       add(scroll, BorderLayout.CENTER);
@@ -233,9 +233,9 @@ public abstract class JHTMLBundle extends JPanel  {
     sb.append("<html>");
 
     URL url = bundle.getResource(path);
-    
+
     sb.append("<table border=0>");
-    
+
     sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
     startFont(sb, "-1");
     sb.append("#" + bundle.getBundleId() + " " + path);
@@ -275,62 +275,62 @@ public abstract class JHTMLBundle extends JPanel  {
     StringBuffer sb = new StringBuffer();
 
     try {
-      ServiceReference[] srl = 
-	Activator.getTargetBC().getServiceReferences(null,
-					  "(" + Constants.SERVICE_ID + "=" + sid + ")");
+      ServiceReference[] srl =
+        Activator.getTargetBC().getServiceReferences(null,
+                                          "(" + Constants.SERVICE_ID + "=" + sid + ")");
       if(srl != null && srl.length == 1) {
-	sb.append("<html>");
-	sb.append("<table border=0>");
-	
-	sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
-	startFont(sb, "-1");
-	sb.append("Service #" + sid);
-	sb.append(", ");
-	Util.bundleLink(sb, srl[0].getBundle());
-	sb.append("</font>\n");
-	sb.append("</td>\n");
-	sb.append("</tr>\n");
-	sb.append("</table>");
+        sb.append("<html>");
+        sb.append("<table border=0>");
+
+        sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+        startFont(sb, "-1");
+        sb.append("Service #" + sid);
+        sb.append(", ");
+        Util.bundleLink(sb, srl[0].getBundle());
+        sb.append("</font>\n");
+        sb.append("</td>\n");
+        sb.append("</tr>\n");
+        sb.append("</table>");
 
 
-	startFont(sb);
-	sb.append("<b>Properties</b>");
-	sb.append("</font>");
-	sb.append("<table cellpadding=\"0\" cellspacing=\"1\" border=\"0\">");
-	String[] keys = srl[0].getPropertyKeys();
-	for(int i = 0; keys != null && i < keys.length; i++) {
-	  
-	  StringWriter sw = new StringWriter();
-	  PrintWriter  pr = new PrintWriter(sw);
-	  
-	  Util.printObject(pr, srl[0].getProperty(keys[i]));
-	  
-	  sb.append("<tr>");
-	  sb.append("<td valign=\"top\">");
-	  startFont(sb);
-	  sb.append(keys[i]);
-	  stopFont(sb);
-	  sb.append("</td>");
-	  
-	  sb.append("<td valign=\"top\">");
-	  sb.append(sw.toString());
-	  sb.append("</td>");
-	  
-	  sb.append("</tr>");
-	}
-	sb.append("</table>");
+        startFont(sb);
+        sb.append("<b>Properties</b>");
+        sb.append("</font>");
+        sb.append("<table cellpadding=\"0\" cellspacing=\"1\" border=\"0\">");
+        String[] keys = srl[0].getPropertyKeys();
+        for(int i = 0; keys != null && i < keys.length; i++) {
 
-	try {
+          StringWriter sw = new StringWriter();
+          PrintWriter  pr = new PrintWriter(sw);
+
+          Util.printObject(pr, srl[0].getProperty(keys[i]));
+
+          sb.append("<tr>");
+          sb.append("<td valign=\"top\">");
+          startFont(sb);
+          sb.append(keys[i]);
+          stopFont(sb);
+          sb.append("</td>");
+
+          sb.append("<td valign=\"top\">");
+          sb.append(sw.toString());
+          sb.append("</td>");
+
+          sb.append("</tr>");
+        }
+        sb.append("</table>");
+
+        try {
     sb.append(formatServiceObject(srl[0]).toString());
-	} catch (Exception e) {
-	  sb.append("Failed to format service object: " + e);
-	}
+        } catch (Exception e) {
+          sb.append("Failed to format service object: " + e);
+        }
 
 
-	sb.append("</html>");
-	
+        sb.append("</html>");
+
       } else {
-	sb.append("No service with sid=" + sid);
+        sb.append("No service with sid=" + sid);
       }
     } catch (Exception e2) {
       e2.printStackTrace();
@@ -431,7 +431,7 @@ public abstract class JHTMLBundle extends JPanel  {
    * format.
    */
   public abstract StringBuffer  bundleInfo(Bundle b);
-  
+
   /**
    * Get header text for no selected bundle page.
    */
@@ -443,8 +443,8 @@ public abstract class JHTMLBundle extends JPanel  {
    * Get main text for no selected bundle page.
    */
   public String getNoBundleSelectedText() {
-    return 
-      "Select one or more bundles in the main view to " + 
+    return
+      "Select one or more bundles in the main view to " +
       "view detail information";
   }
 
@@ -452,15 +452,83 @@ public abstract class JHTMLBundle extends JPanel  {
    * Get header text for selected bundle page.
    */
   public String getBundleSelectedHeader(Bundle b) {
-    return 
+    return
       "#" + b.getBundleId() + "  " +  Util.getBundleName(b);
   }
 
 
+  // Lock that must be taken before accessing the fields
+  // currentSelection and currentUpdater.
+  private Object valueChangedLock = new Object();
+  // The most resent selection, to be used by updateView().
+  private Bundle[] currentSelection = null;
+  // If non-null an updateView() is scheduled on the EDT.
+  private Runnable currentUpdater = null;
 
+  /**
+   * Gets notified about selection change and service registration /
+   * un-registration etc. Will schedule an update of the contents of
+   * this view. This method may sometimes be called very often during
+   * a short time period, e.g., during an update of a bundle that
+   * registers many service, thus we schedule the actual view update
+   * (it may be costly, e.g., when the bundle registers many services)
+   * as job on the EDT that will use the most resent bundle list when
+   * it executes. I.e., all intermediate bundle lists (and thus
+   * updates) will be skipped.
+   */
   public void valueChanged(Bundle[] bl) {
-    StringBuffer sb = new StringBuffer("<html>\n");
-    
+    // final StringBuffer sbb = new StringBuffer(200);
+    // sbb.append("valueChanged(");
+    // if (null==bl) {
+    //   sbb.append("null");
+    // } else {
+    //   sbb.append("[");
+    //   for(int i = 0; i < bl.length; i++) {
+    //     sbb.append(bl[i].getBundleId());
+    //   }
+    //   sbb.append("]");
+    // }
+    // sbb.append(") ");
+    // sbb.append(this.getClass().getName());
+    // System.out.println(sbb.toString());
+
+    synchronized(valueChangedLock) {
+      currentSelection = bl;
+      if (null==currentUpdater) {
+        // Must schedule a new call to updateView()
+        currentUpdater = new ValueUpdater();
+        SwingUtilities.invokeLater(currentUpdater);
+      }
+    }
+  }
+
+  /**
+   * A runnable-class that will call updateView() form the EDT.
+   */
+  class ValueUpdater implements Runnable
+  {
+    public void run()
+    {
+      Bundle[] bl = null;
+      synchronized(JHTMLBundle.this.valueChangedLock) {
+        bl = currentSelection;
+        currentUpdater = null;
+      }
+      JHTMLBundle.this.updateView(bl);
+    }
+  }
+
+  /**
+   * Update this view to show info about the bundles in the given
+   * bundle array.
+   */
+  private void updateView(Bundle[] bl)
+  {
+    //System.out.println("updateView() " +this.getClass().getName());
+
+    final StringBuffer sb = new StringBuffer(400);
+    sb.append("<html>\n");
+
     if(bl == null || bl.length == 0) {
       sb.append("<html>\n");
       sb.append("<table border=\"0\">\n");
@@ -471,50 +539,50 @@ public abstract class JHTMLBundle extends JPanel  {
       sb.append("</td>\n");
       sb.append("</tr>\n");
       sb.append("</table>\n");
-      
+
       startFont(sb);
       sb.append(getNoBundleSelectedText());
-      sb.append("</font>\n" + 
-		"</p>\n" + 
-		"</html>");
+      sb.append("</font>\n" +
+                "</p>\n" +
+                "</html>");
     } else {
       if(bl.length == 1) {
-	if(bl[0].getBundleId() == getCurrentBID()) {
-	  //	  System.out.println("skip already set bid=" + getCurrentBID());
-	  //	  return;
-	}
+        if(bl[0].getBundleId() == getCurrentBID()) {
+          //      System.out.println("skip already set bid=" + getCurrentBID());
+          //      return;
+        }
       }
 
       setCurrentBID(bl[0].getBundleId());
 
-      for(int i = 0; i < bl.length; i++) { 
+      for(int i = 0; i < bl.length; i++) {
 
-	sb.append("<table border=\"0\" width=\"100%\">\n");
-	sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
-	startFont(sb, "-1");
-	sb.append(getBundleSelectedHeader(bl[i]));
-	sb.append("</font>\n");
-	sb.append("</td>\n");
-	sb.append("</tr>\n");
-	
-	sb.append("<tr><td bgcolor=\"#ffffff\">");
+        sb.append("<table border=\"0\" width=\"100%\">\n");
+        sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+        startFont(sb, "-1");
+        sb.append(getBundleSelectedHeader(bl[i]));
+        sb.append("</font>\n");
+        sb.append("</td>\n");
+        sb.append("</tr>\n");
+
+        sb.append("<tr><td bgcolor=\"#ffffff\">");
 //         long t0 = System.currentTimeMillis();
         StringBuffer bi = bundleInfo(bl[i]);
 //         long t1 = System.currentTimeMillis();
 //         if(t1 - t0 > 50) {
 //           System.out.println("  " + (t1-t0) + "ms " + getClass().getName());
 //         }
-	sb.append(bi.toString());
-	sb.append("</td>\n");
-	sb.append("</tr>\n");
-	sb.append("</table>\n");
+        sb.append(bi.toString());
+        sb.append("</td>\n");
+        sb.append("</tr>\n");
+        sb.append("</table>\n");
       }
     }
-    
+
     sb.append("\n</html>");
     setHTML(sb.toString());
   }
-  
+
   protected void setCurrentBID(long bid) {
     this.currentBid = bid;
   }
@@ -523,29 +591,29 @@ public abstract class JHTMLBundle extends JPanel  {
     return currentBid;
   }
 
-  
+
   void setHTML(String s) {
     html.setText(s);
-    
+
     SwingUtilities.invokeLater(new Runnable() {
-	public void run() {
-	  try {
-	    JViewport vp = scroll.getViewport();
-	    if(vp != null) {
-	      vp.setViewPosition(new Point(0,0));
-	      scroll.setViewport(vp);
-	    }  
-	  } catch (Exception e) {
-	    e.printStackTrace();
-	  }
-	}
+        public void run() {
+          try {
+            JViewport vp = scroll.getViewport();
+            if(vp != null) {
+              vp.setViewPosition(new Point(0,0));
+              scroll.setViewport(vp);
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
       });
   }
-  
-  
+
+
   void appendRow(StringBuffer sb, String c1, String c2) {
-    sb.append("<tr>" + 
-	      " <td valign=\"top\"><b>");
+    sb.append("<tr>" +
+              " <td valign=\"top\"><b>");
     startFont(sb);
     sb.append(c1);
     sb.append("</font>");
@@ -554,9 +622,9 @@ public abstract class JHTMLBundle extends JPanel  {
     startFont(sb);
     sb.append(c2);
     sb.append("</td>\n" +
-	      "</tr>\n");
+              "</tr>\n");
   }
-  
+
   void startFont(StringBuffer sb) {
     startFont(sb, "-2");
   }
@@ -564,10 +632,10 @@ public abstract class JHTMLBundle extends JPanel  {
   void stopFont(StringBuffer sb) {
     sb.append("</font>");
   }
-  
+
   void startFont(StringBuffer sb, String size) {
     sb.append("<font size=\"" + size + "\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 
-  
-} 
+
+}

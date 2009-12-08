@@ -105,18 +105,6 @@ public class TelnetInputStream extends FilterInputStream {
                 tsm.nextState(tsm.getState(), thisChar);
                 continue scanStream;
             }
-            if ((thisChar == TCC.NULL || thisChar == TCC.LF)
-                    && prevChar == TCC.CR) {
-                // System.out.println("break CR");
-                thisChar = TCC.CR;
-                break scanStream;
-            }
-            if (thisChar == TCC.CR) {
-                // System.out.println("break2 CR");
-                return thisChar;
-                // continue scanStream;
-            }
-
             break scanStream;
         }
         return thisChar;

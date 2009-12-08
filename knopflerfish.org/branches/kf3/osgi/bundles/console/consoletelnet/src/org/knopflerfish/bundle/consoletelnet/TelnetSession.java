@@ -136,7 +136,7 @@ public class TelnetSession
         telnetOutputStream = new TelnetOutputStream(os, this);
 
         printWriter = new PrintWriter(telnetOutputStream);
-        reader = new TelnetReader(telnetInputStream, this);
+        reader = new TelnetReader(telnetInputStream, this, telnetConfig.getBusyWait());
 
         // Instantiate the supported options, with default state
         // ts code, do show

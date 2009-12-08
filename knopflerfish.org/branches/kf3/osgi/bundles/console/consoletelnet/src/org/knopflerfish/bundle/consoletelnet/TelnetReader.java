@@ -55,11 +55,17 @@ public class TelnetReader extends Reader {
 
     private int rp; // pointer in read buffer line
 
-    InputStream is;
+    private InputStream is;
 
-    public TelnetReader(InputStream is, TelnetSession tels) {
+    private boolean busyWait;
+
+    private boolean skipLF = false; // Skip next char if LF
+
+
+    public TelnetReader(InputStream is, TelnetSession tels, boolean busyWait) {
         this.tels = tels;
         this.is = is;
+        this.busyWait = busyWait;
 
         // ir = new InputStreamReader(is);
         lineBuf = new Vector();
@@ -72,6 +78,7 @@ public class TelnetReader extends Reader {
     }
 
     public boolean ready() throws IOException {
+        // TODO, we should check skipLF
         return is.available() > 0;
     }
 
@@ -86,9 +93,8 @@ public class TelnetReader extends Reader {
         int character;
         Integer tmp;
 
-        // System.out.println("TelnetReader.read buf=" + buf + ", off=" + off +
-        // ",
-        // len=" + len);
+        //System.out.println("TelnetReader.read buf=" + buf + ", off=" + off +
+        //", len=" + len);
 
         // 1. Check if there still are characters in readyLine ?
 
@@ -103,11 +109,7 @@ public class TelnetReader extends Reader {
 
             if (character != -1) {
 
-                /*
-                 * System.out.println("Char " + String.valueOf(character)); if
-                 * (character < 31) { System.out.println("Char " +
-                 * String.valueOf(character)); }
-                 */
+                //System.out.println("Char " + String.valueOf(character));
 
                 switch (character) {
 
@@ -122,6 +124,7 @@ public class TelnetReader extends Reader {
                     break;
 
                 case TCC.CR:
+                case TCC.LF:
                     // System.out.println("CR");
                     lineBuf.addElement(new Integer(character));
                     // tels.echoChar(character);
@@ -151,17 +154,34 @@ public class TelnetReader extends Reader {
     }
 
     private int readChar() throws IOException {
-        // System.out.println("TelnetReader.readChar()");
-        while (is.available() < 1) {
-            try {
-                Thread.sleep(20);
-            } catch (Exception e) {
+        //System.out.println("TelnetReader.readChar()");
+        int c;
+        while (true) {
+            if (busyWait) {
+                while (is.available() < 1) {
+                    try {
+                        Thread.sleep(20);
+                    } catch (Exception e) {
+                    }
+                }
+            }
+            c = is.read();
+            if (c != 0) {
+                if (skipLF) {
+                    skipLF = false;
+                    if (c == TCC.LF) {
+                        continue;
+                    }
+                }
+                break;
             }
         }
 
-        int c = is.read();
-
         tels.echoChar(c);
+
+        if (c == TCC.CR) {
+          skipLF = true;
+        }
 
         return c;
     }
@@ -189,14 +209,8 @@ public class TelnetReader extends Reader {
 
         try {
             while (true) {
-                if (bOldChar) {
-                    character = oldChar;
-                    bOldChar = false;
-                } else {
-                    character = readChar();
-                }
-                if ((character == TCC.CR) || (character == TCC.LF)) {
-                    skipCRLF();
+                character = readChar();
+                if (character == TCC.CR) {
                     break;
                 }
                 // System.out.println("TelnetReader.readLine() add char " +
@@ -218,26 +232,4 @@ public class TelnetReader extends Reader {
             throw e;
         }
     }
-
-    int oldChar = -1;
-
-    boolean bOldChar;
-
-    void skipCRLF() throws IOException {
-        bOldChar = false;
-
-        while (is.available() > 0) {
-            try {
-                oldChar = is.read();
-                if ((oldChar == TCC.CR) || (oldChar == TCC.LF)) {
-                } else {
-                    bOldChar = true;
-                    break;
-                }
-            } catch (Exception e) {
-                break;
-            }
-        }
-    }
-
 }

@@ -43,7 +43,7 @@
   <!-- Special value to be used as the value for a bundle manifest      -->
   <!-- properties that shall not be included in the generated manifest. -->
   <!-- DO NOT CHANGE THIS VALUE.                                        -->
-  <property name="bundle.emptystring" value="[bundle.emptystring]"/>
+ <property name="bundle.emptystring" value="[bundle.emptystring]"/>
 
   <!-- Map environment variables to properties starting with "sysprops."-->
   <property environment="sysprops"/>
@@ -363,10 +363,13 @@
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
 		    failOnMissingBundles="true">
+      <!-- Search the local repository first -->
       <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
-      <fileset dir="${osgi.jars.dir}">
+
+      <!-- Search the default repository second -->
+      <fileset dir="${osgi.dir}/jars">
 	<include name="**/*.jar"/>
       </fileset>
     </bundle_locator>
@@ -390,10 +393,12 @@
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
 		    failOnMissingBundles="false">
+      <!-- Search the local repository first -->
       <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
-      <fileset dir="${osgi.jars.dir}">
+      <!-- Search the default repository second -->
+      <fileset dir="${osgi.dir}/jars">
 	<include name="**/*.jar"/>
       </fileset>
     </bundle_locator>
