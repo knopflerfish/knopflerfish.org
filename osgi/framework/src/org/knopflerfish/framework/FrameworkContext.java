@@ -283,6 +283,11 @@ public class FrameworkContext  {
           if (DEFAULT_VALIDATOR != v) {
             throw new RuntimeException(vs + ", found no such Validator", e);
           }
+        } catch (NoClassDefFoundError ncdfe) {
+          // Validator uses class not supported by JVM ignore
+          if (DEFAULT_VALIDATOR != v) {
+            throw new RuntimeException(vs + ", Validator not supported by JVM", ncdfe);
+          }
         } catch (Exception e) {
           throw new RuntimeException(vs + ", failed to construct Validator", e);
         }
@@ -474,7 +479,7 @@ public class FrameworkContext  {
 
 
   /**
-   * Delete framework direcory if it exists.
+   * Delete framework directory if it exists.
    *
    */
   private void deleteFWDir() {
