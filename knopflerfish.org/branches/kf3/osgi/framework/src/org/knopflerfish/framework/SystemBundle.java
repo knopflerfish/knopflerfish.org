@@ -611,9 +611,11 @@ public class SystemBundle extends BundleImpl implements Framework {
         url = SystemBundle.class.getResource("/" +sysPkgFile);
       }
       if (null==url) {
-        fwCtx.props.debug.println("Could not add system bundle package "
-                                  +"exports from '" +sysPkgFile
-                                  +"', file not found.");
+        if(fwCtx.props.debug.packages) {
+          fwCtx.props.debug.println("Could not add system bundle package "
+                                    +"exports from '" +sysPkgFile
+                                    +"', file not found.");
+        }
       }
     }
     BufferedReader in = null;
