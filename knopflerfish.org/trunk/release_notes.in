@@ -121,7 +121,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   "org.apache.axis.SOAPPart.setContent(Ljavax/xml/transform/Source;)V"
 
 
-  consoletelnet 2.0.3
+  consoletelnet 2.0.4
 
   Fixed problem with double CR generated when using most clients.
   Added configuration prorperty "org.knopflerfish.consoletelnet.busywait",

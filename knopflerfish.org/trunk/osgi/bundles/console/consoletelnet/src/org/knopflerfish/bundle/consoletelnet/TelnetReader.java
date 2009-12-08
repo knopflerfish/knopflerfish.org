@@ -156,7 +156,7 @@ public class TelnetReader extends Reader {
     private int readChar() throws IOException {
         //System.out.println("TelnetReader.readChar()");
         int c;
-        do {
+        while (true) {
             if (busyWait) {
                 while (is.available() < 1) {
                     try {
@@ -166,15 +166,22 @@ public class TelnetReader extends Reader {
                 }
             }
             c = is.read();
-            if (skipLF) {
-                skipLF = false;
-                if (c == TCC.LF) {
-                    continue;
+            if (c != 0) {
+                if (skipLF) {
+                    skipLF = false;
+                    if (c == TCC.LF) {
+                        continue;
+                    }
                 }
+                break;
             }
-        } while (c == 0);
+        }
 
         tels.echoChar(c);
+
+        if (c == TCC.CR) {
+          skipLF = true;
+        }
 
         return c;
     }
