@@ -53,6 +53,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
+  Desktop Bundle 2.3.16
+
+  Improved performance when many update events are sent to the
+  services view. The update of the view is now scheduled as job on the
+  EDT (Event Dispatch Thread) which when executed will update the view
+  according to the most recent event, any intermediate events (i.e.,
+  events that arrived between the scheduling of the job and execution
+  of it) will be ignored.
+
+
   Desktop Bundle 2.3.15
 
   Application listeners on Mac OS X was not properly un-installed when
