@@ -363,12 +363,15 @@
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
 		    failOnMissingBundles="true">
-      <!-- Search the local repository first -->
+      <!-- Search the local repository first (where jars are placed) -->
       <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
-
-      <!-- Search the default repository second -->
+      <!-- Search the local default repository second -->
+      <fileset dir="${osgi.jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+      <!-- Search the default repository third -->
       <fileset dir="${osgi.dir}/jars">
 	<include name="**/*.jar"/>
       </fileset>
@@ -393,11 +396,15 @@
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
 		    failOnMissingBundles="false">
-      <!-- Search the local repository first -->
+      <!-- Search the local repository first (where jars are placed) -->
       <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
-      <!-- Search the default repository second -->
+      <!-- Search the local default repository second -->
+      <fileset dir="${osgi.jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+      <!-- Search the default repository third -->
       <fileset dir="${osgi.dir}/jars">
 	<include name="**/*.jar"/>
       </fileset>
