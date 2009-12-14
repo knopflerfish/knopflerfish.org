@@ -34,18 +34,13 @@
 
 package org.knopflerfish.framework.bundlestorage.memory;
 
+import java.io.*;
+import java.util.*;
+import java.util.jar.*;
+
+import org.knopflerfish.framework.BundleResourceStream;
 
 import org.osgi.framework.Constants;
-import java.io.*;
-
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.StringTokenizer;
-import java.util.Vector;
-import java.util.jar.*;
 
 /**
  * JAR file handling.
@@ -159,13 +154,13 @@ class Archive {
    * @param component Entry to get reference to.
    * @return InputStream to entry or null if it doesn't exist.
    */
-  InputStream getInputStream(String component) {
+  BundleResourceStream getBundleResourceStream(String component) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
     byte[] b = (byte[]) content.get(component);
     if (b != null) {
-      return new ByteArrayInputStream(b);
+      return new BundleResourceStream(new ByteArrayInputStream(b), b.length);
     } else {
       return null;
     }

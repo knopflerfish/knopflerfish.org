@@ -134,7 +134,7 @@ public class BundleClassPath
     } else {
       for (Iterator i = archives.iterator(); i.hasNext(); ) {
         FileArchive fa = (FileArchive)i.next();
-        InputStream ai = fa.getInputStream(component);
+        InputStream ai = fa.getBundleResourceStream(component);
         if (ai != null) {
           if (v == null) {
             v = new Vector();
@@ -171,7 +171,7 @@ public class BundleClassPath
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    return ((FileArchive)archives.get(ix)).getInputStream(component);
+    return ((FileArchive)archives.get(ix)).getBundleResourceStream(component);
   }
 
 
