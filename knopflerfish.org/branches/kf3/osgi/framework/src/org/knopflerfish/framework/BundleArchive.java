@@ -122,15 +122,15 @@ public interface BundleArchive {
 
 
   /**
-   * Get an specific InputStream to named entry inside a bundle.
+   * Get a BundleResourceStream to named entry inside a bundle.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
    * @param ix index of sub archives. A postive number is the classpath entry
    *            index. 0 means look in the main bundle.
-   * @return InputStream to entry or null if it doesn't exist.
+   * @return BundleResourceStream to entry or null if it doesn't exist.
    */
-  InputStream getInputStream(String component, int ix);
+  BundleResourceStream getBundleResourceStream(String component, int ix);
 
 
   /**

@@ -51,7 +51,7 @@ class BundleURLConnection extends URLConnection {
   final static Permission ADMIN_PERMISSION
     = new AdminPermission( (String)null, AdminPermission.RESOURCE);
 
-  private InputStream is = null;
+  private BundleResourceStream is = null;
   /**
    * Handle to the current framework instance used in the conversion
    * from bundle id on string form in the URL to the actual bundle
@@ -115,14 +115,14 @@ class BundleURLConnection extends URLConnection {
         // thus we must call bundleArchive.getInputStream()
         // via doPrivileged().
         int port = url.getPort();
-        is = bundle.secure.callGetInputStream(a, url.getFile(), port != -1 ? port : 0);
+        is = bundle.secure.callGetBundleResourceStream(a, url.getFile(), port != -1 ? port : 0);
       }
       if (is != null) {
         connected = true;
         if(BundleClassLoader.bDalvik) {
           contentLength = -1;
         } else {
-          contentLength = is.available();
+          contentLength = (int)is.getContentLength();
         }
         contentType = URLConnection.guessContentTypeFromName(url.getFile());
         lastModified = a.getLastModified();

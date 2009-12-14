@@ -229,14 +229,14 @@ class BundleArchiveImpl implements BundleArchive
    * returns the localization entries of this archive.
    */
   public Hashtable getLocalizationEntries(String localeFile) {
-    Archive.InputFlow aif = archive.getInputFlow(localeFile);
+    BundleResourceStream aif = archive.getBundleResourceStream(localeFile);
     if (aif != null) {
       Properties l = new Properties();
       try {
-        l.load(aif.is);
+        l.load(aif);
       } catch (IOException _ignore) { }
       try {
-        aif.is.close();
+        aif.close();
       } catch (IOException _ignore) { }
       return l;
     } else {
@@ -310,22 +310,22 @@ class BundleArchiveImpl implements BundleArchive
 
 
   /**
-   * Get an specific InputStream to named entry inside a bundle.
+   * Get a BundleResourceStream to named entry inside a bundle.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
    * @param ix index of sub archives. A postive number is the classpath entry
    *            index. 0 means look in the main bundle.
-   * @return InputStream to entry or null if it doesn't exist.
+   * @return BundleResourceStream to entry or null if it doesn't exist.
    */
-  public InputStream getInputStream(String component, int ix) {
+  public BundleResourceStream getBundleResourceStream(String component, int ix) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
     if (ix == 0) {
-      return archive.getInputStream(component);
+      return archive.getBundleResourceStream(component);
     } else {
-      return ((FileArchive)archives.get(ix - 1)).getInputStream(component);
+      return ((FileArchive)archives.get(ix - 1)).getBundleResourceStream(component);
     }
   }
 

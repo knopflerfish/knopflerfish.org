@@ -168,10 +168,10 @@ class PermissionOps {
   // BundleArchive secure operations
   //
 
-  InputStream callGetInputStream(final BundleArchive archive,
-                                 final String name,
-                                 final int ix) {
-    return archive.getInputStream(name, ix);
+  BundleResourceStream callGetBundleResourceStream(final BundleArchive archive,
+                                                   final String name,
+                                                   final int ix) {
+    return archive.getBundleResourceStream(name, ix);
   }
 
 

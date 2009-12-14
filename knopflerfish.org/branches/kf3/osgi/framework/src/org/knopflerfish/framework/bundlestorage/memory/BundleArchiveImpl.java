@@ -137,7 +137,7 @@ class BundleArchiveImpl implements BundleArchive
    * returns the localization entries of this archive.
    */
   public Hashtable getLocalizationEntries(String localeFile) {
-    InputStream is = archive.getInputStream(localeFile);
+    BundleResourceStream is = archive.getBundleResourceStream(localeFile);
     if (is != null) {
       Properties l = new Properties();
       try {
@@ -238,7 +238,7 @@ class BundleArchiveImpl implements BundleArchive
       }
     } else {
       for (int i = 0; i < archives.length; i++) {
-        InputStream is = archives[i].getInputStream(component);
+        InputStream is = archives[i].getBundleResourceStream(component);
         if (is != null) {
           if(v == null) {
             v = new Vector();
@@ -266,15 +266,15 @@ class BundleArchiveImpl implements BundleArchive
    *            index. -1 means look in the main bundle.
    * @return InputStream to entry or null if it doesn't exist.
    */
-  public InputStream getInputStream(String component, int ix) {
+  public BundleResourceStream getBundleResourceStream(String component, int ix) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
 
     if(ix == -1) {
-      return archive.getInputStream(component);
+      return archive.getBundleResourceStream(component);
     } else {
-      return archives[ix].getInputStream(component);
+      return archives[ix].getBundleResourceStream(component);
     }
   }
 

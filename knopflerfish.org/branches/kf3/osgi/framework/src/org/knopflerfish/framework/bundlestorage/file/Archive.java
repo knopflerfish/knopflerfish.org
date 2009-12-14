@@ -544,19 +544,20 @@ public class Archive implements FileArchive {
     if(bClosed) {
       return null;
     }
-    InputFlow cif = getInputFlow(classFile);
+    BundleResourceStream cif = getBundleResourceStream(classFile);
     if (cif != null) {
       byte[] bytes;
-      if (cif.length >= 0) {
-        bytes = new byte[(int)cif.length];
-        DataInputStream dis = new DataInputStream(cif.is);
+      long ilen = cif.getContentLength();
+      if (ilen >= 0) {
+        bytes = new byte[(int)ilen];
+        DataInputStream dis = new DataInputStream(cif);
         dis.readFully(bytes);
       } else {
         bytes = new byte[0];
         byte[] tmp = new byte[8192];
         try {
           int len;
-          while ((len = cif.is.read(tmp)) > 0) {
+          while ((len = cif.read(tmp)) > 0) {
             byte[] oldbytes = bytes;
             bytes = new byte[oldbytes.length + len];
             System.arraycopy(oldbytes, 0, bytes, 0, oldbytes.length);
@@ -568,7 +569,7 @@ public class Archive implements FileArchive {
           // but everything seems okey. (SUN Bug 4040920)
         }
       }
-      cif.is.close();
+      cif.close();
       return bytes;
     } else {
       return null;
@@ -577,27 +578,12 @@ public class Archive implements FileArchive {
 
 
   /**
-   * Get an specific InputStream to named entry inside archive.
+   * Get a BundleResourceStream to named entry inside an Archive.
    *
    * @param component Entry to get reference to.
-   * @return InputStream to entry or null if it doesn't exist.
+   * @return BundleResourceStream to entry or null if it doesn't exist.
    */
-  public InputStream getInputStream(String component) {
-    InputFlow i = getInputFlow(component);
-    if (i != null) {
-      return i.is;
-    }
-    return null;
-  }
-
-
-  /**
-   * Get an InputFlow to named entry inside an Archive.
-   *
-   * @param component Entry to get reference to.
-   * @return InputFlow to entry or null if it doesn't exist.
-   */
-  InputFlow getInputFlow(String component) {
+  public BundleResourceStream getBundleResourceStream(String component) {
     if(bClosed) {
       return null;
     }
@@ -613,7 +599,7 @@ public class Archive implements FileArchive {
             if (null!=ze) {
               InputStream is = jar.getInputStream(ze);
               if (null!=is) {
-                return new InputFlow(is, ze.getSize());
+                return new BundleResourceStream(is, ze.getSize());
               } else {
                 // Workaround for directories given without trailing
                 // "/"; they will not yield an input-stream.
@@ -621,13 +607,13 @@ public class Archive implements FileArchive {
                   ZipEntry ze2 = jar.getEntry(subJar.getName() +component +"/");
                   is = jar.getInputStream(ze2);
                 }
-                return new InputFlow(is, ze.getSize());
+                return new BundleResourceStream(is, ze.getSize());
               }
             }
           } else {
             if (component.equals("")) {
               // Return a stream to the entire Jar.
-              return new InputFlow(jar.getInputStream(subJar), subJar.getSize());
+              return new BundleResourceStream(jar.getInputStream(subJar), subJar.getSize());
             } else {
               JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
               do {
@@ -637,20 +623,20 @@ public class Archive implements FileArchive {
                   return null;
                 }
               } while (!component.equals(ze.getName()));
-              return new InputFlow((InputStream)ji, ze.getSize());
+              return new BundleResourceStream((InputStream)ji, ze.getSize());
             }
           }
         } else {
           if (component.equals("")) {
             // Return a stream to the entire Jar.
             File f = new File(jar.getName());
-            return new InputFlow(new FileInputStream(f), f.length() );
+            return new BundleResourceStream(new FileInputStream(f), f.length());
           } else {
             ze = jar.getEntry(component);
             if (null!=ze) {
               InputStream is = jar.getInputStream(ze);
               if (null!=is) {
-                return new InputFlow(is, ze.getSize());
+                return new BundleResourceStream(is, ze.getSize());
               } else {
                 // Workaround for directories given without trailing
                 // "/"; they will not yield an input-stream.
@@ -658,14 +644,14 @@ public class Archive implements FileArchive {
                   ZipEntry ze2 = jar.getEntry(component +"/");
                   is = jar.getInputStream(ze2);
                 }
-                return new InputFlow(is, ze.getSize());
+                return new BundleResourceStream(is, ze.getSize());
               }
             }
           }
         }
       } else {
         File f = findFile(file, component);
-        return f.exists() ? new InputFlow(new FileInputStream(f), f.length()) : null;
+        return f.exists() ? new BundleResourceStream(new FileInputStream(f), f.length()) : null;
       }
     } catch (IOException ignore) {
     }
@@ -1067,9 +1053,9 @@ public class Archive implements FileArchive {
    */
   private AutoManifest getManifest() throws IOException {
     // TBD: Should recognize entry with lower case?
-    InputFlow mif = getInputFlow("META-INF/MANIFEST.MF");
-    if (mif != null) {
-      return new AutoManifest(storage.framework, new Manifest(mif.is), location);
+    BundleResourceStream mi = getBundleResourceStream("META-INF/MANIFEST.MF");
+    if (mi != null) {
+      return new AutoManifest(storage.framework, new Manifest(mi), location);
     } else {
       throw new IOException("Manifest is missing");
     }
@@ -1299,20 +1285,6 @@ public class Archive implements FileArchive {
   public void removeCertificates() {
     File f = new File(getPath() + CERTS_SUFFIX);
     f.delete();
-  }
-
-
-  /**
-   * InputFlow represents an InputStream with a known length
-   */
-  class InputFlow {
-    final InputStream is;
-    final long length;
-
-    InputFlow(InputStream is, long length) {
-      this.is = is;
-      this.length = length;
-    }
   }
 
 }

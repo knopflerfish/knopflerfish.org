@@ -359,12 +359,12 @@ class SecurePermissionOps extends PermissionOps {
   // BundleArchive secure operations
   //
 
-  InputStream callGetInputStream(final BundleArchive archive,
-                                 final String name,
-                                 final int ix) {
-    return (InputStream)AccessController.doPrivileged(new PrivilegedAction() {
+  BundleResourceStream callGetBundleResourceStream(final BundleArchive archive,
+                                                   final String name,
+                                                   final int ix) {
+    return (BundleResourceStream)AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          return archive.getInputStream(name, ix);
+          return archive.getBundleResourceStream(name, ix);
         }
       });
   }
@@ -628,7 +628,7 @@ class SecurePermissionOps extends PermissionOps {
                               "",
                               b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
 
-      InputStream pis = b.archive.getInputStream("OSGI-INF/permissions.perm", 0);
+      InputStream pis = b.archive.getBundleResourceStream("OSGI-INF/permissions.perm", 0);
       PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
       List cc = b.archive.getCertificateChains(false);
       Certificate [] cca;
