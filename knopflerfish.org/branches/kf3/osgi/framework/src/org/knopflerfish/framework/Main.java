@@ -49,6 +49,7 @@ import org.osgi.framework.*;
 import org.osgi.framework.launch.*;
 import org.osgi.service.startlevel.StartLevel;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 /**
  * This is the main startup code for the framework and enables
@@ -61,7 +62,7 @@ public class Main
 {
   // Main object
   static Main main;
-  
+
   // Verbosity level of printouts. 0 is low.
   int verbosity /*= 0*/;
 
@@ -434,6 +435,7 @@ public class Main
           assertFramework();
           framework.start();
           bLaunched = true;
+          closeSplash();
           println("Framework launched", 0);
         } else if ("-shutdown".equals(args[i])) {
           if (i+1 < args.length) {
@@ -666,6 +668,7 @@ public class Main
       if(!bLaunched) {
         try {
           framework.start();
+          closeSplash();
           println("Framework launched", 0);
         } catch (Throwable t) {
           if (t instanceof BundleException) {
@@ -1343,6 +1346,26 @@ public class Main
     return args2;
   }
 
+
+  // If a splash screen hash been shown, try to close it.
+  void closeSplash()
+  {
+    // User reflection, and ignore errors since this is only supported
+    // in Java SE 6.
+    try {
+      Class splashScreenCls = Class.forName("java.awt.SplashScreen");
+      Method getSplashScreenMethod
+        = splashScreenCls.getMethod("getSplashScreen", null);
+      Object splashScreen = getSplashScreenMethod.invoke(null,null);
+      if (null!=splashScreen) {
+        Method closeMethod = splashScreenCls.getMethod("close", null);
+        closeMethod.invoke(splashScreen, null);
+      }
+    } catch (Exception e) {
+      // Ignore any error.
+      println("close splash screen: ", 6, e);
+    }
+  }
 
   /**
    * Print string to System.out if level >= current verbosity.
