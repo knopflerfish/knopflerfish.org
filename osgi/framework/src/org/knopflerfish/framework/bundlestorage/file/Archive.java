@@ -116,7 +116,7 @@ public class Archive implements FileArchive {
   /**
    * Set to true if above file is a reference outside framework storage.
    */
-  private boolean fileIsReference;
+  private boolean fileIsReference = false;
 
   /**
    * JAR file handle for file that contains current archive.
@@ -209,14 +209,15 @@ public class Archive implements FileArchive {
 
     boolean isDirectory = false;
     final FileTree sourceFile;
-    fileIsReference = isReference(source);
+    final FileTree bsFile = new FileTree(dir, ARCHIVE + rev);;
 
-    if (fileIsReference) {
+    if (isReference(source)) {
+      fileIsReference = true;
       sourceFile = new FileTree(getFile(source));
       file = sourceFile;
     } else {
       sourceFile = isFile(source) ? new FileTree(getFile(source)) : null;
-      file = new FileTree(dir, ARCHIVE + rev);
+      file = bsFile;
     }
     if (sourceFile != null) {
       isDirectory = sourceFile.isDirectory();
@@ -256,6 +257,10 @@ public class Archive implements FileArchive {
         }
       }
       if (doUnpack) {
+        if (fileIsReference) {
+          fileIsReference = false;
+          file = bsFile;
+        }
         file.mkdirs();
         if (manifest == null) {
           if (storage.checkSigned) {
@@ -327,11 +332,11 @@ public class Archive implements FileArchive {
    * a reference:file: URL
    */
   String getFile(URL source) {
-    String file = source.getFile();
-    if(file.startsWith("file:")) {
-      return file.substring(5);
+    String sfile = source.getFile();
+    if(sfile.startsWith("file:")) {
+      return sfile.substring(5);
     } else {
-      return file;
+      return sfile;
     }
   }
 
@@ -404,16 +409,19 @@ public class Archive implements FileArchive {
       if (location != null) {
         try {
           URL url = new URL(location);
-          file = new FileTree(getFile(url));
+          if (isReference(url)) {
+            file = new FileTree(getFile(url));
+          }
         } catch (Exception e) {
           throw new IOException("Bad file URL stored in referenced jar in: " +
                                 dir.getAbsolutePath() +
-                                ", location=" + location);
+                                ", location=" + location + ", e=" + e);
         }
       }
       if (file == null || !file.exists()) {
         throw new IOException("No saved jar file found in: " + dir.getAbsolutePath() + ", old location=" + location);
       }
+      fileIsReference = true;
     }
 
     if (file.isDirectory()) {

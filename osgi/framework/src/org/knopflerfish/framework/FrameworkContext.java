@@ -325,9 +325,6 @@ public class FrameworkContext  {
       }
     }
 
-    // Add this framework to the bundle URL handle
-    urlStreamHandlerFactory.addFramework(this);
-
     try {
       Class storageImpl = Class.forName(props.whichStorageImpl);
 
@@ -345,6 +342,9 @@ public class FrameworkContext  {
 
     listeners         = new Listeners(this, perm);
     services          = new Services(this, perm);
+
+    // Add this framework to the bundle URL handle
+    urlStreamHandlerFactory.addFramework(this);
 
     systemBundle.initSystemBundle();
 
