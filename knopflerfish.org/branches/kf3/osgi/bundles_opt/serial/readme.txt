@@ -1,7 +1,10 @@
 This directory contains bundles for handling serial ports using the
-javax.comm API
+gnu.io or javax.comm API
 
- serialport
+OLD version used in KF 2 and earlier (deprecated)
+=================================================
+
+ serialportdevice
 
   Bundle that wraps serial ports in the OSGi Device API.
  
@@ -26,4 +29,23 @@ javax.comm API
 
    http://users.frii.com/jarvi/rxtx/
 
- 
+
+NEW version to be used with KF 3
+================================
+
+ rxtxcomm
+
+   RXTX java library, this contains the processor and os independent
+   part. Needs a fragement bundle with the native code to function.
+
+ rxtxcomm-linux-arm
+
+   Fragment bundle containing the native code for a linux 2.6 system
+   running on an armv4t based system.
+
+
+ Note! Support for javax.comm, more supported systems and documentation
+       will be added later.
+
+ Note! These bundles contains code which is licensed under LGPL.
+        For details, see, rxtxcomm/resources/OSGI-OPT/COPYING.
