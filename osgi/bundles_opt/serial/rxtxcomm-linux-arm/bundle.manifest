@@ -13,4 +13,4 @@ Bundle-NativeCode: librxtxI2C.so; librxtxParallel.so; librxtxRS485.so;
  librxtxRaw.so; librxtxSerial.so ;
  osname = Linux ;
  processor = armle; processor = armv4tl
-Fragment-Host: org.knopflerfish.bundle.rxtxcomm
+Fragment-Host: org.knopflerfish.bundle.rxtxcomm-API
