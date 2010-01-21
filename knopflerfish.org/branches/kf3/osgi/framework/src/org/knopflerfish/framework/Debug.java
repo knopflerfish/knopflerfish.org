@@ -129,7 +129,7 @@ public class Debug {
 
   /**
    * When security is enabled, use a doPrivileged() around
-   * the actual call to System.out.println() to allow for PrintStream
+   * the actual call to System.err.println() to allow for PrintStream
    * implementations that does not handle the case with limited
    * priviledges themselfs.
    */
@@ -226,7 +226,7 @@ public class Debug {
    * @param str the message to print.
    */
   private void println0(final String str) {
-    System.out.println("## DEBUG: " + str);
+    System.err.println("## DEBUG: " + str);
   }
 
   /**
@@ -265,12 +265,12 @@ public class Debug {
    * @param t   the throwable to print a stack trace for.
    */
   private void printStackTrace0(final String str, final Throwable t) {
-    System.out.println("## DEBUG: " + str);
+    System.err.println("## DEBUG: " + str);
     t.printStackTrace();
     if (t instanceof BundleException) {
       Throwable n = ((BundleException)t).getNestedException();
       if (n != null) {
-        System.out.println("Nested bundle exception:");
+        System.err.println("Nested bundle exception:");
         n.printStackTrace();
       }
     }
