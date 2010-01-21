@@ -92,6 +92,9 @@ final class ConfigurationDispatcher {
     }
 
     public void addQueueFor(ServiceReference sr) {
+      if(useSharedQueue) {
+        return;
+      }
         synchronized (targetServiceToQueue) {
             Object targetService = serviceReferenceToTargetService.get(sr);
             if (targetService == null) {
@@ -110,6 +113,9 @@ final class ConfigurationDispatcher {
     }
 
     public void removeQueueFor(ServiceReference sr) {
+      if(useSharedQueue) {
+        return;
+      }
         synchronized (targetServiceToQueue) {
             Object targetService = serviceReferenceToTargetService.remove(sr);
             if (targetService == null) {
