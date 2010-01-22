@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,12 +55,18 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
 /**
- * * This class implements the log configuration of the log * service.
- * Properties are defined using * set<propertyName>() and get<propertyName>()
- * methods.<br> * Ex. defining integer property Foo<br> * void setFoo(int
- * value)<br> * int getFoo()<br> * <br> * <br> * If only set method exists the
- * property is write-only.<br> * If only get method exists the property is
- * read-only.<br> * If both exist the property is read-write. *
+ * This class implements the log configuration of the log service.
+ *
+ * Properties are defined using <tt>set&lt;propertyName&gt;()</tt> and
+ * <tt>get&lt;propertyName&gt;()</tt> methods.<br>
+ *
+ * Ex. defining integer property Foo<br>
+ * <tt>void setFoo(int value)</tt><br>
+ * <tt>int getFoo()</tt><br>
+ *
+ * If only set method exists the property is write-only.<br>
+ * If only get method exists the property is read-only.<br>
+ * If both exist the property is read-write. *
  */
 
 class LogConfigImpl implements ManagedService, LogConfig {
@@ -83,6 +89,8 @@ class LogConfigImpl implements ManagedService, LogConfig {
   static final String PROP_LOG_FILE = "org.knopflerfish.log.file";
 
   static final String PROP_LOG_FILE_DIR = "org.knopflerfish.log.file.dir";
+
+  static final String PROP_LOG_MEMORY_SIZE = "org.knopflerfish.log.memory.size";
 
   private final static String OUT = "log.out";
 
@@ -502,7 +510,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
                                   .fromLevel(org.osgi.service.log.LogService.LOG_WARNING));
 
     ht.put(L_FILTER, levelStr);
-    ht.put(MEM, new Integer(250));
+    ht.put(MEM, getIntegerProperty(PROP_LOG_MEMORY_SIZE, new Integer(250)));
     ht.put(OUT, new Boolean(("true".equalsIgnoreCase(o)) ? true : false));
     ht.put(GRABIO, new Boolean(("true".equalsIgnoreCase(getProperty(
                                                                     PROP_LOG_GRABIO, "false")) ? true : false)));
@@ -530,6 +538,24 @@ class LogConfigImpl implements ManagedService, LogConfig {
     } catch (Exception e) {
       System.err.println("Failed to get property " + key + " : " + e);
       result = def;
+    }
+    return result;
+  }
+
+  static Integer getIntegerProperty(String key, Integer def) {
+    Integer result = def;
+    try {
+      final String str = bc.getProperty(key);
+      if (str != null && 0<str.length()) {
+        try {
+          result = new Integer(str);
+        } catch (NumberFormatException nfe) {
+          System.err.println("Failed to parse integer property with key '"
+                             + key + "' and value '" +str +"': " + nfe);
+        }
+      }
+    } catch (Exception e) {
+      System.err.println("Failed to get property " + key + " : " + e);
     }
     return result;
   }

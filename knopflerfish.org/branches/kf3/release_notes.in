@@ -50,6 +50,10 @@ Console
 Desktop
  - Support for new Activation Commands (In Progress)
 
+Log
+ - New configuration property for setting the number of
+   log records to keep in memory.
+
 ----------------------------------------------
 
 Please read the KF blog for updated progress.
