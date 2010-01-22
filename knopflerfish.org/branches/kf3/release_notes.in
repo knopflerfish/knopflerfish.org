@@ -39,6 +39,11 @@ Declarative Services Specification
 All the other Compendium Specification Services
 are up to date and pass the CT.
 
+Event Admin 2.0.5
+ - Some optimizations and clean up of the event
+   deliver code has been made.
+
+
 ----------------------------------------------
 Knopflerfish Specific
 ----------------------------------------------
@@ -50,7 +55,7 @@ Console
 Desktop
  - Support for new Activation Commands (In Progress)
 
-Log
+Log 2.0.3
  - New configuration property for setting the number of
    log records to keep in memory.
 
