@@ -35,6 +35,8 @@
 package org.knopflerfish.bundle.event;
 
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -64,7 +66,7 @@ public class DeliverSession {
   private InternalAdminEvent internalEvent;
 
   /** local array of service references */
-  private ServiceReference[] serviceReferences;
+  private Set handlers;
 
   /** the wildcard char */
   private final static String WILD_CARD = "*";
@@ -83,7 +85,7 @@ public class DeliverSession {
   public DeliverSession(InternalAdminEvent evt) {
     internalEvent = evt;
     event = internalEvent.getEvent();
-    serviceReferences = internalEvent.getReferences();
+    handlers = internalEvent.getHandlers();
 
     /* Tries to get the timeout property from the system*/
     try {
@@ -98,202 +100,55 @@ public class DeliverSession {
    *  Initiates the delivery.
    */
   public void deliver() {
-    if (serviceReferences == null) {
+    if (handlers == null || handlers.isEmpty()) {
       return;
     }
 
-    /* method variable indicating that the topic mathces */
-    boolean isSubscribed = false;
-    /* method variable indicating that the filter matches */
-    boolean filterMatch = false;
-    /* method variable indicating if the handler is blacklisted */
-    boolean isBlacklisted = false;
+    Iterator i = handlers.iterator();
+    while(i.hasNext()) {
+      TrackedEventHandler handler = (TrackedEventHandler)i.next();
 
-    for (int i = 0; i < serviceReferences.length; i++) {
-      final ServiceReference handlerSR = serviceReferences[i];
-      final Long sid = (Long) handlerSR.getProperty(Constants.SERVICE_ID);
-
-      isBlacklisted = blacklisted.contains(handlerSR);
-      if (!isBlacklisted) {
-        String filterString = null;
+      if (timeout == 0) {
         try {
-          filterString = (String)
-            handlerSR.getProperty(EventConstants.EVENT_FILTER);
-          if (filterString != null) {
-            Filter filter
-              = Activator.bundleContext.createFilter(filterString);
-            filterMatch = filter==null || filterMatched(event, filter);
-          } else {
-            filterMatch = true;
-          }
-        } catch(NullPointerException e) {
-          filterMatch = true; // why is this OK??? /EW
-        } catch (Exception err) {
-          blacklisted.add(handlerSR);
-          isBlacklisted = true;
-          filterMatch = false;
-
-          // log after blacklisting, in case logging in itself
-          // triggers the filter...
-          if (Activator.log.doError()) {
-            Activator.log.error("Failure when matching filter '" +filterString
-                                +"' in handler with service.id " +sid,
-                                handlerSR,
-                                err);
-          }
+          handler.handleEventSubjectToFilter(event);
+        } catch (Throwable e) {
+          Activator.log.error("Handler threw exception in handleEvent", e);
         }
-
-        Object topic = handlerSR.getProperty(EventConstants.EVENT_TOPIC);
+      } else { // use timeout
         try {
-          /* get the topics */
-          final String[] topics = (topic instanceof String) ?
-            new String[] {(String)topic} : (String[]) topic;
-
-          /* check if topic is null */
-          if (topics != null) {
-            /* check the lenght of the topic */
-            if (topics.length > 0 ) {
-              /* assign the isSubscribed variable */
-              isSubscribed = anyTopicMatch(topics, event);
-            } else {
-              /* an empty array is set as topic, i.e, {} */
-              isSubscribed = true;
-            }
-          } else {
-            /* no topic given from the handler -> all topic */
-            isSubscribed = true;
-          }
-        } catch (ClassCastException e) {
-          /* blacklist the handler */
-          if(!blacklisted.contains(handlerSR)){
-            blacklisted.add(handlerSR);
-            isBlacklisted=true;
-          }
-          // log after blacklisting, in case logging in itself
-          // triggers event delivery...
-          if (Activator.log.doError()) {
-            Activator.log
-              .error("Invalid value type for service property with key '"
-                     +EventConstants.EVENT_TOPIC
-                     +"' should be String[] found '" +topic.getClass()
-                     +"' (" +topic +") " +"in handler with service.id " +sid,
-                     handlerSR);
-          }
-        }
-
-        /* check that all indicating variables fulfills the condition */
-        /* and check that the service is still registered */
-        if (isSubscribed && filterMatch && !isBlacklisted
-            && handlerSR.getBundle() != null) {
-          if (timeout == 0) {
-            final EventHandler handler = (EventHandler)
-              Activator.bundleContext.getService(handlerSR);
-            try {
-              handler.handleEvent(event);
-            } catch (Throwable e) {
-              Activator.log.error("Handler threw exception in handleEvent", e);
-            } finally {
-              Activator.bundleContext.ungetService(handlerSR);
-            }
-          } else { // use timeout
-            try {
-              synchronized (this) {
-                final TimeoutDeliver timeoutDeliver
-                  = new TimeoutDeliver(Thread.currentThread(), handlerSR);
-                timeoutDeliver.start();
-                wait(timeout);
-                Activator.log.error
-                  ("Event delivery to event handler with service.id "
-                   +sid +" timed out: "+ timeoutDeliver.getName(),
-                   handlerSR);
-                /* check if already blacklisted by another thread */
-                if (!blacklisted.contains(handlerSR)) {
-                  blacklisted.add(handlerSR);
-                  if (Activator.log.doDebug()) {
-                    Activator.log.debug("The event handler with service id "
-                                        +sid +" was blacklisted due to timeout",
-                                        handlerSR);
-                  }
-                }
+          synchronized (this) {
+            final TimeoutDeliver timeoutDeliver
+              = new TimeoutDeliver(Thread.currentThread(), handler);
+            timeoutDeliver.start();
+            wait(timeout);
+            /*
+            Activator.log.error
+              ("Event delivery to event handler with service.id "
+               +sid +" timed out: "+ timeoutDeliver.getName(),
+               handlerSR);
+            */
+            /* check if already blacklisted by another thread */
+            handler.blacklist();
+            /*
+            if (!blacklisted.contains(handlerSR)) {
+              blacklisted.add(handlerSR);
+              if (Activator.log.doDebug()) {
+                Activator.log.debug("The event handler with service id "
+                                    +sid +" was blacklisted due to timeout",
+                                    handlerSR);
               }
-            } catch (InterruptedException e) {
-              /* this will happen if a deliverance succeeded */
             }
-          }//end use timeout
+            */
+          }
+        } catch (InterruptedException e) {
+          /* this will happen if a deliverance succeeded */
         }
       }//end if(!isBlacklisted.....
     }//end for
-  }// end deliver...
+  } 
 
-  /**
-   * This method should be used when matching from an event against a specific
-   * filter in an Eventhandler
-   * @author Martin Berg
-   * @param event the event to compare
-   * @param filter the filter the listener is interested in
-   */
-  private boolean filterMatched(Event event, Filter filter) {
-    /* return the functions return value */
-    if (filter == null) {
-      return true;
-    } else {
-      return event.matches(filter);
-    }
-  }
 
-  /**
-   * Iterates through a set of topics and if any element matches the events
-   * topic it will return true.
-   *
-   * @param topics the event topic
-   * @param event the event
-   * @return true if any element matche else false
-   */
-  private static boolean anyTopicMatch(final String[] topics, final Event event)
-  {
-    /* Split the event topic into an string array */
-    final String[] eventTopic = splitPath(event.getTopic());
 
-    for (int i = 0; i < topics.length; i++) {
-      if (topicMatch(eventTopic, topics[i])) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * This method should be used when matching a topic on an event against a
-   * specific topic in an Eventhandler
-   *
-   * @param eventTopic the topic to compare presplit as string array
-   * @param topic the topic the listener is interested in
-   */
-  private static boolean topicMatch(final String[] eventTopic,
-                                    final String topic) {
-    /* Split the desired topic into a string array */
-    final String[] desiredTopic = splitPath(topic);
-
-    /* iterator value */
-    int i = 0;
-    /* If wildCard "*" is found */
-    boolean wildCard = false;
-    /* If topic matches */
-    boolean topicMatch = true;
-    /* iterate and check if there is a match */
-    while ((i < eventTopic.length) && (wildCard == false)
-           && (topicMatch == true)) {
-      if (!(eventTopic[i].equals(desiredTopic[i]))) {
-        if (desiredTopic[i].equals(WILD_CARD)) {
-          wildCard = true;
-        } else {
-          topicMatch = false;
-        }
-      }
-      i++;
-    }
-    return topicMatch;
-  }
 
   /**
    * This class will try to update the EventHandler if it succeed an interrupt
@@ -307,7 +162,7 @@ public class DeliverSession {
     private final Thread caller;
 
     /** The service reference of the handler to call. */
-    private final ServiceReference handlerSR;
+    private final TrackedEventHandler handler;
 
     /**
      * Constructor of the TimeoutDeliver object
@@ -316,10 +171,10 @@ public class DeliverSession {
      * @param handler the event handler to be updated.
      */
     public TimeoutDeliver(final Thread caller,
-                          final ServiceReference handlerSR)
+                          final TrackedEventHandler handler)
     {
       this.caller = caller;
-      this.handlerSR = handlerSR;
+      this.handler = handler;
     }
 
     /**
@@ -327,14 +182,11 @@ public class DeliverSession {
     */
     public void run() {
       if (Activator.log.doDebug()) Activator.log.debug("TimeOutDeliver.run()");
-      final EventHandler handler = (EventHandler)
-        Activator.bundleContext.getService(handlerSR);
+
       try {
-        handler.handleEvent(event);
+        handler.handleEventSubjectToFilter(event);
       } catch (Throwable e) {
         Activator.log.error("Handler threw exception in handleEvent: "+e, e);
-      } finally {
-        Activator.bundleContext.ungetService(handlerSR);
       }
 
       /* tell the owner that notification is done */

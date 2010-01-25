@@ -63,7 +63,7 @@ public class QueueHandler extends Thread {
    * @param event the new InternalAdminEvent
    */
   public void addEvent(InternalAdminEvent event) {
-    if (event.getReferences() == null) {
+    if (event.getHandlers() == null) {
       // Noone to deliver to
       return;
     }

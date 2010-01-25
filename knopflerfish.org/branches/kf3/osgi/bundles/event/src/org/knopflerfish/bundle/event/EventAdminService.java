@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.event;
 
 import java.util.Calendar;
+import java.util.Set;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
@@ -59,9 +60,6 @@ public class EventAdminService implements EventAdmin {
 
   /** the local representation of the bundle context */
   private BundleContext bundleContext;
-
-  /** variable holding the synchronus send procedure */
-  private QueueHandler queueHandlerSynch;
 
   /** variable holding the asynchronus send procedure */
   private QueueHandler queueHandlerAsynch;
@@ -96,7 +94,7 @@ public class EventAdminService implements EventAdmin {
    */
   public void postEvent(Event event) {
     try {
-      queueHandlerAsynch.addEvent(new InternalAdminEvent(event, getReferences()));
+      queueHandlerAsynch.addEvent(new InternalAdminEvent(event, getMatchingHandlers(event.getTopic())));
     } catch(Exception e){
       Activator.log.error("Unknown exception in postEvent():", e);
     }
@@ -110,7 +108,7 @@ public class EventAdminService implements EventAdmin {
    */
   public void sendEvent(Event event) {
     try {
-      new InternalAdminEvent(event, getReferences()).deliver();
+      new InternalAdminEvent(event, getMatchingHandlers(event.getTopic())).deliver();
     } catch(Exception e){
       Activator.log.error("Unknown exception in sendEvent():", e);
     }
@@ -122,17 +120,8 @@ public class EventAdminService implements EventAdmin {
    * @return ServiceReferences[] array if any else null
    * @throws InvalidSyntaxException if syntax error
    */
-  ServiceReference[] getReferences() {
-    try {
-      ServiceReference[] refs = bundleContext.getServiceReferences(EventHandler.class.getName(), null);
-      return refs;
-    } catch (InvalidSyntaxException ignore) {
-      // What? We're not even using a filter!
-      return null;
-    } catch (IllegalStateException e) {
-      // The bundleContext is invalid. We're probably being stopped.
-      return null;
-    }
+  Set getMatchingHandlers(String topic) {
+    return Activator.handlerTracker.getHandlersMatching(topic);
   }
 
   void stop() {
