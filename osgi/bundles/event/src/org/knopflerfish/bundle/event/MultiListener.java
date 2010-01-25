@@ -239,22 +239,26 @@ public class MultiListener implements LogListener,
     }
   }
 
+  private static final String SERVICE_EVENT_PREFIX = "org/osgi/framework/ServiceEvent/";
+  private static final String SERVICE_EVENT_REGISTERED_TOPIC = SERVICE_EVENT_PREFIX + "REGISTERED";
+  private static final String SERVICE_EVENT_MODIFIED_TOPIC = SERVICE_EVENT_PREFIX + "MODIFIED";
+  private static final String SERVICE_EVENT_UNREGISTERING_TOPIC = SERVICE_EVENT_PREFIX + "UNREGISTERING";
+
+
   /**
    * A listener for service events
    * @param serviceEvent the event sent by the service
    * @author Johnny Baveras
    */
   public void serviceChanged(ServiceEvent serviceEvent) {
-    /* A dictionary to store properties in */
-    Dictionary props = new Hashtable();
-    /* The prefix of the topic of the event to be posted*/
-    String topic = "org/osgi/framework/ServiceEvent/";
-    /* boolean determining whether the bundleEvent is of a known topic */
+
+    String topic = null;
+
     boolean knownMessageType = true;
-    /* Determining the suffix of the topic gof the event to be posted */
+
     switch (serviceEvent.getType()) {
     case ServiceEvent.REGISTERED:
-      topic += "REGISTERED";
+      topic = SERVICE_EVENT_REGISTERED_TOPIC;
 
       
       String[] objectClass = (String[]) serviceEvent.getServiceReference().getProperty(Constants.OBJECTCLASS);
@@ -276,10 +280,10 @@ public class MultiListener implements LogListener,
       }
       break;
     case ServiceEvent.MODIFIED:
-      topic += "MODIFIED";
+      topic = SERVICE_EVENT_MODIFIED_TOPIC;
       break;
     case ServiceEvent.UNREGISTERING:
-      topic += "UNREGISTERING";
+      topic = SERVICE_EVENT_UNREGISTERING_TOPIC;
       break;
     default:
       /* Setting the boolean to false if an unknown event arrives */
@@ -287,12 +291,14 @@ public class MultiListener implements LogListener,
       break;
     }
 
-    if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
-      return;
-    }
+
 
     /* Stores the properties of the event in the dictionary, if the event is known */
     if (knownMessageType) {
+      if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+        return;
+      }
+      Dictionary props = new Hashtable();
       putProp(props, EventConstants.EVENT, serviceEvent);
       putProp(props, EventConstants.SERVICE, serviceEvent.getServiceReference());
       putProp(props, EventConstants.SERVICE_PID, serviceEvent.getServiceReference().getProperty(Constants.SERVICE_PID));
