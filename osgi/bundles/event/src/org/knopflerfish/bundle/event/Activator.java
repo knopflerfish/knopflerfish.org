@@ -57,6 +57,8 @@ public class Activator implements BundleActivator {
 
     private EventAdminService eventAdmin;
 
+    static EventHandlerTracker handlerTracker;
+
     /**
      * Main entry for the service
      *
@@ -66,6 +68,9 @@ public class Activator implements BundleActivator {
         /* assign the context variable to a local variable */
         bundleContext = context;
         log = new LogRef(context);
+
+        handlerTracker = new EventHandlerTracker(context);
+        handlerTracker.open();
 
         /* create the event admin service */
         eventAdmin = new EventAdminService(bundleContext);
@@ -86,5 +91,7 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext context) throws Exception {
       eventAdmin.stop();
       eventAdmin = null;
+      handlerTracker.close();
+      handlerTracker = null;
     }
 }

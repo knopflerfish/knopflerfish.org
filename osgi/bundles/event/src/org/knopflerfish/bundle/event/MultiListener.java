@@ -137,6 +137,9 @@ public class MultiListener implements LogListener,
       break;
     }
 
+    if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+      return;
+    }
     /* Stores the properties of the event in the dictionary, if the event is known */
     if (knownMessageType) {
       putProp(props, EventConstants.EVENT, bundleEvent);
@@ -187,6 +190,10 @@ public class MultiListener implements LogListener,
       /* if an unknown event arrives, it should be logged as a LOG_OTHER event */
       topic += "LOG_OTHER";
       break;
+    }
+
+    if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+      return;
     }
 
     /* Stores the properties of the event in the dictionary */
@@ -285,6 +292,10 @@ public class MultiListener implements LogListener,
       break;
     }
 
+    if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+      return;
+    }
+
     /* Stores the properties of the event in the dictionary, if the event is known */
     if (knownMessageType) {
       putProp(props, EventConstants.EVENT, serviceEvent);
@@ -340,6 +351,10 @@ public class MultiListener implements LogListener,
       /* Setting the boolean to false if an unknown event arrives */
       knownMessageType = false;
       break;
+    }
+
+    if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+      return;
     }
 
     /* Stores the properties of the event in the dictionary, if the
