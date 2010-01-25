@@ -62,31 +62,28 @@ import org.knopflerfish.service.log.LogRef;
  * @author Bj\u00f6rn Andersson
  */
 public class ConfigurationListenerImpl implements ConfigurationListener {
+  private final static String PREFIX = "org/osgi/service/cm/ConfigurationEvent/";
+  private final static String CM_UPDATED_TOPIC = PREFIX + "CM_UPDATED";
+  private final static String CM_DELETED_TOPIC = PREFIX + "CM_DELETED";
 
-  /**  hashtable of eventhandlers and timestamps */
-  static Hashtable eventHandlers = new Hashtable();
 
   private LogRef log;
-  private EventAdmin eventAdmin;
-  private BundleContext bundleContext;
 
-  public ConfigurationListenerImpl(EventAdmin eventAdmin, BundleContext bundleContext) {
-    this.eventAdmin = eventAdmin;
-    this.bundleContext = bundleContext;
-    log = new LogRef(bundleContext);
-    bundleContext.registerService(ConfigurationListener.class.getName(), this, null);
+  public ConfigurationListenerImpl() {
+    log = new LogRef(Activator.bundleContext);
+    Activator.bundleContext.registerService(ConfigurationListener.class.getName(), this, null);
   }
 
   public void configurationEvent(ConfigurationEvent event) {
     Dictionary props = new Hashtable();
-    String topic = "org/osgi/service/cm/ConfigurationEvent/";
+    String topic = null;
     boolean knownMessageType = true;
     switch (event.getType()) {
     case ConfigurationEvent.CM_UPDATED:
-      topic += "CM_UPDATED";
+      topic = CM_UPDATED_TOPIC;
       break;
     case ConfigurationEvent.CM_DELETED:
-      topic += "CM_DELETED";
+      topic = CM_DELETED_TOPIC;
       break;
     default:
       knownMessageType = false;
@@ -95,6 +92,9 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
 
     /* Stores the properties of the event in the dictionary, if the event is known */
     if (knownMessageType) {
+      if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+        return;
+      }
       putProp(props, EventConstants.EVENT, event);
       putProp(props, "cm.factoryPid", event.getFactoryPid());
       putProp(props, "cm.pid", event.getPid());
@@ -104,7 +104,7 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
       putProp(props, "service.pid", event.getReference().getProperty(Constants.SERVICE_PID));
 
       try {
-        eventAdmin.postEvent(new Event(topic, props));
+        Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
         log.error("EXCEPTION in configurationEvent()", e);
       }

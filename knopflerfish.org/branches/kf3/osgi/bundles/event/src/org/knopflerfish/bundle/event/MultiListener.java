@@ -66,70 +66,67 @@ public class MultiListener implements LogListener,
                                       ServiceListener,
                                       FrameworkListener,
                                       BundleListener {
-
-  /**  hashtable of eventhandlers and timestamps */
-  static Hashtable eventHandlers = new Hashtable();
-
   private LogRef log;
-  private EventAdmin eventAdmin;
-  private BundleContext bundleContext;
 
-  public MultiListener(EventAdmin eventAdmin, BundleContext bundleContext) {
-    this.eventAdmin = eventAdmin;
-    this.bundleContext = bundleContext;
-    log = new LogRef(bundleContext);
+  public MultiListener() {
+    log = new LogRef(Activator.bundleContext);
 
-    bundleContext.addBundleListener(this);
-    bundleContext.addServiceListener(this);
-    bundleContext.addFrameworkListener(this);
+    Activator.bundleContext.addBundleListener(this);
+    Activator.bundleContext.addServiceListener(this);
+    Activator.bundleContext.addFrameworkListener(this);
 
     ServiceReference sr
-      = bundleContext.getServiceReference(LogReaderService.class.getName());
+      = Activator.bundleContext.getServiceReference(LogReaderService.class.getName());
     if (sr != null) {
-      LogReaderService logReader = (LogReaderService) bundleContext.getService(sr);
+      LogReaderService logReader = (LogReaderService) Activator.bundleContext.getService(sr);
       if (logReader != null) {
         logReader.addLogListener(this);
       }
     }
   }
 
+  private static final String BUNDLE_EVENT_PREFIX = "org/osgi/framework/BundleEvent/";
+  private static final String INSTALLED_TOPIC = BUNDLE_EVENT_PREFIX + "INSTALLED";
+  private static final String STARTED_TOPIC = BUNDLE_EVENT_PREFIX + "STARTED";
+  private static final String STOPPED_TOPIC = BUNDLE_EVENT_PREFIX + "STOPPED";
+  private static final String UPDATED_TOPIC = BUNDLE_EVENT_PREFIX + "UPDATED";
+  private static final String UNINSTALLED_TOPIC = BUNDLE_EVENT_PREFIX + "UNINSTALLED";
+  private static final String RESOLVED_TOPIC = BUNDLE_EVENT_PREFIX + "RESOLVED";
+  private static final String UNRESOLVED_TOPIC = BUNDLE_EVENT_PREFIX + "UNRESOLVED";
+
   /**
    * A listener for events sent by bundles
    * @param bundleEvent The event sent by the bundle
    * @author Johnny Baveras
    */
+
+
   public void bundleChanged(BundleEvent bundleEvent) {
-    //synchronized(this){
-    /* A dictionary to store properties in */
-    Dictionary props = new Hashtable();
-    /* The bundle included in the bundleEvent */
-    Bundle bundle = bundleEvent.getBundle();
-    /* The prefix of the topic of the event to be posted*/
-    String topic = "org/osgi/framework/BundleEvent/";
-    /* boolean determining whether the bundleEvent is of a known topic */
+
+    String topic = null;
     boolean knownMessageType = true;
-    /* Determining the suffix of the topic of the event to be posted */
+
     switch (bundleEvent.getType()) {
     case BundleEvent.INSTALLED:
-      topic += "INSTALLED";
+      topic = INSTALLED_TOPIC;
       break;
     case BundleEvent.STARTED:
-      topic += "STARTED";
+      topic = STARTED_TOPIC;
       break;
     case BundleEvent.STOPPED:
-      topic += "STOPPED";
+      topic = STOPPED_TOPIC;
       break;
     case BundleEvent.UPDATED:
-      topic += "UPDATED";
+      topic = UPDATED_TOPIC;
       break;
     case BundleEvent.UNINSTALLED:
-      topic += "UNINSTALLED";
+      topic = UNINSTALLED_TOPIC;
       break;
     case BundleEvent.RESOLVED:
-      topic += "RESOLVED";
+      topic = RESOLVED_TOPIC;
       break;
     case BundleEvent.UNRESOLVED:
-      topic += "UNRESOLVED";
+      topic = UNRESOLVED_TOPIC;
       break;
     default:
       /* Setting the boolean to false if an unknown event arrives */
@@ -137,18 +134,21 @@ public class MultiListener implements LogListener,
       break;
     }
 
-    if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
-      return;
-    }
+
     /* Stores the properties of the event in the dictionary, if the event is known */
     if (knownMessageType) {
+      if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+        return;
+      }
+      Dictionary props = new Hashtable();
+      Bundle bundle = bundleEvent.getBundle();
       putProp(props, EventConstants.EVENT, bundleEvent);
       putProp(props, "bundle.id", new Long(bundle.getBundleId()));
       putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//os?ker p? denna
       putProp(props, "bundle", bundle);
       /* Tries posting the event once the properties are set */
       try {
-        eventAdmin.postEvent(new Event(topic, props));
+        Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
         log.error("EXCEPTION in bundleChanged()", e);
       }
@@ -160,41 +160,47 @@ public class MultiListener implements LogListener,
     // }
   }
 
+  private static final String LOG_PREFIX = "org/osgi/service/log/LogEntry/";
+  private static final String LOG_ERROR_TOPIC = LOG_PREFIX + "LOG_ERROR";
+  private static final String LOG_WARNING_TOPIC = LOG_PREFIX + "LOG_WARNING";
+  private static final String LOG_INFO_TOPIC = LOG_PREFIX + "LOG_INFO";
+  private static final String LOG_DEBUG_TOPIC = LOG_PREFIX + "LOG_DEBUG";
+  private static final String LOG_OTHER_TOPIC = LOG_PREFIX + "LOG_OTHER";
+
   /**
    * A listener for entries in the log
    * @param logEntry the entry of the log
    * @author Johnny Baveras
    */
   public void logged(LogEntry logEntry) {
-    /* A dictionary to store properties in */
-    Dictionary props = new Hashtable();
-    /* The bundle included in the bundleEvent */
-    Bundle bundle = logEntry.getBundle();
-    /* The prefix of the topic of the event to be posted*/
-    String topic = "org/osgi/service/log/LogEntry/";
-    /* Determining the suffix of the topic of the event to be posted */
+
+    String topic = null;
     switch (logEntry.getLevel()) {
     case LogRef.LOG_ERROR:
-      topic += "LOG_ERROR";
+      topic = LOG_ERROR_TOPIC;
       break;
     case LogRef.LOG_WARNING:
-      topic += "LOG_WARNING";
+      topic = LOG_WARNING_TOPIC;
       break;
     case LogRef.LOG_INFO:
-      topic += "LOG_INFO";
+      topic = LOG_INFO_TOPIC;
       break;
     case LogRef.LOG_DEBUG:
-      topic += "LOG_DEBUG";
+      topic = LOG_DEBUG_TOPIC;
       break;
     default:
       /* if an unknown event arrives, it should be logged as a LOG_OTHER event */
-      topic += "LOG_OTHER";
+      topic = LOG_OTHER_TOPIC;
       break;
     }
 
     if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
       return;
     }
+
+
+    Bundle bundle = logEntry.getBundle();
+    Dictionary props = new Hashtable();
 
     /* Stores the properties of the event in the dictionary */
     if (bundle != null) {
@@ -227,7 +233,7 @@ public class MultiListener implements LogListener,
 
     /* Tries posting the event once the properties are set */
     try {
-      eventAdmin.postEvent(new Event(topic, props));
+      Activator.eventAdmin.postEvent(new Event(topic, props));
     } catch (Exception e) {
       log.error("EXCEPTION in logged(LogEntry logEntry):", e);
     }
@@ -249,26 +255,21 @@ public class MultiListener implements LogListener,
     switch (serviceEvent.getType()) {
     case ServiceEvent.REGISTERED:
       topic += "REGISTERED";
-      /* Look at the service sending the event and determine whether its an eventHandler */
+
+      
       String[] objectClass = (String[]) serviceEvent.getServiceReference().getProperty(Constants.OBJECTCLASS);
-      boolean isEventHandler = false;
       boolean isLogReaderService = false;
       if (objectClass != null) {
         for (int i=0; i<objectClass.length; i++) {
-          if (EventHandler.class.getName().equals(objectClass[i])) {
-            isEventHandler = true;
-          } else if (LogReaderService.class.getName().equals(objectClass[i])) {
+          if (LogReaderService.class.getName().equals(objectClass[i])) {
             isLogReaderService = true;
           }
         }
       }
-      if (isEventHandler) {
-        /* Adds the service reference as a key in the hashtable of handlers, and the timestamp as value */
-        eventHandlers.put(serviceEvent.getServiceReference(), new Long(System.currentTimeMillis()));
-      }
+
       if (isLogReaderService) {
         LogReaderService logReader = (LogReaderService)
-          bundleContext.getService(serviceEvent.getServiceReference());
+          Activator.bundleContext.getService(serviceEvent.getServiceReference());
         if (logReader != null) {
           logReader.addLogListener(this);
         }
@@ -279,12 +280,6 @@ public class MultiListener implements LogListener,
       break;
     case ServiceEvent.UNREGISTERING:
       topic += "UNREGISTERING";
-      /* Tries to removes the entry in the hashtable */
-      try {
-        eventHandlers.remove(serviceEvent.getServiceReference());
-      } catch (NullPointerException e) {
-        log.error("Tried to unregister a service which was not registered");
-      }
       break;
     default:
       /* Setting the boolean to false if an unknown event arrives */
@@ -306,7 +301,7 @@ public class MultiListener implements LogListener,
 
       /* Tries posting the event once the properties are set */
       try {
-        eventAdmin.postEvent(new Event(topic, props));
+        Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
         log.error("EXCEPTION in serviceChanged() :", e);
       }
@@ -382,7 +377,7 @@ public class MultiListener implements LogListener,
 
       /* Tries posting the event once the properties are set */
       try {
-        eventAdmin.postEvent(new Event(topic, props));
+        Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
         log.error("Exception in frameworkEvent() :", e);
       }
