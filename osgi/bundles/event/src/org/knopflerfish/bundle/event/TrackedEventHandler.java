@@ -133,7 +133,10 @@ public class TrackedEventHandler {
   void removeAllReferences() {
     Iterator i = referencingSets.iterator();
     while(i.hasNext()) {
-      ((Set)i.next()).remove(this);
+      Set s = (Set)i.next();
+      synchronized(s) {
+        s.remove(this);
+      }
     }
   }
 }

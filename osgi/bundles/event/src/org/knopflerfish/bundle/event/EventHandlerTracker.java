@@ -61,29 +61,41 @@ public class EventHandlerTracker implements ServiceTrackerCustomizer {
   }
 
   private static void addToSetIn(String key, TrackedEventHandler teh, Hashtable h) {
-    Set s = (Set)h.get(key);
-    if(s == null) {
-      s = new HashSet();
-      h.put(key, s);
+    Set s = null;
+    synchronized(h) {
+      s = (Set)h.get(key);
+      if(s == null) {
+        s = new HashSet();
+        h.put(key, s);
+      }
     }
-    s.add(teh);
-    teh.referencedIn(s);
+    synchronized(s) {
+      s.add(teh);
+      teh.referencedIn(s);
+    }
+  }
+
+  private static void addSetMatching(Set result, Hashtable h, String topic) {
+    Set matching = (Set)h.get(topic);
+
+    if(matching != null) {
+      synchronized(matching) {
+        result.addAll(matching);
+      }
+    }
   }
 
   public Set getHandlersMatching(String topic) {
     Set result = new HashSet();
 
-    Set matching = (Set)topicsToHandlers.get(topic);
+    addSetMatching(result, topicsToHandlers, topic);
 
-    if(matching != null) {
-      result.addAll(matching);
-    }
 
     Enumeration wildcards = wildcardsToHandlers.keys();
     while(wildcards.hasMoreElements()) {
       String wildcard = (String)wildcards.nextElement();
       if(topic.startsWith(wildcard)) {
-        result.addAll((Set)wildcardsToHandlers.get(wildcard));
+        addSetMatching(result, wildcardsToHandlers, topic);
       }
     }
 
