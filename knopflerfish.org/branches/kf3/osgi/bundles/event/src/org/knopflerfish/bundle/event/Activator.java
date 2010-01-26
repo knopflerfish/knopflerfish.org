@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,12 @@
 
 package org.knopflerfish.bundle.event;
 
-import java.util.Hashtable;
 
+import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.EventAdmin;
-import org.knopflerfish.service.log.LogRef;
 
 /**
  * The Activator class is the startup class for the EventHandlerService.
@@ -55,27 +53,17 @@ public class Activator implements BundleActivator {
     static EventAdminService eventAdmin;
     static EventHandlerTracker handlerTracker;
 
-    /**
-     * Main entry for the service
-     *
-     * @param context the BundleContext ,ie, the handle to the OSGi framework
-     */
     public void start(BundleContext context) throws Exception {
-        bundleContext = context;
-        log = new LogRef(context);
+      bundleContext = context;
+      log = new LogRef(context);
 
-        handlerTracker = new EventHandlerTracker(context);
-        handlerTracker.open();
+      handlerTracker = new EventHandlerTracker(context);
+      handlerTracker.open();
 
-        eventAdmin = new EventAdminService(bundleContext);
-        reg = bundleContext.registerService(EventAdmin.class.getName(), eventAdmin, null);
+      eventAdmin = new EventAdminService();
+      reg = bundleContext.registerService(EventAdmin.class.getName(), eventAdmin, null);
     }
 
-    /**
-     * Stop the service
-     *
-     * @param context the BundleContext ,ie, the handle to the OSGi framework
-     */
     public void stop(BundleContext context) throws Exception {
       reg.unregister();
 

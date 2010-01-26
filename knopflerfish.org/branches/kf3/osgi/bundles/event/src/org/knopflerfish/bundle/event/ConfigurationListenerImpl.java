@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2008, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,27 +34,15 @@
 
 package org.knopflerfish.bundle.event;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
+import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkEvent;
-import org.osgi.framework.FrameworkListener;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.event.Event;
-import org.osgi.service.event.EventAdmin;
-import org.osgi.service.event.EventConstants;
-import org.osgi.service.event.EventHandler;
 import org.osgi.service.cm.ConfigurationEvent;
 import org.osgi.service.cm.ConfigurationListener;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
 
-import org.knopflerfish.service.log.LogRef;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 /**
  * Listen for ConfigurationEvent
