@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,12 @@
 
 package org.knopflerfish.bundle.event;
 
-import java.util.Hashtable;
 
+import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.EventAdmin;
-import org.knopflerfish.service.log.LogRef;
 
 /**
  * The Activator class is the startup class for the EventHandlerService.
@@ -48,43 +47,30 @@ import org.knopflerfish.service.log.LogRef;
  * @author Magnus Klack
  */
 public class Activator implements BundleActivator {
+    static BundleContext bundleContext;
+    static LogRef log;
+    static ServiceRegistration reg;
+    static EventAdminService eventAdmin;
+    static EventHandlerTracker handlerTracker;
 
-    /** the service id string */
-    final static String SERVICE_PID = "org.osgi.service.event.EventAdmin";
-
-    protected static BundleContext bundleContext;
-    protected static LogRef log;
-
-    private EventAdminService eventAdmin;
-
-    /**
-     * Main entry for the service
-     *
-     * @param context the BundleContext ,ie, the handle to the OSGi framework
-     */
     public void start(BundleContext context) throws Exception {
-        /* assign the context variable to a local variable */
-        bundleContext = context;
-        log = new LogRef(context);
+      bundleContext = context;
+      log = new LogRef(context);
 
-        /* create the event admin service */
-        eventAdmin = new EventAdminService(bundleContext);
-        /* create the hashtable */
-        Hashtable propsTable = new Hashtable();
-        /* add the Constant variable and the id to the Hashtable */
-        propsTable.put(Constants.SERVICE_PID, SERVICE_PID);
-        /* register the service to the framework */
-        bundleContext.registerService(EventAdmin.class.getName(), eventAdmin,
-                propsTable);
+      handlerTracker = new EventHandlerTracker(context);
+      handlerTracker.open();
+
+      eventAdmin = new EventAdminService();
+      reg = bundleContext.registerService(EventAdmin.class.getName(), eventAdmin, null);
     }
 
-    /**
-     * Stop the service
-     *
-     * @param context the BundleContext ,ie, the handle to the OSGi framework
-     */
     public void stop(BundleContext context) throws Exception {
+      reg.unregister();
+
       eventAdmin.stop();
       eventAdmin = null;
+
+      handlerTracker.close();
+      handlerTracker = null;
     }
 }

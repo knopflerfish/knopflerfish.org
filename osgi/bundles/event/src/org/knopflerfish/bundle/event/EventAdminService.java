@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2008, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,10 @@
 
 package org.knopflerfish.bundle.event;
 
-import java.util.Calendar;
-
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
-import org.osgi.service.event.EventHandler;
 
-import org.knopflerfish.service.log.LogRef;
+import java.util.Set;
 
 /**
  * Default implementation of the EventAdmin interface this is a singleton class
@@ -56,88 +50,41 @@ import org.knopflerfish.service.log.LogRef;
  * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
  */
 public class EventAdminService implements EventAdmin {
-
-  /** the local representation of the bundle context */
-  private BundleContext bundleContext;
-
-  /** variable holding the synchronus send procedure */
-  private QueueHandler queueHandlerSynch;
-
-  /** variable holding the asynchronus send procedure */
   private QueueHandler queueHandlerAsynch;
+  private MultiListener ml;
+  ConfigurationListenerImpl cli;
 
-  private Object semaphore = new Object();
-
-  /**
-   * the constructor use this to create a new Event admin service.
-   *
-   * @param context the BundleContext
-   */
-  public EventAdminService(BundleContext context) {
+  public EventAdminService() {
     synchronized(this){
-      /* assign the context to the local variable */
-      bundleContext = context;
-
-      /* create the asynchronus queue handler */
       queueHandlerAsynch = new QueueHandler();
-      /* start the handler */
       queueHandlerAsynch.start();
 
-      new MultiListener(this, context);
-      new ConfigurationListenerImpl(this, context);
+      ml = new MultiListener();
+      cli = new ConfigurationListenerImpl();
     }
   }
 
-  /**
-   * This method should be used when an asynchronus events are to be
-   * published.
-   *
-   * @param event the event to publish
-   */
   public void postEvent(Event event) {
     try {
-      queueHandlerAsynch.addEvent(new InternalAdminEvent(event, getReferences()));
+      queueHandlerAsynch.addEvent(new InternalAdminEvent(event, getMatchingHandlers(event.getTopic())));
     } catch(Exception e){
       Activator.log.error("Unknown exception in postEvent():", e);
     }
   }
 
-  /**
-   * This method should be used when synchronous events are to be published
-   *
-   * @param event the event to publish
-   * @author Magnus Klack
-   */
   public void sendEvent(Event event) {
     try {
-      new InternalAdminEvent(event, getReferences()).deliver();
+      new InternalAdminEvent(event, getMatchingHandlers(event.getTopic())).deliver();
     } catch(Exception e){
       Activator.log.error("Unknown exception in sendEvent():", e);
     }
   }
 
-  /**
-   * returns the servicereferences
-   *
-   * @return ServiceReferences[] array if any else null
-   * @throws InvalidSyntaxException if syntax error
-   */
-  ServiceReference[] getReferences() {
-    try {
-      ServiceReference[] refs = bundleContext.getServiceReferences(EventHandler.class.getName(), null);
-      return refs;
-    } catch (InvalidSyntaxException ignore) {
-      // What? We're not even using a filter!
-      return null;
-    } catch (IllegalStateException e) {
-      // The bundleContext is invalid. We're probably being stopped.
-      return null;
-    }
+  Set getMatchingHandlers(String topic) {
+    return Activator.handlerTracker.getHandlersMatching(topic);
   }
 
   void stop() {
-    //queueHandlerSynch.stopIt();
     queueHandlerAsynch.stopIt();
   }
-
 }

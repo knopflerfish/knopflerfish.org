@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2008, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,27 +34,15 @@
 
 package org.knopflerfish.bundle.event;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
+import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkEvent;
-import org.osgi.framework.FrameworkListener;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.event.Event;
-import org.osgi.service.event.EventAdmin;
-import org.osgi.service.event.EventConstants;
-import org.osgi.service.event.EventHandler;
 import org.osgi.service.cm.ConfigurationEvent;
 import org.osgi.service.cm.ConfigurationListener;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
 
-import org.knopflerfish.service.log.LogRef;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 /**
  * Listen for ConfigurationEvent
@@ -62,31 +50,28 @@ import org.knopflerfish.service.log.LogRef;
  * @author Bj\u00f6rn Andersson
  */
 public class ConfigurationListenerImpl implements ConfigurationListener {
+  private final static String PREFIX = "org/osgi/service/cm/ConfigurationEvent/";
+  private final static String CM_UPDATED_TOPIC = PREFIX + "CM_UPDATED";
+  private final static String CM_DELETED_TOPIC = PREFIX + "CM_DELETED";
 
-  /**  hashtable of eventhandlers and timestamps */
-  static Hashtable eventHandlers = new Hashtable();
 
   private LogRef log;
-  private EventAdmin eventAdmin;
-  private BundleContext bundleContext;
 
-  public ConfigurationListenerImpl(EventAdmin eventAdmin, BundleContext bundleContext) {
-    this.eventAdmin = eventAdmin;
-    this.bundleContext = bundleContext;
-    log = new LogRef(bundleContext);
-    bundleContext.registerService(ConfigurationListener.class.getName(), this, null);
+  public ConfigurationListenerImpl() {
+    log = new LogRef(Activator.bundleContext);
+    Activator.bundleContext.registerService(ConfigurationListener.class.getName(), this, null);
   }
 
   public void configurationEvent(ConfigurationEvent event) {
     Dictionary props = new Hashtable();
-    String topic = "org/osgi/service/cm/ConfigurationEvent/";
+    String topic = null;
     boolean knownMessageType = true;
     switch (event.getType()) {
     case ConfigurationEvent.CM_UPDATED:
-      topic += "CM_UPDATED";
+      topic = CM_UPDATED_TOPIC;
       break;
     case ConfigurationEvent.CM_DELETED:
-      topic += "CM_DELETED";
+      topic = CM_DELETED_TOPIC;
       break;
     default:
       knownMessageType = false;
@@ -95,6 +80,9 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
 
     /* Stores the properties of the event in the dictionary, if the event is known */
     if (knownMessageType) {
+      if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+        return;
+      }
       putProp(props, EventConstants.EVENT, event);
       putProp(props, "cm.factoryPid", event.getFactoryPid());
       putProp(props, "cm.pid", event.getPid());
@@ -104,7 +92,7 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
       putProp(props, "service.pid", event.getReference().getProperty(Constants.SERVICE_PID));
 
       try {
-        eventAdmin.postEvent(new Event(topic, props));
+        Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
         log.error("EXCEPTION in configurationEvent()", e);
       }
