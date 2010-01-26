@@ -34,20 +34,12 @@
 
 package org.knopflerfish.bundle.event;
 
+import org.osgi.service.event.Event;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.Vector;
-
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.Filter;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.event.Event;
-import org.osgi.service.event.EventConstants;
-import org.osgi.service.event.EventHandler;
 
 /**
  * Class which handles the event deliveries to event handlers.
@@ -193,47 +185,4 @@ public class DeliverSession {
       caller.interrupt();
     }
   }
-
-
-  /**
-   * Split a string into words separated by "/".
-   *
-   * @param s  String to split.
-   * @return   String array of path components.
-   */
-  public static String [] splitPath(String s) {
-    final StringTokenizer st = new StringTokenizer(s, "/");
-    final String[] res = new String[st.countTokens()];
-
-    int i = 0;
-    while (st.hasMoreElements()) {
-      res[i++] = st.nextToken();
-    }
-
-    return res;
-  }
-
-
-  // The following class is not used. It's a nice class, though, isn't it?
-
-  /**
-   * A class used to log messages.
-   * @author Magnus Klack
-   */
-  private class CustomDebugLogger extends Thread{
-    /** the log message */
-    private String message;
-    public CustomDebugLogger(String msg){
-      /* assign message */
-      message=msg;
-
-    }
-    /**
-     * Inherited from Thread, starts the thread.
-     */
-    public void run(){
-      Activator.log.debug(message);
-    }
-  }
-
 }

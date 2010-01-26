@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2008, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,11 @@
 
 package org.knopflerfish.bundle.event;
 
-import java.security.AccessControlException;
-import java.util.Set;
-
 import org.osgi.service.event.Event;
 import org.osgi.service.event.TopicPermission;
+
+import java.security.AccessControlException;
+import java.util.Set;
 
 /**
  * A wrapper class for events. Connects an event with ServiceReferences to

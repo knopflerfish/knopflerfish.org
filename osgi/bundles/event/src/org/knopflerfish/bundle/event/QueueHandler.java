@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2008, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,6 @@
 package org.knopflerfish.bundle.event;
 
 import java.util.LinkedList;
-
-import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-
-import org.osgi.service.event.Event;
-import org.osgi.service.event.EventAdmin;
 
 /**
  * This class will send the events synchronus and asynchronus to the

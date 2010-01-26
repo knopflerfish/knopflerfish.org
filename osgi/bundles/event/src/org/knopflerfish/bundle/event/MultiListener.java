@@ -34,11 +34,8 @@
 
 package org.knopflerfish.bundle.event;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
+import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
@@ -48,14 +45,13 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
-import org.osgi.service.event.EventAdmin;
 import org.osgi.service.event.EventConstants;
-import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
-import org.knopflerfish.service.log.LogRef;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
 /**
  * Listen for LogEntries, ServiceEvents, FrameworkEvents, BundleEvents
@@ -102,7 +98,6 @@ public class MultiListener implements LogListener,
 
 
   public void bundleChanged(BundleEvent bundleEvent) {
-
     String topic = null;
     boolean knownMessageType = true;
 
@@ -173,8 +168,8 @@ public class MultiListener implements LogListener,
    * @author Johnny Baveras
    */
   public void logged(LogEntry logEntry) {
-
     String topic = null;
+
     switch (logEntry.getLevel()) {
     case LogRef.LOG_ERROR:
       topic = LOG_ERROR_TOPIC;
@@ -244,16 +239,13 @@ public class MultiListener implements LogListener,
   private static final String SERVICE_EVENT_MODIFIED_TOPIC = SERVICE_EVENT_PREFIX + "MODIFIED";
   private static final String SERVICE_EVENT_UNREGISTERING_TOPIC = SERVICE_EVENT_PREFIX + "UNREGISTERING";
 
-
   /**
    * A listener for service events
    * @param serviceEvent the event sent by the service
    * @author Johnny Baveras
    */
   public void serviceChanged(ServiceEvent serviceEvent) {
-
     String topic = null;
-
     boolean knownMessageType = true;
 
     switch (serviceEvent.getType()) {
@@ -318,35 +310,36 @@ public class MultiListener implements LogListener,
     }
   }
 
+  private static final String FW_EVT_PREFIX = "org/osgi/framework/FrameworkEvent/";
+  private static final String FW_EVT_STARTED = FW_EVT_PREFIX + "STARTED";
+  private static final String FW_EVT_ERROR = FW_EVT_PREFIX + "ERROR";
+  private static final String FW_EVT_INFO = FW_EVT_PREFIX + "INFO";
+  private static final String FW_EVT_PACKAGES_REFRESHED = FW_EVT_PREFIX + "PACKAGES_REFRESHED";
+  private static final String FW_EVT_STARTLEVEL_CHANGED = FW_EVT_PREFIX + "STARTLEVEL_CHANGED";
   /**
    * A listener of framework events
    * @param frameworkEvent the event sent by the framework
    * @author Johnny Baveras
    */
   public void frameworkEvent(FrameworkEvent frameworkEvent) {
-    /* A dictionary to store properties in */
-    Dictionary props = new Hashtable();
-    /* The bundle included in the bundleEvent */
-    Bundle bundle = frameworkEvent.getBundle();
-    /* The prefix of the topic of the event to be posted*/
-    String topic = "org/osgi/framework/FrameworkEvent/";
-    /* boolean determining whether the bundleEvent is of a known topic */
+    String topic = null;
     boolean knownMessageType = true;
+    
     switch (frameworkEvent.getType()) {
     case FrameworkEvent.STARTED:
-      topic += "STARTED";
+      topic = FW_EVT_STARTED;
       break;
     case FrameworkEvent.ERROR:
-      topic += "ERROR";
+      topic = FW_EVT_ERROR;
       break;
     case FrameworkEvent.INFO:
-      topic += "INFO";
+      topic = FW_EVT_INFO;
       break;
     case FrameworkEvent.PACKAGES_REFRESHED:
-      topic += "PACKAGES_REFRESHED";
+      topic = FW_EVT_PACKAGES_REFRESHED;
       break;
     case FrameworkEvent.STARTLEVEL_CHANGED:
-      topic += "STARTLEVEL_CHANGED";
+      topic = FW_EVT_STARTLEVEL_CHANGED;
       break;
     default:
       /* Setting the boolean to false if an unknown event arrives */
@@ -354,13 +347,12 @@ public class MultiListener implements LogListener,
       break;
     }
 
-    if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
-      return;
-    }
-
-    /* Stores the properties of the event in the dictionary, if the
-     * event is known */
     if (knownMessageType) {
+      if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
+        return;
+      }
+      Dictionary props = new Hashtable();
+      Bundle bundle = frameworkEvent.getBundle();
       putProp(props, "event", frameworkEvent);
       /* If the event contains a bundle, further properties shall be set */
       if (frameworkEvent.getBundle() != null) {
@@ -394,10 +386,8 @@ public class MultiListener implements LogListener,
   }
 
   private void putProp(Dictionary props, Object key, Object value) {
-    //try {
     if (value != null) {
       props.put(key, value);
-    }// catch (NullPointerException ignore) {}
+    }
   }
-
 }
