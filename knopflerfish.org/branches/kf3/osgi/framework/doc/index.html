@@ -918,11 +918,16 @@ must explictly set this header themselves.
     <td>
       If set to false, then the service reference can not be used to
       fetch an instance of the service during delivery and handling of
-      the UNREGISTERING service event. This (false) is the behaviour
-      specified in the OSGi R4.0.1 specification, according to a
-      clarification done by CPEG February 2008 it shall now be possible
-      to obtain a service instance during delivery of UNREGISTERING
-      events thus this property now defaults to true.
+      the UNREGISTERING service event. The behaviour specified in the
+      OSGi R4 v4.0.1 specification (and later), according to a
+      clarification done by CPEG February 2008, is that it shall be
+      possible to obtain a service instance during delivery of
+      UNREGISTERING events thus this property now defaults to true.
+
+      <p>Note that independent of this setting the service reference
+      of an UNREGISTERING service will not be returned by any of the
+      methods searching for service references provided by the
+      BundleContext interface.
     </td>
     <td>Boolean</td>
     <td>True</td>
