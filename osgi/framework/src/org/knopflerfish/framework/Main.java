@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,7 +128,7 @@ public class Main
 
     bootText =
       "Knopflerfish OSGi framework, version " + version + "\n" +
-      "Copyright 2003-2009 Knopflerfish. All Rights Reserved.\n\n" +
+      "Copyright 2003-2010 Knopflerfish. All Rights Reserved.\n\n" +
       "See http://www.knopflerfish.org for more information.";
 
     System.out.println(bootText);
@@ -1212,28 +1212,28 @@ public class Main
     }
 
     // out result
-    List v = new ArrayList();
+    final List v = new ArrayList();
 
+    BufferedReader in = null;
     try {
-      BufferedReader in = null;
 
       // Check as file first, then as a URL
       println("Searching for xargs file with URL '" +xargsPath +"'.", 2);
 
       // 1) Search in parent dir of the current framework directory
-      String fwDirStr = Util.getFrameworkDir(fwProps);
+      final String fwDirStr = Util.getFrameworkDir(fwProps);
 
-      // avoid getAbsoluteFile since some profiles don't have this
-      File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
+      // avoid getAbsoluteFile() since some profiles don't have this
+      final File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
 
-      // avoid getParentFile since some profiles don't have this
-      String defDirStr = fwDir.getParent();
-      File   defDir    = defDirStr != null ? new File(defDirStr) : null;
+      // avoid getParentFile() since some profiles don't have this
+      final String defDirStr = fwDir.getParent();
+      final File   defDir    = defDirStr != null ? new File(defDirStr) : null;
       if (null!=defDir) {
         // Make the file object absolute before calling exists(), see
         // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
         // for details.
-        File f = new File(new File(defDir,xargsPath).getAbsolutePath());
+        final File f = new File(new File(defDir,xargsPath).getAbsolutePath());
         println(" trying " +f, 5);
         if(f.exists()) {
           println("Loading xargs file " + f, 1);
@@ -1246,7 +1246,7 @@ public class Main
         // Make the file object absolute before calling exists(), see
         // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
         // for details.
-        File f = new File(new File(xargsPath).getAbsolutePath());
+        final File f = new File(new File(xargsPath).getAbsolutePath());
         println(" trying " +f, 5);
         if(f.exists()) {
           println("Loading xargs file " + f, 1);
@@ -1258,7 +1258,7 @@ public class Main
       if(in == null) {
         try {
           println(" trying URL " +xargsPath, 5);
-          URL url = new URL(xargsPath);
+          final URL url = new URL(xargsPath);
           println("Loading xargs url " + url, 0);
           in = new BufferedReader(new InputStreamReader(url.openStream()));
         } catch (MalformedURLException e)  {
@@ -1338,9 +1338,15 @@ public class Main
         throw (RuntimeException)e;
       }
       throw new IllegalArgumentException("xargs loading failed: " + e);
+    } finally {
+      if (null!=in) {
+        try {
+          in.close();
+        } catch (IOException ignore) { }
+      }
     }
-    String [] args2 = new String[v.size()];
 
+    final String [] args2 = new String[v.size()];
     v.toArray(args2);
 
     return args2;
@@ -1353,12 +1359,12 @@ public class Main
     // User reflection, and ignore errors since this is only supported
     // in Java SE 6.
     try {
-      Class splashScreenCls = Class.forName("java.awt.SplashScreen");
-      Method getSplashScreenMethod
+      final Class splashScreenCls = Class.forName("java.awt.SplashScreen");
+      final Method getSplashScreenMethod
         = splashScreenCls.getMethod("getSplashScreen", null);
-      Object splashScreen = getSplashScreenMethod.invoke(null,null);
+      final Object splashScreen = getSplashScreenMethod.invoke(null,null);
       if (null!=splashScreen) {
-        Method closeMethod = splashScreenCls.getMethod("close", null);
+        final Method closeMethod = splashScreenCls.getMethod("close", null);
         closeMethod.invoke(splashScreen, null);
       }
     } catch (Exception e) {
