@@ -39,9 +39,10 @@ Declarative Services Specification
 All the other Compendium Specification Services
 are up to date and pass the CT.
 
-Event Admin 2.0.5
- - Some optimizations and clean up of the event
-   deliver code has been made.
+Event 3.0.0
+  Improved performance a lot by rewriting the whole mechanism for matching
+  events to event handlers during event delivery. General clean up and
+  removal of dead code.
 
 
 ----------------------------------------------
