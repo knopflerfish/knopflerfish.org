@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -158,9 +158,14 @@ import org.apache.tools.ant.util.FileUtils;
  *
  */
 
-public class MakeHTMLTask extends Task {
-
-  private final static String TIMESTAMP = new SimpleDateFormat("EE MMMM d yyyy, HH:mm:ss", Locale.ENGLISH).format(new Date());
+public class MakeHTMLTask
+  extends Task
+{
+  private final static String TIMESTAMP
+    = new SimpleDateFormat("EE MMMM d yyyy, HH:mm:ss", Locale.ENGLISH)
+    .format(new Date());
+  private final static String YEAR
+    = new SimpleDateFormat("yyyy",  Locale.ENGLISH).format(new Date());
 
   private String lib_suffix = "";
   private String api_suffix = "_api";
@@ -319,6 +324,7 @@ public class MakeHTMLTask extends Task {
       content = Util.replace(content, "$(TITLE)", title);
       content = Util.replace(content, "$(DESC)", description);
       content = Util.replace(content, "$(TSTAMP)", TIMESTAMP);
+      content = Util.replace(content, "$(YEAR)", YEAR);
       content = Util.replace(content, "$(USER)",
                              System.getProperty("user.name"));
       content = Util.replace(content, "$(VERSION)",

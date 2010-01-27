@@ -20,6 +20,7 @@
 #-Forg.knopflerfish.framework.bundlestorage.file.trusted=false
 #-Forg.knopflerfish.framework.bundlestorage.file.unpack=false
 #-Forg.knopflerfish.framework.bundlestorage.file.always_unpack=true
+#-Forg.knopflerfish.framework.bundlestorage.file.reference=false
 
 # JKSValidator properties (JVM default if not set).
 #-Forg.knopflerfish.framework.validator.jks.ca_certs=
