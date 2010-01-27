@@ -30,6 +30,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Services (Compendium) ===
 
+  Event 2.0.5
+
+  Improved performance a lot by rewriting the whole mechanism for matching
+  events to event handlers during event delivery. General clean up and
+  removal of dead code.
 
   Declarative-Services 2.0.2 (aka SCR (Service Component Runtime))
 
