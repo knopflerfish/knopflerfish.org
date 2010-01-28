@@ -219,20 +219,18 @@ final public class BundleClassLoader extends ClassLoader {
     if(!bootDelegationUsed){
       return false;
     }
+    if (bootDelegationPatterns == null) {
+      return true;
+    }
     int pos = className.lastIndexOf('.');
     if (pos != -1) {
       String classPackage = className.substring(0, pos);
-      if (bootDelegationPatterns == null) {
-        return true;
-      }
-      else {
-        for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
-          String ps = (String)i.next();
-          if ((ps.endsWith(".") &&
-               classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
-               classPackage.equals(ps)) {
-            return true;
-          }
+      for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
+        String ps = (String)i.next();
+        if ((ps.endsWith(".") &&
+             classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
+            classPackage.equals(ps)) {
+          return true;
         }
       }
     }
