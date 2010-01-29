@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,21 +83,18 @@ public class Strings {
           put("menu_errordialoglevel_normal",   "Normal");
           put("menu_errordialoglevel_more",     "More");
           put("menu_errordialoglevel_advanced", "Advanced");
+
           put("tt_html_back",        "Back to previous bundle");
           put("tt_html_fwd",         "Forward to next bundle");
-          put("tt_stopbundle",       "Stop Bundle");
-          put("tt_startbundle",      "Start Bundle");
-          put("tt_updatebundle",     "Update Bundle");
-          put("tt_uninstallbundle",  "Uninstall Bundle");
 
           put("menu_tips",      "Show tips");
           put("prev_tip",       "Previous tip");
           put("next_tip",       "Next tip");
 
-          put("item_stopbundles",       "Stop");
-          put("item_startbundles",      "Start");
-          put("item_updatebundles",     "Update");
-          put("item_uninstallbundles",  "Uninstall");
+          put("item_stopbundles",       "Stop Selected Bundles");
+          put("item_startbundles",      "Start Selected Bundles");
+          put("item_updatebundles",     "Update Selected Bundles");
+          put("item_uninstallbundles",  "Uninstall Selected Bundles");
 
           put("menu_remotefw",          "Remote framework...");
           put("remote_connect_msg",     "Enter address to remote framework");
@@ -143,13 +140,17 @@ public class Strings {
           put("msg_uninstallbundle", "Uninstall bundle");
 
           put("menu_refreshbundles", "Refresh bundle packages");
+          put("menu_refreshbundles.descr",
+              "Refresh packages exported by selected bundles, "
+              +"if no bundle selected refresh all packages that are "
+              +"pending removal.");
 
           put("str_fwinfo", "Framework info");
           put("str_about", "About");
           put("str_abouttext",
               "Knopflerfish OSGi desktop, version $(1)\n" +
               "Framework: $(2) $(3)\n" +
-              "(c) 2003-2009 Knopflerfish.\n\n" +
+              "(c) 2003-2010 Knopflerfish.\n\n" +
               "See\n" +
               "  http://www.knopflerfish.org\n" +
               "for more information" +
@@ -163,9 +164,29 @@ public class Strings {
           put("item_unselectall",     "Unselect all");
           put("item_clear_console",   "Clear console");
 
+          put("menu_startOptions", "     Options");
+          put("menu_startOptions.descr","Options to use when starting bundles");
+          put("start_option_transient", "Transient");
+          put("start_option_transient.descr",
+              "Start bundle without marking it as persistently started.");
+          put("start_option_eager",     "Eager");
+          put("start_option_policy",    "Policy");
+          put("start_option_policy.descr",
+              "Start bundle according to its start policy."
+              +" If unchecked the bundle will be eagerly started.");
+
+          put("menu_stopOptions", "     Options");
+          put("menu_stopOptions.descr","Options to use when stoping bundles");
+          put("stop_option_transient", "Transient");
+          put("stop_option_transient.descr",
+              "Stop bundle without marking it as not persistently started.");
+
           put("startlevel.label",     "Start level: ");
+          put("startlevel.descr",  "Sets startlevel for the selected bundle.");
+          put("startlevel.noSel",  "No bundle selected");
           put("menu_startlevel",      "Start level");
           put("nostartlevel.label",   "");
+
           put("str_checkupdate",      "Check for update");
           put("item_newwindow",      "New window");
           put("str_services",      "Services");
