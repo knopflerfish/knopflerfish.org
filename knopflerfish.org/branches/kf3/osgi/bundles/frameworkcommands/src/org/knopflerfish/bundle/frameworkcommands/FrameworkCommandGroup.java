@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
@@ -50,9 +51,12 @@ import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -75,33 +79,36 @@ import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.startlevel.StartLevel;
 
 // ******************** FrameworkCommandGroup ********************
+
 /**
  * Console commands for interaction with the framework.
  *
- * @author Gatespace AB *
- * @version $Revision: 1.1.1.1 $
+ * @author Gatespace AB
  */
 
-public class FrameworkCommandGroup extends CommandGroupAdapter {
+public class FrameworkCommandGroup
+  extends CommandGroupAdapter
+{
+  final BundleContext bc;
 
-  BundleContext bc;
-
-  private PackageAdmin packageAdmin = null;
-
-  private PermissionAdmin permissionAdmin = null;
-
-  private ConditionalPermissionAdmin condPermAdmin = null;
-
-  private StartLevel startLevel = null;
+  private final PackageAdmin packageAdmin;
+  private final PermissionAdmin permissionAdmin;
+  private final ConditionalPermissionAdmin condPermAdmin;
+  private final StartLevel startLevel;
 
   /**
-   * * The default directories for bundle jar files. *
-   * <p> * The system property <code>org.knopflerfish.gosg.jars</code> holds
-   * a * semicolon separated path of URLs that is used to complete the *
-   * location when it is given as a partial URL. *
+   * The default directories for bundle jar files.
+   *
+   * <p>
+   *
+   * The system property <code>org.knopflerfish.gosg.jars</code> holds
+   * a semicolon separated path of URLs that is used to complete the
+   * location when it is given as a partial URL.
+   *
    * </p>
    */
-  private String[] bundleDirs = null;
+  private List/*<URL>*/ baseURLs = new ArrayList();
+
 
   FrameworkCommandGroup(BundleContext bc) {
     super("framework", "Framework commands");
@@ -112,70 +119,89 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
 
     ServiceReference sr = bc.getServiceReference(PackageAdmin.class
                                                  .getName());
-    if (sr != null) {
-      packageAdmin = (PackageAdmin) bc.getService(sr);
-    }
+    packageAdmin = null==sr ? null : (PackageAdmin) bc.getService(sr);
 
     sr = bc.getServiceReference(PermissionAdmin.class.getName());
-    if (sr != null) {
-      permissionAdmin = (PermissionAdmin) bc.getService(sr);
-    }
+    permissionAdmin = null==sr ? null : (PermissionAdmin) bc.getService(sr);
 
     sr = bc.getServiceReference(ConditionalPermissionAdmin.class.getName());
-    if (sr != null) {
-      condPermAdmin = (ConditionalPermissionAdmin) bc.getService(sr);
-    }
+    condPermAdmin = null==sr ? null
+      : (ConditionalPermissionAdmin) bc.getService(sr);
 
     sr = bc.getServiceReference(StartLevel.class.getName());
-    if (sr != null) {
-      startLevel = (StartLevel) bc.getService(sr);
-    }
+    startLevel = null==sr ? null : (StartLevel) bc.getService(sr);
 
-    setupJars();
+    try {
+      setupJars();
+    } catch (MalformedURLException mfe) {
+    }
   }
 
-  void setupJars() {
+  void setupJars()
+    throws MalformedURLException
+  {
     String jars = bc.getProperty("org.knopflerfish.gosg.jars");
-    if (null==jars || jars.length()==0) {
-      jars = "file:./";
+    jars = null==jars || jars.length()==0 ? "file:jars/" : jars;
+
+    final StringTokenizer st = new StringTokenizer(jars, ";");
+    final String[] prefixes = new String[st.countTokens()];
+
+    for (int i=0; st.hasMoreTokens(); i++) {
+      prefixes[i] = st.nextToken();
     }
 
-    StringTokenizer st = new StringTokenizer(jars, ";");
-    bundleDirs = new String[st.countTokens()];
-    for (int i = 0; i < bundleDirs.length; i++) {
-      String path = st.nextToken();
+    setupJars(prefixes, false);
+  }
+
+  void setupJars(final String[] prefixes, boolean append)
+    throws MalformedURLException
+  {
+    MalformedURLException firstMFE = null;
+    if (!append) {
+      baseURLs.clear();
+    }
+
+    for (int i=0; i<prefixes.length; i++) {
       try {
-        bundleDirs[i] = new URL(path).toString();
-      } catch (Exception e) {
-        bundleDirs[i] = path;
+        baseURLs.add(new URL(prefixes[i]));
+      } catch (MalformedURLException mfe) {
+        if (null==firstMFE){
+          firstMFE = mfe;
+        }
       }
+    }
+    if (null!=firstMFE) {
+      throw firstMFE;
     }
   }
 
   /**
-   * Completes a partial bundle location using the bundles dir path. * The
-   * result is the first combination of a directory URL (as * returned by
-   * <code>getBundleDirs()</code>) and the specified * location that
-   * results in a valid URL with accessible data.
+   * Completes a partial bundle location using the bundles dir path.
+   * The result is the first combination of a directory URL (as
+   * returned by <code>getBundleDirs()</code>) and the specified
+   * location that results in a valid URL with accessible data.
+   *
+   * @param location the bundle location to complete
    */
   public String completeLocation(String location) {
-    int ic = location.indexOf(":");
+    final int ic = location.indexOf(":");
     if (ic < 2 || ic > location.indexOf("/")) {
       // URL wihtout protocol complete it.
-      String[] paths = bundleDirs;
-      for (int i = 0; i < paths.length; i++) {
+      for (Iterator it=baseURLs.iterator(); it.hasNext(); ) {
+        final URL baseURL = (URL) it.next();
+
         try {
-          URL url = new URL(new URL(paths[i]), location);
+          final URL url = new URL(baseURL, location);
           if ("file".equals(url.getProtocol())) {
-            File f = new File(url.getFile());
+            final File f = new File(url.getFile());
             if (!f.exists() || !f.canRead()) {
               continue; // Noope; try next.
             }
           } else if ("http".equals(url.getProtocol())) {
-            HttpURLConnection uc = (HttpURLConnection) url
-              .openConnection();
+            final HttpURLConnection uc = (HttpURLConnection)
+              url.openConnection();
             uc.connect();
-            int rc = uc.getResponseCode();
+            final int rc = uc.getResponseCode();
             uc.disconnect();
             if (rc != HttpURLConnection.HTTP_OK) {
               continue; // Noope; try next.
@@ -1015,10 +1041,11 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
 
   public final static String USAGE_INSTALL = "[-s] <location> ...";
-
   public final static String[] HELP_INSTALL = new String[] {
-    "Install one or more bundles", "-s         Start bundle(s)",
-    "<location> Name or id of bundle" };
+    "Install one or more bundles",
+    "-s         Persistently start bundle(s) according to activation policy",
+    "<location> Name or id of bundle"
+  };
 
   public int cmdInstall(Dictionary opts, Reader in, PrintWriter out,
                         Session session) {
@@ -1030,7 +1057,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         Bundle b = bc.installBundle(url);
         out.println("Installed: " + showBundle(b));
         if (opts.get("-s") != null) {
-          b.start();
+          b.start(Bundle.START_ACTIVATION_POLICY);
           out.println("Started: " + showBundle(b));
         }
       }
@@ -1507,19 +1534,31 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   // Start command
   //
 
-  public final static String USAGE_START = "<bundle> ...";
-
+  public final static String USAGE_START = "[-t] [-e] <bundle> ...";
   public final static String[] HELP_START = new String[] {
-    "Start one or more bundles", "<bundle> Name or id of bundle" };
+    "Persistently start one or more bundles according to their ",
+    "activation policy.",
+    "-t       Perform a transient start. I.e., non-persisten start.",
+    "-e       Eagerly start the bundles, ignoring their activation policy.",
+    "<bundle> Name or id of bundle"
+  };
 
   public int cmdStart(Dictionary opts, Reader in, PrintWriter out,
                       Session session) {
+    int startOptions = 0;
+    if (opts.get("-t") != null) {
+      startOptions |= Bundle.START_TRANSIENT;
+    }
+    if (opts.get("-e") == null) {
+      startOptions |= Bundle.START_ACTIVATION_POLICY;
+    }
+
     Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
     for (int i = 0; i < b.length; i++) {
       if (b[i] != null) {
         try {
-          b[i].start();
+          b[i].start(startOptions);
           out.println("Started: " + showBundle(b[i]));
         } catch (BundleException e) {
           Throwable t = e;
@@ -1543,20 +1582,26 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
   // Stop command
   //
-
-  public final static String USAGE_STOP = "<bundle> ...";
-
+  public final static String USAGE_STOP = "[-t] <bundle> ...";
   public final static String[] HELP_STOP = new String[] {
-    "Stop one or more bundles", "<bundle> Name or id of bundle" };
+    "Persitently stop one or more bundles",
+    "-t       Perform a transient stop. I.e., non-persisten stop.",
+    "<bundle> Name or id of bundle"
+  };
 
   public int cmdStop(Dictionary opts, Reader in, PrintWriter out,
                      Session session) {
+    int stopOptions = 0;
+    if (opts.get("-t") != null) {
+      stopOptions |= Bundle.STOP_TRANSIENT;
+    }
+
     Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
     for (int i = b.length - 1; i >= 0; i--) {
       if (b[i] != null) {
         try {
-          b[i].stop();
+          b[i].stop(stopOptions);
           out.println("Stopped: " + showBundle(b[i]));
         } catch (BundleException e) {
           Throwable t = e;
@@ -1980,32 +2025,35 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
   // CD command
   //
-  public final static String USAGE_CD = "[-reset] [<prefix>] ...";
+  public final static String USAGE_CD = "[-reset] [-a] [<base URL>] ...";
 
   public final static String[] HELP_CD = new String[] {
-    "Shows or sets URL prefix",
-    "[-reset]       reset prefix list to value startup value",
-    "[<prefix>] ... list of URL prefixes for install command", };
+    "Shows or sets the base URLs used to complete bundle location",
+    "when installing bundles.",
+    "[-reset]       reset the base URL list to the startup value.",
+    "[-a]           append given base URLs to the current list.",
+    "[<base URL>] ... new list of base URLs to be used.", };
 
   public int cmdCd(Dictionary opts, Reader in, PrintWriter out,
                    Session session) {
 
-    String[] prefixes = (String[]) opts.get("prefix");
+    final String[] baseURLsArg = (String[]) opts.get("base URL");
+    final boolean append = opts.get("-a") != null;
 
     try {
       if (opts.get("-reset") != null) {
         setupJars();
       }
-      if (prefixes == null) {
-        for (int i = 0; i < bundleDirs.length; i++) {
-          out.println(" " + bundleDirs[i]);
+      if (baseURLsArg == null) {
+        for (Iterator it = baseURLs.iterator(); it.hasNext(); ) {
+          out.println(" " + it.next());
         }
       } else {
-        bundleDirs = prefixes;
+        setupJars(baseURLsArg, append);
       }
       return 0;
     } catch (Exception e) {
-      out.println("Failed to cd");
+      out.println("Failed to cd: "+e);
       e.printStackTrace(out);
       return -1;
     }
