@@ -53,8 +53,16 @@ Console
  - Migration to new OSGi Standard (Done)
  - Support for new Activation Commands (In Progress)
 
-Desktop
- - Support for new Activation Commands (In Progress)
+Desktop 3.0.8
+ - Added support for using options when starting and stopping bundles.
+   E.g., a bundle may now be transiently started or stopped.
+ - Menu and toolbar entries for starting, stopping, updating and
+   uninstalling bundles are now disabled when no bundle is selected.
+ - Changing start level for bundles now works when more than one
+   bundle is selected.
+ - Fixed a problem (dead-lock of the Event Dispatcher Thread) when
+   calling the bundle life-cycle operations on the desktop bundle
+   itself.
 
 Log 2.0.3
  - New configuration property for setting the number of
