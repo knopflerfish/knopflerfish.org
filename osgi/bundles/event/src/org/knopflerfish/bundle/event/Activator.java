@@ -65,9 +65,6 @@ public class Activator implements BundleActivator {
       eventAdmin.stop();
       eventAdmin = null;
 
-      eventAdmin.stop();
-      eventAdmin = null;
-
       handlerTracker.close();
       handlerTracker = null;
     }
