@@ -39,7 +39,6 @@ import org.osgi.service.event.Event;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.StringTokenizer;
 
 /**
  * Class which handles the event deliveries to event handlers.
@@ -81,7 +80,7 @@ public class DeliverSession {
 
     /* Tries to get the timeout property from the system*/
     try {
-      String timeoutS = Activator.bundleContext.getProperty(TIMEOUT_PROP);
+      String timeoutS = Activator.bc.getProperty(TIMEOUT_PROP);
       if (null!=timeoutS && 0<timeoutS.length()) {
         timeout = Long.parseLong(timeoutS);
       }
