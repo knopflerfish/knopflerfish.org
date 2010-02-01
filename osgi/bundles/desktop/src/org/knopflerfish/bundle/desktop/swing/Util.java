@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -640,17 +640,30 @@ public class Util {
     Constants.FRAMEWORK_VENDOR,
     Constants.FRAMEWORK_VERSION,
     Constants.FRAMEWORK_LANGUAGE,
-    Constants.FRAMEWORK_OS_NAME ,
+    Constants.FRAMEWORK_OS_NAME,
     Constants.FRAMEWORK_OS_VERSION,
     Constants.FRAMEWORK_PROCESSOR,
     Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
+    Constants.FRAMEWORK_BOOTDELEGATION,
+    Constants.FRAMEWORK_STORAGE,
+    Constants.FRAMEWORK_STORAGE_CLEAN,
+    Constants.FRAMEWORK_TRUST_REPOSITORIES,
+    Constants.FRAMEWORK_EXECPERMISSION,
+    Constants.FRAMEWORK_LIBRARY_EXTENSIONS,
+    Constants.FRAMEWORK_BEGINNING_STARTLEVEL,
+    Constants.FRAMEWORK_BUNDLE_PARENT,
+    Constants.FRAMEWORK_WINDOWSYSTEM,
+    Constants.FRAMEWORK_SECURITY,
+    Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+    Constants.SUPPORTS_FRAMEWORK_FRAGMENT,
+    Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE,
   };
 
   static public String getSystemInfo() {
-    StringBuffer sb = new StringBuffer();
-    try {
+    final StringBuffer sb = new StringBuffer();
 
-      Map props = new TreeMap(Activator.getSystemProperties());
+    try {
+      final Map props = new TreeMap(Activator.getSystemProperties());
 
       sb.append("<table>\n");
 
@@ -672,7 +685,8 @@ public class Util {
         sb.append(fontify(FWPROPS[i]));
         sb.append("</td>\n");
         sb.append("  <td valign=\"top\">");
-        sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
+        final String pValue = Activator.getTargetBC().getProperty(FWPROPS[i]);
+        sb.append(null!=pValue ? fontify(pValue) : "");
         sb.append("</td>\n");
         sb.append(" </tr>\n");
       }
