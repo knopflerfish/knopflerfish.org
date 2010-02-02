@@ -63,10 +63,12 @@ Desktop 3.0.8
    calling the bundle life-cycle operations on the desktop bundle
    itself.
 
-Framework Commands 3.0.0
+Framework Commands 3.0.1
  - Added support for using options when starting and stopping bundles.
    E.g., a bundle may now be transiently started or stopped.
  - Added the -a (append) option to the cd-command.
+ - New command "properties" that may be used to list System and
+   Framework properties.
 
 Log 2.0.3
  - New configuration property for setting the number of
