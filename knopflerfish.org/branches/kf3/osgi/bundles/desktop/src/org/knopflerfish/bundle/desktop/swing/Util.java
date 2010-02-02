@@ -668,7 +668,7 @@ public class Util {
       sb.append("<table>\n");
 
       sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
-      sb.append(fontify("Framework properties", -1));
+      sb.append(fontify("OSGi specified Framework properties", -1));
 
       String spid = Activator.getBC().getProperty("org.osgi.provisioning.spid");
       if(spid != null && !"".equals(spid)) {
@@ -692,7 +692,7 @@ public class Util {
       }
 
       sb.append("<tr><td colspan=2 bgcolor=\"#eeeeee\">");
-      sb.append(fontify("System properties", -1));
+      sb.append(fontify("All Framework and System properties", -1));
       sb.append("</td>\n");
       sb.append("</tr>\n");
 

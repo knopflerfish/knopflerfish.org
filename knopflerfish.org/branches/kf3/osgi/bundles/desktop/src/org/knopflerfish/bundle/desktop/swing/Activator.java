@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,27 +34,32 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.ArrayList;
 import java.util.Properties;
+import java.util.StringTokenizer;
 import java.util.Vector;
-import java.lang.reflect.Constructor;
+
+import org.knopflerfish.service.desktop.BundleFilter;
 import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.remotefw.RemoteFramework;
-import org.knopflerfish.service.desktop.BundleFilter;
-import org.osgi.framework.BundleActivator;
+import org.knopflerfish.util.Text;
+
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.util.tracker.ServiceTracker;
-import org.knopflerfish.util.Text;
 
-public class Activator implements BundleActivator {
 
+public class Activator
+  implements BundleActivator
+{
   static public LogRef        log;
 
   static private BundleContext bc;
@@ -106,6 +111,11 @@ public class Activator implements BundleActivator {
     return remoteBC;
   }
 
+  // The key under which the KF-framework keeps a comma-separated list
+  // of all framework property keys.
+  public static final String fwPropKeysKey
+    = "org.knopflerfish.framework.bundleprops.keys";
+
   public static Map getSystemProperties() {
     if(getTargetBC() != getBC()) {
       RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
@@ -113,16 +123,30 @@ public class Activator implements BundleActivator {
     } else {
       // There is no method in BundleContext that enumerates
       // properties, thus use the set of keys from the system properties.
-      Properties props = System.getProperties();
-      Map map = new HashMap();
+      final Properties props = System.getProperties();
+      final Map map = new HashMap();
 
       for(Enumeration e = props.keys(); e.hasMoreElements();) {
-        String key = (String)e.nextElement();
+        final String key = (String)e.nextElement();
         // We want local property values that applies to this instance
         // of the framework.
-        String val = Util.getProperty(key, (String) props.get(key));
+        final String val = Util.getProperty(key, (String) props.get(key));
         map.put(key, val);
       }
+
+      // The Knopflerfish Framework has a framework property that
+      // enumerates the keys all framework properties. Use this to
+      // improve the properties map.
+      final String fwPropKeys = getBC().getProperty(fwPropKeysKey);
+      if (null!=fwPropKeys) {
+        final StringTokenizer st = new StringTokenizer(fwPropKeys,",");
+        while (st.hasMoreTokens()) {
+          final String key = ((String) st.nextToken()).trim();
+          final String val = getBC().getProperty(key);
+          map.put(key, val);
+        }
+      }
+
       return map;
     }
   }
