@@ -52,12 +52,17 @@ import java.security.PrivilegedAction;
 import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
@@ -66,6 +71,7 @@ import org.knopflerfish.service.console.Util;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.ExportedPackage;
@@ -2097,5 +2103,119 @@ public class FrameworkCommandGroup
       return -1;
     }
   }
+
+  //
+  // Property command
+  //
+  public final static String USAGE_PROPERTY = "[-s] [-f] [<property>] ...";
+
+  public final static String[] HELP_PROPERTY = new String[] {
+    "Lists Framework and System properties with values.",
+    "If no property name is specified all properties will be listed.",
+    "[-f]             Only list framework properties, i.e., those mentioned in",
+    "                 the OSGi specification and other properties that are",
+    "                 known to be present in the frameworks property map.",
+    "[-s]             Show the value returned by System.getProperty().",
+    "                 The default is to show the value returned by",
+    "                 BundleContext.getProperty().",
+    "[<property>] ... Property keys to include in the list.", };
+
+  public int cmdProperty(Dictionary opts, Reader in, PrintWriter out,
+                         Session session)
+  {
+    final boolean sysProps = opts.get("-s") != null;
+    final boolean includeFwPros = opts.get("-f") != null;
+    final String[] propNamesA = (String[]) opts.get("property");
+
+    try {
+      final Set propNames = new TreeSet();
+      if (includeFwPros) {
+        // -f
+        propNames.addAll(getAllFrameworkPropKeys());
+      } else if (null!=propNamesA) {
+        // List specified props
+        propNames.addAll(Arrays.asList(propNamesA));
+      } else {
+        // List all props
+        propNames.addAll(getAllFrameworkPropKeys());
+        propNames.addAll(getAllSystemPropKeys());
+      }
+
+      for(Iterator it = propNames.iterator(); it.hasNext();) {
+        final String key = (String) it.next();
+        final String val = sysProps
+          ? (String) System.getProperty(key)
+          : (String) bc.getProperty(key);
+        if (null!=val) {
+          out.println("  " + key + " : " + val);
+        }
+      }
+
+      return 0;
+    } catch (Exception e) {
+      out.println("Failed to print props values: "+e);
+      e.printStackTrace(out);
+      return -1;
+    }
+  }
+  // The key under which the KF-framework keeps a comma-separated list
+  // of all framework property keys.
+  public static final String fwPropKeysKey
+    = "org.knopflerfish.framework.bundleprops.keys";
+  public static final Set FW_PROP_NAMES = new HashSet() {{
+    add(Constants.FRAMEWORK_VENDOR);
+    add(Constants.FRAMEWORK_VERSION);
+    add(Constants.FRAMEWORK_LANGUAGE);
+    add(Constants.FRAMEWORK_OS_NAME);
+    add(Constants.FRAMEWORK_OS_VERSION);
+    add(Constants.FRAMEWORK_PROCESSOR);
+    add(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+    add(Constants.FRAMEWORK_BOOTDELEGATION);
+    add(Constants.FRAMEWORK_STORAGE);
+    add(Constants.FRAMEWORK_STORAGE_CLEAN);
+    add(Constants.FRAMEWORK_TRUST_REPOSITORIES);
+    add(Constants.FRAMEWORK_EXECPERMISSION);
+    add(Constants.FRAMEWORK_LIBRARY_EXTENSIONS);
+    add(Constants.FRAMEWORK_BEGINNING_STARTLEVEL);
+    add(Constants.FRAMEWORK_BUNDLE_PARENT);
+    add(Constants.FRAMEWORK_WINDOWSYSTEM);
+    add(Constants.FRAMEWORK_SECURITY);
+    add(Constants.SUPPORTS_FRAMEWORK_EXTENSION);
+    add(Constants.SUPPORTS_FRAMEWORK_FRAGMENT);
+    add(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE);
+  }};
+  // The set of keys for all Framework properties
+  private Set getAllFrameworkPropKeys()
+  {
+    final HashSet res = new HashSet();
+
+    // Keys of properites mentioned in the OSGi specification.
+    res.addAll(FW_PROP_NAMES);
+
+    // All available keys from a property mainained by the
+    // Knopflerfish Framewwork implementation for this purpose.
+    final String fwPropKeys = bc.getProperty(fwPropKeysKey);
+    if (null!=fwPropKeys) {
+      final StringTokenizer st = new StringTokenizer(fwPropKeys,",");
+      while (st.hasMoreTokens()) {
+        final String key = ((String) st.nextToken()).trim();
+        res.add(key);
+      }
+    }
+    return res;
+  }
+  // The set of keys for all System properties
+  private Set getAllSystemPropKeys()
+  {
+    final HashSet res = new HashSet();
+
+    final Properties properties = System.getProperties();
+    for (Enumeration pke = properties.propertyNames(); pke.hasMoreElements();){
+      final String key = (String) pke.nextElement();
+      res.add(key);
+    }
+    return res;
+  }
+
 
 }
