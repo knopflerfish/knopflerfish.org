@@ -26,7 +26,7 @@ can be used to remotely control another framework.
 Read more about the SOAP kit at
 </p>
 <p>
-<a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/readme.txt</a>
+<a href="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=soap/index.html">http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=soap/index.html</a>
 </p>
 
 <p>----</p>
@@ -80,7 +80,7 @@ See <i>org.knopflerfish.service.desktop</i> javadoc for more info.
 
 <p>----</p>
 10 A bundle's start level can be changed
-Select the bundle, the the menu <i>Bundle - Start level - [new level]</i>
+Select the bundle, the the menu <i>Bundles - Start level - Bundle [#]</i>
 
 <p>----</p>
 11 New console commands can be installed
@@ -96,10 +96,12 @@ The fossilized teeth of <i>Masiakasaurus knopfleri</i> indicates that the
 Madagascarian dinosaur could have eaten fish. And enjoyed it.
 
 <p>----</p>
-13 An online Knopflerfish discussion forum is available
-Sourceforge hosts a Knopflerfish discussion forum. See 
+13 Mailing list for discussing Knopflerfish usage and development are available
+There is also a low traffic announcements list where all new releases
+are announced.
+See 
 <p>
-<a href="https://sourceforge.net/forum/forum.php?forum_id=328005">https://sourceforge.net/forum/forum.php?forum_id=328005</a>
+<a href="http://www.knopflerfish.org/mailman/listinfo">http://www.knopflerfish.org/mailman/listinfo</a>
 </p>
 
 <p>----</p>
@@ -112,11 +114,11 @@ The System.out stream is logged on the system bundle as INFO events.
 The System.err stream is logged as ERROR events.
 
 <p>----</p>
-16 The optional commons-logging bundle provides the Apache Commons Logging API
+16 The commons-logging bundle provides the Apache Commons Logging API
 
-If you install the commons-logging bundle (from the optional package)
-a bundle (or lib) can use the Apache commons logging API with all
-logs sent to the OSGi log. The log entries are found on the log bundle.
+If you install the commons-logging bundle a bundle (or lib) can use
+the Apache commons logging API with all logs sent to the OSGi log. The
+log entries are found on the log bundle.
 <p>
 See <a href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/commons-logging/readme.txt</a>
 </p>
@@ -142,6 +144,15 @@ The Desktop bundle is a normal bundle, using Swing to display it's interface.
 As long as the JVM supports swing, nothing prevents you from writing your own 
 swing bundles. Do close your windows yourself, though ;)
 </p>
+<p>
+And don't forget that all operations on Swing components that changes
+their state must be performed on the EDT (Event Dispatch Thread). This
+includes the creation / initialization of the GUI components.
+</p>
+<p>
+Also remember that all packages starting with "javax." must be
+imported in the manifest of an OSGi bundle.
+</p>
 
 <p>----</p>
 19 This dialog doesn't block the main window
@@ -150,7 +161,7 @@ You can have the tip dialog open at the same time you work with
 the main Desktop window.
 
 <p>----</p>
-20 All system properties can be viewed from the Desktop
+20 All system and framework properties can be viewed from the Desktop
 
 Open the "Framework info" dialog using the Desktop Help menu.
 <p>
