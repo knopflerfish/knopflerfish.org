@@ -52,7 +52,7 @@ Knopflerfish Specific
 Console
  - Migration to new OSGi Standard (Done)
 
-Desktop 3.0.8
+Desktop 3.0.9
  - Added support for using options when starting and stopping bundles.
    E.g., a bundle may now be transiently started or stopped.
  - Menu and toolbar entries for starting, stopping, updating and
@@ -62,6 +62,11 @@ Desktop 3.0.8
  - Fixed a problem (dead-lock of the Event Dispatcher Thread) when
    calling the bundle life-cycle operations on the desktop bundle
    itself.
+ - Fixed a number of issues when using the desktop with a
+   RemoteFramework. E.g., the list of bundles shown was taken from
+   the own (client) framework when it should have come from the remote
+   (server) framework.
+
 
 Framework Commands 3.0.1
  - Added support for using options when starting and stopping bundles.
@@ -73,6 +78,16 @@ Framework Commands 3.0.1
 Log 2.0.3
  - New configuration property for setting the number of
    log records to keep in memory.
+
+kSOAP_RemoteFW 3.0.2
+ - Updated documentation and added xargs-file fragments that makes it
+   easier to start using this feature.
+ - All properties controlling this bundle can now be given as
+   framework properties.
+ - The RemoteFW implementation of BundleContext.getProperty() did not
+   handle unset properties correctly (it now returns null as
+   expected).
+
 
 ----------------------------------------------
 

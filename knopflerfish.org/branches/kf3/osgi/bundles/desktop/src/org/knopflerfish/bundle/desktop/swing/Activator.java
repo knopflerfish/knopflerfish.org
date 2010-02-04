@@ -79,7 +79,7 @@ public class Activator
   }
 
   public static Bundle[] getBundles() {
-    BundleContext bc = getBC();
+    BundleContext bc = getTargetBC();
     Bundle[] bl = bc.getBundles();
     if(bundleFilter != null) {
       ArrayList al = new ArrayList();
