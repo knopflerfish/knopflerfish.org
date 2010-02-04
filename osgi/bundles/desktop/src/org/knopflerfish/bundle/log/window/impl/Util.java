@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,10 @@ public class Util {
 
   public static String shortName(Bundle b) {
     String s = b.getLocation();
+    if (null==s) {
+      // Remote, uninstalled bundle may give null location.
+      return String.valueOf(b.getBundleId());
+    }
     int ix = s.lastIndexOf("/");
     if(ix == -1) ix = s.lastIndexOf("\\");
     if(ix != -1) {

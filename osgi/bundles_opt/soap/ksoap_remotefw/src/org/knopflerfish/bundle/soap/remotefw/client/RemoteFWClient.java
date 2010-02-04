@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ import org.ksoap2.transport.HttpTransportSE;
 
 public class RemoteFWClient implements RemoteFW {
 
-  boolean  bDebug   = "true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client.debug", "false"));
+  final boolean  bDebug;
 
   String   endpoint = null;
   HttpTransportSE httpTransport = null;
@@ -67,6 +67,11 @@ public class RemoteFWClient implements RemoteFW {
   Map caches = new HashMap();
 
   public RemoteFWClient() {
+
+    final String sDebug
+      = Activator.bc.getProperty("org.knopflerfish.soap.remotefw.client.debug");
+    bDebug = null==sDebug || 0== sDebug.length()
+      ? false : "true".equals(sDebug);
 
     CacheMap fastCache = new CacheMap(1000);
     CacheMap slowCache = new CacheMap(10000);
@@ -178,7 +183,13 @@ public class RemoteFWClient implements RemoteFW {
 
   public long installBundle(String location) {
     try {
-      if (location.startsWith(Util.FILE_PROT) && !"true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client.sendlocalpaths", "false"))) {
+      final String sendLocalPathsS = Activator.bc.getProperty
+        ("org.knopflerfish.soap.remotefw.client.sendlocalpaths");
+      final boolean sendLocalPaths =
+        null==sendLocalPathsS || 0==sendLocalPathsS.length()
+        ? false : "true".equals(sendLocalPathsS);
+
+      if (location.startsWith(Util.FILE_PROT) && !sendLocalPaths) {
         location = encodeFile(location);
       }
     } catch (IOException e) {
@@ -212,9 +223,14 @@ public class RemoteFWClient implements RemoteFW {
   }
 
   public String      getBundleContextProperty(String key) {
-    String v = (String)doCall("getBundleContextProperty",
-                              new Object[] { key });
-    return NULL_STR.equals(v) ? null : v;
+    final Object o = doCall("getBundleContextProperty", new Object[] { key });
+    String v = toString(o);
+    v = NULL_STR.equals(v) ? null : v;
+
+    if (bDebug) {
+      System.out.println("client: getBundleContextProperty(" +key +") -> " +v);
+    }
+    return v;
   }
 
   public String  getBundleLocation(long bid) {
@@ -564,6 +580,10 @@ public class RemoteFWClient implements RemoteFW {
 
         if(cache != null) {
           cache.put(cacheKey, r);
+        }
+        if(bDebug) {
+          System.out.println("doCall " + opName +
+                             "(" + toDisplay(params) + ") -> " +r);
         }
         return r;
       } catch (Exception e) {
