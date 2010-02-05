@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -451,10 +451,13 @@ public class Desktop
 
     alive = true;
 
-    Bundle[]  bl = Activator.getTargetBC().getBundles();
-    for(int i = 0; i  < bl.length; i++) {
-      bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
-    }
+    // Catch up the set of bundles; no need to call bundleChanged for
+    // each bundle since that method ignores the actual event!
+    // Bundle[]  bl = Activator.getTargetBC().getBundles();
+    // for(int i = 0; i  < bl.length; i++) {
+    //   bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
+    // }
+    bundleChanged((BundleEvent) null);
 
     pm = new PackageManager(pkgTracker);
 
@@ -595,13 +598,8 @@ public class Desktop
 
 
     bundleSelModel.addBundleSelectionListener(this);
-    Activator.getBC().addBundleListener(this);
-    Activator.getBC().addFrameworkListener(this);
-
-    if(Activator.getBC() != Activator.getTargetBC()) {
-      Activator.getTargetBC().addBundleListener(this);
-      Activator.getTargetBC().addFrameworkListener(this);
-    }
+    Activator.getTargetBC().addBundleListener(this);
+    Activator.getTargetBC().addFrameworkListener(this);
 
     consoleSwing.getJComponent().requestFocus();
 
