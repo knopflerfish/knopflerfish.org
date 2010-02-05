@@ -653,11 +653,11 @@ public class FrameworkContext  {
     if(!bootDelegationUsed){
       return false;
     }
+    if (bootDelegationPatterns == null) {
+      return true;
+    }
     final int pos = className.lastIndexOf('.');
     if (pos != -1) {
-      if (bootDelegationPatterns == null) {
-        return true;
-      }
       final String classPackage = className.substring(0, pos);
       for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
         String ps = (String)i.next();
