@@ -12,20 +12,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Framework 4.1.13
 
-  Fixed a problem with the start level service. Changing the start
-  level of an installed bundle that where resolved but not to marked
-  to be started resulted in a start of that bundle if the new
-  start-level was such that bundles should be started on it.
-
-
-  Framework 4.1.12
-
   When using the default non-strict classloading the bundle
   classloader now also skips instances of java.lang.reflect.Proxy on
   the call stack.
 
   Fixed problem with object being released to early. Caused bundle
   install problems with Skelmir JVM.
+
+  Fixed a problem with the start level service. Changing the start
+  level of an installed bundle that where resolved but not to marked
+  to be started resulted in a start of that bundle if the new
+  start-level was such that bundles should be started on it.
 
 
 === Services (Compendium) ===
@@ -58,27 +55,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 === Misc (KF specific, start scripts, build system etc ===
 
 
-  Desktop Bundle 2.3.16
+  Desktop Bundle 2.3.17
 
-  Improved performance when many update events are sent to the
-  services view. The update of the view is now scheduled as job on the
-  EDT (Event Dispatch Thread) which when executed will update the view
-  according to the most recent event, any intermediate events (i.e.,
-  events that arrived between the scheduling of the job and execution
-  of it) will be ignored.
+  The selection in the large icon displayer may now be changed using
+  the arrow-keys. Multiple selections using the mouse on the Mac now
+  uses the Command-key (was Control) as modifier.
 
+  Added a new sort order based on start level to the large icon
+  displayer.
 
-  Desktop Bundle 2.3.15
-
-  Application listeners on Mac OS X was not properly un-installed when
-  the desktop was stopped, this showed up as a null-pointer exception
-  in the BundleClassLoader when Quit was called from the application
-  menu. Back-ported the OSXAdapter changes from KF-3. The desktop now
-  installs its icon as the Mac OS X dock icon of the JVM it executes
-  in.
-
-
-  Desktop Bundle 2.3.14
+  The large icon display now uses the system text highlight color as
+  background color for selected bundle. The tooltips in the large icon
+  displayer now includes the full bundle name.
 
   If multiple bundles where selected when doing an update all bundles
   but one was de-selected after the update. The pre-update selection
@@ -91,19 +79,23 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   Pressing Control-A (Command-A) in the large icons displayer now
   selects all bundles.
 
+  Application listeners on Mac OS X was not properly un-installed when
+  the desktop was stopped, this showed up as a null-pointer exception
+  in the BundleClassLoader when Quit was called from the application
+  menu. Back-ported the OSXAdapter changes from KF-3. The desktop now
+  installs its icon as the Mac OS X dock icon of the JVM it executes
+  in.
 
-  Desktop Bundle 2.3.13
+  Improved performance when many update events are sent to the
+  services view. The update of the view is now scheduled as job on the
+  EDT (Event Dispatch Thread) which when executed will update the view
+  according to the most recent event, any intermediate events (i.e.,
+  events that arrived between the scheduling of the job and execution
+  of it) will be ignored.
 
-  The selection in the large icon displayer may now be changed using
-  the arrow-keys. Multiple selections using the mouse on the Mac now
-  uses the Command-key (was Control) as modifier.
-
-  Added a new sort order based on start level to the large icon
-  displayer.
-
-  The large icon display now uses the system text highlight color as
-  background color for selected bundle. The tooltips in the large icon
-  displayer now includes the full bundle name.
+  When using the dektop to manage a remote framework the bundles shown
+  on the left was those running on the local framework and not those
+  on the remote framework.
 
 
   Bundlerepository 2.0.3

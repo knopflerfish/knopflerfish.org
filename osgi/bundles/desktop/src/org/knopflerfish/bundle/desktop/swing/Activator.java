@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ public class Activator implements BundleActivator {
   }
 
   public static Bundle[] getBundles() {
-    BundleContext bc = getBC();
+    BundleContext bc = getTargetBC();
     Bundle[] bl = bc.getBundles();
     if(bundleFilter != null) {
       ArrayList al = new ArrayList();
@@ -253,16 +253,21 @@ public class Activator implements BundleActivator {
     }
 
 
-    String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
-                                      LargeIconsDisplayer.NAME);
+    // Must be executed even later, to allow for plugin comps to be ready.
+    javax.swing.SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
+                                            LargeIconsDisplayer.NAME);
 
-    // We really want this one to be displayed.
-    desktop.bundlePanelShowTab(defDisp);
+          // We really want this one to be displayed.
+          desktop.bundlePanelShowTab(defDisp);
 
-    int ix = desktop.detailPanel.indexOfTab("Manifest");
-    if(ix != -1) {
-      desktop.detailPanel.setSelectedIndex(ix);
-    }
+          int ix = desktop.detailPanel.indexOfTab("Manifest");
+          if(ix != -1) {
+            desktop.detailPanel.setSelectedIndex(ix);
+          }
+        }
+      });
   }
 
   // Shutdown code that must exectue on the EDT
