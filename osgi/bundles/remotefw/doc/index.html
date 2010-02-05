@@ -1,4 +1,4 @@
-<h1>The "Remote framework" in the Knopflerfish Desktop</h1>
+<h1>The "Remote Framework" in the Knopflerfish Desktop</h1>
 
 <div class="abstract">
   How to activate the remote framework in the Knopflerfish framework.
@@ -25,12 +25,16 @@
   <p/>
 
   The implementation described here uses kSOAP 2, which is a
-  small-footprint SOAP implementation on top of kXML. It provides
-  remote access to all functionality in the desktop (including the log
-  tab and the console). Knopflerfish also provides an alternative
-  implementation using Axis&nbsp;1 for the SOAP layer, see <a
-  href="../soap_remotefw/index.html">SOAP Remote Framework</a>.
+  small-footprint SOAP implementation on top of kXML.  Knopflerfish
+  also provides an alternative implementation using Axis&nbsp;1 for
+  the SOAP layer, see <a href="../soap_remotefw/index.html">SOAP
+  Remote Framework</a>.
 
+  <p/>
+
+  The remote framework provides remote access to almost all
+  functionality in the desktop (including the log tab and the
+  console). The exceptions are preferences and events.
 
   <br clear="both"/>
 
@@ -149,7 +153,10 @@
  fragments that can be used when starting a <a
  href="server.xargs">server</a> / <a href="client.xargs">client</a>
  framework are provided. Save the linked xargs-files in the
- <tt>osgi</tt>-directory of a Knopflerfish installation.
+ <tt>osgi</tt>-directory of a Knopflerfish installation and check that
+ the version part of the file name of the bundles installed, started,
+ or uninstalled by those xargs-fragments matches the bundle names in
+ the Knopflerfish installation that is used.
 
  <p/>
 
@@ -190,7 +197,7 @@
 
   The desktop will be closed and reopened with the address to the
   remote framework in the title bar (e.g. <tt>Knopflerfish OSGi
-  desktop (http://localhost:8080)</tt<). If the parenthesis are empty,
+  desktop (http://localhost:8080)</tt>). If the parenthesis are empty,
   something is wrong and you need to consult your log.
 
   <br clear="both"/>
@@ -206,3 +213,7 @@
 
   Log entries can appear in unexpected order.
 
+<h2>See Also</h2>
+<a href="../soap/index.html">SOAP - WebServices</a><br/>
+<a href="../ksoap_remotefw/index.html">kSOAP Remote Framework</a><br/>
+<a href="../soap_remotefw/index.html">SOAP Remote Framework</a><br/>
