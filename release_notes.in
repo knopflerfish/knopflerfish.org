@@ -88,6 +88,11 @@ kSOAP_RemoteFW 3.0.2
    handle unset properties correctly (it now returns null as
    expected).
 
+axis_osgi 0.1.0.2
+ - Do not use the bean-mapper for java.util.Date, java.util.Map and
+   java.util.Vector since axis provides special mappers for these
+   classes.
+
 
 ----------------------------------------------
 

@@ -43,6 +43,25 @@ file "/axis/server-config.wsdd". In case you want to add some services
 or for some other reason modify the initial configuration, this is
 where to do it.</p>
 
+<p>Web Services exported by the axis-osgi bundle will have URLs on the
+form:</p>
+<pre>
+   http://localhost:8080/axis/services/<i>&lt;SOAP_SERVICE_NAME&gt;</i>
+</pre>
+
+<p> To view the WSDL for a specific Web Service visit the URL: </p>
+<pre>
+   http://localhost:8080/axis/services/<i>&lt;SOAP_SERVICE_NAME&gt;?wsdl</i>
+</pre>
+
+<p> To explore all web services provided by the axis-osgi bundle the
+following URL may be used. </p>
+
+<pre>
+   http://localhost:8080/axis/services
+</pre>
+
+
 <p> The code to make all this work consist of just a few quite small
 classes (not counting all Axis classes) so it is quite easy to get an
 overview of the porting effort. However it took some time
