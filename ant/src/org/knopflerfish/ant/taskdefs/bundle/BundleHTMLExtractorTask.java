@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -973,13 +973,18 @@ public class BundleHTMLExtractorTask extends Task {
         final String path = src.getAbsolutePath();
         if (src.getName().endsWith(".java")) {
           final String bundlePath = replace(path, prefix, "");
-          final String repoPath = replace(path, rootDir, "");
-          final String href = new URL(repositoryURL, repoPath).toString();
-
-          sourceRepositoryLinkMap.put(bundlePath, href);
-
-          log("Found Java source file, " +path +" with href '" +href +"'.",
-              Project.MSG_VERBOSE);
+          if (path.startsWith(rootDir)) {
+            final String repoPath = replace(path, rootDir, "");
+            final String href = new URL(repositoryURL, repoPath).toString();
+  
+            sourceRepositoryLinkMap.put(bundlePath, href);
+  
+            log("Found Java source file, " +path +" with href '" +href +"'.",
+                Project.MSG_VERBOSE);
+          } else {
+            log("Skipping non-repository Java source file, " +path +".", Project.MSG_DEBUG);
+          }
+          
         } else {
           log("Skipping non-Java source file, " +path +".", Project.MSG_DEBUG);
         }
