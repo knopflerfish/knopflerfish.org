@@ -974,7 +974,8 @@ public class BundleHTMLExtractorTask extends Task {
         if (src.getName().endsWith(".java")) {
           final String bundlePath = replace(path, prefix, "");
           if (path.startsWith(rootDir)) {
-            final String repoPath = replace(path, rootDir, "");
+            final String repoPath = replace(path, rootDir, "")
+              .replace(File.separatorChar, '/');
             final String href = new URL(repositoryURL, repoPath).toString();
 
             sourceRepositoryLinkMap.put(bundlePath, href);
