@@ -13,7 +13,7 @@
 
   <property name="all.suffix.name"   value=""/>
   <property name="resources.dir" location="${proj.dir}/resources"/>
-  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb">
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
