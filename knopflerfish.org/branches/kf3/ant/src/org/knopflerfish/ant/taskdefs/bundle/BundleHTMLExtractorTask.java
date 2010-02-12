@@ -976,15 +976,17 @@ public class BundleHTMLExtractorTask extends Task {
           if (path.startsWith(rootDir)) {
             final String repoPath = replace(path, rootDir, "");
             final String href = new URL(repositoryURL, repoPath).toString();
-  
+
             sourceRepositoryLinkMap.put(bundlePath, href);
-  
-            log("Found Java source file, " +path +" with href '" +href +"'.",
+
+            log("Found Java source file in repository, " +path
+                +" with href '" +href +"'.",
                 Project.MSG_VERBOSE);
           } else {
-            log("Skipping non-repository Java source file, " +path +".", Project.MSG_DEBUG);
+            log("Skipping non-repository Java source file, " +path +".",
+                Project.MSG_DEBUG);
           }
-          
+
         } else {
           log("Skipping non-Java source file, " +path +".", Project.MSG_DEBUG);
         }
