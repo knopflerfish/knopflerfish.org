@@ -1267,7 +1267,7 @@ public class BundleHTMLExtractorTask extends Task {
                      Map         unresolvedMapDest,
                      boolean bShowUnresolved) throws IOException {
 
-      Map map        = new TreeMap();
+      final Map map        = new TreeMap();
 
       if(unresolvedMapDest == null) {
         unresolvedMapDest = new TreeMap();
@@ -1275,32 +1275,28 @@ public class BundleHTMLExtractorTask extends Task {
 
       for(Iterator it = importMap.getMap(this).keySet().iterator();
           it.hasNext(); ) {
-        String name    = (String)it.next();
-        Object version = importMap.getMap(this).get(name);
+        final String name    = (String)it.next();
+        final Object version = importMap.getMap(this).get(name);
 
         boolean bFound = false;
         for(Iterator it2 = jarMap.keySet().iterator(); it2.hasNext();) {
-          File jarFile = (File)it2.next();
-          BundleInfo info = (BundleInfo)jarMap.get(jarFile);
+          final File jarFile = (File)it2.next();
+          final BundleInfo info = (BundleInfo)jarMap.get(jarFile);
 
           for(Iterator it3 = exportMap.getMap(info).keySet().iterator(); it3.hasNext(); ) {
-            String name2    = (String) it3.next();
-            Object version2 = exportMap.getMap(info).get(name);
+            final String name2    = (String) it3.next();
+            final Object version2 = exportMap.getMap(info).get(name);
 
             if(name.equals(name2)) {
-              VersionRange versions = (version instanceof VersionRange)
+              final VersionRange versions = (version instanceof VersionRange)
                 ? (VersionRange) version : (VersionRange) version2;
-              Version ver = (version instanceof Version)
+              final Version ver = (version instanceof Version)
                 ? (Version) version : (Version) version2;
-
               if(versions.contains(ver)) {
                 bFound = true;
                 String pkgNames = (String) map.get(jarFile);
                 pkgNames = null==pkgNames ? name : (pkgNames +", "+name);
                 map.put(jarFile, pkgNames);
-              } else {
-                System.out.println(file +": need " +name +" version "
-                                   +version +", found version " +version2);
               }
             }
           }
@@ -1311,19 +1307,18 @@ public class BundleHTMLExtractorTask extends Task {
         }
 
       }
-      StringBuffer sb = new StringBuffer();
+      final StringBuffer sb = new StringBuffer();
 
       if(map.size() == 0 && unresolvedMapDest.size() == 0) {
         sb.append("None found");
       } else {
         for(Iterator it = map.keySet().iterator(); it.hasNext();) {
-          Object     key     = it.next();
-          File       jarFile = (File)key;
-          BundleInfo info    = (BundleInfo)jarMap.get(jarFile);
-          String     what    = (String)map.get(jarFile);
+          final Object     key     = it.next();
+          final File       jarFile = (File) key;
+          final BundleInfo info    = (BundleInfo) jarMap.get(jarFile);
+          final String     what    = (String) map.get(jarFile);
 
           String row = info.stdReplace(bundleRow, false);
-
           row = replace(row, "${what}", what);
           row = replace(row, "${bundledoc}", relPathUp +info.relPath +".html");
           sb.append(row);
@@ -1333,18 +1328,16 @@ public class BundleHTMLExtractorTask extends Task {
         if(bShowUnresolved) {
           if(unresolvedMapDest.size() > 0) {
             String row = missingRow;
-
             row = replace(row, "${name}",    "<b>Unresolved</b>");
             row = replace(row, "${version}", "");
 
             sb.append(row);
           }
           for(Iterator it = unresolvedMapDest.keySet().iterator(); it.hasNext();) {
-            String name    = (String) it.next();
-            Object version = unresolvedMapDest.get(name);
+            final String name    = (String) it.next();
+            final Object version = unresolvedMapDest.get(name);
 
             String row = missingRow;
-
             row = replace(row, "${name}",    name);
             row = replace(row, "${version}", version.toString());
 
