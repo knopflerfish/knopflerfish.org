@@ -11,7 +11,7 @@
   <property name="bundle.build.impl" value="false"/>
   <property name="bundle.build.doc"  value="false"/>
 
-  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb">
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
   <property name="all.suffix.name"   value=""/>
 
   <property name="impl.pattern"

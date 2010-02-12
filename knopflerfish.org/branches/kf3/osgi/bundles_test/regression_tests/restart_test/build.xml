@@ -20,7 +20,7 @@
   </path>
 
   <property name="resources.dir" location="${proj.dir}/resources"/>
-  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb">
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
 
   <property name="do.bundle.custom.pre" value="true"/>
   <target name="bundle.custom.pre">
