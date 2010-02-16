@@ -192,7 +192,7 @@ public class RequestDispatcherImpl
             //END HACK CSM
             URLConnection resource = url.openConnection();
 
-            String contentType = context.getMimeType(uri);
+            String contentType = context.getMimeType(target);
             if (contentType == null)
                 contentType = resource.getContentType();
             if (contentType != null) {
@@ -259,7 +259,7 @@ public class RequestDispatcherImpl
         String target = HttpUtil.makeTarget(uri, servletPath);
         ServletContext context = config.getServletContext();
 
-        String contentType = context.getMimeType(uri);
+        String contentType = context.getMimeType(target);
         if (contentType != null)
             response.setContentType(contentType);
 
