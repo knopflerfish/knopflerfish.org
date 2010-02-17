@@ -148,7 +148,7 @@ public class LDAPExpr {
           if (objClasses == null) {
             objClasses = new TreeSet();
           }
-          objClasses.add(r);
+          objClasses.addAll(r);
         } else {
           objClasses = null;
           break;
