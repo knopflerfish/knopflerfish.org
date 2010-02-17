@@ -280,14 +280,48 @@ class Services {
   synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle)
     throws InvalidSyntaxException {
     Iterator s;
+    LDAPExpr ldap = null;
     if (clazz == null) {
-      s = services.keySet().iterator();
+      if (filter != null) {
+        ldap = new LDAPExpr(filter);
+        Set matched = ldap.getMatchedObjectClasses();
+        if (matched != null) {
+          ArrayList v = null;
+          boolean vReadOnly = true;;
+          for (Iterator i = matched.iterator(); i.hasNext(); ) {
+            ArrayList cl = (ArrayList) classServices.get(i.next());
+            if (cl != null) {
+              if (v == null) {
+                v = cl;
+              } else {
+                if (vReadOnly) {
+                  v = new ArrayList(v);
+                  vReadOnly = false;
+                }
+                v.addAll(cl);
+              }
+            }
+          }
+          if (v != null) {
+            s = v.iterator();
+          } else {
+            return null;
+          }
+        } else {
+          s = services.keySet().iterator();
+        }
+      } else {
+        s = services.keySet().iterator();
+      }
     } else {
       ArrayList v = (ArrayList) classServices.get(clazz);
       if (v != null) {
         s = v.iterator();
       } else {
         return null;
+      }
+      if (filter != null) {
+        ldap = new LDAPExpr(filter);
       }
     }
     Collection res = new ArrayList();
@@ -297,7 +331,7 @@ class Services {
       if (!secure.okGetServicePerms(sri)) {
         continue; //sr not part of returned set
       }
-      if (filter == null || LDAPExpr.query(filter, sr.properties)) {
+      if (filter == null || ldap.evaluate(sr.properties, false)) {
         if (bundle != null) {
           String[] classes = (String[]) services.get(sr);
           for (int i = 0; i < classes.length; i++) {
