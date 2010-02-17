@@ -34,18 +34,13 @@
 
 package org.knopflerfish.framework;
 
+import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-//import java.math.BigInteger;
 
 
 public class LDAPExpr {
@@ -77,6 +72,8 @@ public class LDAPExpr {
   private static Constructor consBigInteger;
   private static Method compBigInteger;
 
+
+  private static final Set emptySet = new OneSet(null);
 
   public int operator;
   public LDAPExpr[] args;
@@ -114,6 +111,53 @@ public class LDAPExpr {
     this.attrName = attrName;
     this.attrValue = attrValue;
   }
+
+  /**
+   * Get object class set matched by this LDAP expression. This will not work
+   * with wildcards and NOT expressions. If a set can not be determined return null.
+   *
+   * @return Set of classes matched, otherwise <code>null</code>.
+   */
+  public Set getMatchedObjectClasses() {
+    Set objClasses = null;
+    if (operator == EQ) {
+      if (attrName.equalsIgnoreCase(Constants.OBJECTCLASS) &&
+          attrValue.indexOf(WILDCARD) < 0) {
+        objClasses = new OneSet(attrValue);
+      }
+    } else if (operator == AND) {
+      for (int i = 0; i < args.length; i++) {
+        Set r = args[i].getMatchedObjectClasses();
+        if (r != null) {
+          if (objClasses == null) {
+            objClasses = r;
+          } else {
+            // if AND op and classes in several operands,
+            // then only the intersection is possible.
+            if (objClasses instanceof OneSet) {
+              objClasses = new TreeSet(objClasses);
+            }
+            objClasses.retainAll(r);
+          }
+        }
+      }
+    } else if (operator == OR) {
+      for (int i = 0; i < args.length; i++) {
+        Set r = args[i].getMatchedObjectClasses();
+        if (r != null) {
+          if (objClasses == null) {
+            objClasses = new TreeSet();
+          }
+          objClasses.add(r);
+        } else {
+          objClasses = null;
+          break;
+        }
+      }
+    }
+    return objClasses;
+  }
+
 
   /**
    * Checks if this LDAP expression is "simple". The definition of
@@ -625,4 +669,41 @@ public class LDAPExpr {
       throw new InvalidSyntaxException(m, (str == null) ? "" : str.substring(pos));
     }
   }
+
+  /**
+   * Set with one element maximum.
+   */
+  private static class OneSet extends AbstractSet {
+
+    final private Object elem;
+
+    OneSet(Object o) {
+      elem = o;
+    }
+    
+    public Iterator iterator() {
+      return new Iterator() {
+        Object ielem = elem;
+
+        public boolean hasNext() {
+          return ielem != null;
+        }
+
+        public Object next() {
+          Object r = ielem;
+          ielem = null;
+          return r;
+        }
+
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+      };
+    }
+    
+    public int size() {
+      return elem == null ? 0 : 1;
+    }
+  }
+
 }
