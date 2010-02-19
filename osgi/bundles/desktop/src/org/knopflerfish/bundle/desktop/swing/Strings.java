@@ -145,6 +145,11 @@ public class Strings {
               +"if no bundle selected refresh all packages that are "
               +"pending removal.");
 
+          put("menu_resolvebundles", "Resolve Selected Bundles");
+          put("menu_resolvebundles.descr",
+              "Resolves the selected bundles. If called with no selection, "
+              +"try to resolve all un-resolved bundles.");
+
           put("str_fwinfo", "Framework info");
           put("str_about", "About");
           put("str_abouttext",

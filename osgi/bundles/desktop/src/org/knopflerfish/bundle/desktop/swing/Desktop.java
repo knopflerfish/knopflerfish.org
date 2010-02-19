@@ -702,6 +702,16 @@ public class Desktop
         }
       };
 
+  final Action actionResolveBundles =
+      new AbstractAction(Strings.get("menu_resolvebundles")) {
+        {
+          putValue(SHORT_DESCRIPTION, Strings.get("menu_resolvebundles.descr"));
+        }
+        public void actionPerformed(ActionEvent ev) {
+          resolveBundles(getSelectedBundles());
+        }
+      };
+
 
   JButton toolStartBundles;
   JButton toolStopBundles;
@@ -1227,6 +1237,7 @@ public class Desktop
   JMenuItem itemStartBundles;
   JMenuItem itemUpdateBundles;
   JMenuItem itemUninstallBundles;
+  JMenuItem itemResolveBundles;
   JMenuItem itemRefreshBundles;
   JMenu     startLevelMenu;
 
@@ -1243,6 +1254,7 @@ public class Desktop
           addSeparator();
           add(itemUpdateBundles = new JMenuItem(actionUpdateBundles));
           add(itemUninstallBundles = new JMenuItem(actionUninstallBundles));
+          add(itemResolveBundles   = new JMenuItem(actionResolveBundles));
           add(itemRefreshBundles   = new JMenuItem(actionRefreshBundles));
 
           StartLevel sls = (StartLevel)slTracker.getService();
@@ -2394,6 +2406,53 @@ public class Desktop
     }
   }
 
+  void resolveBundles(final Bundle[] b) {
+    final ServiceReference sr = Activator.getTargetBC()
+      .getServiceReference(PackageAdmin.class.getName());
+
+    if(sr != null) {
+      final PackageAdmin packageAdmin = (PackageAdmin)
+        Activator.getTargetBC().getService(sr);
+
+      if(packageAdmin != null) {
+        final boolean resolveAll = b==null || 0==b.length;
+        // Must not call resolve() from the EDT, since that will block
+        // the EDT.
+
+        final StringBuffer sb = new StringBuffer("Desktop-ResolveBundles: ");
+        if (resolveAll) {
+          sb.append("all bundles needing to be resolved ");
+        } else {
+          sb.append("selected bundle(s) ");
+          for (int i=0; i<b.length; i++) {
+            if (i>0) {
+              sb.append(", ");
+            }
+            sb.append(b[i].getBundleId());
+          }
+        }
+
+        new Thread(sb.toString())
+        {
+          public void run()
+          {
+            try {
+              if (!packageAdmin.resolveBundles( resolveAll ? null : b)) {
+                showErr(sb.toString() + "; could not resolve all of them.",
+                        null);
+              }
+            } catch (Exception e) {
+              showErr(sb.toString() + " failed to resolve bundles: "+e , e);
+            } finally {
+              Activator.getTargetBC().ungetService(sr);
+            }
+          }
+        }.start();
+
+      }
+    }
+  }
+
   void updateBundle(final Bundle b) {
     final boolean wasSelected = isSelected(b);
 
@@ -2455,16 +2514,20 @@ public class Desktop
 
   void showErr(String msg, Exception e) {
     Throwable t = e;
-    while(t instanceof BundleException &&
-          ((BundleException) t).getNestedException() != null) {
-      t = ((BundleException) t).getNestedException();
+    if (null!=t) {
+      while(t instanceof BundleException &&
+            ((BundleException) t).getNestedException() != null) {
+        t = ((BundleException) t).getNestedException();
+      }
     }
     if (Util.getBooleanProperty("org.knopflerfish.desktop.dontuseerrordialog",
                                 false)) {
       if(msg != null && !"".equals(msg)) {
         System.out.println(msg);
       }
-      t.printStackTrace();
+      if (null!=t) {
+        t.printStackTrace();
+      }
     } else {
       new ErrorMessageDialog(frame, null, msg, null, t).setVisible(true);
     }

@@ -58,7 +58,8 @@ Knopflerfish Specific
 Console
  - Migration to new OSGi Standard (Done)
 
-Desktop 3.0.9
+Desktop 3.0.10
+ - Added menu action for resolving all selected bundles.
  - Added support for using options when starting and stopping bundles.
    E.g., a bundle may now be transiently started or stopped.
  - Menu and toolbar entries for starting, stopping, updating and
