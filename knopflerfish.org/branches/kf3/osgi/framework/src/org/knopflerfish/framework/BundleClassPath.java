@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -182,8 +182,14 @@ public class BundleClassPath
    * @return A string with the path to the native library.
    */
   String getNativeLibrary(String libName) {
+    if (debug.classLoader) {
+      debug.println(this + "getNativeLibrary: lib=" + libName);
+    }
     if (nativeLibs != null) {
       String key = System.mapLibraryName(libName);
+      if (debug.classLoader) {
+        debug.println(this + "getNativeLibrary: try, " + key);
+      }
       FileArchive fa = (FileArchive) nativeLibs.get(key);
       if (fa == null) {
         // Try other non-default lib-extensions
@@ -195,6 +201,9 @@ public class BundleClassPath
           final String[] exts = Util.splitwords(libExtensions, ", \t");
           for (int i=0; i<exts.length; i++) {
             key =  baseKey +exts[i];
+            if (debug.classLoader) {
+              debug.println(this + "getNativeLibrary: try, " + key);
+            }
             fa = (FileArchive) nativeLibs.get(key);
             if (fa != null) {
               break;
@@ -204,6 +213,9 @@ public class BundleClassPath
         if (fa == null) {
           return null;
         }
+      }
+      if (debug.classLoader) {
+        debug.println(this + "getNativeLibrary: got, " + fa);
       }
       return fa.getNativeLibrary(key);
     }
@@ -403,6 +415,9 @@ public class BundleClassPath
             String key = fa.checkNativeLibrary(name);
             if (key != null) {
               nativeLibs.put(key, fa);
+              if (debug.classLoader) {
+                debug.println(this + "- Registered native library: " + key + " -> " + fa);
+              }
               continue bloop;
             }
           }
