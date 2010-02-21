@@ -783,7 +783,7 @@ public class Archive implements FileArchive {
     }
     setPerm(lib);
     String libstr = lib.getAbsolutePath();
-    int sp = libstr.lastIndexOf('/');
+    int sp = libstr.lastIndexOf(File.separatorChar);
     String key = (sp != -1) ? libstr.substring(sp+1) : libstr;
     if (nativeLibs == null) {
       nativeLibs  = new HashMap();
