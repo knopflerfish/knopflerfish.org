@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -640,24 +640,37 @@ public class Util {
     Constants.FRAMEWORK_VENDOR,
     Constants.FRAMEWORK_VERSION,
     Constants.FRAMEWORK_LANGUAGE,
-    Constants.FRAMEWORK_OS_NAME ,
+    Constants.FRAMEWORK_OS_NAME,
     Constants.FRAMEWORK_OS_VERSION,
     Constants.FRAMEWORK_PROCESSOR,
     Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
+    Constants.FRAMEWORK_BOOTDELEGATION,
+    Constants.FRAMEWORK_STORAGE,
+    Constants.FRAMEWORK_STORAGE_CLEAN,
+    Constants.FRAMEWORK_TRUST_REPOSITORIES,
+    Constants.FRAMEWORK_EXECPERMISSION,
+    Constants.FRAMEWORK_LIBRARY_EXTENSIONS,
+    Constants.FRAMEWORK_BEGINNING_STARTLEVEL,
+    Constants.FRAMEWORK_BUNDLE_PARENT,
+    Constants.FRAMEWORK_WINDOWSYSTEM,
+    Constants.FRAMEWORK_SECURITY,
+    Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+    Constants.SUPPORTS_FRAMEWORK_FRAGMENT,
+    Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE,
   };
 
   static public String getSystemInfo() {
-    StringBuffer sb = new StringBuffer();
-    try {
+    final StringBuffer sb = new StringBuffer();
 
-      Map props = new TreeMap(Activator.getSystemProperties());
+    try {
+      final Map props = new TreeMap(Activator.getSystemProperties());
 
       sb.append("<table>\n");
 
       sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
-      sb.append(fontify("Framework properties", -1));
+      sb.append(fontify("OSGi specified Framework properties", -1));
 
-      String spid = (String)props.get("org.osgi.provisioning.spid");
+      String spid = Activator.getBC().getProperty("org.osgi.provisioning.spid");
       if(spid != null && !"".equals(spid)) {
         sb.append(fontify(" (" + spid + ")", -1));
       }
@@ -672,13 +685,14 @@ public class Util {
         sb.append(fontify(FWPROPS[i]));
         sb.append("</td>\n");
         sb.append("  <td valign=\"top\">");
-        sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
+        final String pValue = Activator.getTargetBC().getProperty(FWPROPS[i]);
+        sb.append(null!=pValue ? fontify(pValue) : "");
         sb.append("</td>\n");
         sb.append(" </tr>\n");
       }
 
       sb.append("<tr><td colspan=2 bgcolor=\"#eeeeee\">");
-      sb.append(fontify("System properties", -1));
+      sb.append(fontify("All Framework and System properties", -1));
       sb.append("</td>\n");
       sb.append("</tr>\n");
 
@@ -818,7 +832,7 @@ public class Util {
       });
       new StreamGobbler(proc.getErrorStream());
       new StreamGobbler(proc.getInputStream());
-    } else if (Util.isMacOSX()) {
+    } else if (OSXAdapter.isMacOSX()) {
       // Yes, this only works on Mac OS X
       Runtime rt = Runtime.getRuntime();
       Process proc = rt.exec(new String[] {
@@ -839,11 +853,6 @@ public class Util {
       return -1 != os.toLowerCase().indexOf("win");
     }
     return false;
-  }
-
-  public static boolean isMacOSX() {
-    String os = Util.getProperty("os.name", null);
-    return "Mac OS X".equals(os);
   }
 
   /** A thread that empties an input stream without complaining.*/

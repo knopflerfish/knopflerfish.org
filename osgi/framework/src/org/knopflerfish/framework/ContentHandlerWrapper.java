@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,12 +53,12 @@ import org.osgi.framework.*;
   extends ContentHandler 
 {
 
-  Framework              framework;
+  FrameworkContext       framework;
   String                 mimetype;
   String                 filter;
   ServiceReference       best;
 
-  ContentHandlerWrapper(Framework              framework,
+  ContentHandlerWrapper(FrameworkContext       framework,
 			String                 mimetype) {
     
     this.framework = framework;
@@ -79,10 +79,9 @@ import org.osgi.framework.*;
             evt.getServiceReference();
             
           switch (evt.getType()) {
-          case ServiceEvent.MODIFIED: {
+          case ServiceEvent.MODIFIED:
             // fall through
-          } 
-          case ServiceEvent.REGISTERED: {
+          case ServiceEvent.REGISTERED:
             if (best == null) {
               updateBest();
               return ;
@@ -91,26 +90,26 @@ import org.osgi.framework.*;
             if (compare(best, ref) > 0) {
               best = ref;
             }
-            
-          }; break;
-          case ServiceEvent.UNREGISTERING: {
+            break;
+          case ServiceEvent.MODIFIED_ENDMATCH:
+            // fall through
+          case ServiceEvent.UNREGISTERING:
             if (best.equals(ref)) {
               best = null;
             }
-          }
           }
         }
       };
     
     try {
-      framework.systemBC.addServiceListener(serviceListener, filter);
+      framework.systemBundle.bundleContext.addServiceListener(serviceListener, filter);
       
     } catch (Exception e) {
       throw new IllegalArgumentException("Could not register service listener for content handler: " + e);
     }
     
-    if(Debug.url) {
-      Debug.println("created wrapper for " + mimetype + ", filter=" + filter);
+    if(framework.props.debug.url) {
+      framework.props.debug.println("created wrapper for " + mimetype + ", filter=" + filter);
     }
   }
   
@@ -134,8 +133,8 @@ import org.osgi.framework.*;
   private void updateBest() {
     try {
       ServiceReference[] refs =
-        framework.systemBC.getServiceReferences(ContentHandler.class.getName(), 
-                                                filter);
+        framework.systemBundle.bundleContext.getServiceReferences(ContentHandler.class.getName(), 
+                                                                  filter);
       if (refs != null) {
         best = refs[0];
       } 
@@ -165,7 +164,7 @@ import org.osgi.framework.*;
         throw new IllegalStateException("null: Lost service for protocol="+ mimetype);
       }
 
-      obj = (ContentHandler)framework.systemBC.getService(best);
+      obj = (ContentHandler)framework.systemBundle.bundleContext.getService(best);
 
       if (obj == null) {
         throw new IllegalStateException("null: Lost service for protocol=" + mimetype);

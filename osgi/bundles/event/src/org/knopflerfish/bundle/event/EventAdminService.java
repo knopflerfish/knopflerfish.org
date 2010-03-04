@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.event;
 
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
@@ -52,16 +53,11 @@ import java.util.Set;
 public class EventAdminService implements EventAdmin {
   private QueueHandler queueHandlerAsynch;
   private MultiListener ml;
-  ConfigurationListenerImpl cli;
+  private ConfigurationListenerImpl cli;
+  private ServiceRegistration reg;
 
   public EventAdminService() {
-    synchronized(this){
-      queueHandlerAsynch = new QueueHandler();
-      queueHandlerAsynch.start();
 
-      ml = new MultiListener();
-      cli = new ConfigurationListenerImpl();
-    }
   }
 
   public void postEvent(Event event) {
@@ -84,7 +80,30 @@ public class EventAdminService implements EventAdmin {
     return Activator.handlerTracker.getHandlersMatching(topic);
   }
 
-  void stop() {
+  synchronized void start() {
+    queueHandlerAsynch = new QueueHandler();
+    queueHandlerAsynch.start();
+
+    ml = new MultiListener();
+    ml.start();
+    
+    cli = new ConfigurationListenerImpl();
+    cli.start();
+
+    reg = Activator.bc.registerService(EventAdmin.class.getName(), this, null);
+  }
+
+  synchronized void stop() {
+    reg.unregister();;
+    reg = null;
+    
+    cli.stop();
+    cli = null;
+
+    ml.stop();
+    ml = null;
+    
     queueHandlerAsynch.stopIt();
+    queueHandlerAsynch = null;
   }
 }

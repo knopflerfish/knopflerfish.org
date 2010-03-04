@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.cm/src/org/osgi/service/cm/ManagedServiceFactory.java,v 1.11 2006/06/16 16:31:28 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +92,7 @@ import java.util.Dictionary;
  *   
  * </pre>
  * 
- * @version $Revision: 1.11 $
+ * @version $Revision: 5673 $
  */
 public interface ManagedServiceFactory {
 	/**
@@ -126,7 +124,7 @@ public interface ManagedServiceFactory {
 	 * <p>
 	 * When the implementation of updated detects any kind of error in the
 	 * configuration properties, it should create a new
-	 * {@link ConfigurationException}which describes the problem.
+	 * {@link ConfigurationException} which describes the problem.
 	 * 
 	 * <p>
 	 * The Configuration Admin service must call this method asynchronously.

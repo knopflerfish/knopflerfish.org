@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.util.Set;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -50,30 +51,43 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 /**
  * Here we handle all the services that are registered in framework.
  *
- * @author Jan Stein
- * @author Philippe Laporte
+ * @author Jan Stein, Philippe Laporte, Gunnar Ekolin
  */
 class Services {
 
   /**
    * All registered services in the current framework.
-   * Mapping of registered service to class names under which service is registerd.
+   * Mapping of registered service to class names under which service
+   * is registerd.
    */
-  private HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
+  HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
 
   /**
    * Mapping of classname to registered service.
+   * The List of registered service are order in with highest
+   * ranked service first.
    */
-  private HashMap /* String->ServiceRegistration */ classServices = new HashMap();
-  
+  private HashMap /* String->List(ServiceRegistration) */ classServices = new HashMap();
+
   /**
    * Handle to secure call class.
    */
   private PermissionOps secure;
 
 
-  Services(PermissionOps perm) {
+  FrameworkContext framework;
+
+  Services(FrameworkContext fwCtx, PermissionOps perm) {
+    this.framework = fwCtx;
     secure = perm;
+  }
+
+  void clear()
+  {
+    services.clear();
+    classServices.clear();
+    secure = null;
+    framework = null;
   }
 
   /**
@@ -93,81 +107,138 @@ class Services {
    * </ul>
    */
   ServiceRegistration register(BundleImpl bundle,
-			       String[] classes,
-			       Object service,
-			       Dictionary properties) {
+                               String[] classes,
+                               Object service,
+                               Dictionary properties) {
     if (service == null) {
       throw new IllegalArgumentException("Can't register null as a service");
     }
     // Check if service implements claimed classes and that they exist.
-    Class sc = service.getClass();
-    ClassLoader scl = sc.getClassLoader();
     for (int i = 0; i < classes.length; i++) {
       String cls = classes[i];
       if (cls == null) {
-	throw new IllegalArgumentException("Can't register as null class");
+        throw new IllegalArgumentException("Can't register as null class");
       }
       secure.checkRegisterServicePerm(cls);
       if (bundle.id != 0) {
-	if (cls.equals(PackageAdmin.class.getName())) {
-	  throw new IllegalArgumentException("Registeration of a PackageAdmin service is not allowed");
-	}
-	if (cls.equals(PermissionAdmin.class.getName())) {
-	  throw new IllegalArgumentException("Registeration of a PermissionAdmin service is not allowed");
-	}
-	if (cls.equals(ConditionalPermissionAdmin.class.getName())) {
-	  throw new IllegalArgumentException("Registeration of a ConditionalPermissionAdmin service is not allowed");
-	}
+        if (cls.equals(PackageAdmin.class.getName())) {
+          throw new IllegalArgumentException
+            ("Registeration of a PackageAdmin service is not allowed");
+        }
+        if (cls.equals(PermissionAdmin.class.getName())) {
+          throw new IllegalArgumentException
+            ("Registeration of a PermissionAdmin service is not allowed");
+        }
+        if (cls.equals(ConditionalPermissionAdmin.class.getName())) {
+          throw new IllegalArgumentException
+            ("Registeration of a ConditionalPermissionAdmin service is not allowed");
+        }
       }
       if (!(service instanceof ServiceFactory)) {
-	ClassLoader cl = sc.getClassLoader();
-	Class c = null;
-	boolean ok = false;
-	try {
-	  if (cl != null) {
-	    c = cl.loadClass(cls);
-	  } else {
-	    c = Class.forName(cls);
-	  }
-	  ok = c.isInstance(service);
-	} catch (ClassNotFoundException e) {
-	  for (Class csc = sc; csc != null; csc = csc.getSuperclass()) {
-	    if (cls.equals(csc.getName())) {
-	      ok = true;
-	      break;
-	    } else {
-	      Class [] ic = csc.getInterfaces();
-	      for (int iic = ic.length - 1; iic >= 0; iic--) {
-		if (cls.equals(ic[iic].getName())) {
-		  ok = true;
-		  break;
-		}
-	      }
-	    }
-	  }
-	}
-	if (!ok) {
-	  throw new IllegalArgumentException("Service object is not an instance of " + cls);
-	}
+        if (!checkServiceClass(service, cls)) {
+          throw new IllegalArgumentException
+            ("Service object is not an instance of " + cls);
+        }
       }
     }
 
     ServiceRegistration res =
       new ServiceRegistrationImpl(bundle, service,
-				  new PropertiesDictionary(properties, classes, null));
+                                  new PropertiesDictionary(properties, classes, null));
     synchronized (this) {
       services.put(res, classes);
       for (int i = 0; i < classes.length; i++) {
-	ArrayList s = (ArrayList) classServices.get(classes[i]);
-	if (s == null) {
-	  s = new ArrayList(1);
-	  classServices.put(classes[i], s);
-	}
-	s.add(res);
+        ArrayList s = (ArrayList) classServices.get(classes[i]);
+        if (s == null) {
+          s = new ArrayList(1);
+          classServices.put(classes[i], s);
+        }
+        int ip = Math.abs(Util.binarySearch(s, sComp, res) + 1);
+        s.add(ip, res);
       }
     }
-    bundle.framework.listeners.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, res.getReference()));
+    ServiceReference r = res.getReference();
+    Listeners l = bundle.fwCtx.listeners;
+    l.serviceChanged(l.getMatchingServiceListeners(r),
+                     new ServiceEvent(ServiceEvent.REGISTERED, r),
+                     null);
     return res;
+  }
+
+
+  /**
+   * Service ranking changed reorder registered services
+   * according to ranking.
+   *
+   * @param serviceRegistration The serviceRegistration object.
+   * @param rank New rank of object.
+   */
+  synchronized void updateServiceRegistrationOrder(ServiceRegistrationImpl sr,
+                                                   String[] classes) {
+    for (int i = 0; i < classes.length; i++) {
+      ArrayList s = (ArrayList) classServices.get(classes[i]);
+      s.remove(sr);
+      s.add(Math.abs(Util.binarySearch(s, sComp, sr) + 1), sr);
+    }
+  }
+
+
+  /**
+   * Checks that a given service object is an instance of the given
+   * class name.
+   *
+   * @param service The service object to check.
+   * @param cls     The class name to check for.
+   * @throws IllegalArgumentException if the given class is not an
+   *            instance of the given class name.
+   */
+  boolean checkServiceClass(Object service, String cls)
+  {
+    final Class sc = service.getClass();
+    final ClassLoader scl = secure.getClassLoaderOf(sc);
+    Class c = null;
+    boolean ok = false;
+    try {
+      if (scl != null) {
+        c = scl.loadClass(cls);
+      } else {
+        c = Class.forName(cls);
+      }
+      ok = c.isInstance(service);
+    } catch (ClassNotFoundException e) {
+      for (Class csc = sc; csc != null; csc = csc.getSuperclass()) {
+        if (cls.equals(csc.getName())) {
+          ok = true;
+          break;
+        } else {
+          Class [] ic = csc.getInterfaces();
+          for (int iic = ic.length - 1; iic >= 0; iic--) {
+            if (cls.equals(ic[iic].getName())) {
+              ok = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+    return ok;
+  }
+
+
+  /**
+   * Get all service implementing a certain class.
+   * Only used internaly by framework.
+   *
+   * @param clazz The class name of requested service.
+   * @return A sorted list of {@link ServiceRegistrationImpl} objects
+   *         or null if no services is available.
+   */
+  synchronized ArrayList get(String clazz) {
+    ArrayList v = (ArrayList) classServices.get(clazz);
+    if (v != null) {
+      return (ArrayList)v.clone();
+    }
+    return null;
   }
 
 
@@ -179,38 +250,17 @@ class Services {
    * @return A {@link ServiceReference} object.
    */
   synchronized ServiceReference get(BundleImpl bundle, String clazz) {
-	//TODO spec omits to say when to do the isAssignableTo test
-    ArrayList v = (ArrayList) classServices.get(clazz);
-    if (v != null) {
-      ServiceReference lowestId = ((ServiceRegistration)v.get(0)).getReference();
-      ServiceReference res = lowestId;
-      int size = v.size();
-      if (size > 1) {
-    	  int rank_res = ranking(res);
-    	  for (int i = 1; i < size; i++) {
-    		  ServiceReference s = ((ServiceRegistration)v.get(i)).getReference();
-    		  int rank_s = ranking(s);
-    		  if (rank_s > rank_res && s.isAssignableTo(bundle, clazz)) {
-    			  res = s;
-    			  rank_res = rank_s;
-    		  }
-    	  }
+    try {
+      ServiceReference [] srs = get(clazz, null, bundle);
+      if (framework.props.debug.service_reference) {
+        framework.props.debug.println
+          ("get service ref " + clazz + " for bundle " + bundle.location + " = " + srs);
       }
-      if(res == lowestId){
-    	  if(res.isAssignableTo(bundle, clazz)){
-    		  return res;
-    	  }
-    	  else{
-    		  return null;
-    	  }
+      if (srs != null) {
+        return srs[0];
       }
-      else{
-    	  return res;
-      }
-    } 
-    else {
-      return null;
-    }
+    } catch (InvalidSyntaxException _never) { }
+    return null;
   }
 
 
@@ -222,62 +272,94 @@ class Services {
    * @param filter The property filter.
    * @param bundle bundle requesting reference. can be null if doAssignableToTest is false
    * (this is not an interface class so don't check)
-   * @param isAssignableToTest whether to if the bundle that registered the service 
-   * referenced by this ServiceReference and the specified bundle are both wired to 
+   * @param isAssignableToTest whether to if the bundle that registered the service
+   * referenced by this ServiceReference and the specified bundle are both wired to
    * same source for the registration class.
    * @return An array of {@link ServiceReference} object.
    */
-  synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle,
-		                              boolean doAssignableToTest)
+  synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle)
     throws InvalidSyntaxException {
     Iterator s;
+    LDAPExpr ldap = null;
     if (clazz == null) {
-      s = services.keySet().iterator();
-      if (s == null) { //TODO can this ever happen?
-	return null;
+      if (filter != null) {
+        ldap = new LDAPExpr(filter);
+        Set matched = ldap.getMatchedObjectClasses();
+        if (matched != null) {
+          ArrayList v = null;
+          boolean vReadOnly = true;;
+          for (Iterator i = matched.iterator(); i.hasNext(); ) {
+            ArrayList cl = (ArrayList) classServices.get(i.next());
+            if (cl != null) {
+              if (v == null) {
+                v = cl;
+              } else {
+                if (vReadOnly) {
+                  v = new ArrayList(v);
+                  vReadOnly = false;
+                }
+                v.addAll(cl);
+              }
+            }
+          }
+          if (v != null) {
+            s = v.iterator();
+          } else {
+            return null;
+          }
+        } else {
+          s = services.keySet().iterator();
+        }
+      } else {
+        s = services.keySet().iterator();
       }
     } else {
       ArrayList v = (ArrayList) classServices.get(clazz);
       if (v != null) {
-	s = v.iterator();
+        s = v.iterator();
       } else {
-	return null;
-      }
-    }
-    ArrayList res = new ArrayList();
-    while (s.hasNext()) {
-      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
-      String[] classes = (String[]) services.get(sr);
-      //should never happen?
-      if (classes == null) {
         return null;
       }
-      if (!secure.okGetServicePerms(classes)) {
+      if (filter != null) {
+        ldap = new LDAPExpr(filter);
+      }
+    }
+    Collection res = new ArrayList();
+    while (s.hasNext()) {
+      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
+      ServiceReference sri = sr.getReference();
+      if (!secure.okGetServicePerms(sri)) {
         continue; //sr not part of returned set
       }
-      if (filter == null || LDAPExpr.query(filter, sr.properties)) {
-        if (doAssignableToTest) {
-          int i;
-          int length = classes.length;
-          for (i = 0; i < length; i++) {
-            if(!sr.getReference().isAssignableTo(bundle, classes[i])){
+      if (filter == null || ldap.evaluate(sr.properties, false)) {
+        if (bundle != null) {
+          String[] classes = (String[]) services.get(sr);
+          for (int i = 0; i < classes.length; i++) {
+            if (!sri.isAssignableTo(bundle, classes[i])){
+              sri = null;
               break;
             }
           }
-          if (i == length) {
-            res.add(sr.getReference());
-          }
-        } else {
-          res.add(sr.getReference());
+        }
+        if (sri != null) {
+          res.add(sri);
         }
       }
     }
     if (res.isEmpty()) {
       return null;
     } else {
-      ServiceReference[] a = new ServiceReference[res.size()];
-      res.toArray((Object[])a);
-      return a;
+      if (bundle != null) {
+        framework.hooks.filterServiceReferences(bundle.getBundleContext0(),
+                                                clazz, filter, false, res);
+      } else {
+        framework.hooks.filterServiceReferences(null, clazz, filter, true, res);
+      }
+      if (res.isEmpty()) {
+        return null;
+      } else {
+        return (ServiceReference [])res.toArray(new ServiceReference [res.size()]);
+      }
     }
   }
 
@@ -293,9 +375,9 @@ class Services {
     for (int i = 0; i < classes.length; i++) {
       ArrayList s = (ArrayList) classServices.get(classes[i]);
       if (s.size() > 1) {
-	s.remove(sr);
+        s.remove(sr);
       } else {
-	classServices.remove(classes[i]);
+        classServices.remove(classes[i]);
       }
     }
   }
@@ -312,7 +394,7 @@ class Services {
     for (Iterator e = services.keySet().iterator(); e.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
       if (sr.bundle == b) {
-	res.add(sr);
+        res.add(sr);
       }
     }
     return res;
@@ -330,29 +412,28 @@ class Services {
     for (Iterator e = services.keySet().iterator(); e.hasNext();) {
       ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
       if (sr.isUsedByBundle(b)) {
-	res.add(sr);
+        res.add(sr);
       }
     }
     return res;
   }
 
-  //
-  // Private methods
-  //
-    
-  /**
-   * Get service ranking from a service reference.
-   *
-   * @param s The service reference
-   * @return Ranking value of service, default value is zero
-   */
-  private int ranking(ServiceReference s) {
-    Object v = s.getProperty(Constants.SERVICE_RANKING);
-    if (v != null && v instanceof Integer) {
-      return ((Integer)v).intValue();
-    } else {
-      return 0;
-    }
-  }
+
+  static final Util.Comparator sComp = new Util.Comparator() {
+      /**
+       * Name compare two ServiceRegistrationImpl objects according
+       * to the ServiceReference compareTo.
+       *
+       * @param oa ServiceRegistrationImpl to compare.
+       * @param ob ServiceRegistrationImpl to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and postive if first object is larger then second object.
+       */
+      public int compare(Object oa, Object ob) {
+        ServiceRegistrationImpl a = (ServiceRegistrationImpl)oa;
+        ServiceRegistrationImpl b = (ServiceRegistrationImpl)ob;
+        return a.reference.compareTo(b.reference);
+      }
+    };
 
 }

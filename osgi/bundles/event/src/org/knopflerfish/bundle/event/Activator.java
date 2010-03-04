@@ -38,8 +38,6 @@ package org.knopflerfish.bundle.event;
 import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.event.EventAdmin;
 
 /**
  * The Activator class is the startup class for the EventHandlerService.
@@ -47,26 +45,23 @@ import org.osgi.service.event.EventAdmin;
  * @author Magnus Klack
  */
 public class Activator implements BundleActivator {
-    static BundleContext bundleContext;
+    static BundleContext bc;
     static LogRef log;
-    static ServiceRegistration reg;
     static EventAdminService eventAdmin;
     static EventHandlerTracker handlerTracker;
 
-    public void start(BundleContext context) throws Exception {
-      bundleContext = context;
+  public void start(BundleContext context) throws Exception {
+      bc = context;
       log = new LogRef(context);
 
       handlerTracker = new EventHandlerTracker(context);
       handlerTracker.open();
 
       eventAdmin = new EventAdminService();
-      reg = bundleContext.registerService(EventAdmin.class.getName(), eventAdmin, null);
+      eventAdmin.start();
     }
 
     public void stop(BundleContext context) throws Exception {
-      reg.unregister();
-
       eventAdmin.stop();
       eventAdmin = null;
 

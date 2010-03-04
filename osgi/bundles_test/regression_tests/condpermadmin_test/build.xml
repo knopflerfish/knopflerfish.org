@@ -13,7 +13,7 @@
 
   <property name="all.suffix.name"   value=""/>
   <property name="resources.dir" location="${proj.dir}/resources"/>
-  <property name="ttb.outdir" location="${topdir}/out/${ant.project.name}/ttb"/>
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
 
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
   <property name="api.pattern"  value="org/knopflerfish/service/**"/>
@@ -30,13 +30,15 @@
   <target name="bundleP1_test">
     <ant dir="test_target_bundles/bundleP1_test" target="all"
 	 inheritAll="false">
-      <property name="jardir"  location="${resources.dir}"/>
-      <property name="outdir"  location="${ttb.outdir}/bundleP1_test"/>
+      <property name="jars.dir" location="${jars.dir}"/>
+      <property name="jardir"   location="${resources.dir}"/>
+      <property name="outdir"   location="${ttb.outdir}/bundleP1_test"/>
     </ant>
   </target>
   <target name="bundleP2_test">
     <ant dir="test_target_bundles/bundleP2_test" target="all"
 	 inheritAll="false">
+      <property name="jars.dir" location="${jars.dir}"/>
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/bundleP2_test"/>
     </ant>
@@ -44,6 +46,7 @@
   <target name="bundleP3_test">
     <ant dir="test_target_bundles/bundleP3_test" target="all"
 	 inheritAll="false">
+      <property name="jars.dir" location="${jars.dir}"/>
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/bundleP3_test"/>
     </ant>
@@ -58,6 +61,7 @@
   <target name="bundleP5_test">
     <ant dir="test_target_bundles/bundleP5_test" target="all"
 	 inheritAll="false">
+      <property name="jars.dir" location="${jars.dir}"/>
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/bundleP5_test"/>
     </ant>

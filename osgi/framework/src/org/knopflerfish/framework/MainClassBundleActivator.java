@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,12 +79,14 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
   public void start(BundleContext bc) throws BundleException {
 
     try {
-      runner = new Thread(this,
+      BundleImpl b = (BundleImpl)bc.getBundle();
+      runner = new Thread(b.fwCtx.threadGroup,
                           "start thread for executable jar file, bundle id="
-                          + bc.getBundle().getBundleId());
+                          + b.getBundleId());
       runner.start();
     } catch (Exception e) {
-      throw new BundleException("Failed to start main class", e);
+      throw new BundleException("Failed to start main class",
+                                BundleException.UNSPECIFIED, e);
     }
   }
 
@@ -93,7 +95,8 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
       try {
         stopMethod.invoke(null, new Object[] { } );
       } catch (Exception e) {
-        throw new BundleException("Failed to stop main class", e);
+        throw new BundleException("Failed to stop main class",
+                                  BundleException.UNSPECIFIED, e);
       }
     }
   }

@@ -1,3 +1,36 @@
+/*
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.knopflerfish.bundle.soap.remotefw;
 
 import org.osgi.framework.*;
@@ -11,7 +44,7 @@ import org.knopflerfish.service.soap.remotefw.*;
 import org.osgi.service.packageadmin.*;
 
 public class RemoteFWServer implements RemoteFW {
-  
+
   ServiceRegistration reg = null;
 
   ServiceTracker slTracker;
@@ -83,7 +116,7 @@ public class RemoteFWServer implements RemoteFW {
 
   public String      getBundleContextProperty(String key) {
     String v = Activator.bc.getProperty(key);
-    
+
     return v == null ? NULL_STR : v;
   }
   public String  getBundleLocation(long bid) {
@@ -117,28 +150,28 @@ public class RemoteFWServer implements RemoteFW {
   public long[]    getServiceReferences2(String clazz, String filter) {
     try {
       if(NULL_STR.equals(clazz)) {
-	clazz = null;
+        clazz = null;
       }
       if(NULL_STR.equals(filter)) {
-	filter = null;
+        filter = null;
       }
       ServiceReference[] srl = Activator.bc.getServiceReferences(clazz, filter);
 
       /*
-      System.out.println("server:getServiceReferences2 class=" + clazz + 
-			 ", filter=" + filter + 
-			 ", srl=" + (srl != null ? ("" + srl.length) : "null"));
+        System.out.println("server:getServiceReferences2 class=" + clazz +
+        ", filter=" + filter +
+        ", srl=" + (srl != null ? ("" + srl.length) : "null"));
       */
       if(srl == null) {
-	return new long[0];
+        return new long[0];
       }
       long[] r = new long[srl.length * 2];
       int n = 0;
       for(int i = 0; i < srl.length; i++) {
-	r[n * 2]      = ((Long)srl[i].getProperty(Constants.SERVICE_ID)).longValue();
-	r[n * 2 + 1]  = srl[i].getBundle().getBundleId();
+        r[n * 2]      = ((Long)srl[i].getProperty(Constants.SERVICE_ID)).longValue();
+        r[n * 2 + 1]  = srl[i].getBundle().getBundleId();
 
-	n++;
+        n++;
       }
       return r;
     } catch (Exception e) {
@@ -176,37 +209,37 @@ public class RemoteFWServer implements RemoteFW {
     synchronized(frameworkEvents) {
       try {
 
-	long[] r = new long[frameworkEvents.size() * 2];
-	if(bDebug) {
-	  System.out.println("server: getFrameworkEvents size=" + r.length / 2);
-	}
-	int i = 0;
-	
-	for(Iterator it = frameworkEvents.iterator(); it.hasNext();) {
-	  FrameworkEvent ev = (FrameworkEvent)it.next();
-	  Bundle b = ev.getBundle();
-	  long bid = -1;
-	  if(b == null) {
-	    if(bDebug) {
-	      System.out.println("fw event: " + ev + " - no bundle");
-	    }
-	  } else {
-	    bid = b.getBundleId();
-	  }
-	  r[i * 2]     = bid;
-	  r[i * 2 + 1] = ev.getType();
-	  i++;
-	}
+        long[] r = new long[frameworkEvents.size() * 2];
+        if(bDebug) {
+          System.out.println("server: getFrameworkEvents size=" + r.length / 2);
+        }
+        int i = 0;
 
-	frameworkEvents.clear();
-	if(bDebug) {
-	  System.out.println("server: getFrameworkEvents -> " + r);
-	}
-	return r;
+        for(Iterator it = frameworkEvents.iterator(); it.hasNext();) {
+          FrameworkEvent ev = (FrameworkEvent)it.next();
+          Bundle b = ev.getBundle();
+          long bid = -1;
+          if(b == null) {
+            if(bDebug) {
+              System.out.println("fw event: " + ev + " - no bundle");
+            }
+          } else {
+            bid = b.getBundleId();
+          }
+          r[i * 2]     = bid;
+          r[i * 2 + 1] = ev.getType();
+          i++;
+        }
+
+        frameworkEvents.clear();
+        if(bDebug) {
+          System.out.println("server: getFrameworkEvents -> " + r);
+        }
+        return r;
       } catch (Exception e) {
-	if(bDebug) {
-	  e.printStackTrace();
-	}
+        if(bDebug) {
+          e.printStackTrace();
+        }
       }
     }
     return null;
@@ -218,10 +251,10 @@ public class RemoteFWServer implements RemoteFW {
       int i = 0;
 
       for(Iterator it = bundleEvents.iterator(); it.hasNext();) {
-	BundleEvent ev = (BundleEvent)it.next();
-	r[i * 2]     = ev.getBundle().getBundleId();
-	r[i * 2 + 1] = ev.getType();
-	i++;
+        BundleEvent ev = (BundleEvent)it.next();
+        r[i * 2]     = ev.getBundle().getBundleId();
+        r[i * 2 + 1] = ev.getType();
+        i++;
       }
       bundleEvents.clear();
       return r;
@@ -234,10 +267,10 @@ public class RemoteFWServer implements RemoteFW {
       int i = 0;
 
       for(Iterator it = serviceEvents.iterator(); it.hasNext();) {
-	ServiceEvent ev = (ServiceEvent)it.next();
-	r[i * 2] = ((Long)ev.getServiceReference().getProperty(Constants.SERVICE_ID)).longValue();
-	r[i * 2 + 1] = ev.getType();
-	i++;
+        ServiceEvent ev = (ServiceEvent)it.next();
+        r[i * 2] = ((Long)ev.getServiceReference().getProperty(Constants.SERVICE_ID)).longValue();
+        r[i * 2 + 1] = ev.getType();
+        i++;
       }
 
       serviceEvents.clear();
@@ -247,30 +280,30 @@ public class RemoteFWServer implements RemoteFW {
 
   public Map  getServiceProperties(long sid) {
     try {
-      ServiceReference[] srl = 
-	Activator.bc.getServiceReferences(null, "(service.id=" + sid + ")");
-      
+      ServiceReference[] srl =
+        Activator.bc.getServiceReferences(null, "(service.id=" + sid + ")");
+
       String[] keys   = srl[0].getPropertyKeys();
-        
+
       Map result = new HashMap();
 
       for(int i = 0; i < keys.length; i++) {
-	String key = keys[i];
-	Object val = srl[0].getProperty(keys[i]);
-	//	Object strVal = Util.encodeAsString(val);
+        String key = keys[i];
+        Object val = srl[0].getProperty(keys[i]);
+        //      Object strVal = Util.encodeAsString(val);
 
-	result.put(key, val);
+        result.put(key, val);
       }
-      
+
       return result;
 
     } catch (Exception e) {
       throw new IllegalArgumentException("Failed to get service properties " +
-					 "for service.id=" + sid + ", " + e);
+                                         "for service.id=" + sid + ", " + e);
     }
   }
 
-  
+
   public int  getStartLevel() {
     return ((StartLevel)slTracker.getService()).getStartLevel();
   }
@@ -279,7 +312,7 @@ public class RemoteFWServer implements RemoteFW {
   public void setStartLevel(int level) {
     ((StartLevel)slTracker.getService()).setStartLevel(level);
   }
-  
+
   public void setBundleStartLevel(long bid, int level) {
     Bundle b = Activator.bc.getBundle(bid);
     ((StartLevel)slTracker.getService()).setBundleStartLevel(b, level);
@@ -294,7 +327,7 @@ public class RemoteFWServer implements RemoteFW {
   public void setInitialBundleStartLevel(int level){
     ((StartLevel)slTracker.getService()).setInitialBundleStartLevel(level);
   }
-  
+
   public int  getInitialBundleStartLevel() {
     return ((StartLevel)slTracker.getService()).getInitialBundleStartLevel();
   }
@@ -304,18 +337,23 @@ public class RemoteFWServer implements RemoteFW {
     return ((StartLevel)slTracker.getService()).isBundlePersistentlyStarted(b);
   }
 
+  public boolean isBundleActivationPolicyUsed(long bid) {
+    Bundle b = Activator.bc.getBundle(bid);
+    return ((StartLevel)slTracker.getService()).isBundleActivationPolicyUsed(b);
+  }
+
   public Map    getExportedPackage(String name) {
     Map map = new HashMap();
     ExportedPackage pkg = ((PackageAdmin)pkgTracker.getService()).getExportedPackage(name);
-    
+
     putExportPackage(map, pkg);
     return map;
   }
 
   public Map[]  getExportedPackages(long bid) {
-    Bundle b = Activator.bc.getBundle(bid);
+    Bundle b = -1==bid ? null : Activator.bc.getBundle(bid);
     ExportedPackage[] pkgs = ((PackageAdmin)pkgTracker.getService()).getExportedPackages(b);
-    
+
     if(pkgs == null) {
       return new Map[0];
     }
@@ -335,7 +373,7 @@ public class RemoteFWServer implements RemoteFW {
     } else {
       Bundle[] bl = new Bundle[bids.length];
       for(int i = 0; i < bids.length; i++) {
-	bl[i] = Activator.bc.getBundle(bids[i]);
+        bl[i] = Activator.bc.getBundle(bids[i]);
       }
       ((PackageAdmin)pkgTracker.getService()).refreshPackages(bl);
     }
@@ -347,16 +385,16 @@ public class RemoteFWServer implements RemoteFW {
       Long[] bids;
       Bundle[] bl = pkg.getImportingBundles();
       if(bl == null) {
-	bids = new Long[0];
+        bids = new Long[0];
       } else {
-	bids = new Long[bl.length];
-	for(int i = 0; i < bids.length; i++) {
-	  bids[i] = new Long(bl[i].getBundleId());
-	}
+        bids = new Long[bl.length];
+        for(int i = 0; i < bids.length; i++) {
+          bids[i] = new Long(bl[i].getBundleId());
+        }
       }
-      map.put("getExportingBundle", 
-	      new Long(pkg.getExportingBundle().getBundleId()));
-      map.put("getImportingBundles",     bids); 
+      map.put("getExportingBundle",
+              new Long(pkg.getExportingBundle().getBundleId()));
+      map.put("getImportingBundles",     bids);
       map.put("getName",                 pkg.getName());
       map.put("getSpecificationVersion", pkg.getSpecificationVersion());
       map.put("isRemovalPending",        pkg.isRemovalPending() ? Boolean.TRUE : Boolean.FALSE);
@@ -367,7 +405,7 @@ public class RemoteFWServer implements RemoteFW {
   public Map    getSystemProperties() {
     Map map = new HashMap();
     Properties props = System.getProperties();
-    
+
     for(Enumeration e = props.keys(); e.hasMoreElements();) {
       String key = (String)e.nextElement();
       String val = (String)props.get(key);
@@ -380,97 +418,97 @@ public class RemoteFWServer implements RemoteFW {
     if(reg == null) {
 
       slTracker = new ServiceTracker(Activator.bc,
-				     StartLevel.class.getName(),
-				     null);
+                                     StartLevel.class.getName(),
+                                     null);
       slTracker.open();
 
       pkgTracker = new ServiceTracker(Activator.bc,
-				      PackageAdmin.class.getName(),
-				      null);
+                                      PackageAdmin.class.getName(),
+                                      null);
       pkgTracker.open();
 
       Hashtable props = new Hashtable();
-      
-      props.put("SOAP.service.name", "OSGiFramework");
-      
-      reg = Activator.bc.registerService(RemoteFW.class.getName(),
-					 this,
-					 props);
 
-      
+      props.put("SOAP.service.name", "OSGiFramework");
+
+      reg = Activator.bc.registerService(RemoteFW.class.getName(),
+                                         this,
+                                         props);
+
+
       Activator.bc.addBundleListener(new BundleListener() {
-	  public void bundleChanged(BundleEvent event) {
-	    synchronized(bundleEvents) {
-	      bundleEvents.add(event);
-	    }
-	  }
-	});
+          public void bundleChanged(BundleEvent event) {
+            synchronized(bundleEvents) {
+              bundleEvents.add(event);
+            }
+          }
+        });
       Activator.bc.addServiceListener(new ServiceListener() {
-	  public void serviceChanged(ServiceEvent event) {
-	    synchronized(serviceEvents) {
-	      serviceEvents.add(event);
-	    }
-	  }
-	});
+          public void serviceChanged(ServiceEvent event) {
+            synchronized(serviceEvents) {
+              serviceEvents.add(event);
+            }
+          }
+        });
       Activator.bc.addFrameworkListener(new FrameworkListener() {
-	  public void frameworkEvent(FrameworkEvent ev ) {
-	    synchronized(frameworkEvents) {
-	      int type = ev.getType();
-	      Bundle b = ev.getBundle();
-	      if(b == null) {
-		Object obj = ev.getSource();
-		if(bDebug) {
-		  System.out.println("obj=" + obj);
-		  if(obj != null) {
-		    System.out.println("source class=" + obj.getClass().getName());
-		  }
-		}
-		if(obj != null && (obj instanceof Bundle)) {
-		  b = (Bundle)obj;
-		}
-	      }
-	      if(bDebug) {
-		
-		System.out.println("server: add fw event: " + ev + ", type=" + type + ", bundle=" + b);
-	      }
-	      if(b != null) {
-		frameworkEvents.add(new FrameworkEvent(type,
-						       b,
-						       null));
-	      }
-	    }
-	  }
-	});
+          public void frameworkEvent(FrameworkEvent ev ) {
+            synchronized(frameworkEvents) {
+              int type = ev.getType();
+              Bundle b = ev.getBundle();
+              if(b == null) {
+                Object obj = ev.getSource();
+                if(bDebug) {
+                  System.out.println("obj=" + obj);
+                  if(obj != null) {
+                    System.out.println("source class=" + obj.getClass().getName());
+                  }
+                }
+                if(obj != null && (obj instanceof Bundle)) {
+                  b = (Bundle)obj;
+                }
+              }
+              if(bDebug) {
+
+                System.out.println("server: add fw event: " + ev + ", type=" + type + ", bundle=" + b);
+              }
+              if(b != null) {
+                frameworkEvents.add(new FrameworkEvent(type,
+                                                       b,
+                                                       null));
+              }
+            }
+          }
+        });
 
       reaper = new Thread() {
-	  public void run() {
-	    while(bReap) {
-	      try {
-		reapEvents();
-		Thread.sleep(reapDelay);
-	      } catch (Exception e) {
-		
-	      }
-	    }
-	  }
-	};
+          public void run() {
+            while(bReap) {
+              try {
+                reapEvents();
+                Thread.sleep(reapDelay);
+              } catch (Exception e) {
+
+              }
+            }
+          }
+        };
 
       bReap = true;
       reaper.start();
     }
   }
-  
+
   void reapEvents() {
     trimList(serviceEvents,   MAX_SERVICE_EVENTS);
     trimList(bundleEvents,    MAX_BUNDLE_EVENTS);
     trimList(frameworkEvents, MAX_FRAMEWORK_EVENTS);
   }
-  
+
 
   void trimList(List list, int max) {
     synchronized(list) {
       while(list.size() > max) {
-	list.remove(0);
+        list.remove(0);
       }
     }
   }
@@ -479,7 +517,7 @@ public class RemoteFWServer implements RemoteFW {
     if(reaper != null) {
       bReap = false;
       try {
-	reaper.wait(1000);
+        reaper.wait(1000);
       } catch (Exception ignored) {
       }
       reaper = null;
@@ -487,7 +525,7 @@ public class RemoteFWServer implements RemoteFW {
     if(reg != null) {
       reg.unregister();
       reg = null;
-      
+
       slTracker.close();
     }
   }
@@ -498,5 +536,5 @@ public class RemoteFWServer implements RemoteFW {
 
   List bundleEvents    = new ArrayList();
   List serviceEvents   = new ArrayList();
-  List frameworkEvents = new ArrayList();  
+  List frameworkEvents = new ArrayList();
 }

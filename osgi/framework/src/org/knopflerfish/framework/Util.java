@@ -35,27 +35,49 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Vector;
+import java.util.*;
+
+import org.osgi.framework.Constants;
 
 public class Util {
+
+  /** Pre OSGi 4.2 propetry used by KF, replaced by
+   * Constants.FRAMEWORK_STORAGE as of OSGi R4 v4.2. */
+  static public final String FWDIR_PROP      = "org.osgi.framework.dir";
+  static public final String FWDIR_DEFAULT   = "fwdir";
+
+  public static String getFrameworkDir(Map props) {
+    String s = (String)props.get(Constants.FRAMEWORK_STORAGE);
+    if (s==null || s.length()==0) {
+      s = (String)props.get(FWDIR_PROP);
+    }
+    if (s==null || s.length()==0) {
+      s = FWDIR_DEFAULT;
+    }
+    return s;
+  }
+
+  public static String getFrameworkDir(FrameworkContext ctx) {
+    String s = ctx.props.getProperty(Constants.FRAMEWORK_STORAGE);
+    if (s==null || s.length()==0) {
+      s = ctx.props.getProperty(FWDIR_PROP);
+    }
+    if (s==null || s.length()==0) {
+      s = FWDIR_DEFAULT;
+    }
+    return s;
+  }
+
   /**
    * Check for local file storage directory.
    *
    * @param name local directory name.
    * @return A FileTree object of directory or null if no storage is available.
    */
-  public static FileTree getFileStorage(String name) {
+  public static FileTree getFileStorage(FrameworkContext ctx, String name) {
     // See if we have a storage directory
-    String fwdir = Framework.getProperty("org.osgi.framework.dir");
-    if (fwdir == null || Framework.bIsMemoryStorage) {
+    String fwdir = getFrameworkDir(ctx);
+    if (fwdir == null || ctx.props.bIsMemoryStorage) {
       return null;
     }
     FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);
@@ -128,11 +150,11 @@ public class Util {
    *
    * @param d Directive being parsed
    * @param s String to parse
-   * @return A sorted ArrayList with enumeration or null if enumeration string was null.
+   * @return A HashSet with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static ArrayList parseEnumeration(String d, String s) {
-    ArrayList result = new ArrayList();
+  public static HashSet parseEnumeration(String d, String s) {
+    HashSet result = new HashSet();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
@@ -145,8 +167,7 @@ public class Util {
           throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
                                              + at.getRest());
         }
-        int i = Math.abs(binarySearch(result, strComp, key) + 1);
-        result.add(i, key);
+        result.add(key);
       } while (!at.getEnd());
       return result;
     } else {
@@ -248,7 +269,7 @@ public class Util {
   static byte[] readResource(String name) throws IOException  {
     byte[] buf = new byte[1024];
 
-    InputStream           in = Main.class.getResourceAsStream(name);
+    InputStream           in = Util.class.getResourceAsStream(name);
     ByteArrayOutputStream bout = new ByteArrayOutputStream();
     int n;
     while ((n = in.read(buf)) > 0) {
@@ -563,22 +584,6 @@ public class Util {
     return -(l + 1);  // key not found.
   }
 
-  static final Comparator strComp = new Comparator() {
-      /**
-       * String compare
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if objects are not a String objects.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-        String a = (String)oa;
-        String b = (String)ob;
-        return a.compareTo(b);
-      }
-    };
 
   private static final byte encTab[] = {
     0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x4a,0x4b,0x4c,0x4d,0x4e,0x4f,0x50,
@@ -587,18 +592,7 @@ public class Util {
     0x77,0x78,0x79,0x7a,0x30,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x2b,0x2f
   };
 
-  private static final byte decTab[]={
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
-    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
-    -1,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14,
-    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
-    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
-    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
-  };
-
-
+ 
   public static String base64Encode(String s) throws IOException {
     return encode(s.getBytes(), 0);
   }
@@ -735,165 +729,161 @@ public class Util {
   }
 
 
+  /**
+   * Class for tokenize an attribute string.
+   */
+  static class AttributeTokenizer {
 
-}
+    String s;
+    int length;
+    int pos = 0;
 
+    AttributeTokenizer(String input) {
+      s = input;
+      length = s.length();
+    }
 
-/**
- * Class for tokenize an attribute string.
- */
-class AttributeTokenizer {
-
-  String s;
-  int length;
-  int pos = 0;
-
-  AttributeTokenizer(String input) {
-    s = input;
-    length = s.length();
-  }
-
-  String getWord() {
-    skipWhite();
-    boolean backslash = false;
-    boolean quote = false;
-    StringBuffer val = new StringBuffer();
-    int end = 0;
-  loop:
-    for (; pos < length; pos++) {
-      if (backslash) {
-        backslash = false;
-        val.append(s.charAt(pos));
-      } else {
-        char c = s.charAt(pos);
-        switch (c) {
-        case '"':
-          quote = !quote;
-          end = val.length();
-          break;
-        case '\\':
-          backslash = true;
-          break;
-        case ',': case ':': case ';': case '=':
-          if (!quote) {
-            break loop;
-          }
-          // Fall through
-        default:
-          val.append(c);
-          if (!Character.isWhitespace(c)) {
+    String getWord() {
+      skipWhite();
+      boolean backslash = false;
+      boolean quote = false;
+      StringBuffer val = new StringBuffer();
+      int end = 0;
+    loop:
+      for (; pos < length; pos++) {
+        if (backslash) {
+          backslash = false;
+          val.append(s.charAt(pos));
+        } else {
+          char c = s.charAt(pos);
+          switch (c) {
+          case '"':
+            quote = !quote;
             end = val.length();
+            break;
+          case '\\':
+            backslash = true;
+            break;
+          case ',': case ':': case ';': case '=':
+            if (!quote) {
+              break loop;
+            }
+            // Fall through
+          default:
+            val.append(c);
+            if (!Character.isWhitespace(c)) {
+              end = val.length();
+            }
+            break;
           }
+        }
+      }
+      if (quote || backslash || end == 0) {
+        return null;
+      }
+      char [] res = new char [end];
+      val.getChars(0, end, res, 0);
+      return new String(res);
+    }
+
+    String getKey() {
+      if (pos >= length) {
+        return null;
+      }
+      int save = pos;
+      if (s.charAt(pos) == ';') {
+        pos++;
+      }
+      String res = getWord();
+      if (res != null) {
+        if (pos == length) {
+          return res;
+        }
+        char c = s.charAt(pos);
+        if (c == ';' || c == ',') {
+          return res;
+        }
+      }
+      pos = save;
+      return null;
+    }
+
+    String getParam() {
+      if (pos == length || s.charAt(pos) != ';') {
+        return null;
+      }
+      int save = pos++;
+      String res = getWord();
+      if (res != null) {
+        if (pos < length && s.charAt(pos) == '=') {
+          return res;
+        } if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos+1) == '=') {
+          return res;
+        }
+      }
+      pos = save;
+      return null;
+    }
+
+    boolean isDirective() {
+      if (pos + 1 < length && s.charAt(pos) == ':') {
+        pos++;
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    String getValue() {
+      if (s.charAt(pos) != '=') {
+        return null;
+      }
+      int save = pos++;
+      skipWhite();
+      String val = getWord();
+      if (val == null) {
+        pos = save;
+        return null;
+      }
+      return val;
+    }
+
+    boolean getEntryEnd() {
+      int save = pos;
+      skipWhite();
+      if (pos == length) {
+        return true;
+      } else if (s.charAt(pos) == ',') {
+        pos++;
+        return true;
+      } else {
+        pos = save;
+        return false;
+      }
+    }
+
+    boolean getEnd() {
+      int save = pos;
+      skipWhite();
+      if (pos == length) {
+        return true;
+      } else {
+        pos = save;
+        return false;
+      }
+    }
+
+    String getRest() {
+      String res = s.substring(pos).trim();
+      return res.length() == 0 ? "<END OF LINE>" : res;
+    }
+
+    private void skipWhite() {
+      for (; pos < length; pos++) {
+        if (!Character.isWhitespace(s.charAt(pos))) {
           break;
         }
       }
     }
-    if (quote || backslash || end == 0) {
-      return null;
-    }
-    char [] res = new char [end];
-    val.getChars(0, end, res, 0);
-    return new String(res);
   }
-
-  String getKey() {
-    if (pos >= length) {
-      return null;
-    }
-    int save = pos;
-    if (s.charAt(pos) == ';') {
-      pos++;
-    }
-    String res = getWord();
-    if (res != null) {
-      if (pos == length) {
-        return res;
-      }
-      char c = s.charAt(pos);
-      if (c == ';' || c == ',') {
-        return res;
-      }
-    }
-    pos = save;
-    return null;
-  }
-
-  String getParam() {
-    if (pos == length || s.charAt(pos) != ';') {
-      return null;
-    }
-    int save = pos++;
-    String res = getWord();
-    if (res != null) {
-      if (pos < length && s.charAt(pos) == '=') {
-        return res;
-      } if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos+1) == '=') {
-        return res;
-      }
-    }
-    pos = save;
-    return null;
-  }
-
-  boolean isDirective() {
-    if (pos + 1 < length && s.charAt(pos) == ':') {
-      pos++;
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  String getValue() {
-    if (s.charAt(pos) != '=') {
-      return null;
-    }
-    int save = pos++;
-    skipWhite();
-    String val = getWord();
-    if (val == null) {
-      pos = save;
-      return null;
-    }
-    return val;
-  }
-
-  boolean getEntryEnd() {
-    int save = pos;
-    skipWhite();
-    if (pos == length) {
-      return true;
-    } else if (s.charAt(pos) == ',') {
-      pos++;
-      return true;
-    } else {
-      pos = save;
-      return false;
-    }
-  }
-
-  boolean getEnd() {
-    int save = pos;
-    skipWhite();
-    if (pos == length) {
-      return true;
-    } else {
-      pos = save;
-      return false;
-    }
-  }
-
-  String getRest() {
-    String res = s.substring(pos).trim();
-    return res.length() == 0 ? "<END OF LINE>" : res;
-  }
-
-  private void skipWhite() {
-    for (; pos < length; pos++) {
-      if (!Character.isWhitespace(s.charAt(pos))) {
-        break;
-      }
-    }
-  }
-
 }

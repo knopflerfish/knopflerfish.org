@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,20 +59,21 @@ public class Alias {
    * All aliases must be in lowercase.
    */
   final public static String[][] osNameAliases = {
-    { "Epoc32",    "symbianos" },
-    { "HPUX",      "hp-ux" },
-    { "MacOSX",    "mac os x" },
-    { "OS2",       "os/2" },
-    { "QNX",       "procnto" },
-    { "windows95", "windows 95", "win95" },
-    { "Windows98", "windows 98", "win98" },
-    { "WindowsNT", "windows nt", "winnt" },
-    { "WindowsCE", "windows ce", "wince" },
-    { "Windows2000", "windows 2000", "win2000" },
-    { "WindowsXP", "windows xp", "winxp" },
-    { "Windows2003", "windows 2003", "win2003", "windows server 2003" },
+    { "Epoc32",       "symbianos" },
+    { "HPUX",         "hp-ux" },
+    { "MacOSX",       "mac os x" },
+    { "OS2",          "os/2" },
+    { "QNX",          "procnto" },
+    { "windows95",    "windows 95", "win95" },
+    { "Windows98",    "windows 98", "win98" },
+    { "WindowsNT",    "windows nt", "winnt" },
+    { "WindowsCE",    "windows ce", "wince" },
+    { "Windows2000",  "windows 2000", "win2000" },
+    { "WindowsXP",    "windows xp", "winxp" },
+    { "Windows2003",  "windows 2003", "win2003", "windows server 2003" },
     { "WindowsVista", "windows vista", "winvista" },
-    { "Win32", "win*" },
+    { "Windows7",     "windows 7", "win7"},
+    { "Win32",        "win*" }
   };
 
 

@@ -39,6 +39,8 @@ import java.math.BigInteger;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Vector;
 
 import org.osgi.framework.Constants;
@@ -53,7 +55,9 @@ import org.osgi.service.cm.ConfigurationAdmin;
  */
 
 final class ConfigurationDictionary extends Dictionary {
-
+  
+    private final static String IS_NULL_DICTIONARY = "org.knopflerfish.is.null.dictionary";
+  
     /**
      * * Use BigDecimal if available.
      */
@@ -132,8 +136,7 @@ final class ConfigurationDictionary extends Dictionary {
 
     public ConfigurationDictionary() {
         this(new Hashtable());
-        put(ConfigurationAdminFactory.DUMMY_PROPERTY,
-                ConfigurationAdminFactory.DUMMY_PROPERTY);
+      setNullDictionary(true);
     }
 
     /**
@@ -240,7 +243,7 @@ final class ConfigurationDictionary extends Dictionary {
     }
 
     ConfigurationDictionary createCopyIfRealAndRemoveLocation() {
-        if (doesNotContainRealProperties()) {
+        if (isNullDictionary()) {
             return null;
         }
         return createCopyAndRemoveLocation();
@@ -253,24 +256,19 @@ final class ConfigurationDictionary extends Dictionary {
         return cd;
     }
 
-    boolean doesNotContainRealProperties() {
-        int numberOfProperties = size();
-        if (numberOfProperties > 5) {
-            return false;
-        }
-        if (get(Constants.SERVICE_PID) != null)
-            --numberOfProperties;
-        if (get(ConfigurationAdmin.SERVICE_FACTORYPID) != null)
-            --numberOfProperties;
-        if (get(ConfigurationAdmin.SERVICE_BUNDLELOCATION) != null)
-            --numberOfProperties;
-        if (get(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION) != null)
-            --numberOfProperties;
-        if (get(ConfigurationAdminFactory.DUMMY_PROPERTY) != null)
-            --numberOfProperties;
-        return numberOfProperties == 0;
+  boolean isNullDictionary() {
+    Boolean b = (Boolean)get(IS_NULL_DICTIONARY);
+    return b != null && b.booleanValue();
+  }
+  
+  void setNullDictionary(boolean b) {
+    if(b) {
+      put(IS_NULL_DICTIONARY, Boolean.TRUE);
+    } else {
+      remove(IS_NULL_DICTIONARY);
     }
-
+  }
+  
     private void updateLowercaseToOriginalCase() {
         Enumeration keys = originalCase.keys();
         while (keys.hasMoreElements()) {
@@ -315,23 +313,23 @@ final class ConfigurationDictionary extends Dictionary {
         }
         if (in.getClass().isArray()) {
             return copyArray(in);
-        } else if (in instanceof Vector) {
-            return copyVector((Vector) in);
+        } else if (in instanceof Collection) {
+            return copyCollection((Collection) in);
         } else {
             return in;
         }
     }
 
-    static private Vector copyVector(Vector in) {
+    static private Collection copyCollection(Collection in) {
         if (in == null) {
             return null;
         }
         Vector out = new Vector();
-        Enumeration elements = in.elements();
-        while (elements.hasMoreElements()) {
-            out.addElement(copyValue(elements.nextElement()));
+        Iterator i = in.iterator();
+        while (i.hasNext()) {
+            out.addElement(copyValue(i.next()));
         }
-        return out;
+        return (Collection)out;
     }
 
     static private Object copyArray(Object in) {
@@ -388,8 +386,8 @@ final class ConfigurationDictionary extends Dictionary {
         Class valueClass = value.getClass();
         if (valueClass.isArray()) {
             validateArray(value);
-        } else if (valueClass == Vector.class) {
-            validateVector((Vector) value);
+        } else if (value instanceof Collection) {
+            validateCollection((Collection) value);
         } else {
             if (!allowedObjectTypes.containsKey(valueClass)) {
                 throw new IllegalArgumentException(valueClass.toString()
@@ -401,7 +399,7 @@ final class ConfigurationDictionary extends Dictionary {
     static private void validateArray(Object array) {
         Class componentType = array.getClass().getComponentType();
         int length = Array.getLength(array);
-        if (componentType.isArray() || componentType == Vector.class) {
+        if (componentType.isArray() || Collection.class.isAssignableFrom(componentType)) {
             for (int i = 0; i < length; ++i) {
                 Object o = Array.get(array, i);
                 if (o != null) {
@@ -443,10 +441,10 @@ final class ConfigurationDictionary extends Dictionary {
         }
     }
 
-    static private void validateVector(Vector vector) {
-        for (int i = 0; i < vector.size(); ++i) {
-            Object element = vector.elementAt(i);
-            validateValue(element);
-        }
+    static private void validateCollection(Collection collection) {
+      Iterator i = collection.iterator();
+      while(i.hasNext()) {
+        validateValue(i.next());
+      }
     }
 }
