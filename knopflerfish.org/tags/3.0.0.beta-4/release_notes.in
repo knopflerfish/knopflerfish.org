@@ -1,0 +1,110 @@
+Release Notes Knopflerfish @VERSION@ (OSGi R4.2)
+----------------------------------------------
+
+  Work in progress release of Knopflerfish 3 available from
+  @DOWNLOAD_URL@
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+----------------------------------------------
+OSGi Core Specification
+----------------------------------------------
+
+Framework - Security (Done)
+
+Framework - Module (Done)
+
+Framework - Life-Cycle (Done)
+
+Framework - Service Layer (Done)
+
+Package Admin Service Specification (Done)
+
+Start Level Service Specification (Done)
+
+Conditional Permission Admin Specification (Done)
+
+URL Handlers Service Specification (Done)
+
+Service Hooks Specification (Done)
+
+----------------------------------------------
+OSGi Compendium Specification
+----------------------------------------------
+
+Declarative Services Specification
+ - Many updates (In Progress)
+
+All the other Compendium Specification Services
+are up to date and pass the CT.
+
+Event 3.0.0
+  Improved performance a lot by rewriting the whole mechanism for matching
+  events to event handlers during event delivery. General clean up and
+  removal of dead code.
+
+Http 2.1.5
+  
+  Fixed problem with calls to HttpContext getMimeType(). The value of
+  the name parameter was not the same as in the corresponding call to
+  getResource() (the original URI path was used instead of the translated
+  target resource name).
+
+----------------------------------------------
+Knopflerfish Specific
+----------------------------------------------
+
+Console
+ - Migration to new OSGi Standard (Done)
+
+Desktop 3.0.10
+ - Added menu action for resolving all selected bundles.
+ - Added support for using options when starting and stopping bundles.
+   E.g., a bundle may now be transiently started or stopped.
+ - Menu and toolbar entries for starting, stopping, updating and
+   uninstalling bundles are now disabled when no bundle is selected.
+ - Changing start level for bundles now works when more than one
+   bundle is selected.
+ - Fixed a problem (dead-lock of the Event Dispatcher Thread) when
+   calling the bundle life-cycle operations on the desktop bundle
+   itself.
+ - Fixed a number of issues when using the desktop with a
+   RemoteFramework. E.g., the list of bundles shown was taken from
+   the own (client) framework when it should have come from the remote
+   (server) framework.
+
+
+Framework Commands 3.0.2
+ - Added support for using options when starting and stopping bundles.
+   E.g., a bundle may now be transiently started or stopped.
+ - Added the -a (append) option to the cd-command.
+ - New command "properties" that may be used to list System and
+   Framework properties.
+ - New command "threads" that may be used to list threads started by
+   via the current framework.
+
+Log 2.0.3
+ - New configuration property for setting the number of
+   log records to keep in memory.
+
+kSOAP_RemoteFW 3.0.2
+ - Updated documentation and added xargs-file fragments that makes it
+   easier to start using this feature.
+ - All properties controlling this bundle can now be given as
+   framework properties.
+ - The RemoteFW implementation of BundleContext.getProperty() did not
+   handle unset properties correctly (it now returns null as
+   expected).
+
+axis_osgi 0.1.0.2
+ - Do not use the bean-mapper for java.util.Date, java.util.Map and
+   java.util.Vector since axis provides special mappers for these
+   classes.
+
+
+----------------------------------------------
+
+Please read the KF blog for updated progress.
+
+ http://knopflerfish.blogspot.com/

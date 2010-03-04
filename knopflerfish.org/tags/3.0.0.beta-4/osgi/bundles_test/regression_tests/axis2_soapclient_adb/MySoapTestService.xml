@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?><wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:ns0="http://axis2_soapobject.service.knopflerfish.org/xsd" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:ns1="MySoapTestService.axis2_soapobject.service.knopflerfish.org/MySoapTestService" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="MySoapTestService.axis2_soapobject.service.knopflerfish.org/MySoapTestService">
+    <wsdl:types>
+        <xs:schema xmlns:ax21="http://axis2_soapobject.service.knopflerfish.org/xsd" attributeFormDefault="qualified" elementFormDefault="unqualified" targetNamespace="http://axis2_soapobject.service.knopflerfish.org/xsd">
+            <xs:complexType name="MyJavaBean">
+                <xs:sequence>
+                    <xs:element minOccurs="0" name="name" nillable="true" type="xs:string"/>
+                    <xs:element minOccurs="0" name="value" type="xs:int"/>
+                </xs:sequence>
+            </xs:complexType>
+        </xs:schema>
+        <xs:schema xmlns:ns="MySoapTestService.axis2_soapobject.service.knopflerfish.org/MySoapTestService" attributeFormDefault="qualified" elementFormDefault="unqualified" targetNamespace="MySoapTestService.axis2_soapobject.service.knopflerfish.org/MySoapTestService">
+            <xs:element name="mul">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="param0" type="xs:double"/>
+                        <xs:element minOccurs="0" name="param1" type="xs:double"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="mulResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:double"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="add">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="param0" type="xs:int"/>
+                        <xs:element minOccurs="0" name="param1" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addToAll">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="param0" type="xs:int"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="param1" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="addToAllResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="return" type="xs:int"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getNameResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="getBeanResponse">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="return" nillable="true" type="ns0:MyJavaBean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="setBean">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="0" name="param0" nillable="true" type="ns0:MyJavaBean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="getNameRequest"/>
+    <wsdl:message name="getNameResponse">
+        <wsdl:part name="parameters" element="ns1:getNameResponse"/>
+    </wsdl:message>
+    <wsdl:message name="addRequest">
+        <wsdl:part name="parameters" element="ns1:add"/>
+    </wsdl:message>
+    <wsdl:message name="addResponse">
+        <wsdl:part name="parameters" element="ns1:addResponse"/>
+    </wsdl:message>
+    <wsdl:message name="setBeanRequest">
+        <wsdl:part name="parameters" element="ns1:setBean"/>
+    </wsdl:message>
+    <wsdl:message name="getBeanRequest"/>
+    <wsdl:message name="getBeanResponse">
+        <wsdl:part name="parameters" element="ns1:getBeanResponse"/>
+    </wsdl:message>
+    <wsdl:message name="addToAllRequest">
+        <wsdl:part name="parameters" element="ns1:addToAll"/>
+    </wsdl:message>
+    <wsdl:message name="addToAllResponse">
+        <wsdl:part name="parameters" element="ns1:addToAllResponse"/>
+    </wsdl:message>
+    <wsdl:message name="mulRequest">
+        <wsdl:part name="parameters" element="ns1:mul"/>
+    </wsdl:message>
+    <wsdl:message name="mulResponse">
+        <wsdl:part name="parameters" element="ns1:mulResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="MySoapTestServicePortType">
+        <wsdl:operation name="getName">
+            <wsdl:input message="ns1:getNameRequest" wsaw:Action="urn:getName"/>
+            <wsdl:output message="ns1:getNameResponse" wsaw:Action="urn:getNameResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="add">
+            <wsdl:input message="ns1:addRequest" wsaw:Action="urn:add"/>
+            <wsdl:output message="ns1:addResponse" wsaw:Action="urn:addResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="setBean">
+            <wsdl:input message="ns1:setBeanRequest" wsaw:Action="urn:setBean"/>
+        </wsdl:operation>
+        <wsdl:operation name="getBean">
+            <wsdl:input message="ns1:getBeanRequest" wsaw:Action="urn:getBean"/>
+            <wsdl:output message="ns1:getBeanResponse" wsaw:Action="urn:getBeanResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="addToAll">
+            <wsdl:input message="ns1:addToAllRequest" wsaw:Action="urn:addToAll"/>
+            <wsdl:output message="ns1:addToAllResponse" wsaw:Action="urn:addToAllResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="mul">
+            <wsdl:input message="ns1:mulRequest" wsaw:Action="urn:mul"/>
+            <wsdl:output message="ns1:mulResponse" wsaw:Action="urn:mulResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="MySoapTestServiceSOAP11Binding" type="ns1:MySoapTestServicePortType">
+        <soap:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getName">
+            <soap:operation soapAction="urn:getName" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="add">
+            <soap:operation soapAction="urn:add" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setBean">
+            <soap:operation soapAction="urn:setBean" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getBean">
+            <soap:operation soapAction="urn:getBean" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addToAll">
+            <soap:operation soapAction="urn:addToAll" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="mul">
+            <soap:operation soapAction="urn:mul" style="document"/>
+            <wsdl:input>
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="MySoapTestServiceSOAP12Binding" type="ns1:MySoapTestServicePortType">
+        <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" style="document"/>
+        <wsdl:operation name="getName">
+            <soap12:operation soapAction="urn:getName" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="add">
+            <soap12:operation soapAction="urn:add" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setBean">
+            <soap12:operation soapAction="urn:setBean" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getBean">
+            <soap12:operation soapAction="urn:getBean" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addToAll">
+            <soap12:operation soapAction="urn:addToAll" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="mul">
+            <soap12:operation soapAction="urn:mul" style="document"/>
+            <wsdl:input>
+                <soap12:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output>
+                <soap12:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:binding name="MySoapTestServiceHttpBinding" type="ns1:MySoapTestServicePortType">
+        <http:binding verb="POST"/>
+        <wsdl:operation name="getName">
+            <http:operation location="MySoapTestService/getName"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="getName"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="getName"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="add">
+            <http:operation location="MySoapTestService/add"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="add"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="add"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="setBean">
+            <http:operation location="MySoapTestService/setBean"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="setBean"/>
+            </wsdl:input>
+        </wsdl:operation>
+        <wsdl:operation name="getBean">
+            <http:operation location="MySoapTestService/getBean"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="getBean"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="getBean"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="addToAll">
+            <http:operation location="MySoapTestService/addToAll"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="addToAll"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="addToAll"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="mul">
+            <http:operation location="MySoapTestService/mul"/>
+            <wsdl:input>
+                <mime:content type="text/xml" part="mul"/>
+            </wsdl:input>
+            <wsdl:output>
+                <mime:content type="text/xml" part="mul"/>
+            </wsdl:output>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="MySoapTestService">
+        <wsdl:port name="MySoapTestServiceSOAP11port_http" binding="ns1:MySoapTestServiceSOAP11Binding">
+            <soap:address location="http://127.0.0.1:8080/axis2/services/MySoapTestService"/>
+        </wsdl:port>
+        <wsdl:port name="MySoapTestServiceSOAP12port_http" binding="ns1:MySoapTestServiceSOAP12Binding">
+            <soap12:address location="http://127.0.0.1:8080/axis2/services/MySoapTestService"/>
+        </wsdl:port>
+        <wsdl:port name="MySoapTestServiceHttpport" binding="ns1:MySoapTestServiceHttpBinding">
+            <http:address location="http://127.0.0.1:8080/axis2/services/MySoapTestService"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>
