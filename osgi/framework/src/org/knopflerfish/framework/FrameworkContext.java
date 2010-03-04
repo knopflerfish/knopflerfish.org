@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -171,6 +171,11 @@ public class FrameworkContext  {
   public FWProps props;
 
   /**
+   * Framework Thread Group.
+   */
+  public ThreadGroup threadGroup;
+
+  /**
    * Factory for handling service-based URLs
    */
   static ServiceURLStreamHandlerFactory systemUrlStreamHandlerFactory;
@@ -204,6 +209,7 @@ public class FrameworkContext  {
     synchronized (globalFwLock) {
       id = globalId++;
     }
+    threadGroup = new ThreadGroup("FW#" + id);
     props = new FWProps(initProps, this);
     perm = new SecurePermissionOps(this);
     systemBundle = new SystemBundle(this);

@@ -75,12 +75,14 @@ Desktop 3.0.10
    (server) framework.
 
 
-Framework Commands 3.0.1
+Framework Commands 3.0.2
  - Added support for using options when starting and stopping bundles.
    E.g., a bundle may now be transiently started or stopped.
  - Added the -a (append) option to the cd-command.
  - New command "properties" that may be used to list System and
    Framework properties.
+ - New command "threads" that may be used to list threads started by
+   via the current framework.
 
 Log 2.0.3
  - New configuration property for setting the number of

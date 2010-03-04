@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -684,7 +684,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         if (shutdownThread == null) {
           try {
             final boolean wa = wasActive;
-            shutdownThread = new Thread("Framework shutdown") {
+            shutdownThread = new Thread(fwCtx.threadGroup, "Framework shutdown") {
                 public void run() {
                   shutdown0(restart, wa);
                 }
