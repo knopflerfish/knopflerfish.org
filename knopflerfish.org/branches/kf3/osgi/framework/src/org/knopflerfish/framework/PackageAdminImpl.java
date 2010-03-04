@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -226,7 +226,7 @@ public class PackageAdminImpl implements PackageAdmin {
     final PackageAdminImpl thisClass = this;
     refreshSync = new Object();
     synchronized (refreshSync) {
-      Thread t = new Thread() {
+      Thread t = new Thread(fwCtx.threadGroup, "RefreshPackages") {
           public void run() {
             fwCtx.perm.callRefreshPackages0(thisClass, bundles);
           }

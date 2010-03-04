@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -407,7 +407,7 @@ public class BundleImpl implements Bundle {
         if (null==bundleContext) {
           bundleContext = new BundleContextImpl(this);
         }
-        BundleException e = (new ActivatorThread(fwCtx)).callStart0(this);
+        BundleException e = (new ActivatorThread(fwCtx, this)).callStart0(this);
         if (e != null) {
           //8:
           state = STOPPING;
@@ -596,7 +596,7 @@ public class BundleImpl implements Bundle {
     deactivating = true;
     //6-13:
     final Exception savedException = 
-      (new ActivatorThread(fwCtx)).callStop1(this, wasStarted);
+      (new ActivatorThread(fwCtx, this)).callStop1(this, wasStarted);
     if (state != UNINSTALLED) {
       state = RESOLVED;
       deactivating = false;
@@ -2533,8 +2533,8 @@ public class BundleImpl implements Bundle {
     volatile private BundleImpl target;
     volatile private Object res;
 
-    ActivatorThread(FrameworkContext fwCtx) {
-      super();
+    ActivatorThread(FrameworkContext fwCtx, BundleImpl b) {
+      super(fwCtx.threadGroup, "BundleActivator #" + b.id);
       setDaemon(false);
       this.fwCtx = fwCtx;
     }

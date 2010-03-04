@@ -1693,6 +1693,94 @@ public class FrameworkCommandGroup
   }
 
   //
+  // Threads command
+  //
+
+  public final static String USAGE_THREADS = "[-a]";
+
+  public final static String[] HELP_THREADS = new String[] {
+    "Display threads within this framework", "-a  List all threads in this JVM" };
+
+  public int cmdThreads(Dictionary opts, Reader in, PrintWriter out,
+                         Session session) {
+    final boolean showAll = opts.get("-a") != null;
+    ThreadGroup tg = Thread.currentThread().getThreadGroup();
+
+    for (ThreadGroup ctg = tg; ctg != null; ctg = ctg.getParent()) {
+      if (showAll) {
+        tg = ctg;
+      } else if (ctg.getName().startsWith("FW#")) {
+        tg = ctg;
+        break;
+      }
+    }
+    
+    Thread [] threads;
+    int count;
+    while (true) {
+      int acount = tg.activeCount() + 5;
+      threads = new Thread[acount];
+      count = tg.enumerate(threads);
+      if (count < acount) {
+        break;
+      }
+    }
+    int groupCols = tg.getName().length();
+    boolean sameGroup = true;
+    for (int i = 0; i < count; i++) {
+      ThreadGroup itg = threads[i].getThreadGroup();
+      if (!tg.equals(itg)) {
+        int cols = itg.getName().length();
+        if (groupCols < cols) {
+          groupCols = cols;
+        }
+        sameGroup = false;
+      }
+    }
+    out.print("Pri ");
+    if (!sameGroup) {
+      String glabel = "Group                              ";
+      if (groupCols < 4) {
+        groupCols = 4;
+      }
+      if (++groupCols > glabel.length()) {
+        groupCols = glabel.length();
+        out.print(glabel);
+      } else {
+        out.print(glabel.substring(0, groupCols));
+      }
+    }
+    out.println("Name");
+    for (int i = 0; i < count; i++) {
+      try {
+        StringBuffer sb = new StringBuffer();
+        int p = threads[i].getPriority();
+        if (p < 10) {
+          sb.append(' ');
+        }
+        sb.append(p);
+        do {
+          sb.append(' ');
+        } while (sb.length() < 4);
+        if (!sameGroup) {
+          String g = threads[i].getThreadGroup().getName();
+          sb.append(g);
+          int l = g.length();
+          do {
+            sb.append(' ');
+            l++;
+          } while (l < groupCols);
+        }
+        sb.append(threads[i].getName());
+        out.println(sb.toString());
+      } catch (NullPointerException _ignore) {
+        // Handle disappering thread
+      }
+    }
+    return 0;
+  }
+
+  //
   // Uninstall command
   //
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -107,7 +107,7 @@ public class StartLevelController
       setStartLevel0(beginningLevel, false, false, true);
     }
     Runnable firstJob = (Runnable)jobQueue.firstElement();
-    wc   = new Thread(this, "startlevel job thread");
+    wc   = new Thread(framework.threadGroup, this, "startlevel job");
     synchronized (firstJob) {
       bRun = true;
       wc.start();
