@@ -468,6 +468,8 @@ public class Util {
         ExportedPackage pkg = (ExportedPackage)it.next();
 
         Bundle exporter = pkg.getExportingBundle();
+        if (null==exporter) continue;
+
         closure.add(exporter);
 
         // Then, get closure from the exporter, if not already
