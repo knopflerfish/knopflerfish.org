@@ -12,7 +12,11 @@
   <property name="src.dir" location = "src"/>
 
   <!-- targets -->
-  <target name="all" depends="props,jar">
+  <target name="all" depends="jar">
+ 
+  </target>
+
+  <target name="default_jar" depends="props,jar">
  
   </target>
 
