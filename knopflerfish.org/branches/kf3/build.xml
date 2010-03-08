@@ -387,7 +387,7 @@
         <attribute name="jarunpacker-destdir"
                    value="knopflerfish_osgi_${version}"/>
         <attribute name="jarunpacker-opendir"
-                   value="$${destdir}/knopflerfish.org/osgi"/>
+                   value="$${destdir}/osgi"/>
         <attribute name="jarunpacker-licensepath"
                    value="/LICENSE.txt"/>
         <attribute name="knopflerfish-version"
