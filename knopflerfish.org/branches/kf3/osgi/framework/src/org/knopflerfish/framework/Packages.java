@@ -619,7 +619,7 @@ class Packages {
     if (framework.props.debug.packages) {
       framework.props.debug.println("pickProvider: for - " + ip);
     }
-    ExportPkg provider = null;
+    ArrayList possibleProvider = new ArrayList(ip.pkg.exporters.size());
     for (Iterator i = ip.pkg.exporters.iterator(); i.hasNext(); ) {
       ExportPkg ep = (ExportPkg)i.next();
       tempBlackListChecks++;
@@ -651,34 +651,37 @@ class Packages {
         }
         continue;
       }
-      if (tempResolved.contains(ep.bpkgs.bundle)) {
-        provider = ep;
-        break;
-      }
       if ((ep.bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
         HashMap oldTempProvider = (HashMap)tempProvider.clone();
         if (checkUses(ep)) {
-          provider = ep;
-          break;
+          if (framework.props.debug.packages) {
+            framework.props.debug.println("pickProvider: " + ip +
+                                          " - got resolved provider - " + ep);
+          }
+          return ep;
         } else {
           tempProvider = oldTempProvider;
           tempBlackList.add(ep);
           continue;
         }
       }
-      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle)) {
-        provider = ep;
-        break;
+      if (ep.bpkgs.bundle.state == Bundle.INSTALLED) {
+        possibleProvider.add(ep);
+      }
+    }
+    for (Iterator i = possibleProvider.iterator(); i.hasNext(); ) {
+      ExportPkg ep = (ExportPkg)i.next();
+      if (tempResolved.contains(ep.bpkgs.bundle) || checkResolve(ep.bpkgs.bundle)) {
+        if (framework.props.debug.packages) {
+          framework.props.debug.println("pickProvider: " + ip + " - got provider - " + ep);
+        }
+        return ep;
       }
     }
     if (framework.props.debug.packages) {
-      if (provider != null) {
-        framework.props.debug.println("pickProvider: " + ip + " - got provider - " + provider);
-      } else {
-        framework.props.debug.println("pickProvider: " + ip + " - found no provider");
-      }
+      framework.props.debug.println("pickProvider: " + ip + " - found no provider");
     }
-    return provider;
+    return null;
   }
 
 
