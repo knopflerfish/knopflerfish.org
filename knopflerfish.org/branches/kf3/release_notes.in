@@ -102,6 +102,13 @@ axis_osgi 0.1.0.2
    java.util.Vector since axis provides special mappers for these
    classes.
 
+crimson - 2.1.0
+ - updated to use 2008 version of OSGi's XMLParserActivator. Fixed
+   so that bundle works together with java 1.4 system xml classes.
+
+xerces - 2.10.0
+ - updated to use 2008 version of OSGi's XMLParserActivator.
+
 
 ----------------------------------------------
 
