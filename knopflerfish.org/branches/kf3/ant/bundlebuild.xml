@@ -429,6 +429,8 @@
 
   <!-- set up build conditions -->
   <target name="setup_build">
+    <echo message="Building ${ant.project.name} (${basedir})"/>
+
     <available property="src.dir.exists"       file="${src.dir}"/>
     <available property="resources.dir.exists" file="${resources.dir}"/>
 
