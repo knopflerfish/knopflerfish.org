@@ -7,6 +7,9 @@
   <property name="osgi.dir"   location="${topdir}/../.."/>
   <property name="ant.dir"    location="${osgi.dir}/../ant"/>
   <property name="jars.dir"   location="${osgi.dir}/test_jars"/> 
+  <property name="root.out.dir" location="${topdir}/out"/>
+  <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
+
   <property name="condperm_warnings.file" location="${osgi.dir}/WARNING-condpermadmin.txt"/>
 
   <!--
