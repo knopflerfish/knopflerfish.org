@@ -143,10 +143,24 @@ public class ErrorMessageDialog extends JDialog {
 
       // Make html out of long texts to enable line breaking
       if (moreInfo.length()>80 && !moreInfo.startsWith("<html>")) {
-        moreInfo = "<html><p>"
-          + moreInfo.replace("&", "&amp;").replace("<","&lt;")
-          .replace("\n","<br/>")
-          + "</p></html>";
+        StringBuffer sb = new StringBuffer(moreInfo.length() + 40);
+        sb.append("<html><p>");
+        for (int i = 0; i < moreInfo.length(); i++) {
+          char c = moreInfo.charAt(i);
+          if (c == '&') {
+            sb.append("&amp;");
+          } else if (c == '<') {
+            sb.append("&lt;");
+          } else if (c == '>') {
+            sb.append("&gt;");
+          } else if (c == '\n') {
+            sb.append("<br/>");
+          } else {
+            sb.append(c);
+          }
+        }
+        sb.append("</p></html>");
+        moreInfo = sb.toString();
       }
       moreLabel = new JLabel(moreInfo);
       morePanel = new JPanel(new BorderLayout());
