@@ -279,7 +279,7 @@ public class BundleImpl implements Bundle {
         }
       }
     } catch (Exception e) {
-      fwCtx.props.debug.println("Failed to set start level on #" + id + ": " + e);
+      fwCtx.debug.println("Failed to set start level on #" + id + ": " + e);
     }
 
     lastModified = archive.getLastModified();
@@ -400,8 +400,8 @@ public class BundleImpl implements Bundle {
         //6:
         state = STARTING;
         activating = true;
-        if (fwCtx.props.debug.lazyActivation) {
-          fwCtx.props.debug.println("activating #" +getBundleId());
+        if (fwCtx.debug.lazy_activation) {
+          fwCtx.debug.println("activating #" +getBundleId());
         }
         //7:
         if (null==bundleContext) {
@@ -467,25 +467,16 @@ public class BundleImpl implements Bundle {
         bactivator.start(bundleContext);
         bStarted = true;
       } else {
-        // If the Main-Class manifest attribute is set and this
-        // bundles location is present in the value (comma separated
-        // list) of the (System) property named
-        // org.knopflerfish.framework.main.class.activation then setup
-        // up a bundle activator that calls the main-method of the
-        // Main-Class when the bundle is started, and if the
-        // Main-Class contains a method named stop() call that
-        // method when the bundle is stopped.
-        String locations = fwCtx.props.getProperty
-          ("org.knopflerfish.framework.main.class.activation");
-        if (locations != null) {
+        String locations = fwCtx.props.getProperty(FWProps.MAIN_CLASS_ACTIVATION_PROP);
+        if (locations.length() > 0) {
           final String mc = archive.getAttribute("Main-Class");
 
           if (mc != null) {
             String[] locs = Util.splitwords(locations, ",");
             for (int i = 0; i < locs.length; i++) {
               if (locs[i].equals(location)) {
-                if(fwCtx.props.debug.packages) {
-                  fwCtx.props.debug.println("starting main class " + mc);
+                if(fwCtx.debug.packages) {
+                  fwCtx.debug.println("starting main class " + mc);
                 }
                 error_type = BundleException.ACTIVATOR_ERROR;
                 Class mainClass = classLoader.loadClass(mc.trim());
@@ -514,8 +505,8 @@ public class BundleImpl implements Bundle {
     } catch (Throwable t) {
       res = new BundleException("Bundle start failed", error_type, t);
     }
-    if (fwCtx.props.debug.lazyActivation) {
-      fwCtx.props.debug.println("activating #" +getBundleId() +" completed.");
+    if (fwCtx.debug.lazy_activation) {
+      fwCtx.debug.println("activating #" +getBundleId() +" completed.");
     }
     if (fwCtx.props.SETCONTEXTCLASSLOADER) {
       Thread.currentThread().setContextClassLoader(oldLoader);
@@ -988,9 +979,9 @@ public class BundleImpl implements Bundle {
               archive.setStartLevel(-2); // Mark as uninstalled
             } catch (Exception e) {
               // NYI! Generate FrameworkError if dir still exists!?
-              fwCtx.props.debug.println("Failed to mark bundle " + id +
-                                        " as uninstalled, " + bundleDir +
-                                        " must be deleted manually: " + e);
+              fwCtx.debug.println("Failed to mark bundle " + id +
+                                  " as uninstalled, " + bundleDir +
+                                  " must be deleted manually: " + e);
             }
           }
         }
@@ -1223,8 +1214,8 @@ public class BundleImpl implements Bundle {
           // NYI! check EE for fragments
             String ee = archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
             if (ee != null) {
-              if (fwCtx.props.debug.packages) {
-                fwCtx.props.debug.println("bundle #" + archive.getBundleId() + " has EE=" + ee);
+              if (fwCtx.debug.packages) {
+                fwCtx.debug.println("bundle #" + archive.getBundleId() + " has EE=" + ee);
               }
               if (!fwCtx.isValidEE(ee)) {
                 throw new BundleException("Unable to resolve bundle: Execution environment '" +
@@ -1556,8 +1547,8 @@ public class BundleImpl implements Bundle {
     ArrayList cs = ba.getCertificateChains(false);
     if (cs != null) {
       if (fwCtx.validator != null) {
-        if (fwCtx.props.debug.certificates) {
-          fwCtx.props.debug.println("Validate certs for bundle #" + ba.getBundleId());
+        if (fwCtx.debug.certificates) {
+          fwCtx.debug.println("Validate certs for bundle #" + ba.getBundleId());
         }
         cs = (ArrayList)cs.clone();
         for (Iterator vi = fwCtx.validator.iterator(); !cs.isEmpty() && vi.hasNext();) {
@@ -1567,12 +1558,12 @@ public class BundleImpl implements Bundle {
             if (v.validateCertificateChain(c)) {
               ba.trustCertificateChain(c);
               ci.remove();
-              if (fwCtx.props.debug.certificates) {
-                fwCtx.props.debug.println("Validated cert: " + c.get(0));
+              if (fwCtx.debug.certificates) {
+                fwCtx.debug.println("Validated cert: " + c.get(0));
               }
             } else {
-              if (fwCtx.props.debug.certificates) {
-                fwCtx.props.debug.println("Failed to validate cert: " + c.get(0));
+              if (fwCtx.debug.certificates) {
+                fwCtx.debug.println("Failed to validate cert: " + c.get(0));
               }
             }
           }
@@ -1583,7 +1574,7 @@ public class BundleImpl implements Bundle {
         }
       }
     }
-    if (fwCtx.props.getProperty("org.knopflerfish.framework.all_signed", false)) {
+    if (fwCtx.props.getBooleanProperty(FWProps.ALL_SIGNED_PROP)) {
       throw new IllegalArgumentException("All installed bundles must be signed!");
     }
   }
@@ -1696,15 +1687,11 @@ public class BundleImpl implements Bundle {
           throw new IllegalArgumentException("An extension bundle must have AllPermission");
         }
 
-        if (!fwCtx.props.SUPPORTS_BOOT_EXTENSION_BUNDLES &&
+        if (!fwCtx.props.getBooleanProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION) &&
             Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
-          if (fwCtx.props.bIsMemoryStorage) {
-            throw new UnsupportedOperationException("Extension bundles are not supported in memory storage mode.");
-          } else {
-            throw new UnsupportedOperationException("Extension bundles not supported, " +
-                                                    "require the use of a wrapper script. " +
-                                                    "Consult the documentation");
-          }
+          throw new UnsupportedOperationException("Extension bundles are not supported "
+                                                  + "by this framework. "
+                                                  + "Consult the documentation");
         }
       } else {
         if (extension != null) {
@@ -1880,8 +1867,8 @@ public class BundleImpl implements Bundle {
       try {
         archive.setStartLevel(n);
       } catch (Exception e) {
-        fwCtx.props.debug.println("Failed to set start level on #"
-                                  + getBundleId());
+        fwCtx.debug.println("Failed to set start level on #"
+                            + getBundleId());
       }
     }
   }
@@ -2342,10 +2329,10 @@ public class BundleImpl implements Bundle {
       throw new IllegalStateException(failReason);
     }
 
-    if(fwCtx.props.debug.packages) {
-      fwCtx.props.debug.println("Fragment(id=" +fragmentBundle.getBundleId()
-                    +") attached to host(id=" +bpkgs.bundle.id
-                    +",gen=" +bpkgs.generation +")");
+    if(fwCtx.debug.packages) {
+      fwCtx.debug.println("Fragment(id=" +fragmentBundle.getBundleId()
+                          +") attached to host(id=" +bpkgs.bundle.id
+                          +",gen=" +bpkgs.generation +")");
 
 
     }
@@ -2391,10 +2378,10 @@ public class BundleImpl implements Bundle {
     // NYI! extensions
     if (fragments.remove(fb)) {
       bpkgs.detachFragment(fb);
-      if(fwCtx.props.debug.packages) {
-        fwCtx.props.debug.println("Fragment(id=" +fb.getBundleId()
-                      +") detached from host(id=" +bpkgs.bundle.id
-                      +",gen=" +bpkgs.generation +")");
+      if(fwCtx.debug.packages) {
+        fwCtx.debug.println("Fragment(id=" +fb.getBundleId()
+                            +") detached from host(id=" +bpkgs.bundle.id
+                            +",gen=" +bpkgs.generation +")");
       }
       if (fb.state != UNINSTALLED) {
         fb.fragment.removeHost(this);

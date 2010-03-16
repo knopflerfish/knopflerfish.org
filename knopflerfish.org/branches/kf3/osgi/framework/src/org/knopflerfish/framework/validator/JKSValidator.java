@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,9 +56,17 @@ import java.util.*;
 public class JKSValidator implements Validator {
 
   /**
-   * Property base string.
+   * Property strings.
    */
-  final private static String PROP_BASE = "org.knopflerfish.framework.validator.jks.";
+  final private static String CA_CERTS_PROP =
+    "org.knopflerfish.framework.validator.jks.ca_certs";
+
+  final private static String CA_CERTS_PASSWORD_PROP =
+    "org.knopflerfish.framework.validator.jks.ca_certs_password";
+
+  final private static String CERT_PROVIDER_PROP =
+    "org.knopflerfish.framework.validator.jks.cert_provider";
+
 
   /**
    * Certificate provider;
@@ -105,8 +113,10 @@ public class JKSValidator implements Validator {
   {
     keystore = KeyStore.getInstance(KeyStore.getDefaultType());
     // NYI! Handle serveral repositories.
+    fw.props.setPropertyDefault(CERT_PROVIDER_PROP, "");
+    certProvider = fw.props.getProperty(CERT_PROVIDER_PROP);
     String repos = fw.props.getProperty(Constants.FRAMEWORK_TRUST_REPOSITORIES);
-    if (repos != null) {
+    if (repos.length() > 0) {
       String [] l = Util.splitwords(repos, File.pathSeparator);
       for (int i = 0; i < l.length; i++) {
         String certRepo = l[i].trim();
@@ -114,13 +124,16 @@ public class JKSValidator implements Validator {
           loadKeyStore(certRepo, null);
         }
       }
+    } else {
+      fw.props.setPropertyDefault(CA_CERTS_PROP,
+                                  System.getProperty("java.home")
+                                  + "/lib/security/cacerts".replace('/', File.separatorChar));
+      fw.props.setPropertyDefault(CA_CERTS_PASSWORD_PROP, "changeit");
+      final String caCertsFileName = fw.props.getProperty(CA_CERTS_PROP);
+      if (caCertsFileName != null) {
+        loadKeyStore(caCertsFileName, fw.props.getProperty(CA_CERTS_PASSWORD_PROP));
+      }
     }
-    String caCertsFileName = fw.props.getProperty(PROP_BASE + "ca_certs");
-    String caCertsPassword = fw.props.getProperty(PROP_BASE + "ca_certs_password");
-    if (caCertsFileName != null) {
-      loadKeyStore(caCertsFileName, caCertsPassword);
-    }
-    certProvider = fw.props.getProperty(PROP_BASE + "cert_provider");
   }
 
 
@@ -153,7 +166,7 @@ public class JKSValidator implements Validator {
     throws GeneralSecurityException
   {
     if (certFactory == null) {
-      if (certProvider != null) {
+      if (certProvider.length() > 0) {
         certFactory = CertificateFactory.getInstance("X.509", certProvider);
       } else {
         certFactory = CertificateFactory.getInstance("X.509");
@@ -193,7 +206,7 @@ public class JKSValidator implements Validator {
     throws GeneralSecurityException
   {
     if (certValidator == null) {
-      if (certProvider != null) {
+      if (certProvider.length() > 0) {
         certValidator = CertPathValidator.getInstance("PKIX", certProvider);
       } else {
         certValidator = CertPathValidator.getInstance("PKIX");

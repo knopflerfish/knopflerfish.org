@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@ class Listeners {
   Listeners(FrameworkContext framework, PermissionOps perm) {
     this.framework = framework;
     secure = perm;
-    nocacheldap = "true".equals(framework.props.getProperty("org.knopflerfish.framework.ldap.nocache"));
+    nocacheldap = framework.props.getBooleanProperty(FWProps.LDAP_NOCACHE_PROP);
     serviceListeners = new ServiceListenerState(this);
   }
 
@@ -266,10 +266,12 @@ class Listeners {
    * @see org.osgi.framework.FrameworkListener#frameworkEvent
    */
   void frameworkEvent(final FrameworkEvent evt) {
-    if (framework.props.debug.errors) {
+    if (framework.debug.errors) {
       if (evt.getType() == FrameworkEvent.ERROR) {
-        framework.props.debug.println("errors - FrameworkErrorEvent bundle #" + evt.getBundle().getBundleId());
-        framework.props.debug.printStackTrace("errors - FrameworkErrorEvent throwable: ", evt.getThrowable());
+        framework.debug.println("errors - FrameworkErrorEvent bundle #" +
+                                evt.getBundle().getBundleId());
+        framework.debug.printStackTrace("errors - FrameworkErrorEvent throwable: ",
+                                        evt.getThrowable());
       }
     }
     ListenerEntry [] fl;
@@ -332,8 +334,8 @@ class Listeners {
         frameworkError(l.bundle, le);
       }
     }
-    if (framework.props.debug.ldap) {
-      framework.props.debug.println("Notified " + n + " listeners");
+    if (framework.debug.ldap) {
+      framework.debug.println("Notified " + n + " listeners");
     }
   }
 

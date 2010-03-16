@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2009, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,10 +99,6 @@ class PermissionOps {
   }
 
   void checkContextAdminPerm(Bundle b) {
-  }
-  
-  boolean okContextAdminPerm(Bundle b) {
-    return true;
   }
   
   void checkStartLevelAdminPerm() {

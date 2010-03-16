@@ -242,8 +242,8 @@ public class PackageAdminImpl implements PackageAdmin {
 
 
   void refreshPackages0(final Bundle[] bundles) {
-    if (fwCtx.props.debug.packages) {
-      fwCtx.props.debug.println("PackageAdminImpl.refreshPackages() starting");
+    if (fwCtx.debug.packages) {
+      fwCtx.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
 
     Collection zombies = fwCtx.packages.getZombieAffected(bundles);
@@ -315,9 +315,9 @@ public class PackageAdminImpl implements PackageAdmin {
         fwCtx.listeners.frameworkEvent((FrameworkEvent)e);
       }
     }
-    if (fwCtx.props.debug.packages) {
-      fwCtx.props.debug.println("PackageAdminImpl.refreshPackages() "
-                                    +"all affected bundles now in state INSTALLED");
+    if (fwCtx.debug.packages) {
+      fwCtx.debug.println("PackageAdminImpl.refreshPackages() "
+                          +"all affected bundles now in state INSTALLED");
     }
 
     // Restart previously active bundles in normal start order
@@ -325,8 +325,8 @@ public class PackageAdminImpl implements PackageAdmin {
     fwCtx.listeners
       .frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                          fwCtx.systemBundle, null));
-    if (fwCtx.props.debug.packages) {
-      fwCtx.props.debug.println("PackageAdminImpl.refreshPackages() done.");
+    if (fwCtx.debug.packages) {
+      fwCtx.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
   }
 

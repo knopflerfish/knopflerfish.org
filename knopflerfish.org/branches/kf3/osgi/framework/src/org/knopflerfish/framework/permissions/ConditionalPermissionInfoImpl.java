@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009, KNOPFLERFISH project
+ * Copyright (c) 2008-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
     permissionInfos = perms;
     this.access = access;
     framework = fw;
-    debug = fw.props.debug;
+    debug = fw.debug;
     permissions = null;
   }
 
@@ -86,7 +86,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
                                 String encoded, FrameworkContext fw) {
     this.cpis = cpis;
     framework = fw;
-    debug = fw.props.debug;
+    debug = fw.debug;
     try {
       char [] eca = encoded.toCharArray();
       int pos = PermUtil.skipWhite(eca, 0);

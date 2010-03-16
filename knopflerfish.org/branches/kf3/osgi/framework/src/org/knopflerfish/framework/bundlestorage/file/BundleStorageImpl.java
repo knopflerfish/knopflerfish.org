@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.framework.bundlestorage.file;
 
 import org.knopflerfish.framework.*;
+import org.osgi.framework.Constants;
 import java.io.*;
 import java.util.*;
 
@@ -45,6 +46,43 @@ import java.util.*;
  * @author Jan Stein, Mats-Ola Persson, Gunnar Ekolin
  */
 public class BundleStorageImpl implements BundleStorage {
+
+  public final static String ALWAYS_UNPACK_PROP =
+    "org.knopflerfish.framework.bundlestorage.file.always_unpack";
+  public final static String REFERENCE_PROP =
+    "org.knopflerfish.framework.bundlestorage.file.reference";
+  public final static String TRUSTED_PROP =
+    "org.knopflerfish.framework.bundlestorage.file.trusted";
+  public final static String UNPACK_PROP =
+  "org.knopflerfish.framework.bundlestorage.file.unpack";
+
+  /**
+   * Controls if we should try to unpack bundles with sub-jars and
+   * native code.
+   */
+  boolean alwaysUnpack;
+
+  /**
+   * Controls if file: URLs should be referenced only, not copied
+   * to bundle storage dir
+   */
+  boolean fileReference;
+
+  /**
+   * Controls if we should trust file storage to be secure.
+   */
+  boolean trustedStorage;
+
+  /**
+   * Controls if we should try to unpack bundles with sub-jars and
+   * native code.
+   */
+  boolean unpack;
+
+  /**
+   * Optional OS-command to set executable permission on native code.
+   */
+  String execPermCmd;
 
   /**
    * Top directory for storing all jar data for bundles.
@@ -77,9 +115,9 @@ public class BundleStorageImpl implements BundleStorage {
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl(FrameworkContext framework, boolean loadCert) {
+  public BundleStorageImpl(FrameworkContext framework) {
     this.framework = framework;
-    checkSigned = loadCert;
+    initProps(framework.props);
     // See if we have a storage directory
     bundlesDir = Util.getFileStorage(framework, "bs");
     if (bundlesDir == null) {
@@ -263,6 +301,24 @@ public class BundleStorageImpl implements BundleStorage {
   //
   // Private methods
   //
+
+  /**
+   * Initialize values for properties.
+   *
+   */
+  private void initProps(FWProps props) {
+    props.setPropertyDefault(ALWAYS_UNPACK_PROP, FWProps.FALSE);
+    props.setPropertyDefault(REFERENCE_PROP, FWProps.FALSE);
+    props.setPropertyDefault(TRUSTED_PROP, FWProps.TRUE);
+    props.setPropertyDefault(UNPACK_PROP, FWProps.TRUE);
+    alwaysUnpack = props.getBooleanProperty(ALWAYS_UNPACK_PROP);
+    fileReference = props.getBooleanProperty(REFERENCE_PROP);
+    trustedStorage = props.getBooleanProperty(TRUSTED_PROP);
+    unpack = props.getBooleanProperty(UNPACK_PROP);
+    execPermCmd = props.getProperty(Constants.FRAMEWORK_EXECPERMISSION).trim();
+    checkSigned = props.getBooleanProperty(FWProps.BUNDLESTORAGE_CHECKSIGNED_PROP);
+  }
+
 
   /**
    * Find posisition for BundleArchive with specified id

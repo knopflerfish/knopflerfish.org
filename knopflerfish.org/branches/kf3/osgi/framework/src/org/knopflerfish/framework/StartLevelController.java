@@ -50,16 +50,18 @@ import java.io.File;
 public class StartLevelController
   implements Runnable, ServiceFactory
 {
-  Thread        wc;
-  long          wcDelay  = 2000;
-  boolean       bRun     = false;
-  Queue         jobQueue = new Queue(100);
+  public static final String SPEC_VERSION = "1.1";
 
   final static int START_MIN = 0;
   final static int START_MAX = Integer.MAX_VALUE;
 
   final static String LEVEL_FILE = "currentlevel";
   final static String INITIAL_LEVEL_FILE = "initiallevel";
+
+  Thread        wc;
+  long          wcDelay  = 2000;
+  boolean       bRun     = false;
+  Queue         jobQueue = new Queue(100);
 
   int currentLevel     = 0;
   int initStartLevel   = 1;
@@ -73,41 +75,37 @@ public class StartLevelController
   // Set to true indicates startlevel compatability mode.
   // all bundles and current start level will be 1
   boolean  bCompat /*= false*/;
-  static final String COMPAT_PROP
-    = "org.knopflerfish.framework.startlevel.compat";
-
-  public static final String SPEC_VERSION = "1.1";
 
 
   StartLevelController(FrameworkContext framework)
   {
     this.framework = framework;
-    bCompat = "true".equals(framework.props.getProperty(COMPAT_PROP, "false"));
+    bCompat = framework.props.getBooleanProperty(FWProps.STARTLEVEL_COMPAT_PROP);
 
     storage = Util.getFileStorage(framework, "startlevel");
   }
 
   void open() {
-    if(framework.props.debug.startlevel) {
-      framework.props.debug.println("startlevel: open");
+    if (framework.debug.startlevel) {
+      framework.debug.println("startlevel: open");
     }
 
     if (jobQueue.isEmpty()) {
       int beginningLevel = 1;
       final String sBeginningLevel
-        = framework.props.getProperty(Constants.FRAMEWORK_BEGINNING_STARTLEVEL,
-                                      "1");
+        = framework.props.getProperty(Constants.FRAMEWORK_BEGINNING_STARTLEVEL);
       try {
         beginningLevel = Integer.parseInt(sBeginningLevel);
       } catch (NumberFormatException nfe) {
-        framework.props.debug.printStackTrace
-          ("Invalid number '" +sBeginningLevel +"' in value of property named '"
-           +Constants.FRAMEWORK_BEGINNING_STARTLEVEL +"'.", nfe);
+        framework.debug.printStackTrace("Invalid number '" + sBeginningLevel +
+                                        "' in value of property named '"
+                                        + Constants.FRAMEWORK_BEGINNING_STARTLEVEL
+                                        + "'.", nfe);
       }
       setStartLevel0(beginningLevel, false, false, true);
     }
     Runnable firstJob = (Runnable)jobQueue.firstElement();
-    wc   = new Thread(framework.threadGroup, this, "startlevel job");
+    wc = new Thread(framework.threadGroup, this, "startlevel job");
     synchronized (firstJob) {
       bRun = true;
       wc.start();
@@ -135,12 +133,10 @@ public class StartLevelController
    * </p>
    */
   void restoreState() {
-    if (framework.props.debug.startlevel) {
-      framework.props.debug.println("startlevel: restoreState");
+    if (framework.debug.startlevel) {
+      framework.debug.println("startlevel: restoreState");
     }
-    // Skip level load in mem storage since bundle levels
-    // isn't saved anyway
-    if (!framework.props.bIsMemoryStorage) {
+    if (storage != null) {
       try {
         String s = Util.getContent(new File(storage, LEVEL_FILE));
         if (s != null) {
@@ -161,8 +157,8 @@ public class StartLevelController
 
 
   void close() {
-    if (framework.props.debug.startlevel) {
-      framework.props.debug.println("*** closing startlevel service");
+    if (framework.debug.startlevel) {
+      framework.debug.println("*** closing startlevel service");
     }
 
     bRun = false;
@@ -224,8 +220,8 @@ public class StartLevelController
                               final boolean notifyWC,
                               final boolean storeLevel)
   {
-    if (framework.props.debug.startlevel) {
-      framework.props.debug.println("startlevel: setStartLevel " + startLevel);
+    if (framework.debug.startlevel) {
+      framework.debug.println("startlevel: setStartLevel " + startLevel);
     }
 
     jobQueue.insert(new Runnable() {
@@ -243,7 +239,7 @@ public class StartLevelController
 
         // Skip level save in mem storage since bundle levels
         // won't be saved anyway
-        if (storeLevel && !framework.props.bIsMemoryStorage) {
+        if (storeLevel && storage != null) {
           try {
             Util.putContent(new File(storage, LEVEL_FILE),
                             Integer.toString(currentLevel));
@@ -272,8 +268,8 @@ public class StartLevelController
 
       currentLevel++;
 
-      if (framework.props.debug.startlevel) {
-        framework.props.debug.println("startlevel: increaseStartLevel currentLevel=" + currentLevel);
+      if (framework.debug.startlevel) {
+        framework.debug.println("startlevel: increaseStartLevel currentLevel=" + currentLevel);
       }
       Vector set = new Vector();
 
@@ -298,8 +294,8 @@ public class StartLevelController
         BundleImpl bs = (BundleImpl)set.elementAt(i);
         try {
           if (bs.archive.getAutostartSetting()!=-1) {
-            if (framework.props.debug.startlevel) {
-              framework.props.debug.println("startlevel: start " + bs);
+            if (framework.debug.startlevel) {
+              framework.debug.println("startlevel: start " + bs);
             }
             int startOptions = Bundle.START_TRANSIENT;
             if (isBundleActivationPolicyUsed(bs)) {
@@ -341,8 +337,8 @@ public class StartLevelController
           BundleImpl bs = (BundleImpl)set.elementAt(i);
           if (bs.getState() == Bundle.ACTIVE ||
               (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
-            if (framework.props.debug.startlevel) {
-              framework.props.debug.println("startlevel: stop " + bs);
+            if (framework.debug.startlevel) {
+              framework.debug.println("startlevel: stop " + bs);
             }
 
             try {
@@ -421,8 +417,8 @@ public class StartLevelController
             if ( (bs.getState() == Bundle.INSTALLED
                   || bs.getState() == Bundle.RESOLVED)
                  && bs.archive.getAutostartSetting()!=-1) {
-              if (framework.props.debug.startlevel) {
-                framework.props.debug.println("startlevel: start " + bs);
+              if (framework.debug.startlevel) {
+                framework.debug.println("startlevel: start " + bs);
               }
               int startOptions = Bundle.START_TRANSIENT;
               if (isBundleActivationPolicyUsed(bs)) {
@@ -433,8 +429,8 @@ public class StartLevelController
           } else if (bs.getStartLevel() > currentLevel) {
             if (bs.getState() == Bundle.ACTIVE ||
                 (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
-              if (framework.props.debug.startlevel) {
-                framework.props.debug.println("startlevel: stop " + bs);
+              if (framework.debug.startlevel) {
+                framework.debug.println("startlevel: stop " + bs);
               }
               bs.stop(Bundle.STOP_TRANSIENT);
             }
@@ -462,7 +458,7 @@ public class StartLevelController
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }
     initStartLevel = bCompat ? 1 : startLevel;
-    if (!framework.props.bIsMemoryStorage && save) {
+    if (storage != null && save) {
       try {
         Util.putContent(new File(storage, INITIAL_LEVEL_FILE),
                         Integer.toString(initStartLevel));

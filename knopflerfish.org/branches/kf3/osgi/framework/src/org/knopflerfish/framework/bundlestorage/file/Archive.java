@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 package org.knopflerfish.framework.bundlestorage.file;
 
 import org.knopflerfish.framework.*;
-import org.osgi.framework.*;
+import org.osgi.framework.Constants;
 import java.io.*;
 import java.net.*;
 import java.security.cert.*;
@@ -81,34 +81,6 @@ public class Archive implements FileArchive {
   final private static String OSGI_OPT_DIR = "OSGI-OPT/";
 
   /**
-   * Property base string.
-   */
-  final private static String PROP_BASE = "org.knopflerfish.framework.bundlestorage.file.";
-
-  /**
-   * Controls if we should try to unpack bundles with sub-jars and
-   * native code.
-   */
-  private boolean unpack;
-
-  /**
-   * Controls if we should try to unpack bundles with sub-jars and
-   * native code.
-   */
-  private boolean alwaysUnpack;
-
-  /**
-   * Controls if file: URLs should be referenced only, not copied
-   * to bundle storage dir
-   */
-  private boolean fileReference;
-
-  /**
-   * Controls if we should trust file storage to be secure.
-   */
-  private boolean trustedStorage;
-
-  /**
    * File handle for file that contains current archive.
    */
   private FileTree file;
@@ -143,11 +115,6 @@ public class Archive implements FileArchive {
   private ZipEntry subJar /*= null*/;
 
   /**
-   * Optional OS-command to set executable permission on native code.
-   */
-  private String execPermCmd;
-
-  /**
    * Is Archive closed.
    */
   private boolean bClosed = false;
@@ -178,14 +145,6 @@ public class Archive implements FileArchive {
   private int subId;
 
 
-  void initProps() {
-    unpack = storage.framework.props.getProperty(PROP_BASE + "unpack", true);
-    alwaysUnpack = storage.framework.props.getProperty(PROP_BASE + "always_unpack", false);
-    fileReference = storage.framework.props.getProperty(PROP_BASE + "reference", false);
-    trustedStorage = storage.framework.props.getProperty(PROP_BASE + "trusted", true);
-    execPermCmd = storage.framework.props.getProperty(Constants.FRAMEWORK_EXECPERMISSION);
-  }
-
   /**
    * Create an Archive based on contents of an InputStream,
    * the archive is saved as local copy in the specified
@@ -205,7 +164,6 @@ public class Archive implements FileArchive {
     this.storage  = storage;
     bundleId = id;
     subId = -1;
-    initProps();
 
     boolean isDirectory = false;
     final FileTree sourceFile;
@@ -238,11 +196,11 @@ public class Archive implements FileArchive {
     boolean doUnpack = false;;
     if (manifest == null) {
       bis = new BufferedInputStream(is);
-      if (alwaysUnpack) {
+      if (storage.alwaysUnpack) {
         ji = new JarInputStream(bis, storage.checkSigned);
         manifest = ji.getManifest();
         doUnpack = true;
-      } else if (unpack) {
+      } else if (storage.unpack) {
         // Is 1000000 enough, Must be big enough to hold the MANIFEST.MF entry
         // Hope implement of BufferedInputStream allocates dynamicly.
         bis.mark(1000000);
@@ -352,7 +310,7 @@ public class Archive implements FileArchive {
   boolean isReference(URL source) {
     return (source != null) &&
       ("reference".equals(source.getProtocol())
-       || (fileReference && isFile(source)));
+       || (storage.fileReference && isFile(source)));
   }
 
 
@@ -368,7 +326,6 @@ public class Archive implements FileArchive {
     this.storage  = storage;
     bundleId = id;
     subId = -1;
-    initProps();
     String [] f = dir.list();
     file = null;
     if (rev != -1) {
@@ -454,7 +411,6 @@ public class Archive implements FileArchive {
     this.storage  = a.storage;
     bundleId = a.bundleId;
     subId = id;
-    initProps();
     if (a.jar != null) {
       jar = a.jar;
       // Try a directory first, make sure that path ends with "/"
@@ -853,11 +809,12 @@ public class Archive implements FileArchive {
    */
   private void setPerm(File f)
   {
-    if (null==execPermCmd) { // No OS-cmd for setting permissions given.
+     // No OS-cmd for setting permissions given.
+    if (storage.execPermCmd.length() == 0) {
       return;
     }
     final String abspath = f.getAbsolutePath();
-    final String[] cmdarray = Util.splitwords(execPermCmd);
+    final String[] cmdarray = Util.splitwords(storage.execPermCmd);
     for (int i=0; i<cmdarray.length; i++) {
       cmdarray[i] = Util.replace(cmdarray[i], "${abspath}", abspath);
     }

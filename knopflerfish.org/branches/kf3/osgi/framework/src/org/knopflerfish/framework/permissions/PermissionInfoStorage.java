@@ -68,7 +68,7 @@ class PermissionInfoStorage {
    *
    */
   public PermissionInfoStorage(FrameworkContext ctx) {
-    debug = ctx.props.debug;
+    debug = ctx.debug;
     initialDefault = new PermissionInfo[] { new PermissionInfo(DEFAULTPERM) };
     defaultPermissions = initialDefault;
 

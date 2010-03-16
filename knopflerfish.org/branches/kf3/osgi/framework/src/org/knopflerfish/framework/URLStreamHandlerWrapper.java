@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,8 +109,9 @@ public class URLStreamHandlerWrapper
       throw new IllegalArgumentException("Protocol name contains illegal characters: " + proto);
     }
 
-    if (fw.props.debug.url) {
-      fw.props.debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
+    if (fw.debug.url) {
+      fw.debug.println("created wrapper for " + protocol + ", filter=" + filter
+                       + ", " + toString());
     }
   }
 
@@ -122,8 +123,9 @@ public class URLStreamHandlerWrapper
     try {
       fw.systemBundle.bundleContext.addServiceListener(serviceListener, filter);
       framework.add(fw);
-      if (fw.props.debug.url) {
-        fw.props.debug.println("created wrapper for " + protocol + ", filter=" + filter + ", " + toString());
+      if (fw.debug.url) {
+        fw.debug.println("created wrapper for " + protocol + ", filter=" + filter
+                         + ", " + toString());
       }
     } catch (InvalidSyntaxException _no) { }
   }

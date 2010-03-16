@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009, KNOPFLERFISH project
+ * Copyright (c) 2008-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ class ConditionalPermissionInfoStorage {
    */
   ConditionalPermissionInfoStorage(PermissionsHandle ph) {
     this.ph = ph;
-    debug = ph.framework.props.debug;
+    debug = ph.framework.debug;
     condPermDir = Util.getFileStorage(ph.framework, "condperm");
     if (condPermDir == null) {
       System.err.println("Property org.osgi.framework.dir not set," +

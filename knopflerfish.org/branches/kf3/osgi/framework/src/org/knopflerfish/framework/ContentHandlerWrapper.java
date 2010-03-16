@@ -108,8 +108,8 @@ import org.osgi.framework.*;
       throw new IllegalArgumentException("Could not register service listener for content handler: " + e);
     }
     
-    if(framework.props.debug.url) {
-      framework.props.debug.println("created wrapper for " + mimetype + ", filter=" + filter);
+    if (framework.debug.url) {
+      framework.debug.println("created wrapper for " + mimetype + ", filter=" + filter);
     }
   }
   

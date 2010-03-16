@@ -64,19 +64,19 @@ public class Main
   static Main main;
 
   // Verbosity level of printouts. 0 is low.
-  int verbosity /*= 0*/;
+  int verbosity;
 
   // Will be filled in from manifest entry during startup
   String version = "<unknown>";
 
   // Top directory (including any trailing /)
-  String topDir              = "";
+  String topDir = "";
 
   // Set to true if JRE is started without any arguments
-  boolean bZeroArgs     /*     = false*/;
+  boolean bZeroArgs;
 
   // will be initialized by main() - up for anyone for grabbing
-  public String bootText = "";
+  public String bootText;
 
   // Framwork properties, i.e., configuration properties from -Fkey=value
   Map fwProps/* <String, String> */ = new HashMap/*<String, String>*/();
@@ -89,6 +89,7 @@ public class Main
 
   static public final String XARGS_INIT     = "init.xargs";
   static public final String XARGS_RESTART  = "restart.xargs";
+  static public final String FWPROPS_XARGS  = "fwprops.xargs";
 
   static public final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
   static public final String CMDIR_DEFAULT = "cmdir";
@@ -96,13 +97,30 @@ public class Main
   static public final String VERBOSITY_PROP    = "org.knopflerfish.framework.main.verbosity";
   static public final String VERBOSITY_DEFAULT = "0";
 
+   /**
+   * Name of framework property controlling wheather to write an
+   * FWPROPS_XARGS file or not at startup.
+   */
+  static public final String WRITE_FWPROPS_XARGS_PROP =
+    "org.knopflerfish.framework.main.write.fwprops.xargs";
+
+  static public final String XARGS_WRITESYSPROPS_PROP =
+    "org.knopflerfish.framework.main.xargs.writesysprops";
 
   static public final String XARGS_DEFAULT     = "default";
 
   static public final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
 
-  static public final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
+  /**
+   * Default values for some framework properties.
+   */
+  Map defaultFwProps = new HashMap() {{
+    put(CMDIR_PROP,    CMDIR_DEFAULT);
+  }};
 
+
+  FrameworkFactory ff;
+  Framework framework;
   boolean restarting = false;
 
   /**
@@ -114,14 +132,15 @@ public class Main
     System.exit(0);
   }
 
-  public Main()
-  {
+
+  public Main() {
     try { // Set the initial verbosity level.
       final String vpv = (String) System.getProperty(VERBOSITY_PROP);
       verbosity = Integer.parseInt(null==vpv ? VERBOSITY_DEFAULT: vpv);
     } catch (Exception ignored) { }
     populateSysProps();
   }
+
 
   protected void start(String[] args) {
     version = readVersion();
@@ -157,9 +176,9 @@ public class Main
           args = new String[] {"-xargs", xargsPath};
         } else {
           final String[] newArgs = new String[args.length +2];
-          System.arraycopy(args, 0, newArgs, 0, args.length);
-          newArgs[args.length] = "-xargs";
-          newArgs[args.length+1] = xargsPath;
+          newArgs[0] = "-xargs";
+          newArgs[1] = xargsPath;
+          System.arraycopy(args, 0, newArgs, 2, args.length);
           args = newArgs;
         }
       }
@@ -169,14 +188,14 @@ public class Main
     handleArgs(args);
   }
 
+
   /**
    * Shall framework properties be exported as system properties?
    */
-  private boolean writeSysProps()
-  {
+  private boolean writeSysProps() {
     try {
       final String val = (String)
-        sysProps.get("org.knopflerfish.framework.xargs.writesysprops");
+        sysProps.get(XARGS_WRITESYSPROPS_PROP);
       return "true".equals(null!=val ? val : "false");
     } catch (Exception ignored) { }
     return false;
@@ -216,6 +235,7 @@ public class Main
     }
   }
 
+
   String[] getJarBase() {
     assertFramework();
     String jars = framework.getBundleContext().getProperty(JARDIR_PROP);
@@ -249,8 +269,7 @@ public class Main
    * @param arg    The command line argument to process.
    * @param props  The properties object to add the property to.
    */
-  void setProperty(String prefix, String arg, Map props)
-  {
+  void setProperty(String prefix, String arg, Map props) {
     final int ix = arg.indexOf("=");
     if(ix != -1) {
       final String key = arg.substring(2, ix);
@@ -262,13 +281,17 @@ public class Main
       if (VERBOSITY_PROP.equals(key)) {
         // redo this here since verbosity level may have changed
         try {
+          int old = verbosity;
           verbosity = Integer.parseInt( value.length()==0
                                         ? VERBOSITY_DEFAULT : value);
-          println("Verbosity changed to "+verbosity, 1);
+          if (old != verbosity) {
+            println("Verbosity changed to "+verbosity, 1);
+          }
         } catch (Exception ignored) {}
       }
     }
   }
+
 
   /**
    * Process all property related command line arguments. I.e.,
@@ -293,8 +316,7 @@ public class Main
    *
    * @param args  The command line argument array to process
    */
-  void processProperties(String[] args)
-  {
+  void processProperties(String[] args) {
     for (int i = 0; i < args.length; i++) {
       try {
         if(args[i].startsWith("-D")) { // A system property
@@ -313,8 +335,47 @@ public class Main
   }
 
 
-  FrameworkFactory ff;
-  Framework framework;
+  /**
+   * Save all framework properties as an xargs-file in the framework
+   * directory for restarts.
+   */
+  private void save_restart_props(Map props) {
+    final String xrwp = framework.getBundleContext().getProperty(WRITE_FWPROPS_XARGS_PROP);
+    if ("false".equalsIgnoreCase(xrwp)) {
+      return;
+    }
+    PrintWriter pr = null;
+    try {
+      final String fwDirStr = Util.getFrameworkDir(props);
+      final File fwDir      = new File(fwDirStr);
+      fwDir.mkdirs();
+
+      final File propsFile = new File(fwDir, Main.FWPROPS_XARGS);
+      pr = new PrintWriter(new BufferedWriter(new FileWriter(propsFile)));
+      for (Iterator it = props.entrySet().iterator(); it.hasNext();) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final String key   = (String) entry.getKey();
+        final String value = (String) entry.getValue();
+        
+        // Don't save clean onFirstInit
+        if (!Constants.FRAMEWORK_STORAGE_CLEAN.equals(key) ||
+            !Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT.equals(value)) {
+          pr.println("-F" +key +"=" +value);
+        }
+      }
+    } catch (Exception e) {
+      if(e instanceof RuntimeException) {
+        throw (RuntimeException)e;
+      }
+      throw new IllegalArgumentException("Failed to create "+ Main.FWPROPS_XARGS
+                                         + ": " + e);
+    } finally {
+      if (null!=pr) {
+        pr.close();
+      }
+    }
+  }
+
 
   /**
    * Ensure that a framework instance is created and initialized, if
@@ -332,6 +393,7 @@ public class Main
       framework = ff.newFramework(fwProps);
       try {
         framework.init();
+        save_restart_props(fwProps);
       } catch (BundleException be) {
         error("Failed to initialize the framework: " +be.getMessage(), be);
       }
@@ -339,15 +401,27 @@ public class Main
     }
   }
 
+
   /**
    * Handle command line options.
    *
    * @param args argument line
    */
-  private void handleArgs(String[] args)
-  {
+  private void handleArgs(String[] args) {
     boolean bLaunched = false;
 
+    // If not init, check if we have saved framework properties
+    if (!Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
+        .equals((String) fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN))) {
+      final File propsFile = new File(Util.getFrameworkDir(fwProps), Main.FWPROPS_XARGS);
+      if (propsFile.exists()) {
+        final String[] newArgs = new String[args.length +2];
+        newArgs[0] = "-xargs";
+        newArgs[1] = propsFile.getAbsolutePath();
+        System.arraycopy(args, 0, newArgs, 2, args.length);
+        args = expandArgs(newArgs);
+      }
+    }
     // Since we must have all framework properties in the
     // fwProps-map before creating the framework instance we must
     // first handle all args that define proeprties. I.e., args
@@ -662,52 +736,48 @@ public class Main
       }
     }
 
-    if (framework == null) {
-      println("No framework created", 0);
-    } else {
-      if(!bLaunched) {
-        try {
-          framework.start();
-          closeSplash();
-          println("Framework launched", 0);
-        } catch (Throwable t) {
-          if (t instanceof BundleException) {
-            BundleException be = (BundleException) t;
-            Throwable ne = be.getNestedException();
-            if (ne != null) t = ne;
-          }
-          error("Framework launch failed, " + t.getMessage(), t);
+    assertFramework();
+    if(!bLaunched) {
+      try {
+        framework.start();
+        closeSplash();
+        println("Framework launched", 0);
+      } catch (Throwable t) {
+        if (t instanceof BundleException) {
+          BundleException be = (BundleException) t;
+          Throwable ne = be.getNestedException();
+          if (ne != null) t = ne;
         }
+        error("Framework launch failed, " + t.getMessage(), t);
       }
-      FrameworkEvent stopEvent = null;
-      while (true) { // Ignore interrupted exception.
-        try {
-          stopEvent = framework.waitForStop(0L);
-          switch (stopEvent.getType()) {
-          case FrameworkEvent.STOPPED:
-            // FW terminated, Main is done!
-            println("Framework terminated", 0);
-            return;
-          case FrameworkEvent.STOPPED_UPDATE:
-            // Automatic FW restart, wait again.
-            break;
-          case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
-            // A manual FW restart with new boot class path is needed.
-            return; // TODO
-          case FrameworkEvent.ERROR:
-            // Stop failed or other error, give up.
-            error("Fatal framework error, terminating.",
-                  stopEvent.getThrowable());
-            return;
-          case FrameworkEvent.WAIT_TIMEDOUT:
-            // Should not happen with timeout==0, give up.
-            error("Framework waitForStop(0) timed out!",
-                  stopEvent.getThrowable());
-            break;
-          }
-        } catch (InterruptedException ie) {
+    }
+    FrameworkEvent stopEvent = null;
+    while (true) { // Ignore interrupted exception.
+      try {
+        stopEvent = framework.waitForStop(0L);
+        switch (stopEvent.getType()) {
+        case FrameworkEvent.STOPPED:
+          // FW terminated, Main is done!
+          println("Framework terminated", 0);
+          return;
+        case FrameworkEvent.STOPPED_UPDATE:
+          // Automatic FW restart, wait again.
+          break;
+        case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
+          // A manual FW restart with new boot class path is needed.
+          return; // TODO
+        case FrameworkEvent.ERROR:
+          // Stop failed or other error, give up.
+          error("Fatal framework error, terminating.",
+                stopEvent.getThrowable());
+          return;
+        case FrameworkEvent.WAIT_TIMEDOUT:
+          // Should not happen with timeout==0, give up.
+          error("Framework waitForStop(0) timed out!",
+                stopEvent.getThrowable());
+          break;
         }
-      }
+      } catch (InterruptedException ie) { }
     }
   }
 
@@ -719,7 +789,7 @@ public class Main
    * @param base Base URL to complete locations with.
    * @param idLocation bundle id or location of the bundle to lookup
    */
-  private long getBundleID(Framework fw, String idLocation ) {
+  private long getBundleID(Framework fw, String idLocation) {
     try {
       return Long.parseLong(idLocation);
     } catch (NumberFormatException nfe) {
@@ -735,13 +805,13 @@ public class Main
     }
   }
 
+
   /**
-   ** Complete location relative to the base Jars URL.
-   ** @param base Base URLs to complete with; first match is used.
-   ** @param location The location to be completed.
-   **/
-  private String completeLocation(String location )
-  {
+   * Complete location relative to the base Jars URL.
+   * @param base Base URLs to complete with; first match is used.
+   * @param location The location to be completed.
+   */
+  private String completeLocation(String location) {
     String[] base = getJarBase();
     // Handle file: case where topDir is not ""
     if(location.startsWith("file:jars/") && !topDir.equals("")) {
@@ -839,6 +909,7 @@ public class Main
     return r;
   }
 
+
   /**
    * Print help for starting the platform.
    */
@@ -855,7 +926,6 @@ public class Main
    * Print help for starting the platform.
    */
   void printJVMInfo(Framework framework) {
-
     try {
       Properties props = System.getProperties();
       System.out.println("--- System properties ---");
@@ -878,15 +948,18 @@ public class Main
     }
   }
 
+
   // should this be read from the manifest instead?
   static String readVersion() {
     return readResource("/version", "<no version found>", "UTF-8");
   }
 
+
   // should this be read from the manifest instead?
   static String readRelease() {
     return readResource("/release", "0.0.0.snapshot", "UTF-8");
   }
+
 
   // Read version info from manifest
   static String readResource(String file, String defaultValue, String encoding) {
@@ -896,6 +969,7 @@ public class Main
       return defaultValue;
     }
   }
+
 
   /**
    * Helper method which tries to find a default xargs files to use.
@@ -947,29 +1021,23 @@ public class Main
                      "remote-" +XARGS_INIT }
       : new String[]{XARGS_RESTART};
 
-    File xargsFile  = null;
+    String xargsFound  = null;
     println("Searching for default xargs file:", 5);
     xargsSearch:
     for (int i = 0; i<dirs.length; i++) {
       for (int k = 0; k<xargNames.length; k++) {
-        xargsFile = new File(dirs[i], xargNames[k]);
+        File xargsFile = new File(dirs[i], xargNames[k]);
         println("  trying " +xargsFile.getAbsolutePath(), 5);
-        if (xargsFile.exists()) break xargsSearch;
+        if (xargsFile.exists()) {
+          xargsFound = xargsFile.getAbsolutePath();
+          break xargsSearch;
+        }
       }
     }
-    println("default xargs file is "
-            +(null!=xargsFile ? xargsFile.getAbsolutePath() : "none"), 2);
+    println("default xargs file is " + xargsFound, 2);
 
-    return null!=xargsFile ? xargsFile.getAbsolutePath() : null;
+    return xargsFound;
   }
-
-  /**
-   * Default values for some framework properties.
-   */
-  Map defaultFwProps = new HashMap() {{
-    put(CMDIR_PROP,    CMDIR_DEFAULT);
-  }};
-
 
 
   /**
@@ -984,7 +1052,6 @@ public class Main
    * @see defaultSysProps
    */
   protected void addDefaultProps() {
-
     for(Iterator it = defaultFwProps.entrySet().iterator(); it.hasNext();) {
       final Map.Entry entry = (Map.Entry) it.next();
       final String key = (String) entry.getKey();
@@ -1041,12 +1108,12 @@ public class Main
     }
   }
 
+
   /**
    * Populates the sysProps Map&lt;String,String&gt; with all entries
    * from the system properties object.
    */
-  void populateSysProps()
-  {
+  void populateSysProps() {
     final Properties systemProperties = System.getProperties();
     final Enumeration systemPropertiesNames = systemProperties.propertyNames();
     while (systemPropertiesNames.hasMoreElements()) {
@@ -1060,6 +1127,7 @@ public class Main
       }
     }
   }
+
 
   /**
    * Add all entires in the given map to the set of system properties.
@@ -1087,8 +1155,7 @@ public class Main
    *   <li>Add default properties.
    * </ul>
    */
-  void finalizeProperties()
-  {
+  void finalizeProperties() {
     expandPropValues(sysProps, null);
     expandPropValues(fwProps, sysProps);
     addDefaultProps();
@@ -1099,6 +1166,7 @@ public class Main
     }
 
   }
+
 
   /**
    * If any of the values in <tt>toExpand</tt> contains a sub-string
@@ -1138,6 +1206,7 @@ public class Main
     }
   }
 
+
   /**
    * If the last to elements in args "-xargs" or "--xargs" then expand
    * it with arg as argument and replace the last element in args with
@@ -1149,8 +1218,7 @@ public class Main
    * @param args The list to add elements to.
    * @param arg  The element to add.
    */
-  private void addArg(List args, String arg)
-  {
+  private void addArg(List args, String arg) {
     if (0==args.size()) {
       args.add(arg);
     } else {
@@ -1166,6 +1234,7 @@ public class Main
       }
     }
   }
+
 
   /**
    * Helper method when OS shell does not allow long command lines. This
@@ -1205,7 +1274,6 @@ public class Main
    *         <tt>argv</tt> by the caller.
    */
   String [] loadArgs(String xargsPath, String[] oldArgs) {
-
     if(XARGS_DEFAULT.equals(xargsPath)) {
       processProperties(oldArgs);
       xargsPath = getDefaultXArgs();
@@ -1218,7 +1286,7 @@ public class Main
     try {
 
       // Check as file first, then as a URL
-      println("Searching for xargs file with URL '" +xargsPath +"'.", 2);
+      println("Searching for xargs file with '" +xargsPath +"'.", 2);
 
       // 1) Search in parent dir of the current framework directory
       final String fwDirStr = Util.getFrameworkDir(fwProps);
@@ -1266,7 +1334,6 @@ public class Main
                                              ": " + e);
         }
       }
-
 
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
@@ -1354,8 +1421,7 @@ public class Main
 
 
   // If a splash screen hash been shown, try to close it.
-  void closeSplash()
-  {
+  void closeSplash() {
     // User reflection, and ignore errors since this is only supported
     // in Java SE 6.
     try {
@@ -1373,6 +1439,7 @@ public class Main
     }
   }
 
+
   /**
    * Print string to System.out if level >= current verbosity.
    *
@@ -1383,9 +1450,11 @@ public class Main
     println(s, level, null);
   }
 
+
   void println(String s, Bundle b) {
     println(s + b.getLocation() + " (id#" + b.getBundleId() + ")", 1);
   }
+
 
   void println(String s, int level, Exception e) {
     if(verbosity >= level) {
@@ -1396,12 +1465,14 @@ public class Main
     }
   }
 
+
   /**
    * Report error and exit.
    */
   void error(final String s) {
     error(s, null);
   }
+
 
   void error(final String s, final Throwable t) {
     System.err.println("Error: " + s);

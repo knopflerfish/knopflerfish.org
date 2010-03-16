@@ -59,28 +59,29 @@ public class ServiceContentHandlerFactory
     this.framework = fw;
 
     // Initialize JVM classpath handlers
-    String s = framework.props.getProperty("java.content.handler.pkgs", "");
-    
-    jvmPkgs = Util.splitwords(s, "|");
-    for(int i = 0; i < jvmPkgs.length; i++) {
-      jvmPkgs[i] = jvmPkgs[i].trim();
-      if(framework.props.debug.url) {
-	framework.props.debug.println("JVMClassPathCH - jvmPkgs[" + i + "]=" + jvmPkgs[i]);
+    String s = framework.props.getProperty("java.content.handler.pkgs");
+    if (s != null && s.length() > 0) {
+      jvmPkgs = Util.splitwords(s, "|");
+      for(int i = 0; i < jvmPkgs.length; i++) {
+        jvmPkgs[i] = jvmPkgs[i].trim();
+        if(framework.debug.url) {
+          framework.debug.println("JVMClassPathCH - jvmPkgs[" + i + "]=" + jvmPkgs[i]);
+        }
       }
     }
   }
   
   public ContentHandler createContentHandler(String mimetype) {
     
-    if(framework.props.debug.url) {
-      framework.props.debug.println("createContentHandler protocol=" + mimetype);
+    if(framework.debug.url) {
+      framework.debug.println("createContentHandler protocol=" + mimetype);
     }
     
     ContentHandler handler = getJVMClassPathHandler(mimetype);
     
     if(handler != null) {
-      if(framework.props.debug.url) {
-	framework.props.debug.println("using JVMClassPath handler for " + mimetype);
+      if(framework.debug.url) {
+	framework.debug.println("using JVMClassPath handler for " + mimetype);
       }
       return handler;
     }
@@ -89,14 +90,15 @@ public class ServiceContentHandlerFactory
     handler = getServiceHandler(mimetype);
 
     if(handler != null) {
-      if(framework.props.debug.url) {
-	framework.props.debug.println("Using service ContentHandler for " + mimetype + ", handler=" + handler);
+      if(framework.debug.url) {
+	framework.debug.println("Using service ContentHandler for " + mimetype
+                                + ", handler=" + handler);
       }
       return handler;
     }
     
-    if(framework.props.debug.url) {
-      framework.props.debug.println("Using default ContentHandler for " + mimetype);
+    if(framework.debug.url) {
+      framework.debug.println("Using default ContentHandler for " + mimetype);
     }
 
     // delegate to system handler
@@ -130,31 +132,35 @@ public class ServiceContentHandlerFactory
   
 
   ContentHandler getJVMClassPathHandler(String mimetype) {
-    for(int i = 0; i < jvmPkgs.length; i++) {
-      String converted = convertMimetype(mimetype);
+    if (jvmPkgs != null) {
+      for(int i = 0; i < jvmPkgs.length; i++) {
+        String converted = convertMimetype(mimetype);
 
-      String className = jvmPkgs[i] + "." + converted + ".Handler";
-      try { 
-	if(framework.props.debug.url) {
-	  framework.props.debug.println("JVMClassPathCH - trying ContentHandler class=" + className);
-	}
-	Class clazz = Class.forName(className);
-	ContentHandler handler = (ContentHandler)clazz.newInstance();
+        String className = jvmPkgs[i] + "." + converted + ".Handler";
+        try {
+          if(framework.debug.url) {
+            framework.debug.println("JVMClassPathCH - trying ContentHandler class="
+                                    + className);
+          }
+          Class clazz = Class.forName(className);
+          ContentHandler handler = (ContentHandler)clazz.newInstance();
 	
-	if(framework.props.debug.url) {
-	  framework.props.debug.println("JVMClassPathCH - created ContentHandler class=" + className);
-	}
+          if(framework.debug.url) {
+            framework.debug.println("JVMClassPathCH - created ContentHandler class="
+                                    + className);
+          }
 
-	return handler;
-      } catch (Throwable t) {
-	if(framework.props.debug.url) {
-	  framework.props.debug.println("JVMClassPathCH - no ContentHandler class " + className);
-	}
+          return handler;
+        } catch (Throwable t) {
+          if(framework.debug.url) {
+            framework.debug.println("JVMClassPathCH - no ContentHandler class " + className);
+          }
+        }
       }
     }
     
-    if(framework.props.debug.url) {
-      framework.props.debug.println("JVMClassPath - no ContentHandler for " + mimetype);
+    if(framework.debug.url) {
+      framework.debug.println("JVMClassPath - no ContentHandler for " + mimetype);
     }
     
     return null;

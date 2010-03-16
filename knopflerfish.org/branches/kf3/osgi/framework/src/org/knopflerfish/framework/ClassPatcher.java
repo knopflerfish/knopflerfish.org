@@ -123,12 +123,11 @@ public class ClassPatcher {
 
 
   protected void init() {
-    bDumpClasses = "true".equals(framework.props.getProperty("org.knopflerfish.framework.patch.dumpclasses"));
+    bDumpClasses = framework.props.getBooleanProperty(FWProps.PATCH_DUMPCLASSES_PROP);
     String urlS = classLoader.archive.getAttribute("Bundle-ClassPatcher-Config");
 
     if(urlS == null || "".equals(urlS)) {
-      urlS = framework.props.getProperty("org.knopflerfish.framework.patch.configurl",
-                                "!!/patches.props");
+      urlS = framework.props.getProperty(FWProps.PATCH_CONFIGURL_PROP);
     } else if("none".equals(urlS)) {
       urlS = null;
     }
@@ -198,7 +197,7 @@ public class ClassPatcher {
       is = url.openStream();
       loadWrappersFromInputStream(is);
     } catch (Exception e) {
-      framework.props.debug.printStackTrace("Failed to load patches conf from " + url, e);
+      framework.debug.printStackTrace("Failed to load patches conf from " + url, e);
     } finally {
       try { is.close(); } catch (Exception ignored) { }
     }
@@ -213,7 +212,7 @@ public class ClassPatcher {
       try {
         patchesFilter = new LDAPExpr(f);
       } catch (Exception e) {
-        framework.props.debug.printStackTrace("Failed to set patches filter", e);
+        framework.debug.printStackTrace("Failed to set patches filter", e);
       }
     }
 
@@ -227,8 +226,8 @@ public class ClassPatcher {
           String to   = (String)props.get(PRE + id + ".to");
 
           if(to == null) {
-            if(framework.props.debug.patch) {
-              framework.props.debug.println("No key=" + (PRE + id + ".to"));
+            if(framework.debug.patch) {
+              framework.debug.println("No key=" + (PRE + id + ".to"));
               continue;
             }
           }
@@ -279,36 +278,41 @@ public class ClassPatcher {
     String targetOwner = r[0];
     String targetName = r[1];
 
-    if(classLoader.isBundlePatch() &&
-       "true".equals(framework.props.getProperty("kf.patch." + targetName, "" + defActive))) {
-      MethodInfo mi     = new MethodInfo(owner, name, desc, bStatic);
-      if(filter != null) {
-        try {
-          mi.filter = new LDAPExpr(filter);
-        } catch (Exception e) {
-          framework.props.debug.printStackTrace("Bad filter for " + mi, e);
-        }
-      }
-      int    ix0        = desc.lastIndexOf("(");
-      int    ix1        = desc.lastIndexOf(")");
-      String origArgs   = desc.substring(ix0+1, ix1);
-      String retType    = desc.substring(ix1+1);
-      String targetDesc;
-      if(bStatic) {
-        targetDesc = origArgs + "JLjava/lang/Object;";
-      } else {
-        targetDesc = "Ljava/lang/Object;" + origArgs + "JLjava/lang/Object;";
-      }
-      targetDesc = "(" + targetDesc + ")" + retType;
-
-      MethodInfo target = new MethodInfo(targetOwner,
-                                         targetName,
-                                         targetDesc,
-                                         false);
-
-      target.key = mi;
-      wrappers.put(mi, target);
+    if (!classLoader.isBundlePatch()) {
+      return;
     }
+    String kpt = framework.props.getProperty("kf.patch." + targetName);
+    if (kpt != null ? "false".equalsIgnoreCase(kpt) : !defActive) {
+      return;
+    }
+
+    MethodInfo mi     = new MethodInfo(owner, name, desc, bStatic);
+    if(filter != null) {
+      try {
+        mi.filter = new LDAPExpr(filter);
+      } catch (Exception e) {
+        framework.debug.printStackTrace("Bad filter for " + mi, e);
+      }
+    }
+    int    ix0        = desc.lastIndexOf("(");
+    int    ix1        = desc.lastIndexOf(")");
+    String origArgs   = desc.substring(ix0+1, ix1);
+    String retType    = desc.substring(ix1+1);
+    String targetDesc;
+    if(bStatic) {
+      targetDesc = origArgs + "JLjava/lang/Object;";
+    } else {
+      targetDesc = "Ljava/lang/Object;" + origArgs + "JLjava/lang/Object;";
+    }
+    targetDesc = "(" + targetDesc + ")" + retType;
+
+    MethodInfo target = new MethodInfo(targetOwner,
+                                       targetName,
+                                       targetDesc,
+                                       false);
+
+    target.key = mi;
+    wrappers.put(mi, target);
   }
 
   protected void dumpInfo() {
@@ -318,12 +322,12 @@ public class ClassPatcher {
       MethodInfo mi   = (MethodInfo)wrappers.get(from);
       if(mi.nPatches > 0) {
         if(bFirst) {
-          framework.props.debug.println("Patches in " + mi.className);
+          framework.debug.println("Patches in " + mi.className);
           bFirst = false;
         }
-        framework.props.debug.println(" " + mi.nPatches + " " +
-                      (mi.nPatches == 1 ? "occurance " : "occurances") +
-                      " of " + from.owner + "." + from.name);
+        framework.debug.println(" " + mi.nPatches + " " +
+                                (mi.nPatches == 1 ? "occurance " : "occurances") +
+                                " of " + from.owner + "." + from.name);
       }
       mi.nPatches = 0;
       mi.className = "";
@@ -359,8 +363,7 @@ public class ClassPatcher {
   protected void dumpClassBytes(String className, byte[] classBytes) {
     OutputStream os = null;
     try {
-      String dirName = framework.props.getProperty("org.knopflerfish.framework.patch.dumpclasses.dir",
-                                          "patchedclasses");
+      String dirName = framework.props.getProperty(FWProps.PATCH_DUMPCLASSES_DIR_PROP);
       File dir = new File(dirName);
 
       String classFileName = className.replace('.', '/');
@@ -373,14 +376,14 @@ public class ClassPatcher {
       }
       dir.mkdirs();
       file = new File(dir, classFileName);
-      if(framework.props.debug.patch) {
-        framework.props.debug.println("dump " + className + " to " + file.getAbsolutePath());
+      if(framework.debug.patch) {
+        framework.debug.println("dump " + className + " to " + file.getAbsolutePath());
       }
       os = new FileOutputStream(file);
       os.write(classBytes);
       os.flush();
     } catch (Exception e) {
-      framework.props.debug.printStackTrace("Failed to dump class=" + className, e);
+      framework.debug.printStackTrace("Failed to dump class=" + className, e);
     } finally {
       try { os.close(); } catch (Exception ignored) { }
     }
@@ -443,7 +446,7 @@ class ClassAdapterPatcher extends ClassAdapter {
 
     super.visitEnd();
 
-    if(bcl.bpkgs.bundle.fwCtx.props.debug.patch) {
+    if(bcl.bpkgs.bundle.fwCtx.debug.patch) {
       cp.dumpInfo();
     }
   }
@@ -491,11 +494,11 @@ class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
         }
       }
 
-      if(framework.props.debug.patch) {
-        framework.props.debug.println("patch " + ca.className + "/" + ca.currentSuperName + "." + ca.currentMethodName + "\n" +
-                      " " + from0.owner +
-                      "." + from.name + "\n" +
-                      " " + mi.owner + "." + mi.name);
+      if(framework.debug.patch) {
+        framework.debug.println("patch " + ca.className + "/" + ca.currentSuperName
+                                + "." + ca.currentMethodName + "\n "
+                                + from0.owner + "." + from.name + "\n "
+                                + mi.owner + "." + mi.name);
       }
       wrapMethod(mi);
     } else {

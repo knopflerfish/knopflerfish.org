@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ class PermissionInfoPermissions extends PermissionCollection {
                             File root,
                             InputStream pinfoStream) {
     framework = fw;
-    debug = fw.props.debug;
+    debug = fw.debug;
     dataRoot = root;
     try {
       DataInputStream dis = new DataInputStream(pinfoStream);
@@ -115,7 +115,7 @@ class PermissionInfoPermissions extends PermissionCollection {
                             PermissionInfo [] pinfo) {
     framework = fw;
     dataRoot = root;
-    debug = fw.props.debug;
+    debug = fw.debug;
     if (pinfo != null) {
       this.pinfo = (PermissionInfo [])pinfo.clone();
       unresolved = pinfo.length;

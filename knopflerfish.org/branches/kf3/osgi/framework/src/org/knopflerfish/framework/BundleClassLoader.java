@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,14 +154,14 @@ final public class BundleClassLoader
     //otherwise getResource will bypass OUR parent
     super(bpkgs.bundle.fwCtx.parentClassLoader);
 
-    this.debug = bpkgs.bundle.fwCtx.props.debug;
+    this.debug = bpkgs.bundle.fwCtx.debug;
     this.parent = bpkgs.bundle.fwCtx.parentClassLoader;
     this.secure = secure;
     protectionDomain = pd;
     this.bpkgs = bpkgs;
     archive = ba;
     fragments = frags;
-    classPath = new BundleClassPath(ba, frags, bpkgs.bundle.fwCtx.props);
+    classPath = new BundleClassPath(ba, frags, bpkgs.bundle.fwCtx);
     if (debug.classLoader) {
       debug.println(this + " Created new classloader");
     }
@@ -193,9 +193,7 @@ final public class BundleClassLoader
       }
     }
 
-    return bHasASM &&
-      "true".equals(bpkgs.bundle.fwCtx.props.getProperty("org.knopflerfish.framework.patch",
-                                                             "false"));
+    return bHasASM && bpkgs.bundle.fwCtx.props.getBooleanProperty(FWProps.PATCH_PROP);
   }
 
   /**
@@ -370,7 +368,7 @@ final public class BundleClassLoader
       // be loaded.
       BundleImpl b = (BundleImpl) getBundle();
       if (b.triggersActivationCls(name)) {
-        if (debug.lazyActivation) {
+        if (debug.lazy_activation) {
           debug.println(this +" lazy activation of #" +b.id
                         +" triggered by loadClass(" +name +")");
         }
@@ -378,7 +376,7 @@ final public class BundleClassLoader
         ArrayList bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
         if (null==bundlesToActivate) {
           // Not part of a load chain; activate bundle here.
-          if (debug.lazyActivation) {
+          if (debug.lazy_activation) {
             debug.println(this + " requesting lazy activation of #" +b.id);
           }
           try {
@@ -399,7 +397,7 @@ final public class BundleClassLoader
           }
           if (!bundlePresent) {
             bundlesToActivate.add(b);
-            if (debug.lazyActivation) {
+            if (debug.lazy_activation) {
               debug.println(this + " added #" +b.id
                             +" to list of bundles to be activated.");
             }
@@ -716,7 +714,7 @@ final public class BundleClassLoader
       }
       if (!bundlePresent && b.triggersActivationPkg(pkg)) {
         bundlesToActivate.add(b);
-        if (debug.lazyActivation) {
+        if (debug.lazy_activation) {
           debug.println(this +" lazy activation of #" +b.id
                         +" triggered by searchFor(" +name +")");
         }
@@ -729,7 +727,7 @@ final public class BundleClassLoader
     if (initiator) {
       for (int i = bundlesToActivate.size() - 1; i >= 0; i--) {
         BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
-        if (debug.lazyActivation) {
+        if (debug.lazy_activation) {
           debug.println(this + " requesting lazy activation of #" +b.id);
         }
         try {
