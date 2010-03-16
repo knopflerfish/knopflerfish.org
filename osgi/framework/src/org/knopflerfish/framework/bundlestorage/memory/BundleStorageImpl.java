@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,8 +67,8 @@ public class BundleStorageImpl implements BundleStorage {
    * Try to restore all saved bundle archive state.
    *
    */
-  public BundleStorageImpl(FrameworkContext framework, boolean loadCert) {
-    checkSigned = loadCert;
+  public BundleStorageImpl(FrameworkContext framework) {
+    checkSigned = framework.props.getBooleanProperty(FWProps.BUNDLESTORAGE_CHECKSIGNED_PROP);
   }
 
   /**

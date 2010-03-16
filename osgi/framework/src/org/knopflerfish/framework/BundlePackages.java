@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -637,11 +637,11 @@ class BundlePackages {
   void fragmentIsZombie(BundleImpl fb)
   {
     if (null!=exports) {
-      if(bundle.fwCtx.props.debug.packages) {
-        bundle.fwCtx.props.debug.println("Marking all packages exported by host bundle(id="
-                      +bundle.id +",gen=" +generation
-                      +") as zombies since the attached fragment (id="
-                      +fb.getBundleId() +") was updated/uninstalled.");
+      if(bundle.fwCtx.debug.packages) {
+        bundle.fwCtx.debug.println("Marking all packages exported by host bundle(id="
+                                   +bundle.id +",gen=" +generation
+                                   +") as zombies since the attached fragment (id="
+                                   +fb.getBundleId() +") was updated/uninstalled.");
       }
       for (Iterator eiter = exports.iterator(); eiter.hasNext(); ) {
         ((ExportPkg)eiter.next()).zombie = true;

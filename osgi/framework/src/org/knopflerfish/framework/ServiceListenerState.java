@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -199,8 +199,8 @@ class ServiceListenerState {
           }
         }
       } else {
-        if (listeners.framework.props.debug.ldap) {
-          listeners.framework.props.debug.println("Too complicated filter: " + sle.ldap);
+        if (listeners.framework.debug.ldap) {
+          listeners.framework.debug.println("Too complicated filter: " + sle.ldap);
         }
         complicatedListeners.add(sle);
       }
@@ -223,8 +223,9 @@ class ServiceListenerState {
         set.add(sle);
       }
     }
-    if (listeners.framework.props.debug.ldap) {
-      listeners.framework.props.debug.println("Added " + set.size() + " out of " + n + " listeners with complicated filters");
+    if (listeners.framework.debug.ldap) {
+      listeners.framework.debug.println("Added " + set.size() + " out of " + n +
+                                        " listeners with complicated filters");
     }
     // Check the cache
     String[] c = (String[])sr.getProperty(Constants.OBJECTCLASS);
@@ -260,15 +261,15 @@ class ServiceListenerState {
   private void addToSet(Set set, int cache_ix, Object val) {
     List l = (List)cache[cache_ix].get(val);
     if (l != null) {
-      if (listeners.framework.props.debug.ldap) {
-        listeners.framework.props.debug.println(hashedKeys[cache_ix] + " matches " + l.size());
+      if (listeners.framework.debug.ldap) {
+        listeners.framework.debug.println(hashedKeys[cache_ix] + " matches " + l.size());
       }
       for (Iterator it = l.iterator(); it.hasNext();) {
         set.add(it.next());
       }
     } else {
-      if (listeners.framework.props.debug.ldap) {
-        listeners.framework.props.debug.println(hashedKeys[cache_ix] + " matches none");
+      if (listeners.framework.debug.ldap) {
+        listeners.framework.debug.println(hashedKeys[cache_ix] + " matches none");
       }
     }
   }

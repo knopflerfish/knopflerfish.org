@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2009, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,16 +95,12 @@ class SecurePermissionOps extends PermissionOps {
 
 
   void registerService() {
-    final boolean regPA = new Boolean(framework.props.getProperty("org.knopflerfish.framework.service.permissionadmin", "true")).booleanValue();
-
-    final boolean regCPA = new Boolean(framework.props.getProperty("org.knopflerfish.framework.service.conditionalpermissionadmin", "true")).booleanValue();
-
-    if (regPA) {
+    if (framework.props.getBooleanProperty(FWProps.SERVICE_PERMISSIONADMIN_PROP)) {
       String[] classes = new String [] { PermissionAdmin.class.getName() };
       framework.services.register(framework.systemBundle, classes,
                                   ph.getPermissionAdminService(), null);
     }
-    if (regCPA) {
+    if (framework.props.getBooleanProperty(FWProps.SERVICE_CONDITIONALPERMISSIONADMIN_PROP)) {
       ConditionalPermissionAdmin cpa = ph.getConditionalPermissionAdminService();
       if (cpa != null) {
         String[] classes = new String [] { ConditionalPermissionAdmin.class.getName() };
@@ -208,10 +204,9 @@ class SecurePermissionOps extends PermissionOps {
       checkResourceAdminPerm(b);
       return true;
     } catch (SecurityException ignore) {
-      if (framework.props.debug.bundle_resource) {
-        framework.props.debug.printStackTrace("No permission to access resources in bundle #"
-                              +b.getBundleId(),
-                              ignore );
+      if (framework.debug.bundle_resource) {
+        framework.debug.printStackTrace("No permission to access resources in bundle #"
+                                        + b.getBundleId(), ignore);
       }
       return false;
     }
@@ -221,20 +216,6 @@ class SecurePermissionOps extends PermissionOps {
     SecurityManager sm = System.getSecurityManager();
     if(null!=sm){
       sm.checkPermission(getAdminPermission(b, AP_CONTEXT));
-    }
-  }
-
-  boolean okContextAdminPerm(Bundle b) {
-    try {
-      checkContextAdminPerm(b);
-      return true;
-    } catch (SecurityException ignore) {
-      if (framework.props.debug.bundle_context) {
-        framework.props.debug.printStackTrace("No permission to access context in bundle #"
-                              +b.getBundleId(),
-                              ignore );
-      }
-      return false;
     }
   }
 
@@ -333,9 +314,9 @@ class SecurePermissionOps extends PermissionOps {
       checkGetServicePerms(sr);
       return true;
     } catch (SecurityException ignore) {
-      if (framework.props.debug.service_reference) {
-        framework.props.debug.printStackTrace
-          ("No permission to get service ref: " + sr.getProperty(Constants.OBJECTCLASS), ignore);
+      if (framework.debug.service_reference) {
+        framework.debug.printStackTrace("No permission to get service ref: " +
+                                        sr.getProperty(Constants.OBJECTCLASS), ignore);
       }
     }
     return false;

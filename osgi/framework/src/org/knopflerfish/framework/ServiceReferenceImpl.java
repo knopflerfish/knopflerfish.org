@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -206,9 +206,7 @@ public class ServiceReferenceImpl implements ServiceReference
   Object getService(final BundleImpl bundle) {
     Object s = null;
     synchronized (registration.properties) {
-      if (registration.available
-          && (!registration.unregistering
-              || bundle.fwCtx.props.UNREGISTERSERVICE_VALID_DURING_UNREGISTERING) ) {
+      if (registration.available) {
         bundle.fwCtx.perm.checkGetServicePerms(this);
         Integer ref = (Integer)registration.dependents.get(bundle);
         if (ref == null) {

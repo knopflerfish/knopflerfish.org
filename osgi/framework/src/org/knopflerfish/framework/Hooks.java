@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,8 +61,8 @@ class Hooks {
    *
    */
   synchronized void open() {
-    if(fwCtx.props.debug.hooks) {
-      fwCtx.props.debug.println("opening hooks");
+    if(fwCtx.debug.hooks) {
+      fwCtx.debug.println("opening hooks");
     }
 
     listenerHookTracker = new ServiceTracker
@@ -74,7 +74,8 @@ class Hooks {
            try {
              lh.added(getServiceCollection());
            } catch (Exception e) {
-             fwCtx.props.debug.printStackTrace("Failed to call listener hook  #" + reference.getProperty(Constants.SERVICE_ID), e);
+             fwCtx.debug.printStackTrace("Failed to call listener hook  #" +
+                                         reference.getProperty(Constants.SERVICE_ID), e);
            }
            return lh;
          }
@@ -134,8 +135,8 @@ class Hooks {
           try {
             fh.find(bc, service, filter, allServices, filtered);
           } catch (Exception e) {
-            fwCtx.props.debug.printStackTrace("Failed to call find hook  #" +
-                                              sr.getProperty(Constants.SERVICE_ID), e);
+            fwCtx.debug.printStackTrace("Failed to call find hook  #" +
+                                        sr.getProperty(Constants.SERVICE_ID), e);
           }
         }
       }
@@ -164,8 +165,8 @@ class Hooks {
           try {
             eh.event(evt, filtered);
           } catch (Exception e) {
-            fwCtx.props.debug.printStackTrace("Failed to call event hook  #" +
-                                              sr.getProperty(Constants.SERVICE_ID), e);
+            fwCtx.debug.printStackTrace("Failed to call event hook  #" +
+                                        sr.getProperty(Constants.SERVICE_ID), e);
           }
         }
       }
@@ -207,7 +208,8 @@ class Hooks {
       try {
         lh.added(set);
       } catch (Exception e) {
-        fwCtx.props.debug.printStackTrace("Failed to call listener hook #" + srl[i].getProperty(Constants.SERVICE_ID), e);
+        fwCtx.debug.printStackTrace("Failed to call listener hook #" +
+                                    srl[i].getProperty(Constants.SERVICE_ID), e);
       }
 
     }
@@ -238,8 +240,8 @@ class Hooks {
       try {
         lh.removed(set);
       } catch (Exception e) {
-        fwCtx.props.debug.printStackTrace("Failed to call listener hook #" +
-                                            srl[i].getProperty(Constants.SERVICE_ID), e);
+        fwCtx.debug.printStackTrace("Failed to call listener hook #" +
+                                    srl[i].getProperty(Constants.SERVICE_ID), e);
       }
     }
   }

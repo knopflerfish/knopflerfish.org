@@ -164,7 +164,7 @@ public class AutoManifest extends Manifest {
   Attributes mainAttrs;
   Set        packages        = new TreeSet();
 
-  static String configSource = "";
+  static String configSource = null;
   static Map    configs      = null;
 
   /**
@@ -200,20 +200,21 @@ public class AutoManifest extends Manifest {
 
     // just read the config once
     if(configs == null) {
-      boolean bActive   = "true".equals(fwCtx.props.getProperty("org.knopflerfish.framework.automanifest","false"));
-      String  defSource = bActive ? "!!/automanifest.props" : null;
-      configSource = fwCtx.props.getProperty("org.knopflerfish.framework.automanifest.config", defSource);
-      configs      = loadConfig(configSource);
-
-      if(fwCtx.props.debug.automanifest) {
-        fwCtx.props.debug.println("Loaded auto manifest config from " + configSource);
+      if(fwCtx.props.getBooleanProperty(FWProps.AUTOMANIFEST_PROP)) {
+        configSource = fwCtx.props.getProperty(FWProps.AUTOMANIFEST_CONFIG_PROP);
+        configs      = loadConfig(configSource);
+        if(fwCtx.debug.automanifest) {
+          fwCtx.debug.println("Loaded auto manifest config from " + configSource);
+        }
+      } else {
+        configs = new TreeMap();
       }
     }
 
     autoInfo = findConfig();
 
-    if(isAuto() && fwCtx.props.debug.automanifest) {
-      fwCtx.props.debug.println("Using auto manifest for bundlelocation " + location);
+    if(isAuto() && fwCtx.debug.automanifest) {
+      fwCtx.debug.println("Using auto manifest for bundlelocation " + location);
     }
   }
 
@@ -321,8 +322,8 @@ public class AutoManifest extends Manifest {
           } else if("[autoexport]".equals(val)) {
             String exports = getExports();
 
-            if(fwCtx.props.debug.automanifest) {
-              fwCtx.props.debug.println("Auto exports for " + location + ": " + exports);
+            if(fwCtx.debug.automanifest) {
+              fwCtx.debug.println("Auto exports for " + location + ": " + exports);
             }
 
             if(exports.length() > 0) {
@@ -481,7 +482,7 @@ public class AutoManifest extends Manifest {
         is = url.openStream();
         return loadConfigFromInputStream(is);
       } catch (Exception e) {
-        fwCtx.props.debug.printStackTrace("Failed to load autoimportexport conf from " + url, e);
+        fwCtx.debug.printStackTrace("Failed to load autoimportexport conf from " + url, e);
       } finally {
         try { is.close(); } catch (Exception ignored) { }
       }

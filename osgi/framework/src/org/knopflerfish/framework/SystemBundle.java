@@ -60,26 +60,6 @@ import org.osgi.framework.launch.Framework;
  */
 public class SystemBundle extends BundleImpl implements Framework {
 
-
-  /**
-   * Property name pointing to file listing of system-exported packages
-   */
-  private final static String SYSPKG_FILE =
-    "org.knopflerfish.framework.system.packages.file";
-
-  /**
-   * Name of system property for basic system packages to be exported.
-   * The normal OSGi exports will be added to this list.
-   */
-  private final static String SYSTEMPACKAGES_BASE =
-    "org.knopflerfish.framework.system.packages.base";
-
-  /**
-   * Name of system property for exporting profile.
-   */
-  private final static String SYSTEM_EXPORT =
-    "org.knopflerfish.framework.system.packages.version";
-
   /**
    * The file where we store the class path
    */
@@ -451,18 +431,18 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   void initSystemBundle() {
     bundleContext = new BundleContextImpl(this);
-    StringBuffer sp = new StringBuffer
-      (fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES, ""));
+    StringBuffer sp =
+      new StringBuffer(fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES));
     if (sp.length() == 0) {
       // Try the system packages file
-      addSysPackagesFromFile(sp, fwCtx.props.getProperty(SYSPKG_FILE, null));
+      addSysPackagesFromFile(sp, fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_FILE_PROP));
       if (sp.length() == 0) {
         // Try the system packages base property.
-        sp.append(fwCtx.props.getProperty(SYSTEMPACKAGES_BASE, "").trim());
+        sp.append(fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_BASE_PROP));
 
         if (sp.length()==0) {
           // use default set of packages.
-          String jver = fwCtx.props.getProperty(SYSTEM_EXPORT);
+          String jver = fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_VERSION_PROP);
 
           if (jver == null) {
             jver = Integer.toString(fwCtx.props.javaVersionMajor)
@@ -471,11 +451,10 @@ public class SystemBundle extends BundleImpl implements Framework {
           try {
             addSysPackagesFromFile(sp, "packages" + jver + ".txt");
           } catch (IllegalArgumentException iae) {
-            if (fwCtx.props.debug.framework) {
-              fwCtx.props.debug.println
-                ("No built in list of Java packages to be exported by the "
-                 + "system bundle for JRE with version '" + jver
-                 + "', using the list for 1.6.");
+            if (fwCtx.debug.framework) {
+              fwCtx.debug.println("No built in list of Java packages to be exported "
+                                  + "by the system bundle for JRE with version '"
+                                  + jver + "', using the list for 1.6.");
             }
             addSysPackagesFromFile(sp, "packages1.6.txt");
           }
@@ -483,8 +462,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         addSystemPackages(sp);
       }
     }
-    final String extraPkgs = fwCtx.props
-      .getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, "");
+    final String extraPkgs = fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
     if (extraPkgs.length()>0) {
       sp.append(",").append(extraPkgs);
     }
@@ -597,24 +575,23 @@ public class SystemBundle extends BundleImpl implements Framework {
   private void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile) {
     if (null==sysPkgFile || 0==sysPkgFile.length() ) return;
 
-    if(fwCtx.props.debug.packages) {
-      fwCtx.props.debug.println("Will add system packages from file "
-                                +sysPkgFile);
+    if(fwCtx.debug.packages) {
+      fwCtx.debug.println("Will add system packages from file "
+                          +sysPkgFile);
     }
 
     URL  url = null;
     File f = new File(new File(sysPkgFile).getAbsolutePath());
 
-    if(!f.exists() || !f.isFile()) {
+    if (!f.exists() || !f.isFile()) {
       url = SystemBundle.class.getResource(sysPkgFile);
       if (null==url) {
         url = SystemBundle.class.getResource("/" +sysPkgFile);
       }
       if (null==url) {
-        if(fwCtx.props.debug.packages) {
-          fwCtx.props.debug.println("Could not add system bundle package "
-                                    +"exports from '" +sysPkgFile
-                                    +"', file not found.");
+        if (fwCtx.debug.packages) {
+          fwCtx.debug.println("Could not add system bundle package exports from '"
+                              + sysPkgFile + "', file not found.");
         }
       }
     }
@@ -631,14 +608,14 @@ public class SystemBundle extends BundleImpl implements Framework {
         source = url.toString();
       }
       in = new BufferedReader(reader);
-      if(fwCtx.props.debug.packages) {
-        fwCtx.props.debug.println("\treading from " +source);
+      if (fwCtx.debug.packages) {
+        fwCtx.debug.println("\treading from " +source);
       }
 
       String line;
-      for(line = in.readLine(); line != null; line = in.readLine()) {
+      for (line = in.readLine(); line != null; line = in.readLine()) {
         line = line.trim();
-        if(line.length() > 0 && !line.startsWith("#")) {
+        if (line.length() > 0 && !line.startsWith("#")) {
           sp.append(line);
           sp.append(",");
         }
@@ -834,7 +811,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
     } catch (IOException e) {
       // NYI! Log this!?
-      fwCtx.props.debug.println("Could not save classpath " + e);
+      fwCtx.debug.println("Could not save classpath " + e);
     }
   }
 

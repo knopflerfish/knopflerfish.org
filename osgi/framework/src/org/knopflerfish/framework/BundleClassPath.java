@@ -80,11 +80,11 @@ public class BundleClassPath
    *
    * @throws BundleException if native code resolve failed.
    */
-  BundleClassPath(BundleArchive ba, List /* BundleImpl */ frags, FWProps props)
+  BundleClassPath(BundleArchive ba, List /* BundleImpl */ frags, FrameworkContext fwCtx)
     throws BundleException
   {
-    this.props = props;
-    debug = props.debug;
+    props = fwCtx.props;
+    debug = fwCtx.debug;
     bid = ba.getBundleId();
     checkBundleArchive(ba, frags);
     if (frags != null) {
@@ -193,14 +193,13 @@ public class BundleClassPath
       FileArchive fa = (FileArchive) nativeLibs.get(key);
       if (fa == null) {
         // Try other non-default lib-extensions
-        final String libExtensions = props
-          .getProperty(Constants.FRAMEWORK_LIBRARY_EXTENSIONS);
+        final String libExtensions = props.getProperty(Constants.FRAMEWORK_LIBRARY_EXTENSIONS);
         final int pos = key.lastIndexOf(".");
-        if (null != libExtensions && pos>-1) {
+        if (libExtensions.length() > 0  && pos>-1) {
           final String baseKey = key.substring(0,pos+1);
           final String[] exts = Util.splitwords(libExtensions, ", \t");
           for (int i=0; i<exts.length; i++) {
-            key =  baseKey +exts[i];
+            key = baseKey + exts[i];
             if (debug.classLoader) {
               debug.println(this + "getNativeLibrary: try, " + key);
             }

@@ -55,134 +55,130 @@ public class Debug {
 
 
   /**
-   * Report whenever the bundle classloader does something.
+   * Report Automanifest handling
    */
-  boolean classLoader;
-
-
-  /**
-   * Report event handling events.
-   */
-  boolean errors;
-
-
-  /**
-   * Report package handling events.
-   */
-  boolean packages;
-
-  /**
-   * Report startlevel.
-   */
-  boolean startlevel;
-
-  /**
-   * Report url
-   */
-  boolean url;
-
-  /**
-   * Report LDAP handling
-   */
-  boolean ldap;
-
-  /**
-   * When security is enabled, print information about service
-   * reference lookups that are rejected due to missing permissions
-   * for calling bundle.
-   */
-  boolean service_reference;
+  public static String AUTOMANIFEST_PROP = "org.knopflerfish.framework.debug.automanifest";
+  boolean automanifest;
 
   /**
    * When security is enabled, print information about resource
    * lookups that are rejected due to missing permissions for the
    * calling bundle.
    */
+  public static String BUNDLE_RESOURCE_PROP = "org.knopflerfish.framework.debug.bundle_resource";
   boolean bundle_resource;
-
-  /**
-   * When security is enabled, print information about context
-   * lookups that are rejected due to missing permissions for the
-   * calling bundle.
-   */
-  boolean bundle_context;
-
-  /**
-   * Report Class patching handling
-   */
-  boolean patch;
-
-  /**
-   * Report triggering of lazy activation
-   */
-  boolean lazyActivation;
-
-  /**
-   * Report framework create, init, start, stop
-   */
-  boolean framework;
-
-  /**
-   * Report Automanifest handling
-   */
-  boolean automanifest;
-
-  /**
-   * When security is enabled, use a doPrivileged() around
-   * the actual call to System.err.println() to allow for PrintStream
-   * implementations that does not handle the case with limited
-   * priviledges themselfs.
-   */
-  boolean use_do_privilege;
-
-  /**
-   * Report hooks handling
-   */
-  boolean hooks;
-
-  /**
-   * Report permission handling
-   */
-  public boolean permissions;
 
   /**
    * Report certificate matching
    */
+  public static String CERTIFICATES_PROP = "org.knopflerfish.framework.debug.certificates";
   public boolean certificates;
+
+  /**
+   * Report whenever the bundle classloader does something.
+   */
+  public static String CLASSLOADER_PROP = "org.knopflerfish.framework.debug.classloader";
+  boolean classLoader;
+
+  /**
+   * Report error handling events.
+   */
+  public static String ERRORS_PROP = "org.knopflerfish.framework.debug.errors";
+  boolean errors;
+
+  /**
+   * Report framework create, init, start, stop
+   */
+  public static String FRAMEWORK_PROP = "org.knopflerfish.framework.debug.framework";
+  boolean framework;
+
+  /**
+   * Report hooks handling
+   */
+  public static String HOOKS_PROP = "org.knopflerfish.framework.debug.hooks";
+  boolean hooks;
+
+  /**
+   * Report triggering of lazy activation
+   */
+  public static String LAZY_ACTIVATION_PROP = "org.knopflerfish.framework.debug.lazy_activation";
+  boolean lazy_activation;
+
+  /**
+   * Report LDAP handling
+   */
+  public static String LDAP_PROP = "org.knopflerfish.framework.debug.ldap";
+  boolean ldap;
+
+  /**
+   * Report package handling events.
+   */
+  public static String PACKAGES_PROP = "org.knopflerfish.framework.debug.packages";
+  boolean packages;
+
+  /**
+   * Report Class patching handling
+   */
+  public static String PATCH_PROP = "org.knopflerfish.framework.debug.patch";
+  boolean patch;
+
+  /**
+   * Report permission handling
+   */
+  public static String PERMISSIONS_PROP = "org.knopflerfish.framework.debug.permissions";
+  public boolean permissions;
+
+  /**
+   * When security is enabled, print information about service
+   * reference lookups that are rejected due to missing permissions
+   * for calling bundle.
+   */
+  public static String SERVICE_REFERENCE_PROP = "org.knopflerfish.framework.debug.service_reference";
+  boolean service_reference;
+
+  /**
+   * Report startlevel.
+   */
+  public static String STARTLEVEL_PROP = "org.knopflerfish.framework.debug.startlevel";
+  boolean startlevel;
+
+  /**
+   * Report url
+   */
+  public static String URL_PROP = "org.knopflerfish.framework.debug.url";
+  boolean url;
 
 
   public Debug(FWProps props) {
     this.props = props;
-    classLoader =
-      props.getProperty("org.knopflerfish.framework.debug.classloader", false);
-    errors =
-      props.getProperty("org.knopflerfish.framework.debug.errors", false);
-    packages =
-      props.getProperty("org.knopflerfish.framework.debug.packages", false);
-    startlevel =
-      props.getProperty("org.knopflerfish.framework.debug.startlevel", false);
-    url =
-      props.getProperty("org.knopflerfish.framework.debug.url", false);
-    service_reference =
-      props.getProperty("org.knopflerfish.framework.debug.service_reference", false);
-    bundle_resource =
-      props.getProperty("org.knopflerfish.framework.debug.bundle_resource", false);
-    bundle_context =
-      props.getProperty("org.knopflerfish.framework.debug.bundle_context", false);
-    patch =
-      props.getProperty("org.knopflerfish.framework.debug.patch", false);
-    automanifest =
-      props.getProperty("org.knopflerfish.framework.debug.automanifest", false);
-    lazyActivation =
-      props.getProperty("org.knopflerfish.framework.debug.lazy_activation", false);
-    framework =
-      props.getProperty("org.knopflerfish.framework.debug.framework", false);
-    hooks =
-      props.getProperty("org.knopflerfish.framework.debug.hooks", false);
-    permissions =
-      props.getProperty("org.knopflerfish.framework.debug.permissions", false);;
-    certificates =
-      props.getProperty("org.knopflerfish.framework.debug.certificates", false);
+    props.setPropertyDefault(AUTOMANIFEST_PROP, FWProps.FALSE);
+    props.setPropertyDefault(BUNDLE_RESOURCE_PROP, FWProps.FALSE);
+    props.setPropertyDefault(CERTIFICATES_PROP, FWProps.FALSE);
+    props.setPropertyDefault(CLASSLOADER_PROP, FWProps.FALSE);
+    props.setPropertyDefault(ERRORS_PROP, FWProps.FALSE);
+    props.setPropertyDefault(FRAMEWORK_PROP, FWProps.FALSE);
+    props.setPropertyDefault(HOOKS_PROP, FWProps.FALSE);
+    props.setPropertyDefault(LAZY_ACTIVATION_PROP, FWProps.FALSE);
+    props.setPropertyDefault(PACKAGES_PROP, FWProps.FALSE);
+    props.setPropertyDefault(PATCH_PROP, FWProps.FALSE);
+    props.setPropertyDefault(PERMISSIONS_PROP, FWProps.FALSE);
+    props.setPropertyDefault(SERVICE_REFERENCE_PROP, FWProps.FALSE);
+    props.setPropertyDefault(STARTLEVEL_PROP, FWProps.FALSE);
+    props.setPropertyDefault(URL_PROP, FWProps.FALSE);
+    automanifest = props.getBooleanProperty(AUTOMANIFEST_PROP);
+    bundle_resource = props.getBooleanProperty(BUNDLE_RESOURCE_PROP);
+    certificates = props.getBooleanProperty(CERTIFICATES_PROP);
+    classLoader = props.getBooleanProperty(CLASSLOADER_PROP);
+    errors = props.getBooleanProperty(ERRORS_PROP);
+    framework = props.getBooleanProperty(FRAMEWORK_PROP);
+    hooks = props.getBooleanProperty(HOOKS_PROP);
+    lazy_activation = props.getBooleanProperty(LAZY_ACTIVATION_PROP);
+    packages = props.getBooleanProperty(PACKAGES_PROP);
+    patch = props.getBooleanProperty(PATCH_PROP);
+    permissions = props.getBooleanProperty(PERMISSIONS_PROP);
+    service_reference = props.getBooleanProperty(SERVICE_REFERENCE_PROP);
+    startlevel = props.getBooleanProperty(STARTLEVEL_PROP);
+    url = props.getBooleanProperty(URL_PROP);
   }
 
 

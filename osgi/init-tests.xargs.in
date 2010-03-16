@@ -34,6 +34,7 @@
 -Forg.knopflerfish.framework.debug.certificates=false
 
 # JKSValidator properties
+-Forg.knopflerfish.framework.validator=JKSValidator
 -Forg.knopflerfish.framework.validator.jks.ca_certs=$(TESTJARS)/test.castore
 -Forg.knopflerfish.framework.validator.jks.ca_certs_password=catest
 

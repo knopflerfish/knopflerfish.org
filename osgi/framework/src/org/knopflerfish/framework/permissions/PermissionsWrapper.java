@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ public class PermissionsWrapper extends PermissionCollection {
                      Bundle b,
                      InputStream localPerms) {
     this.framework = fw;
-    debug = fw.props.debug;
+    debug = fw.debug;
     pinfos = pis;
     cpinfos = cpis;
     location = loc;

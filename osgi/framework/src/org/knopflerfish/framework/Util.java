@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,9 @@ public class Util {
       s = (String)props.get(FWDIR_PROP);
     }
     if (s==null || s.length()==0) {
+      s = System.getProperty(FWDIR_PROP);
+    }
+    if (s==null || s.length()==0) {
       s = FWDIR_DEFAULT;
     }
     return s;
@@ -77,7 +80,7 @@ public class Util {
   public static FileTree getFileStorage(FrameworkContext ctx, String name) {
     // See if we have a storage directory
     String fwdir = getFrameworkDir(ctx);
-    if (fwdir == null || ctx.props.bIsMemoryStorage) {
+    if (fwdir == null) {
       return null;
     }
     FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);

@@ -72,9 +72,9 @@ public class FrameworkContext  {
   static final String HOOKS_VERSION = "1.0";
 
   /**
-   * Default validator.
+   * Debug handle.
    */
-  static final String DEFAULT_VALIDATOR = "JKSValidator";
+  public Debug debug;
 
   /**
    * All bundle in this framework.
@@ -87,7 +87,7 @@ public class FrameworkContext  {
   Listeners listeners;
 
   /**
-   * All service hooks
+   * All service hooks.
    */
   Hooks hooks;
 
@@ -151,6 +151,11 @@ public class FrameworkContext  {
    * The parent class loader for bundle classloaders.
    */
   ClassLoader parentClassLoader;
+
+  /**
+   * All bundle in this framework.
+   */
+  boolean firstInit = true;
 
   /**
    * Cached value of
@@ -247,14 +252,11 @@ public class FrameworkContext  {
   {
     log("initializing");
 
-    if (Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
+    if (firstInit && Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
         .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
       deleteFWDir();
-      // Must remove the storage clean property since it should not be
-      // used more than once!
-      props.removeProperty(Constants.FRAMEWORK_STORAGE_CLEAN);
+      firstInit = false;
     }
-    props.save();
 
     buildBootDelegationPatterns();
     selectBootDelegationParentClassLoader();
@@ -266,8 +268,7 @@ public class FrameworkContext  {
     }
     perm.init();
 
-    String v = props.getProperty("org.knopflerfish.framework.validator", DEFAULT_VALIDATOR);
-    boolean checkSigned = false;
+    String v = props.getProperty(FWProps.VALIDATOR_PROP);
     if (!v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
       validator = new ArrayList();
       for (int start = 0; start < v.length(); ) {
@@ -280,20 +281,15 @@ public class FrameworkContext  {
           Class vi = Class.forName(vs);
           Constructor vc = vi.getConstructor(new Class[] { FrameworkContext.class });
           validator.add((Validator)vc.newInstance(new Object[] { this }));
-          checkSigned = true;
         } catch (InvocationTargetException ite) {
           // NYI, log error from validator
           System.err.println("Construct of " + vs + " failed: " + ite.getTargetException());
         } catch (NoSuchMethodException e) {
-          // If no default validator, probably stripped framework
-          if (DEFAULT_VALIDATOR != v) {
-            throw new RuntimeException(vs + ", found no such Validator", e);
-          }
+          // If no validator, probably stripped framework
+          throw new RuntimeException(vs + ", found no such Validator", e);
         } catch (NoClassDefFoundError ncdfe) {
           // Validator uses class not supported by JVM ignore
-          if (DEFAULT_VALIDATOR != v) {
-            throw new RuntimeException(vs + ", Validator not supported by JVM", ncdfe);
-          }
+          throw new RuntimeException(vs + ", Validator not supported by JVM", ncdfe);
         } catch (Exception e) {
           throw new RuntimeException(vs + ", failed to construct Validator", e);
         }
@@ -320,7 +316,7 @@ public class FrameworkContext  {
             systemUrlStreamHandlerFactory = urlStreamHandlerFactory;
             systemContentHandlerFactory   = contentHandlerFactory;
           } catch (Throwable e) {
-            props.debug.printStackTrace
+            debug.printStackTrace
               ("Cannot set global URL handlers, "
                +"continuing without OSGi service URL handler (" +e +")", e);
           }
@@ -331,17 +327,16 @@ public class FrameworkContext  {
       }
     }
 
+    String storageClass = "org.knopflerfish.framework.bundlestorage." +
+      props.getProperty(FWProps.BUNDLESTORAGE_PROP) + ".BundleStorageImpl";
     try {
-      Class storageImpl = Class.forName(props.whichStorageImpl);
+      Class storageImpl = Class.forName(storageClass);
 
-      Constructor cons
-        = storageImpl.getConstructor(new Class[] { FrameworkContext.class,
-                                                   Boolean.TYPE });
-      storage
-        = (BundleStorage) cons.newInstance(new Object[] { this, new Boolean(checkSigned) });
+      Constructor cons = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
+      storage = (BundleStorage) cons.newInstance(new Object[] { this });
     } catch (Exception e) {
       throw new RuntimeException("Failed to initialize storage "
-                                 +props.whichStorageImpl +": ", e);
+                                 + storageClass, e);
     }
     dataStorage       = Util.getFileStorage(this, "data");
     packages          = new Packages(this);
@@ -453,7 +448,7 @@ public class FrameworkContext  {
       SecurityManager current = System.getSecurityManager();
       final String osgiSecurity = props.getProperty(Constants.FRAMEWORK_SECURITY);
 
-      if (osgiSecurity != null) {
+      if (osgiSecurity.length() > 0) {
         if (!Constants.FRAMEWORK_SECURITY_OSGI.equals(osgiSecurity)) {
           throw new SecurityException("Unknown OSGi security, " + osgiSecurity);
         }
@@ -461,12 +456,12 @@ public class FrameworkContext  {
           final String POLICY_PROPERTY = "java.security.policy";
           final String defaultPolicy
             = this.getClass().getResource("/framework.policy").toString();
-          final String policy = props.getProperty(POLICY_PROPERTY, defaultPolicy);
-          if (props.debug.framework) {
-            props.debug.println("Installing OSGi security manager, policy="+policy);
+          final String policy = System.getProperty(POLICY_PROPERTY, defaultPolicy);
+          if (debug.framework) {
+            debug.println("Installing OSGi security manager, policy="+policy);
           }
           System.setProperty(POLICY_PROPERTY, policy);
-          current = new KFSecurityManager(props.debug);
+          current = new KFSecurityManager(debug);
           System.setSecurityManager(current);
           smUse = 1;
         } else if (current instanceof ConditionalPermissionSecurityManager) {
@@ -497,7 +492,7 @@ public class FrameworkContext  {
         log("deleting old framework directory.");
         boolean bOK = dir.delete();
         if(!bOK) {
-          props.debug.println("Failed to remove existing fwdir "
+          debug.println("Failed to remove existing fwdir "
                               +dir.getAbsolutePath());
         }
       }
@@ -510,12 +505,9 @@ public class FrameworkContext  {
    *
    */
   private void registerStartLevel() {
-    String useStartLevel = props.getProperty("org.knopflerfish.startlevel.use",
-                                             FWProps.TRUE);
-
-    if(FWProps.TRUE.equals(useStartLevel)) {
-      if(props.debug.startlevel) {
-        props.debug.println("[using startlevel service]");
+    if (props.getBooleanProperty(FWProps.STARTLEVEL_USE_PROP)) {
+      if (debug.startlevel) {
+        debug.println("[using startlevel service]");
       }
       startLevelController = new StartLevelController(this);
 
@@ -598,41 +590,46 @@ public class FrameworkContext  {
     final String bootDelegationString
       = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
 
-    bootDelegationUsed = (bootDelegationString != null);
+    bootDelegationUsed = bootDelegationString.length() > 0;
     bootDelegationPatterns = new ArrayList(1);
 
-    try {
-      Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
-                                     bootDelegationString,
-                                     true, true, false);
-      while (i.hasNext()) {
-        Map e = (Map)i.next();
-        String key = (String)e.get("$key");
-        if (key.equals("*")) {
-          bootDelegationPatterns = null;
-          //in case funny person puts a * amongst other things
-          break;
-        }
-        else if (key.endsWith(".*")) {
-          bootDelegationPatterns.add(key.substring(0, key.length() - 1));
-        }
-        else if (key.endsWith(".")) {
-          listeners.frameworkError(systemBundle, new IllegalArgumentException
-                                   (Constants.FRAMEWORK_BOOTDELEGATION
-                                    +" entry ends with '.': " +key));
-        }
-        else if (key.indexOf("*") != - 1) {
-          listeners.frameworkError(systemBundle, new IllegalArgumentException
-                                   (Constants.FRAMEWORK_BOOTDELEGATION
-                                    +" entry contains a '*': " + key));
-        }
-        else {
-          bootDelegationPatterns.add(key);
+    if (bootDelegationUsed) {
+      try {
+        Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
+                                       bootDelegationString,
+                                       true, true, false);
+        while (i.hasNext()) {
+          Map e = (Map)i.next();
+          String key = (String)e.get("$key");
+          if (key.equals("*")) {
+            bootDelegationPatterns = null;
+            //in case funny person puts a * amongst other things
+            break;
+          }
+          else if (key.endsWith(".*")) {
+            bootDelegationPatterns.add(key.substring(0, key.length() - 1));
+          }
+          else if (key.endsWith(".")) {
+            listeners.frameworkError(systemBundle, new IllegalArgumentException
+                                     (Constants.FRAMEWORK_BOOTDELEGATION
+                                      +" entry ends with '.': " +key));
+          }
+          else if (key.indexOf("*") != - 1) {
+            listeners.frameworkError(systemBundle, new IllegalArgumentException
+                                     (Constants.FRAMEWORK_BOOTDELEGATION
+                                      +" entry contains a '*': " + key));
+          }
+          else {
+            bootDelegationPatterns.add(key);
+          }
         }
       }
-    }
-    catch (IllegalArgumentException e) {
-      listeners.frameworkError(systemBundle, e);
+      catch (IllegalArgumentException e) {
+        if (debug.errors) {
+          debug.printStackTrace("Failed to parse " +
+                                      Constants.FRAMEWORK_BOOTDELEGATION, e);
+        }
+      }
     }
   }
 
@@ -708,8 +705,8 @@ public class FrameworkContext  {
    *
    */
   void log(String msg) {
-    if (props.debug.framework) {
-      props.debug.println("Framework instance " +hashCode() +": " +msg);
+    if (debug.framework) {
+      debug.println("Framework instance " +hashCode() +": " +msg);
     }
   }
 
@@ -719,8 +716,8 @@ public class FrameworkContext  {
    *
    */
   void log(String msg, Throwable t) {
-    if (props.debug.framework) {
-      props.debug.printStackTrace("Framework instance " +hashCode() +": "
+    if (debug.framework) {
+      debug.printStackTrace("Framework instance " +hashCode() +": "
                                   +msg, t);
     }
   }

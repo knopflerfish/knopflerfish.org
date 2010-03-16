@@ -549,6 +549,14 @@ must explictly set this header themselves.
     <td>-</td>
   </tr>
   <tr>
+    <td>org.knopflerfish.framework.system.packages.version</td>
+    <td>
+      Name for selected exporting profile of system packages.
+    </td>
+    <td>String</td>
+    <td>MAJOR.MINOR from system property "java.version"</td>
+  </tr>
+  <tr>
     <td>org.knopflerfish.framework.debug.automanifest</td>
     <td>
       Print debug output for automatic manifest actions.
@@ -583,6 +591,14 @@ must explictly set this header themselves.
     <td>False</td>
   </tr>
   <tr>
+    <td>org.knopflerfish.framework.debug.errors</td>
+    <td>
+     Print all FrameworkEvents of type ERROR
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
     <td>org.knopflerfish.framework.debug.framework</td>
     <td>
      Print debug information about life-cycle events for the
@@ -592,9 +608,10 @@ must explictly set this header themselves.
     <td>False</td>
   </tr>
   <tr>
-    <td>org.knopflerfish.framework.debug.errors</td>
+    <td>org.knopflerfish.framework.debug.hooks</td>
     <td>
-     Print all FrameworkEvents of type ERROR
+     Print debug information about when service hooks are used
+     current framework instance.
     </td>
     <td>Boolean</td>
     <td>False</td>
@@ -762,6 +779,24 @@ must explictly set this header themselves.
     <td>patchedclasses</td>
   </tr>
   <tr>
+    <td>org.knopflerfish.framework.service.conditionalpermissionadmin</td>
+    <td>
+      Controls if the framework should register the Conditional Permission
+      Admin service.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.service.permissionadmin</td>
+    <td>
+      Controls if the framework should register the Permission
+      Admin service.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
     <td>org.knopflerfish.framework.strictbootclassloading</td>
     <td>
       If set to true, use strict rules for loading classes from the boot class loader.
@@ -790,18 +825,20 @@ must explictly set this header themselves.
     <td>org.knopflerfish.framework.validator</td>
     <td>
       A list of which certificate validators to use. Currently available are
-      JKSValidator and SelfSignedValidator.
+      JKSValidator and SelfSignedValidator. If no validator is to be used,
+      set to "null" or "none".
     </td>
     <td>String</td>
-    <td>JKSValidator</td>
+    <td>JKSValidator if org.osgi.framework.trust.repositories Is set, otherwise none</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.validator.jks.ca_certs</td>
     <td>
-      URL to java keystore used by JKSValidator.
+      Filename of java keystore used by JKSValidator. Used if
+      org.osgi.framework.trust.repositories isn't set.
     </td>
-    <td></td>
-    <td>file:$JAVA_HOME/lib/security/cacerts</td>
+    <td>String</td>
+    <td>$JAVA_HOME/lib/security/cacerts</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.validator.jks.ca_certs_password</td>
@@ -812,19 +849,27 @@ must explictly set this header themselves.
     <td>changeit</td>
   </tr>
   <tr>
-    <td>org.knopflerfish.framework.write.restart.xargs</td>
+    <td>org.knopflerfish.framework.validator.jks.cert_provider</td>
     <td>
-      Property that tells the Knopflerfish framework if it shall write a
-      restart.xargs file with all framework properties inside the
+      Provider for CertificateFactory to use.
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.main.write.fwprops.xargs</td>
+    <td>
+      Property that tells the Knopflerfish Main if it shall write a
+      fwprops.xargs file with all framework properties inside the
       framework directory on startup or not.
     </td>
     <td>Boolean</td>
     <td>True</td>
   </tr>
   <tr>
-    <td>org.knopflerfish.framework.xargs.writesysprops</td>
+    <td>org.knopflerfish.framework.main.xargs.writesysprops</td>
     <td>
-      Properties defined using -Dname=value in xargs-files are available
+      Properties defined using -Fname=value in xargs-files are available
       for bundles using BundleContext.getProperty(name).
       This property controls weather such properties shall also be
       exported as system properties or not.
@@ -841,62 +886,23 @@ must explictly set this header themselves.
     <td>file:jars/</td>
   </tr>
   <tr>
-    <td>org.knopflerfish.permissions.initialdefault</td>
+    <td>org.knopflerfish.startlevel.compat</td>
     <td>
-     Initial default set of permission for PermissionAdmin service.
-     Format for permission is same as used by 
-     org.osgi.service.permissionadmin.PermissionInfo, i.e, 
-
-       (type)                     or
-       (type "name")              or
-       (type "name" "actions")
-
-     More than on permission can be set by separating items by ";"
-
-     An empty set can be specified by using the empty string as value.
-    </td>
-    <td>String</td>
-    <td>(java.security.AllPermission)</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.startlevel.use</td>
-    <td>
-      Use the Start Level service. If start level is not use then
-      we do not create a non daemon thread that will keep a jvm
-      with only daemon threads alive.
+      Set to true indicates startlevel compatability mode.
+      All bundles and current start level will be 1.
     </td>
     <td>Boolean</td>
     <td>True</td>
   </tr>
   <tr>
-    <td>org.knopflerfish.startlevel.level</td>
+    <td>org.knopflerfish.startlevel.use</td>
     <td>
-     level of start level service if used.
-    </td>
-    <td>Integer > 0</td>
-    <td>1</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.startlevel.initlevel</td>
-    <td>
-     Initial start level of bundles if start level
-     service if used.
-    </td>
-    <td>Integer > 0</td>
-    <td>1</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.osgi.registerbundleurlhandler</td>
-    <td>
-     Flag for publicly exporting the bundle: special URL
-     handler. If this is enabled, all bundles can create
-     bundle: URLs for access it's own or other bundle's resources.
-
-     The OSGi service based URL handlers (see above) _must_ 
-     be active for publicly exporting bundle: URLs
+      Use the Start Level service. If start level is not used then
+      we do not create a non daemon thread that will keep a jvm
+      with only daemon threads alive.
     </td>
     <td>Boolean</td>
-    <td>False</td>
+    <td>True</td>
   </tr>
   <tr>
     <td>org.knopflerfish.osgi.setcontextclassloader</td>
