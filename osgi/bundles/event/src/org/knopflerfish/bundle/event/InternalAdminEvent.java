@@ -122,6 +122,15 @@ public class InternalAdminEvent {
     }
   }
 
+  private void log(TrackedEventHandler handler, String txt)
+  {
+    ServiceReference sr = handler.getServiceReference();
+    Activator.log.error(txt + "  Service.id="
+        + sr.getProperty(Constants.SERVICE_ID) + "  bundle.id="
+        + sr.getBundle().getBundleId() + "  bundle.name="
+        + sr.getBundle().getSymbolicName() + "  topic=" + event.getTopic(), sr);
+  }
+
   private void deliverToHandles()
   {
     Iterator i = handlers.iterator();
@@ -129,9 +138,20 @@ public class InternalAdminEvent {
       TrackedEventHandler handler = (TrackedEventHandler) i.next();
       if (Activator.timeout == 0) {
         try {
-          handler.handleEventSubjectToFilter(event);
+          if (Activator.timeWarning == 0) {
+            handler.handleEventSubjectToFilter(event);
+          } else {
+            final long tickStart = System.currentTimeMillis();
+            handler.handleEventSubjectToFilter(event);
+            final long tickEnd = System.currentTimeMillis();
+            if (tickEnd - tickStart > Activator.timeWarning) {
+              log(handler, "Slow eventhandler " + (tickEnd - tickStart)
+                  + " ms.");
+            }
+          }
         } catch (Throwable e) {
-          Activator.log.error("Handler threw exception in handleEvent", e);
+          log(handler, "Exception in eventhandler " + e.getMessage());
+          Activator.log.error("Handler threw exception in handleEvent.", e);
         }
       } else { // use timeout
         // Check if thread is available
@@ -146,15 +166,8 @@ public class InternalAdminEvent {
           // Check if delivery was successful
           if (localDeliver.stopDeliveryNotification()) {
             handler.setBlacklist(true);
-            ServiceReference sr = handler.getServiceReference();
-            Activator.log
-                .error(
-                    "Event delivery to event handler timed out, blacklisting event handler [service.id="
-                        + sr.getProperty(Constants.SERVICE_ID)
-                        + ", bundle.id="
-                        + sr.getBundle().getBundleId()
-                        + ", topic="
-                        + event.getTopic() + "]", sr);
+            log(handler,
+                "Event delivery to event handler timed out, blacklisting event handler.");
           }
         }
       }// end if(!isBlacklisted.....
