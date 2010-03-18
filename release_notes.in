@@ -27,6 +27,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Services (Compendium) ===
 
+  Event 2.0.6
+  
+  Improved event delivery when timeout is used. Timeout blacklisting is 
+  canceled if EventHandler returns. Event delivery thread is, if possible, 
+  reused to deliver events. 
+  
+  Added property org.knopflerfish.eventadmin.timewarning which can be used to
+  detect slow event handlers. If a event handler takes longer than this time to
+  finish a log entry will be written. This property will not work in 
+  combination with the org.knopflerfish.eventadmin.timeout property.
+  
+  
   Event 2.0.5
 
   Improved performance a lot by rewriting the whole mechanism for matching
