@@ -282,7 +282,15 @@ public class BundleClassPath
     String bnc = ba.getAttribute(Constants.BUNDLE_NATIVECODE);
     if (bnc != null) {
       final String proc = props.getProperty(Constants.FRAMEWORK_PROCESSOR);
+      String procS = System.getProperty("os.arch");
+      if (proc.equalsIgnoreCase(procS)) {
+        procS = null;
+      }
       final String os = props.getProperty(Constants.FRAMEWORK_OS_NAME);
+      String osS = System.getProperty("os.name");
+      if (os.equalsIgnoreCase(osS)) {
+        osS = null;
+      }
       final Version osVer
         = new Version(props.getProperty(Constants.FRAMEWORK_OS_VERSION));
       final String osLang
@@ -306,7 +314,7 @@ public class BundleClassPath
 
         List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
         if (pl != null) {
-          if (!containsIgnoreCase(pl, Alias.unifyProcessor(proc))) {
+          if (!containsIgnoreCase(pl, proc, procS)) {
             continue;
           }
         } else {
@@ -316,7 +324,7 @@ public class BundleClassPath
 
         List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
         if (ol != null) {
-          if (!containsIgnoreCase(ol, Alias.unifyOsName(os))) {
+          if (!containsIgnoreCase(ol, os, osS)) {
             continue;
           }
         } else {
@@ -433,13 +441,12 @@ public class BundleClassPath
   /**
    * Check if a string exists in a list. Ignore case when comparing.
    */
-  private boolean containsIgnoreCase(List l, List l2) {
+  private boolean containsIgnoreCase(List l, String p1, String p2) {
     for (Iterator i = l.iterator(); i.hasNext(); ) {
       String s = (String)i.next();
-      for (Iterator j = l2.iterator(); j.hasNext(); ) {
-        if (s.equalsIgnoreCase((String)j.next())) {
-          return true;
-        }
+      if (s.equalsIgnoreCase(p1) ||
+          s.equalsIgnoreCase(p2)) {
+        return true;
       }
     }
     return false;
