@@ -383,9 +383,8 @@ public class FWProps  {
     setPropertyIfNotSet(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
     setPropertyIfNotSet(Constants.FRAMEWORK_LIBRARY_EXTENSIONS, "");
 
-    // NYI, unify os name
-    setPropertyIfNotSet(Constants.FRAMEWORK_OS_NAME, System.getProperty("os.name"));
-
+    setPropertyIfNotSet(Constants.FRAMEWORK_OS_NAME,
+                        Alias.unifyOsName(System.getProperty("os.name")));
     String ver = System.getProperty("os.version");
     String osVersion = null;
     if (ver != null) {
@@ -408,7 +407,8 @@ public class FWProps  {
 
     // The name of the processor of the hosting computer.
     // NYI, unify proc name
-    setPropertyIfNotSet(Constants.FRAMEWORK_PROCESSOR, System.getProperty("os.arch"));
+    setPropertyIfNotSet(Constants.FRAMEWORK_PROCESSOR,
+                        Alias.unifyProcessor(System.getProperty("os.arch")));
 
     setPropertyIfNotSet(Constants.FRAMEWORK_SECURITY, "");
 

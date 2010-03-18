@@ -1013,8 +1013,7 @@ public class Main
     }
     println("Knopflerfish root directory is " +topDir, 2);
 
-    final String osName = (String)
-      Alias.unifyOsName(System.getProperty("os.name")).get(0);
+    final String osName = Alias.unifyOsName(System.getProperty("os.name"));
     final String[] xargNames = bInit
       ? new String[]{"init_" +osName +".xargs",
                      XARGS_INIT,
