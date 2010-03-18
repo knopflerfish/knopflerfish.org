@@ -47,14 +47,27 @@ import org.osgi.service.event.EventAdmin;
  * @author Magnus Klack
  */
 public class Activator implements BundleActivator {
+  private static final String TIMEOUT_PROP = "org.knopflerfish.eventadmin.timeout";
+
     static BundleContext bundleContext;
     static LogRef log;
     static ServiceRegistration reg;
     static EventAdminService eventAdmin;
     static EventHandlerTracker handlerTracker;
+    static long timeout;
 
     public void start(BundleContext context) throws Exception {
+
       bundleContext = context;
+      /* Tries to get the timeout property from the system */
+      try {
+        String timeoutS = Activator.bundleContext.getProperty(TIMEOUT_PROP);
+        if (null != timeoutS && 0 < timeoutS.length()) {
+          timeout = Long.parseLong(timeoutS);
+        }
+      } catch (NumberFormatException ignore) {
+      }
+      
       log = new LogRef(context);
 
       handlerTracker = new EventHandlerTracker(context);
@@ -72,5 +85,7 @@ public class Activator implements BundleActivator {
 
       handlerTracker.close();
       handlerTracker = null;
+      
+      InternalAdminEvent.close();
     }
 }
