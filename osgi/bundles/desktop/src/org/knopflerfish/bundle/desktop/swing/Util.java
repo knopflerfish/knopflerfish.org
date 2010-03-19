@@ -536,6 +536,8 @@ public class Util {
 
       for(int i = 0; srl != null && i < srl.length; i++) {
         Bundle b = srl[i].getBundle();
+        if (null==b) continue; // Unregistered service.
+
         closure.add(b);
 
         if(!handled.contains(b)) {
