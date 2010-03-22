@@ -34,6 +34,7 @@
 
 package org.knopflerfish.framework.validator;
 
+import org.knopflerfish.framework.Debug;
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Validator;
 import org.knopflerfish.framework.Util;
@@ -96,12 +97,17 @@ public class JKSValidator implements Validator {
   /**
    *
    */
-  private KeyStore keystore;
+  final private KeyStore keystore;
 
   /**
    * NYI make it configurable
    */
   private boolean trustKeys = true;
+
+  /**
+   * Debug handle
+   */
+  final private Debug debug;
 
 
   /**
@@ -111,6 +117,7 @@ public class JKSValidator implements Validator {
    */
   public JKSValidator(FrameworkContext fw) throws KeyStoreException  
   {
+    debug = fw.debug;
     keystore = KeyStore.getInstance(KeyStore.getDefaultType());
     // NYI! Handle serveral repositories.
     fw.props.setPropertyDefault(CERT_PROVIDER_PROP, "");
@@ -223,9 +230,11 @@ public class JKSValidator implements Validator {
     try {
       FileInputStream is = new FileInputStream(file);
       keystore.load(is, password != null ? password.toCharArray() : null);
+      if (debug.certificates) {
+        debug.println("Loaded keystore, " + file);
+      }
     } catch (Exception e) {
-      System.err.println("Failed to load keystore, " + file + ": " + e);
-      // NYI! Log
+      debug.printStackTrace("Failed to load keystore, " + file, e);
     }
   }
 
