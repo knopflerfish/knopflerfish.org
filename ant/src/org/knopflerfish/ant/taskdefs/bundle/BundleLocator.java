@@ -669,10 +669,20 @@ public class BundleLocator extends Task {
       }
 
       if (null!=nameVersion && 0!=nameVersion.compareTo(version)) {
-        log("Found version '" +nameVersion +"' in the file name '"
-            +fileName +"', but the version in the bundle's manifest is '"
-            +version +"'.",
-            Project.MSG_INFO);
+        if (nameVersion.getMajor() == version.getMajor() &&
+            nameVersion.getMinor() == version.getMinor() &&
+            nameVersion.getMicro() == version.getMicro() &&
+            "".equals(nameVersion.getQualifier()) ) {
+          log("Found version '" +nameVersion +"' in the file name '"
+              +fileName +"', but the version in the bundle's manifest has qualifier '"
+              +version +"'.",
+              Project.MSG_DEBUG);
+        } else {
+          log("Found version '" +nameVersion +"' in the file name '"
+              +fileName +"', but the version in the bundle's manifest is '"
+              +version +"'.",
+              Project.MSG_INFO);
+        }
       }
 
       if (0<version.getQualifier().length()) {
