@@ -625,10 +625,8 @@ public class FrameworkContext  {
         }
       }
       catch (IllegalArgumentException e) {
-        if (debug.errors) {
-          debug.printStackTrace("Failed to parse " +
-                                      Constants.FRAMEWORK_BOOTDELEGATION, e);
-        }
+        debug.printStackTrace("Failed to parse " +
+                              Constants.FRAMEWORK_BOOTDELEGATION, e);
       }
     }
   }
