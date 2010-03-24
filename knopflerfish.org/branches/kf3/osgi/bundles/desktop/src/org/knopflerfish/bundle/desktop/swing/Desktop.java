@@ -2828,30 +2828,35 @@ public class Desktop
   }
 
   public void setIcon(JFrame frame, String baseName) {
-    String iconName = baseName + "32x32.gif";
-    if (Util.isWindows()) {
-      iconName = baseName + "16x16.gif";
-    }
-    String strURL = iconName;
+    // Frame icon
+    final String iconName1
+      = baseName +(Util.isWindows() ? "16x16.gif" : "32x32.gif");
+    // Max OS X dock icon
+    final String iconName2 = baseName +"128x128.png";
+    final MediaTracker tracker = new MediaTracker(frame);
     try {
-      MediaTracker tracker = new MediaTracker(frame);
+      final URL[] urls = new URL[]{
+        getClass().getResource(iconName1),
+        getClass().getResource(iconName2)
+      };
 
-      URL url = getClass().getResource(strURL);
-
-      if(url != null) {
-        Image image = frame.getToolkit().getImage(url);
-        tracker.addImage(image, 0);
-        tracker.waitForID(0);
-
-        frame.setIconImage(image);
-        if(bMacOS) {
-          try {
-            OSXAdapter.setDockIconImage(image);
-          } catch (Exception e) {
-            Activator.log.warn("Error while loading the OSXAdapter", e);
-          }
+      final Image[] images = new Image[urls.length];
+      for (int i=0; i<urls.length; i++) {
+        if(urls[i] != null) {
+          images[i] = frame.getToolkit().getImage(urls[i]);
+          tracker.addImage(images[i], 0);
         }
-      } else {
+      }
+      tracker.waitForID(0);
+
+      if (null!=images[0]) frame.setIconImage(images[0]);
+      // Set the dock icon.
+      if(null!=images[1] && bMacOS) {
+        try {
+          OSXAdapter.setDockIconImage(images[1]);
+        } catch (Exception e) {
+          Activator.log.warn("Error while loading the OSXAdapter", e);
+        }
       }
     } catch (Exception e) {
     }
