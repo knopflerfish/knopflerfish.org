@@ -5,14 +5,15 @@
   <dirname  property="proj.dir" file="${ant.file.event}"/>
   <property name="topdir"       location="${proj.dir}/../.."/>
 
-  <property name = "ee.check.foundation"   value = "true"/>
+  <property name="ee.check.foundation" value="true"/>
 
-  <property name = "bundle.build.api"   value = "true"/>
-  <property name = "bundle.build.impl"  value = "false"/>
-  <property name = "bundle.build.all"   value = "true"/>
-  <property name = "bundle.build.lib"   value = "false"/>
+  <property name="bundle.build.api"  value="true"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.doc"  value="true"/>
 
-  <property name="api.pattern" value="org/osgi/service/event/**"/>
+  <property name="api.pattern"  value="org/osgi/service/event/**"/>
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
 
   <path id="bundle.compile.path">
@@ -23,7 +24,7 @@
   <property name="bmfa.Bundle-Name"           value="Event-Admin"/>
   <property name="bmfa.Bundle-Description"    value="Event Admin"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="2.0.6"/>
+  <property name="bmfa.Bundle-Version"        value="2.0.7"/>
   <property name="bmfa.Bundle-APIVendor"      value="OSGi"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
 
