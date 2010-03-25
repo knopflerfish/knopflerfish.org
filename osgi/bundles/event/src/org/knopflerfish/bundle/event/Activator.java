@@ -42,12 +42,18 @@ import org.osgi.service.event.EventAdmin;
 
 /**
  * The Activator class is the startup class for the EventHandlerService.
- * 
+ *
  * @author Magnus Klack
  */
 public class Activator implements BundleActivator {
-  private static final String TIMEOUT_PROP = "org.knopflerfish.eventadmin.timeout";
-  private static final String TIMEWARNING_PROP = "org.knopflerfish.eventadmin.timewarning";
+  private static final String TIMEOUT_PROP
+    = "org.knopflerfish.eventadmin.timeout";
+  private static final String TIMEWARNING_PROP
+    = "org.knopflerfish.eventadmin.timewarning";
+  private static final String QUEUE_HANDLER_MULTIPLE_PROP
+    = "org.knopflerfish.eventadmin.queuehandler.multiple";
+  private static final String QUEUE_HANDLER_TIMEOUT_PROP
+    = "org.knopflerfish.eventadmin.queuehandler.timeout";
 
   static BundleContext bundleContext;
   static LogRef log;
@@ -55,19 +61,36 @@ public class Activator implements BundleActivator {
   static EventAdminService eventAdmin;
   static EventHandlerTracker handlerTracker;
   static long timeout = 0;
+  static boolean useMultipleQueueHandlers = true;
+  static long    queueHandlerTimeout = 1100;
   static long timeWarning = 0;
 
   public void start(BundleContext context) throws Exception
   {
+    Activator.bundleContext = context;
 
-    bundleContext = context;
     /* Tries to get the timeout property from the system */
     try {
-      String timeoutS = Activator.bundleContext.getProperty(TIMEOUT_PROP);
+      final String timeoutS = Activator.bundleContext.getProperty(TIMEOUT_PROP);
       if (null != timeoutS && 0 < timeoutS.length()) {
         timeout = Long.parseLong(timeoutS);
       }
     } catch (NumberFormatException ignore) {
+    }
+
+    try {
+      final String timeoutS
+        = Activator.bundleContext.getProperty(QUEUE_HANDLER_TIMEOUT_PROP);
+      if (null != timeoutS && 0 < timeoutS.length()) {
+        queueHandlerTimeout = Long.parseLong(timeoutS);
+      }
+    } catch (NumberFormatException ignore) {
+    }
+
+    final String qhm
+      = Activator.bundleContext.getProperty(QUEUE_HANDLER_MULTIPLE_PROP);
+    if (null!=qhm) {
+      useMultipleQueueHandlers = !"false".equalsIgnoreCase(qhm);
     }
 
     try {
@@ -100,6 +123,6 @@ public class Activator implements BundleActivator {
     handlerTracker.close();
     handlerTracker = null;
 
-    InternalAdminEvent.close();
+    //InternalAdminEvent.close();
   }
 }

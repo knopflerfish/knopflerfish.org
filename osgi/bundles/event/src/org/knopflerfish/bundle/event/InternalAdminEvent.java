@@ -54,7 +54,7 @@ public class InternalAdminEvent {
   private Event event;
 
   private Set handlers;
-  private static TimeoutDeliver timeoutDeliver;
+  private TimeoutDeliver timeoutDeliver;
 
   /**
    * Standard constructor of the InternalAdminEvent
@@ -134,49 +134,53 @@ public class InternalAdminEvent {
   private void deliverToHandles()
   {
     Iterator i = handlers.iterator();
-    while (i.hasNext()) {
-      TrackedEventHandler handler = (TrackedEventHandler) i.next();
-      if (Activator.timeout == 0) {
-        try {
-          if (Activator.timeWarning == 0) {
-            handler.handleEventSubjectToFilter(event);
-          } else {
-            final long tickStart = System.currentTimeMillis();
-            handler.handleEventSubjectToFilter(event);
-            final long tickEnd = System.currentTimeMillis();
-            if (tickEnd - tickStart > Activator.timeWarning) {
-              log(handler, "Slow eventhandler " + (tickEnd - tickStart)
-                  + " ms.");
+    try {
+      while (i.hasNext()) {
+        TrackedEventHandler handler = (TrackedEventHandler) i.next();
+        if (Activator.timeout == 0) {
+          try {
+            if (Activator.timeWarning == 0) {
+              handler.handleEventSubjectToFilter(event);
+            } else {
+              final long tickStart = System.currentTimeMillis();
+              handler.handleEventSubjectToFilter(event);
+              final long tickEnd = System.currentTimeMillis();
+              if (tickEnd - tickStart > Activator.timeWarning) {
+                log(handler, "Slow eventhandler " + (tickEnd - tickStart)
+                    + " ms.");
+              }
+            }
+          } catch (Throwable e) {
+            log(handler, "Exception in eventhandler " + e.getMessage());
+            Activator.log.error("Handler threw exception in handleEvent.", e);
+          }
+        } else { // use timeout
+          // Check if thread is available
+          synchronized (this) {
+            TimeoutDeliver localDeliver = deliver(this, event, handler);
+            try {
+              wait(Activator.timeout);
+            } catch (InterruptedException e) {
+              // Ignore
+            }
+
+            // Check if delivery was successful
+            if (localDeliver.stopDeliveryNotification()) {
+              handler.setBlacklist(true);
+              log(handler,
+                  "Event delivery to event handler timed out, blacklisting event handler.");
             }
           }
-        } catch (Throwable e) {
-          log(handler, "Exception in eventhandler " + e.getMessage());
-          Activator.log.error("Handler threw exception in handleEvent.", e);
-        }
-      } else { // use timeout
-        // Check if thread is available
-        synchronized (this) {
-          TimeoutDeliver localDeliver = deliver(this, event, handler);
-          try {
-            wait(Activator.timeout);
-          } catch (InterruptedException e) {
-            // Ignore
-          }
-
-          // Check if delivery was successful
-          if (localDeliver.stopDeliveryNotification()) {
-            handler.setBlacklist(true);
-            log(handler,
-                "Event delivery to event handler timed out, blacklisting event handler.");
-          }
-        }
-      }// end if(!isBlacklisted.....
-    }// end for
+        }// end if(!isBlacklisted.....
+      }// end for
+    } finally {
+      close();
+    }
   }
 
-  public static synchronized TimeoutDeliver deliver(final Object caller,
-                                                    final Event event,
-                                                    final TrackedEventHandler handler)
+  public synchronized TimeoutDeliver deliver(final Object caller,
+                                             final Event event,
+                                             final TrackedEventHandler handler)
   {
     if (timeoutDeliver == null) {
       timeoutDeliver = new TimeoutDeliver();
@@ -193,7 +197,7 @@ public class InternalAdminEvent {
     return timeoutDeliver;
   }
 
-  public static synchronized void close()
+  public synchronized void close()
   {
     if (timeoutDeliver != null) {
       timeoutDeliver.close();

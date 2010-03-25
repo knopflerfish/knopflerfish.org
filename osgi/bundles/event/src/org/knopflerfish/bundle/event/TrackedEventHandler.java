@@ -136,11 +136,14 @@ public class TrackedEventHandler {
   {
     Object o = sr.getProperty(EventConstants.EVENT_TOPIC);
     if (o == null) {
-      setBlacklist(true);
-      if (Activator.log.doError()) {
-        Activator.log.error("EventHandler must have service property '"
-            + EventConstants.EVENT_TOPIC + "' in handler with service.id "
-            + sr.getProperty("service.id"), sr);
+      if (!isBlacklisted()) {
+        setBlacklist(true);
+        if (Activator.log.doError()) {
+          Activator.log.error("EventHandler must have service property '"
+                              + EventConstants.EVENT_TOPIC
+                              + "' in handler with service.id "
+                              + sr.getProperty("service.id"), sr);
+        }
       }
       return;
     }
