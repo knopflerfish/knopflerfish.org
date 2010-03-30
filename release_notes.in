@@ -88,6 +88,11 @@ Log 2.0.3
  - New configuration property for setting the number of
    log records to keep in memory.
 
+Log Commands 2.0.1
+ - If a log entry includes a service reference print the service id
+   in addition to the value of the object class property. 
+
+
 kSOAP_RemoteFW 3.0.2
  - Updated documentation and added xargs-file fragments that makes it
    easier to start using this feature.
