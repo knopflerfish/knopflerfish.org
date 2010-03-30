@@ -1825,7 +1825,10 @@ public class BundleImpl implements Bundle {
     }
     Set s = fwCtx.services.getUsedByBundle(this);
     for (Iterator i = s.iterator(); i.hasNext(); ) {
-      ((ServiceRegistrationImpl) i.next()).reference.ungetService(this, false);
+      ServiceReferenceImpl sri = ((ServiceRegistrationImpl)i.next()).reference;
+      if (sri != null) {
+        sri.ungetService(this, false);
+      }
     }
   }
 
