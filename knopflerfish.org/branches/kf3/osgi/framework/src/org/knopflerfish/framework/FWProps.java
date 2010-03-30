@@ -405,8 +405,6 @@ public class FWProps  {
     }
     setPropertyIfNotSet(Constants.FRAMEWORK_OS_VERSION, osVersion);
 
-    // The name of the processor of the hosting computer.
-    // NYI, unify proc name
     setPropertyIfNotSet(Constants.FRAMEWORK_PROCESSOR,
                         Alias.unifyProcessor(System.getProperty("os.arch")));
 
