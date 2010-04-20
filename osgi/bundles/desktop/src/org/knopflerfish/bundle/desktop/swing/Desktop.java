@@ -188,7 +188,8 @@ public class Desktop
   final static ImageIcon installIcon
     = new ImageIcon(Desktop.class.getResource("/player_install.png"));
 
-  final static ImageIcon magPlusIcon
+  /* REMOVED
+    final static ImageIcon magPlusIcon
     = new ImageIcon(Desktop.class.getResource("/viewmag+.png"));
   final static ImageIcon magMinusIcon
     = new ImageIcon(Desktop.class.getResource("/viewmag-.png"));
@@ -196,8 +197,9 @@ public class Desktop
     = new ImageIcon(Desktop.class.getResource("/viewmagfit.png"));
   final static ImageIcon mag1to1Icon
     = new ImageIcon(Desktop.class.getResource("/viewmag1.png"));
-  final static ImageIcon reloadIcon
-    = new ImageIcon(Desktop.class.getResource("/reload_green.png"));
+  */
+  // final static ImageIcon reloadIcon
+  // = new ImageIcon(Desktop.class.getResource("/reload_green.png"));
 
   final static ImageIcon arrowUpIcon
     = new ImageIcon(Desktop.class.getResource("/1uparrow.png"));

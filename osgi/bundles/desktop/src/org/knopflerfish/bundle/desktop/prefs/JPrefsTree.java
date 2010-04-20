@@ -457,9 +457,9 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
   public PrefsTreeRenderer() {
     super();
     if(nodeOpenIcon == null) {
-      nodeOpenIcon = new ImageIcon(PrefsTreeRenderer.class.getResource("/prefs/folder_open16x16.gif"));
-      nodeClosedIcon = new ImageIcon(PrefsTreeRenderer.class.getResource("/prefs/folder16x16.gif"));
-      leafIcon = new ImageIcon(PrefsTreeRenderer.class.getResource("/prefs/Default.gif"));
+      nodeOpenIcon = new ImageIcon(PrefsTreeRenderer.class.getResource("/prefs/folder_open16x16.png"));
+      nodeClosedIcon = new ImageIcon(PrefsTreeRenderer.class.getResource("/prefs/folder16x16.png"));
+      leafIcon = new ImageIcon(PrefsTreeRenderer.class.getResource("/prefs/Default.png"));
     }
     //setOpaque(false);
   }
