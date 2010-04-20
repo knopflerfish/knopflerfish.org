@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ public class JEventEntryDetail extends JPanel {
   ImageIcon          arrowDownIcon;
   ImageIcon          arrowUp2Icon;
   ImageIcon          arrowDown2Icon;
-  ImageIcon          reloadIcon;
+  // ImageIcon          reloadIcon;
 
   JScrollPane scrollPane;
 
@@ -89,7 +89,7 @@ public class JEventEntryDetail extends JPanel {
     arrowUp2Icon   = new ImageIcon(getClass().getResource("/2uparrow.png"));
     arrowDownIcon  = new ImageIcon(getClass().getResource("/1downarrow.png"));
     arrowDown2Icon = new ImageIcon(getClass().getResource("/2downarrow.png"));
-    reloadIcon     = new ImageIcon(getClass().getResource("/reload_green16.png"));    
+    // reloadIcon     = new ImageIcon(getClass().getResource("/reload_green16.png"));    
     info = new JDetail(entry);
 
     scrollPane = new JScrollPane(info);

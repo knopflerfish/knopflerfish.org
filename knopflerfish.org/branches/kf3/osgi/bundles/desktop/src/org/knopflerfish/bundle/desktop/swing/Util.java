@@ -318,10 +318,10 @@ public class Util {
       try {
         if(Util.hasMainClass(b)) {
           icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/jarexec.gif"));
+                                     appURL != null ? appURL : clazz.getResource("/jarexec.png"));
         } else if(Util.hasFragment(b)) {
           icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/frag.gif"));
+                                     appURL != null ? appURL : clazz.getResource("/frag.png"));
         } else if(Util.hasComponent(b)) {
           icon = new BundleImageIcon(b,
                                      appURL != null ? appURL : clazz.getResource("/component.png"));

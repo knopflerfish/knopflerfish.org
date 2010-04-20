@@ -244,7 +244,6 @@ public class Activator
     String[] dispClassNames = new String[] {
       LargeIconsDisplayer.class.getName(),
       GraphDisplayer.class.getName(),
-      // TimeLineDisplayer.class.getName(),
       TableDisplayer.class.getName(),
       // SpinDisplayer.class.getName(),
       ManifestHTMLDisplayer.class.getName(),
