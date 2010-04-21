@@ -45,7 +45,7 @@ public class ReloadCommand extends IconCommand {
     super("cmd_reload", 
 	  "Reload",
 	  "Reload view",
-	  Activator.RES_ALIAS + "/reload_green.gif");
+	  Activator.RES_ALIAS + "/go-home.png");
   }
 
   public StringBuffer run(HttpServletRequest request) {
