@@ -107,9 +107,9 @@ public class FrameworkCommandGroup
    *
    * <p>
    *
-   * The system property <code>org.knopflerfish.gosg.jars</code> holds
-   * a semicolon separated path of URLs that is used to complete the
-   * location when it is given as a partial URL.
+   * The framework property <code>org.knopflerfish.gosg.jars</code>
+   * holds a semicolon separated path of URLs that is used to complete
+   * the location when it is given as a partial URL.
    *
    * </p>
    */
@@ -1050,7 +1050,8 @@ public class FrameworkCommandGroup
   public final static String[] HELP_INSTALL = new String[] {
     "Install one or more bundles",
     "-s         Persistently start bundle(s) according to activation policy",
-    "<location> Name or id of bundle"
+    "<location> Location of bundle archive (URL).",
+    "Note: The base URLs used to complete partial URLs may be set using the cd command"
   };
 
   public int cmdInstall(Dictionary opts, Reader in, PrintWriter out,
@@ -1326,13 +1327,14 @@ public class FrameworkCommandGroup
   //
 
   public final static String USAGE_SERVICES
-    = "[-i] [-l] [-f #filter#] [-r] [-u] [<bundle>] ...";
+    = "[-i] [-l] [-sid #id#] [-f #filter#] [-r] [-u] [<bundle>] ...";
 
   public final static String[] HELP_SERVICES = new String[] {
     "List registered services",
     "-i          Sort on bundle id",
     "-l          Verbose output",
     "-r          Show services registered by named bundles (default)",
+    "-sid #id#   Show the service with the specified service id",
     "-u          Show services used by named bundles",
     "-f #filter# Show all services that matches the specified filter.",
     "<bundle>    Name or id of bundle" };
@@ -1347,33 +1349,55 @@ public class FrameworkCommandGroup
           boolean useDefaultOper = opts.get("-r") == null
             && opts.get("-u") == null;
           ServiceReference[] fs = null;
+          String filter = null;
           if (opts.get("-f") != null) {
+            filter = (String) opts.get("-f");
+            if ('(' != filter.charAt(0)) {
+              filter = "(" +filter +")";
+            }
+          }
+          if (opts.get("-sid") != null) {
+            if (filter!=null) {
+              filter = "(&(service.id=" +opts.get("-sid") +")" +filter +")";
+            } else {
+              filter = "(service.id=" +opts.get("-sid") +")";
+            }
+          }
+          if (filter != null) {
             try {
-              fs = bc.getServiceReferences(null, (String) opts.get("-f"));
+              fs = bc.getServiceReferences(null, filter);
               if (null==fs) {
-                out.println("No services matching '"+opts.get("-f") +"'.");
+                out.println("No services matching '"+filter +"'.");
                 return new Integer(0);
               }
             } catch (InvalidSyntaxException ise) {
-              out.println("Invalid filter found: "+ise.getMessage());
+              out.println("Invalid filter '" +filter +"' found: "
+                          +ise.getMessage());
               return new Integer(1);
             }
           }
 
           for (int i = 0; i < b.length; i++) {
             if (b[i] != null) {
-              out.println("Bundle: " + showBundle(b[i]));
+              final String heading = "Bundle: " + showBundle(b[i]);
+              boolean headingPrinted = false;
               if (opts.get("-r") != null || useDefaultOper) {
-                showServices(getServicesRegisteredBy(b[i],fs),
-                             out,
-                             "  registered:",
-                             opts.get("-l") != null);
+                headingPrinted =
+                  showServices(getServicesRegisteredBy(b[i],fs),
+                               out,
+                               heading,
+                               headingPrinted,
+                               "  registered:",
+                               opts.get("-l") != null);
               }
               if (opts.get("-u") != null) {
-                showServices(getServicesUsedBy(b[i],fs),
-                             out,
-                             "  uses:",
-                             opts.get("-l") != null);
+                headingPrinted =
+                  showServices(getServicesUsedBy(b[i],fs),
+                               out,
+                               heading,
+                               headingPrinted,
+                               "  uses:",
+                               opts.get("-l") != null);
               }
             }
           }
@@ -1441,12 +1465,17 @@ public class FrameworkCommandGroup
     return res;
   }
 
-  void showServices(final ServiceReference[] services,
-                    final PrintWriter out,
-                    final String title,
-                    final boolean detailed)
+  boolean showServices(final ServiceReference[] services,
+                       final PrintWriter out,
+                       final String heading,
+                       final boolean headinPrinted,
+                       final String title,
+                       final boolean detailed)
   {
     if (services != null && services.length > 0) {
+      if (!headinPrinted) {
+        out.println(heading);
+      }
       out.print(title);
       for (int j = 0; j<services.length; j++) {
         if (null!=services[j]) {
@@ -1458,8 +1487,10 @@ public class FrameworkCommandGroup
           }
         }
       }
+      out.println("");
+      return true;
     }
-    out.println("");
+    return false;
   }
 
   void showLongService(ServiceReference s, String pad, PrintWriter out) {
@@ -1863,14 +1894,16 @@ public class FrameworkCommandGroup
     "Update a bundle from a specific URL",
     "<bundle> - Name or id of bundle",
     "<url>    - URL to update from",
-    "Note: Use refresh command to force the framework to do a package update",
-    "of exported packages used by running bundles." };
+    "Note 1: Use refresh command to force the framework to do a package update",
+    "of exported packages used by running bundles.",
+    "Note 2: The base URLs used to complete partial URLs may be set using the cd command"
+  };
 
   public int cmdFromupdate(Dictionary opts, Reader in, PrintWriter out,
                            Session session) {
     String bname = (String) opts.get("bundle");
     Bundle[] bl = getBundles(new String[] { bname }, true);
-    String fromURL = (String) opts.get("url");
+    String fromURL = completeLocation((String) opts.get("url"));
 
     Bundle b = bl[0];
     if (b == null) {
@@ -1896,8 +1929,8 @@ public class FrameworkCommandGroup
                   + ")");
     }
 
-    out
-      .println("Note: Use refresh command to update exported packages in running bundles");
+    out.println("Note: Use refresh command to update exported packages "
+                +"in running bundles");
     return 0;
   }
 
@@ -1906,11 +1939,13 @@ public class FrameworkCommandGroup
   public final static String[] HELP_FROMINSTALL = new String[] {
     "Install a bundle with a specific location from an URL",
     "<url>      - URL to bundle jar file",
-    "<location> - Optional location string to use for installation", };
+    "<location> - Optional location string to use for installation",
+    "Note: The base URLs used to complete partial URLs may be set using the cd command"
+  };
 
   public int cmdFrominstall(Dictionary opts, Reader in, PrintWriter out,
                             Session session) {
-    String fromURL = (String) opts.get("url");
+    final String fromURL = completeLocation( (String) opts.get("url"));
     String loc = (String) opts.get("location");
 
     if (loc == null) {
