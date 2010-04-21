@@ -41,11 +41,11 @@ import java.util.*;
 import java.io.*;
 
 public class Util {
-  static String BUNDLE_IMAGE = Activator.RES_ALIAS + "/bundle.gif";
-  static String LIB_IMAGE    = Activator.RES_ALIAS + "/lib.gif";
+  static String BUNDLE_IMAGE = Activator.RES_ALIAS + "/bundle.png";
+  static String LIB_IMAGE    = Activator.RES_ALIAS + "/lib.png";
 
-  static String BUNDLE_ACTIVE_IMAGE = Activator.RES_ALIAS + "/bundle_started.gif";
-  static String LIB_ACTIVE_IMAGE    = Activator.RES_ALIAS + "/lib_started.gif";
+  static String BUNDLE_ACTIVE_IMAGE = Activator.RES_ALIAS + "/bundle-active.png";
+  static String LIB_ACTIVE_IMAGE    = Activator.RES_ALIAS + "/bundle-lib-active.png";
 
   static String BUNDLE_ID_PREFIX = "bundle_id_";
 
