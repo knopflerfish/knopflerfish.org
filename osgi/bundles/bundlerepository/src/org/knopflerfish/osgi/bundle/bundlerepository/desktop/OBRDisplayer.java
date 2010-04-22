@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -124,9 +124,11 @@ public class OBRDisplayer
   static ImageIcon startIcon;
   static ImageIcon sortIcon;
   static ImageIcon installIcon;
-  static ImageIcon updateIcon;
+  // static ImageIcon updateIcon;
   static ImageIcon bundleIcon;
+  static ImageIcon bundleJarIcon;
   static ImageIcon reloadIcon;
+  static ImageIcon settingsIcon;
 
   static final int SORT_NONE        = 0;
   static final int SORT_HOST        = 1;
@@ -169,13 +171,14 @@ public class OBRDisplayer
     try {
       // share icon instances between instances
       if(startIcon == null) {
-        startIcon   = new ImageIcon(getClass().getResource("/player_play.png"));
-        installIcon = new ImageIcon(getClass().getResource("/player_install.png"));
-        updateIcon  = new ImageIcon(getClass().getResource("/update.png"));
-        sortIcon    = new ImageIcon(getClass().getResource("/sort_select.png"));
-        bundleIcon  = new ImageIcon(getClass().getResource("/lib16x16.png"));
-        reloadIcon     = new ImageIcon(getClass().getResource("/reload_green.png"));
-
+        startIcon   = new ImageIcon(getClass().getResource("/bundle-install-start.png"));
+        installIcon = new ImageIcon(getClass().getResource("/bundle-install.png"));
+        // updateIcon  = new ImageIcon(getClass().getResource("/update.png"));
+        sortIcon    = new ImageIcon(getClass().getResource("/view-select.png"));
+        bundleIcon  = new ImageIcon(getClass().getResource("/osgi-bundle.png"));
+        bundleJarIcon  = new ImageIcon(getClass().getResource("/osgi-bundle-jar.png"));
+        reloadIcon     = new ImageIcon(getClass().getResource("/view-refresh.png"));
+        settingsIcon     = new ImageIcon(getClass().getResource("/preferences-system.png"));
       }
     } catch (Exception e) {
 
@@ -306,15 +309,20 @@ public class OBRDisplayer
               String tt = null;
               if(node instanceof OBRNode) {
                 OBRNode obrNode = (OBRNode)node;
-                setIcon(obrNode.bBusy ? reloadIcon : bundleIcon);
+
                 String loc = (String)obrNode.getBundleRecord().getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
                 tt = obrNode.bBusy ? "busy..." : loc;
-
+		
                 boolean bInstalled = isInstalled(obrNode.getBundleRecord());
                 obrNode.setInstalled(bInstalled);
-                if(bInstalled) {
-                  setForeground(Color.gray);
+		if (obrNode.bBusy) 
+		  setIcon(reloadIcon);
+		else if (bInstalled) {
+                  setIcon(bundleIcon);
+		  setForeground(Color.gray);
                 }
+		else 	
+		  setIcon(bundleJarIcon);
               } else if(node instanceof TopNode) {
                 TopNode topNode = (TopNode)node;
                 if(STR_LOADING.equals(topNode.name)) {
@@ -383,14 +391,14 @@ public class OBRDisplayer
 
       treeScroll.setPreferredSize(new Dimension(200, 300));
 
-      JButton repoButton = new JButton("URLs");
+      JButton repoButton = new JButton(settingsIcon);
       repoButton.setToolTipText("Show/set repository URLs");
       repoButton.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             askRepoURls();
           }
         });
-
+      
       installButton = new JButton(installIcon);
       installButton.setToolTipText("Install from OBR");
       ActionListener installAction;
