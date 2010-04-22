@@ -73,7 +73,7 @@ Desktop 3.0.10
    RemoteFramework. E.g., the list of bundles shown was taken from
    the own (client) framework when it should have come from the remote
    (server) framework.
-
+ - Switched to tango icon set
 
 Framework Commands 3.0.3
  - Added support for using options when starting and stopping bundles.
@@ -118,6 +118,11 @@ crimson - 2.1.0
 xerces - 2.10.0
  - updated to use 2008 version of OSGi's XMLParserActivator.
 
+bundlerepository 3.0.1
+ - Switched to tango icon set
+
+httpconsole 3.0.0
+ - Switched to tango icon set
 
 ----------------------------------------------
 
