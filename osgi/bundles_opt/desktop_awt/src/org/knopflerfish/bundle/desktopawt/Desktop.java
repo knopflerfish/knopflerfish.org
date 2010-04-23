@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,9 +52,9 @@ class Desktop {
   Desktop() {
     frame       = new Frame("Knopflerfish Desktop");
     tracker     = new MediaTracker(frame);
-    activeIcon  = loadImage("/player_play_14x14.gif");
-    bundleImage = loadImage("/bundle.gif");
-    libImage    = loadImage("/lib.gif");
+    activeIcon  = loadImage("/player_play_14x14.png");
+    bundleImage = loadImage("/bundle.png");
+    libImage    = loadImage("/lib.png");
 
 
     setIcon(frame, "/kf_");
