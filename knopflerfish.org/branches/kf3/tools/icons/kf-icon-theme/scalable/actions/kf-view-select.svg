@@ -20,9 +20,9 @@
    inkscape:version="0.47 r22583"
    sodipodi:docname="kf-view-select.svg"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="/Users/cl/work/kf3/osgi/bundles/desktop/resources/view_select.png"
-   inkscape:export-xdpi="41.25"
-   inkscape:export-ydpi="41.25">
+   inkscape:export-filename="/Users/cl/work/kf3/tools/icons/kf-icon-theme/32x32/actions/view-refresh.png"
+   inkscape:export-xdpi="30"
+   inkscape:export-ydpi="30">
   <metadata
      id="metadata66">
     <rdf:RDF>
@@ -76,8 +76,8 @@
      inkscape:zoom="1.0076756"
      inkscape:cx="34"
      inkscape:cy="24"
-     inkscape:window-x="432"
-     inkscape:window-y="159"
+     inkscape:window-x="66"
+     inkscape:window-y="296"
      inkscape:current-layer="svg11300"
      showgrid="false"
      inkscape:window-maximized="0" />
