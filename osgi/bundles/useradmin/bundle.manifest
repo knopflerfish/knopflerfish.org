@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: UserAdmin
 Bundle-SymbolicName: org.knopflerfish.bundle.useradmin
-Bundle-Version: 2.0.2
+Bundle-Version: 3.0.0
 Bundle-Description: User Administration Service
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
@@ -11,6 +11,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.service.um.useradmin.impl.Activator
 Bundle-Category: service
+Application-Icon: icon.png
 Export-Package: org.knopflerfish.service.um.ipam;specification-version=1.0,
  org.knopflerfish.service.um.useradmin;specification-version=1.0,
  org.osgi.service.useradmin;specification-version=1.1.0
