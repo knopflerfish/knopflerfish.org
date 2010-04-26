@@ -303,7 +303,10 @@ public class Util {
       URL appURL = null;
       String iconName = (String)b.getHeaders().get("Application-Icon");
       if(iconName == null) {
-        iconName = "";
+	if (b.getBundleId() == 0) // Special case for System Bundle as manifest can not be read
+	  iconName = "icon.png";
+	else
+	  iconName = "";
       }
       iconName = iconName.trim();
 
