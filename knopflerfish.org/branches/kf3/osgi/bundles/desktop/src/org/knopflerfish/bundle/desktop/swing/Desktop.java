@@ -459,7 +459,7 @@ public class Desktop
 
     setRemote(Activator.remoteTracker.getService() != null);
 
-    setIcon(frame, "/kf_");
+    setIcon(frame, "/kf-");
 
     // frame.pack() not used since SizeSaver(frame) does a setSize()
     // frame.pack();
@@ -2832,7 +2832,7 @@ public class Desktop
   public void setIcon(JFrame frame, String baseName) {
     // Frame icon
     final String iconName1
-      = baseName +(Util.isWindows() ? "16x16.gif" : "32x32.gif");
+      = baseName +(Util.isWindows() ? "16x16.png" : "32x32.png");
     // Max OS X dock icon
     final String iconName2 = baseName +"128x128.png";
     final MediaTracker tracker = new MediaTracker(frame);
