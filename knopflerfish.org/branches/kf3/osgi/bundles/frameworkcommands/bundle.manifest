@@ -1,4 +1,4 @@
-Manifest-Version: 1.0
+xManifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: FW-Commands
 Bundle-SymbolicName: org.knopflerfish.bundle.frameworkcommands
@@ -10,6 +10,7 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/frameworkcommands
 Bundle-Category: service
+Application-Icon: icon.png
 Import-Service: org.osgi.service.log.LogService,
  org.knopflerfish.service.console.ConsoleService
 Import-Package: org.osgi.framework;version="[1.5,2.0)",
