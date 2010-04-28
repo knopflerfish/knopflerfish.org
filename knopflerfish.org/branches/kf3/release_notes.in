@@ -55,8 +55,17 @@ Http 2.1.5
 Knopflerfish Specific
 ----------------------------------------------
 
-Console
- - Migration to new OSGi Standard (Done)
+Command 0.0.1
+ - This is an implementation of the new proposed OSGi Standardized
+   console (not included in OSGi R4 v4.2). To make console commands
+   written for the legacy Knopflerfish console available in the
+   command console, use the 'console2command'-bundle.
+
+Console 3.0.0 
+ - Many commands that has a bundle-argument now accepts the bundle
+   symbolic name as a way to specify the bundle (they also accept
+   bundle id and bundle name as before).
+ - Fixed documentaiton URL and Subversion URL in the manifest.
 
 Desktop 3.0.10
  - Added menu action for resolving all selected bundles.
@@ -88,14 +97,19 @@ Framework Commands 3.0.3
  - The URL given to the 'formupdate' and 'frominstall' commands now
    uses the same set of base URLs as the 'install' command.
 
-Log 2.0.3
+Log 3.0.0
  - New configuration property for setting the number of
    log records to keep in memory.
+ - The bundle symbolic name may now be used to identify the bundle
+   when configuring per bundle log-levels.
 
-Log Commands 2.0.1
+Log Commands 3.0.0
  - If a log entry includes a service reference print the service id
    in addition to the value of the object class property. 
-
+ - The commands 'setLevel' and 'showLevel' now supports specification
+   of the bundle using its symbolic name.
+ - A new option "-c" that clears the in memory log has been added to
+   the 'memory' command.
 
 kSOAP_RemoteFW 3.0.2
  - Updated documentation and added xargs-file fragments that makes it

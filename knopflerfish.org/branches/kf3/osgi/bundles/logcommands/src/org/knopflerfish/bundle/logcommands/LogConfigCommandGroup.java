@@ -40,6 +40,9 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
@@ -160,10 +163,17 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
     for (int i = givenBundles.length - 1; i >= 0; i--) {
       location = givenBundles[i].trim();
       try {
-        long id = Long.parseLong(location);
-        location = (LogCommands.bc.getBundle(id) != null)
-          ? (LogCommands.bc.getBundle(id)).getLocation()
-          : null;
+        final long id = Long.parseLong(location);
+        final Bundle bundle = LogCommands.bc.getBundle(id);
+        if (null!=bundle) {
+          final Dictionary d = bundle.getHeaders("");
+          location = (String) d.get("Bundle-SymbolicName");
+          if (location == null) {
+            location = bundle.getLocation();
+          }
+        } else {
+          location = null;
+        }
       } catch (NumberFormatException nfe) {
       }
       if (location != null && location.length() > 0) {
@@ -178,15 +188,14 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
   public final static String USAGE_SHOWLEVEL = "[<bundle>] ...";
 
   public final static String[] HELP_SHOWLEVEL = new String[] {
-    "Show current log levels.",
-    "All existing default configurations are marked with (default).",
-    "Bundles not yet installed, which are not a default configuration,",
-    "are given with their full path to differentiate the bundles. ",
+    "Show current log levels for bundles.",
+    "When called without an argument, all bundles with a log level configuration",
+    "will be listed followed by all configurations currently not matching a",
+    "bundle.",
     "<bundle>     Show level for the specified bundles only. The bundle",
     "             may be given as the bundle id, bundle's short-name,",
-    "             or the bundle location. If the bundle's short-name is",
-    "             supplied then all bundles configured with that name will be",
-    "             shown.",
+    "             bundles symbolic name or the bundle location. If the bundle",
+    "             uses the default log level its line will end with the text \"(default)\".",
   };
 
   public int cmdShowlevel(Dictionary opts, Reader in, PrintWriter out,
@@ -200,117 +209,101 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
       return 1;
     }
 
+    final Bundle[] bundles = LogCommands.bc.getBundles();
+
     String[] selections = (String[]) opts.get("bundle");
+    final boolean showAll = null==selections;
     if (selections == null) {
       HashMap filters = configuration.getFilters();
-      selections = (String[]) ((filters).keySet())
-        .toArray(new String[filters.size()]);
+      selections = (String[])
+        filters.keySet().toArray(new String[filters.size()]);
     }
     // Print the default filter level.
     out.println("    *  " + LogUtil.fromLevel(configuration.getFilter(), 8)
                 + "(default)");
-    printValidBundles(configuration, selections, out);
+
+    final Set matchedSelectors = new HashSet();
+    Util.selectBundles(bundles, selections, matchedSelectors);
+    Util.sortBundlesId(bundles);
+
+    printBundleLogLevels(configuration, bundles, out);
+    if (showAll) {
+      printConfiguredLogLevels(configuration, selections, matchedSelectors,
+                               out);
+    }
+
     return 0;
   }
 
-  private void printValidBundles(LogConfig configuration, String[] selection,
-                                 PrintWriter out) {
-    String ref = null, short_name, full_name, comparable_name, name;
-    Bundle[] bundles = null;
-    Bundle bundle;
-    long id = 0;
-    HashSet names = new HashSet();
-    for (int i = selection.length - 1; i >= 0; i--) {
-      ref = selection[i].trim();
-      if (ref.length() > 0) {
-        try {
-          id = Long.parseLong(ref);
-          bundle = LogCommands.bc.getBundle(id);
-          if (bundle != null) {
-            full_name = bundle.getLocation();
-            short_name = Util.shortName(bundle);
-            if (!names.contains(full_name)) {
-              out.println(Util.showId(bundle)
-                          + " "
-                          + LogUtil.fromLevel(getLevel(configuration,
-                                                       full_name, short_name + ".jar"), 8)
-                          + short_name);
-              names.add(full_name);
-            }
-          }
-        } catch (NumberFormatException nfe) {
-          id = -1;
-          comparable_name = getCommonLocation(ref);
-          bundles = LogCommands.bc.getBundles();
-          for (int j = bundles.length - 1; j >= 0; j--) {
-            short_name = Util.shortName(bundles[j]);
-            full_name = bundles[j].getLocation();
-            if ((full_name).equals(comparable_name)
-                && (!names.contains(full_name))) {
-              out.println(Util.showId(bundles[j])
-                          + " "
-                          + LogUtil.fromLevel(getLevel(configuration,
-                                                       full_name, short_name + ".jar"), 8)
-                          + short_name);
-              names.add(full_name);
-              break;
-            } else if ((short_name + ".jar")
-                       .equals(comparable_name)
-                       && !names.contains(full_name)) {
-              out.println(Util.showId(bundles[j])
-                          + " "
-                          + LogUtil.fromLevel(getLevel(configuration,
-                                                       full_name, short_name + ".jar"), 8)
-                          + short_name);
-              names.add(full_name);
-            }
-          }
-          HashMap filters = configuration.getFilters();
-          // If a full path is given
-          if (((comparable_name.lastIndexOf("/") != -1 || comparable_name
-                .lastIndexOf("\\") != -1))
-              && filters.containsKey(comparable_name)
-              && !names.contains(comparable_name)) {
-            out.println("    -  "
-                        + LogUtil.fromLevel(getLevel(configuration,
-                                                     comparable_name, ""), 8)
-                        + getFullName(comparable_name)
-                        + " (Bundle not yet installed)");
-            names.add(comparable_name);
-          }
-          // A short name is supplied
-          else {
-            if (filters.containsKey(comparable_name)
-                && !names.contains(comparable_name)) {
-              out.println("    -  "
-                          + LogUtil.fromLevel(getLevel(configuration,
-                                                       "", comparable_name), 8)
-                          + getShortName(comparable_name)
-                          + " (default)");
-              names.add(comparable_name);
-            }
-            for (Iterator it = filters.keySet().iterator(); it
-                   .hasNext();) {
-              name = (String) it.next();
-              if (name.endsWith(comparable_name)
-                  && !names.contains(name)) {
-                out.println("    -  "
-                            + LogUtil.fromLevel(getLevel(
-                                                         configuration, name, ""), 8)
-                            + getFullName(name)
-                            + " (Bundle not yet installed)");
-                names.add(name);
-              }
-            }
-          }
-        }
+  private void printBundleLogLevels(final LogConfig configuration,
+                                    final Bundle[] bundles,
+                                    final PrintWriter out)
+  {
+    for (int i = 0; i < bundles.length; i++) {
+      final Bundle bundle = bundles[i];
+      if (bundle != null) {
+        final String full_name = bundle.getLocation();
+        final String short_name = Util.shortName(bundle);
+        int level = getLevel(configuration, bundle);
+        final boolean isDefaultLevel = level < 0;
+        level = isDefaultLevel ? configuration.getFilter() : level;
+        out.println(Util.showId(bundle)
+                    + " "
+                    + LogUtil.fromLevel(level, 8)
+                    + short_name
+                    + (isDefaultLevel ? " (default)" : ""));
       }
     }
   }
 
-  private int getLevel(LogConfig configuration, String full_name,
-                       String short_name) {
-    HashMap filters = configuration.getFilters();
+  private void printConfiguredLogLevels(final LogConfig configuration,
+                                        final String[] selections,
+                                        final Set weedOut,
+                                        final PrintWriter out) {
+    final SortedSet selectionSet = new TreeSet();
+    for (int i = selections.length - 1; i >= 0; i--) {
+      final String selection = selections[i];
+      if (null!=selection && 0<selection.length()
+          && !weedOut.contains(selection)) {
+        selectionSet.add(selection);
+      }
+    }
+
+    for (Iterator it = selectionSet.iterator(); it.hasNext(); ) {
+      final String selection = (String) it.next();
+      out.println("    -  "
+                  + LogUtil.fromLevel(getLevel(configuration,
+                                               selection, ""), 8)
+                  + getFullName(selection)
+                  + " (Bundle not yet installed)");
+    }
+  }
+
+  private int getLevel(final LogConfig configuration, final Bundle bundle)
+  {
+    final HashMap filters = configuration.getFilters();
+    Integer level;
+
+    level = (Integer) filters.get(bundle.getLocation());
+    if (level == null) {
+      Dictionary d = bundle.getHeaders("");
+      String l = (String)d.get("Bundle-SymbolicName");
+      if (l == null) {
+        l = (String)d.get("Bundle-Name");
+      }
+      if (l != null) {
+        level = (Integer) filters.get(l);
+      }
+    }
+    return (level != null) ? level.intValue() : -1;
+  }
+
+
+  private int getLevel(final LogConfig configuration,
+                       final String full_name,
+                       final String short_name)
+  {
+    final HashMap filters = configuration.getFilters();
     Integer level_to_use = (Integer) filters.get(full_name);
     if (level_to_use == null) {
       level_to_use = (Integer) filters.get(short_name);
@@ -324,8 +317,7 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
   }
 
   private String getShortName(String bundle) {
-    return fillName(new StringBuffer(bundle.substring(0, bundle
-                                                      .indexOf(".jar"))), 17);
+    return fillName(new StringBuffer(bundle), 17);
   }
 
   private String fillName(StringBuffer sb, int length) {
@@ -488,17 +480,6 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
     out.println(" This command is disabled. "
                 + "(No filesystem support is available. )");
     return 0;
-  }
-
-  /***************************************************************************
-   * Utility methods
-   **************************************************************************/
-
-  private String getCommonLocation(String location) {
-    if (location.endsWith(".jar")) {
-      return location;
-    }
-    return location + ".jar";
   }
 
 }

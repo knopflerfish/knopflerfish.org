@@ -10,7 +10,7 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.logcommands.LogCommands
 Bundle-Category: service
 Application-Icon: icon.png
-Import-Package: org.knopflerfish.service.console,
+Import-Package: org.knopflerfish.service.console;version=2.1,
  org.knopflerfish.service.log,
  org.osgi.framework,
  org.osgi.service.log,
