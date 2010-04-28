@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bundle-Name: LogService
+Bundle-Name: Log Service
 Bundle-SymbolicName: org.knopflerfish.log
-Bundle-Version: 2.0.3
+Bundle-Version: 3.0.0
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Category: service
 Bundle-Description: The Knopflerfish OSGi log service
