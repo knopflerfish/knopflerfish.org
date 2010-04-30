@@ -82,7 +82,7 @@
 -Forg.knopflerfish.log.level=info
 -Forg.knopflerfish.log.grabio=true
 -Forg.knopflerfish.log.file=true
--Forg.knopflerfish.log.memory.size=2500
+-Forg.knopflerfish.log.memory.size=250
 
 #consoletelnet properties
 -Forg.knopflerfish.consoletelnet.user=admin
