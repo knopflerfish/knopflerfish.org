@@ -67,7 +67,7 @@ Console 3.0.0
    bundle id and bundle name as before).
  - Fixed documentaiton URL and Subversion URL in the manifest.
 
-Desktop 3.0.10
+Desktop 3.0.11
  - Added menu action for resolving all selected bundles.
  - Added support for using options when starting and stopping bundles.
    E.g., a bundle may now be transiently started or stopped.
@@ -82,7 +82,12 @@ Desktop 3.0.10
    RemoteFramework. E.g., the list of bundles shown was taken from
    the own (client) framework when it should have come from the remote
    (server) framework.
- - Switched to tango icon set
+ - Switched to tango icon set.
+ - The packages displayer sometimes incorrectly showed packages that
+   the bundle both imports and exports as missing. This is now
+   fixed. The root of the problem was that there is no wire for a
+   package that a bundle imports when the selected exporter is the
+   current class-loader of the bundle itself.
 
 Framework Commands 3.0.3
  - Added support for using options when starting and stopping bundles.
