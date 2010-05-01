@@ -82,7 +82,7 @@
       </fileset>
     </bundle_locator>
     <copy todir="${classes.out.dir}">
-      <zipfileset src="${osgi.dir}/framework.jar">
+      <zipfileset src="${bap.framework}">
 	<patternset>
 	  <include name="org/knopflerfish/framework/Util*"/>
 	  <include name="org/knopflerfish/framework/FileTree*"/>
