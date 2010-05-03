@@ -65,9 +65,9 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   public void bundleChanged(BundleEvent ev) {
     super.bundleChanged(ev);
 
+    model.fireTableStructureChanged();
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JBundleTable comp = (JBundleTable)it.next();
-      model.fireTableStructureChanged();
       comp.setColumnWidth();
     }
   }

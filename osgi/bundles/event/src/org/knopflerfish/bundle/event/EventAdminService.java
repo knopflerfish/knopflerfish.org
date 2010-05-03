@@ -38,31 +38,59 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Default implementation of the EventAdmin interface this is a singleton class
- * and should always be active. The implementation is responsible for track
- * eventhandlers and check their permissions. It will also
- * host two threads sending diffrent types of data. If an eventhandler is subscribed to the
- * published event the EventAdmin service will put the event on one of the two internal sendstacks
- * depending on what type of deliverance the event requires.
+ * Implementation of the EventAdmin interface. This is a singleton
+ * class and should always be active.
+ *
+ * The implementation is responsible for track eventhandlers and check
+ * their permissions. It will also host two threads sending diffrent
+ * types of data. If an eventhandler is subscribed to the published
+ * event the EventAdmin service will put the event on one of the two
+ * internal sendstacks depending on what type of deliverance the event
+ * requires.
  *
  * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
  */
-public class EventAdminService implements EventAdmin {
-  private QueueHandler queueHandlerAsynch;
-  private MultiListener ml;
-  private ConfigurationListenerImpl cli;
+public class EventAdminService
+  implements EventAdmin
+{
+  final private Map queueHandlers = new HashMap();
+  final private MultiListener ml;
+  final private ConfigurationListenerImpl cli;
   private ServiceRegistration reg;
 
   public EventAdminService() {
-
+    ml = new MultiListener();
+    cli = new ConfigurationListenerImpl();
   }
 
   public void postEvent(Event event) {
     try {
-      queueHandlerAsynch.addEvent(new InternalAdminEvent(event, getMatchingHandlers(event.getTopic())));
+      final InternalAdminEvent iae
+        = new InternalAdminEvent(event, getMatchingHandlers(event.getTopic()));
+      if (iae.getHandlers() == null) { // No-one to deliver to
+        return;
+      }
+
+      QueueHandler queueHandler = null;
+      synchronized(queueHandlers) {
+        final Object key = Activator.useMultipleQueueHandlers
+          ? (Object) Thread.currentThread() : (Object) this;
+
+        queueHandler = (QueueHandler) queueHandlers.get(key);
+        if (null==queueHandler) {
+          queueHandler = new QueueHandler(queueHandlers, key);
+          queueHandler.start();
+          queueHandlers.put(queueHandler.getKey(), queueHandler);
+        }
+        queueHandler.addEvent(iae);
+      }
     } catch(Exception e){
       Activator.log.error("Unknown exception in postEvent():", e);
     }
@@ -70,7 +98,12 @@ public class EventAdminService implements EventAdmin {
 
   public void sendEvent(Event event) {
     try {
-      new InternalAdminEvent(event, getMatchingHandlers(event.getTopic())).deliver();
+      final InternalAdminEvent iae
+        = new InternalAdminEvent(event, getMatchingHandlers(event.getTopic()));
+      if (iae.getHandlers() == null) { // No-one to deliver to
+        return;
+      }
+      iae.deliver();
     } catch(Exception e){
       Activator.log.error("Unknown exception in sendEvent():", e);
     }
@@ -81,29 +114,25 @@ public class EventAdminService implements EventAdmin {
   }
 
   synchronized void start() {
-    queueHandlerAsynch = new QueueHandler();
-    queueHandlerAsynch.start();
-
-    ml = new MultiListener();
     ml.start();
-    
-    cli = new ConfigurationListenerImpl();
     cli.start();
-
     reg = Activator.bc.registerService(EventAdmin.class.getName(), this, null);
   }
 
   synchronized void stop() {
     reg.unregister();;
     reg = null;
-    
-    cli.stop();
-    cli = null;
 
+    cli.stop();
     ml.stop();
-    ml = null;
-    
-    queueHandlerAsynch.stopIt();
-    queueHandlerAsynch = null;
+
+    Set activeQueueHandlers = null;
+    synchronized(queueHandlers) {
+      activeQueueHandlers = new HashSet(queueHandlers.values());
+    }
+    for (Iterator it = activeQueueHandlers.iterator(); it.hasNext(); ) {
+      final QueueHandler queueHandler = (QueueHandler) it.next();
+      queueHandler.stopIt();
+    }
   }
 }

@@ -34,10 +34,10 @@
 
 package org.knopflerfish.bundle.event;
 
-
 import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * The Activator class is the startup class for the EventHandlerService.
@@ -45,27 +45,75 @@ import org.osgi.framework.BundleContext;
  * @author Magnus Klack
  */
 public class Activator implements BundleActivator {
-    static BundleContext bc;
-    static LogRef log;
-    static EventAdminService eventAdmin;
-    static EventHandlerTracker handlerTracker;
+  private static final String TIMEOUT_PROP
+    = "org.knopflerfish.eventadmin.timeout";
+  private static final String TIMEWARNING_PROP
+    = "org.knopflerfish.eventadmin.timewarning";
+  private static final String QUEUE_HANDLER_MULTIPLE_PROP
+    = "org.knopflerfish.eventadmin.queuehandler.multiple";
+  private static final String QUEUE_HANDLER_TIMEOUT_PROP
+    = "org.knopflerfish.eventadmin.queuehandler.timeout";
 
-  public void start(BundleContext context) throws Exception {
-      bc = context;
-      log = new LogRef(context);
+  static BundleContext bc;
+  static LogRef log;
+  static EventAdminService eventAdmin;
+  static EventHandlerTracker handlerTracker;
+  static long timeout = 0;
+  static boolean useMultipleQueueHandlers = true;
+  static long queueHandlerTimeout = 1100;
+  static long timeWarning = 0;
 
-      handlerTracker = new EventHandlerTracker(context);
-      handlerTracker.open();
+  public void start(BundleContext bc) throws Exception
+  {
+    Activator.bc = bc;
+    log = new LogRef(bc);
+    handlerTracker = new EventHandlerTracker(bc);
 
-      eventAdmin = new EventAdminService();
-      eventAdmin.start();
+    /* Tries to get the timeout property from the system */
+    try {
+      final String timeoutS = Activator.bc.getProperty(TIMEOUT_PROP);
+      if (null != timeoutS && 0 < timeoutS.length()) {
+        timeout = Long.parseLong(timeoutS);
+      }
+    } catch (NumberFormatException ignore) {
     }
 
-    public void stop(BundleContext context) throws Exception {
-      eventAdmin.stop();
-      eventAdmin = null;
-
-      handlerTracker.close();
-      handlerTracker = null;
+    try {
+      final String timeoutS
+        = Activator.bc.getProperty(QUEUE_HANDLER_TIMEOUT_PROP);
+      if (null != timeoutS && 0 < timeoutS.length()) {
+        queueHandlerTimeout = Long.parseLong(timeoutS);
+      }
+    } catch (NumberFormatException ignore) {
     }
+
+    final String qhm
+      = Activator.bc.getProperty(QUEUE_HANDLER_MULTIPLE_PROP);
+    if (null!=qhm) {
+      useMultipleQueueHandlers = !"false".equalsIgnoreCase(qhm);
+    }
+
+    try {
+      String timeWarningS = Activator.bc.getProperty(TIMEWARNING_PROP);
+      if (null != timeWarningS && 0 < timeWarningS.length()) {
+        timeWarning = Long.parseLong(timeWarningS);
+      }
+    } catch (NumberFormatException ignore) {
+      timeWarning = 0;
+    }
+
+    handlerTracker.open();
+
+    eventAdmin = new EventAdminService();
+    eventAdmin.start();
+  }
+
+  public void stop(BundleContext bc) throws Exception
+  {
+    eventAdmin.stop();
+    eventAdmin = null;
+
+    handlerTracker.close();
+    handlerTracker = null;
+  }
 }
