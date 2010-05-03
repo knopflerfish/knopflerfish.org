@@ -34,6 +34,10 @@
 
 package org.knopflerfish.bundle.event;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
@@ -41,11 +45,6 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 
 public class TrackedEventHandler {
   private final EventHandlerTracker tracker;
@@ -56,96 +55,112 @@ public class TrackedEventHandler {
   private boolean blacklisted = false;
   private HashSet referencingSets = new HashSet();
 
-  private TrackedEventHandler(EventHandlerTracker tracker, EventHandler tracked) {
+  private TrackedEventHandler(EventHandlerTracker tracker, EventHandler tracked)
+  {
     this.tracker = tracker;
     this.tracked = tracked;
   }
 
-  public boolean handleEventSubjectToFilter(Event event) {
-    if(destroyed || blacklisted) {
+  public boolean handleEventSubjectToFilter(Event event)
+  {
+    if (destroyed || isBlacklisted()) {
       return false;
     }
-    if(filter == null || event.matches(filter) ) {
+    if (filter == null || event.matches(filter)) {
       tracked.handleEvent(event);
+      setBlacklist(false);
       return true;
     }
     return false;
   }
 
-  public void blacklist() {
-    blacklisted = true;
+  public synchronized boolean isBlacklisted()
+  {
+    return blacklisted;
   }
 
-  public static TrackedEventHandler create(EventHandlerTracker eht, ServiceReference sr, EventHandler eh) {
+  public synchronized void setBlacklist(boolean blacklisted)
+  {
+    this.blacklisted = blacklisted;
+  }
+
+  public static TrackedEventHandler create(EventHandlerTracker eht,
+                                           ServiceReference sr,
+                                           EventHandler eh)
+  {
     TrackedEventHandler teh = new TrackedEventHandler(eht, eh);
     teh.update(sr);
     return teh;
   }
 
-  public void update(ServiceReference sr) {
+  public void update(ServiceReference sr)
+  {
     this.sr = sr;
-    //removeAllReferences();
+    // removeAllReferences();
     updateEventFilter();
     updateTopicsAndWildcards();
   }
 
+  public ServiceReference getServiceReference()
+  {
+    return sr;
+  }
 
-  public void destroy() {
+  public void destroy()
+  {
     destroyed = true;
     removeAllReferences();
   }
 
-  private void updateEventFilter() {
+  private void updateEventFilter()
+  {
     String filterString = (String) sr.getProperty(EventConstants.EVENT_FILTER);
     try {
-      if(filterString == null) {
+      if (filterString == null) {
         filter = null;
       } else {
         filter = FrameworkUtil.createFilter(filterString);
       }
     } catch (InvalidSyntaxException e) {
       filter = null;
-      blacklist();
+      setBlacklist(true);
       /*
-                if (Activator.log.doError()) {
-            Activator.log.error("Failure when matching filter '" +filterString
-                                +"' in handler with service.id " +sid,
-                                handlerSR,
-                                err);
-          }
+       * if (Activator.log.doError()) {
+       * Activator.log.error("Failure when matching filter '" +filterString
+       * +"' in handler with service.id " +sid, handlerSR, err); }
        */
     }
   }
 
-  private void updateTopicsAndWildcards() {
+  private void updateTopicsAndWildcards()
+  {
     Object o = sr.getProperty(EventConstants.EVENT_TOPIC);
-    if(o == null) {
-      blacklist();
-      if (Activator.log.doError()) {
-            Activator.log
-              .error("EventHandler must have service property '"
-                     +EventConstants.EVENT_TOPIC
-                     +"' in handler with service.id " + sr.getProperty("service.id"),
-                     sr);
+    if (o == null) {
+      if (!isBlacklisted()) {
+        setBlacklist(true);
+        if (Activator.log.doError()) {
+          Activator.log.error("EventHandler must have service property '"
+                              + EventConstants.EVENT_TOPIC
+                              + "' in handler with service.id "
+                              + sr.getProperty("service.id"), sr);
+        }
       }
       return;
     }
 
-    String[] topics =
-      (o instanceof String) ?
-        new String[] {(String)o} :
-        (String[])o;
+    String[] topics = (o instanceof String) ? new String[] { (String) o }
+        : (String[]) o;
 
-    for(int i = 0; i < topics.length; ++i) {
+    for (int i = 0; i < topics.length; ++i) {
       String t = topics[i];
-      if(t.length() == 0) {
-        blacklist();
+      if (t.length() == 0) {
+        setBlacklist(true);
         return;
       }
       int idx = t.indexOf("*");
-      if(idx > -1) {
-        if(idx != (t.length() - 1)) {
-          blacklist();
+      if (idx > -1) {
+        if (idx != (t.length() - 1)) {
+          setBlacklist(true);
           return;
         }
         tracker.addHandlerForWildcard(t.substring(0, idx), this);
@@ -155,18 +170,19 @@ public class TrackedEventHandler {
     }
   }
 
-  void referencedIn(Set s) {
+  void referencedIn(Set s)
+  {
     referencingSets.add(s);
   }
 
-  void removeAllReferences() {
+  void removeAllReferences()
+  {
     Iterator i = referencingSets.iterator();
-    while(i.hasNext()) {
-      Set s = (Set)i.next();
-      synchronized(s) {
+    while (i.hasNext()) {
+      Set s = (Set) i.next();
+      synchronized (s) {
         s.remove(this);
       }
     }
   }
 }
-

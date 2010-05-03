@@ -35,33 +35,70 @@
 package org.knopflerfish.bundle.event;
 
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
- * This class will send the events synchronus and asynchronus to the
- * event handlers. It contains one internal class doing a producer
- * consumer algorithm between itself and the mainclass.  The internal
- * worker class will pick the first element in the queue and create a
- * deliver session.
+ * This class will queue the events and deliver them to the event
+ * handlers in the apropriate order.
  *
- * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
+ * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson et.all.)
  */
 public class QueueHandler extends Thread {
 
+  /**
+   * The mapping from key to active QueueHandler instance owned by the
+   * EventAdmin service implementation.
+   */
+  final private Map queueHandlers;
+
+  /** The key for this queue handler in the map with active queue handlers.*/
+  private Object key;
+
+  /** The queue with events to be delivered by this thread.*/
   private LinkedList syncQueue = new LinkedList();
+
+  /** The state of this queue handler thread.*/
   private boolean running;
 
+  private int maxQueueSize = 0;
+  private int eventCnt = 0;
+
   /**
-   * This adds a new InternalAdminEvent to the que
+   * Creates a QueueHandler-thread with the specified key.
+   *
+   * @param key The key for this queue handler.
+   */
+  public QueueHandler(Map queueHandlers, Object key)
+  {
+    super("EventAdmin-QueueHandler "+key);
+
+    this.queueHandlers = queueHandlers;
+    this.key= key;
+
+    if (Activator.log.doDebug()) {
+      Activator.log.debug(getName() +" created.");
+    }
+  }
+
+  public Object getKey()
+  {
+    return key;
+  }
+
+  /**
+   * This adds a new InternalAdminEvent to the queue
    *
    * @param event the new InternalAdminEvent
    */
   public void addEvent(InternalAdminEvent event) {
     if (event.getHandlers() == null) {
-      // Noone to deliver to
+      // No-one to deliver to
       return;
     }
     synchronized (this) {
       syncQueue.add(event);
+      final int queueSize = syncQueue.size();
+      if (queueSize>maxQueueSize) maxQueueSize = queueSize;
       notifyAll();
     }
   }
@@ -82,16 +119,45 @@ public class QueueHandler extends Thread {
         // Must be outside synchronized since the delivery can cause
         // new events.
         event.deliver();
+        eventCnt++;
       } else {
+        long duration = 0;
         synchronized (this) {
           try {
-            wait();
+            final long start = System.currentTimeMillis();
+            wait(Activator.queueHandlerTimeout);
+            final long end = System.currentTimeMillis();
+            duration = end - start;
           } catch (InterruptedException e) {
             Activator.log.error("QueueHandler was interrupted unexpectedly");
           }
         }
+        if (0<Activator.queueHandlerTimeout
+            && duration > Activator.queueHandlerTimeout) {
+          // Must allways lock on queueHandlers before this when both
+          // are needed.
+          synchronized(queueHandlers) {
+            synchronized (this) {
+              if (syncQueue.isEmpty()) {
+                running = false;
+                queueHandlers.remove(getKey());
+                if (Activator.log.doDebug()) {
+                  Activator.log.debug(getName() +" time out.");
+                }
+              }
+            }
+          }
+        }
       }
     }//end while...
+    if (Activator.log.doDebug()) {
+      final String msg = getName() +" terminated (max queue size "
+        +maxQueueSize+"), total number of events " +eventCnt +".";
+      Activator.log.debug(msg);
+    }
+    synchronized(queueHandlers) {
+      queueHandlers.remove(getKey());
+    }
   }// end run()
 
   /**

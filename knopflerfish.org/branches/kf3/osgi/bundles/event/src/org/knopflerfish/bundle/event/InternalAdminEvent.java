@@ -34,15 +34,18 @@
 
 package org.knopflerfish.bundle.event;
 
+import java.security.AccessControlException;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.TopicPermission;
 
-import java.security.AccessControlException;
-import java.util.Set;
-
 /**
- * A wrapper class for events. Connects an event with ServiceReferences to
- * the EventHandlers it should be delivered to.
+ * A wrapper class for events. Connects an event with
+ * ServiceReferences to the EventHandlers it should be delivered to.
  *
  * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
  */
@@ -51,59 +54,59 @@ public class InternalAdminEvent {
   private Event event;
 
   private Set handlers;
+  private TimeoutDeliver timeoutDeliver;
 
   /**
    * Standard constructor of the InternalAdminEvent
-   * @param event the event to be stored
-   * @param handlers ServiceReference to the EventHandlers this
-   *                   event should be delivered to.
+   *
+   * @param event
+   *          the event to be stored
+   * @param handlers
+   *          ServiceReference to the EventHandlers this event should be
+   *          delivered to.
    */
-  public InternalAdminEvent(Event event, Set handlers){
+  public InternalAdminEvent(Event event, Set handlers)
+  {
     this.event = event;
     this.handlers = handlers;
   }
 
   /**
    * Returns the event
+   *
    * @return the event
    */
-  protected Event getEvent(){
+  protected Event getEvent()
+  {
     return event;
   }
 
-  public Set getHandlers() {
+  public Set getHandlers()
+  {
     return handlers;
   }
 
-  public void deliver() {
+  public void deliver()
+  {
     SecurityManager securityManager = getSecurityManager();
 
     // variable indicates if the handler is allowed to publish
-    boolean canPublish;
+    boolean canPublish = true;
 
     // variable indicates if handlers are granted access to topic
-    boolean canSubscribe;
-
+    boolean canSubscribe = true;
 
     // check if security is applied
     if (securityManager != null) {
       // check if there are any security limitation
-      canPublish   = checkPermission(event, securityManager, TopicPermission.PUBLISH);
-      canSubscribe = checkPermission(event, securityManager, TopicPermission.SUBSCRIBE);
-    } else {
-      // no security here
-      canPublish = true;
-      canSubscribe = true;
+      canPublish = checkPermission(event, securityManager,
+                                   TopicPermission.PUBLISH);
+      canSubscribe = checkPermission(event, securityManager,
+                                     TopicPermission.SUBSCRIBE);
     }
 
-
     if (canPublish && canSubscribe) {
-      // create an instance of the deliver session to deliver events
-      DeliverSession deliverSession;
-      deliverSession = new DeliverSession(this);
-      // start deliver events
-      deliverSession.deliver();
-
+      deliverToHandles();
     } else if (canSubscribe) {
       // no publish permission
       Activator.log.error("No permission to publishto topic:"
@@ -114,24 +117,114 @@ public class InternalAdminEvent {
                           + event.getTopic());
     } else {
       // no permissions at all are given
-      Activator.log.error("No permission to publish and subscribe top topic:"
+      Activator.log.error("No permission to publish or subscribe to topic:"
                           + event.getTopic());
     }
   }
 
+  private void log(TrackedEventHandler handler, String txt)
+  {
+    ServiceReference sr = handler.getServiceReference();
+    Activator.log.error(txt + "  Service.id="
+        + sr.getProperty(Constants.SERVICE_ID) + "  bundle.id="
+        + sr.getBundle().getBundleId() + "  bundle.name="
+        + sr.getBundle().getSymbolicName() + "  topic=" + event.getTopic(), sr);
+  }
+
+  private void deliverToHandles()
+  {
+    Iterator i = handlers.iterator();
+    try {
+      while (i.hasNext()) {
+        TrackedEventHandler handler = (TrackedEventHandler) i.next();
+        if (Activator.timeout == 0) {
+          // Deliver event without timeout
+          try {
+            if (Activator.timeWarning == 0) {
+              // Plain delivery without duration check.
+              handler.handleEventSubjectToFilter(event);
+            } else {
+              // Deliver with duration warning
+              final long tickStart = System.currentTimeMillis();
+              handler.handleEventSubjectToFilter(event);
+              final long tickEnd = System.currentTimeMillis();
+              if (tickEnd - tickStart > Activator.timeWarning) {
+                log(handler, "Slow eventhandler " + (tickEnd - tickStart)
+                    + " ms.");
+              }
+            }
+          } catch (Throwable e) {
+            log(handler, "Exception in eventhandler " + e.getMessage());
+            Activator.log.error("Handler threw exception in handleEvent.", e);
+          }
+        } else { // use timeout
+          // Check if thread is available
+          synchronized (this) {
+            TimeoutDeliver localDeliver = deliver(this, event, handler);
+            try {
+              wait(Activator.timeout);
+            } catch (InterruptedException e) {
+              // Ignore
+            }
+
+            // Check if delivery was successful
+            if (localDeliver.stopDeliveryNotification()) {
+              handler.setBlacklist(true);
+              log(handler,
+                  "Event delivery to event handler timed out, "
+                  +"blacklisting event handler.");
+            }
+          }
+        }// end if(!isBlacklisted.....
+      }// end for
+    } finally {
+      close();
+    }
+  }
+
+  public synchronized TimeoutDeliver deliver(final Object caller,
+                                             final Event event,
+                                             final TrackedEventHandler handler)
+  {
+    if (timeoutDeliver == null) {
+      timeoutDeliver = new TimeoutDeliver();
+      timeoutDeliver.start();
+    }
+
+    if (timeoutDeliver.isActive()) {
+      timeoutDeliver.close();
+      timeoutDeliver = new TimeoutDeliver();
+      timeoutDeliver.start();
+    }
+
+    timeoutDeliver.deliver(caller, event, handler);
+    return timeoutDeliver;
+  }
+
+  public synchronized void close()
+  {
+    if (timeoutDeliver != null) {
+      timeoutDeliver.close();
+      timeoutDeliver = null;
+    }
+  }
 
   /**
    * checks the permission "permissionName" to this subject. OBS! this one will
    * only se if there are any permissions granted for all objects.
    *
-   * @param event the event
-   * @param securityManager the system securitymanager
-   * @param action The action: subscribe or publish
+   * @param event
+   *          the event
+   * @param securityManager
+   *          the system securitymanager
+   * @param action
+   *          The action: subscribe or publish
    * @return true if the object is permitted, false otherwise
    */
   private boolean checkPermission(Event event,
                                   SecurityManager securityManager,
-                                  String action) {
+                                  String action)
+  {
     try {
       TopicPermission permission = new TopicPermission(event.getTopic(), action);
       securityManager.checkPermission(permission);
@@ -146,7 +239,8 @@ public class InternalAdminEvent {
    *
    * @return the security manager if any else null
    */
-  private SecurityManager getSecurityManager() {
+  private SecurityManager getSecurityManager()
+  {
     // return the security manager
     return System.getSecurityManager();
   }
