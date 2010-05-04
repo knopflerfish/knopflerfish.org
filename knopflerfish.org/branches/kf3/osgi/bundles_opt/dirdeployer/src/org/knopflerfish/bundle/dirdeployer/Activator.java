@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,31 +34,65 @@
 
 package org.knopflerfish.bundle.dirdeployer;
 
-import java.util.*;
-import org.osgi.framework.*;
+import java.util.Dictionary;
+import java.util.Hashtable;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.startlevel.StartLevel;
+import org.osgi.util.tracker.ServiceTracker;
+
 import org.knopflerfish.service.dirdeployer.*;
 
-public class Activator implements BundleActivator {
-  static BundleContext bc = null;
-  
+public class Activator implements BundleActivator, FrameworkListener {
+  static BundleContext bc;
+  static ServiceTracker startLevelTracker;
+  static ServiceTracker packageAdminTracker;
+
   DirDeployerImpl deployer;
 
   public void start(BundleContext bc) {
-    this.bc = bc;
+    Activator.bc = bc;
+
+    Activator.startLevelTracker
+      = new ServiceTracker(bc, StartLevel.class.getName(), null);
+    Activator.startLevelTracker.open();
+
+    Activator.packageAdminTracker
+      = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
+    Activator.packageAdminTracker.open();
+
+    bc.addFrameworkListener(this);
 
     deployer = new DirDeployerImpl();
     deployer.start();
 
-    Hashtable props = new Hashtable();
+    Dictionary props = new Hashtable();
     bc.registerService(DirDeployerService.class.getName(),
-		       deployer,
-		       props);
-    
+                       deployer,
+                       props);
+
   }
 
   public void stop(BundleContext bc) {
     deployer.stop();
+
+    Activator.startLevelTracker.close();
+    Activator.packageAdminTracker.close();
+
     this.bc = null;
   }
-}
 
+
+  public void frameworkEvent(FrameworkEvent event)
+  {
+    if (FrameworkEvent.PACKAGES_REFRESHED==event.getType()) {
+      deployer.refreshPackagesDone();
+    }
+  }
+
+
+}

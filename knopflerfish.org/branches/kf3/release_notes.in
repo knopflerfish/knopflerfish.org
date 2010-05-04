@@ -150,6 +150,16 @@ bundlerepository 3.0.1
 httpconsole 3.0.0
  - Switched to tango icon set
 
+dirdeployer 3.0.0
+ - Major refresh. New configuration PID and proprety names. Added
+   configuration telling if all bundles it have installed should be
+   uninstalled when it stops or not. Performs a refresh package after
+   bundle updates. Bundles may now be left active in the framework
+   when the directory deployer bundle is stopped. When started again
+   it will detect bundle it has previously installed that no longer
+   has a bundle archive in the watched directories and uninstall them.
+
+
 ----------------------------------------------
 
 Please read the KF blog for updated progress.
