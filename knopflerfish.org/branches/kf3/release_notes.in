@@ -39,7 +39,7 @@ Declarative Services Specification
 All the other Compendium Specification Services
 are up to date and pass the CT.
 
-Event 3.0.1
+Event 3.0.2
 
  - Improved performance a lot by rewriting the whole mechanism for
    matching events to event handlers during event delivery. General
@@ -48,6 +48,9 @@ Event 3.0.1
    done using multiple delivery threads. There will be one delivery
    thread for each thread that posts events. Each delivery thread
    terminates when it has been idle for more than 1100 milliseconds.
+ - When using multiple delivery thread events posted from a delivery
+   thread will be scheduled for delivery on that thread. This preserves
+   ordering and keep the number of delivery threads down.
  - Added bundle doc describing all framework properties that may be
    used to configure the Knopflerfish Event implementation.
 
