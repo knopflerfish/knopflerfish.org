@@ -80,14 +80,21 @@ public class EventAdminService
 
       QueueHandler queueHandler = null;
       synchronized(queueHandlers) {
-        final Object key = Activator.useMultipleQueueHandlers
-          ? (Object) Thread.currentThread() : (Object) this;
-
-        queueHandler = (QueueHandler) queueHandlers.get(key);
-        if (null==queueHandler) {
-          queueHandler = new QueueHandler(queueHandlers, key);
-          queueHandler.start();
-          queueHandlers.put(queueHandler.getKey(), queueHandler);
+        final Thread currentThread = Thread.currentThread();
+        if (currentThread instanceof QueueHandler) {
+          // Event posted by event handler, queue it on the queue that
+          // called the event handler to keep the number of queue
+          // handlers down.
+          queueHandler = (QueueHandler) currentThread;
+        } else {
+          final Object key = Activator.useMultipleQueueHandlers
+            ? (Object) currentThread : (Object) this;
+          queueHandler = (QueueHandler) queueHandlers.get(key);
+          if (null==queueHandler) {
+            queueHandler = new QueueHandler(queueHandlers, key);
+            queueHandler.start();
+            queueHandlers.put(queueHandler.getKey(), queueHandler);
+          }
         }
         queueHandler.addEvent(iae);
       }
