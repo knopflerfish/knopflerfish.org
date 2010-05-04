@@ -27,6 +27,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Services (Compendium) ===
 
+  Event 2.0.8
+  
+  Events posted by an eventhandler called from a deliver thread will be
+  scheduled to for delivery by that thread. This avoids an explosion
+  in number of deliver threads when events are posted by event listeners.
+
   Event 2.0.7
   
   Asynchronous event delivery are now made using several delivery
