@@ -284,16 +284,22 @@
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
     </ant>
 
+    <!-- Generate user doc navigation page -->
+    <bundle_user_doc_navigate
+       outdir="${distrib.bundledoc.dir}" 
+       docdir="${distrib.bundledoc.dir}"
+       tofile="bundledoc_list.html"
+       template="htdocs/html_templates/bundle_doc/bundledoc_list.html"
+       title="${bundledoc.list.header}"
+       />
+
     <!-- Add navigation and header pages from the templates -->
     <copy todir="${distrib.bundledoc.dir}">
       <fileset dir="htdocs/html_templates/bundle_doc">
         <include name="*.html" />
+        <exclude name="bundledoc_list.html"/>
       </fileset>
     </copy>
-    <replace file="${distrib.bundledoc.dir}/bundledoc_list.html">
-      <replacefilter token="@BUNDLEDOC_LIST_HEADER@"
-                     value="${bundledoc.list.header}"/>
-    </replace>
   </target>
 
   <!-- General distribution documentation, mostly html -->
@@ -403,6 +409,7 @@
 
         <zipfileset dir="${distrib.doc.dir}" prefix="docs">
           <include name="**/*"/>
+          <exclude name="**/doc.properties"/>
         </zipfileset>
 
         <zipfileset dir="${distrib.osgi.dir}" prefix="osgi">

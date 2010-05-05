@@ -1,26 +1,82 @@
 <h1>Console Telnet</h1>
 <div class="abstract">
-  This bundle uses the KF console to export 
-  commands on a telnet server. 
+  This bundle provides a telnet server that acts as a user interface
+  to the KF console
 </div>
 <h2>Description</h2>
 
 <p>
-The default port is 23, default login "admin", password "admin"
+The Console Telnet bundle is a telnet server that makes Knopflerfish
+console commands available to the end user. Any telnet client can be
+used to connect to it.
+
 <p>
-The consoletelnet bundle can be configured using system 
-properties:
+This bundle is typically used during development.
 
-<dl>
-<dt>org.knopflerfish.consoletelnet.user 
-<dl> User login name for remote access.Default is admin
 
-<dt>org.knopflerfish.consoletelnet.pwd
-<dd> User login name for remote access.
- Default is admin
 
-<dt>
-<dd>org.knopflerfish.consoletelnet.port
- Port number telnet server will listen on
- Default is 23
-</dl>
+<h2>Configuration properties</h2>
+
+<table border="1">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.consoletelnet.user</td>
+    <td>
+
+	User login name for remote access.
+
+    </td>
+    <td>String</td>
+    <td>admin</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.consoletelnet.pwd</td>
+    <td>
+
+	Password for the user login name configured using the property
+	<tt>org.knopflerfish.consoletelnet.user</tt> described above.
+
+    </td>
+    <td>String</td>
+    <td>admin</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.consoletelnet.port</td>
+    <td>
+
+	Port number that the telnet server will listen on.
+
+    </td>
+    <td>int</td>
+    <td>23</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.consoletelnet.host</td>
+    <td>
+
+	Host (IP interface name) to open the telnet server socket
+	on. An empty string means all available interfaces.
+
+    </td>
+    <td>String</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.consoletelnet.busywait</td>
+    <td>
+
+	If set to true use a busy-loop polling for characters from the
+	input stream. If false the reading thread will hang on the
+	read-operation until data becomes available.
+
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+
+</table>
