@@ -141,9 +141,6 @@
              classpathref="bundle_tasks.path"
              classname="org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
 
-    <taskdef name="extrabundledoc"
-             classpathref="bundle_tasks.path"
-             classname="org.knopflerfish.ant.taskdefs.bundle.ExtraBundleDocTask"/>
     <taskdef name="byteformatter"
              classpathref="bundle_tasks.path"
              classname="org.knopflerfish.ant.taskdefs.bundle.ByteFormatterTask"/>
@@ -154,6 +151,10 @@
     <taskdef name="bundle_javadoc_helper"
              classpathref="bundle_tasks.path"
              classname="org.knopflerfish.ant.taskdefs.bundle.BundleJavadocHelperTask"/>
+
+    <taskdef name="bundle_user_doc_navigate"
+             classpathref="bundle_tasks.path"
+             classname="org.knopflerfish.ant.taskdefs.bundle.BundleUserDocNavigateTask"/>
 
  </target>
 

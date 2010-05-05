@@ -77,6 +77,10 @@ Console 3.0.0
    bundle id and bundle name as before).
  - Fixed documentaiton URL and Subversion URL in the manifest.
 
+Console Telnet 3.0.0 
+ - Made the host (IP interface) to open the telnet server on
+   settable via a framework property.
+
 Desktop 3.0.11
  - Added menu action for resolving all selected bundles.
  - Added support for using options when starting and stopping bundles.
