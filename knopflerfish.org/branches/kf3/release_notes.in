@@ -130,6 +130,21 @@ Log Commands 3.0.0
  - A new option "-c" that clears the in memory log has been added to
    the 'memory' command.
 
+kXML 2 2.3.0
+ - This bundle provides the latest version of kXML 2, an XML parser
+   with a small footprint.
+ - The bundle packing has been changed since the 1.0.1 version. The
+   kXML 2 bundle is now built and packed as a "normal" bundle without
+   using nested jar-files. This simplifies for other bundles wiht
+   build time dependecies on it. Note that due to this change build
+   files may need to be update.
+   
+ - All properties controlling this bundle can now be given as
+   framework properties.
+ - The RemoteFW implementation of BundleContext.getProperty() did not
+   handle unset properties correctly (it now returns null as
+   expected).
+
 kSOAP_RemoteFW 3.0.2
  - Updated documentation and added xargs-file fragments that makes it
    easier to start using this feature.
