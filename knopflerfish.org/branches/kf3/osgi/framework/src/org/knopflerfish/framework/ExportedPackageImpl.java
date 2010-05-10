@@ -96,10 +96,6 @@ public class ExportedPackageImpl implements ExportedPackage {
    * Returns the resolved bundles that are currently importing this
    * <tt>ExportedPackage</tt>.
    *
-   * <p> The returned array always includes the bundle returned by
-   * {@link #getExportingBundle} since an exporter always implicitly
-   * imports its exported packages.
-   *
    * @return The array of resolved bundles currently importing this
    * <tt>ExportedPackage</tt>, or null if this <tt>ExportedPackage</tt>
    * has become stale.
