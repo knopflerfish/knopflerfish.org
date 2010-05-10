@@ -27,6 +27,7 @@
 -install @util-N.N.N.jar@
 -install @crimson-N.N.N.jar@
 -install @jsdk_api-N.N.N.jar@
+-install @kxml-N.N.N.jar@
 
 # The Bundle repo commands and desktop plugin
 -install @bundlerepository_all-N.N.N.jar@

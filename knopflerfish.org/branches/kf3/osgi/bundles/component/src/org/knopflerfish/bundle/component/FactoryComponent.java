@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,66 +33,105 @@
  */
 
 package org.knopflerfish.bundle.component;
-import java.util.Dictionary;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceRegistration;
 
-import org.osgi.service.component.ComponentConstants;
-import org.osgi.service.component.ComponentFactory;
-import org.osgi.service.component.ComponentInstance;
-import org.osgi.service.component.ComponentException;
+import java.util.*;
+import org.osgi.framework.*;
 
-class FactoryComponent extends Component 
-  implements ComponentFactory {
+import org.osgi.service.cm.*;
+import org.osgi.service.component.*;
 
-  public FactoryComponent(Config config, 
-			  Dictionary overriddenProps) {
-    super(config, overriddenProps);
-    // where should this be done?
-    config.setProperty(ComponentConstants.COMPONENT_FACTORY, config.getFactory());
+
+class FactoryComponent extends Component implements ComponentFactory
+{
+  private ServiceRegistration factoryService;
+
+  FactoryComponent(SCR scr, ComponentDescription cd) {
+    super(scr, cd);
   }
 
-  public void registerService() {
 
-    serviceRegistration = 
-      bundleContext.registerService(ComponentFactory.class.getName(), 
-				    this, config.getProperties());
+  public String toString() {
+    return "Factory component: " + compDesc.getName();
   }
 
-  public void satisfied() {
-    registerService();
-  }
-  
-  public void unsatisfied() {
-    unregisterService();
+
+  /**
+   * Factory component satisfied, register component factory service.
+   *
+   */
+  void satisfied() {
+    Activator.logInfo(bc, "Satisfied: " + toString());
+    Hashtable p = new Hashtable();
+    p.put(ComponentConstants.COMPONENT_NAME, compDesc.getName());
+    p.put(ComponentConstants.COMPONENT_FACTORY, compDesc.getFactory());
+    factoryService = bc.registerService(ComponentFactory.class.getName(), this, p);
   }
 
-  public Object getService(Bundle bundle, ServiceRegistration reg) {
-    super.getService(bundle, reg);
-    
-    return this;
+
+  /**
+   * Factory component unsatisfied, unregister component factory service.
+   *
+   */
+  void unsatisfied(int reason) {
+    Activator.logInfo(bc, "Unsatisfied: " + toString());
+    factoryService.unregister();
   }
 
-  public void ungetService(Bundle bundle, ServiceRegistration reg, 
-			   Object instance) {
-    super.ungetService(bundle, reg, instance);
+
+  /**
+   *
+   */
+  public ComponentInstance newInstance(Dictionary instanceProps) {
+    if (isSatisfied()) {
+      ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
+      ComponentContextImpl cci = cc.activate(null);
+      cc.registerService();
+      return cci.getComponentInstance();
+    }
+    return null;
   }
 
-  public ComponentInstance newInstance(Dictionary overriddenProps) {
-    Config copy = config.copy();
-    copy.setFactory(null);
-    
-    Component component = copy.createComponent(overriddenProps);
-    component.enable();
-    
-    if (copy.isSatisfied()) {
-      component.getService(usingBundle, serviceRegistration);
-      return component.getComponentInstance(); 
+
+  /**
+   *
+   */
+  void cmConfigUpdated(String pid, Configuration c) {
+    if (c.getFactoryPid() != null) {
+      Activator.logError(bc, "FactoryComponent can not have factory config, ignored", null);
+      return;
+    }
+    boolean isEmpty = cmDicts.isEmpty();
+    Activator.logDebug("Factory cmConfigUpdate for pid = " + pid + " is empty = " + isEmpty);
+    Dictionary d = c.getProperties();
+    cmDicts.put(pid, d);
+    if (isEmpty && !cmConfigOptional) {
+      // First mandatory config, remove constraint
+      if (--unresolvedConstraints == 0) {
+        satisfied();
+      }
     } else {
-      throw new ComponentException("Declarative Services was not able " + 
-				   " to satisfy component instance");
-
+      for (Iterator i = compConfigs.values().iterator(); i.hasNext(); ) {
+        ComponentConfiguration cc = (ComponentConfiguration)i.next();
+        cc.cmConfigUpdated(pid, d);
+      }
     }
   }
-}
 
+
+  /**
+   *
+   */
+  void cmConfigDeleted(String pid) {
+    cmDicts.remove(pid);
+    Activator.logDebug("cmConfigDeleted for pid = " + pid);
+    for (Iterator i = compConfigs.values().iterator(); i.hasNext(); ) {
+      ComponentConfiguration cc = (ComponentConfiguration)i.next();
+      cc.cmConfigUpdated(pid, null);
+    }
+    if (!cmConfigOptional && unresolvedConstraints == 0) {
+      unresolvedConstraints++;
+      unsatisfied(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
+    }
+  }
+
+}

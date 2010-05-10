@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,20 +33,24 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.xmlpull.v1.*;
+import org.osgi.service.component.*;
 
 
-/**
- *
- */
-public class IllegalXMLException extends XmlPullParserException {
+class ComponentInstanceImpl implements ComponentInstance {
+  final ComponentContextImpl cci;
+  final Object instance;
 
-  public IllegalXMLException(String msg, XmlPullParser parser) {
-    super(msg, parser, null);
+  ComponentInstanceImpl(ComponentContextImpl cci, Object instance) {
+    this.cci = cci;
+    this.instance = instance;
   }
 
-  public IllegalXMLException(String msg, XmlPullParser parser, Throwable cause){
-    super(msg, parser, cause);
+  public void dispose() {
+    cci.dispose();
+  }
+
+  public Object getInstance() {
+    return instance;
   }
 
 }

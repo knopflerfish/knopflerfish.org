@@ -21,9 +21,7 @@
   <implementation class="org.knopflerfish.bundle.componentA_test.ComponentA"/>
 
   <reference name="COMPONENTB1"
-	interface="org.knopflerfish.bundle.componentA_test.ComponentB"
-	bind="setService"
-	unbind="unsetService"/>
+	interface="org.knopflerfish.bundle.componentA_test.ComponentB"/>
 
   <service>
    <provide interface="org.knopflerfish.bundle.componentA_test.ComponentA"/>
@@ -37,9 +35,7 @@
   <implementation class="org.knopflerfish.bundle.componentA_test.ComponentB"/>
 
   <reference name="COMPONENTC1"
-	interface="org.knopflerfish.bundle.componentA_test.ComponentC"
-	bind="setService"
-	unbind="unsetService"/>
+	interface="org.knopflerfish.bundle.componentA_test.ComponentC"/>
 
   <service>
    <provide interface="org.knopflerfish.bundle.componentA_test.ComponentB"/>
@@ -53,9 +49,7 @@
   <implementation class="org.knopflerfish.bundle.componentA_test.ComponentC"/>
 
   <reference name="TESTSERVICE"
-	interface="org.knopflerfish.service.component_test.TestService"
-	bind="setService"
-	unbind="unsetService"/>
+	interface="org.knopflerfish.service.component_test.TestService"/>
 
   <service>
    <provide interface="org.knopflerfish.bundle.componentA_test.ComponentC"/>
@@ -113,8 +107,8 @@
     6
     7
   </property>
-  <property name="Character1" type="Char" value="1"/>
-  <property name="Characters" type="Char">
+  <property name="Character1" type="Character" value="1"/>
+  <property name="Characters" type="Character">
     1
     2
     3
@@ -156,6 +150,22 @@
    <provide interface="org.knopflerfish.bundle.componentA_test.ComponentP"/>
   </service>
  </component>
+
+
+<!-- Test that circular check works -->
+ <component name="componentD.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ 
+  <implementation class="org.knopflerfish.bundle.componentA_test.NoClass"/>
+
+  <reference name="Circle"
+	interface="org.knopflerfish.bundle.componentA_test.ComponentA"/>
+
+  <service>
+   <provide interface="org.knopflerfish.service.component_test.TestService"/>
+  </service>
+ </component>
+
+
 
 
 </root>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,58 +32,40 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.knopflerfish.bundle.component;
-import java.util.Dictionary;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceRegistration;
+import java.util.*;
+
+import org.osgi.framework.*;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.component.ComponentConstants;
+
 
 class DelayedComponent extends Component {
 
-  private int refCount;
-
-  public DelayedComponent(Config config, 
-                          Dictionary overriddenProps) {
-    super(config, overriddenProps);
-    refCount = 0;
+  DelayedComponent(SCR scr, ComponentDescription cd) {
+    super(scr, cd);
   }
 
-  public void satisfied() {
-    registerService();
+
+  public String toString() {
+    return "Delayed component: " + compDesc.getName();
   }
 
-  public void unsatisfied() {
-    unregisterService();
-  }
 
-  public Object getService(Bundle bundle, ServiceRegistration reg) {
-    super.getService(bundle, reg);
-    if (!isActivated()) {
-      activate();
-    }
- 
-    if (isActivated()) {
-      refCount++;
-      return getInstance();
-      
-    } else {
-
-      unregisterService();
-      return null;
-    } 
-  
-  }
-
-  public void ungetService(Bundle bundle, ServiceRegistration reg, Object instance) {
-    super.ungetService(bundle, reg, instance);
-    
-    if (refCount == 0)
-      return ;
-
-    refCount--;
-    
-    if (refCount == 0) {
-      deactivate();
+  /**
+   * Delayed component satisfied, create a component configuration
+   * for each CM pid available or a single component configuration
+   * if no CM data is available. Register component service if
+   * there is one for each component configuration.
+   *
+   */
+  void satisfied() {
+    Activator.logInfo(bc, "Satisfied: " + toString());
+    ComponentConfiguration [] cc = newComponentConfiguration();
+    for (int i = 0; i < cc.length; i++) {
+      cc[i].registerService();
     }
   }
+
 }
                                 

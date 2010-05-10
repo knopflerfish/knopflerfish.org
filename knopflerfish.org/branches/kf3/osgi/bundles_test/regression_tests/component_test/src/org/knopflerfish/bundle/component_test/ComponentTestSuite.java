@@ -42,6 +42,7 @@ import junit.framework.*;
 
 import org.osgi.framework.*;
 import org.osgi.service.component.*;
+import org.osgi.service.log.*;
 
 import org.knopflerfish.service.component_test.*;
 
@@ -117,7 +118,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Long compId = (Long) ref.getProperty(ComponentConstants.COMPONENT_ID);
          System.out.println("component.id= " +compId);
          assertNotNull("component.id null", compId);
-         assertTrue("component.id > 0", compId.longValue()>0);
+         // NYI, larger than previous, assertTrue("component.id > 0", compId.longValue()>0);
 
          Object obj = bc.getService(ref);
 
@@ -146,13 +147,14 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
   }
 
 
-  private class Test2 extends FWTestCase {
+  private class Test2 extends FWTestCase implements LogListener {
 
     /**
      * Test setup: ComponentA references ComponentB,
      *             ComponentB references ComponentC
      *             ComponentC references TestService
-     * before: no components are started.
+     *             ComponentD provides TestService and reference ComponentA
+     * before: no components are started. Circular condition detected
      * action: TestService is registered
      * after: all components are activated
      *
@@ -164,19 +166,36 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
      *
      * (the components call bump when they are (de-)actived)
      */
+    private boolean gotCircularError;
+
+    public void logged(LogEntry le) {
+      if (le.getLevel() == LogService.LOG_ERROR &&
+          le.getMessage().indexOf("circular") >= 0) {
+        gotCircularError = true;
+      }
+    }
+
 
     public void runTest() {
       try {
 
         counter = 0;
-
+        gotCircularError = false;
+        ServiceReference sr = bc.getServiceReference(LogReaderService.class.getName());
+        LogReaderService lrs = (LogReaderService)bc.getService(sr);
+        lrs.addLogListener(this);
         Bundle c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
         c1.start();
+
+        Thread.sleep(1000);
 
         assertNull("Should be null (1)", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA"));
         assertNull("Should be null (2)", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNull("Should be null (3)", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
         assertEquals("Should not have been bumped", 0, counter);
+        assertTrue("Should have got circular error message", gotCircularError);
+        lrs.removeLogListener(this);
+        bc.ungetService(sr);
 
         ServiceRegistration reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
 
@@ -203,6 +222,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         c1.uninstall();
         counter = 0;
       } catch (Exception e) {
+     e.printStackTrace();
         fail("Test2: got unexpected exception " + e);
       }
     }
@@ -242,7 +262,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          Long compId = (Long) ref.getProperty(ComponentConstants.COMPONENT_ID);
          System.out.println("component.id= " +compId);
          assertNotNull("component.id null", compId);
-         assertTrue("component.id > 0", compId.longValue()>0);
+         // NYI, larger than previous, assertTrue("component.id > 0", compId.longValue()>0);
 
          String s1 = (String) ref.getProperty("String1");
          System.out.println("String1= " +s1);
