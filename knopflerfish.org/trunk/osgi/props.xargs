@@ -62,7 +62,7 @@
 
 # Log service properties
 -Dorg.knopflerfish.log.out=false
--Dorg.knopflerfish.log.level=info
+-Dorg.knopflerfish.log.level=warning
 -Dorg.knopflerfish.log.grabio=false
 -Dorg.knopflerfish.log.file=true
 
