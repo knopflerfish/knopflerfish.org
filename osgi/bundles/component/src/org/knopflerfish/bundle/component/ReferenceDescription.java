@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2010-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,52 +33,39 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.*;
 
 
-class ServiceFactoryComponent extends DelayedComponent {
+class ReferenceDescription
+{
+  final String name;
+  final String interfaceName;
+  final boolean optional;
+  final boolean multiple;
+  final boolean dynamic;
+  final String bind;
+  final String unbind;
+  final Filter targetFilter;
 
-  private Dictionary services;
-
-  public ServiceFactoryComponent(Config config, 
-				 Dictionary overriddenProps) {
-    super(config, overriddenProps);
-    services = new Hashtable();
+  ReferenceDescription(String name,
+                       String interfaceName,
+                       boolean optional,
+                       boolean multiple,
+                       boolean dynamic,
+                       String target,
+                       String bind,
+                       String unbind)
+    throws InvalidSyntaxException
+  {
+    Filter f = (target != null) ? FrameworkUtil.createFilter(target) : null;
+    targetFilter = f;
+    this.name = name;
+    this.interfaceName = interfaceName;
+    this.optional = optional;
+    this.multiple = multiple;
+    this.dynamic = dynamic;
+    this.bind = bind;
+    this.unbind = unbind;
   }
 
-  public void satisfied() {
-    registerService();
-  }
-  
-  public void unsatisfied() {
-    unregisterService();
-  }
-
-  public synchronized Object getService(Bundle bundle, ServiceRegistration reg) {
-    Object service = services.get(bundle);
-
-    if (service == null) {
-      Config copy = config.copy();
-      copy.setServiceFactory(false);
-      copy.setShouldRegisterService(false);
-      Component component = copy.createComponent();
-      component.enable();
-      
-      service = component.getService(bundle, reg);
-      services.put(bundle, service);
-    }
-    
-    return service;
-  }
-
-  public void ungetService(Bundle bundle, ServiceRegistration reg, 
-                           Object instance) {
-    super.ungetService(bundle, reg, instance);
-    services.remove(bundle);
-  }
 }
-				

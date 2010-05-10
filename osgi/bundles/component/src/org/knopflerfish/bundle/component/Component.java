@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,484 +33,500 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.lang.reflect.*;
+import java.util.*;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceFactory;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.*;
+import org.osgi.service.cm.*;
+import org.osgi.service.component.*;
 
-import org.osgi.service.component.ComponentConstants;
-import org.osgi.service.component.ComponentContext;
-import org.osgi.service.component.ComponentInstance;
 
-abstract class Component implements ServiceFactory {
+abstract class Component {
 
-  protected Config config;
-  private Long componentId;
-  private boolean active;
-  private Object instance;
-  protected BundleContext bundleContext;
-  protected ServiceRegistration serviceRegistration;
-  protected ComponentContext componentContext;
-  protected ComponentInstance componentInstance;
-  protected Bundle usingBundle;
+  final static String NO_PID = "";
 
-  // Properties from cm. These can be discarded.
-  private Hashtable effectiveProperties;
+  final SCR scr;
+  final ComponentDescription compDesc;
+  final BundleContext bc;
+  boolean enabled;
+  int unresolvedConstraints;
+  HashMap /* String -> Dictionary */ cmDicts;
+  HashMap /* String -> PropertyDictionary */ servProps = null;
+  HashMap /* String -> ComponentConfiguration */ compConfigs = new HashMap();
+  boolean cmConfigOptional;
+  private boolean getMethodsDone = false;
+  private Reference [] refs = null;
+  ComponentMethod activateMethod;
+  ComponentMethod deactivateMethod;
+  ComponentMethod modifiedMethod = null;
 
-  public Component(Config config, Dictionary overriddenProps) {
 
-    this.config = config;
+  /**
+   *
+   */
+  Component(SCR scr, ComponentDescription cd) {
+    this.scr = scr;
+    this.bc = cd.bundle.getBundleContext();
+    this.compDesc = cd;
+  }
 
-    instance = null;
-    componentContext = null;
 
-    bundleContext = Backdoor.getBundleContext(config.getBundle());
-
-    if (overriddenProps != null) {
-      config.overrideProperties(overriddenProps);
+  /**
+   * Enable component. Start listening for constraint changes
+   * so that we can activate this component when it becomes
+   * satisfied.
+   *
+   */
+  void enable() {
+    if (!enabled) {
+      Activator.logInfo(bc, "Enable " + toString());
+      enabled = true;
+      trackConstraints();
     }
-
-    config.setProperty(ComponentConstants.COMPONENT_NAME, config.getName());
-    cmDeleted();
-  }
-
-  public void enable() {
-    config.enable();
-  }
-
-  public void disable() {
-    config.disable();
   }
 
   /**
-   * Find a public or protected method declared by the given class or
-   * one of its ancestors.
-   * @param klass The (concrete) class to look for the method in.
-   * @param name  The name of the method to look for.
-   * @param argSign The method argument types.
-   * @return The method.
-   * @throws NoSuchMethodException if the given class does not
-   *         implement a method with the given name and arg type.
+   * Disable component. Dispose of all ComponentConfigurations and
+   * stop listening for constraint changes.
    */
-  private Method findPublicOrProtectedMethod( Class klass,
-                                              String name,
-                                              Class[] argSign )
-    throws NoSuchMethodException
-  {
-    try {
-      Method method = klass.getDeclaredMethod(name, argSign);
-      int modifiers = method.getModifiers();
-      if (Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers)) {
-        return method;
-      }
-      String msg = "The method \""+name +"\" in \"" +klass.getName()
-        +"\" is neither " +"public nor protected as required.";
-      if (Activator.log.doDebug()) {
-        Activator.log.debug(msg);
-      }
-      throw new NoSuchMethodException(msg);
-    } catch (NoSuchMethodException nsme) {
-      Class superKlass = klass.getSuperclass();
-      if (klass.isArray() || null == superKlass) {
-        throw nsme;
-      }
-      return findPublicOrProtectedMethod(superKlass, name, argSign );
+  void disable(int reason) {
+    if (enabled) {
+      Activator.logInfo(bc, "Disable " + toString());
+      untrackConstraints();
+      enabled = false;
+      disposeComponentConfigs(reason);
+      refs = null;
+      cmDicts = null;
     }
   }
 
 
-  /** Activates a component.
-      If the component isn't enabled or satisfied, nothing will happen.
-      If the component is already activated nothing will happen.
-  */
-  public synchronized void activate() {
-    // this method is described on page 297 r4
+  /**
+   * Component is satisfied. Create ComponentConfiguration and
+   * register service depending on component type.
+   */
+  abstract void satisfied();
 
-    // Synchronized because the service is registered before activation,
-    // enabling another thread to get the service and thereby trigger a
-    // second activate() call.
 
-    if (!config.isEnabled() || !config.isSatisfied())
-      return ;
+  /**
+   * Component is unsatisfied dispose of all ComponentConfiguration
+   * for this component.
+   */
+  void unsatisfied(int reason) {
+    Activator.logInfo(bc, "Unsatisfied: " + toString());
+    disposeComponentConfigs(reason);
+  }
 
-    if(isActivated())
-      return ;
 
-    // 1. load class
-    Class klass = null;
+  /**
+   * Start tracking services and CM config
+   */
+  synchronized void trackConstraints() {
+    // unresolvedConstraints set to 1, so that we don't satisfy until
+    // end of this method
+    unresolvedConstraints = 1;
+    int policy = compDesc.getConfigPolicy();
+    Configuration [] config = null;
+    if (policy == ComponentDescription.POLICY_IGNORE) {
+      cmDicts = null;
+    } else {
+      cmDicts = new HashMap();
+      cmConfigOptional = policy == ComponentDescription.POLICY_OPTIONAL;
+      config = scr.subscribeCMConfig(this);
+      if (config != null) {
+        for (int i = 0; i < config.length; i++) {
+          cmDicts.put(config[i].getPid(), config[i].getProperties());
+        }
+      } else if (!cmConfigOptional) {
+        // If we have no mandatory CM data, add constraint
+        unresolvedConstraints++;
+      }
+    }
+    ArrayList rds = compDesc.getReferences();
+    if (rds != null) {
+      unresolvedConstraints += rds.size();
+      refs = new Reference[rds.size()];
+      for (int i = 0; i < refs.length; i++) {
+        Reference r = new Reference(this, (ReferenceDescription)rds.get(i));
+        refs[i] = r;
+        if (r.isOptional()) {
+          // Optional references does not need to be check
+          // if they are available
+          unresolvedConstraints--;
+        }
+        r.start(config);
+      }
+    } 
+    // Remove blocking constraint, to see if we are satisfied
+    if (--unresolvedConstraints == 0) {
+      satisfied();
+    } else if (compDesc.getServices() != null) {
+      // No satisfied, check if we have circular problems.
+      // Only applicable if register a service.
+      Activator.logDebug("Check circular: " + toString());
+      String [] pids = getAllServicePids();
+      // Loop through service property configurations
+      String res;
+      for (int px = 0; px < pids.length; px++) {
+        res = scr.checkCircularReferences(this, pids[px], new ArrayList());
+        if (res != null) {
+          Activator.logError(bc, res, null);
+          break;
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Stop tracking services and CM config
+   */
+  synchronized void untrackConstraints() {
+    unresolvedConstraints = -1;
+    if (refs != null) {
+      for (int i = 0; i < refs.length; i++) {
+        refs[i].stop();
+      }
+    }
+    scr.unsubscribeCMConfig(this);
+  }
+
+
+  /**
+   * Handle CM config updates for Immediate- & Delayed-Components.
+   * FactoryComponents have overridden method
+   *
+   */
+  void cmConfigUpdated(String pid, Configuration c) {
+    Activator.logDebug("cmConfigUpdate for pid = " + pid + " is first = " + cmDicts.isEmpty());
+    if (cmDicts.isEmpty() && !cmConfigOptional) {
+      // First mandatory config, remove constraint
+      unresolvedConstraints--;
+    }
+    cmDicts.put(pid, c.getProperties());
+    // Discard cached service props
+    if (servProps != null) {
+      servProps.remove(pid);
+    }
+    ComponentConfiguration cc = (ComponentConfiguration)compConfigs.remove(NO_PID);
+    if (refs != null) {
+      for (int i = 0; i < refs.length; i++) {
+        refs[i].update(c, cc != null);
+      }
+    }
+    if (cc != null) {
+      // We have a first config for component configuration
+      // Connect pid  and component config, pid in CC
+      // changes when update it
+      compConfigs.put(pid, cc);
+    } else {
+      cc = (ComponentConfiguration)compConfigs.get(pid);
+    }
+    if (cc != null) {
+      // We have an updated config, check it
+      cc.cmConfigUpdated(pid, c.getProperties());
+    } else if (unresolvedConstraints == 0) {
+      // Satisfied or new factory pid
+      satisfied();
+    }
+  }
+
+
+  /**
+   * Handle CM config deletes for Immediate- & Delayed-Components.
+   * FactoryComponents have overridden method
+   *
+   */
+  void cmConfigDeleted(String pid) {
+    cmDicts.remove(pid);
+    if (servProps != null) {
+      servProps.remove(pid);
+    }
+    if (refs != null) {
+      for (int i = 0; i < refs.length; i++) {
+        refs[i].remove(pid);
+      }
+    }
+    if (cmDicts.isEmpty()) {
+      if (!cmConfigOptional) {
+        if (unresolvedConstraints++ == 0) {
+          unsatisfied(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
+          return;
+        }
+      }
+    }
+    // We remove cc here since cmConfigUpdate loses old pid info
+    ComponentConfiguration cc = (ComponentConfiguration)compConfigs.remove(pid);
+    if (cc != null) {
+      cc.cmConfigUpdated(NO_PID, null);
+    }
+  }
+
+
+  /**
+   * The tracked reference has become available.
+   * Check if component becomes satisfied. If already
+   * satisfied and reference is dynamic, then bind.
+   *
+   * @return True, if component was satisfied otherwise false.
+   */
+  boolean refAvailable(Reference r) {
+    if (!r.isOptional()) {
+      if (--unresolvedConstraints == 0) {
+        satisfied();
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  /**
+   * The tracked reference has become unavailable.
+   */
+  boolean refUnavailable(Reference r) {
+    if (!r.isOptional()) {
+      if (unresolvedConstraints++ == 0) {
+        unsatisfied(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
+        return true;
+      }
+    }
+    return false;
+  }
+
+
+  /**
+   * Create new ComponentConfigurations that are missing for this component.
+   * There should be one for each CM config available, if no config is available
+   * there should be only one.
+   *
+   */
+  ComponentConfiguration [] newComponentConfiguration() {
+    ArrayList res = new ArrayList();
+    if (cmDicts != null && !cmDicts.isEmpty()) {
+      String [] pids = (String [])cmDicts.keySet().toArray(new String [cmDicts.size()]);
+      for (int i = 0; i < pids.length; i++) {
+        if (compConfigs.get(pids[i]) == null) {
+          res.add(newComponentConfiguration(pids[i], null));
+        }
+      }
+    } else if (compConfigs.get(NO_PID) == null) {
+      res.add(newComponentConfiguration(NO_PID, null));
+    }
+    // Release servProps since we don't need them anymore
+    servProps = null;
+    return (ComponentConfiguration [])res.toArray(new ComponentConfiguration [res.size()]);
+  }
+
+
+  /**
+   * Create a new ComponentConfiguration
+   */
+  ComponentConfiguration newComponentConfiguration(String cmPid,
+                                                   Dictionary instanceProps) {
+    Dictionary cmDict = cmDicts != null ? (Dictionary)cmDicts.get(cmPid) : null;
+    Dictionary sd = servProps != null ? (Dictionary)servProps.get(cmPid) : null;
+    ComponentConfiguration cc = new ComponentConfiguration(this, cmPid, cmDict,
+                                                           sd, instanceProps);
+    compConfigs.put(cc.getCMPid(), cc);
+    return cc;
+  }
+
+
+  /**
+   * Dispose of a created ComponentConfiguration.
+   */
+  private void disposeComponentConfigs(int reason) {
+    ArrayList cl = new ArrayList(compConfigs.values());
+    for (Iterator i = cl.iterator(); i.hasNext(); ) {
+      ((ComponentConfiguration)i.next()).dispose(reason);
+    }
+    if (!compConfigs.isEmpty()) {
+      System.out.println("ASSERT compConfigs not empty!");
+    }
+  }
+
+
+  /**
+   * Remove mapping for ComponentConfiguration to this Component.
+   */
+  void removeComponentConfiguration(ComponentConfiguration cc) {
+    compConfigs.remove(cc.getCMPid());
+    if (isSatisfied()) {
+      // If still satisfied, create missing component configurations
+      satisfied();
+    }
+  }
+
+
+  /**
+   * Get ComponentConfiguration belonging to specified serviceReference.
+   *
+   * @param sr ServiceReference belonging to component configuration
+   *           we are searching for.
+   */
+  ComponentConfiguration getComponentConfiguration(ServiceReference sr) {
+    for (Iterator i = compConfigs.values().iterator(); i.hasNext(); ) {
+      ComponentConfiguration cc = (ComponentConfiguration)i.next();
+      if (cc.getServiceReference() == sr) {
+        return cc;
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Get Implementation class for this component.
+   */
+  Class getImplementation() {
+    String impl = compDesc.getImplementation();
     try {
-
-      Bundle bundle = config.getBundle();
-      klass = bundle.loadClass(config.getImplementation());
-
+      return compDesc.bundle.loadClass(impl);
     } catch (ClassNotFoundException e) {
-      if (Activator.log.doError())
-        Activator.log.error("Could not find class " +
-                            config.getImplementation());
-
-      return ;
-    }
-
-    try {
-      // 2. create ComponentContext and ComponentInstance
-      instance = klass.newInstance();
-      componentInstance = new ComponentInstanceImpl();
-      componentContext = new ComponentContextImpl(componentInstance);
-
-
-    }  catch (IllegalAccessException e) {
-      if (Activator.log.doError())
-        Activator.log.error("Could not access constructor of class " +
-                            config.getImplementation());
-      return ;
-
-    } catch (InstantiationException e) {
-      if (Activator.log.doError())
-        Activator.log.error("Could not create instance of " +
-                            config.getImplementation() +
-                            " isn't a proper class.");
-      return ;
-
-    } catch (ExceptionInInitializerError e) {
-      if (Activator.log.doError())
-        Activator.log.error("Constructor for " +
-                            config.getImplementation() +
-                            " threw exception.", e);
-      return ;
-
-    } catch (SecurityException e) {
-      if (Activator.log.doError())
-        Activator.log.error("Did not have permissions to create an "
-                            +"instance of " +config.getImplementation(),
-                            e);
-      return ;
-    }
-
-    // 3. Bind the services. This should be sent to all the references.
-    config.bindReferences(instance);
-    try {
-
-      Method method
-        = findPublicOrProtectedMethod( klass,
-                                       "activate",
-                                       new Class[]{ ComponentContext.class });
-      method.setAccessible(true);
-      method.invoke(instance, new Object[]{ componentContext });
-    } catch (NoSuchMethodException e) {
-      // this instance does not have an activate method, (which is ok)
-      if (Activator.log.doDebug()) {
-        Activator.log.debug("this instance does not have an activate "
-                            +"method, (which is ok)");
-      }
-    } catch (IllegalAccessException e) {
-      Activator.log.error("Declarative Services could not invoke "
-                          +"\"deactivate\" method in component \""
-                          + config.getName() +"\". Got exception",
-                          e);
-      return ;
-
-    } catch (InvocationTargetException e) {
-      // the method threw an exception.
-      Activator.log.error("Declarative Services got exception when invoking " +
-                          "\"activate\" in component " + config.getName(), e);
-
-      // if this happens the component should not be activatated
-      config.unbindReferences(instance);
-      instance = null;
-      componentContext = null;
-
-      return ;
-    }
-
-    active = true;
-  }
-
-  /** deactivates a component */
-  public synchronized void deactivate() {
-    // this method is described on page 432 r4
-
-    if (!isActivated()) return ;
-
-    try {
-      Class klass = instance.getClass();
-      Method method
-        = findPublicOrProtectedMethod( klass,
-                                       "deactivate",
-                                       new Class[]{ ComponentContext.class });
-      method.setAccessible(true);
-      method.invoke(instance, new Object[]{ componentContext });
-    } catch (NoSuchMethodException e) {
-      // this instance does not have a deactivate method, (which is ok)
-      if (Activator.log.doDebug()) {
-        Activator.log.debug("this instance does not have a deactivate method, "
-                            +"(which is ok)");
-      }
-    } catch (IllegalAccessException e) {
-      Activator.log.error("Declarative Services could not invoke "
-                          +"\"deactivate\" method in component \""
-                          + config.getName() +"\". Got exception",
-                          e);
-
-    } catch (InvocationTargetException e) {
-      // the method threw an exception.
-      Activator.log.error("Declarative Services got exception when invoking " +
-                          "\"deactivate\" in component " + config.getName(), e);
-    }
-
-    config.unbindReferences(instance);
-
-    instance = null;
-    componentContext = null;
-    componentInstance = null;
-    active = false;
-  }
-
-  public boolean isActivated() {
-    return active;
-  }
-
-  public void unregisterService() {
-    if (serviceRegistration != null) {
-      try {
-        serviceRegistration.unregister();
-      } catch (IllegalStateException ignored) {
-        // Nevermind this, it might have been unregistered previously.
-      }
-      serviceRegistration = null;
+      Activator.logError(bc, "Could not find class " + impl, e);
+      return null;
     }
   }
 
-  public void registerService() {
-    if (Activator.log.doDebug()) {
-      Activator.log.debug("registerService() got BundleContext: "
-                          + bundleContext);
-    }
-
-    if (!config.getShouldRegisterService())
-      return ;
-
-    String[] interfaces = config.getServices();
-
-    if (interfaces == null) {
-      return ;
-    }
-    serviceRegistration =
-      bundleContext.registerService(interfaces, this, effectiveProperties);
-  }
 
   /**
-     This must be overridden
-  */
-  public Object getService(Bundle usingBundle,
-                           ServiceRegistration reg) {
-    this.usingBundle = usingBundle;
-    return instance;
-  }
-
-  /**
-     This must be overridden
-  */
-  public void ungetService(Bundle usingBundle,
-                           ServiceRegistration reg,
-                           Object obj) {
-    this.usingBundle = null;
-  }
-
-  /**
-      this method is called whenever this components configuration
-      becomes satisfied.
+   * Get all activate, deactivate, modify, bind and unbind
+   * methods specified for this component. This is done
+   * the first time this method is called.
+   *
+   * @param clazz Implemenation class to look for methods on.
    */
-  public abstract void satisfied();
+  void getMethods(Class clazz) {
+    if (!getMethodsDone) {
+      getMethodsDone = true;
+      HashMap lookfor = new HashMap();
+      String name = compDesc.getActivateMethod();
+      activateMethod = new ComponentMethod(name, this, false);
+      saveMethod(lookfor, name , activateMethod);
+      name = compDesc.getDeactivateMethod();  
+      deactivateMethod = new ComponentMethod(name, this, true);
+      saveMethod(lookfor, name, deactivateMethod);
+      name = compDesc.getModifiedMethod();
+      if (name != null) {
+        modifiedMethod = new ComponentMethod(name, this, false);
+        saveMethod(lookfor, name, modifiedMethod);
+      }
+      if (refs != null) {
+        for (int i = 0; i < refs.length; i++) {
+          Reference r = refs[i];
+          name = r.refDesc.bind;
+          if (name != null) {
+            r.bindMethod = new ComponentMethod(name, this, r);
+            saveMethod(lookfor, name, r.bindMethod);
+          }
+          name = r.refDesc.unbind;
+          if (name != null) {
+            r.unbindMethod = new ComponentMethod(name, this, r);
+            saveMethod(lookfor, name, r.unbindMethod);
+          }
+        }
+      }
+      boolean isSCR11 = compDesc.isSCR11();
+      do {
+        Method[] methods = clazz.getDeclaredMethods();
+        HashMap nextLookfor = (HashMap)lookfor.clone();
+        for (int i = 0; i < methods.length; i++) {
+          Method m = methods[i];
+          ComponentMethod [] cm = (ComponentMethod [])lookfor.get(m.getName());
+          if (cm != null) {
+            for (int j = 0; j < cm.length; j++) {
+              if (cm[j].updateMethod(isSCR11, m, clazz)) {
+                // Found one candidate, don't look in superclass
+                nextLookfor.remove(m.getName());
+              }
+            }
+          }
+        }
+        clazz = clazz.getSuperclass();
+        lookfor = nextLookfor;
+      } while (clazz != null && !lookfor.isEmpty());
+      if (activateMethod.isMissing(false) && !compDesc.isActivateMethodSet()) {
+        activateMethod = null;
+      }
+      if (deactivateMethod.isMissing(false) && !compDesc.isDeactivateMethodSet()) {
+        deactivateMethod = null;
+      }
+    }
+  }
+
+
   /**
-      this method is called whenever this components configuration
-      becomes unsatisfied.
+   * Get all references for this component.
    */
-
-  public abstract void unsatisfied();
-
-
-  public void setComponentId(Long componentId) {
-    this.componentId = componentId;
-    effectiveProperties.put(ComponentConstants.COMPONENT_ID, componentId);
+  Reference [] getReferences() {
+    return refs;
   }
 
-  // to provide compability with component context
-  private class ComponentContextImpl implements ComponentContext {
-    private ComponentInstance componentInstance;
-    private Dictionary immutable;
 
-    public ComponentContextImpl(ComponentInstance componentInstance) {
-      this.componentInstance = componentInstance;
-    }
-
-    public Dictionary getProperties() {
-      if (immutable == null) {
-        immutable = new ImmutableDictionary(effectiveProperties);
+  /**
+   * Get service property dictionary that could
+   * be registered by this component, based on
+   * current CM data.
+   */
+  PropertyDictionary getServiceProperties(String pid) {
+    PropertyDictionary pd;
+    if (servProps != null) {
+      pd = (PropertyDictionary)servProps.get(pid);
+      if (pd != null) {
+        return pd;
       }
-
-      return immutable ;
+    } else {
+      servProps = new HashMap();
     }
-
-    public Object locateService(String name) {
-      Reference ref = config.getReference(name);
-      return ref.getService();
-    }
-
-    public Object locateService(String name, ServiceReference sRef) {
-      Reference ref = config.getReference(name);
-      return ref.getService(sRef);
-    }
-
-    public Object[] locateServices(String name) {
-      Reference ref = config.getReference(name);
-      return ref.getServices();
-    }
-
-    public BundleContext getBundleContext() {
-      return bundleContext;
-    }
-
-    public ComponentInstance getComponentInstance() {
-      return componentInstance;
-    }
-
-    public Bundle getUsingBundle() {
-      return usingBundle;
-    }
-
-    public void enableComponent(String name) {
-      Collection collection =
-        SCR.getInstance().getComponents(config.getBundle());
-
-      for (Iterator i = collection.iterator();
-           i.hasNext(); ) {
-
-        Config config = (Config)i.next();
-
-        if (name == null ||
-            config.getName().equals(name)) {
-
-
-          if (!config.isEnabled()) {
-            Component component = config.createComponent();
-            component.enable();
-          }
-        }
-      }
-    }
-
-    public void disableComponent(String name) {
-      Collection collection =
-        SCR.getInstance().getComponents(config.getBundle());
-
-      for (Iterator i = collection.iterator();
-           i.hasNext(); ) {
-
-        Config config = (Config)i.next();
-
-        if (name == null ||
-            config.getName().equals(name)) {
-
-          if (config.isEnabled()) {
-            config.disable();
-          }
-        }
-      }
-    }
-
-    public ServiceReference getServiceReference() {
-      /*
-         We need to do it like this since this function might
-         be called before *we* even know what it is. However,
-         this value is know by the framework, hence we can
-         actually retrieve it.
-      */
-
-      if (serviceRegistration == null) {
-
-        try {
-          ServiceReference[] refs = bundleContext
-            .getServiceReferences(config.getImplementation(),
-                                  "(" + ComponentConstants.COMPONENT_ID + "=" +
-                                  componentId + ")");
-          if (refs == null) {
-            return null;
-          }
-
-          return refs[0];
-
-        } catch (Exception e) {
-          throw new RuntimeException("This is a bug.", e);
-        }
-
-      } else {
-        return serviceRegistration.getReference();
-      }
-    }
+    pd = new PropertyDictionary(scr.getNextId(), compDesc,
+                                cmDicts != null ? (Dictionary)cmDicts.get(pid) : null,
+                                null, true);
+    servProps.put(pid, pd);
+    return pd;
   }
 
-  private class ComponentInstanceImpl implements ComponentInstance {
 
-    public void dispose() {
-      unregisterService();
-      deactivate();
+  /**
+   * Get all service property dictionaries that could
+   * be registered by this component, based on current
+   * CM data.
+   */
+  String [] getAllServicePids() {
+    String [] pids;
+    if (cmDicts == null || cmDicts.isEmpty()) {
+      pids = new String [] { NO_PID };
+    } else {
+      pids = (String [])cmDicts.keySet().toArray(new String [cmDicts.size()]);
     }
-
-    public Object getInstance() {
-      return instance; // will be null when the component is not activated.
-    }
-
-
+    return pids;
   }
 
-  public Config getConfig() { return config; }
-  public BundleContext getBundleContext() { return bundleContext; }
-  public Object getInstance() { return instance; }
-  public ComponentInstance getComponentInstance() { return componentInstance; }
 
-  /*
-     We need to keep track of the entries that has been changed by CM
-     since these might have to be removed when a CM_DELETED event occurs..
-  */
-
-  public void cmUpdated(Dictionary dict) {
-    if (dict == null) return ;
-
-    for (Enumeration e = dict.keys(); e.hasMoreElements();) {
-      Object key = e.nextElement();
-      if (!key.equals(ComponentConstants.COMPONENT_NAME) &&
-          !key.equals(ComponentConstants.COMPONENT_ID)) {
-
-        effectiveProperties.put(key, dict.get(key));
-      }
-    }
-    if (serviceRegistration != null) {
-      serviceRegistration.setProperties(effectiveProperties);
-    }
+  /**
+   * Is this component satisfied
+   */
+  boolean isSatisfied() {
+    return enabled && unresolvedConstraints == 0;
   }
 
-  public void cmDeleted() {
-    Dictionary dict = config.getProperties();
-    effectiveProperties = new Hashtable();
-    for (Enumeration e = dict.keys(); e.hasMoreElements();) {
-      Object key = e.nextElement();
-      effectiveProperties.put(key, dict.get(key));
+  //
+  // Private
+  //
+
+  /**
+   * Helper method for getMethods. Saves method name to method mapping
+   * during search for methods.
+   *
+   */
+  private void saveMethod(HashMap map, String key, ComponentMethod cm) {
+    ComponentMethod [] o = (ComponentMethod [])map.get(key);
+    int olen = o != null ? o.length : 0;
+    ComponentMethod [] n = new ComponentMethod [olen + 1];
+    n[olen] = cm;
+    if (o != null) {
+      System.arraycopy(o, 0, n, 0, o.length);
     }
-    if (componentId!=null){
-      effectiveProperties.put(ComponentConstants.COMPONENT_ID, componentId);
-    }
-    if (serviceRegistration != null) {
-      serviceRegistration.setProperties(effectiveProperties);
-    }
+    map.put(key, n);
   }
 }

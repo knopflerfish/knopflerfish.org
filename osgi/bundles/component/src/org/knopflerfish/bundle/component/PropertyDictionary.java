@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2010-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,41 +33,66 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.Dictionary;
-import java.util.Enumeration;
- 
-class ImmutableDictionary extends Dictionary {
-  private Dictionary mutable;
-  
-  ImmutableDictionary(Dictionary mutable) {
-    this.mutable = mutable;
+import java.util.*;
+
+import org.osgi.service.component.ComponentConstants;
+
+
+/**
+ * This class needs to be a Dictionary and a Map.
+ * TBD, check that this class is immutable
+ */
+class PropertyDictionary extends Hashtable
+{
+
+  /**
+   *
+   */
+  PropertyDictionary(Long id,
+                     ComponentDescription cd,
+                     Dictionary cm,
+                     Dictionary instance,
+                     boolean service) {
+    addDict(cd.getProperties(), service);
+    if (cm != null) {
+      addDict(cm, service);
+    }
+    if (instance != null) {
+      addDict(instance, service);
+    }
+    super.put(ComponentConstants.COMPONENT_ID, id);
+    super.put(ComponentConstants.COMPONENT_NAME, cd.getName());
   }
-  
-  public Enumeration elements() { 
-    return mutable.elements(); 
-  }
-  
-  public Object get(Object key) { 
-    return mutable.get(key); 
-  }
-  
-  public boolean isEmpty() { 
-    return mutable.isEmpty(); 
-  }
-  
-  public Enumeration keys() { 
-    return mutable.keys(); 
-  }
-  
+
+
+  /**
+   *
+   */
   public Object put(Object key, Object value) { 
     throw new RuntimeException("Operation not supported."); 
   }
-  
+
+
+  /**
+   *
+   */
   public Object remove(Object key) { 
     throw new RuntimeException("Operation not supported.");
   }
-  
-  public int size() { 
-    return mutable.size(); 
+
+  //
+  // Private methods
+  //
+
+  /**
+   *
+   */
+  private void addDict(Dictionary d, boolean service) {
+    for (Enumeration e = d.keys(); e.hasMoreElements(); ) {
+      String key = (String)e.nextElement();
+      if (!service || !key.startsWith(".")) {
+        super.put(key, d.get(key));
+      }
+    }
   }
 }
