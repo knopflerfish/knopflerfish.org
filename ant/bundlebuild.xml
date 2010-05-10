@@ -515,6 +515,7 @@
 	 jarfile  = "${impl.jar}"
 	 includes = "${impl.pattern},${impl-api.pattern}"
 	 excludes = "**/pspbrwse.jbf"
+	 manifestencoding="UTF-8" 
 	 manifest = "${outdir}/impl.mf">
     </jar>
 
@@ -590,6 +591,7 @@
     <jar basedir  = "${classes.out.dir}"
 	 jarfile  = "${api.jar}"
 	 includes = "${api.pattern}"
+	 manifestencoding="UTF-8" 
 	 manifest = "${outdir}/api.mf">
     </jar>
 
@@ -698,6 +700,7 @@
     <jar basedir  = "${classes.out.dir}"
 	 jarfile  = "${lib.jar}"
 	 includes = "${api.pattern}"
+	 manifestencoding="UTF-8" 
 	 manifest = "${outdir}/lib.mf">
     </jar>
 
@@ -787,6 +790,7 @@
 	 compress = "true"
 	 includes = "${api.pattern},${impl-api.pattern},${impl.pattern}"
 	 excludes = "**/pspbrwse.jbf"
+	 manifestencoding="UTF-8" 
 	 manifest = "${outdir}/all.mf">
     </jar>
 
