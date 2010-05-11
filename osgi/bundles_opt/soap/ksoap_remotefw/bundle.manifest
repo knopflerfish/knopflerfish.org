@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: kSOAP-FW
+Bundle-Name: kSOAP Remote Framework
 Bundle-SymbolicName: org.knopflerfish.bundle.ksoap_remotefw
 Bundle-Version: 3.0.2
 Bundle-Category: service
