@@ -98,42 +98,30 @@ class ReferenceListener implements ServiceListener
       throw new RuntimeException("Should not occur, Filter already checked");
     }
     addPid(config != null ? config.getPid() : Component.NO_PID, true);
-    Iterator i = oldServiceRefs.descendingIterator();
-    ServiceReference oldSR = null;
-    boolean nextOld = true;
-    Iterator j = newServiceRefs.descendingIterator();
-    ServiceReference newSR = null;
-    boolean nextNew = true;
+    int i = oldServiceRefs.size();
+    ServiceReference [] oldSR = 
+      (ServiceReference [])oldServiceRefs.toArray(new ServiceReference [i--]);
+    int j = newServiceRefs.size();
+    ServiceReference [] newSR =
+      (ServiceReference [])newServiceRefs.toArray(new ServiceReference [j--]);
     LinkedList el = new LinkedList();
     while (true) {
-      if (nextOld) {
-        oldSR = i.hasNext() ? (ServiceReference)i.next() : null;
-        nextOld = false;
-      }
-      if (nextNew) {
-        newSR = j.hasNext() ? (ServiceReference)j.next() : null;
-        nextNew = false;
-      }
-      if (oldSR == null) {
-        if (newSR == null) {
+      if (i < 0) {
+        if (j < 0) {
           break;
         }
-        el.addLast(new ServiceEvent(ServiceEvent.REGISTERED, newSR));
-        nextNew = true;
-      } else if (newSR == null) {
-        el.addFirst(new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, oldSR));
-        nextOld = true;
+        el.addLast(new ServiceEvent(ServiceEvent.REGISTERED, newSR[j--]));
+      } else if (j < 0) {
+        el.addFirst(new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, oldSR[i--]));
       } else {
-        int c = oldSR.compareTo(newSR);
+        int c = oldSR[i].compareTo(newSR[j]);
         if (c < 0) {
-          el.addLast(new ServiceEvent(ServiceEvent.REGISTERED, newSR));
-          nextNew = true;
+          el.addLast(new ServiceEvent(ServiceEvent.REGISTERED, newSR[j--]));
         } else if (c == 0) {
-          nextOld = true;
-          nextNew = true;
+          i--;
+          j--;
         } else {
-          el.addFirst(new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, oldSR));
-          nextOld = true;
+          el.addFirst(new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, oldSR[i--]));
         }
       }
     }
