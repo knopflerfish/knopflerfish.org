@@ -1,0 +1,145 @@
+<h1>Http server</h1>
+
+<div class="abstract">
+OSGi HTTP server implementation. The HTTP server allows bundles to register
+resourses as servlets, web pages, images or multimedia into a web server
+running on the framework.
+</div>
+
+<h2>Usage</h2>
+
+<p>
+The HTTP bundle can be configured by both CM or System properties
+</p>
+
+<p>
+As soon as the http bundle gets a valid configuration it creates and
+registers an HttpService instance into the framework. 
+</p>
+
+<p>
+Note: If the server fails to bind to a port, an HttpService will still
+be registered, but the service property "port" will not be present!
+</p>
+
+
+<h3>System properties</h3>
+
+The following system properties will be read when no CM is available
+<pre>
+ org.osgi.service.http.port       
+ org.osgi.service.http.secure.port
+ org.knopflerfish.http.enabled
+ org.knopflerfish.http.secure.enabled
+ org.osgi.service.http.hostname
+ org.knopflerfish.http.mime.props
+ org.knopflerfish.http.dnslookup
+ org.knopflerfish.http.response.buffer.size.default 
+ org.knopflerfish.http.connection.max
+ org.knopflerfish.http.connection.timeout
+ org.knopflerfish.http.session.timeout.default
+ org.knopflerfish.http.encoding.default
+ org.knopflerfish.http.req.client.auth
+</pre>
+
+See CM description below for descriptions
+
+
+<h3>Using the Configuration Manager</h3>
+
+The http bundle accepts Factory configurations on the PID
+<pre>
+  org.knopflerfish.bundle.http.factory.HttpServer
+</pre>
+..with the following properties:
+
+<dl>
+<dt>http.enabled (Boolean)</dt>
+<dd>This boolean property decides if the HTTP protocol is enabled for the
+  server instance.
+  The default true.</dd>
+
+<dt>port.http (Integer)</dt>
+<dd>This integer property decides the default HTTP port for the server instance.
+  The default port is 80.</dd>
+
+<dt>https.enabled (Boolean)</dt>
+<dd>This boolean property decides if the HTTPS protocol is enabled for the
+  server instance.
+  The default is true.</dd>
+
+<dt>port.https (Integer)</dt>
+<dd>This integer property decides the default HTTPS port for the server instance.
+  The default port is 443.</dd>
+
+<dt>host (String)</dt>
+<dd>  This string property decides the default hostname for the server
+  instance. If the server is running on a multihomed machine this
+  property will be used to decide which network interface the server will
+  listen to. If this property is not set the server will listen to all network
+  interfaces. The default is to listen to all network interfaces.
+</dd>
+
+<dt>mime.map (Vector of String[2])</dt>
+<dd>
+  This property is a vector of arrays defining MIME type mappings. Each
+  entry in the vector is an array with two elements where the first is
+  the file name extension and the second is the associated MIME type.
+  By default the most common file types are defined.
+</dd>
+
+<dt>session.timeout.default (Integer)</dt>
+<dd>
+  This integer property decides the default timeout in seconds for an
+  HTTP session. The default is 1200 seconds.
+</dd>
+
+<dt>connection.timeout (Integer)</dt>
+<dd>
+  This integer property decides the timeout in seconds for a persistent
+  connection to the HTTP server. The default is 30 seconds.
+</dd>
+
+<dt>connection.max (Integer)</dt>
+<dd>
+  This integer property decides the maximum number of concurrent
+  connections to the HTTP server. The default is 50.
+</dd>
+
+<dt>dns.lookup (Boolean)</dt>
+<dd>
+  This boolean property decides if the server will use DNS lookup when a
+  servlet calls the HttpServletRequest.getRemoteHost method. In some
+  environments DNS lookup will cause the current transaction to hang for
+  a long period of time. The default is to do DNS lookup.
+</dd>
+
+<dt>response.buffer.size.default (Integer)</dt>
+<dd>
+  This integer property decides the default buffer size in bytes for an
+  HTTP response. If a servlet or publisher does not exceed this buffer,
+  the server will calculate and send the content length header in the
+  response. If the buffer is exceeded the servlet or publisher need to
+  set the content length header explicitly. The content length header is
+  required for persistent connections. If the content length is unknown
+  the server will send a connection close header. The buffer size can be
+  set runtime by the servlet using the HttpResponse.setBufferSize()
+  method. The default is 16384 bytes.
+</dd>
+
+<dt>org.knopflerfish.http.encoding.default (String)</dt>
+<dd>This string property decides the default value for the charset
+  in the content type of a response from the server instance.
+  The default is 'ISO-8859-1'.
+</dd>
+
+<dt>req.client.auth (Boolean)</dt>
+<dd>This boolean property decides if SSL client authentication is
+  required by the server instance.
+  The default is false.
+</dd>
+
+
+</dl>
+
+

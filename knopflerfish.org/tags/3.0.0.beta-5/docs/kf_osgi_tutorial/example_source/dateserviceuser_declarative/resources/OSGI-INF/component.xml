@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<component 
+  xmlns = "http://www.osgi.org/xmlns/scr/v1.0.0"
+  name  = "kf.tutorial.datelisten">
+
+  <implementation 
+     class="org.knopflerfish.tutorial.dateserviceuserdeclarative.impl.Component"/>
+  <reference name = "DATESERVICE"
+	     interface = "org.knopflerfish.tutorial.dateservice.DateService"
+	     bind = "setDateService"
+	     unbind = "unsetDateService"
+	     />
+</component>

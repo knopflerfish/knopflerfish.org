@@ -1,0 +1,12 @@
+Bundle-Name: resexp_test
+Bundle-SymbolicName: resexp_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, resource export
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.resexp_test.Activator
+Bundle-Category: test
+Export-Package: org.knopflerfish.bundle.resexp_test
+Import-Package: org.osgi.framework
+Bundle-UUID: org.knopflerfish:resexp_test:1.0.0:all
