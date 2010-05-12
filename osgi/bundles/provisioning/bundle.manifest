@@ -10,6 +10,6 @@ Bundle-Vendor: OSGi
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Export-Package: org.osgi.service.provisioning;specification-version=1.1.0
+Export-Package: org.osgi.service.provisioning;specification-version=1.2.0
 Import-Package: org.osgi.framework
 

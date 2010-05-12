@@ -38,24 +38,6 @@
     <ant antfile="gen.xml"/>
   </target>
 
-  <property name="xargs" location="soapcline_adb_test.xargs"/>
-  <property name="do.bundle.custom.post" value="true"/>
-  <target name="bundle.custom.post">
-    <property name="bundleVersionFilterTester"
-	      location="${outdir}/${ant.project.name}.props"/>
-    <bundle_locator replacefilterfile="${bundleVersionFilterTester}">
-      <fileset dir="${osgi.dir}">
-	<include name="jars/**/*.jar"/>
-	<include name="bundles_test/regression_tests/jars/**/*.jar"/>
-      </fileset>
-    </bundle_locator>
-    <copy file="${xargs}.in" tofile="${xargs}" overwrite="true"/>
-    <replace file="${xargs}"
-	     replacefilterfile="${bundleVersionFilterTester}">
-      <replacefilter token="$(OSGI_DIR)" value="${osgi.dir}"/>
-    </replace>	  
-  </target>
-
   <import file="${ant.dir}/bundlebuild.xml"/>
 
   <!-- This requires that the axis2_soapobject bundle is up and running. -->

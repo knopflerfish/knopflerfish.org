@@ -48,7 +48,7 @@ public class InstallFileCommand extends IconCommand {
     super("cmd_installfile",
 	  "Install file",
 	  "Install bundle from file",
-	  Activator.RES_ALIAS + "/open.gif");
+	  Activator.RES_ALIAS + "/document-open.png");
   }
 
   public int getDisplayFlags() {

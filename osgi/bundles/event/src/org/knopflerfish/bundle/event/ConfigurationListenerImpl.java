@@ -34,8 +34,8 @@
 
 package org.knopflerfish.bundle.event;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationEvent;
 import org.osgi.service.cm.ConfigurationListener;
 import org.osgi.service.event.Event;
@@ -53,13 +53,17 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
   private final static String PREFIX = "org/osgi/service/cm/ConfigurationEvent/";
   private final static String CM_UPDATED_TOPIC = PREFIX + "CM_UPDATED";
   private final static String CM_DELETED_TOPIC = PREFIX + "CM_DELETED";
+  ServiceRegistration r = null;
 
+  void start() {
+    r = Activator.bc.registerService(ConfigurationListener.class.getName(), this, null);
+  }
 
-  private LogRef log;
-
-  public ConfigurationListenerImpl() {
-    log = new LogRef(Activator.bundleContext);
-    Activator.bundleContext.registerService(ConfigurationListener.class.getName(), this, null);
+  void stop() {
+    if(r != null) {
+      r.unregister();
+      r = null;
+    }
   }
 
   public void configurationEvent(ConfigurationEvent event) {
@@ -94,10 +98,10 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
       try {
         Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
-        log.error("EXCEPTION in configurationEvent()", e);
+        Activator.log.error("EXCEPTION in configurationEvent()", e);
       }
     } else {
-      log.error("Recieved unknown configuration event (type="
+      Activator.log.error("Recieved unknown configuration event (type="
                 +event.getType() +"), discarding");
     }
   }

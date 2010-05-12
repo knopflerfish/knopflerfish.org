@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,20 +49,26 @@ public class Activator implements BundleActivator {
   RemoteFWServer remoteFW;
 
   public void start(BundleContext bc) {
-    this.bc = bc;
+    Activator.bc = bc;
     log = new LogRef(bc);
 
-    if("true".equals(System.getProperty("org.knopflerfish.soap.remotefw.server", "true"))) {
+    final String startServerS
+      = bc.getProperty("org.knopflerfish.soap.remotefw.server");
+    final boolean startServer = null==startServerS || 0==startServerS.length()
+      ? true : "true".equals(startServerS);
+    if(startServer) {
       remoteFW = new RemoteFWServer();
       remoteFW.start();
     }
 
-    if("true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client", "true"))) {
-      RemoteFrameworkImpl rc = new RemoteFrameworkImpl();
+    final String startClientS
+      = bc.getProperty("org.knopflerfish.soap.remotefw.client");
+    final boolean startClient = null==startClientS || 0==startClientS.length()
+      ? true : "true".equals(startClientS);
+    if(startClient) {
+      final RemoteFrameworkImpl rc = new RemoteFrameworkImpl();
 
-      bc.registerService(RemoteFramework.class.getName(),
-       rc,
-       new Hashtable());
+      bc.registerService(RemoteFramework.class.getName(), rc, new Hashtable());
     }
   }
 

@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Crimson-XML
 Bundle-SymbolicName: org.knopflerfish.bundle.crimson
-Bundle-Version: 2.0.1
-Bundle-UUID: org.knopflerfish:crimson:2.0.1
+Bundle-Version: 2.1.0
+Bundle-UUID: org.knopflerfish:crimson:2.1.0
 Bundle-Category: lib
 Bundle-Description: The Crimson XML parser
 Bundle-Vendor: Apache/Knopflerfish
@@ -18,4 +18,10 @@ Export-Package: org.w3c.dom;specification-version=2.0,
  javax.xml.parsers;specification-version=1.2,
  org.apache.crimson.jaxp,
  org.xml.sax.ext;specification-version=1.0
-Import-Package: org.osgi.framework
+Import-Package: org.osgi.framework, 
+ org.w3c.dom,
+ org.xml.sax,
+ org.xml.sax.helpers,
+ javax.xml.parsers,
+ org.apache.crimson.jaxp,
+ org.xml.sax.ext

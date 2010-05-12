@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ class Packages {
   /**
    * Framework for bundle.
    */
-  final Framework framework;
+  final FrameworkContext framework;
 
   /**
    * All exported and imported packages.
@@ -90,10 +90,23 @@ class Packages {
   /**
    * Construct Packages object.
    */
-  Packages(Framework fw) {
+  Packages(FrameworkContext fw) {
     framework = fw;
   }
 
+
+  /**
+   * Clear all datastructures in this object.
+   */
+  void clear()
+  {
+    packages.clear();
+    if (null!=tempResolved) tempResolved.clear();
+    if (null!=tempProvider) tempProvider.clear();
+    if (null!=tempRequired) tempRequired.clear();
+    if (null!=tempBlackList) tempBlackList.clear();
+    if (null!=tempBackTracked) tempBackTracked.clear();
+  }
 
   /**
    * Register all packages a bundle needs to export and import.
@@ -111,8 +124,8 @@ class Packages {
         packages.put(pe.name, p);
       }
       p.addExporter(pe);
-      if (Debug.packages) {
-        Debug.println("registerPackages: export, " + pe);
+      if (framework.debug.packages) {
+        framework.debug.println("registerPackages: export, " + pe);
       }
     }
     while (imports.hasNext()) {
@@ -123,8 +136,8 @@ class Packages {
         packages.put(pe.name, p);
       }
       p.addImporter(pe);
-      if (Debug.packages) {
-        Debug.println("registerPackages: import, " + pe);
+      if (framework.debug.packages) {
+        framework.debug.println("registerPackages: import, " + pe);
       }
     }
   }
@@ -137,8 +150,8 @@ class Packages {
    * @return ExportPkg for package provider.
    */
   synchronized ExportPkg registerDynamicImport(ImportPkg ip) {
-    if (Debug.packages) {
-      Debug.println("registerDynamicImport: try " + ip);
+    if (framework.debug.packages) {
+      framework.debug.println("registerDynamicImport: try " + ip);
     }
     ExportPkg res = null;
     Pkg p = (Pkg)packages.get(ip.name);
@@ -166,8 +179,8 @@ class Packages {
       tempRequired = null;
       tempResolved = null;
     }
-    if (Debug.packages) {
-      Debug.println("registerDynamicImport: Done for " + ip.name + ", res = " + res);
+    if (framework.debug.packages) {
+      framework.debug.println("registerDynamicImport: Done for " + ip.name + ", res = " + res);
     }
     return res;
   }
@@ -195,9 +208,9 @@ class Packages {
         ExportPkg ep = (ExportPkg)i.next();
         // Is the exporting bundle wired to any bundle via Require-Bundle
         if (ep.bpkgs.requiredBy!=null && ep.bpkgs.requiredBy.size()>0) {
-          if (Debug.packages) {
-            Debug.println("unregisterPackages: Failed to unregister, "
-                          +ep +" is still in use via Require-Bundle.");
+          if (framework.debug.packages) {
+            framework.debug.println("unregisterPackages: Failed to unregister, "
+                                    + ep +" is still in use via Require-Bundle.");
           }
           markAsZombies(exports);
           return false;
@@ -207,9 +220,9 @@ class Packages {
           for (Iterator ii = p.importers.iterator(); ii.hasNext(); ) {
             ImportPkg ip = (ImportPkg) ii.next();
             if (ep == ip.provider && ep.bpkgs != ip.bpkgs) {
-              if (Debug.packages) {
-                Debug.println("unregisterPackages: Failed to unregister, "
-                              +ep +" is still in use via import-package.");
+              if (framework.debug.packages) {
+                framework.debug.println("unregisterPackages: Failed to unregister, "
+                                        + ep +" is still in use via import-package.");
               }
               markAsZombies(exports);
               return false;
@@ -222,8 +235,8 @@ class Packages {
     for (Iterator i = exports.iterator(); i.hasNext(); ) {
       ExportPkg ep = (ExportPkg)i.next();
       Pkg p = ep.pkg;
-      if (Debug.packages) {
-        Debug.println("unregisterPackages: unregister export - " + ep);
+      if (framework.debug.packages) {
+        framework.debug.println("unregisterPackages: unregister export - " + ep);
       }
       p.removeExporter(ep);
       if (p.isEmpty()) {
@@ -234,9 +247,9 @@ class Packages {
     for (Iterator i = imports.iterator(); i.hasNext(); ) {
       ImportPkg ip = (ImportPkg)i.next();
       Pkg p = ip.pkg;
-      if (Debug.packages) {
-        Debug.println("unregisterPackages: unregister import - "
-                      +ip.pkgString());
+      if (framework.debug.packages) {
+        framework.debug.println("unregisterPackages: unregister import - "
+                                + ip.pkgString());
       }
       p.removeImporter(ip);
       if (p.isEmpty()) {
@@ -256,8 +269,8 @@ class Packages {
    */
   synchronized String resolve(BundleImpl bundle, Iterator pkgs) {
     String res;
-    if (Debug.packages) {
-      Debug.println("resolve: " + bundle);
+    if (framework.debug.packages) {
+      framework.debug.println("resolve: " + bundle);
     }
     // If we enter with tempResolved set, it means that we already have
     // resolved bundles. Check that it is true!
@@ -303,8 +316,8 @@ class Packages {
     tempProvider = null;
     tempRequired = null;
     tempBlackList = null;
-    if (Debug.packages) {
-      Debug.println("resolve: Done for " + bundle);
+    if (framework.debug.packages) {
+      framework.debug.println("resolve: Done for " + bundle);
     }
     return res;
   }
@@ -355,8 +368,8 @@ class Packages {
       }
     });
     if (bundles == null) {
-      if (Debug.packages) {
-        Debug.println("getZombieAffected: check - null");
+      if (framework.debug.packages) {
+        framework.debug.println("getZombieAffected: check - null");
       }
       for (Iterator i = packages.values().iterator(); i.hasNext();) {
         Pkg p = (Pkg)i.next();
@@ -364,8 +377,8 @@ class Packages {
         for (Iterator ps = p.exporters.iterator(); ps.hasNext(); ) {
           ExportPkg ep = (ExportPkg)ps.next();
           if (ep.zombie) {
-            if (Debug.packages) {
-              Debug.println("getZombieAffected: found zombie - " + ep);
+            if (framework.debug.packages) {
+              framework.debug.println("getZombieAffected: found zombie - " + ep);
             }
             affected.add(ep.bpkgs.bundle);
           }
@@ -373,18 +386,16 @@ class Packages {
       }
     } else {
       for (int i = 0; i < bundles.length; i++) {
-        if (bundles[i] != null) {
-          if (Debug.packages) {
-            Debug.println("getZombieAffected: check - " + bundles[i]);
+        BundleImpl tmp = (BundleImpl)bundles[i];
+        if (tmp != null) {
+          if (framework.debug.packages) {
+            framework.debug.println("getZombieAffected: check - " + bundles[i]);
           }
-          BundleImpl tmp = (BundleImpl)bundles[i];
-
-          if (tmp.isFragment() &&
-              tmp.isAttached() &&
-              !affected.contains(tmp.getFragmentHost())) {
-            affected.add(tmp.getFragmentHost());
-          } else {
-            affected.add(bundles[i]);
+          affected.add(tmp);
+          if (tmp.isFragment() && tmp.isAttached()) {
+            for (Iterator h = tmp.fragment.getHosts(); h.hasNext(); ) {
+              affected.add(h.next());
+            }
           }
         }
       }
@@ -399,9 +410,9 @@ class Packages {
             Bundle ib = (Bundle)k.next();
             if (!affected.contains(ib)) {
               moreBundles.add(ib);
-              if (Debug.packages) {
-                Debug.println("getZombieAffected: added importing bundle - "
-                              + ib);
+              if (framework.debug.packages) {
+                framework.debug.println("getZombieAffected: added importing bundle - "
+                                        + ib);
               }
               affected.add(ib);
             }
@@ -413,9 +424,9 @@ class Packages {
             Bundle rb = rbpkgs.bundle;
             if (!affected.contains(rb)) {
               moreBundles.add(rb);
-              if (Debug.packages) {
-                Debug.println("getZombieAffected: added requiring bundle - "
-                              + rb);
+              if (framework.debug.packages) {
+                framework.debug.println("getZombieAffected: added requiring bundle - "
+                                        + rb);
               }
               affected.add(rb);
             }
@@ -440,8 +451,8 @@ class Packages {
    *         otherwise we return false.
    */
   private boolean backTrackUses(ImportPkg ip) {
-    if (Debug.packages) {
-      Debug.println("backTrackUses: check - " + ip.pkgString());
+    if (framework.debug.packages) {
+      framework.debug.println("backTrackUses: check - " + ip.pkgString());
     }
     if (tempBackTracked.contains(ip.bpkgs)) {
       return false;
@@ -518,28 +529,31 @@ class Packages {
         framework.listeners.frameworkError(ip.bpkgs.bundle,
                                            new Exception("resolvePackages: InternalError1!"));
       }
-      if (Debug.packages) {
-        Debug.println("resolvePackages: check - " + ip.pkgString());
+      if (framework.debug.packages) {
+        framework.debug.println("resolvePackages: check - " + ip.pkgString());
       }
       provider = (ExportPkg)tempProvider.get(ip.name);
       if (provider != null) {
-        if (Debug.packages) {
-          Debug.println("resolvePackages: " + ip.name + " - has temporary provider - "
-                        + provider);
+        if (framework.debug.packages) {
+          framework.debug.println("resolvePackages: " + ip.name + " - has temporary provider - "
+                                  + provider);
         }
         if (provider.zombie && provider.bpkgs.bundle.state == Bundle.UNINSTALLED) {
-          if (Debug.packages) {
-            Debug.println("resolvePackages: " + ip.name +
-                          " - provider not used since it is an uninstalled zombie - "
-                          + provider);
+          if (framework.debug.packages) {
+            framework.debug.println("resolvePackages: " + ip.name +
+                                    " - provider not used since it is an uninstalled zombie - "
+                                    + provider);
           }
           provider = null;
-        } else if (!ip.okPackageVersion(provider.version)) {
-          if (Debug.packages) {
-            Debug.println("resolvePackages: " + ip.name +
-                          " - provider has wrong version - " + provider +
-                          ", need " + ip.packageRange + ", has " + provider.version);
+        } else if (!ip.checkAttributes(provider)) {
+          if (framework.debug.packages) {
+            framework.debug.println("resolvePackages: " + ip.name +
+                                    " - provider has wrong attributes - " + provider);
+            // NYI, print what is missing
           }
+          provider = null;
+        } else if (!ip.checkPermission(provider)) {
+          // We can not make internal wire because it could collide with the provided version.
           provider = null;
         }
       } else {
@@ -554,18 +568,25 @@ class Packages {
             // TBD! Should we refrain from using a zombie package and try a new provider instead?
             continue;
           }
-          if (ip.okPackageVersion(ep.version)) {
-            if (Debug.packages) {
-              Debug.println("resolvePackages: " + ip.name + " - has provider - " + ep);
+          if (ip.checkAttributes(ep)) {
+            if (framework.debug.packages) {
+              framework.debug.println("resolvePackages: " + ip.name +
+                                      " - has provider - " + ep);
             }
-            HashMap oldTempProvider = (HashMap)tempProvider.clone();
-            if (!checkUses(ep)) {
-              tempProvider = oldTempProvider;
-              tempBlackList.add(ep);
-              continue;
+            if (ip.checkPermission(ep)) {
+              HashMap oldTempProvider = (HashMap)tempProvider.clone();
+              if (!checkUses(ep)) {
+                tempProvider = oldTempProvider;
+                tempBlackList.add(ep);
+                continue;
+              }
+              provider = ep;
+              break;
+            } else {
+              if (framework.debug.packages) {
+                framework.debug.println("resolvePackages: no permission for - " + ep);
+              }
             }
-            provider = ep;
-            break;
           }
         }
         if (provider == null) {
@@ -576,11 +597,11 @@ class Packages {
         }
       }
       if (provider == null) {
-        if (ip.resolution == Constants.RESOLUTION_MANDATORY) {
+        if (ip.mustBeResolved()) {
           res.add(ip);
         } else {
-          if (Debug.packages) {
-            Debug.println("resolvePackages: Ok, no provider for optional " + ip.name);
+          if (framework.debug.packages) {
+            framework.debug.println("resolvePackages: Ok, no provider for optional " + ip.name);
           }
         }
       }
@@ -596,10 +617,10 @@ class Packages {
    * @return Package entry that can provide.
    */
   private ExportPkg pickProvider(ImportPkg ip) {
-    if (Debug.packages) {
-      Debug.println("pickProvider: for - " + ip);
+    if (framework.debug.packages) {
+      framework.debug.println("pickProvider: for - " + ip);
     }
-    ExportPkg provider = null;
+    ArrayList possibleProvider = new ArrayList(ip.pkg.exporters.size());
     for (Iterator i = ip.pkg.exporters.iterator(); i.hasNext(); ) {
       ExportPkg ep = (ExportPkg)i.next();
       tempBlackListChecks++;
@@ -607,72 +628,61 @@ class Packages {
         tempBlackListHits++;
         continue;
       }
-      if (!checkAttributes(ep, ip)) {
-        if (Debug.packages) {
-          Debug.println("pickProvider: attribute match failed for - " + ep);
+      if (!ip.checkAttributes(ep)) {
+        if (framework.debug.packages) {
+          framework.debug.println("pickProvider: attribute match failed for - " + ep);
         }
         continue;
       }
-      if (tempResolved.contains(ep.bpkgs.bundle) &&
-          ep.checkPermission()) {
-        provider = ep;
-        break;
+      if (!ip.checkPermission(ep)) {
+        if (ip.bpkgs == ep.bpkgs) {
+          if (framework.debug.packages) {
+            framework.debug.println("pickProvider: internal wire ok for - " + ep);
+          }
+          ip.internalOk = ep;
+        }
+        if (framework.debug.packages) {
+          framework.debug.println("pickProvider: no import permission for - " + ep);
+        }
+        continue;
+      }
+      if (!ep.checkPermission()) {
+        if (framework.debug.packages) {
+          framework.debug.println("pickProvider: no export permission for - " + ep);
+        }
+        continue;
       }
       if ((ep.bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
         HashMap oldTempProvider = (HashMap)tempProvider.clone();
-        if (ep.checkPermission() && checkUses(ep)) {
-          provider = ep;
-          break;
+        if (checkUses(ep)) {
+          if (framework.debug.packages) {
+            framework.debug.println("pickProvider: " + ip +
+                                    " - got resolved provider - " + ep);
+          }
+          return ep;
         } else {
           tempProvider = oldTempProvider;
           tempBlackList.add(ep);
           continue;
         }
       }
-      if (ep.bpkgs.bundle.state == Bundle.INSTALLED && checkResolve(ep.bpkgs.bundle, ep)) {
-        provider = ep;
-        break;
+      if (ep.bpkgs.bundle.state == Bundle.INSTALLED) {
+        possibleProvider.add(ep);
       }
     }
-    if (Debug.packages) {
-      if (provider != null) {
-        Debug.println("pickProvider: " + ip + " - got provider - " + provider);
-      } else {
-        Debug.println("pickProvider: " + ip + " - found no provider");
+    for (Iterator i = possibleProvider.iterator(); i.hasNext(); ) {
+      ExportPkg ep = (ExportPkg)i.next();
+      if (tempResolved.contains(ep.bpkgs.bundle) || checkResolve(ep.bpkgs.bundle)) {
+        if (framework.debug.packages) {
+          framework.debug.println("pickProvider: " + ip + " - got provider - " + ep);
+        }
+        return ep;
       }
     }
-    return provider;
-  }
-
-
-  /**
-   * Check that all package attributes match.
-   *
-   * @param ep Exported package.
-   * @param ip Imported package.
-   * @return True if okay, otherwise false.
-   */
-  private boolean checkAttributes(ExportPkg ep, ImportPkg ip) {
-    /* Mandatory attributes */
-    if (!ip.checkMandatory(ep.mandatory)) {
-      return false;
+    if (framework.debug.packages) {
+      framework.debug.println("pickProvider: " + ip + " - found no provider");
     }
-    /* Predefined attributes */
-    if (!ip.okPackageVersion(ep.version) ||
-        (ip.bundleSymbolicName != null &&
-         !ip.bundleSymbolicName.equals(ep.bpkgs.bundle.symbolicName)) ||
-        !ip.bundleRange.withinRange(ep.bpkgs.bundle.version)) {
-      return false;
-    }
-    /* Other attributes */
-    for (Iterator i = ip.attributes.entrySet().iterator(); i.hasNext(); ) {
-      Map.Entry e = (Map.Entry)i.next();
-      String a = (String)ep.attributes.get(e.getKey());
-      if (a == null || !a.equals(e.getValue())) {
-        return false;
-      }
-    }
-    return true;
+    return null;
   }
 
 
@@ -682,21 +692,17 @@ class Packages {
    * Bundle must be in installed state.
    *
    * @param b Bundle to be checked.
-   * @param ep Exported package that is required.
    * @return true if resolvable otherwise false.
    */
-  private boolean checkResolve(BundleImpl b, ExportPkg ep) {
-    ArrayList okImports = new ArrayList();
-    if (framework.perm.missingMandatoryPackagePermissions(b.bpkgs, okImports) == null &&
-        checkBundleSingleton(b) == null &&
-        (ep == null || ep.checkPermission())) {
+  private boolean checkResolve(BundleImpl b) {
+    if (checkBundleSingleton(b) == null) {
       HashSet oldTempResolved = (HashSet)tempResolved.clone();
       HashMap oldTempProvider = (HashMap)tempProvider.clone();
       HashMap oldTempRequired = (HashMap)tempRequired.clone();
       HashSet oldTempBlackList = (HashSet)tempBlackList.clone();
       tempResolved.add(b);
       if (checkRequireBundle(b) == null) {
-        List r = resolvePackages(okImports.iterator());
+        List r = resolvePackages(b.bpkgs.getImports());
         if (r.size() == 0) {
           return true;
         }
@@ -721,8 +727,8 @@ class Packages {
   private boolean checkUses(ExportPkg pkg) {
     Iterator ui = null;
     String next_uses = null;
-    if (Debug.packages) {
-      Debug.println("checkUses: check if packages used by " + pkg + " is okay.");
+    if (framework.debug.packages) {
+      framework.debug.println("checkUses: check if packages used by " + pkg + " is okay.");
     }
     if (pkg.uses != null) {
       ui = pkg.uses.iterator();
@@ -730,8 +736,8 @@ class Packages {
         next_uses = (String)ui.next();
       }
     }
-    if (Debug.packages) {
-      Debug.println("checkUses: provider with bpkgs=" + pkg.bpkgs);
+    if (framework.debug.packages) {
+      framework.debug.println("checkUses: provider with bpkgs=" + pkg.bpkgs);
     }
     ArrayList checkList = new ArrayList();
     for (Iterator i = pkg.bpkgs.getActiveImports(); i.hasNext(); ) {
@@ -747,17 +753,16 @@ class Packages {
         }
       }
       ExportPkg ep = (ExportPkg)tempProvider.get(ip.pkg.pkg);
-      if (Debug.packages) {
-        Debug.println("checkUses: check import, " + ip +
-                      " with provider, " + ip.provider);
+      if (framework.debug.packages) {
+        framework.debug.println("checkUses: check import, " + ip +
+                                " with provider, " + ip.provider);
       }
       if (ep == null) {
         tempProvider.put(ip.pkg.pkg, ip.provider);
         checkList.add(ip.provider);
       } else if (ep != ip.provider) {
-        if (Debug.packages) {
-          Debug.println("checkUses: mismatch in providers for, " +
-                        ip.pkg.pkg);
+        if (framework.debug.packages) {
+          framework.debug.println("checkUses: mismatch in providers for, " + ip.pkg.pkg);
         }
         return false;
       }
@@ -767,8 +772,8 @@ class Packages {
         return false;
       }
     }
-    if (Debug.packages) {
-      Debug.println("checkUses: package " + pkg + " is okay.");
+    if (framework.debug.packages) {
+      framework.debug.println("checkUses: package " + pkg + " is okay.");
     }
     return true;
   }
@@ -784,8 +789,8 @@ class Packages {
   private BundleImpl checkBundleSingleton(BundleImpl b) {
     // NYI! More speed?
     if (b.symbolicName != null && b.singleton) {
-      if (Debug.packages) {
-        Debug.println("checkBundleSingleton: check singleton bundle " + b);
+      if (framework.debug.packages) {
+        framework.debug.println("checkBundleSingleton: check singleton bundle " + b);
       }
       List bl = framework.bundles.getBundles(b.symbolicName);
       if (bl.size() > 1) {
@@ -793,8 +798,8 @@ class Packages {
           BundleImpl b2 = (BundleImpl)i.next();
           if (b2.singleton && ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0 ||
                                tempResolved.contains(b2))) {
-            if (Debug.packages) {
-              Debug.println("checkBundleSingleton: Reject resolve because of bundle: " + b2);
+            if (framework.debug.packages) {
+              framework.debug.println("checkBundleSingleton: Reject because of bundle: " + b2);
             }
             return b2;
           }
@@ -815,8 +820,8 @@ class Packages {
   private String checkRequireBundle(BundleImpl b) {
     // NYI! More speed?
     if (b.bpkgs.require != null) {
-      if (Debug.packages) {
-        Debug.println("checkRequireBundle: check requiring bundle " + b);
+      if (framework.debug.packages) {
+        framework.debug.println("checkRequireBundle: check requiring bundle " + b);
       }
       if (!framework.perm.okRequireBundlePerm(b)) {
         return b.symbolicName;
@@ -843,18 +848,18 @@ class Packages {
             }
           } else if (b2.state == Bundle.INSTALLED &&
                      framework.perm.okProvideBundlePerm(b2) &&
-                     checkResolve(b2, null)) {
+                     checkResolve(b2)) {
             ok = b2;
           }
         }
         if (ok != null) {
-          if (Debug.packages) {
-            Debug.println("checkRequireBundle: added required bundle " + ok);
+          if (framework.debug.packages) {
+            framework.debug.println("checkRequireBundle: added required bundle " + ok);
           }
           res.put(br, ok.bpkgs);
         } else if (br.resolution == Constants.RESOLUTION_MANDATORY) {
-          if (Debug.packages) {
-            Debug.println("checkRequireBundle: failed to satisfy: " + br.name);
+          if (framework.debug.packages) {
+            framework.debug.println("checkRequireBundle: failed to satisfy: " + br.name);
           }
           return br.name;
         }
@@ -882,22 +887,22 @@ class Packages {
         bpkgs.requiredBy = new ArrayList(1);
       }
       bpkgs.requiredBy.add(br.requestor);
-      if (Debug.packages) {
-        Debug.println("registerNewProviders: '"
-                      +Constants.REQUIRE_BUNDLE +": " + br.name
-                      +"' for " +br.requestor.bundle.getBundleId()
-                      +" bound to (id=" +bpkgs.bundle.getBundleId()
-                      +",gen=" + bpkgs.generation + ")");
+      if (framework.debug.packages) {
+        framework.debug.println("registerNewProviders: '"
+                                + Constants.REQUIRE_BUNDLE +": " + br.name
+                                + "' for " + br.requestor.bundle.getBundleId()
+                                + " bound to (id=" + bpkgs.bundle.getBundleId()
+                                + ",gen=" + bpkgs.generation + ")");
       }
       if (br.visibility == Constants.VISIBILITY_REEXPORT) {
         // Create necessary re-export entries
         for (Iterator be = bpkgs.getExports(); be.hasNext(); ) {
           ExportPkg ep = (ExportPkg) be.next();
           br.requestor.checkReExport(ep);
-          if (Debug.packages) {
-            Debug.println("registerNewProviders: "
-                          +br.requestor.bundle.getBundleId()
-                          +" reexports package " + ep.name);
+          if (framework.debug.packages) {
+            framework.debug.println("registerNewProviders: "
+                                    + br.requestor.bundle.getBundleId()
+                                    + " reexports package " + ep.name);
           }
         }
       }
@@ -907,7 +912,44 @@ class Packages {
       if (bs.getState() == Bundle.INSTALLED) {
         for (Iterator bi = bs.bpkgs.getImports(); bi.hasNext(); ) {
           ImportPkg ip = (ImportPkg)bi.next();
-          ip.provider = (ExportPkg)tempProvider.get(ip.name);
+          ExportPkg ep = (ExportPkg)tempProvider.get(ip.name);
+          if (ep == null) {
+            // There could be an internal connection, that should export a package
+            if (ip.internalOk != null) {
+              if (ip.internalOk.pkg.providers.isEmpty() &&
+                  ip.internalOk.checkPermission()) {
+                ip.internalOk.pkg.addProvider(ip.internalOk);
+                if (framework.debug.packages) {
+                  framework.debug.println("registerNewProviders: exported internal wire, "
+                                          + ip + " -> " + ip.internalOk);
+                }
+              } else {
+                if (framework.debug.packages) {
+                  framework.debug.println("registerNewProviders: internal wire, "
+                                          + ip + " -> " + ip.internalOk);
+                }
+              }
+            }
+          } else {
+            // NYI! This check is already done, we should cache result
+            if (ip.checkPermission(ep)) {
+              ip.provider = ep;
+            } else {
+              // Check if got a missmatching internal wire.
+              if (ip.internalOk != null) {
+                if (ip.internalOk == ep) {
+                  if (framework.debug.packages) {
+                    framework.debug.println("registerNewProviders: internal wire, " + ip + ", " + ep);
+                  }
+                } else {
+                  // TBD, should we resolve when this happens!?
+                  framework.listeners.frameworkError(bs,
+                       new Exception("registerNewProviders: Warning! Internal wire for, " + ip +
+                                     ", does not match exported. " + ep));
+                }
+              }
+            }
+          }
         }
         if (bs != bundle) {
           if (bs.getUpdatedState() == Bundle.INSTALLED) {

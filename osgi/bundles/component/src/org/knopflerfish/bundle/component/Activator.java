@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,23 +33,119 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
+import org.osgi.framework.*;
+import org.osgi.service.log.LogService;
+import org.osgi.util.tracker.ServiceTracker;
 
-import org.knopflerfish.service.log.LogRef;
 
-public class Activator implements BundleActivator{
+public class Activator implements BundleActivator
+{
+  static boolean TCK_BUG_COMPLIANT = true;
 
-  static LogRef log;
-  BundleContext bc;
+  private static BundleContext bc;
+  private static ServiceTracker logTracker;
 
+  private SCR scr;
+
+
+  /**
+   * Initialize log and start SCR.
+   */
   public void start(BundleContext bc) throws Exception {
-    this.bc = bc;
-    log = new LogRef(bc);
-    SCR.init(bc);
+    Activator.bc = bc;
+    logTracker = new ServiceTracker(bc, LogService.class.getName(), null);
+    logTracker.open();
+    scr = new SCR(bc);
+    scr.start();
   }
 
-  public void stop(BundleContext context) throws Exception {
-    SCR.getInstance().shutdown();
+
+  /**
+   * Stop SCR
+   */
+  public void stop(BundleContext bc) {
+    if (scr != null) {
+      scr.stop();
+    }
   }
+
+  //
+  // Log utility methods for component bundle
+  //
+
+  /**
+   * Log info message via specified BundleContext
+   */
+  static void logInfo(BundleContext bc, String msg) {
+    logBC(bc, LogService.LOG_INFO, msg, null);
+  }
+
+
+  /**
+   * Log error message on specified bundle
+   */
+  static void logError(Bundle b, String msg, Throwable t) {
+    logError(b.getBundleContext(), msg, t);
+  }
+
+
+  /**
+   * Log error message via specified BundleContext
+   */
+  static void logError(BundleContext bc, String msg, Throwable t) {
+    logBC(bc, LogService.LOG_ERROR, msg, t);
+  }
+
+
+  /**
+   * Log message via specified BundleContext
+   */
+  static void logBC(BundleContext bc, int level, String msg, Throwable t) {
+    ServiceReference sr = bc.getServiceReference(LogService.class.getName());
+    if (sr != null) {
+      LogService log = (LogService)bc.getService(sr);
+      if (log != null) {
+        log.log(level, msg, t);
+        bc.ungetService(sr);
+      }
+    }
+  }
+
+  //
+  // Log utility methods for SCR bundle
+  //
+
+  public static void logDebug(String message) {
+    log(LogService.LOG_DEBUG, message, null);
+  }
+
+  public static void logInfo(String message) {
+    log(LogService.LOG_INFO, message, null);
+  }
+
+  public static void logWarning(String message) {
+    log(LogService.LOG_WARNING, message, null);
+  }
+
+  public static void logError(String message) {
+    log(LogService.LOG_ERROR, message, null);
+  }
+
+  public static void logError(String message, Throwable t) {
+    log(LogService.LOG_ERROR, message, t);
+  }
+
+  public static void log(int level, String message, Throwable t) {
+    if (logTracker == null)
+      return;
+    LogService log = (LogService) logTracker.getService();
+    if (log == null)
+      return;
+    if (t == null) {
+      log.log(level, message);
+    } else {
+      log.log(level, message, t);
+    }
+  }
+
 }

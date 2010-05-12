@@ -44,9 +44,9 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.TopicPermission;
 
 /**
- * A wrapper class for events. Connects an event with ServiceReferences to the
- * EventHandlers it should be delivered to.
- * 
+ * A wrapper class for events. Connects an event with
+ * ServiceReferences to the EventHandlers it should be delivered to.
+ *
  * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
  */
 public class InternalAdminEvent {
@@ -58,7 +58,7 @@ public class InternalAdminEvent {
 
   /**
    * Standard constructor of the InternalAdminEvent
-   * 
+   *
    * @param event
    *          the event to be stored
    * @param handlers
@@ -73,7 +73,7 @@ public class InternalAdminEvent {
 
   /**
    * Returns the event
-   * 
+   *
    * @return the event
    */
   protected Event getEvent()
@@ -100,9 +100,9 @@ public class InternalAdminEvent {
     if (securityManager != null) {
       // check if there are any security limitation
       canPublish = checkPermission(event, securityManager,
-          TopicPermission.PUBLISH);
+                                   TopicPermission.PUBLISH);
       canSubscribe = checkPermission(event, securityManager,
-          TopicPermission.SUBSCRIBE);
+                                     TopicPermission.SUBSCRIBE);
     }
 
     if (canPublish && canSubscribe) {
@@ -110,15 +110,15 @@ public class InternalAdminEvent {
     } else if (canSubscribe) {
       // no publish permission
       Activator.log.error("No permission to publishto topic:"
-          + event.getTopic());
+                          + event.getTopic());
     } else if (canPublish) {
       // no subscribe permission
       Activator.log.error("No permission to granted for subscription to topic:"
-          + event.getTopic());
+                          + event.getTopic());
     } else {
       // no permissions at all are given
-      Activator.log.error("No permission to publish and subscribe top topic:"
-          + event.getTopic());
+      Activator.log.error("No permission to publish or subscribe to topic:"
+                          + event.getTopic());
     }
   }
 
@@ -138,10 +138,13 @@ public class InternalAdminEvent {
       while (i.hasNext()) {
         TrackedEventHandler handler = (TrackedEventHandler) i.next();
         if (Activator.timeout == 0) {
+          // Deliver event without timeout
           try {
             if (Activator.timeWarning == 0) {
+              // Plain delivery without duration check.
               handler.handleEventSubjectToFilter(event);
             } else {
+              // Deliver with duration warning
               final long tickStart = System.currentTimeMillis();
               handler.handleEventSubjectToFilter(event);
               final long tickEnd = System.currentTimeMillis();
@@ -168,7 +171,8 @@ public class InternalAdminEvent {
             if (localDeliver.stopDeliveryNotification()) {
               handler.setBlacklist(true);
               log(handler,
-                  "Event delivery to event handler timed out, blacklisting event handler.");
+                  "Event delivery to event handler timed out, "
+                  +"blacklisting event handler.");
             }
           }
         }// end if(!isBlacklisted.....
@@ -208,7 +212,7 @@ public class InternalAdminEvent {
   /**
    * checks the permission "permissionName" to this subject. OBS! this one will
    * only se if there are any permissions granted for all objects.
-   * 
+   *
    * @param event
    *          the event
    * @param securityManager
@@ -232,7 +236,7 @@ public class InternalAdminEvent {
 
   /**
    * returns the security manager
-   * 
+   *
    * @return the security manager if any else null
    */
   private SecurityManager getSecurityManager()

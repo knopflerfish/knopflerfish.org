@@ -35,16 +35,11 @@
 package org.knopflerfish.framework.permissions;
 
 import java.io.*;
-import java.net.URL;
 import java.security.*;
-import java.security.cert.Certificate;
 import java.util.*;
 
-import org.osgi.framework.AdminPermission;
 import org.osgi.framework.Bundle;
-import org.osgi.service.permissionadmin.PermissionInfo;
-import org.knopflerfish.framework.Framework;
-import org.knopflerfish.framework.Util;
+import org.knopflerfish.framework.FrameworkContext;
 
 
 /**
@@ -52,7 +47,7 @@ import org.knopflerfish.framework.Util;
  */
 public class PermissionsHandle {
 
-  Framework framework;
+  FrameworkContext framework;
 
   private PermissionInfoStorage pinfos;
   private ConditionalPermissionInfoStorage cpinfos;
@@ -64,18 +59,12 @@ public class PermissionsHandle {
   /**
    *
    */
-  public PermissionsHandle(Framework fw) {
+  public PermissionsHandle(FrameworkContext fw) {
     framework = fw;
-    pinfos = new PermissionInfoStorage();
+    pinfos = new PermissionInfoStorage(fw);
     pa = new PermissionAdminImpl(pinfos);
-    //    if (System.getSecurityManager() instanceof ConditionalPermissionSecurityManager) {
-    if (System.getSecurityManager() instanceof SecurityManager) {
-      cpinfos = new ConditionalPermissionInfoStorage(this);
-      cpa = new ConditionalPermissionAdminImpl(cpinfos);
-    } else {
-      cpinfos = null;
-      cpa = null;
-    }
+    cpinfos = new ConditionalPermissionInfoStorage(this);
+    cpa = new ConditionalPermissionAdminImpl(cpinfos, pinfos, fw);
     Policy.setPolicy(new FrameworkPolicy(Policy.getPolicy(), this));
   }
 
@@ -131,8 +120,12 @@ public class PermissionsHandle {
                                                           Bundle b,
                                                           InputStream localPerms) {
     Long bid = new Long(b.getBundleId());
-    PermissionCollection pc = new PermissionsWrapper(framework, pinfos, cpinfos, loc, b, localPerms);
-    pcCache.put(bid, pc);
+    // Need to lock cond.perm. changes, when adding a new PermissionsWrapper
+    PermissionCollection pc;
+    synchronized (cpinfos) {
+      pc = new PermissionsWrapper(framework, pinfos, cpinfos, loc, b, localPerms);
+      pcCache.put(bid, pc);
+    }
     return pc;
   }
 

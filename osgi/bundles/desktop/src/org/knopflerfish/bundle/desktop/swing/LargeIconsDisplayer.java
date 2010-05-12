@@ -93,25 +93,29 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     super(bc, NAME, "Large icon display of bundles", false);
   }
 
-  public void bundleChanged(BundleEvent ev) {
+  public void bundleChanged(final BundleEvent ev) {
     super.bundleChanged(ev);
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JLargeIcons comp = (JLargeIcons)it.next();
-      switch(ev.getType()) {
-      case BundleEvent.INSTALLED:
-        comp.addBundle(ev.getBundle());
-        break;
-      case BundleEvent.UNINSTALLED:
-        comp.removeBundle(ev.getBundle());
-        break;
-      default:
-        comp.updateBundleComp(ev.getBundle());
-        break;
-      }
-    }
+    SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          for(Iterator it = components.iterator(); it.hasNext(); ) {
+            JLargeIcons comp = (JLargeIcons)it.next();
+            switch(ev.getType()) {
+            case BundleEvent.INSTALLED:
+              comp.addBundle(ev.getBundle());
+              break;
+            case BundleEvent.UNINSTALLED:
+              comp.removeBundle(ev.getBundle());
+              break;
+            default:
+              comp.updateBundleComp(ev.getBundle());
+              break;
+            }
+          }
 
-    repaintComponents();
+          repaintComponents();
+        }
+      });
   }
 
   public void showBundle(Bundle b) {

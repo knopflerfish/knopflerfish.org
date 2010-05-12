@@ -5,8 +5,8 @@
   <dirname  property="proj.dir" file="${ant.file.httpclient_connector}"/>
   <property name="topdir"       location="${proj.dir}/../.."/>
 
-  <property name  = "impl.pattern"
-            value = "org/knopflerfish/**,org/apache/commons/httpclient/**"/>
+  <property name="impl.pattern"
+            value="org/knopflerfish/**,org/apache/commons/httpclient/**"/>
 
   <path id="bundle.compile.path">
    <pathelement location="io_all-N.N.N.jar"/>

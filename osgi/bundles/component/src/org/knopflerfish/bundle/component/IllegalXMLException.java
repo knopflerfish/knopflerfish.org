@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,25 +33,20 @@
  */
 package org.knopflerfish.bundle.component;
 
+import org.xmlpull.v1.*;
+
 
 /**
- * @author Martin (refactoring by Bj�rn Andersson)
  *
- * TODO To change the template for this generated type comment go to
- * Window - Preferences - Java - Code Style - Code Templates
  */
-public class IllegalXMLException extends Exception {
+public class IllegalXMLException extends XmlPullParserException {
 
-  /**
-   * eclipse magic.
-   */
-  private static final long serialVersionUID = 1L;
-
-  public IllegalXMLException(String msg){
-    super(msg);
+  public IllegalXMLException(String msg, XmlPullParser parser) {
+    super(msg, parser, null);
   }
 
-  public IllegalXMLException(String msg, Throwable cause){
-    super(msg, cause);
+  public IllegalXMLException(String msg, XmlPullParser parser, Throwable cause){
+    super(msg, parser, cause);
   }
+
 }

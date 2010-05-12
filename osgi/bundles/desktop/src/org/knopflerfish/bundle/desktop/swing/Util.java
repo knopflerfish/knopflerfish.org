@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -303,7 +303,10 @@ public class Util {
       URL appURL = null;
       String iconName = (String)b.getHeaders().get("Application-Icon");
       if(iconName == null) {
-        iconName = "";
+	if (b.getBundleId() == 0) // Special case for System Bundle as manifest can not be read
+	  iconName = "icon.png";
+	else
+	  iconName = "";
       }
       iconName = iconName.trim();
 
@@ -318,10 +321,10 @@ public class Util {
       try {
         if(Util.hasMainClass(b)) {
           icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/jarexec.gif"));
+                                     appURL != null ? appURL : clazz.getResource("/jarexec.png"));
         } else if(Util.hasFragment(b)) {
           icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/frag.gif"));
+                                     appURL != null ? appURL : clazz.getResource("/frag.png"));
         } else if(Util.hasComponent(b)) {
           icon = new BundleImageIcon(b,
                                      appURL != null ? appURL : clazz.getResource("/component.png"));
@@ -468,6 +471,8 @@ public class Util {
         ExportedPackage pkg = (ExportedPackage)it.next();
 
         Bundle exporter = pkg.getExportingBundle();
+        if (null==exporter) continue;
+
         closure.add(exporter);
 
         // Then, get closure from the exporter, if not already
@@ -534,6 +539,8 @@ public class Util {
 
       for(int i = 0; srl != null && i < srl.length; i++) {
         Bundle b = srl[i].getBundle();
+        if (null==b) continue; // Unregistered service.
+
         closure.add(b);
 
         if(!handled.contains(b)) {
@@ -640,24 +647,37 @@ public class Util {
     Constants.FRAMEWORK_VENDOR,
     Constants.FRAMEWORK_VERSION,
     Constants.FRAMEWORK_LANGUAGE,
-    Constants.FRAMEWORK_OS_NAME ,
+    Constants.FRAMEWORK_OS_NAME,
     Constants.FRAMEWORK_OS_VERSION,
     Constants.FRAMEWORK_PROCESSOR,
     Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
+    Constants.FRAMEWORK_BOOTDELEGATION,
+    Constants.FRAMEWORK_STORAGE,
+    Constants.FRAMEWORK_STORAGE_CLEAN,
+    Constants.FRAMEWORK_TRUST_REPOSITORIES,
+    Constants.FRAMEWORK_EXECPERMISSION,
+    Constants.FRAMEWORK_LIBRARY_EXTENSIONS,
+    Constants.FRAMEWORK_BEGINNING_STARTLEVEL,
+    Constants.FRAMEWORK_BUNDLE_PARENT,
+    Constants.FRAMEWORK_WINDOWSYSTEM,
+    Constants.FRAMEWORK_SECURITY,
+    Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+    Constants.SUPPORTS_FRAMEWORK_FRAGMENT,
+    Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE,
   };
 
   static public String getSystemInfo() {
-    StringBuffer sb = new StringBuffer();
-    try {
+    final StringBuffer sb = new StringBuffer();
 
-      Map props = new TreeMap(Activator.getSystemProperties());
+    try {
+      final Map props = new TreeMap(Activator.getSystemProperties());
 
       sb.append("<table>\n");
 
       sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
-      sb.append(fontify("Framework properties", -1));
+      sb.append(fontify("OSGi specified Framework properties", -1));
 
-      String spid = (String)props.get("org.osgi.provisioning.spid");
+      String spid = Activator.getBC().getProperty("org.osgi.provisioning.spid");
       if(spid != null && !"".equals(spid)) {
         sb.append(fontify(" (" + spid + ")", -1));
       }
@@ -672,13 +692,14 @@ public class Util {
         sb.append(fontify(FWPROPS[i]));
         sb.append("</td>\n");
         sb.append("  <td valign=\"top\">");
-        sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
+        final String pValue = Activator.getTargetBC().getProperty(FWPROPS[i]);
+        sb.append(null!=pValue ? fontify(pValue) : "");
         sb.append("</td>\n");
         sb.append(" </tr>\n");
       }
 
       sb.append("<tr><td colspan=2 bgcolor=\"#eeeeee\">");
-      sb.append(fontify("System properties", -1));
+      sb.append(fontify("All Framework and System properties", -1));
       sb.append("</td>\n");
       sb.append("</tr>\n");
 
@@ -818,7 +839,7 @@ public class Util {
       });
       new StreamGobbler(proc.getErrorStream());
       new StreamGobbler(proc.getInputStream());
-    } else if (Util.isMacOSX()) {
+    } else if (OSXAdapter.isMacOSX()) {
       // Yes, this only works on Mac OS X
       Runtime rt = Runtime.getRuntime();
       Process proc = rt.exec(new String[] {
@@ -839,11 +860,6 @@ public class Util {
       return -1 != os.toLowerCase().indexOf("win");
     }
     return false;
-  }
-
-  public static boolean isMacOSX() {
-    String os = Util.getProperty("os.name", null);
-    return "Mac OS X".equals(os);
   }
 
   /** A thread that empties an input stream without complaining.*/

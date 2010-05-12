@@ -37,19 +37,26 @@ package org.knopflerfish.framework.permissions;
 import java.security.*;
 import java.util.List;
 
+import org.knopflerfish.framework.Debug;
 
-public class KFSecurityManager
-  extends SecurityManager
+
+public class KFSecurityManager extends SecurityManager
   implements ConditionalPermissionSecurityManager {
 
   private final ThreadLocal postponementCheck = new ThreadLocal();
 
+  private final Debug debug;
+
+  public KFSecurityManager(Debug debug) {
+    this.debug = debug;
+  }
 
   /**
+   *
    */
   public void checkPermission(Permission perm, Object context) {
     if (!(context instanceof AccessControlContext)) {
-      throw new SecurityException("context not an AccessControlContext");
+      throw new SecurityException("Context not an AccessControlContext");
     }
     PostponementCheck old = (PostponementCheck) postponementCheck.get();
     PostponementCheck pc = new PostponementCheck((AccessControlContext) context, perm, old);
@@ -63,6 +70,7 @@ public class KFSecurityManager
 
 
   /**
+   *
    */
   public void checkPermission(Permission perm) {
     checkPermission(perm, getSecurityContext());
@@ -70,14 +78,23 @@ public class KFSecurityManager
 
 
   /**
+   * Is it possible to do postponnnement checks.
+   * This is only possible if a checkPermission via
+   * a ConditionalPermissionSecurityManager is in progress.
+   *
+   * @return true is postponement is available, otherwise false
+   */
+  public boolean isPostponeAvailable() {
+    return postponementCheck.get() != null;
+  }
+
+
+  /**
    * NYI! Think about security here!
    */
-  public void savePostponement(List postponement) {
+  public void savePostponement(List postponement, Object debug) {
     PostponementCheck pc = (PostponementCheck) postponementCheck.get();
-    if (pc == null) {
-      Debug.printStackTrace("TBD! Should not happen!? How did we get here", new Throwable());
-    }
-    pc.savePostponement(postponement);
+    pc.savePostponement(postponement, debug);
   }
 
 }

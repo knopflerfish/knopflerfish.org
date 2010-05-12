@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+/* Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +33,21 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class ErrorMessageDialog extends JDialog {
@@ -59,29 +63,46 @@ public class ErrorMessageDialog extends JDialog {
 
   private JLabel friendLabel;
   private JLabel moreLabel;
-  private JTextArea advancedLabel;
+  private JComponent advancedLabel;
 
   private JPanel friendPanel;
   private JPanel morePanel;
   private JPanel extraPanel;
 
-  public ErrorMessageDialog(Frame owner, String friendlyMessage) {
+  public ErrorMessageDialog(Frame owner,
+                            String friendlyMessage)
+  {
     this(owner, friendlyMessage, null, null);
   }
 
-  public ErrorMessageDialog(Frame owner, String friendlyMessage, String moreInfo) {
+  public ErrorMessageDialog(Frame owner,
+                            String friendlyMessage,
+                            String moreInfo)
+  {
     this(owner, friendlyMessage, moreInfo, null);
   }
 
-  public ErrorMessageDialog(Frame owner, String friendlyMessage, Throwable t) {
+  public ErrorMessageDialog(Frame owner,
+                            String friendlyMessage,
+                            Throwable t)
+  {
     this(owner, friendlyMessage, null, t);
   }
 
-  public ErrorMessageDialog(Frame owner, String friendlyMessage, String moreInfo, Throwable t) {
+  public ErrorMessageDialog(Frame owner,
+                            String friendlyMessage,
+                            String moreInfo,
+                            Throwable t)
+  {
     this(owner, null, friendlyMessage, moreInfo, t);
   }
 
-  public ErrorMessageDialog(Frame owner, String title, String friendlyMessage, String moreInfo, Throwable t) {
+  public ErrorMessageDialog(Frame owner,
+                            String title,
+                            String friendlyMessage,
+                            String moreInfo,
+                            Throwable t)
+  {
     super(owner, (title == null || title.length() == 0 ? "Error" : title), true);
     getContentPane().setLayout(new BorderLayout());
 
@@ -120,6 +141,27 @@ public class ErrorMessageDialog extends JDialog {
       });
       friendPanel.add(moreButton, BorderLayout.EAST);
 
+      // Make html out of long texts to enable line breaking
+      if (moreInfo.length()>80 && !moreInfo.startsWith("<html>")) {
+        StringBuffer sb = new StringBuffer(moreInfo.length() + 40);
+        sb.append("<html><p>");
+        for (int i = 0; i < moreInfo.length(); i++) {
+          char c = moreInfo.charAt(i);
+          if (c == '&') {
+            sb.append("&amp;");
+          } else if (c == '<') {
+            sb.append("&lt;");
+          } else if (c == '>') {
+            sb.append("&gt;");
+          } else if (c == '\n') {
+            sb.append("<br/>");
+          } else {
+            sb.append(c);
+          }
+        }
+        sb.append("</p></html>");
+        moreInfo = sb.toString();
+      }
       moreLabel = new JLabel(moreInfo);
       morePanel = new JPanel(new BorderLayout());
       morePanel.add(moreLabel, BorderLayout.CENTER);
@@ -142,21 +184,35 @@ public class ErrorMessageDialog extends JDialog {
       if (morePanel == null) {
         friendPanel.add(advancedButton, BorderLayout.EAST);
       } else {
-        morePanel.add(advancedButton, BorderLayout.EAST);
+        final Box box = Box.createVerticalBox();
+        box.add(advancedButton);
+        box.add(Box.createVerticalGlue());
+        morePanel.add(box, BorderLayout.EAST);
       }
 
-      StringBuffer buf = new StringBuffer(t.toString());
-      StackTraceElement[] elements = t.getStackTrace();
-      for (int i=0; i<elements.length; i++) {
-        buf.append("\n  at ").append(elements[i].toString());
+      final StringBuffer buf = new StringBuffer(200);
+      Throwable cause = t;
+      while (null!=cause) {
+        if (buf.length()>0) {
+          buf.append("\nCaused by ");
+        }
+        buf.append(cause.toString());
+
+        final StackTraceElement[] elements = cause.getStackTrace();
+        for (int i=0; i<elements.length; i++) {
+          buf.append("\n  at ").append(elements[i].toString());
+        }
+        cause = cause.getCause();
       }
-      advancedLabel = new JTextArea(buf.toString());
-      Font oldFont = advancedLabel.getFont();
-      advancedLabel.setFont(new Font(oldFont.getName(), oldFont.getStyle(), 10));
+      JTextArea advancedTextArea = new JTextArea(buf.toString());
+      final Font oldFont = advancedTextArea.getFont();
+      final Font newFont = new Font(oldFont.getName(), oldFont.getStyle(), 10);
+      advancedTextArea.setFont(newFont);
+      advancedLabel = new JScrollPane(advancedTextArea);
     }
 
     arrange();
-    setLocation((getOwner().getWidth() - getWidth()) / 2, (getOwner().getHeight() - getHeight()) / 2);
+    setLocationRelativeTo(getOwner());
     String friendliness
       = Util.getProperty("org.knopflerfish.desktop.errordialogfriendliness",
                          null);
@@ -170,14 +226,15 @@ public class ErrorMessageDialog extends JDialog {
     }
   }
 
-  private void arrange() {
+  private void arrange()
+  {
     if (showMore) {
       if (extraPanel == null) {
         getContentPane().add(advancedLabel, BorderLayout.CENTER);
       } else {
         getContentPane().add(extraPanel, BorderLayout.CENTER);
         if (showAdvanced) {
-          extraPanel.add(advancedLabel, BorderLayout.SOUTH);
+          extraPanel.add(advancedLabel, BorderLayout.CENTER);
         } else if (advancedLabel != null) {
           extraPanel.remove(advancedLabel);
         }
@@ -189,6 +246,27 @@ public class ErrorMessageDialog extends JDialog {
     }
 
     pack();
+
+    // Ensure that the dialog is smaller than the owning window.
+    final Dimension ownerSize = getOwner().getSize();
+    final Dimension mySize = getSize();
+    boolean sizeChanged = false;
+
+    double newWidth = mySize.getWidth();
+    if (ownerSize.getWidth()<newWidth) {
+      newWidth = ownerSize.getWidth() - 10.0;
+      sizeChanged = true;
+    }
+    double newHeight = mySize.getHeight();
+    if (ownerSize.getHeight()<newHeight) {
+      newHeight = ownerSize.getHeight() - 10.0;
+      sizeChanged = true;
+    }
+    if (sizeChanged) {
+      mySize.setSize(newWidth, newHeight);
+      setSize(mySize);
+    }
+    validate();
   }
 
 }

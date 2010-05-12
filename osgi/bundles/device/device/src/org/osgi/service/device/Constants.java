@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.device/src/org/osgi/service/device/Constants.java,v 1.8 2006/06/16 16:31:29 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,13 +17,13 @@ package org.osgi.service.device;
 
 /**
  * This interface defines standard names for property keys associated with
- * {@link Device}and {@link Driver}services.
+ * {@link Device} and {@link Driver} services.
  * 
  * <p>
  * The values associated with these keys are of type <code>java.lang.String</code>,
  * unless otherwise stated.
  * 
- * @version $Revision: 1.8 $
+ * @version $Revision: 5673 $
  * @since 1.1
  * @see Device
  * @see Driver
@@ -41,7 +39,7 @@ public interface Constants {
 	 * 
 	 * <ul>
 	 * <li>It must be independent of the location from where it is obtained.
-	 * <li>It must be independent of the {@link DriverLocator}service that
+	 * <li>It must be independent of the {@link DriverLocator} service that
 	 * downloaded it.
 	 * <li>It must be unique.
 	 * <li>It must be different for different revisions of the same driver.

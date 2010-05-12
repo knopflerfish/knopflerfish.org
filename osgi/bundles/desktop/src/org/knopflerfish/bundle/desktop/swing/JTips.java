@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -244,7 +244,7 @@ public class JTips extends JPanel {
     if(b) {
       if(frame == null) {
 	frame = new JFrame(title);
-	Activator.desktop.setIcon(frame, "/kf_");
+	Activator.desktop.setIcon(frame, "/kf-");
 
 	frame.getContentPane().setLayout(new BorderLayout());
 	frame.getContentPane().add(this, BorderLayout.CENTER);

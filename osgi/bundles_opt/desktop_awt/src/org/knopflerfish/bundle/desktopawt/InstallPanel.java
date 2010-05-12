@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ public class InstallPanel extends Panel {
     Button installB = new Button("Install");
     installB.setBackground(lf.bgColor);
     
-    ImageLabel open = new ImageLabel("/open.gif", 1, lf.bgColor);
+    ImageLabel open = new ImageLabel("/document-open.png", 1, lf.bgColor);
     open.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent ev) {
           browseFile();

@@ -8,7 +8,7 @@
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/httpconsole/**"/>
 
-  <property name="bmfa.Bundle-Version"        value="2.0.1"/>
+  <property name="bmfa.Bundle-Version"        value="3.0.0"/>
 
   <path id="bundle.compile.path">
    <pathelement location="jsdk_api-N.N.N.jar"/> 

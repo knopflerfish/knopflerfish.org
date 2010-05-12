@@ -13,7 +13,6 @@
     <ant target="${the.target}" dir="jini"/>
     <ant target="${the.target}" dir="dirdeployer"/>
     <ant target="${the.target}" dir="desktop_displayers"/>
-    <ant target="${the.target}" dir="kxml"/>
   </target>
 
   <target name="all" 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,15 @@
 
 package org.knopflerfish.framework;
 
+import java.io.IOException;
 import java.net.*;
+import java.util.*;
 
 
 /**
  * Bundle URL handling.
  *
- * @author Jan Stein
+ * @author Jan Stein, Gunnar Ekolin
  */
 public class BundleURLStreamHandler extends URLStreamHandler {
 
@@ -48,24 +50,25 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   final public static String PERM_OK = "P";
 
-  private Bundles bundles;
-
-  private PermissionOps secure;
+  // Currently we only support a single framework instance in the same
+  // class-loader context!
+  private ArrayList /* FrameworkContext */ framework = new ArrayList(2);
 
 
   // TODO, we need a more efficient and cleaner solution here.
 
-  BundleURLStreamHandler(Bundles b, PermissionOps s) {
-    bundles = b;
-    secure = s;
-  }
 
-
-  public URLConnection openConnection(URL u) {
-    if (u.getAuthority() != PERM_OK) {
-      secure.checkResourceAdminPerm(bundles.getBundle(getId(u.getHost())));
+  public URLConnection openConnection(URL u) throws IOException {
+    String h = u.getHost();
+    FrameworkContext fw = getFramework(h);
+    if (fw == null) {
+      throw new IOException("Framework associated with URL is not active");
     }
-    return new BundleURLConnection(u, bundles);
+    if (u.getAuthority() != PERM_OK) {
+      fw.perm.checkResourceAdminPerm(fw.bundles.getBundle(getId(h)));
+      // NYI, set authority
+    }
+    return new BundleURLConnection(u, fw);
   }
 
 
@@ -83,12 +86,13 @@ public class BundleURLStreamHandler extends URLStreamHandler {
         for (pos = 2; pos < len; pos++) {
           if (sc[pos] == ':' || sc[pos] == '/') {
             break;
-          } else if (sc[pos] == '.' || sc[pos] == '_') {
+          } else if (sc[pos] == '!' || sc[pos] == '.' || sc[pos] == '_') {
             if (id == -1) {
               id = Long.parseLong(new String(sc, 2, pos - 2));
             }
           } else if (!Character.isDigit(sc[pos])) {
-            throw new IllegalArgumentException("Illegal chars in bundle id specification");
+            throw new IllegalArgumentException
+              ("Illegal chars in bundle id specification");
           }
         }
         host = new String(sc, 2, pos - 2);
@@ -99,7 +103,8 @@ public class BundleURLStreamHandler extends URLStreamHandler {
             if (sc[pos] == '/') {
               break;
             } else if (!Character.isDigit(sc[pos])) {
-              throw new IllegalArgumentException("Illegal chars in bundle port specification");
+              throw new IllegalArgumentException
+                ("Illegal chars in bundle port specification");
             }
             cpElem = 10 * cpElem + (sc[pos++] - '0');
           }
@@ -195,8 +200,12 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     if (id == -1) {
       id = getId(host);
     }
-    secure.checkResourceAdminPerm(bundles.getBundle(id));
-    setURL(u, u.getProtocol(), host, cpElem, PERM_OK, null, path, null, null);
+    FrameworkContext fw = getFramework(host);
+    if (fw == null) {
+      throw new IllegalArgumentException("Framework associated with URL is not active");
+    }
+    fw.perm.checkResourceAdminPerm(fw.bundles.getBundle(id));
+    setURL(u, PROTOCOL, host, cpElem, PERM_OK, null, path, null, null);
   }
 
 
@@ -301,16 +310,66 @@ public class BundleURLStreamHandler extends URLStreamHandler {
   }
 
   //
+  // Package
+  //
+
+  /**
+   * Add framework that uses this URLStreamHandlerFactory.
+   *
+   * @param fw Framework context for framework to add.
+   */
+  void addFramework(FrameworkContext fw) {
+    framework.add(fw);
+  }
+
+
+  /**
+   * Remove framework that uses this URLStreamHandlerFactory.
+   *
+   * @param fw Framework context for framework to remove.
+   */
+  void removeFramework(FrameworkContext fw) {
+    framework.remove(fw);
+  }
+
+  //
   // Private
   //
 
-  private long getId(String host) {
-    int i = host.indexOf(".");
-    if (i == -1) {
-      i = host.indexOf("_");
+  private FrameworkContext getFramework(String host) {
+    Iterator i = framework.iterator();
+    int e = host.indexOf("!");
+    int fwId;
+    if (e == -1) {
+      // TBD, should we return null instead?
+      return (FrameworkContext)i.next();
+    } else {
+      try {
+        fwId = Integer.parseInt(host.substring(e + 1));
+      } catch (NumberFormatException _) {
+        return null;
+      }
     }
-    if (i >= 0) {
-      host = host.substring(0, i);
+    while (i.hasNext()) {
+      FrameworkContext fw = (FrameworkContext)i.next();
+      if (fw.getId() == fwId) {
+        return fw;
+      }
+    }
+    return null;
+  }
+
+
+  private long getId(String host) {
+    int e = host.indexOf(".");
+    if (e == -1) {
+      e = host.indexOf("_");
+    }
+    if (e == -1) {
+      e = host.indexOf("!");
+    }
+    if (e >= 0) {
+      host = host.substring(0, e);
     }
     return Long.parseLong(host);
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,12 +55,18 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 
 /**
- * * This class implements the log configuration of the log * service.
- * Properties are defined using * set<propertyName>() and get<propertyName>()
- * methods.<br> * Ex. defining integer property Foo<br> * void setFoo(int
- * value)<br> * int getFoo()<br> * <br> * <br> * If only set method exists the
- * property is write-only.<br> * If only get method exists the property is
- * read-only.<br> * If both exist the property is read-write. *
+ * This class implements the log configuration of the log service.
+ *
+ * Properties are defined using <tt>set&lt;propertyName&gt;()</tt> and
+ * <tt>get&lt;propertyName&gt;()</tt> methods.<br>
+ *
+ * Ex. defining integer property Foo<br>
+ * <tt>void setFoo(int value)</tt><br>
+ * <tt>int getFoo()</tt><br>
+ *
+ * If only set method exists the property is write-only.<br>
+ * If only get method exists the property is read-only.<br>
+ * If both exist the property is read-write. *
  */
 
 class LogConfigImpl implements ManagedService, LogConfig {
@@ -83,6 +89,8 @@ class LogConfigImpl implements ManagedService, LogConfig {
   static final String PROP_LOG_FILE = "org.knopflerfish.log.file";
 
   static final String PROP_LOG_FILE_DIR = "org.knopflerfish.log.file.dir";
+
+  static final String PROP_LOG_MEMORY_SIZE = "org.knopflerfish.log.memory.size";
 
   private final static String OUT = "log.out";
 
@@ -234,14 +242,12 @@ class LogConfigImpl implements ManagedService, LogConfig {
   public synchronized void setFilter(String bundleLocation, int filter) {
     bundleLocation = bundleLocation.trim();
     synchronized (blFilters) {
-      Integer f = (Integer) blFilters
-        .get(getCommonLocation(bundleLocation));
+      Integer f = (Integer) blFilters.get(bundleLocation);
       if (filter == 0 && f != null) {
-        blFilters.remove(getCommonLocation(bundleLocation));
+        blFilters.remove(bundleLocation);
         setCollection(true, bundleLocation, filter);
       } else if ((f != null && filter != f.intValue()) || f == null) {
-        blFilters.put(getCommonLocation(bundleLocation), new Integer(
-                                                                     filter));
+        blFilters.put(bundleLocation, new Integer(filter));
         setCollection(false, bundleLocation, filter);
       }
     }
@@ -403,7 +409,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
           l = (String)d.get("Bundle-Name");
         }
         if (l != null) {
-          level = (Integer) blFilters.get(getCommonLocation(l));
+          level = (Integer) blFilters.get(l);
         }
       }
     }
@@ -432,8 +438,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
       if (v != null && v.size() > 0) {
         for (int i = (v.size() - 1); i >= 0; i--) {
           bundF = getBL(v.elementAt(i));
-          if (getCommonLocation(bundF[LOCATION_POS]).equals(
-                                                            getCommonLocation(bundleLocation))) {
+          if (bundF[LOCATION_POS].equals(bundleLocation)) {
             if (remove) {
               v.removeElementAt(i);
             } else {
@@ -502,7 +507,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
                                   .fromLevel(org.osgi.service.log.LogService.LOG_WARNING));
 
     ht.put(L_FILTER, levelStr);
-    ht.put(MEM, new Integer(250));
+    ht.put(MEM, getIntegerProperty(PROP_LOG_MEMORY_SIZE, new Integer(250)));
     ht.put(OUT, new Boolean(("true".equalsIgnoreCase(o)) ? true : false));
     ht.put(GRABIO, new Boolean(("true".equalsIgnoreCase(getProperty(
                                                                     PROP_LOG_GRABIO, "false")) ? true : false)));
@@ -530,6 +535,24 @@ class LogConfigImpl implements ManagedService, LogConfig {
     } catch (Exception e) {
       System.err.println("Failed to get property " + key + " : " + e);
       result = def;
+    }
+    return result;
+  }
+
+  static Integer getIntegerProperty(String key, Integer def) {
+    Integer result = def;
+    try {
+      final String str = bc.getProperty(key);
+      if (str != null && 0<str.length()) {
+        try {
+          result = new Integer(str);
+        } catch (NumberFormatException nfe) {
+          System.err.println("Failed to parse integer property with key '"
+                             + key + "' and value '" +str +"': " + nfe);
+        }
+      }
+    } catch (Exception e) {
+      System.err.println("Failed to get property " + key + " : " + e);
     }
     return result;
   }
@@ -728,10 +751,9 @@ class LogConfigImpl implements ManagedService, LogConfig {
     try {
       v = (Vector) cfg.get(BL_FILTERS);
     } catch (ClassCastException cce) {
-      throw new IllegalArgumentException(
-                                         "Wrong type supplied when attempting to set log level for "
-                                         + "specific bundle."
-                                         + " Correct type to use is Vector of String[].");
+      throw new IllegalArgumentException
+        ("Wrong type supplied when attempting to set log level for "
+         + "specific bundle. Correct type to use is Vector of String[].");
     }
     if (v != null) {
       String[] bundle = null;
@@ -739,59 +761,46 @@ class LogConfigImpl implements ManagedService, LogConfig {
         try {
           bundle = getBL(v.elementAt(i));
         } catch (ClassCastException cce) {
-          throw new IllegalArgumentException(
-                                             "Wrong type supplied when attempting to set log level for "
-                                             + "specific bundle."
-                                             + " Correct type to use is String.");
+          throw new IllegalArgumentException
+            ("Wrong type supplied when attempting to set log level for "
+             + "specific bundle. Correct type to use is String.");
         }
         if (bundle == null) {
-          throw new IllegalArgumentException(
-                                             "Empty configuration supplied when attempting to set log level "
-                                             + " for specific bundle.");
+          throw new IllegalArgumentException
+            ("Empty configuration supplied when attempting to set log level "
+             + " for specific bundle.");
         }
         bundle[LOCATION_POS] = bundle[LOCATION_POS].trim();
         if (bundle[LOCATION_POS] == null
             || bundle[LOCATION_POS].length() <= 0) {
-          throw new IllegalArgumentException(
-                                             "No bundle location given when setting log level for specific "
-                                             + "bundle.");
+          throw new IllegalArgumentException
+            ("No bundle location given when setting log level for specific "
+             + "bundle.");
         }
         if (bundle[FILTER_POS] == null) {
-          throw new IllegalArgumentException(
-                                             "No log level given for bundle: "
-                                             + bundle[LOCATION_POS] + ". "
-                                             + "Please supply a valid log level.");
+          throw new IllegalArgumentException
+            ("No log level given for bundle: "
+             + bundle[LOCATION_POS] + ". "
+             + "Please supply a valid log level.");
         }
         int testFilter = 0;
         testFilter = LogUtil.toLevel((bundle[FILTER_POS].trim()), -1);
         if (testFilter == -1) {
-          throw new ConfigurationException(BL_FILTERS,
-                                           "Undefined log level <" + bundle[FILTER_POS]
-                                           + "> specified for bundle <"
-                                           + bundle[LOCATION_POS] + ">.");
+          throw new ConfigurationException
+            (BL_FILTERS,
+             "Undefined log level <" + bundle[FILTER_POS]
+             + "> specified for bundle <"
+             + bundle[LOCATION_POS] + ">.");
         }
         if (testFilter == 0) {
           v.removeElementAt(i);
           i--;
         } else {
           bundle[FILTER_POS] = LogUtil.fromLevel(testFilter);
-          checkLocation(bundle[LOCATION_POS]);
+          // There is no safe way to do any further validation of the
+          // location since any string is a valid location.
         }
       }
-    }
-  }
-
-  /* Check whether given location exists. */
-  private void checkLocation(String location) {
-    try {
-      if (location.indexOf("/") != -1 || location.indexOf("\\") != -1) {
-        URL u = new URL(getCommonLocation(location));
-        InputStream is = u.openStream();
-        is.close();
-      }
-    } catch (IOException ignore) {
-      log("File <" + location + "> set at configuration of logcomponent "
-          + "does not exist at the given location. ");
     }
   }
 
@@ -875,29 +884,19 @@ class LogConfigImpl implements ManagedService, LogConfig {
   private void setFilterCfg(Vector newV) {
     if (newV != null) {
       String[] bundle = null;
-      String common;
       int newFilter = -1;
       HashMap tmpFilters = new HashMap();
       for (int i = 0; (i < newV.size()); i++) {
         bundle = getBL(newV.elementAt(i));
-        common = getCommonLocation(bundle[LOCATION_POS]);
         newFilter = LogUtil.toLevel((bundle[FILTER_POS].trim()),
                                     org.osgi.service.log.LogService.LOG_WARNING);
-        tmpFilters.put(common, new Integer(newFilter));
+        tmpFilters.put(bundle[LOCATION_POS], new Integer(newFilter));
       }
       synchronized (blFilters) {
         blFilters = tmpFilters;
       }
       set(BL_FILTERS, newV);
     }
-  }
-
-  /* Utility methods serving this and LogConfigCommandGroup. */
-  String getCommonLocation(String location) {
-    if (location.endsWith(".jar")) {
-      return location;
-    }
-    return location + ".jar";
   }
 
   private Object diff(String key, Dictionary cfg) {

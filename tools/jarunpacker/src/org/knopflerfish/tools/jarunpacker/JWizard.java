@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2006, KNOPFLERFISH project
+ * Copyright (c) 2003, 2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ public class JWizard extends JFrame implements InstallUI {
 
   Container    container;
   Object       closeLock = new Object();
-  
+
   boolean      bFinished = false;
 
   StatusBar    statusBar;
@@ -92,7 +92,7 @@ public class JWizard extends JFrame implements InstallUI {
   String defIconPath = "/knopflerfish_red400pxl.gif";
 
   public void init() {
-    
+
     String iconPath = Main.theMain.iconPath;
     if(iconPath == null) {
       iconPath = defIconPath;
@@ -108,18 +108,18 @@ public class JWizard extends JFrame implements InstallUI {
       System.err.println("non-existing image resource: " + iconPath);
       leftIcon = new ImageIcon(getClass().getResource(defIconPath));
     }
-				   
+
 
     defaultIcon = leftIcon;
     /*
       new MergedIcon(leftIcon,
-		     boing,
-		     leftIcon.getIconWidth() - boing.getIconWidth(),
-		     leftIcon.getIconHeight() - boing.getIconHeight()
-		     );
+      boing,
+      leftIcon.getIconWidth() - boing.getIconWidth(),
+      leftIcon.getIconHeight() - boing.getIconHeight()
+      );
     */
     container = getContentPane();
-    
+
     container.setLayout(new BorderLayout());
 
     wizardPanel  = new JPanel(new BorderLayout());
@@ -141,61 +141,61 @@ public class JWizard extends JFrame implements InstallUI {
 
     setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     addWindowListener(new WindowAdapter() {
-	public void windowClosing(WindowEvent e) {
-	  cancel();
-	}
+        public void windowClosing(WindowEvent e) {
+          cancel();
+        }
       });
 
     cancelButton = new JButton(Strings.get("cancel")) {
-	{
-	  addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent ev) {
-		cancel();
-	      }
-	    });
-	}
+        {
+          addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                cancel();
+              }
+            });
+        }
       };
 
     finishButton = new JButton(Strings.get("finish")) {
-	{
-	  addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent ev) {
-		finish();
-	      }
-	    });
-	}
+        {
+          addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                finish();
+              }
+            });
+        }
       };
     backButton = new JButton(Strings.get("back")) {
-	{
-	  addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent ev) {
-		back();
-	      }
-	    });
-	}
+        {
+          addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                back();
+              }
+            });
+        }
       };
     forwardButton = new JButton(Strings.get("forward")) {
-	{
-	  addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent ev) {
-		forward();
-	      }
-	    });
-	}
+        {
+          addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                forward();
+              }
+            });
+        }
       };
-    
+
     commandPanel.add(cancelButton);
     commandPanel.add(backButton);
     commandPanel.add(forwardButton);
     commandPanel.add(finishButton);
 
     JPanel pageMain = new JPanel(new BorderLayout());
-    
+
     pageMain.add(pageDescription, BorderLayout.NORTH);
     pageMain.add(pagePanel,       BorderLayout.CENTER);
 
-    pagePanel.setBorder(new EmptyBorder(10, 10, 10, 10)); 
-    pageMain.setBorder(new EmptyBorder(5, 5, 5, 5)); 
+    pagePanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+    pageMain.setBorder(new EmptyBorder(5, 5, 5, 5));
 
     wizardPanel.add(pageMain,     BorderLayout.CENTER);
     wizardPanel.add(commandPanel, BorderLayout.SOUTH);
@@ -209,7 +209,7 @@ public class JWizard extends JFrame implements InstallUI {
       statusBar.setBackground(defColor);
     }
 
-    Dimension size = new Dimension(400, 250);
+    Dimension size = new Dimension(550, 300);
     pageMain.setPreferredSize(size);
     setIcon(this, "/kf_");
     pack();
@@ -250,29 +250,29 @@ public class JWizard extends JFrame implements InstallUI {
     return false;
   }
 
-  public int askFile(String title, 
-		     String[] options, 
-		     int defOpt, 
-		     String origFile,
-		     String newFile,
-		     Date   newDate,
-		     long   newSize
-		     ) {
-    
+  public int askFile(String title,
+                     String[] options,
+                     int defOpt,
+                     String origFile,
+                     String newFile,
+                     Date   newDate,
+                     long   newSize
+                     ) {
 
-    JFileReplacePanel fileReplacePanel = 
+
+    JFileReplacePanel fileReplacePanel =
       new JFileReplacePanel(origFile,
-			    newFile,
-			    newDate,
-			    newSize);
+                            newFile,
+                            newDate,
+                            newSize);
 
-    
+
     JOptionPane pane = new JOptionPane(fileReplacePanel,
-				       JOptionPane.QUESTION_MESSAGE,
-				       JOptionPane.DEFAULT_OPTION,
-				       null,
-				       options,
-				       options[defOpt]);
+                                       JOptionPane.QUESTION_MESSAGE,
+                                       JOptionPane.DEFAULT_OPTION,
+                                       null,
+                                       options,
+                                       options[defOpt]);
     JDialog dialog = pane.createDialog(this, title);
 
     dialog.show();
@@ -282,14 +282,14 @@ public class JWizard extends JFrame implements InstallUI {
     int n = -1;
     for(int i = 0; i < options.length; i++) {
       if(options[i].equals(selectedValue)) {
-	n = i;
-	break;
+        n = i;
+        break;
       }
     }
 
     if(n == 3) {
       if(!askCancel()) {
-	n = 2;
+        n = 2;
       }
     }
 
@@ -297,41 +297,41 @@ public class JWizard extends JFrame implements InstallUI {
 
     /*
 
-    n = JOptionPane.showOptionDialog(this,
-				     fileReplacepanel,
-				     title,
-				     JOptionPane.DEFAULT_OPTION,
-				     JOptionPane.QUESTION_MESSAGE,
-				     null,
-				     options,
-				     options[defOpt]);
-    
-    return n;
+      n = JOptionPane.showOptionDialog(this,
+      fileReplacepanel,
+      title,
+      JOptionPane.DEFAULT_OPTION,
+      JOptionPane.QUESTION_MESSAGE,
+      null,
+      options,
+      options[defOpt]);
+
+      return n;
     */
   }
 
-  
 
-  public int ask(String title, 
-		 String message, 
-		 String[] options, 
-		 int defOpt, 
-		 String iconFile) {
-    
+
+  public int ask(String title,
+                 String message,
+                 String[] options,
+                 int defOpt,
+                 String iconFile) {
+
     Object msgObject = message;
 
     int n = JOptionPane.showOptionDialog(this,
-					 msgObject,
-					 title,
-					 JOptionPane.DEFAULT_OPTION,
-					 JOptionPane.QUESTION_MESSAGE,
-					 null,
-					 options,
-					 options[defOpt]);
+                                         msgObject,
+                                         title,
+                                         JOptionPane.DEFAULT_OPTION,
+                                         JOptionPane.QUESTION_MESSAGE,
+                                         null,
+                                         options,
+                                         options[defOpt]);
 
     if(n == 3) {
       if(!askCancel()) {
-	n = 2;
+        n = 2;
       }
     }
     return n;
@@ -347,15 +347,15 @@ public class JWizard extends JFrame implements InstallUI {
     String strURL = iconName;
     try {
       MediaTracker tracker = new MediaTracker(frame);
-      
+
       URL url = getClass().getResource(strURL);
-      
+
       if(url != null) {
-	Image image = frame.getToolkit().getImage(url);
-	tracker.addImage(image, 0);
-	tracker.waitForID(0);
-	
-	frame.setIconImage(image);
+        Image image = frame.getToolkit().getImage(url);
+        tracker.addImage(image, 0);
+        tracker.waitForID(0);
+
+        frame.setIconImage(image);
       } else {
       }
     } catch (Exception e) {
@@ -366,10 +366,10 @@ public class JWizard extends JFrame implements InstallUI {
     bFinished = false;
     setPage((JWizardPage)pages.elementAt(0));
     setVisible(true);
-    
+
     try {
       synchronized(closeLock) {
-	closeLock.wait();
+        closeLock.wait();
       }
     } catch (Exception ignored) {
     }
@@ -378,16 +378,16 @@ public class JWizard extends JFrame implements InstallUI {
   public boolean isFinished() {
     return  bFinished;
   }
- 
-  
+
+
   void addPage(JWizardPage page) {
     //    System.out.println("addPage " + page.getName());
     pages.addElement(page);
-    
+
     pagePanel.add(page, page.getName());
     pageCards.addLayoutComponent(page.getName(), page);
   }
-  
+
   void setPage(JWizardPage page) {
     int ix = pages.indexOf(page);
     //    System.out.println("setPage " + page.getName() + ", ix=" + ix);
@@ -396,7 +396,7 @@ public class JWizard extends JFrame implements InstallUI {
     } else {
       pageIcon.setIcon(defaultIcon);
     }
-    
+
     currPage = page;
     pageCards.show(pagePanel, page.getName());
 
@@ -412,15 +412,15 @@ public class JWizard extends JFrame implements InstallUI {
 
   void back() {
     int ix = pages.indexOf(currPage);
-    //    System.out.println("back " + currPage.getName() + ", ix=" + ix);    
+    //    System.out.println("back " + currPage.getName() + ", ix=" + ix);
     if(ix >= 0) {
       setPage((JWizardPage)pages.elementAt(ix - 1));
     }
   }
-  
+
   void forward() {
     int ix = pages.indexOf(currPage);
-    //    System.out.println("forward " + currPage.getName() + ", ix=" + ix);    
+    //    System.out.println("forward " + currPage.getName() + ", ix=" + ix);
     if(ix < pages.size() - 1) {
       setPage((JWizardPage)pages.elementAt(ix + 1));
     }
@@ -433,7 +433,7 @@ public class JWizard extends JFrame implements InstallUI {
   }
 
   void finish() {
-    //    System.out.println("finish");    
+    //    System.out.println("finish");
     setPage((JWizardPage)pages.elementAt(pages.size() - 1));
     bFinished = true;
     close();
@@ -447,15 +447,15 @@ public class JWizard extends JFrame implements InstallUI {
 
   boolean askCancel() {
     String[] sa = Strings.getArray("cancel_install_array2");
-    
-    int n = JOptionPane.showOptionDialog(this, 
-					 Strings.get("cancel_install_msg"),
-					 Strings.get("cancel_install_title"),
-					 JOptionPane.YES_NO_OPTION,
-					 JOptionPane.QUESTION_MESSAGE,
-					 null,
-					 sa,
-					 sa[0]);
+
+    int n = JOptionPane.showOptionDialog(this,
+                                         Strings.get("cancel_install_msg"),
+                                         Strings.get("cancel_install_title"),
+                                         JOptionPane.YES_NO_OPTION,
+                                         JOptionPane.QUESTION_MESSAGE,
+                                         null,
+                                         sa,
+                                         sa[0]);
 
     return n == 0;
   }

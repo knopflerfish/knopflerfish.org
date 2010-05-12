@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: kXML 2
+Bundle-SymbolicName: org.knopflerfish.bundle.kxml
+Bundle-Version: 2.3.0
+Bundle-Category: lib
+Bundle-Description: Packing of kXML 2 as a bundle
+Bundle-Vendor: kXML.org  http://kxml.sourceforge.net/
+Bundle-DocURL: http://kxml.sourceforge.net/kxml2/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/xml/kxml/
+Bundle-ContactAddress: http://kxml.sourceforge.net/
+Export-Package: org.xmlpull.v1;specification-version=1.1.3.1,
+ org.kxml2.io,
+ org.kxml2.kdom,
+ org.kxml2.wap,
+ org.kxml2.wap.syncml

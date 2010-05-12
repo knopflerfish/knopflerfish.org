@@ -65,7 +65,8 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
     private int m_hopCount = 1;
 
     private static final String[] DEFAULT_REPOSITORY_URL = {
-        "http://oscar-osgi.sf.net/repository.xml"
+      //"http://oscar-osgi.sf.net/repository.xml",
+      "http://www.knopflerfish.org/releases/current/repository.xml",
     };
 
     public static final String REPOSITORY_URL_PROP
@@ -752,8 +753,9 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             }
             catch (Exception ex)
             {
-                ex.printStackTrace();
-                return;
+              System.err.println("Failed to parse '"+url+"': "+ex.getMessage());
+              ex.printStackTrace();
+              return;
             }
 
             List root = (List) handler.getRoot();
@@ -876,7 +878,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         }
         catch (IOException ex)
         {
-            System.err.println("Error when conncting to '" +urlStr +"': " +ex);
+            System.err.println("Error when connecting to '" +urlStr +"': " +ex);
         }
         finally
         {
