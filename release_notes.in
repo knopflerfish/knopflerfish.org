@@ -33,14 +33,10 @@ Service Hooks Specification (Done)
 OSGi Compendium Specification
 ----------------------------------------------
 
-Declarative Services Specification
- - Many updates (In Progress)
-
-All the other Compendium Specification Services
-are up to date and pass the CT.
+All the Compendium Specification Services included are up to date and
+pass the CT.
 
 Event 3.0.2
-
  - Improved performance a lot by rewriting the whole mechanism for
    matching events to event handlers during event delivery. General
    clean up and removal of dead code.
@@ -55,15 +51,26 @@ Event 3.0.2
    used to configure the Knopflerfish Event implementation.
 
 Http 2.1.5
-  
   Fixed problem with calls to HttpContext getMimeType(). The value of
   the name parameter was not the same as in the corresponding call to
   getResource() (the original URI path was used instead of the translated
   target resource name).
 
+SCR (Service Component Runtime) 3.0.0
+ - New implementation compatible with the OSGi R4 v4.2 specification.
+
+
 ----------------------------------------------
 Knopflerfish Specific
 ----------------------------------------------
+
+axis-osgi 0.1.0.2
+ - Do not use the bean-mapper for java.util.Date, java.util.Map and
+   java.util.Vector since axis provides special mappers for these
+   classes.
+
+Bundlerepository 3.0.1
+ - Switched to tango icon set.
 
 Command 0.0.1
  - This is an implementation of the new proposed OSGi Standardized
@@ -75,11 +82,15 @@ Console 3.0.0
  - Many commands that has a bundle-argument now accepts the bundle
    symbolic name as a way to specify the bundle (they also accept
    bundle id and bundle name as before).
- - Fixed documentaiton URL and Subversion URL in the manifest.
+ - Fixed documentation URL and Subversion URL in the manifest.
 
 Console Telnet 3.0.0 
  - Made the host (IP interface) to open the telnet server on
    settable via a framework property.
+
+Crimson-XML 2.1.0
+ - Updated to use 2008 version of OSGi's XMLParserActivator. Fixed
+   so that bundle works together with java 1.4 system xml classes.
 
 Desktop 3.0.11
  - Added menu action for resolving all selected bundles.
@@ -103,6 +114,15 @@ Desktop 3.0.11
    package that a bundle imports when the selected exporter is the
    current class-loader of the bundle itself.
 
+Directory Deployer 3.0.0
+ - Major refresh. New configuration PID and proprety names. Added
+   configuration telling if all bundles it have installed should be
+   uninstalled when it stops or not. Performs a refresh package after
+   bundle updates. Bundles may now be left active in the framework
+   when the directory deployer bundle is stopped. When started again
+   it will detect bundle it has previously installed that no longer
+   has a bundle archive in the watched directories and uninstall them.
+
 Framework Commands 3.0.3
  - Added support for using options when starting and stopping bundles.
    E.g., a bundle may now be transiently started or stopped.
@@ -116,6 +136,27 @@ Framework Commands 3.0.3
  - The URL given to the 'formupdate' and 'frominstall' commands now
    uses the same set of base URLs as the 'install' command.
 
+httpconsole 3.0.0
+ - Switched to tango icon set.
+
+kSOAP Remote Framework 3.0.2
+ - Updated documentation and added xargs-file fragments that makes it
+   easier to start using this feature.
+ - All properties controlling this bundle can now be given as
+   framework properties.
+ - The RemoteFW implementation of BundleContext.getProperty() did not
+   handle unset properties correctly (it now returns null as
+   expected).
+
+kXML 2 2.3.0
+ - This bundle provides the latest version of kXML 2, an XML parser
+   with a small footprint.
+ - The bundle packing has been changed since the 1.0.1 version. The
+   kXML 2 bundle is now built and packed as a "normal" bundle without
+   using nested jar-files. This simplifies for other bundles wiht
+   build time dependecies on it. Note that due to this change build
+   files may need to be update.
+   
 Log 3.0.0
  - New configuration property for setting the number of
    log records to keep in memory.
@@ -130,57 +171,8 @@ Log Commands 3.0.0
  - A new option "-c" that clears the in memory log has been added to
    the 'memory' command.
 
-kXML 2 2.3.0
- - This bundle provides the latest version of kXML 2, an XML parser
-   with a small footprint.
- - The bundle packing has been changed since the 1.0.1 version. The
-   kXML 2 bundle is now built and packed as a "normal" bundle without
-   using nested jar-files. This simplifies for other bundles wiht
-   build time dependecies on it. Note that due to this change build
-   files may need to be update.
-   
- - All properties controlling this bundle can now be given as
-   framework properties.
- - The RemoteFW implementation of BundleContext.getProperty() did not
-   handle unset properties correctly (it now returns null as
-   expected).
-
-kSOAP_RemoteFW 3.0.2
- - Updated documentation and added xargs-file fragments that makes it
-   easier to start using this feature.
- - All properties controlling this bundle can now be given as
-   framework properties.
- - The RemoteFW implementation of BundleContext.getProperty() did not
-   handle unset properties correctly (it now returns null as
-   expected).
-
-axis_osgi 0.1.0.2
- - Do not use the bean-mapper for java.util.Date, java.util.Map and
-   java.util.Vector since axis provides special mappers for these
-   classes.
-
-crimson - 2.1.0
- - updated to use 2008 version of OSGi's XMLParserActivator. Fixed
-   so that bundle works together with java 1.4 system xml classes.
-
-xerces - 2.10.0
+Xerces-J 2.10.0
  - updated to use 2008 version of OSGi's XMLParserActivator.
-
-bundlerepository 3.0.1
- - Switched to tango icon set
-
-httpconsole 3.0.0
- - Switched to tango icon set
-
-dirdeployer 3.0.0
- - Major refresh. New configuration PID and proprety names. Added
-   configuration telling if all bundles it have installed should be
-   uninstalled when it stops or not. Performs a refresh package after
-   bundle updates. Bundles may now be left active in the framework
-   when the directory deployer bundle is stopped. When started again
-   it will detect bundle it has previously installed that no longer
-   has a bundle archive in the watched directories and uninstall them.
-
 
 ----------------------------------------------
 
