@@ -160,9 +160,9 @@ public class Strings {
               "  http://www.knopflerfish.org\n" +
               "for more information" +
               "\n\n" +
-              "This release uses LGPL icons from the\n" +
-              "Noia icon collection by Carlitus, see\n" +
-              " http://www.carlitus.net"
+              "This release uses icons from Tango Desktop\n" +
+              "Project released to the public domain, see\n" +
+              "http://tango.freedesktop.org/Tango_Desktop_Project"
               );
 
           put("item_selectall",       "Select all");
