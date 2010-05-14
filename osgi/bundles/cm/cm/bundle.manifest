@@ -10,7 +10,7 @@ Bundle-APIVendor: OSGi
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Application-Icon: icon.png
+Bundle-Icon: icon.png;size=32
 Export-Service: org.osgi.service.cm.ConfigurationAdmin
 Import-Service: org.knopflerfish.service.log.LogService,org.osgi.servi
  ce.cm.ManagedService,org.osgi.service.cm.ManagedServiceFactory,org.os

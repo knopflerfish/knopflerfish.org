@@ -53,6 +53,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.*;
 import javax.swing.*;
 
@@ -292,6 +293,18 @@ public class Util {
   // Bundle -> Icon
   static Map iconMap = new HashMap();
 
+  // This constant should be in org.osgi.framework.Contants but is not...
+  final static String BUNDLE_ICON = "Bundle-Icon";
+
+
+  // Clear the bundle icon after an update of the bundle.
+  public static void clearBundleIcon(Bundle b) {
+    synchronized(iconMap) {
+      iconMap.remove(b);
+    }
+  }
+
+  // Get the bundle icon for a bundle. Icons are cached.
   public static Icon getBundleIcon(Bundle b) {
     synchronized(iconMap) {
       Class clazz = Util.class;
@@ -300,40 +313,24 @@ public class Util {
         return icon;
       }
 
-      URL appURL = null;
-      String iconName = (String)b.getHeaders().get("Application-Icon");
-      if(iconName == null) {
-	if (b.getBundleId() == 0) // Special case for System Bundle as manifest can not be read
-	  iconName = "icon.png";
-	else
-	  iconName = "";
-      }
-      iconName = iconName.trim();
-
-      if(iconName != null && !"".equals(iconName)) {
-        try {
-          appURL = b.getResource(iconName);
-        } catch (Exception e) {
-          Activator.log.error("Failed to load icon", e);
-        }
+      URL appURL = getBundleIconURL(b);
+      if (null==appURL) {
+        appURL = getApplicationIconURL(b);
       }
 
       try {
-        if(Util.hasMainClass(b)) {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/jarexec.png"));
+        if (appURL!=null) {
+          icon = new BundleImageIcon(b, appURL);
+        } else if(Util.hasMainClass(b)) {
+          icon = new BundleImageIcon(b, clazz.getResource("/jarexec.png"));
         } else if(Util.hasFragment(b)) {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/frag.png"));
+          icon = new BundleImageIcon(b, clazz.getResource("/frag.png"));
         } else if(Util.hasComponent(b)) {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/component.png"));
+          icon = new BundleImageIcon(b, clazz.getResource("/component.png"));
         } else if(Util.hasActivator(b)) {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/bundle.png"));
+          icon = new BundleImageIcon(b, clazz.getResource("/bundle.png"));
         } else {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/lib.png"));
+          icon = new BundleImageIcon(b, clazz.getResource("/lib.png"));
         }
       } catch (Exception e) {
         Activator.log.error("Failed to load icon, appURL=" + appURL);
@@ -343,6 +340,112 @@ public class Util {
       return icon;
     }
   }
+
+  // Get the bundle icon URL for icon with size 32 from the manifest
+  // header "Bundle-Icon".
+  private static URL getBundleIconURL(final Bundle b)
+  {
+    URL res = null;
+
+    final String bih = (String) b.getHeaders().get(BUNDLE_ICON);
+    if (null!=bih && 0<bih.length()) {
+      // Re-uses the manifest entry parser from the KF-framework
+      try {
+        final Iterator it = org.knopflerfish.framework.Util
+          .parseEntries(BUNDLE_ICON, bih, false, true, false);
+        String iconName = null;
+        int iconSize = -1;
+        // We prefer a 32x32 size icon.
+        while (it.hasNext()) {
+          final Map entry = (Map) it.next();
+          final List icns = (List) entry.get("$keys");
+          final String sizeS = (String) entry.get("size");
+
+          if (null==sizeS) {
+            // Icon with unspecifeid size; use it if no other icon
+            // has been found.
+            if (null==iconName) {
+              iconName= (String) icns.get(0);
+            }
+          } else {
+            int size = -1;
+            try {
+              size = Integer.parseInt(sizeS);
+            } catch (NumberFormatException nfe) {
+            }
+            if (-1<size) {
+              if (-1==iconSize) {
+                // First icon with a valid size; start with it.
+                iconName= (String) icns.get(0);
+                iconSize = size;
+              } else if (Math.abs(size-32) < Math.abs(iconSize-32)) {
+                // Icon is closer in size 32 than old icon; use it
+                iconName= (String) icns.get(0);
+                iconSize = size;
+              }
+            }
+          }
+        }
+        if (null!=iconName) {
+          try {
+            try {
+              res = new URL(iconName);
+            } catch (MalformedURLException mfe) {
+              // iconName is not a valid URL; assume it is a resource path
+              res = b.getResource(iconName);
+              if (null==res) {
+                Activator.log.warn("Failed to load icon with name '"
+                                    +iconName +"' from bundle #"
+                                    +b.getBundleId() +" (" +getBundleName(b)
+                                    +"): No such resource.");
+              }
+            }
+          } catch (Exception e) {
+            Activator.log.error("Failed to load icon with name '"
+                                +iconName +"' from bundle #"
+                                +b.getBundleId() +" (" +getBundleName(b)
+                                +"): " +e.getMessage(), e);
+          }
+        }
+      } catch (IllegalArgumentException iae) {
+        Activator.log.error("Failed to parse Bundle-Icon header for #"
+                            +b.getBundleId() +" (" +getBundleName(b)
+                            +"): " +iae.getMessage(), iae);
+      }
+    }
+    return res;
+  }
+
+  // Get the bundle icon URL for icon with size 32 from the
+  // Knopflerfish defined manifest header "Application-Icon".
+  private static URL getApplicationIconURL(final Bundle b)
+  {
+    URL res = null;
+
+    String iconName = (String) b.getHeaders().get("Application-Icon");
+    if(iconName != null) {
+      iconName = iconName.trim();
+    }
+
+    if(iconName != null && 0<iconName.length()) {
+      try {
+        res = b.getResource(iconName);
+        if (null==res) {
+          Activator.log.warn("Failed to load icon with name '"
+                             +iconName +"' from bundle #"
+                             +b.getBundleId() +" (" +getBundleName(b)
+                             +"): No such resource.");
+        }
+      } catch (Exception e) {
+        Activator.log.error("Failed to load icon with name '"
+                            +iconName +"' from bundle #"
+                            +b.getBundleId() +" (" +getBundleName(b)
+                            +"): " +e.getMessage(), e);
+      }
+    }
+    return res;
+  }
+
 
   public static Comparator bundleIdComparator = new BundleIdComparator();
 

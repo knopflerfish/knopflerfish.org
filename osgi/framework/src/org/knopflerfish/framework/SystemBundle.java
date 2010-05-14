@@ -304,6 +304,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
     headers.put(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT,
                 fwCtx.props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT));
+    headers.put("Bundle-Icon","icon.png;size=32,icon64.png;size=64");
     return headers;
   }
 

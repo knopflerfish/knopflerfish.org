@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop
-Bundle-Version: 3.0.11
+Bundle-Version: 3.0.12
 Bundle-Category: console
 Bundle-Description: Swing framework desktop
 Bundle-Vendor: Knopflerfish
@@ -12,7 +12,8 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles/desktop/
 Bundle-Classpath: .
-Application-Icon: app.png
+xBundle-Icon: app.png;size=32
+Bundle-Icon: app.png
 Bundle-Activator: org.knopflerfish.bundle.desktop.swing.Activator
 Export-Package: org.knopflerfish.service.desktop;version=2.0,
  org.knopflerfish.service.remotefw,

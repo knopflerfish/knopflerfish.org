@@ -10,7 +10,7 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.consoletty.ConsoleTty
 Bundle-Category: console
-Application-Icon: icon.png
+Bundle-Icon: icon.png;size=32
 Export-Service: org.osgi.service.cm.ManagedService
 Import-Service: org.osgi.service.log.LogService,org.knopflerfish.servi
  ce.console.ConsoleService

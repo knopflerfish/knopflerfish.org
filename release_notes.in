@@ -92,7 +92,10 @@ Crimson-XML 2.1.0
  - Updated to use 2008 version of OSGi's XMLParserActivator. Fixed
    so that bundle works together with java 1.4 system xml classes.
 
-Desktop 3.0.11
+Desktop 3.0.12
+ - Use the value of the new 4.2 manifest header "Bundle-Icon" as the
+   bundle icon when present. The icon with a size closest to 32 is
+   preferred by the desktop.
  - Added menu action for resolving all selected bundles.
  - Added support for using options when starting and stopping bundles.
    E.g., a bundle may now be transiently started or stopped.
