@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,11 @@ package org.knopflerfish.bundle.desktop.swing;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.net.URL;
 
 import javax.swing.Icon;
@@ -55,39 +59,56 @@ public class BundleImageIcon extends ImageIcon {
 
   Bundle bundle;
 
-  public BundleImageIcon(Bundle bundle, 
-			 URL url) {
+  /**
+   * Image icon for a bundle. The paint method will draw different
+   * overlays based on the bundles state.
+   *
+   * @param bundle The bundle that this icon represents.
+   * @param url URL to icon image, should be 32x32. If the icon image
+   *            has another size it will be scaled to 32x32.
+   */
+  public BundleImageIcon(Bundle bundle,
+                         URL url)
+  {
     super(url);
 
     this.bundle = bundle;
 
+
+    // Force image to load;  so that we can check the size
+    loadImage(getImage());
+    if (32<getIconWidth() || 32<getIconHeight()) {
+      // Image too large; scale it down to 32x32.
+      setImage(getScaledImage(getImage(), 32, 32));
+    }
+
     if(activeIcon == null) {
-      activeIcon      = 
-	// Activator.desktop.startIcon;
-	new ImageIcon(getClass().getResource("/player_play_14x14.png"));
+      activeIcon      =
+        // Activator.desktop.startIcon;
+        new ImageIcon(getClass().getResource("/player_play_14x14.png"));
 
       installedIcon   = null;
-      //	new ImageIcon(getClass().getResource("/overlay_installed.gif"));
+      //        new ImageIcon(getClass().getResource("/overlay_installed.gif"));
 
       resolvedIcon = null;
-      //	new ImageIcon(getClass().getResource("/overlay_resolved.gif"));
+      //        new ImageIcon(getClass().getResource("/overlay_resolved.gif"));
 
-      startingIcon    = null; 
-      //	new ImageIcon(getClass().getResource("/overlay_starting.gif"));
+      startingIcon    = null;
+      //        new ImageIcon(getClass().getResource("/overlay_starting.gif"));
 
       stoppingIcon    = null;
-      //	new ImageIcon(getClass().getResource("/overlay_stopping.gif"));
+      //        new ImageIcon(getClass().getResource("/overlay_stopping.gif"));
 
       uninstalledIcon = null;
-      //	new ImageIcon(getClass().getResource("/overlay_uninstalled.gif"));
+      //        new ImageIcon(getClass().getResource("/overlay_uninstalled.gif"));
 
     }
   }
 
   public void paintIcon(Component c,
-			Graphics g,
-			int x,
-			int y) {
+                        Graphics g,
+                        int x,
+                        int y) {
     super.paintIcon(c, g, x, y);
 
     Icon overlay = null;
@@ -126,5 +147,24 @@ public class BundleImageIcon extends ImageIcon {
       overlay.paintIcon(c, g, x1, y1);
     }
   }
-}
 
+  /**
+   * Resizes an image using a Graphics2D object backed by a BufferedImage.
+   *
+   * @param srcImg - source image to scale
+   * @param w - desired width
+   * @param h - desired height
+   * @return - the new resized image
+   */
+  private static Image getScaledImage(Image srcImg, int w, int h) {
+    BufferedImage resizedImg = new BufferedImage(w, h,
+                                                 BufferedImage.TYPE_INT_ARGB);
+    Graphics2D g2 = resizedImg.createGraphics();
+    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+    g2.drawImage(srcImg, 0, 0, w, h, null);
+    g2.dispose();
+    return resizedImg;
+  }
+
+}

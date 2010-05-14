@@ -9,7 +9,7 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc/index
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.console.Activator
 Bundle-Category: service
-Application-Icon: icon.png
+Bundle-Icon: icon.png;size=32
 Export-Service: org.knopflerfish.service.console.ConsoleService
 Import-Service: org.knopflerfish.service.console.CommandGroup,
  org.osgi.service.log.LogService

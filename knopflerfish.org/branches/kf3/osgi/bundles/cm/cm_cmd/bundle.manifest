@@ -9,7 +9,7 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.cm.commands.impl.Activator
 Bundle-Category: service
-Application-Icon: icon.png
+Bundle-Icon: icon.png;size=32
 Import-Package: org.knopflerfish.service.console,org.knopflerfish.shared.cm,org.knopflerfish.util.sort,org.osgi.framework,org.osgi.service.cm
 Bundle-UUID: org.knopflerfish:cm_cmd:2.0.0:impl
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
