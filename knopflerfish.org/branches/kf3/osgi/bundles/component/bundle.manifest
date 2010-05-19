@@ -11,10 +11,10 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/component
 Bundle-Activator: org.knopflerfish.bundle.component.Activator
-Export-Package: org.osgi.service.component;specification-version=1.1
-Import-Package: org.osgi.framework,
- org.osgi.service.cm,
- org.osgi.service.component,
- org.osgi.service.log,
- org.osgi.util.tracker,
+Export-Package: org.osgi.service.component ; version=1.1
+Import-Package: org.osgi.framework ; version="[1.4,2)",
+ org.osgi.service.cm ; version="[1.1,2)",
+ org.osgi.service.component ; version="[1.1,2)",
+ org.osgi.service.log ; version="[1.1,2)",
+ org.osgi.util.tracker ; version="[1.1,2)",
  org.xmlpull.v1
