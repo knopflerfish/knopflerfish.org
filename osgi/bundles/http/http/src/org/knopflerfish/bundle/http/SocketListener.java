@@ -357,13 +357,16 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
                         try {
                             address = InetAddress.getByName("127.0.0.1");
                         } catch (UnknownHostException e) {
+                            address = null;
                             log.error("Failed to get local address", e);
                         }
                     }
                 }
             }
             try {
-                (new Socket(address, port)).close();
+                if (address != null) {
+                    (new Socket(address, port)).close();
+                }
             } catch (IOException ignore) {
                 // Socket could already be closed?!
             } finally {
@@ -371,12 +374,17 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
             }
         }
 
-        try {
-            if (thread != null)
-                thread.join();
-        } catch (InterruptedException ignore) {
+        if (thread != null) {
+            try {
+                thread.join(60000);
+            } catch (InterruptedException ignore) {
+            } finally {
+                if (thread.isAlive()) {
+                    log.error("Failed to stop socket listener thread, " + thread);
+                }
+                thread = null;
+            }
         }
-        thread = null;
     }
 
     public void destroy() {
