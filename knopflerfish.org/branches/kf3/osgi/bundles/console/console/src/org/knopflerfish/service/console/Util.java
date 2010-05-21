@@ -95,7 +95,7 @@ public class Util {
    *            array of bundles to be checked, modified with result
    * @param selection
    *            array of selection string to match against bundles
-   * @param usedSelections
+   * @param selectionMatches
    *            Each patterns from selection array that matches a
    *            bundle will be added to this set.
    */
