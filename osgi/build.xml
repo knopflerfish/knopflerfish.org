@@ -253,6 +253,10 @@
              packagenames="${javadoc.packages}"
 	     sourcepathref="sources.path"
              excludepackagenames="${javadoc.excludepackages}">           
+      <!-- Custome tags used by OSGi -->
+      <tag name="ThreadSafe"    scope="all" description="ThreadSafe"/>
+      <tag name="NotThreadSafe" scope="all" description="NotThreadSafe"/>
+      <tag name="Immutable"     scope="all" description="Immutable"/>
       <classpath>
 	<fileset dir="${ant.home}/lib/">
 	  <include name="**/*.jar"/>
