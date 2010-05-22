@@ -42,8 +42,8 @@ import org.osgi.service.log.LogService;
  * It exports methods that translates between the numeric values of
  * the severity level constants and human readable strings.
  */
-
 public class LogUtil {
+
   /**
    * Converts from a numeric log severity level to a string.
    *

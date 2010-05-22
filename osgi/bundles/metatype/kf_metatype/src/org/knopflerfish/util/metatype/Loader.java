@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,24 +60,21 @@ import org.xmlpull.v1.XmlPullParserException;
 import org.kxml2.io.KXmlParser;
 
 /**
- * Helper class which loads (and saves) KF Metatype XML, 
- * as well as the R4 Metatype XML
+ * Helper class which loads (and saves) KF Metatype XML,
+ * as well as the R4 Metatype XML.
  *
- * <p>
- * This implementaion uses the nanoxml package for KF Metatype XML, and 
- * kXML for R4 Metatype XML
- * </p>
+ * <p> This implementaion uses the nanoxml package for KF Metatype
+ * XML, and kXML for R4 Metatype XML.</p>
+ *
  * <p>
  * NanoXML is distributed under the zlib/libpng license.<br>
  * See <a href="http://nanoxml.sourceforge.net/orig/copyright.html">http://nanoxml.sourceforge.net/orig/copyright.html</a>
  * for details.<br>
- * The full license text is also include in the kf_metatype bundle jar 
+ * The full license text is also include in the kf_metatype bundle jar.
  * </p>
- * Nanoxml is Copyrighted 2000-2002 Marc De Scheemaecker, All Rights
- * Reserved.
- * 
- * kXML notice goes here
- * </p>
+ *
+ * <p>Nanoxml is Copyrighted 2000-2002 Marc De Scheemaecker, All
+ * Rights Reserved.  </p>
  */
 public class Loader {
   static final String METATYPE      = "metatype";
@@ -125,7 +122,7 @@ public class Loader {
    */
   public static MTP loadMTPFromURL(Bundle bundle, URL url) throws IOException {
     InputStream in = null;
-    
+
     try {
       in                = url.openStream();
       IXMLParser parser = XMLParserFactory.createDefaultXMLParser();
@@ -143,11 +140,11 @@ public class Loader {
   }
 
   /**
-   * load defaults from an XML file into an MTP
+   * Load defaults from an XML file into an MTP.
    */
   public static List loadDefaultsFromURL(MTP mtp, URL url) throws IOException {
     InputStream in = null;
-    
+
     try {
       in                = url.openStream();
       IXMLParser parser = XMLParserFactory.createDefaultXMLParser();
@@ -156,29 +153,29 @@ public class Loader {
       XMLElement el  = (XMLElement) parser.parse();
 
       if(isName(el, METATYPE_NS, VALUES)) {
-    	  List propList = loadValues(mtp, el);
-    	  setDefaultValues(mtp, propList);
-    	  return propList;
-      } 
+        List propList = loadValues(mtp, el);
+        setDefaultValues(mtp, propList);
+        return propList;
+      }
       else {
-    	  for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
-    		  XMLElement childEl = (XMLElement)e.nextElement();
-    		  if(isName(childEl, METATYPE_NS, VALUES)) {
-	    
-    			  List propList = loadValues(mtp, childEl);
-	    
-    			  setDefaultValues(mtp, propList);
-	    
-    			  return propList;
-    		  }
-    	  }
+        for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
+          XMLElement childEl = (XMLElement)e.nextElement();
+          if(isName(childEl, METATYPE_NS, VALUES)) {
+
+            List propList = loadValues(mtp, childEl);
+
+            setDefaultValues(mtp, propList);
+
+            return propList;
+          }
+        }
       }
       throw new XMLException("No values tag in " + url, el);
-    } 
+    }
     catch (Exception e) {
       e.printStackTrace();
       throw new IOException("Failed to load " + url + " " + e);
-    } 
+    }
     finally {
       try { in.close(); } catch (Exception ignored) { }
     }
@@ -190,14 +187,14 @@ public class Loader {
    * <ol>
    *  <li>Load all service and factory definitions into
    *      a MetaTypeProvider instance.
-   *  <li>Load any default data
+   *  <li>Load any default data.
    *  <li>Insert default data into definitions in MetaTypeProvider
-   *      using the <tt>setDefaultValues</tt> method
+   *      using the <tt>setDefaultValues</tt> method.
    * </ol>
    *
    */
   public static MTP loadMTP(Bundle bundle, URL sourceURL, XMLElement el) {
-    
+
     assertTagName(el, METATYPE_NS, METATYPE);
 
     CMConfig[] services  = null;
@@ -208,33 +205,33 @@ public class Loader {
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl = (XMLElement)e.nextElement();
       if(isName(childEl, METATYPE_NS, SERVICES)) {
-    	  services = parseServices(childEl, false);
-      } 
+        services = parseServices(childEl, false);
+      }
       else if(isName(childEl, METATYPE_NS, FACTORIES)) {
-    	  factories = parseServices(childEl, true);
-      } 
+        factories = parseServices(childEl, true);
+      }
       else if(isName(childEl, METATYPE_NS, VALUES)) {
-    	  bHasDefValues = true;
-      } 
+        bHasDefValues = true;
+      }
       else if(isName(childEl, XSD_NS, SCHEMA)) {
-    	  CMConfig[] any = parseSchema(childEl);
-    	  List sa = new ArrayList();
-    	  List fa = new ArrayList();
-    	  for(int i = 0; i < any.length; i++) {
-    		  if(any[i].maxInstances > 1) {
-    			  fa.add(any[i]);
-    		  } 
-    		  else {
-    			  sa.add(any[i]);
-    		  }
-    	  }
-    	  services = new CMConfig[sa.size()];
-    	  sa.toArray(services);
-    	  factories = new CMConfig[fa.size()];
-    	  fa.toArray(factories);
-      	} 
+        CMConfig[] any = parseSchema(childEl);
+        List sa = new ArrayList();
+        List fa = new ArrayList();
+        for(int i = 0; i < any.length; i++) {
+          if(any[i].maxInstances > 1) {
+            fa.add(any[i]);
+          }
+          else {
+            sa.add(any[i]);
+          }
+        }
+        services = new CMConfig[sa.size()];
+        sa.toArray(services);
+        factories = new CMConfig[fa.size()];
+        fa.toArray(factories);
+      }
       else {
-    	  throw new XMLException("Unexpected element", el);
+        throw new XMLException("Unexpected element", el);
       }
     }
 
@@ -248,59 +245,59 @@ public class Loader {
       ocd.maxInstances = 1;
       String iconURL = services[i].iconURL;
       if(iconURL != null) {
-    	  try {
-    		  if(bundle != null) {
-    			  if(iconURL.startsWith("/")) {
-    				  iconURL = BUNDLE_PROTO + "$(BID)" + iconURL;
-    			  }
-    			  iconURL = Text.replace(iconURL, "$(BID)", Long.toString(bundle.getBundleId()));
-    		  }
-    		  ocd.setIconURL(iconURL);
-    	  } 
-    	  catch (Exception e) {
-    		  System.err.println("Failed to set icon url: " +  e);
-    	  }
+        try {
+          if(bundle != null) {
+            if(iconURL.startsWith("/")) {
+              iconURL = BUNDLE_PROTO + "$(BID)" + iconURL;
+            }
+            iconURL = Text.replace(iconURL, "$(BID)", Long.toString(bundle.getBundleId()));
+          }
+          ocd.setIconURL(iconURL);
+        }
+        catch (Exception e) {
+          System.err.println("Failed to set icon url: " +  e);
+        }
       }
       for(int j = 0; j < services[i].ads.length; j++) {
-    	  ocd.add(services[i].ads[j], 
-                                     services[i].ads[j].isOptional() 
-		                             ? ObjectClassDefinition.OPTIONAL
-		                             : ObjectClassDefinition.REQUIRED);
+        ocd.add(services[i].ads[j],
+                services[i].ads[j].isOptional()
+                ? ObjectClassDefinition.OPTIONAL
+                : ObjectClassDefinition.REQUIRED);
       }
       mtp.addService(services[i].pid, ocd);
     }
-    
+
     for(int i = 0; factories != null && i < factories.length; i++) {
       OCD ocd = new OCD(factories[i].pid, factories[i].pid, factories[i].desc, sourceURL);
       ocd.maxInstances = factories[i].maxInstances;
       if(factories[i].iconURL != null) {
-    	  try {
-    		  ocd.setIconURL(factories[i].iconURL);
-    	  } 
-    	  catch (Exception e) {
-    		  System.err.println("Failed to set icon url: "+ e);
-    	  }
+        try {
+          ocd.setIconURL(factories[i].iconURL);
+        }
+        catch (Exception e) {
+          System.err.println("Failed to set icon url: "+ e);
+        }
       }
       for(int j = 0; j < factories[i].ads.length; j++) {
-    	  ocd.add(factories[i].ads[j], ObjectClassDefinition.REQUIRED);
+        ocd.add(factories[i].ads[j], ObjectClassDefinition.REQUIRED);
       }
       mtp.addFactory(factories[i].pid, ocd);
     }
 
-      
+
     // Overwrite MTP default values with values found in
     // DEFAULTVALUES section in source XML
     if(bHasDefValues) {
-    	for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
-    		XMLElement childEl = (XMLElement)e.nextElement();
-    		if(isName(childEl, METATYPE_NS, VALUES)) {
-    			List propList = loadValues(mtp, childEl);
-	
-    			setDefaultValues(mtp, propList);
-    		}
+      for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
+        XMLElement childEl = (XMLElement)e.nextElement();
+        if(isName(childEl, METATYPE_NS, VALUES)) {
+          List propList = loadValues(mtp, childEl);
+
+          setDefaultValues(mtp, propList);
+        }
       }
     }
-    
+
     return mtp;
   }
 
@@ -311,45 +308,45 @@ public class Loader {
    * @param mtp MetaTypeProvider containing instances of <tt>AD</tt>
    * @param propList List of Dictionary
    */
-  public static void setDefaultValues(MetaTypeProvider mtp, 
-				      List propList) {
+  public static void setDefaultValues(MetaTypeProvider mtp,
+                                      List propList) {
 
     for(Iterator it = propList.iterator(); it.hasNext();) {
       Dictionary            props   = (Dictionary)it.next();
       String                pid     = (String)props.get(SERVICE_PID);
       if(pid == null) {
-	pid     = (String)props.get("factory.pid");
+        pid     = (String)props.get("factory.pid");
       }
 
       ObjectClassDefinition ocd     = null;
       try {
-	ocd = mtp.getObjectClassDefinition(pid, null);
+        ocd = mtp.getObjectClassDefinition(pid, null);
       } catch (Exception ignored) {
       }
 
       if(ocd == null) {
-	throw new IllegalArgumentException("No definition for pid '" + pid + "'");
+        throw new IllegalArgumentException("No definition for pid '" + pid + "'");
       } else {
-	AttributeDefinition[] ads = 
-	  ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
+        AttributeDefinition[] ads =
+          ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
 
-	for(int i = 0; ads != null && i < ads.length; i++) {
-	  Object val =  props.get(ads[i].getID());
+        for(int i = 0; ads != null && i < ads.length; i++) {
+          Object val =  props.get(ads[i].getID());
 
-	  if(!(ads[i] instanceof AD)) {
-	    throw new IllegalArgumentException("AttributeDefinitions must be instances of AD, otherwise default values cannot be set");
-	  }
+          if(!(ads[i] instanceof AD)) {
+            throw new IllegalArgumentException("AttributeDefinitions must be instances of AD, otherwise default values cannot be set");
+          }
 
-	  AD ad = (AD)ads[i];
+          AD ad = (AD)ads[i];
 
-	  if(val instanceof Vector) {
-	    ad.setDefaultValue(toStringArray((Vector)val));
-	  } else if(val.getClass().isArray()) {
-	    ad.setDefaultValue(toStringArray((Object[])val));
-	  } else {
-	    ad.setDefaultValue(new String[] { val.toString() });
-	  }
-	}
+          if(val instanceof Vector) {
+            ad.setDefaultValue(toStringArray((Vector)val));
+          } else if(val.getClass().isArray()) {
+            ad.setDefaultValue(toStringArray((Object[])val));
+          } else {
+            ad.setDefaultValue(new String[] { val.toString() });
+          }
+        }
       }
     }
   }
@@ -372,37 +369,37 @@ public class Loader {
       XMLElement            childEl = (XMLElement)e.nextElement();
       String                pid     = childEl.getName();
       ObjectClassDefinition ocd     = null;
-      
 
-      
+
+
       try {
-	ocd = mtp.getObjectClassDefinition(pid, null);
+        ocd = mtp.getObjectClassDefinition(pid, null);
       } catch (Exception ignored) {
       }
       if(ocd == null) {
-	throw new XMLException("Undefined pid '" + pid + "'", childEl);
+        throw new XMLException("Undefined pid '" + pid + "'", childEl);
       }
-      Dictionary props = 
-	loadValues(ocd.getAttributeDefinitions(ObjectClassDefinition.ALL), 
-		   childEl);
+      Dictionary props =
+        loadValues(ocd.getAttributeDefinitions(ObjectClassDefinition.ALL),
+                   childEl);
       int maxInstances = 1;
       if(ocd instanceof OCD) {
-	maxInstances = ((OCD)ocd).maxInstances;
+        maxInstances = ((OCD)ocd).maxInstances;
       }
 
       Integer count = (Integer)countMap.get(pid);
       if(count == null) {
-	count = new Integer(0);
+        count = new Integer(0);
       }
       count = new Integer(count.intValue() + 1);
       if(count.intValue() > maxInstances) {
-	throw new XMLException("PID " + pid + " can only have " +
-			       maxInstances + " instance(s), found " + 
-			       count, el);
+        throw new XMLException("PID " + pid + " can only have " +
+                               maxInstances + " instance(s), found " +
+                               count, el);
       }
 
       countMap.put(pid, count);
-      
+
       props.put(maxInstances > 1 ? "factory.pid" : SERVICE_PID, pid);
       propList.add(props);
     }
@@ -410,8 +407,8 @@ public class Loader {
     return propList;
   }
 
-  public static Dictionary loadValues(AttributeDefinition[] attrs, 
-				      XMLElement el) {
+  public static Dictionary loadValues(AttributeDefinition[] attrs,
+                                      XMLElement el) {
 
     if(attrs == null) {
       throw new NullPointerException("attrs array cannot be null");
@@ -427,13 +424,13 @@ public class Loader {
       //      System.out.println("load id=" + id);
 
       for(int i = 0; attr == null && i < attrs.length; i++) {
-	//	System.out.println(i + ": " + attrs[i]);
-	if(id.equals(attrs[i].getID())) {
-	  attr = attrs[i];
-	}
+        //      System.out.println(i + ": " + attrs[i]);
+        if(id.equals(attrs[i].getID())) {
+          attr = attrs[i];
+        }
       }
       if(attr == null) {
-	throw new XMLException("Undefined id '" + id + "'", childEl);
+        throw new XMLException("Undefined id '" + id + "'", childEl);
       }
       Object val = loadValue(attr, childEl);
       props.put(id, val);
@@ -442,8 +439,8 @@ public class Loader {
     // Verify that all attributes are found
     for(int i = 0; i < attrs.length; i++) {
       if(!props.containsKey(attrs[i].getID())) {
-	throw new XMLException("Missing attribute id '" + attrs[i].getID() + "'", 
-			       el);
+        throw new XMLException("Missing attribute id '" + attrs[i].getID() + "'",
+                               el);
       }
     }
     return props;
@@ -451,7 +448,7 @@ public class Loader {
 
 
   /**
-   * Load a java object from an XML element using type info in the 
+   * Load a java object from an XML element using type info in the
    * specified definition.
    *
    */
@@ -464,8 +461,8 @@ public class Loader {
 
     if(attr.getCardinality() > 0) {
       Vector v = loadSequence(attr, el, -attr.getCardinality(), ITEM);
-      Object[] array = 
-	(Object[])Array.newInstance(AD.getClass(attr.getType()), v.size());
+      Object[] array =
+        (Object[])Array.newInstance(AD.getClass(attr.getType()), v.size());
       v.copyInto(array);
 
       return array;
@@ -474,17 +471,17 @@ public class Loader {
     return loadContent(attr, el);
   }
 
-  public static Vector loadSequence(AttributeDefinition attr, 
-				    XMLElement el,
-				    int max,
-				    String tagName) {
+  public static Vector loadSequence(AttributeDefinition attr,
+                                    XMLElement el,
+                                    int max,
+                                    String tagName) {
     Vector v = new Vector();
 
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement            childEl = (XMLElement)e.nextElement();
 
       assertTagName(childEl, tagName);
-      
+
       v.addElement(loadContent(attr, childEl));
     }
 
@@ -503,7 +500,7 @@ public class Loader {
     if(content == null) {
       content = "";
     }
-    
+
     content = content.trim();
 
     String msg = attr.validate(content);
@@ -534,10 +531,10 @@ public class Loader {
 
       CMConfig[] conf = parseSchema(childEl);
       if(conf.length == 0) {
-	throw new XMLException("No elements in schema", childEl);
+        throw new XMLException("No elements in schema", childEl);
       }
       conf[0].maxInstances = bFactory ? Integer.MAX_VALUE : 1;
-      
+
       list.add(conf[0]);
     }
 
@@ -547,7 +544,7 @@ public class Loader {
     return ads;
   }
 
- /**
+  /**
    * Parse an XSD schema into a wrapper object for services and factories.
    *
    * <p>
@@ -556,37 +553,37 @@ public class Loader {
    */
   private static CMConfig[] parseSchema(XMLElement el) {
 
-    assertTagName(el, XSD_NS, "schema"); 
+    assertTagName(el, XSD_NS, "schema");
 
     /*
-    if(el.getChildrenCount() != 1) {
+      if(el.getChildrenCount() != 1) {
       throw new XMLException("service/factory schema must contain exacly one xsd.complexType", el);
-    }
+      }
     */
 
     List v = new ArrayList();
 
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl = (XMLElement)e.nextElement();
-      
+
       AD[]      ads = parseComplexType(childEl);
       Annotation an = loadAnnotationFromAny(childEl);
-      
+
       String iconURL = childEl.getAttribute(ATTR_ICONURL);
       if("".equals(iconURL)) {
-	iconURL = null;
+        iconURL = null;
       }
       int maxOccurs = getInteger(childEl, ATTR_MAXOCCURS, 1);
-      
+
       String name = childEl.getAttribute(ATTR_NAME).toString();
-      
+
       //      System.out.println("load " +  name + ", maxOccurs=" + maxOccurs);
 
       v.add(new CMConfig(name,
-			 ads,
-			 an != null ? an.doc : "",
-			 iconURL,
-			 maxOccurs));
+                         ads,
+                         an != null ? an.doc : "",
+                         iconURL,
+                         maxOccurs));
     }
 
     CMConfig[] r = new CMConfig[v.size()];
@@ -610,7 +607,7 @@ public class Loader {
    * definining the metadata for a PID.
    *
    * <p>
-   * The name of the complexTyp specifies the metadata PID. 
+   * The name of the complexTyp specifies the metadata PID.
    * </p>
    *
    * <p>
@@ -636,39 +633,39 @@ public class Loader {
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl = (XMLElement)e.nextElement();
       if(isName(childEl, XSD_NS, TAG_ANNOTATION)) {
-	annotation = loadAnnotation(childEl);
+        annotation = loadAnnotation(childEl);
       } else {
-	try {
-	  AD ad = parseAttributeDefinition(childEl);
-	  if(list.contains(ad)) {
-	    throw new XMLException("Multiple definitions of id '" + ad.getID() + 
-				   "'", childEl);
-	  }
-	  if(ad == null) {
-	    throw new XMLException("Null ad", childEl);
-	  }
-	  list.add(ad);
-	} catch (XMLException ex) {
-	  System.err.println("Failed in " + el.getFullName() + 
-			     ", name=" + el.getAttribute(ATTR_NAME) + 
-			     ", line=" + el.getLineNr() + ", " + ex);
-	  throw ex;
-	}
+        try {
+          AD ad = parseAttributeDefinition(childEl);
+          if(list.contains(ad)) {
+            throw new XMLException("Multiple definitions of id '" + ad.getID() +
+                                   "'", childEl);
+          }
+          if(ad == null) {
+            throw new XMLException("Null ad", childEl);
+          }
+          list.add(ad);
+        } catch (XMLException ex) {
+          System.err.println("Failed in " + el.getFullName() +
+                             ", name=" + el.getAttribute(ATTR_NAME) +
+                             ", line=" + el.getLineNr() + ", " + ex);
+          throw ex;
+        }
       }
     }
-    
+
     AD[] ads = new AD[list.size()];
-    
+
     list.toArray(ads);
     return ads;
   }
-  
+
   /**
    * Parse an XSD sequence into an <tt>AttributeDefinition</tt> of either
    * vector or array type.
    *
    * <p>
-   * Only one child name "element" is allowed, and this child specifies 
+   * Only one child name "element" is allowed, and this child specifies
    * the element type of the vector/array.
    * </p>
    *
@@ -682,15 +679,15 @@ public class Loader {
       XMLElement childEl   = (XMLElement)e.nextElement();
 
       if(isName(childEl, XSD_NS, TAG_SEQUENCE)) {
-	if(attr != null) {
-	  throw new XMLException("Only one sequence is allowed in complexType", 
-				 childEl);
-	}
-	attr = parseSequence(childEl, el.getAttribute(ATTR_NAME));
+        if(attr != null) {
+          throw new XMLException("Only one sequence is allowed in complexType",
+                                 childEl);
+        }
+        attr = parseSequence(childEl, el.getAttribute(ATTR_NAME));
       } else if(isName(childEl, XSD_NS, TAG_RESTRICTION)) {
-	//System.out.println("skip restriction");
+        //System.out.println("skip restriction");
       } else if(isName(childEl, XSD_NS, TAG_ANNOTATION)) {
-	// parse later
+        // parse later
       }
     }
     if(attr == null) {
@@ -698,7 +695,7 @@ public class Loader {
     }
 
     return addAnnotation(attr, el);
-    
+
   }
 
   static AD parseSimpleTypeAttr(XMLElement el) {
@@ -713,16 +710,16 @@ public class Loader {
 
       if(isName(childEl, XSD_NS, TAG_RESTRICTION)) {
 
-	int type       = getType(childEl);
-		
-	int      card     = 0;
-	String   name     = id;
-	String[] defValue = null;
-	
-	attr = new AD(id, type, card, name, defValue);
-	addEnumeration(childEl, attr);
+        int type       = getType(childEl);
+
+        int      card     = 0;
+        String   name     = id;
+        String[] defValue = null;
+
+        attr = new AD(id, type, card, name, defValue);
+        addEnumeration(childEl, attr);
       } else if(isName(childEl, XSD_NS, TAG_ANNOTATION)) {
-	// accept and parse later;
+        // accept and parse later;
       }
     }
 
@@ -737,38 +734,38 @@ public class Loader {
       XMLElement childEl   = (XMLElement)e.nextElement();
       //      System.out.println(" addEnum " + childEl.getName());
       if(isName(childEl, XSD_NS, TAG_ENUMERATION)) {
-	String val = childEl.getAttribute(ATTR_VALUE);
-	if(val == null) {
-	  throw new XMLException("No value specified in enum", childEl);
-	}
-	String label = val;
-	Annotation annotation = loadAnnotationFromAny(childEl);
-	if(annotation != null && annotation.doc != null) {
-	  label = annotation.doc;
-	}
-	v.addElement(new String[] { val, label });
+        String val = childEl.getAttribute(ATTR_VALUE);
+        if(val == null) {
+          throw new XMLException("No value specified in enum", childEl);
+        }
+        String label = val;
+        Annotation annotation = loadAnnotationFromAny(childEl);
+        if(annotation != null && annotation.doc != null) {
+          label = annotation.doc;
+        }
+        v.addElement(new String[] { val, label });
       }
     }
-    
+
     //    System.out.println("optvalues=" + v);
 
     if(v.size() > 0) {
       String[] optValues = new String[v.size()];
       String[] optLabels = new String[v.size()];
       for(int i = 0; i < v.size(); i++) {
-	String[] row = (String[])v.elementAt(i);
-	optValues[i] = row[0];
-	optLabels[i] = row[1];
+        String[] row = (String[])v.elementAt(i);
+        optValues[i] = row[0];
+        optLabels[i] = row[1];
       }
       ad.setOptions(optValues, optLabels);
     }
   }
-  static AD addAnnotation(AD attr, 
-			  XMLElement el) {
+  static AD addAnnotation(AD attr,
+                          XMLElement el) {
     Annotation a = loadAnnotationFromAny(el);
     if(a != null) {
       if(a.doc != null) {
-	attr.setDescription(a.doc);
+        attr.setDescription(a.doc);
       }
     }
 
@@ -787,11 +784,11 @@ public class Loader {
   }
 
   static Annotation loadAnnotationFromAny(XMLElement el) {
-    
+
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl   = (XMLElement)e.nextElement();
       if(isName(childEl, XSD_NS, TAG_ANNOTATION)) {
-	return loadAnnotation(childEl);
+        return loadAnnotation(childEl);
       }
     }
     return null;
@@ -805,11 +802,11 @@ public class Loader {
     for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
       XMLElement childEl   = (XMLElement)e.nextElement();
       if(isName(childEl, XSD_NS, TAG_DOCUMENTATION)) {
-	if(a == null) { a = new Annotation(); }
-	a.doc = "" + childEl.getContent();
+        if(a == null) { a = new Annotation(); }
+        a.doc = "" + childEl.getContent();
       } else if(isName(childEl, XSD_NS, TAG_APPINFO)) {
-	if(a == null) { a = new Annotation(); }
-	a.appinfo = "" + childEl.getContent();
+        if(a == null) { a = new Annotation(); }
+        a.appinfo = "" + childEl.getContent();
       }
     }
     return a;
@@ -821,71 +818,68 @@ public class Loader {
     assertTagName(el, XSD_NS, TAG_SEQUENCE);
 
 
-    boolean    bArray    = 
+    boolean    bArray    =
       "true".equals(el.getAttribute(ATTR_ARRAY, "false").toLowerCase());
-    
-    
+
+
     int maxOccurs = getInteger(el, ATTR_MAXOCCURS, Integer.MAX_VALUE);
 
     if(el.getChildrenCount() != 1) {
       throw new XMLException("sequence children count must be " +
-					 "exactly one", el);
+                             "exactly one", el);
     } else {
       String id      = name;
       int type = -1;
-      
+
       for(Enumeration e = el.enumerateChildren(); e.hasMoreElements(); ) {
-	XMLElement childEl   = (XMLElement)e.nextElement();
-	String     childName = childEl.getAttribute(ATTR_NAME).toString();
-	int        card      = -1;
-	
-	
-	
-	if(!ITEM.equals(childName)) {
-	  throw new XMLException("Only '" + ITEM + "'" + 
-				 " names are allowed in sequences, found " + 
-				 childName, childEl);
-	}
-	
-	if(bArray) {
-	  card = maxOccurs;
-	} else {
-	  if(maxOccurs == Integer.MAX_VALUE) {
-	    card = Integer.MIN_VALUE;
-	  } else {
-	    card = -maxOccurs;
-	  }
-	}
-	
-	AD ad = parseAttributeDefinition(childEl);
+        XMLElement childEl   = (XMLElement)e.nextElement();
+        String     childName = childEl.getAttribute(ATTR_NAME).toString();
+        int        card      = -1;
 
-	type = ad.getType();
 
-	String[] defValue = null;
 
-	return new AD(id, type, card, id, defValue);	
+        if(!ITEM.equals(childName)) {
+          throw new XMLException("Only '" + ITEM + "'" +
+                                 " names are allowed in sequences, found " +
+                                 childName, childEl);
+        }
+
+        if(bArray) {
+          card = maxOccurs;
+        } else {
+          if(maxOccurs == Integer.MAX_VALUE) {
+            card = Integer.MIN_VALUE;
+          } else {
+            card = -maxOccurs;
+          }
+        }
+
+        AD ad = parseAttributeDefinition(childEl);
+
+        type = ad.getType();
+
+        String[] defValue = null;
+
+        return new AD(id, type, card, id, defValue);
       }
-      
+
       throw new XMLException("parseSequence failed", el);
     }
   }
-  
-  
+
+
   /**
-   * Parse an XSD element into an <tt>AttributeDefinition</tt>
+   * Parse an XSD element into an <tt>AttributeDefinition</tt>.
    *
-   * <p>
-   * The type of the definition is derived using the <tt>getType</tt>
-   * method.
-   * </p>
-   * <p>
-   * If the XSD element is a sequence, parse using the <tt>parseSequence</tt>
-   * method.
-   * </p>
+   * <p>The type of the definition is derived using the
+   * <tt>getType</tt> method.</p>
+   *
+   * <p>If the XSD element is a sequence, parse using the
+   * <tt>parseSequence</tt> method.</p>
    */
   static AD parseAttributeDefinition(XMLElement el) {
     // System.out.println("parseAttributeDefinition " +   el.getFullName() + ", name=" + el.getAttribute(ATTR_NAME));
-    
+
     AD ad = null;
 
     if(isName(el, XSD_NS, TAG_SIMPLETYPE)) {
@@ -893,30 +887,30 @@ public class Loader {
     } else if(isName(el, XSD_NS, TAG_COMPLEXTYPE)) {
       ad = parseComplexTypeAttr(el);
     } else if(isName(el, XSD_NS, TAG_ELEMENT)) {
-      
+
       String id      = el.getAttribute(ATTR_NAME);
       if(id == null) {
-	throw new XMLException("No id specified in element", el);
+        throw new XMLException("No id specified in element", el);
       }
 
       String strType = el.getAttribute(ATTR_TYPE);
       if(strType == null) {
-	throw new XMLException("No type specified in " + id, el);
+        throw new XMLException("No type specified in " + id, el);
       }
       int type       = getType(el);
-      
-      
+
+
       int      card     = 0;
       String   name     = id;
       String[] defValue = null;
-      
+
       ad = new AD(id, type, card, name, defValue);
     } else if(isName(el, XSD_NS, TAG_ANNOTATION)) {
       //
     } else {
-      throw new XMLException("Unsupported tag " + el.getName() +  
-			     ", ns=" + el.getNamespace() + 
-			     ", name=" + el.getAttribute(ATTR_NAME), el);
+      throw new XMLException("Unsupported tag " + el.getName() +
+                             ", ns=" + el.getNamespace() +
+                             ", name=" + el.getAttribute(ATTR_NAME), el);
     }
 
 
@@ -940,7 +934,7 @@ public class Loader {
     } else {
       throw new XMLException("Type is only supported in element and restriction tags", el);
     }
-    
+
     if(strType == null) {
       throw new XMLException("No type in tag", el);
     }
@@ -975,21 +969,21 @@ public class Loader {
   /**
    * Print sets of definitions to an XML file.
    */
-  public static void printMetatypeXML(MetaTypeProvider mtp, 
-				      String[] servicePIDs,
-				      String[] factoryPIDs,
-				      boolean bXMLHeader,
-				      boolean bMetatypeTag,
-				      List propList,
-				      PrintWriter out) {
+  public static void printMetatypeXML(MetaTypeProvider mtp,
+                                      String[] servicePIDs,
+                                      String[] factoryPIDs,
+                                      boolean bXMLHeader,
+                                      boolean bMetatypeTag,
+                                      List propList,
+                                      PrintWriter out) {
     if(bXMLHeader) {
       out.println("<?xml version=\"1.0\"?>");
     }
 
     if(bMetatypeTag) {
-      out.println("<metatype:metatype\n" + 
-		  "  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\"\n" + 
-		  "  xmlns:xsd     = \"http://www.w3.org/2001/XMLSchema\">");    
+      out.println("<metatype:metatype\n" +
+                  "  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\"\n" +
+                  "  xmlns:xsd     = \"http://www.w3.org/2001/XMLSchema\">");
     }
     out.println("");
 
@@ -1008,7 +1002,7 @@ public class Loader {
 
     if(bMetatypeTag) {
       out.println("</metatype:metatype>");
-    }  
+    }
   }
 
   /**
@@ -1018,41 +1012,41 @@ public class Loader {
    * @param pids Set of String (PIDs)
    * @param out writer to print to.
    */
-  public static void printOCDXML(MetaTypeProvider mtp, 
-				 String[]         pids, 
-				 int              maxOccurs,
-				 PrintWriter      out) {
+  public static void printOCDXML(MetaTypeProvider mtp,
+                                 String[]         pids,
+                                 int              maxOccurs,
+                                 PrintWriter      out) {
     for(int i = 0; i < pids.length; i++) {
       String pid = pids[i];
       ObjectClassDefinition ocd = mtp.getObjectClassDefinition(pid, null);
       if(ocd instanceof OCD) {
-	maxOccurs = ((OCD)ocd).maxInstances;
+        maxOccurs = ((OCD)ocd).maxInstances;
       }
-      AttributeDefinition[] ads = 
-	ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
+      AttributeDefinition[] ads =
+        ocd.getAttributeDefinitions(ObjectClassDefinition.ALL);
       out.println("");
-      out.println("    <!-- " + 
-		  (maxOccurs > 1 ? "Factory " : "Service ") + 
-		  pid + " -->");
+      out.println("    <!-- " +
+                  (maxOccurs > 1 ? "Factory " : "Service ") +
+                  pid + " -->");
       //      out.println("   <xsd:schema>");
       out.print ("    <xsd:complexType " + ATTR_NAME + "=\"" + pid + "\"");
-      out.print (" " + ATTR_MAXOCCURS + "=\"" + 
-		 (maxOccurs == Integer.MAX_VALUE 
-		  ? UNBOUNDED 
-		  : Integer.toString(maxOccurs)) 
-		 + "\"");
-      
+      out.print (" " + ATTR_MAXOCCURS + "=\"" +
+                 (maxOccurs == Integer.MAX_VALUE
+                  ? UNBOUNDED
+                  : Integer.toString(maxOccurs))
+                 + "\"");
+
       if(ocd instanceof OCD) {
-	OCD o2 = (OCD)ocd;
-	String urlStr = o2.getIconURL(0);
-	if(urlStr != null) {
-	  out.print(" " + ATTR_ICONURL + "=\"" + urlStr + "\"");
-	}
+        OCD o2 = (OCD)ocd;
+        String urlStr = o2.getIconURL(0);
+        if(urlStr != null) {
+          out.print(" " + ATTR_ICONURL + "=\"" + urlStr + "\"");
+        }
       }
       out.println(">");
       printAnnotation(ocd.getDescription(), "     ", out);
       for(int j = 0; j < ads.length; j++) {
-	printXML(out, ads[j]);
+        printXML(out, ads[j]);
       }
       out.println("    </xsd:complexType>");
       //      out.println("   </xsd:schema>\n");
@@ -1060,24 +1054,24 @@ public class Loader {
   }
 
 
-  static void printXMLSequence(PrintWriter out, 
-			       AttributeDefinition ad,
-			       boolean bArray) {
+  static void printXMLSequence(PrintWriter out,
+                               AttributeDefinition ad,
+                               boolean bArray) {
     out.println("     <xsd:complexType " + ATTR_NAME + " = \"" + ad.getID() + "\">");
     out.println("      <xsd:sequence " + ATTR_ARRAY + "=\"" + bArray + "\">");
-    out.println("       <xsd:element " + ATTR_NAME + " = \"" + ITEM + 
-		"\" " + ATTR_TYPE + "= \"" + 
-		getXSDType(ad.getType()) + "\"/>");
+    out.println("       <xsd:element " + ATTR_NAME + " = \"" + ITEM +
+                "\" " + ATTR_TYPE + "= \"" +
+                getXSDType(ad.getType()) + "\"/>");
     out.println("      </xsd:sequence>");
     out.println("     </xsd:complexType>");
 
   }
-  
+
   /**
    * Print an attribute definition as XML.
    */
   public static void printXML(PrintWriter out,
-			      AttributeDefinition ad) {
+                              AttributeDefinition ad) {
     if(ad.getCardinality() > 0) {
       printXMLSequence(out, ad, false);
     } else if(ad.getCardinality() < 0) {
@@ -1088,10 +1082,10 @@ public class Loader {
   }
 
   static void printXMLSingle(PrintWriter out,
-			     AttributeDefinition ad) {
-    
+                             AttributeDefinition ad) {
+
     String tag = getXSDType(ad.getType());
-    
+
     String[] optValues = ad.getOptionValues();
     String[] optLabels = ad.getOptionLabels();
     String   desc = ad.getDescription();
@@ -1100,43 +1094,43 @@ public class Loader {
       out.println("      <xsd:simpleType name = \"" + ad.getID() + "\">");
       out.println("       <xsd:restriction base=\"" + tag + "\">");
       for(int i = 0; i < optValues.length; i++) {
-	out.println("       <xsd:enumeration value=\"" + optValues[i] + "\">");
-	if(optLabels != null) {
-	  printAnnotation(optLabels[i], "        ", out);
-	}
-	out.println("       </xsd:enumeration>");
+        out.println("       <xsd:enumeration value=\"" + optValues[i] + "\">");
+        if(optLabels != null) {
+          printAnnotation(optLabels[i], "        ", out);
+        }
+        out.println("       </xsd:enumeration>");
       }
       out.println("       </xsd:restriction>");
       out.println("      </xsd:simpleType>");
     } else {
       if("".equals(desc)) {
-	out.println("     <xsd:element name=\"" + ad.getID() + "\"" +
-		    " type=\"" + tag + "\"/>");
+        out.println("     <xsd:element name=\"" + ad.getID() + "\"" +
+                    " type=\"" + tag + "\"/>");
       } else {
-	out.println("     <xsd:element name=\"" + ad.getID() + "\"" + 
-		    " type=\"" + tag + "\">");
-	printAnnotation(desc, "      ", out);
-	out.println("     </xsd:element>");
+        out.println("     <xsd:element name=\"" + ad.getID() + "\"" +
+                    " type=\"" + tag + "\">");
+        printAnnotation(desc, "      ", out);
+        out.println("     </xsd:element>");
       }
     }
   }
 
   public static void printValuesXML(List propList,
-				    boolean bXMLHeader,
-				    PrintWriter out) {
+                                    boolean bXMLHeader,
+                                    PrintWriter out) {
 
     if(bXMLHeader) {
       out.println("<?xml version=\"1.0\"?>");
     }
 
-    out.println(" <metatype:values\n" + 	"  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">" );
+    out.println(" <metatype:values\n" +         "  xmlns:metatype=\"http://www.knopflerfish.org/XMLMetatype\">" );
     out.println("");
-    
+
     for(Iterator it = propList.iterator(); it.hasNext();) {
       Dictionary            props   = (Dictionary)it.next();
       String                pid     = (String)props.get(SERVICE_PID);
       if(pid == null) {
-	pid     = (String)props.get("factory.pid");
+        pid     = (String)props.get("factory.pid");
       }
 
       out.println("");
@@ -1153,22 +1147,22 @@ public class Loader {
     for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
       String key = (String)e.nextElement();
       Object val = props.get(key);
-      
+
       if(val instanceof Vector) {
-	out.println("   <" + key + ">");
-	Vector v = (Vector)val;
-	for(int i = 0; i < v.size(); i++) {
-	  out.println("    <item>" + v.elementAt(i) + "</item>");
-	}
-	out.println("   </" + key + ">");
+        out.println("   <" + key + ">");
+        Vector v = (Vector)val;
+        for(int i = 0; i < v.size(); i++) {
+          out.println("    <item>" + v.elementAt(i) + "</item>");
+        }
+        out.println("   </" + key + ">");
       } else if(val.getClass().isArray()) {
-	out.println("   <" + key + ">");
-	for(int i = 0; i < Array.getLength(val); i++) {
-	  out.println("    <item>" + Array.get(val, i) + "</item>");
-	}
-	out.println("   </" + key + ">");
+        out.println("   <" + key + ">");
+        for(int i = 0; i < Array.getLength(val); i++) {
+          out.println("    <item>" + Array.get(val, i) + "</item>");
+        }
+        out.println("   </" + key + ">");
       } else {
-	out.println("   <" + key + ">" + val.toString() + "</" + key + ">");
+        out.println("   <" + key + ">" + val.toString() + "</" + key + ">");
       }
     }
   }
@@ -1178,15 +1172,15 @@ public class Loader {
     String tag = "";
     switch(type) {
     case AttributeDefinition.STRING:     return "xsd:string";
-    case AttributeDefinition.INTEGER:    return "xsd:int";   
-    case AttributeDefinition.LONG:       return "xsd:long";  
-    case AttributeDefinition.SHORT:      return "xsd:short"; 
+    case AttributeDefinition.INTEGER:    return "xsd:int";
+    case AttributeDefinition.LONG:       return "xsd:long";
+    case AttributeDefinition.SHORT:      return "xsd:short";
     case AttributeDefinition.DOUBLE:     return "xsd:double";
     case AttributeDefinition.CHARACTER:  return "xsd:char";
-    case AttributeDefinition.FLOAT:      return "xsd:float"; 
-    case AttributeDefinition.BOOLEAN:    return "xsd:boolean"; 
-    case AttributeDefinition.BIGINTEGER: return "xsd:integer"; 
-    case AttributeDefinition.BIGDECIMAL: return "xsd:decimal"; 
+    case AttributeDefinition.FLOAT:      return "xsd:float";
+    case AttributeDefinition.BOOLEAN:    return "xsd:boolean";
+    case AttributeDefinition.BIGINTEGER: return "xsd:integer";
+    case AttributeDefinition.BIGDECIMAL: return "xsd:decimal";
     default: throw new IllegalArgumentException("Cannot print " + type);
     }
   }
@@ -1197,30 +1191,30 @@ public class Loader {
     out.println(prefix + "</xsd:annotation>");
   }
 
-  static void assertTagName(XMLElement el, 
-			    String name) {
+  static void assertTagName(XMLElement el,
+                            String name) {
     assertTagName(el, null, name);
   }
 
-  static void assertTagName(XMLElement el, 
-			    String namespace, 
-			    String name) {
+  static void assertTagName(XMLElement el,
+                            String namespace,
+                            String name) {
     if(!isName(el, namespace, name)) {
-      throw new XMLException("Excepted tag '" + namespace + ":" + name + 
-			     "', found '" + el.getFullName() + "'", el);
+      throw new XMLException("Excepted tag '" + namespace + ":" + name +
+                             "', found '" + el.getFullName() + "'", el);
     }
   }
 
 
-  static boolean isName(XMLElement el, 
-			String namespace, 
-			String name) {
+  static boolean isName(XMLElement el,
+                        String namespace,
+                        String name) {
 
-    boolean b =  el.getName().equals(name) && 
-      (namespace == null || 
+    boolean b =  el.getName().equals(name) &&
+      (namespace == null ||
        el.getNamespace() == null ||
        namespace.equals(el.getNamespace()));
-    
+
     return b;
   }
 
@@ -1241,15 +1235,15 @@ public class Loader {
 
     return r;
   }
-  
-  
-  
-  
-  
-  //-----------------  R4 ----------------------------------------------------------
-  
+
+
+
+
+
+  //-----------------  R4 -----------------------------------------------------
+
   //TODO finish the impl
-  
+
   static final String METADATA               = "MetaData";
   static final String OCD                    = "OCD";
   static final String AD_E                   = "AD";
@@ -1260,84 +1254,84 @@ public class Loader {
   static final String ICON                   = "Icon";
   static final String VALUE                  = "Value";
   static final String CONTENT                = "Content";
-  
+
   static final String ATTR_LOCALIZATION      = "localization";
-  
+
   static final String ATTR_ID                = "id";
   static final String ATTR_DESCRIPTION       = "description";
-  
+
   static final String ATTR_CARDINALITY       = "cardinality";
   static final String ATTR_MIN               = "min";
   static final String ATTR_MAX               = "max";
   static final String ATTR_DEFAULT           = "default";
   static final String ATTR_REQUIRED          = "required";
-  
+
   static final String ATTR_OCDREF            = "ocdref";
-  
+
   static final String ATTR_ADREF             = "adref";
   static final String ATTR_CONTENT           = "content";
-  
+
   static final String ATTR_FACTORYPID        = "factoryPid";
   static final String ATTR_BUNDLE            = "bundle";
   static final String ATTR_OPTIONAL          = "optional";
   static final String ATTR_MERGE             = "merge";
-  
+
   static final String ATTR_LABEL             = "label";
-  
+
   static final String ATTR_RESOURCE          = "resource";
   static final String ATTR_SIZE              = "size";
-  
-  
+
+
   private static final String CHARACTER_ENCODING = "UTF8";
-  
+
   private static XmlPullParser xml_parser/* = null*/;
-  
+
   private static String content/* = null*/;
-  
+
   private static BundleMetaTypeResource currentBMTR;
   private static MetaData currentMetaData;
   private static OCD currentOCD;
   private static AD currentAD;
   private static Vector currentOptionLabels = new Vector();
   private static Vector currentOptionValues = new Vector();
-  
+
   private static String currentDesignatePid;
   private static String currentDesignateFactoryPid;
   private static String currentObjectOCDref;
-  
+
   private static ServiceTracker confAdminTracker;
   private static Configuration currentConf;
   private static Vector currentAttributes;
   private static AE currentAE;
-  
+
   private static Bundle currentBundle;
-  
+
   public static BundleMetaTypeResource loadBMTIfromUrl(BundleContext bc, Bundle b, URL url) throws IOException {
-	  InputStream in = null;
-	  
-	  if(xml_parser == null){
-		  xml_parser = new KXmlParser();
-		  
-		  confAdminTracker = new ServiceTracker(bc, ConfigurationAdmin.class.getName(), null);
-		  confAdminTracker.open();  
-	  }
-	  
-	  currentBMTR = new BundleMetaTypeResource(b);
-	  
-	  currentBundle = b;
-	  
-	  try {
-	      processDocument(xml_parser, url);
-	      return currentBMTR;
-	  } 
-	  catch (Exception e) {
-	      throw new IOException("Failed to load " + url + " " + e);
-	  } 
+    InputStream in = null;
+
+    if(xml_parser == null){
+      xml_parser = new KXmlParser();
+
+      confAdminTracker = new ServiceTracker(bc, ConfigurationAdmin.class.getName(), null);
+      confAdminTracker.open();
+    }
+
+    currentBMTR = new BundleMetaTypeResource(b);
+
+    currentBundle = b;
+
+    try {
+      processDocument(xml_parser, url);
+      return currentBMTR;
+    }
+    catch (Exception e) {
+      throw new IOException("Failed to load " + url + " " + e);
+    }
 
   } //method
-  
-  private static void processDocument(XmlPullParser xpp, URL url) 
-  	throws XmlPullParserException, IOException {  
+
+  private static void processDocument(XmlPullParser xpp, URL url)
+    throws XmlPullParserException, IOException {
     InputStream in = null;
     try {
       in = url.openStream();
@@ -1368,23 +1362,23 @@ public class Loader {
             // System.out.println("Got exception");
           }
           //  System.out.println("End element: " + name);
-        } else if(eventType == XmlPullParser.TEXT) {   
-          
-          content = xpp.getText().trim(); 	
-          //    System.out.println("Text: " + content);   
+        } else if(eventType == XmlPullParser.TEXT) {
+
+          content = xpp.getText().trim();
+          //    System.out.println("Text: " + content);
         } else{
-          //	  System.out.println("Got something else");
+          //      System.out.println("Got something else");
         }
         try{
           eventType = xpp.next();
         }
         catch(java.io.IOException ex){
-          
+
           //System.out.println(ex); //stream closed for example
           return; //TODO proper handling
         }
         catch(XmlPullParserException e){ //catch also initial call upstairs
-          //System.out.println(e); 
+          //System.out.println(e);
           return; //TODO proper handling
         }
       } while (eventType != XmlPullParser.END_DOCUMENT);
@@ -1398,308 +1392,308 @@ public class Loader {
       }
     }
   } //method
-  
-  
+
+
   //any missing attribute gets the element ignored
   protected static void startElement(String element, URL sourceURL) throws Exception {
-	  int n_attrs = xml_parser.getAttributeCount();
-	  HashMap attrs = new HashMap();
-	  for(int i = 0; i < n_attrs; i++){
-		  attrs.put(xml_parser.getAttributeName(i), xml_parser.getAttributeValue(i));
-	  }
-	  
-	  if (METADATA.equals(element) || element.endsWith(METADATA)) {
-		  String localization = (String) attrs.get(ATTR_LOCALIZATION);
-	      if(localization != null){
-	    	  currentMetaData = new MetaData(localization, currentBundle);
-	      }
-	      else{
-	    	  currentMetaData = new MetaData(currentBundle);
-	      }
-	  } 
-	  else if (OCD.equals(element)) {
-		  String id = (String) attrs.get(ATTR_ID);
-	      if(id == null){
-	    	  return;//TODO not valid: required attribute is missing
-	      }
-	      
-	      String name = (String) attrs.get(ATTR_NAME);
-	      if(name == null){
-              //TODO not valid: required attribute is missing
-	    	  return;
-	      }
-	      
-	      String desc = (String) attrs.get(ATTR_DESCRIPTION);
-	      
-	      currentOCD = new OCD(id, name, desc, sourceURL);
-	  }
-	  else if (AD_E.equals(element)) { 
-		  String id = (String) attrs.get(ATTR_ID);
-	      if(id == null){
-              //TODO not valid: required attribute is missing
-	    	  return;
-	      }
-	      
-	      String name = (String) attrs.get(ATTR_NAME);
-	      String desc = (String) attrs.get(ATTR_DESCRIPTION);
-	      
-	      String typeS = (String) attrs.get(ATTR_TYPE);
-	      int type;
-	      if(typeS != null){
-	    	  type = getType(typeS);
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  return;
-	      }
-	      
-	      String card = (String) attrs.get(ATTR_CARDINALITY);
-	      int cardinality;
-	      if(card != null){
-	    	  cardinality = Integer.parseInt(card);
-	      }
-	      else{
-	    	  cardinality = 0;
-	      }
-	      
-	      String min = (String) attrs.get(ATTR_MIN);
-	      String max = (String) attrs.get(ATTR_MAX);
-	      
-	      String default_attr = (String) attrs.get(ATTR_DEFAULT);
-	      String[] defaults = null;
-	      if(default_attr != null){
-	    	  StringTokenizer st = new StringTokenizer(default_attr, ",");
-	    	  int number = st.countTokens(); 
-	    	  if(number > 0) {
-	    		  defaults = new String[number];
-	    		  for(int i = 0; i < defaults.length; i++){
-	    			  defaults[i] = st.nextToken();
-	    		  }
-	    	  }
-	      }
-	      
-	      String requiredS = (String) attrs.get(ATTR_REQUIRED);
-	      boolean required;
-	      if(requiredS != null){
-	    	  required = Boolean.valueOf(requiredS).booleanValue();
-	      }
-	      else{
-	    	  required = true;
-	      }
-	      
-	      currentAD = new AD(id, type, cardinality, name, desc, defaults, min, max, required);     
-	  }
-	  else if (OBJECT.equals(element)) { 
-		  String ocdref = (String) attrs.get(ATTR_OCDREF);
-	      if(ocdref != null){
-	    	  currentObjectOCDref = ocdref;
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  return;
-	      }      
-	  }
-	  else if (ATTRIBUTE.equals(element)) { 
-		  String adref = (String) attrs.get(ATTR_ADREF);
-	      if(adref != null){
-	    	  currentAE = new AE(adref);
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  return;
-	      }
-	      
-	      String content = (String) attrs.get(ATTR_CONTENT);
-	      if(content != null){
-	    	  StringTokenizer st = new StringTokenizer(content, ",");
-		      while(st.hasMoreTokens()){
-		    	  currentAE.addValue(st.nextToken());
-		      }
-	      }
-	     
-	      currentAttributes.add(currentAE);
-	  }
-	  else if (DESIGNATE.equals(element)) {
-		  //SPCES what do we mean by optional exactly?
-		  boolean optionalB;
-		  String optional = (String) attrs.get(ATTR_OPTIONAL);
-	      if(optional != null){
-	    	  optionalB = Boolean.valueOf(optional).booleanValue();
-	      }
-	      else{
-	    	  optionalB = false;
-	      }
-	      
-		  String pid = (String) attrs.get(ATTR_PID);
-	      if(pid != null){
-	    	  currentDesignatePid = pid;
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  if(!optionalB){
-	    		  return;
-	    	  }
-	      }
-	      
-	      String factoryPid = (String) attrs.get(ATTR_FACTORYPID);
-	      if(factoryPid != null && !factoryPid.equals("")){
-	    	  currentDesignateFactoryPid = factoryPid;
-	    	  currentDesignatePid = null;
-	      }
-	       
-	      String bundle_location = (String) attrs.get(ATTR_BUNDLE);
-	     
-	      if(currentDesignatePid != null){
-	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
-	    	  if(ca != null){
-	    		  currentConf = ca.getConfiguration(currentDesignatePid, bundle_location);
-	      
-	    		  String merge = (String) attrs.get(ATTR_MERGE);
-	    		  
-	    		  if(merge == null || !Boolean.valueOf(merge).booleanValue()){
-	    				  currentConf.delete();
-	    				  currentConf = ca.getConfiguration(currentDesignatePid, bundle_location);
-	    		  }
-	    		  
-	    		  String location = currentConf.getBundleLocation();
-	    		  if(location != null && !location.equals(bundle_location)){
-	    			  //currentConf = null; //will prevent processing
-	    			  currentConf.setBundleLocation(bundle_location);
-	    		  } 
-	    	  }
-	      }
-	      else if (currentDesignateFactoryPid != null){
-	    	  ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
-	    	  if(ca != null){
-	    		  currentConf = ca.createFactoryConfiguration(currentDesignateFactoryPid, bundle_location);
-	    		  //merge is meaningless
-	    	  }
-	      }
-	      
-	      currentAttributes = new Vector();
-	  }
-	  else if (OPTION.equals(element)) {
-		  
-		  String label = (String) attrs.get(ATTR_LABEL);
-	      if(label != null){
-	    	  currentOptionLabels.add(label);
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  return;
-	      }
-	      
-	    
-	      String value = (String) attrs.get(ATTR_VALUE);
-	      if(value != null){
-	    	  currentOptionValues.add(value);
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  return;
-	      }
-	      
-	  }
-          else if (ICON.equals(element)) {
-		  
-		  String resource = (String) attrs.get(ATTR_RESOURCE);
-	      if(resource == null){
-              //TODO not valid: required attribute is missing
-	    	  return;
-	      }
-	      
-	      String sizeS = (String) attrs.get(ATTR_SIZE);
-	      int size;
-	      if(sizeS != null){
-	    	  size = Integer.parseInt(sizeS);
-	      }
-	      else{
-	    	  //TODO not valid: required attribute is missing
-	    	  return;
-	      }
-	      
-	      currentOCD.addIcon(size, resource);
-	  }  
-	  
+    int n_attrs = xml_parser.getAttributeCount();
+    HashMap attrs = new HashMap();
+    for(int i = 0; i < n_attrs; i++){
+      attrs.put(xml_parser.getAttributeName(i), xml_parser.getAttributeValue(i));
+    }
+
+    if (METADATA.equals(element) || element.endsWith(METADATA)) {
+      String localization = (String) attrs.get(ATTR_LOCALIZATION);
+      if(localization != null){
+        currentMetaData = new MetaData(localization, currentBundle);
+      }
+      else{
+        currentMetaData = new MetaData(currentBundle);
+      }
+    }
+    else if (OCD.equals(element)) {
+      String id = (String) attrs.get(ATTR_ID);
+      if(id == null){
+        return;//TODO not valid: required attribute is missing
+      }
+
+      String name = (String) attrs.get(ATTR_NAME);
+      if(name == null){
+        //TODO not valid: required attribute is missing
+        return;
+      }
+
+      String desc = (String) attrs.get(ATTR_DESCRIPTION);
+
+      currentOCD = new OCD(id, name, desc, sourceURL);
+    }
+    else if (AD_E.equals(element)) {
+      String id = (String) attrs.get(ATTR_ID);
+      if(id == null){
+        //TODO not valid: required attribute is missing
+        return;
+      }
+
+      String name = (String) attrs.get(ATTR_NAME);
+      String desc = (String) attrs.get(ATTR_DESCRIPTION);
+
+      String typeS = (String) attrs.get(ATTR_TYPE);
+      int type;
+      if(typeS != null){
+        type = getType(typeS);
+      }
+      else{
+        //TODO not valid: required attribute is missing
+        return;
+      }
+
+      String card = (String) attrs.get(ATTR_CARDINALITY);
+      int cardinality;
+      if(card != null){
+        cardinality = Integer.parseInt(card);
+      }
+      else{
+        cardinality = 0;
+      }
+
+      String min = (String) attrs.get(ATTR_MIN);
+      String max = (String) attrs.get(ATTR_MAX);
+
+      String default_attr = (String) attrs.get(ATTR_DEFAULT);
+      String[] defaults = null;
+      if(default_attr != null){
+        StringTokenizer st = new StringTokenizer(default_attr, ",");
+        int number = st.countTokens();
+        if(number > 0) {
+          defaults = new String[number];
+          for(int i = 0; i < defaults.length; i++){
+            defaults[i] = st.nextToken();
+          }
+        }
+      }
+
+      String requiredS = (String) attrs.get(ATTR_REQUIRED);
+      boolean required;
+      if(requiredS != null){
+        required = Boolean.valueOf(requiredS).booleanValue();
+      }
+      else{
+        required = true;
+      }
+
+      currentAD = new AD(id, type, cardinality, name, desc, defaults, min, max, required);
+    }
+    else if (OBJECT.equals(element)) {
+      String ocdref = (String) attrs.get(ATTR_OCDREF);
+      if(ocdref != null){
+        currentObjectOCDref = ocdref;
+      }
+      else{
+        //TODO not valid: required attribute is missing
+        return;
+      }
+    }
+    else if (ATTRIBUTE.equals(element)) {
+      String adref = (String) attrs.get(ATTR_ADREF);
+      if(adref != null){
+        currentAE = new AE(adref);
+      }
+      else{
+        //TODO not valid: required attribute is missing
+        return;
+      }
+
+      String content = (String) attrs.get(ATTR_CONTENT);
+      if(content != null){
+        StringTokenizer st = new StringTokenizer(content, ",");
+        while(st.hasMoreTokens()){
+          currentAE.addValue(st.nextToken());
+        }
+      }
+
+      currentAttributes.add(currentAE);
+    }
+    else if (DESIGNATE.equals(element)) {
+      //SPCES what do we mean by optional exactly?
+      boolean optionalB;
+      String optional = (String) attrs.get(ATTR_OPTIONAL);
+      if(optional != null){
+        optionalB = Boolean.valueOf(optional).booleanValue();
+      }
+      else{
+        optionalB = false;
+      }
+
+      String pid = (String) attrs.get(ATTR_PID);
+      if(pid != null){
+        currentDesignatePid = pid;
+      }
+      else{
+        //TODO not valid: required attribute is missing
+        if(!optionalB){
+          return;
+        }
+      }
+
+      String factoryPid = (String) attrs.get(ATTR_FACTORYPID);
+      if(factoryPid != null && !factoryPid.equals("")){
+        currentDesignateFactoryPid = factoryPid;
+        currentDesignatePid = null;
+      }
+
+      String bundle_location = (String) attrs.get(ATTR_BUNDLE);
+
+      if(currentDesignatePid != null){
+        ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
+        if(ca != null){
+          currentConf = ca.getConfiguration(currentDesignatePid, bundle_location);
+
+          String merge = (String) attrs.get(ATTR_MERGE);
+
+          if(merge == null || !Boolean.valueOf(merge).booleanValue()){
+            currentConf.delete();
+            currentConf = ca.getConfiguration(currentDesignatePid, bundle_location);
+          }
+
+          String location = currentConf.getBundleLocation();
+          if(location != null && !location.equals(bundle_location)){
+            //currentConf = null; //will prevent processing
+            currentConf.setBundleLocation(bundle_location);
+          }
+        }
+      }
+      else if (currentDesignateFactoryPid != null){
+        ConfigurationAdmin ca = (ConfigurationAdmin) confAdminTracker.getService();
+        if(ca != null){
+          currentConf = ca.createFactoryConfiguration(currentDesignateFactoryPid, bundle_location);
+          //merge is meaningless
+        }
+      }
+
+      currentAttributes = new Vector();
+    }
+    else if (OPTION.equals(element)) {
+
+      String label = (String) attrs.get(ATTR_LABEL);
+      if(label != null){
+        currentOptionLabels.add(label);
+      }
+      else{
+        //TODO not valid: required attribute is missing
+        return;
+      }
+
+
+      String value = (String) attrs.get(ATTR_VALUE);
+      if(value != null){
+        currentOptionValues.add(value);
+      }
+      else{
+        //TODO not valid: required attribute is missing
+        return;
+      }
+
+    }
+    else if (ICON.equals(element)) {
+
+      String resource = (String) attrs.get(ATTR_RESOURCE);
+      if(resource == null){
+        //TODO not valid: required attribute is missing
+        return;
+      }
+
+      String sizeS = (String) attrs.get(ATTR_SIZE);
+      int size;
+      if(sizeS != null){
+        size = Integer.parseInt(sizeS);
+      }
+      else{
+        //TODO not valid: required attribute is missing
+        return;
+      }
+
+      currentOCD.addIcon(size, resource);
+    }
+
   }
-  
-  
-  
-  
+
+
+
+
   protected static void endElement(String element, String content) throws Exception {
-      
-	  if (METADATA.equals(element) || element.endsWith(METADATA)) {
-		  currentBMTR.addMetaData(currentMetaData);
-		  currentMetaData.prepare();
-		  currentMetaData = null;
-	  } 
-	  else if (OCD.equals(element)) {
-		  currentMetaData.addOCD(currentOCD);
-		  currentOCD = null;
-	  }
-	  else if (AD_E.equals(element)) {
-		  currentOCD.add(currentAD, currentAD.getRequired());
-		  String[] optionValues = null;
-		  String[] optionLabels = null;
-		  int number;
-		  if((number = currentOptionValues.size()) > 0){
-			  optionValues = (String[]) currentOptionValues.toArray(new String[number]);
-			  //same number
-			  optionLabels = (String[]) currentOptionLabels.toArray(new String[number]);
-		  }
-		  currentAD.setOptions(optionValues, optionLabels);
-		  currentOptionValues.removeAllElements();
-		  currentOptionLabels.removeAllElements();
-		  currentAD = null;
-	  }
-	  else if (DESIGNATE.equals(element)) {
-		  //MetaInfo
-		  currentMetaData.designate(currentDesignateFactoryPid, currentDesignatePid,
-				                    currentObjectOCDref, currentConf, currentAttributes);
-	      
-		  currentDesignatePid = null;
-		  currentDesignateFactoryPid = null;
-		  currentAttributes = null;
-		  currentObjectOCDref = null;
-		  currentConf = null;
-	  } //seems like not sure yet see: http://membercvs.osgi.org/bugs/show_bug.cgi?id=129
-	  else if (VALUE.equals(element) || CONTENT.equals(element)) {
-		  currentAE.addValue(content);
-	  }  
+
+    if (METADATA.equals(element) || element.endsWith(METADATA)) {
+      currentBMTR.addMetaData(currentMetaData);
+      currentMetaData.prepare();
+      currentMetaData = null;
+    }
+    else if (OCD.equals(element)) {
+      currentMetaData.addOCD(currentOCD);
+      currentOCD = null;
+    }
+    else if (AD_E.equals(element)) {
+      currentOCD.add(currentAD, currentAD.getRequired());
+      String[] optionValues = null;
+      String[] optionLabels = null;
+      int number;
+      if((number = currentOptionValues.size()) > 0){
+        optionValues = (String[]) currentOptionValues.toArray(new String[number]);
+        //same number
+        optionLabels = (String[]) currentOptionLabels.toArray(new String[number]);
+      }
+      currentAD.setOptions(optionValues, optionLabels);
+      currentOptionValues.removeAllElements();
+      currentOptionLabels.removeAllElements();
+      currentAD = null;
+    }
+    else if (DESIGNATE.equals(element)) {
+      //MetaInfo
+      currentMetaData.designate(currentDesignateFactoryPid, currentDesignatePid,
+                                currentObjectOCDref, currentConf, currentAttributes);
+
+      currentDesignatePid = null;
+      currentDesignateFactoryPid = null;
+      currentAttributes = null;
+      currentObjectOCDref = null;
+      currentConf = null;
+    } //seems like not sure yet see: http://membercvs.osgi.org/bugs/show_bug.cgi?id=129
+    else if (VALUE.equals(element) || CONTENT.equals(element)) {
+      currentAE.addValue(content);
+    }
   }
-  
+
   static int getType(String strType) {
-	    int type = -1;
+    int type = -1;
 
-	    if("Integer".equals(strType)) {
-	      type = AttributeDefinition.INTEGER;
-	    } 
-	    else if("String".equals(strType)) {
-	      type = AttributeDefinition.STRING;
-	    } 
-	    else if("Boolean".equals(strType)) {
-	      type = AttributeDefinition.BOOLEAN;
-	    } 
-	    else if("Float".equals(strType)) {
-	      type = AttributeDefinition.FLOAT;
-	    } 
-	    else if("Long".equals(strType)) {
-	      type = AttributeDefinition.LONG;
-	    } 
-	    else if("Short".equals(strType)) {
-	      type = AttributeDefinition.SHORT;
-	    } 
-	    else if("Char".equals(strType)) {
-	      type = AttributeDefinition.CHARACTER;
-	    } 
-	    else if("Double".equals(strType)) {
-	      type = AttributeDefinition.DOUBLE;
-	    } 
-	    else {
-	      throw new IllegalArgumentException("Unsupported type '" + strType);
-	    }
+    if("Integer".equals(strType)) {
+      type = AttributeDefinition.INTEGER;
+    }
+    else if("String".equals(strType)) {
+      type = AttributeDefinition.STRING;
+    }
+    else if("Boolean".equals(strType)) {
+      type = AttributeDefinition.BOOLEAN;
+    }
+    else if("Float".equals(strType)) {
+      type = AttributeDefinition.FLOAT;
+    }
+    else if("Long".equals(strType)) {
+      type = AttributeDefinition.LONG;
+    }
+    else if("Short".equals(strType)) {
+      type = AttributeDefinition.SHORT;
+    }
+    else if("Char".equals(strType)) {
+      type = AttributeDefinition.CHARACTER;
+    }
+    else if("Double".equals(strType)) {
+      type = AttributeDefinition.DOUBLE;
+    }
+    else {
+      throw new IllegalArgumentException("Unsupported type '" + strType);
+    }
 
-	    return type;
+    return type;
   }
 
 } //class
@@ -1733,10 +1727,10 @@ class CMConfig {
   public String  iconURL;
 
   public CMConfig(String pid,
-		  AD[] ads, 
-		  String desc,
-		  String iconURL,
-		  int maxInstances) {
+                  AD[] ads,
+                  String desc,
+                  String iconURL,
+                  int maxInstances) {
     this.pid          = pid;
     this.ads          = ads;
     this.desc         = desc != null ? desc : "";
@@ -1756,10 +1750,10 @@ class CMConfig {
     for(int i = 0; i < ads.length; i++) {
       sb.append(ads[i]);
       if(i < ads.length - 1) {
-	sb.append(", ");
+        sb.append(", ");
       }
     }
-    
+
     return sb.toString();
   }
 }
