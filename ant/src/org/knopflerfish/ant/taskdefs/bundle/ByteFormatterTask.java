@@ -202,8 +202,7 @@ public class ByteFormatterTask extends Task {
   static final long step = 1024;
 
   /**
-   * Format value using ki, Mi, Gi, ... using multiples of 1024. I.e.,
-   * binary "bytes".
+   * Performs the requested formatting.
    *
    * @throws BuildException if the manifest cannot be written.
    */
