@@ -162,7 +162,7 @@ public class MultiListener implements LogListener,
       Bundle bundle = bundleEvent.getBundle();
       putProp(props, EventConstants.EVENT, bundleEvent);
       putProp(props, "bundle.id", new Long(bundle.getBundleId()));
-      putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//os?ker p? denna
+      putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getSymbolicName());
       putProp(props, "bundle", bundle);
       /* Tries posting the event once the properties are set */
       try {
