@@ -47,7 +47,8 @@ import org.knopflerfish.osgi.bundle.bundlerepository.VersionRange;
 public class PackageDeclaration
 {
   public static final String PACKAGE_ATTR = "package";
-  public static final String VERSION_ATTR = "specification-version";
+  public static final String VERSION_ATTR = "version";
+  public static final String SPEC_VERSION_ATTR = "specification-version";
 
   private String m_name = null;
   // Exported packages uses a version

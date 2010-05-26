@@ -929,6 +929,8 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
       // Get package name and version.
       String name = (String) pkgMap.get(PackageDeclaration.PACKAGE_ATTR);
       String version = (String) pkgMap.get(PackageDeclaration.VERSION_ATTR);
+      if (null==version)
+        version = (String) pkgMap.get(PackageDeclaration.SPEC_VERSION_ATTR);
 
       if (name != null) {
         return new PackageDeclaration(name, version, versionRange);
