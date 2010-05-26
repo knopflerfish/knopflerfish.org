@@ -424,7 +424,7 @@ public class Main
     }
     // Since we must have all framework properties in the
     // fwProps-map before creating the framework instance we must
-    // first handle all args that define proeprties. I.e., args
+    // first handle all args that define properties. I.e., args
     // starting wiht '-D' and '-F'.
     processProperties(args);
     if(verbosity > 5) {
