@@ -69,7 +69,8 @@ axis-osgi 0.1.0.2
    java.util.Vector since axis provides special mappers for these
    classes.
 
-Bundlerepository 3.0.1
+Bundlerepository 3.1.0
+ - Added support for version ranges when resolving imported packages.
  - Switched to tango icon set.
 
 Command 0.0.1
