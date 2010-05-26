@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2008, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -139,7 +139,7 @@ public class MultiListener implements LogListener,
       Bundle bundle = bundleEvent.getBundle();
       putProp(props, EventConstants.EVENT, bundleEvent);
       putProp(props, "bundle.id", new Long(bundle.getBundleId()));
-      putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getLocation());//os?ker p? denna
+      putProp(props, EventConstants.BUNDLE_SYMBOLICNAME, bundle.getSymbolicName());
       putProp(props, "bundle", bundle);
       /* Tries posting the event once the properties are set */
       try {
