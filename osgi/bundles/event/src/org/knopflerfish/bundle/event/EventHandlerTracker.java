@@ -40,10 +40,8 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
+import java.util.*;
+
 
 public class EventHandlerTracker implements ServiceTrackerCustomizer {
   private final BundleContext bc;
@@ -108,46 +106,48 @@ public class EventHandlerTracker implements ServiceTrackerCustomizer {
     }
   }
 
-  private static void addSetMatching(Set result, Hashtable h, String topic) {
-    Set matching = (Set)h.get(topic);
-    if(matching != null) {
-      synchronized(matching) {
+
+  private static void addSetMatching(Set result, Set matching) {
+    if (matching != null) {
+      synchronized (matching) {
         result.addAll(matching);
       }
     }
   }
 
+
   public Set getHandlersMatching(String topic) {
     Set result = new HashSet();
-
-    addSetMatching(result, topicsToHandlers, topic);
-
-
-    Enumeration wildcards = wildcardsToHandlers.keys();
-    while(wildcards.hasMoreElements()) {
-      String wildcard = (String)wildcards.nextElement();
-      if(topic.startsWith(wildcard)) {
-        addSetMatching(result, wildcardsToHandlers, wildcard);
+    addSetMatching(result, (Set)topicsToHandlers.get(topic));
+    synchronized (wildcardsToHandlers) {
+      Iterator wildcards = wildcardsToHandlers.entrySet().iterator(); 
+      while (wildcards.hasNext()) {
+        Map.Entry we = (Map.Entry)wildcards.next();
+        String wildcard = (String)we.getKey();
+        if (topic.startsWith(wildcard)) {
+          addSetMatching(result, (Set)we.getValue());
+        }
       }
     }
-
-
-
     return result;
   }
 
+
   public boolean anyHandlersMatching(String topic) {
     Set matching = (Set)topicsToHandlers.get(topic);
-    if(matching != null && !matching.isEmpty()) return true;
-
-    Enumeration wildcards = wildcardsToHandlers.keys();
-    while(wildcards.hasMoreElements()) {
-      String wildcard = (String)wildcards.nextElement();
-      if(topic.startsWith(wildcard)) {
-        matching = (Set)topicsToHandlers.get(wildcard);
-        if(matching != null && !matching.isEmpty()) return true;
+    if (matching != null && !matching.isEmpty()) {
+      return true;
+    }
+    synchronized (wildcardsToHandlers) {
+      Iterator wildcards = wildcardsToHandlers.entrySet().iterator(); 
+      while (wildcards.hasNext()) {
+        Map.Entry we = (Map.Entry)wildcards.next();
+        String wildcard = (String)we.getKey();
+        if (topic.startsWith(wildcard)  && !((Set)we.getValue()).isEmpty()) {
+          return true;
+        }
       }
     }
-    return false;
-  }
+    return false;}
+    
 }
