@@ -51,7 +51,7 @@ import org.knopflerfish.service.console.*;
 
 /**
  * Export the following OBR commands as a KF console command group "obr"
- * 
+ *
  * <pre>
  *  urls [<repository-file-url> ...]
  *  list [<string> ...]
@@ -75,14 +75,14 @@ public class ObrCommandGroup extends CommandGroupAdapter
     this.bc  = bc;
 
     ServiceReference sr = bc.getServiceReference(BundleRepositoryService.class.getName());
-    
+
     this.brs = (BundleRepositoryService)bc.getService(sr);
 
     if(this.brs == null) {
       throw new RuntimeException("BundleRepositoryService must be available");
     }
   }
-  
+
   public void register() {
     if(reg == null) {
       Hashtable props = new Hashtable();
@@ -104,10 +104,10 @@ public class ObrCommandGroup extends CommandGroupAdapter
   public final static String [] HELP_URLS = new String [] {
     "List or set repository URLs",
     "<url> repository URL" };
-  
+
   public int cmdUrls(Dictionary opts, Reader in, PrintWriter out, Session session) {
     String[] urls = (String[])opts.get("url");
-    
+
     if(urls != null && urls.length > 0) {
       brs.setRepositoryURLs(urls);
     } else {
@@ -155,8 +155,8 @@ public class ObrCommandGroup extends CommandGroupAdapter
 	    String version =
 	      (String) record.getAttribute(BundleRecord.BUNDLE_VERSION);
 	    boolean bCit = true; // name.indexOf(" ") != -1;
-	    
-	    
+
+
 	    StringBuffer sb = new StringBuffer();
 	    sb.append(" ");
 	    sb.append(Integer.toString(i + 1));
@@ -182,7 +182,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
 	}
       }
     }
-    
+
     if (nCount == 0)      {
       out.println("No matching bundles.");
     }
@@ -195,7 +195,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
     }
     return sb;
   }
-  
+
   public final static String USAGE_INFO = "<name;version> ...";
   public final static String [] HELP_INFO = new String [] {
     "Show bundle info",
@@ -207,49 +207,48 @@ public class ObrCommandGroup extends CommandGroupAdapter
     String[] infos = (String[])opts.get("name;version");
 
     ParsedCommand pc = parseInfo(infos);
-    for (int i = 0; (pc != null) && (i < pc.getTargetCount()); i++) { 
+    for (int i = 0; (pc != null) && (i < pc.getTargetCount()); i++) {
       BundleRecord record = null;
-      
+
       // If there is no version, then try to retrieve by
       // name, but error if there are multiple versions.
       if (pc.getTargetVersion(i) == null) {
-	BundleRecord[] records =
-	  brs.getBundleRecords(pc.getTargetName(i));
-	
-	if (records.length == 1) {
-	  record = records[0];
-	} else {
-	  
-	}
-      } else {
-	record = 
-	  brs.getBundleRecord(pc.getTargetName(i),
-				Util.parseVersionString(
-							pc.getTargetVersion(i)));
-      }
-      
-      if (record != null) {
-	PrintStream outStream = new PrintWriterStream(outPW);
-	
-	record.printAttributes(outStream);
-      } else {
-	outPW.println("Unknown bundle or ambiguous version: "
-		      + pc.getTargetName(i));
+        BundleRecord[] records =
+          brs.getBundleRecords(pc.getTargetName(i));
 
-	for (int j = 0; j < brs.getBundleRecordCount(); j++) {
-	  BundleRecord r2 = brs.getBundleRecord(j);
-	  String name    = (String) r2.getAttribute(BundleRecord.BUNDLE_NAME);
-	  String version = (String) r2.getAttribute(BundleRecord.BUNDLE_VERSION);
-	  if(name.equals(pc.getTargetName(i))) {
-	    outPW.println(" \"" + name + ";" + version + "\"");
-	  }
-	}
+        if (records.length == 1) {
+          record = records[0];
+        } else {
+
+        }
+      } else {
+        record =
+          brs.getBundleRecord(pc.getTargetName(i),
+                              new Version(pc.getTargetVersion(i)));
+      }
+
+      if (record != null) {
+        PrintStream outStream = new PrintWriterStream(outPW);
+
+        record.printAttributes(outStream);
+      } else {
+        outPW.println("Unknown bundle or ambiguous version: "
+                      + pc.getTargetName(i));
+
+        for (int j = 0; j < brs.getBundleRecordCount(); j++) {
+          BundleRecord r2 = brs.getBundleRecord(j);
+          String name    = (String) r2.getAttribute(BundleRecord.BUNDLE_NAME);
+          String version = (String) r2.getAttribute(BundleRecord.BUNDLE_VERSION);
+          if(name.equals(pc.getTargetName(i))) {
+            outPW.println(" \"" + name + ";" + version + "\"");
+          }
+        }
       }
       outPW.println("");
     }
     return 0;
   }
-  
+
 
   public final static String USAGE_DEPLOY = "[-nodeps] <name;version> ...";
   public final static String [] HELP_DEPLOY = new String [] {
@@ -262,21 +261,21 @@ public class ObrCommandGroup extends CommandGroupAdapter
 
     ParsedCommand pc = parseInfo(infos);
     boolean bResolve = (null == opts.get("-nodeps"));
-    
+
     for (int i = 0; (pc != null) && (i < pc.getTargetCount()); i++) {
       // Find either the local bundle or the bundle
       // record so we can get the update location attribute.
       String updateLocation = null;
-      
-      // First look for update location locally.            
+
+      // First look for update location locally.
       Bundle bundle =
 	findLocalBundle(pc.getTargetName(i), pc.getTargetVersion(i));
       if (bundle != null) {
 	updateLocation = (String)
 	  bundle.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
       }
-      
-      // If update location wasn't found locally, look in repository.            
+
+      // If update location wasn't found locally, look in repository.
       if (updateLocation == null) {
 	BundleRecord record =
 	  findBundleRecord(pc.getTargetName(i), pc.getTargetVersion(i));
@@ -285,10 +284,10 @@ public class ObrCommandGroup extends CommandGroupAdapter
 	    record.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
 	}
       }
-      
+
       if (updateLocation != null) {
 	PrintStream outStream = new PrintWriterStream(outPW);
-	
+
 	brs.deployBundle(
 			   outStream, // Output stream.
 			   outStream, // Error stream.
@@ -303,56 +302,56 @@ public class ObrCommandGroup extends CommandGroupAdapter
     }
     return 0;
   }
-  
+
   public final static String USAGE_INSTALL = "[-nodeps] <name;version> ...";
   public final static String [] HELP_INSTALL = new String [] {
     "Install bundle",
     "name;version - name and optional version.",
     "               If name starts with '=', use number from obr list",
 };
-  
+
   public int cmdInstall(Dictionary opts, Reader in, PrintWriter out, Session session) {
     return doInstallOrStart(opts, in, out, session, false);
   }
-  
+
   public final static String USAGE_START = "[-nodeps] <name;version> ...";
   public final static String [] HELP_START = new String [] {
     "Install and start bundle",
     "name;version - name and optional version.",
     "               If name starts with =, use number from obr list",
 };
-  
+
   public int cmdStart(Dictionary opts, Reader in, PrintWriter out, Session session) {
     return doInstallOrStart(opts, in, out, session, true);
   }
-  
+
   public int doInstallOrStart(Dictionary opts, Reader in, PrintWriter outPW, Session session, boolean bStart) {
     String[] infos = (String[])opts.get("name;version");
 
     ParsedCommand pc = parseInfo(infos);
     boolean bResolve = (null == opts.get("-nodeps"));
-    
+
 
     // Loop through each local target and try to find
     // the corresponding bundle record from the repository.
     for (int targetIdx = 0;
 	 (pc != null) && (targetIdx < pc.getTargetCount());
-	 targetIdx++)                
+	 targetIdx++)
       {
 	// Get the current target's name and version.
 	String targetName = pc.getTargetName(targetIdx);
 	String targetVersionString = pc.getTargetVersion(targetIdx);
-	
+
 	// Make sure the bundle is not already installed.
 	Bundle bundle = findLocalBundle(targetName, targetVersionString);
 	if (bundle == null) {
 	  // Find the targets bundle record.
 	  BundleRecord record = findBundleRecord(targetName, targetVersionString);
-	  
+
 	  // If we found a record, try to install it.
 	  if (record != null) {
 	    PrintStream outStream = new PrintWriterStream(outPW);
-	    
+
 	    brs.deployBundle(
 			       outStream, // Output stream.
 			       outStream, // Error stream.
@@ -369,20 +368,20 @@ public class ObrCommandGroup extends CommandGroupAdapter
       }
     return 0;
   }
-  
+
   public final static String USAGE_UPDATE = "[-nodeps] [-check] <name;version> ...";
   public final static String [] HELP_UPDATE = new String [] {
     "Update bundle",
     "name;version - name and optional version" };
-  
+
   public int cmdUpdate(Dictionary opts, Reader in, PrintWriter outPW, Session session) throws IOException {
     String[] infos    = (String[])opts.get("name;version");
     boolean  bCheck   = (null == opts.get("-check"));
     boolean  bResolve = (null == opts.get("-nodeps"));
-    
+
     ParsedCommand pc  = parseInfo(infos);
     PrintStream   out = new PrintWriterStream(outPW);
-    
+
     if (bCheck) {
       updateCheck(out, out);
     } else {
@@ -390,15 +389,15 @@ public class ObrCommandGroup extends CommandGroupAdapter
       // the corresponding locally installed bundle.
       for (int targetIdx = 0;
 	   (pc != null) && (targetIdx < pc.getTargetCount());
-	   targetIdx++)                
+	   targetIdx++)
 	{
 	  // Get the current target's name and version.
 	  String targetName = pc.getTargetName(targetIdx);
 	  String targetVersionString = pc.getTargetVersion(targetIdx);
-	  
+
 	  // Find corresponding locally installed bundle.
 	  Bundle bundle = findLocalBundle(targetName, targetVersionString);
-	  
+
 	  // If we found a locally installed bundle, then
 	  // try to update it.
 	  if (bundle != null) {
@@ -415,91 +414,86 @@ public class ObrCommandGroup extends CommandGroupAdapter
     }
     return 0;
   }
-  
+
   private void updateCheck(PrintStream out, PrintStream err)
     throws IOException
   {
     Bundle[] bundles = bc.getBundles();
-    
+
     // Loop through each local target and try to find
     // the corresponding locally installed bundle.
     for (int bundleIdx = 0;
-	 (bundles != null) && (bundleIdx < bundles.length);
-	 bundleIdx++)
+         (bundles != null) && (bundleIdx < bundles.length);
+         bundleIdx++)
       {
-	// Ignore the system bundle.
-	if (bundles[bundleIdx].getBundleId() == 0) {
-	  continue;
-	}
-	
-	// Get the local bundle's update location.
-	String localLoc = (String)
-	  bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
-	if (localLoc == null) {
-	  // Without an update location, there is no way to
-	  // check for an update, so ignore the bundle.
-	  continue;
-	}
-	
-	// Get the local bundle's version.
-	String localVersion = (String)
-	  bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_VERSION);
-	localVersion = (localVersion == null) ? "0.0.0" : localVersion;
-	
-	// Get the matching repository bundle records.
-	BundleRecord[] records = brs.getBundleRecords(
-							(String) bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_NAME));
-	
-	// Loop through all records to see if there is an update.
-	for (int recordIdx = 0;
-	     (records != null) && (recordIdx < records.length);
-	     recordIdx++)
-	  {
-	    String remoteLoc = (String)
-	      records[recordIdx].getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
-	    if (remoteLoc == null)  {
-	      continue;
-	    }
-	    
-	    // If the update locations are equal, then compare versions.
-	    if (remoteLoc.equals(localLoc)) {
-	      String remoteVersion = (String)
-		records[recordIdx].getAttribute(BundleRecord.BUNDLE_VERSION);
-	      if (remoteVersion != null) {
-		int result = 
-		  Util.compareVersion(Util.parseVersionString(remoteVersion),
-				      Util.parseVersionString(localVersion));
-		if (result > 0) {
-		  out.println(
-			      records[recordIdx].getAttribute(BundleRecord.BUNDLE_NAME)
-			      + " update available.");
-		  break;
-		}
-	      }
-	    }
-	  }
+        // Ignore the system bundle.
+        if (bundles[bundleIdx].getBundleId() == 0) {
+          continue;
+        }
+
+        // Get the local bundle's update location.
+        String localLoc = (String)
+          bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
+        if (localLoc == null) {
+          // Without an update location, there is no way to
+          // check for an update, so ignore the bundle.
+          continue;
+        }
+
+        // Get the local bundle's version.
+        Version localVersion = bundles[bundleIdx].getVersion();
+
+        // Get the matching repository bundle records.
+        BundleRecord[] records = brs.getBundleRecords((String) bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_NAME));
+
+        // Loop through all records to see if there is an update.
+        for (int recordIdx = 0;
+             (records != null) && (recordIdx < records.length);
+             recordIdx++)
+          {
+            String remoteLoc = (String)
+              records[recordIdx].getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
+            if (remoteLoc == null)  {
+              continue;
+            }
+
+            // If the update locations are equal, then compare versions.
+            if (remoteLoc.equals(localLoc)) {
+              String remoteVersionS = (String)
+                records[recordIdx].getAttribute(BundleRecord.BUNDLE_VERSION);
+              if (remoteVersionS != null) {
+                Version remoteVersion = new Version(remoteVersionS);
+                int result = remoteVersion.compareTo(localVersion);
+                if (result > 0) {
+                  out.println(records[recordIdx].getAttribute(BundleRecord.BUNDLE_NAME)
+                              + " update available.");
+                  break;
+                }
+              }
+            }
+          }
       }
   }
-  
+
   /*
   public final static String USAGE_SOURCE = "[-x] <localDir> <name;version> ...";
   public final static String [] HELP_SOURCE = new String [] {
     "Get source for a bundle",
     "name;version - name and optional version" };
-  
+
   public int cmdSource(Dictionary opts, Reader in, PrintWriter outPW, Session session) {
     String[] infos   = (String[])opts.get("name;version");
     String localDir  = (String)opts.get("localDir");
     boolean bExtract = opts.get("-x") != null;
-    
+
     if(localDir == null) {
       localDir = ".";
     }
-    
+
     ParsedCommand pc = parseInfo(infos);
 
     PrintStream out = new PrintWriterStream(outPW);
-    
+
     for (int i = 0; i < pc.getTargetCount(); i++)
       {
 	BundleRecord record = findBundleRecord(
@@ -509,10 +503,10 @@ public class ObrCommandGroup extends CommandGroupAdapter
 	    record.getAttribute(BundleRecord.BUNDLE_SOURCEURL);
 	  if (srcURL != null) {
 	    FileUtil.downloadSource(
-				    out, 
-				    out, 
-				    srcURL, 
-				    localDir, 
+				    out,
+				    out,
+				    srcURL,
+				    localDir,
 				    bExtract);
 	  } else {
 	    outPW.println("Missing source URL: " + pc.getTargetName(i));
@@ -526,7 +520,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
     return 0;
   }
   */
-  
+
   private BundleRecord findBundleRecord(String name, String versionString)
   {
     BundleRecord record = null;
@@ -534,127 +528,104 @@ public class ObrCommandGroup extends CommandGroupAdapter
     if(name.startsWith("=")) {
       int id = -1;
       try {
-	id = Integer.parseInt(name.substring(1));
-	record = brs.getBundleRecord(id - 1);
-	if(record != null) {
-	  System.out.println(id + " " + record.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION));
-	  return record;
-	}
+        id = Integer.parseInt(name.substring(1));
+        record = brs.getBundleRecord(id - 1);
+        if(record != null) {
+          System.out.println(id + " " + record.getAttribute(BundleRecord.BUNDLE_UPDATELOCATION));
+          return record;
+        }
       } catch (Exception ignored) {
       }
     }
 
     // If there is no version, then try to retrieve by
     // name, but error if there are multiple versions.
-    if (versionString == null)
-      {
-	BundleRecord[] records =
-	  brs.getBundleRecords(name);
-	if (records.length == 1)
-	  {
-	    record = records[0];
-	  }
+    if (versionString == null) {
+      BundleRecord[] records =
+        brs.getBundleRecords(name);
+      if (records.length == 1) {
+        record = records[0];
       }
-    else
-      {
-	record = brs.getBundleRecord(
-				     name, Util.parseVersionString(versionString));
-      }
-    
+    } else {
+      record = brs.getBundleRecord(name, new Version(versionString));
+    }
+
     return record;
   }
-  
-  
+
+
   private Bundle findLocalBundle(String name, String versionString)
   {
     Bundle bundle = null;
-    
+
     // Get the name only if there is no version, but error
     // if there are multiple matches for the same name.
-    if (versionString == null)
-      {
-	// Perhaps the target name is a bundle ID and
-	// not a name, so try to interpret as a long.
-	try
-	  {
-	    bundle = bc.getBundle(Long.parseLong(name));
-	  }
-	catch (NumberFormatException ex)
-	  {
-	    // The bundle is not a number, so look for a local
-	    // bundle with the same name.
-	    Bundle[] matchingBundles = findLocalBundlesByName(name);
-	    
-	    // If only one matches, then select is.
-	    if (matchingBundles.length == 1)
-                {
-		  bundle = matchingBundles[0];
-                }
-	  }
+    if (versionString == null) {
+      // Perhaps the target name is a bundle ID and
+      // not a name, so try to interpret as a long.
+      try {
+        bundle = bc.getBundle(Long.parseLong(name));
+      } catch (NumberFormatException ex) {
+        // The bundle is not a number, so look for a local
+        // bundle with the same name.
+        Bundle[] matchingBundles = findLocalBundlesByName(name);
+
+        // If only one matches, then select is.
+        if (matchingBundles.length == 1) {
+          bundle = matchingBundles[0];
+        }
       }
-    else
-      {
-	// Find the local bundle by name and version.
-	bundle = findLocalBundleByVersion(
-					  name, Util.parseVersionString(versionString));
-      }
-    
+    } else {
+      // Find the local bundle by name and version.
+      bundle = findLocalBundleByVersion( name, new Version(versionString));
+    }
+
     return bundle;
   }
 
-  private Bundle findLocalBundleByVersion(String name, int[] version)
+  private Bundle findLocalBundleByVersion(String name, Version version)
   {
     // Get bundles with matching name.
     Bundle[] targets = findLocalBundlesByName(name);
-    
+
     // Find bundle with matching version.
-    if (targets.length > 0)
-      {
-	for (int i = 0; i < targets.length; i++)
-	  {
-	    String targetName = (String)
-	      targets[i].getHeaders().get(BundleRecord.BUNDLE_NAME);
-	    int[] targetVersion = Util.parseVersionString((String)
-							  targets[i].getHeaders().get(BundleRecord.BUNDLE_VERSION));
-            
-	    if ((targetName != null) &&
-		targetName.equalsIgnoreCase(name) &&
-		(Util.compareVersion(targetVersion, version) == 0))
-	      {
-		return targets[i];
-	      }
-	  }
+    if (targets.length > 0) {
+      for (int i = 0; i < targets.length; i++) {
+        String targetName = (String)
+          targets[i].getHeaders().get(BundleRecord.BUNDLE_NAME);
+        Version targetVersion = targets[i].getVersion();
+        if ((targetName != null) && targetName.equalsIgnoreCase(name) &&
+            0==targetVersion.compareTo(version)) {
+          return targets[i];
+        }
       }
-    
+    }
     return null;
   }
-  
+
   private Bundle[] findLocalBundlesByName(String name)
   {
     // Get local bundles.
     Bundle[] bundles = bc.getBundles();
-    
+
     // Find bundles with matching name.
     Bundle[] targets = new Bundle[0];
-    for (int i = 0; i < bundles.length; i++)
-        {
-            String targetName = (String)
-                bundles[i].getHeaders().get(BundleRecord.BUNDLE_NAME);
-            if (targetName == null)
-            {
-                targetName = bundles[i].getLocation();
-            }
-            if ((targetName != null) && targetName.equalsIgnoreCase(name))
-            {
-                Bundle[] newTargets = new Bundle[targets.length + 1];
-                System.arraycopy(targets, 0, newTargets, 0, targets.length);
-                newTargets[targets.length] = bundles[i];
-                targets = newTargets;
-            }
-        }
-
-        return targets;
+    for (int i = 0; i < bundles.length; i++) {
+      String targetName = (String)
+        bundles[i].getHeaders().get(BundleRecord.BUNDLE_NAME);
+      if (targetName == null) {
+        targetName = bundles[i].getLocation();
+      }
+      if ((targetName != null) && targetName.equalsIgnoreCase(name)) {
+        Bundle[] newTargets = new Bundle[targets.length + 1];
+        System.arraycopy(targets, 0, newTargets, 0, targets.length);
+        newTargets[targets.length] = bundles[i];
+        targets = newTargets;
+      }
     }
+
+    return targets;
+  }
 
 
   ParsedCommand parseInfo(String[] infos) {
@@ -672,19 +643,19 @@ public class ObrCommandGroup extends CommandGroupAdapter
 
     return pc;
   }
-  
+
   private static class ParsedCommand
   {
     private static final int NAME_IDX = 0;
     private static final int VERSION_IDX = 1;
-    
+
     private String[][] m_targets = new String[0][];
-    
+
     public int getTargetCount()
     {
       return m_targets.length;
     }
-    
+
     public String getTargetName(int i)
     {
       if ((i < 0) || (i >= getTargetCount()))
@@ -693,7 +664,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
 	}
       return m_targets[i][NAME_IDX];
     }
-    
+
     public String getTargetVersion(int i)
     {
       if ((i < 0) || (i >= getTargetCount()))
@@ -702,7 +673,7 @@ public class ObrCommandGroup extends CommandGroupAdapter
 	}
       return m_targets[i][VERSION_IDX];
     }
-    
+
     public void addTarget(String name, String version)
     {
       String[][] newTargets = new String[m_targets.length + 1][];
@@ -711,14 +682,14 @@ public class ObrCommandGroup extends CommandGroupAdapter
       m_targets = newTargets;
     }
   }
-  
+
   /**
    * Wrap a PrintWriter into a PrintStream by overriding all methods.
    */
   public static class PrintWriterStream extends PrintStream {
     PrintWriter pw;
     boolean     bClose = false;
-    
+
     /**
      * @param pw underlying writer to which all data is send to
      * @param bClose if <tt>true</tt> close the underlying writer
@@ -729,14 +700,14 @@ public class ObrCommandGroup extends CommandGroupAdapter
       this.pw     = pw;
       this.bClose = bClose;
     }
-    
+
     /**
      * Same as <tt>PrintWriterStream(pw, false)</tt>
      */
     public PrintWriterStream(PrintWriter pw) {
       this(pw, false);
     }
-    
+
     /**
      * Only closes the underlying stream if
      * constructued with the close flag.
@@ -747,43 +718,43 @@ public class ObrCommandGroup extends CommandGroupAdapter
 	pw.close();
       }
     }
-    
+
     /**
      * Write using the trivial, but possibly not always correct translation:
      * <pre>
      *  write((int) byte)
      * </pre>
      */
-    public void write(byte[] buf, int off, int len) { 
+    public void write(byte[] buf, int off, int len) {
       for(int i = off; i < off + len; i++) {
 	write((int)buf[i]);
       }
-    } 
-    
-    public void write(int b) { 
+    }
+
+    public void write(int b) {
       pw.write(b);
-    } 
-    
+    }
+
     public boolean checkError() {
       return pw.checkError();
     }
-    
+
     public void flush() {
       pw.flush();
     }
-    
+
     public void print(boolean b) {
       pw.print(b);
     }
-    
+
     public void print(char c) {
       pw.print(c);
     }
-    
+
     public void print(char[] s) {
       pw.print(s);
     }
-    
+
     public void print(double d) {
       pw.print(d);
     }
@@ -791,65 +762,62 @@ public class ObrCommandGroup extends CommandGroupAdapter
     public void print(float f) {
       pw.print(f);
     }
-    
+
     public void print(int i) {
       pw.print(i);
     }
-    
+
     public void print(long l) {
       pw.print(l);
     }
-    
+
     public void print(Object obj) {
       pw.print(obj);
     }
-    
+
     public void print(String s) {
       pw.print(s);
     }
-    
+
     public void println() {
       pw.println();
     }
-    
+
     public void println(boolean x) {
       pw.println(x);
     }
-    
+
     public void println(char x) {
       pw.println(x);
     }
-    
-    public void println(char[] x) { 
+
+    public void println(char[] x) {
       pw.println(x);
     }
-    
-    public void println(double x) { 
-      pw.println(x);
-    } 
-    
-    public void println(float x) { 
+
+    public void println(double x) {
       pw.println(x);
     }
-    
-    public void println(int x) { 
+
+    public void println(float x) {
       pw.println(x);
     }
-    
-    public void println(long x) { 
+
+    public void println(int x) {
       pw.println(x);
     }
-    
-    public void println(Object x) { 
+
+    public void println(long x) {
       pw.println(x);
     }
-    
-    public void println(String x) { 
+
+    public void println(Object x) {
       pw.println(x);
-    } 
+    }
+
+    public void println(String x) {
+      pw.println(x);
+    }
   }
 
 }
-
-
-

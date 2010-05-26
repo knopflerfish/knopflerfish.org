@@ -42,6 +42,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.Version;
 import org.ungoverned.osgi.service.bundlerepository.BundleRecord;
 import org.ungoverned.osgi.service.bundlerepository.BundleRepositoryService;
 import org.ungoverned.osgi.service.shell.Command;
@@ -104,7 +105,7 @@ public class ObrCommandImpl implements Command
             {
                 // Ignore.
             }
-            
+
             // Perform the specified command.
             if ((command == null) || (command.equals(HELP_CMD)))
             {
@@ -173,7 +174,7 @@ public class ObrCommandImpl implements Command
         {
             urls[i] = st.nextToken();
         }
-    
+
         if (count > 0)
         {
             m_brs.setRepositoryURLs(urls);
@@ -215,13 +216,13 @@ public class ObrCommandImpl implements Command
         tokenizer.wordChars('-', '-');
         tokenizer.wordChars('_', '_');
 
-                    
+
         // Ignore the invoking command name and the OBR command.
         int type = tokenizer.nextToken();
         type = tokenizer.nextToken();
 
         String substr = null;
-    
+
         for (type = tokenizer.nextToken();
             type != StreamTokenizer.TT_EOF;
             type = tokenizer.nextToken())
@@ -235,7 +236,7 @@ public class ObrCommandImpl implements Command
             {
                 substr += " ";
             }
-                        
+
             if ((type == StreamTokenizer.TT_WORD) ||
                 (type == '\'') || (type == '"'))
             {
@@ -271,7 +272,7 @@ public class ObrCommandImpl implements Command
                 }
             }
         }
-    
+
         if (printed)
         {
             out.println("");
@@ -286,44 +287,35 @@ public class ObrCommandImpl implements Command
         String commandLine, String command, PrintStream out, PrintStream err)
         throws IOException, InvalidSyntaxException
     {
-        ParsedCommand pc = parseInfo(commandLine);
-        for (int i = 0; (pc != null) && (i < pc.getTargetCount()); i++)                
-        {
-            out.println("");
-
-            BundleRecord record = null;
-
-            // If there is no version, then try to retrieve by
-            // name, but error if there are multiple versions.
-            if (pc.getTargetVersion(i) == null)
-            {
-                BundleRecord[] records =
-                    m_brs.getBundleRecords(pc.getTargetName(i));
-
-                if (records.length == 1)
-                {
-                    record = records[0];
-                }
-            }
-            else
-            {
-                record = m_brs.getBundleRecord(
-                    pc.getTargetName(i),
-                    Util.parseVersionString(
-                        pc.getTargetVersion(i)));
-            }
-
-            if (record != null)
-            {
-                record.printAttributes(out);
-            }
-            else
-            {
-                err.println("Unknown bundle or amiguous version: "
-                    + pc.getTargetName(i));
-            }
-        }
+      ParsedCommand pc = parseInfo(commandLine);
+      for (int i = 0; (pc != null) && (i < pc.getTargetCount()); i++) {
         out.println("");
+
+        BundleRecord record = null;
+
+        // If there is no version, then try to retrieve by
+        // name, but error if there are multiple versions.
+        if (pc.getTargetVersion(i) == null) {
+          BundleRecord[] records =
+            m_brs.getBundleRecords(pc.getTargetName(i));
+
+          if (records.length == 1) {
+            record = records[0];
+          }
+        } else {
+          record = m_brs.getBundleRecord(
+                                         pc.getTargetName(i),
+                                         new Version(pc.getTargetVersion(i)));
+        }
+
+        if (record != null) {
+          record.printAttributes(out);
+        } else {
+          err.println("Unknown bundle or amiguous version: "
+                      + pc.getTargetName(i));
+        }
+      }
+      out.println("");
     }
 
     private void deploy(
@@ -331,13 +323,13 @@ public class ObrCommandImpl implements Command
         throws IOException, InvalidSyntaxException
     {
         ParsedCommand pc = parseInstallStart(commandLine);
-        for (int i = 0; (pc != null) && (i < pc.getTargetCount()); i++)                
+        for (int i = 0; (pc != null) && (i < pc.getTargetCount()); i++)
         {
             // Find either the local bundle or the bundle
             // record so we can get the update location attribute.
             String updateLocation = null;
 
-            // First look for update location locally.            
+            // First look for update location locally.
             Bundle bundle =
                 findLocalBundle(pc.getTargetName(i), pc.getTargetVersion(i));
             if (bundle != null)
@@ -346,7 +338,7 @@ public class ObrCommandImpl implements Command
                     bundle.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
             }
 
-            // If update location wasn't found locally, look in repository.            
+            // If update location wasn't found locally, look in repository.
             if (updateLocation == null)
             {
                 BundleRecord record =
@@ -381,12 +373,12 @@ public class ObrCommandImpl implements Command
     {
         // Parse the command line to get all local targets to install.
         ParsedCommand pc = parseInstallStart(commandLine);
-        
+
         // Loop through each local target and try to find
         // the corresponding bundle record from the repository.
         for (int targetIdx = 0;
             (pc != null) && (targetIdx < pc.getTargetCount());
-            targetIdx++)                
+            targetIdx++)
         {
             // Get the current target's name and version.
             String targetName = pc.getTargetName(targetIdx);
@@ -398,7 +390,7 @@ public class ObrCommandImpl implements Command
             {
                 // Find the targets bundle record.
                 BundleRecord record = findBundleRecord(targetName, targetVersionString);
-            
+
                 // If we found a record, try to install it.
                 if (record != null)
                 {
@@ -428,7 +420,7 @@ public class ObrCommandImpl implements Command
         // Parse the command line to get all local targets to update.
         ParsedCommand pc = parseUpdate(commandLine);
 
-        if (pc.isCheck())        
+        if (pc.isCheck())
         {
             updateCheck(out, err);
         }
@@ -438,7 +430,7 @@ public class ObrCommandImpl implements Command
             // the corresponding locally installed bundle.
             for (int targetIdx = 0;
                 (pc != null) && (targetIdx < pc.getTargetCount());
-                targetIdx++)                
+                targetIdx++)
             {
                 // Get the current target's name and version.
                 String targetName = pc.getTargetName(targetIdx);
@@ -446,7 +438,7 @@ public class ObrCommandImpl implements Command
 
                 // Find corresponding locally installed bundle.
                 Bundle bundle = findLocalBundle(targetName, targetVersionString);
-            
+
                 // If we found a locally installed bundle, then
                 // try to update it.
                 if (bundle != null)
@@ -469,72 +461,59 @@ public class ObrCommandImpl implements Command
     private void updateCheck(PrintStream out, PrintStream err)
         throws IOException
     {
-        Bundle[] bundles = m_context.getBundles();
+      Bundle[] bundles = m_context.getBundles();
 
-        // Loop through each local target and try to find
-        // the corresponding locally installed bundle.
-        for (int bundleIdx = 0;
-            (bundles != null) && (bundleIdx < bundles.length);
-            bundleIdx++)
-        {
-            // Ignore the system bundle.
-            if (bundles[bundleIdx].getBundleId() == 0)
-            {
-                continue;
-            }
-
-            // Get the local bundle's update location.
-            String localLoc = (String)
-                bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
-            if (localLoc == null)
-            {
-                // Without an update location, there is no way to
-                // check for an update, so ignore the bundle.
-                continue;
-            }
-
-            // Get the local bundle's version.
-            String localVersion = (String)
-                bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_VERSION);
-            localVersion = (localVersion == null) ? "0.0.0" : localVersion;
-
-            // Get the matching repository bundle records.
-            BundleRecord[] records = m_brs.getBundleRecords(
-                (String) bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_NAME));
-
-            // Loop through all records to see if there is an update.
-            for (int recordIdx = 0;
-                (records != null) && (recordIdx < records.length);
-                recordIdx++)
-            {
-                String remoteLoc = (String)
-                    records[recordIdx].getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
-                if (remoteLoc == null)
-                {
-                    continue;
-                }
-
-                // If the update locations are equal, then compare versions.
-                if (remoteLoc.equals(localLoc))
-                {
-                    String remoteVersion = (String)
-                        records[recordIdx].getAttribute(BundleRecord.BUNDLE_VERSION);
-                    if (remoteVersion != null)
-                    {
-                        int result = Util.compareVersion(
-                            Util.parseVersionString(remoteVersion),
-                            Util.parseVersionString(localVersion));
-                        if (result > 0)
-                        {
-                            out.println(
-                                records[recordIdx].getAttribute(BundleRecord.BUNDLE_NAME)
-                                + " update available.");
-                            break;
-                        }
-                    }
-                }
-            }
+      // Loop through each local target and try to find
+      // the corresponding locally installed bundle.
+      for (int bundleIdx = 0;
+           (bundles != null) && (bundleIdx < bundles.length);
+           bundleIdx++) {
+        // Ignore the system bundle.
+        if (bundles[bundleIdx].getBundleId() == 0) {
+          continue;
         }
+
+        // Get the local bundle's update location.
+        String localLoc = (String)
+          bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
+        if (localLoc == null) {
+          // Without an update location, there is no way to
+          // check for an update, so ignore the bundle.
+          continue;
+        }
+
+        // Get the local bundle's version.
+        Version localVersion = bundles[bundleIdx].getVersion();
+
+        // Get the matching repository bundle records.
+        BundleRecord[] records = m_brs.getBundleRecords((String) bundles[bundleIdx].getHeaders().get(Constants.BUNDLE_NAME));
+
+        // Loop through all records to see if there is an update.
+        for (int recordIdx = 0;
+             (records != null) && (recordIdx < records.length);
+             recordIdx++) {
+          String remoteLoc = (String)
+            records[recordIdx].getAttribute(BundleRecord.BUNDLE_UPDATELOCATION);
+          if (remoteLoc == null) {
+            continue;
+          }
+
+          // If the update locations are equal, then compare versions.
+          if (remoteLoc.equals(localLoc)) {
+            String remoteVersionS = (String)
+              records[recordIdx].getAttribute(BundleRecord.BUNDLE_VERSION);
+            if (remoteVersionS != null) {
+              Version remoteVersion = new Version(remoteVersionS);
+              int result = remoteVersion.compareTo(localVersion);
+              if (result > 0) {
+                out.println(records[recordIdx].getAttribute(BundleRecord.BUNDLE_NAME)
+                            + " update available.");
+                break;
+              }
+            }
+          }
+        }
+      }
     }
 
     private void source(
@@ -543,7 +522,7 @@ public class ObrCommandImpl implements Command
     {
         // Parse the command line to get all local targets to update.
         ParsedCommand pc = parseSource(commandLine);
-        
+
         for (int i = 0; i < pc.getTargetCount(); i++)
         {
             BundleRecord record = findBundleRecord(
@@ -568,93 +547,76 @@ public class ObrCommandImpl implements Command
             }
         }
     }
-    
+
     private BundleRecord findBundleRecord(String name, String versionString)
     {
-        BundleRecord record = null;
+      BundleRecord record = null;
 
-        // If there is no version, then try to retrieve by
-        // name, but error if there are multiple versions.
-        if (versionString == null)
-        {
-            BundleRecord[] records =
-                m_brs.getBundleRecords(name);
-            if (records.length == 1)
-            {
-                record = records[0];
-            }
+      // If there is no version, then try to retrieve by
+      // name, but error if there are multiple versions.
+      if (versionString == null) {
+        BundleRecord[] records =
+          m_brs.getBundleRecords(name);
+        if (records.length == 1) {
+          record = records[0];
         }
-        else
-        {
-            record = m_brs.getBundleRecord(
-                name, Util.parseVersionString(versionString));
-        }
-        
-        return record;
+      } else {
+        record = m_brs.getBundleRecord(name, new Version(versionString));
+      }
+
+      return record;
     }
 
     private Bundle findLocalBundle(String name, String versionString)
     {
-        Bundle bundle = null;
+      Bundle bundle = null;
 
-        // Get the name only if there is no version, but error
-        // if there are multiple matches for the same name.
-        if (versionString == null)
-        {
-            // Perhaps the target name is a bundle ID and
-            // not a name, so try to interpret as a long.
-            try
-            {
-                bundle = m_context.getBundle(Long.parseLong(name));
-            }
-            catch (NumberFormatException ex)
-            {
-                // The bundle is not a number, so look for a local
-                // bundle with the same name.
-                Bundle[] matchingBundles = findLocalBundlesByName(name);
+      // Get the name only if there is no version, but error
+      // if there are multiple matches for the same name.
+      if (versionString == null) {
+        // Perhaps the target name is a bundle ID and
+        // not a name, so try to interpret as a long.
+        try {
+          bundle = m_context.getBundle(Long.parseLong(name));
+        } catch (NumberFormatException ex) {
+          // The bundle is not a number, so look for a local
+          // bundle with the same name.
+          Bundle[] matchingBundles = findLocalBundlesByName(name);
 
-                // If only one matches, then select is.
-                if (matchingBundles.length == 1)
-                {
-                    bundle = matchingBundles[0];
-                }
+          // If only one matches, then select is.
+          if (matchingBundles.length == 1)
+            {
+              bundle = matchingBundles[0];
             }
         }
-        else
-        {
-            // Find the local bundle by name and version.
-            bundle = findLocalBundleByVersion(
-                name, Util.parseVersionString(versionString));
-        }
+      } else {
+        // Find the local bundle by name and version.
+        bundle = findLocalBundleByVersion(name, new Version(versionString));
+      }
 
-        return bundle;
+      return bundle;
     }
 
-    private Bundle findLocalBundleByVersion(String name, int[] version)
+    private Bundle findLocalBundleByVersion(String name, Version version)
     {
-        // Get bundles with matching name.
-        Bundle[] targets = findLocalBundlesByName(name);
+      // Get bundles with matching name.
+      Bundle[] targets = findLocalBundlesByName(name);
 
-        // Find bundle with matching version.
-        if (targets.length > 0)
-        {
-            for (int i = 0; i < targets.length; i++)
-            {
-                String targetName = (String)
-                    targets[i].getHeaders().get(BundleRecord.BUNDLE_NAME);
-                int[] targetVersion = Util.parseVersionString((String)
-                    targets[i].getHeaders().get(BundleRecord.BUNDLE_VERSION));
-            
-                if ((targetName != null) &&
-                    targetName.equalsIgnoreCase(name) &&
-                    (Util.compareVersion(targetVersion, version) == 0))
-                {
-                    return targets[i];
-                }
-            }
+      // Find bundle with matching version.
+      if (targets.length > 0) {
+        for (int i = 0; i < targets.length; i++) {
+          String targetName = (String)
+            targets[i].getHeaders().get(BundleRecord.BUNDLE_NAME);
+          Version targetVersion = targets[i].getVersion();
+
+          if ((targetName != null) && targetName.equalsIgnoreCase(name) &&
+              0==targetVersion.compareTo(version)) {
+            return targets[i];
+          }
         }
+      }
 
-        return null;
+      return null;
     }
 
     private Bundle[] findLocalBundlesByName(String name)
@@ -702,11 +664,11 @@ public class ObrCommandImpl implements Command
         tokenizer.wordChars('.', '.');
         tokenizer.wordChars('-', '-');
         tokenizer.wordChars('_', '_');
-    
+
         // Ignore the invoking command name and the OBR command.
         int type = tokenizer.nextToken();
         type = tokenizer.nextToken();
-    
+
         int EOF = 1;
         int SWITCH = 2;
         int TARGET = 4;
@@ -804,11 +766,11 @@ public class ObrCommandImpl implements Command
         tokenizer.wordChars('.', '.');
         tokenizer.wordChars('-', '-');
         tokenizer.wordChars('_', '_');
-    
+
         // Ignore the invoking command name and the OBR command.
         int type = tokenizer.nextToken();
         type = tokenizer.nextToken();
-    
+
         int EOF = 1;
         int SWITCH = 2;
         int TARGET = 4;
@@ -913,11 +875,11 @@ public class ObrCommandImpl implements Command
         tokenizer.wordChars('.', '.');
         tokenizer.wordChars('-', '-');
         tokenizer.wordChars('_', '_');
-    
+
         // Ignore the invoking command name and the OBR command.
         int type = tokenizer.nextToken();
         type = tokenizer.nextToken();
-    
+
         int EOF = 1;
         int SWITCH = 2;
         int TARGET = 4;
@@ -1030,11 +992,11 @@ public class ObrCommandImpl implements Command
         tokenizer.wordChars('-', '-');
         tokenizer.wordChars('_', '_');
         tokenizer.wordChars('/', '/');
-    
+
         // Ignore the invoking command name and the OBR command.
         int type = tokenizer.nextToken();
         type = tokenizer.nextToken();
-    
+
         int EOF = 1;
         int SWITCH = 2;
         int DIRECTORY = 4;
@@ -1142,7 +1104,7 @@ public class ObrCommandImpl implements Command
             out.println("obr " + URLS_CMD + " [<repository-file-url> ...]");
             out.println("");
             out.println(
-                "This command gets or sets the URLs to the repository files\n" +                "used by OBR. Specify no arguments to get the current repository\n" + 
+                "This command gets or sets the URLs to the repository files\n" +                "used by OBR. Specify no arguments to get the current repository\n" +
                 "URLs or specify a space-delimited list of URLs to change the\n" +
                 "URLs. Each URL should point to a file containing meta-data about\n" +                "available bundles in XML format.");
             out.println("");
@@ -1321,12 +1283,12 @@ public class ObrCommandImpl implements Command
         private boolean m_isExtract = false;
         private String m_dir = null;
         private String[][] m_targets = new String[0][];
-        
+
         public boolean isResolve()
         {
             return m_isResolve;
         }
-        
+
         public void setResolve(boolean b)
         {
             m_isResolve = b;
@@ -1336,7 +1298,7 @@ public class ObrCommandImpl implements Command
         {
             return m_isCheck;
         }
-        
+
         public void setCheck(boolean b)
         {
             m_isCheck = b;
@@ -1346,7 +1308,7 @@ public class ObrCommandImpl implements Command
         {
             return m_isExtract;
         }
-        
+
         public void setExtract(boolean b)
         {
             m_isExtract = b;
@@ -1356,7 +1318,7 @@ public class ObrCommandImpl implements Command
         {
             return m_dir;
         }
-        
+
         public void setDirectory(String s)
         {
             m_dir = s;
@@ -1366,7 +1328,7 @@ public class ObrCommandImpl implements Command
         {
             return m_targets.length;
         }
-        
+
         public String getTargetName(int i)
         {
             if ((i < 0) || (i >= getTargetCount()))
@@ -1375,7 +1337,7 @@ public class ObrCommandImpl implements Command
             }
             return m_targets[i][NAME_IDX];
         }
-        
+
         public String getTargetVersion(int i)
         {
             if ((i < 0) || (i >= getTargetCount()))
