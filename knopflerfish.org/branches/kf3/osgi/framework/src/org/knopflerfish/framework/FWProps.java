@@ -360,25 +360,19 @@ public class FWProps  {
                         Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");
 
+    StringBuffer ee = new StringBuffer();
+    // Always allow ee minimum
+    ee.append("OSGi/Minimum-1.0");
+    ee.append(",OSGi/Minimum-1.1");
+    ee.append(",OSGi/Minimum-1.2");
     // Set up the default ExecutionEnvironment
     if (1==javaVersionMajor) {
-      String defaultExecutionEnvironment = "";
       for (int i=javaVersionMinor; i>1; i--) {
-        if (defaultExecutionEnvironment.length()>0) {
-          defaultExecutionEnvironment += ",";
-        }
-        if (i>5) {
-          defaultExecutionEnvironment += "JavaSE-1." +i;
-        } else {
-          defaultExecutionEnvironment += "J2SE-1." +i;
-        }
+        ee.append((i>5) ? ",JavaSE-1." : ",J2SE-1.");
+        ee.append(i);
       }
-      setPropertyIfNotSet(Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
-                  defaultExecutionEnvironment);
-    } else {
-      // Unknown, set minimum
-      setPropertyIfNotSet(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, "OSGi/Minimum-1.2");
     }
+    setPropertyIfNotSet(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee.toString());
 
     setPropertyIfNotSet(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
     setPropertyIfNotSet(Constants.FRAMEWORK_LIBRARY_EXTENSIONS, "");
