@@ -27,6 +27,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Services (Compendium) ===
 
+  Event 2.0.9
+  
+  Fixed problem with synchronization and missed events with wildcard
+  listeners. Corrected symbolic name property.
+
   Event 2.0.8
   
   Events posted by an eventhandler called from a deliver thread will be
