@@ -408,7 +408,7 @@
 
 
  <target name="clean"
-	 description="removes all generated files"
+	 description="Removes all generated files and directories."
 	 depends="init,clean_bundles_test">
   <delete file="framework.jar"/>
   <delete dir="${root.out.dir}"/>
@@ -425,10 +425,24 @@
   <delete dir="${junit.out.dir}"/>
  </target>
 
+ <target name="clean_local"
+         description="Remove all bundles built by this build-file but keep all other bundles in the jars sub-directory.">
+    <ant dir="framework"    target="clean"
+         inheritAll="false" inheritRefs="false"/>
+    <ant dir="bundles"      target="clean"
+         inheritAll="false" inheritRefs="false"/>
+    <ant target="clean_bundles_opt"/>
+    <ant target="clean_bundles_test"/>
+ </target>
+ <target name="clean_bundles_opt" if="dir.bundles_opt.present">
+   <ant dir="bundles_opt"   target="clean"
+        inheritAll="false" inheritRefs="false"/>
+ </target>
  <target name="clean_bundles_test" if="dir.bundles_test.present">
    <ant dir="bundles_test" target="clean"
         inheritAll="false" inheritRefs="false"/>
  </target>
+
 
  <target name="rebuild"
          description="Cleans then build build all">
