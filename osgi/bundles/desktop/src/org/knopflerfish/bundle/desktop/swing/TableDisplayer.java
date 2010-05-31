@@ -44,7 +44,9 @@ import javax.swing.event.*;
 import java.awt.Component;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 
 public class TableDisplayer extends DefaultSwingBundleDisplayer {
@@ -57,10 +59,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     super(bc, "Details", "Table view of bundles", false);
 
     model = new BundleTableModel2();
-
-    rowSM = new DefaultListSelectionModel();
-    rowSM.addListSelectionListener(new BundleTableRowSelectionListener());
-    rowSM.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+    rowSM = new BundleTableRowSelectionModel();
   }
 
   public JComponent newJComponent() {
@@ -83,14 +82,20 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       bInValueChanged = true;
 
       if (null!=bundleSelModel) {
-        for (int row=0; row<model.getRowCount(); row++) {
-          final long rowBid = model.getBundle(row).getBundleId();
-          final boolean isSelected = bundleSelModel.isSelected(rowBid);
-          if (isSelected != rowSM.isSelectedIndex(row)) {
-            if (isSelected) {
-              rowSM.addSelectionInterval(row, row);
-            } else {
-              rowSM.removeSelectionInterval(row, row);
+
+        if (0==bundleSelModel.getSelectionCount()) {
+          rowSM.clearSelection();
+        } else {
+          // Update selection state for rows with a selection change.
+          for (int row=0; row<model.getRowCount(); row++) {
+            final long rowBid = model.getBundle(row).getBundleId();
+            final boolean isSelected = bundleSelModel.isSelected(rowBid);
+            if (isSelected != rowSM.isSelectedIndex(row)) {
+              if (isSelected) {
+                rowSM.addSelectionInterval(row, row);
+              } else {
+                rowSM.removeSelectionInterval(row, row);
+              }
             }
           }
         }
@@ -313,42 +318,67 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     }
   }
 
-  class BundleTableRowSelectionListener
-    implements ListSelectionListener
+  // A ListSelectionModel that delegates all selection operations not
+  // originating from the bundleSelModel to the bundleSelModel-object.
+  class BundleTableRowSelectionModel
+    extends DefaultListSelectionModel
   {
-    public void valueChanged(ListSelectionEvent e) {
+    public BundleTableRowSelectionModel()
+    {
+      setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+    }
 
-      if (e.getValueIsAdjusting()) {
-        return;
+    public void addSelectionInterval(int index0, int index1)
+    {
+      if(!bInValueChanged) {
+        final List selectedBundleIds = new ArrayList();
+        for (int row=index0; row<=index1; row++) {
+          final long rowBid = model.getBundle(row).getBundleId();
+          selectedBundleIds.add(new Long(rowBid));
+        }
+        bundleSelModel.setSelected(selectedBundleIds, true);
+      } else {
+        super.addSelectionInterval(index0, index1);
       }
+    }
 
-      if(bInValueChanged || null==bundleSelModel) {
-        // Must ignore listener call triggered by change in the
-        // bundleSelModel to avoid loop.
-        return;
+    public void removeSelectionInterval(int index0, int index1)
+    {
+      if(!bInValueChanged) {
+        final List selectedBundleIds = new ArrayList();
+        for (int row=index0; row<=index1; row++) {
+          final long rowBid = model.getBundle(row).getBundleId();
+          selectedBundleIds.add(new Long(rowBid));
+        }
+        bundleSelModel.setSelected(selectedBundleIds, false);
+      } else {
+        super.removeSelectionInterval(index0, index1);
       }
+    }
 
-      ListSelectionModel lsm =  (ListSelectionModel) e.getSource();
-      if (lsm.isSelectionEmpty()) {
+    public void setSelectionInterval(int index0, int index1)
+    {
+      if(!bInValueChanged) {
+        bundleSelModel.clearSelection();
+        final List selectedBundleIds = new ArrayList();
+        final int startIx = index0<=index1 ? index0 : index1;
+        final int endIx   = index0<=index1 ? index1 : index0;
+        for (int row=startIx; row<=endIx; row++) {
+          final long rowBid = model.getBundle(row).getBundleId();
+          selectedBundleIds.add(new Long(rowBid));
+        }
+        bundleSelModel.setSelected(selectedBundleIds, true);
+      } else {
+        super.setSelectionInterval(index0, index1);
+      }
+    }
+
+    public void clearSelection()
+    {
+      if(!bInValueChanged) {
         bundleSelModel.clearSelection();
       } else {
-        final int changeSize = e.getLastIndex()-e.getFirstIndex() +1;
-        // Must collect the selection state of affected rows
-        // before starting to change the selection state in
-        // bundleSelModel since those changes may change the
-        // selection state in lsm.
-        boolean selRows[] = new boolean[changeSize];
-        for (int row=e.getFirstIndex(); row<=e.getLastIndex(); row++) {
-          selRows[row-e.getFirstIndex()] = lsm.isSelectedIndex(row);
-        }
-        for (int row=e.getFirstIndex(); row<=e.getLastIndex(); row++) {
-          final long rowBid = model.getBundle(row).getBundleId();
-          final boolean isSelected = bundleSelModel.isSelected(rowBid);
-          final boolean isRowSel = selRows[row-e.getFirstIndex()];
-          if (isSelected!=isRowSel) {
-            bundleSelModel.setSelected(rowBid, isRowSel);
-          }
-        }
+        super.clearSelection();
       }
     }
   }

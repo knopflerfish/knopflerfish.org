@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,6 +117,10 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       }
       public void    setSelected(long bid, boolean bSelected) {
         bundleSelModel.setSelected(bid, bSelected);
+      }
+      public void    setSelected(java.util.List bids, boolean bSelected)
+      {
+        bundleSelModel.setSelected(bids, bSelected);
       }
       public void    addBundleSelectionListener(BundleSelectionListener l) {
         bundleSelModel.addBundleSelectionListener(l);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,9 +52,11 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -205,16 +207,17 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       public void actionPerformed(ActionEvent e)
       {
+        final List selectedBundleIds = new ArrayList();
         final Component[] comps = panel.getComponents();
         final String bidKey = LargeIconsDisplayer.class.getName() +".bid";
         for (int i=0; i<comps.length; i++) {
           final JComponent comp = (JComponent) comps[i];
           final Long bidL = (Long) comp.getClientProperty(bidKey);
-          final long bid = null==bidL ? -1 : bidL.longValue();
-          if (0<=bid) {
-            bundleSelModel.setSelected(bid, true);
+          if (null!=bidL) {
+            selectedBundleIds.add(bidL);
           }
         }
+        bundleSelModel.setSelected(selectedBundleIds, true);
       }
     }
 

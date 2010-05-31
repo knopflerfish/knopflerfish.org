@@ -93,7 +93,11 @@ Crimson-XML 2.1.0
  - Updated to use 2008 version of OSGi's XMLParserActivator. Fixed
    so that bundle works together with java 1.4 system xml classes.
 
-Desktop 3.0.12
+Desktop 3.1.0
+ - Improved bundle selection handling. E.g., using the menu item
+   "unselect all" in the edit menu now updates the selection state in
+   the "Bundle details view". The bundle section model now supports
+   selection (or de-selection) of many bundles in one event (operation).
  - Use the value of the new 4.2 manifest header "Bundle-Icon" as the
    bundle icon when present. The icon with a size closest to 32 is
    preferred by the desktop.
