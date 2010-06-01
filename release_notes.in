@@ -82,6 +82,20 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   node.
 
 
+  Http 2.1.6
+
+  - Added support for responding with "Content-Encoding: gzip" for
+    resources when the request header "Accept-Encoding" indicates that
+    gzip:ed repsonses are preferred.
+  - The non-standard request header "Proxy-Connection" is now
+    recognized and handled in the same way as the standardized
+    "Connection" header.
+  - Fixed a problem in the parsing of the HTTP request line when it
+    originated from a proxy-server. Such requests may have an absolute
+    URI (with scheme and authority before the path) not just a path
+    with optional query data.
+  
+
   Http 2.1.5
   
   Fixed problem with calls to HttpContext getMimeType(). The value of

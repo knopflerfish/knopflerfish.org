@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.http;
 
 import java.io.BufferedReader;
@@ -157,6 +156,13 @@ public class RequestImpl implements Request, PoolableObject {
 
     int available = getContentLength();
     String connection = getHeader(HeaderBase.CONNECTION_HEADER_KEY);
+    // For details on the Proxy-Connection header please read:
+    // http://homepage.ntlworld.com/jonathan.deboynepollard/FGA/web-proxy-connection-header.html
+    if (null==connection || 0==connection.length()) {
+      // We handle Proxy-Connection in the same way as Connection
+      connection = getHeader("Proxy-Connection");
+    }
+
     if (available != -1) {
       if (http_1_1) {
         if (!"Close".equals(connection)) {

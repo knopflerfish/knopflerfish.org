@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,8 @@ public class HttpUtil {
 
     // public constants
 
-    public final static String SERVLET_NAME_KEY = "org.knopflerfish.service.http.servlet.name";
+    public final static String SERVLET_NAME_KEY
+      = "org.knopflerfish.service.http.servlet.name";
 
     // Key strings for sessions according to the servlet specification
     public final static String SESSION_COOKIE_KEY = "JSESSIONID";
@@ -372,7 +373,59 @@ public class HttpUtil {
     }
     return sb.toString();
   }
-  
+
+  /**
+   * Parse the Accept-Encoding header to determine which encoding of
+   * "gzip" and "identity" to use in the response.
+   *
+   * @param acceptEncoding The accept-encoding header to parse.
+   * @return <code>true</code> if "gzip" is the preferred content
+   * encoding.
+   */
+  public static boolean useGZIPEncoding(String acceptEncoding)
+  {
+    if (null==acceptEncoding || 0==acceptEncoding.length()) {
+      return false;
+    }
+    // default quality values.
+    double qGzip  = 0d; // Must be present to get a 1.
+    double qIdent = 1d; // Allways one unless pressent with lower value.
+
+    final StringTokenizer st = new StringTokenizer(acceptEncoding, ",");
+    while (st.hasMoreTokens()) {
+      final String encSpec = st.nextToken().trim();
+      final StringTokenizer st2 = new StringTokenizer(encSpec, ";");
+      // First the encoding name
+      final String enc = st2.nextToken().trim();
+      if ("gzip".equalsIgnoreCase(enc) || "x-gzip".equalsIgnoreCase(enc)) {
+        qGzip = getQualityParamValue(st2);
+      } else if ("identity".equalsIgnoreCase(enc)) {
+        qIdent = getQualityParamValue(st2);
+      }
+    }
+    return qGzip>=qIdent;
+  }
+
+  private static double getQualityParamValue(StringTokenizer st)
+  {
+    while (st.hasMoreTokens()) {
+      final String paramDef = st.nextToken().trim();
+      int eqIx = paramDef.indexOf('=');
+      if (-1<eqIx) {
+        final String paramName = paramDef.substring(0, eqIx-1).trim();
+        final String paramValue = paramDef.substring(eqIx+1).trim();
+        if ("q".equals(paramName)) {
+          try {
+            return new Double(paramValue).doubleValue();
+          } catch (NumberFormatException ignore) {
+          }
+        }
+      }
+    }
+    // No q-paramter, return the default value.
+    return 1.0d;
+  }
+
   /**
    * Get the resource target string from an uri, removing
    * the initial alias part, except in the case when
@@ -384,9 +437,9 @@ public class HttpUtil {
    *         return uri with initial alias part stripped.
    */
   public static String makeTarget(String uri, String alias) {
-    return (!OLD_STYLE_ROOT_ALIAS && "/".equals(alias)) 
-      ? uri 
+    return (!OLD_STYLE_ROOT_ALIAS && "/".equals(alias))
+      ? uri
       : uri.substring(alias.length());
   }
-  
+
 } // HttpUtil

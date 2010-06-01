@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,10 @@ public class HeaderBase {
   protected static final String DATE_HEADER_KEY = "Date";
 
   protected static final String LANGUAGE_HEADER_KEY = "Accept-Language";
+
+  protected static final String ACCEPT_ENCODING   = "Accept-Encoding";
+
+  protected static final String CONTENT_ENCODING = "Content-Encoding";
 
   protected static final String HOST_HEADER_KEY = "Host";
 
