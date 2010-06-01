@@ -148,6 +148,7 @@ public class EventHandlerTracker implements ServiceTrackerCustomizer {
         }
       }
     }
-    return false;}
+    return false;
+  }
     
 }
