@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -45,6 +47,18 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpUtils;
 
 public class RequestBase extends HeaderBase {
+
+  // private constants
+
+  // The URL to use as context when parsing the request URI.
+  private static URL BASE_HTTP_URL = null;
+  static {
+    try {
+      BASE_HTTP_URL = new URL("http://localhost/");
+    } catch (MalformedURLException _mfue) {
+      // Should not happen!
+    }
+  }
 
   // protected constants
 
@@ -60,10 +74,13 @@ public class RequestBase extends HeaderBase {
 
   private String method = null;
 
-  private String uri = null;
-
+  // The protocol on the request line.
   private String protocol = null;
 
+  // The abs path part of the request URI
+  private String uri = null;
+
+  // The query part of the request URI
   private String queryString = null;
 
   private Hashtable queryParameters = null;
@@ -82,8 +99,8 @@ public class RequestBase extends HeaderBase {
   public void init(InputStream is, HttpConfigWrapper httpConfig)
     throws HttpException, IOException
   {
-    ServletInputStreamImpl in = new ServletInputStreamImpl(
-                                                           new BufferedInputStream(is));
+    ServletInputStreamImpl in
+      = new ServletInputStreamImpl(new BufferedInputStream(is));
 
     parseRequestLine(in);
     super.init(in, httpConfig);
@@ -94,8 +111,8 @@ public class RequestBase extends HeaderBase {
   public void destroy() {
 
     method = null;
-    uri = null;
     protocol = null;
+    uri = null;
     queryString = null;
 
     queryParameters = null;
@@ -161,21 +178,28 @@ public class RequestBase extends HeaderBase {
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
     method = line.substring(0, index);
 
-    // parse uri
+    // get uri
     line = line.substring(index + 1);
     index = line.indexOf(' ');
     if (index == -1)
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
     uri = line.substring(0, index);
 
-    // parse protocol
+    // get protocol
     protocol = line.substring(index + 1).trim();
 
-    // parse query string
-    index = uri.indexOf('?');
-    if (index != -1) {
-      queryString = uri.substring(index + 1);
-      uri = uri.substring(0, index);
+    // Parse the uri string. It may be '*', absoluteURI, abs_path,
+    // authority. Proxies are allowed to send requests with an
+    // aboslute URI on the request line, clients should only send
+    // requests with an absolute path. Currently we only support
+    // absoluteURI and abs_path.
+    try {
+      URL url = new URL(BASE_HTTP_URL, uri);
+      uri = url.getPath();
+      queryString = url.getQuery();
+    } catch (MalformedURLException mue) {
+      throw new HttpException(HttpServletResponse.SC_BAD_REQUEST,
+                              mue.getMessage());
     }
   }
 
