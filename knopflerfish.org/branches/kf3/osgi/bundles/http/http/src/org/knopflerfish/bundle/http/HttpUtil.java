@@ -414,9 +414,9 @@ public class HttpUtil {
   {
     while (st.hasMoreTokens()) {
       final String paramDef = st.nextToken().trim();
-      int eqIx = paramDef.indexOf('=');
+      final int eqIx = paramDef.indexOf('=');
       if (-1<eqIx) {
-        final String paramName = paramDef.substring(0, eqIx-1).trim();
+        final String paramName = paramDef.substring(0, eqIx).trim();
         final String paramValue = paramDef.substring(eqIx+1).trim();
         if ("q".equals(paramName)) {
           try {
