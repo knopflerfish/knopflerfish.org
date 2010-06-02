@@ -349,7 +349,7 @@ public class RequestImpl implements Request, PoolableObject {
       }
     }
 
-    throw new IllegalArgumentException(value);
+    throw new IllegalArgumentException("Invalid date value: "+value);
   }
 
   public String getHeader(String name) {

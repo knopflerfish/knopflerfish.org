@@ -82,6 +82,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   node.
 
 
+  Http 2.1.7
+
+  - When a registered resource was fetched and the request contained
+    an 'If-Modified-Since'-header with a date value that did not parse
+    correctly the fetch was aborted with an
+    IllegalArgumentException. That exception is now caught and the
+    'If-Modified-Since'-header is ignored when this happens.
+
   Http 2.1.6
 
   - Added support for responding with "Content-Encoding: gzip" for
@@ -94,7 +102,6 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
     originated from a proxy-server. Such requests may have an absolute
     URI (with scheme and authority before the path) not just a path
     with optional query data.
-  
 
   Http 2.1.5
   
