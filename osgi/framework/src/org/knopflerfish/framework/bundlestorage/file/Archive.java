@@ -814,9 +814,22 @@ public class Archive implements FileArchive {
       return;
     }
     final String abspath = f.getAbsolutePath();
-    final String[] cmdarray = Util.splitwords(storage.execPermCmd);
-    for (int i=0; i<cmdarray.length; i++) {
-      cmdarray[i] = Util.replace(cmdarray[i], "${abspath}", abspath);
+    final String[] execarray = Util.splitwords(storage.execPermCmd);
+    final String[] cmdarray;
+    int start;
+
+    // Windows systems need a "cmd /c" at the begin
+    if (storage.isWindows && !execarray[0].equalsIgnoreCase("cmd")) {
+      cmdarray = new String [execarray.length + 2];
+      cmdarray[0] = "cmd";
+      cmdarray[1] = "/c";
+      start = 2;
+    } else {
+      cmdarray = new String [execarray.length];
+      start = 0;
+    }
+    for (int i=0; i<execarray.length; i++) {
+      cmdarray[i + start] = Util.replace(execarray[i], "${abspath}", abspath);
     }
     try {
       final Process p = Runtime.getRuntime().exec(cmdarray);

@@ -85,6 +85,11 @@ public class BundleStorageImpl implements BundleStorage {
   String execPermCmd;
 
   /**
+   * Is current OS a Windows OS.
+   */
+  boolean isWindows;
+
+  /**
    * Top directory for storing all jar data for bundles.
    */
   private FileTree bundlesDir;
@@ -317,6 +322,7 @@ public class BundleStorageImpl implements BundleStorage {
     unpack = props.getBooleanProperty(UNPACK_PROP);
     execPermCmd = props.getProperty(Constants.FRAMEWORK_EXECPERMISSION).trim();
     checkSigned = props.getBooleanProperty(FWProps.BUNDLESTORAGE_CHECKSIGNED_PROP);
+    isWindows = props.getProperty(Constants.FRAMEWORK_OS_NAME).startsWith("Windows");
   }
 
 
