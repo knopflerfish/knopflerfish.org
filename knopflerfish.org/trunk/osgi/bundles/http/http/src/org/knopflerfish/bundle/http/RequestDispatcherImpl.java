@@ -62,6 +62,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.http.HttpContext;
 
+import org.knopflerfish.service.log.LogRef;
+
 public class RequestDispatcherImpl
   implements RequestDispatcher
 {
@@ -177,34 +179,42 @@ public class RequestDispatcherImpl
       uri = request.getRequestURI();
     }
 
-    final String acceptEncoding
-      = request.getHeader(HeaderBase.ACCEPT_ENCODING);
-    final boolean useGzip = HttpUtil.useGZIPEncoding(acceptEncoding);
+    final boolean useGzip = HttpUtil.useGZIPEncoding(request);
 
     if (uri.endsWith(".shtml")) {
       serviceSSIResource(uri, response, config, useGzip);
     } else {
-      String target = HttpUtil.makeTarget(uri, servletPath);
-      ServletContext context = config.getServletContext();
-      URL url = context.getResource(target);
+      final String target = HttpUtil.makeTarget(uri, servletPath);
+      final ServletContext context = config.getServletContext();
+      final URL url = context.getResource(target);
       //HACK CSM
-      long date = getLastModified(url);
+      final long date = getLastModified(url);
       if (date > -1) {
-        long if_modified = request.getDateHeader("If-Modified-Since");
-        if (if_modified>0 && date/1000<=if_modified/1000) {
-          response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-          return;
+        try {
+          long if_modified = request.getDateHeader("If-Modified-Since");
+          if (if_modified>0 && date/1000<=if_modified/1000) {
+            response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+            return;
+          }
+        } catch (IllegalArgumentException iae){
+          // An 'If-Modified-Since' header is present but the value
+          // can not be parsed; ignore it.
+          final LogRef log = Activator.log;
+          if (null!=log && log.doDebug()) {
+            log.debug("Ignoring broken 'If-Modified-Since' header: "
+                      +iae.getMessage(), iae);
+          }
         }
         response.setDateHeader("Last-Modified", date);
       }
       //END HACK CSM
-      URLConnection resource = url.openConnection();
+      final URLConnection resource = url.openConnection();
 
       String contentType = context.getMimeType(target);
       if (contentType == null)
         contentType = resource.getContentType();
       if (contentType != null) {
-        String encoding = resource.getContentEncoding();
+        final String encoding = resource.getContentEncoding();
         if (encoding != null)
           contentType += "; charset=" + encoding;
         response.setContentType(contentType);
@@ -226,7 +236,7 @@ public class RequestDispatcherImpl
       // Filter on top of the buffer when gzip:ing.
       GZIPOutputStream gzos = null;
 
-      int contentLength = resource.getContentLength();
+      final int contentLength = resource.getContentLength();
       if (contentLength > 0 && !useGzip) {
         response.setContentLength(contentLength);
       } else {
@@ -270,16 +280,16 @@ public class RequestDispatcherImpl
   }
 
 
-  private void serviceSSIResource(String uri,
-                                  HttpServletResponse response,
-                                  ServletConfig config,
-                                  boolean useGzip)
+  private void serviceSSIResource(final String uri,
+                                  final HttpServletResponse response,
+                                  final ServletConfig config,
+                                  final boolean useGzip)
     throws IOException
   {
-    String target = HttpUtil.makeTarget(uri, servletPath);
-    ServletContext context = config.getServletContext();
+    final String target = HttpUtil.makeTarget(uri, servletPath);
+    final ServletContext context = config.getServletContext();
 
-    String contentType = context.getMimeType(target);
+    final String contentType = context.getMimeType(target);
     if (contentType != null)
       response.setContentType(contentType);
 
@@ -295,13 +305,17 @@ public class RequestDispatcherImpl
     } catch (Exception e) {
       os.print("<b><font color=\"red\">SSI Error: " + e + "</font></b>");
     }
-    os.flush(); // Will finish the gzip proces, must only be called once!
+    // An explicit flush is needed here, since flushing the
+    // underlaying servlet output stream will not finish the gzip
+    // process! Note flush() should only be called once on a
+    // GZIPServletOutputStreamImpl.
+    os.flush();
   }
 
-  private void parseHtml(String uri,
-                         ServletContext context,
-                         ServletOutputStream os,
-                         Stack usedFiles)
+  private void parseHtml(final String uri,
+                         final ServletContext context,
+                         final ServletOutputStream os,
+                         final Stack usedFiles)
     throws IOException
   {
     if (usedFiles.contains(uri)) {
@@ -321,11 +335,11 @@ public class RequestDispatcherImpl
                + uri + "</font></b>");
       return;
     }
-    InputStream is = new BufferedInputStream(raw);
+    final InputStream is = new BufferedInputStream(raw);
 
     byte c;
     boolean tagBegin = false;
-    StringBuffer buf = new StringBuffer(20);
+    final StringBuffer buf = new StringBuffer(20);
     while ((c = (byte) is.read()) != -1) {
       if (c == '<') {
         buf.setLength(0);

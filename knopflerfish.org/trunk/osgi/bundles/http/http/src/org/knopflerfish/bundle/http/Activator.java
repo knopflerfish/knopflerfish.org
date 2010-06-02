@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,9 +57,9 @@ public class Activator implements BundleActivator {
 
     public static BundleContext bc = null;
 
-    // private fields
+    static LogRef log = null;
 
-    private LogRef log = null;
+    // private fields
 
     private HttpServerFactory serverFactory = null;
 

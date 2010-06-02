@@ -192,7 +192,7 @@ public class Transaction
             throw td;
         } catch (Throwable t) {
             if (log.doError())
-                log.error("Internal error", t);
+                log.error("Internal error: "+t, t);
             try {
                 response.init(os, request, httpConfig);
                 response.sendError(

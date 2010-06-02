@@ -45,6 +45,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class HttpUtil {
@@ -375,18 +376,21 @@ public class HttpUtil {
   }
 
   /**
-   * Parse the Accept-Encoding header to determine which encoding of
-   * "gzip" and "identity" to use in the response.
+   * Use the request header 'Accept-Encoding' to determine which
+   * encoding of "gzip" and "identity" to prefere for the response.
    *
    * @param acceptEncoding The accept-encoding header to parse.
    * @return <code>true</code> if "gzip" is the preferred content
    * encoding.
    */
-  public static boolean useGZIPEncoding(String acceptEncoding)
+  public static boolean useGZIPEncoding(HttpServletRequest request)
   {
+    final String acceptEncoding
+      = request.getHeader(HeaderBase.ACCEPT_ENCODING);
     if (null==acceptEncoding || 0==acceptEncoding.length()) {
       return false;
     }
+
     // default quality values.
     double qGzip  = 0d; // Must be present to get a 1.
     double qIdent = 1d; // Allways one unless pressent with lower value.
