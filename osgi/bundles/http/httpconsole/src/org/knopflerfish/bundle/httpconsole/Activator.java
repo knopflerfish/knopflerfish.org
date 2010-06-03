@@ -43,6 +43,7 @@ import javax.servlet.http.*;
 
 import org.osgi.framework.*;
 import org.osgi.service.http.*;
+import org.knopflerfish.service.log.LogRef;
 
 public class Activator implements BundleActivator {
 
@@ -61,7 +62,7 @@ public class Activator implements BundleActivator {
 
   public void start(BundleContext bc) throws BundleException {
     this.bc  = bc;
-    this.log = new LogRef();
+    this.log = new LogRef(bc);
 
     String alias = bc.getProperty("org.knopflerfish.httpconsole.alias");
     if(alias != null && !"".equals(alias)) {
@@ -114,29 +115,5 @@ public class Activator implements BundleActivator {
         return true;
       }
     };
-
-
-  class LogRef {
-    void info(String msg) {
-      System.out.println("INFO: " + msg);
-    }
-
-    void error(String msg, Throwable t) {
-      System.out.println("ERROR: " + msg);
-      if(t != null) {
-        t.printStackTrace();
-      }
-    }
-    void warn(String msg) {
-      warn(msg, null);
-    }
-
-    void warn(String msg, Throwable t) {
-      System.out.println("WARN: " + msg);
-      if(t != null) {
-        t.printStackTrace();
-      }
-    }
-  }
 
 }
