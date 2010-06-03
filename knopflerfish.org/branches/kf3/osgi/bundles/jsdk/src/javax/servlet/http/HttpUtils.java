@@ -238,7 +238,8 @@ public class HttpUtils {
 		} catch (NumberFormatException e) {
 		    // XXX
 		    // need to be more specific about illegal arg
-		    throw new IllegalArgumentException();
+		    //throw new IllegalArgumentException();
+                  throw new IllegalArgumentException("A % must be followed by 2 hex-digits; found '%"+s.substring(i+1, i+3)+"' in '"+s+"'.");//GE
 		} catch (StringIndexOutOfBoundsException e) {
 		    String rest  = s.substring(i);
 		    sb.append(rest);
