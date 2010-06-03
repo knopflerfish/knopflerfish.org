@@ -56,6 +56,13 @@
     <ant target="${the.target}" dir="device"/>
     <ant target="${the.target}" dir="prefs"/>
 
+    <ant target="${the.target}" dir="applicationadmin"/>
+    <ant target="${the.target}" dir="blueprint"/>
+    <ant target="${the.target}" dir="deploymentadmin"/>
+    <ant target="${the.target}" dir="dmtree"/>
+    <ant target="${the.target}" dir="foreignapplication"/>
+    <ant target="${the.target}" dir="monitor"/>
+
     <ant target="${the.target}" dir="measurement"/>
     <ant target="${the.target}" dir="position"/>
     <ant target="${the.target}" dir="metatype/metatype_api"/>
