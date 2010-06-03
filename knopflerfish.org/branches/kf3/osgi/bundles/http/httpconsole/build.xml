@@ -5,10 +5,12 @@
   <dirname  property="proj.dir" file="${ant.file.httpconsole}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
-  <property name  = "impl.pattern"
-            value = "org/knopflerfish/bundle/httpconsole/**"/>
+  <property name="bundle.build.doc"   value="true"/>
 
-  <property name="bmfa.Bundle-Version"        value="3.0.0"/>
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/httpconsole/**"/>
+
+  <property name="bmfa.Bundle-Version"        value="3.0.1"/>
 
   <path id="bundle.compile.path">
    <pathelement location="jsdk_api-N.N.N.jar"/> 
