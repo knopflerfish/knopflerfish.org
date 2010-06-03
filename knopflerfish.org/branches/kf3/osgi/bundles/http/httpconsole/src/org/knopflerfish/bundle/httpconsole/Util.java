@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -325,6 +325,9 @@ public class Util {
     throws ServletException,IOException
   {
     String      contentType = request.getHeader("content-type");
+    if (Activator.log.doDebug()) {
+      Activator.log.debug("Got form data; Content-Type: " + contentType);
+    }
 
     // Only accept valid types
     if(!contentType.startsWith("multipart/form-data")) {
@@ -339,7 +342,7 @@ public class Util {
     // Parse the data
 
     int       numRead;
-    String    filename         = "";
+    String    filename         = null;
     byte[]    buf              = new byte[BUF_SIZE];
     boolean   bHeader          = false;
     String    param            = null;
@@ -349,60 +352,85 @@ public class Util {
     boolean bDone = false;
 
     while(!bDone && (numRead = sis.readLine(buf, 0, BUF_SIZE)) != -1) {
-      //        Activator.log.info("read " + numRead + " bytes");
       if (bHeader) {
         // Read header
         String line = new String(buf, 0, numRead);
         if (line.equals("\r\n")) {
           bHeader = false;
+          baos.reset(); // Discard any data from previous segment.
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("end of headers reached");
+          }
         } else if (line.startsWith("Content-Disposition:")) {
           // Get parameters
-          //      System.out.println("disp:" + line);
+          if (Activator.log.doDebug()) {
+            Activator.log.debug(line.substring(0,line.length()-2));
+          }
           param = extractParam(line, "name");
-          if ("file".equals(param)) {
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("param: "+param);
+          }
+          if ((target + "_file").equals(param)) {
             // Remove path from file name
             filename = extractParam(line, "filename");
             if (filename != null) {
               StringTokenizer st = new StringTokenizer(filename, "\\/");
               while (st.hasMoreTokens()) {
-                Activator.log.info("got filename");
                 filename = st.nextToken();
               }
+            }
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("fileName: "+filename);
             }
           }
         } else if (line.startsWith("Content-Type:")) {
           // Get parameters
-          //      Activator.log.info("Got Content-Type: "+extractParam(line, "Content-Type"));
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("Content-Type: "
+                               +extractParam(line, "Content-Type"));
+          }
         }
       } else {
         // Check for boundary or read data
         if ((numRead == boundary.length()+2 ||
              numRead == boundary.length()+4) &&
-            (new String(buf, 0, numRead)).startsWith(boundary))
-          {
-            //      System.out.println("boundary, param=" + param + ", filename=" + filename);
-            if ((target + "_file").equals(param) && filename != null
-                && baos != null && baos.size() > 2)
-              {
-                // Remove all the last "\r\n" characters
-                byte [] outBytes = new byte[baos.size()-2];
-                System.arraycopy(baos.toByteArray(),0,outBytes, 0,baos.size()-2);
-                //              System.out.println("done, bytes=" + outBytes.length);
-                //              System.out.println("result='" + new String(outBytes) + "'");
-                fileName.append(filename);
-                return outBytes;
-
-              } else if ("mime".equals(param) &&
-                         baos != null && baos.size() > 2)
-                {
-                  String mime = new String(baos.toByteArray(),0,baos.size()-2);
-                  Activator.log.info("got mime: " + mime);
-                }
-            bHeader = true;
-          } else {
-            //      Activator.log.info("write data, numRead=" + numRead);
-            baos.write(buf, 0, numRead);
+            (new String(buf, 0, numRead)).startsWith(boundary)) {
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("found boundary");
           }
+
+          if ((target + "_file").equals(param) && filename != null
+              && baos != null && baos.size() > 2) {
+            // Found boundary indicating end of segment.
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("  end of file data.");
+            }
+
+            // Remove the last "\r\n" characters (the blank line
+            // before the boundary line)
+            byte [] outBytes = new byte[baos.size()-2];
+            System.arraycopy(baos.toByteArray(),0,outBytes, 0,
+                             baos.size()-2);
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("done, bytes=" + outBytes.length);
+            }
+            fileName.append(filename);
+            return outBytes;
+
+          } else if ("mime".equals(param) &&
+                     baos != null && baos.size() > 2) {
+            String mime = new String(baos.toByteArray(),0,baos.size()-2);
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("got mime: " + mime);
+            }
+          }
+          bHeader = true; // Look for headers after a boundary
+        } else {
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("write data, numRead=" + numRead);
+          }
+          baos.write(buf, 0, numRead);
+        }
       }
     }
     return null;

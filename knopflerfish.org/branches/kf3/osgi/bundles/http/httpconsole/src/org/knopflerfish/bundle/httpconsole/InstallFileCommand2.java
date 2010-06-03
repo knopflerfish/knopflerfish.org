@@ -69,6 +69,12 @@ public class InstallFileCommand2 implements Command {
           sb.append("Failed to install bundle of size " + bytes.length + " bytes<br/>");
         }
       }
+    } catch (BundleException be){
+      if (be.getCause() instanceof java.util.zip.ZipException) {
+        sb.append("The slected file was not a valid jar file.");
+      } else {
+        sb.append(Util.toHTML(be));
+      }
     } catch (Exception e) {
       sb.append(Util.toHTML(e));
     }
