@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  */
 
 package org.knopflerfish.bundle.httpconsole;
-	
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
@@ -46,15 +46,15 @@ public class InstallFileCommand extends IconCommand {
 
   InstallFileCommand() {
     super("cmd_installfile",
-	  "Install file",
-	  "Install bundle from file",
-	  Activator.RES_ALIAS + "/document-open.png");
+          "Install file",
+          "Install bundle from file",
+          Activator.RES_ALIAS + "/document-open.png");
   }
 
   public int getDisplayFlags() {
     return installFile2.getDisplayFlags();
   }
-  
+
   public StringBuffer run(HttpServletRequest request) {
     StringBuffer sb = new StringBuffer();
 
@@ -63,10 +63,10 @@ public class InstallFileCommand extends IconCommand {
     } else {
       StringWriter sw = new StringWriter();
       try {
-	installFile2.toHTML(request, new PrintWriter(sw));
-	sb.append(sw.toString());
+        installFile2.toHTML(request, new PrintWriter(sw));
+        sb.append(sw.toString());
       } catch (Exception e) {
-	sb.append(Util.toHTML(e));
+        sb.append(Util.toHTML(e));
       }
     }
 
@@ -74,16 +74,17 @@ public class InstallFileCommand extends IconCommand {
   }
 
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.println(" <input alt=\"" + getDescription() + "\"" + 
-		" type=\"image\"" + 
-		" class=\"iconcmd\"" + 
-		" name=\"" + getId() + "\"" + 
-		" src=\"" + getIcon() + "\">");
+    out.println(" <input alt=\"" + getDescription() + "\"" +
+                " title=\"" + getDescription() + "\"" +
+                " type=\"image\"" +
+                " class=\"iconcmd\"" +
+                " name=\"" + getId() + "\"" +
+                " src=\"" + getIcon() + "\">");
   }
-  
+
 
   public boolean isTrigger(HttpServletRequest request) {
-    return 
+    return
       null != request.getParameter(getId() + ".x")
       || installFile2.isTrigger(request)
       ;

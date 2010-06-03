@@ -159,7 +159,9 @@ Framework Commands 3.0.3
  - The URL given to the 'formupdate' and 'frominstall' commands now
    uses the same set of base URLs as the 'install' command.
 
-httpconsole 3.0.0
+httpconsole 3.0.1
+ - Converte old documentation to bundle user doc, added tooltips to
+   command buttons on the web-page.
  - Switched to tango icon set.
 
 kSOAP Remote Framework 3.0.2
