@@ -73,7 +73,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
   private FrameworkContext fwCtx;
 
-  volatile private Object refreshSync;
+  volatile private Vector refreshSync = new Vector(1);
 
 
   PackageAdminImpl(FrameworkContext fw) {
@@ -224,7 +224,6 @@ public class PackageAdminImpl implements PackageAdmin {
     }
 
     final PackageAdminImpl thisClass = this;
-    refreshSync = new Object();
     synchronized (refreshSync) {
       Thread t = new Thread(fwCtx.threadGroup, "RefreshPackages") {
           public void run() {
@@ -232,8 +231,9 @@ public class PackageAdminImpl implements PackageAdmin {
           }
         };
       t.setDaemon(false);
+      refreshSync.add(t);
       t.start();
-      // Wait for refresh thread to start
+      // Wait for a refresh thread to start
       try {
         refreshSync.wait(500);
       } catch (InterruptedException ignore) { }
@@ -241,21 +241,23 @@ public class PackageAdminImpl implements PackageAdmin {
   }
 
 
+  /**
+   *
+   */
   void refreshPackages0(final Bundle[] bundles) {
     if (fwCtx.debug.packages) {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
 
-    Collection zombies = fwCtx.packages.getZombieAffected(bundles);
-    BundleImpl bi[] = (BundleImpl[])zombies.toArray(new BundleImpl[0]);
     ArrayList startList = new ArrayList();
-
     ArrayList savedEvent = new ArrayList();
 
     synchronized (fwCtx.packages) {
+      TreeSet zombies = fwCtx.packages.getZombieAffected(bundles);
+      BundleImpl bi[] = (BundleImpl[])zombies.toArray(new BundleImpl[zombies.size()]);
+
       synchronized (refreshSync) {
-        refreshSync.notify();
-        refreshSync = null;
+        refreshSync.notifyAll();
       }
       // Stop affected bundles and remove their classloaders
       // in reverse start order
@@ -269,12 +271,6 @@ public class PackageAdminImpl implements PackageAdmin {
           savedEvent.add(new FrameworkEvent(FrameworkEvent.ERROR, bi[bx], be));
         }
       }
-
-      // Do this again in case something changed during the stop
-      // phase, this time synchronized with packages to prevent
-      // resolving of bundles. TBD! do we need this with a central lock?
-      bi = (BundleImpl[])fwCtx.packages
-        .getZombieAffected(bundles).toArray(new BundleImpl[0]);
 
       // Update the affected bundle states in normal start order
       int startPos = startList.size() - 1;
@@ -325,11 +321,16 @@ public class PackageAdminImpl implements PackageAdmin {
     fwCtx.listeners
       .frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                          fwCtx.systemBundle, null));
+    refreshSync.remove(Thread.currentThread());
     if (fwCtx.debug.packages) {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
   }
 
+
+  /**
+   *
+   */
   public boolean resolveBundles(Bundle[] bundles) {
     fwCtx.perm.checkResolveAdminPerm();
     synchronized (fwCtx.packages) {

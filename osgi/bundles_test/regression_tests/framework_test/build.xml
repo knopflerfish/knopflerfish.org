@@ -81,6 +81,8 @@
     <antcall target="bundleA_lazy2"/>
     <antcall target="bundleA_lazy3"/>
     <antcall target="bundleA_lazy4"/>
+    <antcall target="bundleN1_test"/>
+    <antcall target="bundleN2_test"/>
   </target>
 
   <target name="bundleA_test">
@@ -384,6 +386,20 @@
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/bundleA_lazy4"/>
+    </ant>
+  </target>
+  <target name="bundleN1_test">
+    <ant dir="test_target_bundles/bundleN1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleN1_test"/>
+    </ant>
+  </target>
+  <target name="bundleN2_test">
+    <ant dir="test_target_bundles/bundleN2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleN2_test"/>
     </ant>
   </target>
 
