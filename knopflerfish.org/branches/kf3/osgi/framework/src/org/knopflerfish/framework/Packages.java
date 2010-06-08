@@ -351,7 +351,7 @@ class Packages {
    * @param bundles Initial bundle set.
    * @return List of bundles affected.
    */
-  synchronized Collection getZombieAffected(Bundle [] bundles) {
+  synchronized TreeSet getZombieAffected(Bundle [] bundles) {
     // set of affected bundles will be in start-level/bundle-id order
     TreeSet affected = new TreeSet(new Comparator() {
       public int compare(Object o1, Object o2) {

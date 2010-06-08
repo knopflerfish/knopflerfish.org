@@ -724,16 +724,22 @@ public class Archive implements FileArchive {
       }
     } else {
       lib = findFile(file, path);
-      if (!lib.exists() && (lib.getParent() != null)) {
-        final String libname = lib.getName();
-        File[] list = lib.getParentFile().listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-              int pos = name.lastIndexOf(libname);
-              return ((pos > 1) && (name.charAt(pos - 1) == '_'));
-            }
-          });
-        if (list.length > 0) {
-          list[0].renameTo(lib);
+      if (!lib.exists()) {
+        if (lib.getParent() != null) {
+          final String libname = lib.getName();
+          File[] list = lib.getParentFile().listFiles(new FilenameFilter() {
+              public boolean accept(File dir, String name) {
+                int pos = name.lastIndexOf(libname);
+                return ((pos > 1) && (name.charAt(pos - 1) == '_'));
+              }
+            });
+          if (list.length > 0) {
+            list[0].renameTo(lib);
+          } else {
+            return null;
+          }
+        } else {
+          return null;
         }
       }
     }
@@ -976,8 +982,8 @@ public class Archive implements FileArchive {
 
 
   /**
-   * Check if we need to unpack bundle,
-   * i.e has native code file or subjars.
+   * Check if we should unpack bundle, i.e has native code file or subjars.
+   * This decision is based on minimizing the expected size.
    *
    * @return true if bundle needs to be unpacked.
    * @exception IllegalArgumentException if we have a broken manifest.
