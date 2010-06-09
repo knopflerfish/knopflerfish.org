@@ -95,6 +95,7 @@
 -istart @http_test-N.N.N.jar@
 -istart @io_test-N.N.N.jar@
 -istart @preferences_test-N.N.N.jar@
+-istart @startlevel_test-N.N.N.jar@
 $(DO_CPA_TEST)-istart @condpermadmin_test-N.N.N.jar@
 
 # packages required by component_test
