@@ -20,6 +20,7 @@
 -install @component_all-N.N.N.jar@
 -install @event_all-N.N.N.jar@
 -install @prefs_all-N.N.N.jar@
+-istart @trayicon_fw-N.N.N.jar@
 
 
 ## Some library bundles
