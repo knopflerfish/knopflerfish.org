@@ -172,14 +172,6 @@ License Agreement. See osgi/bundles_opt/serial/readme.txt for more
 information.
 
 ----------------------------------------------------------------------
--	Windows Tray Icon Bundle Notice
-----------------------------------------------------------------------
-This product includes the trayicon bundle written by Jan Struyf
-http://jeans.studentenweb.org/java/trayicon/trayicon.html
-Distributed under "May the Force be with you... Just compile 
-it & use it!"-license
-
-----------------------------------------------------------------------
 -	Xalan Bundle Notice
 ----------------------------------------------------------------------
 This product includes the xerces bundle which includes software
