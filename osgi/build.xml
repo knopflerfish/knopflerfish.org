@@ -109,26 +109,7 @@
     <antcall target="xargs_filter">
       <param name="xargs.template.in" location="template.xargs.in"/>
       <param name="xargs.out.file"    location="${xargs.out.dir}/init.xargs"/>
-      <param name="jars.dir"      location="${jars.dir}"/>
-      <param name="test.jars.dir" location="${jars.dir}"/>
-      <param name="gosg.jars"     value="${gosg.jars}"/>
-      <param name="root.out.dir"  location="${root.out.dir}"/>
-    </antcall>
-
-    <antcall target="xargs_filter">
-      <param name="xargs.template.in" location="template.xargs.in"/>
-      <param name="xargs.out.file"    location="${xargs.out.dir}/init_WindowsXP.xargs"/>
-      <param name="xargs.os.template" location="windows.xargs.in"/>
-      <param name="jars.dir"      location="${jars.dir}"/>
-      <param name="test.jars.dir" location="${jars.dir}"/>
-      <param name="gosg.jars"     value="${gosg.jars}"/>
-      <param name="root.out.dir"  location="${root.out.dir}"/>
-    </antcall>
-
-    <antcall target="xargs_filter">
-      <param name="xargs.template.in" location="template.xargs.in"/>
-      <param name="xargs.out.file"    location="${xargs.out.dir}/init_Windows2000.xargs"/>
-      <param name="xargs.os.template" location="windows.xargs.in"/>
+      <!--param name="xargs.os.template" location="windows.xargs.in"/-->
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
