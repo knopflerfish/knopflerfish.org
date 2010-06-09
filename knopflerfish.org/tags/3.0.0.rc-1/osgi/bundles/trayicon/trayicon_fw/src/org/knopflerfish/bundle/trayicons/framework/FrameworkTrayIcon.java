@@ -94,7 +94,7 @@ public class FrameworkTrayIcon {
     }
     catch (Exception e) {
       Activator.log.error("Failed to create FrameworkTrayIcon: "+e, e);
-      throw UnsupportedOperationException(e.getMessage());
+      throw new UnsupportedOperationException(e.getMessage());
     }
   }
 
@@ -121,7 +121,7 @@ public class FrameworkTrayIcon {
     }
     catch (Exception e) {
       Activator.log.error("Error in SystemTray invokation: " + e);
-      throw UnsupportedOperationException(e.getMessage());
+      throw new UnsupportedOperationException(e.getMessage());
     }
     return null; // dummy
   }
