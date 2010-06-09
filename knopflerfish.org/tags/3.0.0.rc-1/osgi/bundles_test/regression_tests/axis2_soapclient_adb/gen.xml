@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+
+<project name="gen_axis2_soapclient_adb" default="default">
+
+  <property name="topdir"     location=".."/>
+  <property name="osgi.dir"   location="../../.."/>
+  <property name="gen.dir"    value="axis2_gen"/>
+  <property name="axis2-osgi.home"
+	    location="${osgi.dir}/bundles_opt/soap/axis2-osgi"/>
+
+  <!-- The URI to download the WSDL from -->
+  <property name="ws.file"    location="MySoapTestService.xml"/>
+  <property name="ws.host"    value="localhost"/>
+  <property name="ws.port"    value="8080"/>
+  <property name="ws.path"    value="/axis2/services/MySoapTestService"/>
+  <property name="ws.uri"     value="http://${ws.host}:${ws.port}${ws.path}"/>
+
+  <!-- The package name to use for the generated classes -->
+  <property name="ws.pkg"     value="org.knopflerfish.client.axis2_soapobject"/>
+  
+  <path id="axis2.class.path">
+    <fileset dir="${axis2-osgi.home}">
+      <include name="resources/WEB-INF/lib/*.jar"/>
+    </fileset>
+  </path>
+  <path id="axis2-unbundled.class.path">
+    <fileset dir="${axis2-osgi.home}">
+      <include name="unusedlibs/*.jar"/>
+    </fileset>
+  </path>
+  <path id="axis2.gen.class.path">
+    <path refid="axis2.class.path"/>
+    <path refid="axis2-unbundled.class.path"/>
+  </path>
+
+ <target name="default" depends="gen,install,clean"/>
+
+ <target name="gen"
+	 description="Generate ADB style client with unwrapped params.">
+  <java fork="true"
+	classname="org.apache.axis2.wsdl.WSDL2Java"
+	classpathref="axis2.gen.class.path"
+  >
+    <jvmarg value="-Daxis2.xml=${axis2-osgi.home}/resources/WEB-INF/conf/axis2.xml"/>
+    <jvmarg value="-Daxis2.repo=${axis2-osgi.home}/resources"/>
+    <arg line="-uri ${ws.file} -d adb -uw -p ${ws.pkg} -o ${gen.dir}"/>
+  </java>
+ </target>
+
+ <target name="install" description="Install generated files to src-dir.">
+   <copy todir="src">
+     <fileset dir="${gen.dir}/src">
+       <include name="**/*.java"/>
+     </fileset>
+   </copy>
+ </target>
+
+ <target name="clean" description="removes all generated files">
+  <delete dir="${gen.dir}"/>
+ </target>
+
+
+ <target name="get" description="Downloads the WSDL from the server.">
+    <get src="${ws.uri}?wsdl" dest="${ws.file}"/>
+ </target>
+
+ <target name="run" description="Execute as stand alone client.">
+   <!-- Ensure that the client have been built -->
+   <ant antfile="build.xml" target="compile"/>
+   <java fork="true"
+	 classname="org.knopflerfish.bundle.axis2_soapclient_adb.BundleActivator"
+	 >
+     <classpath>
+       <pathelement path="${topdir}/out/axis2_soapclient_adb/classes"/>
+       <pathelement location="${osgi.dir}/framework.jar"/>
+       <pathelement location="${topdir}/lib/junit.jar"/>
+       <path refid="axis2.class.path"/>
+       <path refid="axis2-unbundled.class.path"/>
+     </classpath>
+   </java>
+ </target>
+
+</project>

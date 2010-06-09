@@ -1,0 +1,13 @@
+Bundle-Name: bundleN1_test
+Bundle-SymbolicName: bundleN1_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for missing native code
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Bundle-NativeCode: foo ; osname = Linux ; osname = MacOSX ;
+                   osname = SunOS ; osname = VxWork ; osname = Win32 ; 
+                   processor = arm_be ; processor = arm_le ;
+                   processor = Mips ; processor = Sparc ;
+                   processor = x86 ; processor = x86-64

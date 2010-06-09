@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RXTXcomm-linux-arm
+Bundle-SymbolicName: org.knopflerfish.bundle.rxtxcomm-linux-arm
+Bundle-Version: 2.1.7
+Bundle-Category: service
+Bundle-Description: RXTX comm native driver for Linux/armle
+Bundle-Vendor: Piayda/RXTX
+Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/serial/readme.txt
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-NativeCode: librxtxI2C.so; librxtxParallel.so; librxtxRS485.so;
+ librxtxRaw.so; librxtxSerial.so ;
+ osname = Linux ;
+ processor = armle; processor = armv4tl
+Fragment-Host: org.knopflerfish.bundle.rxtxcomm-API

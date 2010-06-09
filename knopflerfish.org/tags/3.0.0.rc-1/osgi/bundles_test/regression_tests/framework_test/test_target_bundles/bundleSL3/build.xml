@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!-- bundleSL3 uses require package to import the service package -->
+<!-- exported by bundleSL1. It fetches and uses a service defined by  -->
+<!-- that package, registered by bundleSL2. -->
+<project name="bundleSL3" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.bundleSL3}"/>
+  <import  file="${proj.dir}/../../../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="ee.check.foundation" value="false"/>
+
+  <!-- Must not explicitly import org.knopflerfish.service.foo -->
+  <property name="bundle.stdimports" value="org.knopflerfish.service.foo"/>
+
+  <property name="all.suffix.name"  value=""/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="${all.jar}/../bundleSL1-1.0.0.jar"/> 
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

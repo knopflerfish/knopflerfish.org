@@ -1,0 +1,12 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleSL4
+Bundle-SymbolicName: org.knopflerfish.bundle.bar.bundleSL4
+Bundle-Version: 1.0.0
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-Category: test
+Bundle-Description: Test bundle for SF Bugs-tracker issue 2844362.
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bar.ActivatorSL4
+Require-Bundle: org.knopflerfish.bundle.foo.bundleSL1
+
