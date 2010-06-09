@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ** Copyright (c) 2003-2009, KNOPFLERFISH project
+  ** Copyright (c) 2003-2010, KNOPFLERFISH project
   ** All rights reserved.
   **
   ** Redistribution and use in source and binary forms, with or without
@@ -144,9 +144,13 @@
 
   <!-- The root directory to place all intermediate build producs in.  -->
   <property name="root.out.dir"   location="${topdir}/out"/>
-  
+
+  <!-- The name of the directory to place all intermediate build -->
+  <!-- products for this project. -->
+  <property name="outdir.name" value="${ant.project.name}"/>
+
   <!-- Directory to place all intermediate build products for this project. -->
-  <property name="outdir"   location="${root.out.dir}/${ant.project.name}"/>
+  <property name="outdir"   location="${root.out.dir}/${outdir.name}"/>
 
   <!-- The root of the default bundle repository. -->
   <property name="osgi.jars.dir" location="${osgi.dir}/jars"/>
@@ -155,14 +159,21 @@
   <!-- are placed.                                                     -->
   <property name="jars.dir" location="${topdir}/jars"/>
 
+  <!-- Name of the subdirectory of jars.dir where this projects bundles -->
+  <!-- shall be placed. -->
+  <property name="jardir.name" value="${ant.project.name}"/>
+
   <!-- Subdirectory of jars.dir where this projects bundles shall live. -->
-  <property name="jardir"   location="${jars.dir}/${ant.project.name}"/>
+  <property name="jardir"   location="${jars.dir}/${jardir.name}"/>
 
   <!-- The root if the local bundle docs directory. -->
   <property name="docs.dir" location="${root.out.dir}/doc"/>
 
+  <!-- Name of the directory to place generate bundle documentation in. -->
+  <property name="outdocdir.name" value="${ant.project.name}"/>
+
   <!-- Directory to place generate bundle documentation in. -->
-  <property name="outdocdir"   location="${docs.dir}/${ant.project.name}"/>
+  <property name="outdocdir"   location="${docs.dir}/${outdocdir.name}"/>
 
   <!-- Location of templates used by the bundle_doc-target. -->
   <property name="bundledoc_template"
