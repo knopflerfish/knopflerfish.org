@@ -283,14 +283,12 @@ public class StartLevelController
               set.addElement(bs);
             }
           }
-        } else {
-
         }
       }
 
       Util.sort(set, BSComparator, false);
 
-      for(int i = 0; i < set.size(); i++) {
+      for (int i = 0; i < set.size(); i++) {
         BundleImpl bs = (BundleImpl)set.elementAt(i);
         try {
           if (bs.archive.getAutostartSetting()!=-1) {
@@ -303,6 +301,8 @@ public class StartLevelController
             }
             bs.start(startOptions);
           }
+        } catch (IllegalStateException ignore) {
+          // Tried to start an uninstalled bundle, skip
         } catch (Exception e) {
           framework.listeners.frameworkError(bs, e);
         }
@@ -398,11 +398,10 @@ public class StartLevelController
       throw new IllegalArgumentException("uninstalled bundle start level cannot be changed");
     }
 
+    bs.setStartLevel(bCompat ? 1 : startLevel);
+
     jobQueue.insert(new Runnable() {
       public void run() {
-        int sl  = bCompat ? 1 : startLevel;
-
-        bs.setStartLevel(sl);
         syncStartLevel(bs);
       }
     });

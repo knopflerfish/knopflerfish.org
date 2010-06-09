@@ -568,9 +568,6 @@ public class BundleImpl implements Bundle {
         break;
       }
     }
-    if (state != UNINSTALLED) {
-      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
-    }
     if (savedException != null) {
       if (savedException instanceof BundleException) {
         throw (BundleException)savedException;
@@ -592,6 +589,7 @@ public class BundleImpl implements Bundle {
       state = RESOLVED;
       deactivating = false;
       fwCtx.packages.notifyAll();
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
     }
     return savedException;
   }
@@ -901,10 +899,8 @@ public class BundleImpl implements Bundle {
         waitOnActivation(fwCtx.packages, "Bundle.uninstall", false);
         if ((state & (ACTIVE|STARTING)) != 0) {
           Exception exception = stop0(state == ACTIVE);
-          if (exception == null) {
+          if (exception != null) {
             // NYI! not call inside lock
-            fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
-          } else {
             fwCtx.listeners.frameworkError(this, exception);
           }
         }
