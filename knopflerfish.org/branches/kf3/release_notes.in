@@ -58,7 +58,7 @@ Http 2.1.7
    'If-Modified-Since'-header is ignored when this happens.
  - Added support for responding with "Content-Encoding: gzip" for
    resources when the request header "Accept-Encoding" indicates that
-   gzip:ed repsonses are preferred.
+   gzip:ed responses are preferred.
  - The non-standard request header "Proxy-Connection" is now
    recognized and handled in the same way as the standardized
    "Connection" header.
