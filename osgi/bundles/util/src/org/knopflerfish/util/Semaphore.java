@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,61 +35,63 @@
 package org.knopflerfish.util;
 
 /**
- * * The <code>Semaphore</code> class handles synchronization and waiting for
- * values. *
- * 
+ * The <code>Semaphore</code> class handles synchronization and waiting for
+ * values.
+ *
  * @author Johan Agat and Anders Rimen
  */
 public class Semaphore {
-    private Object value = null;
+  private Object value = null;
 
-    private boolean closed = false;
+  private boolean closed = false;
 
-    /**
-     * Waits up to <code>timeout</code> milliseconds for this Semaphore to
-     * receive a value.
-     * 
-     * @return The value of the Semaphore or null if this Semaphore has been
-     *         closed or if the specified timeout has expired.
-     */
-    public synchronized Object get(long timeout) {
-        long until = System.currentTimeMillis() + timeout;
-        while (!closed && value == null) {
-            try {
-                long t = until - System.currentTimeMillis();
-                if (t >= 0)
-                    wait(t);
-                else
-                    return null;
-            } catch (InterruptedException ignore) {
-            }
-        }
-        return value;
+  /**
+   * Waits up to <code>timeout</code> milliseconds for this Semaphore to
+   * receive a value.
+   *
+   * @return The value of the Semaphore or null if this Semaphore has been
+   *         closed or if the specified timeout has expired.
+   */
+  public synchronized Object get(long timeout) {
+    long until = System.currentTimeMillis() + timeout;
+    while (!closed && value == null) {
+      try {
+        long t = until - System.currentTimeMillis();
+        if (t >= 0)
+          wait(t);
+        else
+          return null;
+      } catch (InterruptedException ignore) {
+      }
     }
+    return value;
+  }
 
-    /**
-     * Sets the value of this Semaphore. This will cause all blocked calls to
-     * get() to return the value. If set() is called several times with a short
-     * or no delay between the calls, the exact value returned by a given
-     * blocked call to get() is not deterministic.
-     * 
-     */
-    public synchronized void set(Object v) {
-        if (closed)
-            return;
-        value = v;
-        // setCount++;
-        notifyAll();
-    }
+  /**
+   * Sets the value of this Semaphore. This will cause all blocked
+   * calls to {@link #get(long)} to return the value. If {@link
+   * #set(Object)} is called several times with a short or no delay
+   * between the calls, the exact value returned by a given blocked
+   * call to {@link #get(long)} is not deterministic.
+   *
+   * @param v The new value.
+   */
+  public synchronized void set(Object v) {
+    if (closed)
+      return;
+    value = v;
+    // setCount++;
+    notifyAll();
+  }
 
-    public synchronized void reset() {
-        value = null;
-    }
+  public synchronized void reset() {
+    value = null;
+  }
 
-    public synchronized void close() {
-        value = null;
-        closed = true;
-        notifyAll();
-    }
+  public synchronized void close() {
+    value = null;
+    closed = true;
+    notifyAll();
+  }
 
 }

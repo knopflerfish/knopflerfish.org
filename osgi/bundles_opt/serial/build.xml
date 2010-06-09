@@ -7,6 +7,8 @@
     <ant target="${the.target}" dir="serialportdevice"/>
     <ant target="${the.target}" dir="comm-win32"/>
     <ant target="${the.target}" dir="comm-linux"/>
+    <ant target="${the.target}" dir="rxtxcomm"/>
+    <ant target="${the.target}" dir="rxtxcomm-linux-arm"/>
   </target>
 
   <target name="all" 

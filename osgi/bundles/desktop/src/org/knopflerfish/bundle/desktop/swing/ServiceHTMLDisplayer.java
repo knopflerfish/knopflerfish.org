@@ -83,7 +83,11 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
         int nExport = 0;
         int nImport = 0;
         for(int i = 0; srl != null && i < srl.length; i++) {
-          if(srl[i].getBundle().getBundleId() == b.getBundleId()) {
+          final Bundle srlb = srl[i].getBundle();
+          if (null==srlb) { // Skip unregistered service.
+            continue;
+          }
+          if(srlb.getBundleId() == b.getBundleId()) {
             nExport++;
           }
           Bundle[] bl = srl[i].getUsingBundles();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,10 +35,6 @@
 package org.knopflerfish.framework;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * Class containing static wrapper methods used by ClassPatcher. These
@@ -57,8 +53,10 @@ import java.util.Properties;
 public class ClassPatcherWrappers {
  
   protected static BundleClassLoader getBundleClassLoader(long bid) {
-    BundleImpl b = (BundleImpl)Main.framework.getSystemBundleContext().getBundle(bid);
-    if(b != null) {
+    // NYI, we only handle framwork start via Main.
+    BundleImpl b = (BundleImpl)Main.main.framework;
+    b = (BundleImpl)b.bundleContext.getBundle(bid);
+    if (b != null) {
       return (BundleClassLoader)b.getClassLoader();
     }
     return null;
@@ -69,7 +67,9 @@ public class ClassPatcherWrappers {
                                        Object context)  {
     System.out.println("CP.systemExit code=" + code + ", bid=" + bid + ", context=" + context);    
     try {
-      Bundle b = Main.framework.getSystemBundleContext().getBundle(bid);
+      // NYI, we only handle framwork start via Main.
+      BundleImpl b = (BundleImpl)Main.main.framework;
+      b = (BundleImpl)b.bundleContext.getBundle(bid);
       System.out.println("stopping " + b);
       b.stop();
     } catch (Exception e) {
@@ -104,7 +104,7 @@ public class ClassPatcherWrappers {
     } catch (ClassNotFoundException e) {
       try {
         if(context != null) {
-          return context.getClass().forName(name);
+          return Class.forName(name, true, context.getClass().getClassLoader());
         }
       } catch (ClassNotFoundException keeptrying) {  
         // noop

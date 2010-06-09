@@ -173,9 +173,7 @@ public class SizeSaver extends ComponentAdapter {
   Preferences getPrefs() {
     Preferences prefsBase = Preferences.userNodeForPackage(getClass());
 
-    Map    props = Activator.getSystemProperties();
-    String spid  = (String)props.get("org.osgi.provisioning.spid");
-
+    String spid  = Activator.getBC().getProperty("org.osgi.provisioning.spid");
     if(spid == null) {
       spid = "default";
     }

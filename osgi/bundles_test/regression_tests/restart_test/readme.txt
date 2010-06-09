@@ -8,6 +8,6 @@ Should be used in two steps:
 
    Resulting test suite will be RestartSetupTestSuite
 
-2. Launch again, but with test-restart1.xargs to verify the same state
+2. Launch again, but with test-restart2.xargs to verify the same state
 
    Resulting test suite will be RestartTestSuite

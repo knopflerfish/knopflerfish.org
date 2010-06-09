@@ -18,7 +18,7 @@
   <property name="api.pattern"
             value="org/knopflerfish/service/**"/>
 
-  <path id = "bundle.compile.path">
+  <path id="bundle.compile.path">
     <pathelement location="junit_all-N.N.N.jar"/>
     <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
   </path>

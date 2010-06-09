@@ -45,7 +45,7 @@ public class StartCommand extends IconCommand {
     super("cmd_start", 
 	  "Start",
 	  "Start selected bundles",
-	  Activator.RES_ALIAS + "/player_play.gif");
+	  Activator.RES_ALIAS + "/player_play.png");
   }
 	       
   public StringBuffer run(HttpServletRequest request) {

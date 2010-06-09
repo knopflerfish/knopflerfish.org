@@ -83,6 +83,26 @@ DD.leftmenu2  {
   background-position: 0 .5em;
 }
 
+DD.leftmenu3  {
+  font-family:	Helvetica, sans-serif;
+  font-size:	12px;
+  padding:	0px 0px 0px 24px;
+  margin:	0px 0px 0px 0px;
+  background-image: url('/images/slash_small.jpg');
+  background-repeat: no-repeat;
+  background-position: 0 .5em;
+}
+
+DD.leftmenu4  {
+  font-family:	Helvetica, sans-serif;
+  font-size:	12px;
+  padding:	0px 0px 0px 32px;
+  margin:	0px 0px 0px 0px;
+  background-image: url('/images/slash_small.jpg');
+  background-repeat: no-repeat;
+  background-position: 0 .5em;
+}
+
 #footer {
   clear:both;
   border-style: solid;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -60,6 +61,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.FileUtils;
@@ -67,26 +69,29 @@ import org.apache.tools.ant.util.FileUtils;
 import org.osgi.framework.Version;
 
 /**
- * Task that analyzes a set of bundle jar files and builds HTML documentation
- * from these bundles. Also creates cross-references to bundle dependencies.
+ * Task that analyzes a set of bundle jar files and builds HTML
+ * documentation from these bundles. Also creates cross-references to
+ * bundle dependencies.
  *
  * <p>
- * All generated HTML will be stored in the same directory structure as
- * the scanned jars, e.g a jar file
+
+ * All generated HTML will be stored in the directory specified with
+ * the attribute <code>outDir</code> preserving the directory
+ * structure underneath the direcotry, <code>baseDir</code> that is
+ * scanned for jar-files, e.g a jar file
+ *
  * <pre>
  *  <it>baseDir</it>/log/log-api.jar
  * </pre>
- * will have a corresponding
+ * will result in an HTML-file
  * <pre>
  *  <it>outDir</it>/log/log-api.html
  * </pre>
- * in the directory specified with the attribute <code>outDir</code>.
- * The part of the original bundle jar path to remove when creating
- * the output directory structure in <code>outDir</code> is specified
- * by the <code>baseDir</code> attribute.
+ *
  *
  * <p>
- * Bundle jar files files are analyzed using the static manifest attributes.
+ * Bundle jar files files are analyzed using the static manifest
+ * attributes.
  * </p>
  *
  * <h3>Parameters</h3>
@@ -169,6 +174,43 @@ import org.osgi.framework.Version;
  *  </tr>
  *
  *  <tr>
+ *   <td valign=top>includeSourceFileRepositoryLinks</td>
+ *   <td valign=top>
+ *     Controls if links to the repository version of Java source
+ *     files shall be added to the HTML structure. The link target
+ *     will be created from local file names by replacing the path
+ *     prefix that matches the property <code>rootDir</code> by
+ *     <code>repositoryURL</code>.
+ *   </td>
+ *   <td valign=top>No.<br>
+ *   Default value "False"
+ *   </td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>rootDir</td>
+ *   <td valign=top>
+ *     The prefix of the source file absolute path to remove when
+ *     creating a repository URL for the source file. See
+ *     <code>includeSourceFileRepositoryLinks</code> for details.
+ *   </td>
+ *   <td valign=top>No.<br>
+ *   Default value ""
+ *   </td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>repositoryURL</td>
+ *   <td valign=top>
+ *     The base URL to source file repository. See
+ *     <code>includeSourceFileRepositoryLinks</code> for details.
+ *   </td>
+ *   <td valign=top>No.<br>
+ *   Default value ""
+ *   </td>
+ *  </tr>
+ *
+ *  <tr>
  *   <td valign=top>listHeader</td>
  *   <td valign=top>
  *    Heading to print at the top of the bundle list in the left frame
@@ -239,10 +281,14 @@ public class BundleHTMLExtractorTask extends Task {
     "<a href=\"${bundle.uri}\">${FILE.short}</a><br>\n";
 
   private String pkgHTML      =
-    "${namelink}&nbsp;${version}<br>";
+    "${namelink}&nbsp;${version}<br>\n";
 
   private boolean bCheckJavaDoc  = true;
   private boolean include_source_files  = false;
+
+  private boolean includeSourceFileRepositoryLinks = false;
+  private String rootDir = null;
+  private URL repositoryURL = null;
 
   Map     jarMap     = new TreeMap(new FileNameComparator());
   Map     globalVars = new TreeMap();
@@ -292,23 +338,38 @@ public class BundleHTMLExtractorTask extends Task {
                    "Bundle-Activator");
   }
 
-  public void setCheckJavaDoc(String s) {
-    this.bCheckJavaDoc = "true".equals(s);
+  public void setCheckJavaDoc(boolean b) {
+    this.bCheckJavaDoc = b;
   }
 
-  public void setTemplateHTMLDir(String s) {
-    this.templateHTMLDir = new File(s);
+  public void setTemplateHTMLDir(File f) {
+    this.templateHTMLDir = f;
 
     if(!templateHTMLDir.exists()) {
-      throw new BuildException("templateHTMLDir: " + s + " does not exist");
+      throw new BuildException("templateHTMLDir: " + f + " does not exist");
     }
     if(!templateHTMLDir.isDirectory()) {
-      throw new BuildException("templateHTMLDir: " + s + " is not a directory");
+      throw new BuildException("templateHTMLDir: " + f + " is not a directory");
     }
   }
 
-  public void setIncludeSourceFiles(String s) {
-    this.include_source_files = "true".equals(s);
+  public void setIncludeSourceFiles(boolean b) {
+    this.include_source_files = b;
+  }
+
+  public void setIncludeSourceFileRepositoryLinks(boolean b)
+  {
+    this.includeSourceFileRepositoryLinks = b;
+  }
+
+  public void setRootDir(File f)
+  {
+    rootDir = f.getAbsolutePath() +File.separator;
+  }
+
+  public void setRepositoryURL(URL url)
+  {
+    repositoryURL = url;
   }
 
   File getBundleInfoTemplate() {
@@ -728,6 +789,8 @@ public class BundleHTMLExtractorTask extends Task {
       serviceImportMap = parseNames(attribs.getValue("Import-Service"), true, null);
 
       extractSource(jarFile, new File( path +"/src"));
+
+      sourceRepositoryLinks();
     }
 
 
@@ -868,9 +931,72 @@ public class BundleHTMLExtractorTask extends Task {
     }
 
 
+    // sourcePath (rel src-dir) -> repository URL.
+    Map sourceRepositoryLinkMap = new TreeMap();
 
-    Map parseNames(String s, boolean range, List optionals) {
+    void sourceRepositoryLinks()
+      throws IOException
+    {
+      if (!includeSourceFileRepositoryLinks) {
+        return;
+      }
 
+      // Check if we can locate a source tree based on the
+      // "Built-From" header.
+      String sourceDir = (String) attribs.getValue("Built-From");
+      if(null==sourceDir || sourceDir.length()<1) {
+        log("No 'Built-From' manifest header in bundle, "
+            +"can not locate source files.", Project.MSG_VERBOSE);
+
+        return;
+      }
+
+      File src = new File(sourceDir, "src");
+      if (src.isDirectory()) {
+        sourceRepositoryLinks(src, src.getAbsolutePath() + File.separator);
+      } else {
+        log("No src sub-directory in 'Built-From' location, "
+            +src.getAbsolutePath() +", can not locate source files.",
+            Project.MSG_VERBOSE);
+      }
+    }
+
+    void sourceRepositoryLinks(final File src, final String prefix)
+      throws IOException
+    {
+      if (src.isDirectory()) {
+        String[] files = src.list();
+        for(int i = 0; i < files.length; i++) {
+          sourceRepositoryLinks(new File(src, files[i]), prefix);
+        }
+      } else if (src.isFile()) {
+        final String path = src.getAbsolutePath();
+        if (src.getName().endsWith(".java")) {
+          final String bundlePath = replace(path, prefix, "");
+          if (path.startsWith(rootDir)) {
+            final String repoPath = replace(path, rootDir, "")
+              .replace(File.separatorChar, '/');
+            final String href = new URL(repositoryURL, repoPath).toString();
+
+            sourceRepositoryLinkMap.put(bundlePath, href);
+
+            log("Found Java source file in repository, " +path
+                +" with href '" +href +"'.",
+                Project.MSG_VERBOSE);
+          } else {
+            log("Skipping non-repository Java source file, " +path +".",
+                Project.MSG_DEBUG);
+          }
+
+        } else {
+          log("Skipping non-Java source file, " +path +".", Project.MSG_DEBUG);
+        }
+      }
+    }
+
+
+    Map parseNames(String s, boolean range, List optionals)
+    {
       Map map = new TreeMap();
 
       //System.out.println(file + ": " + s);
@@ -1088,14 +1214,34 @@ public class BundleHTMLExtractorTask extends Task {
 
           sb.append(" <tr>\n");
           sb.append("  <td>\n");
-          sb.append("  <a href=\"" + srcBase + "/" + name + "\">" + name + "<a>\n");
-          sb.append(" </tr>\n");
+          sb.append("    <a href=\"" +srcBase +"/" +name +"\">" +name +"<a>\n");
+          sb.append("  </td>\n");
           sb.append(" </tr>\n");
 
         }
         sb.append("</table>");
 
-      } else{
+      }
+
+      if (sourceRepositoryLinkMap.size()>0) {
+        sb.append("<table>");
+        for(Iterator it = sourceRepositoryLinkMap.entrySet().iterator();
+            it.hasNext();) {
+          final Map.Entry entry = (Map.Entry) it.next();
+          final String name = (String) entry.getKey();
+          final String href = (String) entry.getValue();
+
+          sb.append(" <tr>\n");
+          sb.append("  <td>\n");
+          sb.append("    <a href=\"" +href +"\">" +name +"<a>\n");
+          sb.append("  </td>\n");
+          sb.append(" </tr>\n");
+
+        }
+        sb.append("</table>");
+      }
+
+      if (0==sb.length()) {
         sb.append("None found");
       }
 
@@ -1121,7 +1267,7 @@ public class BundleHTMLExtractorTask extends Task {
                      Map         unresolvedMapDest,
                      boolean bShowUnresolved) throws IOException {
 
-      Map map        = new TreeMap();
+      final Map map        = new TreeMap();
 
       if(unresolvedMapDest == null) {
         unresolvedMapDest = new TreeMap();
@@ -1129,32 +1275,28 @@ public class BundleHTMLExtractorTask extends Task {
 
       for(Iterator it = importMap.getMap(this).keySet().iterator();
           it.hasNext(); ) {
-        String name    = (String)it.next();
-        Object version = importMap.getMap(this).get(name);
+        final String name    = (String)it.next();
+        final Object version = importMap.getMap(this).get(name);
 
         boolean bFound = false;
         for(Iterator it2 = jarMap.keySet().iterator(); it2.hasNext();) {
-          File jarFile = (File)it2.next();
-          BundleInfo info = (BundleInfo)jarMap.get(jarFile);
+          final File jarFile = (File)it2.next();
+          final BundleInfo info = (BundleInfo)jarMap.get(jarFile);
 
           for(Iterator it3 = exportMap.getMap(info).keySet().iterator(); it3.hasNext(); ) {
-            String name2    = (String) it3.next();
-            Object version2 = exportMap.getMap(info).get(name);
+            final String name2    = (String) it3.next();
+            final Object version2 = exportMap.getMap(info).get(name);
 
             if(name.equals(name2)) {
-              VersionRange versions = (version instanceof VersionRange)
+              final VersionRange versions = (version instanceof VersionRange)
                 ? (VersionRange) version : (VersionRange) version2;
-              Version ver = (version instanceof Version)
+              final Version ver = (version instanceof Version)
                 ? (Version) version : (Version) version2;
-
               if(versions.contains(ver)) {
                 bFound = true;
                 String pkgNames = (String) map.get(jarFile);
                 pkgNames = null==pkgNames ? name : (pkgNames +", "+name);
                 map.put(jarFile, pkgNames);
-              } else {
-                System.out.println(file +": need " +name +" version "
-                                   +version +", found version " +version2);
               }
             }
           }
@@ -1165,19 +1307,18 @@ public class BundleHTMLExtractorTask extends Task {
         }
 
       }
-      StringBuffer sb = new StringBuffer();
+      final StringBuffer sb = new StringBuffer();
 
       if(map.size() == 0 && unresolvedMapDest.size() == 0) {
         sb.append("None found");
       } else {
         for(Iterator it = map.keySet().iterator(); it.hasNext();) {
-          Object     key     = it.next();
-          File       jarFile = (File)key;
-          BundleInfo info    = (BundleInfo)jarMap.get(jarFile);
-          String     what    = (String)map.get(jarFile);
+          final Object     key     = it.next();
+          final File       jarFile = (File) key;
+          final BundleInfo info    = (BundleInfo) jarMap.get(jarFile);
+          final String     what    = (String) map.get(jarFile);
 
           String row = info.stdReplace(bundleRow, false);
-
           row = replace(row, "${what}", what);
           row = replace(row, "${bundledoc}", relPathUp +info.relPath +".html");
           sb.append(row);
@@ -1187,18 +1328,16 @@ public class BundleHTMLExtractorTask extends Task {
         if(bShowUnresolved) {
           if(unresolvedMapDest.size() > 0) {
             String row = missingRow;
-
             row = replace(row, "${name}",    "<b>Unresolved</b>");
             row = replace(row, "${version}", "");
 
             sb.append(row);
           }
           for(Iterator it = unresolvedMapDest.keySet().iterator(); it.hasNext();) {
-            String name    = (String) it.next();
-            Object version = unresolvedMapDest.get(name);
+            final String name    = (String) it.next();
+            final Object version = unresolvedMapDest.get(name);
 
             String row = missingRow;
-
             row = replace(row, "${name}",    name);
             row = replace(row, "${version}", version.toString());
 

@@ -239,36 +239,33 @@ public class JUnpackWizard extends JWizard {
     boolean excluded = false;
 
     if(!compBaseCB.isSelected()) {
-      if(name.startsWith("knopflerfish.org/osgi/jars") ||
-         name.startsWith("knopflerfish.org/osgi/framework.jar") ||
-         name.endsWith(".xargs"))
-        {
-          //      System.out.println("skip " + name + " since no base");
-          excluded = true;
-        }
+      if(name.startsWith("osgi/framework.jar") ||
+         name.startsWith("osgi/jars/") ||
+         name.startsWith("osgi/test_jars/") ||
+         name.endsWith(".xargs")
+         ) {
+        excluded = true;
+      }
     }
 
     if(!compSrcCB.isSelected()) {
-      if(name.startsWith("knopflerfish.org/osgi/bundles") ||
-         name.startsWith("knopflerfish.org/osgi/framework/") ||
-         name.startsWith("knopflerfish.org/tools") ||
-         name.startsWith("knopflerfish.org/ant") ||
-         name.startsWith("knopflerfish.org/keystore") ||
-         name.endsWith("build.xml") ||
-         name.endsWith(".java"))
-        {
-          //      System.out.println("skip " + name + " since no source");
-          excluded = true;
-        }
+      if(name.startsWith("osgi/bundles") ||
+         name.startsWith("osgi/framework/") ||
+         name.startsWith("ant/") ||
+         name.endsWith("build.xml")
+         ) {
+        excluded = true;
+      }
     } else if (name.endsWith(".xargs")) {
       // If source is selected do not exclude .xargs-files; needed to
-      // undo the exclude done above when compBaseCB i de-selected.
+      // undo the exclude done above when compBaseCB i de-selected for
+      // non-generated .xargs-files (harmless for generated files).
+      // E.g., this preserves props.xargs
       excluded = false;
     }
 
     if(!compHtdocsCB.isSelected()) {
-      if(name.startsWith("knopflerfish.org/docs") ||
-         name.startsWith("knopflerfish.org/htdocs")) {
+      if(name.startsWith("docs")) {
         excluded = true;
       }
     }

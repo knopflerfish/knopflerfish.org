@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: cm
 Bundle-SymbolicName: org.knopflerfish.bundle.cm
-Bundle-Version: 2.0.1
-Bundle-UUID: org.knopflerfish:cm:2.0.1
+Bundle-Version: 3.0.0
 Bundle-Category: service
 Bundle-Description: Configuration management service
 Bundle-Vendor: Knopflerfish
@@ -11,11 +10,12 @@ Bundle-APIVendor: OSGi
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-Icon: icon.png;size=32
 Export-Service: org.osgi.service.cm.ConfigurationAdmin
 Import-Service: org.knopflerfish.service.log.LogService,org.osgi.servi
  ce.cm.ManagedService,org.osgi.service.cm.ManagedServiceFactory,org.os
  gi.service.cm.ConfigurationPlugin
 Bundle-Activator: org.knopflerfish.bundle.cm.Activator
-api-Export-Package: org.osgi.service.cm;specification-version=1.2.0
-Export-Package: org.osgi.service.cm;specification-version=1.2.0,
+api-Export-Package: org.osgi.service.cm;specification-version=1.3.0
+Export-Package: org.osgi.service.cm;specification-version=1.3.0,
  org.knopflerfish.shared.cm;specification-version=1.0

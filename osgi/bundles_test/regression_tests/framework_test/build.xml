@@ -2,7 +2,7 @@
 
 <project name="framework_test" default="all">
 
-  <dirname property="proj.dir" file="${ant.file.resimp_test}"/>
+  <dirname property="proj.dir" file="${ant.file.framework_test}"/>
   <import  file="${proj.dir}/../test_import.xml"/>
 
   <property name="bundle.build.all"  value="true"/>
@@ -13,7 +13,7 @@
 
   <property name="all.suffix.name"  value=""/>
   <property name="resources.dir" location="${proj.dir}/resources"/>
-  <property name="ttb.outdir" location="${topdir}/out/${ant.project.name}/ttb"/>
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
@@ -23,6 +23,7 @@
   <property name="bundle.stdimports"   value="javax.microedition.io"/>
 
   <path id="bundle.compile.path">
+    <pathelement location="io_api-N.N.N.jar"/>
     <pathelement location="junit_all-N.N.N.jar"/>
     <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
   </path>
@@ -76,7 +77,12 @@
     <antcall target="resexp_test"/>
     <antcall target="resimp_test"/>
     <antcall target="require_bundle"/>
-
+    <antcall target="bundleA_lazy"/>
+    <antcall target="bundleA_lazy2"/>
+    <antcall target="bundleA_lazy3"/>
+    <antcall target="bundleA_lazy4"/>
+    <antcall target="bundleN1_test"/>
+    <antcall target="bundleN2_test"/>
   </target>
 
   <target name="bundleA_test">
@@ -352,6 +358,48 @@
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/rb_C"/>
+    </ant>
+  </target>
+  <target name="bundleA_lazy">
+    <ant dir="test_target_bundles/bundleA_lazy" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy"/>
+    </ant>
+  </target>
+  <target name="bundleA_lazy2">
+    <ant dir="test_target_bundles/bundleA_lazy2" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy2"/>
+    </ant>
+  </target>
+  <target name="bundleA_lazy3">
+    <ant dir="test_target_bundles/bundleA_lazy3" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy3"/>
+    </ant>
+  </target>
+  <target name="bundleA_lazy4">
+    <ant dir="test_target_bundles/bundleA_lazy4" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy4"/>
+    </ant>
+  </target>
+  <target name="bundleN1_test">
+    <ant dir="test_target_bundles/bundleN1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleN1_test"/>
+    </ant>
+  </target>
+  <target name="bundleN2_test">
+    <ant dir="test_target_bundles/bundleN2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleN2_test"/>
     </ant>
   </target>
 

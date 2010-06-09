@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -321,11 +321,11 @@ public abstract class JHTMLBundle extends JPanel  {
         sb.append("</table>");
 
         try {
-    sb.append(formatServiceObject(srl[0]).toString());
+          sb.append(formatServiceObject(srl[0]).toString());
         } catch (Exception e) {
           sb.append("Failed to format service object: " + e);
+          Activator.log.warn("Failed to format service object: " +e, srl[0], e);
         }
-
 
         sb.append("</html>");
 
@@ -361,7 +361,14 @@ public abstract class JHTMLBundle extends JPanel  {
     for (int i=0; i<names.length; i++) {
       try {
         Class clazz = sr.getBundle().loadClass(names[i]);
-        sb.append(formatClass(clazz).toString());
+        if (null==clazz) {
+          sb.append("<tr><td colspan=\"3\" valign=\"top\" bgcolor=\"#eeeeee\">");
+          startFont(sb);
+          sb.append("Class not found: ").append(names[i]);
+          sb.append("</font></td></tr>");
+        } else {
+          sb.append(formatClass(clazz).toString());
+        }
       } catch (ClassNotFoundException e) {
         sb.append("<tr><td colspan=\"3\" valign=\"top\" bgcolor=\"#eeeeee\">");
         startFont(sb);

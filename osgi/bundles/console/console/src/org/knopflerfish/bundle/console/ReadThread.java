@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import org.knopflerfish.service.console.Session;
 
 /**
  * Implementation of the service interface ConsoleService.
- * 
+ *
  * @see org.knopflerfish.service.console.ConsoleService
  * @author Jan Stein
  * @version $Revision: 1.1.1.1 $
@@ -65,12 +65,13 @@ public class ReadThread extends Thread {
         super("Reader thread " + session.getName());
         this.in = in;
         this.session = session;
+        setDaemon(true);
         pipe = new Pipe();
     }
 
     /**
-     * 
-     * 
+     *
+     *
      */
     public Reader getReader() {
         return pipe.getReader();
@@ -82,7 +83,7 @@ public class ReadThread extends Thread {
 
     /**
      * Run
-     * 
+     *
      * @param commands
      *            String with command to run
      * @return Result of commands

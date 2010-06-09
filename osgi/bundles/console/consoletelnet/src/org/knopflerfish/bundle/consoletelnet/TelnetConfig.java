@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,6 +110,12 @@ public class TelnetConfig {
       } catch (Exception _e) {
       }
     }
+
+    final String hp = bc.getProperty("org.knopflerfish.consoletelnet.host");
+    if (null!=hp ) {
+      host = hp;
+    }
+
 
     TelnetConfig.configuration = TelnetConfig.getDefaultConfig();
     updated(configuration);

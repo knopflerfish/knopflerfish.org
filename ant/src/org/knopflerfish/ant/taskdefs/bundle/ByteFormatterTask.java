@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,13 @@ import org.apache.tools.ant.Task;
 
 
 /**
- * Sets a property to a formatted value in ki, Mi, Gi, ... with an
- * optional unit. Here <tt>ki</tt> is short for <tt>kibi</tt>, (a
- * contraction of kilo binary) see <a
+ * Sets a property to a formatted value in ki, Mi, Gi, Ti, Pi, Ei, Zi
+ * and Yi with an optional unit.
+ *
+ * Here <tt>ki</tt> is short for <tt>kibi</tt>, (a contraction of kilo
+ * binary) see <a
  * href="http://en.wikipedia.org/wiki/Kibibyte">http://en.wikipedia.org/wiki/Kibibyte</a>
- * for a detailed explanation.
- * <p>
+ * for a detailed explanation.  <p>
  *
  * <h3>Parameters</h3>
  *
@@ -201,8 +202,7 @@ public class ByteFormatterTask extends Task {
   static final long step = 1024;
 
   /**
-   * Format value using ki, Mi, Gi, ... using multiples of 1024. I.e.,
-   * binary "bytes".
+   * Performs the requested formatting.
    *
    * @throws BuildException if the manifest cannot be written.
    */

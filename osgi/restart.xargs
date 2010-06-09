@@ -1,5 +1,0 @@
-# load common properties
--xargs props.xargs
--Dorg.knopflerfish.gosg.jars=file:jars/
-
--launch 0

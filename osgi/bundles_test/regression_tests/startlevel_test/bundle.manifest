@@ -1,0 +1,12 @@
+Bundle-Name: startlevel_test
+Bundle-SymbolicName: startlevel_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for startlevel tests
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.startlevel_test.Activator
+Bundle-Category: test
+Import-Package: junit.framework,org.osgi.framework,
+                org.osgi.service.packageadmin,
+                org.osgi.service.startlevel

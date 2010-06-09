@@ -50,6 +50,7 @@ public class QueueHandler extends Thread {
    * EventAdmin service implementation.
    */
   final private Map queueHandlers;
+
   /** The key for this queue handler in the map with active queue handlers.*/
   private Object key;
 
@@ -85,13 +86,13 @@ public class QueueHandler extends Thread {
   }
 
   /**
-   * This adds a new InternalAdminEvent to the que
+   * This adds a new InternalAdminEvent to the queue
    *
    * @param event the new InternalAdminEvent
    */
   public void addEvent(InternalAdminEvent event) {
     if (event.getHandlers() == null) {
-      // Noone to deliver to
+      // No-one to deliver to
       return;
     }
     synchronized (this) {

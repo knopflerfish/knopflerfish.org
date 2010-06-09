@@ -17,6 +17,8 @@ Contents:
  osgi/bundles     - bundles included in distribution.
  osgi/bundles_opt - some extra bundles.
  osgi/framework   - core OSGi framework.
+ osgi/jars        - Precompiled bundles.
+ osgi/test_jars   - Precompiled JUnit test suite bundles.
 
 
 Basic: How to start
@@ -45,6 +47,6 @@ Building:
      suites for CPA can not be built and executed without openssl.
 
 
-1. Step into the knopflerfish.org directory.
+1. Step into the osgi dir
 2. Start the build by:
    > ant all

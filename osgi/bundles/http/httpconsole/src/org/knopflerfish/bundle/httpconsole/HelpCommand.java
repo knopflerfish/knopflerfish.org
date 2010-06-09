@@ -47,7 +47,7 @@ public class HelpCommand extends IconCommand {
     super("cmd_help", 
 	  "Help",
 	  "Show help",
-	  Activator.RES_ALIAS + "/help.gif");
+	  Activator.RES_ALIAS + "/help.png");
     this.console = console;
 
     displayFlags = DISPLAY_COMPACTLIST;

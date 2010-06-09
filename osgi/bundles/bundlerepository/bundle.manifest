@@ -1,23 +1,22 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: bundlerepository
+Bundle-Name: Bundlerepository
 Bundle-SymbolicName: org.knopflerfish.bundle.bundlerepository
-Bundle-Version: 2.0.4
+Bundle-Version: 3.1.0
 Bundle-Category: service
-Bundle-Description: OBR bundle repository using the KF console and des
- ktop
+Bundle-Description: OBR bundle repository using the KF console and desktop
 Bundle-Vendor: Oscar/Knopflerfish
 Bundle-APIVendor: Oscar/Knopflerfish
 Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/bundlerepository/readme.txt
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/bundlerepository/
 Bundle-Classpath: .,console_api.jar,kxml-min.jar
 DynamicImport-Package: *
 Bundle-Activator: org.knopflerfish.osgi.bundle.bundlerepository.Activator
 Export-Package: org.knopflerfish.service.console;specification-version=1.0.0,
  org.ungoverned.osgi.service.bundlerepository;specification-version=1.1.0
-Import-Package: org.osgi.framework,
+Import-Package: org.osgi.framework;specification-version="[1.5,2)",
  org.knopflerfish.service.desktop,
  org.osgi.service.packageadmin,
  org.osgi.util.tracker,

@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.io/src/org/osgi/service/io/ConnectionFactory.java,v 1.7 2006/06/16 16:31:36 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2008). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +15,9 @@
  */
 package org.osgi.service.io;
 
-import javax.microedition.io.*;
-import java.io.*;
+import java.io.IOException;
+
+import javax.microedition.io.Connection;
 
 /**
  * A Connection Factory service is called by the implementation of the Connector
@@ -29,11 +28,11 @@ import java.io.*;
  * of the Connector Service will examine the specified name for a scheme. The
  * Connector Service will then look for a Connection Factory service which is
  * registered with the service property <code>IO_SCHEME</code> which matches the
- * scheme. The {@link #createConnection}method of the selected Connection
+ * scheme. The {@link #createConnection} method of the selected Connection
  * Factory will then be called to create the actual <code>Connection</code>
  * object.
  * 
- * @version $Revision: 1.7 $
+ * @version $Revision: 7337 $
  */
 public interface ConnectionFactory {
 	/**

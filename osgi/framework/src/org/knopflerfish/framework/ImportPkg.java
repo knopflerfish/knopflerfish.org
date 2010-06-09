@@ -59,6 +59,8 @@ class ImportPkg {
 
   // Link to exporter
   ExportPkg provider = null;
+  // Link to interal exporter ok to use
+  ExportPkg internalOk = null;
 
   /**
    * Create an import package entry.
@@ -191,33 +193,53 @@ class ImportPkg {
 
 
   /**
-   * Check that we have all mandatory attributes.
+   * Check that all package attributes match.
    *
-   * @param mandatory List of mandatory attribute.
-   * @return Return true if we have all mandatory attributes, otherwise false.
+   * @param ep Exported package.
+   * @return True if okay, otherwise false.
    */
-  boolean checkMandatory(List mandatory) {
-    if (mandatory != null) {
-      for (Iterator i = mandatory.iterator(); i.hasNext(); ) {
-        String a = (String)i.next();
-        if (Constants.VERSION_ATTRIBUTE.equals(a)) {
-          if (!packageRange.isSpecified()) {
-            return false;
-          }
-        } else if (Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE.equals(a)) {
-          if (bundleSymbolicName == null) {
-            return false;
-          }
-        } else if (Constants.BUNDLE_VERSION_ATTRIBUTE.equals(a)) {
-          if (!bundleRange.isSpecified()) {
-            return false;
-          }
-        } else if (!attributes.containsKey(a)) {
-          return false;
-        }
+  boolean checkAttributes(ExportPkg ep) {
+    /* Mandatory attributes */
+    if (!checkMandatory(ep.mandatory)) {
+      return false;
+    }
+    /* Predefined attributes */
+    if (!okPackageVersion(ep.version) ||
+        (bundleSymbolicName != null &&
+         !bundleSymbolicName.equals(ep.bpkgs.bundle.symbolicName)) ||
+        !bundleRange.withinRange(ep.bpkgs.bundle.version)) {
+      return false;
+    }
+    /* Other attributes */
+    for (Iterator i = attributes.entrySet().iterator(); i.hasNext(); ) {
+      Map.Entry e = (Map.Entry)i.next();
+      String a = (String)ep.attributes.get(e.getKey());
+      if (a == null || !a.equals(e.getValue())) {
+        return false;
       }
     }
     return true;
+  }
+
+
+  /**
+   * Check that we have import permission for exported package.
+   *
+   * @param ep Exported package.
+   * @return True if okay, otherwise false.
+   */
+  boolean checkPermission(ExportPkg ep) {
+    return bpkgs.bundle.fwCtx.perm.hasImportPackagePermission(bpkgs.bundle, ep);
+  }
+
+
+  /**
+   * Check that we can do an internal wire to the exported package.
+   *
+   * @return True if okay, otherwise false.
+   */
+  boolean mustBeResolved() {
+    return resolution == Constants.RESOLUTION_MANDATORY && internalOk == null;
   }
 
 
@@ -276,5 +298,37 @@ class ImportPkg {
   public String toString() {
     return pkgString() + "(" + bpkgs.bundle + ")";
   }
+
+
+  /**
+   * Check that we have all mandatory attributes.
+   *
+   * @param mandatory Collection of mandatory attribute.
+   * @return Return true if we have all mandatory attributes, otherwise false.
+   */
+  private boolean checkMandatory(Collection mandatory) {
+    if (mandatory != null) {
+      for (Iterator i = mandatory.iterator(); i.hasNext(); ) {
+        String a = (String)i.next();
+        if (Constants.VERSION_ATTRIBUTE.equals(a)) {
+          if (!packageRange.isSpecified()) {
+            return false;
+          }
+        } else if (Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE.equals(a)) {
+          if (bundleSymbolicName == null) {
+            return false;
+          }
+        } else if (Constants.BUNDLE_VERSION_ATTRIBUTE.equals(a)) {
+          if (!bundleRange.isSpecified()) {
+            return false;
+          }
+        } else if (!attributes.containsKey(a)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
 
 }

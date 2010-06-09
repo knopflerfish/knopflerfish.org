@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,21 +67,21 @@ public class OCD implements ObjectClassDefinition {
   Hashtable icons = new Hashtable();
   Hashtable localized_icons = null;
   int  maxInstances = 1;
-  
+
 
   /**
    * Create a new, empty ObjectClassDefinition.
    *
    * @param id unique ID of the definition.
-   * @param name human-readable name of the definition. If set to 
+   * @param name human-readable name of the definition. If set to
    *         <tt>null</tt>,
    *        use <i>id</i> as name.
    * @param desc human-readable description of the definition
    * @throws IllegalArgumentException if <i>id</i> is <null> or empty
    */
-  public OCD(String id, 
-	     String name, 
-	     String desc,
+  public OCD(String id,
+             String name,
+             String desc,
              URL sourceURL) {
 
     if(id == null || "".equals(id)) {
@@ -97,7 +97,7 @@ public class OCD implements ObjectClassDefinition {
   }
 
   /**
-   * Creates an OCD with attribute definitions from an existing 
+   * Creates an OCD with attribute definitions from an existing
    * dictionary.
    *
    * @param id unique ID of the definition.
@@ -110,20 +110,20 @@ public class OCD implements ObjectClassDefinition {
    * @throws IllegalArgumentException if <i>id</i> is <null> or empty
    *
    */
-  public OCD(String id, 
-	     String name, 
-	     String desc,
-	     Dictionary props) {
+  public OCD(String id,
+             String name,
+             String desc,
+             Dictionary props) {
     this(id, name, desc, (URL)null);
 
     //    System.out.println("OCD " + id + ", props=" + props);
     for(Enumeration e = props.keys(); e.hasMoreElements();) {
       String key = (String)e.nextElement();
       if("service.pid".equals(key.toLowerCase())) {
-	continue;
+        continue;
       }
       if("service.factorypid".equals(key.toLowerCase())) {
-	continue;
+        continue;
       }
       Object val = props.get(key);
 
@@ -131,24 +131,24 @@ public class OCD implements ObjectClassDefinition {
       int type = AD.getType(val);
 
       if(val instanceof Vector) {
-	card = Integer.MIN_VALUE;
+        card = Integer.MIN_VALUE;
       } else if(val.getClass().isArray()) {
-	card = Integer.MAX_VALUE;
+        card = Integer.MAX_VALUE;
       }
 
-      AD ad = new AD(key, type, card, key, 
-		     card == 0
-		     ?  new String[] { AD.toString(val) }
-		     : null);
-      
+      AD ad = new AD(key, type, card, key,
+                     card == 0
+                     ?  new String[] { AD.toString(val) }
+                     : null);
+
 
       //      System.out.println(" add " + ad);
       add(ad, REQUIRED);
     }
 
   }
-  
-  
+
+
 
   /**
    * Add an attribute definition
@@ -176,12 +176,12 @@ public class OCD implements ObjectClassDefinition {
     case ALL: {
       ArrayList all = new ArrayList();
       if(localized_optAttrs == null){
-    	  all.addAll(reqAttrs);
-    	  all.addAll(optAttrs);
+        all.addAll(reqAttrs);
+        all.addAll(optAttrs);
       }
       else{
-    	  all.addAll(localized_reqAttrs);
-    	  all.addAll(localized_optAttrs);
+        all.addAll(localized_reqAttrs);
+        all.addAll(localized_optAttrs);
       }
       AttributeDefinition[] ads = new AttributeDefinition[all.size()];
       all.toArray(ads);
@@ -190,20 +190,20 @@ public class OCD implements ObjectClassDefinition {
     case REQUIRED: {
       AttributeDefinition[] ads = new AttributeDefinition[reqAttrs.size()];
       if(localized_reqAttrs == null){
-    	  reqAttrs.toArray(ads);
+        reqAttrs.toArray(ads);
       }
       else{
-    	  localized_reqAttrs.toArray(ads);
+        localized_reqAttrs.toArray(ads);
       }
       return ads;
     }
     case OPTIONAL: {
       AttributeDefinition[] ads = new AttributeDefinition[optAttrs.size()];
       if(localized_optAttrs == null){
-    	  optAttrs.toArray(ads);
+        optAttrs.toArray(ads);
       }
       else{
-    	  localized_optAttrs.toArray(ads);
+        localized_optAttrs.toArray(ads);
       }
       return ads;
     }
@@ -213,21 +213,21 @@ public class OCD implements ObjectClassDefinition {
   }
 
   /**
-   * Get description of OCD. 
+   * Get description of OCD.
    */
   public String getDescription() {
-	  if(localized_desc != null){
-		  return localized_desc;
-	  }
-	  else{
-		  return desc;
-	  }
+    if(localized_desc != null){
+      return localized_desc;
+    }
+    else{
+      return desc;
+    }
   }
-  
+
 
   /**
-   * This code is handles multiple icon sizes but the spec. currently
-   * only allows on size.
+   * This code handles multiple icon sizes but the specification
+   * currently only allows on size.
    *
    * @param size Size of icon requested, if size is 0 return largest icon.
    */
@@ -246,8 +246,8 @@ public class OCD implements ObjectClassDefinition {
 
 
   /**
-   * This code is handles multiple icon sizes but the spec. currently
-   * only allows on size.
+   * This code handles multiple icon sizes but the specification
+   * currently only allows on size.
    *
    * @param size Size of icon requested, if size is 0 return largest icon.
    */
@@ -278,7 +278,7 @@ public class OCD implements ObjectClassDefinition {
   public void setIconURL(String url) {
     icons.put(new Integer(Integer.MAX_VALUE), url);
   }
-  
+
   public void addIcon(int size, String url){
     icons.put(new Integer(size), url);
   }
@@ -289,55 +289,55 @@ public class OCD implements ObjectClassDefinition {
   }
 
   public String getName() {
-	if(localized_name != null){
-		return localized_name;
-	}
-	else{
-		return name;
-	}
+    if(localized_name != null){
+      return localized_name;
+    }
+    else{
+      return name;
+    }
   }
-  
-  void localize(Dictionary dict){
-	  if(dict != null){
-		  localized_name = localizeName(name, dict); 
-		  localized_desc = localizeName(desc, dict); 
-		  
-		  localized_icons = (Hashtable)icons.clone();
-		  for(Iterator it = localized_icons.entrySet().iterator(); it.hasNext(); ) {
-                      Map.Entry e = (Map.Entry)it.next();
-		      e.setValue(localizeName((String)e.getValue(), dict));
-		  }
 
-		  localized_reqAttrs = new ArrayList();
-		  for(Iterator it = reqAttrs.iterator(); it.hasNext(); ) {
-		      AD attr = (AD)it.next();
-		      localized_reqAttrs.add(attr.localize(dict));
-		  }
-		  
-		  localized_optAttrs = new ArrayList();
-		  for(Iterator it = optAttrs.iterator(); it.hasNext(); ) {
-		      AD attr = (AD)it.next();
-		      localized_optAttrs.add(attr.localize(dict));
-		  }   
-                  
-	  }
+  void localize(Dictionary dict){
+    if(dict != null){
+      localized_name = localizeName(name, dict);
+      localized_desc = localizeName(desc, dict);
+
+      localized_icons = (Hashtable)icons.clone();
+      for(Iterator it = localized_icons.entrySet().iterator(); it.hasNext(); ) {
+        Map.Entry e = (Map.Entry)it.next();
+        e.setValue(localizeName((String)e.getValue(), dict));
+      }
+
+      localized_reqAttrs = new ArrayList();
+      for(Iterator it = reqAttrs.iterator(); it.hasNext(); ) {
+        AD attr = (AD)it.next();
+        localized_reqAttrs.add(attr.localize(dict));
+      }
+
+      localized_optAttrs = new ArrayList();
+      for(Iterator it = optAttrs.iterator(); it.hasNext(); ) {
+        AD attr = (AD)it.next();
+        localized_optAttrs.add(attr.localize(dict));
+      }
+
+    }
   }
-  
+
   String localizeName(String name, Dictionary dict){
-	  if(name.startsWith("%")){
-		  String sub;
-		  if((sub = (String) dict.get(name.substring(1))) != null){
-			  return sub;
-		  }
-		  else{
-			  return name;
-		  }
-	  }
-	  return name;
+    if(name.startsWith("%")){
+      String sub;
+      if((sub = (String) dict.get(name.substring(1))) != null){
+        return sub;
+      }
+      else{
+        return name;
+      }
+    }
+    return name;
   }
-  
-/*
-  public String toString() {
+
+  /*
+    public String toString() {
     StringBuffer sb = new StringBuffer();
 
     sb.append("OCD[id=" + id);
@@ -345,21 +345,21 @@ public class OCD implements ObjectClassDefinition {
     sb.append("\ndesc=" + desc);
     sb.append("\nregAttrs=");
     for(Iterator it = reqAttrs.iterator(); it.hasNext(); ) {
-      AttributeDefinition attr = (AttributeDefinition)it.next();
-      sb.append(attr);
-      if(it.hasNext()) {
-	sb.append("\n");
-      }
+    AttributeDefinition attr = (AttributeDefinition)it.next();
+    sb.append(attr);
+    if(it.hasNext()) {
+    sb.append("\n");
+    }
     }
     sb.append("\noptAttrs=");
     for(Iterator it = optAttrs.iterator(); it.hasNext(); ) {
-      AttributeDefinition attr = (AttributeDefinition)it.next();
-      sb.append(attr);
-      if(it.hasNext()) {
-	sb.append("\n");
-      }
+    AttributeDefinition attr = (AttributeDefinition)it.next();
+    sb.append(attr);
+    if(it.hasNext()) {
+    sb.append("\n");
+    }
     }
     sb.append("\n/OCD]");
     return sb.toString();
-  }*/
+    }*/
 }
