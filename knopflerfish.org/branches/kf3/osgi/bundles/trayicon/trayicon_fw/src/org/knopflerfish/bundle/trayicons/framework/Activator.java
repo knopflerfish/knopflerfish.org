@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,37 +39,37 @@ import org.osgi.util.tracker.*;
 import org.osgi.service.startlevel.*;
 import java.awt.event.*;
 
-import javax.swing.JPopupMenu;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JCheckBoxMenuItem;
-
-import java.io.File;
 import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.service.trayicon.*;
 
 public class Activator implements BundleActivator {
 
   public static BundleContext bc;
   public static LogRef        log;
 
-  FrameworkTrayIcon trayIcon;
-
+  private FrameworkTrayIcon tray_icon = null;
+  
   public void start(BundleContext _bc) {
     this.bc  = _bc;
     this.log = new LogRef(bc);
 
-    trayIcon = new FrameworkTrayIcon();
-    trayIcon.open();
+    try {
+      tray_icon = FrameworkTrayIcon.getFrameworkTrayIcon();
+      tray_icon.show();
+    }
+    catch (Exception e) {
+      this.log.error("SystemTray is not supported on this platform");
+    }
   }
-
+  
   public void stop(BundleContext bc) {
-    trayIcon.close();
+    if (tray_icon != null) {
+      tray_icon.close();
+      tray_icon = null;
+    }      
     log.close();
-
+    
     log = null;
     this.bc  = null;
-    trayIcon = null;
   }
 
 }
