@@ -14,7 +14,6 @@
 
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="trayicon_api-N.N.N.jar"/>
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
