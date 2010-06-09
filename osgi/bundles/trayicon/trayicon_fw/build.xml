@@ -4,8 +4,10 @@
 
   <dirname  property="proj.dir" file="${ant.file.trayicon_fw}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
-
   <property name = "ee.check.foundation"   value = "false"/>
+
+  <property name = "bundle.build.impl"  value = "false"/>
+  <property name="all.suffix.name" value=""/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/**"/>
