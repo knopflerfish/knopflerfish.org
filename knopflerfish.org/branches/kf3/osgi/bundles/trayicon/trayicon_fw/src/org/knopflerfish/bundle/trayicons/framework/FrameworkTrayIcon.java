@@ -56,7 +56,7 @@ import java.io.File;
 import org.knopflerfish.service.log.LogRef;
 
 public class FrameworkTrayIcon {
-  
+
   ServiceTracker      slsTracker;
   CheckboxMenuItem[] slsItems = new CheckboxMenuItem[22];
   static Object trayIcon;
@@ -64,56 +64,56 @@ public class FrameworkTrayIcon {
   static Class trayIconClass;
   static Class systemTrayClass;
   static FrameworkTrayIcon frameworkTrayIcon;
-  
+
   public FrameworkTrayIcon() throws UnsupportedOperationException {
     try {
       trayIconClass = Class.forName("java.awt.TrayIcon");
       Constructor con = trayIconClass.getDeclaredConstructor(new Class[] {Image.class, String.class});
       trayIcon = con.newInstance(new Object[] {
-	  Toolkit.getDefaultToolkit().getImage(FrameworkTrayIcon.class.getResource(getIconForOS())),
-	  "Knopflerfish OSGi"});
+          Toolkit.getDefaultToolkit().getImage(FrameworkTrayIcon.class.getResource(getIconForOS())),
+          "Knopflerfish OSGi"});
 
       Method m = trayIconClass.getDeclaredMethod("setPopupMenu", new Class[] {PopupMenu.class});
       m.invoke(trayIcon, new Object[] {makeMenu()});
-      
+
       slsTracker = new ServiceTracker(Activator.bc,
-				      StartLevel.class.getName(), null);
+                                      StartLevel.class.getName(), null);
       slsTracker.open();
-      
+
 
       updateStartLevelItems();
 
       Activator.bc.addFrameworkListener(new FrameworkListener() {
-	  public void frameworkEvent(FrameworkEvent ev) {
-	    if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType() ||
-	       FrameworkEvent.STARTED  == ev.getType()) {
-	      updateStartLevelItems();
-	    }
-	  }
-	});
+          public void frameworkEvent(FrameworkEvent ev) {
+            if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType() ||
+               FrameworkEvent.STARTED  == ev.getType()) {
+              updateStartLevelItems();
+            }
+          }
+        });
     }
     catch (Exception e) {
-      Activator.log.error("Failed to create FrameworkTrayIcon", e);
-      throw new UnsupportedOperationException(e);
+      Activator.log.error("Failed to create FrameworkTrayIcon: "+e, e);
+      throw UnsupportedOperationException(e.getMessage());
     }
   }
 
   public static FrameworkTrayIcon getFrameworkTrayIcon() throws UnsupportedOperationException {
     if (frameworkTrayIcon != null)
       return frameworkTrayIcon;
-    
+
     try {
       if (systemTray == null) {
-	systemTrayClass  = Class.forName("java.awt.SystemTray");
-	Method m = systemTrayClass.getDeclaredMethod("isSupported", null);
-	Boolean is_supported = (Boolean)m.invoke(null, null);
-	if (!is_supported.booleanValue())
-	  throw new UnsupportedOperationException("System Tray not supported");
+        systemTrayClass  = Class.forName("java.awt.SystemTray");
+        Method m = systemTrayClass.getDeclaredMethod("isSupported", null);
+        Boolean is_supported = (Boolean)m.invoke(null, null);
+        if (!is_supported.booleanValue())
+          throw new UnsupportedOperationException("System Tray not supported");
 
-	m = systemTrayClass.getDeclaredMethod("getSystemTray", null);
-	systemTray = m.invoke(null,null);
-	frameworkTrayIcon = new FrameworkTrayIcon();
-	return frameworkTrayIcon;
+        m = systemTrayClass.getDeclaredMethod("getSystemTray", null);
+        systemTray = m.invoke(null,null);
+        frameworkTrayIcon = new FrameworkTrayIcon();
+        return frameworkTrayIcon;
       }
     }
     catch (UnsupportedOperationException e) {
@@ -121,11 +121,11 @@ public class FrameworkTrayIcon {
     }
     catch (Exception e) {
       Activator.log.error("Error in SystemTray invokation: " + e);
-      throw new UnsupportedOperationException(e);
+      throw UnsupportedOperationException(e.getMessage());
     }
     return null; // dummy
   }
-    
+
 
   void show() {
     Activator.log.info("Showing tray icon");
@@ -137,7 +137,7 @@ public class FrameworkTrayIcon {
       Activator.log.error("Failed to add TrayIcon to SystemTray", e);
     }
   }
-  
+
   void close() {
     try {
       Activator.log.info("Removing tray icon");
@@ -147,7 +147,7 @@ public class FrameworkTrayIcon {
     catch (Exception e){
       Activator.log.error("Failed to remove TrayIcon from SystemTray", e);
     }
-    
+
     slsTracker.close();
     // unregister();
   }
@@ -227,7 +227,7 @@ public class FrameworkTrayIcon {
     }
     return def;
   }
- 
+
   static String getIconForOS() {
     if (System.getProperty("os.name", "").toLowerCase().startsWith("mac os x"))
       return "/kfbones-rev-tr-22x22.png";
