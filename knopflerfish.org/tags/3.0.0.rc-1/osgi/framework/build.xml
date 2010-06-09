@@ -17,7 +17,7 @@
   <property name="frameworkdoc_template"
 	    location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.impl.version"   value="5.0.0.beta-6tmp"/>
+  <property name="fw.impl.version"   value="5.0.0.rc-1"/>
   <property name="fw.export-package" value="org.osgi.framework;specification-version=1.5,org.osgi.framework.launch;specification-version=1.0,org.osgi.framework.hooks.service;specification-version=1.0,org.osgi.service.packageadmin;specification-version=1.2,org.osgi.service.permissionadmin;specification-version=1.2,org.osgi.util.tracker;specification-version=1.4,org.osgi.service.startlevel;specification-version=1.1,org.osgi.service.condpermadmin;specification-version=1.1"/>
 
   <property name="jarfile"      location="${topdir}/${ant.project.name}.jar"/>
