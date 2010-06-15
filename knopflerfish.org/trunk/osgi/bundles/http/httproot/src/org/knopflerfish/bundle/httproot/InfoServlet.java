@@ -68,9 +68,11 @@ public class InfoServlet extends HttpServlet {
     PrintWriter out = response.getWriter();
     
     response.setContentType("text/html");
-
+    // Create a session
+    request.getSession(true);
+    
     printHeader(out);
-    printMain(out);
+    printMain(response, out);
     printFooter(out);
 
     try {
@@ -82,7 +84,25 @@ public class InfoServlet extends HttpServlet {
 
   }
 
-  void printMain(PrintWriter out) throws IOException {
+  void printMain(HttpServletResponse response,
+                 PrintWriter out) throws IOException {
+    String[] urls = new String[]{ "/",
+                                  "info",
+                                  "info#ref",
+                                  "/servlet/knopflerfish-info/",
+                                  "/servlet/knopflerfish-info/#ref",
+                                  "?apa=bepa",
+                                  "?apa=bepa&cepa=depa",
+                                  "?apa=bepa&cepa=depa#ref",
+                                  "http://www.ekolin.se/",};
+    for (int i=0; i<urls.length; i++) {
+      final String url = urls[i];
+      out.println("Link <a href=\"" +url +"\">linktext<a><br/>");
+      out.println("Link <a href=\"" +response.encodeURL(url) +"\">linktext<a><br/>");
+      out.println("Link <a href=\"" +response.encodeRedirectURL(url) +"\">linktext<a><br/>");
+      out.println("<hr>");
+    }
+
     String[] keys = httpSR.getPropertyKeys();
 
     out.println("<h2>Web server properties</h2>");

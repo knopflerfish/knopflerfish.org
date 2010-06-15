@@ -83,6 +83,9 @@ public class RequestBase extends HeaderBase {
   // The query part of the request URI
   private String queryString = null;
 
+  // The session id parameter of the request URI
+  private String sessionIdParameter = null;
+
   private Hashtable queryParameters = null;
 
   private Hashtable parameters = null;
@@ -147,6 +150,10 @@ public class RequestBase extends HeaderBase {
     return queryParameters;
   }
 
+  public String getSessionIdParameter() {
+    return sessionIdParameter;
+  }
+
   public ServletInputStreamImpl getBody() {
     return body;
   }
@@ -196,6 +203,12 @@ public class RequestBase extends HeaderBase {
     try {
       URL url = new URL(BASE_HTTP_URL, uri);
       uri = url.getPath();
+      int sessionPos = uri.lastIndexOf(HttpUtil.SESSION_PARAMETER_KEY);
+      if (-1<sessionPos) {
+        sessionIdParameter = uri
+          .substring(sessionPos+HttpUtil.SESSION_PARAMETER_KEY.length());
+        uri = uri.substring(0, sessionPos);
+      }
       queryString = url.getQuery();
     } catch (MalformedURLException mue) {
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST,
