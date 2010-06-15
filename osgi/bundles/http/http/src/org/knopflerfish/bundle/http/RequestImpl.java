@@ -122,7 +122,15 @@ public class RequestImpl implements Request, PoolableObject {
     if (httpConfig.getDNSLookup()) {
       return localAddress.getHostName();
     }
-    return localAddress.getHostAddress();
+    String hostAddress = localAddress.getHostAddress();
+    if (-1<hostAddress.indexOf(":")) {
+      int pPos = hostAddress.indexOf("%");
+      if (-1<pPos) {
+        hostAddress = hostAddress.substring(0,pPos);
+      }
+      return "[" +hostAddress +"]";
+    }
+    return hostAddress;
   }
 
 
@@ -248,18 +256,15 @@ public class RequestImpl implements Request, PoolableObject {
 
   private void handleSession() {
 
-    Cookie sessionCookie = (Cookie) base.getCookies().get(
-                                                          HttpUtil.SESSION_COOKIE_KEY);
+    Cookie sessionCookie =
+      (Cookie) base.getCookies().get(HttpUtil.SESSION_COOKIE_KEY);
     if (sessionCookie != null) {
       requestedSessionIdFromCookie = true;
       requestedSessionId = sessionCookie.getValue();
     } else {
-      Object strings = base.getQueryParameters().get(
-                                                     HttpUtil.SESSION_PARAMETER_KEY);
-      if (strings != null) {
-        requestedSessionId = ((String[]) strings)[0];
-        if (requestedSessionId != null)
-          requestedSessionIdFromURL = true;
+      requestedSessionId = base.getSessionIdParameter();
+      if (null!=requestedSessionId) {
+        requestedSessionIdFromURL = true;
       }
     }
   }
