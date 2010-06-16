@@ -50,7 +50,14 @@ Event 3.0.2
  - Added bundle doc describing all framework properties that may be
    used to configure the Knopflerfish Event implementation.
 
-Http 2.1.7
+Http 2.1.8
+ - Implement URL rewrite to support sessions when Cookies are turned
+   of.  The methods encodeURL(String) and encodeRedirectURL(String) in
+   the HttpServletResponse class now inserts the session id at the end
+   of the path part of the URL. The HttpServletRequest now extracts
+   the session id from the path when present.
+ - Return correctly formated IPv6 addresses from
+   HttpServletRequest.getRequestURL().
  - When a registered resource was fetched and the request contained an
    'If-Modified-Since'-header with a date value that did not parse
    correctly the fetch was aborted with an
