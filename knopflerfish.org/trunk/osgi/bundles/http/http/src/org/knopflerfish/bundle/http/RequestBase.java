@@ -116,6 +116,7 @@ public class RequestBase extends HeaderBase {
     method = null;
     protocol = null;
     uri = null;
+    sessionIdParameter = null;
     queryString = null;
 
     queryParameters = null;
