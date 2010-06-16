@@ -34,6 +34,8 @@
 
 package org.knopflerfish.bundle.http;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -62,7 +64,7 @@ public class HttpUtil {
     // Key strings for sessions according to the servlet specification
     public final static String SESSION_COOKIE_KEY = "JSESSIONID";
 
-    public final static String SESSION_PARAMETER_KEY = "jsessionid";
+    public final static String SESSION_PARAMETER_KEY = ";jsessionid=";
 
     // Acceptable Time/Date formats according to the HTTP specification
     public final static SimpleDateFormat[] DATE_FORMATS = {
@@ -429,6 +431,32 @@ public class HttpUtil {
     // No q-paramter, return the default value.
     return 1.0d;
   }
+
+  static String toAbsoluteURL(String loc, HttpServletRequest request)
+  {
+    if (null==loc) return loc;
+
+    URL url = null;
+    try {
+      url = new URL(loc);
+      if (null==url.getAuthority()) {
+        return loc;
+      }
+    } catch (MalformedURLException mfe1) {
+      final String baseUrl = request.getRequestURL().toString();
+      try {
+        if (0<loc.length() && ('?'==loc.charAt(0) || '#'==loc.charAt(0))) {
+          url = new URL(baseUrl + loc);
+        } else {
+          url = new URL(new URL(baseUrl), loc);
+        }
+      } catch (MalformedURLException mfe2) {
+        throw new IllegalArgumentException(loc);
+      }
+    }
+    return url.toExternalForm();
+  }
+
 
   /**
    * Get the resource target string from an uri, removing

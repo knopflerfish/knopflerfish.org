@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -344,7 +344,12 @@ public class ResponseImpl
   }
 
   public String encodeRedirectURL(String url) {
-    return HttpUtil.encodeURLEncoding(url); // NYI: cookies, sessions
+    // Only encodes relative URLs.
+    if (url.startsWith("http:") || url.startsWith("https:")) {
+      return url;
+    } else {
+      return encodeURL(url);
+    }
   }
 
   public String encodeRedirectUrl(String url) {
@@ -352,7 +357,40 @@ public class ResponseImpl
   }
 
   public String encodeURL(String url) {
-    return HttpUtil.encodeURLEncoding(url); // NYI: cookies, sessions
+    // Append session id ";jsessionid=1234" to path of the URL when
+    // session is present and client does not support cookies.
+    HttpSession session = null;
+    if (request != null
+        && (session = request.getSession(false)) != null
+        && !request.isRequestedSessionIdFromCookie()) {
+      // NYI: Don't add jsessionid to external URLs.
+      String path = HttpUtil.toAbsoluteURL(url, request);
+      if (null!=path) {
+        String query = "";
+        String ref = "";
+
+        final int qPos = path.indexOf("?");
+        if (-1<qPos) {
+          query = path.substring(qPos);
+          path = path.substring(0,qPos);
+        } else {
+          final int hPos = path.indexOf("#");
+          if (-1<hPos) {
+            ref = path.substring(hPos);
+            path = path.substring(0,hPos);
+          }
+        }
+        final StringBuffer sb = new StringBuffer(path);
+        if (0<sb.length()) {
+          sb.append(HttpUtil.SESSION_PARAMETER_KEY).append(session.getId());
+        }
+        sb.append(query);
+        sb.append(ref);
+        return sb.toString();
+      }
+    }
+
+    return url; // No rewrite needed.
   }
 
   public String encodeUrl(String url) {
