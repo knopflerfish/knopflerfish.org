@@ -20,7 +20,7 @@
 -initlevel 6
 -install remotefw/remotefw_api-2.0.0.jar
 -istart ksoap-osgi/ksoap-osgi_all-2.0.0.jar
--istart ksoap_remotefw/ksoap_remotefw_all-3.0.2.jar
+-istart ksoap_remotefw/ksoap_remotefw_all-3.0.3.jar
 
 # Properties controlling the server behavior
 -Forg.knopflerfish.soap.remotefw.server=false

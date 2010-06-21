@@ -11,14 +11,14 @@
   <property name = "bundle.build.all"   value = "false"/>
 
 
-  <property name="bmfa.Bundle-Version"        value="1.0"/>
+  <property name="bmfa.Bundle-Version"        value="1.0.0.kf3"/>
   <property name="bmfa.Bundle-Category"       value="lib"/>
   <property name="bmfa.Bundle-Description"    value="The Sun JAXP XML parser"/>
   <property name="bmfa.Bundle-Vendor"         value="Sun/Knopflerfish"/>
   <property name="bmfa.Bundle-Classpath"      value="parser.jar,jaxp.jar"/>
   <property name="bmfa.Bundle-Name"           value="JAXP XML lib"/>
 
-  <property name="bmfa.Export-Package"        value="com.sun.xml.parser ; specification-version=1.0, com.sun.xml.tree ; specification-version=1.0, com.sun.xml.util ; specification-version=1.0, org.w3c.dom ; specification-version=2.0, org.xml.sax ; specification-version=2.0, org.xml.sax.helpers ; specification-version=2.0, javax.xml.parsers ; specification-version=2.0"/>
+  <property name="bmfa.Export-Package"        value="com.sun.xml.parser ; version=1.0, com.sun.xml.tree ; version=1.0, com.sun.xml.util ; version=1.0, org.w3c.dom ; version=2.0, org.xml.sax ; version=2.0, org.xml.sax.helpers ; version=2.0, javax.xml.parsers ; version=2.0"/>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 

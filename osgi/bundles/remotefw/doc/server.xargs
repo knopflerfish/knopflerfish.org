@@ -20,13 +20,13 @@
 #
 # Uninstall bundle that are not needed on the client
 # 
--uninstall bundlerepository/bundlerepository_all-3.0.0.jar
--uninstall desktop/desktop_all-3.0.9.jar
+-uninstall bundlerepository/bundlerepository_all-3.1.1.jar
+-uninstall desktop/desktop_all-3.1.0.jar
 
 -initlevel 6
 -install remotefw/remotefw_api-2.0.0.jar
 -istart ksoap-osgi/ksoap-osgi_all-2.0.0.jar
--istart ksoap_remotefw/ksoap_remotefw_all-3.0.2.jar
+-istart ksoap_remotefw/ksoap_remotefw_all-3.0.3.jar
 
 # Properties controlling the server behavior
 -Forg.knopflerfish.soap.remotefw.server=true

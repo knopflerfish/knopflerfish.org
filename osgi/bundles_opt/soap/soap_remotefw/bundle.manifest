@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: SOAP-FW
 Bundle-SymbolicName: org.knopflerfish.bundle.soap_remotefw
-Bundle-Version: 3.0.0
-Bundle-UUID: org.knopflerfish:soap_remotefw:3.0.0
+Bundle-Version: 3.0.1
 Bundle-Category: service
 Bundle-Description: SOAP remote framework
 Bundle-Vendor: Knopflerfish
@@ -23,5 +22,3 @@ Import-Package: org.osgi.framework,
  org.knopflerfish.service.remotefw,
  org.knopflerfish.service.soap.remotefw,
  org.knopflerfish.util,
-
-

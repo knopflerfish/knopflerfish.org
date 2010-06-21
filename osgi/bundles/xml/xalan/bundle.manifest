@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Xalan
 Bundle-SymbolicName: org.knopflerfish.bundle.xalan
-Bundle-Version: 2.7.1.1
-Bundle-UUID: org.knopflerfish:xalan:2.7.1.1
+Bundle-Version: 2.7.1.kf3
 Bundle-Category: lib
 Bundle-Copyright: http://www.apache.org/licenses/LICENSE-2.0
 Bundle-Description: The Apache Xalan-Java XML transformer
@@ -41,4 +40,4 @@ Import-Package: org.osgi.framework,
  org.w3c.dom.xpath,
  org.xml.sax,
  org.xml.sax.ext,
- org.xml.sax.helpers,
+ org.xml.sax.helpers

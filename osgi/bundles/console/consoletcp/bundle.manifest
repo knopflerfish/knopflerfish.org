@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: TCP-Console
 Bundle-SymbolicName: org.knopflerfish.bundle.consoletcp
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:consoletcp:2.0.0
 Bundle-Description: TCP console 
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
