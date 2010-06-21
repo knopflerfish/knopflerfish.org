@@ -17,4 +17,3 @@ Import-Package: org.knopflerfish.service.log,
  org.osgi.framework,
  org.osgi.service.startlevel,
  org.osgi.util.tracker
-

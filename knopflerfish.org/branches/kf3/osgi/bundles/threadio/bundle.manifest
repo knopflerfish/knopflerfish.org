@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: threadio
 Bundle-SymbolicName: org.knopflerfish.bundle.threadio
-Bundle-Version: 0.0.1
-Bundle-UUID: org.knopflerfish:threadio:0.0.1
+Bundle-Version: 0.1.0
 Bundle-Description: ThreadIO Service
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
@@ -12,6 +11,6 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Activator: org.knopflerfish.bundle.threadio.Activator
 Bundle-Category: service
-Export-Package: org.osgi.service.threadio;specification-version=1.0
-Import-Package: org.osgi.framework,org.osgi.service.threadio;specification-version=1.0
-
+Export-Package: org.osgi.service.threadio; version=1.0
+Import-Package: org.osgi.framework,
+ org.osgi.service.threadio; version="[1.0,2)"

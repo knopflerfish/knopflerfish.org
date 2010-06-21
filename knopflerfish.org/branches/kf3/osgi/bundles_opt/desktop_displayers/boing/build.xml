@@ -23,6 +23,3 @@
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>
-
-
-

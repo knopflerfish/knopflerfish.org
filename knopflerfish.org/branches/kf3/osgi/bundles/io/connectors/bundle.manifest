@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Connection-Factories
 Bundle-SymbolicName: org.knopflerfish.bundle.connectors
 Bundle-Version: 2.0.1
-Bundle-UUID: org.knopflerfish:connectors:2.0.1:impl
 Bundle-Description: OSGi IO http, socket and datagram-receive Connectors
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org

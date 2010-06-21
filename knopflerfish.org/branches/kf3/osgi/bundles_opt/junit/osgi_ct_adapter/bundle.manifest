@@ -6,4 +6,3 @@ Import-Package: org.osgi.framework, junit.framework, org.osgi.util.tra
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.knopflerfish.bundle.osgi_ct_adapter
 Bundle-Version: 1.0.0
-

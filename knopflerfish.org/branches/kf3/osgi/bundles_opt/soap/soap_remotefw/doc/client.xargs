@@ -21,16 +21,16 @@
 # Uninstall bundle that are not needed on the server
 # (The crimson bundle provides very old, incompatible XML-API)
 #
--uninstall crimson/crimson-2.0.1.jar
+-uninstall crimson/crimson-2.1.0.kf3.jar
 
 
 -initlevel 6
 -install remotefw/remotefw_api-2.0.0.jar
--istart commons-logging/commons-logging_all-2.0.0.jar
--istart  xerces/xerces-2.9.1.jar
--istart  xalan/xalan-2.7.1.1.jar
--istart  axis-osgi/axis-osgi_all-0.1.0.2.jar
--istart  soap_remotefw/soap_remotefw_all-3.0.0.jar
+-istart commons-logging/commons-logging_all-2.0.0.kf3.jar
+-istart  xerces/xerces-2.10.1.kf3.jar
+-istart  xalan/xalan-2.7.1.kf3.jar
+-istart  axis-osgi/axis-osgi_all-0.1.0.kf3.jar
+-istart  soap_remotefw/soap_remotefw_all-3.0.1.jar
 
 # Properties controlling the server behavior
 -Forg.knopflerfish.soap.remotefw.server=true

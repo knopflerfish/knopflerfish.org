@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: command
 Bundle-SymbolicName: org.knopflerfish.bundle.command
-Bundle-Version: 0.0.1
-Bundle-UUID: org.knopflerfish:command:0.0.1
+Bundle-Version: 0.1
 Bundle-Description: Command Service
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
@@ -12,6 +11,7 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Activator: org.knopflerfish.bundle.command.Activator
 Bundle-Category: service
-Export-Package: org.osgi.service.command;specification-version=1.0
-Import-Package: org.osgi.framework,org.osgi.util.tracker,org.osgi.service.threadio
-
+Export-Package: org.osgi.service.command; version=1.0
+Import-Package: org.osgi.framework,
+ org.osgi.util.tracker,
+ org.osgi.service.threadio

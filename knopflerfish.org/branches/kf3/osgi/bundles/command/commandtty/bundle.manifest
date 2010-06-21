@@ -15,5 +15,4 @@ Import-Package: org.osgi.framework,
  org.osgi.service.cm,
  org.osgi.service.log,
  org.osgi.util.tracker,
- org.osgi.service.command;specification-version=1.0,
-
+ org.osgi.service.command; version=1.0,

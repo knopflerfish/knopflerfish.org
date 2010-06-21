@@ -9,4 +9,4 @@ Bundle-Vendor: Piayda/RXTX
 Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/serial/readme.txt
 Bundle-ContactAddress: http://www.knopflerfish.org
-Export-Package: gnu.io;specification-version=2.1
+Export-Package: gnu.io; version=2.1
