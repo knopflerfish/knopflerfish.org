@@ -203,7 +203,10 @@ Log Commands 3.0.0
  - A new option "-c" that clears the in memory log has been added to
    the 'memory' command.
 
-TrayIcon 3.0.0
+TrayIcon 3.0.1
+ - Ensure that the AWT initialization and component creation is
+   performed on AWT's Event Dispatch Thread to avoid dead-locks when
+   more than one bundles is using AWT.
  - Updated to use standard SystemTray and TrayIcon classes available
    since Java6 in java.awt package.
  - This means that the bundle requires java6 to fully function.  Will
