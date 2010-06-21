@@ -34,40 +34,57 @@
 
 package org.knopflerfish.bundle.trayicons.framework;
 
-import org.osgi.framework.*;
-import org.osgi.util.tracker.*;
-import org.osgi.service.startlevel.*;
+import java.awt.EventQueue;
 import java.awt.event.*;
+
+import org.osgi.framework.*;
+import org.osgi.service.startlevel.*;
+import org.osgi.util.tracker.*;
 
 import org.knopflerfish.service.log.LogRef;
 
-public class Activator implements BundleActivator {
-
+public class Activator
+  implements BundleActivator
+{
   public static BundleContext bc;
   public static LogRef        log;
 
   private FrameworkTrayIcon tray_icon = null;
-  
+
   public void start(BundleContext _bc) {
     this.bc  = _bc;
     this.log = new LogRef(bc);
 
-    try {
-      tray_icon = FrameworkTrayIcon.getFrameworkTrayIcon();
-      tray_icon.show();
-    }
-    catch (Exception e) {
-      this.log.error("SystemTray is not supported on this platform");
-    }
+    EventQueue.invokeLater(new Runnable() {
+      public void run()
+      {
+        try {
+          tray_icon = FrameworkTrayIcon.getFrameworkTrayIcon();
+          tray_icon.show();
+        }
+        catch (Exception e) {
+          log.error("SystemTray is not supported on this platform");
+        }
+      }
+    });
   }
-  
+
   public void stop(BundleContext bc) {
     if (tray_icon != null) {
-      tray_icon.close();
-      tray_icon = null;
-    }      
+      // Must not terminate untill the tray icon has been removed!
+      try {
+        EventQueue.invokeAndWait(new Runnable() {
+            public void run() {
+            tray_icon.close();
+            tray_icon = null;
+          }
+        });
+      } catch (Exception e) {
+        log.error("Failed to close the tray icon: "+e, e);
+      }
+    }
     log.close();
-    
+
     log = null;
     this.bc  = null;
   }

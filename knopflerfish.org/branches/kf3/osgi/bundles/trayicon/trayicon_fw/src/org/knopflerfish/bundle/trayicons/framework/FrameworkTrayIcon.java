@@ -66,12 +66,19 @@ public class FrameworkTrayIcon {
   static FrameworkTrayIcon frameworkTrayIcon;
 
   public FrameworkTrayIcon() throws UnsupportedOperationException {
+    final StringBuffer toolTipText = new StringBuffer("Knopflerfish OSGi");
+    final String servicePlatformId
+      = Activator.bc.getProperty("org.osgi.provisioning.spid");
+    if (null!=servicePlatformId && 0<servicePlatformId.length()) {
+      toolTipText.append(" (").append(servicePlatformId).append(")");
+    }
+
     try {
       trayIconClass = Class.forName("java.awt.TrayIcon");
       Constructor con = trayIconClass.getDeclaredConstructor(new Class[] {Image.class, String.class});
       trayIcon = con.newInstance(new Object[] {
           Toolkit.getDefaultToolkit().getImage(FrameworkTrayIcon.class.getResource(getIconForOS())),
-          "Knopflerfish OSGi"});
+          toolTipText.toString()});
 
       Method m = trayIconClass.getDeclaredMethod("setPopupMenu", new Class[] {PopupMenu.class});
       m.invoke(trayIcon, new Object[] {makeMenu()});
@@ -153,7 +160,7 @@ public class FrameworkTrayIcon {
   }
 
   PopupMenu makeMenu() {
-    PopupMenu popup = new PopupMenu();
+    final PopupMenu popup = new PopupMenu();
 
     popup.add(new MenuItem("Shutdown framework") {
         {
@@ -165,7 +172,7 @@ public class FrameworkTrayIcon {
         }
       });
 
-    Menu slsMenu = new Menu("Start level");
+    final Menu slsMenu = new Menu("Start level");
     for(int i = 1; i < slsItems.length-1; i++) {
       final int level = i;
       slsItems[i] = new CheckboxMenuItem("" + i) {
