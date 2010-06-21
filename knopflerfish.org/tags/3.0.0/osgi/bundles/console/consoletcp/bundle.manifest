@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: TCP-Console
+Bundle-SymbolicName: org.knopflerfish.bundle.consoletcp
+Bundle-Version: 2.0.0
+Bundle-Description: TCP console 
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.consoletcp.ConsoleTcp
+Bundle-Category: console
+Import-Package: org.knopflerfish.service.console,org.knopflerfish.serv
+ ice.um.useradmin,org.osgi.framework,org.osgi.service.cm,org.osgi.serv
+ ice.log,org.osgi.service.useradmin
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="servicetracker" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.servicetracker}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "bundle.build.lib"    value = "true"/>
+  <property name = "bundle.build.api"    value = "false"/>
+  <property name = "bundle.build.impl"   value = "false"/>
+  <property name = "bundle.build.all"    value = "false"/>
+
+  <property name="trackerdir"   value="org/osgi/util/tracker"/>
+  <property name="api.pattern"  value="${trackerdir}/*"/> 
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+   <mkdir dir="src/${trackerdir}"/>
+   <copy  todir = "src/${trackerdir}">
+      <fileset dir="${topdir}/framework/src/${trackerdir}"/>
+   </copy>
+  </target>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <property name="bmfa.Bundle-Description"    value="OSGi Service tracker"/>
+  <property name="bmfa.Bundle-Category"       value="util"/>
+  <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
+  <property name="bmfa.Bundle-ApiVendor"      value="OSGi"/>
+  <property name="bmfa.Bundle-Version"        value="1.4.0"/>
+  <property name="bmfa.Bundle-DocURL"         value="http://www.osgi.org"/>
+
+  <property name="bmfa.Export-Package"        value="org.osgi.util.tracker;version=1.4"/>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

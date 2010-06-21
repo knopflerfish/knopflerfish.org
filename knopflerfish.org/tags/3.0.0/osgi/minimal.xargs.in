@@ -1,0 +1,22 @@
+-Dorg.knopflerfish.framework.main.verbosity=0
+-Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
+-Forg.knopflerfish.framework.debug.packages=false
+-Forg.knopflerfish.framework.debug.errors=true
+-Forg.knopflerfish.framework.debug.classloader=false
+-Forg.osgi.framework.system.packages.extra=
+
+-Forg.knopflerfish.startlevel.use=true
+
+-init
+
+-install @log_api-N.N.N.jar@
+-install @console_api-N.N.N.jar@
+-istart  @cm_api-N.N.N.jar@
+-istart  @log-N.N.N.jar@
+-istart  @console-N.N.N.jar@
+-istart  @consoletty-N.N.N.jar@
+-istart  @frameworkcommands-N.N.N.jar@
+-istart  @logcommands-N.N.N.jar@
+-istart  @useradmin_api-N.N.N.jar@
+
+-launch

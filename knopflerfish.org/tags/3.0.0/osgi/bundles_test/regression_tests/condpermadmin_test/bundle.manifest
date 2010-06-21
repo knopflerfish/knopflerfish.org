@@ -1,0 +1,6 @@
+Bundle-Name: condpermadmin_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for ConditionalPermissionAdmin service
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-Activator: org.knopflerfish.bundle.condpermadmin_test.Activator
+Bundle-Category: test

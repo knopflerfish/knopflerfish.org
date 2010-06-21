@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: soapobject
+Bundle-SymbolicName: org.knopflerfish.bundle.soapobject
+Bundle-Version: 0.0.2
+Bundle-Category: experiment
+Bundle-Description: SOAP objects
+Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-Activator: org.knopflerfish.bundle.soapobject.Activator
+Import-Package: org.osgi.framework
+

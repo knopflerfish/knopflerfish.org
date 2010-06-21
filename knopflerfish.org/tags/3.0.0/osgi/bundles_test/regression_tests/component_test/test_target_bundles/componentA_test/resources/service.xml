@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+
+<!-- this component is used to check the lazy instanciation of components -->
+ <component name="componentA1.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentA1"/>
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentA1"/>
+  </service>
+ </component>
+
+
+
+<!-- A references B, B references C, C references a service that is created  -->
+
+
+<!-- A references B -->
+ <component name="componentA.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ 
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentA"/>
+
+  <reference name="COMPONENTB1"
+	interface="org.knopflerfish.bundle.componentA_test.ComponentB"/>
+
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentA"/>
+  </service>
+ </component>
+
+
+<!-- B references C -->
+ <component name="componentB.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ 
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentB"/>
+
+  <reference name="COMPONENTC1"
+	interface="org.knopflerfish.bundle.componentA_test.ComponentC"/>
+
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentB"/>
+  </service>
+ </component>
+
+
+<!-- C reference TestService -->
+ <component name="componentC.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ 
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentC"/>
+
+  <reference name="TESTSERVICE"
+	interface="org.knopflerfish.service.component_test.TestService"/>
+
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentC"/>
+  </service>
+ </component>
+
+
+<!-- this component is used to check that properties defined here are --
+  -- propagated to the registered service. -->
+ <component name="componentP.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+  <implementation class="org.knopflerfish.bundle.componentA_test.ComponentP"/>
+  <property name="String1" type="String" value="string1"/>
+  <property name="Strings" type="String">
+    apa
+    bepa
+    cepa
+  </property>
+  <property name="Long1" type="Long" value="1"/>
+  <property name="Longs" type="Long">
+    1
+    2
+    3
+  </property>
+  <property name="Double1" type="Double" value="16777216.00390625"/>
+  <property name="Doubles" type="Double">
+    1.0
+    2.0
+    3.0
+    4.0
+  </property>
+  <property name="Float1" type="Float" value="4.0"/>
+  <property name="Floats" type="Float">
+    1.0
+    2.0
+    3.0
+    4.0
+    5.0
+  </property>
+  <property name="Integer1" type="Integer" value="1"/>
+  <property name="Integers" type="Integer">
+    1
+    2
+    3
+    4
+    5
+    6
+  </property>
+  <property name="Byte1" type="Byte" value="1"/>
+  <property name="Bytes" type="Byte">
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+  </property>
+  <property name="Character1" type="Character" value="1"/>
+  <property name="Characters" type="Character">
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+  </property>
+  <property name="Character2"  type="Character" value="2"/>
+  <property name="Characters2" type="Character">
+    3
+    4
+    5
+    6
+    7
+    8
+  </property>
+  <property name="Boolean1" type="Boolean" value="true"/>
+  <property name="Booleans" type="Boolean">
+    false
+    true
+    false
+  </property>
+  <property name="Short1" type="Short" value="1"/>
+  <property name="Shorts" type="Short">
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    0
+  </property>
+  <service>
+   <provide interface="org.knopflerfish.bundle.componentA_test.ComponentP"/>
+  </service>
+ </component>
+
+
+<!-- Test that circular check works -->
+ <component name="componentD.test" xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+ 
+  <implementation class="org.knopflerfish.bundle.componentA_test.NoClass"/>
+
+  <reference name="Circle"
+	interface="org.knopflerfish.bundle.componentA_test.ComponentA"/>
+
+  <service>
+   <provide interface="org.knopflerfish.service.component_test.TestService"/>
+  </service>
+ </component>
+
+
+
+
+</root>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="startlevel_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.startlevel_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name = "bundle.build.all"  value="false"/>
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.lib"  value="false"/>
+  <property name = "bundle.build.impl" value="true"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/**"/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  </path>
+
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+    <antcall target="bundleSLC_test"/>
+    <antcall target="bundleSLA_test"/>
+    <antcall target="bundleSLB_test"/>
+    <antcall target="bundleSLD_test"/>
+  </target>
+
+  <target name="bundleSLA_test">
+    <ant dir="test_target_bundles/bundleSLA_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSLA_test"/>
+    </ant>
+  </target>
+  <target name="bundleSLB_test">
+    <ant dir="test_target_bundles/bundleSLB_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSLB_test"/>
+    </ant>
+  </target>
+  <target name="bundleSLC_test">
+    <ant dir="test_target_bundles/bundleSLC_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSLC_test"/>
+    </ant>
+  </target>
+  <target name="bundleSLD_test">
+    <ant dir="test_target_bundles/bundleSLD_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSLD_test"/>
+    </ant>
+  </target>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

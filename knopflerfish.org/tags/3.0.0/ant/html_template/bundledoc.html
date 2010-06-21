@@ -1,0 +1,25 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <link href="../../css/knopflerfish.css" rel="stylesheet" type="text/css">
+    <link href="../../css/kf_man.css" rel="stylesheet" type="text/css">
+    <title>Bundle User Documentation - $(BUNDLE_NAME):$(BUNDLE_VERSION)</title>
+  </head>
+  <body class="mainblock">
+    <div class="manpage">
+      <div class="userdoc_hdr_left">
+	Bundle: $(BUNDLE_NAME)
+      </div>
+      <div class="userdoc_hdr_right">
+	Version $(BUNDLE_VERSION)
+      </div>
+      $(MAIN)
+      <h2>Jar docs</h2>
+      $(BUNDLE_JARDOCS)
+
+      <h2>Exported Packages</h2>
+      $(BUNDLE_EXPORT_PACKAGE)
+    </div>
+  </body>
+</html>
+
