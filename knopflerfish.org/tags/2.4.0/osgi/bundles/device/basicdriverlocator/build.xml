@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="basicdriverlocator" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.basicdriverlocator}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="device_api-N.N.N.jar"/>
+  </path>
+
+  <property name="impl.pattern"  value="org/knopflerfish/bundle/**"/>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

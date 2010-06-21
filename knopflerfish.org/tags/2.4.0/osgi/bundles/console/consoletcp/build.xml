@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="consoletcp" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.consoletcp}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/consoletcp/**"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="useradmin_api-N.N.N.jar"/>
+   <pathelement location="console_api-N.N.N.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

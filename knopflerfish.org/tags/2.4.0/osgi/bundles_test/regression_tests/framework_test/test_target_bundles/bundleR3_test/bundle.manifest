@@ -1,0 +1,10 @@
+Bundle-Name: bundleR3_test
+Bundle-SymbolicName: bundleR3_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleR3_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Bundle-UUID: org.knopflerfish:bundleR3_test:1.0.0:all
+
