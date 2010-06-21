@@ -29,57 +29,45 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Event 2.0.9
   
-  Fixed problem with synchronization and missed events with wildcard
-  listeners. Corrected symbolic name property.
+  - Fixed problem with synchronization and missed events with wildcard
+    listeners. Corrected symbolic name property.
+  - Events posted by an eventhandler called from a deliver thread will
+    be scheduled to for delivery by that thread. This avoids an
+    explosion in number of deliver threads when events are posted by
+    event listeners.
+  - Asynchronous event delivery are now made using several delivery
+    queues, one queue for each thread that posts events. Added bundle
+    user documentation that describes the properties that may be used
+    to configure the event admin implementation.
+  - Improved event delivery when timeout is used. Timeout blacklisting
+    is canceled if EventHandler returns. Event delivery thread is, if
+    possible, reused to deliver events.
+  - Added property org.knopflerfish.eventadmin.timewarning which can
+    be used to detect slow event handlers. If a event handler takes
+    longer than this time to finish a log entry will be written. This
+    property will not work in combination with the
+    org.knopflerfish.eventadmin.timeout property.
+  - Improved performance a lot by rewriting the whole mechanism for
+    matching events to event handlers during event delivery. General
+    clean up and removal of dead code.
 
-  Event 2.0.8
-  
-  Events posted by an eventhandler called from a deliver thread will be
-  scheduled to for delivery by that thread. This avoids an explosion
-  in number of deliver threads when events are posted by event listeners.
-
-  Event 2.0.7
-  
-  Asynchronous event delivery are now made using several delivery
-  queues, one queue for each thread that posts events. Added bundle
-  user documentation that describes the properties that may be used to
-  configure the event admin implementation.
-
-
-  Event 2.0.6
-  
-  Improved event delivery when timeout is used. Timeout blacklisting is 
-  canceled if EventHandler returns. Event delivery thread is, if possible, 
-  reused to deliver events. 
-  
-  Added property org.knopflerfish.eventadmin.timewarning which can be used to
-  detect slow event handlers. If a event handler takes longer than this time to
-  finish a log entry will be written. This property will not work in 
-  combination with the org.knopflerfish.eventadmin.timeout property.
-  
-  
-  Event 2.0.5
-
-  Improved performance a lot by rewriting the whole mechanism for matching
-  events to event handlers during event delivery. General clean up and
-  removal of dead code.
 
   Declarative-Services 2.0.2 (aka SCR (Service Component Runtime))
 
-  The Service-Component header in the manifest file now supports
-  "spaces" to separate between DS files.
+  - The Service-Component header in the manifest file now supports
+    "spaces" to separate between DS files.
 
-  This problem was reported the SourceForge bug tracker, item 2556558:
-  https://sourceforge.net/tracker/index.php?func=detail&aid=2883959&group_id=82798&atid=567241
+    This problem was reported the SourceForge bug tracker, item 2556558:
+    https://sourceforge.net/tracker/index.php?func=detail&aid=2883959&group_id=82798&atid=567241
 
 
   Preferences 2.0.4
 
-  Removing a node, calling flush and then creating a new node with the
-  same name resulted in an IllegalStateException when trying to put a
-  value to the re-created node. The implementation erroneously
-  returned the old, stale, instance of the Preferences-object for the
-  node.
+  - Removing a node, calling flush and then creating a new node with
+    the same name resulted in an IllegalStateException when trying to
+    put a value to the re-created node. The implementation erroneously
+    returned the old, stale, instance of the Preferences-object for
+    the node.
 
 
   Http 2.1.8
@@ -91,17 +79,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
     extracts the session id from the path when present.
   - Return correctly formated IPv6 addresses from
     HttpServletRequest.getRequestURL().
-
-  Http 2.1.7
-
   - When a registered resource was fetched and the request contained
     an 'If-Modified-Since'-header with a date value that did not parse
     correctly the fetch was aborted with an
     IllegalArgumentException. That exception is now caught and the
     'If-Modified-Since'-header is ignored when this happens.
-
-  Http 2.1.6
-
   - Added support for responding with "Content-Encoding: gzip" for
     resources when the request header "Accept-Encoding" indicates that
     gzip:ed repsonses are preferred.
@@ -112,13 +94,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
     originated from a proxy-server. Such requests may have an absolute
     URI (with scheme and authority before the path) not just a path
     with optional query data.
-
-  Http 2.1.5
-  
-  Fixed problem with calls to HttpContext getMimeType(). The value of
-  the name parameter was not the same as in the corresponding call to
-  getResource() (the original URI path was used instead of the translated
-  target resource name).
+  - Fixed problem with calls to HttpContext getMimeType(). The value
+    of the name parameter was not the same as in the corresponding
+    call to getResource() (the original URI path was used instead of
+    the translated target resource name).
   
 
 === Misc (KF specific, start scripts, build system etc ===
@@ -126,100 +105,91 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Desktop Bundle 2.3.17
 
-  The selection in the large icon displayer may now be changed using
-  the arrow-keys. Multiple selections using the mouse on the Mac now
-  uses the Command-key (was Control) as modifier.
-
-  Added a new sort order based on start level to the large icon
-  displayer.
-
-  The large icon display now uses the system text highlight color as
-  background color for selected bundle. The tooltips in the large icon
-  displayer now includes the full bundle name.
-
-  If multiple bundles where selected when doing an update all bundles
-  but one was de-selected after the update. The pre-update selection
-  state is now preserved.
-
-  The initial number of columns in the bundles display is now adjusted
-  based on the size of that display (as when manually moving the split
-  pane divider).
-
-  Pressing Control-A (Command-A) in the large icons displayer now
-  selects all bundles.
-
-  Application listeners on Mac OS X was not properly un-installed when
-  the desktop was stopped, this showed up as a null-pointer exception
-  in the BundleClassLoader when Quit was called from the application
-  menu. Back-ported the OSXAdapter changes from KF-3. The desktop now
-  installs its icon as the Mac OS X dock icon of the JVM it executes
-  in.
-
-  Improved performance when many update events are sent to the
-  services view. The update of the view is now scheduled as job on the
-  EDT (Event Dispatch Thread) which when executed will update the view
-  according to the most recent event, any intermediate events (i.e.,
-  events that arrived between the scheduling of the job and execution
-  of it) will be ignored.
-
-  When using the dektop to manage a remote framework the bundles shown
-  on the left was those running on the local framework and not those
-  on the remote framework.
+  - The selection in the large icon displayer may now be changed using
+    the arrow-keys. Multiple selections using the mouse on the Mac now
+    uses the Command-key (was Control) as modifier.
+  - Added a new sort order based on start level to the large icon
+    displayer.
+  - The large icon display now uses the system text highlight color as
+    background color for selected bundle. The tooltips in the large
+    icon displayer now includes the full bundle name.
+  - If multiple bundles where selected when doing an update all
+    bundles but one was de-selected after the update. The pre-update
+    selection state is now preserved.
+  - The initial number of columns in the bundles display is now
+    adjusted based on the size of that display (as when manually
+    moving the split pane divider).
+  - Pressing Control-A (Command-A) in the large icons displayer now
+    selects all bundles.
+  - Application listeners on Mac OS X was not properly un-installed
+    when the desktop was stopped, this showed up as a null-pointer
+    exception in the BundleClassLoader when Quit was called from the
+    application menu. Back-ported the OSXAdapter changes from
+    KF-3. The desktop now installs its icon as the Mac OS X dock icon
+    of the JVM it executes in.
+  - Improved performance when many update events are sent to the
+    services view. The update of the view is now scheduled as job on
+    the EDT (Event Dispatch Thread) which when executed will update
+    the view according to the most recent event, any intermediate
+    events (i.e., events that arrived between the scheduling of the
+    job and execution of it) will be ignored.
+  - When using the dektop to manage a remote framework the bundles
+    shown on the left was those running on the local framework and not
+    those on the remote framework.
 
 
   Bundlerepository 2.0.3
 
-  The bundle repository tab in the desktop listens to bundles
-  selections and when it received such event it cleared the current
-  selection and re-selected the bundle that the event was
-  for. Effectively stopping multi-selections of bundles. This
-  behaviour is now fixed, it will allways show one of the selected
-  bundles (currently no support for multiple bundles selections in
-  this view).
+  - The bundle repository tab in the desktop listens to bundles
+    selections and when it received such event it cleared the current
+    selection and re-selected the bundle that the event was
+    for. Effectively stopping multi-selections of bundles. This
+    behaviour is now fixed, it will allways show one of the selected
+    bundles (currently no support for multiple bundles selections in
+    this view).
 
 
   axis-osgi 0.1.0.1
 
-  All classes refrenced from jars inside this bundle are now imported
-  using resolution=optional for those that should not be needed. Added
-  explicit export and import of the org.xml.transform packages to
-  avoid a linkage error on the method 
-  "org.apache.axis.SOAPPart.setContent(Ljavax/xml/transform/Source;)V"
+  - All classes refrenced from jars inside this bundle are now
+    imported using resolution=optional for those that should not be
+    needed. Added explicit export and import of the org.xml.transform
+    packages to avoid a linkage error on the method
+    "org.apache.axis.SOAPPart.setContent(Ljavax/xml/transform/Source;)V"
 
 
   consoletelnet 2.0.4
 
-  Fixed problem with double CR generated when using most clients.
-  Added configuration prorperty "org.knopflerfish.consoletelnet.busywait",
-  which causes the telnet input reader to do busy wait (useful if you
-  don't have real threads). Default value "false". Earlier versions
-  of consoletelnet always did busy wait.
+  - Fixed problem with double CR generated when using most clients.
+    Added configuration prorperty
+    "org.knopflerfish.consoletelnet.busywait", which causes the telnet
+    input reader to do busy wait (useful if you don't have real
+    threads). Default value "false". Earlier versions of consoletelnet
+    always did busy wait.
 
 
   httpclient_connector 2.1.1
 
-  Made SSL support optional (i.e. Import-Package of javax.crypto,
-  javax.crypto.spec, javax.net and javax.net.ssl are now optional).
+  - Made SSL support optional (i.e. Import-Package of javax.crypto,
+    javax.crypto.spec, javax.net and javax.net.ssl are now optional).
 
 
   Build System
 
-  The bundle tasks that performs analysis of a bundle to derive and
-  validate manifest headers like Import-Package, Export-Package and
-  Bundle-Activator now uses the ASM 3.2 library that is included in
-  the deliverables (knopflerfish.org/osgi/framework/libs/). These
-  tasks was previously based on the BCEL library which each user had
-  to download herself.
-
-  The BundleLocator task now supports version wild-cards like 1.N.N
-  and 3.2.N to search for bundles with major (major and minor) version
-  parts locked. Previously it only supported wild-cards selecting the
-  highest available version.
-
-  The search order when expanding the bundle compile path has been
-  changed. Bundles are now search for in "${jars.dir}" (the local
-  repository) and if not found there the search continues in
-  "${osgi.dir}/jars" (the default repository).
+  - The bundle tasks that performs analysis of a bundle to derive and
+    validate manifest headers like Import-Package, Export-Package and
+    Bundle-Activator now uses the ASM 3.2 library that is included in
+    the deliverables (knopflerfish.org/osgi/framework/libs/). These
+    tasks was previously based on the BCEL library which each user had
+    to download herself.
+  - The BundleLocator task now supports version wild-cards like 1.N.N
+    and 3.2.N to search for bundles with major (major and minor)
+    version parts locked. Previously it only supported wild-cards
+    selecting the highest available version.
+  - The search order when expanding the bundle compile path has been
+    changed. Bundles are now search for in "${jars.dir}" (the local
+    repository) and if not found there the search continues in
+    "${osgi.dir}/jars" (the default repository).
 
 
 
