@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import javax.swing.JComponent;
 import javax.swing.Icon;
 
 /**
- *
  * Interface for services wishing to become visible as components in
  * the desktop Swing window.
  *
@@ -115,7 +114,7 @@ import javax.swing.Icon;
 public interface SwingBundleDisplayer {
 
   /**
-   * Service Property (String)
+   * Service property key.
    * <p>
    * Value is <tt>org.knopflerfish.service.desktop.displayer.name</tt>
    * </p>
@@ -124,7 +123,7 @@ public interface SwingBundleDisplayer {
     "org.knopflerfish.service.desktop.displayer.name";
 
   /**
-   * Service Property (String)
+   * Service property key.
    * <p>
    * Value is <tt>org.knopflerfish.service.desktop.displayer.description</tt>
    * </p>
@@ -133,7 +132,7 @@ public interface SwingBundleDisplayer {
     "org.knopflerfish.service.desktop.displayer.description";
 
   /**
-   * Service Property (Boolean)
+   * Service property key.
    * <p>
    * Value is <tt>org.knopflerfish.service.desktop.displayer.isdetail</tt>
    * </p>

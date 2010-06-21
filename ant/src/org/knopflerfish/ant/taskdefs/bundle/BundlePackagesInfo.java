@@ -126,13 +126,13 @@ public class BundlePackagesInfo {
 
   /**
    * The sub set of the provided classes that implements the interface
-   * {@link org.osgi.BundleActivator}.
+   * {@link org.osgi.framework.BundleActivator}.
    */
   private final SortedSet/*<String>*/ activatorClasses = new TreeSet();
 
   /**
    * Adds a named class to the set of classes that implements the
-   * interface {@link org.osgi.BundleActivator}.
+   * interface {@link org.osgi.framework.BundleActivator}.
    *
    * @param className the name of the activator class to add.
    */

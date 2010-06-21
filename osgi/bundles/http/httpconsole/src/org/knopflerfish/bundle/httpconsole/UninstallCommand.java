@@ -45,7 +45,7 @@ public class UninstallCommand extends IconCommand {
     super("cmd_uninstall", 
 	  "Uninstall",
 	  "Uninstall selected bundles",
-	  Activator.RES_ALIAS + "/player_eject.gif");
+	  Activator.RES_ALIAS + "/player_eject.png");
   }
   
   public StringBuffer run(HttpServletRequest request) {

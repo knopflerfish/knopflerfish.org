@@ -46,7 +46,7 @@ public class InstallURLCommand extends IconCommand {
     super("cmd_installurl",
 	  "Install from URL",
 	  "Install bundle from URL",
-	  Activator.RES_ALIAS + "/openurl.gif");
+	  Activator.RES_ALIAS + "/openurl.png");
     displayFlags = DISPLAY_COMPACTLIST;
   }
   

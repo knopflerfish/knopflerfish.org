@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: TTY-Console
 Bundle-SymbolicName: org.knopflerfish.bundle.consoletty
-Bundle-Version: 2.0.1
-Bundle-UUID: org.knopflerfish:consoletty:2.0.1
+Bundle-Version: 3.0.1
 Bundle-Description: Command line system console
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
@@ -11,10 +10,9 @@ Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Activator: org.knopflerfish.bundle.consoletty.ConsoleTty
 Bundle-Category: console
-Export-Service: org.osgi.service.cm.ManagedService
-Import-Service: org.osgi.service.log.LogService,org.knopflerfish.servi
- ce.console.ConsoleService
-Import-Package: org.knopflerfish.service.console,org.osgi.framework,or
- g.osgi.service.cm,org.osgi.service.log,org.osgi.util.tracker
+Bundle-Icon: icon.png;size=32
+Import-Package: org.knopflerfish.service.console,org.osgi.framework,
+ org.osgi.service.cm,
+ org.osgi.service.log,
+ org.osgi.util.tracker
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-

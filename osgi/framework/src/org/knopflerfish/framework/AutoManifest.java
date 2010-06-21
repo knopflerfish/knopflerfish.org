@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2007, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import org.knopflerfish.framework.*;
 import org.osgi.framework.*;
 import java.io.*;
 import java.util.jar.*;
@@ -47,7 +46,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Hashtable;
 import java.util.TreeSet;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.net.URL;
 
@@ -159,13 +157,14 @@ import java.net.URL;
  * @author Erik Wistrand
  */
 public class AutoManifest extends Manifest {
+  FrameworkContext fwCtx;
   Manifest   mf;
   String     location;
   AutoInfo   autoInfo;
   Attributes mainAttrs;
   Set        packages        = new TreeSet();
 
-  static String configSource = "";
+  static String configSource = null;
   static Map    configs      = null;
 
   /**
@@ -186,7 +185,7 @@ public class AutoManifest extends Manifest {
    * @param mf original manifest. Must not be null.
    * @param location bundle location. Must not be null.
    */
-  public AutoManifest(Manifest mf, String location) {
+  public AutoManifest(FrameworkContext fwCtx, Manifest mf, String location) {
     if(mf == null) {
       throw new NullPointerException("Manifest cannot be null");
     }
@@ -195,25 +194,27 @@ public class AutoManifest extends Manifest {
       throw new NullPointerException("location cannot be null");
     }
 
+    this.fwCtx = fwCtx;
     this.mf       = mf;
     this.location = location;
 
     // just read the config once
     if(configs == null) {
-      boolean bActive   = "true".equals(Framework.getProperty("org.knopflerfish.framework.automanifest","false"));
-      String  defSource = bActive ? "!!/automanifest.props" : null;
-      configSource = Framework.getProperty("org.knopflerfish.framework.automanifest.config", defSource);
-      configs      = loadConfig(configSource);
-
-      if(Debug.automanifest) {
-        Debug.println("Loaded auto manifest config from " + configSource);
+      if(fwCtx.props.getBooleanProperty(FWProps.AUTOMANIFEST_PROP)) {
+        configSource = fwCtx.props.getProperty(FWProps.AUTOMANIFEST_CONFIG_PROP);
+        configs      = loadConfig(configSource);
+        if(fwCtx.debug.automanifest) {
+          fwCtx.debug.println("Loaded auto manifest config from " + configSource);
+        }
+      } else {
+        configs = new TreeMap();
       }
     }
 
     autoInfo = findConfig();
 
-    if(isAuto() && Debug.automanifest) {
-      Debug.println("Using auto manifest for bundlelocation " + location);
+    if(isAuto() && fwCtx.debug.automanifest) {
+      fwCtx.debug.println("Using auto manifest for bundlelocation " + location);
     }
   }
 
@@ -321,8 +322,8 @@ public class AutoManifest extends Manifest {
           } else if("[autoexport]".equals(val)) {
             String exports = getExports();
 
-            if(Debug.automanifest) {
-              Debug.println("Auto exports for " + location + ": " + exports);
+            if(fwCtx.debug.automanifest) {
+              fwCtx.debug.println("Auto exports for " + location + ": " + exports);
             }
 
             if(exports.length() > 0) {
@@ -481,7 +482,7 @@ public class AutoManifest extends Manifest {
         is = url.openStream();
         return loadConfigFromInputStream(is);
       } catch (Exception e) {
-        Debug.printStackTrace("Failed to load autoimportexport conf from " + url, e);
+        fwCtx.debug.printStackTrace("Failed to load autoimportexport conf from " + url, e);
       } finally {
         try { is.close(); } catch (Exception ignored) { }
       }
@@ -497,7 +498,6 @@ public class AutoManifest extends Manifest {
 
     for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
       String key = (String)it.next();
-      String val = (String)props.get(key);
       int ix = key.indexOf(".");
       if(ix != -1) {
         String id = key.substring(0, ix);

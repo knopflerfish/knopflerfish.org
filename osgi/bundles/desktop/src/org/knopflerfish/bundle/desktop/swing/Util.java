@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.*;
 import javax.swing.*;
 
@@ -292,6 +293,18 @@ public class Util {
   // Bundle -> Icon
   static Map iconMap = new HashMap();
 
+  // This constant should be in org.osgi.framework.Contants but is not...
+  final static String BUNDLE_ICON = "Bundle-Icon";
+
+
+  // Clear the bundle icon after an update of the bundle.
+  public static void clearBundleIcon(Bundle b) {
+    synchronized(iconMap) {
+      iconMap.remove(b);
+    }
+  }
+
+  // Get the bundle icon for a bundle. Icons are cached.
   public static Icon getBundleIcon(Bundle b) {
     synchronized(iconMap) {
       Class clazz = Util.class;
@@ -300,37 +313,24 @@ public class Util {
         return icon;
       }
 
-      URL appURL = null;
-      String iconName = (String)b.getHeaders().get("Application-Icon");
-      if(iconName == null) {
-        iconName = "";
-      }
-      iconName = iconName.trim();
-
-      if(iconName != null && !"".equals(iconName)) {
-        try {
-          appURL = b.getResource(iconName);
-        } catch (Exception e) {
-          Activator.log.error("Failed to load icon", e);
-        }
+      URL appURL = getBundleIconURL(b);
+      if (null==appURL) {
+        appURL = getApplicationIconURL(b);
       }
 
       try {
-        if(Util.hasMainClass(b)) {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/jarexec.gif"));
+        if (appURL!=null) {
+          icon = new BundleImageIcon(b, appURL);
+        } else if(Util.hasMainClass(b)) {
+          icon = new BundleImageIcon(b, clazz.getResource("/jarexec.png"));
         } else if(Util.hasFragment(b)) {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/frag.gif"));
+          icon = new BundleImageIcon(b, clazz.getResource("/frag.png"));
         } else if(Util.hasComponent(b)) {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/component.png"));
+          icon = new BundleImageIcon(b, clazz.getResource("/component.png"));
         } else if(Util.hasActivator(b)) {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/bundle.png"));
+          icon = new BundleImageIcon(b, clazz.getResource("/bundle.png"));
         } else {
-          icon = new BundleImageIcon(b,
-                                     appURL != null ? appURL : clazz.getResource("/lib.png"));
+          icon = new BundleImageIcon(b, clazz.getResource("/lib.png"));
         }
       } catch (Exception e) {
         Activator.log.error("Failed to load icon, appURL=" + appURL);
@@ -340,6 +340,112 @@ public class Util {
       return icon;
     }
   }
+
+  // Get the bundle icon URL for icon with size 32 from the manifest
+  // header "Bundle-Icon".
+  private static URL getBundleIconURL(final Bundle b)
+  {
+    URL res = null;
+
+    final String bih = (String) b.getHeaders().get(BUNDLE_ICON);
+    if (null!=bih && 0<bih.length()) {
+      // Re-uses the manifest entry parser from the KF-framework
+      try {
+        final Iterator it = org.knopflerfish.framework.Util
+          .parseEntries(BUNDLE_ICON, bih, false, true, false);
+        String iconName = null;
+        int iconSize = -1;
+        // We prefer a 32x32 size icon.
+        while (it.hasNext()) {
+          final Map entry = (Map) it.next();
+          final List icns = (List) entry.get("$keys");
+          final String sizeS = (String) entry.get("size");
+
+          if (null==sizeS) {
+            // Icon with unspecifeid size; use it if no other icon
+            // has been found.
+            if (null==iconName) {
+              iconName= (String) icns.get(0);
+            }
+          } else {
+            int size = -1;
+            try {
+              size = Integer.parseInt(sizeS);
+            } catch (NumberFormatException nfe) {
+            }
+            if (-1<size) {
+              if (-1==iconSize) {
+                // First icon with a valid size; start with it.
+                iconName= (String) icns.get(0);
+                iconSize = size;
+              } else if (Math.abs(size-32) < Math.abs(iconSize-32)) {
+                // Icon is closer in size 32 than old icon; use it
+                iconName= (String) icns.get(0);
+                iconSize = size;
+              }
+            }
+          }
+        }
+        if (null!=iconName) {
+          try {
+            try {
+              res = new URL(iconName);
+            } catch (MalformedURLException mfe) {
+              // iconName is not a valid URL; assume it is a resource path
+              res = b.getResource(iconName);
+              if (null==res) {
+                Activator.log.warn("Failed to load icon with name '"
+                                    +iconName +"' from bundle #"
+                                    +b.getBundleId() +" (" +getBundleName(b)
+                                    +"): No such resource.");
+              }
+            }
+          } catch (Exception e) {
+            Activator.log.error("Failed to load icon with name '"
+                                +iconName +"' from bundle #"
+                                +b.getBundleId() +" (" +getBundleName(b)
+                                +"): " +e.getMessage(), e);
+          }
+        }
+      } catch (IllegalArgumentException iae) {
+        Activator.log.error("Failed to parse Bundle-Icon header for #"
+                            +b.getBundleId() +" (" +getBundleName(b)
+                            +"): " +iae.getMessage(), iae);
+      }
+    }
+    return res;
+  }
+
+  // Get the bundle icon URL for icon with size 32 from the
+  // Knopflerfish defined manifest header "Application-Icon".
+  private static URL getApplicationIconURL(final Bundle b)
+  {
+    URL res = null;
+
+    String iconName = (String) b.getHeaders().get("Application-Icon");
+    if(iconName != null) {
+      iconName = iconName.trim();
+    }
+
+    if(iconName != null && 0<iconName.length()) {
+      try {
+        res = b.getResource(iconName);
+        if (null==res) {
+          Activator.log.warn("Failed to load icon with name '"
+                             +iconName +"' from bundle #"
+                             +b.getBundleId() +" (" +getBundleName(b)
+                             +"): No such resource.");
+        }
+      } catch (Exception e) {
+        Activator.log.error("Failed to load icon with name '"
+                            +iconName +"' from bundle #"
+                            +b.getBundleId() +" (" +getBundleName(b)
+                            +"): " +e.getMessage(), e);
+      }
+    }
+    return res;
+  }
+
 
   public static Comparator bundleIdComparator = new BundleIdComparator();
 
@@ -468,6 +574,8 @@ public class Util {
         ExportedPackage pkg = (ExportedPackage)it.next();
 
         Bundle exporter = pkg.getExportingBundle();
+        if (null==exporter) continue;
+
         closure.add(exporter);
 
         // Then, get closure from the exporter, if not already
@@ -534,6 +642,8 @@ public class Util {
 
       for(int i = 0; srl != null && i < srl.length; i++) {
         Bundle b = srl[i].getBundle();
+        if (null==b) continue; // Unregistered service.
+
         closure.add(b);
 
         if(!handled.contains(b)) {
@@ -640,24 +750,37 @@ public class Util {
     Constants.FRAMEWORK_VENDOR,
     Constants.FRAMEWORK_VERSION,
     Constants.FRAMEWORK_LANGUAGE,
-    Constants.FRAMEWORK_OS_NAME ,
+    Constants.FRAMEWORK_OS_NAME,
     Constants.FRAMEWORK_OS_VERSION,
     Constants.FRAMEWORK_PROCESSOR,
     Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
+    Constants.FRAMEWORK_BOOTDELEGATION,
+    Constants.FRAMEWORK_STORAGE,
+    Constants.FRAMEWORK_STORAGE_CLEAN,
+    Constants.FRAMEWORK_TRUST_REPOSITORIES,
+    Constants.FRAMEWORK_EXECPERMISSION,
+    Constants.FRAMEWORK_LIBRARY_EXTENSIONS,
+    Constants.FRAMEWORK_BEGINNING_STARTLEVEL,
+    Constants.FRAMEWORK_BUNDLE_PARENT,
+    Constants.FRAMEWORK_WINDOWSYSTEM,
+    Constants.FRAMEWORK_SECURITY,
+    Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+    Constants.SUPPORTS_FRAMEWORK_FRAGMENT,
+    Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE,
   };
 
   static public String getSystemInfo() {
-    StringBuffer sb = new StringBuffer();
-    try {
+    final StringBuffer sb = new StringBuffer();
 
-      Map props = new TreeMap(Activator.getSystemProperties());
+    try {
+      final Map props = new TreeMap(Activator.getSystemProperties());
 
       sb.append("<table>\n");
 
       sb.append(" <tr><td colspan=2 bgcolor=\"#eeeeee\">");
-      sb.append(fontify("Framework properties", -1));
+      sb.append(fontify("OSGi specified Framework properties", -1));
 
-      String spid = (String)props.get("org.osgi.provisioning.spid");
+      String spid = Activator.getBC().getProperty("org.osgi.provisioning.spid");
       if(spid != null && !"".equals(spid)) {
         sb.append(fontify(" (" + spid + ")", -1));
       }
@@ -672,13 +795,14 @@ public class Util {
         sb.append(fontify(FWPROPS[i]));
         sb.append("</td>\n");
         sb.append("  <td valign=\"top\">");
-        sb.append(fontify(Activator.getTargetBC().getProperty(FWPROPS[i])));
+        final String pValue = Activator.getTargetBC().getProperty(FWPROPS[i]);
+        sb.append(null!=pValue ? fontify(pValue) : "");
         sb.append("</td>\n");
         sb.append(" </tr>\n");
       }
 
       sb.append("<tr><td colspan=2 bgcolor=\"#eeeeee\">");
-      sb.append(fontify("System properties", -1));
+      sb.append(fontify("All Framework and System properties", -1));
       sb.append("</td>\n");
       sb.append("</tr>\n");
 
@@ -818,7 +942,7 @@ public class Util {
       });
       new StreamGobbler(proc.getErrorStream());
       new StreamGobbler(proc.getInputStream());
-    } else if (Util.isMacOSX()) {
+    } else if (OSXAdapter.isMacOSX()) {
       // Yes, this only works on Mac OS X
       Runtime rt = Runtime.getRuntime();
       Process proc = rt.exec(new String[] {
@@ -839,11 +963,6 @@ public class Util {
       return -1 != os.toLowerCase().indexOf("win");
     }
     return false;
-  }
-
-  public static boolean isMacOSX() {
-    String os = Util.getProperty("os.name", null);
-    return "Mac OS X".equals(os);
   }
 
   /** A thread that empties an input stream without complaining.*/

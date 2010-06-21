@@ -47,6 +47,9 @@ public class Activator implements BundleActivator, Runnable
     = "http://www.knopflerfish.org/releases/current/repository.xml";
   public static final String KF_RELEASE_REPO
     = "http://www.knopflerfish.org/snapshots/current_trunk/repository.xml";
+  // org.ungoverned.osgi.bundle.bundlerepository.BundleRepositoryServiceImpl.
+  public static final String REPOSITORY_URL_PROP
+    = "oscar.repository.url";
 
   private transient BundleContext               bc = null;
   private transient BundleRepositoryServiceImpl m_brs = null;
@@ -82,9 +85,14 @@ public class Activator implements BundleActivator, Runnable
       for (int i=0; repoURLs!=null && i<repoURLs.length; i++) {
         repoURLSet.add(repoURLs[i]);
       }
-      repoURLSet.add(KF_SNAPSHOT_REPO);
-      repoURLSet.add(KF_RELEASE_REPO);
-      repoURLs = (String[]) repoURLSet.toArray(new String[repoURLSet.size()]);
+      // Add Knopflerfish default repository URL if repository URL
+      // property is not set.
+      final String repositoryUrlPropValue = bc.getProperty(REPOSITORY_URL_PROP);
+      if (null==repositoryUrlPropValue) {
+        repoURLSet.add(KF_SNAPSHOT_REPO);
+        repoURLSet.add(KF_RELEASE_REPO);
+        repoURLs = (String[]) repoURLSet.toArray(new String[repoURLSet.size()]);
+      }
       m_brs.setRepositoryURLs(repoURLs);
     } catch (Throwable ignored) {
     }

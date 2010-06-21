@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,9 +72,13 @@ public class RemoteFWServer implements RemoteFW {
   boolean bReap     = false;
   long    reapDelay = 60 * 1000;
 
-  boolean  bDebug   = "true".equals(System.getProperty("org.knopflerfish.soap.remotefw.server.debug", "false"));
+  final boolean  bDebug;
 
   public RemoteFWServer() {
+    final String sDebug
+      = Activator.bc.getProperty("org.knopflerfish.soap.remotefw.server.debug");
+    bDebug = null==sDebug || 0== sDebug.length()
+      ? false : "true".equals(sDebug);
   }
 
   public void startBundle(SoapPrimitive bid) {
@@ -203,6 +207,10 @@ public class RemoteFWServer implements RemoteFW {
   }
   public String getBundleContextProperty(String key) {
     String v = Activator.bc.getProperty(key);
+    if(bDebug) {
+      System.out.println("server: getBundleContextProperty("
+                         +key +") -> " +v);
+    }
     return v == null ? NULL_STR : v;
   }
   public String getBundleLocation(SoapPrimitive bid) {
@@ -500,6 +508,12 @@ public class RemoteFWServer implements RemoteFW {
     Bundle b = Activator.bc.getBundle(bid);
     return ((StartLevel)slTracker.getService()).isBundlePersistentlyStarted(b);
   }
+
+  public boolean isBundleActivationPolicyUsed(long bid) {
+    Bundle b = Activator.bc.getBundle(bid);
+    return ((StartLevel)slTracker.getService()).isBundleActivationPolicyUsed(b);
+  }
+
 
   //TODO!
   public Vector getExportedPackage(String name) {

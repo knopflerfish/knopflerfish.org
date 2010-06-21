@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.url/src/org/osgi/service/url/URLStreamHandlerSetter.java,v 1.8 2006/06/16 16:31:31 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2008). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +20,19 @@ import java.net.URL;
 
 /**
  * Interface used by <code>URLStreamHandlerService</code> objects to call the
- * <code>setURL</code> method on the proxy <code>URLStreamHandler</code> object.
+ * <code>setURL</code> method on the proxy <code>URLStreamHandler</code>
+ * object.
  * 
  * <p>
  * Objects of this type are passed to the
- * {@link URLStreamHandlerService#parseURL}method. Invoking the <code>setURL</code>
- * method on the <code>URLStreamHandlerSetter</code> object will invoke the
- * <code>setURL</code> method on the proxy <code>URLStreamHandler</code> object that
- * is actually registered with <code>java.net.URL</code> for the protocol.
+ * {@link URLStreamHandlerService#parseURL} method. Invoking the
+ * <code>setURL</code> method on the <code>URLStreamHandlerSetter</code>
+ * object will invoke the <code>setURL</code> method on the proxy
+ * <code>URLStreamHandler</code> object that is actually registered with
+ * <code>java.net.URL</code> for the protocol.
  * 
- * @version $Revision: 1.8 $
+ * @ThreadSafe
+ * @version $Revision: 5673 $
  */
 public interface URLStreamHandlerSetter {
 	/**

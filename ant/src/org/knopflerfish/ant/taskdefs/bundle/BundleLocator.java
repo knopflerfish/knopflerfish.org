@@ -511,13 +511,11 @@ public class BundleLocator extends Task {
     public int compareTo(Object o)
     {
       BundleInfo other = (BundleInfo) o;
-
       // The bsn may be null for pre OSGi R4 bundles!
-      if (null==this.bsn || null==other.bsn) {
-        return this.name.compareTo(other.name);
-      }
+      String objName = this.bsn != null ? this.bsn : this.name;
+      String otherName = other.bsn != null ? other.bsn : other.name;
 
-      int res = this.bsn.compareTo(other.bsn);
+      int res = objName.compareTo(otherName);
       return res!=0 ? res : this.version.compareTo(other.version);
     }
 
@@ -575,6 +573,26 @@ public class BundleLocator extends Task {
     }
     return encodeBundleName(name);
   }
+
+  /**
+   * Get the bundle manifest version from the manifest.
+   *
+   * @param attributes The main attributes from the bundle's manifest.
+   */
+  private String getBundleManifestVersion(final File file,
+                                           final Attributes attributes)
+    throws NumberFormatException
+  {
+    String manifestVersion
+      = attributes.getValue(Constants.BUNDLE_MANIFESTVERSION);
+    if (null==manifestVersion) {
+      // Pre OSGi R4 bundle with non-standard version format; use
+      // version "1".
+      manifestVersion = "1";
+    }
+    return manifestVersion.trim();
+  }
+
   /**
    * Get the bundle version from the manifest.
    *
@@ -592,9 +610,8 @@ public class BundleLocator extends Task {
     try {
       return new Version(versionS);
     } catch (NumberFormatException nfe) {
-      final String manifestVersion
-        = attributes.getValue(Constants.BUNDLE_MANIFESTVERSION);
-      if (null==manifestVersion || "1".equals(manifestVersion.trim())) {
+      final String manifestVersion = getBundleManifestVersion(file, attributes);
+      if ("1".equals(manifestVersion)) {
         // Pre OSGi R4 bundle with non-standard version format; use
         // the default version.
         return Version.emptyVersion;
@@ -620,6 +637,7 @@ public class BundleLocator extends Task {
       log( "Processing candidate " +file, Project.MSG_DEBUG);
       String bundleName   = null;
       Version nameVersion = null;
+      String bundleManifestVersion = null;
 
       int ix = fileName.lastIndexOf('-');
       if (0<ix) {
@@ -632,6 +650,8 @@ public class BundleLocator extends Task {
           log("Invalid version in bundle file name '" +versionS +"': "+nfe,
               Project.MSG_VERBOSE);
         }
+      } else {
+        bundleName = fileName.substring(0,fileName.length()-4);
       }
       final JarFile bundle  = new JarFile(file);
       String  bsn     = null;
@@ -641,6 +661,7 @@ public class BundleLocator extends Task {
         final Attributes mainAttributes = manifest.getMainAttributes();
         bsn     = getBundleSymbolicName(mainAttributes);
         version = getBundleVersion(file, mainAttributes);
+        bundleManifestVersion = getBundleManifestVersion(file, mainAttributes);
       } finally {
         if (null!=bundle) {
           try { bundle.close(); } catch (IOException _ioe) {}
@@ -648,11 +669,20 @@ public class BundleLocator extends Task {
       }
 
       if (null!=nameVersion && 0!=nameVersion.compareTo(version)) {
-        bundleName = null; // Not valid due to version missmatch.
-        log("Found version '" +nameVersion +"' in the file name '"
-            +fileName +"', but the version in the bundle's manifest is '"
-            +version +"'.",
-            Project.MSG_VERBOSE);
+        if (nameVersion.getMajor() == version.getMajor() &&
+            nameVersion.getMinor() == version.getMinor() &&
+            nameVersion.getMicro() == version.getMicro() &&
+            "".equals(nameVersion.getQualifier()) ) {
+          log("Found version '" +nameVersion +"' in the file name '"
+              +fileName +"', but the version in the bundle's manifest has qualifier '"
+              +version +"'.",
+              Project.MSG_DEBUG);
+        } else {
+          log("Found version '" +nameVersion +"' in the file name '"
+              +fileName +"', but the version in the bundle's manifest is '"
+              +version +"'.",
+              Project.MSG_INFO);
+        }
       }
 
       if (0<version.getQualifier().length()) {
@@ -666,14 +696,19 @@ public class BundleLocator extends Task {
         }
       }
 
-      bi = new BundleInfo();
-      bi.name     = bundleName;
-      bi.bsn      = bsn;
-      bi.version  = version;
-      bi.fileName = fileName;
-      bi.relPath  = relPath;
-      bi.file     = file;
-      log("Found " +bi, Project.MSG_DEBUG);
+      if ("1".equals(bundleManifestVersion) || bsn != null) {
+        bi = new BundleInfo();
+        bi.name     = bundleName;
+        bi.bsn      = bsn;
+        bi.version  = version;
+        bi.fileName = fileName;
+        bi.relPath  = relPath;
+        bi.file     = file;
+        log("Found " +bi, Project.MSG_DEBUG);
+      } else {
+        log("Found bundle with Bundle-MainfestVersion >= 2 without Bundle-SymbolicName: "
+            + fileName, Project.MSG_INFO);
+      }
     }
     return bi;
   }

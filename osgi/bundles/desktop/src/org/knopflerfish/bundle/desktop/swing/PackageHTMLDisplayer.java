@@ -83,14 +83,14 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     public StringBuffer  bundleInfo(Bundle b) {
       StringBuffer sb = new StringBuffer();
 
-      
+
       startFont(sb);
 
 
       PackageManager pm = Activator.desktop.pm;
 
       PackageAdmin pkgAdmin = pm.getPackageAdmin();
-      
+
       if(pkgAdmin == null) {
         sb.append("No PackageAdmin service found");
       } else {
@@ -170,7 +170,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       return sb;
     }
 
-    void appendExportedPackages(StringBuffer sb, Bundle b, 
+    void appendExportedPackages(StringBuffer sb, Bundle b,
                                 boolean useParagraph) {
       PackageManager pm = Activator.desktop.pm;
       Collection pkgs = pm.getExportedPackages(b);
@@ -183,9 +183,24 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
         for (Iterator it = pkgs.iterator(); it.hasNext(); ) {
           ExportedPackage pkg = (ExportedPackage)it.next();
           StringBuffer   sb1  = new StringBuffer();
-          
+
           sb1.append(formatPackage(pkg, false));
-          
+
+          if (!pkg.isRemovalPending() && !pm.isWired(pkg.getName(), b)) {
+            // An exporting bundle that imports a package from itself
+            // will not have a wire for that package and thus not be
+            // present amongs the bundles returned by
+            // pkg.getImportingBundles().  There is one exception to
+            // this: When removal pending is set in an pkg, that pkg
+            // is from an older generation of the bundle and there
+            // must be a wire from the bundle to the old pkg and thus
+            // the bundle will be present in the list returned by
+            // pkg.getImportingBundles().
+            sb1.append("<br>");
+            sb1.append("&nbsp;&nbsp;");
+            Util.bundleLink(sb1, b);
+          }
+
           Bundle[] bl = pkg.getImportingBundles();
           for(int j = 0; bl != null && j < bl.length; j++) {
             sb1.append("<br>");
@@ -206,18 +221,27 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
-    void appendImportedPackages(StringBuffer sb, Bundle b, 
+    void appendImportedPackages(StringBuffer sb, Bundle b,
                                 boolean useParagraph) {
-      PackageManager pm = Activator.desktop.pm;
-      Collection importedPkgs = pm.getImportedPackages(b);
-      
+      final PackageManager pm = Activator.desktop.pm;
+      final Collection importedPkgs = pm.getImportedPackages(b);
+
       if (useParagraph) {
         sb.append("<p>");
       }
       if(importedPkgs.size() > 0) {
         sb.append("<b>Imported packages</b>");
         for (Iterator it = importedPkgs.iterator(); it.hasNext(); ) {
-          sb.append(formatPackage( (ExportedPackage) it.next(), false ));
+          final ExportedPackage epkg = (ExportedPackage) it.next();
+          sb.append(formatPackage( epkg, false ));
+          sb.append("<br>");
+          sb.append("&nbsp;&nbsp;");
+          final Bundle exporter = epkg.getExportingBundle();
+          if (exporter != null) {
+            Util.bundleLink(sb, exporter);
+          } else {
+            sb.append("STALE");
+          }
         }
       } else {
         sb.append("<b>No imported packages</b>");
@@ -282,14 +306,14 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     private String formatPackage(ExportedPackage epkg, boolean isShadowed)
     {
-      StringBuffer sb = new StringBuffer();
+      final StringBuffer sb = new StringBuffer();
 
       sb.append("<br>");
 
       sb.append("<font color=\"#444444\">");
       sb.append(epkg.getName());
 
-      Version version = epkg.getVersion();
+      final Version version = epkg.getVersion();
       if (version != null) {
         sb.append(" ").append(version);
       }
@@ -303,14 +327,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append(" <i>pending removal on refresh</i>");
       }
       sb.append("</font>");
-      sb.append("<br>");
-      sb.append("&nbsp;&nbsp;");
-      Bundle b = epkg.getExportingBundle();
-      if (b != null) {
-        Util.bundleLink(sb, b);
-      } else {
-        sb.append("STALE");
-      }
+
       return sb.toString();
     }
   }

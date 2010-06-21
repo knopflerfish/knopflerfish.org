@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.upnp/src/org/osgi/service/upnp/UPnPException.java,v 1.12 2006/06/16 16:31:46 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2005, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +15,12 @@
  */
 package org.osgi.service.upnp;
 
-import java.lang.Exception;
-
 /**
  * There are several defined error situations describing UPnP problems while a
  * control point invokes actions to UPnPDevices.
  * 
  * @since 1.1
+ * @version $Revision: 5673 $
  */
 public class UPnPException extends Exception {
 	static final long		serialVersionUID		= -262013318122195146L;
@@ -58,7 +55,7 @@ public class UPnPException extends Exception {
 	 * Key for an error information that is an int type variable and that is
 	 * used to identify occured errors.
 	 */
-	private int				errorCode;
+	private final int				errorCode;
 
 	/**
 	 * This constructor creates a UPnPException on the specified error code and

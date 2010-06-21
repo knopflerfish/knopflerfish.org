@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2009, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,271 +33,230 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Filter;
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
+import org.osgi.service.cm.*;
 
 
-public class Reference extends ExtendedServiceTracker {
+/**
+ *
+ */
+class Reference
+{
+  final Component comp;
+  final ReferenceDescription refDesc;
+  final Filter targetFilter;
 
-  private boolean optional;
-  private boolean multiple;
-  private boolean dynamic;
+  ComponentMethod bindMethod = null;
+  ComponentMethod unbindMethod = null;
 
-  private String bindMethodName;
-  private String unbindMethodName;
-  private String refName;
-  private String interfaceName;
+  private ReferenceListener listener = null;
+  private TreeMap factoryListeners = null;
+  private int numListeners;
+  private int available;
 
-  /* If unary, this is the choosen one. */
-  private ServiceReference bound;
-  private boolean doneBound = false;
 
-  private Collection instances = new ArrayList();
-
-  private Config config;
-
-  private boolean overrideUnsatisfied = false;
-
-  public Reference(String refName, Filter filter, String interfaceName,
-                   boolean optional, boolean multiple, boolean dynamic,
-                   String bindMethodName, String unbindMethodName,
-                   BundleContext bc) {
-
-    super(bc, filter);
-    this.refName = refName;
-    this.optional = optional;
-    this.multiple = multiple;
-    this.dynamic = dynamic;
-    this.bindMethodName = bindMethodName;
-    this.unbindMethodName = unbindMethodName;
-    this.interfaceName = interfaceName;
-  }
-
-  public void setConfig(Config config) {
-    this.config = config;
-  }
-
-  public void addedService(ServiceReference ref, Object service) {
-    if (doneBound) {
-      if (multiple || (null==bound && dynamic && optional)) {
-        for (Iterator iter = instances.iterator(); iter.hasNext();) {
-          invokeEventMethod(iter.next(), bindMethodName, ref);
-        }
-        if (!multiple) {
-          bound = ref;
-        }
-      }
-    } else if (bound != null && !multiple) {
-      ServiceReference newBound = getServiceReference();
-      if (!bound.equals(newBound)) {
-        if (dynamic) { // Bind new and unbind old
-          for (Iterator iter = instances.iterator(); iter.hasNext();) {
-            Object instance = iter.next();
-            invokeEventMethod(instance, unbindMethodName, bound);
-            invokeEventMethod(instance, bindMethodName, newBound);
-            ungetService(bound); // this is new.
-          }
-          bound = newBound;
-        } else { // Static: deactivate and reactivate
-          overrideUnsatisfied = true;
-          config.referenceUnsatisfied();
-          overrideUnsatisfied = false;
-          config.referenceSatisfied();
-        }
-      }
+  /**
+   *
+   */
+  Reference(Component comp, ReferenceDescription refDesc) {
+    this.comp = comp;
+    this.refDesc = refDesc;
+    Filter target = getTarget(comp.compDesc.getProperties(),
+                              "component description for " + comp);
+    if (target == null) {
+      target = refDesc.targetFilter;
     }
-
-    if (!isSatisfied(1) && isSatisfied() && config != null) {
-      config.referenceSatisfied();
-    }
-  }
-
-  /* TODO? public void modifiedService() */
-
-  public void removingService(ServiceReference ref, Object service) {
-    if (!isSatisfied(1)) { // Will be unsatisfied by this remove.
-      overrideUnsatisfied = true;
-      config.referenceUnsatisfied();
-      overrideUnsatisfied = false;
-    } else { // Will continue to be satisfied.
-      if (doneBound && multiple) {
-        for (Iterator iter = instances.iterator(); iter.hasNext();) {
-          invokeEventMethod(iter.next(), unbindMethodName, ref);
-        }
-        ungetService(ref);
-      } else if (ref.equals(bound)) { // The bound one is removed.
-        if (dynamic) { // Unbind and let removedService bind the new one.
-          for (Iterator iter = instances.iterator(); iter.hasNext();) {
-            invokeEventMethod(iter.next(), unbindMethodName, ref);
-          }
-          ungetService(ref);
-          bound = null;
-        } else { // Static. Deactivate and let removedService re-activate.
-          overrideUnsatisfied = true;
-          config.referenceUnsatisfied();
-          overrideUnsatisfied = false;
-        }
-      }
-    }
-  }
-
-  public void removedService(ServiceReference ref, Object service) {
-    if (multiple) return;
-    // See if we're inte the process of replacing a service.
-    if (dynamic && doneBound && bound == null && isSatisfied()) {
-      // Dynamic. Bind the new service.
-      bound = getServiceReference();
-      for (Iterator iter = instances.iterator(); iter.hasNext();) {
-        invokeEventMethod(iter.next(), bindMethodName, bound);
-      }
-    } else if (!dynamic && !doneBound && isSatisfied()) {
-      // Static. Try to activate.
-      config.referenceSatisfied();
-    }
-  }
-
-  public boolean isSatisfied() {
-    if (overrideUnsatisfied) return false;
-    return isSatisfied(0);
-  }
-  public boolean isSatisfied(int sizeLimit) {
-    return size() > sizeLimit || optional;
-  }
-
-  public void bind(Object instance) {
-    instances.add(instance);
-    doneBound = true;
-    if (multiple) {
-      ServiceReference[] serviceReferences = getServiceReferences();
-      if (serviceReferences != null) {
-        for (int i=0; i<serviceReferences.length; i++) {
-          bound = serviceReferences[i];
-          invokeEventMethod(instance, bindMethodName, bound);
-        }
-      }
-    } else { // unary
-      bound = getServiceReference();
-      invokeEventMethod(instance, bindMethodName, bound);
-    }
+    targetFilter = target;
   }
 
 
-  public void unbind(Object instance) {
-    instances.remove(instance);
-    if (!doneBound) return;
-    doneBound = false;
-    if (multiple) {
-      ServiceReference[] serviceReferences = getServiceReferences();
-      if (serviceReferences != null) {
-        for (int i = serviceReferences.length - 1; i >= 0; i--) {
-          invokeEventMethod(instance, unbindMethodName, serviceReferences[i]);
-          ungetService(serviceReferences[i]);
-        }
-      }
-    } else { // unary
-      invokeEventMethod(instance, unbindMethodName, bound);
-      ungetService(bound);
-    }
-    bound = null;
+  public String toString() {
+    return "Reference " + refDesc.name + " in " + comp;
   }
 
   /**
-   * Will search for the <methodName>(<type>) in the given class
-   * by first looking in class after
-   * <methodName>(ServiceReference) then
-   * <methodName>(Interface of Service).
+   * Start listening for this reference. It is a bit tricky to
+   * get initial state synchronized with the listener.
    *
-   * If no method is found it will then continue to the super class.
    */
-  private void invokeEventMethod(Object instance,
-                                 String methodName,
-                                 ServiceReference ref) {
-
-    if(ref == null) {
-      if(Activator.log.doDebug()) {
-        Activator.log.debug("ignore invokeMethod due to NULL reference when calling " + instance + "." + methodName + ", bundle=" + config.getBundle().getBundleId());
+  void start(Configuration [] config) {
+    available = 0;
+    numListeners = 1;
+    if (config != null && config.length > 0) {
+      listener = new ReferenceListener(this, config[0]);
+      for (int i = 1; i < config.length; i++) {
+        update(config[i], false);
       }
-      return;
+    } else {
+      listener = new ReferenceListener(this, null);
     }
+  }
 
-    if (methodName == null) {
-      return ;
+
+  /**
+   *
+   */
+  void stop() {
+    if (listener != null) {
+      listener.stop();
+      listener = null;
+    } else {
+      for (Iterator i = (new HashSet(factoryListeners.values())).iterator(); i.hasNext(); ) {
+        ((ReferenceListener)i.next()).stop();
+      }
+      factoryListeners = null;
     }
+  }
 
-    Class instanceClass = instance.getClass();
-    Method method = null;
 
-    Bundle bundle = ref.getBundle(); // the bundle where the service is located
-    Class serviceClass = null;
-
-    try {
-      serviceClass = bundle.loadClass(getInterfaceName());
-    } catch (ClassNotFoundException e) {
-      Activator.log.error("Declarative Services could not load class", e);
-      return ;
-    }
-
-    while (instanceClass != null && method == null) {
-      Method[] ms = instanceClass.getDeclaredMethods();
-
-      // searches this class for a suitable method.
-      for (int i = 0; i < ms.length; i++) {
-        if (methodName.equals(ms[i].getName()) &&
-            (Modifier.isProtected(ms[i].getModifiers()) ||
-             Modifier.isPublic(ms[i].getModifiers()))) {
-
-          Class[] parms = ms[i].getParameterTypes();
-
-          if (parms.length == 1) {
-            try {
-              if (ServiceReference.class.equals(parms[0])) {
-                ms[i].setAccessible(true);
-                ms[i].invoke(instance, new Object[] { ref });
-                return ;
-              } else if (parms[0].isAssignableFrom(serviceClass)) {
-                Object service = getService(ref);
-                ms[i].setAccessible(true);
-                ms[i].invoke(instance, new Object[] { service });
-                return ;
-              }
-            } catch (IllegalAccessException e) {
-              Activator.log.error("Declarative Services could not access the method \"" + methodName +
-                                  "\" used by component \"" + config.getName() + "\". Got exception.", e);
-            } catch (InvocationTargetException e) {
-              Activator.log.error("Declarative Services got exception while invoking \"" + methodName
-                                  + "\" used by component \"" + config.getName() + "\". Got exception.", e);
-            }
+  /**
+   * 
+   */
+  void update(Configuration c, boolean useNoPid) {
+    String pid = c.getPid();
+    if (listener != null) {
+      // We only have one listener, check if it still is true;
+      if (listener.checkTargetChanged(c)) {
+        if (listener.isOnlyPid(useNoPid ? Component.NO_PID : pid)) {
+          // Only one pid change listener target
+          listener.setTarget(c);
+        } else {
+          // We have multiple listener we need multiple listeners
+          factoryListeners = new TreeMap();
+          for (Iterator i = listener.getPids(); i.hasNext(); ) {
+            factoryListeners.put(i.next(), listener);
+          }
+          listener = null;
+          // NYI, optimize, we don't have to checkTargetChanged again
+        }
+      } else if (useNoPid) {
+        // No change, just make sure that pid is registered
+        listener.addPid(pid, true);
+      }
+    } 
+    if (factoryListeners != null) {
+      ReferenceListener rl = (ReferenceListener)factoryListeners.get(pid);
+      if (rl != null) {
+        // Listener found, check if we need to change it
+        if (rl.checkTargetChanged(c)) {
+          if (rl.isOnlyPid(pid)) {
+            rl.setTarget(c);
+            return;
+          } else {
+            rl.removePid(pid);
+            // Fall through to new listener creation
+          }
+        } else {
+          // No change
+          return;
+        }
+      } else {
+        // Pid is new, check if we already have a matching listener
+        for (Iterator i = new HashSet(factoryListeners.values()).iterator(); i.hasNext(); ) {
+          rl = (ReferenceListener)i.next();
+          if (!rl.checkTargetChanged(c)) {
+            rl.addPid(pid, false);
+            factoryListeners.put(pid, rl);
+            return;
           }
         }
       }
-
-      instanceClass = instanceClass.getSuperclass();
+      numListeners++;
+      rl = new ReferenceListener(this, c);
+      factoryListeners.put(pid, rl);
     }
-
-    // did not find any such method.
-    Activator.log.error("Declarative Services could not find bind/unbind method \"" + methodName +
-                        "\" in class \"" + config.getImplementation() + "\" used by component " + config.getName() + "\".");
   }
 
-  public Reference copy() {
-    return new Reference(refName, filter, interfaceName, optional, multiple, dynamic,
-                         bindMethodName, unbindMethodName, context);
+
+  /**
+   *
+   */
+  void remove(String pid) {
+    if (listener != null) {
+      listener.removePid(pid);
+      if (listener.noPids()) {
+        listener.addPid(Component.NO_PID, false);
+      }
+    } else {
+      ReferenceListener rl = (ReferenceListener)factoryListeners.remove(pid);
+      rl.removePid(pid);
+      if (rl.noPids()) {
+        rl.stop();
+        if (--numListeners == 1) {
+          listener = (ReferenceListener)factoryListeners.get(factoryListeners.lastKey());
+          factoryListeners = null;
+        }
+      }
+    }
   }
 
-  public String getName() {
-    return refName;
+
+  /**
+   *
+   */
+  ReferenceListener getListener(String pid) {
+    if (listener != null) {
+      return listener;
+    } else {
+      System.out.println("GETLISTENER <" + pid + "> = " + factoryListeners.get(pid));
+      if (factoryListeners.get(pid) == null){
+        for (Iterator i = factoryListeners.keySet().iterator(); i.hasNext(); ) {
+          System.out.println("GETLISTENER key <" + i.next() + ">");
+        }        
+      } 
+      return (ReferenceListener)factoryListeners.get(pid);
+    }
   }
 
-  public String getInterfaceName() {
-    return interfaceName;
+
+  /**
+   * Get target value for reference, if target is missing or the target
+   * string is malformed return null.
+   */
+  Filter getTarget(Dictionary d, String src) {
+    String res = (String)d.get(refDesc.name + ".target");
+    if (res != null) {
+      try {
+        return FrameworkUtil.createFilter(res);
+      } catch (InvalidSyntaxException ise) {
+        Activator.logError(comp.bc, "Failed to parse target property. Source is " + src, ise);
+      }
+    }
+    return null;
+  }
+    
+
+  /**
+   * Is reference optional?
+   */
+  boolean isOptional() {
+    return refDesc.optional;
+  }
+
+
+  /**
+   * Notify component if reference became available.
+   *
+   * @return True, if component became satisfied otherwise false.
+   */
+  boolean refAvailable() {
+    if (available++ == 0) {
+      return comp.refAvailable(this);
+    }
+    return false;
+  }
+
+
+  /**
+   *
+   * @return True, if component became unsatisfied otherwise false.
+   */
+  boolean refUnavailable() {
+    if (--available == 0) {
+      return comp.refUnavailable(this);
+    }
+    return false;
   }
 }

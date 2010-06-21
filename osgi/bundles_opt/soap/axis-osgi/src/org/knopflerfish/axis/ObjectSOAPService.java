@@ -176,6 +176,9 @@ public class ObjectSOAPService {
     classset.remove("short");
     classset.remove("void");
     classset.remove("java.util.Calendar");
+    classset.remove("java.util.Date");
+    classset.remove("java.util.Map");
+    classset.remove("java.util.Vector");
     classset.remove("java.math.BigDecimal");
     classset.remove("java.math.BigInteger");
     classset.remove("javax.xml.namespace.QName");

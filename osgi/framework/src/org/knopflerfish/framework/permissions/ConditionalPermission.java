@@ -51,14 +51,16 @@ public class ConditionalPermission
   final private PermissionCollection permissions;
   private List postponed = null;
 
+  final String access;
 
   /**
    */
-  ConditionalPermission(Condition [] conds, PermissionCollection perms,
+  ConditionalPermission(Condition [] conds, PermissionCollection perms, String access,
                         ConditionalPermissionInfoImpl cpi) {
-    parent = cpi;
     conditions = conds;
     permissions = perms;
+    this.access = access;
+    parent = cpi;
   }
 
 
@@ -79,7 +81,7 @@ public class ConditionalPermission
         continue;
       }
       if (checkPostponed || !c.isPostponed()) {
-        boolean mutable = c.isMutable(); // TCK wrongly requires mutable before isSatisfied.
+        boolean mutable = c.isMutable();
         if (c.isSatisfied()) {
           if (!mutable) {
             // Mark always ok by clearing condition element.
@@ -90,6 +92,7 @@ public class ConditionalPermission
             // Mark always fail by clearing conditions.
             conditions = null;
           }
+          postponed = null;
           return false;
         }
       } else {
@@ -101,40 +104,63 @@ public class ConditionalPermission
 
 
   /**
+   * Check postponed conditions are Ok.
+   *
+   */
+  boolean checkPostponedOk(Map condDict, List checkedClasses) {
+    if (conditions == null) {
+      return false;
+    }
+    // Loop through all postponed Conditions for ConditionalPermissions
+    for (Iterator ci = postponed.iterator(); ci.hasNext();) {
+      Condition c = (Condition)ci.next();
+      Class cc = c.getClass();
+      if (checkedClasses.contains(cc)) {
+        throw new SecurityException("Postponement condition check recursive for class: " + cc);
+      }
+      Dictionary d = (Dictionary)condDict.get(cc);
+      if (d == null) {
+        d = new Hashtable();
+        condDict.put(cc, d);
+      }
+      checkedClasses.add(cc);
+      try {
+        boolean m = c.isMutable();
+        if (c.isSatisfied(new Condition [] {c}, d)) {
+          if (!m) {
+            for (int i = 0; i < conditions.length; i++ ) {
+              if (conditions[i] == c) {
+                conditions[i] = null;
+                break;
+              }
+            }
+          }
+        } else {
+          if (!m) {
+            conditions = null;
+          }
+          // ConditionPermissional didn't match
+          return false;
+        }
+      } catch (Throwable ignore) {
+        // NYI, Log this failure
+        // ConditionPermissional couldn't be evaluated, treat as fail
+        // TBD should we do this even if we have a DENY CondPerm.
+        return false;
+      } finally {
+        checkedClasses.remove(checkedClasses.size() - 1);
+      }
+    }
+    return true;
+  }
+
+
+  /**
    * Check if we have saved any postponements in last
    * checkImmediateOk call.
    */
   boolean hasPostponed() {
     return !postponed.isEmpty();
-  }
-
-
-  /**
-   * Get all saved postponements in last checkImmediateOk call.
-   *
-   */
-  Iterator getPostponed() {
-    return postponed.iterator();
-  }
-
-
-  /**
-   *
-   */
-  void setImmutable(Condition c, boolean result) {
-    if (conditions == null) {
-      return;
-    }
-    if (result) {
-      for (int i = 0; i < conditions.length; i++) {
-        if (c == conditions[i]) {
-          conditions[i] = null;
-          break;
-        }
-      }
-    } else {
-      conditions = null;
-    }
   }
 
 

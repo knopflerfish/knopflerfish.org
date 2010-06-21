@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  */
 
 package org.knopflerfish.bundle.httpconsole;
-	
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
@@ -43,7 +43,7 @@ import org.osgi.framework.*;
 public class InstallFileCommand2 implements Command {
   String redir = null;
   String msg   = null;
-  
+
   public int getDisplayFlags() {
     return DISPLAY_COMPACTLIST;
   }
@@ -52,22 +52,28 @@ public class InstallFileCommand2 implements Command {
     StringBuffer sb = new StringBuffer();
 
     sb.append("<div class=\"shadow\">" + getName() + "</div>");
-    
+
     try {
       StringBuffer filename = new StringBuffer();
       byte[] bytes = Util.loadFormData(request, getId(), filename);
       if(bytes == null || bytes.length == 0) {
-	sb.append("No file, or empty files selected");
+        sb.append("No file, or empty files selected");
       } else {
-	InputStream in = new ByteArrayInputStream(bytes);
-	String loc = in.toString() + "." + filename;
-	Bundle b = Activator.bc.installBundle(loc, in);
-	if(b != null) {
-	  sb.append("Installed bundle of size " + 
-		    bytes.length + " bytes<br/>");
-	} else {
-	  sb.append("Failed to install bundle of size " + bytes.length + " bytes<br/>");
-	}
+        InputStream in = new ByteArrayInputStream(bytes);
+        String loc = in.toString() + "." + filename;
+        Bundle b = Activator.bc.installBundle(loc, in);
+        if(b != null) {
+          sb.append("Installed bundle of size " +
+                    bytes.length + " bytes<br/>");
+        } else {
+          sb.append("Failed to install bundle of size " + bytes.length + " bytes<br/>");
+        }
+      }
+    } catch (BundleException be){
+      if (be.getCause() instanceof java.util.zip.ZipException) {
+        sb.append("The slected file was not a valid jar file.");
+      } else {
+        sb.append(Util.toHTML(be));
       }
     } catch (Exception e) {
       sb.append(Util.toHTML(e));
@@ -82,17 +88,18 @@ public class InstallFileCommand2 implements Command {
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
     out.println("<div class=\"shadow\">" + getName() + "</div>");
 
-    out.print("<input alt=\"File\"" + 
-	      " type=\"file\"" + 
-	      " name=\"" + getId() + "_file\">");
+    out.print("<input alt=\"File\"" +
+              " type=\"file\"" +
+              " name=\"" + getId() + "_file\">");
     out.print("<br/>");
-    out.print(" <input " + 
-	      " type=\"submit\"" + 
-	      " name=\"" + getId() + "\"" + 
-	      " value=\"" + "Install" + "\"" + 
-	      ">");    
+    out.print(" <input " +
+              " type=\"submit\"" +
+              " title=\"Install bundle from file\"" +
+              " name=\"" + getId() + "\"" +
+              " value=\"" + "Install" + "\"" +
+              ">");
   }
-  
+
   public String       getId() {
     return "cmd_installfile2";
   }
@@ -114,11 +121,11 @@ public class InstallFileCommand2 implements Command {
 
     String s = request.getHeader("content-type");
     if(s == null) { s = ""; }
-    
 
-    boolean b = 
+
+    boolean b =
       s.startsWith("multipart/form-data");
-    
+
     return b;
   }
 }

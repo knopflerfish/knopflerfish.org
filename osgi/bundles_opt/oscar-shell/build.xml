@@ -29,7 +29,7 @@
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-APIVendor"      value="Oscar"/>
   <property name="bmfa.Export-Package"  
-            value="org.ungoverned.osgi.service.shell; specification-version=1.0.0"/>
+            value="org.ungoverned.osgi.service.shell; version=1.0.0"/>
   <property name = "bmfa.Bundle-DocURL"
             value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/oscar-shell/readme.txt"/>
 

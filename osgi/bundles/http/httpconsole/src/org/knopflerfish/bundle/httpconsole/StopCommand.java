@@ -45,7 +45,7 @@ public class StopCommand extends IconCommand {
     super("cmd_stop", 
 	  "Stop",
 	  "Stop selected bundles",
-	  Activator.RES_ALIAS + "/player_stop.gif");
+	  Activator.RES_ALIAS + "/player_stop.png");
   }
 
   public StringBuffer run(HttpServletRequest request) {

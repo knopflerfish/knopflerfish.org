@@ -31,7 +31,8 @@ See <a href="eclipse_plugin.html">Knopflerfish Eclipse Plugin</a>.
 
 <h4>Creating a new bundle</h4>
 New bundles can be created using the included ant build
-system. Naturally, you can create bundles manually, but this requires some knowledge about the OSGi manifest format.
+system. Naturally, you can create bundles manually, but this requires
+some knowledge about the OSGi manifest format.
 <p>
 <tt><i>knopflerfish</i></tt> refers to the unpacked knopflerfish directory, typically <tt>knopflerfish.org</tt>
 </p>
@@ -49,7 +50,9 @@ system. Naturally, you can create bundles manually, but this requires some knowl
   </tr>
 
   <tr>
-    <td><b>2. Copy</b> the ant bundle build template</td>
+    <td><b>2. Copy</b> the ant bundle build <a
+      href="../ant/build_example.xml">template</a>
+    </td>
     <td>
       <pre>
 &gt; cp <i>knopflerfish</i>/ant/build_example.xml build.xml
@@ -59,17 +62,20 @@ system. Naturally, you can create bundles manually, but this requires some knowl
 
   <tr>
     <td><b>3. Change</b> the project name in the <tt>build.xml</tt> file
+
       <p>Set the <tt><b>impl.pattern</b></tt> and
       <tt><b>api.pattern</b></tt> properties to the packages that
-      contains implementation and API code.
-      </p>
-      <p>
-      Depending on where you have put your new bundle, you might have to modify the <tt><b>bundlebuild_include</b></tt> and <tt><b>topdir</b></tt> references
-      in the <tt>build.xml</tt> file too.
+      contains implementation and API code.</p>
 
-      <p>
-      For details on bundle generation, see <tt><i>knopflerfish</i>/ant/bundlebuild_include.xml</tt>
-      </p>
+      <p>Depending on where you have put your new bundle, you might
+      have to modify the path to <tt><b>bundlebuild.xml</b></tt> in
+      the <tt>&lt;import
+      file="${proj.dir}/../../../ant/bundlebuild.xml"/&gt;</tt> element
+      at the end of the build-file.</p>
+
+      <p> For details on bundle generation, see
+      <tt><i>knopflerfish</i>/ant/bundlebuild.xml</tt> </p>
+
     </td>
     <td>
       <pre>
@@ -113,15 +119,18 @@ public class Activator implements BundleActivator {
   </tr>
 
   <tr>
-    <td><b>5. Compile</b> the bundle. The ant build system will
-      <b>automatically</b> find the BundleActivator, imports and exports
-      and generate a <b>bundle manifest</b> file.
-      <p>
-      The resulting file will be generated to
-<font size="-1">
-      <tt><i>knopflerfish</i>/osgi/jars/mybundle/mybundle.jar</tt>
-</font>
-      </p>
+    <td><p><b>5. Compile</b> the bundle.</p>
+
+      <p>The ant build system will <b>automatically</b> find the
+      BundleActivator, imports and exports and generate a <b>bundle
+      manifest</b> file.</p>
+
+      <p>The resulting file will be generated to <font size="-1">
+      <tt><i>knopflerfish</i>/osgi/jars/mybundle/mybundle.jar</tt></font></p>
+
+      <p>Intermediate build results will be placed in <font size="-1">
+      <tt><i>knopflerfish</i>/osgi/out/mybundle</tt></font></p>
+
     </td>
     <td>
       <pre>
@@ -131,15 +140,13 @@ public class Activator implements BundleActivator {
   </tr>
 
   <tr>
-    <td><b>6. Install</b> the bundle.
-  <p>
-      This can be done either by using the <b>text console</b>, dragging
-      the bundle using the Swing <b>desktop</b> UI or by
-      modifying the framework startup file <tt><b>xargs.init</b></tt>
-<!--
-      <tt><i>knopflerfish</i>/osgi/jars/mybundle/mybundle.jar</tt>
--->
-      </p>
+    <td><p><b>6. Install</b> the bundle.</p>
+
+      <p>This can be done either by using the <b>text console</b>,
+      dragging the bundle using the Swing <b>desktop</b> UI or by
+      modifying the framework startup file
+      <tt><b>init.xargs</b></tt></p>
+
     </td>
     <td>
       <b>Using the console to install and start the bundle.
@@ -148,7 +155,7 @@ public class Activator implements BundleActivator {
 &gt; start mybundle.jar
       </pre>
       <b>Drag a bundle into the Desktop UI to install and start the bundle.<br>
-      <img src="images/desktop-clip.gif">
+      <img src="images/desktop-clip.png">
     </td>
   </tr>
 
@@ -159,19 +166,20 @@ public class Activator implements BundleActivator {
    install, start, stop, update and uninstall bundles.
   </p>
 
-<p>
-  Given that the <tt>consoletelnet</tt> bundle is running, you can simply
-  type us these built-in target to handle the life cycle of the bundle.
-</p>
-<p>
-The properties <tt>console.host</tt>, <tt>console.port</tt>,
-<tt>console.user</tt> and <tt>console.pwd</tt> controls the details of the
-console connection.
-</p>
-<p>
-<b>Note</b>: requires netcomponents.jar in $ANT_HOME/lib. Needs to be separately downloaded from <a href="http://www.savarese.org/oro/downloads">http://www.savarese.org/oro/downloads</a>
-</p>
+  <p>Given that the <tt>consoletelnet</tt> bundle is running, you can
+  simply use these built-in targets to handle the life cycle of the
+  bundle.</p>
+
+  <p>The properties <tt>console.host</tt>, <tt>console.port</tt>,
+  <tt>console.user</tt> and <tt>console.pwd</tt> controls the details
+  of the console connection.</p>
+
+  <p><b>Note</b>: requires netcomponents.jar in $ANT_HOME/lib. Needs
+  to be separately downloaded from <a
+  href="http://www.savarese.org/oro/downloads">http://www.savarese.org/oro/downloads</a></p>
+
 </td>
+
 <td>
 <pre>
 &gt; ant install
@@ -478,12 +486,12 @@ framework, as <tt>ServiceListener</tt> or <tt>BundleListener</tt> you should
 do a similar trick inside of these listeners.
 </p>
 
-<p>
-It is <b>not</b> recommended to set the context class loader persistently on
-the startup thread, since that might not be unique for your bundle.
-Effects might vary depending on OSGi vendor. If you don't spawn a new
-thread, you <b>must</b> reset the context class loader before returning.
-</p>
+<p>It is <b>not</b> recommended to set the context class loader
+persistently on the startup thread, since that thread might not be
+unique for your bundle.  Effects might vary depending on OSGi
+vendor. If you don't spawn a new thread, you <b>must</b> reset the
+context class loader before returning.</p>
+
 </td>
 <td>
 <pre>
@@ -1010,13 +1018,23 @@ be present at all in the manifest, not even as a zero-length string.
 
  <tr>
   <td>Path element <tt>bundle.compile.path</tt></td>
-  <td>Path elements defining the compile-time path for the bundle.
-      <br>Example - include log API when compiling
+  <td><p>This path is used to make other bundles and JAR-files that the
+  bundle depends on availble to the compiler during the compilation of
+  the bundle.</p>
+
+  <p>Example - make the log API available during compilation:</p>
 <pre>
  &lt;path id = "bundle.compile.path"&gt;
-   &lt;pathelement location="${topdir}/jars/log/log_api-1.0.0.jar"/&gt;
+   &lt;pathelement location="log_api-N.N.N.jar"/&gt;
  &lt;/path&gt;
 </pre>
+
+  <p>The <tt>N.N.N</tt> notation in the file name tells the build
+  system to look for and use the highest version available in the
+  directory tree starting at <tt>${jars.dir}</tt>. It is possible to
+  ask for the highest version available with a fixed major revision by
+  writing a pathelement like <tt>log_api-2.N.N.jar"</tt>.</p>
+
 </td>
  </tr>
 

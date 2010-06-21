@@ -36,11 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.security.cert.Certificate;
-import java.util.Hashtable;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -49,8 +45,28 @@ import java.util.List;
  * @author Jan Stein
  * @author Philippe Laporte
  * @author Mats-Ola Persson
+ * @author Gunnar Ekolin
  */
 public interface BundleArchive {
+
+  /**
+   * Autostart setting stopped.
+   * @see BundleArchive#setAutostartSetting(String)
+   */
+  public String AUTOSTART_SETTING_STOPPED           = "stopped";
+
+  /**
+   * Autostart setting eager.
+   * @see BundleArchive#setAutostartSetting(String)
+   */
+  public String AUTOSTART_SETTING_EAGER             = "eager";
+
+  /**
+   * Autostart setting declared activation policy.
+   * @see BundleArchive#setAutostartSetting(String)
+   */
+  public String AUTOSTART_SETTING_ACTIVATION_POLICY = "activation_policy";
+
 
   /**
    * Get an attribute from the manifest of a bundle.
@@ -64,6 +80,16 @@ public interface BundleArchive {
 
 
   /**
+   * Get a FileArchive handle to a named Jar file or directory
+   * within this archive.
+   *
+   * @param path Name of Jar file or directory to get.
+   * @return A FileArchive object representing new archive, null if not found.
+   */
+  FileArchive getFileArchive(String path);
+
+
+  /**
    * Gets all localization entries from this bundle. Will typically
    * read the file OSGI-INF/bundle_&lt;locale&gt;.properties.
    *
@@ -72,10 +98,12 @@ public interface BundleArchive {
    */
   Hashtable getLocalizationEntries(String localeFile);
 
+
   /**
    * @returns the (raw/unlocalized) attributes
    */
   HeaderDictionary getUnlocalizedAttributes();
+
 
   /**
    * Get bundle identifier for this bundle archive.
@@ -84,6 +112,7 @@ public interface BundleArchive {
    */
   long getBundleId();
 
+
   /**
    * Get bundle location for this bundle archive.
    *
@@ -91,102 +120,17 @@ public interface BundleArchive {
    */
   String getBundleLocation();
 
-  /**
-   * Get stored bundle start level.
-   */
-  int getStartLevel();
 
   /**
-   * Set stored bundle start level.
-   */
-  void setStartLevel(int level) throws IOException;
-
-  void setPersistent(boolean b)  throws IOException;
-
-  boolean isPersistent();
-
-  long getLastModified();
-
-  void setLastModified(long timemillisecs)throws IOException;
-
-  /**
-   * Get a byte array containg the contents of named file from a bundle
-   * archive.
-   *
-   * @param Integer From which sub archive to get.
-   * @param component File to get.
-   * @return Byte array with contents of file or null if file doesn't exist.
-   * @exception IOException if failed to read jar entry.
-   */
-  byte[] getClassBytes(Integer sub, String component) throws IOException;
-
-
-  /**
-   * Check if named entry exists in the bundle's classpath.
-   * Leading '/' is stripped.
-   *
-   * @param component Entry to get reference to.
-   * @param onlyFirst End search when we find first entry if this is true.
-   * @return Vector of classpath entry numbers, or null if it doesn't exist.
-   */
-  Vector componentExists(String component, boolean onlyFirst);
-
-
-  /**
-   * Get an specific InputStream to named entry inside a bundle.
+   * Get a BundleResourceStream to named entry inside a bundle.
    * Leading '/' is stripped.
    *
    * @param component Entry to get reference to.
    * @param ix index of sub archives. A postive number is the classpath entry
-   *            index. -1 means look in the main bundle.
-   * @return InputStream to entry or null if it doesn't exist.
+   *            index. 0 means look in the main bundle.
+   * @return BundleResourceStream to entry or null if it doesn't exist.
    */
-  InputStream getInputStream(String component, int ix);
-
-
-  /**
-   * Extract native library from JAR.
-   *
-   * @param libName Name of Jar file to get.
-   * @return A string with path to native library.
-   */
-  String getNativeLibrary(String libName);
-
-
-  /**
-   * Get state of start-on-launch flag.
-   *
-   * @return Boolean value for start on launch flag.
-   */
-  boolean getStartOnLaunchFlag();
-
-
-  /**
-   * Set state of start-on-launch flag.
-   *
-   * @param value Boolean value for start on launch flag.
-   */
-  void setStartOnLaunchFlag(boolean value) throws IOException;
-
-
-  /**
-   * Remove bundle archive from persistent storage.
-   */
-  void purge();
-
-
-  /**
-   * Close archive and all its open files.
-   */
-  void close();
-
-
-  /**
-   * Get a list with all classpath entries we failed to locate.
-   *
-   * @return A List with all failed classpath entries, null if no failures.
-   */
-  List getFailedClassPathEntries();
+  BundleResourceStream getBundleResourceStream(String component, int ix);
 
 
   /**
@@ -201,22 +145,76 @@ public interface BundleArchive {
 
 
   /**
+   * Get stored bundle start level.
+   */
+  int getStartLevel();
+
+
+  /**
+   * Set stored bundle start level.
+   */
+  void setStartLevel(int level) throws IOException;
+
+
+  /**
+   * Get last modified timestamp.
+   */
+  long getLastModified();
+
+
+  /**
+   * Set stored last modified timestamp.
+   */
+  void setLastModified(long timemillisecs) throws IOException;
+
+
+  /**
+   * Get auto-start setting.
+   *
+   * @return the autostart setting. "-1" if bundle not started.
+   */
+  int getAutostartSetting();
+
+
+  /**
+   * Set the auto-start setting.
+   *
+   * @param setting the autostart setting to use.
+   */
+  void setAutostartSetting(int setting) throws IOException;
+
+
+  /**
    * @return the location of the cached bundle.
    */
   String getJarLocation();
 
 
   /**
-   * Get certificates associated with with bundle archive.
+   * Get certificate chains associated with with bundle archive.
    *
+   * @param onlyTrusted Only return trusted certificates.
    * @return All certificates or null if bundle is unsigned.
    */
-  Certificate [] getCertificates();
+  ArrayList getCertificateChains(boolean onlyTrusted);
+ 
+
+  /**
+   * Mark certificate associated with with bundle archive as trusted.
+   *
+   */
+  void trustCertificateChain(List trustedChain);
 
 
   /**
-   * Invalidate certificates associated with with bundle archive.
-   *
+   * Remove bundle archive from persistent storage.
    */
-  void invalidateCertificates();
+  void purge();
+
+
+  /**
+   * Close archive and all its open files.
+   */
+  void close();
+
 }

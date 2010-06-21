@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
@@ -50,10 +51,18 @@ import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
@@ -62,6 +71,7 @@ import org.knopflerfish.service.console.Util;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.ExportedPackage;
@@ -75,33 +85,36 @@ import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.startlevel.StartLevel;
 
 // ******************** FrameworkCommandGroup ********************
+
 /**
  * Console commands for interaction with the framework.
  *
- * @author Gatespace AB *
- * @version $Revision: 1.1.1.1 $
+ * @author Gatespace AB
  */
 
-public class FrameworkCommandGroup extends CommandGroupAdapter {
+public class FrameworkCommandGroup
+  extends CommandGroupAdapter
+{
+  final BundleContext bc;
 
-  BundleContext bc;
-
-  private PackageAdmin packageAdmin = null;
-
-  private PermissionAdmin permissionAdmin = null;
-
-  private ConditionalPermissionAdmin condPermAdmin = null;
-
-  private StartLevel startLevel = null;
+  private final PackageAdmin packageAdmin;
+  private final PermissionAdmin permissionAdmin;
+  private final ConditionalPermissionAdmin condPermAdmin;
+  private final StartLevel startLevel;
 
   /**
-   * * The default directories for bundle jar files. *
-   * <p> * The system property <code>org.knopflerfish.gosg.jars</code> holds
-   * a * semicolon separated path of URLs that is used to complete the *
-   * location when it is given as a partial URL. *
+   * The default directories for bundle jar files.
+   *
+   * <p>
+   *
+   * The framework property <code>org.knopflerfish.gosg.jars</code>
+   * holds a semicolon separated path of URLs that is used to complete
+   * the location when it is given as a partial URL.
+   *
    * </p>
    */
-  private String[] bundleDirs = null;
+  private List/*<URL>*/ baseURLs = new ArrayList();
+
 
   FrameworkCommandGroup(BundleContext bc) {
     super("framework", "Framework commands");
@@ -112,70 +125,89 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
 
     ServiceReference sr = bc.getServiceReference(PackageAdmin.class
                                                  .getName());
-    if (sr != null) {
-      packageAdmin = (PackageAdmin) bc.getService(sr);
-    }
+    packageAdmin = null==sr ? null : (PackageAdmin) bc.getService(sr);
 
     sr = bc.getServiceReference(PermissionAdmin.class.getName());
-    if (sr != null) {
-      permissionAdmin = (PermissionAdmin) bc.getService(sr);
-    }
+    permissionAdmin = null==sr ? null : (PermissionAdmin) bc.getService(sr);
 
     sr = bc.getServiceReference(ConditionalPermissionAdmin.class.getName());
-    if (sr != null) {
-      condPermAdmin = (ConditionalPermissionAdmin) bc.getService(sr);
-    }
+    condPermAdmin = null==sr ? null
+      : (ConditionalPermissionAdmin) bc.getService(sr);
 
     sr = bc.getServiceReference(StartLevel.class.getName());
-    if (sr != null) {
-      startLevel = (StartLevel) bc.getService(sr);
-    }
+    startLevel = null==sr ? null : (StartLevel) bc.getService(sr);
 
-    setupJars();
+    try {
+      setupJars();
+    } catch (MalformedURLException mfe) {
+    }
   }
 
-  void setupJars() {
+  void setupJars()
+    throws MalformedURLException
+  {
     String jars = bc.getProperty("org.knopflerfish.gosg.jars");
-    if (null==jars || jars.length()==0) {
-      jars = "file:./";
+    jars = null==jars || jars.length()==0 ? "file:jars/" : jars;
+
+    final StringTokenizer st = new StringTokenizer(jars, ";");
+    final String[] prefixes = new String[st.countTokens()];
+
+    for (int i=0; st.hasMoreTokens(); i++) {
+      prefixes[i] = st.nextToken();
     }
 
-    StringTokenizer st = new StringTokenizer(jars, ";");
-    bundleDirs = new String[st.countTokens()];
-    for (int i = 0; i < bundleDirs.length; i++) {
-      String path = st.nextToken();
+    setupJars(prefixes, false);
+  }
+
+  void setupJars(final String[] prefixes, boolean append)
+    throws MalformedURLException
+  {
+    MalformedURLException firstMFE = null;
+    if (!append) {
+      baseURLs.clear();
+    }
+
+    for (int i=0; i<prefixes.length; i++) {
       try {
-        bundleDirs[i] = new URL(path).toString();
-      } catch (Exception e) {
-        bundleDirs[i] = path;
+        baseURLs.add(new URL(prefixes[i]));
+      } catch (MalformedURLException mfe) {
+        if (null==firstMFE){
+          firstMFE = mfe;
+        }
       }
+    }
+    if (null!=firstMFE) {
+      throw firstMFE;
     }
   }
 
   /**
-   * Completes a partial bundle location using the bundles dir path. * The
-   * result is the first combination of a directory URL (as * returned by
-   * <code>getBundleDirs()</code>) and the specified * location that
-   * results in a valid URL with accessible data.
+   * Completes a partial bundle location using the bundles dir path.
+   * The result is the first combination of a directory URL (as
+   * returned by <code>getBundleDirs()</code>) and the specified
+   * location that results in a valid URL with accessible data.
+   *
+   * @param location the bundle location to complete
    */
   public String completeLocation(String location) {
-    int ic = location.indexOf(":");
+    final int ic = location.indexOf(":");
     if (ic < 2 || ic > location.indexOf("/")) {
       // URL wihtout protocol complete it.
-      String[] paths = bundleDirs;
-      for (int i = 0; i < paths.length; i++) {
+      for (Iterator it=baseURLs.iterator(); it.hasNext(); ) {
+        final URL baseURL = (URL) it.next();
+
         try {
-          URL url = new URL(new URL(paths[i]), location);
+          final URL url = new URL(baseURL, location);
           if ("file".equals(url.getProtocol())) {
-            File f = new File(url.getFile());
+            final File f = new File(url.getFile());
             if (!f.exists() || !f.canRead()) {
               continue; // Noope; try next.
             }
           } else if ("http".equals(url.getProtocol())) {
-            HttpURLConnection uc = (HttpURLConnection) url
-              .openConnection();
+            final HttpURLConnection uc = (HttpURLConnection)
+              url.openConnection();
             uc.connect();
-            int rc = uc.getResponseCode();
+            final int rc = uc.getResponseCode();
             uc.disconnect();
             if (rc != HttpURLConnection.HTTP_OK) {
               continue; // Noope; try next.
@@ -1015,10 +1047,12 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
 
   public final static String USAGE_INSTALL = "[-s] <location> ...";
-
   public final static String[] HELP_INSTALL = new String[] {
-    "Install one or more bundles", "-s         Start bundle(s)",
-    "<location> Name or id of bundle" };
+    "Install one or more bundles",
+    "-s         Persistently start bundle(s) according to activation policy",
+    "<location> Location of bundle archive (URL).",
+    "Note: The base URLs used to complete partial URLs may be set using the cd command"
+  };
 
   public int cmdInstall(Dictionary opts, Reader in, PrintWriter out,
                         Session session) {
@@ -1030,7 +1064,7 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         Bundle b = bc.installBundle(url);
         out.println("Installed: " + showBundle(b));
         if (opts.get("-s") != null) {
-          b.start();
+          b.start(Bundle.START_ACTIVATION_POLICY);
           out.println("Started: " + showBundle(b));
         }
       }
@@ -1293,13 +1327,14 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
 
   public final static String USAGE_SERVICES
-    = "[-i] [-l] [-f #filter#] [-r] [-u] [<bundle>] ...";
+    = "[-i] [-l] [-sid #id#] [-f #filter#] [-r] [-u] [<bundle>] ...";
 
   public final static String[] HELP_SERVICES = new String[] {
     "List registered services",
     "-i          Sort on bundle id",
     "-l          Verbose output",
     "-r          Show services registered by named bundles (default)",
+    "-sid #id#   Show the service with the specified service id",
     "-u          Show services used by named bundles",
     "-f #filter# Show all services that matches the specified filter.",
     "<bundle>    Name or id of bundle" };
@@ -1314,33 +1349,55 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
           boolean useDefaultOper = opts.get("-r") == null
             && opts.get("-u") == null;
           ServiceReference[] fs = null;
+          String filter = null;
           if (opts.get("-f") != null) {
+            filter = (String) opts.get("-f");
+            if ('(' != filter.charAt(0)) {
+              filter = "(" +filter +")";
+            }
+          }
+          if (opts.get("-sid") != null) {
+            if (filter!=null) {
+              filter = "(&(service.id=" +opts.get("-sid") +")" +filter +")";
+            } else {
+              filter = "(service.id=" +opts.get("-sid") +")";
+            }
+          }
+          if (filter != null) {
             try {
-              fs = bc.getServiceReferences(null, (String) opts.get("-f"));
+              fs = bc.getServiceReferences(null, filter);
               if (null==fs) {
-                out.println("No services matching '"+opts.get("-f") +"'.");
+                out.println("No services matching '"+filter +"'.");
                 return new Integer(0);
               }
             } catch (InvalidSyntaxException ise) {
-              out.println("Invalid filter found: "+ise.getMessage());
+              out.println("Invalid filter '" +filter +"' found: "
+                          +ise.getMessage());
               return new Integer(1);
             }
           }
 
           for (int i = 0; i < b.length; i++) {
             if (b[i] != null) {
-              out.println("Bundle: " + showBundle(b[i]));
+              final String heading = "Bundle: " + showBundle(b[i]);
+              boolean headingPrinted = false;
               if (opts.get("-r") != null || useDefaultOper) {
-                showServices(getServicesRegisteredBy(b[i],fs),
-                             out,
-                             "  registered:",
-                             opts.get("-l") != null);
+                headingPrinted =
+                  showServices(getServicesRegisteredBy(b[i],fs),
+                               out,
+                               heading,
+                               headingPrinted,
+                               "  registered:",
+                               opts.get("-l") != null);
               }
               if (opts.get("-u") != null) {
-                showServices(getServicesUsedBy(b[i],fs),
-                             out,
-                             "  uses:",
-                             opts.get("-l") != null);
+                headingPrinted =
+                  showServices(getServicesUsedBy(b[i],fs),
+                               out,
+                               heading,
+                               headingPrinted,
+                               "  uses:",
+                               opts.get("-l") != null);
               }
             }
           }
@@ -1408,12 +1465,17 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     return res;
   }
 
-  void showServices(final ServiceReference[] services,
-                    final PrintWriter out,
-                    final String title,
-                    final boolean detailed)
+  boolean showServices(final ServiceReference[] services,
+                       final PrintWriter out,
+                       final String heading,
+                       final boolean headinPrinted,
+                       final String title,
+                       final boolean detailed)
   {
     if (services != null && services.length > 0) {
+      if (!headinPrinted) {
+        out.println(heading);
+      }
       out.print(title);
       for (int j = 0; j<services.length; j++) {
         if (null!=services[j]) {
@@ -1425,8 +1487,10 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
           }
         }
       }
+      out.println("");
+      return true;
     }
-    out.println("");
+    return false;
   }
 
   void showLongService(ServiceReference s, String pad, PrintWriter out) {
@@ -1507,19 +1571,31 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   // Start command
   //
 
-  public final static String USAGE_START = "<bundle> ...";
-
+  public final static String USAGE_START = "[-t] [-e] <bundle> ...";
   public final static String[] HELP_START = new String[] {
-    "Start one or more bundles", "<bundle> Name or id of bundle" };
+    "Persistently start one or more bundles according to their ",
+    "activation policy.",
+    "-t       Perform a transient start. I.e., non-persisten start.",
+    "-e       Eagerly start the bundles, ignoring their activation policy.",
+    "<bundle> Name or id of bundle"
+  };
 
   public int cmdStart(Dictionary opts, Reader in, PrintWriter out,
                       Session session) {
+    int startOptions = 0;
+    if (opts.get("-t") != null) {
+      startOptions |= Bundle.START_TRANSIENT;
+    }
+    if (opts.get("-e") == null) {
+      startOptions |= Bundle.START_ACTIVATION_POLICY;
+    }
+
     Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
     for (int i = 0; i < b.length; i++) {
       if (b[i] != null) {
         try {
-          b[i].start();
+          b[i].start(startOptions);
           out.println("Started: " + showBundle(b[i]));
         } catch (BundleException e) {
           Throwable t = e;
@@ -1543,20 +1619,26 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
   // Stop command
   //
-
-  public final static String USAGE_STOP = "<bundle> ...";
-
+  public final static String USAGE_STOP = "[-t] <bundle> ...";
   public final static String[] HELP_STOP = new String[] {
-    "Stop one or more bundles", "<bundle> Name or id of bundle" };
+    "Persitently stop one or more bundles",
+    "-t       Perform a transient stop. I.e., non-persisten stop.",
+    "<bundle> Name or id of bundle"
+  };
 
   public int cmdStop(Dictionary opts, Reader in, PrintWriter out,
                      Session session) {
+    int stopOptions = 0;
+    if (opts.get("-t") != null) {
+      stopOptions |= Bundle.STOP_TRANSIENT;
+    }
+
     Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
     for (int i = b.length - 1; i >= 0; i--) {
       if (b[i] != null) {
         try {
-          b[i].stop();
+          b[i].stop(stopOptions);
           out.println("Stopped: " + showBundle(b[i]));
         } catch (BundleException e) {
           Throwable t = e;
@@ -1636,6 +1718,94 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
         System.exit(0);
       } catch (Exception e2) {
         out.println("Failed to exit using system exit " + e2);
+      }
+    }
+    return 0;
+  }
+
+  //
+  // Threads command
+  //
+
+  public final static String USAGE_THREADS = "[-a]";
+
+  public final static String[] HELP_THREADS = new String[] {
+    "Display threads within this framework", "-a  List all threads in this JVM" };
+
+  public int cmdThreads(Dictionary opts, Reader in, PrintWriter out,
+                         Session session) {
+    final boolean showAll = opts.get("-a") != null;
+    ThreadGroup tg = Thread.currentThread().getThreadGroup();
+
+    for (ThreadGroup ctg = tg; ctg != null; ctg = ctg.getParent()) {
+      if (showAll) {
+        tg = ctg;
+      } else if (ctg.getName().startsWith("FW#")) {
+        tg = ctg;
+        break;
+      }
+    }
+    
+    Thread [] threads;
+    int count;
+    while (true) {
+      int acount = tg.activeCount() + 5;
+      threads = new Thread[acount];
+      count = tg.enumerate(threads);
+      if (count < acount) {
+        break;
+      }
+    }
+    int groupCols = tg.getName().length();
+    boolean sameGroup = true;
+    for (int i = 0; i < count; i++) {
+      ThreadGroup itg = threads[i].getThreadGroup();
+      if (!tg.equals(itg)) {
+        int cols = itg.getName().length();
+        if (groupCols < cols) {
+          groupCols = cols;
+        }
+        sameGroup = false;
+      }
+    }
+    out.print("Pri ");
+    if (!sameGroup) {
+      String glabel = "Group                              ";
+      if (groupCols < 4) {
+        groupCols = 4;
+      }
+      if (++groupCols > glabel.length()) {
+        groupCols = glabel.length();
+        out.print(glabel);
+      } else {
+        out.print(glabel.substring(0, groupCols));
+      }
+    }
+    out.println("Name");
+    for (int i = 0; i < count; i++) {
+      try {
+        StringBuffer sb = new StringBuffer();
+        int p = threads[i].getPriority();
+        if (p < 10) {
+          sb.append(' ');
+        }
+        sb.append(p);
+        do {
+          sb.append(' ');
+        } while (sb.length() < 4);
+        if (!sameGroup) {
+          String g = threads[i].getThreadGroup().getName();
+          sb.append(g);
+          int l = g.length();
+          do {
+            sb.append(' ');
+            l++;
+          } while (l < groupCols);
+        }
+        sb.append(threads[i].getName());
+        out.println(sb.toString());
+      } catch (NullPointerException _ignore) {
+        // Handle disappering thread
       }
     }
     return 0;
@@ -1724,14 +1894,16 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
     "Update a bundle from a specific URL",
     "<bundle> - Name or id of bundle",
     "<url>    - URL to update from",
-    "Note: Use refresh command to force the framework to do a package update",
-    "of exported packages used by running bundles." };
+    "Note 1: Use refresh command to force the framework to do a package update",
+    "of exported packages used by running bundles.",
+    "Note 2: The base URLs used to complete partial URLs may be set using the cd command"
+  };
 
   public int cmdFromupdate(Dictionary opts, Reader in, PrintWriter out,
                            Session session) {
     String bname = (String) opts.get("bundle");
     Bundle[] bl = getBundles(new String[] { bname }, true);
-    String fromURL = (String) opts.get("url");
+    String fromURL = completeLocation((String) opts.get("url"));
 
     Bundle b = bl[0];
     if (b == null) {
@@ -1757,8 +1929,8 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
                   + ")");
     }
 
-    out
-      .println("Note: Use refresh command to update exported packages in running bundles");
+    out.println("Note: Use refresh command to update exported packages "
+                +"in running bundles");
     return 0;
   }
 
@@ -1767,11 +1939,13 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   public final static String[] HELP_FROMINSTALL = new String[] {
     "Install a bundle with a specific location from an URL",
     "<url>      - URL to bundle jar file",
-    "<location> - Optional location string to use for installation", };
+    "<location> - Optional location string to use for installation",
+    "Note: The base URLs used to complete partial URLs may be set using the cd command"
+  };
 
   public int cmdFrominstall(Dictionary opts, Reader in, PrintWriter out,
                             Session session) {
-    String fromURL = (String) opts.get("url");
+    final String fromURL = completeLocation( (String) opts.get("url"));
     String loc = (String) opts.get("location");
 
     if (loc == null) {
@@ -1980,32 +2154,35 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
   //
   // CD command
   //
-  public final static String USAGE_CD = "[-reset] [<prefix>] ...";
+  public final static String USAGE_CD = "[-reset] [-a] [<base URL>] ...";
 
   public final static String[] HELP_CD = new String[] {
-    "Shows or sets URL prefix",
-    "[-reset]       reset prefix list to value startup value",
-    "[<prefix>] ... list of URL prefixes for install command", };
+    "Shows or sets the base URLs used to complete bundle location",
+    "when installing bundles.",
+    "[-reset]       reset the base URL list to the startup value.",
+    "[-a]           append given base URLs to the current list.",
+    "[<base URL>] ... new list of base URLs to be used.", };
 
   public int cmdCd(Dictionary opts, Reader in, PrintWriter out,
                    Session session) {
 
-    String[] prefixes = (String[]) opts.get("prefix");
+    final String[] baseURLsArg = (String[]) opts.get("base URL");
+    final boolean append = opts.get("-a") != null;
 
     try {
       if (opts.get("-reset") != null) {
         setupJars();
       }
-      if (prefixes == null) {
-        for (int i = 0; i < bundleDirs.length; i++) {
-          out.println(" " + bundleDirs[i]);
+      if (baseURLsArg == null) {
+        for (Iterator it = baseURLs.iterator(); it.hasNext(); ) {
+          out.println(" " + it.next());
         }
       } else {
-        bundleDirs = prefixes;
+        setupJars(baseURLsArg, append);
       }
       return 0;
     } catch (Exception e) {
-      out.println("Failed to cd");
+      out.println("Failed to cd: "+e);
       e.printStackTrace(out);
       return -1;
     }
@@ -2049,5 +2226,119 @@ public class FrameworkCommandGroup extends CommandGroupAdapter {
       return -1;
     }
   }
+
+  //
+  // Property command
+  //
+  public final static String USAGE_PROPERTY = "[-s] [-f] [<property>] ...";
+
+  public final static String[] HELP_PROPERTY = new String[] {
+    "Lists Framework and System properties with values.",
+    "If no property name is specified all properties will be listed.",
+    "[-f]             Only list framework properties, i.e., those mentioned in",
+    "                 the OSGi specification and other properties that are",
+    "                 known to be present in the frameworks property map.",
+    "[-s]             Show the value returned by System.getProperty().",
+    "                 The default is to show the value returned by",
+    "                 BundleContext.getProperty().",
+    "[<property>] ... Property keys to include in the list.", };
+
+  public int cmdProperty(Dictionary opts, Reader in, PrintWriter out,
+                         Session session)
+  {
+    final boolean sysProps = opts.get("-s") != null;
+    final boolean includeFwPros = opts.get("-f") != null;
+    final String[] propNamesA = (String[]) opts.get("property");
+
+    try {
+      final Set propNames = new TreeSet();
+      if (includeFwPros) {
+        // -f
+        propNames.addAll(getAllFrameworkPropKeys());
+      } else if (null!=propNamesA) {
+        // List specified props
+        propNames.addAll(Arrays.asList(propNamesA));
+      } else {
+        // List all props
+        propNames.addAll(getAllFrameworkPropKeys());
+        propNames.addAll(getAllSystemPropKeys());
+      }
+
+      for(Iterator it = propNames.iterator(); it.hasNext();) {
+        final String key = (String) it.next();
+        final String val = sysProps
+          ? (String) System.getProperty(key)
+          : (String) bc.getProperty(key);
+        if (null!=val) {
+          out.println("  " + key + " : " + val);
+        }
+      }
+
+      return 0;
+    } catch (Exception e) {
+      out.println("Failed to print props values: "+e);
+      e.printStackTrace(out);
+      return -1;
+    }
+  }
+  // The key under which the KF-framework keeps a comma-separated list
+  // of all framework property keys.
+  public static final String fwPropKeysKey
+    = "org.knopflerfish.framework.bundleprops.keys";
+  public static final Set FW_PROP_NAMES = new HashSet() {{
+    add(Constants.FRAMEWORK_VENDOR);
+    add(Constants.FRAMEWORK_VERSION);
+    add(Constants.FRAMEWORK_LANGUAGE);
+    add(Constants.FRAMEWORK_OS_NAME);
+    add(Constants.FRAMEWORK_OS_VERSION);
+    add(Constants.FRAMEWORK_PROCESSOR);
+    add(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+    add(Constants.FRAMEWORK_BOOTDELEGATION);
+    add(Constants.FRAMEWORK_STORAGE);
+    add(Constants.FRAMEWORK_STORAGE_CLEAN);
+    add(Constants.FRAMEWORK_TRUST_REPOSITORIES);
+    add(Constants.FRAMEWORK_EXECPERMISSION);
+    add(Constants.FRAMEWORK_LIBRARY_EXTENSIONS);
+    add(Constants.FRAMEWORK_BEGINNING_STARTLEVEL);
+    add(Constants.FRAMEWORK_BUNDLE_PARENT);
+    add(Constants.FRAMEWORK_WINDOWSYSTEM);
+    add(Constants.FRAMEWORK_SECURITY);
+    add(Constants.SUPPORTS_FRAMEWORK_EXTENSION);
+    add(Constants.SUPPORTS_FRAMEWORK_FRAGMENT);
+    add(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE);
+  }};
+  // The set of keys for all Framework properties
+  private Set getAllFrameworkPropKeys()
+  {
+    final HashSet res = new HashSet();
+
+    // Keys of properites mentioned in the OSGi specification.
+    res.addAll(FW_PROP_NAMES);
+
+    // All available keys from a property mainained by the
+    // Knopflerfish Framewwork implementation for this purpose.
+    final String fwPropKeys = bc.getProperty(fwPropKeysKey);
+    if (null!=fwPropKeys) {
+      final StringTokenizer st = new StringTokenizer(fwPropKeys,",");
+      while (st.hasMoreTokens()) {
+        final String key = ((String) st.nextToken()).trim();
+        res.add(key);
+      }
+    }
+    return res;
+  }
+  // The set of keys for all System properties
+  private Set getAllSystemPropKeys()
+  {
+    final HashSet res = new HashSet();
+
+    final Properties properties = System.getProperties();
+    for (Enumeration pke = properties.propertyNames(); pke.hasMoreElements();){
+      final String key = (String) pke.nextElement();
+      res.add(key);
+    }
+    return res;
+  }
+
 
 }

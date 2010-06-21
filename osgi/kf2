@@ -9,7 +9,7 @@ KF_MAIN_CLASS=org.knopflerfish.framework.Main			   # path to main class
 KF_CLASSPATH=framework.jar:$CLASSPATH				   # the class path to use 
 
 # args always sent to the JRE
-KF_JRE_ARGS="-Dorg.knopflerfish.framework.usingwrapperscript=true -Dorg.knopflerfish.framework.exitonshutdown=true"
+KF_JRE_ARGS="-Dorg.knopflerfish.framework.usingwrapperscript=true"
 
 EXIT_CODE_RESTART=200				
 
@@ -77,14 +77,10 @@ fi
 retval=$EXIT_CODE_RESTART
 while [ "$retval" -eq $EXIT_CODE_RESTART ]
 do
-  if [ -r $fwdir/classpath/boot ] ; then
-      bootclasspath=$BOOTCLASSPATH_FLAG`cat $fwdir/classpath/boot`
+  if [ -r $fwdir/boot_cp ] ; then
+      bootclasspath=$BOOTCLASSPATH_FLAG`cat $fwdir/boot_cp`
   fi
-  if [ -r $fwdir/classpath/framework ] ; then
-      classpath=$CLASSPATH_FLAG$KF_CLASSPATH:`cat $fwdir/classpath/framework`
-  else
-      classpath=$CLASSPATH_FLAG$KF_CLASSPATH
-  fi
+  classpath=$CLASSPATH_FLAG$KF_CLASSPATH
   $JAVA $bootclasspath $jre_args $KF_JRE_ARGS $classpath $KF_MAIN_CLASS $args_orig $args
   retval=$?
   # only use args_orig the first time

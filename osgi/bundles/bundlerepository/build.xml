@@ -22,7 +22,7 @@
 
   <target name="bundle.custom.pre">
     <bundle_locator bundleName="console_api" property="console_api">
-      <fileset dir="${topdir}/jars">
+      <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
     </bundle_locator>
@@ -35,9 +35,6 @@
     <pathelement location="resources/console_api.jar"/>
     <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
     <pathelement location="resources/kxml-min.jar"/>
-<!--
-    <pathelement location="resources/oscar-bundlerepository.jar"/>
--->
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>

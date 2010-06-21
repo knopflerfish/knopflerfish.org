@@ -45,7 +45,7 @@ public class UpdateCommand extends IconCommand {
     super("cmd_update", 
 	  "Update",
 	  "Update selected bundles",
-	  Activator.RES_ALIAS + "/update.gif");
+	  Activator.RES_ALIAS + "/view-refresh.png");
   }
 
   public StringBuffer run(HttpServletRequest request) {

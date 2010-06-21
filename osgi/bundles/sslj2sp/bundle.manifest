@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: sslj2sp
 Bundle-SymbolicName: org.knopflerfish.bundle.sslj2sp
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:sslj2sp:2.0.0
 Bundle-Category: service
 Bundle-Description: SSL Provider using the J2 security architecture.
 Bundle-Vendor: Knopflerfish/Oscar

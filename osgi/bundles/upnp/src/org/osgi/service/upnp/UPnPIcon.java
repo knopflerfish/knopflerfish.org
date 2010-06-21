@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.upnp/src/org/osgi/service/upnp/UPnPIcon.java,v 1.11 2006/06/16 16:31:46 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +15,15 @@
  */
 package org.osgi.service.upnp;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * A UPnP icon representation.
  * 
  * Each UPnP device can contain zero or more icons.
+ * 
+ * @version $Revision: 5673 $
  */
 public interface UPnPIcon {
 	/**

@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: applicationadmin
+Bundle-SymbolicName: org.knopflerfish.bundle.applicationadmin
+Bundle-Version: 1.0.0
+Bundle-Category: API
+Bundle-Description: Application Admin API
+Bundle-Vendor: OSGi
+Bundle-APIVendor: osgi
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Export-Package: org.osgi.service.application ; version="1.1"

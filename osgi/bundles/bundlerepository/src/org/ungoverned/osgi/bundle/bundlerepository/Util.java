@@ -5,13 +5,14 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *  * Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer. * Redistributions in
- * binary form must reproduce the above copyright notice, this list of
- * conditions and the following disclaimer in the documentation and/or other
- * materials provided with the distribution. * Neither the name of the
- * ungoverned.org nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written
- * permission.
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above
+ *    copyright notice, this list of conditions and the following
+ *    disclaimer in the documentation and/or other materials provided
+ *    with the distribution.
+ *  * Neither the name of the ungoverned.org nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
  * 
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -48,67 +49,6 @@ public class Util
             : name;
     }
 
-    public static int compareVersion(int[] v1, int[] v2)
-    {
-        if (v1[0] > v2[0])
-        {
-            return 1;
-        }
-        else if (v1[0] < v2[0])
-        {
-            return -1;
-        }
-        else if (v1[1] > v2[1])
-        {
-            return 1;
-        }
-        else if (v1[1] < v2[1])
-        {
-            return -1;
-        }
-        else if (v1[2] > v2[2])
-        {
-            return 1;
-        }
-        else if (v1[2] < v2[2])
-        {
-            return -1;
-        }
-        return 0;
-    }
-
-    public static int[] parseVersionString(String s)
-    {
-        int[] version = new int[] { 0, 0, 0 };
-
-        if (s != null)
-        {
-            StringTokenizer st = new StringTokenizer(s, ".");
-            if (st.hasMoreTokens())
-            {
-                try
-                {
-                    version[0] = Integer.parseInt(st.nextToken());
-                    if (st.hasMoreTokens())
-                    {
-                        version[1] = Integer.parseInt(st.nextToken());
-                        if (st.hasMoreTokens())
-                        {
-                            version[2] = Integer.parseInt(st.nextToken());
-                        }
-                    }
-                    return version;
-                }
-                catch (NumberFormatException ex)
-                {
-                    throw new IllegalArgumentException(
-                        "Improper version number.");
-                }
-            }
-        }
-
-        return version;
-    }
 
     private static final byte encTab[] = { 0x41, 0x42, 0x43, 0x44, 0x45, 0x46,
         0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52,

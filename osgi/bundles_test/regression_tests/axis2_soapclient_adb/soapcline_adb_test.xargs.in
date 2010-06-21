@@ -1,51 +1,50 @@
 #
 # Startup file additions for running Axis2 ADB Client test suite
 #
-# NOTE: Paths in this file assumes that the current working directory is
-#       $(OSGI_DIR)
+# NOTE: The base URLs for bundles assumes that the current working
+#       directory is the osgi-direcotry when this xargs-file is used.
 #
 
 # List of test IDs
--Dorg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
+-Forg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
 
 # true means "quit framework when all tests are run"
--Dorg.knopflerfish.junit_runner.quit=true
+-Forg.knopflerfish.junit_runner.quit=true
 
 # Initial startup verbosity, 0 is low verbosity
--Dorg.knopflerfish.verbosity=0
+-Forg.knopflerfish.verbosity=0
 
 # Prefix for searching for bundle URLs from console or command line
--Dorg.knopflerfish.gosg.jars=file:
+-Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
 
 # Various debug flags
--Dorg.knopflerfish.framework.debug.packages=false
--Dorg.knopflerfish.framework.debug.errors=true
--Dorg.knopflerfish.framework.debug.classloader=false
--Dorg.knopflerfish.framework.debug.startlevel=false
--Dorg.knopflerfish.framework.debug.ldap=false
+-Forg.knopflerfish.framework.debug.packages=false
+-Forg.knopflerfish.framework.debug.errors=true
+-Forg.knopflerfish.framework.debug.classloader=false
+-Forg.knopflerfish.framework.debug.startlevel=false
+-Forg.knopflerfish.framework.debug.ldap=false
 
-# Add all standard packages for the currently running JRE version to
-# the set of packages exported by the system classloader.
--Dorg.knopflerfish.framework.system.export.all=true
+# Comma-separated list of packages exported by the system bundle
+#-Forg.osgi.framework.system.packages=
 
 # Comma-separated list of packages to be added to the set of packages
 # exported by system classloader.
-#-Dorg.osgi.framework.system.packages=
+#-Forg.osgi.framework.system.packages.extra=
 
 # Comma-separated list of packages that may be loaded by system classloader
--Dorg.osgi.framework.bootdelegation=sun.*,com.sun.*
+-Forg.osgi.framework.bootdelegation=sun.*,com.sun.*
 
 # Web server properties
--Dorg.knopflerfish.http.dnslookup=false
--Dorg.osgi.service.http.port=0
+-Forg.knopflerfish.http.dnslookup=false
+-Forg.osgi.service.http.port=0
 
--Dorg.knopflerfish.startlevel.use=true
+-Forg.knopflerfish.startlevel.use=true
 
 # Log service properties
--Dorg.knopflerfish.log.out=false
--Dorg.knopflerfish.log.level=info
--Dorg.knopflerfish.log.grabio=true
--Dorg.knopflerfish.log.file=true
+-Forg.knopflerfish.log.out=false
+-Forg.knopflerfish.log.level=info
+-Forg.knopflerfish.log.grabio=true
+-Forg.knopflerfish.log.file=true
 
 
 -init
