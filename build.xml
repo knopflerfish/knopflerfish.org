@@ -776,6 +776,11 @@
     <java classname="org.apache.xalan.xslt.Process"
           fork="yes"
           dir="${obr.dest.dir}">
+      <classpath>
+        <pathelement location="${osgi.dir}/bundles/xml/xalan/resources/xalan.jar"/>
+        <pathelement location="${osgi.dir}/bundles/xml/xalan/resources/xml-apis.jar"/>
+        <pathelement location="${osgi.dir}/bundles/xml/xerces/resources/serializer.jar"/>
+      </classpath>
       <arg value="-IN"/>
       <arg value="repository.xml"/>
       <arg value="-XSL"/>
