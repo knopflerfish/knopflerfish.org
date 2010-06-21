@@ -1,42 +1,41 @@
-Release Notes Knopflerfish @VERSION@ (OSGi R4.2)
-----------------------------------------------
+Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
+--------------------------------------------------
 
-  Work in progress release of Knopflerfish 3 available from
+  First official release of Knopflerfish 3 available from
   @DOWNLOAD_URL@
 
-  Here follows a breakdown of the most important changes since the
-  last release.
+  Knopflerfish 3 is an implementation of the
+  "OSGi Service Platform Release 4 Version 4.2". It contains
+  all services specified in the "Core Specification" and most
+  of the services specified in the "Compendium Specifification".
+
+  Here follows a breakdown of the most important changes since
+  Knopflerfish 2.3.3 release that aren't caused by updating KF
+  to "OSGi R4 v4.2".
 
 ----------------------------------------------
-OSGi Core Specification
+Osgi Core Specification
 ----------------------------------------------
 
-Framework - Security (Done)
+All the Core Specification Services are included and up to date
+OSGi R4 v4.2 specificatio. Please consult the "OSGi Service Platform,
+Core Specification, Release 4 Version 4.2" for more information.
 
-Framework - Module (Done)
-
-Framework - Life-Cycle (Done)
-
-Framework - Service Layer (Done)
-
-Package Admin Service Specification (Done)
-
-Start Level Service Specification (Done)
-
-Conditional Permission Admin Specification (Done)
-
-URL Handlers Service Specification (Done)
-
-Service Hooks Specification (Done)
+Framework 5.0.0
+ - Several parts of the framework has been rewritten to handle
+   the new OSGi framework specification and improve stability.
+ - The Android support has temporarily been dropped. Will probably
+   be restored in the next release.
 
 ----------------------------------------------
 OSGi Compendium Specification
 ----------------------------------------------
 
-All the Compendium Specification Services included are up to date and
-pass the CT.
+All the Compendium Specification Services included are updated to date
+OSGi R4 v4.2 specification. Please consult the "OSGi Service Platform,
+Service Compendium, Release 4 Version 4.2" for more information.
 
-Event 3.0.2
+Event 3.0.3
  - Improved performance a lot by rewriting the whole mechanism for
    matching events to event handlers during event delivery. General
    clean up and removal of dead code.
@@ -50,7 +49,7 @@ Event 3.0.2
  - Added bundle doc describing all framework properties that may be
    used to configure the Knopflerfish Event implementation.
 
-Http 2.1.8
+Http 3.0.0
  - Implement URL rewrite to support sessions when Cookies are turned
    of.  The methods encodeURL(String) and encodeRedirectURL(String) in
    the HttpServletResponse class now inserts the session id at the end
@@ -78,7 +77,7 @@ Http 2.1.8
    getResource() (the original URI path was used instead of the
    translated target resource name).
 
-SCR (Service Component Runtime) 3.0.0
+Component (Service Component Runtime) 3.0.0
  - New implementation compatible with the OSGi R4 v4.2 specification.
 
 
@@ -86,32 +85,32 @@ SCR (Service Component Runtime) 3.0.0
 Knopflerfish Specific
 ----------------------------------------------
 
-axis-osgi 0.1.0.2
+axis-osgi 0.1.0.kf3
  - Do not use the bean-mapper for java.util.Date, java.util.Map and
    java.util.Vector since axis provides special mappers for these
    classes.
 
-Bundlerepository 3.1.0
+Bundlerepository 3.1.1
  - Added support for version ranges when resolving imported packages.
  - Switched to tango icon set.
 
-Command 0.0.1
+Command 0.1
  - This is an implementation of the new proposed OSGi Standardized
    console (not included in OSGi R4 v4.2). To make console commands
    written for the legacy Knopflerfish console available in the
    command console, use the 'console2command'-bundle.
 
-Console 3.0.0 
+Console 3.0.1
  - Many commands that has a bundle-argument now accepts the bundle
    symbolic name as a way to specify the bundle (they also accept
    bundle id and bundle name as before).
  - Fixed documentation URL and Subversion URL in the manifest.
 
-Console Telnet 3.0.0 
+Console Telnet 3.0.1
  - Made the host (IP interface) to open the telnet server on
    settable via a framework property.
 
-Crimson-XML 2.1.0
+Crimson-XML 2.1.0.kf3
  - Updated to use 2008 version of OSGi's XMLParserActivator. Fixed
    so that bundle works together with java 1.4 system xml classes.
 
@@ -144,7 +143,7 @@ Desktop 3.1.0
    package that a bundle imports when the selected exporter is the
    current class-loader of the bundle itself.
 
-Directory Deployer 3.0.0
+Directory Deployer 3.0.1
  - Major refresh. New configuration PID and proprety names. Added
    configuration telling if all bundles it have installed should be
    uninstalled when it stops or not. Performs a refresh package after
@@ -166,12 +165,12 @@ Framework Commands 3.0.3
  - The URL given to the 'formupdate' and 'frominstall' commands now
    uses the same set of base URLs as the 'install' command.
 
-httpconsole 3.0.1
+httpconsole 3.0.2
  - Converte old documentation to bundle user doc, added tooltips to
    command buttons on the web-page.
  - Switched to tango icon set.
 
-kSOAP Remote Framework 3.0.2
+kSOAP Remote Framework 3.0.3
  - Updated documentation and added xargs-file fragments that makes it
    easier to start using this feature.
  - All properties controlling this bundle can now be given as
@@ -180,7 +179,7 @@ kSOAP Remote Framework 3.0.2
    handle unset properties correctly (it now returns null as
    expected).
 
-kXML 2 2.3.0
+kXML 2 2.3.0.kf3
  - This bundle provides the latest version of kXML 2, an XML parser
    with a small footprint.
  - The bundle packing has been changed since the 1.0.1 version. The
@@ -189,13 +188,13 @@ kXML 2 2.3.0
    build time dependecies on it. Note that due to this change build
    files may need to be update.
    
-Log 3.0.0
+Log 3.0.1
  - New configuration property for setting the number of
    log records to keep in memory.
  - The bundle symbolic name may now be used to identify the bundle
    when configuring per bundle log-levels.
 
-Log Commands 3.0.0
+Log Commands 3.0.1
  - If a log entry includes a service reference print the service id
    in addition to the value of the object class property. 
  - The commands 'setLevel' and 'showLevel' now supports specification
@@ -213,11 +212,11 @@ TrayIcon 3.0.1
    compile and start under older java versions, but no tray icon will
    be shown.
 
-Xerces-J 2.10.0
+Xerces-J 2.10.0.kf3
  - updated to use 2008 version of OSGi's XMLParserActivator.
 
 ----------------------------------------------
 
-Please read the KF blog for updated progress.
+Please read on the KF site for more information.
 
- http://knopflerfish.blogspot.com/
+ http://www.knopflerfish.org/

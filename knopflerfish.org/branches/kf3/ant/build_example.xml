@@ -53,7 +53,7 @@
  <path id="bundle.compile.path">
    <pathelement location="console_api-N.N.N.jar"/>
    <pathelement location="log_api-N.N.N.jar"/>
-   <pathelement location="jsdk_api-2.N.jar"/>
+   <pathelement location="jsdk_api-2.N.N.jar"/>
   </path>
 
 
