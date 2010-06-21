@@ -591,14 +591,10 @@ public class BundleHTMLExtractorTask extends Task {
 
     html = replace(html, "${unresolved.list}", sb.toString());
 
-
-
-
-
     Util.writeStringToFile(outFile, html);
     System.out.println("wrote " + outFile);
-
   }
+
 
   void makePackageListPage(File templateFile,
                            File outFile,
