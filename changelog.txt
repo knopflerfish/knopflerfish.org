@@ -1,3 +1,275 @@
+2010-06-21 16:19:49 +0200 (Mon, 21 Jun 2010), revision 3255, jan
+Release fixes
+U   knopflerfish.org/branches/kf3/ant/build_example.xml
+U   knopflerfish.org/branches/kf3/build.xml
+U   knopflerfish.org/branches/kf3/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf3/release_notes.in
+
+2010-06-21 16:08:43 +0200 (Mon, 21 Jun 2010), revision 3254, ekolin
+Fix AWT deadlock problem in fw_trayicon.
+U   knopflerfish.org/branches/kf3/osgi/bundles/trayicon/trayicon_fw/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/trayicon/trayicon_fw/src/org/knopflerfish/bundle/trayicons/framework/Activator.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/trayicon/trayicon_fw/src/org/knopflerfish/bundle/trayicons/framework/FrameworkTrayIcon.java
+U   knopflerfish.org/branches/kf3/release_notes.in
+
+2010-06-21 12:52:01 +0200 (Mon, 21 Jun 2010), revision 3253, ekolin
+Update the programming documentation: New desktop image, remove referencees to obsolete bundlebuild_include.xml
+U   knopflerfish.org/branches/kf3/ant/build_example.xml
+U   knopflerfish.org/branches/kf3/htdocs/html_src/programming_main.html
+D   knopflerfish.org/branches/kf3/htdocs/images/desktop-clip.gif
+A   knopflerfish.org/branches/kf3/htdocs/images/desktop-clip.png
+
+2010-06-21 12:07:59 +0200 (Mon, 21 Jun 2010), revision 3252, jan
+Updated versions for KF3 release, changed specification-version to version and changed so that all build files has LF as end-of-line.
+U   knopflerfish.org/branches/kf3/build.xml
+U   knopflerfish.org/branches/kf3/docs/kf_osgi_tutorial/example_source/build.xml
+U   knopflerfish.org/branches/kf3/htdocs/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/bundlerepository/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/bundlerepository/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/cm/cm/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/cm/cm/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/cm/cm_cmd/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/cm/cm_cmd/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/command/command/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/command/commandtty/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/console/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/console/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/console2command/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/consoletcp/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/consoletcp/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/consoletelnet/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/consoletelnet/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/consoletty/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/console/consoletty/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/demos/demo1/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/demos/demo1client/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/device/basicdriverlocator/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/device/basicdriverlocator/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/device/device/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/device/device/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/frameworkcommands/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/frameworkcommands/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/httpconsole/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/httproot/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/httproot/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/io/connectors/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/io/connectors/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/io/io/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/jsdk/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/log/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/log/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/logcommands/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/logcommands/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/measurement/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/metatype/cm_desktop/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/metatype/cm_desktop/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/metatype/kf_metatype/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/metatype/metatype_api/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/metatype/metatype_demo/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/osgiapi/permissionadmin/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/osgiapi/servicetracker/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/position/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/prefs/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/prefs/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/provisioning/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/remotefw/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/remotefw/doc/client.xargs
+U   knopflerfish.org/branches/kf3/osgi/bundles/remotefw/doc/server.xargs
+U   knopflerfish.org/branches/kf3/osgi/bundles/sslj2sp/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/sslj2sp/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/threadio/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/trayicon/trayicon_fw/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/trayicon/trayicon_fw/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/upnp/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/useradmin/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/useradmin/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/util/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/wireadmin/bundle.manifest
+D   knopflerfish.org/branches/kf3/osgi/bundles/wireadmin/src/org/knopflerfish/bundle/wireadmin/Activator.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/xml/crimson/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/xml/jaxp/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles/xml/kxml/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/xml/xalan/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/xml/xerces/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/xml/xml/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/commons-logging/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/commons-logging/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/desktop_awt/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/desktop_displayers/boing/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/desktop_displayers/desktop_jvm/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/dirdeployer/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/dirdeployer/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/httpclient_connector/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/jini/jinidriver/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/junit/junit/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/junit/junit_runner/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/junit/osgi_ct_adapter/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/oscar-shell/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/serial/comm-linux/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/serial/comm-win32/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/serial/rxtxcomm/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/serial/serialportdevice/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/serial/serialportdevice/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/axis-osgi/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/axis-osgi/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/ksoap-osgi/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/ksoap_commandgroup/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/ksoap_remotefw/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/soap_desktop/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/soap_desktop/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/soap_remotefw/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/soap_remotefw/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/soap_remotefw/doc/client.xargs
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/soap_remotefw/doc/server.xargs
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/soap/soapobject/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles_opt/x10/tjx10/build.xml
+U   knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD_test/build.xml
+U   knopflerfish.org/branches/kf3/osgi/framework/build.xml
+U   knopflerfish.org/branches/kf3/tools/pkgname/build.xml
+
+2010-06-21 11:34:35 +0200 (Mon, 21 Jun 2010), revision 3251, ekolin
+All documentation (and templates) is assuemd to be written using UTF-8 as file encoding. Generated HTML-docs should state that in their header.
+U   knopflerfish.org/branches/kf3/ant/html_template/bundle_header.html
+U   knopflerfish.org/branches/kf3/ant/html_template/bundle_index.html
+U   knopflerfish.org/branches/kf3/ant/html_template/bundle_info.html
+U   knopflerfish.org/branches/kf3/ant/html_template/bundle_list.html
+U   knopflerfish.org/branches/kf3/ant/html_template/bundle_main.html
+U   knopflerfish.org/branches/kf3/ant/html_template/bundledoc.html
+U   knopflerfish.org/branches/kf3/ant/html_template/bundledoc_ext.html
+U   knopflerfish.org/branches/kf3/ant/html_template/frameworkdoc.html
+U   knopflerfish.org/branches/kf3/ant/html_template/package_list.html
+U   knopflerfish.org/branches/kf3/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleHTMLExtractorTask.java
+U   knopflerfish.org/branches/kf3/ant/src/org/knopflerfish/ant/taskdefs/bundle/Util.java
+
+2010-06-21 10:21:42 +0200 (Mon, 21 Jun 2010), revision 3250, ekolin
+Add missing end of sentence
+U   knopflerfish.org/branches/kf3/tools/jarunpacker/strings.properties
+
+2010-06-21 10:20:48 +0200 (Mon, 21 Jun 2010), revision 3249, ekolin
+ignore build output
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/startlevel_test/
+
+2010-06-21 10:19:18 +0200 (Mon, 21 Jun 2010), revision 3248, ekolin
+ignore build output
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/resources/
+
+2010-06-16 20:06:41 +0200 (Wed, 16 Jun 2010), revision 3247, ekolin
+svn merge -r3225:HEAD https://www.knopflerfish.org/svn/knopflerfish.org/trunk/; Http 2.1.8
+_U  knopflerfish.org/branches/kf3/
+_U  knopflerfish.org/branches/kf3/ant/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/component/
+_U  knopflerfish.org/branches/kf3/osgi/bundles/desktop/
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpUtil.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestBase.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestImpl.java
+U   knopflerfish.org/branches/kf3/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResponseImpl.java
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component-api_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/condpermadmin_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/connectorservice_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/constants_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/endurance_test/test_target_bundles/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/eventadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/extension_test/test_target_bundles/bundleExt2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/filter_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy2/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy3/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_lazy4/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleD_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleE_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleG_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleH_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleJ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleP3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundlePT3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleQ_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR2_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR3_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR4_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR5_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR6_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleR_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL3/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleSL4/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleU_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleV_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW1_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleW_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_A/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_B/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_C/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_D/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resexp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/resimp_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/http_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/lifecycle_mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/mem_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/permissionadmin_test/test_target_bundles/bundleP_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/registryperformance_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleA_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleB_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleC_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/restart_test/test_target_bundles/bundleF_test/
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/bundle.manifest
+_U  knopflerfish.org/branches/kf3/osgi/bundles_test/regression_tests/servicetracker_test/test_target_bundles/bundleS_test/
+_U  knopflerfish.org/branches/kf3/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+U   knopflerfish.org/branches/kf3/release_notes.in
+
+2010-06-09 20:24:56 +0200 (Wed, 09 Jun 2010), revision 3243, cl
+Converted to DOS format. Works better on win32 (Notepad)
+U   knopflerfish.org/branches/kf3/NOTICE.txt
+
+2010-06-09 19:18:09 +0200 (Wed, 09 Jun 2010), revision 3241, ekolin
+Ooops
+U   knopflerfish.org/branches/kf3/osgi/bundles/trayicon/trayicon_fw/src/org/knopflerfish/bundle/trayicons/framework/FrameworkTrayIcon.java
+
+2010-06-09 19:08:19 +0200 (Wed, 09 Jun 2010), revision 3239, ekolin
+*** empty log message ***
+U   knopflerfish.org/branches/kf3/osgi/bundles/trayicon/trayicon_fw/src/org/knopflerfish/bundle/trayicons/framework/FrameworkTrayIcon.java
+
+2010-06-09 19:00:34 +0200 (Wed, 09 Jun 2010), revision 3238, ekolin
+Remove stale dependency
+U   knopflerfish.org/branches/kf3/osgi/bundles/trayicon/trayicon_fw/build.xml
+
+2010-06-09 18:50:00 +0200 (Wed, 09 Jun 2010), revision 3235, ekolin
+Post 3.0.0.rc-1 update
+U   knopflerfish.org/branches/kf3/osgi/framework/build.xml
+
+2010-06-09 18:43:10 +0200 (Wed, 09 Jun 2010), revision 3233, cl
+Removed tray icon reference
+U   knopflerfish.org/branches/kf3/NOTICE.txt
+
+2010-06-09 18:41:56 +0200 (Wed, 09 Jun 2010), revision 3232, ekolin
+Update changelog for the 3.0.0.rc-1 release.
+U   knopflerfish.org/branches/kf3/changelog.txt
+
 2010-06-09 18:03:36 +0200 (Wed, 09 Jun 2010), revision 3231, cl
 trayicon fix
 U   knopflerfish.org/branches/kf3/osgi/template.xargs.in
