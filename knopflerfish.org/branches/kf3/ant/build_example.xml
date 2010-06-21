@@ -52,8 +52,8 @@
   <!-- number available in the directory given by ${jars.dir}.     -->
  <path id="bundle.compile.path">
    <pathelement location="console_api-N.N.N.jar"/>
-   <pathelement location="${topdir}/jars/log/log_api-2.0.0.jar"/>
-   <pathelement location="../jsdk/resources/servlet.jar"/>
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="jsdk_api-2.N.jar"/>
   </path>
 
 
