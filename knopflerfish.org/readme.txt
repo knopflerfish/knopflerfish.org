@@ -31,15 +31,16 @@ Anyone can check out the main trunk by:
  This will check out "trunk" into a new directory 
  "knopflerfish.org"
 
-The trunk currently contain the latest Knopflerfish 2 sources that
-implements the OSGi v4 R4.0.1 specification.
+The trunk currently contain the latest Knopflerfish 3 sources that
+implements the OSGi R4 v4.2 specification.
 
-To access the KF-3 branch that implements the OSGi v4 R4.2
-specification check out the branch named "kf3". E.g.,
+To access the latest Knopflerfish 2 code check out the "kf_2_support"
+branch. The "kf_2_support" branch implements the OSGi R4 v4.0.1
+specification. E.g.,
 
  > svn checkout \ 
-    https://www.knopflerfish.org/svn/knopflerfish.org/branches/kf3 \
-    knopflerfish.org-kf3
+    https://www.knopflerfish.org/svn/knopflerfish.org/branches/kf_2_support \
+    knopflerfish.org-kf_2_support
 
 To access the latest Knopflerfish 1 code check out the "kf_1_support"
 branch. The "kf_1_support" branch implements the OSGi R3
