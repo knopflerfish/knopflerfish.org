@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: KF-AWT-Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop_awt
-Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:desktop_awt:2.0.0
+Bundle-Version: 3.0.0
 Bundle-Category: console
 Bundle-Description: AWT framework desktop
 Bundle-Vendor: Knopflerfish
@@ -13,8 +12,6 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
  g/trunk/osgi/bundles/desktop_awt/
 Bundle-Activator: org.knopflerfish.bundle.desktopawt.Activator
-Export-Package: org.knopflerfish.service.console;specification-version
- =1.0.0
-Import-Package: org.osgi.framework;specification-version=1.2,org.osgi.
- service.packageadmin,org.knopflerfish.service.console
-
+Export-Package: org.knopflerfish.service.console; version=1.0.0
+Import-Package: org.osgi.framework; version=1.2,
+ org.osgi.service.packageadmin,org.knopflerfish.service.console

@@ -35,15 +35,15 @@
 
 <project name="bundlebuild" basedir=".">
 
-  <dirname  property="ant.dir" file="${ant.file.bundlebuild}"/>
-  <property name="osgi.dir"    location="${ant.dir}/../osgi"/>
-  <property name="proj.dir"    location="."/>
-  <property name="topdir"      location="${osgi.dir}"/>
+  <dirname  property="ant.dir"   file="${ant.file.bundlebuild}"/>
+  <property name="osgi.dir"      location="${ant.dir}/../osgi"/>
+  <property name="proj.dir"      location="."/>
+  <property name="topdir"        location="${osgi.dir}"/>
 
   <!-- Special value to be used as the value for a bundle manifest      -->
   <!-- properties that shall not be included in the generated manifest. -->
   <!-- DO NOT CHANGE THIS VALUE.                                        -->
-  <property name="bundle.emptystring" value="[bundle.emptystring]"/>
+ <property name="bundle.emptystring" value="[bundle.emptystring]"/>
 
   <!-- Map environment variables to properties starting with "sysprops."-->
   <property environment="sysprops"/>
@@ -152,6 +152,9 @@
   <!-- Directory to place all intermediate build products for this project. -->
   <property name="outdir"   location="${root.out.dir}/${outdir.name}"/>
 
+  <!-- The root of the default bundle repository. -->
+  <property name="osgi.jars.dir" location="${osgi.dir}/jars"/>
+
   <!-- The root of the local bundle repository, in which built bundles -->
   <!-- are placed.                                                     -->
   <property name="jars.dir" location="${topdir}/jars"/>
@@ -177,10 +180,10 @@
 	    location="${ant.dir}/html_template/bundledoc.html"/>
 
   <!-- Name of file to record the name of all exported package in. -->
-  <property name="exported.file" location="${topdir}/out/exported.txt"/>
+  <property name="exported.file" location="${root.out.dir}/exported.txt"/>
 
   <!-- Name of file to record the soruce tree roots in. -->
-  <property name="sources.file"  location="${topdir}/out/sources.txt"/>
+  <property name="sources.file"  location="${root.out.dir}/sources.txt"/>
 
   <!-- Where to store compiler output. -->
   <property name="classes.out.dir"     location="${outdir}/classes"/>
@@ -240,18 +243,20 @@
   <property name="bundlemanifest.verbose" value="true"/>
 
 
-  <!-- Path that finds the framework API packages. -->
-  <path id = "framework.path">
-    <pathelement location = "${osgi.dir}/framework.jar"/>
+  <!-- Path that finds the framework API packages.                 -->
+  <path id="framework.path">
+    <pathelement location="${jars.dir}/../framework.jar"/>
+    <pathelement location="${osgi.jars.dir}/../framework.jar"/>
+    <pathelement location="${osgi.dir}/framework.jar"/>
   </path>
 
-  <!-- Default compile path for a bundle. The referenced path,    -->
-  <!-- "bundle.compile.path" should be set in the build file that -->
-  <!--  imports this file.                                        -->
-  <path id = "bundle.path">
-    <path refid = "framework.path"/>
-    <path refid = "bundle.api.path"/>
-    <path refid = "bundle.compile.path"/>
+  <!-- Default compile path for a bundle. The referenced path,     -->
+  <!-- "bundle.compile.path" should be set in the build file that  -->
+  <!-- imports this file.                                          -->
+  <path id="bundle.path">
+    <path refid="framework.path"/>
+    <path refid="bundle.api.path"/>
+    <path refid="bundle.compile.path"/>
   </path>
 
   <import file="${ant.dir}/bundletasks.xml"/>
@@ -364,16 +369,20 @@
 
   <target name="compile" description="compiles all java sources"
 	  if="src.dir.exists">
-    <mkdir dir = "${classes.out.dir}"/>
+    <mkdir dir="${classes.out.dir}"/>
 
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
 		    failOnMissingBundles="true">
-      <!-- Search the local repository first -->
+      <!-- Search the local repository first (where jars are placed) -->
       <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
-      <!-- Search the default repository second -->
+      <!-- Search the local default repository second -->
+      <fileset dir="${osgi.jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+      <!-- Search the default repository third -->
       <fileset dir="${osgi.dir}/jars">
 	<include name="**/*.jar"/>
       </fileset>
@@ -393,16 +402,20 @@
   <target name="compile_api"
 	  description="Compiles api java sources"
 	  if="do_compile_api">
-    <mkdir dir = "${classes.out.dir}"/>
+    <mkdir dir="${classes.out.dir}"/>
 
     <bundle_locator classPathRef="bundle.path"
 		    newClassPathId="bundle.path.Expanded"
 		    failOnMissingBundles="false">
-      <!-- Search the local repository first -->
+      <!-- Search the local repository first (where jars are placed) -->
       <fileset dir="${jars.dir}">
 	<include name="**/*.jar"/>
       </fileset>
-      <!-- Search the default repository second -->
+      <!-- Search the local default repository second -->
+      <fileset dir="${osgi.jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+      <!-- Search the default repository third -->
       <fileset dir="${osgi.dir}/jars">
 	<include name="**/*.jar"/>
       </fileset>
@@ -427,6 +440,8 @@
 
   <!-- set up build conditions -->
   <target name="setup_build">
+    <echo message="Building ${ant.project.name} (${basedir})"/>
+
     <available property="src.dir.exists"       file="${src.dir}"/>
     <available property="resources.dir.exists" file="${resources.dir}"/>
 
@@ -449,12 +464,22 @@
       </and>
     </condition>
     <condition property="do_build_impl">
-      <equals arg1="${bundle.build.impl}" arg2="true"/>
+      <and>
+	<equals arg1="${bundle.build.impl}" arg2="true"/>
+        <or>
+          <isset property="impl.pattern"/>
+          <isset property="impl-api.pattern"/>
+	</or>
+      </and>
     </condition>
     <condition property="do_build_all" value="true">
       <and>
 	<equals arg1="${bundle.build.all}"  arg2="true"/>
-	<isset property="api.pattern"/>
+	<or>
+	  <isset property="api.pattern"/>
+	  <isset property="impl.pattern"/>
+          <isset property="impl-api.pattern"/>
+	</or>
       </and>
     </condition>
     <condition property="do_build_doc">
@@ -476,7 +501,7 @@
 
     <!-- Ensure that the compiler output dir exists (required since -->
     <!-- it is used as the "dir"-attribute in a <fileset>.    -->
-    <mkdir dir = "${classes.out.dir}"/>
+    <mkdir dir="${classes.out.dir}"/>
   </target>
 
 

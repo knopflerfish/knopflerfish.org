@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ import org.knopflerfish.bundle.soap.remotefw.*;
 public class BundleContextImpl implements BundleContext {
   RemoteFWClient fw;
 
-  boolean  bDebug   = "true".equals(System.getProperty("org.knopflerfish.soap.remotefw.client.debug", "false"));
+  final boolean  bDebug;
 
   Thread  runner = null;
   boolean bRun   = false;
@@ -67,12 +67,22 @@ public class BundleContextImpl implements BundleContext {
 
   BundleContextImpl(RemoteFWClient fw) {
     this.fw  = fw;
+
+    final String sDebug
+      = Activator.bc.getProperty("org.knopflerfish.soap.remotefw.client.debug");
+    bDebug = null==sDebug || 0== sDebug.length()
+      ? false : "true".equals(sDebug);
+
     startLevel = new StartLevelImpl(fw);
     pkgAdmin   = new PackageAdminImpl(fw);
     logReader  = new LogReaderImpl(fw);
     console    = new ConsoleServiceImpl(fw);
     try {
-      delay = Long.parseLong(System.getProperty("org.knopflerfish.soap.remotefw.client.eventinterval", Long.toString(delay)));
+      final String eventIntervalS = Activator.bc.getProperty
+        ("org.knopflerfish.soap.remotefw.client.eventinterval");
+      if (null!=eventIntervalS && 0<eventIntervalS.length()) {
+        delay = Long.parseLong(eventIntervalS);
+      }
     } catch (Exception e) {
     }
   }

@@ -4,15 +4,19 @@
 
   <!-- build properties -->
 
-  <property name="topdir"   location="."/>
-  <property name="out"      location="${topdir}/out"/>
-  <property name="outdir"   location="${out}/${ant.project.name}"/>
-  <property name="classout" location="${outdir}/classes"/>
+  <property name="topdir"       location="."/>
+  <property name="root.out.dir" location="${topdir}/out"/>
+  <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
+  <property name="classout"     location="${outdir}/classes"/>
 
   <property name="src.dir" location = "src"/>
 
   <!-- targets -->
-  <target name="all" depends="props,jar">
+  <target name="all" depends="jar">
+ 
+  </target>
+
+  <target name="default_jar" depends="props,jar">
  
   </target>
 
@@ -56,7 +60,6 @@
     
  <target name="clean" description="removes all generated files">
   <delete dir="${outdir}"/>
-  <delete dir="${out}"/>
  </target>
 
 </project>

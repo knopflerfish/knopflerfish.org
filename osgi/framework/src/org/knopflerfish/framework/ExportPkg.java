@@ -48,10 +48,10 @@ import org.osgi.framework.Version;
 class ExportPkg {
   final String name;
   final BundlePackages bpkgs;
-  final ArrayList /* String */ uses;
-  final ArrayList /* String */ mandatory;
-  final ArrayList /* String */ include;
-  final ArrayList /* String */ exclude;
+  final HashSet /* String */ uses;
+  final HashSet /* String */ mandatory;
+  final HashSet /* String */ include;
+  final HashSet /* String */ exclude;
   final Version version;
   final Map attributes;
   boolean zombie = false;
@@ -222,11 +222,13 @@ class ExportPkg {
    * Check if ExportPkg is exported from its bundle. A package is deemed to
    * be exported if its bundle is resolved and hasn't been replaced by a
    * conflicting import (see resolving process chapter in core spec.).
+   * Bundle must also have export permission.
    *
    * @return True if pkg exports the package.
    */
   synchronized boolean isExported() {
-    if (pkg != null && ((bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
+    if (checkPermission() && pkg != null &&
+        ((bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
       BundlePackages bp = bpkgs.getProviderBundlePackages(name);
       return bp == null || bp.bundle == bpkgs.bundle;
     }
@@ -246,7 +248,7 @@ class ExportPkg {
       synchronized (pkg) {
         for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
           ImportPkg ip = (ImportPkg)i.next();
-          if (ip.provider == this) {
+          if (ip.provider == this && ip.bpkgs != bpkgs) {
             res.add(ip.bpkgs.bundle);
           }
         }
@@ -260,25 +262,39 @@ class ExportPkg {
   /**
    * Check if we have export permissions.
    *
-   * @return trList of bundles importering, null export is not active.
+   * @return true if we have export permission
    */
   boolean checkPermission() {
+    // NYI! cache permission when we have resolved and while resolving
+    if (bpkgs.bundle.state == BundleImpl.INSTALLED) {
+      hasPermission = bpkgs.bundle.fwCtx.perm.hasExportPackagePermission(this);
+    }
     return hasPermission;
   }
 
 
   /**
-   * Check if we have export permissions.
+   * Check if the name, version, attributes and directoves are equal.
    *
-   * @return trList of bundles importering, null export is not active.
+   * @return true if all package information is equal, otherwise false.
    */
-  void setPermission(boolean perm) {
-    hasPermission = perm;
+  boolean pkgEquals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (null == o) {
+      return false;
+    }
+    ExportPkg ep = (ExportPkg)o;
+    return name.equals(ep.name) &&
+      version.equals(ep.version) &&
+      (uses == null ? ep.uses == null : uses.equals(ep.uses)) &&
+      (mandatory == null ? ep.mandatory == null : mandatory.equals(ep.mandatory)) &&
+      (include == null ? ep.include == null : include.equals(ep.include)) &&
+      (exclude == null ? ep.exclude == null : exclude.equals(ep.exclude)) &&
+      attributes.equals(ep.attributes);
   }
 
-  //
-  // Private
-  //
 
   /**
    * String describing package name and specification version, if specified.

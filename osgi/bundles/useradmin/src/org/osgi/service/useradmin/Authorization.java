@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.useradmin/src/org/osgi/service/useradmin/Authorization.java,v 1.8 2006/06/16 16:31:41 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +25,7 @@ package org.osgi.service.useradmin;
  * the required role, by calling its <code>hasRole</code> method.
  * <p>
  * Authorization contexts are instantiated by calling the
- * {@link UserAdmin#getAuthorization}method.
+ * {@link UserAdmin#getAuthorization} method.
  * 
  * <p>
  * <i>Trusting Authorization objects </i>
@@ -60,14 +58,14 @@ package org.osgi.service.useradmin;
  * <code>Authorization</code> object), the service explicitly checks that the
  * calling bundle has permission to make the call.
  * 
- * @version $Revision: 1.8 $
+ * @version $Revision: 5673 $
  */
 public interface Authorization {
 	/**
-	 * Gets the name of the {@link User}that this <code>Authorization</code>
+	 * Gets the name of the {@link User} that this <code>Authorization</code>
 	 * context was created for.
 	 * 
-	 * @return The name of the {@link User}object that this
+	 * @return The name of the {@link User} object that this
 	 *         <code>Authorization</code> context was created for, or
 	 *         <code>null</code> if no user was specified when this
 	 *         <code>Authorization</code> context was created.
@@ -82,7 +80,7 @@ public interface Authorization {
 	 * Bundles must define globally unique role names that are associated with
 	 * the privilege of accessing restricted resources or operations. Operators
 	 * will grant users access to these resources, by creating a {@link Group}
-	 * object for each role and adding {@link User}objects to it.
+	 * object for each role and adding {@link User} objects to it.
 	 * 
 	 * @param name The name of the role to check for.
 	 * 
@@ -92,10 +90,10 @@ public interface Authorization {
 	public boolean hasRole(String name);
 
 	/**
-	 * Gets the names of all roles encapsulated by this <code>Authorization</code>
+	 * Gets the names of all roles implied by this <code>Authorization</code>
 	 * context.
 	 * 
-	 * @return The names of all roles encapsulated by this
+	 * @return The names of all roles implied by this
 	 *         <code>Authorization</code> context, or <code>null</code> if no roles
 	 *         are in the context. The predefined role <code>user.anyone</code>
 	 *         will not be included in this list.

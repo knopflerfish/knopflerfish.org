@@ -37,6 +37,9 @@ package org.ungoverned.osgi.service.bundlerepository;
 
 import java.io.PrintStream;
 
+import org.osgi.framework.Version;
+
+
 /**
  * This interface defines a simple bundle repository service
  * for Oscar.
@@ -79,6 +82,15 @@ public interface BundleRepositoryService
      * @return the associated bundle record or <tt>null</tt>.
     **/
     public BundleRecord getBundleRecord(String name, int[] version);
+
+    /**
+     * Get bundle record for the bundle with the specified name
+     * and version from the repository.
+     * @param name the bundle record name to retrieve.
+     * @param version the version associated with the name to retrieve.
+     * @return the associated bundle record or <tt>null</tt>.
+    **/
+    public BundleRecord getBundleRecord(String name, Version version);
 
     /**
      * Get all versions of bundle records for the specified name

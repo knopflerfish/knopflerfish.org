@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -648,7 +648,7 @@ class DesktopPanel extends Panel implements BundleListener {
       
       setBackground(lf.bgColor);
       
-      ImageLabel viewButton = new ImageLabel("/view_select.gif", 2, getBackground()) {
+      ImageLabel viewButton = new ImageLabel("/view-select.png", 2, getBackground()) {
           public void setFocus(boolean b) {
             super.setFocus(b);
             statusBar.setMessage(b ? "Select view" : "");
@@ -694,19 +694,19 @@ class DesktopPanel extends Panel implements BundleListener {
           }
         });
 
-      add(new ActionImageLabel("/open.gif", getBackground(), 
+      add(new ActionImageLabel("/openurl.png", getBackground(), 
                                "Install bundles",
                                ACTION_ID_INSTALL));
-      add(new ActionImageLabel("/player_play.gif", getBackground(), 
+      add(new ActionImageLabel("/player_play.png", getBackground(), 
                                "Start bundles",
                                ACTION_ID_BUNDLE_START));
-      add(new ActionImageLabel("/player_stop.gif", getBackground(), 
+      add(new ActionImageLabel("/player_stop.png", getBackground(), 
                                "Stop bundles",
                                ACTION_ID_BUNDLE_STOP));
-      add(new ActionImageLabel("/update.gif", getBackground(), 
+      add(new ActionImageLabel("/system-software-update.png", getBackground(), 
                                "Update bundles",
                                ACTION_ID_BUNDLE_UPDATE));
-      add(new ActionImageLabel("/player_eject.gif", getBackground(), 
+      add(new ActionImageLabel("/player_eject.png", getBackground(), 
                                "Uninstall bundles",
                                ACTION_ID_BUNDLE_UNINSTALL));
 

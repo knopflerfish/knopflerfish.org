@@ -51,7 +51,7 @@ public class Activator implements BundleActivator {
   static LogRef        log;
 
   static final String  RES_ALIAS     = "/";     // the http server root
-  static final String  RES_DIR       = "/www";  // bundle resource directory 
+  static final String  RES_DIR       = "/www";  // bundle resource directory
 
   static final String  SERVLET_ALIAS = "/servlet/knopflerfish-info"; // a small servlet
 
@@ -63,20 +63,20 @@ public class Activator implements BundleActivator {
     this.log = new LogRef(bc);
 
     ServiceListener listener = new ServiceListener() {
-	public void serviceChanged(ServiceEvent ev) {
-	  ServiceReference sr = ev.getServiceReference();
+        public void serviceChanged(ServiceEvent ev) {
+          ServiceReference sr = ev.getServiceReference();
 
-	  switch(ev.getType()) {
-	  case ServiceEvent.REGISTERED:
-	    setRoot(sr);
-	    break;
-	  case ServiceEvent.UNREGISTERING:
-	    unsetRoot(sr);
-	    break;
-	  }
-	}
+          switch(ev.getType()) {
+          case ServiceEvent.REGISTERED:
+            setRoot(sr);
+            break;
+          case ServiceEvent.UNREGISTERING:
+            unsetRoot(sr);
+            break;
+          }
+        }
       };
-    
+
     String filter = "(objectclass=" + HttpService.class.getName() + ")";
 
     try {
@@ -84,14 +84,14 @@ public class Activator implements BundleActivator {
 
       ServiceReference[] srl = bc.getServiceReferences(null, filter);
       for(int i = 0; srl != null && i < srl.length; i++) {
-	listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
-						 srl[i]));
+        listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
+                                                 srl[i]));
       }
     } catch (Exception e) {
       log.error("Failed to set up listener for http service", e);
     }
   }
-  
+
   public void stop(BundleContext bc) throws BundleException {
   }
 
@@ -106,30 +106,30 @@ public class Activator implements BundleActivator {
     HttpService http = (HttpService)bc.getService(sr);
 
     HttpContext context = new HttpContext() {
-	public boolean handleSecurity(HttpServletRequest  request,
-				      HttpServletResponse response) 
-	  throws java.io.IOException {
-	  return true;
-	}
-	
-	public URL getResource(String name) {
+        public boolean handleSecurity(HttpServletRequest  request,
+                                      HttpServletResponse response)
+          throws java.io.IOException {
+          return true;
+        }
 
-	  // default to index.html
-	  if(name.equals(RES_DIR) || name.equals(RES_DIR + "/")) {
-	    name = "/www/index.html";
-	  }
-          
-	  // and send the plain file
-	  URL url = getClass().getResource(name);
+        public URL getResource(String name) {
 
-	  return url;
-	}
-	
-	public String getMimeType(String reqEntry) {
-	  return null; // server decides type
-	}
+          // default to index.html
+          if(name.equals(RES_DIR) || name.equals(RES_DIR + "/")) {
+            name = "/www/index.html";
+          }
+
+          // and send the plain file
+          URL url = getClass().getResource(name);
+
+          return url;
+        }
+
+        public String getMimeType(String reqEntry) {
+          return null; // server decides type
+        }
       };
-    
+
     try {
       http.registerResources(RES_ALIAS, RES_DIR, context);
       http.registerServlet(SERVLET_ALIAS, new InfoServlet(sr), new Hashtable(), context);
@@ -138,7 +138,7 @@ public class Activator implements BundleActivator {
     } catch (Exception e) {
       log.error("Failed to register resource", e);
     }
-  } 
+  }
 
   void unsetRoot(ServiceReference sr) {
     if(!registrations.containsKey(sr)) {
@@ -146,9 +146,9 @@ public class Activator implements BundleActivator {
     }
 
     log.info("unset root for " + sr);
-    
+
     HttpService http = (HttpService)bc.getService(sr);
-    
+
     if(http != null) {
       http.unregister(RES_ALIAS);
       http.unregister(SERVLET_ALIAS);

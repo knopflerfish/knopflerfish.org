@@ -1,3 +1,11 @@
+The readme file is obsolete, it has been replaced by an entry in the
+"Bundle user doc" available at:
+
+http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=console
+
+
+============================ Old Obsolete Contents ============================
+
    Console User's Guide
                                   Abstract
 

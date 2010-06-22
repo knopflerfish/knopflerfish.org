@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: soapobject
 Bundle-SymbolicName: org.knopflerfish.bundle.soapobject
 Bundle-Version: 0.0.2
-Bundle-UUID: org.knopflerfish:soapobject:0.0.2
 Bundle-Category: experiment
 Bundle-Description: SOAP objects
 Bundle-Vendor: Knopflerfish

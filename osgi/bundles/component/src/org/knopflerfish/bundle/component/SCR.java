@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2009, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,502 +33,522 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Iterator;
+import java.util.*;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.Constants;
-import org.osgi.framework.InvalidSyntaxException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.SynchronousBundleListener;
-
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
-import org.osgi.service.cm.ConfigurationEvent;
-import org.osgi.service.cm.ConfigurationListener;
-
+import org.osgi.framework.*;
+import org.osgi.service.cm.*;
 import org.osgi.service.component.ComponentConstants;
+import org.osgi.util.tracker.*;
 
-class SCR implements SynchronousBundleListener {
+import org.xmlpull.v1.*;
 
-  private Hashtable bundleConfigs = new Hashtable();
+/**
+ *
+ */
+class SCR implements SynchronousBundleListener, ConfigurationListener
+{
+  final private BundleContext bc;
 
-  private Collection components = new ArrayList();
-  private Hashtable factoryConfigs = new Hashtable();
+  private HashSet /* Bundle */ lazy = new HashSet();
+  private Hashtable /* Bundle -> Component[] */ bundleComponents = new Hashtable();
+  private Hashtable /* String -> Component[] */ components = new Hashtable();
+  private Hashtable /* String -> Component[] */ serviceComponents = new Hashtable();
+  private Hashtable /* String -> Component[] */ configSubscriber = new Hashtable();
+  private ServiceRegistration cmListener = null;
+  private ServiceTracker cmAdminTracker;
+  private volatile long nextId = 0;
 
 
-  private Hashtable serviceConfigs = new Hashtable();
+  /**
+   *
+   */
+  SCR(BundleContext bc) {
+    this.bc = bc;
+    cmAdminTracker = new ServiceTracker(bc, ConfigurationAdmin.class.getName(), null);
+  }
 
-  private static long componentId = 0;
-  private static SCR instance;
 
-  public static void init(BundleContext bc) {
-    if (instance == null) {
-      instance = new SCR(bc);
-
-      Bundle[] bundles = bc.getBundles();
-      for(int i=0;i<bundles.length;i++){
-        if (bundles[i].getState() == Bundle.ACTIVE) {
-          instance.bundleChanged(new BundleEvent(BundleEvent.STARTED, bundles[i]));
-        }
+  /**
+   * Start SCR.
+   *
+   */
+  void start() {
+    cmAdminTracker.open();
+    cmListener = bc.registerService(ConfigurationListener.class.getName(), this, null);
+    bc.addBundleListener(this);
+    final Bundle [] bundles = bc.getBundles();
+    for (int i = 0; i < bundles.length; i++)  {
+      if ((bundles[i].getState() & (Bundle.ACTIVE | Bundle.STARTING)) != 0) {
+        processBundle(bundles[i]);
       }
     }
   }
 
-  public static SCR getInstance() {
-    return instance;
-  }
 
-  private SCR(BundleContext bc) {
-    bc.addBundleListener(this);
-    bc.registerService(ConfigurationListener.class.getName(),
-                       new CMListener(),
-                       new Hashtable());
-  }
-
-  public synchronized void shutdown() {
-
-    for (Enumeration e = bundleConfigs.keys();
-         e.hasMoreElements();) {
-
-      Bundle bundle = (Bundle) e.nextElement();
-      bundleChanged(new BundleEvent(BundleEvent.STOPPING, bundle));
-
+  /**
+   * Stop SCR.
+   *
+   */
+  void stop() {
+    bc.removeBundleListener(this);
+    if (cmListener != null) {
+      cmListener.unregister();
+      cmListener = null;
     }
-
-    instance = null;
+    cmAdminTracker.close();
+    Bundle [] b = (Bundle [])bundleComponents.keySet().toArray(new Bundle[bundleComponents.size()]);
+    for (int i = 0; i < b.length; i++) {
+      removeBundle(b[i], ComponentConstants.DEACTIVATION_REASON_DISABLED);
+    }
   }
 
+
+  //
+  // BundleListener method
+  //
+
+  /**
+   * Process bundle components when it starts.
+   */
   public synchronized void bundleChanged(BundleEvent event) {
     Bundle bundle = event.getBundle();
-    String manifestEntry = (String) bundle.getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
-    if (manifestEntry == null) {
-      return;
-    }
 
     switch (event.getType()) {
+    case BundleEvent.LAZY_ACTIVATION:
+      lazy.add(bundle);
+      processBundle(bundle);
+      break;
     case BundleEvent.STARTED:
-
-      if(manifestEntry.length() == 0) {
-        Activator.log.error("bundle #" +bundle.getBundleId() +": header "
-                            +ComponentConstants.SERVICE_COMPONENT
-                            +" present but empty");
-        return;
+      if (!lazy.remove(bundle)) {
+        processBundle(bundle);
       }
-
-      // Create components
-      Collection addedConfigs = new ArrayList();
-      String[] manifestEntries = Parser.splitwords(manifestEntry, ",");
-
-      for (int i = 0; i < manifestEntries.length; i++) {
-        // Do not trim the file name here (a file name starting/ending
-        // with spaces should be allowed)
-        URL resourceURL = bundle.getResource(manifestEntries[i]);
-        if (resourceURL == null) {
-          // Try with the trimmed file name.
-          resourceURL = bundle.getResource(manifestEntries[i].trim());
-          if (null==resourceURL) {
-            Activator.log.error("Resource not found: '" +manifestEntries[i]
-                                +"'.");
-            continue;
-          }
-        }
-        try {
-          Collection configs = Parser.readXML(bundle, resourceURL);
-          if (configs.isEmpty()) {
-            Activator.log.warn("bundle #" +bundle.getBundleId()
-                               +": xml-file, '" +resourceURL
-                               +"', did not contain any valid component "
-                               +"declarations");
-          }
-          addedConfigs.addAll(configs);
-
-        } catch (Throwable e) {
-          Activator.log.error("bundle #" + bundle.getBundleId()
-                              +": Failed to parse '"
-                              +resourceURL +"': " +e.getCause(),
-                              e);
-        }
-      }
-
-      bundleConfigs.put(bundle, new ArrayList());
-      for (Iterator iter = addedConfigs.iterator(); iter.hasNext();) {
-        Config config = (Config) iter.next();
-
-        if (config.isAutoEnabled()) {
-          Component component = config.createComponent();
-          component.enable();
-        }
-
-        // Add to cycle finder:
-        String[] services = config.getServices();
-        if (services != null) {
-          for (int i=0; i<services.length; i++) {
-            ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
-            if (existing == null) {
-              existing = new ArrayList();
-              serviceConfigs.put(services[i], existing);
-            }
-            existing.add(config);
-          }
-          // Find cycles:
-          ArrayList cycle = new ArrayList();
-          if (findCycle(config, cycle)) {
-            String message = "Possible cycle found in references of " + config.getName() + ": ";
-            Iterator citer = cycle.iterator();
-            if (citer.hasNext()) {
-              Config cycleItem = (Config) citer.next();
-              message += cycleItem.getName();
-              while (citer.hasNext()) {
-                cycleItem = (Config) citer.next();
-                message += " references " + cycleItem.getName();
-              }
-            }
-            Activator.log.error("bundle #" + bundle.getBundleId() + ": " + message);
-          }
-        }
-      }
-
-      Collection tmp = (Collection)bundleConfigs.get(bundle);
-      tmp.addAll(addedConfigs);
-      bundleConfigs.put(bundle, tmp);
-      //bundleConfigs.put(bundle, addedConfigs);
       break;
     case BundleEvent.STOPPING:
-      if (Activator.log.doDebug()) {
-        Activator.log.debug("bundle #" + bundle.getBundleId() + ": Bundle is STOPPING. Disable components.");
-      }
-
-      Collection removedConfigs = (Collection) bundleConfigs.remove(bundle);
-      if (removedConfigs != null) {
-        for (Iterator iter = removedConfigs.iterator(); iter.hasNext();) {
-          Config config = (Config) iter.next();
-          config.disable();
-          // Remove from cycle finder:
-          String[] services = config.getServices();
-          if (services != null) {
-            for (int i=0; i<services.length; i++) {
-              ArrayList existing = (ArrayList) serviceConfigs.get(services[i]);
-              if (existing == null) continue;
-              existing.remove(config);
-              if (existing.size() == 0) {
-                serviceConfigs.remove(services[i]);
-              }
-            }
-          }
-        }
-      }
+      lazy.remove(bundle);
+      removeBundle(bundle, ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED);
       break;
     }
   }
 
-  private boolean findCycle(Config config, ArrayList visited) {
-    if (visited.contains(config)) {
-      visited.add(config);
-      return true;
-    }
-    visited.add(config);
-    ArrayList references = config.getReferences();
-    for (Iterator riter = references.iterator(); riter.hasNext();) {
-      Reference ref = (Reference) riter.next();
-      if (ref.isSatisfied()) continue;
-      String service = ref.getInterfaceName();
-      ArrayList providers = (ArrayList) serviceConfigs.get(service);
-      if (providers != null) {
-        for (Iterator piter = providers.iterator(); piter.hasNext();) {
-          Config provider = (Config) piter.next();
-          if (findCycle(provider, visited)) {
-            return true;
-          }
-        }
-      }
-    }
-    visited.remove(config);
-    return false;
-  }
+  //
+  // ConfigurationListener method
+  //
 
-  public Collection getComponents(Bundle bundle) {
-    return (Collection)bundleConfigs.get(bundle);
-  }
-
-  public synchronized void initComponent(Component component) {
-    component.setComponentId(new Long(++componentId));
-    initConfig(component);
-    components.add(component);
-    // build graph here.
-  }
-
-  public synchronized void removeComponent(Component component) {
-    if (component != null) {
-      removeConfig(component);
-      components.remove(component);
-    }
-  }
-
-  private ConfigurationAdmin getCM(Component component) {
-
-    BundleContext bc = component.getBundleContext();
-    ServiceReference ref = bc.getServiceReference(ConfigurationAdmin.class.getName());
-
-    if (ref == null)
-      return null;
-
-    return (ConfigurationAdmin) bc.getService(ref);
-  }
-
-  private synchronized void removeConfig(Component component) {
-    Config config = component.getConfig();
-    Dictionary dict = (Dictionary)factoryConfigs.get(config.getName());
-
-    if (dict != null) {
-      for (Enumeration e = dict.keys();
-           e.hasMoreElements();) {
-        Object key = e.nextElement();
-
-        if (dict.get(key) == component) {
-          dict.remove(key);
-          break;
-        }
-      }
-
-      if (dict.isEmpty()) {
-        factoryConfigs.remove(config.getName());
-      }
-    }
-  }
-
-  private synchronized void initConfig(Component component) {
-
-    Config config = component.getConfig();
-    ConfigurationAdmin admin = getCM(component);
-    String name = config.getName();
-
-    if (admin == null)
-      return ;
-
+  /**
+   *
+   */
+  public void configurationEvent(ConfigurationEvent evt) {
     try {
-      Configuration[] conf =
-        admin.listConfigurations("(" + ConfigurationAdmin.SERVICE_FACTORYPID +
-                                 "=" + name + ")");
-
-      if (conf != null) {
-        Dictionary table = (Dictionary)factoryConfigs.get(name);
-
-        if (table == null) {
-          table = new Hashtable();
-          factoryConfigs.put(name, table);
+    String name = evt.getFactoryPid();
+    String pid = evt.getPid();
+    if (name == null) {
+      name = pid;
+    }
+    Component [] comp = (Component [])configSubscriber.get(name);
+    if (comp != null) {
+      switch (evt.getType()) {
+      case ConfigurationEvent.CM_DELETED:
+        for (int i = 0; i < comp.length; i++) {
+          comp[i].cmConfigDeleted(pid);
         }
-
-        Collection configs = (Collection)bundleConfigs.get(config.getBundle());
-
-        if (table.get(conf[0].getPid()) == null) {
-          component.cmUpdated(conf[0].getProperties());
-          table.put(conf[0].getPid(), component);
+        break;
+      case ConfigurationEvent.CM_UPDATED:
+        for (int i = 0; i < comp.length; i++) {
+          comp[i].cmConfigUpdated(pid, getConfiguration(pid));
         }
-
-
-        for (int i = conf.length - 1; i >= 0; i--) {
-          String pid = conf[i].getPid();
-          Component instance = (Component)table.get(pid);
-
-          if (instance == null) {
-            Config copy = config.copy();
-            instance = copy.createComponent();
-            instance.cmUpdated(conf[i].getProperties());
-            table.put(pid, instance);
-            configs.add(copy);
-            instance.enable();
-          }
-        }
-
-        // end factory configuration
-      } else {
-
-        // regular single configuration
-        conf =
-          admin.listConfigurations("(" + Constants.SERVICE_PID + "=" + name + ")");
-
-        if (conf != null &&
-            conf.length == 1) {
-          component.cmUpdated(conf[0].getProperties());
-        }
+        break;
+      default:
+        Activator.logWarning("Unknown ConfigurationEvent type: " + evt.getType());
+        break;
       }
-
-    } catch (InvalidSyntaxException e) {
-      Activator.log.error("The name (" + name + ") must have screwed up the filter.", e);
-    } catch (IOException e) {
-      Activator.log.error("Declarative Services could not retrieve " +
-                          "the configuration for component " + name +
-                          ". Got IOException.", e);
+    }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
-  private class CMListener implements ConfigurationListener {
+  //
+  // Package methods
+  //
+
+  /**
+   * Get next unique component identifier.
+   */
+  synchronized Long getNextId() {
+    return new Long(nextId++);
+  }
 
 
-    private Configuration getConfiguration(Component component, String pid) {
-
-      ConfigurationAdmin admin = getCM(component);
-
-      if (admin == null)
-        return null;
-
+  /**
+   * Check if bundle has service components and process them.
+   *
+   * @param b Bundle to check
+   */
+  void processBundle(Bundle b) {
+    String sc = (String)b.getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
+    Activator.logDebug("Process header " + ComponentConstants.SERVICE_COMPONENT +
+                       " for bundle#" + b.getBundleId() + ": " + sc);
+    if (sc != null) {
+      ArrayList entries = splitwords(sc);
+      if (entries.size() == 0) {
+        Activator.logError(b, "Header " + ComponentConstants.SERVICE_COMPONENT + " empty.", null);
+        return;
+      }
+      XmlPullParser p;
       try {
-        Configuration[] conf =
-          admin.listConfigurations("(" + Constants.SERVICE_PID +
-                                   "=" + pid + ")");
-
-        return conf == null ? null : conf[0];
-      } catch (InvalidSyntaxException e) {
-        Activator.log.error("The PID (" + pid + ") must have screwed up the filter.", e);
-        return null;
-      } catch (IOException e) {
-        Activator.log.error("Declarative Services could not retrieve " +
-                            "the configuration for component with pid " + pid +
-                            ". Got IOException.", e);
-        return null;
+        XmlPullParserFactory f = XmlPullParserFactory.newInstance();
+        f.setNamespaceAware(true);
+        p = f.newPullParser();
+      } catch (XmlPullParserException xppe) {
+        Activator.logError("Could not fina a XML parser", xppe);
+        return;
       }
-
-    }
-
-    private void restart(Component component) {
-      restart(component, null);
-    }
-
-    private void restart(Component component, Configuration configuration) {
-
-      component.deactivate();
-      component.unregisterService();
-
-      if (configuration != null) {
-        component.cmUpdated(configuration.getProperties());
-      } else {
-        component.cmDeleted();
-        removeConfig(component);
-      }
-
-      component.registerService();
-      component.activate();
-
-    }
-
-    public void configurationEvent(ConfigurationEvent evt) {
-
-      String factoryPid = evt.getFactoryPid();
-      String pid = evt.getPid();
-
-      synchronized(SCR.getInstance()){
-        if (factoryPid != null) {
-
-          Dictionary table = (Dictionary) factoryConfigs.get(factoryPid);
-
-          if (table != null) {
-            Component component = (Component)table.get(pid);
-            if (component != null) {
-              if (evt.getType() == ConfigurationEvent.CM_DELETED) {
-                table.remove(pid);
-
-                if (table.isEmpty()) {
-
-                  factoryConfigs.remove(factoryPid);
-                  restart(component);
-
-                } else {
-
-                  component.disable();
-
-                }
-
-              } else {
-
-                Configuration conf = getConfiguration(component, pid);
-                if (conf == null)
-                  return ;
-
-                restart(component, conf);
-              }
-
-
-            } else { // we need to create a new component
-
-              Object key = table.keys().nextElement();
-              Component src = (Component)table.get(key);
-              Config config = src.getConfig();
-              Config copy = config.copy();
-
-              Component instance = copy.createComponent();
-              Configuration conf =
-                getConfiguration(instance, pid);
-
-              if (conf == null)
-                return ;
-
-              instance.cmUpdated(conf.getProperties());
-              Collection collection = (Collection)bundleConfigs.get(copy.getBundle());
-              collection.add(copy);
-              instance.enable();
-
+      ArrayList cds = new ArrayList();
+      for (Iterator i = entries.iterator(); i.hasNext(); ) {
+        String me = (String)i.next();
+        int pos = me.lastIndexOf('/');
+        String path = pos > 0 ? me.substring(0, pos) : "/";
+        Enumeration e = b.findEntries(path, me.substring(pos+1), false);
+        if (null != e) {
+          while (e.hasMoreElements()) {
+            URL u = (URL)e.nextElement();
+            InputStream is = null;
+            try {
+              is = u.openStream();
+            } catch (IOException ioe) {
+              Activator.logError(b, "Failed to open: " + u, ioe);
+              return;
             }
-          } else {
-
-            for (Iterator i = components.iterator();
-                 i.hasNext(); ) { // start looking for a potential target.
-
-              Component component = (Component)i.next();
-              Config config = component.getConfig();
-
-              if (factoryPid.equals(config.getName())) {
-                  // this is a new factory configuration (and has a corresponding component)
-                  Configuration conf =
-                    getConfiguration(component, pid);
-
-                  if (conf == null)
-                    continue; // does not have permission.
-
-                  table = new Hashtable();
-                  factoryConfigs.put(factoryPid, table);
-                  table.put(evt.getPid(), component);
-                  restart(component, conf);
-
-//                }
+            try {
+              p.setInput(is, null);
+              Activator.logDebug("Parse component description: " + u);
+              while (true) {
+                try {
+                  ComponentDescription cd = ComponentDescription.parseComponent(b, p);
+                  Activator.logDebug("Got component description: " + cd);
+                  if (cd != null) {
+                    cds.add(cd);
+                  } else {
+                    break;
+                  }
+                } catch (XmlPullParserException pe) {
+                  Activator.logError(b, "Componenent description in '" + u +"'. " +
+                                     "Got " + pe, pe);
+                } finally {
+                }
+              }
+            } catch (Exception exc) {
+              Activator.logError(b, "Failed to read componenent description '" + u +"'.", exc);
+            } finally {
+              try {
+                is.close();
+              } catch (IOException ioe) {
+                Activator.logError(b, "Failed to close: " + u, ioe);
               }
             }
           }
-
-        } else { // just a regular Single Configuration.
-
-          for (Iterator i = components.iterator();
-             i.hasNext(); ) { // start looking for a potential target.
-
-            Component component = (Component)i.next();
-            Config config = component.getConfig();
-
-            if (pid.equals(config.getName())) {
-
-              if (evt.getType() == ConfigurationEvent.CM_DELETED) {
-                restart(component);
-              }
-
-              Configuration conf =
-                getConfiguration(component, pid);
-
-              if (conf == null)
-                continue ; // might not have permission
-
-              restart(component, conf);
-              // note that there might be other that matches as well..
+        } else {
+          Activator.logError(b, "Resource not found: " + me, null);
+        }
+      }
+      if (cds.size() > 0) {
+        Component [] carray = new Component [cds.size()];
+        bundleComponents.put(b, carray);
+        for (int i = 0; i < carray.length; i++) {
+          ComponentDescription cd = (ComponentDescription)cds.get(i);
+          Component c;
+          if (cd.isImmediate()) {
+            c = new ImmediateComponent(this, cd);
+          } else if (cd.getFactory() != null) {
+            c = new FactoryComponent(this, cd);
+          } else {
+            c = new DelayedComponent(this, cd);
+          }
+          carray[i] = c;
+          addComponentArray(components, c.compDesc.getName(), c);
+          String [] s = cd.getServices();
+          if (s != null) {
+            for (int si = 0; si < s.length; si++) {
+              addComponentArray(serviceComponents, s[si], c);
             }
+          }
+        }
+        for (int i = 0; i < carray.length; i++) {
+          if (carray[i].compDesc.isEnabled()) {
+            carray[i].enable();
           }
         }
       }
     }
   }
+
+
+  /**
+   * Remove service resources for bundle
+   *
+   * @param b Bundle to check
+   */
+  void removeBundle(Bundle b, int reason) {
+    Activator.logDebug("Remove " + b +" from SCR");
+    Component [] ca = (Component [])bundleComponents.remove(b);
+    if (ca != null) {
+      for (int i = 0; i < ca.length; i++) {
+        ca[i].disable(reason);
+        components.remove(ca[i].compDesc.getName());
+      }
+    }
+  }
+
+
+  /**
+   * Disabled named component or all components owned by
+   * specified bundle.
+   *
+   * @param name Component to disable or null if we want all
+   * @param b Bundle owning component
+   */
+  void disableComponent(String name, Bundle b) {
+    Component [] ca = (Component [])bundleComponents.get(b);
+    if (ca != null) {
+      for (int i = 0; i < ca.length; i++) {
+        if (name == null || name.equals(ca[i].compDesc.getName())) {
+          ca[i].disable(ComponentConstants.DEACTIVATION_REASON_DISABLED);
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Enabled named component or all components owned by
+   * specified bundle.
+   *
+   * @param name Component to enable or null if we want all
+   * @param b Bundle owning component
+   */
+  void enableComponent(String name, Bundle b) {
+    Component [] ca = (Component [])bundleComponents.get(b);
+    if (ca != null) {
+      for (int i = 0; i < ca.length; i++) {
+        if (name == null || name.equals(ca[i].compDesc.getName())) {
+          ca[i].enable();
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Get components with specified name.
+   */
+  Component [] getComponent(String name) {
+    return (Component [])components.get(name);
+  }
+
+
+  /**
+   * Check if component is part of a circular reference chain.
+   *
+   * @param component Component to check
+   * @param path Stack of referenced components
+   * @return If circle found return message showing circle,
+   *         otherwise return null.
+   */
+  String checkCircularReferences(Component component,
+                                 String pid,
+                                 ArrayList path) {
+    int len = path.size();
+    if (len > 0 && path.get(0) == component) {
+      StringBuffer sb = new StringBuffer("Found circular component chain: ");
+      for (Iterator pi = path.iterator(); pi.hasNext(); ) {
+        sb.append(((Component)pi.next()).compDesc.getName());
+        sb.append("->");
+      }
+      sb.append(component.compDesc.getName());
+      return sb.toString();
+    } else if (!component.isSatisfied() && !path.contains(component)) {
+      // We have not checked component before and it is inactive
+      Reference [] rs = component.getReferences();
+      if (rs != null) {
+        path.add(component);
+        for (int i = 0; i < rs.length; i++) {
+          // Loop through all mandatory references
+          if (!rs[i].isOptional()) {
+            Component [] cs = (Component [])serviceComponents.get(rs[i].refDesc.interfaceName);
+            if (cs != null) {
+              // Components for service found
+              // Get target filter to
+              // NYI! optimize when several pids has same filter
+              Filter f = rs[i].getListener(pid).getTargetFilter();
+              // Loop through all found components
+              for (int cx = 0; cx < cs.length; cx++) {
+                String [] pids = cs[cx].getAllServicePids();
+                // Loop through service property configurations
+                for (int px = 0; px < pids.length; px++) {
+                  if (f == null || f.match(cs[cx].getServiceProperties(pids[px]))) {
+                    String res = checkCircularReferences(cs[cx], pids[px], path);
+                    if (res != null) {
+                      return res;
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        path.remove(len);
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Register Component as a subscriber of CM events which have
+   * component name as CM pid.
+   *
+   * @param comp Component which config needs to be tracked
+   */
+  Configuration [] subscribeCMConfig(Component comp) {
+    String name = comp.compDesc.getName();
+    Component [] old = (Component [])configSubscriber.get(name);
+    if (old != null) {
+      Component [] n = new Component[old.length + 1];
+      System.arraycopy(old, 0, n, 0, old.length);
+      n[old.length] = comp;
+      configSubscriber.put(name, n);
+    } else {
+      configSubscriber.put(name, new Component [] {comp});
+    }
+
+    Configuration [] conf = listConfigurations(ConfigurationAdmin.SERVICE_FACTORYPID, name);
+    if (conf == null) {
+      conf = listConfigurations(Constants.SERVICE_PID, name);
+    }
+    return conf;
+  }
+
+
+  /**
+   * Unregister subscription of CM events for component.
+   *
+   * @param comp Component which config doesn't need to be tracked
+   */
+  void unsubscribeCMConfig(Component comp) {
+    String name = comp.compDesc.getName();
+    Component [] old = (Component [])configSubscriber.remove(name);
+    if (old != null) {
+      if (old.length != 1) {
+        Component [] n = new Component[old.length - 1];
+        int j = 0;
+        for (int i = 0; i < old.length; i++) {
+          if (old[i] != comp) {
+            n[j++] = old[i];
+          }
+        }
+        configSubscriber.put(name, n);
+      }
+    } else {
+      Activator.logError("Removed unknown subscriber: " + comp);
+    }
+  }
+
+  //
+  // Private methods
+  //
+
+  /**
+   * Get all CM configurations for specified CM pid or factory pid.
+   */
+  private Configuration[] listConfigurations(String key, String pid) {
+    ConfigurationAdmin cm = (ConfigurationAdmin)cmAdminTracker.getService();
+    try {
+      return cm.listConfigurations("(" + key + "=" + pid + ")");
+    } catch (InvalidSyntaxException e) {
+      Activator.logError("Strange CM PID: " + pid, e);
+    } catch (IOException e) {
+      Activator.logError("SCR could not retrieve the configuration for pid: " +
+                          pid + ". Got IOException.", e);
+    }
+    return null;
+  }
+
+
+  /**
+   *
+   */
+  private Configuration getConfiguration(String pid) {
+    Configuration[] conf = listConfigurations(Constants.SERVICE_PID, pid);
+    if (conf != null) {
+      return conf[0];
+    }
+    return null;
+  }
+
+
+  /**
+   * Add component inside an array to map. Merge arrays if several
+   * components has the same key.
+   *
+   */
+  private static void addComponentArray(Map map, String key, Component c) {
+    Component [] a = (Component [])map.get(key);
+    if (a == null) {
+      map.put(key, new Component [] {c});
+    } else {
+      Component [] n = new Component[a.length + 1];
+      System.arraycopy(a, 0, n, 0, a.length);
+      n[a.length] = c;
+      map.put(key, n);
+    }
+  }
+
+
+  /**
+   * Split a string into words separated by specified separator characters.
+   * All whitespace characters will also be removed unless inside a quote.
+   * <p>
+   * Citation character (") may be used to group words with embedded
+   * whitespace and separator characters.
+   * </p>
+   *
+   * @param s          String to split.
+   * @param separators Character to use for splitting. Any of the
+   *                   characters in the separator string are considered
+   *                   to be separator between words and will be removed
+   *                   from the result. If no words are found, return an
+   *                   array of length zero.
+   */
+  private static ArrayList splitwords(String s) {
+    boolean bCit = false;            // true when inside citation chars.
+    ArrayList res = new ArrayList();
+    int first = -1;
+    int last = -1;
+
+    for (int i = 0; i < s.length(); i++) {
+      char c = s.charAt(i);
+      if (bCit || c != ',') {
+        if (first >= 0) {
+          if (c == '"') {
+            bCit = !bCit;
+          } else if (bCit || !Character.isWhitespace(c)) {
+            last = i;
+          }
+        } else if (!Character.isWhitespace(c)) {
+          first = c == '"' ? i+1 : i;
+          last = i;
+        }
+      } else {
+        res.add(s.substring(first, last+1));
+        first = -1;
+      }
+    }
+    if (first >= 0) {
+      res.add(s.substring(first, last+1));
+    }
+    return res;
+  }
+
 }

@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: ksoap-osgi
 Bundle-SymbolicName: org.knopflerfish.bundle.ksoap-osgi
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:ksoap-osgi:2.0.0
 Bundle-Category: service
 Bundle-Description: kSOAP Server
 Bundle-Vendor: Knopflerfish/Apache
@@ -28,4 +27,3 @@ Import-Package: org.osgi.framework,
  org.ksoap2.serialization,
  org.ksoap2.transport,
  org.knopflerfish.service.ksoap
-

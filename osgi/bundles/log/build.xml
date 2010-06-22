@@ -21,15 +21,6 @@
    <pathelement location="cm_api-N.N.N.jar"/>
   </path>
 
-  <property name="bmfa.Bundle-Description"
-            value="The Knopflerfish OSGi log service"/>
-  <property name="bmfa.Bundle-Category"  value="service"/>
-  <property name="bmfa.Bundle-Version"   value="2.0.2"/>
-  <property name="bmfa.Bundle-Name"      value="Log-Service"/>
-  <property name="bmfa.Bundle-APIVendor" value="OSGi/Knopflerfish"/>
-  <property name="bmfa.Export-Package"
-            value="org.osgi.service.log;specification-version=1.3,org.knopflerfish.service.log;specification-version=1.1"/>
-
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

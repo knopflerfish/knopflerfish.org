@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,9 @@
  */
 
 package org.knopflerfish.service.desktop;
+
+import java.util.List;
+
 
 /**
  * Model describing which bundles are selected.
@@ -79,6 +82,15 @@ public interface BundleSelectionModel {
    * @param bSelected new selection status of the bundle.
    */
   public void    setSelected(long bid, boolean bSelected);
+
+  /**
+   * Set selection status of all bundle id in the given list and
+   * notify all listeners.
+   *
+   * @param bids List of bundle ids to set selection status for.
+   * @param bSelected new selection status of the bundles in the list.
+   */
+  public void    setSelected(List bids, boolean bSelected);
 
   /**
    * Add a <tt>BundleSelectionListener</tt> to the set of listeners

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ package org.knopflerfish.service.desktop;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -83,6 +84,22 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
     }
     fireChange(bid);
   }
+
+  public void    setSelected(List bids, boolean bSelected)
+  {
+    if (null==bids || 0==bids.size()) {
+      // Nothing to do!
+      return;
+    }
+
+    if(bSelected) {
+      selection.addAll(bids);
+    } else {
+      selection.removeAll(bids);
+    }
+    fireChange(((Long)bids.iterator().next()).longValue());
+  }
+
 
   public void    addBundleSelectionListener(BundleSelectionListener l) {
     synchronized(listeners) {

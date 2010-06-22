@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,13 @@ public interface BundleStorage {
   /**
    * Insert bundle into persistent storagedata.
    *
-   * @param key Name of attribute to get.
-   * @return 
+   * @param location Locaion of bundle to install.
+   * @param is Inputstream containing bundle.
+   * @return BundleArchive representing installed bundle.
    */
   BundleArchive insertBundleJar(String location, InputStream is)
     throws Exception;
+
 
   /**
    * Insert a new jar file into persistent storagedata as an update
@@ -65,6 +67,7 @@ public interface BundleStorage {
   BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
     throws Exception;
 
+
   /**
    * Replace old bundle archive with a new updated bundle archive, that
    * was created with updateBundleArchive.
@@ -76,12 +79,14 @@ public interface BundleStorage {
   void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
     throws Exception;
 
+
   /**
    * Get all bundle archive objects.
    *
    * @return Private copy of a List with bundle id's.
    */
   BundleArchive [] getAllBundleArchives();
+
 
   /**
    * Get all bundles tagged to start at next launch of framework.
@@ -91,11 +96,10 @@ public interface BundleStorage {
    */
   List getStartOnLaunchBundles();
 
+
   /**
-   * Set if bundles in this storage should check if they are signed.
-   *
-   * @param value If true check for certificates.
+   * Close this bundle storage and all bundles in it.
    */
-  public void setCheckSigned(boolean value);
+  void close();
 
 }

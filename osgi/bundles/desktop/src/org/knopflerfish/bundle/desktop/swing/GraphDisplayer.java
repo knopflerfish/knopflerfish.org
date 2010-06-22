@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,25 +61,28 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
 
 
-  public void bundleChanged(BundleEvent ev) {
+  public void bundleChanged(final BundleEvent ev) {
     super.bundleChanged(ev);
+    SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          for(Iterator it = components.iterator(); it.hasNext(); ) {
+            JMainBundles comp = (JMainBundles)it.next();
+            switch(ev.getType()) {
+            case BundleEvent.INSTALLED:
+              comp.addBundle(ev.getBundle());
+              break;
+            case BundleEvent.UNINSTALLED:
+              comp.removeBundle(ev.getBundle());
+              break;
+            default:
+              comp.updateBundleComp(ev.getBundle());
+              break;
+            }
+          }
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JMainBundles comp = (JMainBundles)it.next();
-      switch(ev.getType()) {
-      case BundleEvent.INSTALLED:
-        comp.addBundle(ev.getBundle());
-        break;
-      case BundleEvent.UNINSTALLED:
-        comp.removeBundle(ev.getBundle());
-        break;
-      default:
-        comp.updateBundleComp(ev.getBundle());
-        break;
-      }
-    }
-
-    repaintComponents();
+          repaintComponents();
+        }
+      });
   }
 
   public void showBundle(Bundle b) {
@@ -114,6 +117,10 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       }
       public void    setSelected(long bid, boolean bSelected) {
         bundleSelModel.setSelected(bid, bSelected);
+      }
+      public void    setSelected(java.util.List bids, boolean bSelected)
+      {
+        bundleSelModel.setSelected(bids, bSelected);
       }
       public void    addBundleSelectionListener(BundleSelectionListener l) {
         bundleSelModel.addBundleSelectionListener(l);

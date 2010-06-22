@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,19 +44,24 @@ import javax.swing.event.*;
 import java.awt.Component;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 
 public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
-  BundleTableModel2 model;
+  final BundleTableModel2 model;
+  final ListSelectionModel rowSM;
+
 
   public TableDisplayer(BundleContext bc) {
     super(bc, "Details", "Table view of bundles", false);
 
     model = new BundleTableModel2();
+    rowSM = new BundleTableRowSelectionModel();
   }
-  
+
   public JComponent newJComponent() {
     return new JBundleTable();
   }
@@ -75,15 +80,25 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   public void valueChanged(long bid) {
     try {
       bInValueChanged = true;
-      int row = model.getRowFromBID(bid);
-      
-      if(row == -1) {
-        return;
-      }
-      for(Iterator it = components.iterator(); it.hasNext(); ) {
-        JBundleTable comp = (JBundleTable)it.next();
-        
-        comp.table.setRowSelectionInterval(row, row);
+
+      if (null!=bundleSelModel) {
+
+        if (0==bundleSelModel.getSelectionCount()) {
+          rowSM.clearSelection();
+        } else {
+          // Update selection state for rows with a selection change.
+          for (int row=0; row<model.getRowCount(); row++) {
+            final long rowBid = model.getBundle(row).getBundleId();
+            final boolean isSelected = bundleSelModel.isSelected(rowBid);
+            if (isSelected != rowSM.isSelectedIndex(row)) {
+              if (isSelected) {
+                rowSM.addSelectionInterval(row, row);
+              } else {
+                rowSM.removeSelectionInterval(row, row);
+              }
+            }
+          }
+        }
       }
     } finally {
       bInValueChanged = false;
@@ -92,54 +107,31 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
   class JBundleTable extends JPanel {
     JTable            table;
-  
+
     public JBundleTable() {
       setLayout(new BorderLayout());
 
 
       table = new JTable() {
-	  public Color getGridColor() {
-	    return getBackground().darker();
-	  }
-	};
+          public Color getGridColor() {
+            return getBackground().darker();
+          }
+        };
 
       table.setModel(model);
-      table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-      
-      //      Dimension size = new Dimension(500, 300);
-      
-      //      scroll.setPreferredSize(size);
-      
+      table.setSelectionModel(rowSM);
 
-      DefaultTableCellRenderer rightAlign = 
-	new DefaultTableCellRenderer();
+      //      Dimension size = new Dimension(500, 300);
+      //      scroll.setPreferredSize(size);
+
+      DefaultTableCellRenderer rightAlign =
+        new DefaultTableCellRenderer();
 
       rightAlign.setHorizontalAlignment(SwingConstants.RIGHT);
 
       table.getColumnModel().getColumn(COL_ID).setCellRenderer(rightAlign);
-      
+
       setColumnWidth();
-
-      ListSelectionModel rowSM = table.getSelectionModel();
-      rowSM.addListSelectionListener(new ListSelectionListener() {
-	  public void valueChanged(ListSelectionEvent e) {
-
-	    if (e.getValueIsAdjusting()) {
-	      return;
-	    }
-
-	    ListSelectionModel lsm =  (ListSelectionModel)e.getSource();
-	    if (!lsm.isSelectionEmpty()) {
-	      int row = lsm.getMinSelectionIndex();
-	      
-	      Bundle b = model.getBundle(row);
-              if(!bInValueChanged) {
-                bundleSelModel.clearSelection();
-                bundleSelModel.setSelected(b.getBundleId(), true);
-              }
-            }
-	  }
-	});
 
       JScrollPane scroll = new JScrollPane(table);
       add(scroll, BorderLayout.CENTER);
@@ -167,24 +159,24 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       try {
         TableModel  model  = table.getModel();
         TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
-        
+
         if(col < model.getColumnCount()) {
           TableColumn column = table.getColumnModel().getColumn(col);
-          
-          Component headerComp = 
+
+          Component headerComp =
             headerRenderer
             .getTableCellRendererComponent(null, column.getHeaderValue(),
                                            false, false, 0, 0);
           int headerWidth = headerComp.getPreferredSize().width;
-          
-          
+
+
           w = Math.max(headerWidth, w);
-          
+
           totalWidth += w;
-          
+
           column.setMinWidth(10);
           column.setMaxWidth(300);
-          
+
           column.setPreferredWidth(w);
         }
       } catch (Exception e) {
@@ -202,18 +194,20 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   public static final int COL_VENDOR     = 6;
 
   public static int COL_COUNT   = 7;
-  
+
   class BundleTableModel2 extends AbstractTableModel {
-        
+
     public BundleTableModel2() {
     }
 
     public int getRowFromBID(long bid) {
-      Bundle[] bl = getBundleArray();
+      if (-1==bid) return -1;
+
+      final Bundle[] bl = getBundleArray();
       for(int i = 0; i < bl.length; i++) {
-	if(bl[i].getBundleId() == bid) {
-	  return i;
-	}
+        if(bl[i].getBundleId() == bid) {
+          return i;
+        }
       }
       return -1;
     }
@@ -221,30 +215,30 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     public Bundle getBundle(int row) {
       return getBundleArray()[row];
     }
-    
+
     public int getRowCount() {
       return getBundleArray().length;
     }
-    
+
     public int getColumnCount() {
       return COL_COUNT;
     }
-    
+
     public Class getColumnClass(int columnIndex) {
       Object obj = getValueAt(0, columnIndex);
       if (obj == null) {
-	return Object.class;
+        return Object.class;
       } else {
-	return obj.getClass();
+        return obj.getClass();
       }
     }
-    
-    
+
+
     public boolean isCellEditable(int row, int col) {
       return false;
     }
-    
-    
+
+
     public String getColumnName(int col) {
       switch(col) {
       case COL_LOCATION:   return "Location";
@@ -257,70 +251,136 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       default:             return "";
       }
     }
-    
+
     public String getToolTipText(int row, int column) {
       String tt = "";
-      
+
       if(column >= 0 && row >= 0) {
-	
-	Bundle b = getBundle(row);
-	
-	switch(column) {
-	case COL_ID:
-	case COL_LOCATION:
-	case COL_STATE:
-	case COL_STARTLEVEL:
-	case COL_DESC:
-	case COL_NAME:
-	case COL_VENDOR:
-	  tt = Util.bundleInfo(b);
-	  break;
-	default:
-	  break;
-	}
-	if(b.getState() == Bundle.UNINSTALLED) {
-	  tt = "Bundle is uninstalled";
-	}
+
+        Bundle b = getBundle(row);
+
+        switch(column) {
+        case COL_ID:
+        case COL_LOCATION:
+        case COL_STATE:
+        case COL_STARTLEVEL:
+        case COL_DESC:
+        case COL_NAME:
+        case COL_VENDOR:
+          tt = Util.bundleInfo(b);
+          break;
+        default:
+          break;
+        }
+        if(b.getState() == Bundle.UNINSTALLED) {
+          tt = "Bundle is uninstalled";
+        }
       }
-      
+
       return tt;
     }
 
 
     public Object getValueAt(int row, int column) {
       Bundle b = getBundle(row);
-      
+
       switch(column) {
       case COL_LOCATION:
-	return Util.shortLocation(b.getLocation());
+        return Util.shortLocation(b.getLocation());
       case COL_ID:
-	return Long.toString(b.getBundleId());
+        return Long.toString(b.getBundleId());
       case COL_STATE:
-	return Util.stateName(b.getState());
+        return Util.stateName(b.getState());
       case COL_STARTLEVEL:
-	{
-	  StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
+        {
+          StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
 
-	  if(null != sls) {
-	    try {
-	      int n = sls.getBundleStartLevel(b);
-	      return Integer.toString(n);
-	    } catch (Exception e) {
-	      return "not managed";
-	    }
-	  } else {
-	    return "no start level service";
-	  }
-	}
+          if(null != sls) {
+            try {
+              int n = sls.getBundleStartLevel(b);
+              return Integer.toString(n);
+            } catch (Exception e) {
+              return "not managed";
+            }
+          } else {
+            return "no start level service";
+          }
+        }
       case COL_DESC:
-	return Util.getHeader(b, "Bundle-Description");
+        return Util.getHeader(b, "Bundle-Description");
       case COL_NAME:
-	return Util.getHeader(b, "Bundle-Name");
+        return Util.getHeader(b, "Bundle-Name");
       case COL_VENDOR:
-	return Util.getHeader(b, "Bundle-Vendor");
+        return Util.getHeader(b, "Bundle-Vendor");
       default:
-	return null;
+        return null;
       }
     }
   }
+
+  // A ListSelectionModel that delegates all selection operations not
+  // originating from the bundleSelModel to the bundleSelModel-object.
+  class BundleTableRowSelectionModel
+    extends DefaultListSelectionModel
+  {
+    public BundleTableRowSelectionModel()
+    {
+      setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+    }
+
+    public void addSelectionInterval(int index0, int index1)
+    {
+      if(!bInValueChanged) {
+        final List selectedBundleIds = new ArrayList();
+        for (int row=index0; row<=index1; row++) {
+          final long rowBid = model.getBundle(row).getBundleId();
+          selectedBundleIds.add(new Long(rowBid));
+        }
+        bundleSelModel.setSelected(selectedBundleIds, true);
+      } else {
+        super.addSelectionInterval(index0, index1);
+      }
+    }
+
+    public void removeSelectionInterval(int index0, int index1)
+    {
+      if(!bInValueChanged) {
+        final List selectedBundleIds = new ArrayList();
+        for (int row=index0; row<=index1; row++) {
+          final long rowBid = model.getBundle(row).getBundleId();
+          selectedBundleIds.add(new Long(rowBid));
+        }
+        bundleSelModel.setSelected(selectedBundleIds, false);
+      } else {
+        super.removeSelectionInterval(index0, index1);
+      }
+    }
+
+    public void setSelectionInterval(int index0, int index1)
+    {
+      if(!bInValueChanged) {
+        bundleSelModel.clearSelection();
+        final List selectedBundleIds = new ArrayList();
+        final int startIx = index0<=index1 ? index0 : index1;
+        final int endIx   = index0<=index1 ? index1 : index0;
+        for (int row=startIx; row<=endIx; row++) {
+          final long rowBid = model.getBundle(row).getBundleId();
+          selectedBundleIds.add(new Long(rowBid));
+        }
+        bundleSelModel.setSelected(selectedBundleIds, true);
+      } else {
+        super.setSelectionInterval(index0, index1);
+      }
+    }
+
+    public void clearSelection()
+    {
+      if(!bInValueChanged) {
+        bundleSelModel.clearSelection();
+      } else {
+        super.clearSelection();
+      }
+    }
+  }
+
 }

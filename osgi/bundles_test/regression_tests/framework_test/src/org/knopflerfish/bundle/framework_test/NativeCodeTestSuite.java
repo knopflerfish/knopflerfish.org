@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,6 +76,7 @@ public class NativeCodeTestSuite extends TestSuite {
 
     addTest(new Setup());
    // addTest(new Frame0135a());
+    addTest(new Frame0137a());
     addTest(new Cleanup());
   }
  
@@ -84,7 +85,7 @@ public class NativeCodeTestSuite extends TestSuite {
   public class Setup extends FWTestCase {
 
     public String getDescription() {
-      return "This test suite doesn't do anything yet";
+      return "This does some error handling tests of bundles with native code";
     }
 
     public void runTest() throws Throwable {
@@ -247,6 +248,46 @@ public class NativeCodeTestSuite extends TestSuite {
       }
       else {
 	out.println("### framework test bundle :FRAME135A:FAIL");
+      }
+    }
+  }
+
+
+  // Install testbundle N1 & N2 (with faulty native code headers)
+  //
+
+  class Frame0137a extends FWTestCase {
+    public void runTest() throws Throwable {
+      boolean teststatus = true;
+    
+      try {
+	buN = Util.installBundle (bc, "bundleN1_test-1.0.0.jar");
+	buN.start();
+        out.println("framework faulty native test bundle N1 should not resolve :FRAME137:FAIL");
+	teststatus = false;
+      } catch (BundleException bex) {
+        // Expected bundle exception
+      } catch (Exception e) {
+	out.println("framework test bundle N1, "+ e +" :FRAME137A:FAIL");
+	teststatus = false;
+      }
+
+      try {
+	buN = Util.installBundle (bc, "bundleN2_test-1.0.0.jar");
+	buN.start();
+        out.println("framework faulty native test bundle N2 should not resolve :FRAME137:FAIL");
+	teststatus = false;
+      } catch (BundleException bex) {
+        // Expected bundle exception
+      } catch (Exception e) {
+	out.println("framework test bundle N2, "+ e +" :FRAME137A:FAIL");
+	teststatus = false;
+      }
+
+      if (teststatus == true) {
+	out.println("### framework test bundle :FRAME137A:PASS");
+      } else {
+	fail("### framework test bundle :FRAME137A:FAIL");
       }
     }
   }

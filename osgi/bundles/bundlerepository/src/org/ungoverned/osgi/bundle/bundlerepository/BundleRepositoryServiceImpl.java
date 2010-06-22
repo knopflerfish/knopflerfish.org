@@ -65,7 +65,8 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
     private int m_hopCount = 1;
 
     private static final String[] DEFAULT_REPOSITORY_URL = {
-        "http://oscar-osgi.sf.net/repository.xml"
+      //"http://oscar-osgi.sf.net/repository.xml",
+      "http://www.knopflerfish.org/releases/current/repository.xml",
     };
 
     public static final String REPOSITORY_URL_PROP
@@ -157,75 +158,74 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         return (BundleRecord) m_bundleList.get(i);
     }
 
-    /**
-     * Get bundle record for the bundle with the specified name
-     * and version from the repository.
-     * @param name the bundle record name to retrieve.
-     * @param version three-interger array of the version associated with
-     *        the name to retrieve.
-     * @return the associated bundle record or <tt>null</tt>.
-    **/
-    public synchronized BundleRecord getBundleRecord(String name, int[] version)
+    public synchronized BundleRecord getBundleRecord(String name,
+                                                     int[] version)
     {
-        if (!m_initialized)
-        {
-            initialize();
-        }
-
-        BundleRecord[] records = getBundleRecords(name);
-
-        if (records.length > 0)
-        {
-            for (int i = 0; i < records.length; i++)
-            {
-                String targetName =
-                    (String) records[i].getAttribute(BundleRecord.BUNDLE_NAME);
-                int[] targetVersion = Util.parseVersionString(
-                    (String) records[i].getAttribute(BundleRecord.BUNDLE_VERSION));
-
-                if ((targetName != null) &&
-                    targetName.equalsIgnoreCase(name) &&
-                    (Util.compareVersion(targetVersion, version) == 0))
-                {
-                    return records[i];
-                }
-            }
-        }
-
-        return null;
+      return getBundleRecord(name,
+                             new Version(version[0], version[1], version[2]));
     }
 
-    /**
-     * Get all versions of bundle records for the specified name
-     * from the repository.
-     * @param name the bundle record name to retrieve.
-     * @return an array of all versions of bundle records having the
-     *         specified name or <tt>null</tt>.
-    **/
-    public synchronized BundleRecord[] getBundleRecords(String name)
-    {
-        if (!m_initialized)
-        {
-            initialize();
-        }
-
-        BundleRecord[] records = new BundleRecord[0];
-
-        for (int i = 0; i < m_bundleList.size(); i++)
-        {
-            String targetName = (String)
-                getBundleRecord(i).getAttribute(BundleRecord.BUNDLE_NAME);
-            if ((targetName != null) && targetName.equalsIgnoreCase(name))
-            {
-                BundleRecord[] newRecords = new BundleRecord[records.length + 1];
-                System.arraycopy(records, 0, newRecords, 0, records.length);
-                newRecords[records.length] = getBundleRecord(i);
-                records = newRecords;
-            }
-        }
-
-        return records;
+  /**
+   * Get bundle record for the bundle with the specified name
+   * and version from the repository.
+   * @param name the name of the bundle to get the bundle record for.
+   * @param version The version of the bundle to retrieve the bundle
+   *                record of.
+   * @return the associated bundle record or <tt>null</tt>.
+   **/
+  public synchronized BundleRecord getBundleRecord(String name,
+                                                   Version version)
+  {
+    if (!m_initialized) {
+      initialize();
     }
+
+    BundleRecord[] records = getBundleRecords(name);
+
+    if (records.length > 0) {
+      for (int i = 0; i < records.length; i++) {
+        String targetName =
+          (String) records[i].getAttribute(BundleRecord.BUNDLE_NAME);
+        Version targetVersion = new Version((String) records[i].getAttribute(BundleRecord.BUNDLE_VERSION));
+
+        if ((targetName != null) && targetName.equalsIgnoreCase(name) &&
+            (targetVersion.compareTo(version) == 0)) {
+          return records[i];
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Get all versions of bundle records for the specified name
+   * from the repository.
+   * @param name the bundle record name to retrieve.
+   * @return an array of all versions of bundle records having the
+   *         specified name or <tt>null</tt>.
+   **/
+  public synchronized BundleRecord[] getBundleRecords(String name)
+  {
+    if (!m_initialized) {
+      initialize();
+    }
+
+    BundleRecord[] records = new BundleRecord[0];
+
+    for (int i = 0; i < m_bundleList.size(); i++) {
+      String targetName = (String)
+        getBundleRecord(i).getAttribute(BundleRecord.BUNDLE_NAME);
+      if ((targetName != null) && targetName.equalsIgnoreCase(name)) {
+        BundleRecord[] newRecords = new BundleRecord[records.length + 1];
+        System.arraycopy(records, 0, newRecords, 0, records.length);
+        newRecords[records.length] = getBundleRecord(i);
+        records = newRecords;
+      }
+    }
+
+    return records;
+  }
 
     public boolean deployBundle(
         PrintStream out, PrintStream err, String updateLocation,
@@ -472,33 +472,30 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         return null;
     }
 
-    private boolean isUpdateAvailable(
-        PrintStream out, PrintStream err, Bundle bundle)
-    {
-        // Get the bundle's update location.
-        String updateLocation =
-            (String) bundle.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
+  private boolean isUpdateAvailable(PrintStream out,
+                                    PrintStream err,
+                                    Bundle bundle)
+  {
+    // Get the bundle's update location.
+    String updateLocation =
+      (String) bundle.getHeaders().get(Constants.BUNDLE_UPDATELOCATION);
 
-        // Get associated repository bundle recorded for the
-        // local bundle and see if an update is necessary.
-        BundleRecord record = findBundleRecordByUpdate(updateLocation);
-        if (record == null)
-        {
-            err.println(Util.getBundleName(bundle) + " not in repository.");
-            return false;
-        }
-
-        // Check bundle version againts bundle record version.
-        int[] bundleVersion = Util.parseVersionString(
-            (String) bundle.getHeaders().get(Constants.BUNDLE_VERSION));
-        int[] recordVersion = Util.parseVersionString(
-            (String) record.getAttribute(BundleRecord.BUNDLE_VERSION));
-        if (Util.compareVersion(recordVersion, bundleVersion) > 0)
-        {
-            return true;
-        }
-        return false;
+    // Get associated repository bundle recorded for the
+    // local bundle and see if an update is necessary.
+    BundleRecord record = findBundleRecordByUpdate(updateLocation);
+    if (record == null) {
+      err.println(Util.getBundleName(bundle) + " not in repository.");
+      return false;
     }
+
+    // Check bundle version againts bundle record version.
+    Version bundleVersion = bundle.getVersion();
+    Version recordVersion = new Version((String) record.getAttribute(BundleRecord.BUNDLE_VERSION));
+    if (recordVersion.compareTo(bundleVersion) > 0) {
+      return true;
+    }
+    return false;
+  }
 
     /**
      * Returns the bundle record corresponding to the specified update
@@ -535,39 +532,30 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
     **/
     private synchronized boolean isLocallyResolvable(PackageDeclaration target)
     {
-        // Get package admin service.
-        ServiceReference ref = m_context.getServiceReference(
-            "org.osgi.service.packageadmin.PackageAdmin");
-        if (ref == null)
-        {
-            return false;
-        }
-
-        PackageAdmin pa = (PackageAdmin) m_context.getService(ref);
-        if (pa == null)
-        {
-            return false;
-        }
-
-        ExportedPackage[] exports = pa.getExportedPackages((Bundle)null);
-        if (exports != null)
-        {
-            for (int i = 0;
-                (exports != null) && (i < exports.length);
-                i++)
-            {
-                PackageDeclaration source =
-                    new PackageDeclaration(
-                        exports[i].getName(),
-                        exports[i].getSpecificationVersion());
-                if (source.doesSatisfy(target))
-                {
-                    return true;
-                }
-            }
-        }
-
+      // Get package admin service.
+      ServiceReference ref = m_context.getServiceReference("org.osgi.service.packageadmin.PackageAdmin");
+      if (ref == null) {
         return false;
+      }
+
+      PackageAdmin pa = (PackageAdmin) m_context.getService(ref);
+      if (pa == null) {
+        return false;
+      }
+
+      ExportedPackage[] exports = pa.getExportedPackages((Bundle)null);
+      if (exports != null) {
+        for (int i = 0; (exports != null) && (i < exports.length); i++) {
+          PackageDeclaration source =
+            new PackageDeclaration(exports[i].getName(),
+                                   exports[i].getVersion());
+          if (source.doesSatisfy(target)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
     }
 
     /**
@@ -752,8 +740,9 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
             }
             catch (Exception ex)
             {
-                ex.printStackTrace();
-                return;
+              System.err.println("Failed to parse '"+url+"': "+ex.getMessage());
+              ex.printStackTrace();
+              return;
             }
 
             List root = (List) handler.getRoot();
@@ -805,12 +794,10 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
                     // Convert any import package declarations
                     // to PackageDeclaration objects.
                     Object target = bundleMap.get(BundleRecord.IMPORT_PACKAGE);
-                    if (target != null)
-                    {
-                        // Overwrite the original package declarations.
-                        bundleMap.put(
-                            BundleRecord.IMPORT_PACKAGE,
-                            convertPackageDeclarations(target));
+                    if (target != null) {
+                      // Overwrite the original package declarations.
+                      bundleMap.put(BundleRecord.IMPORT_PACKAGE,
+                                    convertPackageDeclarations(target,true));
                     }
 
                     // Convert any export package declarations
@@ -819,9 +806,8 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
                     if (target != null)
                     {
                         // Overwrite the original package declarations.
-                        bundleMap.put(
-                            BundleRecord.EXPORT_PACKAGE,
-                            convertPackageDeclarations(target));
+                        bundleMap.put(BundleRecord.EXPORT_PACKAGE,
+                                      convertPackageDeclarations(target,false));
                     }
 
                     // Create a bundle record using the map.
@@ -876,7 +862,7 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         }
         catch (IOException ex)
         {
-            System.err.println("Error when conncting to '" +urlStr +"': " +ex);
+            System.err.println("Error when connecting to '" +urlStr +"': " +ex);
         }
         finally
         {
@@ -902,54 +888,54 @@ public class BundleRepositoryServiceImpl implements BundleRepositoryService
         });
     }
 
-    private PackageDeclaration[] convertPackageDeclarations(Object target)
+  private PackageDeclaration[] convertPackageDeclarations(Object target,
+                                                          boolean versionRange)
     {
-        PackageDeclaration[] decls = null;
+      PackageDeclaration[] decls = null;
 
-        // If there is only one package it will be a
-        // Map as specified above when parsing.
-        if (target instanceof Map)
-        {
-            // Put package declaration into an array.
-            decls = new PackageDeclaration[1];
-            decls[0] = convertPackageMap((Map) target);
+      // If there is only one package it will be a
+      // Map as specified above when parsing.
+      if (target instanceof Map) {
+        // Put package declaration into an array.
+        decls = new PackageDeclaration[1];
+        decls[0] = convertPackageMap((Map) target, versionRange);
+      }
+      // If there is more than one package, then the
+      // MultivalueMap will convert them to a list of maps.
+      else if (target instanceof List) {
+        List pkgList = (List) target;
+        decls = new PackageDeclaration[pkgList.size()];
+        for (int pkgIdx = 0; pkgIdx < decls.length; pkgIdx++) {
+          decls[pkgIdx] = convertPackageMap((Map) pkgList.get(pkgIdx),
+                                            versionRange);
         }
-        // If there is more than one package, then the
-        // MultivalueMap will convert them to a list of maps.
-        else if (target instanceof List)
-        {
-            List pkgList = (List) target;
-            decls = new PackageDeclaration[pkgList.size()];
-            for (int pkgIdx = 0; pkgIdx < decls.length; pkgIdx++)
-            {
-                decls[pkgIdx] = convertPackageMap(
-                    (Map) pkgList.get(pkgIdx));
-            }
-        }
+      }
 
-        return decls;
+      return decls;
     }
 
-    private PackageDeclaration convertPackageMap(Map map)
+    private PackageDeclaration convertPackageMap(Map map,
+                                                 boolean versionRange)
     {
-        // Create a case-insensitive map.
-        Map pkgMap = new TreeMap(new Comparator() {
-            public int compare(Object o1, Object o2)
-            {
-                return o1.toString().compareToIgnoreCase(o2.toString());
-            }
+      // Create a case-insensitive map.
+      Map pkgMap = new TreeMap(new Comparator() {
+          public int compare(Object o1, Object o2)
+          {
+            return o1.toString().compareToIgnoreCase(o2.toString());
+          }
         });
-        pkgMap.putAll((Map) map);
+      pkgMap.putAll((Map) map);
 
-        // Get package name and version.
-        String name = (String) pkgMap.get(PackageDeclaration.PACKAGE_ATTR);
-        String version = (String) pkgMap.get(PackageDeclaration.VERSION_ATTR);
+      // Get package name and version.
+      String name = (String) pkgMap.get(PackageDeclaration.PACKAGE_ATTR);
+      String version = (String) pkgMap.get(PackageDeclaration.VERSION_ATTR);
+      if (null==version)
+        version = (String) pkgMap.get(PackageDeclaration.SPEC_VERSION_ATTR);
 
-        if (name != null)
-        {
-            return new PackageDeclaration(name, version);
-        }
+      if (name != null) {
+        return new PackageDeclaration(name, version, versionRange);
+      }
 
-        return null;
+      return null;
     }
 }

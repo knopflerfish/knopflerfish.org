@@ -13,12 +13,12 @@
   <property name = "bundle.build.lib"   value = "false"/>
 
   <property name="api.pattern" value="org/osgi/service/component/**"/>
-  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
+  <property name="impl.pattern" value="org/knopflerfish/bundle/component/**"/>
 
   <path id="bundle.compile.path">
     <pathelement location="log_api-N.N.N.jar"/>
     <pathelement location="cm_api-N.N.N.jar"/>
-    <pathelement location="resources/kxml2.jar"/>
+    <pathelement location="kxml-N.N.N.jar"/>
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>

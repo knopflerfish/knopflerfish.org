@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  */
 
 package org.knopflerfish.bundle.httpconsole;
-	
+
 import org.osgi.framework.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -41,11 +41,11 @@ import java.util.*;
 import java.io.*;
 
 public class Util {
-  static String BUNDLE_IMAGE = Activator.RES_ALIAS + "/bundle.gif";
-  static String LIB_IMAGE    = Activator.RES_ALIAS + "/lib.gif";
+  static String BUNDLE_IMAGE = Activator.RES_ALIAS + "/bundle.png";
+  static String LIB_IMAGE    = Activator.RES_ALIAS + "/lib.png";
 
-  static String BUNDLE_ACTIVE_IMAGE = Activator.RES_ALIAS + "/bundle_started.gif";
-  static String LIB_ACTIVE_IMAGE    = Activator.RES_ALIAS + "/lib_started.gif";
+  static String BUNDLE_ACTIVE_IMAGE = Activator.RES_ALIAS + "/bundle-active.png";
+  static String LIB_ACTIVE_IMAGE    = Activator.RES_ALIAS + "/bundle-lib-active.png";
 
   static String BUNDLE_ID_PREFIX = "bundle_id_";
 
@@ -53,9 +53,9 @@ public class Util {
   static public String toHTML(Throwable t) {
     StringWriter sw = new StringWriter();
     t.printStackTrace(new PrintWriter(sw));
-    return 
-      "<div class=\"error\">" + 
-      sw.toString() + 
+    return
+      "<div class=\"error\">" +
+      sw.toString() +
       "</div>";
   }
 
@@ -65,12 +65,12 @@ public class Util {
     for(Enumeration e = request.getParameterNames(); e.hasMoreElements(); ) {
       String key = (String)e.nextElement();
       if(key.startsWith(BUNDLE_ID_PREFIX)) {
-	try {
-	  long bid = Long.parseLong(key.substring(BUNDLE_ID_PREFIX.length()));
-	  v.addElement(new Long(bid));
-	} catch (Exception ex) {
-	  System.out.println("Bad bid=" + key + " ex=" + ex);
-	}
+        try {
+          long bid = Long.parseLong(key.substring(BUNDLE_ID_PREFIX.length()));
+          v.addElement(new Long(bid));
+        } catch (Exception ex) {
+          System.out.println("Bad bid=" + key + " ex=" + ex);
+        }
       }
     }
 
@@ -91,20 +91,20 @@ public class Util {
     if(s != null) {
       int ix = s.lastIndexOf("/");
       if(ix == -1) {
-	ix = s.lastIndexOf("\\");
+        ix = s.lastIndexOf("\\");
       }
       if(ix != -1) {
-	return s.substring(ix + 1);
+        return s.substring(ix + 1);
       }
     }
 
     return "#" + b.getBundleId();
   }
-  
+
   static String getBundleImage(Bundle b) {
     if(hasActivator(b)) {
       if(b.getState() == Bundle.ACTIVE) {
-	return BUNDLE_ACTIVE_IMAGE;
+        return BUNDLE_ACTIVE_IMAGE;
       }
       return BUNDLE_IMAGE;
     }
@@ -127,7 +127,7 @@ public class Util {
   }
 
   public static String getHeader(Bundle b, String name, String def) {
-    String s = 
+    String s =
       b != null
       ? (String)b.getHeaders().get(name)
       : def;
@@ -152,7 +152,7 @@ public class Util {
    *
    * <p>
    * Implementation note: This method avoids using the standard String
-   * manipulation methods to increase execution speed. 
+   * manipulation methods to increase execution speed.
    * Using the <tt>replace</tt> method does however
    * include two <tt>new</tt> operations in the case when matches are found.
    * </p>
@@ -160,28 +160,28 @@ public class Util {
    *
    * @param s  Source string.
    * @param v1 String to be replaced with <code>v2</code>.
-   * @param v2 String replacing <code>v1</code>. 
+   * @param v2 String replacing <code>v1</code>.
    * @return Modified string. If any of the input strings are <tt>null</tt>,
-   *         the source string <tt>s</tt> will be returned unmodified. 
+   *         the source string <tt>s</tt> will be returned unmodified.
    *         If <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or
-   *         no occurances of <tt>v1</tt> is found, also 
+   *         no occurances of <tt>v1</tt> is found, also
    *         return <tt>s</tt> unmodified.
    */
-  public static String replace(final String s, 
-			       final String v1, 
-			       final String v2) {
-    
+  public static String replace(final String s,
+                               final String v1,
+                               final String v2) {
+
     // return quick when nothing to do
-    if(s == null 
-       || v1 == null 
-       || v2 == null 
-       || v1.length() == 0 
+    if(s == null
+       || v1 == null
+       || v2 == null
+       || v1.length() == 0
        || v1.equals(v2)) {
       return s;
     }
 
     int ix       = 0;
-    int v1Len    = v1.length(); 
+    int v1Len    = v1.length();
     int n        = 0;
 
     // count number of occurances to be able to correctly size
@@ -206,15 +206,15 @@ public class Util {
     while(-1 != (ix = s.indexOf(v1, start))) {
       while(start < ix) r[rPos++] = s.charAt(start++);
       for(int j = 0; j < v2Len; j++) {
-	r[rPos++] = v2.charAt(j);
+        r[rPos++] = v2.charAt(j);
       }
       start += v1Len;
     }
 
     // ...and add all remaining chars
-    ix = s.length(); 
+    ix = s.length();
     while(start < ix) r[rPos++] = s.charAt(start++);
-    
+
     // ..ouch. this hurts.
     return new String(r);
   }
@@ -226,23 +226,23 @@ public class Util {
 
   public static Comparator bundleNameComparator = new Comparator() {
       public int compare(Object a, Object b) {
-	Bundle b1 = (Bundle)a;
-	Bundle b2 = (Bundle)b;
-	
-	String s1 = getName(b1).toLowerCase();
-	String s2 = getName(b2).toLowerCase();
-	
-	//	System.out.println("compare " + s1 + ", " + s2);
-	return s1.compareTo(s2);
+        Bundle b1 = (Bundle)a;
+        Bundle b2 = (Bundle)b;
+
+        String s1 = getName(b1).toLowerCase();
+        String s2 = getName(b2).toLowerCase();
+
+        //      System.out.println("compare " + s1 + ", " + s2);
+        return s1.compareTo(s2);
       }
     };
 
   public static Comparator stringComparator = new Comparator() {
       public int compare(Object a, Object b) {
-	String s1 = ((String)a).toLowerCase();
-	String s2 = ((String)b).toLowerCase();
-	
-	return s1.compareTo(s2);
+        String s1 = ((String)a).toLowerCase();
+        String s2 = ((String)b).toLowerCase();
+
+        return s1.compareTo(s2);
       }
     };
 
@@ -256,7 +256,7 @@ public class Util {
   static public void sort(Vector a, Comparator cf, boolean bReverse) {
     sort(a, 0, a.size() - 1, cf, bReverse ? -1 : 1);
   }
-  
+
   /**
    * Vector QSort implementation.
    */
@@ -264,52 +264,52 @@ public class Util {
     int lo = lo0;
     int hi = hi0;
     Object mid;
-    
+
     if ( hi0 > lo0) {
-      
+
       mid = a.elementAt( ( lo0 + hi0 ) / 2 );
-      
+
       while( lo <= hi ) {
-	while( ( lo < hi0 ) && ( k * cf.compare(a.elementAt(lo), mid) < 0 )) {
-	  ++lo;
-	}
-	
-	while( ( hi > lo0 ) && ( k * cf.compare(a.elementAt(hi), mid ) > 0 )) {
-	  --hi;
-	}
-	
-	if( lo <= hi ) {
-	  swap(a, lo, hi);
-	  ++lo;
-	  --hi;
-	}
+        while( ( lo < hi0 ) && ( k * cf.compare(a.elementAt(lo), mid) < 0 )) {
+          ++lo;
+        }
+
+        while( ( hi > lo0 ) && ( k * cf.compare(a.elementAt(hi), mid ) > 0 )) {
+          --hi;
+        }
+
+        if( lo <= hi ) {
+          swap(a, lo, hi);
+          ++lo;
+          --hi;
+        }
       }
-      
+
       if( lo0 < hi ) {
-	sort( a, lo0, hi, cf, k );
+        sort( a, lo0, hi, cf, k );
       }
-      
+
       if( lo < hi0 ) {
-	sort( a, lo, hi0, cf, k );
+        sort( a, lo, hi0, cf, k );
       }
     }
   }
-  
+
   private static void swap(Vector a, int i, int j) {
-    Object tmp  = a.elementAt(i); 
+    Object tmp  = a.elementAt(i);
     a.setElementAt(a.elementAt(j), i);
     a.setElementAt(tmp,            j);
   }
 
 
   static void formStart(PrintWriter out, boolean bMultipart) throws IOException {
-    out.println("<form " + 
-		" action=\"" + Activator.SERVLET_ALIAS + "\"");
+    out.println("<form " +
+                " action=\"" + Activator.SERVLET_ALIAS + "\"");
     if(bMultipart) {
       out.print(" enctype=\"multipart/form-data\"");
     }
-    out.print(" method=\"POST\"" + 
-	      ">");
+    out.print(" method=\"POST\"" +
+              ">");
   }
 
   static void formStop(PrintWriter out) throws IOException {
@@ -320,89 +320,117 @@ public class Util {
   private static int BUF_SIZE = 1024 * 10;
 
   public static byte[] loadFormData(HttpServletRequest request,
-				    String target,
-				    StringBuffer fileName)
+                                    String target,
+                                    StringBuffer fileName)
     throws ServletException,IOException
   {
     String      contentType = request.getHeader("content-type");
-    
+    if (Activator.log.doDebug()) {
+      Activator.log.debug("Got form data; Content-Type: " + contentType);
+    }
+
     // Only accept valid types
     if(!contentType.startsWith("multipart/form-data")) {
       throw new IOException("Bad content type for form data: " + contentType);
     }
-    
+
     String boundary = "--" + extractParam(contentType,"boundary");
     if (boundary == null) {
       throw new IOException("No boundary string - can't parse uploaded data");
     }
-    
+
     // Parse the data
-    
+
     int       numRead;
-    String    filename         = "";
+    String    filename         = null;
     byte[]    buf              = new byte[BUF_SIZE];
     boolean   bHeader          = false;
     String    param            = null;
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     ServletInputStream    sis  = request.getInputStream();
-    
+
     boolean bDone = false;
-    
+
     while(!bDone && (numRead = sis.readLine(buf, 0, BUF_SIZE)) != -1) {
-      //	Activator.log.info("read " + numRead + " bytes");
       if (bHeader) {
-	// Read header
-	String line = new String(buf, 0, numRead);
-	if (line.equals("\r\n")) {
-	  bHeader = false;
-	} else if (line.startsWith("Content-Disposition:")) {
-	  // Get parameters
-	  //	  System.out.println("disp:" + line);
-	  param = extractParam(line, "name");
-	  if ("file".equals(param)) {
-	    // Remove path from file name
-	    filename = extractParam(line, "filename");
-	    if (filename != null) {
-	      StringTokenizer st = new StringTokenizer(filename, "\\/");
-	      while (st.hasMoreTokens()) {
-		Activator.log.info("got filename");
-		filename = st.nextToken();
-	      }
-	    }
-	  }
-	} else if (line.startsWith("Content-Type:")) {
-	  // Get parameters
-	  //	  Activator.log.info("Got Content-Type: "+extractParam(line, "Content-Type"));
-	}
+        // Read header
+        String line = new String(buf, 0, numRead);
+        if (line.equals("\r\n")) {
+          bHeader = false;
+          baos.reset(); // Discard any data from previous segment.
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("end of headers reached");
+          }
+        } else if (line.startsWith("Content-Disposition:")) {
+          // Get parameters
+          if (Activator.log.doDebug()) {
+            Activator.log.debug(line.substring(0,line.length()-2));
+          }
+          param = extractParam(line, "name");
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("param: "+param);
+          }
+          if ((target + "_file").equals(param)) {
+            // Remove path from file name
+            filename = extractParam(line, "filename");
+            if (filename != null) {
+              StringTokenizer st = new StringTokenizer(filename, "\\/");
+              while (st.hasMoreTokens()) {
+                filename = st.nextToken();
+              }
+            }
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("fileName: "+filename);
+            }
+          }
+        } else if (line.startsWith("Content-Type:")) {
+          // Get parameters
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("Content-Type: "
+                               +extractParam(line, "Content-Type"));
+          }
+        }
       } else {
-	// Check for boundary or read data
-	if ((numRead == boundary.length()+2 ||
-	     numRead == boundary.length()+4) &&
-	    (new String(buf, 0, numRead)).startsWith(boundary))
-	  {
-	    //	    System.out.println("boundary, param=" + param + ", filename=" + filename);
-	    if ((target + "_file").equals(param) && filename != null
-		&& baos != null && baos.size() > 2)
-	      {
-		// Remove all the last "\r\n" characters
-		byte [] outBytes = new byte[baos.size()-2];
-		System.arraycopy(baos.toByteArray(),0,outBytes, 0,baos.size()-2);
-		//		System.out.println("done, bytes=" + outBytes.length);
-		//		System.out.println("result='" + new String(outBytes) + "'");
-		fileName.append(filename);
-		return outBytes;
-		
-	      } else if ("mime".equals(param) &&
-			 baos != null && baos.size() > 2)
-		{
-		  String mime = new String(baos.toByteArray(),0,baos.size()-2);
-		  Activator.log.info("got mime: " + mime);
-		}
-	    bHeader = true;
-	  } else {
-	    //	    Activator.log.info("write data, numRead=" + numRead);
-	    baos.write(buf, 0, numRead);
-	  }
+        // Check for boundary or read data
+        if ((numRead == boundary.length()+2 ||
+             numRead == boundary.length()+4) &&
+            (new String(buf, 0, numRead)).startsWith(boundary)) {
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("found boundary");
+          }
+
+          if ((target + "_file").equals(param) && filename != null
+              && baos != null && baos.size() > 2) {
+            // Found boundary indicating end of segment.
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("  end of file data.");
+            }
+
+            // Remove the last "\r\n" characters (the blank line
+            // before the boundary line)
+            byte [] outBytes = new byte[baos.size()-2];
+            System.arraycopy(baos.toByteArray(),0,outBytes, 0,
+                             baos.size()-2);
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("done, bytes=" + outBytes.length);
+            }
+            fileName.append(filename);
+            return outBytes;
+
+          } else if ("mime".equals(param) &&
+                     baos != null && baos.size() > 2) {
+            String mime = new String(baos.toByteArray(),0,baos.size()-2);
+            if (Activator.log.doDebug()) {
+              Activator.log.debug("got mime: " + mime);
+            }
+          }
+          bHeader = true; // Look for headers after a boundary
+        } else {
+          if (Activator.log.doDebug()) {
+            Activator.log.debug("write data, numRead=" + numRead);
+          }
+          baos.write(buf, 0, numRead);
+        }
       }
     }
     return null;
@@ -415,21 +443,21 @@ public class Util {
     while (st.hasMoreTokens()) {
       String token = st.nextToken().trim();
       if (token.startsWith(param+"=") || token.startsWith(param+":")) {
-	value = token.substring(param.length()+1).replace('\"', ' ').trim();
-	break;
+        value = token.substring(param.length()+1).replace('\"', ' ').trim();
+        break;
       }
     }
     return value;
   }
 
   public static String infoLink(Bundle b) {
-    return ("<a href=\"" + 
-	    Activator.SERVLET_ALIAS + 
-	    "?" + Util.BUNDLE_ID_PREFIX + b.getBundleId() +
-	    "=on" + 
-	    "&cmd_info.x=1&cmd_info.y=1\">");
+    return ("<a href=\"" +
+            Activator.SERVLET_ALIAS +
+            "?" + Util.BUNDLE_ID_PREFIX + b.getBundleId() +
+            "=on" +
+            "&cmd_info.x=1&cmd_info.y=1\">");
   };
-  
+
   static public Bundle[] getSortedBundles(BundleContext bc) {
     Bundle[] bundles = bc.getBundles();
 
@@ -484,7 +512,7 @@ public class Util {
     for(int i = 0; i < a.length; i++) {
       printObject(out, a[i]);
       if(i < a.length - 1) {
-	out.println("<br>");
+        out.println("<br>");
       }
     }
   }
@@ -493,7 +521,7 @@ public class Util {
     for(int i = 0; i < a.size(); i++) {
       printObject(out, a.elementAt(i));
       if(i < a.size() - 1) {
-	out.println("<br>");
+        out.println("<br>");
       }
     }
   }
@@ -510,5 +538,5 @@ public class Util {
     }
   }
 
-  
+
 }

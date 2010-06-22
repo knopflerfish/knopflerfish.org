@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,8 +59,8 @@ import java.net.*;
  * <p>
  * When instanciated, SystemMetatypeProvider will listen for installed
  * bundles and try to extract metatype and Cm defaults XML from the
- * bundle jar files. This data will then be available using the 
- * <tt>getServicePIDs</tt>, <tt>getFactoryPIDs</tt> and 
+ * bundle jar files. This data will then be available using the
+ * <tt>getServicePIDs</tt>, <tt>getFactoryPIDs</tt> and
  * <tt>getObjectClassDefinition</tt> methods.
  * </p>
  */
@@ -68,7 +68,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 
   /**
    * Default URL to metatype XML.
-   * 
+   *
    * <p>
    * Value is "!/metatype.xml"
    * </p>
@@ -76,8 +76,8 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
   public static final String METATYPE_RESOURCE    = "/metatype.xml";
 
   /**
-   * Default URL to default CM values
-   * 
+   * Default URL to default CM values.
+   *
    * <p>
    * Value is "!/cmdefaults.xml"
    * </p>
@@ -86,7 +86,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 
   /**
    * Manifest attribute name specifying metatype XML URL.
-   * 
+   *
    * <p>
    * Value is "Bundle-MetatypeURL"
    * </p>
@@ -95,7 +95,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 
   /**
    * Manifest attribute name specifying CM defaults XML URL.
-   * 
+   *
    * <p>
    * Value is "Bundle-CMDefaultsURL"
    * </p>
@@ -150,7 +150,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
             if(ev.getBundle().getBundleId() != 0) {
               try {
                 loadMTP(ev.getBundle());
-              } 
+              }
               catch (Exception e) {
                 log.error("Failed to handle bundle " + ev.getBundle().getBundleId(), e);
                 //e.printStackTrace(System.out);
@@ -167,16 +167,16 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     	}
     };
 
-    Bundle[] bs = bc.getBundles(); 
+    Bundle[] bs = bc.getBundles();
     for(int i = 0; i < bs.length; i++) {
       bl.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bs[i]));
     }
     bc.addBundleListener(bl);
 
-    
+
     cmTracker = new ServiceTracker(bc, ConfigurationAdmin.class.getName(), null);
     cmTracker.open();
-    
+
     // track CM configuration instances as MTPs on the system bundle.
 
     cmMTP = new MTP("[CM]") {
@@ -187,19 +187,19 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 	  public String[] getFactoryPids() {
 	    return  MTP.toStringArray(getCMFactoryPIDs());
 	  }
-	  
+
 	  public String[] getLocales() {
 	    return null;
 	  }
-	  
+
 	  public ObjectClassDefinition getObjectClassDefinition(String pid, String locale) {
-		  
+
 	    OCD ocd = (OCD)cmOCDMap.get(pid);
 	    if(ocd != null) {
 	      //cached
 	      return ocd;
 	    }
-	    
+
 	    ConfigurationAdmin ca = (ConfigurationAdmin)cmTracker.getService();
 	    if(ca != null) {
 	    	try {
@@ -216,24 +216,24 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 	    			ocd = new OCD(pid, pid, pid + " from CM", props);
 	    			cmOCDMap.put(pid, ocd);
 	    			return ocd;
-	    		} 
+	    		}
 	    		else {
 	    			throw new RuntimeException("No config for pid " + pid);
 	    		}
-	    	} 
+	    	}
 	    	catch (Exception e) {
 	    		log.error("Failed to get service pid " + pid, e);
 	    		return null;
 	    	}
-	    } 
+	    }
 	    else {
 	      log.warn("Failed to get CA when getting pid " + pid);
 	      return null;
 	    }
 	  }
 	};
-	
-    setupMTListener(); 
+
+    setupMTListener();
   }
 
 
@@ -260,14 +260,14 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
   public void loadMTP(Bundle b) throws Exception {
 
     URL url;
-    
+
     //try R4 first
     Enumeration metaTypeFiles;
     if (b.getState() == Bundle.INSTALLED) {
       Enumeration p = b.getEntryPaths(MetaTypeService.METATYPE_DOCUMENTS_LOCATION);
       if (p != null) {
         Vector tmp = new Vector();
-    	while(p.hasMoreElements()){ 
+    	while(p.hasMoreElements()){
           tmp.addElement(b.getEntry((String)p.nextElement()));
     	}
         metaTypeFiles = tmp.elements();
@@ -279,21 +279,21 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     }
     if(metaTypeFiles != null){
     	BundleMetaTypeResource bmtr = new BundleMetaTypeResource(b);
-    	
-    	while(metaTypeFiles.hasMoreElements()){ 
+
+    	while(metaTypeFiles.hasMoreElements()){
     		url = (URL)metaTypeFiles.nextElement();
-    		bmtr.mergeWith(Loader.loadBMTIfromUrl(bc, b, url));	
+    		bmtr.mergeWith(Loader.loadBMTIfromUrl(bc, b, url));
     	}
-    	
+
     	bmtr.prepare();
-    	
+
     	providers.put(b, bmtr);
     }
     else{
     	//proprietary legacy
-    	
+
     	MTP mtp = null;
-    
+
     	String defStr = (String)b.getHeaders().get(ATTRIB_METATYPEURL);
 
     	if(defStr == null || "".equals(defStr)) {
@@ -302,27 +302,27 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 
     	if(defStr.startsWith("!")) {
     		url = b.getEntry(defStr.substring(1));
-    	} 
+    	}
     	else if(defStr.startsWith("/")) {
     		url = b.getEntry(defStr);
-    	} 
+    	}
     	else {
     		url = new URL(defStr);
     	}
-    
+
     	if(url != null) {
     		try {
     			mtp = Loader.loadMTPFromURL(b, url);
     			providers.put(b, mtp);
-    		} 
+    		}
     		catch (Exception e) {
     			log.info("Failed to load metatype XML from bundle " + b.getBundleId(), e);
     			//throw e;
     		}
     	}
-    
+
     	//defaults are specified in the file itself in R4
-    
+
     	String valStr = (String)b.getHeaders().get(ATTRIB_CMDEFAULTSURL);
 
     	if(valStr == null || "".equals(valStr)) {
@@ -331,26 +331,26 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 
     	if(valStr.startsWith("!")) {
     		url = b.getEntry(valStr.substring(1));
-    	} 
+    	}
     	else if(valStr.startsWith("/")) {
     		url = b.getEntry(valStr);
-    	} 
+    	}
     	else {
     		url = new URL(valStr);
     	}
-    
+
     	if(url != null) {
     		try {
     			Loader.loadDefaultsFromURL(mtp, url);
     			log.info("Bundle " + b.getBundleId() + ": loaded default values");
-    		} 
+    		}
     		catch (Exception e) {
     			log.info("Failed to load cm defaults XML from bundle " + b.getBundleId(), e);
     			//throw e;
     		}
     	}
     } //proprietary legacy
-    
+
   }
 
   public String[] getPids() {
@@ -371,7 +371,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     		  for(int i = 0; pids != null && i < pids.length; i++) {
     			  set.add(pids[i]);
     		  }
-    	  } 
+    	  }
     	  catch (Exception e) {
     		  log.warn("No service.pids property on " + sr);
     	  }
@@ -379,7 +379,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
       return MTP.toStringArray(set);
     }
   }
-  
+
   public String[] getFactoryPids() {
     synchronized(providers) {
       Set set = new HashSet();
@@ -420,17 +420,17 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     ServiceReference cmSR = cmTracker.getServiceReference();
 
     MetaTypeInformation mti = null;
-    
+
     if(cmSR != null && cmSR.getBundle() == b) {
       mti = cmMTP;
-    } 
+    }
     else if(b.getBundleId() == 0) {
       mti = this;
-    } 
+    }
     else {
       mti = (MetaTypeInformation)providers.get(b);
     }
-    
+
     return mti;
   }
 
@@ -440,12 +440,12 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
    * @return ObjectClassDefinition if PID exists, otherwise <tt>null</tt>.
    */
   public ObjectClassDefinition getObjectClassDefinition(String pid, String locale) {
-    
+
     synchronized(providers) {
       for(Iterator it = providers.keySet().iterator(); it.hasNext();) {
     	  Bundle b   = (Bundle)it.next();
     	  MetaTypeProvider    mtp = (MetaTypeProvider)providers.get(b);
-	
+
     	  ObjectClassDefinition  ocd = mtp.getObjectClassDefinition(pid, locale);
     	  if(ocd != null) {
     		  return ocd;
@@ -459,7 +459,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     		  ObjectClassDefinition ocd = mt.getObjectClassDefinition(pid, locale);
     		  if(ocd != null) {
     			  return ocd;
-    		  }	
+    		  }
     	  }
       }
       return null;
@@ -472,14 +472,14 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
   Map mtMap = new HashMap();
 
   void setupMTListener() {
-	  
+
     mtListener = new ServiceListener() {
-	
+
     	public void serviceChanged(ServiceEvent ev) {
     		ServiceReference sr = ev.getServiceReference();
     		synchronized(mtMap) {
     			switch(ev.getType()) {
-    				case ServiceEvent.REGISTERED: 
+    				case ServiceEvent.REGISTERED:
     					MetaTypeProvider mt = (MetaTypeProvider)bc.getService(sr);
     					if(mt != SystemMetatypeProvider.this) {
     						mtMap.put(sr, mt);
@@ -493,22 +493,22 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     		}
     	}
     };
-    
+
     try {
       String filter = "(objectclass=" + MetaTypeProvider.class.getName() + ")";
-      
+
       ServiceReference[] srl = bc.getServiceReferences(null, filter);
-      
+
       for(int i = 0; srl != null && i < srl.length; i++) {
     	  mtListener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
       bc.addServiceListener(mtListener, filter);
-      
-    } 
+
+    }
     catch(Exception e) {
       log.error("Failed to get other providers", e);
     }
-  
+
   }
 
   Set getCMServicePIDs() {
@@ -522,7 +522,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     			  pids.add(configs[i].getPid());
     		  }
     	  }
-      } 
+      }
       catch (Exception e) {
     	  log.error("Failed to get service pids", e);
       }
@@ -541,7 +541,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     			  pids.add(configs[i].getFactoryPid());
     		  }
     	  }
-      } 
+      }
       catch (Exception e) {
     	  log.error("Failed to get service pids", e);
       }
@@ -550,15 +550,15 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
   }
 
   public MetaTypeInformation getMetaTypeInformation(Bundle bundle) {
-		  
+
 	  MetaTypeInformation mti;
-	  
+
 	  mti = (MetaTypeInformation)providers.get(bundle);
 	  if(mti != null){
-		  return mti;		
+		  return mti;
 	  }
 
-	  synchronized(mtMap) {	  
+	  synchronized(mtMap) {
 		  for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
 			  ServiceReference sr = (ServiceReference)it.next();
 			  if(sr.getBundle() == bundle){
@@ -568,7 +568,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 				  }
 				  else{
 					  return (MetaTypeInformation) mtp;
-				  }		
+				  }
 			  }
 	      }
 	      return null;
@@ -577,18 +577,18 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 }
 
 class BundleMetaTypeProvider implements MetaTypeInformation{
-	
+
 	private MetaTypeProvider mtp;
 	private Bundle bundle;
-	
+
 	//id -> MetaData
 	private String[] pids;
 	private String[] factoryPids;
-	
+
 	public BundleMetaTypeProvider(MetaTypeProvider mtp, ServiceReference sr){
 		this.mtp = mtp;
 		this.bundle = sr.getBundle();
-		
+
 		if(mtp instanceof ManagedService){
 			pids = new String[1];
 			pids[0] = (String) sr.getProperty(Constants.SERVICE_PID);
@@ -604,21 +604,21 @@ class BundleMetaTypeProvider implements MetaTypeInformation{
 	public Bundle getBundle() {
 		return bundle;
 	}
-	
+
 	public String[] getFactoryPids() {
-		return factoryPids;  
+		return factoryPids;
 	}
 
 	public String[] getPids() {
 		return pids;
 	}
-		
+
 	public String[] getLocales() {
 		return mtp.getLocales();
 	}
 
 	public ObjectClassDefinition getObjectClassDefinition(String id, String locale) {
-		return mtp.getObjectClassDefinition(id, locale);		
+		return mtp.getObjectClassDefinition(id, locale);
 	}
-	
+
 } //class

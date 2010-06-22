@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.io/src/org/osgi/service/io/ConnectorService.java,v 1.8 2006/06/16 16:31:35 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2002, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2002, 2008). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +16,9 @@
 package org.osgi.service.io;
 
 import java.io.*;
-import javax.microedition.io.*;
+
+import javax.microedition.io.Connection;
+import javax.microedition.io.Connector;
 
 /**
  * The Connector Service should be called to create and open
@@ -40,7 +40,7 @@ import javax.microedition.io.*;
  * first, is called. This is the same algorithm used by
  * <code>BundleContext.getServiceReference</code>.
  * 
- * @version $Revision: 1.8 $
+ * @version $Revision: 5673 $
  */
 public interface ConnectorService {
 	/**

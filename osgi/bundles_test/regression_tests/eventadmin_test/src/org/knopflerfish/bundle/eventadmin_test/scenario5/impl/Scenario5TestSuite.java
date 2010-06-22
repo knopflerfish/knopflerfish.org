@@ -1,19 +1,40 @@
 /*
- * @(#)Scenario1TestSuite.java        1.0 2005/06/28
- *
- * Copyright (c) 2003-2005 Gatespace telematics AB
- * Otterhallegatan 2, 41670,Gothenburgh, Sweden.
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
- * This software is the confidential and proprietary information of
- * Gatespace telematics AB. ("Confidential Information").  You shall not
- * disclose such Confidential Information and shall use it only in
- * accordance with the terms of the license agreement you entered into
- * with Gatespace telematics AB.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.knopflerfish.bundle.eventadmin_test.scenario5.impl;
 
 import java.util.Calendar;
+import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.osgi.framework.BundleContext;
@@ -64,17 +85,17 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
     /* add the event consumers to the test suite */
     EventConsumer[] eventConsumer = new EventConsumer[] {
       new EventConsumer(bundleContext, scenario5_topics1, 8, 8,
-        "Scenario 5 EventConsumer1", 5),
+                        "Scenario 5 EventConsumer1", 5),
       new EventConsumer(bundleContext, scenario5_topics1, 8, 8,
-        "Scenario 5 EventConsumer2", 5) };
+                        "Scenario 5 EventConsumer2", 5) };
     addTest(eventConsumer[0]);
     addTest(eventConsumer[1]);
 
     /* add the event publisher to the test suite */
     addTest(new EventPublisher(bundleContext, "Scenario 5 EventPublisher1",
-        5, 4, "com/acme/timer"));
+                               5, 4, "com/acme/timer"));
     addTest(new EventPublisher(bundleContext, "Scenario 5 EventPublisher2",
-        5, 4, "com/acme/log"));
+                               5, 4, "com/acme/log"));
     /* add the cleanup class */
     addTest(new Cleanup(eventConsumer));
   }
@@ -115,7 +136,7 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
     private EventConsumer[] eventConsumer;
 
     public Cleanup(EventConsumer[] eventConsumer) {
-        this.eventConsumer = eventConsumer;
+      this.eventConsumer = eventConsumer;
     }
     public void runTest() throws Throwable {
       Throwable error = null;
@@ -165,7 +186,7 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
     private String topicToSend;
 
     public EventPublisher(BundleContext context, String name, int id,
-        int numOfMessage, String topic) {
+                          int numOfMessage, String topic) {
       /* call super class */
       super(name + ":" + id);
       /* assign number of messages */
@@ -181,65 +202,65 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
       /* determine if to use a local copy of EventAdmin or not */
       /* Claims the reference of the EventAdmin Service */
       serviceReference = bundleContext
-          .getServiceReference(EventAdmin.class.getName());
+        .getServiceReference(EventAdmin.class.getName());
 
       /* assert that a reference is aquired */
       assertNotNull(getName()
-          + " Should be able to get reference to EventAdmin service",
-          serviceReference);
+                    + " Should be able to get reference to EventAdmin service",
+                    serviceReference);
 
       if (serviceReference == null) {
         fail(getName() + " service reference should not be null");
       }
 
       eventAdmin = (EventAdmin) bundleContext
-          .getService(serviceReference);
+        .getService(serviceReference);
 
       assertNotNull(getName()
-          + " Should be able to get instance to EventAdmin object");
+                    + " Should be able to get instance to EventAdmin object");
 
       if (eventAdmin == null) {
         fail(getName() + " event admin should not be null");
       }
 
       Thread synchDeliver = new Thread() {
-        public void run() {
+          public void run() {
 
-          for (int i = 0; i < messageTosend; i++) {
-            /* a Hash table to store message in */
-            Hashtable message = new Hashtable();
-            /* put some properties into the messages */
-            message.put("Synchronus message", new Integer(i));
-            /* send the message */
-            System.out.println(getName()
-                + " sending a synchronus event with message:"
-                + message.toString() + "and the topic:"
-                + topicToSend);
-            eventAdmin.sendEvent(new Event(topicToSend, message));
+            for (int i = 0; i < messageTosend; i++) {
+              /* a Hash table to store message in */
+              Dictionary message = new Hashtable();
+              /* put some properties into the messages */
+              message.put("Synchronus message", new Integer(i));
+              /* send the message */
+              System.out.println(getName()
+                                 + " sending a synchronus event with message:"
+                                 + message.toString() + "and the topic:"
+                                 + topicToSend);
+              eventAdmin.sendEvent(new Event(topicToSend, message));
+            }
           }
-        }
-      };
+        };
 
       synchDeliver.start();
       synchDeliver.join();
 
       Thread asynchDeliver = new Thread() {
-        public void run() {
+          public void run() {
 
-          for (int i = 0; i < messageTosend; i++) {
-            /* create the hasht table */
-            Hashtable message = new Hashtable();
-            /* create the message */
-            message.put("Asynchronus message", new Integer(i));
-            /* Sends a synchronous event to the admin */
-            System.out.println(getName()
-                + " sending an Asynchronus event with message:"
-                + message.toString() + "and the topic:"
-                + topicToSend);
-            eventAdmin.postEvent(new Event(topicToSend, message));
+            for (int i = 0; i < messageTosend; i++) {
+              /* create the hasht table */
+              Dictionary message = new Hashtable();
+              /* create the message */
+              message.put("Asynchronus message", new Integer(i));
+              /* Sends a synchronous event to the admin */
+              System.out.println(getName()
+                                 + " sending an Asynchronus event with message:"
+                                 + message.toString() + "and the topic:"
+                                 + topicToSend);
+              eventAdmin.postEvent(new Event(topicToSend, message));
+            }
           }
-        }
-      };
+        };
       asynchDeliver.start();
       asynchDeliver.join();
 
@@ -280,7 +301,7 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
      * @param topics
      */
     public EventConsumer(BundleContext bundleContext, String[] topics,
-        int numSyncMsg, int numAsyncMsg, String name, int id) {
+                         int numSyncMsg, int numAsyncMsg, String name, int id) {
       /* call super class */
       super(name + ":" + id);
       /* assign the instance id */
@@ -297,20 +318,20 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
       asynchMessages = 0;
       synchMessages = 0;
       System.out
-          .println("!!! TO RUN THIS TEST CORRECTLY TWO EVENTADMINS NEEDS TO RUN IN THE FRAMEWORK!!!");
+        .println("!!! TO RUN THIS TEST CORRECTLY TWO EVENTADMINS NEEDS TO RUN IN THE FRAMEWORK!!!");
       /* create the hashtable to put properties in */
-      Hashtable props = new Hashtable();
+      Dictionary props = new Hashtable();
       /* determine what topicType to use */
       /* put service.pid property in hashtable */
       props.put(EventConstants.EVENT_TOPIC, topicsToConsume);
 
       /* register the service */
       serviceRegistration = bundleContext.registerService(
-          EventHandler.class.getName(), this, props);
+                                                          EventHandler.class.getName(), this, props);
 
       assertNotNull(getName()
-          + " service registration should not be null",
-          serviceRegistration);
+                    + " service registration should not be null",
+                    serviceRegistration);
 
       if (serviceRegistration == null) {
         fail("Could not get Service Registration ");
@@ -344,28 +365,28 @@ public class Scenario5TestSuite extends TestSuite implements Scenario5 {
           synchMessages++;
 
           System.out.println(getName()
-              + " recived an Synchronus event with message:"
-              + message.toString() + " the nr of syncmsgs:" + synchMessages);
+                             + " recived an Synchronus event with message:"
+                             + message.toString() + " the nr of syncmsgs:" + synchMessages);
 
         } else {
           message = event.getProperty("Asynchronus message");
           if (message != null) {
             asynchMessages++;
             System.out.println(getName()
-                + " recived an Asynchronus event with message:"
-                + message.toString() + " the nr of asyncmsgs:" + asynchMessages);
+                               + " recived an Asynchronus event with message:"
+                               + message.toString() + " the nr of asyncmsgs:" + asynchMessages);
           }
         }
 
         /* assert that the messages property is not null */
         assertNotNull("Message should not be null in handleEvent()",
-            message);
+                      message);
         /* assert that the messages of syncronous type are not to many */
         assertTrue("to many synchronous messages",
-            synchMessages < numSyncMessages + 1);
+                   synchMessages < numSyncMessages + 1);
         /* assert that the messsage of the asyncronous type are not to many */
         assertTrue("to many asynchronous messages",
-            asynchMessages < numAsyncMessages + 1);
+                   asynchMessages < numAsyncMessages + 1);
       } catch (RuntimeException e) {
         error = e;
         throw e;

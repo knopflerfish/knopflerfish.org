@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: HTTP-root
 Bundle-SymbolicName: org.knopflerfish.bundle.httproot
 Bundle-Version: 2.0.1
-Bundle-UUID: org.knopflerfish:httproot:2.0.1
 Bundle-Category: example
 Bundle-Description: Demo HTTP root servlet
 Bundle-Vendor: Knopflerfish

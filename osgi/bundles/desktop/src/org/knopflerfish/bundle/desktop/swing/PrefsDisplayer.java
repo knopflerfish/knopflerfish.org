@@ -108,6 +108,8 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   public void valueChangedLazy(long  bid) {
+    if (null==Activator.desktop) return; // Desktop closed, nothing to do.
+
     Bundle[] bl = Activator.desktop.getSelectedBundles();
 
     for(Iterator it = components.iterator(); it.hasNext(); ) {

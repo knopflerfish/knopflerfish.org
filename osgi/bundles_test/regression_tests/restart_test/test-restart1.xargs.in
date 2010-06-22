@@ -1,20 +1,20 @@
 #
 # Startup file for framework restart testing
 #
-# NOTE: Paths in this file assumes that the current working directory is
-#       $(OSGI_DIR)
+# NOTE: The base URLs for bundles assumes that the current working
+#       directory is the osgi-direcotry when this xargs-file is used.
 #
 
 # List of test IDs
--Dorg.knopflerfish.junit_runner.tests=RestartSetupTestSuite
+-Forg.knopflerfish.junit_runner.tests=RestartSetupTestSuite
 
 # true means "quit framework when all tests are run"
--Dorg.knopflerfish.junit_runner.quit=true
+-Forg.knopflerfish.junit_runner.quit=true
 
 # true means wait for complete framework start until run
--Dorg.knopflerfish.junit_runner.wait=true
+-Forg.knopflerfish.junit_runner.wait=true
 
--Dorg.knopflerfish.gosg.jars=file:
+-Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
 
 -init
 
@@ -32,8 +32,3 @@
 -startlevel 20
 
 -launch
-
-
-
-
-

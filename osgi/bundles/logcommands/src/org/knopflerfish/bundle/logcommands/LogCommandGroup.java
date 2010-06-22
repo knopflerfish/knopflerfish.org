@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import org.knopflerfish.service.console.Session;
 import org.knopflerfish.service.console.Util;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogReaderService;
@@ -57,17 +58,16 @@ import org.osgi.service.log.LogService;
 
 // ******************** LogCommandGroup ********************
 /**
- * * Interface for commands to be handled by the console. * *
- * 
- * @author Jan Stein *
- * @version $Revision: 1.1.1.1 $
+ * Interface for commands to be handled by the console.
+ *
+ * @author Jan Stein
  */
-
 public class LogCommandGroup extends CommandGroupAdapter {
 
     BundleContext bc;
 
-    private final static String LOGREADER = "org.osgi.service.log.LogReaderService";
+    private final static String LOGREADER
+      = "org.osgi.service.log.LogReaderService";
 
     LogCommandGroup(BundleContext bc) {
         super("log", "Log commands");
@@ -233,10 +233,13 @@ public class LogCommandGroup extends CommandGroupAdapter {
                             pad(sb, 42);
                             sb.append(" - ");
                             sb.append(le.getMessage());
-                            if (le.getServiceReference() != null) {
-                                sb.append(", Service: "
-                                        + Util.showServiceClasses(le
-                                                .getServiceReference()));
+                            final ServiceReference leSr
+                              = le.getServiceReference();
+                            if (leSr != null) {
+                              sb.append(", Service#");
+                              sb.append(leSr.getProperty(Constants.SERVICE_ID));
+                              sb.append(": ");
+                              sb.append(Util.showServiceClasses(leSr));
                             }
                             out.println(sb.toString());
                             if (le.getException() != null

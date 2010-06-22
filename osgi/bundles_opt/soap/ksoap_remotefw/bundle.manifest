@@ -1,13 +1,13 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: kSOAP-FW
+Bundle-Name: kSOAP Remote Framework
 Bundle-SymbolicName: org.knopflerfish.bundle.ksoap_remotefw
-Bundle-Version: 2.0.1
+Bundle-Version: 3.0.3
 Bundle-Category: service
-Bundle-Description: kSOAP remote framework
+Bundle-Description: kSOAP based implementation of a remote framework
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-DocURL: http://www.knopflerfish.org/remote_howto.html
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=remotefw/index.html
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Activator: org.knopflerfish.bundle.soap.remotefw.Activator
@@ -25,4 +25,3 @@ Import-Package: org.ksoap2,
  org.knopflerfish.service.remotefw,
  org.knopflerfish.service.console,
  org.knopflerfish.service.soap.remotefw
-
