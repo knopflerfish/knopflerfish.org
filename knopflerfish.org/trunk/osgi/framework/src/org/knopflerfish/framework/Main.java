@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,97 +36,118 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Enumeration;
 import java.net.URL;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import org.osgi.framework.*;
-
+import org.osgi.framework.launch.*;
+import org.osgi.service.startlevel.StartLevel;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 /**
  * This is the main startup code for the framework and enables
  * basic operations as install, start, stop, uninstall
  * and update.
  *
- * @author Jan Stein, Erik Wistrand, Mats-Ola Persson
+ * @author Jan Stein, Erik Wistrand, Mats-Ola Persson, Gunnar Ekolin
  */
-public class Main {
-
-  static Framework framework;
-
-  static long bootMgr/* = 0*/;
+public class Main
+{
+  // Main object
+  static Main main;
 
   // Verbosity level of printouts. 0 is low.
-  static int verbosity /*= 0*/;
+  int verbosity;
 
   // Will be filled in from manifest entry during startup
-  static String version = "<unknown>";
+  String version = "<unknown>";
 
   // Top directory (including any trailing /)
-  static String topDir              = "";
+  String topDir = "";
 
-  // Xargs to use for FW init
-  static String defaultXArgsInit    = "init.xargs";
-
-  // Xargs to use for FW init
-  static final String defaultXArgsInit2   = "remote-init.xargs";
-
-  // Xargs to use for FW restart
-  static final String defaultXArgsStart   = "restart.xargs";
-
-
-  // Set to true if JVM is started without any arguments
-  static boolean bZeroArgs     /*     = false*/;
+  // Set to true if JRE is started without any arguments
+  boolean bZeroArgs;
 
   // will be initialized by main() - up for anyone for grabbing
-  public static String bootText = "";
+  public String bootText;
 
-  public static boolean bWriteSysProps = true;
+  // Framwork properties, i.e., configuration properties from -Fkey=value
+  Map fwProps/* <String, String> */ = new HashMap/*<String, String>*/();
+
+  // System properties, i.e., configuration properties from -Dkey=value
+  Map sysProps/* <String, String> */ = new HashMap/*<String, String>*/();
+
+  static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
+  static public final String JARDIR_DEFAULT = "file:";
+
+  static public final String XARGS_INIT     = "init.xargs";
+  static public final String XARGS_RESTART  = "restart.xargs";
+  static public final String FWPROPS_XARGS  = "fwprops.xargs";
+
+  static public final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
+  static public final String CMDIR_DEFAULT = "cmdir";
+
+  static public final String VERBOSITY_PROP    = "org.knopflerfish.framework.main.verbosity";
+  static public final String VERBOSITY_DEFAULT = "0";
+
+   /**
+   * Name of framework property controlling wheather to write an
+   * FWPROPS_XARGS file or not at startup.
+   */
+  static public final String WRITE_FWPROPS_XARGS_PROP =
+    "org.knopflerfish.framework.main.write.fwprops.xargs";
+
+  static public final String XARGS_WRITESYSPROPS_PROP =
+    "org.knopflerfish.framework.main.xargs.writesysprops";
+
+  static public final String XARGS_DEFAULT     = "default";
+
+  static public final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
+
+  /**
+   * Default values for some framework properties.
+   */
+  Map defaultFwProps = new HashMap() {{
+    put(CMDIR_PROP,    CMDIR_DEFAULT);
+  }};
 
 
-  public static final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
-  public static final String JARDIR_DEFAULT = "file:";
-
-  public static final String FWDIR_PROP    = "org.osgi.framework.dir";
-  public static final String FWDIR_DEFAULT = "fwdir";
-  public static final String CMDIR_PROP    = "org.knopflerfish.bundle.cm.store";
-  public static final String CMDIR_DEFAULT = "cmdir";
-
-  public static final String VERBOSITY_PROP    = "org.knopflerfish.verbosity";
-  public static final String VERBOSITY_DEFAULT = "0";
-
-
-  public static final String XARGS_DEFAULT     = "default";
-
-  public static final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
-  public static final String EXITONSHUTDOWN_PROP  = "org.knopflerfish.framework.exitonshutdown";
-
-  public static final String USINGWRAPPERSCRIPT_PROP = "org.knopflerfish.framework.usingwrapperscript";
-
-  static boolean restarting = false;
+  FrameworkFactory ff;
+  Framework framework;
+  boolean restarting = false;
 
   /**
    * Help class for starting the OSGi framework.
    */
   public static void main(String[] args) {
-    try {
-      verbosity =
-        Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
-    } catch (Exception ignored) { }
+    main = new Main();
+    main.start(args);
+    System.exit(0);
+  }
 
-    try {
-      bWriteSysProps = "true".equals(System.getProperty("org.knopflerfish.framework.xargs.writesysprops", "true"));
-    } catch (Exception ignored) { }
 
+  public Main() {
+    try { // Set the initial verbosity level.
+      final String vpv = (String) System.getProperty(VERBOSITY_PROP);
+      verbosity = Integer.parseInt(null==vpv ? VERBOSITY_DEFAULT: vpv);
+    } catch (Exception ignored) { }
+    populateSysProps();
+  }
+
+
+  protected void start(String[] args) {
     version = readVersion();
-
 
     bootText =
       "Knopflerfish OSGi framework, version " + version + "\n" +
-      "Copyright 2003-2009 Knopflerfish. All Rights Reserved.\n\n" +
+      "Copyright 2003-2010 Knopflerfish. All Rights Reserved.\n\n" +
       "See http://www.knopflerfish.org for more information.";
 
     System.out.println(bootText);
@@ -135,92 +156,92 @@ public class Main {
     // This typically happens when starting with "java -jar framework.jar"
     // or similar (e.g by double-clicking on framework.jar)
     bZeroArgs = (args.length == 0);
-
-    // Check if there is a default xargs file
-    // Uses "init" variant if fwdir exists, otherwise
-    // uses "restart" variant.
-    String xargsPath = getDefaultXArgs(args);
-    if(xargsPath != null) {
-
-      if(bZeroArgs) {
-        args = new String[] {"-xargs", xargsPath};
-      } else if(args.length == 1 && "-init".equals(args[0])) {
-        args = new String[] {"-init", "-xargs", xargsPath};
+    if (!bZeroArgs) {// Also true if started with only -D/-F args
+      bZeroArgs = true;
+      for (int i=0; bZeroArgs && i<args.length; i++) {
+        // -Dx=y, -Fx=y and -init does not count as args
+        bZeroArgs = args[i].startsWith("-D")
+          || args[i].startsWith("-F")
+          || "-init".equals(args[i]);
       }
     }
 
-
-    // expand all -xargs options
-    args = expandArgs(args);
-
-    if(verbosity > 5) {
-      for(int i = 0; i < args.length; i++) {
-        println("argv[" + i + "]=" + args[i], 5);
-      }
-    }
-
-    // redo this since it might have changed
-    try {
-      verbosity =
-        Integer.parseInt(Framework.getProperty(VERBOSITY_PROP, VERBOSITY_DEFAULT));
-    } catch (Exception ignored) { }
-
-    if(bZeroArgs) {
-      // Make sure we have a minimal setup of args
-      args = sanityArgs(args);
-    }
-
-    // Set default values to something reasonable if not supplied
-    // on the command line (or in xargs)
-    setDefaultSysProps();
-
-    String[] base = getJarBase();
-
-    // Handle -init option before we create the FW, otherwise
-    // we might shoot ourself in the foot. Hard.
-    for(int i = 0; i < args.length; i++) {
-      if("-init".equals(args[i])) {
-        doInit();
-      }
-    }
-
-    try {
-      framework = new Framework(new Main());
-    } catch (Exception e) {
-      e.printStackTrace();
-      error("New Framework failed!");
-    }
-
-    // Save these for possible restart()
-    initArgs    = args;
-    initOffset  = 0;
-    initBase    = base;
-
-    handleArgs(args, initOffset, base);
-  }
-
-  static String[] initArgs   = null;
-  static int      initOffset = 0;
-  static String[] initBase   = null;
-
-  static void doInit() {
-    String d = Framework.getProperty(FWDIR_PROP);
-
-    FileTree dir = (d != null) ? new FileTree(d) : null;
-    if (dir != null) {
-      if(dir.exists()) {
-        boolean bOK = dir.delete();
-        if(bOK) {
-          println("Removed existing fwdir " + dir.getAbsolutePath(), 0);
+    if (bZeroArgs) {// Add default xargs file to command line
+      // To determine the fwdir we must process all -D/-F definitions
+      // on the current command line.
+      processProperties(args);
+      String xargsPath = getDefaultXArgs();
+      if(xargsPath != null) {
+        if (0==args.length) {
+          args = new String[] {"-xargs", xargsPath};
         } else {
-          println("Failed to remove existing fwdir " + dir.getAbsolutePath(), 0);
+          final String[] newArgs = new String[args.length +2];
+          newArgs[0] = "-xargs";
+          newArgs[1] = xargsPath;
+          System.arraycopy(args, 0, newArgs, 2, args.length);
+          args = newArgs;
         }
       }
     }
+
+    args = expandArgs(args);
+    handleArgs(args);
   }
 
-  static String[] getJarBase() {
-    String jars = Framework.getProperty(JARDIR_PROP, JARDIR_DEFAULT);
+
+  /**
+   * Shall framework properties be exported as system properties?
+   */
+  private boolean writeSysProps() {
+    try {
+      final String val = (String)
+        sysProps.get(XARGS_WRITESYSPROPS_PROP);
+      return "true".equals(null!=val ? val : "false");
+    } catch (Exception ignored) { }
+    return false;
+  }
+
+
+  public FrameworkFactory getFrameworkFactory() {
+    try {
+      String factoryS = new String(Util.readResource("/META-INF/services/org.osgi.framework.launch.FrameworkFactory"), "UTF-8");
+      String factoryClassName = FrameworkFactoryImpl.class.getName();
+      String[] w = Util.splitwords(factoryS, "\n\r");
+      for(int i = 0; i < w.length; i++) {
+        if(w[i].length() > 0 && !w[i].startsWith("#")) {
+          factoryClassName = w[i].trim();
+          break;
+        }
+      }
+
+      return getFrameworkFactory(factoryClassName);
+    } catch (Exception e) {
+      error("failed to getFrameworkFactory", e);
+      throw new RuntimeException("failed to getFrameworkFactory: " + e);
+    }
+  }
+
+
+  public FrameworkFactory getFrameworkFactory(String factoryClassName) {
+    try {
+      println("getFrameworkFactory(" + factoryClassName + ")", 2);
+      Class            clazz = Class.forName(factoryClassName);
+      Constructor      cons  = clazz.getConstructor(new Class[] { });
+      FrameworkFactory ff    = (FrameworkFactory)cons.newInstance(new Object[] { });
+      return ff;
+    } catch (Exception e) {
+      error("failed to create " + factoryClassName, e);
+      throw new RuntimeException("failed to create " + factoryClassName + ": " + e);
+    }
+  }
+
+
+  String[] getJarBase() {
+    assertFramework();
+    String jars = framework.getBundleContext().getProperty(JARDIR_PROP);
+    if(jars == null) {
+      jars = JARDIR_DEFAULT;
+    }
 
     String[] base = Util.splitwords(jars, ";");
     for (int i=0; i<base.length; i++) {
@@ -234,75 +255,307 @@ public class Main {
     return base;
   }
 
+
   /**
-   * Handle arg line options.
+   * Process one command line argument for setting a property.
+   *
+   * If the line contains an '=' then property will be set.
+   *
+   * Example "org.knopflerfish.test=apa" is equivalent to calling
+   * <tt>setProperty("org.knopflerfish.test", "apa")</tt> in the given
+   * props object.
+   *
+   * @param prefix The prefix (<tt>-D</tt>/<tt>-F</tt>) to print in the trace.
+   * @param arg    The command line argument to process.
+   * @param props  The properties object to add the property to.
+   */
+  void setProperty(String prefix, String arg, Map props) {
+    final int ix = arg.indexOf("=");
+    if(ix != -1) {
+      final String key = arg.substring(2, ix);
+      String value = arg.substring(ix + 1);
+
+      println(prefix +key +"=" +value, 1);
+      props.put(key,value);
+
+      if (VERBOSITY_PROP.equals(key)) {
+        // redo this here since verbosity level may have changed
+        try {
+          int old = verbosity;
+          verbosity = Integer.parseInt( value.length()==0
+                                        ? VERBOSITY_DEFAULT : value);
+          if (old != verbosity) {
+            println("Verbosity changed to "+verbosity, 1);
+          }
+        } catch (Exception ignored) {}
+      }
+    }
+  }
+
+
+  /**
+   * Process all property related command line arguments. I.e.,
+   * arguments on the form
+   * <ul>
+   *
+   *   <li> <tt>-D<it>*</it></tt> a system property definition.
+   *
+   *   <li> <tt>-F<it>*</it></tt> a framework property definition.
+   *
+   *   <li> <tt>-init</it></tt> a request to clear the frameworks
+   *        persistent state on the first call to init(). This will
+   *        set the framework property named
+   *        <tt>org.osgi.framework.storage.clean</tt> to the value
+   *        <tt>onFirstInit</tt>.
+   *
+   * </ul>
+   *
+   * Example
+   * "-Dorg.knopflerfish.test=apa" is equivalent to the code
+   * <tt>System.setProperty("org.knopflerfish.test", "apa");</tt>
+   *
+   * @param args  The command line argument array to process
+   */
+  void processProperties(String[] args) {
+    for (int i = 0; i < args.length; i++) {
+      try {
+        if(args[i].startsWith("-D")) { // A system property
+          setProperty("-D", args[i], sysProps);
+        } else if (args[i].startsWith("-F")) { // A framework property
+          setProperty("-F", args[i], fwProps);
+        } else if ("-init".equals(args[i])) {
+          fwProps.put(Constants.FRAMEWORK_STORAGE_CLEAN,
+                      Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
+        }
+      } catch (Exception e) {
+        e.printStackTrace(System.err);
+        error("Command \"" +args[i] +"\" failed, " + e.getMessage());
+      }
+    }
+  }
+
+
+  /**
+   * Save all framework properties as an xargs-file in the framework
+   * directory for restarts.
+   */
+  private void save_restart_props(Map props) {
+    final String xrwp = framework.getBundleContext().getProperty(WRITE_FWPROPS_XARGS_PROP);
+    if ("false".equalsIgnoreCase(xrwp)) {
+      return;
+    }
+    PrintWriter pr = null;
+    try {
+      final String fwDirStr = Util.getFrameworkDir(props);
+      final File fwDir      = new File(fwDirStr);
+      fwDir.mkdirs();
+
+      final File propsFile = new File(fwDir, Main.FWPROPS_XARGS);
+      pr = new PrintWriter(new BufferedWriter(new FileWriter(propsFile)));
+      for (Iterator it = props.entrySet().iterator(); it.hasNext();) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final String key   = (String) entry.getKey();
+        final String value = (String) entry.getValue();
+        
+        // Don't save clean onFirstInit
+        if (!Constants.FRAMEWORK_STORAGE_CLEAN.equals(key) ||
+            !Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT.equals(value)) {
+          pr.println("-F" +key +"=" +value);
+        }
+      }
+    } catch (Exception e) {
+      if(e instanceof RuntimeException) {
+        throw (RuntimeException)e;
+      }
+      throw new IllegalArgumentException("Failed to create "+ Main.FWPROPS_XARGS
+                                         + ": " + e);
+    } finally {
+      if (null!=pr) {
+        pr.close();
+      }
+    }
+  }
+
+
+  /**
+   * Ensure that a framework instance is created and initialized, if
+   * not finalize properties and create a framework instance.
+   */
+  void assertFramework() {
+    if(ff == null) {
+      ff = getFrameworkFactory();
+      println("Created FrameworkFactory " + ff.getClass().getName(), 1);
+    }
+    if(framework == null) {
+      // Expand property values and export them as system properties
+      finalizeProperties();
+
+      framework = ff.newFramework(fwProps);
+      try {
+        framework.init();
+        save_restart_props(fwProps);
+      } catch (BundleException be) {
+        error("Failed to initialize the framework: " +be.getMessage(), be);
+      }
+      println("Created Framework " + framework.getClass().getName(), 1);
+    }
+  }
+
+
+  /**
+   * Handle command line options.
    *
    * @param args argument line
-   * @param startOffset index to start from in argv
    */
+  private void handleArgs(String[] args) {
+    boolean bLaunched = false;
 
-  private static void handleArgs(String[] args,
-                                 int startOffset,
-                                 String[] base) {
-    boolean doNotLaunch = false;
+    // If not init, check if we have saved framework properties
+    if (!Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
+        .equals((String) fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN))) {
+      final File propsFile = new File(Util.getFrameworkDir(fwProps), Main.FWPROPS_XARGS);
+      if (propsFile.exists()) {
+        final String[] newArgs = new String[args.length +2];
+        newArgs[0] = "-xargs";
+        newArgs[1] = propsFile.getAbsolutePath();
+        System.arraycopy(args, 0, newArgs, 2, args.length);
+        args = expandArgs(newArgs);
+      }
+    }
+    // Since we must have all framework properties in the
+    // fwProps-map before creating the framework instance we must
+    // first handle all args that define properties. I.e., args
+    // starting wiht '-D' and '-F'.
+    processProperties(args);
+    if(verbosity > 5) {
+      for(int i = 0; i < args.length; i++) {
+        println("argv[" + i + "]=" + args[i], 5);
+      }
+    }
 
-    for (int i = startOffset; i < args.length; i++) {
+    // Process all other options.
+    for (int i = 0; i < args.length; i++) {
       try {
         if ("-exit".equals(args[i])) {
           println("Exit.", 0);
           System.exit(0);
+        } else if (args[i].startsWith("-F")) {
+          // Skip, handled in processProperties(String[])
+        } else if (args[i].startsWith("-D")) {
+          // Skip, handled in processProperties(String[])
         } else if ("-init".equals(args[i])) {
-          // This is done in an earlier pass, otherwise we
-          // shoot the FW in the foot
+          // Skip, handled in processProperties(String[])
         } else if ("-version".equals(args[i])) {
+          System.out.println("Knopflerfish version: " +readRelease());
           printResource("/tstamp");
           printResource("/revision");
           System.exit(0);
         } else if ("-help".equals(args[i])) {
           printResource("/help.txt");
           System.exit(0);
-        } else if ("-readme".equals(args[i])) {
-          printResource("/readme.txt");
-          System.exit(0);
         } else if ("-jvminfo".equals(args[i])) {
-          printJVMInfo();
+          assertFramework();
+          printJVMInfo(framework);
           System.exit(0);
-        } else if ("-install".equals(args[i])) {
+        } else if ("-ff".equals(args[i])) {
+          if (null!=framework) {
+            throw new IllegalArgumentException
+              ("a framework instance is already created.");
+          }
           if (i+1 < args.length) {
-            String bundle = args[i+1];
-            long id = framework.installBundle(completeLocation(base,bundle), null);
-            println("Installed: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            i++;
+            ff = getFrameworkFactory(args[i]);
+          } else {
+            throw new IllegalArgumentException("No framework factory argument");
+          }
+        } else if ("-create".equals(args[i])) {
+          if (null!=framework
+              && ((Bundle.RESOLVED)&framework.getState())==0) {
+            throw new IllegalArgumentException
+              ("a framework instance is already created."
+               +" The '-create' command must either be the first command"
+               +" or come directly after a '-shutdown mSEC' command.");
+          }
+          framework = null;
+        } else if ("-install".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final String bundle = args[i+1];
+            final Bundle b = framework.getBundleContext()
+              .installBundle(completeLocation(bundle), null);
+            println("Installed: ", b);
             i++;
           } else {
             error("No URL for install command");
           }
         } else if ("-istart".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            String bundle = args[i+1];
-            long id = framework.installBundle(completeLocation(base,bundle), null);
-            framework.startBundle(id);
-            println("Installed and started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            final String bundle = args[i+1];
+            final Bundle b = framework.getBundleContext()
+              .installBundle(completeLocation(bundle), null);
+
+            b.start(Bundle.START_ACTIVATION_POLICY);
+            println("Installed and started (policy): ", b);
             i++;
           } else {
             error("No URL for install command");
           }
         } else if ("-launch".equals(args[i])) {
-          if (i+1 < args.length && !args[i+1].startsWith("-")) {
-            bootMgr = Long.parseLong(args[i+1]);
-            framework.launch(bootMgr);
-            i++;
-          } else {
-            framework.launch(0);
+          if (null!=framework && (Bundle.ACTIVE&framework.getState())!=0) {
+            throw new IllegalArgumentException
+              ("a framework instance is already active.");
           }
-          doNotLaunch = true;
+          assertFramework();
+          framework.start();
+          bLaunched = true;
+          closeSplash();
           println("Framework launched", 0);
         } else if ("-shutdown".equals(args[i])) {
-          doNotLaunch = true;
-          framework.shutdown();
-          println("Framework shutdown", 0);
+          if (i+1 < args.length) {
+            i++;
+            long timeout = Long.parseLong(args[i]);
+            try {
+              if(framework != null) {
+                framework.stop();
+                FrameworkEvent stopEvent = framework.waitForStop(timeout);
+                switch (stopEvent.getType()) {
+                case FrameworkEvent.STOPPED:
+                  // FW terminated, Main is done!
+                  println("Framework terminated", 0);
+                  break;
+                case FrameworkEvent.STOPPED_UPDATE:
+                  // Automatic FW restart, wait again.
+                  println("Framework stopped for update", 0);
+                  break;
+                case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
+                  // A manual FW restart with new boot class path is needed.
+                  println("Framework stopped for bootclasspath update", 0);
+                  break;
+                case FrameworkEvent.ERROR:
+                  // Stop failed or other error, give up.
+                  error("Fatal framework error, terminating.",
+                        stopEvent.getThrowable());
+                  break;
+                case FrameworkEvent.WAIT_TIMEDOUT:
+                  // Should not happen with timeout==0, give up.
+                  error("Framework waitForStop(" +timeout +") timed out!",
+                        stopEvent.getThrowable());
+                  break;
+                }
+                println("Framework shutdown", 0);
+              } else {
+                throw new IllegalArgumentException("No framework to shutdown");
+              }
+            } catch (Exception e) {
+              error("Failed to shutdown", e);
+            }
+          } else {
+            error("No timout for shutdown command");
+          }
         } else if ("-sleep".equals(args[i])) {
           if (i+1 < args.length) {
-            long t = Long.parseLong(args[i+1]);
+            final long t = Long.parseLong(args[i+1]);
             try {
               println("Sleeping " + t + " seconds...", 0);
               Thread.sleep(t * 1000);
@@ -314,80 +567,142 @@ public class Main {
             error("No time for sleep command");
           }
         } else if ("-start".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(base,args[i+1]);
-            framework.startBundle(id);
-            println("Started: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            final long id = getBundleID(framework, args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.start(Bundle.START_ACTIVATION_POLICY);
+            println("Started (policy): ", b);
             i++;
           } else {
             error("No ID for start command");
           }
-        } else if ("-stop".equals(args[i])) {
+        } else if ("-start_e".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(base,args[i+1]);
-            framework.stopBundle(id);
-            println("Stopped: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
+            final long id = getBundleID(framework, args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.start(0); // Eager start
+            println("Started (eager): ", b);
+            i++;
+          } else {
+            error("No ID for start_e command");
+          }
+        } else if ("-start_et".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final long id = getBundleID(framework, args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.start(Bundle.START_TRANSIENT);
+            println("Started (eager,transient): ", b);
+            i++;
+          } else {
+            error("No ID for start_et command");
+          }
+        } else if ("-start_pt".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final long id = getBundleID(framework, args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.start(Bundle.START_TRANSIENT | Bundle.START_ACTIVATION_POLICY);
+            println("Start (policy,transient): ", b);
+            i++;
+          } else {
+            error("No ID for start_pt command");
+          }
+        } else if ("-stop".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final long id = getBundleID(framework, args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            try {
+              b.stop(0);
+              println("Stopped: ", b);
+            } catch (Exception e) {
+              error("Failed to stop", e);
+            }
             i++;
           } else {
             error("No ID for stop command");
           }
-        } else if ("-uninstall".equals(args[i])) {
+        } else if ("-stop_t".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            long id = getBundleID(base,args[i+1]);
-            String loc = framework.getBundleLocation(id);
-            framework.uninstallBundle(id);
-            println("Uninstalled: " + loc + " (id#" + id + ")", 0);
+            final long id = getBundleID(framework, args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            try {
+              b.stop(Bundle.STOP_TRANSIENT);
+              println("Stopped (transient): ", b);
+            } catch (Exception e) {
+              error("Failed to stop", e);
+            }
+            i++;
+          } else {
+            error("No ID for stop_t command");
+          }
+        } else if ("-uninstall".equals(args[i])) {
+          assertFramework();
+          if (i+1 < args.length) {
+            final long id = getBundleID(framework, args[i+1]);
+            final Bundle b = framework.getBundleContext().getBundle(id);
+            b.uninstall();
+            println("Uninstalled: ", b);
             i++;
           } else {
             error("No id for uninstall command");
           }
         } else if ("-update".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            long[] ids = null;
+            Bundle[] bl = null;
             if("ALL".equals(args[i+1])) {
-              List bl = framework.bundles.getBundles();
-              ids = new long[bl.size()];
-              for(int n = bl.size() - 1; n >= 0; n--) {
-                ids[n] = ((BundleImpl)bl.get(n)).getBundleId();
-              }
+              bl = framework.getBundleContext().getBundles();
             } else {
-              ids = new long[] { getBundleID(base,args[i+1]) };
+              bl = new Bundle[] { framework.getBundleContext().getBundle(getBundleID(framework, args[i+1])) };
             }
-            for(int n = 0; n < ids.length; n++) {
-              long id = ids[n];
-              if(id != 0) {
-                framework.updateBundle(id);
-                println("Updated: " + framework.getBundleLocation(id) + " (id#" + id + ")", 0);
-              }
+            for(int n = 0; bl != null && n < bl.length; n++) {
+              final Bundle b = bl[i];
+              b.update();
+              println("Updated: ", b);
             }
             i++;
           } else {
             error("No id for update command");
           }
         } else if ("-initlevel".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            int n = Integer.parseInt(args[i+1]);
-            if(framework.startLevelService != null) {
-              framework.startLevelService.setInitialBundleStartLevel(n);
+            final int n = Integer.parseInt(args[i+1]);
+            final ServiceReference sr = framework.getBundleContext()
+              .getServiceReference(StartLevel.class.getName());
+
+            if(sr != null) {
+              final StartLevel ss = (StartLevel) framework.getBundleContext()
+                .getService(sr);
+
+              ss.setInitialBundleStartLevel(n);
+              framework.getBundleContext().ungetService(sr);
             } else {
-              println("No start level service - ignoring init bundle level " + n, 0);
+              println("No start level service - ignoring init bundle level "
+                      + n, 0);
             }
             i++;
           } else {
             error("No integer level for initlevel command");
           }
         } else if ("-startlevel".equals(args[i])) {
+          assertFramework();
           if (i+1 < args.length) {
-            int n = Integer.parseInt(args[i+1]);
-            if(framework.startLevelService != null) {
-              if(n == 1) {
-                if(Debug.startlevel) {
-                  Debug.println("Entering startlevel compatibility mode, all bundles will have startlevel == 1");
-                }
-                framework.startLevelService.bCompat = true;
-              }
+            final int n = Integer.parseInt(args[i+1]);
+            final ServiceReference sr = framework.getBundleContext()
+              .getServiceReference(StartLevel.class.getName());
 
-              framework.startLevelService.setStartLevel(n);
+            if(sr != null) {
+              final StartLevel ss = (StartLevel) framework.getBundleContext()
+                .getService(sr);
+
+              ss.setStartLevel(n);
+              framework.getBundleContext().ungetService(sr);
             } else {
               println("No start level service - ignoring start level " + n, 0);
             }
@@ -400,7 +715,7 @@ public class Main {
                 "\nUse option -help to see all options");
         }
       } catch (BundleException e) {
-        Throwable ne = e.getNestedException();
+        final Throwable ne = e.getNestedException();
         if (ne != null) {
           e.getNestedException().printStackTrace(System.err);
         } else {
@@ -421,9 +736,11 @@ public class Main {
       }
     }
 
-    if (!framework.active && !doNotLaunch) {
+    assertFramework();
+    if(!bLaunched) {
       try {
-        framework.launch(0);
+        framework.start();
+        closeSplash();
         println("Framework launched", 0);
       } catch (Throwable t) {
         if (t instanceof BundleException) {
@@ -431,9 +748,36 @@ public class Main {
           Throwable ne = be.getNestedException();
           if (ne != null) t = ne;
         }
-        t.printStackTrace(System.err);
-        error("Framework launch failed, " + t.getMessage());
+        error("Framework launch failed, " + t.getMessage(), t);
       }
+    }
+    FrameworkEvent stopEvent = null;
+    while (true) { // Ignore interrupted exception.
+      try {
+        stopEvent = framework.waitForStop(0L);
+        switch (stopEvent.getType()) {
+        case FrameworkEvent.STOPPED:
+          // FW terminated, Main is done!
+          println("Framework terminated", 0);
+          return;
+        case FrameworkEvent.STOPPED_UPDATE:
+          // Automatic FW restart, wait again.
+          break;
+        case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
+          // A manual FW restart with new boot class path is needed.
+          return; // TODO
+        case FrameworkEvent.ERROR:
+          // Stop failed or other error, give up.
+          error("Fatal framework error, terminating.",
+                stopEvent.getThrowable());
+          return;
+        case FrameworkEvent.WAIT_TIMEDOUT:
+          // Should not happen with timeout==0, give up.
+          error("Framework waitForStop(0) timed out!",
+                stopEvent.getThrowable());
+          break;
+        }
+      } catch (InterruptedException ie) { }
     }
   }
 
@@ -445,28 +789,32 @@ public class Main {
    * @param base Base URL to complete locations with.
    * @param idLocation bundle id or location of the bundle to lookup
    */
-  static private long getBundleID(String[] base, String idLocation ) {
+  private long getBundleID(Framework fw, String idLocation) {
     try {
       return Long.parseLong(idLocation);
     } catch (NumberFormatException nfe) {
-      long id = framework.getBundleId( completeLocation( base, idLocation ) );
-      if (id!=-1) {
-        return id;
+      Bundle[] bl = fw.getBundleContext().getBundles();
+      String loc = completeLocation(idLocation);
+      for(int i = 0; bl != null && i < bl.length; i++) {
+        if(loc.equals(bl[i].getLocation())) {
+          return bl[i].getBundleId();
+        }
       }
       throw new IllegalArgumentException
         ("Invalid bundle id/location: " +idLocation);
     }
   }
 
+
   /**
-   ** Complete location relative to the base Jars URL.
-   ** @param base Base URLs to complete with; first match is used.
-   ** @param location The location to be completed.
-   **/
-  static private String completeLocation( String[] base, String location )
-  {
+   * Complete location relative to the base Jars URL.
+   * @param base Base URLs to complete with; first match is used.
+   * @param location The location to be completed.
+   */
+  private String completeLocation(String location) {
+    String[] base = getJarBase();
     // Handle file: case where topDir is not ""
-    if(bZeroArgs && location.startsWith("file:jars/") && !topDir.equals("")) {
+    if(location.startsWith("file:jars/") && !topDir.equals("")) {
       location = ("file:" + topDir + location.substring(5)).replace('\\', '/');
       println("mangled bundle location to " + location, 2);
     }
@@ -515,78 +863,6 @@ public class Main {
 
 
   /**
-   * Shutdown framework.
-   *
-   * <p>
-   * This code is called in SystemBundle.stop(), which is the
-   * preferred way to shut down the framework.
-   * </p>
-   */
-  static public void shutdown(final int exitcode) {
-    if (restarting) return;
-    Thread t = new Thread() {
-        public void run() {
-          if (bootMgr != 0) {
-            try {
-              framework.stopBundle(bootMgr);
-            } catch (BundleException e) {
-              System.err.println("Stop of BootManager failed, " +
-                                 e.getNestedException());
-            }
-          }
-          framework.shutdown();
-          if("true".equals(Framework.getProperty(EXITONSHUTDOWN_PROP, "true"))) {
-            System.exit(exitcode);
-          } else {
-            println("Framework shutdown, skipped System.exit()", 0);
-          }
-        }
-      };
-    t.setDaemon(false);
-    t.start();
-  }
-
-
-  /**
-   * Restart framework.
-   * <p>
-   * This code is called in SystemBundle.update()
-   * </p>
-   */
-  static public void restart() {
-    restarting = true;
-    Thread t = new Thread() {
-        public void run() {
-          try {
-            if (bootMgr != 0) {
-              try {
-                framework.stopBundle(bootMgr);
-              } catch (BundleException e) {
-                System.err.println("Stop of BootManager failed, " +
-                                   e.getNestedException());
-              }
-            }
-            framework.shutdown();
-
-            try {
-              if (bootMgr != 0) {
-                framework.launch(bootMgr);
-              } else {
-                framework.launch(0);
-              }
-            } catch (Exception e) {
-              println("Failed to restart framework", 0);
-            }
-          } finally {
-            restarting = false;
-          }
-        }
-      };
-    t.setDaemon(false);
-    t.start();
-  }
-
-  /**
    * Expand all occurance of <tt>-xarg &lt;URL&gt;</tt> and <tt>--xarg
    * &lt;URL&gt;</tt> into a new array without any <tt>-xargs</tt>,
    * <tt>--xargs</tt>.
@@ -596,8 +872,8 @@ public class Main {
    * @return New argv array where all <tt>-xarg &lt;URL&gt;</tt>
    *         options have been expanded.
    */
-  static String[] expandArgs(String[] argv) {
-    Vector v = new Vector();
+  String[] expandArgs(String[] argv) {
+    List v = new ArrayList();
     int i = 0;
     while(i < argv.length) {
       if ("-xargs".equals(argv[i]) || "--xargs".equals(argv[i])) {
@@ -610,7 +886,7 @@ public class Main {
             String[] moreArgs = loadArgs(xargsPath, argv);
             String[] r = expandArgs(moreArgs);
             for(int j = 0; j < r.length; j++) {
-              v.addElement(r[j]);
+              v.add(r[j]);
             }
           } catch (RuntimeException e) {
             if(bIgnoreException) {
@@ -623,20 +899,21 @@ public class Main {
           throw new IllegalArgumentException("-xargs without argument");
         }
       } else {
-        v.addElement(argv[i]);
+        v.add(argv[i]);
       }
       i++;
     }
     String[] r = new String[v.size()];
 
-    v.copyInto(r);
+    v.toArray(r);
     return r;
   }
+
 
   /**
    * Print help for starting the platform.
    */
-  static void printResource(String name) {
+  void printResource(String name) {
     try {
       System.out.println(new String(Util.readResource(name)));
     } catch (Exception e) {
@@ -644,210 +921,179 @@ public class Main {
     }
   }
 
-  public static final String[] FWPROPS = new String[] {
-    Constants.FRAMEWORK_VENDOR,
-    Constants.FRAMEWORK_VERSION,
-    Constants.FRAMEWORK_LANGUAGE,
-    Constants.FRAMEWORK_OS_NAME ,
-    Constants.FRAMEWORK_OS_VERSION,
-    Constants.FRAMEWORK_PROCESSOR,
-    Constants.FRAMEWORK_EXECUTIONENVIRONMENT,
-  };
 
   /**
    * Print help for starting the platform.
    */
-  static void printJVMInfo() {
-
+  void printJVMInfo(Framework framework) {
     try {
-      Properties props = Framework.getSystemProperties();
+      Properties props = System.getProperties();
       System.out.println("--- System properties ---");
       for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
         String key = (String)e.nextElement();
         System.out.println(key + ": " + props.get(key));
       }
-      System.out.println("\n--- Framework properties ---");
-      for(int i = 0; i < FWPROPS.length; i++) {
-        System.out.println(FWPROPS[i] + ": " + framework.getProperty(FWPROPS[i]));
+
+      System.out.println("\n");
+      System.out.println("--- Framework properties ---");
+
+      String keyStr = framework.getBundleContext().getProperty("org.knopflerfish.framework.bundleprops.keys");
+      String[] keys = Util.splitwords(keyStr != null ? keyStr : "", ",");
+
+      for(int i = 0; i < keys.length; i++) {
+        System.out.println(keys[i] + ": " + framework.getBundleContext().getProperty(keys[i]));
       }
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
+
   // should this be read from the manifest instead?
   static String readVersion() {
-    return readResource("/version", "<no version found>");
+    return readResource("/version", "<no version found>", "UTF-8");
   }
+
 
   // should this be read from the manifest instead?
   static String readRelease() {
-    return readResource("/release", "0.0.0.snapshot");
+    return readResource("/release", "0.0.0.snapshot", "UTF-8");
   }
 
+
   // Read version info from manifest
-  static String readResource(String file, String defaultValue) {
+  static String readResource(String file, String defaultValue, String encoding) {
     try {
-      return (new String(Util.readResource(file))).trim();
+      return (new String(Util.readResource(file), encoding)).trim();
     } catch (Exception e) {
       return defaultValue;
     }
   }
 
+
   /**
-   * Helper method which tries to find default xargs files.
+   * Helper method which tries to find a default xargs files to use.
+   * Note: Make sure that fwProps are up to date by calling
+   * processProperties(args) before calling this method.
    */
-  static String getDefaultXArgs(String[] oldArgs) {
-    boolean bInit = false;
+  String getDefaultXArgs() {
+    boolean bInit = Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
+      .equals((String) fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN));
 
-    // If the old args has an -init somewhere, make sure
-    // we don't use the restart default xargs
-    for(int i = 0; i < oldArgs.length; i++) {
-      if("-init".equals(oldArgs[i])) {
-        bInit = true;
-      }
-    }
-
-    String fwDirStr = Framework.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
+    String fwDirStr = Util.getFrameworkDir(fwProps);
     // avoid getAbsoluteFile since some profiles don't have this
     File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
-    File xargsFile  = null;
+    println("fwdir is " + fwDir, 1);
+
+    if (!bInit) { // Implicit init needed?
+      bInit = !(fwDir.exists() && fwDir.isDirectory());
+      if (bInit) println("Implicit -init since fwdir does not exist.", 2);
+    }
+    println("init is "  +bInit, 2);
 
     // avoid getParentFile since some profiles don't have this
     String defDirStr = fwDir.getParent();
     File   defDir    = defDirStr != null ? new File(defDirStr) : null;
 
-    println("fwDir="+ fwDir, 2);
-    println("defDir="+ defDir, 2);
-    println("bInit=" + bInit, 2);
+    File   cwDir = new File(new File("").getAbsolutePath());
 
-    // ..and select appropiate xargs file
-    if(defDir != null) {
+    println("defDir=" +defDir, 5);
+    println("cwDir="  +cwDir, 5);
 
-      topDir = defDir + File.separator;
+    File[] dirs = null!=defDir ?
+      new File[]{ fwDir, defDir, cwDir } : new File[]{ fwDir, cwDir };
 
-      try {
-        String osName = (String)Alias.unifyOsName(Framework.getProperty("os.name")).get(0);
-        File f = new File(defDir, "init_" + osName + ".xargs");
-        if(f.exists()) {
-          defaultXArgsInit = f.getName();
-          println("found OS specific xargs=" + defaultXArgsInit, 1);
-        }
-      } catch (Exception ignored) {
-        // No OS specific xargs found
+    // Determine the root OSGi dir, a.k.a. topDir
+    for (int i = 0; i<dirs.length; i++) {
+      final File jarsDir = new File(dirs[i],"jars");
+      if (jarsDir.exists() && jarsDir.isDirectory()) {
+        topDir = dirs[i].getAbsolutePath();
+        break;
       }
-
-
-      if(!bInit && (fwDir.exists() && fwDir.isDirectory())) {
-        println("found fwdir at " + fwDir, 1);
-        xargsFile = new File(defDir, defaultXArgsStart);
-        if(xargsFile.exists()) {
-          println("\n" +
-                  "Default restart xargs file: " + xargsFile +
-                  "\n" +
-                  "To reinitialize, remove the " + fwDir +" directory\n",
-                  5);
-        } else {
-          File xargsFile2 = new File(defDir, defaultXArgsInit);
-          println("No restart xargs file " + xargsFile +
-                  ", trying " + xargsFile2 + " instead.", 0);
-          xargsFile = xargsFile2;
-        }
-      } else {
-        println("no fwdir at " + fwDir, 1);
-        xargsFile = new File(defDir, defaultXArgsInit);
-        if(xargsFile.exists()) {
-          println("\n" +
-                  "Default init xargs file: " + xargsFile +
-                  "\n",
-                  5);
-        } else {
-          xargsFile = new File(defDir, defaultXArgsInit2);
-          if(xargsFile.exists()) {
-            println("\n" +
-                    "Deafult secondary init xargs file: " + xargsFile +
-                    "\n",
-                    5);
-          }
-        }
-      }
-    } else {
-      // No parent dir to fwdir
     }
-    return xargsFile != null
-      ?  xargsFile.getAbsolutePath()
-      : null;
+    println("Knopflerfish root directory is " +topDir, 2);
+
+    final String osName = Alias.unifyOsName(System.getProperty("os.name"));
+    final String[] xargNames = bInit
+      ? new String[]{"init_" +osName +".xargs",
+                     XARGS_INIT,
+                     "remote-" +XARGS_INIT }
+      : new String[]{XARGS_RESTART};
+
+    String xargsFound  = null;
+    println("Searching for default xargs file:", 5);
+    xargsSearch:
+    for (int i = 0; i<dirs.length; i++) {
+      for (int k = 0; k<xargNames.length; k++) {
+        File xargsFile = new File(dirs[i], xargNames[k]);
+        println("  trying " +xargsFile.getAbsolutePath(), 5);
+        if (xargsFile.exists()) {
+          xargsFound = xargsFile.getAbsolutePath();
+          break xargsSearch;
+        }
+      }
+    }
+    println("default xargs file is " + xargsFound, 2);
+
+    return xargsFound;
   }
 
-  /**
-   * Default values for some system properties.
-   */
-  static String[][] defaultSysProps = new String[][] {
-    {Constants.FRAMEWORK_SYSTEMPACKAGES, "javax.accessibility,javax.net,javax.net.ssl,javax.swing,javax.swing.border,javax.swing.event,javax.swing.filechooser,javax.swing.plaf,javax.swing.plaf.basic,javax.swing.plaf.metal,javax.swing.table,javax.swing.text,javax.swing.tree"},
-    {FWDIR_PROP,    FWDIR_DEFAULT},
-    {CMDIR_PROP,    CMDIR_DEFAULT},
-    //    { "oscar.repository.url", "http://www.knopflerfish.org/repo/repository.xml" },
-  };
-
-
 
   /**
-   * Check current system properties and set default values
-   * if importand ones are missing. The default values
-   * are taken from the <tt>defaultSysProps</tt> variable.
+   * Add default properties and set default values if important ones
+   * are missing. The default values are taken from the
+   * <tt>defaultFwProps</tt> variable.
    *
-   * <p>
-   * The <tt>org.knopflerfish.gosg.jars</tt> property (if not defined)
-   * is created by scanning the "jars" directory for subdirs.
-   * </p>
+   * <p>The <tt>org.knopflerfish.gosg.jars</tt> system property (if
+   * not defined) is created by scanning the "jars" directory for
+   * subdirs.</p>
    *
    * @see defaultSysProps
    */
-  static void setDefaultSysProps() {
-
-    // Make modifications to temporary dictionary and write
-    // it back in end of this method
-    Properties sysProps = Framework.getSystemProperties();
-
-    println("setDefaultSysProps", 1);
-    for(int i = 0; i < defaultSysProps.length; i++) {
-      if(null == Framework.getProperty(defaultSysProps[i][0])) {
-        println("Using default " + defaultSysProps[i][0] + "=" +
-                defaultSysProps[i][1], 1);
-        sysProps.put(defaultSysProps[i][0], defaultSysProps[i][1]);
+  protected void addDefaultProps() {
+    for(Iterator it = defaultFwProps.entrySet().iterator(); it.hasNext();) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      final String key = (String) entry.getKey();
+      if(!fwProps.containsKey(key)) {
+        final String val = (String) entry.getValue();
+        println("Using default " + key + "=" + val, 1);
+        fwProps.put(key, val);
       } else {
-        println("system prop " + defaultSysProps[i][0] + "=" + Framework.getProperty(defaultSysProps[i][0]), 1);
+        println("framework prop " + key + "=" + fwProps.get(key), 1);
       }
     }
 
     // Set version info
-    if(null == Framework.getProperty(PRODVERSION_PROP)) {
-      sysProps.put(PRODVERSION_PROP, version);
+    if(null == fwProps.get(PRODVERSION_PROP)) {
+      fwProps.put(PRODVERSION_PROP, version);
     }
 
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = Framework.getProperty(JARDIR_PROP, null);
+    String jars = (String) sysProps.get(JARDIR_PROP);
 
-    if(jars == null || "".equals(jars)) {
+    if(!(jars == null || "".equals(jars))) {
+      println("old jars=" + jars, 1);
+    } else {
       String jarBaseDir = topDir + "jars";
-      println("jarBaseDir=" + jarBaseDir, 1);
+      println("jarBaseDir=" + jarBaseDir, 2);
 
-      File jarDir = new File(jarBaseDir).getAbsoluteFile();
+      // avoid getAbsoluteFile since some profiles don't have this
+      File jarDir = new File(new File(jarBaseDir).getAbsolutePath());
       if(jarDir.exists() && jarDir.isDirectory()) {
 
         // avoid FileNameFilter since some profiles don't have it
         String [] names = jarDir.list();
-        Vector v = new Vector();
+        List v = new ArrayList();
         for(int i = 0; i < names.length; i++) {
           File f = new File(jarDir, names[i]);
           if(f.isDirectory()) {
-            v.addElement(names[i]);
+            v.add(names[i]);
           }
         }
         String [] subdirs = new String[v.size()];
-        v.copyInto(subdirs);
+        v.toArray(subdirs);
 
         StringBuffer sb = new StringBuffer();
         sb.append("file:" + jarBaseDir + "/");
@@ -856,56 +1102,107 @@ public class Main {
         }
         jars = sb.toString().replace('\\', '/');
         sysProps.put(JARDIR_PROP, jars);
-        println("scanned org.knopflerfish.gosg.jars=" + jars, 1);
+        println("scanned " +JARDIR_PROP +"=" + jars, 2);
       }
     }
-
-    // Write back system properties
-    if(bWriteSysProps) {
-      mergeSystemProperties(sysProps);
-    }
-
-    // Write to framework properties. This should be the primary
-    // source for all code, including the framework itself.
-    Framework.setProperties(sysProps);
   }
 
-  static void mergeSystemProperties(Properties props) {
-    Properties p = Framework.getSystemProperties();
+
+  /**
+   * Populates the sysProps Map&lt;String,String&gt; with all entries
+   * from the system properties object.
+   */
+  void populateSysProps() {
+    final Properties systemProperties = System.getProperties();
+    final Enumeration systemPropertiesNames = systemProperties.propertyNames();
+    while (systemPropertiesNames.hasMoreElements()) {
+      try {
+        final String name  = (String) systemPropertiesNames.nextElement();
+        final String value = (String) systemProperties.get(name);
+        sysProps.put(name, value);
+        println("Initial system property: " +name +"=" +value, 3);
+      } catch (Exception e) {
+        println("Failed to process system property: " +e, 1, e);
+      }
+    }
+  }
+
+
+  /**
+   * Add all entires in the given map to the set of system properties.
+   *
+   * @param props The map with name value pairs to add to the system
+   *              properties.
+   */
+  void mergeSystemProperties(Map props) {
+    final Properties p = System.getProperties();
     p.putAll(props);
     System.setProperties(p);
   }
 
 
   /**
-   * Loop over args array and check that it looks reasonable.
-   * If really bad things are found, they might be fixed ;)
+   * Do the final processing of framework and system properties before
+   * creating the framework instance using them.
    *
-   * <p>
-   * This method is intended to be called in the "zeroargs"
-   * startup case to preserve backwards compatibility.
-   * </p>
-   *
-   * @return new, fixed args array.
+   * <ul>
+   *   <li>Perform variable expansion on property values.
+   *   <li>System properties are then merged into the real system
+   *       properties.
+   *   <li>If <tt>writeSysProps()</tt> is <tt>true</tt> merge
+   *       framework properties into the real system properties.
+   *   <li>Add default properties.
+   * </ul>
    */
-  static String [] sanityArgs(String[] args) {
-    Vector v = new Vector();
+  void finalizeProperties() {
+    expandPropValues(sysProps, null);
+    expandPropValues(fwProps, sysProps);
+    addDefaultProps();
 
-    // First, clone everything
-    for(int i = 0; i < args.length; i++) {
-      v.addElement(args[i]);
+    mergeSystemProperties(sysProps);
+    if(writeSysProps()) {
+      mergeSystemProperties(fwProps);
     }
 
-    // ...since this is really annoying
-    if(!v.contains("-launch")) {
-      println("adding last -launch command", 1);
-      v.addElement("-launch");
-    }
+  }
 
-    // ...and copy back into array
-    String [] arg2 = new String[v.size()];
-    v.copyInto(arg2);
-    return arg2;
+
+  /**
+   * If any of the values in <tt>toExpand</tt> contains a sub-string
+   * like "<tt>${propname}</tt>" replace it with value of the named
+   * property in the map if found, else if <tt>fallback</tt> is
+   * non-null then replace with the value from that map if any.
+   *
+   * @param toExpand Map in which to expand variables in the values.
+   * @param fallback Optional map to get expansion values from if not
+   *                 found in the map to be expanded.
+   */
+  void expandPropValues(Map toExpand, Map fallback)
+  {
+    Map all = null;
+
+    for (Iterator eit = toExpand.entrySet().iterator(); eit.hasNext();) {
+      final Map.Entry entry = (Map.Entry) eit.next();
+      String value = (String) entry.getValue();
+
+      if(-1 != value.indexOf("${")) {
+        if (null==all) {
+          all = new HashMap();
+          if (null!=fallback) {
+            all.putAll(fallback);
+          }
+          all.putAll(toExpand);
+        }
+        for(Iterator it = all.entrySet().iterator(); it.hasNext();) {
+          final Map.Entry allEntry = (Map.Entry) it.next();
+          final String rk = "${" + ((String) allEntry.getKey()) + "}";
+          final String rv = (String) allEntry.getValue();
+          value = Util.replace(value, rk, rv);
+        }
+        entry.setValue(value);
+        println("Expanded property: " +entry.getKey() +"=" +value, 1);
+      }
+    }
   }
 
 
@@ -917,30 +1214,30 @@ public class Main {
    * This expansion is necessarry to allow redefinition of a system
    * property after inclusion of xargs-file that sets the same property.
    *
-   * @param args The vector to add elements to.
+   * @param args The list to add elements to.
    * @param arg  The element to add.
    */
-  private static void addArg(Vector args, String arg)
-  {
+  private void addArg(List args, String arg) {
     if (0==args.size()) {
-      args.addElement(arg);
+      args.add(arg);
     } else {
-      String lastArg = (String) args.lastElement();
+      String lastArg = (String) args.get(args.size()-1);
       if ("-xargs".equals(lastArg) || "--xargs".equals(lastArg)) {
         String[] exArgs = expandArgs( new String[]{ lastArg, arg } );
-        args.removeElementAt(args.size()-1);
+        args.remove(args.size()-1);
         for (int i=0; i<exArgs.length; i++) {
-          args.addElement(exArgs[i]);
+          args.add(exArgs[i]);
         }
       } else {
-        args.addElement(arg);
+        args.add(arg);
       }
     }
   }
 
+
   /**
    * Helper method when OS shell does not allow long command lines. This
-   * method has nowadays become the only reasonable way to start the
+   * method has now days become the only reasonable way to start the
    * framework due to the amount of properties.
    *
    * <p>
@@ -953,10 +1250,8 @@ public class Main {
    * File format:<br>
    *
    * <ul>
-   *  <li>Each line starting with '-D' and containing an '=' is set as
-   *      a system property.
-   *      Example "-Dorg.knopflerfish.test=apa" is equivalent
-   *      to <tt>System.setProperty("org.knopflerfish.test", "apa");</tt>
+   *  <li>Each line starting with '-D' or '-F' is used dirctly as an
+   *      entry in the new command line array.
    *  <li>Each line of length zero is ignored.
    *  <li>Each line starting with '#' is ignored.
    *  <li>Lines starting with '-' is used a command with optional argument
@@ -970,43 +1265,45 @@ public class Main {
    *                  protcoll defaults to "file:". File URLs are
    *                  first search for in the parent directory of the
    *                  current FW-dir, then in the current working directory.
-   * @param argv      The command line arguments as the look before
+   * @param oldArgs   The command line arguments as it looks before
    *                  the file named in <tt>xargsPath</tt> have been
    *                  expanded.
    * @return array with command line options loaded from
    *         <tt>xargsPath</tt> suitable to be merged into
    *         <tt>argv</tt> by the caller.
    */
-  static String [] loadArgs(String xargsPath, String[] oldArgs) {
-
+  String [] loadArgs(String xargsPath, String[] oldArgs) {
     if(XARGS_DEFAULT.equals(xargsPath)) {
-      xargsPath = getDefaultXArgs(oldArgs);
+      processProperties(oldArgs);
+      xargsPath = getDefaultXArgs();
     }
 
     // out result
-    Vector v = new Vector();
+    final List v = new ArrayList();
 
+    BufferedReader in = null;
     try {
-      BufferedReader in = null;
 
       // Check as file first, then as a URL
-      println("Searching for xargs file with URL '" +xargsPath +"'.", 2);
+      println("Searching for xargs file with '" +xargsPath +"'.", 2);
 
       // 1) Search in parent dir of the current framework directory
-      String fwDirStr = Framework.getProperty(FWDIR_PROP, FWDIR_DEFAULT);
-      // avoid getAbsoluteFile since some profiles don't have this
-      File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
-      // avoid getParentFile since some profiles don't have this
-      String defDirStr = fwDir.getParent();
-      File   defDir    = defDirStr != null ? new File(defDirStr) : null;
+      final String fwDirStr = Util.getFrameworkDir(fwProps);
+
+      // avoid getAbsoluteFile() since some profiles don't have this
+      final File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
+
+      // avoid getParentFile() since some profiles don't have this
+      final String defDirStr = fwDir.getParent();
+      final File   defDir    = defDirStr != null ? new File(defDirStr) : null;
       if (null!=defDir) {
         // Make the file object absolute before calling exists(), see
         // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
         // for details.
-        File f = new File(new File(defDir,xargsPath).getAbsolutePath());
+        final File f = new File(new File(defDir,xargsPath).getAbsolutePath());
         println(" trying " +f, 5);
         if(f.exists()) {
-          println("Loading xargs file " + f, 0);
+          println("Loading xargs file " + f, 1);
           in = new BufferedReader(new FileReader(f));
         }
       }
@@ -1016,10 +1313,10 @@ public class Main {
         // Make the file object absolute before calling exists(), see
         // http://forum.java.sun.com/thread.jspa?threadID=428403&messageID=2595075
         // for details.
-        File f = new File(new File(xargsPath).getAbsolutePath());
+        final File f = new File(new File(xargsPath).getAbsolutePath());
         println(" trying " +f, 5);
         if(f.exists()) {
-          println("Loading xargs file " + f, 0);
+          println("Loading xargs file " + f, 1);
           in = new BufferedReader(new FileReader(f));
         }
       }
@@ -1028,7 +1325,7 @@ public class Main {
       if(in == null) {
         try {
           println(" trying URL " +xargsPath, 5);
-          URL url = new URL(xargsPath);
+          final URL url = new URL(xargsPath);
           println("Loading xargs url " + url, 0);
           in = new BufferedReader(new InputStreamReader(url.openStream()));
         } catch (MalformedURLException e)  {
@@ -1037,8 +1334,6 @@ public class Main {
         }
       }
 
-
-      Properties   sysProps = Framework.getSystemProperties();
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
       String       tmpline  = null;
@@ -1075,27 +1370,15 @@ public class Main {
         }
 
         if(line.startsWith("-D")) {
-          // Set system property
-          int ix = line.indexOf("=");
-          if(ix != -1) {
-            String name = line.substring(2, ix);
-            String val  = line.substring(ix + 1);
-
-            // replace "${syspropname}" with system prop value if found
-            if(-1 != val.indexOf("${")) {
-              for(Enumeration e = sysProps.keys(); e.hasMoreElements();) {
-                String k = (String)e.nextElement();
-                if(-1 != val.indexOf(k)) {
-                  String sv = (String)sysProps.get(k);
-                  val = Util.replace(val, "${" + k + "}", sv);
-                }
-              }
-            }
-            sysProps.put(name, val);
-          }
+          // Preserve System property
+          addArg(v,line);
+        } else if(line.startsWith("-F")) {
+          // Preserve framework property
+          addArg(v,line);
         } else if(line.startsWith("#")) {
           // Ignore comments
         } else if(line.startsWith("-")) {
+          // Split command that contains a ' ' int two args
           int i = line.indexOf(' ');
           if (i != -1) {
             addArg(v, line.substring(0,i));
@@ -1111,25 +1394,50 @@ public class Main {
           addArg(v,line);
         }
       }
-      setSecurityManager(sysProps);
-
-      if(bWriteSysProps) {
-        mergeSystemProperties(sysProps);
-      }
 
       // Write to framework properties. This should be the primary
       // source for all code, including the framework itself.
-      Framework.setProperties(sysProps);
+      // framework.props.setProperties(sysProps);
 
     } catch (Exception e) {
+      if(e instanceof RuntimeException) {
+        throw (RuntimeException)e;
+      }
       throw new IllegalArgumentException("xargs loading failed: " + e);
+    } finally {
+      if (null!=in) {
+        try {
+          in.close();
+        } catch (IOException ignore) { }
+      }
     }
-    String [] args2 = new String[v.size()];
 
-    v.copyInto(args2);
+    final String [] args2 = new String[v.size()];
+    v.toArray(args2);
 
     return args2;
   }
+
+
+  // If a splash screen hash been shown, try to close it.
+  void closeSplash() {
+    // User reflection, and ignore errors since this is only supported
+    // in Java SE 6.
+    try {
+      final Class splashScreenCls = Class.forName("java.awt.SplashScreen");
+      final Method getSplashScreenMethod
+        = splashScreenCls.getMethod("getSplashScreen", null);
+      final Object splashScreen = getSplashScreenMethod.invoke(null,null);
+      if (null!=splashScreen) {
+        final Method closeMethod = splashScreenCls.getMethod("close", null);
+        closeMethod.invoke(splashScreen, null);
+      }
+    } catch (Exception e) {
+      // Ignore any error.
+      println("close splash screen: ", 6, e);
+    }
+  }
+
 
   /**
    * Print string to System.out if level >= current verbosity.
@@ -1137,11 +1445,17 @@ public class Main {
    * @param s String to print.
    * @param level print level.
    */
-  static void println(String s, int level) {
+  void println(String s, int level) {
     println(s, level, null);
   }
 
-  static void println(String s, int level, Exception e) {
+
+  void println(String s, Bundle b) {
+    println(s + b.getLocation() + " (id#" + b.getBundleId() + ")", 1);
+  }
+
+
+  void println(String s, int level, Exception e) {
     if(verbosity >= level) {
       System.out.println((level > 0 ? ("#" + level + ": ") : "") + s);
       if(e != null) {
@@ -1150,49 +1464,19 @@ public class Main {
     }
   }
 
-  static void setSecurityManager(Properties props) {
-    try {
-      String manager  = (String)props.get("java.security.manager");
-      String policy   = (String)props.get("java.security.policy");
-
-      if(manager != null) {
-        if(System.getSecurityManager() == null) {
-          println("Setting security manager=" + manager +
-                  ", policy=" + policy, 1);
-          System.setProperty("java.security.manager", manager);
-          props.put("java.security.manager", manager);
-          if(policy != null) {
-            System.setProperty("java.security.policy",  policy);
-            props.put("java.security.policy", policy);
-          }
-          SecurityManager sm = null;
-          if("".equals(manager)) {
-            sm = new SecurityManager();
-          } else {
-            Class       clazz = Class.forName(manager);
-            Constructor cons  = clazz.getConstructor(new Class[0]);
-
-            sm = (SecurityManager)cons.newInstance(new Object[0]);
-          }
-          System.setSecurityManager(sm);
-        }
-      }
-    } catch (Exception e) {
-      error("Failed to set security manager", e);
-    }
-  }
 
   /**
    * Report error and exit.
    */
-  static void error(String s) {
+  void error(final String s) {
     error(s, null);
   }
 
-  static void error(String s, Exception e) {
+
+  void error(final String s, final Throwable t) {
     System.err.println("Error: " + s);
-    if(e != null) {
-      e.printStackTrace();
+    if(t != null) {
+      t.printStackTrace();
     }
     System.exit(1);
   }

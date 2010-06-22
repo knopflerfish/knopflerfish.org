@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,18 +118,20 @@ public class LogReaderDispatcher
       ? (LogReaderService)logReaders.get(sr)
       : (LogReaderService)bc.getService(sr);
 
-    switch(ev.getType()) {
-    case ServiceEvent.REGISTERED:
-      lr.addLogListener(this);
-      logReaders.put(sr, lr);
-      break;
-    case ServiceEvent.MODIFIED:
-      break;
-    case ServiceEvent.UNREGISTERING:
-      lr.removeLogListener(this);
-      logReaders.remove(sr);
-      bc.ungetService(sr);
-      break;
+    if (null!=lr) {
+      switch(ev.getType()) {
+      case ServiceEvent.REGISTERED:
+        lr.addLogListener(this);
+        logReaders.put(sr, lr);
+        break;
+      case ServiceEvent.MODIFIED:
+        break;
+      case ServiceEvent.UNREGISTERING:
+        lr.removeLogListener(this);
+        logReaders.remove(sr);
+        bc.ungetService(sr);
+        break;
+      }
     }
   }
 

@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-Name: OSGiComplianceTestAdapter
+Bundle-Activator: org.knopflerfish.bundle.osgi_ct_adapter.Activator
+Import-Package: org.osgi.framework, junit.framework, org.osgi.util.tra
+ cker
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.knopflerfish.bundle.osgi_ct_adapter
+Bundle-Version: 1.0.0

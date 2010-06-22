@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,14 @@ package org.knopflerfish.service.desktop;
 
 
 /**
- * Callback listener for changes in <tt>BundleSelectionModel</tt>
+ * Callback listener for changes in <tt>BundleSelectionModel</tt>.
  *
  * <p>
  * @see <a href="SwingBundleDisplayer.html">SwingBundleDisplayer</a>
  * </p>
  */
 public interface BundleSelectionListener {
-  
+
   /**
    * The model has changed.
    *
@@ -55,7 +55,3 @@ public interface BundleSelectionListener {
    */
   public void valueChanged(long bid);
 }
-
-
-
-

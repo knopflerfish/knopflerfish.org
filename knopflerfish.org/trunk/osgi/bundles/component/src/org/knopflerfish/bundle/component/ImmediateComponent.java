@@ -1,4 +1,24 @@
-/* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+/*
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
  * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
  * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
@@ -14,46 +34,41 @@
 package org.knopflerfish.bundle.component;
 
 import java.util.Dictionary;
+import org.osgi.framework.*;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.component.*;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceRegistration;
 
-public class ImmediateComponent extends Component {
+class ImmediateComponent extends Component {
 
-  public ImmediateComponent(Config config, Dictionary overriddenProps) {
-    super(config, overriddenProps);
+  ImmediateComponent(SCR scr, ComponentDescription cd) {
+    super(scr, cd);
   }
 
-  public void satisfied() {
-    if (!isActivated()) {
-      activate();
+
+  public String toString() {
+    return "Immediate component: " + compDesc.getName();
+  }
+
+
+  /**
+   * Immediate component satisfied, create a component configuration
+   * for each CM pid available or a single component configuration
+   * if no CM data is available. Register component service if
+   * there is one and activate component configurations.
+   *
+   */
+  void satisfied() {
+    Activator.logInfo(bc, "Satisfied: " + toString());
+    ComponentConfiguration [] cc = newComponentConfiguration();
+    for (int i = 0; i < cc.length; i++) {
+      cc[i].registerService();
+      try {
+        cc[i].activate(null);
+      } catch (ComponentException _ignore) {
+        // Error messages are logged by the activate method
+      }
     }
-    registerService();
-  }
-
-  public void unsatisfied() {
-    unregisterService();
-    deactivate();
-  }
-
-  
-  public Object getService(Bundle bundle, ServiceRegistration reg) {
-    super.getService(bundle, reg);
-    
-    if (!isActivated()) {
-      activate();
-    }
-    
-    if (!isActivated()) { // todo read spec.
-      unregisterService();
-      return null;
-    }
-    
-    return getInstance();
-  }
-
-  public void ungetService(Bundle bundle, ServiceRegistration reg, Object o) {
-    super.ungetService(bundle, reg, o);
   }
 
 }

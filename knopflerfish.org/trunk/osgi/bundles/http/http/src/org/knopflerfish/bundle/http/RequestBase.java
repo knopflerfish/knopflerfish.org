@@ -265,6 +265,11 @@ public class RequestBase extends HeaderBase {
         // Fallback to use the default character encoding.
         paramData = new String(bodyBytes);
       }
+      // Note that HttpUtils.parseQueryString() does not handle UTF-8
+      // characters that are '%' encoded! Encoding UTF-8 chars in that
+      // way should not be needed, since the body may contain UTF-8
+      // chars as long as the correct character encoding has been used
+      // for the post.
       Hashtable p = HttpUtils.parseQueryString(paramData);
       // Merge posted paramters with URL parameters.
       Enumeration e = p.keys();

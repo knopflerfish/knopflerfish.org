@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Iterator;
 
 /**
  * Adapter class for CommandGroup. Simplifies the creations of command groups.
@@ -167,6 +172,8 @@ public abstract class CommandGroupAdapter implements CommandGroup {
         return groupName;
     }
 
+
+
     /**
      * Returns short command group help. Returns the short help message
      * registered via the constructor.
@@ -176,6 +183,7 @@ public abstract class CommandGroupAdapter implements CommandGroup {
     public String getShortHelp() {
         return shortHelp;
     }
+
 
     /**
      * Returns long command group help. This is built using the
@@ -281,6 +289,32 @@ public abstract class CommandGroupAdapter implements CommandGroup {
         }
         return res;
     }
+
+  public Map/*<String, String>*/ getCommandNames() {
+    Map map = new LinkedHashMap();
+    StringBuffer res = new StringBuffer();
+    Field[] f = getClass().getFields();
+    for (int i = 0; i < f.length; i++) {
+      String name = f[i].getName();
+      if (name.startsWith("HELP_")) {
+        try {
+          name = name.substring(5).toLowerCase();
+          DynamicCmd cmd = new DynamicCmd(this, name);
+          StringBuffer help = new StringBuffer();
+          help.append(cmd.usage);
+          if(cmd.help != null) {
+            for(int j = 0; j < cmd.help.length; j++) {
+              help.append("\n");
+              help.append(cmd.help[j]);              
+            }
+          }
+          map.put(name, help.toString());
+        } catch (Exception ignore) {
+        }
+      }
+    }
+    return map;
+  }
 
     //
     // Internal methods
@@ -447,17 +481,23 @@ public abstract class CommandGroupAdapter implements CommandGroup {
         return pos;
     }
 
-}
+  public static class DynamicCmd {
 
-class DynamicCmd {
+    public Method cmd;
 
-    Method cmd;
+    public String usage;
 
-    String usage;
+    public String[] help;
 
-    String[] help;
+    public String toString() {
+      return 
+        "DynamicCmd[" + 
+        "cmd=" + cmd + 
+        ", usage=" + usage + 
+        "]";
+    }
 
-    DynamicCmd(CommandGroup cg, String name) throws Exception {
+    public DynamicCmd(CommandGroup cg, String name) throws Exception {
         try {
             Class cls = cg.getClass();
             String hname = "HELP_" + name.toUpperCase();
@@ -509,5 +549,7 @@ class DynamicCmd {
                             + name);
         }
     }
+
+}
 
 }

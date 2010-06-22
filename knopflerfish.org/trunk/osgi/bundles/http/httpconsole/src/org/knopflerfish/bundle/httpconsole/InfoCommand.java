@@ -46,7 +46,7 @@ public class InfoCommand extends IconCommand {
     super("cmd_info",
           "Info",
           "Show info for selected bundles",
-          Activator.RES_ALIAS + "/info.gif");
+          Activator.RES_ALIAS + "/info.png");
 
     displayFlags = DISPLAY_COMPACTLIST;
   }

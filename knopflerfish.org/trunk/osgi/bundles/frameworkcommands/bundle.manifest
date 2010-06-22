@@ -2,21 +2,20 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: FW-Commands
 Bundle-SymbolicName: org.knopflerfish.bundle.frameworkcommands
-Bundle-Version: 2.0.5
-Bundle-UUID: org.knopflerfish:frameworkcommands:2.0.5:impl
+Bundle-Version: 3.0.3
+Bundle-Activator: org.knopflerfish.bundle.frameworkcommands.Activator
 Bundle-Description: Framework commands
 Bundle-Vendor: Knopflerfish
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-Activator: org.knopflerfish.bundle.frameworkcommands.Activator
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/frameworkcommands
 Bundle-Category: service
+Bundle-Icon: icon.png;size=32
 Import-Service: org.osgi.service.log.LogService,
  org.knopflerfish.service.console.ConsoleService
-Import-Package: org.osgi.framework,
+Import-Package: org.osgi.framework;version="[1.5,2.0)",
  org.knopflerfish.service.console,
- org.osgi.service.packageadmin,
- org.osgi.service.permissionadmin,
- org.osgi.service.startlevel,
- org.osgi.service.condpermadmin
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-
+ org.osgi.service.packageadmin;version="[1.2,2.0)",
+ org.osgi.service.permissionadmin;version="[1.2,2.0)",
+ org.osgi.service.startlevel;version="[1.1,2.0)",
+ org.osgi.service.condpermadmin;version="[1.1,2.0)"

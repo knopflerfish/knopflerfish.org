@@ -4,7 +4,6 @@
 
   <!-- Internal target that calls a specified target in all sub-dirs. -->
   <target name="doAntBuild">
-    <ant target="${the.target}" dir="trayicon"/>
     <ant target="${the.target}" dir="trayicon_fw"/>
   </target>
 

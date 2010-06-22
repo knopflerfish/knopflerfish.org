@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,13 @@
 
 package org.knopflerfish.framework.validator;
 
-import org.knopflerfish.framework.Framework;
+import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Validator;
+import org.knopflerfish.framework.Util;
+
+import org.osgi.framework.Constants;
+
 import java.io.*;
 import java.security.cert.*;
 import java.security.GeneralSecurityException;
@@ -52,167 +57,126 @@ import java.util.*;
 public class JKSValidator implements Validator {
 
   /**
-   * PKIX algorithm provider string.
+   * Property strings.
    */
-  final private static String CERT_ALGORITHM_PKIX = "PKIX";
+  final private static String CA_CERTS_PROP =
+    "org.knopflerfish.framework.validator.jks.ca_certs";
 
-  /**
-   * X509 certificate type string.
-   */
-  final private static String CERT_TYPE_X509 = "X.509";
+  final private static String CA_CERTS_PASSWORD_PROP =
+    "org.knopflerfish.framework.validator.jks.ca_certs_password";
 
-  /**
-   * Property base string.
-   */
-  final private static String PROP_BASE = "org.knopflerfish.framework.validator.jks.";
+  final private static String CERT_PROVIDER_PROP =
+    "org.knopflerfish.framework.validator.jks.cert_provider";
 
-  /**
-   * CA certificates repository.
-   */
-  private static String caCertsFileName = Framework.getProperty(PROP_BASE + "ca_certs");
-
-  /**
-   * CA certificates repository password.
-   */
-  private static String caCertsPassword = Framework.getProperty(PROP_BASE + "ca_certs_password");
 
   /**
    * Certificate provider;
    */
-  final private static String certProvider = Framework.getProperty(PROP_BASE + "cert_provider");
-
-  /**
-   * Certificate algorithm, only supports PKIX now.
-   */
-  private static String certAlgorithm = CERT_ALGORITHM_PKIX;
+  private String certProvider;
 
   /**
    * 
    */
-  private static CertificateFactory certFactory = null;
+  private CertificateFactory certFactory = null;
 
   /**
    * 
    */
-  private static String certFactoryType = null;
+  private String certFactoryType = null;
 
   /**
    * 
    */
-  private static CertPathValidator certValidator = null;
+  private CertPathValidator certValidator = null;
 
   /**
    * 
    */
-  private static String certValidatorAlgorithm = null;
+  private String certValidatorAlgorithm = null;
 
   /**
    *
    */
-  private KeyStore keystore;
+  final private KeyStore keystore;
+
+  /**
+   * NYI make it configurable
+   */
+  private boolean trustKeys = true;
+
+  /**
+   * Debug handle
+   */
+  final private Debug debug;
 
 
   /**
-   * Create an Archive based on contents of an InputStream,
-   * the archive is saved as local copy in the specified
-   * directory.
+   * Create a JKS based validator.
    *
-   * @param storage BundleStorageImpl for this archive.
-   * @param dir Directory to save data in.
-   * @param rev Revision of bundle content (used for updates).
-   * @param is Jar file data in an InputStream.
-   * @param url URL to use to CodeSource.
-   * @param location Location for archive
+   * @param fw FrameworkContext used to get configuration properties.
    */
-  public JKSValidator()
+  public JKSValidator(FrameworkContext fw) throws KeyStoreException  
   {
-    keystore = getKeyStore();
-  }
-
-
-  /**
-   * Check that certificates are valid:
-   * 
-   */
-  public Certificate [] checkCertificates(Certificate [] certs) {
-    List failed = new ArrayList();
-    for (Iterator i = getCertificateChains(certs, failed).iterator(); i.hasNext();) {
-      CertPath c = (CertPath)i.next();
-      try {
-        CertPathValidator cpv = getCertPathValidator(certAlgorithm);
-        CertPathParameters params = getCertPathParameters(keystore, certAlgorithm);
-        cpv.validate(c, params);
-      } catch (GeneralSecurityException gse) {
-        // NYI! Log this?
-        failed.addAll(c.getCertificates());
+    debug = fw.debug;
+    keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+    // NYI! Handle serveral repositories.
+    fw.props.setPropertyDefault(CERT_PROVIDER_PROP, "");
+    certProvider = fw.props.getProperty(CERT_PROVIDER_PROP);
+    String repos = fw.props.getProperty(Constants.FRAMEWORK_TRUST_REPOSITORIES);
+    if (repos.length() > 0) {
+      String [] l = Util.splitwords(repos, File.pathSeparator);
+      for (int i = 0; i < l.length; i++) {
+        String certRepo = l[i].trim();
+        if (certRepo.length() > 0) {
+          loadKeyStore(certRepo, null);
+        }
+      }
+    } else {
+      fw.props.setPropertyDefault(CA_CERTS_PROP,
+                                  System.getProperty("java.home")
+                                  + "/lib/security/cacerts".replace('/', File.separatorChar));
+      fw.props.setPropertyDefault(CA_CERTS_PASSWORD_PROP, "changeit");
+      final String caCertsFileName = fw.props.getProperty(CA_CERTS_PROP);
+      if (caCertsFileName != null) {
+        loadKeyStore(caCertsFileName, fw.props.getProperty(CA_CERTS_PASSWORD_PROP));
       }
     }
-    return (Certificate [])failed.toArray(new Certificate[failed.size()]);
   }
 
 
   /**
-   * Take an array of certificates and arrange them as a list
-   * of CertPath objects.
+   * Check if a certificate chain is to be trusted.
    *
+   * @return true, if validator trusts certificate chain, otherwise false.
    */
-  private List getCertificateChains(Certificate [] c, List failed) {
-    ArrayList res = new ArrayList();
-    ArrayList chain = new ArrayList();
-    String certPathType = null;
-    boolean foundAnchor = false;
-    int i = 0;
-    while (i < c.length) {
-      if (certPathType == null) {
-        certPathType = c[i].getType();
-      } else if (certPathType != c[i].getType()) {
-        // Broken chain, we fail everything after this
-        break;
-      }
-      if (certPathType == CERT_TYPE_X509) {
-        X509Certificate cert = (X509Certificate) c[i];
-        // TBD, can we use == and do we need to check uniqID?
-        if (cert.getIssuerX500Principal().equals(cert.getSubjectX500Principal())) {
-          foundAnchor = true;
-        }
-      } else {
-        // Unsupported type
-        failed.add(c[i++]);
-        continue;
-      }
-      chain.add(c[i++]);
-      if (foundAnchor) {
-        try {
-          res.add(getCertificateFactory(certPathType).generateCertPath(chain));
-        } catch (GeneralSecurityException gse) {
-          failed.addAll(chain);
-        }
-        chain.clear();
-        foundAnchor = false;
-      }
+  public boolean validateCertificateChain(List /* X509Certificate */ chain) {
+    if (keystore == null) {
+      return false;
     }
-    // Add remaining certs as failed
-    failed.addAll(chain);
-    while (i < c.length) {
-      failed.add(c[i++]);
+    try {
+      CertPath c = getCertificateFactory().generateCertPath(chain);
+      CertPathValidator cpv = getCertPathValidator();
+      CertPathParameters params = getCertPathParameters(keystore);
+      cpv.validate(c, params);
+    } catch (GeneralSecurityException gse) {
+      // NYI! Log this?
+      return false;
     }
-
-    return res;
+    return true;
   }
 
 
   /**
    * 
    */
-  static CertificateFactory getCertificateFactory(String certType)
+  private CertificateFactory getCertificateFactory()
     throws GeneralSecurityException
   {
-    if (certFactory == null || certFactoryType != certType) {
-      certFactoryType = certType;
-      if (certProvider != null) {
-        certFactory = CertificateFactory.getInstance(certType, certProvider);
+    if (certFactory == null) {
+      if (certProvider.length() > 0) {
+        certFactory = CertificateFactory.getInstance("X.509", certProvider);
       } else {
-        certFactory = CertificateFactory.getInstance(certType);
+        certFactory = CertificateFactory.getInstance("X.509");
       }
     }
     return certFactory;
@@ -222,32 +186,37 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  static CertPathParameters getCertPathParameters(KeyStore keystore, String certAlgo)
+  private CertPathParameters getCertPathParameters(KeyStore keystore)
     throws GeneralSecurityException
   {
-    if (CERT_ALGORITHM_PKIX.equals(certAlgo)) {
-      PKIXParameters p = new PKIXParameters(keystore);
-      // NYI! Handle CRLs
-      p.setRevocationEnabled(false);
-      return p;
-    } else {
-      throw new GeneralSecurityException(certAlgo + " not supported");
+    HashSet tas = new HashSet();
+    for (Enumeration e = keystore.aliases(); e.hasMoreElements(); ) {
+      String name = (String)e.nextElement();
+      Certificate c = keystore.getCertificate(name);
+      if (c != null) {
+        if (trustKeys || keystore.isCertificateEntry(name)) {
+          tas.add(new TrustAnchor((X509Certificate)c, null)); 
+        }
+      }
     }
+    PKIXParameters p = new PKIXParameters(tas);
+    // NYI! Handle CRLs
+    p.setRevocationEnabled(false);
+    return p;
   }
 
 
   /**
    * 
    */
-  CertPathValidator getCertPathValidator(String certAlgo)
+  private CertPathValidator getCertPathValidator()
     throws GeneralSecurityException
   {
-    if (certValidator == null || certValidatorAlgorithm != certAlgo) {
-      certValidatorAlgorithm = certAlgo;
-      if (certProvider != null) {
-        certValidator = CertPathValidator.getInstance(certAlgo, certProvider);
+    if (certValidator == null) {
+      if (certProvider.length() > 0) {
+        certValidator = CertPathValidator.getInstance("PKIX", certProvider);
       } else {
-        certValidator = CertPathValidator.getInstance(certAlgo);
+        certValidator = CertPathValidator.getInstance("PKIX");
       }
     }
     return certValidator;
@@ -257,24 +226,16 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  KeyStore getKeyStore() {
-    if (caCertsFileName == null) {
-      caCertsFileName = System.getProperty("java.home")
-        + "/lib/security/cacerts".replace('/', File.separatorChar);
-    }
-    if (caCertsPassword == null) {
-      caCertsPassword = "changeit";
-    }
+  private void loadKeyStore(String file, String password) {
     try {
-      FileInputStream is = new FileInputStream(caCertsFileName);
-      KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-      keystore.load(is, caCertsPassword.toCharArray());
-      return keystore;
+      FileInputStream is = new FileInputStream(file);
+      keystore.load(is, password != null ? password.toCharArray() : null);
+      if (debug.certificates) {
+        debug.println("Loaded keystore, " + file);
+      }
     } catch (Exception e) {
-      System.err.println("Failed to load keystore, " + caCertsFileName + ": " + e);
-      // NYI! Log
+      debug.printStackTrace("Failed to load keystore, " + file, e);
     }
-    return null;
   }
 
 }

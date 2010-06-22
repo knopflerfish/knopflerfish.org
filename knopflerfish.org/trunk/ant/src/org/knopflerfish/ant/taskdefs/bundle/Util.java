@@ -56,7 +56,7 @@ public class Util {
 
   public static String loadFile(String fname) throws IOException {
     byte[] bytes = loadURL(new URL("file:" + fname));
-    return new String(bytes);
+    return new String(bytes, "UTF-8");
   }
 
 
@@ -251,16 +251,15 @@ public class Util {
   }
 
 
-
+  // Allways write files using UTF-8.
   static void writeStringToFile(File outFile, String s) throws IOException {
-    FileWriter writer   = null;
-
+    OutputStreamWriter writer = null;
     try {
       outFile.getParentFile().mkdirs();
-      writer = new FileWriter(outFile);
+      final OutputStream out = new FileOutputStream(outFile);
+      writer = new OutputStreamWriter(out, "UTF-8");
       writer.write(s, 0, s.length());
       //      System.out.println("wrote " + outFile);
-
     } finally {
       try { writer.close(); } catch (Exception ignored) { }
     }

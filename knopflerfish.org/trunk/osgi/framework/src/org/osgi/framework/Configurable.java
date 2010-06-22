@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.framework/src/org/osgi/framework/Configurable.java,v 1.11 2006/06/16 16:31:18 hargrave Exp $
- * 
- * Copyright (c) OSGi Alliance (2000, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2009). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +25,8 @@ package org.osgi.framework;
  * configure a service may test to determine if the service object is an
  * <code>instanceof Configurable</code>.
  * 
- * @version $Revision: 1.11 $
  * @deprecated As of 1.2. Please use Configuration Admin service.
+ * @version $Revision: 6361 $
  */
 public interface Configurable {
 	/**
@@ -44,7 +42,7 @@ public interface Configurable {
 	 * returning the configuration object.
 	 * 
 	 * @return The configuration object for this service.
-	 * @throws java.lang.SecurityException If the caller does not have an
+	 * @throws SecurityException If the caller does not have an
 	 *         appropriate permission and the Java Runtime Environment supports
 	 *         permissions.
 	 * @deprecated As of 1.2. Please use Configuration Admin service.

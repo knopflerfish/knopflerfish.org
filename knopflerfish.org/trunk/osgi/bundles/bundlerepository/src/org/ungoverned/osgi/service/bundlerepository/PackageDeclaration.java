@@ -32,160 +32,133 @@
  * Contact: Richard S. Hall (heavy@ungoverned.org)
  * Contributor(s):
  *
-**/
+ **/
 package org.ungoverned.osgi.service.bundlerepository;
 
 import java.util.StringTokenizer;
+import org.osgi.framework.Version;
+import org.knopflerfish.osgi.bundle.bundlerepository.VersionRange;
+
 
 /**
  * This is a simple class to encapsulate a package declaration for
  * bundle imports and exports for the bundle repository.
-**/
+ **/
 public class PackageDeclaration
 {
-    public static final String PACKAGE_ATTR = "package";
-    public static final String VERSION_ATTR = "specification-version";
+  public static final String PACKAGE_ATTR = "package";
+  public static final String VERSION_ATTR = "version";
+  public static final String SPEC_VERSION_ATTR = "specification-version";
 
-    private String m_name = null;
-    private int[] m_version = null;
+  private String m_name = null;
+  // Exported packages uses a version
+  private Version m_version = null;
+  // Imported packages uses a version range
+  private VersionRange m_versionRange = null;
 
-    /**
-     * Construct a package declaration.
-     * @param name the name of the package.
-     * @param versionString the package version as a string.
-    **/
-    public PackageDeclaration(String name, String versionString)
-    {
-        m_name = name;
-        m_version = parseVersionString((versionString == null) ? "" : versionString);
+  /**
+   * Construct a package declaration.
+   * @param name the name of the package.
+   * @param versionString the package version as a string.
+   * @param range if true then the version string is a version range.
+   **/
+  public PackageDeclaration(String name, String versionString, boolean range)
+  {
+    m_name = name;
+    if (range) {
+      m_versionRange = (null==versionString || 0==versionString.length())
+        ? VersionRange.defaultVersionRange
+        : new VersionRange(versionString);
+    } else {
+      m_version = Version.parseVersion(versionString);
+    }
+  }
+
+  /**
+   * Construct a package declaration.
+   * @param name the name of the package.
+   * @param version the package version as an integer triplet.
+   **/
+  public PackageDeclaration(String name, Version version)
+  {
+    m_name = name;
+    m_version = version;
+  }
+
+  /**
+   * Construct a copy of a package declaration.
+   * @param pkg the package declaration to copy.
+   **/
+  public PackageDeclaration(PackageDeclaration pkg)
+  {
+    m_name = pkg.m_name;
+    m_version = pkg.m_version;
+  }
+
+  /**
+   * Gets the name of the package.
+   * @return the package name.
+   **/
+  public String getName()
+  {
+    return m_name;
+  }
+
+  /**
+   * Gets the version of the package represented as a string.
+   * @return the string representation of the package version.
+   **/
+  public String getVersion()
+  {
+    return m_version!=null? m_version.toString() : m_versionRange.toString();
+  }
+
+  /**
+   * Compares two package declarations.
+   * @param pkg the package declaration used for comparison.
+   * @return greater than <tt>0</tt> if the supplied package version
+   *         is less, less than <tt>0</tt> if the supplied package is
+   *         is greater, and <tt>0</tt> if the two versions are equal.
+   * @throws IllegalArgumentException if the package declarations are
+   *         not for the same package.
+   **/
+  public int compareVersion(PackageDeclaration pkg)
+  {
+    if (!getName().equals(pkg.getName())) {
+      throw new IllegalArgumentException
+        ("Cannot compare versions on different packages");
+    }
+    return m_version.compareTo(pkg.m_version);
+  }
+
+  /**
+   * Determines if the current package declaration satisfies
+   * the supplied package declaration.
+   * @param pkg the package to be checked.
+   * @return <tt>true</tt> if the current package satisfies the
+   *         supplied package, <tt>false</tt> otherwise.
+   **/
+  public boolean doesSatisfy(PackageDeclaration pkg)
+  {
+    if (!getName().equals(pkg.getName())) {
+      return false;
     }
 
-    /**
-     * Construct a package declaration.
-     * @param name the name of the package.
-     * @param version the package version as an integer triplet.
-    **/
-    public PackageDeclaration(String name, int[] version)
-    {
-        m_name = name;
-        m_version = version;
+    if (null!=m_versionRange && null==pkg.m_versionRange) {
+      return m_versionRange.withinRange(pkg.m_version);
+    } else if (null!=m_version && null!=pkg.m_versionRange) {
+      return pkg.m_versionRange.withinRange(m_version);
     }
+    return false;
+  }
 
-    /**
-     * Construct a copy of a package declaration.
-     * @param pkg the package declaration to copy.
-    **/
-    public PackageDeclaration(PackageDeclaration pkg)
-    {
-        m_name = pkg.m_name;
-        m_version = pkg.m_version;
-    }
+  /**
+   * Gets the string representation of the package declaration.
+   * @return the string representation of the package declaration.
+   **/
+  public String toString()
+  {
+    return m_name + "; specification-version=" + getVersion();
+  }
 
-    /**
-     * Gets the name of the package.
-     * @return the package name.
-    **/
-    public String getName()
-    {
-        return m_name;
-    }
-
-    /**
-     * Gets the version of the package represented as a string.
-     * @return the string representation of the package version.
-    **/
-    public String getVersion()
-    {
-        return m_version[0] + "." + m_version[1] + "." + m_version[2];
-    }
-
-    /**
-     * Compares two package declarations.
-     * @param pkg the package declaration used for comparison.
-     * @return greater than <tt>0</tt> if the supplied package version
-     *         is less, less than <tt>0</tt> if the supplied package is
-     *         is greater, and <tt>0</tt> if the two versions are equal.
-     * @throws IllegalArgumentException if the package declarations are
-     *         not for the same package.
-    **/
-    public int compareVersion(PackageDeclaration pkg)
-    {
-        if (!getName().equals(pkg.getName()))
-        {
-            throw new IllegalArgumentException(
-                "Cannot compare versions on different packages");
-        }
-
-        if (m_version[0] > pkg.m_version[0])
-            return 1;
-        else if (m_version[0] < pkg.m_version[0])
-            return -1;
-        else if (m_version[1] > pkg.m_version[1])
-            return 1;
-        else if (m_version[1] < pkg.m_version[1])
-            return -1;
-        else if (m_version[2] > pkg.m_version[2])
-            return 1;
-        else if (m_version[2] < pkg.m_version[2])
-            return -1;
-
-        return 0;
-    }
-
-    /**
-     * Determines if the current package declaration satisfies
-     * the supplied package declaration.
-     * @param pkg the package to be checked.
-     * @return <tt>true</tt> if the current package satisfies the
-     *         supplied package, <tt>false</tt> otherwise.
-    **/
-    public boolean doesSatisfy(PackageDeclaration pkg)
-    {
-        if (!getName().equals(pkg.getName()))
-        {
-            return false;
-        }
-
-        return (compareVersion(pkg) >= 0) ? true : false;
-    }
-
-    /**
-     * Gets the string representation of the package declaration.
-     * @return the string representation of the package declaration.
-    **/
-    public String toString()
-    {
-        return m_name + "; specification-version=" + getVersion();
-    }
-
-    private int[] parseVersionString(String versionString)
-    {
-        StringTokenizer st = new StringTokenizer(versionString, ".");
-        int[] version = new int[3];
-        version[0] = 0;
-        version[1] = 0;
-        version[2] = 0;
-        if (st.countTokens() > 0)
-        {
-            try
-            {
-                version[0] = Integer.parseInt(st.nextToken());
-                if (st.hasMoreTokens())
-                {
-                    version[1] = Integer.parseInt(st.nextToken());
-                    if (st.hasMoreTokens())
-                    {
-                        version[2] = Integer.parseInt(st.nextToken());
-                    }
-                }
-            }
-            catch (NumberFormatException ex)
-            {
-                throw new IllegalArgumentException(
-                    "Improper version number: " + versionString);
-            }
-        }
-
-        return version;
-    }
 }

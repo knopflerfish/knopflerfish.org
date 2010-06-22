@@ -10,10 +10,6 @@
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/desktop/**"/>
 
-<!--
-  <property name = "bundle.icon" value="boing32x32.png"/>
--->
-
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
    <pathelement location="cm_api-N.N.N.jar"/>
@@ -26,6 +22,3 @@
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>
-
-
-

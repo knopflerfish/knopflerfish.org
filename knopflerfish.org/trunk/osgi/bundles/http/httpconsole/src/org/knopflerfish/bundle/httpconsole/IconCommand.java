@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
  */
 
 package org.knopflerfish.bundle.httpconsole;
-	
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
@@ -52,10 +52,10 @@ public abstract class IconCommand implements Command {
 
   int displayFlags = 0;
 
-  IconCommand(String id, 
-	      String name, 
-	      String description,
-	      String icon) {
+  IconCommand(String id,
+              String name,
+              String description,
+              String icon) {
     this.id          = id;
     this.name        = name;
     this.description = description;
@@ -67,16 +67,17 @@ public abstract class IconCommand implements Command {
   }
 
   public abstract StringBuffer run(HttpServletRequest request);
-  
+
   public void toHTML(HttpServletRequest request, PrintWriter out) throws IOException {
-    out.print(" <input " + 
-	      " alt=\"" + getDescription() + "\"" + 
-	      " type=\"image\"" + 
-	      " class=\"iconcmd\"" + 
-	      " name=\"" + getId() + "\"" + 
-	      " src=\"" + getIcon() + "\">");
+    out.print(" <input " +
+              " alt=\"" + getDescription() + "\"" +
+              " title=\"" + getDescription() + "\"" +
+              " type=\"image\"" +
+              " class=\"iconcmd\"" +
+              " name=\"" + getId() + "\"" +
+              " src=\"" + getIcon() + "\">");
   }
-  
+
   public String getId() {
     return id;
   }

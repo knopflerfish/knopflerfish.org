@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,91 +34,135 @@
 
 package org.knopflerfish.bundle.trayicons.framework;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Constructor;
+import java.lang.Class;
+
 import org.osgi.framework.*;
 import org.osgi.util.tracker.*;
 import org.osgi.service.startlevel.*;
-import java.awt.event.*;
 
-import javax.swing.JPopupMenu;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JCheckBoxMenuItem;
+import java.awt.event.*;
+// import java.awt.TrayIcon;
+import java.awt.Toolkit;
+
+import java.awt.PopupMenu;
+import java.awt.Menu;
+import java.awt.MenuItem;
+import java.awt.CheckboxMenuItem;
+import java.awt.Image;
 
 import java.io.File;
 import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.service.trayicon.*;
 
-public class FrameworkTrayIcon extends DefaultTrayIcon {
-
+public class FrameworkTrayIcon {
 
   ServiceTracker      slsTracker;
-  JPopupMenu          popup;
-  JCheckBoxMenuItem[] slsItems = new JCheckBoxMenuItem[22];
+  CheckboxMenuItem[] slsItems = new CheckboxMenuItem[22];
+  static Object trayIcon;
+  static Object systemTray;
+  static Class trayIconClass;
+  static Class systemTrayClass;
+  static FrameworkTrayIcon frameworkTrayIcon;
 
-  String initMsg
-    = getProperty("org.knopflerfish.service.trayicon.fw.initmsg",
-                  "The Knopflerfish OSGi framework is initialized");
+  public FrameworkTrayIcon() throws UnsupportedOperationException {
+    final StringBuffer toolTipText = new StringBuffer("Knopflerfish OSGi");
+    final String servicePlatformId
+      = Activator.bc.getProperty("org.osgi.provisioning.spid");
+    if (null!=servicePlatformId && 0<servicePlatformId.length()) {
+      toolTipText.append(" (").append(servicePlatformId).append(")");
+    }
 
-  String restartMsg
-    = getProperty("org.knopflerfish.service.trayicon.fw.restartmsg",
-                  "The Knopflerfish OSGi framework is restarted");
+    try {
+      trayIconClass = Class.forName("java.awt.TrayIcon");
+      Constructor con = trayIconClass.getDeclaredConstructor(new Class[] {Image.class, String.class});
+      trayIcon = con.newInstance(new Object[] {
+          Toolkit.getDefaultToolkit().getImage(FrameworkTrayIcon.class.getResource(getIconForOS())),
+          toolTipText.toString()});
 
-  public FrameworkTrayIcon() {
-    super(Activator.bc,
-          FrameworkTrayIcon.class.getName(),
-          getProperty("org.knopflerfish.service.trayicon.fw.title",
-                      "Knopflerfish OSGi"),
-          FrameworkTrayIcon.class.getResource("/kf_16x16.gif"));
-  }
+      Method m = trayIconClass.getDeclaredMethod("setPopupMenu", new Class[] {PopupMenu.class});
+      m.invoke(trayIcon, new Object[] {makeMenu()});
 
-  void open() {
-    slsTracker = new ServiceTracker(Activator.bc,
-                                    StartLevel.class.getName(), null);
-    slsTracker.open();
+      slsTracker = new ServiceTracker(Activator.bc,
+                                      StartLevel.class.getName(), null);
+      slsTracker.open();
 
-    makeMenu();
 
-    updateStartLevelItems();
+      updateStartLevelItems();
 
-    Activator.bc.addFrameworkListener(new FrameworkListener() {
-        public void frameworkEvent(FrameworkEvent ev) {
-          if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType() ||
-             FrameworkEvent.STARTED  == ev.getType()) {
-            updateStartLevelItems();
+      Activator.bc.addFrameworkListener(new FrameworkListener() {
+          public void frameworkEvent(FrameworkEvent ev) {
+            if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType() ||
+               FrameworkEvent.STARTED  == ev.getType()) {
+              updateStartLevelItems();
+            }
           }
-        }
-      });
-
-    register();
-  }
-
-  void close() {
-    slsTracker.close();
-    unregister();
-  }
-
-  public JPopupMenu getTrayJPopupMenu() {
-    return popup;
-  }
-
-  public String getStartupMessage() {
-    File f = Activator.bc.getDataFile("firststart");
-    if(f.exists()) {
-      return restartMsg;
-    } else {
-      try {
-        f.createNewFile();
-      } catch (Exception e) {
-        Activator.log.error("Failed to create file=" + f);
-      }
-      return initMsg;
+        });
+    }
+    catch (Exception e) {
+      Activator.log.error("Failed to create FrameworkTrayIcon: "+e, e);
+      throw new UnsupportedOperationException(e.getMessage());
     }
   }
 
-  void makeMenu() {
-    popup = new JPopupMenu();
+  public static FrameworkTrayIcon getFrameworkTrayIcon() throws UnsupportedOperationException {
+    if (frameworkTrayIcon != null)
+      return frameworkTrayIcon;
 
-    popup.add(new JMenuItem("Shutdown framework") {
+    try {
+      if (systemTray == null) {
+        systemTrayClass  = Class.forName("java.awt.SystemTray");
+        Method m = systemTrayClass.getDeclaredMethod("isSupported", null);
+        Boolean is_supported = (Boolean)m.invoke(null, null);
+        if (!is_supported.booleanValue())
+          throw new UnsupportedOperationException("System Tray not supported");
+
+        m = systemTrayClass.getDeclaredMethod("getSystemTray", null);
+        systemTray = m.invoke(null,null);
+        frameworkTrayIcon = new FrameworkTrayIcon();
+        return frameworkTrayIcon;
+      }
+    }
+    catch (UnsupportedOperationException e) {
+      throw e;
+    }
+    catch (Exception e) {
+      Activator.log.error("Error in SystemTray invokation: " + e);
+      throw new UnsupportedOperationException(e.getMessage());
+    }
+    return null; // dummy
+  }
+
+
+  void show() {
+    Activator.log.info("Showing tray icon");
+    try {
+      Method m = systemTrayClass.getMethod("add", new Class[] {trayIconClass});
+      m.invoke(systemTray, new Object[] {trayIcon});
+    }
+    catch (Exception e){
+      Activator.log.error("Failed to add TrayIcon to SystemTray", e);
+    }
+  }
+
+  void close() {
+    try {
+      Activator.log.info("Removing tray icon");
+      Method m = systemTrayClass.getMethod("remove", new Class[] {trayIconClass});
+      m.invoke(systemTray, new Object[] {trayIcon});
+    }
+    catch (Exception e){
+      Activator.log.error("Failed to remove TrayIcon from SystemTray", e);
+    }
+
+    slsTracker.close();
+    // unregister();
+  }
+
+  PopupMenu makeMenu() {
+    final PopupMenu popup = new PopupMenu();
+
+    popup.add(new MenuItem("Shutdown framework") {
         {
           addActionListener(new ActionListener() {
               public void actionPerformed(ActionEvent e) {
@@ -128,13 +172,13 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
         }
       });
 
-    JMenu slsMenu = new JMenu("Start level");
+    final Menu slsMenu = new Menu("Start level");
     for(int i = 1; i < slsItems.length-1; i++) {
       final int level = i;
-      slsItems[i] = new JCheckBoxMenuItem("" + i) {
+      slsItems[i] = new CheckboxMenuItem("" + i) {
           {
-            addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
+            addItemListener(new ItemListener() {
+                public void itemStateChanged(ItemEvent e) {
                   setStartLevel(level);
                 }
               });
@@ -145,6 +189,7 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
     }
 
     popup.add(slsMenu);
+    return popup;
   }
 
 
@@ -169,7 +214,6 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
       Activator.log.warn("No start level service found");
       return;
     }
-
     sls.setStartLevel(n);
   }
 
@@ -189,6 +233,13 @@ public class FrameworkTrayIcon extends DefaultTrayIcon {
       return sValue;
     }
     return def;
+  }
+
+  static String getIconForOS() {
+    if (System.getProperty("os.name", "").toLowerCase().startsWith("mac os x"))
+      return "/kfbones-rev-tr-22x22.png";
+    else
+      return "/kf_16x16.png";
   }
 
 }

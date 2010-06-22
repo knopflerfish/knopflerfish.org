@@ -38,7 +38,6 @@ import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.event.EventAdmin;
 
 /**
  * The Activator class is the startup class for the EventHandlerService.
@@ -55,23 +54,24 @@ public class Activator implements BundleActivator {
   private static final String QUEUE_HANDLER_TIMEOUT_PROP
     = "org.knopflerfish.eventadmin.queuehandler.timeout";
 
-  static BundleContext bundleContext;
+  static BundleContext bc;
   static LogRef log;
-  static ServiceRegistration reg;
   static EventAdminService eventAdmin;
   static EventHandlerTracker handlerTracker;
   static long timeout = 0;
   static boolean useMultipleQueueHandlers = true;
-  static long    queueHandlerTimeout = 1100;
+  static long queueHandlerTimeout = 1100;
   static long timeWarning = 0;
 
-  public void start(BundleContext context) throws Exception
+  public void start(BundleContext bc) throws Exception
   {
-    Activator.bundleContext = context;
+    Activator.bc = bc;
+    log = new LogRef(bc);
+    handlerTracker = new EventHandlerTracker(bc);
 
     /* Tries to get the timeout property from the system */
     try {
-      final String timeoutS = Activator.bundleContext.getProperty(TIMEOUT_PROP);
+      final String timeoutS = Activator.bc.getProperty(TIMEOUT_PROP);
       if (null != timeoutS && 0 < timeoutS.length()) {
         timeout = Long.parseLong(timeoutS);
       }
@@ -80,7 +80,7 @@ public class Activator implements BundleActivator {
 
     try {
       final String timeoutS
-        = Activator.bundleContext.getProperty(QUEUE_HANDLER_TIMEOUT_PROP);
+        = Activator.bc.getProperty(QUEUE_HANDLER_TIMEOUT_PROP);
       if (null != timeoutS && 0 < timeoutS.length()) {
         queueHandlerTimeout = Long.parseLong(timeoutS);
       }
@@ -88,14 +88,13 @@ public class Activator implements BundleActivator {
     }
 
     final String qhm
-      = Activator.bundleContext.getProperty(QUEUE_HANDLER_MULTIPLE_PROP);
+      = Activator.bc.getProperty(QUEUE_HANDLER_MULTIPLE_PROP);
     if (null!=qhm) {
       useMultipleQueueHandlers = !"false".equalsIgnoreCase(qhm);
     }
 
     try {
-      String timeWarningS = Activator.bundleContext
-          .getProperty(TIMEWARNING_PROP);
+      String timeWarningS = Activator.bc.getProperty(TIMEWARNING_PROP);
       if (null != timeWarningS && 0 < timeWarningS.length()) {
         timeWarning = Long.parseLong(timeWarningS);
       }
@@ -103,26 +102,18 @@ public class Activator implements BundleActivator {
       timeWarning = 0;
     }
 
-    log = new LogRef(context);
-
-    handlerTracker = new EventHandlerTracker(context);
     handlerTracker.open();
 
     eventAdmin = new EventAdminService();
-    reg = bundleContext.registerService(EventAdmin.class.getName(), eventAdmin,
-        null);
+    eventAdmin.start();
   }
 
-  public void stop(BundleContext context) throws Exception
+  public void stop(BundleContext bc) throws Exception
   {
-    reg.unregister();
-
     eventAdmin.stop();
     eventAdmin = null;
 
     handlerTracker.close();
     handlerTracker = null;
-
-    //InternalAdminEvent.close();
   }
 }

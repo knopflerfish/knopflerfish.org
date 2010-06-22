@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.event;
 
 import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.service.log.LogService;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
@@ -49,9 +50,13 @@ import org.osgi.service.event.EventConstants;
 import org.osgi.service.log.LogEntry;
 import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Listen for LogEntries, ServiceEvents, FrameworkEvents, BundleEvents
@@ -62,23 +67,41 @@ public class MultiListener implements LogListener,
                                       ServiceListener,
                                       FrameworkListener,
                                       BundleListener {
-  private LogRef log;
+  private long ourBundleId;
+  ServiceTracker logReaderTracker = new ServiceTracker(Activator.bc,LogReaderService.class.getName(), new ServiceTrackerCustomizer(){
 
-  public MultiListener() {
-    log = new LogRef(Activator.bundleContext);
-
-    Activator.bundleContext.addBundleListener(this);
-    Activator.bundleContext.addServiceListener(this);
-    Activator.bundleContext.addFrameworkListener(this);
-
-    ServiceReference sr
-      = Activator.bundleContext.getServiceReference(LogReaderService.class.getName());
-    if (sr != null) {
-      LogReaderService logReader = (LogReaderService) Activator.bundleContext.getService(sr);
+    public Object addingService(ServiceReference sr) {
+      LogReaderService logReader = (LogReaderService) Activator.bc.getService(sr);
       if (logReader != null) {
-        logReader.addLogListener(this);
+        logReader.addLogListener(MultiListener.this);
       }
+      return logReader;
     }
+
+    public void modifiedService(ServiceReference sr, Object o) {
+    }
+
+    public void removedService(ServiceReference sr, Object o) {
+      ((LogReaderService)o).removeLogListener(MultiListener.this);
+    }
+  });
+
+
+  void start() {
+    ourBundleId = Activator.bc.getBundle().getBundleId();
+    Activator.bc.addBundleListener(this);
+    Activator.bc.addServiceListener(this);
+    Activator.bc.addFrameworkListener(this);
+    logReaderTracker.open();
+
+  }
+
+  void stop() {
+    logReaderTracker.close();
+    Activator.bc.removeBundleListener(this);
+    Activator.bc.removeServiceListener(this);
+    Activator.bc.removeFrameworkListener(this);
+
   }
 
   private static final String BUNDLE_EVENT_PREFIX = "org/osgi/framework/BundleEvent/";
@@ -145,11 +168,11 @@ public class MultiListener implements LogListener,
       try {
         Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
-        log.error("EXCEPTION in bundleChanged()", e);
+        Activator.log.error("EXCEPTION in bundleChanged()", e);
       }
     } else {
       /* Logs an error if the event, which arrived, were of an unknown type */
-      log.error("Recieved unknown bundle event message (type="
+      Activator.log.error("Recieved unknown bundle event message (type="
                 +bundleEvent.getType() +"), discarding");
     }
     // }
@@ -167,7 +190,31 @@ public class MultiListener implements LogListener,
    * @param logEntry the entry of the log
    * @author Johnny Baveras
    */
+  private Hashtable thrownByPostEvent = new Hashtable();
   public void logged(LogEntry logEntry) {
+    // In order to prevent endless loops we ignore errors logged by this method
+    if(logEntry.getBundle().getBundleId() ==  ourBundleId &&
+       logEntry.getLevel() == LogService.LOG_ERROR &&
+       thrownByPostEvent.contains(logEntry.getException())) {
+
+      thrownByPostEvent.remove(logEntry.getException());
+      return;
+    }
+    // If postEvent has thrown and we have logged those errors
+    // but haven't been called back within a timeout we stop
+    // tracking the throwables
+    final long timeout = 60 * 1000;
+    if(!thrownByPostEvent.isEmpty()) {
+      Iterator entries = thrownByPostEvent.entrySet().iterator();
+      while(entries.hasNext()) {
+        Map.Entry timestampedThrowable = (Map.Entry)entries.next();
+        long timestamp = ((Long)timestampedThrowable.getValue()).longValue();
+        if(System.currentTimeMillis() > (timestamp + timeout)) {
+          entries.remove();
+        }
+      }
+    }
+
     String topic = null;
 
     switch (logEntry.getLevel()) {
@@ -213,7 +260,7 @@ public class MultiListener implements LogListener,
     /* If the event contains an exception, further properties shall be set */
     if (logEntry.getException() != null) {
       Throwable e = logEntry.getException();
-      putProp(props, EventConstants.EXECPTION_CLASS, Throwable.class.getName());
+      putProp(props, EventConstants.EXECPTION_CLASS, e.getClass().getName());
       putProp(props, EventConstants.EXCEPTION_MESSAGE, e.getMessage());
       putProp(props, EventConstants.EXCEPTION, e);
     }
@@ -229,8 +276,17 @@ public class MultiListener implements LogListener,
     /* Tries posting the event once the properties are set */
     try {
       Activator.eventAdmin.postEvent(new Event(topic, props));
-    } catch (Exception e) {
-      log.error("EXCEPTION in logged(LogEntry logEntry):", e);
+    } catch (Throwable t) {
+      // We don't log more errors if postEvent has thrown more than
+      // 5 times and we haven't gotten called back for those entries
+      // within a certain time
+      // See beginning of this method
+      if(thrownByPostEvent.size() < 5) {
+        thrownByPostEvent.put(t, new Long(System.currentTimeMillis()));
+        if(Activator.log.doError()) {
+          Activator.log.error("EXCEPTION in logged(LogEntry logEntry):", t);
+        }
+      }
     }
   }
 
@@ -265,7 +321,7 @@ public class MultiListener implements LogListener,
 
       if (isLogReaderService) {
         LogReaderService logReader = (LogReaderService)
-          Activator.bundleContext.getService(serviceEvent.getServiceReference());
+          Activator.bc.getService(serviceEvent.getServiceReference());
         if (logReader != null) {
           logReader.addLogListener(this);
         }
@@ -301,11 +357,11 @@ public class MultiListener implements LogListener,
       try {
         Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
-        log.error("EXCEPTION in serviceChanged() :", e);
+        Activator.log.error("EXCEPTION in serviceChanged() :", e);
       }
     } else {
       /* Logs an error if the event, which arrived, were of an unknown type */
-      log.error("Recieved unknown service event message (type="
+      Activator.log.error("Recieved unknown service event message (type="
                 +serviceEvent.getType() +"), discarding");
     }
   }
@@ -377,10 +433,10 @@ public class MultiListener implements LogListener,
       try {
         Activator.eventAdmin.postEvent(new Event(topic, props));
       } catch (Exception e) {
-        log.error("Exception in frameworkEvent() :", e);
+        Activator.log.error("Exception in frameworkEvent() :", e);
       }
     } else {
-      log.error("Recieved unknown framework event (type="
+      Activator.log.error("Recieved unknown framework event (type="
                 +frameworkEvent.getType() +"), discarding");
     }
   }

@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: RemoteFW
 Bundle-SymbolicName: org.knopflerfish.bundle.remotefw
 Bundle-Version: 2.0.0
-Bundle-UUID: org.knopflerfish:remotefw:2.0.0
 Bundle-Category: API
 Bundle-Description: Remote Framework
 Bundle-Vendor: Knopflerfish
@@ -13,4 +12,3 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-ContactAddress: http://www.knopflerfish.org
 Export-Package: org.knopflerfish.service.remotefw
 Import-Package: org.osgi.framework
-

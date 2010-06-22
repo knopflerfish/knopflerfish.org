@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.log.window.impl;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -155,15 +156,24 @@ public class FilterLogTableModel
 
 
   private void filterEntries() {
-    synchronized(lock) {
-      filteredEntries.clear();
+    try {
+      synchronized(lock) {
+        filteredEntries.clear();
 
-      for(Iterator it = model.getEntries().iterator(); it.hasNext(); ) {
-        ExtLogEntry e = (ExtLogEntry)it.next();
-        if(isValidEntry(e)) {
-          filteredEntries.add(e);
+        for(Iterator it = model.getEntries().iterator(); it.hasNext(); ) {
+          ExtLogEntry e = (ExtLogEntry)it.next();
+          if(isValidEntry(e)) {
+            filteredEntries.add(e);
+          }
         }
       }
+    } catch (ConcurrentModificationException cme) {
+      // Yield and try again.
+      try {
+        Thread.sleep(0);
+      } catch (InterruptedException ie) {
+      }
+      filterEntries();
     }
   }
 

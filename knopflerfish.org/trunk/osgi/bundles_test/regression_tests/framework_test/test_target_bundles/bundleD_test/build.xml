@@ -8,7 +8,6 @@
 
   <property name="bundle.version" value="1.0.0"/>
 
-  <property name="osgi.jar" location="${osgi.dir}/framework.jar"/>
   <property name="classes.out.dir"
 	    location="${topdir}/out/${ant.project.name}/classes"/>
   <property name="jar.out.dir" 
@@ -20,7 +19,9 @@
   <property name="jar.file"
             location="${jar.out.dir}/${ant.project.name}-${bundle.version}.jar"/>
   <path id="bundle.path">
-    <pathelement location="${osgi.jar}"/>
+    <pathelement location="${jars.dir}/../framework.jar"/>
+    <pathelement location="${osgi.jars.dir}/../framework.jar"/>
+    <pathelement location="${osgi.dir}/framework.jar"/>
   </path>
 
   <target name="all">
@@ -43,6 +44,7 @@
 
   <target name="jar">
     <mkdir dir="${jar.out.dir}"/>
+    <mkdir dir="${resources.dir}"/><!-- Ensure that dir exists -->
     <jar basedir="${classes.out.dir}" jarfile="${jar.file}">
       <fileset dir="${resources.dir}"/>
     </jar>  
@@ -54,6 +56,3 @@
   </target>
 
 </project>
-
-
-

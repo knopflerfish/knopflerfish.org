@@ -53,6 +53,9 @@ final class ConfigurationDispatcher {
      */
 
     private PluginManager pm;
+  
+  private boolean useSharedQueue = true;
+  private UpdateQueue sharedQueue;
 
     /**
      * * One queue per target service.
@@ -72,9 +75,13 @@ final class ConfigurationDispatcher {
 
     ConfigurationDispatcher(PluginManager pm) {
         this.pm = pm;
+      this.sharedQueue = useSharedQueue ? new UpdateQueue(pm) : null;
     }
 
-    public UpdateQueue getQueueFor(ServiceReference sr) {
+    private UpdateQueue getQueueFor(ServiceReference sr) {
+      if(useSharedQueue) {
+        return sharedQueue;
+      }
         synchronized (targetServiceToQueue) {
             Object targetService = serviceReferenceToTargetService.get(sr);
             if (targetService == null) {
@@ -85,6 +92,9 @@ final class ConfigurationDispatcher {
     }
 
     public void addQueueFor(ServiceReference sr) {
+      if(useSharedQueue) {
+        return;
+      }
         synchronized (targetServiceToQueue) {
             Object targetService = serviceReferenceToTargetService.get(sr);
             if (targetService == null) {
@@ -103,6 +113,9 @@ final class ConfigurationDispatcher {
     }
 
     public void removeQueueFor(ServiceReference sr) {
+      if(useSharedQueue) {
+        return;
+      }
         synchronized (targetServiceToQueue) {
             Object targetService = serviceReferenceToTargetService.remove(sr);
             if (targetService == null) {

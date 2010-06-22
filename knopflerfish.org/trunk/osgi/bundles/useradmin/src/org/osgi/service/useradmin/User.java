@@ -1,7 +1,5 @@
 /*
- * $Header: /cvshome/build/org.osgi.service.useradmin/src/org/osgi/service/useradmin/User.java,v 1.8 2006/06/16 16:31:41 hargrave Exp $
- *
- * Copyright (c) OSGi Alliance (2001, 2006). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2008). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +30,14 @@ import java.util.Dictionary;
  * User Admin services.
  * <p>
  * A <code>User</code> object may have credentials (and properties, inherited from
- * the {@link Role}class) associated with it. Specific
- * {@link UserAdminPermission}objects are required to read or change a
+ * the {@link Role} class) associated with it. Specific
+ * {@link UserAdminPermission} objects are required to read or change a
  * <code>User</code> object's credentials.
  * <p>
  * Credentials are <code>Dictionary</code> objects and have semantics that are
  * similar to the properties in the <code>Role</code> class.
  * 
- * @version $Revision: 1.8 $
+ * @version $Revision: 5673 $
  */
 public interface User extends Role {
 	/**
@@ -47,7 +45,7 @@ public interface User extends Role {
 	 * object. Any changes to the returned <code>Dictionary</code> object will
 	 * change the credentials of this <code>User</code> object. This will cause a
 	 * <code>UserAdminEvent</code> object of type
-	 * {@link UserAdminEvent#ROLE_CHANGED}to be broadcast to any
+	 * {@link UserAdminEvent#ROLE_CHANGED} to be broadcast to any
 	 * <code>UserAdminListeners</code> objects.
 	 * 
 	 * <p>
@@ -58,11 +56,11 @@ public interface User extends Role {
 	 * 
 	 * <p>
 	 * In order to retrieve a credential from the returned <code>Dictionary</code>
-	 * object, a {@link UserAdminPermission}named after the credential name (or
+	 * object, a {@link UserAdminPermission} named after the credential name (or
 	 * a prefix of it) with action <code>getCredential</code> is required.
 	 * <p>
 	 * In order to add or remove a credential from the returned
-	 * <code>Dictionary</code> object, a {@link UserAdminPermission}named after
+	 * <code>Dictionary</code> object, a {@link UserAdminPermission} named after
 	 * the credential name (or a prefix of it) with action
 	 * <code>changeCredential</code> is required.
 	 * 

@@ -48,11 +48,11 @@ public class BundleImpl implements Bundle {
 
       props.put(key, val);
     }
-    
+
     return props;
   }
 
-  
+
   public String getLocation() {
     return fw.getBundleLocation(bid);
   }
@@ -65,13 +65,13 @@ public class BundleImpl implements Bundle {
       return null;
     }
     ServiceReference[] srl = new ServiceReference[sids.length];
-    
+
     for(int i = 0; i < sids.length; i++) {
       srl[i] = new ServiceReferenceImpl(this, sids[i]);
     }
     return srl;
   }
-  
+
   public URL getResource(String name) {
     return null;
   }
@@ -89,11 +89,21 @@ public class BundleImpl implements Bundle {
   }
 
   public void start() {
+    start(0);
+  }
+
+  public void start(int options) {
+    // TODO handle options
     fw.startBundle(bid);
     fw.remoteBC.doEvents();
   }
-  
+
   public void stop() {
+    stop(0);
+  }
+
+  public void stop(int options) {
+    // TODO handle options
     fw.stopBundle(bid);
     fw.remoteBC.doEvents();
   }
@@ -111,7 +121,7 @@ public class BundleImpl implements Bundle {
   public void update(InputStream in) {
     throw new RuntimeException("Not implemented");
   }
- 
+
   public int hashCode() {
     return (int)bid;
   }
@@ -123,43 +133,55 @@ public class BundleImpl implements Bundle {
     return bid == ((BundleImpl)other).bid;
   }
 
-public Enumeration findEntries(String path, String filePattern, boolean recurse) {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public Enumeration findEntries(String path, String filePattern, boolean recurse) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-public URL getEntry(String name) {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public URL getEntry(String name) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-public Enumeration getEntryPaths(String path) {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public Enumeration getEntryPaths(String path) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-public Dictionary getHeaders(String locale) {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public Dictionary getHeaders(String locale) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-public long getLastModified() {
-	// TODO Auto-generated method stub
-	return 0;
-}
+  public long getLastModified() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
 
-public Enumeration getResources(String name) throws IOException {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public Enumeration getResources(String name) throws IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-public String getSymbolicName() {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public String getSymbolicName() {
+    // TODO Auto-generated method stub
+    return null;
+  }
 
-public Class loadClass(String name) throws ClassNotFoundException {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public Version getVersion() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public Class loadClass(String name) throws ClassNotFoundException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  public Map/* <X509Certificate, List<X509Certificate>> */
+    getSignerCertificates(int signersType)
+  {
+    throw new RuntimeException("NYI");
+  }
+
 }

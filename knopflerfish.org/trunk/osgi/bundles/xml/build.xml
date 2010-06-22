@@ -5,6 +5,7 @@
   <!-- Internal target that calls a specified target in all sub-dirs. -->
   <target name="doAntBuild">
     <ant target="${the.target}" dir="xml"/>
+    <ant target="${the.target}" dir="kxml"/>
     <ant target="${the.target}" dir="crimson"/>
     <ant target="${the.target}" dir="xerces"/>
     <ant target="${the.target}" dir="xalan"/>

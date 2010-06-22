@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.event;
 
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 
@@ -59,9 +60,10 @@ import java.util.Set;
 public class EventAdminService
   implements EventAdmin
 {
-  final private MultiListener ml;
-  final ConfigurationListenerImpl cli;
   final private Map queueHandlers = new HashMap();
+  final private MultiListener ml;
+  final private ConfigurationListenerImpl cli;
+  private ServiceRegistration reg;
 
   public EventAdminService() {
     ml = new MultiListener();
@@ -72,7 +74,7 @@ public class EventAdminService
     try {
       final InternalAdminEvent iae
         = new InternalAdminEvent(event, getMatchingHandlers(event.getTopic()));
-      if (iae.getHandlers() == null) { // Noone to deliver to
+      if (iae.getHandlers() == null) { // No-one to deliver to
         return;
       }
 
@@ -105,7 +107,7 @@ public class EventAdminService
     try {
       final InternalAdminEvent iae
         = new InternalAdminEvent(event, getMatchingHandlers(event.getTopic()));
-      if (iae.getHandlers() == null) { // Noone to deliver to
+      if (iae.getHandlers() == null) { // No-one to deliver to
         return;
       }
       iae.deliver();
@@ -118,7 +120,19 @@ public class EventAdminService
     return Activator.handlerTracker.getHandlersMatching(topic);
   }
 
-  void stop() {
+  synchronized void start() {
+    ml.start();
+    cli.start();
+    reg = Activator.bc.registerService(EventAdmin.class.getName(), this, null);
+  }
+
+  synchronized void stop() {
+    reg.unregister();;
+    reg = null;
+
+    cli.stop();
+    ml.stop();
+
     Set activeQueueHandlers = null;
     synchronized(queueHandlers) {
       activeQueueHandlers = new HashSet(queueHandlers.values());

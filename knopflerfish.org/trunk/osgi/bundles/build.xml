@@ -33,6 +33,8 @@
   <target name="doAntBuild" depends="setup">
     <ant target="${the.target}" dir="cm/cm"/>
     <ant target="${the.target}" dir="event"/>
+    <ant target="${the.target}" dir="threadio"/>
+    <ant target="${the.target}" dir="command"/>
     <ant target="${the.target}" dir="console/console"/>
     <ant target="${the.target}" dir="io"/>
     <ant target="${the.target}" dir="log"/>
@@ -53,6 +55,13 @@
     <ant target="${the.target}" dir="wireadmin"/>
     <ant target="${the.target}" dir="device"/>
     <ant target="${the.target}" dir="prefs"/>
+
+    <ant target="${the.target}" dir="applicationadmin"/>
+    <ant target="${the.target}" dir="blueprint"/>
+    <ant target="${the.target}" dir="deploymentadmin"/>
+    <ant target="${the.target}" dir="dmtree"/>
+    <ant target="${the.target}" dir="foreignapplication"/>
+    <ant target="${the.target}" dir="monitor"/>
 
     <ant target="${the.target}" dir="measurement"/>
     <ant target="${the.target}" dir="position"/>
