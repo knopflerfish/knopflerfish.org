@@ -135,6 +135,8 @@ main() {
                   ${gc_CHANGE_LOG_DIR}/ChangeLog_trunk
     check_prepend "knopflerfish.org/branches/kf_1_support" \
                   ${gc_CHANGE_LOG_DIR}/ChangeLog_kf_1_support
+    check_prepend "knopflerfish.org/branches/kf_2_support" \
+                  ${gc_CHANGE_LOG_DIR}/ChangeLog_kf_2_support
 }
 
 #
