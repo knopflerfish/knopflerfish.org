@@ -21,10 +21,10 @@
       <a name="top"></a>
       <div id="header">
 	<div id="header_logo">
-	  <a href="index.html"><img src="/images/kf300_black.png" border="0" alt="knopflerfish logo"/></a>
+	  <a href="/index.html"><img src="/images/kf300_black.png" border="0" alt="knopflerfish logo"/></a>
 	</div>
 	<div id="header_menu">
-	  <a class="button_closed" href="index.html">Home</a>
+	  <a class="button_closed" href="/index.html">Home</a>
 	</div>
       </div>
       <div id="leftmenu">
