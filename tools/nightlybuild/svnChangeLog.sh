@@ -9,7 +9,7 @@
 # Version: 0.1 2008-01-16
 #
 
-gc_HOME_DIR=/home/wistrand/knopflerfish.org; readonly gc_HOME_DIR
+gc_HOME_DIR=/home/knopflerfish; readonly gc_HOME_DIR
 
 usage() {
 cat <<EOF
@@ -31,7 +31,7 @@ EOF
 # Setup constant global data
 #
 setup() {
-    gc_SVNLOOK=/usr/pkg/bin/svnlook; readonly gc_SVNLOOK
+    gc_SVNLOOK=/usr/bin/svnlook; readonly gc_SVNLOOK
 }
 
 parse_args() {
