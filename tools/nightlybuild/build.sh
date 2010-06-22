@@ -4,7 +4,7 @@ BUILD_HOME=`dirname $0`
 BUILD_HOME=`cd ${BUILD_HOME};/bin/pwd`
 cd ${BUILD_HOME}
 
-TAGS="branches/kf3 trunk"
+TAGS="trunk"
 
 STATUS_MAIL=devel@makewave.com
 
