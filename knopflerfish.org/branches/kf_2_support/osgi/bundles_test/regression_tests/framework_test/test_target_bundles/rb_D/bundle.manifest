@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-Version: 0.1.0
+Bundle-Name: D - Require bundle example
+Bundle-SymbolicName: test.rb_D
+Export-Package: test_rb.C;partial=true;mandatory:=partial,
+ test_rb.D;partial=true;mandatory:=partial

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="useradmin" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.useradmin}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name="api.pattern"  
+            value="org/osgi/service/useradmin/**,org/knopflerfish/service/um/useradmin/*,org/knopflerfish/service/um/ipam/*"/>
+  <property name="impl.pattern" 
+            value="org/knopflerfish/service/um/useradmin/impl/*"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="event_api-N.N.N.jar"/>
+   <pathelement location="cm_api-N.N.N.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

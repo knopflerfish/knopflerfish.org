@@ -1,0 +1,22 @@
+#
+# Restart file for framework restart testing
+#
+# NOTE: Paths in this file assumes that the current working directory is
+#       $(OSGI_DIR)
+#
+
+# List of test IDs
+-Dorg.knopflerfish.junit_runner.tests=RestartTestSuite
+
+# true means "quit framework when all tests are run"
+-Dorg.knopflerfish.junit_runner.quit=true
+
+# true means wait for complete framework start until run
+-Dorg.knopflerfish.junit_runner.wait=false
+
+-Dorg.knopflerfish.gosg.jars=file:
+-Dorg.knopflerfish.framework.debug.startlevel=xtrue
+
+
+-launch
+

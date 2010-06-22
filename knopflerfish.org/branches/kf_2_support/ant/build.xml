@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<project name="anttasks" default="all">
+
+ <property name  = "javadoc.packages"
+           value = "org.knopflerfish.ant.taskdefs.bundle"/>
+
+
+  <!-- targets -->
+  <target name="all">
+  </target>
+
+  <target name="javadoc">
+  <mkdir dir="javadoc"/>
+  <javadoc sourcepath    = "src"
+           destdir       = "javadoc"
+	   packagenames  = "${javadoc.packages}"
+   >	   
+  </javadoc>
+ </target>
+ 
+ <target name="clean" description="removes all generated files">
+  <delete dir="javadoc"/>
+  <delete dir="classes"/>
+  <!-- Remove the now obsolete BCEL jar if still present. -->
+  <delete dir="lib" includes="bcel-*.jar"/>
+ </target>
+
+</project>
