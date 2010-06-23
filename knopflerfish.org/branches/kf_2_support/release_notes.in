@@ -10,6 +10,32 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
 === Framework (Core) ===
 
+  Framework 4.1.14
+
+  Fix classloader problem when running on Android 7/8. The
+  boot-classloader of Android does not return the expected null as its
+  parent classloader, it returns itself.
+
+
+
+
+
+========================================================================
+
+
+Release Notes Knopflerfish 2.4.0 (OSGi R4.0.1)
+----------------------------------------------
+
+  Maintenance release of Knopflerfish available from
+  http://www.knopflerfish.org/releases/2.4.0/
+
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+
+=== Framework (Core) ===
+
   Framework 4.1.13
 
   When using the default non-strict classloading the bundle
