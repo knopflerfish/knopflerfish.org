@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -422,7 +422,11 @@ final public class BundleClassLoader extends ClassLoader {
 
         // If any of the classloaders for the caller's class is
         // a BundleClassLoader, we're not in a VM class context
-        for (ClassLoader cl = currentCL;  cl != null;
+        // ANDROID FIX, android-7/8 unexpectedly returns
+        // java.lang.BootClassLoader as the ClassLoader for the
+        // BootClassLoader Class other jvm's return null
+        for (ClassLoader cl = currentCL;
+             cl != null && cl != cl.getClass().getClassLoader();
              cl = cl.getClass().getClassLoader()) {
           if (BundleClassLoader.class.isInstance(cl)) {
             return false;
