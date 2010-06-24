@@ -94,6 +94,9 @@ public class EventAdminService
             queueHandler = new QueueHandler(queueHandlers, key);
             queueHandler.start();
             queueHandlers.put(queueHandler.getKey(), queueHandler);
+            if (Activator.log.doDebug()) {
+              Activator.log.debug(queueHandler.getName() +" created.");
+            }
           }
         }
         queueHandler.addEvent(iae);
