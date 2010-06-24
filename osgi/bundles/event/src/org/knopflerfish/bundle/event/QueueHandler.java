@@ -74,10 +74,6 @@ public class QueueHandler extends Thread {
 
     this.queueHandlers = queueHandlers;
     this.key= key;
-
-    if (Activator.log.doDebug()) {
-      Activator.log.debug(getName() +" created.");
-    }
   }
 
   public Object getKey()
