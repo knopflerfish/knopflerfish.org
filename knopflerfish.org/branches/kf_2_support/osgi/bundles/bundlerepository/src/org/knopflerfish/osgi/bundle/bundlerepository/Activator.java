@@ -43,10 +43,8 @@ import org.ungoverned.osgi.service.bundlerepository.BundleRepositoryService;
 
 public class Activator implements BundleActivator, Runnable
 {
-  public static final String KF_SNAPSHOT_REPO
-    = "http://www.knopflerfish.org/releases/current/repository.xml";
   public static final String KF_RELEASE_REPO
-    = "http://www.knopflerfish.org/snapshots/current_trunk/repository.xml";
+    = "http://www.knopflerfish.org/releases/current-kf_2/repository.xml";
 
   private transient BundleContext               bc = null;
   private transient BundleRepositoryServiceImpl m_brs = null;
@@ -82,7 +80,6 @@ public class Activator implements BundleActivator, Runnable
       for (int i=0; repoURLs!=null && i<repoURLs.length; i++) {
         repoURLSet.add(repoURLs[i]);
       }
-      repoURLSet.add(KF_SNAPSHOT_REPO);
       repoURLSet.add(KF_RELEASE_REPO);
       repoURLs = (String[]) repoURLSet.toArray(new String[repoURLSet.size()]);
       m_brs.setRepositoryURLs(repoURLs);

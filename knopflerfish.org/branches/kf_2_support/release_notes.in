@@ -17,6 +17,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
   parent classloader, it returns itself.
 
 
+=== Services (Compendium) ===
+
+
+
+=== Misc (KF specific, start scripts, build system etc ===
+
+  Bundlerepository 2.0.4
+
+  - Add "http://www.knopflerfish.org/releases/current-kf_2/repository.xml"
+    to the set of repositories to search by default. Do not add the
+    repository in "/releases/current/" or the one in the current
+    snapshot build on trunk since both of these repositories requires
+    the KF-3 version of the bundlerepository-bundle.
 
 
 
