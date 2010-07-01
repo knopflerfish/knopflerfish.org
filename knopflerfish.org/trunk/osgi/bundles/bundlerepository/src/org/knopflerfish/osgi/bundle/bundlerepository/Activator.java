@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,9 +43,15 @@ import org.ungoverned.osgi.service.bundlerepository.BundleRepositoryService;
 
 public class Activator implements BundleActivator, Runnable
 {
-  public static final String KF_SNAPSHOT_REPO
-    = "http://www.knopflerfish.org/releases/current/repository.xml";
   public static final String KF_RELEASE_REPO
+    = "http://www.knopflerfish.org/releases/current-kf_3/repository.xml";
+  /**
+   * A substring of KF_RELEASE_REPO that can be repalced with a
+   * specific version string.
+   */
+  private static final String KF_REPO_URL_VERSION = "current-kf_3";
+
+  public static final String KF_SNAPSHOT_REPO
     = "http://www.knopflerfish.org/snapshots/current_trunk/repository.xml";
   // org.ungoverned.osgi.bundle.bundlerepository.BundleRepositoryServiceImpl.
   public static final String REPOSITORY_URL_PROP
@@ -81,16 +87,31 @@ public class Activator implements BundleActivator, Runnable
     try {
       // when running on KF, default to KF repo if nothing else is specified
       String[] repoURLs = m_brs.getRepositoryURLs();
-      Set repoURLSet = new HashSet();
+      final Set repoURLSet = new HashSet();
       for (int i=0; repoURLs!=null && i<repoURLs.length; i++) {
         repoURLSet.add(repoURLs[i]);
       }
-      // Add Knopflerfish default repository URL if repository URL
-      // property is not set.
       final String repositoryUrlPropValue = bc.getProperty(REPOSITORY_URL_PROP);
       if (null==repositoryUrlPropValue) {
-        repoURLSet.add(KF_SNAPSHOT_REPO);
-        repoURLSet.add(KF_RELEASE_REPO);
+        // repositories not set via property, use the default KF repo.
+        repoURLSet.clear();
+        final String kfVersion
+          = (String) bc.getBundle().getHeaders().get("Knopflerfish-Version");
+        if (null!=kfVersion && 0<kfVersion.length()) {
+          //Release build with version set, user repo for that specific release
+          final int pos = KF_RELEASE_REPO.indexOf(KF_REPO_URL_VERSION);
+          if (-1<pos) {
+            final String releaseRepoUrl
+              = KF_RELEASE_REPO.substring(0,pos)
+              + kfVersion
+              + KF_RELEASE_REPO.substring(pos+KF_REPO_URL_VERSION.length());
+            repoURLSet.add(releaseRepoUrl);
+          }
+        }
+        if (0==repoURLSet.size()) {
+          repoURLSet.add(KF_SNAPSHOT_REPO);
+          repoURLSet.add(KF_RELEASE_REPO);
+        }
         repoURLs = (String[]) repoURLSet.toArray(new String[repoURLSet.size()]);
       }
       m_brs.setRepositoryURLs(repoURLs);
