@@ -484,7 +484,7 @@
     <property name="obr.xsl.file" location="htdocs/css/repository.xsl"/>
     <!-- Comma separated list of external OSCAR repositories. -->
     <property name="obr.extern.repo.urls"
-	      value="http://www.knopflerfish.org/releases/current/repository.xml"/>
+	      value="http://www.knopflerfish.org/releases/current-kf_2/repository.xml"/>
 
     <mkdir dir="${obr.dest.dir}"/>
     <bundleobr  baseDir       = "${obr.base.dir}"
