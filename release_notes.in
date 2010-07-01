@@ -8,11 +8,24 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   last release.
 
 
+=== Framework (Core) ===
+
+
+
 === Services (Compendium) ===
 
   Event 3.0.4
   
   - Fixed infinite loop when debug logging was enabled for event admin.
+
+
+=== Misc (KF specific, start scripts, build system etc ===
+
+  Bundlerepository 3.1.2
+
+  - Use "http://www.knopflerfish.org/releases/current-kf_3/repository.xml"
+    as the default repository URL for non-release builds. Release
+    builds will use the repository of that release.
 
 
 ----------------------------------------------
