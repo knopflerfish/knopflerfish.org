@@ -332,7 +332,11 @@ final public class BundleClassLoader
 
         // If any of the classloaders for the caller's class is
         // a BundleClassLoader, we're not in a VM class context
-        for (ClassLoader cl = currentCL;  cl != null;
+        // ANDROID FIX, android-7/8 unexpectedly returns
+        // java.lang.BootClassLoader as the ClassLoader for the
+        // BootClassLoader Class other jvm's return null
+        for (ClassLoader cl = currentCL;
+             cl != null && cl != cl.getClass().getClassLoader();
              cl = cl.getClass().getClassLoader()) {
           if (BundleClassLoader.class.isInstance(cl)) {
             return false;
