@@ -408,8 +408,6 @@ public class FWProps  {
 
     setPropertyIfNotSet(Constants.FRAMEWORK_STORAGE, "fwdir");
 
-    setPropertyIfNotSet(Constants.FRAMEWORK_STORAGE, "fwdir");
-
     setPropertyIfNotSet(Constants.FRAMEWORK_STORAGE_CLEAN, "");
 
     // NYI, fill this with values
