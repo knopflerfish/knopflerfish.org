@@ -166,10 +166,11 @@ public class Main
       }
     }
 
+    processProperties(args);
+
     if (bZeroArgs) {// Add default xargs file to command line
       // To determine the fwdir we must process all -D/-F definitions
       // on the current command line.
-      processProperties(args);
       String xargsPath = getDefaultXArgs();
       if(xargsPath != null) {
         if (0==args.length) {

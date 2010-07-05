@@ -10,12 +10,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-  Framework 5.0.1
+  Framework 5.0.2
 
-  Merged fix of classloader problem when running on Android 7/8 from
-  the kf_2_support branch. The boot-classloader of Android does not
-  return the expected null as its parent classloader, it returns
-  itself.
+  - Fixed handling of org.osgi.framework.storage property on command line.
+
+  - Merged fix of classloader problem when running on Android 7/8 from
+    the kf_2_support branch. The boot-classloader of Android does not
+    return the expected null as its parent classloader, it returns
+    itself.
 
 
 === Services (Compendium) ===
@@ -25,13 +27,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - Fixed infinite loop when debug logging was enabled for event admin.
 
 
-=== Misc (KF specific, start scripts, build system etc ===
+=== Misc (KF specific, start scripts, build system etc) ===
 
   Bundlerepository 3.1.2
 
   - Use "http://www.knopflerfish.org/releases/current-kf_3/repository.xml"
     as the default repository URL for non-release builds. Release
     builds will use the repository of that release.
+
+
+  Xalan 2.7.1.kf3_01
+
+  - Set export and import versions of javax.xml.* packages so that
+    it works together with the xerces bundle. 
 
 
 ----------------------------------------------
