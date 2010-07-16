@@ -68,13 +68,36 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
 
   public void bundleChanged(BundleEvent ev) {
-    super.bundleChanged(ev);
+    final Bundle cBundle = null!=ev ? ev.getBundle() : null;
+    final long cBid = null!=cBundle ? cBundle.getBundleId() : -1;
+    final Bundle[] oldBl = getBundleArray();
+    super.bundleChanged(ev); // This will compute a new bundle list.
+    final Bundle[] newBl = getBundleArray();
 
-    model.fireTableStructureChanged();
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JBundleTable comp = (JBundleTable)it.next();
-      comp.setColumnWidth();
+    // Fire table change events for the changes
+    for (int row=0; row<newBl.length; row++) {
+      if (row<oldBl.length) {
+        if (oldBl[row].getBundleId() != newBl[row].getBundleId()) {
+          // Fire row change for rows that now presents another bundle.
+          model.fireTableRowsUpdated(row,row);
+        }
+        if (cBid==newBl[row].getBundleId()) {
+          // Fire row change since the bundle on this row was changed.
+          model.fireTableRowsUpdated(row,row);
+        }
+      } else {
+        // The remainder are new rows.
+        model.fireTableRowsInserted(row, newBl.length);
+        break;
+      }
     }
+    if (newBl.length<oldBl.length) {
+      // Some rows was removed
+      model.fireTableRowsDeleted(newBl.length, oldBl.length -1);
+    }
+
+    // Update table selections to match new rows of selected bundles
+    valueChanged(-1);
   }
 
   public void valueChanged(long bid) {

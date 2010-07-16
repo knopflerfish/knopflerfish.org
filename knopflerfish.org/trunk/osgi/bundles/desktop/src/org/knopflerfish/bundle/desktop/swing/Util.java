@@ -156,6 +156,11 @@ public class Util {
     case BundleEvent.STOPPED:     return "stopped";
     case BundleEvent.UNINSTALLED: return "uninstalled";
     case BundleEvent.UPDATED:     return "updated";
+    case BundleEvent.RESOLVED:    return "resolved";
+    case BundleEvent.UNRESOLVED:  return "unresolved";
+    case BundleEvent.STARTING:    return "starting";
+    case BundleEvent.STOPPING:    return "stopping";
+    case BundleEvent.LAZY_ACTIVATION: return "lazyActivation";
     default:                      return "<" + type + ">";
     }
   }

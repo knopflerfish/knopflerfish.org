@@ -36,6 +36,21 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     builds will use the repository of that release.
 
 
+  Desktop 3.1.1
+
+  - Fixed a dead-lock problem caused by a bundle listener that did
+    callbacks to the framework on the event delivery thread which a
+    framework implementation does not need to support.
+  - The large icons displayer now acrolla ro makes new bundles visible
+    again.
+  - The set of selected bundles no longer changes when a bundle is
+    started, stopped, updated, refreshed. The problem was caused by
+    the bundle details displayer that fired to coarse table model
+    change events when receiving bundle change events from the
+    framework, causing the underlaying swing table model to clear all
+    selections.
+  
+
   Xalan 2.7.1.kf3_01
 
   - Set export and import versions of javax.xml.* packages so that

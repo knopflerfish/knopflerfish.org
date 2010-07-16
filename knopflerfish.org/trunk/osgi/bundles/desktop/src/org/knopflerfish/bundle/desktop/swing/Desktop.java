@@ -2261,23 +2261,15 @@ public class Desktop
 
 
   public Bundle[] getSelectedBundles() {
-    int n = 0;
+    final ArrayList res = new ArrayList(bundleCache.length);
 
     for(int i = 0; i < bundleCache.length; i++) {
-      if(bundleSelModel.isSelected(bundleCache[i].getBundleId())) {
-        n++;
+      final Bundle b = bundleCache[i];
+      if(isSelected(b)) {
+        res.add(b);
       }
     }
-    Bundle[] bl = new Bundle[n];
-
-    n = 0;
-    for(int i = 0; i < bundleCache.length; i++) {
-      if(bundleSelModel.isSelected(bundleCache[i].getBundleId())) {
-        bl[n++] = bundleCache[i];
-      }
-    }
-
-    return bl;
+    return (Bundle[]) res.toArray(new Bundle[res.size()]);
   }
 
   void startBundle(final Bundle b) {
@@ -2456,15 +2448,12 @@ public class Desktop
   }
 
   void updateBundle(final Bundle b) {
-    final boolean wasSelected = isSelected(b);
-
     new Thread("Desktop-UpdateBundle " +b.getBundleId())
     {
       public void run()
       {
         try {
           b.update();
-          if (wasSelected) ensureSelected(b);
         } catch (Exception e) {
           showErr("Failed to update bundle " +Util.getBundleName(b) +": " +e ,
                   e);
@@ -2490,9 +2479,9 @@ public class Desktop
       : 0;
 
     if(n == 0) {
-      // Must not call stop() from the EDT, since that will block the
-      // EDT untill the stop()-call completes.
-      new Thread("Desktop-StopBundle " +b.getBundleId())
+      // Must not call uninstall() from the EDT, since that will block
+      // the EDT untill the uninstall()-call completes.
+      new Thread("Desktop-UninstallBundle " +b.getBundleId())
       {
         public void run()
         {
@@ -2691,33 +2680,52 @@ public class Desktop
     }
   }
 
-  Bundle[] bundleCache;
+  volatile Bundle[] bundleCache;
 
-  public void bundleChanged(BundleEvent ev) {
+
+  public void bundleChanged(final BundleEvent ev) {
     if(!alive) {
       return;
     }
 
-    if (null!=ev) {
-      if (BundleEvent.UPDATED==ev.getType()) {
-        // An updated bundle may have changed icon...
-        Util.clearBundleIcon(ev.getBundle());
-      }
-    }
+    // This callback method is marked as "NotThreadSafe" in the
+    // javadoc, that implies that the thread calling it may hold
+    // internal framework locks, thus since we need to call into the
+    // framework all work must be done on a separate thread to avoid
+    // dead-locks.
+    final Bundle bundle = null!=ev ? ev.getBundle() : null;
+    final String threadName = "Desktop.bundleChanged("
+      +(null==ev ? "" :
+        (Util.bundleEventName(ev.getType()) +", "
+         +(null==bundle ? "*" : String.valueOf(bundle.getBundleId()))))
+      +")";
 
-    if(pm != null) {
-      pm.refresh();
-    }
-    bundleCache = Activator.getBundles();
+    final Thread bct = new Thread(threadName) {
+        public void run()
+        {
+          if (null!=ev) {
+            if (BundleEvent.UPDATED==ev.getType()) {
+              // An updated bundle may have changed icon...
+              Util.clearBundleIcon(ev.getBundle());
+            }
+          }
 
-    SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          updateStatusBar();
-          updateMenus();
-          toolBar.revalidate();
-          toolBar.repaint();
+          if(pm != null) {
+            pm.refresh();
+          }
+          bundleCache = Activator.getBundles();
+
+          SwingUtilities.invokeLater(new Runnable() {
+              public void run() {
+                updateStatusBar();
+                updateMenus();
+                toolBar.revalidate();
+                toolBar.repaint();
+              }
+            });
         }
-      });
+      };
+    bct.start();
   }
 
   void updateStatusBar() {
