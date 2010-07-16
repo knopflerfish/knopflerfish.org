@@ -120,11 +120,18 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       });
   }
 
-  public void showBundle(Bundle b) {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JLargeIcons comp = (JLargeIcons)it.next();
-      comp.showBundle(b);
-    }
+  public void showBundle(final Bundle b) {
+    // Must post to EDT since this shall be done after the addition of
+    // the bundles component, which in turn is triggered by another
+    // job posted to the EDT.
+    SwingUtilities.invokeLater(new Runnable() {
+        public void run() {
+          for(Iterator it = components.iterator(); it.hasNext(); ) {
+            final JLargeIcons comp = (JLargeIcons)it.next();
+            comp.showBundle(b);
+          }
+        }
+      });
   }
 
 
@@ -378,7 +385,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
-    JComponent compToShow = null;
+    volatile JComponent compToShow = null;
     public void showBundle0(final Bundle b) {
       JComponent c = getBundleComponent(b);
       if(c != null) {
