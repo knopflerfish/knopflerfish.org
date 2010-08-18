@@ -81,6 +81,7 @@
     <antcall target="minimal_xargs"/>
     <antcall target="init_xargs"/>
     <antcall target="remote_xargs"/>
+    <antcall target="remotefw_xargs"/>
   </target>
 
   <target name="minimal_xargs">
@@ -101,6 +102,26 @@
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${base.url}/${version}/osgi/jars/"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
+  </target>
+
+  <target name="remotefw_xargs">
+    <!-- xargs files that are part of the remote-framework documentation.-->
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in" location="${osgi.dir}/bundles/remotefw/doc/server.xargs.in"/>
+      <param name="xargs.out.file"    location="${osgi.dir}/bundles/remotefw/doc/server.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${jars.dir}"/>
+      <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in" location="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"/>
+      <param name="xargs.out.file"    location="${osgi.dir}/bundles/remotefw/doc/client.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${jars.dir}"/>
+      <param name="gosg.jars"     value="${gosg.jars}"/>
       <param name="root.out.dir"  location="${root.out.dir}"/>
     </antcall>
   </target>
