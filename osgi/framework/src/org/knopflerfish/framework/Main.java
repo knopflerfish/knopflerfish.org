@@ -1119,7 +1119,7 @@ public class Main
     while (systemPropertiesNames.hasMoreElements()) {
       try {
         final String name  = (String) systemPropertiesNames.nextElement();
-        final String value = (String) systemProperties.get(name);
+        final String value = systemProperties.getProperty(name);
         sysProps.put(name, value);
         println("Initial system property: " +name +"=" +value, 3);
       } catch (Exception e) {

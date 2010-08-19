@@ -545,7 +545,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       try {
         buA.start();
-        assertTrue("BundleA should be ACTIVE", buA.getState() == Bundle.ACTIVE);
+        assertEquals("BundleA should be ACTIVE", Bundle.ACTIVE, buA.getState());
       } catch (BundleException bexcA) {
         out.println("Unexpected bundle exception: "+bexcA);
         bexcA.printStackTrace();
@@ -619,8 +619,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       try {
         buA.stop();
-        assertTrue("BundleA should be RESOLVED",
-                   buA.getState() == Bundle.RESOLVED);
+        assertEquals("BundleA should be RESOLVED",
+                     Bundle.RESOLVED, buA.getState());
       } catch (IllegalStateException ise ) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
@@ -658,8 +658,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME035B start");
       try {
         buA.uninstall();
-        assertTrue("BundleA should be UNINSTALLED",
-                   buA.getState() == Bundle.UNINSTALLED);
+        assertEquals("BundleA should be UNINSTALLED",
+                     Bundle.UNINSTALLED, buA.getState());
       } catch (IllegalStateException ise ) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
@@ -3957,8 +3957,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         out.println("Start using bundles activation policy (lazy)");
         buAl.start(Bundle.START_ACTIVATION_POLICY);
-        assertTrue("BundleA should be STARTING",
-                   buAl.getState() == Bundle.STARTING);
+        assertEquals("BundleA should be STARTING",
+                     Bundle.STARTING, buAl.getState());
       } catch (BundleException bexcA) {
         out.println("Unexpected bundle exception: "+bexcA);
         bexcA.printStackTrace();
@@ -3984,8 +3984,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         out.println("Start once more using bundles activation policy (lazy)");
         buAl.start(Bundle.START_ACTIVATION_POLICY);
-        assertTrue("BundleA should be STARTING",
-                   buAl.getState() == Bundle.STARTING);
+        assertEquals("BundleA should be STARTING",
+                     Bundle.STARTING, buAl.getState());
       } catch (BundleException bexcA) {
         out.println("Unexpected bundle exception: "+bexcA);
         bexcA.printStackTrace();
@@ -4017,8 +4017,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       try {
         out.println("Start eager, transient");
         buAl.start(Bundle.START_TRANSIENT);
-        assertTrue("BundleA should be ACTIVE",
-                   buAl.getState() == Bundle.ACTIVE);
+        assertEquals("BundleA should be ACTIVE",
+                     Bundle.ACTIVE, buAl.getState());
       } catch (BundleException bexcA) {
         out.println("Unexpected bundle exception: "+bexcA);
         bexcA.printStackTrace();
@@ -4114,8 +4114,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // Start lazy activation
       try {
         buAl.start(Bundle.START_ACTIVATION_POLICY);
-        assertTrue("BundleA should be STARTING",
-                   buAl.getState() == Bundle.STARTING);
+        assertEquals("BundleA should be STARTING",
+                     Bundle.STARTING, buAl.getState());
       } catch (BundleException bexcA) {
         out.println("Unexpected bundle exception: "+bexcA);
         bexcA.printStackTrace();
@@ -4148,8 +4148,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         out.println("loading class, " +SERVICE_CLASS_BUNDLE_A_LAZY);
         Class clz = buAl.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
         assertNotNull("Service interface class should be loaded.", clz);
-        assertTrue("BundleA should be ACTIVE",
-                   buAl.getState() == Bundle.ACTIVE);
+        assertEquals("BundleA should be ACTIVE",
+                   Bundle.ACTIVE, buAl.getState());
       } catch (IllegalStateException ise) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
@@ -4258,8 +4258,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // Start lazy activation
       try {
         buAl.start(Bundle.START_ACTIVATION_POLICY);
-        assertTrue("BundleA should be STARTING",
-                   buAl.getState() == Bundle.STARTING);
+        assertEquals("BundleA should be STARTING",
+                     Bundle.STARTING, buAl.getState());
       } catch (BundleException bexcA) {
         out.println("Unexpected bundle exception: "+bexcA);
         bexcA.printStackTrace();
@@ -4292,8 +4292,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         out.println("loading class, " +SERVICE_CLASS_BUNDLE_A_LAZY);
         Class clz = buAl.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
         assertNotNull("Service interface class should be loaded.", clz);
-        assertTrue("BundleA should be ACTIVE",
-                   buAl.getState() == Bundle.ACTIVE);
+        assertEquals("BundleA should be ACTIVE",
+                     Bundle.ACTIVE, buAl.getState());
       } catch (IllegalStateException ise) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
@@ -4435,8 +4435,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         String cn = "org.knopflerfish.bundle.bundleA_lazy.BundleActivator";
         Class clz = buAl2.loadClass(cn);
         assertNotNull("Service interface class should be loaded.", clz);
-        assertTrue("BundleA should be STARTING",
-                   buAl2.getState() == Bundle.STARTING);
+        assertEquals("BundleA should be STARTING",
+                     Bundle.STARTING, buAl2.getState());
       } catch (IllegalStateException ise) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
@@ -4455,8 +4455,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                     +SERVICE_CLASS_BUNDLE_A_LAZY);
         Class clz = buAl2.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
         assertNotNull("Service interface class should be loaded.", clz);
-        assertTrue("BundleA should be ACTIVE",
-                   buAl2.getState() == Bundle.ACTIVE);
+        assertEquals("BundleA should be ACTIVE",
+                     Bundle.ACTIVE, buAl2.getState());
       } catch (IllegalStateException ise) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
@@ -4602,8 +4602,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                     +"which will trigger activation.");
         Class clz = buAl3.loadClass(cn);
         assertNotNull("Service interface class should be loaded.", clz);
-        assertTrue("BundleA should be ACTIVE",
-                   buAl3.getState() == Bundle.ACTIVE);
+        assertEquals("BundleA should be ACTIVE",
+                     Bundle.ACTIVE, buAl3.getState());
       } catch (IllegalStateException ise) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
@@ -4745,8 +4745,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         out.println("loading non-activation triggering class, "+cn);
         Class clz = buAl4.loadClass(cn);
         assertNotNull("Service interface class should be loaded.", clz);
-        assertTrue("BundleA should be STARTING",
-                   buAl4.getState() == Bundle.STARTING);
+        assertEquals("BundleA should be STARTING",
+                     Bundle.STARTING, buAl4.getState());
       } catch (IllegalStateException ise) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
@@ -4765,8 +4765,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                     +SERVICE_CLASS_BUNDLE_A_LAZY);
         Class clz = buAl4.loadClass(SERVICE_CLASS_BUNDLE_A_LAZY);
         assertNotNull("Service interface class should be loaded.", clz);
-        assertTrue("BundleA should be ACTIVE",
-                   buAl4.getState() == Bundle.ACTIVE);
+        assertEquals("BundleA should be ACTIVE",
+                     Bundle.ACTIVE, buAl4.getState());
       } catch (IllegalStateException ise) {
         out.println("Unexpected illegal state exception: "+ise);
         ise.printStackTrace();
