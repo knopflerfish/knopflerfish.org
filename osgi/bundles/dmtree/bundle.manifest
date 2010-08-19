@@ -10,7 +10,7 @@ Bundle-APIVendor: osgi
 Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/
-Export-Package: info.dmtree ; version="1.0",
+Export-Package: info.dmtree ; version="1.0.1",
  info.dmtree.spi ; version="1.0",
  info.dmtree.notification ; version="1.0",
  info.dmtree.notification.spi ; version="1.0",
