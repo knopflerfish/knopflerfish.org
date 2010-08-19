@@ -690,6 +690,14 @@ public class FrameworkContext  {
       parentClassLoader = this.getClass().getClassLoader();
     } else {
       parentClassLoader = null;
+      ClassLoader prev = ClassLoader.getSystemClassLoader();
+      if (prev != null) {
+        parentClassLoader = prev.getParent();
+      }
+      while (parentClassLoader != null && parentClassLoader != prev) {
+        prev = parentClassLoader;
+        parentClassLoader = prev.getParent();
+      }
     }
     // If bootclassloader, wrap it
     if (parentClassLoader == null) {
