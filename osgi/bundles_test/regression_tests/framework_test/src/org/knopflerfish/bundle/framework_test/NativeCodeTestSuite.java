@@ -263,32 +263,26 @@ public class NativeCodeTestSuite extends TestSuite {
       try {
 	buN = Util.installBundle (bc, "bundleN1_test-1.0.0.jar");
 	buN.start();
-        out.println("framework faulty native test bundle N1 should not resolve :FRAME137:FAIL");
-	teststatus = false;
+        fail("framework faulty native test bundle N1 should not resolve :FRAME137:FAIL");
       } catch (BundleException bex) {
         // Expected bundle exception
       } catch (Exception e) {
-	out.println("framework test bundle N1, "+ e +" :FRAME137A:FAIL");
-	teststatus = false;
+        e.printStackTrace();
+	fail("framework test bundle N1, unexpected "+ e +" :FRAME137A:FAIL");
       }
 
       try {
 	buN = Util.installBundle (bc, "bundleN2_test-1.0.0.jar");
 	buN.start();
-        out.println("framework faulty native test bundle N2 should not resolve :FRAME137:FAIL");
-	teststatus = false;
+        fail("framework faulty native test bundle N2 should not resolve :FRAME137:FAIL");
       } catch (BundleException bex) {
         // Expected bundle exception
       } catch (Exception e) {
-	out.println("framework test bundle N2, "+ e +" :FRAME137A:FAIL");
-	teststatus = false;
+        e.printStackTrace();
+	fail("framework test bundle N2, unexpected "+ e +" :FRAME137A:FAIL");
       }
 
-      if (teststatus == true) {
-	out.println("### framework test bundle :FRAME137A:PASS");
-      } else {
-	fail("### framework test bundle :FRAME137A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME137A:PASS");
     }
   }
 
