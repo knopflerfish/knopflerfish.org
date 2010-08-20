@@ -34,20 +34,9 @@
 
 package org.knopflerfish.framework;
 
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.URLClassLoader;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.TreeMap;
-import java.util.Iterator;
-import java.util.Locale;
-import java.util.Dictionary;
-import java.util.Hashtable;
+import java.util.*;
 
 import org.osgi.framework.*;
 
@@ -360,44 +349,62 @@ public class FWProps  {
                         Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");
 
-    StringBuffer ee = new StringBuffer();
-    // Always allow ee minimum
-    ee.append("OSGi/Minimum-1.0");
-    ee.append(",OSGi/Minimum-1.1");
-    ee.append(",OSGi/Minimum-1.2");
-    // Set up the default ExecutionEnvironment
-    if (1==javaVersionMajor) {
-      for (int i=javaVersionMinor; i>1; i--) {
-        ee.append((i>5) ? ",JavaSE-1." : ",J2SE-1.");
-        ee.append(i);
+    if (!props.containsKey(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)) {
+      StringBuffer ee = new StringBuffer();
+      // Always allow ee minimum
+      ee.append("OSGi/Minimum-1.0");
+      ee.append(",OSGi/Minimum-1.1");
+      ee.append(",OSGi/Minimum-1.2");
+      // Set up the default ExecutionEnvironment
+      if (1==javaVersionMajor) {
+        for (int i=javaVersionMinor; i>1; i--) {
+          ee.append((i>5) ? ",JavaSE-1." : ",J2SE-1.");
+          ee.append(i);
+        }
       }
+      props.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee.toString());
     }
-    setPropertyIfNotSet(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee.toString());
 
     setPropertyIfNotSet(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
     setPropertyIfNotSet(Constants.FRAMEWORK_LIBRARY_EXTENSIONS, "");
 
     setPropertyIfNotSet(Constants.FRAMEWORK_OS_NAME,
                         Alias.unifyOsName(System.getProperty("os.name")));
-    String ver = System.getProperty("os.version");
-    String osVersion = null;
-    if (ver != null) {
-      int dots = 0;
-      int i = 0;
-      for ( ; i < ver.length(); i++) {
-        char c = ver.charAt(i);
-        if (Character.isDigit(c)) {
-          continue;
-        } else if (c == '.') {
-          if (++dots < 3) {
-            continue;
+
+    if (!props.containsKey(Constants.FRAMEWORK_OS_VERSION)) {
+      String ver = System.getProperty("os.version");
+      int maj = 0;
+      int min = 0;
+      int mic = 0;
+      String qual = null;
+      if (ver != null) {
+        // Convert os.version to a reasonable default
+        try {
+          StringTokenizer st = new StringTokenizer(ver.trim(), ".");
+          maj = Integer.parseInt(st.nextToken());
+          if (st.hasMoreTokens()) {
+            qual = st.nextToken();
+            min = Integer.parseInt(qual);
+            qual = null;
+            if (st.hasMoreTokens()) {
+              qual = st.nextToken();
+              mic = Integer.parseInt(qual);
+              qual = null;
+              if (st.hasMoreTokens()) {
+                qual = st.nextToken();
+              }
+            }
           }
-        }
-        break;
+        } catch (Exception ignore) { }
       }
-      osVersion = ver.substring(0, i);
+      Version osVersion;
+      try {
+        osVersion = new Version(maj, min, mic, qual);
+      } catch (IllegalArgumentException skip) {
+        osVersion = new Version(maj, min, mic, null);
+      }
+      props.put(Constants.FRAMEWORK_OS_VERSION, osVersion.toString());
     }
-    setPropertyIfNotSet(Constants.FRAMEWORK_OS_VERSION, osVersion);
 
     setPropertyIfNotSet(Constants.FRAMEWORK_PROCESSOR,
                         Alias.unifyProcessor(System.getProperty("os.arch")));

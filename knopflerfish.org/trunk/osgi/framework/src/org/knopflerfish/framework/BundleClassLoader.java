@@ -366,10 +366,10 @@ final public class BundleClassLoader
     Class c = findLoadedClass(name);
     if (c == null) {
       c = findClass(name);
-    } else {
+    } else if (c.getClassLoader() == this) {
       // Handle bundles that are lazely started after having been
       // stopped. In this case the triggering classes will already
-      // be loaded.
+      // be loaded. Only consider classes loaded by this classloader
       BundleImpl b = (BundleImpl) getBundle();
       if (b.triggersActivationCls(name)) {
         if (debug.lazy_activation) {
