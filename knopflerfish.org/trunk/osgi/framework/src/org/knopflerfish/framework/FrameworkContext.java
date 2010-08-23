@@ -689,15 +689,7 @@ public class FrameworkContext  {
     } else if (Constants.FRAMEWORK_BUNDLE_PARENT_FRAMEWORK.equals(s)) {
       parentClassLoader = this.getClass().getClassLoader();
     } else {
-      parentClassLoader = null;
-      ClassLoader prev = ClassLoader.getSystemClassLoader();
-      if (prev != null) {
-        parentClassLoader = prev.getParent();
-      }
-      while (parentClassLoader != null && parentClassLoader != prev) {
-        prev = parentClassLoader;
-        parentClassLoader = prev.getParent();
-      }
+      parentClassLoader = Object.class.getClassLoader();
     }
     // If bootclassloader, wrap it
     if (parentClassLoader == null) {
