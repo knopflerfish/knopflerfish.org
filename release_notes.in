@@ -75,6 +75,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     selections.
   
 
+  FW-Tray 3.0.2
+
+  - A class loader may throw a NoClassDefFoundError when it fails to
+    define a class since some class that the class to be loaded needs
+    are missing. Changed the tray icon bundle to handle this, i.e., it
+    now catches Throwable and not just Exception when trying to
+    instanciate java.awt.SystemTray.
+
+
   HTTP-Server 3.0.1
 
   - The version of the "org.osgi.service.http"-package that this
