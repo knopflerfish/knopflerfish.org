@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop
-Bundle-Version: 3.1.1
+Bundle-Version: 3.1.2
 Bundle-Category: console
 Bundle-Description: Swing framework desktop
 Bundle-Vendor: Knopflerfish
@@ -23,9 +23,9 @@ Export-Package: org.knopflerfish.service.desktop;version=2.1,
  org.knopflerfish.util.sort,
  org.knopflerfish.util.workerthread,
  org.knopflerfish.util.framework,
- org.osgi.service.cm;version=1.2.0,
- org.osgi.service.event;version=1.1,
- org.osgi.service.prefs;version=1.1
+ org.osgi.service.cm;version=1.3,
+ org.osgi.service.event;version=1.2,
+ org.osgi.service.prefs;version=1.1.1
 Import-Package: org.osgi.framework;version="[1.5,2.0)",
  org.osgi.service.packageadmin;version=1.1,
  org.osgi.service.startlevel;version=1.0,

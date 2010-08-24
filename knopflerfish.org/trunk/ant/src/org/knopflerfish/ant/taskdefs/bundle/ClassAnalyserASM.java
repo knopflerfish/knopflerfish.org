@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,9 @@ public class ClassAnalyserASM
   // The package of the current class.
   String currentPackage = null;
 
+  // The File of the current class.
+  File currentClassFile = null;
+
 
   public ClassAnalyserASM(final BundlePackagesInfo bpInfo,
                           final Task task)
@@ -99,6 +102,7 @@ public class ClassAnalyserASM
   {
     try {
       ClassReader cr = new ClassReader(clsIn);
+      currentClassFile = new File(fileName);
       cr.accept(this, 0);
     } catch (Exception e) {
       e.printStackTrace();
@@ -148,6 +152,7 @@ public class ClassAnalyserASM
     task.log("Analysing class '" +name +"'.", Project.MSG_VERBOSE);
 
     currentPackage = bpInfo.addProvidedClass(name);
+    bpInfo.setPackageVersion(currentPackage, currentClassFile);
     if (null!=superName) {
       addReferencedType(Type.getObjectType(superName));
     }
