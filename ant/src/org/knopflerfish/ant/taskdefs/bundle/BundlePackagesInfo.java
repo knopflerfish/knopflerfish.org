@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,9 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,6 +42,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.osgi.framework.Version;
+
+import org.apache.tools.ant.BuildException;
 
 /**
  * Class that holds the results of the Java package analysis of all
@@ -53,7 +59,7 @@ import java.util.TreeSet;
  * Mixing of separator kinds is not supported!
  * </p>
  * <p>
- * When all classes ahve been added, before using the package using
+ * When all classes have been added, before using the package using
  * map a call to {@link #postProcessUsingMap(Set,Set)} should be done.
  * </p>
  */
@@ -234,6 +240,31 @@ public class BundlePackagesInfo {
   }
 
   /**
+   * Get the provided packages formatted as the value of an
+   * Export-Package-manifest attribute with package versions.
+   *
+   * @return OSGi Export-Package header value.
+   */
+  public String getProvidedPackagesAsExportPackageValue()
+  {
+    final StringBuffer res = new StringBuffer(255);
+
+    for (Iterator ppIt = providedPackages.iterator(); ppIt.hasNext();) {
+      final String pPkg = (String) ppIt.next();
+      res.append(pPkg);
+      final Version pPkgVersion = getProvidedPackageVersion(pPkg);
+      if (null!=pPkgVersion) {
+        res.append(";version=").append(pPkgVersion);
+      }
+      if (ppIt.hasNext()) {
+        res.append(", ");
+      }
+    }
+
+    return res.toString();
+  }
+
+  /**
    * Gets the cardinality of the set of provided Java packages.
    *
    * @return Number of elements in the set of provided packages.
@@ -241,6 +272,123 @@ public class BundlePackagesInfo {
   public int countProvidedPackages()
   {
     return providedPackages.size();
+  }
+
+  /**
+   * Mapping from the package name of a provided package to its
+   * version as given by the packageinfo-file if present.
+   */
+  private final Map/*<String,Version>*/ packageToVersion = new HashMap();
+
+  /**
+   * Get the version of a provided package as defined by the
+   * <code>packageinfo</code>-file in the package-directory.
+   *
+   * @param pkgName The package to get the version of.
+   *
+   * @return The package version or null if not defined.
+   */
+  public Version getProvidedPackageVersion(final String pkgName)
+  {
+    return (Version) packageToVersion.get(pkgName);
+  }
+
+
+  /**
+   * Mapping from the package name of a provided package to the
+   * absolute path of the <code>packageinfo</code>-file that was used
+   * to determine the package version.
+   */
+  private final Map/*<String,String>*/ packageToInfofile = new HashMap();
+
+
+  /**
+   * Get the path of the file that the version of a provided package
+   * was found in.
+   *
+   * @param pkgName The version-ed package to get the version source of.
+   *
+   * @return The path of the <code>packageinfo</code>-file that the
+   *         version was read from.
+   */
+  public String getProvidedPackageVersionSource(final String pkgName)
+  {
+    return (String) packageToInfofile.get(pkgName);
+  }
+
+  /**
+   * Read the version from a <code>packageinfo</code>-file.
+   *
+   * @param pkgInfoFile The file to read a version line from.
+   * @return The version or <code>null</code> if no valid version was
+   *         found.
+   */
+  private Version getVersion(final File pkgInfoFile)
+  {
+    BufferedReader br = null;
+    try {
+      br = new BufferedReader(new FileReader(pkgInfoFile));
+      String line = br.readLine();
+      while (null!=line) {
+        if (line.startsWith("version ")) {
+          final Version version = new Version(line.substring(7).trim());
+          return version;
+        }
+        line = br.readLine();
+      }
+    } catch (Throwable t) {
+      final String msg = "Failed to get version from '"+pkgInfoFile
+        +"'; " +t.getMessage();
+      throw new BuildException(msg, t);
+    } finally {
+      if (null!=br) {
+        try { br.close(); } catch (Throwable _t) {}
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Try to assign a version to the given package by searching for a
+   * file named <code>packageinfo</code> in the directory where the
+   * given class-file resides.
+   *
+   * @param pkgName The name of the provided package that the
+   *                    given class-file belongs to.
+   * @param classFile   A class file in the given package.
+   *
+   */
+  public void setPackageVersion(final String pkgName,
+                                final File classFile)
+  {
+    final File newPkgInfoFile = new File(classFile.getParent(), "packageinfo");
+    final String curPkgInfoPath = (String) packageToInfofile.get(pkgName);
+    final String newPkgInfoPath = newPkgInfoFile.getAbsolutePath();
+
+    if (null==curPkgInfoPath || !curPkgInfoPath.equals(newPkgInfoPath)) {
+      // No previous package version, or different pkgInfoFile to check.
+      if (newPkgInfoFile.canRead()) {
+        final Version newVersion = getVersion(newPkgInfoFile);
+        if (null!=newVersion) {
+          final Version curVersion = getProvidedPackageVersion(pkgName);
+
+          if (null==curVersion) {
+            packageToVersion.put(pkgName, newVersion);
+            packageToInfofile.put(pkgName, newPkgInfoPath);
+          } else if (!newVersion.equals(curVersion)) {
+            // May happen when the classes of a package are in two
+            // different directories on the class path.
+            throw new BuildException("Conflicting versions for '"
+                                     +pkgName +"' previous  '"
+                                     +curVersion +"' from '"
+                                     +curPkgInfoPath +"', new '"
+                                     +newVersion +"' in '"
+                                     +newPkgInfoPath +"'.");
+          }
+        }
+      }
+    }
   }
 
 
@@ -402,35 +550,52 @@ public class BundlePackagesInfo {
     toJavaNames(activatorClasses);
     toJavaNames(referencedClasses);
     toJavaNames(referencedPackages);
-
-    HashMap tmpMap = new HashMap();
-    for (Iterator it = packageToReferencedPackages.entrySet().iterator();
-         it.hasNext(); ) {
-      final Map.Entry entry = (Map.Entry) it.next();
-      final String    key   = (String) entry.getKey();
-      final SortedSet using = (SortedSet) entry.getValue();
-      toJavaNames(using);
-      tmpMap.put(key.replace('/', '.'), using);
-    }
-    packageToReferencedPackages.clear();
-    packageToReferencedPackages.putAll(tmpMap);
+    toJavaNames(packageToReferencedPackages);
+    toJavaNames(packageToVersion);
+    toJavaNames(packageToInfofile);
   }
 
   /**
-   * Replaces all '/' in class and package names with '.' in all the
-   * collections that this class is holding.
+   * Replaces all '/' in class and package names with '.' in the
+   * elements of the given set.
    *
    * @param set the set of names to process.
    */
   private void toJavaNames(SortedSet set)
   {
-    TreeSet tmpSet = new TreeSet();
+    final TreeSet tmpSet = new TreeSet();
     for (Iterator it = set.iterator(); it.hasNext();) {
       String item = (String) it.next();
       tmpSet.add(item.replace('/', '.'));
     }
     set.clear();
     set.addAll(tmpSet);
+    tmpSet.clear();
+  }
+
+  /**
+   * Replaces all '/' in class and package names with '.' in the
+   * keys of the given map. If the value is a sorted set of strings
+   * call {@link #toJavaNames(SortedSet)} on it.
+   *
+   * @param map the map of with keys to process.
+   */
+  private void toJavaNames(Map map)
+  {
+    final HashMap tmpMap = new HashMap();
+
+    for (Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      final String    key   = (String) entry.getKey();
+      final Object    value = entry.getValue();
+      if (value instanceof SortedSet) {
+        toJavaNames((SortedSet) value);
+      }
+      tmpMap.put(key.replace('/', '.'), value);
+    }
+    map.clear();
+    map.putAll(tmpMap);
+    tmpMap.clear();
   }
 
 
@@ -503,7 +668,20 @@ public class BundlePackagesInfo {
   {
     StringBuffer res = new StringBuffer(200);
     res.append("BundlePackagesInfo:\n\t");
-    res.append("Provided packages: ").append(providedPackages).append("\n\t");
+    res.append("Provided packages: [");
+    for (Iterator ppIt = providedPackages.iterator(); ppIt.hasNext();) {
+      final String pPkg = (String) ppIt.next();
+      res.append(pPkg);
+      final Version pPkgVersion = getProvidedPackageVersion(pPkg);
+      if (null!=pPkgVersion) {
+        res.append(";version=").append(pPkgVersion);
+      }
+      if (ppIt.hasNext()) {
+        res.append(", ");
+      }
+    }
+    res.append("]\n\t");
+
     res.append("Provided classes: ").append(providedClasses).append("\n\t");
     res.append("Provided Activators: ").append(activatorClasses).append("\n\t");
 

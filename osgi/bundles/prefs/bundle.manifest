@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: prefs
 Bundle-SymbolicName: org.knopflerfish.bundle.prefs
-Bundle-Version: 3.0.0
+Bundle-Version: 3.0.1
 Bundle-Description: Preferences
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
@@ -11,7 +11,7 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/prefs
 Bundle-Activator: org.knopflerfish.bundle.prefs.Activator
 Bundle-Category: service
-Export-Package: org.osgi.service.prefs; version=1.1
+Export-Package: org.osgi.service.prefs; version=1.1.1
 Import-Package: org.osgi.service.prefs; version="[1.1,2)",
  org.knopflerfish.service.log,
  org.knopflerfish.util,

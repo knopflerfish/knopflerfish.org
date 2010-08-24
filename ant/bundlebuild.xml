@@ -388,15 +388,21 @@
       </fileset>
     </bundle_locator>
 
-    <javac destdir       = "${classes.out.dir}"
-           debug         = "on"
-           srcdir        = "${src.dir}"
-           target        = "${javac.target}"
-           source        = "${javac.source}"
-           classpathref  = "bundle.path.Expanded"
-           includes      = "${impl.pattern},${impl-api.pattern},${api.pattern}"
+    <javac destdir="${classes.out.dir}"
+           debug="on"
+           srcdir="${src.dir}"
+           target="${javac.target}"
+           source="${javac.source}"
+           classpathref="bundle.path.Expanded"
+           includes="${impl.pattern},${impl-api.pattern},${api.pattern}"
     >
-   </javac>
+    </javac>
+    <!-- Copy resources from the src-tree to the classes-tree. -->
+    <copy toDir="${classes.out.dir}">
+      <fileset dir="${src.dir}"
+               includes="${impl.pattern},${impl-api.pattern},${api.pattern}"
+	       excludes="**/*.java,**/*.html"/>
+    </copy>
   </target>
 
   <target name="compile_api"
@@ -421,14 +427,20 @@
       </fileset>
     </bundle_locator>
 
-    <javac destdir       = "${classes.out.dir}"
-           debug         = "on"
-           srcdir        = "${src.dir}"
-           classpathref  = "bundle.path.Expanded"
-           target        = "${javac.target}"
-           source        = "${javac.source}"
-           includes      = "${api.pattern}">
+    <javac destdir="${classes.out.dir}"
+           debug="on"
+           srcdir="${src.dir}"
+           classpathref="bundle.path.Expanded"
+           target="${javac.target}"
+           source="${javac.source}"
+           includes="${api.pattern}">
     </javac>
+    <!-- Copy resources from the src-tree to the classes-tree. -->
+    <copy toDir="${classes.out.dir}">
+      <fileset dir="${src.dir}"
+               includes="${api.pattern}"
+	       excludes="**/*.java,**/*.html"/>
+    </copy>
   </target>
 
   <target name="jars" description="Compile all jars">
@@ -562,11 +574,6 @@
     <antcall target="add_resources" inheritRefs="true">
       <param name="add.resource.jarfile"  value="${impl.jar}"/>
     </antcall>
-    <antcall target="add_src_resources" inheritRefs="true">
-      <param name="add.src.resource.jarfile"  value="${impl.jar}"/>
-      <param name="add.src.resource.includes"
-	     value="${impl.pattern},${impl-api.pattern}"/>
-    </antcall>
     <antcall target="add_src" inheritRefs="true">
       <param name="add.src.jarfile"  value="${impl.jar}"/>
     </antcall>
@@ -635,11 +642,6 @@
 	 manifest = "${outdir}/api.mf">
     </jar>
 
-    <antcall target="add_src_resources" inheritRefs="true">
-      <param name="add.src.resource.jarfile"  value="${api.jar}"/>
-      <param name="add.src.resource.includes"
-	     value="${api.pattern}"/>
-    </antcall>
     <antcall target="add_src" inheritRefs="true">
       <param name="add.src.jarfile"  value="${api.jar}"/>
     </antcall>
@@ -747,10 +749,6 @@
     <antcall target="add_resources" inheritRefs="true">
       <param name="add.resource.jarfile"  value="${lib.jar}"/>
     </antcall>
-    <antcall target="add_src_resources" inheritRefs="true">
-      <param name="add.src.resource.jarfile"  value="${lib.jar}"/>
-      <param name="add.src.resource.includes" value="${api.pattern}"/>
-    </antcall>
     <antcall target="add_src" inheritRefs="true">
       <param name="add.src.jarfile"  value="${lib.jar}"/>
     </antcall>
@@ -837,11 +835,6 @@
     <antcall target="add_resources" inheritRefs="true">
       <param name="add.resource.jarfile"  value="${all.jar}"/>
     </antcall>
-    <antcall target="add_src_resources" inheritRefs="true">
-      <param name="add.src.resource.jarfile"  value="${all.jar}"/>
-      <param name="add.src.resource.includes"
-	     value="${api.pattern},${impl-api.pattern},${impl.pattern}"/>
-    </antcall>
     <antcall target="add_src" inheritRefs="true">
       <param name="add.src.jarfile"  value="${all.jar}"/>
     </antcall>
@@ -861,15 +854,6 @@
   <target name="add_resources" if="resources.dir.exists">
     <jar jarfile="${add.resource.jarfile}" update="true">
       <fileset dir="${resources.dir}"/>
-    </jar>
-  </target>
-
-  <!-- Helper taget that adds resources from the source tree to a bundle. -->
-  <target name="add_src_resources" if="src.dir.exists">
-    <jar jarfile="${add.src.resource.jarfile}" update="true">
-      <fileset dir="${src.dir}"
-               includes="${add.src.resource.includes}"
-	       excludes="**/*.java,**/*.html"/>
     </jar>
   </target>
 

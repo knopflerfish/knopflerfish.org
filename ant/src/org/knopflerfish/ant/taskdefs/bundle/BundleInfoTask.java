@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ import org.osgi.framework.Version;
  *
  * <li><b>Jar files</b>
  * <p>
- * All classes in jar files are analysed.
+ * All classes in jar files are analyzed.
  * </p>
  *
  * </ul>
@@ -154,7 +154,7 @@ import org.osgi.framework.Version;
  *
  *       The default value, "java.", is added to any given list
  *       since packages starting with "java.*" shall never be
- *       imported. They are allways made available to the bundle by
+ *       imported. They are always made available to the bundle by
  *       delegation to the parent classloader.
  *
  *   </td>
@@ -208,7 +208,7 @@ import org.osgi.framework.Version;
  *       If set to "true", the task will add all packages mentioned in
  *       the property named by <code>exports</code> to the list of
  *       imported packages in the property named by <code>imports</code>.
- *       This emulates the implicit import behaviour present in OSG R1-3.
+ *       This emulates the implicit import behavior present in OSGi R1-3.
  *       </p>
  *   </td>
  *   <td valign=top>
@@ -321,7 +321,7 @@ import org.osgi.framework.Version;
  *   <td valign=top>failOnExports</td>
  *   <td valign=top>
  *       If an error is detected in the given export package header
- *       and this attibute is set to <tt>true</tt> then a build
+ *       and this attribute is set to <tt>true</tt> then a build
  *       failure is trigger.
  *   </td>
  *   <td valign=top>
@@ -334,7 +334,7 @@ import org.osgi.framework.Version;
  *   <td valign=top>failOnImports</td>
  *   <td valign=top>
  *       If an error is detected in the given import package header
- *       and this attibute is set to <tt>true</tt> then a build
+ *       and this attribute is set to <tt>true</tt> then a build
  *       failure is trigger.
  *   </td>
  *   <td valign=top>
@@ -347,7 +347,7 @@ import org.osgi.framework.Version;
  *   <td valign=top>failOnActivator</td>
  *   <td valign=top>
  *       If an error is detected in the given bundle activator header
- *       and this attibute is set to <tt>true</tt> then a build
+ *       and this attribute is set to <tt>true</tt> then a build
  *       failure is trigger.
  *   </td>
  *   <td valign=top>
@@ -371,7 +371,7 @@ import org.osgi.framework.Version;
  * <h4>Check all imports and activator in implementation classes</h4>
  *
  * <p>
- * This example assumes all implemention classes are in the package
+ * This example assumes all implementation classes are in the package
  * <tt>test.impl.*</tt>
  * </p>
  *
@@ -640,7 +640,8 @@ public class BundleInfoTask extends Task {
       }
     }// Scan done
     bpInfo.toJavaNames();
-    log("Provided packages: " +bpInfo.getProvidedPackages(), Project.MSG_DEBUG);
+    log("Provided packages: " +bpInfo.getProvidedPackagesAsExportPackageValue(),
+        Project.MSG_DEBUG);
 
     // created importSet from the set of unprovided referenced packages
     final SortedSet unprovidedReferencedPackages
@@ -689,8 +690,10 @@ public class BundleInfoTask extends Task {
     final Project proj = getProject();
 
     if(!"".equals(exportsProperty)) {
-      String exportsVal = proj.getProperty(exportsProperty);
+      // A property name for the Export-Package header value has been specified
+      final String exportsVal = proj.getProperty(exportsProperty);
       if (BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
+        // No value given, shall it be derived?
         if (!bImportsOnly) {
           if (0==providedExportSet.size()) {
             proj.setProperty(exportsProperty,
@@ -698,14 +701,15 @@ public class BundleInfoTask extends Task {
             log("No packages exported, leaving '" +exportsProperty +"' empty.",
                 Project.MSG_VERBOSE);
           } else {
-            exportsVal = buildExportPackagesValue(providedExportSet);
-            log("Setting '" +exportsProperty +"' to '"+exportsVal +"'",
+            final String newExportsVal
+              = buildExportPackagesValue(providedExportSet);
+            log("Setting '" +exportsProperty +"' to '"+newExportsVal +"'",
                 Project.MSG_VERBOSE);
-            proj.setProperty(exportsProperty, exportsVal);
+            proj.setProperty(exportsProperty, newExportsVal);
           }
         }
       } else {
-        // Export-Package given; check that they are provided.
+        // Export-Package given; check or add versions and and uses directives.
         final String newExportsVal = validateExportPackagesValue(exportsVal);
         if (!exportsVal.equals(newExportsVal)) {
           log("Updating \"" +exportsProperty +"\" to \""+newExportsVal +"\"",
@@ -1007,15 +1011,24 @@ public class BundleInfoTask extends Task {
 
   /**
    * Return the value of the Export-Package based on the analyzis.
-   * @param exportPackages The set of provided packages to export.
+   *
+   * @param exportPackages The sub-set of provided packages to be exported.
    */
   protected String buildExportPackagesValue(final Set exportPackages) {
     final String sep = ",";
+    final String versionPrefix = ";version=";
+
     final StringBuffer sb = new StringBuffer();
 
     for(Iterator it = exportPackages.iterator(); it.hasNext(); ) {
       final String pkgName = (String) it.next();
       sb.append(pkgName);
+
+      final Version pkgVersion = bpInfo.getProvidedPackageVersion(pkgName);
+      if (null!=pkgVersion) {
+        sb.append(versionPrefix).append(pkgVersion);
+      }
+
       appendUsesDirective(sb, pkgName);
 
       if(it.hasNext()) {
@@ -1026,10 +1039,13 @@ public class BundleInfoTask extends Task {
   }
 
   /**
-   * Validate a given Export-Package header value. Add uses directives
-   * if they are missing.
+   * Validate a given Export-Package header value. Check existing
+   * version parameters add missing package versions. Check uses
+   * directives and add those that are missing.
    *
    * @param oldExportsVal the Export-Package value to validate and update.
+   * @throws BuildException when confilicting version specifications
+   *         are found for a package.
    */
   protected String validateExportPackagesValue(final String oldExportsVal)
   {
@@ -1050,8 +1066,49 @@ public class BundleInfoTask extends Task {
           throw new BuildException(msg, getLocation());
         }
       }
-      final Set directives = (Set) expEntry.get("$directives");
       sb.append(pkgName);
+
+      // Add / check package version
+      String versionKey = "version";
+      String versionStr = (String) expEntry.remove(versionKey);
+      if (null==versionStr) {
+        // Fallback to pre OSGi R4 name
+        versionKey = "specification-version";
+        versionStr = (String) expEntry.remove(versionKey);
+      }
+      Version version = null;
+      if (null!=versionStr) {
+        try {
+          version = new Version(versionStr);
+        } catch (Exception e) {
+          final String msg = "Found invalid version value in given "
+            +"Export-Package header for the package '"
+            +pkgName +"': '"+versionStr +"'; Error: "
+            +e.getMessage();
+          log(msg, Project.MSG_ERR );
+          throw new BuildException(msg, e);
+        }
+      }
+      Version curVersion = bpInfo.getProvidedPackageVersion(pkgName);
+      if (null==version && null!=curVersion) {
+        // Version is missing, add it
+        version = curVersion;
+      } else if (null!=version && null!=curVersion
+                 && !version.equals(curVersion)) {
+        final String msg = "Found conflicting versions for the package '"
+          +pkgName +"'. The Export-Package header says '" +version +"', but '"
+          +bpInfo.getProvidedPackageVersionSource(pkgName) +" claims '"
+          +curVersion +"'.";
+
+        log(msg, Project.MSG_ERR );
+        throw new BuildException(msg);
+      }
+      if (null!=version) {
+        // Finally insert version into the new Export-Package value
+        sb.append(";").append(versionKey).append("=").append(version);
+      }
+
+      final Set directives = (Set) expEntry.get("$directives");
       if (doUses()) {
         if (!directives.contains("uses")) {
           appendUsesDirective(sb, pkgName);

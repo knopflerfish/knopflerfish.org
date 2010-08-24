@@ -40,26 +40,98 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     builds will use the repository of that release.
 
 
-  Desktop 3.1.1
+  Deploymentadmin 1.0.1
 
+  - The version of the "org.osgi.service.deploymentadmin.spi"-package
+    that this bundle exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.0.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+
+
+  Desktop 3.1.2
+
+  - The version of the "org.osgi.service.cm"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.3.0 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - The version of the "org.osgi.service.event"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.2.0 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - The version of the "org.osgi.service.prefs"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.1.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
   - Fixed a dead-lock problem caused by a bundle listener that did
-    callbacks to the framework on the event delivery thread which a
+    call-backs to the framework on the event delivery thread which a
     framework implementation does not need to support.
-  - The large icons displayer now acrolla ro makes new bundles visible
+  - The large icons displayer now scrolls to make new bundles visible
     again.
   - The set of selected bundles no longer changes when a bundle is
     started, stopped, updated, refreshed. The problem was caused by
     the bundle details displayer that fired to coarse table model
     change events when receiving bundle change events from the
-    framework, causing the underlaying swing table model to clear all
+    framework, causing the underlying swing table model to clear all
     selections.
   
+
+  HTTP-Server 3.0.1
+
+  - The version of the "org.osgi.service.http"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.2.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Measurement 3.0.1
+
+  - The version of the "org.osgi.util.measurement"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Position 3.0.1
+
+  - The version of the "org.osgi.util.position"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Prefs (OSGi Preferences Service) 3.0.1
+
+  - The version of the "org.osgi.service.prefs"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.1.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
 
   Xalan 2.7.1.kf3_01
 
   - Set export and import versions of javax.xml.* packages so that
-    it works together with the xerces bundle. 
+    it works together with the Xerxes bundle. 
 
+
+  Xml 3.0.1
+
+  - The version of the "org.osgi.util.xml"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Build System
+
+  - The BundleInfoTask now assigns versions to exported packages based
+    on the version specified in the "packageinfo"-file in the
+    directory that holds the classes of the package. The build will
+    fail if there is a miss-match between the version given in the
+    template manifest and the version in the "packageinfo"-file.
+  - bundlebuild.xml now copies resources from the source tree to the
+    classes tree in the compile step. The internal target that added
+    resources from the source tree to the bundle jar file has been
+    removed since those resources are added to the jar 
 
 ----------------------------------------------
 
