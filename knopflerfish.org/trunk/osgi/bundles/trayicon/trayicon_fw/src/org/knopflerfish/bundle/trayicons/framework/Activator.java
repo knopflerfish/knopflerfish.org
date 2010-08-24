@@ -62,8 +62,8 @@ public class Activator
           tray_icon = FrameworkTrayIcon.getFrameworkTrayIcon();
           tray_icon.show();
         }
-        catch (Exception e) {
-          log.error("SystemTray is not supported on this platform");
+        catch (Throwable t) {
+          log.error("SystemTray is not supported on this platform", t);
         }
       }
     });
