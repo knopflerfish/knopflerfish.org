@@ -31,6 +31,64 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - Fixed infinite loop when debug logging was enabled for event admin.
 
 
+  Deploymentadmin 1.0.1
+
+  - The version of the "org.osgi.service.deploymentadmin.spi"-package
+    that this bundle exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.0.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+
+
+  Dmtree 1.0.1
+
+  - The version of the "org.osgi.service.dmtree"-package
+    that this bundle exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.0.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - This bundle must use dynamic import package "*" to allow a bundle
+    to provide the digest class specified by the system property
+    "org.osgi.vendor.dmtree.DigestDelegate".
+
+  HTTP-Server 3.0.1
+
+  - The version of the "org.osgi.service.http"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.2.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Measurement 3.0.1
+
+  - The version of the "org.osgi.util.measurement"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Position 3.0.1
+
+  - The version of the "org.osgi.util.position"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Prefs (OSGi Preferences Service) 3.0.1
+
+  - The version of the "org.osgi.service.prefs"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.1.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Xml 3.0.1
+
+  - The version of the "org.osgi.util.xml"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
 === Misc (KF specific, start scripts, build system etc) ===
 
   Bundlerepository 3.1.2
@@ -38,14 +96,6 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - Use "http://www.knopflerfish.org/releases/current-kf_3/repository.xml"
     as the default repository URL for non-release builds. Release
     builds will use the repository of that release.
-
-
-  Deploymentadmin 1.0.1
-
-  - The version of the "org.osgi.service.deploymentadmin.spi"-package
-    that this bundle exports was wrong, for OSGi R4 v4.2 the version
-    should be 1.0.1 and nothing else. Note that it was only the
-    version stated in the Export-Package header that was wrong.
 
 
   Desktop 3.1.2
@@ -84,54 +134,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     instanciate java.awt.SystemTray.
 
 
-  HTTP-Server 3.0.1
-
-  - The version of the "org.osgi.service.http"-package that this
-    bundle exports was wrong, for OSGi R4 v4.2 the version should be
-    1.2.1 and nothing else. Note that it was only the version stated
-    in the Export-Package header that was wrong.
-
-
-  Measurement 3.0.1
-
-  - The version of the "org.osgi.util.measurement"-package that this
-    bundle exports was wrong, for OSGi R4 v4.2 the version should be
-    1.0.1 and nothing else. Note that it was only the version stated
-    in the Export-Package header that was wrong.
-
-
-  Position 3.0.1
-
-  - The version of the "org.osgi.util.position"-package that this
-    bundle exports was wrong, for OSGi R4 v4.2 the version should be
-    1.0.1 and nothing else. Note that it was only the version stated
-    in the Export-Package header that was wrong.
-
-
-  Prefs (OSGi Preferences Service) 3.0.1
-
-  - The version of the "org.osgi.service.prefs"-package that this
-    bundle exports was wrong, for OSGi R4 v4.2 the version should be
-    1.1.1 and nothing else. Note that it was only the version stated
-    in the Export-Package header that was wrong.
-
-
   Xalan 2.7.1.kf3_01
 
   - Set export and import versions of javax.xml.* packages so that
     it works together with the Xerxes bundle. 
 
 
-  Xml 3.0.1
-
-  - The version of the "org.osgi.util.xml"-package that this
-    bundle exports was wrong, for OSGi R4 v4.2 the version should be
-    1.0.1 and nothing else. Note that it was only the version stated
-    in the Export-Package header that was wrong.
-
-
   Build System
 
+  - bundlebuidl.xml did not create an Export-Package header for
+    impl-bundles that specified an "impl-api.pattern".
   - The BundleInfoTask now assigns versions to exported packages based
     on the version specified in the "packageinfo"-file in the
     directory that holds the classes of the package. The build will

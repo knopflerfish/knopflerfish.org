@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: dmtree
 Bundle-SymbolicName: org.knopflerfish.bundle.dmtree
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1
 Bundle-Category: API
 Bundle-Description: DMT Admin API
 Bundle-Vendor: OSGi
@@ -16,3 +16,4 @@ Export-Package: info.dmtree ; version="1.0.1",
  info.dmtree.notification.spi ; version="1.0",
  info.dmtree.registry ; version="1.0",
  info.dmtree.security ; version="1.0"
+DynamicImport-Package: *
