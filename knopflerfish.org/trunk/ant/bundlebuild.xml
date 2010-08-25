@@ -531,6 +531,21 @@
 			 dir="${resources.dir}"
 			 filesetId="impl.bundleClasspath"/>
 
+    <!-- Determine / validate set of packages to be exported. -->
+    <bundleinfo exports="bmfa.impl-Export-Package"
+		stdimports="${bundle.stdimports}"
+		manifestVersion="${bmfa.Bundle-ManifestVersion}"
+		uses="${bundleinfo.uses}"
+		failOnExports="${bundleinfo.failOnExports}"
+		failOnImports="${bundleinfo.failOnImports}"
+		failOnActivator="${bundleinfo.failOnActivator}"
+		checkFoundationEE="${ee.check.foundation}">
+      <fileset dir="${classes.out.dir}"
+               includes="${impl-api.pattern}">
+      </fileset>
+      <fileset refid="impl.bundleClasspath"/>
+    </bundleinfo>
+
     <bundleinfo activator = "bmfa.impl-Bundle-Activator"
 		imports   = "bmfa.impl-Import-Package"
 		stdimports        = "${bundle.stdimports}"
