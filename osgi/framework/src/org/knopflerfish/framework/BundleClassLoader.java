@@ -366,7 +366,7 @@ final public class BundleClassLoader
     Class c = findLoadedClass(name);
     if (c == null) {
       c = findClass(name);
-    } else if (c.getClassLoader() == this) {
+    } else if (secure.getClassLoaderOf(c) == this) {
       // Handle bundles that are lazely started after having been
       // stopped. In this case the triggering classes will already
       // be loaded. Only consider classes loaded by this classloader
