@@ -408,23 +408,12 @@ public class BundleImpl implements Bundle {
           bundleContext = new BundleContextImpl(this);
         }
         BundleException e = (new ActivatorThread(fwCtx, this)).callStart0(this);
-        if (e != null) {
-          //8:
-          state = STOPPING;
-          // NYI, call outside lock
-          fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
-          removeBundleResources();
-          bundleContext.invalidate();
-          bundleContext = null;
-          state = RESOLVED;
-          // NYI, call outside lock
-          fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
-          activating = false;
-          fwCtx.packages.notifyAll();
-          throw e;
-        }
-        activating = false;
         fwCtx.packages.notifyAll();
+        if (e != null) {
+          throw e;
+        } else {
+          activating = false;
+        }
         break;
       case ACTIVE:
         break;
@@ -440,7 +429,7 @@ public class BundleImpl implements Bundle {
   }
 
 
-  BundleException start0() {
+  private BundleException start0() {
     final String ba = archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
     boolean bStarted = false;
     BundleException res = null;
@@ -514,6 +503,18 @@ public class BundleImpl implements Bundle {
     if (res == null) {
       //10:
       fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
+    } else {
+      //8:
+      state = STOPPING;
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+      removeBundleResources();
+      bundleContext.invalidate();
+      bundleContext = null;
+      synchronized (fwCtx.packages) {
+        state = RESOLVED;
+        activating = false;
+      }
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
     }
     return res;
   }

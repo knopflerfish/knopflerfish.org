@@ -61,7 +61,6 @@ public class URLStreamHandlerWrapper
   final String filter;
   final ServiceListener serviceListener;
   
-  // NYI! Fix synchronization
   private ServiceReference best;
   private URLStreamHandlerService bestService;
   private FrameworkContext currentFw;
@@ -76,7 +75,7 @@ public class URLStreamHandlerWrapper
       "))";
 
     serviceListener = new ServiceListener() {
-        public void serviceChanged(ServiceEvent evt) {
+        synchronized public void serviceChanged(ServiceEvent evt) {
           ServiceReference ref = 
             evt.getServiceReference();
           FrameworkContext fw = ((BundleImpl)ref.getBundle()).fwCtx;
@@ -93,7 +92,7 @@ public class URLStreamHandlerWrapper
             case ServiceEvent.MODIFIED_ENDMATCH:
               // fall through
             case ServiceEvent.UNREGISTERING:
-              if (best.equals(ref)) {
+              if (best != null && best.equals(ref)) {
                 best = null;
                 bestService = null;
               }
@@ -150,27 +149,29 @@ public class URLStreamHandlerWrapper
       // Get current FrameworkContext
       throw new RuntimeException("NYI - walk stack to get framework");
     }
-    if (best == null) {
-      try {
-        ServiceReference[] refs =
-          fw.systemBundle.bundleContext.getServiceReferences(URLStreamHandlerService.class.getName(), filter);
-        if (refs != null) {
-          // KF gives us highest ranked first.
-          best = refs[0];
-        }
-      } catch (InvalidSyntaxException _no) { }
+    synchronized (serviceListener) {
+      if (best == null) {
+        try {
+          ServiceReference[] refs =
+            fw.systemBundle.bundleContext.getServiceReferences(URLStreamHandlerService.class.getName(), filter);
+          if (refs != null) {
+            // KF gives us highest ranked first.
+            best = refs[0];
+          }
+        } catch (InvalidSyntaxException _no) { }
+      }
+      if (best == null) {
+        throw new IllegalStateException("null: Lost service for protocol="+ protocol);
+      }
+      if (bestService == null) {
+        bestService = (URLStreamHandlerService)fw.systemBundle.bundleContext.getService(best);
+      }
+      if (bestService == null) {
+        throw new IllegalStateException("null: Lost service for protocol=" + protocol);
+      }
+      currentFw = fw;
+      return bestService;
     }
-    if (best == null) {
-      throw new IllegalStateException("null: Lost service for protocol="+ protocol);
-    }
-    if (bestService == null) {
-      bestService = (URLStreamHandlerService)fw.systemBundle.bundleContext.getService(best);
-    }
-    if (bestService == null) {
-      throw new IllegalStateException("null: Lost service for protocol=" + protocol);
-    }
-    currentFw = fw;
-    return bestService;
   }
 
 
