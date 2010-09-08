@@ -1,10 +1,15 @@
 This directory contains ant related code ant build files.
-Ant version 1.6 or higher is required.
+Ant version 1.7 or higher is required.
 
  build_example.xml          Example of bundle build.xml
 
- bundlebuild_include.xml    ant build file to be included in
-                            build.xml.
+ bundlebuild.xml            ant build file to be imported by
+                            build.xml when building a bundle.
+
+ bundlebuild_include.xml    Left for backwards compatibility allowing
+                            older build-files to function without
+                            change.  ant build file to be included
+                            (using an external entity) in build.xml.
 
  bundletasks.xml            ant build file included by bundlebuild_include.xml
                             Defines and compiles the bundle build tasks.
@@ -73,8 +78,8 @@ the same directory as the build.xml file that shall use it.
 The format of the manifest template file is that of a normal manifest
 file with one exception: Line length must not obey the 72 characters
 per line requirement. The character encoding of the template manifest
-file expected to be UTF-8, but you may specify another encoding in the
-build.xml file.
+file is expected to be UTF-8, but you may specify another encoding in
+the build.xml file.
 
 The relaxed line length requirement makes it possible to format the
 template manifest file in a readable way.
@@ -86,5 +91,5 @@ Import-Service: org.knopflerfish.service.log.LogService,
  org.osgi.service.cm.ManagedService,
  org.osgi.service.cm.ManagedServiceFactory,
  org.osgi.service.cm.ConfigurationPlugin
-Export-Package: org.osgi.service.cm;specification-version=1.2.0,
- org.knopflerfish.shared.cm;specification-version=1.0
+Export-Package: org.osgi.service.cm;version=1.2.0,
+ org.knopflerfish.shared.cm;version=1.0

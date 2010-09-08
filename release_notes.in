@@ -150,6 +150,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
   Build System
 
+  - The "Bundle" task now uses the version from the packageinfo-file
+    when generating the export packages header.
   - bundlebuidl.xml did not create an Export-Package header for
     impl-bundles that specified an "impl-api.pattern".
   - The BundleInfoTask now assigns versions to exported packages based

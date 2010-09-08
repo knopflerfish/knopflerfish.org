@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2009, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,8 @@ import org.apache.tools.ant.types.ZipFileSet;
 //import org.apache.tools.zip.ZipFile;
 
 
+import org.osgi.framework.Version;
+
 /**
  * <p>
  * An extension of the
@@ -96,14 +98,19 @@ import org.apache.tools.ant.types.ZipFileSet;
  *       <tt>exportpackage</tt> and <tt>importpackage</tt> nested elements.
  *       <ul>
  *         <li>none &ndash; no analysis is performed.</li>
- *         <li>warn &ndash; a warning will be displayed for each referenced
- *         package not found in the bundle or the <tt>importpackage</tt> nested
- *         elements.</li>
- *         <li>auto &ndash; each referenced package not found in the bundle or
- *         the <tt>importpackage</tt> nested elements will be added to the
- *         Import-Package manifest header. Packages exported by the bundle will
- *         be added to the Import-Package manifest header with the version as
- *         specified in the <tt>exportpackage</tt> nested element.</li>
+ *         <li>warn &ndash; a warning will be displayed for each
+ *         referenced package not found in the bundle or the
+ *         <tt>importpackage</tt> nested elements.</li>
+ *         <li>auto &ndash; each referenced package not found in the
+ *         bundle or the <tt>importpackage</tt> nested elements will
+ *         be added to the Import-Package manifest header. Packages
+ *         exported by the bundle will be added to the Import-Package
+ *         manifest header with a version range following the OSGi
+ *         versioning recommendation (if a package is incompatible
+ *         with previous version then the major number of the version
+ *         must be incremented). E.g., if the bundles exports version
+ *         1.0.2 the version range in the import will be
+ *         "[1.0.2,2)".</li>
  *       </ul>
  *     </td>
  *     <td valign="top">No, default is "warn"</td>
@@ -134,16 +141,21 @@ import org.apache.tools.ant.types.ZipFileSet;
  * <h4>exportpackage</h4>
  * <p>
  * The nested <tt>exportpackage</tt> element specifies the name and
- * specification version of a package to add to the Export-Package manifest
- * header. If package analysis is not turned off, a warning will be issued if
- * the specified package cannot be found in the bundle.
+ * version of a package to add to the Export-Package manifest
+ * header. If package analysis is not turned off, a warning will be
+ * issued if the specified package cannot be found in the bundle.
+ * When package analyses is turned on the version from the
+ * <tt>packageinfo</tt>-file in the directory of the package is read
+ * and used as the version of the exported package. In this case, if a
+ * version is specified in the <tt>exportpackage</tt> element that
+ * version is compared with the one from the <tt>packageinfo</tt>-file
+ * and if there is a mismatch a build error will be issued.
  * </p>
  *
  * <h4>importpackage</h4>
  * <p>
  * The nested <tt>importpackage</tt> element specifies the name and
- * specification version of a package to add to the Import-Package manifest
- * header.
+ * version of a package to add to the Import-Package manifest header.
  * </p>
  *
  * <h4>standardpackage</h4>
@@ -151,7 +163,7 @@ import org.apache.tools.ant.types.ZipFileSet;
  * The nested <tt>standardpackage</tt> element specifies the name or prefix
  * of a package that should be excluded from the package analysis. It can
  * be used to avoid importing packages that are available in the underlying
- * runtime environment.
+ * runtime environment (i.e., via boot delegation).
  * </p>
  *
  * <h3>Implicit fileset</h3>
@@ -168,32 +180,32 @@ import org.apache.tools.ant.types.ZipFileSet;
  * <pre>
  * &lt;bundle activator="auto"
  *         packageanalysis="auto"
- *         file="out/${ant.project.name}.jar">
+ *         file="out/${ant.project.name}.jar"&gt;
  *
- *   &lt;standardpackage name="javax.imageio"/>
+ *   &lt;standardpackage name="javax.imageio"/&gt;
  *
- *   &lt;exportpackage name="se.weilenmann.bundle.test" version="1.0"/>
+ *   &lt;exportpackage name="se.weilenmann.bundle.test" version="1.0"/&gt;
  *
- *   &lt;manifest>
- *     &lt;attribute name="Bundle-Name" value="testbundle"/>
- *     &lt;attribute name="Bundle-Version" value="1.0"/>
- *     &lt;attribute name="Bundle-Vendor" value="Kaspar Weilenmann"/>
- *   &lt;/manifest>
+ *   &lt;manifest&gt;
+ *     &lt;attribute name="Bundle-Name" value="testbundle"/&gt;
+ *     &lt;attribute name="Bundle-Version" value="1.0"/&gt;
+ *     &lt;attribute name="Bundle-Vendor" value="Kaspar Weilenmann"/&gt;
+ *   &lt;/manifest&gt;
  *
- *   &lt;classes dir="out/classes">
- *     &lt;include name="se/weilenmann/bundle/test/**"/>
- *   &lt;/classes>
- *   &lt;classes dir="out/classes" prefix="util">
- *     &lt;include name="se/weilenmann/util/**"/>
- *   &lt;/classes>
- *   &lt;classes src="osgi/jars/log/log_api.jar" prefix="log_api">
- *     &lt;include name="*&#42;/*.class"/>
- *   &lt;/classes>
+ *   &lt;classes dir="out/classes"&gt;
+ *     &lt;include name="se/weilenmann/bundle/test/**"/&gt;
+ *   &lt;/classes&gt;
+ *   &lt;classes dir="out/classes" prefix="util"&gt;
+ *     &lt;include name="se/weilenmann/util/**"/&gt;
+ *   &lt;/classes&gt;
+ *   &lt;classes src="osgi/jars/log/log_api.jar" prefix="log_api"&gt;
+ *     &lt;include name="*&#42;/*.class"/&gt;
+ *   &lt;/classes&gt;
  *
- *   &lt;lib dir="osgi/jars/cm" includes="cm_api.jar" prefix="osgi"/>
- *   &lt;lib dir="lib/commons" includes="commons-logging.jar" prefix="commons"/>
+ *   &lt;lib dir="osgi/jars/cm" includes="cm_api.jar" prefix="osgi"/&gt;
+ *   &lt;lib dir="lib/commons" includes="commons-logging.jar" prefix="commons"/&gt;
  *
- * &lt;/bundle>
+ * &lt;/bundle&gt;
  * </pre>
  * <p>Creates a bundle with the following manifest:<p>
  * <pre>
@@ -322,14 +334,46 @@ public class Bundle extends Jar {
       // Scan done
       bpInfo.toJavaNames();
 
-      Set publicPackages = exportPackage.keySet();
+      final Set publicPackages = exportPackage.keySet();
 
       if (packageAnalysis != PACKAGE_ANALYSIS_NONE) {
         for (Iterator i = publicPackages.iterator(); i.hasNext();) {
-          String packageName = (String) i.next();
+          final String packageName = (String) i.next();
           if (!bpInfo.providesPackage(packageName)) {
             log("Exported package not provided by bundle: " +packageName,
                 Project.MSG_WARN);
+          }
+          // The Version from the packageinfo-file or null
+          final Version piVersion =
+            bpInfo.getProvidedPackageVersion(packageName);
+          if (null!=piVersion) {
+            final String epVersionS = (String) exportPackage.get(packageName);
+            if (null==epVersionS) {
+              // Use the version form the packageinfo-file
+              exportPackage.put(packageName, piVersion.toString());
+            } else {
+              // Check that the versions match, if not trigger a build error
+              try {
+                final Version epVersion = Version.parseVersion(epVersionS);
+                if (0!=epVersion.compareTo(piVersion)) {
+                  final String msg = "Multiple versions found for export of "
+                    +"the package '" +packageName
+                    +"'. The packageinfo file ("
+                    +bpInfo.getProvidedPackageVersionSource(packageName)
+                    +") states '" +piVersion.toString()
+                    +"' but the <exportpackage> element says '"
+                    +epVersion.toString() +"'.";
+                  log(msg, Project.MSG_ERR);
+                  throw new BuildException(msg);
+                }
+              } catch (IllegalArgumentException iae) {
+                final String msg = "Invalid version '" +epVersionS
+                  +"' in <exportpackage name=\""+packageName +"\" ...>: "
+                  +iae.getMessage();
+                log(msg, Project.MSG_ERR);
+                throw new BuildException(msg, iae);
+              }
+            }
           }
         }
       }
@@ -345,11 +389,16 @@ public class Bundle extends Jar {
         if (!isStandardPackage(packageName) &&
             !importPackage.containsKey(packageName)) {
           if (packageAnalysis == PACKAGE_ANALYSIS_AUTO) {
-            if (exportPackage.containsKey(packageName)) {
-              // TODO: do we want to import with version?
-              importPackage.put(packageName, exportPackage.get(packageName));
-            } else {
-              importPackage.put(packageName, null);
+            final String version = (String) exportPackage.get(packageName);
+            try {
+              importPackage.put(packageName, toImportRange(version));
+            } catch (IllegalArgumentException iae) {
+              final String msg = "Invalid version value, '" +version
+                +"' for exported package \""+packageName
+                +"\" can not derive version range for auto-import. "
+                +iae.getMessage();
+              log(msg, Project.MSG_ERR);
+              throw new BuildException(msg, iae);
             }
           } else if (packageAnalysis == PACKAGE_ANALYSIS_WARN) {
             log("Referenced package not found in bundle or imports: "
@@ -484,24 +533,34 @@ public class Bundle extends Jar {
     return prefix;
   }
 
-  private void addPackageHeader(String headerName, Map packageMap) throws ManifestException {
+  private void addPackageHeader(String headerName, Map packageMap)
+    throws ManifestException
+  {
     final Iterator i = packageMap.entrySet().iterator();
     if (i.hasNext()) {
       final StringBuffer valueBuffer = new StringBuffer();
       while (i.hasNext()) {
         Map.Entry entry = (Map.Entry) i.next();
         final String name = (String) entry.getKey();
-        final String version = (String) entry.getValue();
+        String version = (String) entry.getValue();
         valueBuffer.append(name);
         if (version != null) {
-          valueBuffer.append(";specification-version=");
-          valueBuffer.append(version);
+          version = version.trim();
+          if (0<version.length()) {
+            valueBuffer.append(";version=");
+            final boolean quotingNeeded = -1!=version.indexOf(',')
+              && '"'!=version.charAt(0);
+            if (quotingNeeded) valueBuffer.append('"');
+            valueBuffer.append(version);
+            if (quotingNeeded) valueBuffer.append('"');
+          }
         }
         valueBuffer.append(',');
       }
       valueBuffer.setLength(valueBuffer.length() - 1);
       final String value = valueBuffer.toString();
-      generatedManifest.addConfiguredAttribute(createAttribute(headerName, value));
+      generatedManifest.addConfiguredAttribute(createAttribute(headerName,
+                                                               value));
       log(headerName + ": " + value, Project.MSG_INFO);
     }
   }
@@ -511,6 +570,31 @@ public class Bundle extends Jar {
     attribute.setName(name);
     attribute.setValue(value);
     return attribute;
+  }
+
+  /**
+   * Given a precise version create a version range suitable for an
+   * import package specification. Currently an input version of
+   * M.N.U.Q will result in an output range "[M.N.U.Q, M+1)" following
+   * the version usage recommended by OSGi (a package that is not
+   * backwards compatible must increment the major number in its
+   * version number).
+   *
+   * @param version an OSGi compatibel version on string form.
+   * @return a quoted version range starting with the given version
+   *         (inclusive) ending with the next major version
+   *         (exclusive). If the specified version is
+   *         <code>null</code> or an empty string a <code>null</code>
+   *         is returned.
+   */
+  private static String toImportRange(final String version)
+    throws IllegalArgumentException
+  {
+    if (null==version || 0==version.length()) return null;
+
+    final Version vStart = Version.parseVersion(version);
+    final Version vEnd = new Version(vStart.getMajor()+1, 0, 0, null);
+    return "\"[" +vStart.toString() +"," +vEnd.toString() +")\"";
   }
 
 
@@ -603,7 +687,8 @@ public class Bundle extends Jar {
       addPackageHeader(IMPORT_PACKAGE_KEY, importPackage);
       addPackageHeader(EXPORT_PACKAGE_KEY, exportPackage);
 
-      // TODO: better merge may be needed, currently overwrites pre-existing headers
+      // TODO: better merge may be needed, currently overwrites
+      // pre-existing headers
       addConfiguredManifest(generatedManifest);
     } catch (ManifestException me) {
       throw new BuildException("Error merging manifest headers", me);
