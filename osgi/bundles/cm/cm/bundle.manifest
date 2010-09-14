@@ -13,5 +13,5 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Icon: icon.png;size=32
 Bundle-Activator: org.knopflerfish.bundle.cm.Activator
 api-Export-Package: org.osgi.service.cm; version=1.3.0
-Export-Package: org.osgi.service.cm; version=1.3.0,
- org.knopflerfish.shared.cm; version=1.0
+Export-Package: org.osgi.service.cm,
+ org.knopflerfish.shared.cm
