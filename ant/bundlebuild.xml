@@ -881,7 +881,12 @@
     </jar>
   </target>
 
-  <target name="save_javadoc_data" if="generate.javadoc.data">
+  <!-- Should only add items to ${source.files} and ${exported.files} -->
+  <!-- when ${generate.javadoc.data} is set to "true" -->
+  <condition property="do_generate_javadoc_data">
+    <equals arg1="${generate.javadoc.data}"  arg2="true"/>
+  </condition>
+  <target name="save_javadoc_data" if="do_generate_javadoc_data">
     <echo message="save_javadoc: to:${sources.file} src:${src.dir} "/>
     <echo file="${sources.file}" append="true"
 	  message="${src.dir}${line.separator}"/>
