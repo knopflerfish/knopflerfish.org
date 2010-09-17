@@ -47,7 +47,7 @@
               value="${base.url}/${version}/docs/javadoc"/>
     <property name="css_navigation_enabled"     value="navigation_enabled"/>
     <property name="css_navigation_disabled"    value="navigation_disabled"/>
-    <property name="navigation_pages"           value="INDEX PROG ECLIPSE LICENSE RUNNING PROG COMP DESKTOP UBICORE CHANGELOG SVN TUTORIALS"/>
+    <property name="navigation_pages"           value="INDEX PROG ECLIPSE LICENSE INSTALLING RUNNING BUILDING TESTING PROG COMP DESKTOP UBICORE CHANGELOG SVN TUTORIALS"/>
 
     <antcall target="htdocs"/>
  </target>
@@ -161,15 +161,39 @@
              fromfile="${htdocs.dir}/html_src/eclipse_preferences.html"
              disable="PROG"/>
 
-   <makehtml description="Running Knopflerfish Pro"
+   <makehtml description="Installing Knopflerfish OSGi"
+             title="Installing"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="installing.html"
+             fromfile="${htdocs.dir}/html_src/installing.html"
+             disable="INSTALLING"/>
+
+   <makehtml description="Running Knopflerfish OSGi"
              title="Running"
              template="${template.html}"
              outdir="${htdocs.out}"
              tofile="running.html"
-             fromfile="${htdocs.dir}/html_src/download_main.html"
+             fromfile="${htdocs.dir}/html_src/running.html"
              disable="RUNNING"/>
 
-   <makehtml description="The Knopflerfish Pro OSGi Desktop"
+   <makehtml description="Building Knopflerfish OSGi"
+             title="Building"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="building.html"
+             fromfile="${htdocs.dir}/html_src/building.html"
+             disable="BUILDING"/>
+
+   <makehtml description="Testing Knopflerfish OSGi"
+             title="Testing"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="testing.html"
+             fromfile="${htdocs.dir}/html_src/testing.html"
+             disable="TESTING"/>
+
+   <makehtml description="The Knopflerfish OSGi Desktop"
              title="Desktop"
              template="${template.html}"
              outdir="${htdocs.out}"
