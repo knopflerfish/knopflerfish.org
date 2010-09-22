@@ -9,11 +9,13 @@
   <property name="javac.target"          value="1.1"/>
 
   <property name="api.pattern"
-	    value="org/knopflerfish/service/desktop/**,org/knopflerfish/service/console/**"/> 
-  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/> 
+	    value="org/knopflerfish/service/desktop/**,
+		   org/knopflerfish/service/console/**"/> 
+  <property name="impl.pattern"
+	    value="org/knopflerfish/bundle/**"/> 
 
   <property name="do.bundle.custom.pre" value="true"/>
-
+  <!-- Embedd the KF console API. -->
   <target name="bundle.custom.pre">
     <bundle_locator bundleNames="console_api">
       <fileset dir="${jars.dir}">

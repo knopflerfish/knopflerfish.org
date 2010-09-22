@@ -5,9 +5,9 @@
   <dirname  property="proj.dir" file="${ant.file.console}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
-  <property name = "bundle.build.doc"   value = "true"/>
+  <property name="bundle.build.doc"   value="true"/>
 
-  <property name = "ee.check.foundation"   value = "true"/>
+  <property name="ee.check.foundation"   value="true"/>
 
   <property name="api.pattern"  value="org/knopflerfish/service/console/**"/>
   <property name="impl.pattern" value="org/knopflerfish/bundle/console/**"/> 
