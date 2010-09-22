@@ -13,6 +13,5 @@ Bundle-Icon: icon.png;size=32
 Import-Package: org.knopflerfish.service.console; version="[2,3)",
  org.osgi.framework,
  org.osgi.service.log
-Export-Package: org.knopflerfish.service.console; version=2.1.0
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/console/console/
 Bundle-APIVendor: Knopflerfish
