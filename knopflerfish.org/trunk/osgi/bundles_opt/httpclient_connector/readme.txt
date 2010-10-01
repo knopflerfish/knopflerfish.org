@@ -16,6 +16,16 @@ This bundle introduces a few (optional) properties:
 
 org.knopflerfish.httpclient_connector.proxy.server=<host> 
 org.knopflerfish.httpclient_connector.proxy.port=<int> 
+org.knopflerfish.httpclient_connector.proxy.nonProxyHosts=<host regexp>|<host regexp>|...
+
+When any of the above properties are not set the bundle fall backs to
+use the standard ones "http.proxyHost", "http.proxyPort" and
+"http.nonProxyHosts". Note that if this bundle is used on a runtime
+with a String-class that does not have a matches(String)-method the
+regular expressions for the non-proxy hosts must not contain any kind
+of wild carding (the match will in this case be performed by checking
+if the host-regexp is equal to the host part of the connection URI.
+
 
 Some proxies require authenication. The following properties allow
 you to set up the connector properly in such environments. (Requires 

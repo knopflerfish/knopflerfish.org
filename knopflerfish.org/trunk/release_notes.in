@@ -133,6 +133,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     selections.
   
 
+  httpclient connector 3.0.0
+
+  - Added support for specifying non-proxy hosts via framework or
+    system properties. For detail see the README file:
+    https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/readme.txt
+
+
   FW-Tray 3.0.2
 
   - A class loader may throw a NoClassDefFoundError when it fails to
