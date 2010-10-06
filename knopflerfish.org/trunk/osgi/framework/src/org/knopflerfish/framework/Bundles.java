@@ -97,7 +97,6 @@ public class Bundles {
       }
       b = fwCtx.perm.callInstall0(this, location, in);
     }
-    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, b));
     return b;
   }
 
@@ -145,6 +144,7 @@ public class Bundles {
       }
       BundleImpl res = new BundleImpl(fwCtx, ba, checkContext);
       bundles.put(location, res);
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, res));
       return res;
     } catch (Exception e) {
       if (ba != null) {

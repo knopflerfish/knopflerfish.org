@@ -273,14 +273,16 @@ public class Util {
     byte[] buf = new byte[1024];
 
     InputStream           in = Util.class.getResourceAsStream(name);
-    ByteArrayOutputStream bout = new ByteArrayOutputStream();
-    int n;
-    while ((n = in.read(buf)) > 0) {
-      bout.write(buf, 0, n);
+    try {
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      int n;
+      while ((n = in.read(buf)) > 0) {
+        bout.write(buf, 0, n);
+      }
+      return bout.toByteArray();
+    } finally {
+      try { in.close(); } catch (Exception ignored) { }
     }
-    try { in.close(); } catch (Exception ignored) { }
-
-    return bout.toByteArray();
   }
 
   /**

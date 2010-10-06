@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,13 @@ public class BundleContextImpl
   /**
    * Reference to bundleImpl for this context.
    */
-  private BundleImpl bundle;
+  final BundleImpl bundle;
+
+
+  /**
+   * Is bundle context valid.
+   */
+  private boolean valid = true;
 
 
   /**
@@ -75,7 +81,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getProperty
    */
   public String getProperty(String key) {
-    isBCvalid();
+    checkValid();
     return bundle.fwCtx.props.getProperty(key);
   }
 
@@ -86,7 +92,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#installBundle
    */
   public Bundle installBundle(String location) throws BundleException {
-    isBCvalid();
+    checkValid();
     return bundle.fwCtx.bundles.install(location, null);
   }
 
@@ -100,7 +106,7 @@ public class BundleContextImpl
     throws BundleException
   {
     try {
-      isBCvalid();
+      checkValid();
       return bundle.fwCtx.bundles.install(location, in);
     } finally {
       if (in != null) {
@@ -118,7 +124,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundle
    */
   public Bundle getBundle() {
-    isBCvalid();
+    checkValid();
     return bundle;
   }
 
@@ -151,8 +157,8 @@ public class BundleContextImpl
    */
   public void addServiceListener(ServiceListener listener, String filter)
     throws InvalidSyntaxException {
-    isBCvalid();
-    bundle.fwCtx.listeners.addServiceListener(bundle, listener, filter);
+    checkValid();
+    bundle.fwCtx.listeners.addServiceListener(this, listener, filter);
   }
 
 
@@ -162,9 +168,9 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#addServiceListener
    */
   public void addServiceListener(ServiceListener listener) {
-    isBCvalid();
+    checkValid();
     try {
-      bundle.fwCtx.listeners.addServiceListener(bundle, listener, null);
+      bundle.fwCtx.listeners.addServiceListener(this, listener, null);
     } catch (InvalidSyntaxException neverHappens) { }
   }
 
@@ -175,8 +181,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#removeServiceListener
    */
   public void removeServiceListener(ServiceListener listener) {
-    isBCvalid();
-    bundle.fwCtx.listeners.removeServiceListener(bundle, listener);
+    checkValid();
+    bundle.fwCtx.listeners.removeServiceListener(this, listener);
   }
 
 
@@ -186,8 +192,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#addBundleListener
    */
   public void addBundleListener(BundleListener listener) {
-    isBCvalid();
-    bundle.fwCtx.listeners.addBundleListener(bundle, listener);
+    checkValid();
+    bundle.fwCtx.listeners.addBundleListener(this, listener);
   }
 
 
@@ -197,8 +203,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#removeBundleListener
    */
   public void removeBundleListener(BundleListener listener) {
-    isBCvalid();
-    bundle.fwCtx.listeners.removeBundleListener(bundle, listener);
+    checkValid();
+    bundle.fwCtx.listeners.removeBundleListener(this, listener);
   }
 
 
@@ -208,8 +214,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#addFrameworkListener
    */
   public void addFrameworkListener(FrameworkListener listener) {
-    isBCvalid();
-    bundle.fwCtx.listeners.addFrameworkListener(bundle, listener);
+    checkValid();
+    bundle.fwCtx.listeners.addFrameworkListener(this, listener);
   }
 
 
@@ -219,8 +225,8 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#removeFrameworkListener
    */
   public void removeFrameworkListener(FrameworkListener listener) {
-    isBCvalid();
-    bundle.fwCtx.listeners.removeFrameworkListener(bundle, listener);
+    checkValid();
+    bundle.fwCtx.listeners.removeFrameworkListener(this, listener);
   }
 
 
@@ -232,7 +238,7 @@ public class BundleContextImpl
   public ServiceRegistration registerService(String[] clazzes,
                                              Object service,
                                              Dictionary properties) {
-    isBCvalid();
+    checkValid();
     String [] classes = (String[]) clazzes.clone();
     return bundle.fwCtx.services.register(bundle, classes, service, properties);
   }
@@ -246,7 +252,7 @@ public class BundleContextImpl
   public ServiceRegistration registerService(String clazz,
                                              Object service,
                                              Dictionary properties) {
-    isBCvalid();
+    checkValid();
     String [] classes =  new String [] { clazz };
     return bundle.fwCtx.services.register(bundle, classes, service, properties);
   }
@@ -259,7 +265,7 @@ public class BundleContextImpl
    */
   public ServiceReference[] getServiceReferences(String clazz, String filter)
     throws InvalidSyntaxException {
-    isBCvalid();
+    checkValid();
     return bundle.fwCtx.services.get(clazz, filter, bundle);
   }
 
@@ -270,7 +276,7 @@ public class BundleContextImpl
    */
   public ServiceReference[] getAllServiceReferences(String clazz, String filter)
   throws InvalidSyntaxException {
-    isBCvalid();
+    checkValid();
     return bundle.fwCtx.services.get(clazz, filter, null);
   }
 
@@ -281,7 +287,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getServiceReference
    */
   public ServiceReference getServiceReference(String clazz) {
-    isBCvalid();
+    checkValid();
     return bundle.fwCtx.services.get(bundle, clazz);
   }
 
@@ -292,7 +298,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getService
    */
   public Object getService(ServiceReference reference) {
-    isBCvalid();
+    checkValid();
 
     if(reference == null) {
       // Throw an NPE with a message to be really clear we do it
@@ -313,7 +319,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#ungetService
    */
   public boolean ungetService(ServiceReference reference) {
-    isBCvalid();
+    checkValid();
 
     if(reference == null) {
       // Throw an NPE with a message to be really clear we do it
@@ -335,7 +341,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getDataFile
    */
   public File getDataFile(String filename) {
-    isBCvalid();
+    checkValid();
     File dataRoot = bundle.getDataRoot();
     if (dataRoot != null) {
       if (!dataRoot.exists()) {
@@ -360,7 +366,7 @@ public class BundleContextImpl
    * @since 1.1
    */
   public Filter createFilter(String filter) throws InvalidSyntaxException {
-    isBCvalid();
+    checkValid();
     return FrameworkUtil.createFilter(filter);
   }
 
@@ -372,9 +378,24 @@ public class BundleContextImpl
    * Invalidate this BundleContext.
    */
   void invalidate() {
-    bundle = null;
+    valid = false;
   }
 
+
+  /**
+   * Is bundle still valid.
+   *
+   * @return true if valid.
+   * @exception IllegalStateException, if bundle isn't active.
+   */
+  boolean isValid() {
+    return valid;
+  }
+
+
+  //
+  // Private methods
+  //
 
   /**
    * Check that the bundle is still valid.
@@ -382,12 +403,10 @@ public class BundleContextImpl
    * @return true if valid.
    * @exception IllegalStateException, if bundle isn't active.
    */
-  void isBCvalid() {
-    if (bundle == null) {
+  private void checkValid() {
+    if (!valid) {
       throw new IllegalStateException("This bundle context is no longer valid");
     }
   }
-
-
 
 }

@@ -116,7 +116,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     secure.checkExecuteAdminPerm(this);
 
     synchronized (lock) {
-      waitOnActivation(lock, "Framework.init", true);
+      waitOnOperation(lock, "Framework.init", true);
 
       switch (state) {
       case INSTALLED:
@@ -141,14 +141,15 @@ public class SystemBundle extends BundleImpl implements Framework {
   public void start(int options) throws BundleException {
     List bundlesToStart = null;
     synchronized (lock) {
-      waitOnActivation(lock, "Framework.start", true);
+      waitOnOperation(lock, "Framework.start", true);
 
       switch (state) {
       case INSTALLED:
       case RESOLVED:
         doInit();
+        // Fall through
       case STARTING:
-        activating = true;
+        operation = ACTIVATING;
         break;
       case ACTIVE:
         return;
@@ -186,7 +187,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     synchronized (lock) {
       state = ACTIVE;
-      activating = false;
+      operation = IDLE;
       lock.notifyAll();
       fwCtx.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED, this, null));
     }
@@ -237,7 +238,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   public void stop(int options) throws BundleException {
     secure.checkExecuteAdminPerm(this);
-    shutdown(false);
+    secure.callShutdown(this, false);
   }
 
 
@@ -253,7 +254,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         in.close();
       } catch (IOException ignore) {}
     }
-    shutdown(true);
+    secure.callShutdown(this, true);
   }
 
 
@@ -356,7 +357,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     synchronized (lock) {
       if (state != INSTALLED) {
         state = RESOLVED;
-        deactivating = false;
+        operation = IDLE;
         lock.notifyAll();
       }
       stopEvent = fe;
@@ -651,7 +652,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    * </ol></p>
    *
    */
-  private void shutdown(final boolean restart) {
+  void shutdown(final boolean restart) {
     synchronized (lock) {
       boolean wasActive = false;
       switch (state) {
@@ -661,6 +662,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         break;
       case Bundle.ACTIVE:
         wasActive = true;
+        // Fall through
       case Bundle.STARTING:
         if (shutdownThread == null) {
           try {
@@ -707,8 +709,8 @@ public class SystemBundle extends BundleImpl implements Framework {
   {
     try {
       synchronized (lock) {
-        waitOnActivation(lock, "Framework." + (restart ? "update" : "stop"), true);
-        deactivating = true;
+        waitOnOperation(lock, "Framework." + (restart ? "update" : "stop"), true);
+        operation = DEACTIVATING;
         state = STOPPING;
       }
       fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
@@ -765,15 +767,12 @@ public class SystemBundle extends BundleImpl implements Framework {
     for (int i = activeBundles.size()-1; i >= 0; i--) {
       final BundleImpl b = (BundleImpl) activeBundles.get(i);
       try {
-        synchronized (b) {
-          if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
-            // Stop bundle without changing its autostart setting.
-            b.stop(Bundle.STOP_TRANSIENT);
-          }
+        if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
+          // Stop bundle without changing its autostart setting.
+          b.stop(Bundle.STOP_TRANSIENT);
         }
       } catch (BundleException be) {
-        fwCtx.listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR,
-                                                    b, be));
+        fwCtx.listeners.frameworkError(b, be);
       }
     }
 
@@ -783,7 +782,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     for (Iterator i = allBundles.iterator(); i.hasNext(); ) {
       final BundleImpl b = (BundleImpl) i.next();
       if (b.getBundleId() != 0) {
-        b.setStateInstalled(null);
+        b.setStateInstalled(false);
         b.purge();
       }
     }
@@ -814,8 +813,9 @@ public class SystemBundle extends BundleImpl implements Framework {
         bcpf.delete();
       }
     } catch (IOException e) {
-      // NYI! Log this!?
-      fwCtx.debug.println("Could not save classpath " + e);
+      if (fwCtx.debug.errors) {
+        fwCtx.debug.println("Could not save classpath " + e);
+      }
     }
   }
 

@@ -87,17 +87,17 @@ class ServiceListenerState {
    * Add a new service listener. If an old one exists, and it has the
    * same owning bundle, the old listener is removed first.
    *
-   * @param bundle The bundle adding this listener.
+   * @param bc The bundle context adding this listener.
    * @param listener The service listener to add.
    * @param filter An LDAP filter string to check when a service is modified.
    * @exception org.osgi.framework.InvalidSyntaxException
    * If the filter is not a correct LDAP expression.
    */
-  synchronized void add(Bundle bundle, ServiceListener listener, String filter)
+  synchronized void add(BundleContextImpl bc, ServiceListener listener, String filter)
   throws InvalidSyntaxException {
-    ServiceListenerEntry sle = new ServiceListenerEntry(bundle, listener, filter);
+    ServiceListenerEntry sle = new ServiceListenerEntry(bc, listener, filter);
     if (serviceSet.contains(sle)) {
-      remove(bundle, listener);
+      remove(bc, listener);
     }
     serviceSet.add(sle);
     listeners.framework.hooks.handleServiceListenerReg(sle);
@@ -107,13 +107,13 @@ class ServiceListenerState {
   /**
    * Remove a service listener.
    *
-   * @param bundle The bundle removing this listener.
+   * @param bc The bundle context removing this listener.
    * @param listener The service listener to remove.
    */
-  synchronized void remove(Bundle bundle, ServiceListener listener) {
+  synchronized void remove(BundleContextImpl bc, ServiceListener listener) {
     for (Iterator it = serviceSet.iterator(); it.hasNext();) {
       ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
-      if (sle.bundle == bundle && sle.listener == listener) {
+      if (sle.bc == bc && sle.listener == listener) {
         sle.setRemoved(true);
         listeners.framework.hooks.handleServiceListenerUnreg(sle);
         removeFromCache(sle);
@@ -148,33 +148,39 @@ class ServiceListenerState {
     }
   }
 
+
   /**
-   * Remove all service listeners registered by the specified bundle.
+   * Remove all service listeners registered by the specified bundle context.
    *
-   * @param bundle The bundle to remove listeners for.
+   * @param bc The bundle context to remove listeners for.
    */
-  synchronized void removeAll(Bundle bundle) {
+  synchronized void removeAll(BundleContextImpl bc) {
     for (Iterator it = serviceSet.iterator(); it.hasNext();) {
       ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
-      if (sle.bundle == bundle) {
+      if (sle.bc == bc) {
         removeFromCache(sle);
         it.remove();
       }
     }
   }
 
-  synchronized void hooksBundleStopped(Bundle bundle) {
+
+  /**
+   * Remove all service listeners registered by the specified bundle.
+   *
+   * @param bundle The bundle to remove listeners for.
+   */
+  synchronized void hooksBundleStopped(BundleContextImpl bc) {
     List entries = new ArrayList();
     for (Iterator it = serviceSet.iterator(); it.hasNext();) {
       ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
-      if (sle.bundle == bundle) {
+      if (sle.bc == bc) {
         entries.add(sle);
       }
     }
     listeners.framework.hooks.handleServiceListenerUnreg(Collections.unmodifiableList(entries));
   }
 
-  
 
   /**
    * Checks if the specified service listener's filter is simple enough

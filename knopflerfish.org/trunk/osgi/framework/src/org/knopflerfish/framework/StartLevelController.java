@@ -173,9 +173,9 @@ public class StartLevelController
 
   void shutdown() {
     acceptChanges = false;
-    setStartLevel0(0, false, true, false);
-    while (currentLevel > 1) {
-      synchronized (wc) {
+    synchronized (wc) {
+      setStartLevel0(0, false, true, false);
+      while (currentLevel > 1) {
         try { wc.wait(); } catch (Exception e) {}
       }
     }

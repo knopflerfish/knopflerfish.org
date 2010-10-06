@@ -407,11 +407,11 @@ class SecurePermissionOps extends PermissionOps {
 
 
 
-  Exception callStop1(final BundleImpl b, final boolean wasStarted)  {
-    return (Exception)
+  BundleThread createBundleThread(final FrameworkContext fc)  {
+    return (BundleThread)
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
-            return b.stop1(wasStarted);
+            return new BundleThread(fc);
           }
         });
   }
@@ -450,16 +450,6 @@ class SecurePermissionOps extends PermissionOps {
           return null;
         }
       });
-  }
-
-
-  BundleContext callGetBundleContext0(final BundleImpl b) {
-    return (BundleContext)
-      AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            return b.getBundleContext0();
-          }
-        });
   }
 
 
@@ -521,25 +511,14 @@ class SecurePermissionOps extends PermissionOps {
   // Listeners Secure operations
   //
 
-  void callBundleChanged(final BundleListener bl, final BundleEvent evt) {
+  void callBundleChanged(final FrameworkContext fwCtx, final BundleEvent evt) {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          bl.bundleChanged(evt);
+          fwCtx.listeners.bundleChanged(evt);
           return null;
         }
       });
   }
-
-
-  void callFrameworkEvent(final FrameworkListener fl, final FrameworkEvent evt) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          fl.frameworkEvent(evt);
-          return null;
-        }
-      });
-  }
-
 
   void callServiceChanged(final ServiceListener sl, final ServiceEvent evt) {
     AccessController.doPrivileged(new PrivilegedAction() {
@@ -586,6 +565,19 @@ class SecurePermissionOps extends PermissionOps {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           sr.unregister0();
+          return null;
+        }
+      });
+  }
+
+  //
+  // SystemBundle secure operations
+  //
+
+  void callShutdown(final SystemBundle sb, final boolean restart) {
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          sb.shutdown(restart);
           return null;
         }
       });

@@ -197,7 +197,7 @@ class PermissionOps {
   }
   
   //
-  // BundleImpl Secure operations
+  // BundleImpl secure operations
   //
 
   void callFinalizeActivation(final BundleImpl b) throws BundleException {
@@ -205,8 +205,8 @@ class PermissionOps {
   }
 
 
-  Exception callStop1(final BundleImpl b, final boolean wasStarted)  {
-    return b.stop1(wasStarted);
+  BundleThread createBundleThread(final FrameworkContext fc)  {
+    return new BundleThread(fc);
   }
 
 
@@ -223,11 +223,6 @@ class PermissionOps {
 
   void callSetAutostartSetting(final BundleImpl b, final int setting) {
     b.setAutostartSetting0(setting);
-  }
-
-
-  BundleContext callGetBundleContext0(final BundleImpl b) {
-    return b.getBundleContext0();
   }
 
 
@@ -263,12 +258,8 @@ class PermissionOps {
   // Listeners Secure operations
   //
 
-  void callBundleChanged(final BundleListener bl, final BundleEvent evt) {
-     bl.bundleChanged(evt);
-  }
-
-  void callFrameworkEvent(final FrameworkListener fl, final FrameworkEvent evt) {
-     fl.frameworkEvent(evt);
+  void callBundleChanged(final FrameworkContext fwCtx, final BundleEvent evt) {
+     fwCtx.listeners.bundleChanged(evt);
   }
 
   void callServiceChanged(final ServiceListener sl, final ServiceEvent evt) {
@@ -299,6 +290,14 @@ class PermissionOps {
 
   void callUnregister0(final ServiceRegistrationImpl sr) {
     sr.unregister0();
+  }
+
+  //
+  // SystemBundle secure operations
+  //
+
+  void callShutdown(final SystemBundle sb, final boolean restart) {
+    sb.shutdown(restart);
   }
 
   //

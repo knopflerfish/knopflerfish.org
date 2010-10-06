@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,7 +113,7 @@ class FrameworkPolicy extends Policy {
    */
   public boolean implies(final ProtectionDomain pd, final Permission p) {
     // NYI! Optimize here for framework.jar + bootclasses?
-    CodeSource cs = null == pd ? pd.getCodeSource() : null;
+    CodeSource cs = null != pd ? pd.getCodeSource() : null;
     URL u = null != cs ? cs.getLocation() : null;
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       PermissionCollection pc = getPermissions(cs);

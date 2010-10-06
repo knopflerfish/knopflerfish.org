@@ -378,7 +378,7 @@ final public class BundleClassLoader
         }
 
         ArrayList bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
-        if (null==bundlesToActivate) {
+        if (null == bundlesToActivate) {
           // Not part of a load chain; activate bundle here.
           if (debug.lazy_activation) {
             debug.println(this + " requesting lazy activation of #" +b.id);
@@ -592,12 +592,13 @@ final public class BundleClassLoader
    * Purge all archives.
    *
    */
-  void purge() {
+  void purge(boolean purgeArchive) {
     bpkgs.unregisterPackages(true);
     if (protectionDomain != null) {
       bpkgs.bundle.fwCtx.perm.purge(bpkgs.bundle, protectionDomain);
     }
-    if (archive != null) {
+    // NYI, refactor archive purge
+    if (purgeArchive && archive != null) {
       archive.purge();
     }
     if (fragments != null) {
@@ -695,56 +696,54 @@ final public class BundleClassLoader
                    BundleClassLoader requestor,
                    HashSet visited)
   {
-    final BundleImpl b = (BundleImpl) getBundle();
-    boolean initiator = false;
-    ArrayList bundlesToActivate = null;
+    try {
+      final BundleImpl b = (BundleImpl) getBundle();
+      boolean initiator = false;
+      ArrayList bundlesToActivate = null;
 
-    if (action == classSearch) {
-      boolean bundlePresent = false;
+      if (action == classSearch) {
+        boolean bundlePresent = false;
 
-      bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
-      initiator = bundlesToActivate == null;
-      if (initiator) {
-        bundlesToActivate = new ArrayList();
-        tlBundlesToActivate.set(bundlesToActivate);
-      } else {
-        for (int i = 0, size = bundlesToActivate.size(); i < size; i++) {
-          BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
-          if (tmp.id == b.id) {
-            bundlePresent = true;
-            break;
+        bundlesToActivate = (ArrayList) tlBundlesToActivate.get();
+        initiator = bundlesToActivate == null;
+        if (initiator) {
+          bundlesToActivate = new ArrayList();
+          tlBundlesToActivate.set(bundlesToActivate);
+        } else {
+          bundlePresent = bundlesToActivate.contains(b);
+        }
+        if (!bundlePresent && b.triggersActivationPkg(pkg)) {
+          bundlesToActivate.add(b);
+          if (debug.lazy_activation) {
+            debug.println(this +" lazy activation of #" +b.id
+                          +" triggered by searchFor(" +name +")");
           }
         }
       }
-      if (!bundlePresent && b.triggersActivationPkg(pkg)) {
-        bundlesToActivate.add(b);
-        if (debug.lazy_activation) {
-          debug.println(this +" lazy activation of #" +b.id
-                        +" triggered by searchFor(" +name +")");
+
+      final Object res = searchFor0(name, pkg, path, action, onlyFirst, requestor, visited);
+
+      if (initiator) {
+        tlBundlesToActivate.set(null);
+        for (int i = bundlesToActivate.size() - 1; i >= 0; i--) {
+          BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
+          if (debug.lazy_activation) {
+            debug.println(this + " requesting lazy activation of #" + tmp.id);
+          }
+          try {
+            tmp.finalizeActivation();
+          } catch (BundleException e) {
+            b.fwCtx.listeners.frameworkError(tmp, e);
+          }
         }
       }
-    }
-
-    final Object res
-      = searchFor0(name, pkg, path, action, onlyFirst, requestor, visited);
-
-    if (initiator) {
-      for (int i = bundlesToActivate.size() - 1; i >= 0; i--) {
-        BundleImpl tmp = (BundleImpl) bundlesToActivate.get(i);
-        if (debug.lazy_activation) {
-          debug.println(this + " requesting lazy activation of #" +b.id);
-        }
-        try {
-          tmp.finalizeActivation();
-        } catch (BundleException e) {
-          b.fwCtx.listeners.frameworkError(b, e);
-        }
-      }
+      return res;
+    } catch (Error te) {
       tlBundlesToActivate.set(null);
+      throw te;
     }
-
-    return res;
   }
+
 
   /**
    * Search for classloader to use according to OSGi search order.

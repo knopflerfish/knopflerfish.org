@@ -69,9 +69,9 @@ class ServiceListenerEntry extends ListenerEntry implements ListenerHook.Listene
    */
   List[] local_cache;
 
-  ServiceListenerEntry(Bundle b, EventListener l, String filter) 
+  ServiceListenerEntry(BundleContextImpl bc, EventListener l, String filter) 
     throws InvalidSyntaxException {
-    super(b, l);
+    super(bc, l);
     if (filter != null) {
       ldap = new LDAPExpr(filter);
     } else {
@@ -79,13 +79,13 @@ class ServiceListenerEntry extends ListenerEntry implements ListenerHook.Listene
     }
   }
 
-  ServiceListenerEntry(Bundle b, EventListener l) {
-    super(b, l);
+  ServiceListenerEntry(BundleContextImpl bc, EventListener l) {
+    super(bc, l);
     ldap = null;
   }
 
   public BundleContext getBundleContext() {
-    return bundle.getBundleContext();
+    return bc;
   }
   
   public String getFilter() {

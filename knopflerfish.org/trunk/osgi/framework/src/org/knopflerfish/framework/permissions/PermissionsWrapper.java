@@ -314,6 +314,7 @@ public class PermissionsWrapper extends PermissionCollection {
       postponement = null;
     }
     String immediateAccess = null;
+    // TBD, should condPermList by guard from changes!?
     for (Iterator i = condPermList.iterator(); i.hasNext(); ) {
       ConditionalPermission cp = (ConditionalPermission)i.next();
       if (cp == null) {

@@ -119,7 +119,7 @@ class Hooks {
   /**
    *
    */
-  void filterServiceReferences(BundleContext bc,
+  void filterServiceReferences(BundleContextImpl bc,
                                String service,
                                String filter,
                                boolean allServices,
@@ -135,8 +135,9 @@ class Hooks {
           try {
             fh.find(bc, service, filter, allServices, filtered);
           } catch (Exception e) {
-            fwCtx.debug.printStackTrace("Failed to call find hook  #" +
-                                        sr.getProperty(Constants.SERVICE_ID), e);
+            fwCtx.listeners.frameworkError(bc,
+                new BundleException("Failed to call find hook  #" +
+                                    sr.getProperty(Constants.SERVICE_ID), e));
           }
         }
       }

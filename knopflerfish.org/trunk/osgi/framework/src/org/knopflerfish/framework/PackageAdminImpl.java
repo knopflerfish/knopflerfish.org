@@ -250,7 +250,6 @@ public class PackageAdminImpl implements PackageAdmin {
     }
 
     ArrayList startList = new ArrayList();
-    ArrayList savedEvent = new ArrayList();
 
     synchronized (fwCtx.packages) {
       TreeSet zombies = fwCtx.packages.getZombieAffected(bundles);
@@ -265,10 +264,15 @@ public class PackageAdminImpl implements PackageAdmin {
         Exception be = null;
         if (bi[bx].state == Bundle.ACTIVE || bi[bx].state == Bundle.STARTING) {
           startList.add(0, bi[bx]);
-          be = bi[bx].stop0(bi[bx].state == Bundle.ACTIVE);
+          try {
+            bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", false);
+            be = bi[bx].stop0();
+          } catch (BundleException we) {
+            be = we;
+          }
         }
         if (be != null) {
-          savedEvent.add(new FrameworkEvent(FrameworkEvent.ERROR, bi[bx], be));
+          fwCtx.listeners.frameworkError(bi[bx], be);
         }
       }
 
@@ -280,14 +284,19 @@ public class PackageAdminImpl implements PackageAdmin {
         switch (bi[bx].state) {
         case Bundle.STARTING:
         case Bundle.ACTIVE:
-          be = bi[bx].stop0(bi[bx].state == Bundle.ACTIVE);
+          try {
+            bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", false);
+            be = bi[bx].stop0();
+          } catch (BundleException we) {
+            be = we;
+          }
           if (nextStart != bi[bx]) {
             startList.add(startPos + 1, bi[bx]);
           }
           // Fall through...
         case Bundle.STOPPING:
         case Bundle.RESOLVED:
-          bi[bx].setStateInstalled(savedEvent);
+          bi[bx].setStateInstalled(true);
           if (bi[bx] == nextStart) {
             nextStart = --startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
           }
@@ -298,17 +307,8 @@ public class PackageAdminImpl implements PackageAdmin {
         }
         bi[bx].purge();
         if (be != null) {
-          savedEvent.add(new FrameworkEvent(FrameworkEvent.ERROR, bi[bx], be));
+          fwCtx.listeners.frameworkError(bi[bx], be);
         }
-      }
-    }
-    // Broadcast events
-    for (Iterator i = savedEvent.iterator(); i.hasNext();) {
-      Object e = i.next();
-      if (e instanceof BundleEvent) {
-        fwCtx.listeners.bundleChanged((BundleEvent)e);
-      } else {
-        fwCtx.listeners.frameworkEvent((FrameworkEvent)e);
       }
     }
     if (fwCtx.debug.packages) {

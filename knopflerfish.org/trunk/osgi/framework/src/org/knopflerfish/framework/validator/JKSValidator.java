@@ -82,17 +82,7 @@ public class JKSValidator implements Validator {
   /**
    * 
    */
-  private String certFactoryType = null;
-
-  /**
-   * 
-   */
   private CertPathValidator certValidator = null;
-
-  /**
-   * 
-   */
-  private String certValidatorAlgorithm = null;
 
   /**
    *
@@ -227,13 +217,19 @@ public class JKSValidator implements Validator {
    * 
    */
   private void loadKeyStore(String file, String password) {
+    FileInputStream is = null;
     try {
-      FileInputStream is = new FileInputStream(file);
+      is = new FileInputStream(file);
       keystore.load(is, password != null ? password.toCharArray() : null);
       if (debug.certificates) {
         debug.println("Loaded keystore, " + file);
       }
     } catch (Exception e) {
+      if (is != null) {
+        try {
+          is.close();
+        } catch (IOException ignore) { }
+      }
       debug.printStackTrace("Failed to load keystore, " + file, e);
     }
   }

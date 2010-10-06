@@ -137,16 +137,14 @@ import org.osgi.framework.*;
                                                                   filter);
       if (refs != null) {
         best = refs[0];
-      } 
-
-      for (int i = 1; i < refs.length; i++) {
-        if (compare(best, refs[i]) > 0) {
-          best = refs[i];
+        for (int i = 1; i < refs.length; i++) {
+          if (compare(best, refs[i]) > 0) {
+            best = refs[i];
+          }
         }
       }
-
     } catch (Exception e) {
-      // this should not happen.
+      // TBD, handle differently!? this should not happen.
       throw new IllegalArgumentException("Could not register url handler: " + e);
     }
   }

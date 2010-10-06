@@ -629,7 +629,7 @@ public class Archive implements FileArchive {
     if (jar != null) {
       ZipEntry entry;
       //"normalize" + erroneous path check: be generous
-      path.replace('\\', '/');
+      path = path.replace('\\', '/');
       if (path.startsWith("/")){
         path =  path.substring(1);
       }

@@ -281,25 +281,30 @@ public class BundleClassPath
   {
     String bnc = ba.getAttribute(Constants.BUNDLE_NATIVECODE);
     if (bnc != null) {
-      final ArrayList proc = new ArrayList(2);
-      proc.add(props.getProperty(Constants.FRAMEWORK_PROCESSOR));
-      String procS = System.getProperty("os.arch");
-      if (!procS.equalsIgnoreCase((String)proc.get(0))) {
+      final ArrayList proc = new ArrayList(3);
+      String procP = props.getProperty(Constants.FRAMEWORK_PROCESSOR);
+      proc.add(props.getProperty(Constants.FRAMEWORK_PROCESSOR).toLowerCase());
+      String procS = System.getProperty("os.arch").toLowerCase();
+      if (procP.equals(procS)) {
         proc.add(procS);
       }
+      // Handle deprecated value "arm"
+      if (procP.startsWith("arm_")) {
+        proc.add("arm");
+      }
       final ArrayList os = new ArrayList();
-      String osP = props.getProperty(Constants.FRAMEWORK_OS_NAME);
+      String osP = props.getProperty(Constants.FRAMEWORK_OS_NAME).toLowerCase();
       os.add(osP);
-      String osS = System.getProperty("os.name");
-      if (!osS.equalsIgnoreCase(osP)) {
+      String osS = System.getProperty("os.name").toLowerCase();
+      if (!osS.equals(osP)) {
         os.add(osS);
       } else {
         osS = null;
       }
       for (int i = 0; i < Alias.osNameAliases.length; i++) {
-        if (osP.equals(Alias.osNameAliases[i][0])) {
+        if (osP.equalsIgnoreCase(Alias.osNameAliases[i][0])) {
           for (int j = 1; j < Alias.osNameAliases[i].length; j++) {
-            if (osS == null || !osS.equalsIgnoreCase(Alias.osNameAliases[i][j])) {
+            if (osS == null || !osS.equals(Alias.osNameAliases[i][j])) {
               os.add(Alias.osNameAliases[i][j]);
             } else {
               osS = null;
@@ -331,7 +336,7 @@ public class BundleClassPath
 
         List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
         if (pl != null) {
-          if (!containsIgnoreCase(pl, proc)) {
+          if (!containsIgnoreCase(proc, pl)) {
             continue;
           }
         } else {
@@ -341,7 +346,7 @@ public class BundleClassPath
 
         List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
         if (ol != null) {
-          if (!containsIgnoreCase(ol, os)) {
+          if (!containsIgnoreCase(os, ol)) {
             continue;
           }
         } else {
@@ -458,11 +463,11 @@ public class BundleClassPath
   /**
    * Check if a string exists in a list. Ignore case when comparing.
    */
-  private boolean containsIgnoreCase(List l, List l2) {
+  private boolean containsIgnoreCase(List fl, List l) {
     for (Iterator i = l.iterator(); i.hasNext(); ) {
-      String s = (String)i.next();
-      for (Iterator j = l2.iterator(); j.hasNext(); ) {
-        if (s.equalsIgnoreCase((String)j.next())) {
+      String s = ((String)i.next()).toLowerCase();
+      for (Iterator j = fl.iterator(); j.hasNext(); ) {
+        if (Util.filterMatch((String)j.next(), s)) {
           return true;
         }
       }

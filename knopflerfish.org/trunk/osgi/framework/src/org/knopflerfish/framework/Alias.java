@@ -45,8 +45,11 @@ public class Alias {
 
   /**
    * List of processor aliases. The first entry is the true name.
+   * All matching aliases must be in lowercase.
    */
   final public static String[][] processorAliases = {
+    { "arm_le",  "armv*l" },
+    { "arm_be",  "armv*" },
     { "Ignite",  "psc1k" },
     { "PowerPC", "power", "ppc", "ppcbe" },
     { "x86",     "pentium", "i386", "i486", "i586", "i686" },
@@ -56,7 +59,7 @@ public class Alias {
 
   /**
    * List of OS name aliases. The first entry is the true name.
-   * All aliases must be in lowercase.
+   * All matching aliases must be in lowercase.
    */
   final public static String[][] osNameAliases = {
     { "Epoc32",            "symbianos" },
@@ -65,16 +68,16 @@ public class Alias {
     { "MacOSX",            "mac os x" },
     { "OS2",               "os/2" },
     { "QNX",               "procnto" },
-    { "Windows95",         "windows 95", "win95", "win32" },
-    { "Windows98",         "windows 98", "win98", "win32" },
-    { "WindowsNT",         "windows nt", "winnt", "win32" },
-    { "WindowsCE",         "windows ce", "wince", "win32" },
-    { "Windows2000",       "windows 2000", "win2000", "win32" },
-    { "WindowsXP",         "windows xp", "winxp", "win32" },
-    { "Windows2003",       "windows 2003", "win2003", "windows server 2003", "win32" },
-    { "WindowsVista",      "windows vista", "winvista", "win32" },
-    { "Windows7",          "windows 7", "win7", "win32"},
-    { "WindowsServer2008", "Windows Server 2008" }
+    { "Windows95",         "win*95", "win32" },
+    { "Windows98",         "win*98", "win32" },
+    { "WindowsNT",         "win*nt", "win32" },
+    { "WindowsCE",         "win*ce", "win32" },
+    { "Windows2000",       "win*2000", "win32" },
+    { "WindowsXP",         "win*xp", "win32" },
+    { "Windows2003",       "win*2003", "win32" },
+    { "WindowsVista",      "win*vista", "win32" },
+    { "Windows7",          "win*7", "win32"},
+    { "WindowsServer2008", "win*2008", "win32" }
   };
 
 
@@ -85,9 +88,10 @@ public class Alias {
    * @return The unified name.
    */
   static public String unifyProcessor(String name) {
+    String lname = name.toLowerCase();
     for (int i = 0; i < processorAliases.length; i++) {
       for (int j = 1; j < processorAliases[i].length; j++) {
-        if (name.equalsIgnoreCase(processorAliases[i][j])) {
+        if (Util.filterMatch(lname, processorAliases[i][j])) {
           return processorAliases[i][0];
         }
       }
@@ -106,10 +110,7 @@ public class Alias {
     String lname = name.toLowerCase();
     for (int i = 0; i < osNameAliases.length; i++) {
       for (int j = 1; j < osNameAliases[i].length; j++) {
-        int last = osNameAliases[i][j].length() - 1;
-        if (lname.equals(osNameAliases[i][j]) ||
-            osNameAliases[i][j].charAt(last) == '*' &&
-            lname.startsWith(osNameAliases[i][j].substring(0, last))) {
+        if (Util.filterMatch(lname, osNameAliases[i][j])) {
           return osNameAliases[i][0];
         }
       }

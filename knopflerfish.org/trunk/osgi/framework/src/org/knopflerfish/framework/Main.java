@@ -121,7 +121,6 @@ public class Main
 
   FrameworkFactory ff;
   Framework framework;
-  boolean restarting = false;
 
   /**
    * Help class for starting the OSGi framework.

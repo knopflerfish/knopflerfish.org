@@ -49,9 +49,9 @@ public class Activator implements BundleActivator, BundleTrackerCustomizer {
           BundleContext targetContext = srs[0].getBundle().getBundleContext();
           java.lang.reflect.Method m = test.getClass().getMethod(
               "setBundleContext", new Class[] { BundleContext.class });
-          if (m != null) {
-            m.invoke(test, new Object[] { targetContext });
-          }
+          m.invoke(test, new Object[] { targetContext });
+        } catch (NoSuchMethodException e) {
+          // Skip if no method is found
         } catch (Exception e) {
           System.err.println("Exception while setting bundle context for: " + test.getClass().getName());
           System.err.flush();

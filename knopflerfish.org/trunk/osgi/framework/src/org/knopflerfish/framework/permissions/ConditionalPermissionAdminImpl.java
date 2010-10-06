@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009, KNOPFLERFISH project
+ * Copyright (c) 2008-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -221,7 +221,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
   /**
    * Dummy Bundle class only used for getAccessControlContext().
    */
-  class DummyBundle implements Bundle {
+  static class DummyBundle implements Bundle {
 
     private HashMap signerMap = new HashMap();
 
@@ -348,7 +348,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
   /**
    * Dummy X509 class only used for getAccessControlContext().
    */
-  class X509Dummy extends X509Certificate {
+  static class X509Dummy extends X509Certificate {
 
     Principal subject;
 
@@ -469,7 +469,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
   /**
    * Dummy Principal class only used for getAccessControlContext().
    */
-  class PrincipalDummy implements Principal {
+  static class PrincipalDummy implements Principal {
 
     final private String name;
 

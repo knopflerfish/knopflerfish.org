@@ -1387,7 +1387,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // files or directories are added or removed to / from the top
       // level of the bundle jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number "
-                   +"of elements.", 53, i);
+                   +"of elements.", 54, i);
 
       //another existing directory
       out.println("getEntryPaths(\"/org/knopflerfish/bundle/framework_test\")");
@@ -1405,7 +1405,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number of "
-                   +"elements.", 125, i);
+                   +"elements.", 126, i);
 
       //existing file, non-directory, ending with slash
       enume = bc.getBundle().getEntryPaths("/bundleA_test-1.0.0.jar/");
@@ -4075,7 +4075,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       final BundleEvent[] buEvts = new BundleEvent[]{
         new BundleEvent(BundleEvent.INSTALLED,        buAl),
         new BundleEvent(BundleEvent.RESOLVED,         buAl),
-        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
         new BundleEvent(BundleEvent.STARTED,          buAl),
         new BundleEvent(BundleEvent.STOPPED,          buAl)
       };
@@ -4087,6 +4086,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                  checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
       final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
         new BundleEvent(BundleEvent.STARTING, buAl),
         new BundleEvent(BundleEvent.STOPPING, buAl)
       };
@@ -4200,7 +4200,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       // check the listeners for events
       final BundleEvent[] buEvts = new BundleEvent[]{
-        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
         new BundleEvent(BundleEvent.STARTED,          buAl),
         new BundleEvent(BundleEvent.STOPPED,          buAl)
       };
@@ -4212,6 +4211,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                  checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
       final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
         new BundleEvent(BundleEvent.STARTING, buAl),
         new BundleEvent(BundleEvent.STOPPING, buAl)
       };
@@ -4346,7 +4346,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       final BundleEvent[] buEvts = new BundleEvent[]{
         new BundleEvent(BundleEvent.INSTALLED,        buAl),
         new BundleEvent(BundleEvent.RESOLVED,         buAl),
-        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
         new BundleEvent(BundleEvent.STARTED,          buAl),
         new BundleEvent(BundleEvent.STOPPED,          buAl)
       };
@@ -4358,6 +4357,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                  checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
       final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl),
         new BundleEvent(BundleEvent.STARTING, buAl),
         new BundleEvent(BundleEvent.STOPPING, buAl)
       };
@@ -4509,7 +4509,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       final BundleEvent[] buEvts = new BundleEvent[]{
         new BundleEvent(BundleEvent.INSTALLED,        buAl2),
         new BundleEvent(BundleEvent.RESOLVED,         buAl2),
-        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl2),
         new BundleEvent(BundleEvent.STARTED,          buAl2),
         new BundleEvent(BundleEvent.STOPPED,          buAl2)
       };
@@ -4521,6 +4520,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                  checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
       final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl2),
         new BundleEvent(BundleEvent.STARTING, buAl2),
         new BundleEvent(BundleEvent.STOPPING, buAl2)
       };
@@ -4656,7 +4656,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       final BundleEvent[] buEvts = new BundleEvent[]{
         new BundleEvent(BundleEvent.INSTALLED,        buAl3),
         new BundleEvent(BundleEvent.RESOLVED,         buAl3),
-        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl3),
         new BundleEvent(BundleEvent.STARTED,          buAl3),
         new BundleEvent(BundleEvent.STOPPED,          buAl3)
       };
@@ -4668,6 +4667,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                  checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
       final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl3),
         new BundleEvent(BundleEvent.STARTING, buAl3),
         new BundleEvent(BundleEvent.STOPPING, buAl3)
       };
@@ -4819,7 +4819,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       final BundleEvent[] buEvts = new BundleEvent[]{
         new BundleEvent(BundleEvent.INSTALLED,        buAl4),
         new BundleEvent(BundleEvent.RESOLVED,         buAl4),
-        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl4),
         new BundleEvent(BundleEvent.STARTED,          buAl4),
         new BundleEvent(BundleEvent.STOPPED,          buAl4)
       };
@@ -4831,6 +4830,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
                  checkListenerEvents( new FrameworkEvent[0], buEvts, seEvts));
 
       final BundleEvent[] syncBuEvts = new BundleEvent[]{
+        new BundleEvent(BundleEvent.LAZY_ACTIVATION,  buAl4),
         new BundleEvent(BundleEvent.STARTING, buAl4),
         new BundleEvent(BundleEvent.STOPPING, buAl4)
       };
@@ -5101,6 +5101,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
 
   private void clearEvents() {
+    try {
+      Thread.sleep(300);
+    } catch (InterruptedException ignore) {}
     fListen.clearEvent();
     bListen.clearEvent();
     syncBListen.clearEvent();
@@ -5303,7 +5306,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     ArrayList/*<BundleEvent>*/ events = new ArrayList();
 
     public void bundleChanged (BundleEvent evt) {
-      if (evt.getType() == BundleEvent.STARTING
+      if (evt.getType() == BundleEvent.LAZY_ACTIVATION
+          || evt.getType() == BundleEvent.STARTING
           || evt.getType() == BundleEvent.STOPPING) {
         events.add(evt);
         System.out.println("SynchronousBundleEvent: "

@@ -56,7 +56,6 @@ import org.osgi.framework.*;
  */
 public class MainClassBundleActivator implements BundleActivator, Runnable {
 
-  Class  clazz;
   Method startMethod = null;
   Method stopMethod  = null;
 
@@ -65,8 +64,6 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
   String[] argv = new String[] { };
 
   public MainClassBundleActivator(Class clazz) throws Exception {
-    this.clazz = clazz;
-
     startMethod = clazz.getMethod("main", new Class[] { argv.getClass() });
 
     // Check for optional stop method

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -172,7 +172,7 @@ class Archive {
   Enumeration findResourcesPath(String path) {
     Vector answer = new Vector();
     // "normalize" + erroneous path check: be generous
-    path.replace('\\', '/');
+    path = path.replace('\\', '/');
     if (path.startsWith("/")) {
       path = path.substring(1);
     }

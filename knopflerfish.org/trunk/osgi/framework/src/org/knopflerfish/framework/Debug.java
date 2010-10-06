@@ -45,8 +45,6 @@ import org.osgi.framework.BundleException;
  */
 public class Debug {
 
-  FWProps props;
-
   /**
    * Thread local storage to prevent recursive debug message
    * in permission checks
@@ -150,7 +148,6 @@ public class Debug {
 
 
   public Debug(FWProps props) {
-    this.props = props;
     props.setPropertyDefault(AUTOMANIFEST_PROP, FWProps.FALSE);
     props.setPropertyDefault(BUNDLE_RESOURCE_PROP, FWProps.FALSE);
     props.setPropertyDefault(CERTIFICATES_PROP, FWProps.FALSE);

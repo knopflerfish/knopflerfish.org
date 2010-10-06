@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -223,8 +223,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
                                                this,
                                                e.getValue());
       } catch (Throwable ue) {
-        bundle.fwCtx.listeners
-          .frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bundle, ue));
+        bundle.fwCtx.listeners.frameworkError(bundle, ue);
       }
     }
   }

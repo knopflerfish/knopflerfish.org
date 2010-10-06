@@ -427,7 +427,7 @@ class PermissionInfoStorage {
   }
 
 
-  class Element {
+  static class Element {
     PermissionInfo[] pi;
     ArrayList /* PermissionsWrapper */ invalidateCallback = null;
 
