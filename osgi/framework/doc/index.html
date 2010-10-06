@@ -383,7 +383,7 @@ must explictly set this header themselves.
 
       If not set the framework will export all OSGi packages and all
       standard Java packages according to the version of the running
-      JRE. See also "org.knopflerfish.framework.system.export"
+      JRE. See also "org.knopflerfish.framework.system.packages.base"
       and "org.osgi.framework.system.packages.extra"
     </td>
     <td>String , ...</td>
@@ -732,6 +732,16 @@ must explictly set this header themselves.
     </td>
     <td>Integer</td>
     <td>0</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.listener.n_threads</td>
+    <td>
+    Number of threads used to deliver events to asynchronous listeners.
+    If the value is 0 then we will revert to the old behavouir and call
+    all listeners synchronously.
+    </td>
+    <td>Integer</td>
+    <td>1</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.patch</td>

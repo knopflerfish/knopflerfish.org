@@ -228,8 +228,8 @@ public class ClassPatcher {
           if(to == null) {
             if(framework.debug.patch) {
               framework.debug.println("No key=" + (PRE + id + ".to"));
-              continue;
             }
+            continue;
           }
 
           addPatch(from,
@@ -469,8 +469,8 @@ class ClassAdapterPatcher extends ClassAdapter {
 
 class ReplaceMethodAdapter extends MethodAdapter implements Opcodes {
   ClassAdapterPatcher ca;
-  int access;
   FrameworkContext framework;
+
   public ReplaceMethodAdapter(MethodVisitor mv, ClassAdapterPatcher ca) {
     super(mv);
     this.ca = ca;

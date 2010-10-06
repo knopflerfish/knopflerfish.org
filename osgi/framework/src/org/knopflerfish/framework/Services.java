@@ -253,8 +253,8 @@ class Services {
     try {
       ServiceReference [] srs = get(clazz, null, bundle);
       if (framework.debug.service_reference) {
-        framework.debug.println("get service ref " + clazz + " for bundle "
-                                + bundle.location + " = " + srs);
+        framework.debug.println("get service ref " + clazz + " for bundle " + bundle.location
+                                + " = " + (srs != null ? srs[0] : null));
       }
       if (srs != null) {
         return srs[0];
@@ -350,7 +350,7 @@ class Services {
       return null;
     } else {
       if (bundle != null) {
-        framework.hooks.filterServiceReferences(bundle.getBundleContext0(),
+        framework.hooks.filterServiceReferences(bundle.bundleContext,
                                                 clazz, filter, false, res);
       } else {
         framework.hooks.filterServiceReferences(null, clazz, filter, true, res);

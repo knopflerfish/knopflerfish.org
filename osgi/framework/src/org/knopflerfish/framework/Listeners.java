@@ -62,6 +62,21 @@ class Listeners {
   ServiceListenerState serviceListeners;
 
   /**
+   * Queue of async events to deliver
+   */
+  private LinkedList asyncEventQueue = null;
+
+  /**
+   * All threads for delivering async events
+   */
+  private AsyncEventThread [] threads = null;
+
+  /**
+   * Map of active listeners to thread.
+   */
+  private HashMap activeListeners = null;
+
+  /**
    * Handle to secure call class.
    */
   private PermissionOps secure;
@@ -70,12 +85,36 @@ class Listeners {
 
   boolean nocacheldap;
 
+  volatile boolean quit = false;
+
+
   Listeners(FrameworkContext framework, PermissionOps perm) {
     this.framework = framework;
     secure = perm;
     nocacheldap = framework.props.getBooleanProperty(FWProps.LDAP_NOCACHE_PROP);
     serviceListeners = new ServiceListenerState(this);
+    String ets = framework.props.getProperty(FWProps.LISTENER_N_THREADS_PROP);
+    int n_threads = 1;
+    if (ets != null) {
+      try {
+        n_threads = Integer.parseInt(ets);
+      } catch (NumberFormatException nfe) {
+        // NYI, report error
+      }
+    }
+    if (n_threads > 0) {
+      asyncEventQueue = new LinkedList();
+      threads = new AsyncEventThread[n_threads];
+      for (int i = 0; i < n_threads; i++) {
+        threads[i] = new AsyncEventThread(i);
+        threads[i].start();
+      }
+      if (n_threads > 1) {
+        activeListeners = new HashMap();
+      }
+    }
   }
+
 
   void clear()
   {
@@ -94,10 +133,10 @@ class Listeners {
    * @param bundle Who wants to add listener.
    * @param listener Object to add.
    */
-  void addBundleListener(Bundle bundle, BundleListener listener) {
-    ListenerEntry le = new ListenerEntry(bundle, listener);
+  void addBundleListener(BundleContextImpl bc, BundleListener listener) {
+    ListenerEntry le = new ListenerEntry(bc, listener);
     if (listener instanceof SynchronousBundleListener) {
-      secure.checkListenerAdminPerm(bundle);
+      secure.checkListenerAdminPerm(bc.bundle);
       synchronized (syncBundleListeners) {
           syncBundleListeners.add(le);
       }
@@ -118,11 +157,11 @@ class Listeners {
    * @param bundle Who wants to remove listener.
    * @param listener Object to remove.
    */
-  void removeBundleListener(Bundle bundle, BundleListener listener) {
-    ListenerEntry le = new ListenerEntry(bundle, listener);
+  void removeBundleListener(BundleContextImpl bc, BundleListener listener) {
+    ListenerEntry le = new ListenerEntry(bc, listener);
     if (listener instanceof SynchronousBundleListener) {
       synchronized (syncBundleListeners) {
-        secure.checkListenerAdminPerm(bundle);
+        secure.checkListenerAdminPerm(bc.bundle);
         syncBundleListeners.remove(le);
       }
     } else {
@@ -139,8 +178,8 @@ class Listeners {
    * @param bundle Who wants to add listener.
    * @param listener Object to add.
    */
-  void addFrameworkListener(Bundle bundle, FrameworkListener listener) {
-    ListenerEntry le = new ListenerEntry(bundle, listener);
+  void addFrameworkListener(BundleContextImpl bc, FrameworkListener listener) {
+    ListenerEntry le = new ListenerEntry(bc, listener);
     synchronized (frameworkListeners) {
       frameworkListeners.add(le);
     }
@@ -155,9 +194,9 @@ class Listeners {
    * @param bundle Who wants to remove listener.
    * @param listener Object to remove.
    */
-  void removeFrameworkListener(Bundle bundle, FrameworkListener listener) {
+  void removeFrameworkListener(BundleContextImpl bc, FrameworkListener listener) {
     synchronized (frameworkListeners) {
-      frameworkListeners.remove(new ListenerEntry(bundle, listener));
+      frameworkListeners.remove(new ListenerEntry(bc, listener));
     }
   }
 
@@ -170,9 +209,9 @@ class Listeners {
    * @param listener Object to add.
    * @param filter LDAP String used for filtering event before calling listener.
    */
-  void addServiceListener(Bundle bundle, ServiceListener listener, String filter)
+  void addServiceListener(BundleContextImpl bc, ServiceListener listener, String filter)
     throws InvalidSyntaxException {
-    serviceListeners.add(bundle, listener, filter);
+    serviceListeners.add(bc, listener, filter);
   }
 
 
@@ -184,8 +223,8 @@ class Listeners {
    * @param bundle Who wants to remove listener.
    * @param listener Object to remove.
    */
-  void removeServiceListener(Bundle bundle, ServiceListener listener) {
-    serviceListeners.remove(bundle, listener);
+  void removeServiceListener(BundleContextImpl bc, ServiceListener listener) {
+    serviceListeners.remove(bc, listener);
   }
 
 
@@ -194,11 +233,11 @@ class Listeners {
    *
    * @param b Bundle which listeners we want to remove.
    */
-  void removeAllListeners(Bundle b) {    
-    removeAllListeners(syncBundleListeners, b);
-    removeAllListeners(bundleListeners, b);
-    removeAllListeners(frameworkListeners, b);
-    serviceListeners.removeAll(b);
+  void removeAllListeners(BundleContextImpl bc) {    
+    removeAllListeners(syncBundleListeners, bc);
+    removeAllListeners(bundleListeners, bc);
+    removeAllListeners(frameworkListeners, bc);
+    serviceListeners.removeAll(bc);
   }
 
 
@@ -214,6 +253,17 @@ class Listeners {
 
 
   /**
+   * Convenience method for throwing framework error event.
+   *
+   * @param bc BundleContext for bundle which caused the error.
+   * @param t Throwable generated.
+   */
+  void frameworkError(BundleContextImpl bc, Throwable t) {
+    frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bc.bundle, t));
+  }
+
+
+  /**
    * Convenience method for throwing framework info event.
    *
    * @param b Bundle which caused the error.
@@ -223,38 +273,43 @@ class Listeners {
     frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t));
   }
 
+
   /**
    * Receive notification that a bundle has had a change occur in its lifecycle.
+   * NOTE! Must be called with AllPermission!?
    *
    * @see org.osgi.framework.BundleListener#bundleChanged
    */
   void bundleChanged(final BundleEvent evt) {
-    ListenerEntry [] bl, tmp;
+    ListenerEntry [] sbl, bl = null;
     int type = evt.getType();
-    if(type == BundleEvent.STARTING || type == BundleEvent.STOPPING){
-        synchronized (syncBundleListeners) {
-                bl = new ListenerEntry[syncBundleListeners.size()];
-                syncBundleListeners.toArray(bl);
-        }
+    synchronized (syncBundleListeners) {
+      sbl = new ListenerEntry[syncBundleListeners.size()];
+      syncBundleListeners.toArray(sbl);
     }
-    else{
-        synchronized (bundleListeners) {
-                tmp = new ListenerEntry[bundleListeners.size()];
-            bundleListeners.toArray(tmp);
-        }
-        synchronized (syncBundleListeners) {
-                bl = new ListenerEntry[tmp.length + syncBundleListeners.size()];
-            syncBundleListeners.toArray(bl);
-        }
-        System.arraycopy(tmp, 0, bl, bl.length - tmp.length, tmp.length);
+    if (type != BundleEvent.LAZY_ACTIVATION &&
+        type != BundleEvent.STARTING &&
+        type != BundleEvent.STOPPING) {
+      synchronized (bundleListeners) {
+        bl = new ListenerEntry[bundleListeners.size()];
+        bundleListeners.toArray(bl);
+      }
     }
-
-    for (int i = 0; i < bl.length; i++) {
-      final ListenerEntry l = bl[i];
-      try {
-        secure.callBundleChanged((BundleListener)l.listener, evt);
-      } catch (Throwable pe) {
-        frameworkError(l.bundle, pe);
+    for (int i = 0; i < sbl.length; i++) {
+      bundleChanged(sbl[i], evt);
+    }
+    if (bl != null) {
+      if (asyncEventQueue != null) {
+        synchronized (asyncEventQueue) {
+          for (int i = 0; i < bl.length; i++) {
+            asyncEventQueue.addLast(new AsyncEvent(bl[i], evt));
+          }
+          asyncEventQueue.notify();
+        }
+      } else {
+        for (int i = 0; i < bl.length; i++) {
+          bundleChanged(bl[i], evt);
+        }
       }
     }
   }
@@ -274,20 +329,23 @@ class Listeners {
                                         evt.getThrowable());
       }
     }
-    ListenerEntry [] fl;
-    synchronized (frameworkListeners) {
-      fl = new ListenerEntry[frameworkListeners.size()];
-      frameworkListeners.toArray(fl);
-    }
-    for (int i = 0; i < fl.length; i++) {
-      final ListenerEntry l = fl[i];
-      try {
-        secure.callFrameworkEvent((FrameworkListener)l.listener, evt);
-      } catch (Throwable pe) {
-        // Don't report Error events again, since probably would go into an infinite loop.
-        if (evt.getType() != FrameworkEvent.ERROR) {
-          frameworkError(l.bundle, pe);
+    if (asyncEventQueue != null) {
+      synchronized (asyncEventQueue) {
+        synchronized (frameworkListeners) {
+          for (Iterator i = frameworkListeners.iterator(); i.hasNext(); ) {
+            asyncEventQueue.addLast(new AsyncEvent((ListenerEntry)i.next(), evt));
+          }
+          asyncEventQueue.notify();
         }
+      }
+    } else {
+      ListenerEntry [] fl;
+      synchronized (frameworkListeners) {
+        fl = new ListenerEntry[frameworkListeners.size()];
+        frameworkListeners.toArray(fl);
+      }
+      for (int i = 0; i < fl.length; i++) {
+        frameworkEvent(fl[i], evt);
       }
     }
   }
@@ -317,21 +375,22 @@ class Listeners {
         testAssignable = true;
       }
       try {
-        if (l.bundle.hasPermission(new ServicePermission(sr, ServicePermission.GET))) {
+        if (l.bc.bundle.hasPermission(new ServicePermission(sr, ServicePermission.GET))) {
           for (int i = 0; i < classes.length; i++) {
-            if(testAssignable && !sr.isAssignableTo(l.bundle, classes[i])){
+            if(testAssignable && !sr.isAssignableTo(l.bc.bundle, classes[i])){
               continue;
             }
             try {
+              // TBD, lift secure operation outside loop?!
               secure.callServiceChanged((ServiceListener)l.listener, evt);
             } catch (Throwable pe) {
-              frameworkError(l.bundle, pe);
+              frameworkError(l.bc, pe);
             }
             break;
           }
         }
       } catch (Exception le) {
-        frameworkError(l.bundle, le);
+        frameworkError(l.bc, le);
       }
     }
     if (framework.debug.ldap) {
@@ -359,11 +418,107 @@ class Listeners {
    * @param s Which set to remove from bundle, framework or service.
    * @param b Bundle which listeners we want to remove.
    */
-  private void removeAllListeners(Set s, Bundle b) {
+  private void removeAllListeners(Set s, BundleContext bc) {
     synchronized (s) {
       for (Iterator i = s.iterator(); i.hasNext();) {
-        if (((ListenerEntry)i.next()).bundle == b) {
+        if (((ListenerEntry)i.next()).bc == bc) {
           i.remove();
+        }
+      }
+    }
+  }
+
+
+  /**
+   *
+   */
+  private void bundleChanged(final ListenerEntry le, final BundleEvent evt) {
+    try {
+      ((BundleListener)le.listener).bundleChanged(evt);
+    } catch (Throwable pe) {
+      frameworkError(le.bc, pe);
+    }
+  }
+
+
+  /**
+   *
+   */
+  private void frameworkEvent(final ListenerEntry le, FrameworkEvent evt) {
+    try {
+      ((FrameworkListener)le.listener).frameworkEvent(evt);
+    } catch (Exception pe) {
+      // Don't report Error events again, since probably would go into an infinite loop.
+      if (evt.getType() != FrameworkEvent.ERROR) {
+        frameworkError(le.bc, pe);
+      }
+    }
+  }
+
+  //
+  // Private classes
+  //
+
+  static class AsyncEvent {
+    final ListenerEntry le;
+    final EventObject evt;
+
+    AsyncEvent(ListenerEntry le, EventObject evt) {
+      this.le = le;
+      this.evt = evt;
+    }
+  }
+
+
+  /**
+   * Thread that deliver asynchronous events.
+   */
+  private class AsyncEventThread extends Thread {
+
+    AsyncEventThread(int i) {
+      super(framework.threadGroup, "AsyncEventThread#" + i);
+    }
+
+
+    public void run() {
+      while (true) {
+        AsyncEvent ae;
+
+        synchronized (asyncEventQueue) {
+          while (!quit && asyncEventQueue.isEmpty()) {
+            try {
+              asyncEventQueue.wait();
+            } catch (InterruptedException ignored) { }
+          }
+          if (quit) {
+            break;
+          }
+          ae = (AsyncEvent) asyncEventQueue.removeFirst();
+        }
+
+        if (activeListeners != null) {
+          synchronized (activeListeners) {
+            while (activeListeners.containsKey(ae.le)) {
+              // TBD, implement detection of hanging listeners?
+              try {
+                activeListeners.wait();
+              } catch (InterruptedException ignore) { }
+            }
+            activeListeners.put(ae.le, Thread.currentThread());
+          }
+        }
+        if (ae.le.bc.isValid()) {
+          if (ae.evt instanceof BundleEvent) {
+            bundleChanged(ae.le, (BundleEvent)ae.evt);
+          } else {
+            frameworkEvent(ae.le, (FrameworkEvent)ae.evt);
+          }
+        }
+        if (activeListeners != null) {
+          synchronized (activeListeners) {
+            activeListeners.remove(ae.le);
+            activeListeners.notifyAll();
+          }
         }
       }
     }

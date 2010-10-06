@@ -77,6 +77,7 @@ public class NativeCodeTestSuite extends TestSuite {
     addTest(new Setup());
    // addTest(new Frame0135a());
     addTest(new Frame0137a());
+    addTest(new Frame0139a());
     addTest(new Cleanup());
   }
  
@@ -280,6 +281,27 @@ public class NativeCodeTestSuite extends TestSuite {
       } catch (Exception e) {
         e.printStackTrace();
 	fail("framework test bundle N2, unexpected "+ e +" :FRAME137A:FAIL");
+      }
+
+      out.println("### framework test bundle :FRAME137A:PASS");
+    }
+  }
+
+
+  
+  // Install testbundle N3 with arm processor and match with arm_le framework
+  //
+
+  class Frame0139a extends FWTestCase {
+    public void runTest() throws Throwable {
+      boolean teststatus = true;
+    
+      try {
+	buN = Util.installBundle (bc, "bundleN3_test-1.0.0.jar");
+	buN.start();
+      } catch (Exception e) {
+        e.printStackTrace();
+	fail("framework test bundle N3, unexpected "+ e +" :FRAME1370:FAIL");
       }
 
       out.println("### framework test bundle :FRAME137A:PASS");

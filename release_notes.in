@@ -10,7 +10,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-  Framework 5.0.5
+  Framework 5.1.0
+
+  - Add threaded handling of listeners, this means that asynchronous listeners
+    will be called asynchronously. The number of threads used is controlled via
+    the property, org.knopflerfish.framework.listener.n_threads. Default value
+    is 1. If the value is 0 then we will revert to the old behavouir and call
+    all listeners synchronously. Also fixed some minor bugs that was revealed
+    during the testing of the new listener handling.
+
+  - Use system properties to set default values for OSGi framework properties.
+
+  - Recognize deprecated processor value "arm" in native code matching.
 
   - Fixed locking problem when stopping a crashed bundle.
 
@@ -95,6 +106,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     bundle exports was wrong, for OSGi R4 v4.2 the version should be
     1.0.1 and nothing else. Note that it was only the version stated
     in the Export-Package header that was wrong.
+
+
+  Kf_metatype 3.0.1
+
+  - Made bundle listeners synchronous, so that we always have
+    the correct state of the metatype information.
 
 
 === Misc (KF specific, start scripts, build system etc) ===

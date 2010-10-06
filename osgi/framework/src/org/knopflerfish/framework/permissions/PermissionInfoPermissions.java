@@ -56,7 +56,7 @@ class PermissionInfoPermissions extends PermissionCollection {
   private static final long serialVersionUID = 1L;
 
   private Permissions pc ;
-  private PermissionInfo [] pinfo;
+  volatile private PermissionInfo [] pinfo;
   private int unresolved;
 
   final private File dataRoot;
@@ -176,7 +176,10 @@ class PermissionInfoPermissions extends PermissionCollection {
   /**
    *
    */
-  private void resolve() {
+  synchronized private void resolve() {
+    if (pinfo == null) {
+      return;
+    }
     if (pc == null) {
       pc = new Permissions();
     }

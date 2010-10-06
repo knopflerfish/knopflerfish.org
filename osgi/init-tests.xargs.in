@@ -65,6 +65,9 @@
 # Directory to store preferences in.
 -Dorg.knopflerfish.prefs.dir=junit_grunt/prefs
 
+# Native code testing
+-Forg.osgi.framework.processor=arm_le
+
 -init
 
 -initlevel 1

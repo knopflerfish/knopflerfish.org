@@ -690,9 +690,13 @@ public class LDAPExpr {
         }
 
         public Object next() {
-          Object r = ielem;
-          ielem = null;
-          return r;
+          if (ielem != null) {
+            Object r = ielem;
+            ielem = null;
+            return r;
+          } else {
+            throw new NoSuchElementException();
+          }
         }
 
         public void remove() {

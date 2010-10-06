@@ -181,14 +181,19 @@ public class FrameworkContext  {
   public ThreadGroup threadGroup;
 
   /**
+   * Threads for running listeners and activators
+   */
+  LinkedList bundleThreads;
+
+  /**
    * Factory for handling service-based URLs
    */
-  static ServiceURLStreamHandlerFactory systemUrlStreamHandlerFactory;
+  volatile static ServiceURLStreamHandlerFactory systemUrlStreamHandlerFactory;
 
   /**
    * Factory for handling service-based URL contents
    */
-  static ServiceContentHandlerFactory   systemContentHandlerFactory;
+  volatile static ServiceContentHandlerFactory   systemContentHandlerFactory;
 
   /**
    * JVM global lock.
@@ -313,8 +318,8 @@ public class FrameworkContext  {
           try {
             URL.setURLStreamHandlerFactory(urlStreamHandlerFactory);
             URLConnection.setContentHandlerFactory(contentHandlerFactory);
-            systemUrlStreamHandlerFactory = urlStreamHandlerFactory;
             systemContentHandlerFactory   = contentHandlerFactory;
+            systemUrlStreamHandlerFactory = urlStreamHandlerFactory;
           } catch (Throwable e) {
             debug.printStackTrace
               ("Cannot set global URL handlers, "
@@ -338,11 +343,13 @@ public class FrameworkContext  {
       throw new RuntimeException("Failed to initialize storage "
                                  + storageClass, e);
     }
-    dataStorage       = Util.getFileStorage(this, "data");
-    packages          = new Packages(this);
+    dataStorage = Util.getFileStorage(this, "data");
 
-    listeners         = new Listeners(this, perm);
-    services          = new Services(this, perm);
+    bundleThreads = new LinkedList();
+
+    packages  = new Packages(this);
+    listeners = new Listeners(this, perm);
+    services  = new Services(this, perm);
 
     // Add this framework to the bundle URL handle
     urlStreamHandlerFactory.addFramework(this);
@@ -404,6 +411,13 @@ public class FrameworkContext  {
 
     packages.clear();
     packages = null;
+
+    synchronized (bundleThreads) {
+      while (!bundleThreads.isEmpty()) {
+        ((BundleThread)bundleThreads.remove(0)).quit();
+      }
+    }
+    bundleThreads = null;
 
     dataStorage = null;
 

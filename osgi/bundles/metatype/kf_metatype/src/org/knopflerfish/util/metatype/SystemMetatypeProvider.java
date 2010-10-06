@@ -128,7 +128,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     log = new LogRef(bc);
   }
 
-  BundleListener bl = null;
+  SynchronousBundleListener bl = null;
 
   /**
    * Start listening for bundles.
@@ -138,7 +138,7 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
       return;
     }
 
-    bl = new BundleListener() {
+    bl = new SynchronousBundleListener() {
     	public void bundleChanged(BundleEvent ev) {
           switch(ev.getType()) {
           case BundleEvent.INSTALLED:

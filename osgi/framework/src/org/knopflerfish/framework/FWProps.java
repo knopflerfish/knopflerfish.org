@@ -106,6 +106,11 @@ public class FWProps  {
   public final static String LDAP_NOCACHE_PROP =
     "org.knopflerfish.framework.ldap.nocache";
 
+  public final static String LISTENER_N_THREADS_PROP =
+    "org.knopflerfish.framework.listener.n_threads";
+
+  
+
   /**
    * If the Main-Class manifest attribute is set and this
    * bundles location is present in the value (comma separated
@@ -308,9 +313,13 @@ public class FWProps  {
   }
 
 
+  /**
+   * Set property if not set to system property if it exists
+   * otherwise set to supplied value.
+   */
   public void setPropertyIfNotSet(String key, String val) {
     if (!props.containsKey(key)) {
-      props.put(key, val);
+      props.put(key, System.getProperty(key, val));
     }
   }
 
