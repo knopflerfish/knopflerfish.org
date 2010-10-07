@@ -66,6 +66,7 @@
 -Dorg.knopflerfish.prefs.dir=junit_grunt/prefs
 
 # Native code testing
+-Forg.osgi.framework.os.name=linux
 -Forg.osgi.framework.processor=arm_le
 
 -init

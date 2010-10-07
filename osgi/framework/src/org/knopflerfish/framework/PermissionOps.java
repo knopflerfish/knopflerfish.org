@@ -293,6 +293,14 @@ class PermissionOps {
   }
 
   //
+  // StartLevelController secure operations
+  //
+
+  void callSetStartLevel(final BundleImpl b, final int startlevel) {
+    b.setStartLevel(startlevel);
+  }
+
+  //
   // SystemBundle secure operations
   //
 

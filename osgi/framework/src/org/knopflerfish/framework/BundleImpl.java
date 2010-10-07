@@ -1921,12 +1921,12 @@ public class BundleImpl implements Bundle {
     // as soon as anoyone sets the start level explicitly
     // the level becomes persistent
 
-    if(archive != null) {
+    if (archive != null) {
       try {
         archive.setStartLevel(n);
       } catch (Exception e) {
-        fwCtx.debug.println("Failed to set start level on #"
-                            + getBundleId());
+        fwCtx.listeners.frameworkError(this,
+            new BundleException("Failed to set start level on #" + id, e));
       }
     }
   }
