@@ -15,14 +15,14 @@ Import-Package: org.osgi.framework,
  javax.net;resolution:=optional,
  javax.net.ssl;resolution:=optional,
  org.apache.commons.logging
-Export-Package: org.apache.commons.httpclient, 
- org.apache.commons.httpclient.auth,
- org.apache.commons.httpclient.util,
- org.apache.commons.httpclient.methods,
- org.apache.commons.httpclient.params,
- org.apache.commons.httpclient.cookie,
- org.apache.commons.httpclient.protocol,
- org.apache.commons.codec
+Export-Package: org.apache.commons.httpclient;version=3.1,
+ org.apache.commons.httpclient.auth;version=3.1,
+ org.apache.commons.httpclient.util;version=3.1,
+ org.apache.commons.httpclient.methods;version=3.1,
+ org.apache.commons.httpclient.params;version=3.1,
+ org.apache.commons.httpclient.cookie;version=3.1,
+ org.apache.commons.httpclient.protocol;version=3.1,
+ org.apache.commons.codec;version=1.3
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-Description: A HTTP IO-Connector with proxy support,
  based on apache commons http client 3.1.
