@@ -103,11 +103,12 @@ public class ServletRegistration implements Registration {
     public void destroy()
     {
         final Servlet servlet = dispatcher.getServlet();
-        final ServletContext context = servlet.getServletConfig()
-                .getServletContext();
+        final ServletConfig cfg = servlet.getServletConfig();
+        final ServletContext context = cfg != null ? cfg.getServletContext() : null;
         servlet.destroy();
-        contextManager.ungetServletContext(context);
-
+        if (context != null) {
+          contextManager.ungetServletContext(context);
+        }
         registrations.removeServlet(servlet);
     }
 
