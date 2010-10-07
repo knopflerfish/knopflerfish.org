@@ -571,6 +571,19 @@ class SecurePermissionOps extends PermissionOps {
   }
 
   //
+  // StartLevelController secure operations
+  //
+
+  void callSetStartLevel(final BundleImpl b, final int startlevel) {
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          b.setStartLevel(startlevel);
+          return null;
+        }
+      });
+  }
+
+  //
   // SystemBundle secure operations
   //
 

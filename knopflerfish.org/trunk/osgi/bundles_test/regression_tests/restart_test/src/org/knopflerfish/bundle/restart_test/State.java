@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,11 @@ class State extends Properties {
     put(B + count + STATE, "" + b.getState());
     put(B + count + UUID,  "" + b.getHeaders().get(BUNDLE_UUID));
     put(B + count + LOC,   "" + b.getLocation());
-    put(B + count + STARTLEVEL, "" + sl.getBundleStartLevel(b));
+    try {
+      put(B + count + STARTLEVEL, "" + sl.getBundleStartLevel(b));
+    } catch (IllegalArgumentException iae) {
+      put(B + count + STARTLEVEL, "-1");
+    }
 
     count++;
   }
@@ -103,11 +107,13 @@ class State extends Properties {
 			      ", found " + bl[i].getState());
 	}
 	
-	if(level != sl.getBundleStartLevel(bl[i])) {
-	  throw new Exception("FAILED: bundle UUID=" + uuid + 
-			      ", expected level " + level + 
-			      ", found " + sl.getBundleStartLevel(bl[i]));
-	}
+        if (state != Bundle.UNINSTALLED) {
+          if(level != sl.getBundleStartLevel(bl[i])) {
+            throw new Exception("FAILED: bundle UUID=" + uuid + 
+                                ", expected level " + level + 
+                                ", found " + sl.getBundleStartLevel(bl[i]));
+          }
+        }
 	
 	System.out.println("PASSED uuid=" + uuid);
 	return;

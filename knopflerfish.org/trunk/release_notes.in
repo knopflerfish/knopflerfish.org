@@ -10,7 +10,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-  Framework 5.1.0
+  Framework 5.1.1
+
+  - Fixed IllegalArgumentException for StartLevel service.
 
   - Add threaded handling of listeners, this means that asynchronous listeners
     will be called asynchronously. The number of threads used is controlled via
