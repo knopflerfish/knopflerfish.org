@@ -42,18 +42,14 @@ import java.io.OutputStream;
 import java.net.ProtocolException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.StringTokenizer;
 
 import javax.microedition.io.HttpConnection;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -72,23 +68,8 @@ import org.osgi.framework.BundleContext;
 class HttpClientConnection
   implements HttpConnection
 {
-
   public final static String TIMEOUT
     = "org.knopflerfish.httpclient_connector.so_timeout";
-  public final static String PROXY_SERVER
-    = "org.knopflerfish.httpclient_connector.proxy.server";
-  public final static String PROXY_PORT
-    = "org.knopflerfish.httpclient_connector.proxy.port";
-  public final static String PROXY_USERNAME
-    = "org.knopflerfish.httpclient_connector.proxy.username";
-  public final static String PROXY_PASSWORD
-    = "org.knopflerfish.httpclient_connector.proxy.password";
-  public final static String PROXY_REALM
-    = "org.knopflerfish.httpclient_connector.proxy.realm";
-  public final static String PROXY_SCHEME
-    = "org.knopflerfish.httpclient_connector.proxy.scheme";
-  public final static String NON_PROXY_HOSTS
-    = "org.knopflerfish.httpclient_connector.proxy.nonProxyHosts";
 
   private final static int STATE_SETUP     = 0;
   private final static int STATE_CONNECTED = 1;
@@ -118,46 +99,10 @@ class HttpClientConnection
     throws URIException
   {
     this.bc = bc;
-
     uri = new URI(url, false); // assume not escaped URIs
-    HostConfiguration conf = client.getHostConfiguration();
+    ProxySelector.configureProxy(bc, client, url);
 
-    if (!isNonProxyHost(bc, uri)) {
-      String proxyServer = bc.getProperty(PROXY_SERVER);
-      if (null==proxyServer || proxyServer.length()==0) {
-        proxyServer = bc.getProperty("http.proxyHost");
-      }
-      if (proxyServer != null) {
-        int proxyPort;
-        try {
-          String proxyPortStr = bc.getProperty(PROXY_PORT);
-          if (null==proxyPortStr || proxyPortStr.length()==0) {
-            proxyPortStr = bc.getProperty("http.proxyPort");
-          }
-          if (null==proxyPortStr || proxyPortStr.length()==0) {
-            proxyPortStr = "8080";
-          }
-          proxyPort = Integer.parseInt(proxyPortStr);
-          conf.setProxy(proxyServer, proxyPort);
-        } catch (NumberFormatException e) {
-          throw new RuntimeException("Invalid proxy: " +proxyServer +":"
-                                     +bc.getProperty(PROXY_PORT));
-        }
-
-        String proxyUsername = bc.getProperty(PROXY_USERNAME);
-        if (proxyUsername != null) {
-          client.getState().setProxyCredentials
-            ( new AuthScope(proxyServer,
-                            proxyPort,
-                            bc.getProperty(PROXY_REALM),
-                            bc.getProperty(PROXY_SCHEME)),
-              new UsernamePasswordCredentials(proxyUsername,
-                                              bc.getProperty(PROXY_PASSWORD)));
-        }
-      }
-    }
-
-    String timeoutString = bc.getProperty(TIMEOUT);
+    final String timeoutString = bc.getProperty(TIMEOUT);
     if (timeoutString != null) {
       try {
         client.getParams().setSoTimeout(Integer.parseInt(timeoutString));
@@ -167,49 +112,9 @@ class HttpClientConnection
     }
   }
 
-  private static final boolean isNonProxyHost(final BundleContext bc,
-                                              final URI uri)
-  {
-    String nonProxyHosts = bc.getProperty(NON_PROXY_HOSTS);
-    if (null==nonProxyHosts || 0==nonProxyHosts.length()) {
-      nonProxyHosts = bc.getProperty("http.nonProxyHosts");
-    }
-
-    if (null!=nonProxyHosts && 0<nonProxyHosts.length()) {
-      boolean matchesSupported = false;
-      try {
-        String.class.getMethod("matches", new Class[]{String.class});
-        matchesSupported = true;
-      } catch (Exception nsme) {
-        // NoSuchMethodException => no mathces(String) method => false
-        // Any other exception => underminable => false
-      }
-      try {
-        final String host = uri.getHost();
-        final StringTokenizer st = new StringTokenizer("|");
-        while (st.hasMoreTokens()) {
-          final String regexp = st.nextToken().trim();
-          if (matchesSupported) {
-            if (host.matches(regexp)) {
-              return true;
-            }
-          } else {
-            if (host.equals(regexp)) {
-              return true;
-            }
-          }
-        }
-      } catch (Exception e) {
-        // URIException => no host in uri, assume not a non-proxy host.
-      }
-    }
-
-    return false;
-  }
-
   public long getDate() throws IOException {
-    HttpMethod res = getResult(true);
-    Header head = res.getResponseHeader("Date");
+    final HttpMethod res = getResult(true);
+    final Header head = res.getResponseHeader("Date");
 
     if (head == null) {
       return 0;

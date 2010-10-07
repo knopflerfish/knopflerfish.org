@@ -18,4 +18,23 @@
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
+  <target name="proxySelector5"
+	  description="rebuilds the ProxySelector5 helper class.">
+    <property name="ps5.out.dir" location="${proj.dir}/resources"/>
+    <property name="ps5.src.dir" location="${proj.dir}/src_ps5"/>
+    <mkdir dir="${ps5.out.dir}"/>
+
+    <javac destdir="${ps5.out.dir}"
+           debug="on"
+           target="1.6"
+           source="1.6">
+      <src path="${ps5.src.dir}"/>
+      <classpath>
+	<pathelement location="${proj.dir}/resources/httpclient/commons-httpclient-3.1.jar"/>
+	<pathelement location="${osgi.dir}/framework.jar"/>
+      </classpath>
+    </javac>
+
+  </target>
+
 </project>
