@@ -462,12 +462,12 @@ public class StartLevelController
 
 
   boolean isBundlePersistentlyStarted(BundleArchive archive) {
-    return archive.getAutostartSetting() != -1;
+    return archive == null || archive.getAutostartSetting() != -1;
   }
 
 
   boolean isBundleActivationPolicyUsed(BundleArchive archive) {
-    return archive.getAutostartSetting() == Bundle.START_ACTIVATION_POLICY;
+    return archive != null && archive.getAutostartSetting() == Bundle.START_ACTIVATION_POLICY;
   }
 
 
@@ -538,8 +538,9 @@ public class StartLevelController
     }
 
     private BundleArchive getBundleArchive(Bundle b) {
-      BundleArchive res = checkBundle(b).archive;
-      if (res == null) {
+      BundleImpl bi = checkBundle(b);
+      BundleArchive res = bi.archive;
+      if (res == null && bi.id != 0) {
         throw new IllegalArgumentException("Bundle is in UNINSTALLED state");
       }
       return res;
