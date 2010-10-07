@@ -49,7 +49,7 @@ import org.osgi.framework.BundleContext;
 /**
  * Uses java.net.ProxySelector to configure the HttpClient.
  */
-class ProxySelector5
+public class ProxySelector5
 {
   /**
    * Set proxy properties for connecting to the given uri on the given
@@ -59,8 +59,8 @@ class ProxySelector5
    * @param client the http-client to configure.
    * @param urlS the URL to configure connection for.
    */
-  static Object[] configureProxy(final HttpClient client,
-                                 final String url)
+  public static Object[] configureProxy(final HttpClient client,
+                                        final String url)
     throws URIException
   {
     final URI uri;
