@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,13 +46,10 @@ import java.util.Date;
 import javax.microedition.io.HttpConnection;
 
 import org.apache.commons.httpclient.Header;
-import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -71,21 +68,8 @@ import org.osgi.framework.BundleContext;
 class HttpClientConnection
   implements HttpConnection
 {
-
   public final static String TIMEOUT
     = "org.knopflerfish.httpclient_connector.so_timeout";
-  public final static String PROXY_SERVER
-    = "org.knopflerfish.httpclient_connector.proxy.server";
-  public final static String PROXY_PORT
-    = "org.knopflerfish.httpclient_connector.proxy.port";
-  public final static String PROXY_USERNAME
-    = "org.knopflerfish.httpclient_connector.proxy.username";
-  public final static String PROXY_PASSWORD
-    = "org.knopflerfish.httpclient_connector.proxy.password";
-  public final static String PROXY_REALM
-    = "org.knopflerfish.httpclient_connector.proxy.realm";
-  public final static String PROXY_SCHEME
-    = "org.knopflerfish.httpclient_connector.proxy.scheme";
 
   private final static int STATE_SETUP     = 0;
   private final static int STATE_CONNECTED = 1;
@@ -108,51 +92,17 @@ class HttpClientConnection
 
   private final BundleContext bc;
 
-  HttpClientConnection(BundleContext bc,
-                       String url,
-                       int mode,
-                       boolean timeouts)
+  HttpClientConnection(final BundleContext bc,
+                       final String url,
+                       final int mode,
+                       final boolean timeouts)
     throws URIException
   {
     this.bc = bc;
-
     uri = new URI(url, false); // assume not escaped URIs
-    HostConfiguration conf = client.getHostConfiguration();
+    ProxySelector.configureProxy(bc, client, url);
 
-    String proxyServer = bc.getProperty(PROXY_SERVER);
-    if (null==proxyServer || proxyServer.length()==0) {
-      proxyServer = bc.getProperty("http.proxyHost");
-    }
-    if (proxyServer != null) {
-      int proxyPort;
-      try {
-        String proxyPortStr = bc.getProperty(PROXY_PORT);
-        if (null==proxyPortStr || proxyPortStr.length()==0) {
-          proxyPortStr = bc.getProperty("http.proxyPort");
-        }
-        if (null==proxyPortStr || proxyPortStr.length()==0) {
-          proxyPortStr = "8080";
-        }
-        proxyPort = Integer.parseInt(proxyPortStr);
-        conf.setProxy(proxyServer, proxyPort);
-      } catch (NumberFormatException e) {
-        throw new RuntimeException("Invalid proxy: " +proxyServer +":"
-                                   +bc.getProperty(PROXY_PORT));
-      }
-
-      String proxyUsername = bc.getProperty(PROXY_USERNAME);
-      if (proxyUsername != null) {
-        client.getState().setProxyCredentials
-          ( new AuthScope(proxyServer,
-                          proxyPort,
-                          bc.getProperty(PROXY_REALM),
-                          bc.getProperty(PROXY_SCHEME)),
-            new UsernamePasswordCredentials(proxyUsername,
-                                            bc.getProperty(PROXY_PASSWORD)));
-      }
-    }
-
-    String timeoutString = bc.getProperty(TIMEOUT);
+    final String timeoutString = bc.getProperty(TIMEOUT);
     if (timeoutString != null) {
       try {
         client.getParams().setSoTimeout(Integer.parseInt(timeoutString));
@@ -163,8 +113,8 @@ class HttpClientConnection
   }
 
   public long getDate() throws IOException {
-    HttpMethod res = getResult(true);
-    Header head = res.getResponseHeader("Date");
+    final HttpMethod res = getResult(true);
+    final Header head = res.getResponseHeader("Date");
 
     if (head == null) {
       return 0;
