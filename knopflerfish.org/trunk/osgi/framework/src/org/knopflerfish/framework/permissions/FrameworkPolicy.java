@@ -97,7 +97,7 @@ class FrameworkPolicy extends Policy {
     URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       try {
-        Long id = new Long(u.getHost());
+        Long id = new Long(BundleURLStreamHandler.getId(u.getHost()));
         //return getPermissions(id);
         return ph.getPermissionCollection(id);
       } catch (NumberFormatException ignore) {

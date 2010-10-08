@@ -475,6 +475,8 @@ public class FrameworkContext  {
             debug.println("Installing OSGi security manager, policy="+policy);
           }
           System.setProperty(POLICY_PROPERTY, policy);
+          // Make sure policy is updated, required for some JVMs.
+          java.security.Policy.getPolicy().refresh();
           current = new KFSecurityManager(debug);
           System.setSecurityManager(current);
           smUse = 1;
