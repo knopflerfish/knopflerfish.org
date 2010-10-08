@@ -16,8 +16,27 @@ This bundle introduces a few (optional) properties:
 
 org.knopflerfish.httpclient_connector.proxy.server=<host> 
 org.knopflerfish.httpclient_connector.proxy.port=<int> 
+org.knopflerfish.httpclient_connector.proxy.nonProxyHosts=<host regexp>|<host regexp>|...
 
-Some proxies require authenication. The following properties allow
+When any of the above properties are not set the bundle fall backs to
+use:
+
+ * If the ProxySelector class is available it will be asked (Java 5 and
+   up). You may want to set the system property
+   "java.net.useSystemProxies" to "true" in this case.
+
+ * On Java versions that does not have the ProxySelector class (pre
+   Java 5) the standardized system properties "http.proxyHost",
+   "http.proxyPort" and "http.nonProxyHosts" are used.
+
+Note that if this bundle is used on a runtime with a String-class that
+does not have a matches(String)-method the regular expressions for the
+non-proxy hosts must not contain any kind of wild carding (the match
+will in this case be performed by checking if the host-regexp is equal
+to the host part of the connection URI.
+
+
+Some proxies require authentication. The following properties allow
 you to set up the connector properly in such environments. (Requires 
 the proxy server and port to be set)
 
@@ -29,3 +48,8 @@ org.knopflerfish.httpclient_connector.proxy.scheme=<scheme> (optional)
 
 You can also set SO_TIMEOUT using
 org.knopflerfish.httpclient_connector.so_timeout=<int> 
+
+
+For more details on Java and proxy settings please see
+http://download-llnw.oracle.com/javase/6/docs/technotes/guides/net/proxies.html
+
