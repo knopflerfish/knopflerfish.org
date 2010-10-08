@@ -91,7 +91,7 @@ public class Alias {
     String lname = name.toLowerCase();
     for (int i = 0; i < processorAliases.length; i++) {
       for (int j = 1; j < processorAliases[i].length; j++) {
-        if (Util.filterMatch(lname, processorAliases[i][j])) {
+        if (Util.filterMatch(processorAliases[i][j], lname)) {
           return processorAliases[i][0];
         }
       }
@@ -110,7 +110,7 @@ public class Alias {
     String lname = name.toLowerCase();
     for (int i = 0; i < osNameAliases.length; i++) {
       for (int j = 1; j < osNameAliases[i].length; j++) {
-        if (Util.filterMatch(lname, osNameAliases[i][j])) {
+        if (Util.filterMatch(osNameAliases[i][j], lname)) {
           return osNameAliases[i][0];
         }
       }

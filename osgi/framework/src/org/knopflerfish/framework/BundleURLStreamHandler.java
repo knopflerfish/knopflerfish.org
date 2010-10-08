@@ -360,7 +360,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
   }
 
 
-  private long getId(String host) {
+  public static long getId(String host) {
     int e = host.indexOf(".");
     if (e == -1) {
       e = host.indexOf("_");
