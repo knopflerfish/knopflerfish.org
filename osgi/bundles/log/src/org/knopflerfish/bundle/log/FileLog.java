@@ -93,10 +93,6 @@ public final class FileLog implements LogListener {
      */
     public FileLog(BundleContext bc, LogConfigImpl lc) {
         configuration = lc;
-        init();
-    }
-
-    private void init() {
         logdir = configuration.getDir();
 
         // Start by removing old log files, and rename previous log files
@@ -110,7 +106,7 @@ public final class FileLog implements LogListener {
      * * The stop method is called by the log reader service factory when * the
      * log bundle is stoped. Flush data and close the current log file.
      */
-    void stop() {
+    synchronized void stop() {
         if (log != null) {
             log.flush();
             log.close();
@@ -241,7 +237,7 @@ public final class FileLog implements LogListener {
      * @param le
      *            The new LogEntry
      */
-    public void logged(LogEntry le) {
+    public synchronized void logged(LogEntry le) {
         if (log != null) {
             String s = le.toString();
             if (logSize + s.length() > configuration.getFileSize()) {

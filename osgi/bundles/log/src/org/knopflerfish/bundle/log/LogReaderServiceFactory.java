@@ -100,8 +100,8 @@ public final class LogReaderServiceFactory implements ServiceFactory {
      * is stoped. If a <code>fileLog</code> is active terminate * it.
      */
     void stop() {
-        if (fileLog != null) {
-            synchronized (fileLog) {
+	synchronized (this) {
+	    if (fileLog != null) {
                 fileLog.stop();
                 fileLog = null;
             }
@@ -161,22 +161,18 @@ public final class LogReaderServiceFactory implements ServiceFactory {
         }
     }
 
-    private void resetFile(Boolean newValue, Boolean oldValue) {
+    private synchronized void resetFile(Boolean newValue, Boolean oldValue) {
         if (newValue.booleanValue() && fileLog == null) {
-            fileLog = new FileLog(bc, configuration);
-            if (oldValue == null) {
-                synchronized (fileLog) {
-                    synchronized (history) {
-                        fileLog.saveMemEntries(new ArrayEnumeration(history,
-                                historyInsertionPoint));
-                    }
-                }
-            }
-        } else if (!(newValue.booleanValue()) && (fileLog != null)) {
-            synchronized (fileLog) {
-                fileLog.stop();
-                fileLog = null;
-            }
+	    fileLog = new FileLog(bc, configuration);
+	    if (oldValue == null) {
+		synchronized (history) {
+		    fileLog.saveMemEntries(new ArrayEnumeration(history,
+								historyInsertionPoint));
+		}
+	    }
+        } else if (!(newValue.booleanValue()) && fileLog != null) {
+	    fileLog.stop();
+	    fileLog = null;
         }
     }
 
@@ -262,37 +258,36 @@ public final class LogReaderServiceFactory implements ServiceFactory {
      * @param le
      *            The new LogEntry
      */
-    protected synchronized void log(final LogEntryImpl le) {
+    protected void log(final LogEntryImpl le) {
         AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-                if (le.getLevel() <= getFilterLevel(le.getBundle())) {
-                    if (fileLog != null) {
-                        synchronized (fileLog) {
-                            fileLog.logged(le);
-                        }
-                    }
-                    if (configuration.getOut()) {
-                        System.out.println(le);
-                    }
-                    synchronized (history) {
-                        history[historyInsertionPoint] = le;
-                        historyInsertionPoint++;
-                        if (historyInsertionPoint == history.length) {
-                            historyInsertionPoint = 0;
-                        }
-                    }
-                }
-                for (Enumeration e = logReaderServicies.keys(); e
-                        .hasMoreElements();) {
-                    try {
-                        ((LogReaderServiceImpl) e.nextElement()).callback(le);
-                    } catch (Exception ce) {
-                        // TBD Log error?
-                    }
-                }
-                return null;
-            }
-        });
+		public Object run() {
+		    synchronized(this) {
+			if (le.getLevel() <= getFilterLevel(le.getBundle())) {
+			    if (fileLog != null) {
+				fileLog.logged(le);
+			    }
+			    if (configuration.getOut()) {
+				System.out.println(le);
+			    }
+			    synchronized (history) {
+				history[historyInsertionPoint] = le;
+				historyInsertionPoint++;
+				if (historyInsertionPoint == history.length) {
+				    historyInsertionPoint = 0;
+				}
+			    }
+			}
+		    }
+		    for (Enumeration e = logReaderServicies.keys(); e
+			     .hasMoreElements();) {
+			try {
+			    ((LogReaderServiceImpl) e.nextElement()).callback(le);
+			} catch (Exception ce) {
+			    // TBD Log error?
+			}
+		    }
+		    return null;}
+	    });
     }
 
     /**
