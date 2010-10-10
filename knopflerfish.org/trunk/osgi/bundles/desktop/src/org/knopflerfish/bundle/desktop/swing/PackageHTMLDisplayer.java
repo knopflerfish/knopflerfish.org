@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project All rights reserved.
+ * Copyright (c) 2003-2010, KNOPFLERFISH project All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following
@@ -86,82 +86,86 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       startFont(sb);
 
+      final Desktop desktop = Activator.desktop;
+      if (null!=desktop) {
+        final PackageManager pm = desktop.pm;
+        if (null!=pm) {
+          final PackageAdmin pkgAdmin = pm.getPackageAdmin();
 
-      PackageManager pm = Activator.desktop.pm;
+          if(pkgAdmin == null) {
+            sb.append("No PackageAdmin service found");
+          } else {
+            // Array with all bundles that can be required.
+            RequiredBundle[] rbl = pkgAdmin.getRequiredBundles(null);
+            boolean useParagraph = false;
 
-      PackageAdmin pkgAdmin = pm.getPackageAdmin();
+            Bundle[] fragmentBundles = pm.getFragments(b); // pkgAdmin.getFragments(b);
+            if (fragmentBundles.length>0) {
+              if (useParagraph) {
+                sb.append("<p>");
+              }
+              sb.append("<b>Host bundle with attached fragments</b>");
+              for (int j=0; j<fragmentBundles.length; j++){
+                sb.append("<br>");
+                sb.append("&nbsp;&nbsp");
+                Util.bundleLink(sb, fragmentBundles[j]);
+                Bundle[] hosts = pm.getHosts(fragmentBundles[j]);
+                if (hosts.length==0 || b.getBundleId()!=hosts[0].getBundleId()) {
+                  sb.append("&nbsp;<i>pending refresh</i>");
+                }
+              }
+              if (useParagraph) {
+                sb.append("</p>");
+              }
+              useParagraph = true;
+            }
 
-      if(pkgAdmin == null) {
-        sb.append("No PackageAdmin service found");
-      } else {
-        // Array with all bundles that can be required.
-        RequiredBundle[] rbl = pkgAdmin.getRequiredBundles(null);
-        boolean useParagraph = false;
+            Bundle[] hostBundles = pm.getHosts(b);
+            if (hostBundles.length>0) {
+              if (useParagraph) {
+                sb.append("<p>");
+              }
+              sb.append("<b>Fragment attached to</b>");
+              for (int j=0; j<hostBundles.length; j++){
+                sb.append("<br>");
+                sb.append("&nbsp;&nbsp");
+                Util.bundleLink(sb, hostBundles[j]);
+              }
+              if (useParagraph) {
+                sb.append("</p>");
+              }
+              useParagraph = true;
+            }
 
-        Bundle[] fragmentBundles = pm.getFragments(b); // pkgAdmin.getFragments(b);
-        if (fragmentBundles.length>0) {
-          if (useParagraph) {
-            sb.append("<p>");
-          }
-          sb.append("<b>Host bundle with attached fragments</b>");
-          for (int j=0; j<fragmentBundles.length; j++){
-            sb.append("<br>");
-            sb.append("&nbsp;&nbsp");
-            Util.bundleLink(sb, fragmentBundles[j]);
-            Bundle[] hosts = pm.getHosts(fragmentBundles[j]);
-            if (hosts.length==0 || b.getBundleId()!=hosts[0].getBundleId()) {
-              sb.append("&nbsp;<i>pending refresh</i>");
+            RequiredBundle rb = pm.getRequiredBundle(rbl, b);
+            Bundle[] requiringBundles = rb!=null
+              ? rb.getRequiringBundles() : null;
+            if (requiringBundles!=null && requiringBundles.length>0) {
+              if (useParagraph) {
+                sb.append("<p>");
+              }
+              sb.append("<b>Required by</b>");
+              if (rb.isRemovalPending()) {
+                sb.append(" (<i>pending removal on refresh</i>)");
+              }
+              for (int j=0; requiringBundles!=null && j<requiringBundles.length;
+                   j++) {
+                sb.append("<br>");
+                sb.append("&nbsp;&nbsp");
+                Util.bundleLink(sb, requiringBundles[j]);
+              }
+              if (useParagraph) {
+                sb.append("</p>");
+              }
+              useParagraph = true;
             }
           }
-          if (useParagraph) {
-            sb.append("</p>");
-          }
-          useParagraph = true;
-        }
 
-        Bundle[] hostBundles = pm.getHosts(b);
-        if (hostBundles.length>0) {
-          if (useParagraph) {
-            sb.append("<p>");
-          }
-          sb.append("<b>Fragment attached to</b>");
-          for (int j=0; j<hostBundles.length; j++){
-            sb.append("<br>");
-            sb.append("&nbsp;&nbsp");
-            Util.bundleLink(sb, hostBundles[j]);
-          }
-          if (useParagraph) {
-            sb.append("</p>");
-          }
-          useParagraph = true;
+          appendExportedPackages(sb, b, true);
+          appendImportedPackages(sb, b, true);
+          appendMissingImports(sb, b);
+          appendRequiredPackages(sb, b, true);
         }
-
-        RequiredBundle rb = pm.getRequiredBundle(rbl, b);
-        Bundle[] requiringBundles = rb!=null ? rb.getRequiringBundles() : null;
-        if (requiringBundles!=null && requiringBundles.length>0) {
-          if (useParagraph) {
-            sb.append("<p>");
-          }
-          sb.append("<b>Required by</b>");
-          if (rb.isRemovalPending()) {
-            sb.append(" (<i>pending removal on refresh</i>)");
-          }
-          for (int j=0; requiringBundles!=null && j<requiringBundles.length;
-               j++) {
-            sb.append("<br>");
-            sb.append("&nbsp;&nbsp");
-            Util.bundleLink(sb, requiringBundles[j]);
-          }
-          if (useParagraph) {
-            sb.append("</p>");
-          }
-          useParagraph = true;
-        }
-
-        appendExportedPackages(sb, b, true);
-        appendImportedPackages(sb, b, true);
-        appendMissingImports(sb, b);
-        appendRequiredPackages(sb, b, true);
 
       }
 

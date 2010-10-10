@@ -275,9 +275,9 @@ public abstract class JHTMLBundle extends JPanel  {
     StringBuffer sb = new StringBuffer();
 
     try {
-      ServiceReference[] srl =
-        Activator.getTargetBC().getServiceReferences(null,
-                                          "(" + Constants.SERVICE_ID + "=" + sid + ")");
+      final String filter = "(" + Constants.SERVICE_ID + "=" + sid + ")";
+      final ServiceReference[] srl =
+        Activator.getTargetBC_getServiceReferences(null, filter);
       if(srl != null && srl.length == 1) {
         sb.append("<html>");
         sb.append("<table border=0>");

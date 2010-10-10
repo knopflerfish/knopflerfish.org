@@ -273,14 +273,14 @@ public class Util {
   }
 
   static public String bundleInfo(Bundle b) {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
 
     sb.append("<html>");
     sb.append(" Id: "       + b.getBundleId() + "<br>");
     sb.append(" Name: "     + Util.getBundleName(b) + "<br>");
     sb.append(" State: "    + Util.stateName(b.getState()) + "<br>");
 
-    StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
+    final StartLevel sls = (StartLevel) Activator.getStartLevelService();
     if(sls != null) {
       sb.append(" Start level: ");
       try {
@@ -689,7 +689,7 @@ public class Util {
     all.addAll(pkgClosure);
     all.addAll(serviceClosure);
 
-    all.remove(Activator.getTargetBC().getBundle(0));
+    all.remove(Activator.getTargetBC_getBundle(0));
     if(target != null) {
       all.add(target);
     }
@@ -800,7 +800,7 @@ public class Util {
         sb.append(fontify(FWPROPS[i]));
         sb.append("</td>\n");
         sb.append("  <td valign=\"top\">");
-        final String pValue = Activator.getTargetBC().getProperty(FWPROPS[i]);
+        final String pValue = Activator.getTargetBC_getProperty(FWPROPS[i]);
         sb.append(null!=pValue ? fontify(pValue) : "");
         sb.append("</td>\n");
         sb.append(" </tr>\n");

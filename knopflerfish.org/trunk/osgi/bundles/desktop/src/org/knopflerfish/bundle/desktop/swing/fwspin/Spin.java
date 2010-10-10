@@ -137,14 +137,14 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       });
     */
 
-    Bundle[] bl = Activator.getTargetBC().getBundles();
+    Bundle[] bl = Activator.getTargetBC_getBundles();
     for(int i = 0; bl != null && i < bl.length; i++) {
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     }
     Activator.getTargetBC().addBundleListener(this);
 
     try {
-      ServiceReference [] srl = Activator.getTargetBC().getServiceReferences(null, null);
+      ServiceReference [] srl = Activator.getTargetBC_getServiceReferences();
       for(int i = 0; srl != null && i < srl.length; i++) {
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
@@ -198,17 +198,17 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
           }
           if(bSearchMode) {
             switch(e.getKeyCode()) {
-            case KeyEvent.VK_PERIOD: 
+            case KeyEvent.VK_PERIOD:
               bSearchMode = false;
               break;
-            case KeyEvent.VK_DELETE: 
-            case KeyEvent.VK_BACK_SPACE: 
+            case KeyEvent.VK_DELETE:
+            case KeyEvent.VK_BACK_SPACE:
               if(searchString.length() > 0) {
                 searchString = searchString.substring(0, searchString.length() -1);
                 doSearch();
               }
               break;
-            case KeyEvent.VK_UNDERSCORE: 
+            case KeyEvent.VK_UNDERSCORE:
               searchString = searchString + "_";
               doSearch();
             default:
@@ -219,20 +219,20 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
             return;
           }
           switch(e.getKeyCode()) {
-          case KeyEvent.VK_SLASH: 
-          case KeyEvent.VK_PERIOD: 
+          case KeyEvent.VK_SLASH:
+          case KeyEvent.VK_PERIOD:
             bSearchMode = true;
             break;
-          case KeyEvent.VK_F: 
+          case KeyEvent.VK_F:
             bShowFrameRate = !bShowFrameRate;
             break;
-          case KeyEvent.VK_B: 
+          case KeyEvent.VK_B:
             bShowBundleLegend = !bShowBundleLegend;
             break;
-          case KeyEvent.VK_I: 
+          case KeyEvent.VK_I:
             bShowBundleInfo = !bShowBundleInfo;
             break;
-          case KeyEvent.VK_0: 
+          case KeyEvent.VK_0:
             {
               if(mouseActive != null) {
                 final SpinItem item = mouseActive;
@@ -256,46 +256,46 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
               }
             }
             break;
-          case KeyEvent.VK_8: 
+          case KeyEvent.VK_8:
             deltaA -= aStep;
             bxNeedRecalc = true;
             sxNeedRecalc = true;
             break;
-          case KeyEvent.VK_9: 
+          case KeyEvent.VK_9:
             deltaA += aStep;
             bxNeedRecalc = true;
             sxNeedRecalc = true;
             break;
-          case KeyEvent.VK_LEFT: 
+          case KeyEvent.VK_LEFT:
             step(-1);
             break;
-          case KeyEvent.VK_RIGHT: 
+          case KeyEvent.VK_RIGHT:
             step(1);
             break;
-          case KeyEvent.VK_F1: 
-          case KeyEvent.VK_H: 
+          case KeyEvent.VK_F1:
+          case KeyEvent.VK_H:
           case KeyEvent.VK_HELP:
             bShowHelp = !bShowHelp;
             break;
-          case KeyEvent.VK_D: 
+          case KeyEvent.VK_D:
             bShowDeps = !bShowDeps;
             break;
-          case KeyEvent.VK_2: 
+          case KeyEvent.VK_2:
             use2D = !use2D;
             break;
-          case KeyEvent.VK_S: 
+          case KeyEvent.VK_S:
             bStepSize = !bStepSize;
             initFonts();
             break;
-          case KeyEvent.VK_4: 
+          case KeyEvent.VK_4:
             fontSize += .1;
             initFonts();
             break;
-          case KeyEvent.VK_3: 
+          case KeyEvent.VK_3:
             fontSize = Math.max(.2, fontSize - .1);
             initFonts();
             break;
-          case KeyEvent.VK_C: 
+          case KeyEvent.VK_C:
             active.clear();
             depVector = null;
             depActive = null;
@@ -306,7 +306,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
           case KeyEvent.VK_F2:
             toggleConsole();
             break;
-          case KeyEvent.VK_SPACE: 
+          case KeyEvent.VK_SPACE:
             if(depActive != null) {
               mouseActive = depActive;
               depActive = null;
@@ -345,7 +345,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     lineCount++;
     console.addLine("count=" + lineCount);
     if(bShowConsole) {
-      console.setBounds(10, size.height / 2, 
+      console.setBounds(10, size.height / 2,
                         size.width - 10, size.height - 10);
     } else {
     }
@@ -359,7 +359,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   void stepDependency() {
     if(depVector == null && mouseActive != null) {
       depVector = mouseActive.getNext(SpinItem.DIR_FROM | SpinItem.DIR_TO);
-      
+
       depPos    = 0;
     }
     if(depVector != null && depVector.size() > 0) {
@@ -377,7 +377,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
         Long key      = (Long)it.next();
         SpinItem   item = (SpinItem)bundles.get(key);
-        
+
         if(item.toString().toLowerCase().startsWith(searchString)) {
           active.put(item, item);
           hit = item;
@@ -434,12 +434,12 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       fonts[n++] = f;
     }
   }
-  
+
   SpinItem mouseActive = null;
 
   void setActive(int x, int y) {
     double minD = 1000000;
-    
+
     SpinItem nearest = null;
 
     for(Iterator it = services.keySet().iterator(); it.hasNext(); ) {
@@ -448,7 +448,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
       double dx = x - item.getSX();
       double dy = y - item.getSY();
-      
+
       double d2 = dx * dx + dy * dy;
       if(d2 < minD) {
         minD = d2;
@@ -459,17 +459,17 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
       Long key      = (Long)it.next();
       SpinItem   item = (SpinItem)bundles.get(key);
-      
+
       double dx = x - item.getSX();
       double dy = y - item.getSY();
-      
+
       double d2 = dx * dx + dy * dy;
       if(d2 < minD) {
         minD = d2;
         nearest = item;
       }
     }
-    
+
     if(nearest != null) {
       mouseActive = nearest;
     }
@@ -497,9 +497,9 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     Long    id = new Long(ev.getBundle().getBundleId());
     synchronized(bundles) {
       BX bx = (BX)bundles.get(id);
-      
+
       switch(ev.getType()) {
-      case BundleEvent.INSTALLED: 
+      case BundleEvent.INSTALLED:
         if(bx == null) {
           bx = new BX(this, ev.getBundle());
           bundles.put(id, bx);
@@ -513,7 +513,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
         }
         break;
       }
-    }   
+    }
     repaint();
   }
 
@@ -525,7 +525,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       String[]         objClass = (String[]) sr.getProperty(Constants.OBJECTCLASS);
       boolean          bRelease = true;
       SX               sx       = (SX)services.get(sr);
-     
+
       boolean          isPAdmin = false;
       if (objClass !=  null) {
         for (int i=0; i<objClass.length; i++) {
@@ -534,12 +534,12 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
           }
         }
       }
-      
+
       switch(ev.getType()) {
       case ServiceEvent.REGISTERED:
         if(isPAdmin) {
           if(pkgAdmin == null) {
-            pkgAdmin = (PackageAdmin) Activator.getTargetBC().getService(sr);
+            pkgAdmin = (PackageAdmin) Activator.getTargetBC_getService(sr);
             bRelease = false;
           }
         }
@@ -565,7 +565,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
         break;
       }
       if(bRelease) {
-        Activator.getTargetBC().ungetService(sr);
+        Activator.getTargetBC_ungetService(sr);
       }
     }
     repaint();
@@ -631,14 +631,14 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
         Thread.sleep(100);
       }
       while(bRun) {
-        
+
         long startTime = System.currentTimeMillis();
         synchronized(paintLock) {
           updateAll();
           paintAll();
         }
         updateTime = System.currentTimeMillis() - startTime;
-        
+
         long delta = targetTime - updateTime;
         delay = Math.max(2, delta);
 
@@ -658,7 +658,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   public void paintAll() {
     synchronized(paintLock) {
       Graphics g = getGraphics();
-      
+
       if(g != null) {
         paint(g);
         g.dispose();
@@ -669,7 +669,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   String indent(int level) {
     StringBuffer sb = new StringBuffer();
     while(level --> 0) sb.append(" ");
-    
+
     return sb.toString();
   }
 
@@ -695,7 +695,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       }
       for(int i = 0; i < v.size(); i++) {
         SpinItem next = (SpinItem)v.elementAt(i);
-        
+
         getDeps(sb, lines, next, level + 1);
       }
     }
@@ -717,47 +717,47 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
         ")\n";
     }
 
-    String s = "Imports from:\n" + name + sb.toString(); 
+    String s = "Imports from:\n" + name + sb.toString();
 
     paintBox(s, g, Color.white, Color.black, x, y, .8, 200, 200);
   }
 
   void paintHelp(Graphics g, int x, int y) {
-    
-    paintBox("F1/H \t- toggle help\n" + 
-             "B    \t- toggle legend\n" + 
-             "I    \t- toggle detail info\n" + 
-             "D    \t- toggle dependencies\n" + 
-             "left \t- previous item\n" + 
-             "right\t- next item\n" + 
-             "space\t- mark item\n" + 
-             "C    \t- clear all marked\n" + 
+
+    paintBox("F1/H \t- toggle help\n" +
+             "B    \t- toggle legend\n" +
+             "I    \t- toggle detail info\n" +
+             "D    \t- toggle dependencies\n" +
+             "left \t- previous item\n" +
+             "right\t- next item\n" +
+             "space\t- mark item\n" +
+             "C    \t- clear all marked\n" +
              "Tab  \t- step dependencies\n" +
-             "2    \t- toggle Graphics2D\n" + 
-             "S    \t- toggle step font size\n" + 
-             "3    \t- decrease font size\n" + 
-             "4    \t- increase font size\n" + 
+             "2    \t- toggle Graphics2D\n" +
+             "S    \t- toggle step font size\n" +
+             "3    \t- decrease font size\n" +
+             "4    \t- increase font size\n" +
              "8    \t- rotate anti-clockwise\n" +
              "9    \t- rotate clockwise\n" +
              ".    \t- start/stop search mode\n",
              g, Color.white, Color.black, x, y);
   }
 
-  void paintBox(String   s, 
-                Graphics g, 
-                Color    bgCol, 
+  void paintBox(String   s,
+                Graphics g,
+                Color    bgCol,
                 Color    fgCol,
-                int      x, 
+                int      x,
                 int      y) {
     paintBox(s, g, bgCol, fgCol, x, y, 1.0, 200, 200);
   }
-  
 
-  void paintBox(String   s, 
-                Graphics g, 
-                Color    bgCol, 
+
+  void paintBox(String   s,
+                Graphics g,
+                Color    bgCol,
                 Color    fgCol,
-                int      x, 
+                int      x,
                 int      y,
                 double   size,
                 int minWidth, int minHeight) {
@@ -780,15 +780,15 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     Font font = getFont(size);
 
     g.setColor(bgCol);
-    
-    g.fill3DRect(x, y, 
-                 Math.max(minWidth, font.getSize() * maxCols / 2 + 30), 
-                 Math.max(minHeight, (font.getSize() + 3) * lines.length + 10), 
+
+    g.fill3DRect(x, y,
+                 Math.max(minWidth, font.getSize() * maxCols / 2 + 30),
+                 Math.max(minHeight, (font.getSize() + 3) * lines.length + 10),
                  true);
 
 
     g.setFont(font);
-    
+
     g.setColor(fgCol);
 
     x += 10;
@@ -813,7 +813,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       }
       y += font.getSize() + 3;
     }
-     
+
   }
 
   void paintBundles(Graphics g) {
@@ -875,9 +875,9 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   }
 
   boolean isActive(SpinItem item) {
-    return 
-      active.containsKey(item) 
-      || item == mouseActive 
+    return
+      active.containsKey(item)
+      || item == mouseActive
       || item == depActive;
   }
 
@@ -914,11 +914,11 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       }
 
       Graphics g = _g;
-      
+
       makeOff(false);
-      
+
       if(memG == null) return;
-      
+
       long start = System.currentTimeMillis();
       paintBg(memG);
 
@@ -926,8 +926,8 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
       if(use2D) {
         ((Graphics2D)memG).
-          setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-                           bAntiAlias 
+          setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                           bAntiAlias
                            ? RenderingHints.VALUE_ANTIALIAS_ON
                            : RenderingHints.VALUE_ANTIALIAS_OFF);
       }
@@ -937,7 +937,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
       paintServices(memG);
       fgTime = System.currentTimeMillis() - spriteTime - start;
-      
+
 
       if(bShowBundleLegend) {
         paintBundleStateLegend(memG);
@@ -964,8 +964,8 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
         paintHelp(memG, size.width/2-100, 50);
       }
       if(bShowDeps) {
-        paintDeps(memG, 
-                  (hotX > size.width / 2) ? 40 : (size.width / 2), 
+        paintDeps(memG,
+                  (hotX > size.width / 2) ? 40 : (size.width / 2),
                   20);
       }
 
@@ -975,12 +975,12 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
       if(use2D) {
         ((Graphics2D)memG).
-          setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+          setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_OFF);
       }
-      
+
       g.drawImage(memImage, 0, 0, null);
-      
+
     }
     isPainting = false;
   }
@@ -1001,7 +1001,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
 
 
-    paintCBox(g, 10, size.height - 20, bgColor,             "F1 - help");    
+    paintCBox(g, 10, size.height - 20, bgColor,             "F1 - help");
   }
 
 
@@ -1024,7 +1024,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     g.setFont(getFont(1.0));
     g.drawString(text, x + 30, y + 10);
   }
-  
+
   public void paintFrameRate(Graphics g) {
     g.setColor(Color.black);
     g.drawString("fps: " + (int)(1000.0 / totalTime), 10, size.height - 5);
@@ -1044,8 +1044,8 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   void makeOff(boolean bForce) {
     Dimension d = getSize();
     if(d != null) {
-      if(bForce || 
-         (size == null || d.width != size.width || d.height != size.height)) 
+      if(bForce ||
+         (size == null || d.width != size.width || d.height != size.height))
         {
           size = d;
           center.setPos(size.width / 2, size.height / 2);
@@ -1053,11 +1053,11 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
           sxNeedRecalc = true;
           memImage = createImage(d.width, d.height);
           memG  = memImage.getGraphics();
-          
+
         }
     }
   }
-        
+
   public void start() {
     if(runner != null) {
       return;
@@ -1097,7 +1097,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     double dy = sy - hotY;
 
     double d2 = dx * dx + dy * dy;
-    
+
     double d  = Math.sqrt(d2);
 
     double maxDist = 100;
@@ -1105,7 +1105,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     if(bStepSize) {
       maxDist = 10;
     }
-    
+
     d = Math.min(d, maxDist);
 
     double k = d / maxDist;
@@ -1147,7 +1147,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
   public void paintSearch(Graphics g, double x, double y) {
 
-    paintBox(searchString, g, Color.white, Color.black, (int)x, (int)y, 
+    paintBox(searchString, g, Color.white, Color.black, (int)x, (int)y,
              .8, 300, 30);
   }
 
@@ -1159,7 +1159,7 @@ class SX extends SpinItem {
   String className;
   String name;
   Long   bid;
-  
+
   static String ignorePrefix = "com.gatespace.";
 
   Spin spin;
@@ -1171,7 +1171,7 @@ class SX extends SpinItem {
     bid = new Long(sr.getBundle().getBundleId());
 
     className = ((String[])sr.getProperty(Constants.OBJECTCLASS))[0]; // TODO: Display all objectclasses?
- 
+
     if(className.startsWith(ignorePrefix)) {
       className = className.substring(ignorePrefix.length());
     }
@@ -1215,8 +1215,8 @@ class SX extends SpinItem {
         sb.append(keys[i] + " = " + val + "\n");
       }
     }
-    
-    spin.paintBox(sb.toString(), g, Color.white, Color.black, (int)x, (int)y, 
+
+    spin.paintBox(sb.toString(), g, Color.white, Color.black, (int)x, (int)y,
                   .8, 300, 300);
   }
 
@@ -1275,18 +1275,18 @@ class SX extends SpinItem {
     g.setColor(BX.exportsToColor);
 
     if(spin.use2D) {
-      CubicCurve2D.Double curve = 
+      CubicCurve2D.Double curve =
         new CubicCurve2D.Double (sx, sy,
-                                 cx, cy, 
+                                 cx, cy,
                                  cx, cy,
                                  bx.sx, bx.sy);
-      
-      
+
+
       ((Graphics2D)g).draw(curve);
     } else {
-      drawSpline(g, 
+      drawSpline(g,
                  sx, sy,
-                 cx, cy, 
+                 cx, cy,
                  cx, cy,
                  bx.sx, bx.sy, 5);
     }
@@ -1342,7 +1342,7 @@ class BX extends SpinItem {
         for(Iterator it = spin.bundles.keySet().iterator(); it.hasNext(); ) {
           Long key      = (Long)it.next();
           BX   bx       = (BX)spin.bundles.get(key);
-          
+
           exp = spin.pkgAdmin.getExportedPackages(bx.b);
           boolean done = false;
           for(int i = 0; !done && exp != null && i < exp.length; i++) {
@@ -1423,7 +1423,7 @@ class BX extends SpinItem {
 
       sb.append(key + ": " + val + "\n");
     }
-    spin.paintBox(sb.toString(), g, Color.white, Color.black, (int)x, (int)y, 
+    spin.paintBox(sb.toString(), g, Color.white, Color.black, (int)x, (int)y,
                   .8, 300, 300);
   }
 
@@ -1434,20 +1434,20 @@ class BX extends SpinItem {
     double cy = spin.center.getSY();
 
     if(spin.use2D) {
-      CubicCurve2D.Double curve = 
+      CubicCurve2D.Double curve =
         new CubicCurve2D.Double (sx, sy,
-                                 cx, cy, 
+                                 cx, cy,
                                  cx, cy,
                                  bx.sx, bx.sy);
-      
+
       ((Graphics2D)g).draw(curve);
     } else {
       drawSpline(g, sx, sy,
-                 cx, cy, 
+                 cx, cy,
                  cx, cy,
                  bx.sx, bx.sy, 5);
     }
-    
+
   }
 
 
@@ -1470,10 +1470,10 @@ class BX extends SpinItem {
       return uninstalledColor;
     case Bundle.STARTING:
       return startingColor;
-    case Bundle.STOPPING: 
+    case Bundle.STOPPING:
       return stoppingColor;
-    } 
-    
+    }
+
     return Color.black;
   }
 
@@ -1507,10 +1507,3 @@ class BX extends SpinItem {
     return name;
   }
 }
-
-
-
-
-
-
-

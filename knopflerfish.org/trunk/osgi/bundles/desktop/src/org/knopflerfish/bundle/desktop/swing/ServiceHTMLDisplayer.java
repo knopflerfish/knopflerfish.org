@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,8 +78,8 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
       StringBuffer sb = new StringBuffer();
 
       try {
-        ServiceReference[] srl = Activator.getTargetBC().getServiceReferences(null, null);
-
+        final ServiceReference[] srl
+          = Activator.getTargetBC_getServiceReferences();
         int nExport = 0;
         int nImport = 0;
         for(int i = 0; srl != null && i < srl.length; i++) {

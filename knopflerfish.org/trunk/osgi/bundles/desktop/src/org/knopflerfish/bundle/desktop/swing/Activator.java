@@ -52,8 +52,10 @@ import org.knopflerfish.util.Text;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.startlevel.StartLevel;
 import org.osgi.util.tracker.ServiceTracker;
 
 
@@ -80,6 +82,10 @@ public class Activator
 
   public static Bundle[] getBundles() {
     BundleContext bc = getTargetBC();
+    if (null==bc) {
+      // May happen during stop, when processing events that has been queued.
+      return new Bundle[0];
+    }
     Bundle[] bl = bc.getBundles();
     if(bundleFilter != null) {
       ArrayList al = new ArrayList();
@@ -109,6 +115,109 @@ public class Activator
     }
 
     return remoteBC;
+  }
+
+  /**
+   * Get all service references from the target BC.
+   */
+  public static ServiceReference[] getTargetBC_getServiceReferences()
+  {
+    final BundleContext tbc = getTargetBC();
+    if(null != tbc) {
+      try {
+        return tbc.getServiceReferences(null, null);
+      } catch (InvalidSyntaxException ise) {
+        // Will not happen in this case!
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get specified service references from the target BC.
+   */
+  public static ServiceReference[]
+    getTargetBC_getServiceReferences(final String clazz, final String filter)
+    throws InvalidSyntaxException
+  {
+    final BundleContext tbc = getTargetBC();
+    if(null != tbc) {
+      return tbc.getServiceReferences(clazz, filter);
+    }
+    return null;
+  }
+
+  /**
+   * Get default service reference from the target BC.
+   */
+  public static ServiceReference
+    getTargetBC_getServiceReference(final String clazz)
+  {
+    final BundleContext tbc = getTargetBC();
+    if(null != tbc) {
+      return tbc.getServiceReference(clazz);
+    }
+    return null;
+  }
+
+  /**
+   * Get default service reference from the target BC.
+   */
+  public static Object getTargetBC_getService(final ServiceReference sr)
+  {
+    final BundleContext tbc = getTargetBC();
+    if(null != tbc) {
+      return tbc.getService(sr);
+    }
+    return null;
+  }
+
+  /**
+   * Unget a service from the target BC.
+   */
+  public static boolean getTargetBC_ungetService(final ServiceReference sr)
+  {
+    final BundleContext tbc = getTargetBC();
+    if(null != tbc) {
+      return tbc.ungetService(sr);
+    }
+    return false;
+  }
+
+  /**
+   * Get a list with all bundles on the target BC.
+   */
+  public static Bundle[] getTargetBC_getBundles()
+  {
+    final BundleContext tbc = getTargetBC();
+    if(null != tbc) {
+      return tbc.getBundles();
+    }
+    return null;
+  }
+
+  /**
+   * Get a specific bundle on the target BC.
+   */
+  public static Bundle getTargetBC_getBundle(final long bid)
+  {
+    final BundleContext tbc = getTargetBC();
+    if(null != tbc) {
+      return tbc.getBundle(bid);
+    }
+    return null;
+  }
+
+  /**
+   * Get a property value from the target BC.
+   */
+  public static String getTargetBC_getProperty(final String key)
+  {
+    final BundleContext tbc = getTargetBC();
+    if(null != tbc) {
+      return tbc.getProperty(key);
+    }
+    return null;
   }
 
   // The key under which the KF-framework keeps a comma-separated list
@@ -149,6 +258,17 @@ public class Activator
 
       return map;
     }
+  }
+
+  static StartLevel getStartLevelService()
+  {
+    if (null!=desktop) {
+      final ServiceTracker slTracker = (ServiceTracker) desktop.slTracker;
+      if (null!=slTracker) {
+        return (StartLevel) slTracker.getService();
+      }
+    }
+    return null;
   }
 
   static Vector remoteHosts = new Vector() {

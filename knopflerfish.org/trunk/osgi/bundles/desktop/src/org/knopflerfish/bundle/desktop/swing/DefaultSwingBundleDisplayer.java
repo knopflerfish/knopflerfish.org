@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -169,7 +169,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   void getAllServices() {
     try {
-      ServiceReference[] srl = Activator.getTargetBC().getServiceReferences(null, null);
+      ServiceReference[] srl = Activator.getTargetBC_getServiceReferences();
       for(int i = 0; srl != null && i < srl.length; i++) {
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }

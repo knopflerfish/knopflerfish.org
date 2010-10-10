@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,17 +51,17 @@ import org.osgi.service.packageadmin.RequiredBundle;
 public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
   public ClosureHTMLDisplayer(BundleContext bc) {
-    super(bc, "Closure", "Shows bundle closure", true); 
+    super(bc, "Closure", "Shows bundle closure", true);
 
   }
-  
+
   public JComponent newJComponent() {
     return new JHTML(this);
   }
 
   public void valueChanged(long bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
-    
+
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JHTML comp = (JHTML)it.next();
       comp.valueChanged(bl);
@@ -69,15 +69,15 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   class JHTML extends JHTMLBundle {
-    
+
     JHTML(DefaultSwingBundleDisplayer displayer) {
       super(displayer);
     }
 
     public void valueChanged(Bundle[] bl) {
       StringBuffer sb = new StringBuffer("<html>\n");
-      
-      
+
+
       if(bl == null || bl.length == 0) {
         setCurrentBID(-1);
 
@@ -90,11 +90,11 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append("</td>\n");
         sb.append("</tr>\n");
         sb.append("</table>\n");
-        
+
         startFont(sb);
         sb.append(getNoBundleSelectedText());
-        sb.append("</font>\n" + 
-                  "</p>\n" + 
+        sb.append("</font>\n" +
+                  "</p>\n" +
                   "</html>");
       } else {
 
@@ -112,7 +112,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append("</font>\n");
         sb.append("</td>\n");
         sb.append("</tr>\n");
-        
+
         sb.append("<tr><td bgcolor=\"#ffffff\">");
         sb.append(bundleInfo(bl).toString());
         sb.append("</td>\n");
@@ -132,27 +132,29 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     public StringBuffer  bundleInfo(Bundle[] targets) {
       StringBuffer sb = new StringBuffer();
-      
+
       startFont(sb);
-      ServiceReference sr = Activator.getTargetBC().getServiceReference(PackageAdmin.class.getName());
-      PackageAdmin pkgAdmin = (PackageAdmin)Activator.getTargetBC().getService(sr);
+      ServiceReference sr = Activator
+        .getTargetBC_getServiceReference(PackageAdmin.class.getName());
+      PackageAdmin pkgAdmin
+        = (PackageAdmin) Activator.getTargetBC_getService(sr);
       if(pkgAdmin == null) {
         sb.append("No PackageAdmin service found");
       } else {
-        
+
         Bundle[] bl = getBundleArray();
-        
+
         Set pkgClosure = new TreeSet(Util.bundleIdComparator);
-        
+
         for(int i = 0; i < targets.length; i++) {
           pkgClosure.addAll(Util.getPackageClosure(Activator.desktop.pm,
-                                                   targets[i], 
+                                                   targets[i],
                                                    null));
         }
-        
-        // remove myself        
+
+        // remove myself
         //        pkgClosure.remove(b);
-        
+
         if(pkgClosure.size() == 0) {
           sb.append("No package dependencies");
         } else {
@@ -160,32 +162,32 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
           sb.append("<b>Static dependencies via packages</b><br>");
           for(Iterator it = pkgClosure.iterator(); it.hasNext();) {
             Bundle depB = (Bundle)it.next();
-            
+
             sb.append("&nbsp;&nbsp;");
             Util.bundleLink(sb, depB);
             sb.append("<br>");
           }
         }
-        
+
         sb.append("<br>");
-        
+
         Set serviceClosure = new TreeSet(Util.bundleIdComparator);
 
         for(int i = 0; i < targets.length; i++) {
           serviceClosure.addAll(Util.getServiceClosure(targets[i], null));
         }
-        
-        // remove myself        
+
+        // remove myself
         //        serviceClosure.remove(b);
-        
+
         if(serviceClosure.size() == 0) {
           sb.append("No service dependencies");
         } else {
           sb.append("<b>Runtime dependencies via services</b><br>");
-          
+
           for(Iterator it = serviceClosure.iterator(); it.hasNext();) {
             Bundle depB = (Bundle)it.next();
-            
+
             sb.append("&nbsp;&nbsp;");
             Util.bundleLink(sb, depB);
             sb.append("<br>");
@@ -193,7 +195,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         }
 
         sb.append("<br>");
-        
+
         Set fragments = new TreeSet(Util.bundleIdComparator);
         for(int i = 0; i < targets.length; i++) {
           Bundle[] fragmentBundles = pkgAdmin.getFragments(targets[i]);
@@ -216,7 +218,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         }
 
         sb.append("<br>");
-        
+
         Set hosts = new TreeSet(Util.bundleIdComparator);
         for(int i = 0; i < targets.length; i++) {
           Bundle[] hostBundles = pkgAdmin.getHosts(targets[i]);
@@ -239,10 +241,10 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         }
 
         sb.append("<br>");
-        
+
         Set required = new TreeSet(Util.bundleIdComparator);
         Set requiredBy = new TreeSet(Util.bundleIdComparator);
-        
+
 try { // untested code
         RequiredBundle[] requiredBundles = pkgAdmin.getRequiredBundles(null);
         if (requiredBundles != null) {
@@ -267,7 +269,7 @@ try { // untested code
         }
 } catch (Throwable ignored) {}
 
-        Activator.getTargetBC().ungetService(sr);
+        Activator.getTargetBC_ungetService(sr);
 
         if (required.size() == 0) {
           sb.append("No required bundles");
@@ -294,15 +296,15 @@ try { // untested code
         }
 
         // Add xarsg info if we seem to be running knopflerfish
-        if(targets.length > 0 && 
+        if(targets.length > 0 &&
            (-1 != targets[0].getClass().getName().indexOf("knopflerfish"))) {
-          
+
           String xargs = Util.getXARGS(null, pkgClosure, serviceClosure).toString();
           sb.append("<hr>");
           startFont(sb);
           sb.append("<b>Suggested startup .xargs file</b><br>\n");
           sb.append("</font>");
-          
+
           sb.append("<pre>");
           sb.append("<font size=\"-2\">");
           //        sb.append(Text.replace(xargs, "\n", "<br>"));
@@ -312,13 +314,12 @@ try { // untested code
         }
 
       }
-      
+
       sb.append("</font>");
-      
+
       return sb;
     }
-    
+
   }
 
 }
-
