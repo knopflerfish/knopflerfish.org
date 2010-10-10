@@ -309,7 +309,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       if(bl != null && bl.length > 0) {
         newB = bl[0];
       } else {
-        newB = Activator.getTargetBC().getBundle(0);
+        newB = Activator.getTargetBC_getBundle(0);
       }
       final JMainBundles comp = new JMainBundles(newB);
       comp.frame = new JFrame(makeTitle(newB));

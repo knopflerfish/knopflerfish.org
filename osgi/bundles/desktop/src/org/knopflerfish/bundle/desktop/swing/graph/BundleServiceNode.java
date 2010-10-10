@@ -20,7 +20,7 @@ public class BundleServiceNode extends BundleNode  {
     super(b, depth, id);
     refresh();
   }
-  
+
   public void refresh() {
     outLinks = null;
     inLinks = null;
@@ -36,27 +36,27 @@ public class BundleServiceNode extends BundleNode  {
       try {
         outLinks = new ArrayList();
         ServiceReference[] srl = b.getRegisteredServices();
-        
+
         Color col = Util.rgbInterpolate(baseColor, burnColor, (double)depth/5);
-        
+
         for(int i = 0; srl != null && i < srl.length; i++) {
           Bundle[] bl = srl[i].getUsingBundles();
-          String sId = srl[i].getProperty("service.id").toString(); 
+          String sId = srl[i].getProperty("service.id").toString();
           if(bl == null || bl.length == 0) {
-            String lId = 
-              getId() + "/" + 
-              "." + sId + 
+            String lId =
+              getId() + "/" +
+              "." + sId +
               "." + b.getBundleId();
-            String nId = 
-              getId() + "/" + 
-              lId + 
+            String nId =
+              getId() + "/" +
+              lId +
               ".none";
-            
-            String name = 
+
+            String name =
               "#" + sId + " " + Util.getClassNames(srl[i]);
-            
-            DefaultLink link = 
-              new DefaultLink(this, 
+
+            DefaultLink link =
+              new DefaultLink(this,
                               new EmptyNode("none", depth+1, nId),
                               depth+1, lId, name);
             link.setColor(col);
@@ -64,27 +64,27 @@ public class BundleServiceNode extends BundleNode  {
             outLinks.add(link);
           } else {
             for(int j = 0; j < bl.length; j++) {
-              String lId = 
-                getId() + "/" + 
-                "." + sId + 
-                "." + b.getBundleId() + 
+              String lId =
+                getId() + "/" +
+                "." + sId +
+                "." + b.getBundleId() +
                 "." + bl[j].getBundleId();
-              String nId = 
-                getId() + "/" + 
-                lId + 
+              String nId =
+                getId() + "/" +
+                lId +
                 "." + bl[j].getBundleId();
-              
-              String name = 
+
+              String name =
                 "#" + sId + " " + Util.getClassNames(srl[i]);
 
-              DefaultLink link = 
-                new DefaultLink(this, 
+              DefaultLink link =
+                new DefaultLink(this,
                                 new BundleServiceNode(bl[j], depth+1, nId),
                                 depth+1, lId, name);
-              link.setColor(col);              
+              link.setColor(col);
               outLinks.add(link);
               link.setDetail(bl.length * srl.length > 20 ? 10 : 0);
-            }          
+            }
           }
         }
       } catch (Exception e) {
@@ -93,43 +93,43 @@ public class BundleServiceNode extends BundleNode  {
     }
     return outLinks;
   }
-  
+
 
 
   public Collection getInLinks() {
     if(inLinks == null) {
       try {
         inLinks = new ArrayList();
-        
-        ServiceReference[] srl = Activator.getTargetBC().getServiceReferences(null, null);
+
+        ServiceReference[] srl = Activator.getTargetBC_getServiceReferences();
         int nImport = 0;
         for(int i = 0; srl != null && i < srl.length; i++) {
           Bundle[] bl = srl[i].getUsingBundles();
           Color col = Util.rgbInterpolate(baseColor, burnColor, (double)depth/3);
           col = Util.rgbInterpolate(col, Color.black, .3);
 
-          String sId = srl[i].getProperty("service.id").toString(); 
+          String sId = srl[i].getProperty("service.id").toString();
 
           for(int j = 0; bl != null && j < bl.length; j++) {
             if(bl[j].getBundleId() == b.getBundleId()) {
-              String lId = 
-                getId() + "/" + 
-                "in." + sId + 
-                "." + b.getBundleId() + 
+              String lId =
+                getId() + "/" +
+                "in." + sId +
+                "." + b.getBundleId() +
                 "." + bl[j].getBundleId();
-              String nId = 
-                getId() + "/" + 
-                lId + 
+              String nId =
+                getId() + "/" +
+                lId +
                 "." + bl[j].getBundleId();
-              
-              String name = 
-                "#" + sId + " " + Util.getClassNames(srl[i]); 
-              
+
+              String name =
+                "#" + sId + " " + Util.getClassNames(srl[i]);
+
               BundleServiceNode node = new BundleServiceNode(srl[i].getBundle(), depth+1, nId);
               DefaultLink link = new DefaultLink(node,
                                                  this,
                                                  depth+1,
-                                                 lId, 
+                                                 lId,
                                                  name);
               link.setType(-1);
               link.setColor(col);
@@ -144,5 +144,5 @@ public class BundleServiceNode extends BundleNode  {
       }
     }
     return inLinks;
-  }  
+  }
 }

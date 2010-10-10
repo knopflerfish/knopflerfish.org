@@ -609,9 +609,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
   static Comparator nameComparator = new Comparator() {
       public int compare(Object o1, Object o2) {
         Bundle b1 =
-          Activator.getTargetBC().getBundle(((Long)o1).longValue());
+          Activator.getTargetBC_getBundle(((Long)o1).longValue());
         Bundle b2 =
-          Activator.getTargetBC().getBundle(((Long)o2).longValue());
+          Activator.getTargetBC_getBundle(((Long)o2).longValue());
 
         if(b1 == b2) {
           return 0;
@@ -631,9 +631,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
   static Comparator startLevelComparator = new Comparator() {
       public int compare(Object o1, Object o2) {
         Bundle b1 =
-          Activator.getTargetBC().getBundle(((Long)o1).longValue());
+          Activator.getTargetBC_getBundle(((Long)o1).longValue());
         Bundle b2 =
-          Activator.getTargetBC().getBundle(((Long)o2).longValue());
+          Activator.getTargetBC_getBundle(((Long)o2).longValue());
 
         if(b1 == b2) {
           return 0;

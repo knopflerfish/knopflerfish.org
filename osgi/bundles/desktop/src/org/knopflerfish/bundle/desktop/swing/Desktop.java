@@ -446,7 +446,7 @@ public class Desktop
 
     // Catch up the set of bundles; no need to call bundleChanged for
     // each bundle since that method ignores the actual event!
-    // Bundle[]  bl = Activator.getTargetBC().getBundles();
+    // Bundle[]  bl = Activator.getTargetBCbundles();
     // for(int i = 0; i  < bl.length; i++) {
     //   bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     // }
@@ -2357,12 +2357,12 @@ public class Desktop
   }
 
   void refreshBundle(final Bundle[] b) {
-    final ServiceReference sr = Activator.getTargetBC()
-      .getServiceReference(PackageAdmin.class.getName());
+    final ServiceReference sr
+      = Activator.getTargetBC_getServiceReference(PackageAdmin.class.getName());
 
     if(sr != null) {
       final PackageAdmin packageAdmin = (PackageAdmin)
-        Activator.getTargetBC().getService(sr);
+        Activator.getTargetBC_getService(sr);
 
       if(packageAdmin != null) {
         final boolean refreshAll = b==null || 0==b.length;
