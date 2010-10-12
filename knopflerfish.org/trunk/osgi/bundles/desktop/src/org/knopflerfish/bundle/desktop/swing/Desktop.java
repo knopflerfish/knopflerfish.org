@@ -82,6 +82,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.jar.JarInputStream;
@@ -1858,6 +1859,8 @@ public class Desktop
 
   JFileChooser openFC = null;
 
+  static final String FILE_PROTO = "file:";
+
   /**
    * Open a file dialog and ask for jar files to install as bundles.
    */
@@ -1865,9 +1868,19 @@ public class Desktop
     if(openFC == null) {
       openFC = new JFileChooser();
       File cwd = new File(Util.getProperty("user.dir", "."));
-      String jarsProp=Util.getProperty("org.knopflerfish.gosg.jars",null);
-      if (jarsProp!=null && jarsProp.startsWith("file:")) {
-        cwd = new File(jarsProp.substring(5));
+      final String jarsProp=Util.getProperty("org.knopflerfish.gosg.jars",null);
+      if (jarsProp!=null) {
+        final StringTokenizer st = new StringTokenizer(jarsProp,";");
+        while (st.hasMoreTokens()) {
+          final String url = st.nextToken().trim();
+          if(url.startsWith(FILE_PROTO)) {
+            final File dir = new File(url.substring(FILE_PROTO.length()));
+            if (dir.exists()) {
+              cwd = dir;
+              break;
+            }
+          }
+        }
       }
       // The argument to setCurrentDirectory() must be an ablsolute
       // path on MacOSX!
