@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,15 +42,13 @@ import java.lang.reflect.*;
 
 public class Main {
 
-  public static Main   theMain;
+  final static String  DEFAULT_OPT_BUTTONS = "base source htdocs";
+  final public static Main theMain = new Main();
 
   String version = "unknown";
 
 
   public static void main(String[] argv) {
-
-    theMain = new Main();
-
     theMain.unpack(argv);
   }
 
@@ -66,7 +64,7 @@ public class Main {
   String  licenseTitle   = null;
   String  windowTitle    = null;
 
-  String  optButtons   = "base source htdocs";
+  String  optButtons;
 
   InstallUI ui = null;
   File     openDir  = null;
@@ -178,7 +176,7 @@ public class Main {
       try {
         optButtons = mf.getMainAttributes().getValue("jarunpacker-optbutton");
       } catch (Exception ignored) {  }
-      if(optButtons == null) {  optButtons = "base source htdocs";  }
+      if(optButtons == null) {  optButtons = DEFAULT_OPT_BUTTONS;  }
 
       try {
         opendirname = mf.getMainAttributes().getValue("jarunpacker-opendir");
