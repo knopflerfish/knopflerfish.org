@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,14 +105,33 @@ public class JUnpackWizard extends JWizard {
 
     updateBytes(file);
 
-    if(-1 != Main.theMain.optButtons.indexOf("base")) {
+    final boolean showCompBaseCB
+      = -1 != Main.theMain.optButtons.indexOf("base");
+    final boolean showSrcBaseCB
+      = -1 != Main.theMain.optButtons.indexOf("source");
+    final boolean showHtdocsBaseCB
+      = -1 != Main.theMain.optButtons.indexOf("htdocs");
+
+    final int noOfCompSelectors = (showCompBaseCB ? 1 : 0)
+      +(showSrcBaseCB ? 1 : 0) +(showHtdocsBaseCB ? 1 : 0);
+
+    if(showCompBaseCB) {
       compSelPanel.add(compBaseCB);
+      if (1==noOfCompSelectors) {
+        compBaseCB.setEnabled(false);
+      }
     }
-    if(-1 != Main.theMain.optButtons.indexOf("source")) {
+    if(showSrcBaseCB) {
       compSelPanel.add(compSrcCB);
+      if (1==noOfCompSelectors) {
+        compSrcCB.setEnabled(false);
+      }
     }
-    if(-1 != Main.theMain.optButtons.indexOf("htdocs")) {
+    if(showHtdocsBaseCB) {
       compSelPanel.add(compHtdocsCB);
+      if (1==noOfCompSelectors) {
+        compHtdocsCB.setEnabled(false);
+      }
     }
     compSelPanel.add(new JLabel("  "));
     compSelPanel.add(bytesLabel);
@@ -183,7 +202,7 @@ public class JUnpackWizard extends JWizard {
           return true;
         }
         public boolean canStepForward() {
-          return true;
+          return 0<noOfCompSelectors;
         }
         public boolean canFinish() {
           return true;
@@ -241,6 +260,7 @@ public class JUnpackWizard extends JWizard {
     if(!compBaseCB.isSelected()) {
       if(name.startsWith("osgi/framework.jar") ||
          name.startsWith("osgi/jars/") ||
+         name.startsWith("osgi/jars_") ||
          name.startsWith("osgi/test_jars/") ||
          name.endsWith(".xargs")
          ) {
@@ -252,7 +272,8 @@ public class JUnpackWizard extends JWizard {
       if(name.startsWith("osgi/bundles") ||
          name.startsWith("osgi/framework/") ||
          name.startsWith("ant/") ||
-         name.endsWith("build.xml")
+         name.endsWith("build.xml") ||
+         name.endsWith(".xargs.in")
          ) {
         excluded = true;
       }
