@@ -175,7 +175,7 @@ public class StartLevelController
     acceptChanges = false;
     synchronized (wc) {
       setStartLevel0(0, false, true, false);
-      while (currentLevel > 1) {
+      while (currentLevel > 0) {
         try { wc.wait(); } catch (Exception e) {}
       }
     }
