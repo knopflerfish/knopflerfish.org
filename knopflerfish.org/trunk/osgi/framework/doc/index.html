@@ -221,7 +221,7 @@ must explictly set this header themselves.
 <a name="osgiprop"></a>
 <h2>OSGi Specified Framework Properties</h2>
 
-<table border="1">
+<table class="man">
   <tr>
     <th>Name</th>
     <th>Description</th>
@@ -428,7 +428,7 @@ must explictly set this header themselves.
 <a name="kfprop"></a>
 <h2>Knopflerfish Specified Framework Properties</h2>
 
-<table border="1">
+<table class="man">
   <tr>
     <th>Name</th>
     <th>Description</th>
@@ -468,8 +468,8 @@ must explictly set this header themselves.
   <tr>
     <td>org.knopflerfish.framework.bundlestorage</td>
     <td>
-     Storage implementation for bundles
-     [file, memory]
+      Storage implementation for bundles
+      [file, memory]
     </td>
     <td>String</td>
     <td>file</td>
@@ -497,7 +497,7 @@ must explictly set this header themselves.
      Note: Individual bundles can be reference installed
            by using URLs of the syntax:
 
-              reference:file:<path>
+           reference:file:&lt;path&gt;
 
            This works even if the global reference flag
            is not enabled.
@@ -693,7 +693,7 @@ must explictly set this header themselves.
     </td>
     <td>Boolean</td>
     <td>
-      True if value of the system property java.version >= 1.5,
+      True if value of the system property java.version &ge; 1.5,
       False otherwise
     </td>
   </tr>
@@ -717,9 +717,12 @@ must explictly set this header themselves.
       does not specify a Bundle-Activator header and the bundle's
       location(see Bundle.getLocation) is found in the comma-separated
       list (case-sensitive). 
-      > java -Dorg.knopflerfish.framework.main.class.activation=\ 
-           file:/foo/bar.jar,http://foo.com/bar.jar \ 
-           -jar framework.jar ...
+<pre class="man">
+> java -Dorg.knopflerfish.framework.main.class.activation=\ 
+    file:/foo/bar.jar,http://foo.com/bar.jar \ 
+   -jar framework.jar ...
+</pre>
+      </pre>
     </td>
     <td>String</td>
     <td>-</td>
@@ -750,9 +753,11 @@ must explictly set this header themselves.
       (by putting the asm-3.2.jar library on the system class path), enable
       runtime class patching.
       Example:
-      java -Dorg.knopflerfish.framework.patch=true\
-           -cp framework.jar:asm-3.2.jar \
-           org.knopflerfish.framework.Main        
+<pre>
+java -Dorg.knopflerfish.framework.patch=true\
+  -cp framework.jar:asm-3.2.jar \
+  org.knopflerfish.framework.Main        
+</pre>
     </td>
     <td>Boolean</td>
     <td>False</td>

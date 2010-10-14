@@ -191,6 +191,14 @@ PRE {
  font-weight:normal;
 }
 
+PRE.code {
+    border-style: solid;
+    border-color: #ddddff;
+    border-width: 1px;
+    background-color: #f7F7FF;
+}
+ 
+
 TH {
  text-align: left;
  font-family: Helvetica, sans-serif;

@@ -1,6 +1,6 @@
 BODY {
  font-size:12px;
- font-family: Helvetica, Arial sans-serif;
+ font-family: Helvetica, Arial, sans-serif;
 }
 
 .mainblock {
@@ -9,30 +9,30 @@ BODY {
 }
 
 .manpage {
- font-family: Helvetica, Arial sans-serif;
+ font-family: Helvetica, Arial, sans-serif;
  font-size:12px;
 }
 
 H1.man {
- font-family: Helvetica, sans-serif;
+ font-family: Helvetica, Arial, sans-serif;
  font-size:24px;
  font-weight:bold;
  margin-left: 0;
 }
 
 H2.man {
-  font-family: Helvetica sans-serif;
-  font-size:16px;
-  font-weight:bold;
-  border-style: solid;
-  border-color: #000;
-  border-width: 1px;
-  padding-bottom: 2px;
-  background:   #805362;
-  color:	#ffffff;
-  padding-top:         2px;
-  padding-bottom:      2px;
-  padding-left:        8px;
+    font-family:	Helvetica, Arial, sans-serif;
+    font-size:		16px;
+    font-weight:	bold;
+    border-style:	solid;
+    border-color:	#000;
+    border-width:	1px;
+    padding-bottom:	2px;
+    background:		#805362;
+    color:		#ffffff;
+    padding-top:         2px;
+    padding-bottom:      2px;
+    padding-left:        8px;
 }
 
 H3.man  {
@@ -71,3 +71,25 @@ H3.man  {
   font-style: italic;
 }
 
+table.man {
+    border-width: 1px;
+    border-color: #666666;
+    border-collapse: collapse;
+}
+
+table.man th {
+    font-size:12px;
+    border-width: 1px;
+    padding: 6px;
+    border-style: solid;
+    border-color: #666666;
+    background-color: #dedede;
+}
+
+table.man td {
+    border-width: 1px;
+    padding: 6px;
+    border-style: solid;
+    border-color: #666666;
+    background-color: #ffffff;
+}
