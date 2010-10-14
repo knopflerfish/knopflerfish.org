@@ -10,7 +10,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-  Framework 5.1.4
+  Framework 5.1.5
+
+  - Fixed bug with call to removed a removed service listener.
+
+  - Fixed race conditions in startlevel service and Bundle.getHeaders.
 
   - Fixed bug when shutting down a framework running at startlevel 1.
 

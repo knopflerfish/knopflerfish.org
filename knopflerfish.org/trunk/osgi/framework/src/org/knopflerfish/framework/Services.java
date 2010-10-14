@@ -158,10 +158,11 @@ class Services {
       }
     }
     ServiceReference r = res.getReference();
-    Listeners l = bundle.fwCtx.listeners;
-    l.serviceChanged(l.getMatchingServiceListeners(r),
-                     new ServiceEvent(ServiceEvent.REGISTERED, r),
-                     null);
+    bundle.fwCtx.perm
+      .callServiceChanged(bundle.fwCtx,
+                          bundle.fwCtx.listeners.getMatchingServiceListeners(r),
+                          new ServiceEvent(ServiceEvent.REGISTERED, r),
+                          null);
     return res;
   }
 

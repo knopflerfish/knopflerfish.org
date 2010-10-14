@@ -18,6 +18,8 @@
   <property name="api.pattern"
             value="org/knopflerfish/service/**"/>
 
+  <property name="bundle.implicit.imports.all"   value="false"/>
+
   <path id = "bundle.compile.path">
   </path>
 

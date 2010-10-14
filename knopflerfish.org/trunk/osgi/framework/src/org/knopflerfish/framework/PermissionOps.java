@@ -262,8 +262,11 @@ class PermissionOps {
      fwCtx.listeners.bundleChanged(evt);
   }
 
-  void callServiceChanged(final ServiceListener sl, final ServiceEvent evt) {
-     sl.serviceChanged(evt);
+  void callServiceChanged(final FrameworkContext fwCtx,
+                          final Collection receivers,
+                          final ServiceEvent evt,
+                          final Set matchBefore) {
+    fwCtx.listeners.serviceChanged(receivers, evt, matchBefore);
   }
 
   //
