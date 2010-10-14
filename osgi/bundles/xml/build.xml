@@ -26,9 +26,26 @@
   </target>
   
   <target name="bundle_doc" 
+	  depends="bundle_doc_overview"
 	  description="Builds doc for all bundles">
     <antcall target="doAntBuild">
       <param name="the.target" value="bundle_doc"/>
+    </antcall>
+  </target>
+
+  <property name="topdir" location="../.."/>
+  <import file="${topdir}/../ant/docbuild_include.xml"/>
+
+  <target name="bundle_doc_overview">
+    <!-- The root of the local bundle docs directory. -->
+    <property name = "docs.dir" location = "${topdir}/out/doc"/>
+    <antcall target="build_doc">
+      <param name="docbuild.name" value="xml_index"/>
+      <param name="docbuild.title" value="XML / xml"/>
+      <param name="docbuild.fromdir" location="doc"/>
+      <param name="docbuild.outdir"  location="${docs.dir}/xml_index"/>
+      <param name="docbuild.description"
+	     value="How to export a registered service as a Web Service using SOAP"/>
     </antcall>
   </target>
 
