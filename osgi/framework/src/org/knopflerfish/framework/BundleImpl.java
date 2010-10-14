@@ -2212,20 +2212,22 @@ public class BundleImpl implements Bundle {
   }
 
   HeaderDictionary getHeaders0(String locale) {
-    if (cachedRawHeaders == null) {
-      cachedRawHeaders = archive.getUnlocalizedAttributes();
-    }
+    synchronized (fwCtx.packages) {
+      if (cachedRawHeaders == null) {
+        cachedRawHeaders = archive.getUnlocalizedAttributes();
+      }
 
-    if ("".equals(locale)) {
-      return (HeaderDictionary)cachedRawHeaders.clone();
-    }
+      if ("".equals(locale)) {
+        return (HeaderDictionary)cachedRawHeaders.clone();
+      }
 
-    if (state == UNINSTALLED) {
-      return (HeaderDictionary)cachedHeaders.clone();
-    }
+      if (state == UNINSTALLED) {
+        return (HeaderDictionary)cachedHeaders.clone();
+      }
 
-    String base = (String)cachedRawHeaders.get(Constants.BUNDLE_LOCALIZATION);
-    return localize(getLocaleDictionary(locale, base));
+      String base = (String)cachedRawHeaders.get(Constants.BUNDLE_LOCALIZATION);
+      return localize(getLocaleDictionary(locale, base));
+    }
   }
 
 

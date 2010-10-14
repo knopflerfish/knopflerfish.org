@@ -403,12 +403,14 @@ public class StartLevelController
 
   void syncStartLevel(BundleImpl bs) {
     try {
+      if (fwCtx.debug.startlevel) {
+        fwCtx.debug.println("syncstartlevel: " + bs);
+      }
       synchronized(lock) {
         synchronized (fwCtx.packages) {
           if (bs.getStartLevel() <= currentLevel) {
-            if ( (bs.getState() == Bundle.INSTALLED
-                  || bs.getState() == Bundle.RESOLVED)
-                 && bs.archive.getAutostartSetting()!=-1) {
+            if ((bs.getState() & (Bundle.INSTALLED|Bundle.RESOLVED|Bundle.STOPPING)) != 0
+                && bs.archive.getAutostartSetting()!=-1) {
               if (fwCtx.debug.startlevel) {
                 fwCtx.debug.println("startlevel: start " + bs);
               }
@@ -419,8 +421,7 @@ public class StartLevelController
               bs.start(startOptions);
             }
           } else if (bs.getStartLevel() > currentLevel) {
-            if (bs.getState() == Bundle.ACTIVE ||
-                (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
+            if ((bs.getState() & (Bundle.ACTIVE|Bundle.STARTING)) != 0) {
               if (fwCtx.debug.startlevel) {
                 fwCtx.debug.println("startlevel: stop " + bs);
               }

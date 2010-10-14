@@ -520,10 +520,13 @@ class SecurePermissionOps extends PermissionOps {
       });
   }
 
-  void callServiceChanged(final ServiceListener sl, final ServiceEvent evt) {
+  void callServiceChanged(final FrameworkContext fwCtx,
+                          final Collection receivers,
+                          final ServiceEvent evt,
+                          final Set matchBefore) {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          sl.serviceChanged(evt);
+          fwCtx.listeners.serviceChanged(receivers, evt, matchBefore);
           return null;
         }
       });

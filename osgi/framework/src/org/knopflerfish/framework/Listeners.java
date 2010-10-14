@@ -370,27 +370,24 @@ class Listeners {
       if (matchBefore != null) {
         matchBefore.remove(l);
       }
-      boolean testAssignable = false;
-      if(!(l.listener instanceof AllServiceListener)){
-        testAssignable = true;
-      }
       try {
-        if (l.bc.bundle.hasPermission(new ServicePermission(sr, ServicePermission.GET))) {
+        if (!l.isRemoved()
+            && l.bc.bundle.hasPermission(new ServicePermission(sr, ServicePermission.GET))) {
+          boolean testAssignable = !(l.listener instanceof AllServiceListener);
           for (int i = 0; i < classes.length; i++) {
-            if(testAssignable && !sr.isAssignableTo(l.bc.bundle, classes[i])){
+            if (testAssignable && !sr.isAssignableTo(l.bc.bundle, classes[i])){
               continue;
             }
             try {
-              // TBD, lift secure operation outside loop?!
-              secure.callServiceChanged((ServiceListener)l.listener, evt);
+              ((ServiceListener)l.listener).serviceChanged(evt);
             } catch (Throwable pe) {
               frameworkError(l.bc, pe);
             }
             break;
           }
         }
-      } catch (Exception le) {
-        frameworkError(l.bc, le);
+      } catch (IllegalStateException ignore) {
+        // Bundle got UNINSTALLED, skip it
       }
     }
     if (framework.debug.ldap) {

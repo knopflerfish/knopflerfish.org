@@ -159,14 +159,18 @@ public class ServiceRegistrationImpl implements ServiceRegistration
           }
         }
       }
-      bundle.fwCtx.listeners
-        .serviceChanged(bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
-                        new ServiceEvent(ServiceEvent.MODIFIED, reference),
-                        before);
-      bundle.fwCtx.listeners
-        .serviceChanged(before,
-                        new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, reference),
-                        null);
+      bundle.fwCtx.perm
+        .callServiceChanged(bundle.fwCtx,
+                            bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+                            new ServiceEvent(ServiceEvent.MODIFIED, reference),
+                            before);
+      if (!before.isEmpty()) {
+        bundle.fwCtx.perm
+          .callServiceChanged(bundle.fwCtx,
+                              before,
+                              new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, reference),
+                              null);
+      }
     }
   }
 
@@ -191,10 +195,11 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     }
 
     if (null!=bundle) {
-      bundle.fwCtx.listeners
-        .serviceChanged(bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
-                        new ServiceEvent(ServiceEvent.UNREGISTERING, reference),
-                        null);
+      bundle.fwCtx.perm
+        .callServiceChanged(bundle.fwCtx,
+                            bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+                            new ServiceEvent(ServiceEvent.UNREGISTERING, reference),
+                            null);
     }
     synchronized (eventLock) {
       synchronized (properties) {
