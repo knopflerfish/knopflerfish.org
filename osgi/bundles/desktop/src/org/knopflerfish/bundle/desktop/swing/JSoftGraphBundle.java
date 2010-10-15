@@ -40,8 +40,12 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
   }
 
   void open() {
-    bc.addBundleListener(bundleListener);
-    bc.addServiceListener(serviceListener);
+    try {
+      bc.addBundleListener(bundleListener);
+      bc.addServiceListener(serviceListener);
+    } catch (IllegalStateException ise) {
+      // BundleContext no longer valid, nothing to do.
+    }
   }
 
   public void keyPressed(KeyEvent ev) {
@@ -50,7 +54,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
       long id = b.getBundleId();
       boolean bUpdate = false;
       switch(ev.getKeyCode()) {
-      case KeyEvent.VK_LEFT:        
+      case KeyEvent.VK_LEFT:
         id--;
         bUpdate = true;
         break;
@@ -62,7 +66,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
 
       if(bUpdate) {
         try {
-          Bundle b2 =  bc.getBundle(id);        
+          Bundle b2 =  bc.getBundle(id);
           Activator.desktop.setSelected(b2);
           jmb.setBundle(b2);
         } catch (Exception e) {
@@ -71,7 +75,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
       }
     }
   }
-    
+
 
   BundleNode selectedNode = null;
 
@@ -115,11 +119,15 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
     }
   }
 
-  public void close() {        
-    bc.removeBundleListener(bundleListener);
-    bc.removeServiceListener(serviceListener);
+  public void close() {
+    try {
+      bc.removeBundleListener(bundleListener);
+      bc.removeServiceListener(serviceListener);
+    } catch (IllegalStateException ise) {
+      // BundleContext no longer valid, nothing to do.
+    }
   }
-  
+
   void setBundle(Bundle b) {
     jmb.setTitle(b);
     if(b != this.b) {
@@ -171,17 +179,17 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
 
   Color selectedColor      = new Color(100, 100, 255);
   Color unselectedColor    = new Color(100, 200, 200, 180);
-  
-  void paintEmptyNode(Graphics2D g, 
+
+  void paintEmptyNode(Graphics2D g,
                       BundleSelectionModel bundleSelModel,
-                      Node node, 
+                      Node node,
                       Node hoverNode) {
     // noop
   }
 
-  void paintBundleNode(Graphics2D g, 
+  void paintBundleNode(Graphics2D g,
                        BundleSelectionModel bundleSelModel,
-                       BundleNode node, 
+                       BundleNode node,
                        Node hoverNode) {
     Point2D p = node.getPoint();
     if(p == null) {
@@ -190,7 +198,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
 
     Bundle b = node.getBundle();
     Dimension size = getSize();
-    
+
     AffineTransform oldTrans = g.getTransform();
 
     Icon icon = Util.getBundleIcon(b);
@@ -207,7 +215,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
     g.scale(f, f);
 
     boolean bSelected = bundleSelModel != null && bundleSelModel.isSelected(b.getBundleId());
-    
+
     paintNodeStart(g, node);
 
     if(fadestate != STATE_FADE) {
@@ -218,7 +226,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
           Composite oldComp = g.getComposite();
           g.setComposite(alphaHalf);
           g.setColor(selectedColor);
-          
+
           g.fillOval(-w/2, -h/2, w, h);
           g.setComposite(oldComp);
         } else {
@@ -227,7 +235,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
             Composite oldComp = g.getComposite();
             g.setComposite(alphaHalf);
             g.setColor(unselectedColor);
-            
+
             g.fillOval(-w/2, -h/2, w, h);
             g.setComposite(oldComp);
           }
@@ -237,7 +245,7 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
           Composite oldComp = g.getComposite();
           g.setComposite(alphaHalf);
           g.setColor(new Color(50, 50, 255));
-          
+
           g.drawOval(-w/2, -h/2, w, h);
           g.setComposite(oldComp);
         }
@@ -264,15 +272,14 @@ public abstract class JSoftGraphBundle extends JSoftGraph {
 
     if(bNeedText) {
       g.scale(1.0/f, 1.0/f);
-      paintString(g, "#" + b.getBundleId() + " " + Util.getBundleName(b), 
-                  20, icon.getIconHeight() + 4, 
+      paintString(g, "#" + b.getBundleId() + " " + Util.getBundleName(b),
+                  20, icon.getIconHeight() + 4,
                   false);
     }
-    
+
     g.setTransform(oldTrans);
     Util.setAntialias(g, false);
   }
 
 
 }
-
