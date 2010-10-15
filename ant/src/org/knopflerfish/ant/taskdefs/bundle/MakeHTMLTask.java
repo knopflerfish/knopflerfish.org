@@ -43,6 +43,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.Map.Entry;
+import java.util.Map;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -50,6 +52,8 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.FileUtils;
+
+import org.osgi.framework.Version;
 
 /**
  * <p>
@@ -149,6 +153,17 @@ import org.apache.tools.ant.util.FileUtils;
  *    No
  *   </td>
  *  </tr>
+ *  <tr>
+ *   <td>
+ *    javadocRelPath
+ *   </td>
+ *   <td>
+ *    Relative path (from outdir) to javadocs.
+ *   </td>
+ *   <td>
+ *    ../../javadoc
+ *   </td>
+ *  </tr>
  * </table>
  * <p>
  *  <b>Note:</b> instead of using the attributes <code>fromfile</code> and
@@ -173,6 +188,7 @@ public class MakeHTMLTask
   private String all_suffix = "_all";
   private String projectName = "";
   private boolean do_manpage = false;
+  private String javadocRelPath = "../../javadoc";
 
   /**
    * The source file
@@ -249,6 +265,10 @@ public class MakeHTMLTask
     this.disable = disabled;
   }
 
+  public void setJavadocRelPath(String s) {
+    this.javadocRelPath = s;
+  }
+
   public void addFileset(FileSet fs) {
     filesets.add(fs);
   }
@@ -318,6 +338,15 @@ public class MakeHTMLTask
         pathToRoot = pathToRoot + "/..";
       }
 
+      // Compute the relative path from directory holding the toFile
+      // to the javadoc direcotry.
+      String pathToOutDir = "";
+      tmp = new File(outdir, toFile).getParentFile();
+      while ((tmp = tmp.getParentFile()) != null && tmp.equals(outdir)) {
+        pathToOutDir = pathToOutDir + "../";
+      }
+      final String pathToJavadocDir = pathToOutDir + javadocRelPath;
+
       String content = Util.loadFile(template.toString());
       content = Util.replace(content, "$(LINKS)", links());
       content = Util.replace(content, "$(MAIN)", Util.loadFile(fromFile));
@@ -368,7 +397,7 @@ public class MakeHTMLTask
           epkgs = "";
         }
 
-        epkgs = Util.replace(epkgs, ",", "<br>");
+        epkgs = formatPkgsWithJavadocLinks(epkgs, pathToJavadocDir);
         content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", epkgs);
 
         // Replce H1-H3 headers to man page style, if manpage style
@@ -488,6 +517,55 @@ public class MakeHTMLTask
       sbuf.append(suffix);
       sbuf.append("</a><br>\n");
     }
+  }
+
+
+  static String replace(String src, String a, String b) {
+    return Util.replace(src, a, b == null ? "" : b);
+  }
+
+
+  private final String packageListRow = "${namelink}&nbsp;${version}<br/>\n";
+
+  private String formatPkgsWithJavadocLinks(final String epkgs,
+                                            final String pathToJavadoc)
+  {
+    String row = "";
+
+    // Maps pkgName -> version
+    Map epkgMap = BundleHTMLExtractorTask.parseNames(epkgs, false, null);
+    if (0<epkgMap.size()) {
+      row = packageListRow;
+      for (Iterator it = epkgMap.entrySet().iterator(); it.hasNext(); ) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final String pkg = (String) entry.getKey();
+        final Version version = (Version) entry.getValue();
+
+        String docFile = replace(pkg, ".", "/") +"/package-summary.html";
+        String docPath = pathToJavadoc +"/index.html?" +docFile;
+
+        File f = new File(outdir +File.separator
+                          +pathToJavadoc.replace('/', File.separatorChar)
+                          +File.separator
+                          +docFile.replace('/', File.separatorChar));
+
+        if(pathToJavadoc != null && !"".equals(pathToJavadoc)) {
+          if (!f.exists()) {
+            row = replace(row, "${namelink}", "${name}");
+          } else {
+            row = replace(row,
+                          "${namelink}",
+                          "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
+          }
+        } else {
+          row = replace(row, "${namelink}", "${name}");
+        }
+        row = replace(row, "${name}", pkg);
+        row = replace(row, "${version}", version.toString());
+        row = replace(row, "${javadoc}", docPath);
+      }
+    }
+    return row;
   }
 
 }

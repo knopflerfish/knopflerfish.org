@@ -991,53 +991,6 @@ public class BundleHTMLExtractorTask extends Task {
     }
 
 
-    Map parseNames(String s, boolean range, List optionals)
-    {
-      Map map = new TreeMap();
-
-      //System.out.println(file + ": " + s);
-      if(s != null) {
-        s = s.trim();
-        String[] lines = Util.splitwords(s, ",", '\"');
-        for(int i = 0; i < lines.length; i++) {
-          String[] words = Util.splitwords(lines[i].trim(), ";", '\"');
-          if(words.length < 1) {
-            throw new RuntimeException("bad package spec '" + s + "'");
-          }
-          String spec = "0";
-          String name = words[0].trim();
-
-          for(int j = 1; j < words.length; j++) {
-            String[] info = Util.splitwords(words[j], "=", '\"');
-
-            if(info.length == 2) {
-              if("specification-version".equals(info[0].trim())) {
-                spec = info[1].trim();
-              } else if("version".equals(info[0].trim())) {
-                spec = info[1].trim();
-              } else if (null!=optionals) {
-                if(info[0].endsWith(":")) {
-                  final String directive
-                    = info[0].substring(0,info[0].length()-1).trim();
-                  if ("resolution".equals(directive)
-                      && "optional".equals(info[1].trim())) {
-                    pkgImportOptional.add(name);
-                  }
-                }
-              }
-            }
-          }
-          if (range) {
-            map.put(name, new VersionRange(spec));
-          } else {
-            map.put(name, new Version(spec));
-          }
-        }
-      }
-
-      return map;
-    }
-
     public void writeInfo() throws IOException {
 
       String template = stdReplace(Util.load(getBundleInfoTemplate().getAbsolutePath()));
@@ -1409,6 +1362,62 @@ public class BundleHTMLExtractorTask extends Task {
   String replace(String src, String a, String b) {
     return Util.replace(src, a, b == null ? "" : b);
   }
+
+  /**
+   * Parse import/export package header.
+   * @param s The value of the header to parse.
+   * @param range if versions shall be parsed as ranges or not.
+   * @param optionals Optional list to add packages that are marked
+   *              with the directive resolution=optional.
+   * @return Mapping from package name to version/version range.
+   */
+  static Map parseNames(String s, boolean range, List optionals)
+  {
+    final Map map = new TreeMap();
+
+    //System.out.println(file + ": " + s);
+    if(s != null) {
+      s = s.trim();
+      final String[] lines = Util.splitwords(s, ",", '\"');
+      for(int i = 0; i < lines.length; i++) {
+        final String[] words = Util.splitwords(lines[i].trim(), ";", '\"');
+        if(words.length < 1) {
+          throw new RuntimeException("bad package spec '" + s + "'");
+        }
+        String spec = "0";
+        String name = words[0].trim();
+
+        for(int j = 1; j < words.length; j++) {
+          final String[] info = Util.splitwords(words[j], "=", '\"');
+
+          if(info.length == 2) {
+            if("specification-version".equals(info[0].trim())) {
+              spec = info[1].trim();
+            } else if("version".equals(info[0].trim())) {
+              spec = info[1].trim();
+            } else if (null!=optionals) {
+              if(info[0].endsWith(":")) {
+                final String directive
+                  = info[0].substring(0,info[0].length()-1).trim();
+                if ("resolution".equals(directive)
+                    && "optional".equals(info[1].trim())) {
+                  optionals.add(name);
+                }
+              }
+            }
+          }
+        }
+        if (range) {
+          map.put(name, new VersionRange(spec));
+        } else {
+          map.put(name, new Version(spec));
+        }
+      }
+    }
+
+    return map;
+  }
+
 
   /**
    * Comparator that sorts file objects based on their file name.
