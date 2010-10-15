@@ -114,7 +114,7 @@ public class BundleImpl implements Bundle {
   /**
    * Bundle JAR data.
    */
-  BundleArchive archive;
+  volatile BundleArchive archive;
 
   /**
    * Generation of BundlePackages.
@@ -178,12 +178,12 @@ public class BundleImpl implements Bundle {
   /**
    * Stores the default locale entries when uninstalled.
    */
-  private HeaderDictionary cachedHeaders = null;
+  volatile private HeaderDictionary cachedHeaders = null;
 
   /**
    * Stores the raw manifest headers.
    */
-  private HeaderDictionary cachedRawHeaders = null;
+  volatile private HeaderDictionary cachedRawHeaders = null;
 
   /**
    * True when this bundle has its activation policy
@@ -674,7 +674,7 @@ public class BundleImpl implements Bundle {
     throws BundleException
   {
     if (operation != IDLE) {
-      long left = longWait ? 2000 : 200;
+      long left = longWait ? 20000 : 500;
       long waitUntil = System.currentTimeMillis() + left;
       do {
         try {
@@ -892,6 +892,7 @@ public class BundleImpl implements Bundle {
     state = INSTALLED;
     ProtectionDomain oldProtectionDomain = protectionDomain;
     protectionDomain = secure.getProtectionDomain(this);
+    generation++;
     bpkgs = newBpkgs;
     doExportImport();
 
@@ -1031,10 +1032,10 @@ public class BundleImpl implements Bundle {
         }
 
         state = INSTALLED; 
+        bundleThread().bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
         cachedHeaders = getHeaders0(null);
         bpkgs = null;
         bactivator = null;
-        bundleThread().bundleChanged(new BundleEvent(BundleEvent.UNRESOLVED, this));
         // Purge old archive
         if (doPurge) {
           archive.purge();
@@ -1253,8 +1254,8 @@ public class BundleImpl implements Bundle {
   int getUpdatedState() {
     if (state == INSTALLED) {
       try {
+        // NYI, fix double locking
         synchronized (fwCtx.packages) {
-          waitOnOperation(fwCtx.packages, "Bundle.resolve", false);
           if (state == INSTALLED) {
           // NYI! check EE for fragments
             String ee = archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
@@ -2118,9 +2119,8 @@ public class BundleImpl implements Bundle {
    * @param localization_entries A mapping of localization variables to values.
    * @returns the updated dictionary.
    */
-  private HeaderDictionary localize(Dictionary localization_entries) {
-    HeaderDictionary localized = (HeaderDictionary)cachedRawHeaders.clone();
-
+  private HeaderDictionary localize(final HeaderDictionary localized,
+                                    final Dictionary localization_entries) {
     if (localization_entries != null) {
       for (Enumeration e = localized.keys();
            e.hasMoreElements(); ) {
@@ -2212,22 +2212,34 @@ public class BundleImpl implements Bundle {
   }
 
   HeaderDictionary getHeaders0(String locale) {
-    synchronized (fwCtx.packages) {
-      if (cachedRawHeaders == null) {
-        cachedRawHeaders = archive.getUnlocalizedAttributes();
-      }
-
-      if ("".equals(locale)) {
-        return (HeaderDictionary)cachedRawHeaders.clone();
-      }
-
-      if (state == UNINSTALLED) {
-        return (HeaderDictionary)cachedHeaders.clone();
-      }
-
-      String base = (String)cachedRawHeaders.get(Constants.BUNDLE_LOCALIZATION);
-      return localize(getLocaleDictionary(locale, base));
+    BundleArchive tmpArchive = archive;
+    HeaderDictionary tmp = cachedRawHeaders;
+    HeaderDictionary res;
+    if (tmp == null) {
+      tmp = tmpArchive.getUnlocalizedAttributes();
+      cachedRawHeaders = tmp;
     }
+    if ("".equals(locale)) {
+      return (HeaderDictionary)tmp.clone();
+    }
+    if (cachedHeaders == null) {
+      String base = (String)tmp.get(Constants.BUNDLE_LOCALIZATION);
+      try {
+        res = localize((HeaderDictionary)tmp.clone(),
+                       getLocaleDictionary(locale, base));
+        // Check if we have been updated during operation,
+        // if so fetch again.
+        if (tmpArchive != archive) {
+          return getHeaders0(locale);
+        }
+        return res;
+      } catch (Exception gotUninstalled) {
+        // We assume that we got an exception because we got
+        // uninstalled during the operation and fall through
+        // to the cached version saved during uninstall.
+      } 
+    }
+    return (HeaderDictionary)cachedHeaders.clone();
   }
 
 
@@ -2245,6 +2257,8 @@ public class BundleImpl implements Bundle {
       }
     }
   }
+
+
   /**
    *
    * @see org.osgi.framework.Bundle#getResources(String name)

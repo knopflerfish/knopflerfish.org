@@ -70,8 +70,8 @@ class BundleThread extends Thread {
 
 
   public void run() {
-    synchronized (lock) {
-      while (true) {
+    while (true) {
+      synchronized (lock) {
         while (lock != null && operation == OP_IDLE) {
           try {
             lock.wait(KEEP_ALIVE);
@@ -104,13 +104,14 @@ class BundleThread extends Thread {
             tmpres = bundle.stop1();
             break;
           }
-        } finally {
-          operation = OP_IDLE;
-          res = tmpres;
-          synchronized (fwCtx.packages) {
-            fwCtx.packages.notifyAll();
-          }
+        } catch (Throwable t) {
+          fwCtx.listeners.frameworkError(bundle, t);
         }
+        operation = OP_IDLE;
+        res = tmpres;
+      }
+      synchronized (fwCtx.packages) {
+        fwCtx.packages.notifyAll();
       }
     }
   }
@@ -121,7 +122,7 @@ class BundleThread extends Thread {
    */
   void bundleChanged(final BundleEvent be) {
     this.be = be;
-    startAndWait(OP_BUNDLE_EVENT);
+    startAndWait((BundleImpl)be.getBundle(), OP_BUNDLE_EVENT);
   }
 
 
@@ -129,8 +130,7 @@ class BundleThread extends Thread {
    * Note! Must be called while holding packages lock.
    */
   BundleException callStart0(final BundleImpl b) {
-    bundle = b;
-    return (BundleException)startAndWait(OP_START);
+    return (BundleException)startAndWait(b, OP_START);
   }
 
 
@@ -138,17 +138,17 @@ class BundleThread extends Thread {
    * Note! Must be called while holding packages lock.
    */
   BundleException callStop1(final BundleImpl b) {
-    bundle = b;
-    return (BundleException)startAndWait(OP_STOP);
+    return (BundleException)startAndWait(b, OP_STOP);
   }
 
 
   /**
    * Note! Must be called while holding packages lock.
    */
-  private Object startAndWait(final int op) {
+  private Object startAndWait(final BundleImpl b, final int op) {
     synchronized (lock) {
       res = Boolean.FALSE;
+      bundle = b;
       operation = op;
       lock.notifyAll();
     }
