@@ -41,13 +41,19 @@ import java.io.PrintStream;
 import java.net.URL;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import org.knopflerfish.service.log.LogConfig;
 import org.knopflerfish.service.log.LogUtil;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -69,7 +75,9 @@ import org.osgi.service.cm.ManagedService;
  * If both exist the property is read-write. *
  */
 
-class LogConfigImpl implements ManagedService, LogConfig {
+class LogConfigImpl
+  implements ManagedService, LogConfig, BundleListener
+{
 
   static BundleContext bc;
 
@@ -120,17 +128,36 @@ class LogConfigImpl implements ManagedService, LogConfig {
 
   private final static int FILTER_POS = 1;
 
+
+  // Local constant copies to avoid having to write fully qulified
+  // names in the code below (the LogService here is
+  // org.knopflerfish.service.LogService).
+  static final int LOG_ERROR   = org.osgi.service.log.LogService.LOG_ERROR;
+  static final int LOG_WARNING = org.osgi.service.log.LogService.LOG_WARNING;
+  static final int LOG_INFO    = org.osgi.service.log.LogService.LOG_INFO;
+  static final int LOG_DEBUG   = org.osgi.service.log.LogService.LOG_DEBUG;
+
+
   /* Variables containing configuration. */
   private File dir;
 
   private Hashtable configCollection;
 
-  private HashMap blFilters = new HashMap();
+  // Mapping from bundle pattern
+  // (location/BundleSymbolicName/BundleName) to log level (Integer),
+  // each entry in this map corresponds to an entry in the
+  // actual configuration.
+  private final HashMap blFilters = new HashMap();
+
+  // Mapping from bundle id to log level. This is a cache computed
+  // by evaluate all installed bundles against the current blFilters
+  private final Map bidFilters = new HashMap();
 
   private LogReaderServiceFactory logReaderCallback;
 
   public LogConfigImpl(BundleContext bc) {
     this.bc = bc;
+    bc.addBundleListener(this);
     start();
   }
 
@@ -156,6 +183,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
   }
 
   void stop() {
+    bc.removeBundleListener(this);
     this.logReaderCallback = null;
   }
 
@@ -215,7 +243,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
   public synchronized void setFilter(int filter) {
     int oldFilter = getFilter();
     if (filter == 0) {
-      filter = org.osgi.service.log.LogService.LOG_WARNING;
+      filter = LOG_WARNING;
     }
     if (filter != oldFilter) {
       set(L_FILTER, LogUtil.fromLevel(filter));
@@ -229,8 +257,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
    * @see org.knopflerfish.service.log.LogConfig#getFilter()
    */
   public int getFilter() {
-    return LogUtil.toLevel((String) get(L_FILTER),
-                           org.osgi.service.log.LogService.LOG_WARNING);
+    return LogUtil.toLevel((String) get(L_FILTER), LOG_WARNING);
   }
 
   /*
@@ -241,16 +268,16 @@ class LogConfigImpl implements ManagedService, LogConfig {
    */
   public synchronized void setFilter(String bundleLocation, int filter) {
     bundleLocation = bundleLocation.trim();
-    synchronized (blFilters) {
-      Integer f = (Integer) blFilters.get(bundleLocation);
-      if (filter == 0 && f != null) {
-        blFilters.remove(bundleLocation);
-        setCollection(true, bundleLocation, filter);
-      } else if ((f != null && filter != f.intValue()) || f == null) {
-        blFilters.put(bundleLocation, new Integer(filter));
-        setCollection(false, bundleLocation, filter);
-      }
+
+    Integer f = (Integer) blFilters.get(bundleLocation);
+    if (filter == 0 && f != null) {
+      blFilters.remove(bundleLocation);
+      setCollection(true, bundleLocation, filter);
+    } else if ((f != null && filter != f.intValue()) || f == null) {
+      blFilters.put(bundleLocation, new Integer(filter));
+      setCollection(false, bundleLocation, filter);
     }
+    computeBidFilters();
   }
 
   /*
@@ -393,30 +420,24 @@ class LogConfigImpl implements ManagedService, LogConfig {
     return ((Boolean) get(FLUSH)).booleanValue();
   }
 
-  /*
-   * Implement method which checks if a bundle has a specific loglevel and
-   * return to ReaderFactory.
+  /**
+   * Return the log filter level for the given bundle.
    */
-
   int getLevel(Bundle bundle) {
-    Integer level;
-    synchronized (blFilters) {
-      level = (Integer) blFilters.get(bundle.getLocation());
-      if (level == null) {
-        Dictionary d = bundle.getHeaders("");
-        String l = (String)d.get("Bundle-SymbolicName");
-        if (l == null) {
-          l = (String)d.get("Bundle-Name");
-        }
-        if (l != null) {
-          level = (Integer) blFilters.get(l);
-        }
-      }
+    final Long key = new Long(bundle.getBundleId());
+    Integer level = null;
+    synchronized (bidFilters) {
+      level = (Integer) bidFilters.get(key);
     }
+
+    // final PrintStream out = (null!=origOut) ? origOut : System.out;
+    // out.println("LogConfigImpl.getLevel(" +key +"): " +level);
+
     return (level != null) ? level.intValue() : getFilter();
   }
 
-  static String[] getBL(Object obj) {
+  static String[] getBL(Object obj)
+  {
     String bundleStr = (String) obj;
     String[] bundle = new String[] { null, null };
     int ix = bundleStr.indexOf(";");
@@ -424,13 +445,73 @@ class LogConfigImpl implements ManagedService, LogConfig {
       bundle[0] = bundleStr.substring(0, ix).trim();
       bundle[1] = bundleStr.substring(ix + 1).trim();
     } catch (Exception e) {
-      throw new IllegalArgumentException(
-                                         "Bundle entries must be in the format location;level");
+      throw new IllegalArgumentException
+        ("Bundle entries must be in the format location;level");
     }
     return bundle;
   }
 
-  private void setCollection(boolean remove, String bundleLocation, int filter) {
+  // (Re-)compute the cache bidFilters from blFilters and the current
+  // set of bundles.
+  private void computeBidFilters()
+  {
+    final Bundle[] bundles = bc.getBundles();
+    synchronized (bidFilters) {
+      bidFilters.clear();
+      for (int i = bundles.length-1; 0<=i; i--) {
+        final Bundle bundle = bundles[i];
+        computeBidFilter(bundle);
+      }
+    }
+  }
+
+  /**
+   * Compute and cache a bidFilter entry from blFilters for the given
+   * bundle.
+   *
+   * @param bundle The bundle to update the cached log level for.
+   */
+  private void computeBidFilter(final Bundle bundle)
+  {
+    Integer level = (Integer) blFilters.get(bundle.getLocation());
+    if (null==level) {
+      final Dictionary d = bundle.getHeaders("");
+      String l = (String)d.get("Bundle-SymbolicName");
+      if (null==l) {
+        l = (String)d.get("Bundle-Name");
+      }
+      if (null!=l) {
+        level = (Integer) blFilters.get(l);
+      }
+    }
+    if (null!=level) {
+      final Long key = new Long(bundle.getBundleId());
+      bidFilters.put(key, level);
+    }
+  }
+
+  // Implements BundleListener
+  public void bundleChanged(BundleEvent event)
+  {
+    switch (event.getType()) {
+    case BundleEvent.INSTALLED: // Fall through
+    case BundleEvent.UPDATED:
+      synchronized(bidFilters) {
+        computeBidFilter(event.getBundle());
+      }
+      break;
+    case BundleEvent.UNINSTALLED:
+      final Long key = new Long(event.getBundle().getBundleId());
+      synchronized(bidFilters) {
+        bidFilters.remove(key);
+      }
+      break;
+    default:
+    }
+  }
+
+  private void setCollection(boolean remove, String bundleLocation, int filter)
+  {
     synchronized (configCollection) {
       Vector v = (Vector) configCollection.get(BL_FILTERS);
       String[] bundF;
@@ -456,17 +537,20 @@ class LogConfigImpl implements ManagedService, LogConfig {
     }
   }
 
-  boolean getGrabIO() {
+  boolean getGrabIO()
+  {
     return ((Boolean) get(GRABIO)).booleanValue();
   }
 
-  private Object get(String key) {
+  private Object get(String key)
+  {
     synchronized (configCollection) {
       return configCollection.get(key);
     }
   }
 
-  private void set(String key, Object value) {
+  private void set(String key, Object value)
+  {
     synchronized (configCollection) {
       configCollection.put(key, value);
     }
@@ -474,7 +558,8 @@ class LogConfigImpl implements ManagedService, LogConfig {
 
   /** **************** Called from set methods ********************* */
 
-  private void updateConfig() {
+  private void updateConfig()
+  {
     try {
       ServiceReference sr = bc
         .getServiceReference(ConfigurationAdmin.class.getName());
@@ -498,21 +583,21 @@ class LogConfigImpl implements ManagedService, LogConfig {
   /* Initializes configuration */
   /* ======================================================================== */
 
-  private Hashtable getDefault() {
+  private Hashtable getDefault()
+  {
     Hashtable ht = new Hashtable();
     Vector bundleLogFilters = new Vector();
     String o = getProperty(PROP_LOG_OUT, "false");
 
-    String levelStr = getProperty(PROP_LOG_LEVEL, LogUtil
-                                  .fromLevel(org.osgi.service.log.LogService.LOG_WARNING));
+    String levelStr = getProperty(PROP_LOG_LEVEL,
+                                  LogUtil.fromLevel(LOG_WARNING));
 
     ht.put(L_FILTER, levelStr);
     ht.put(MEM, getIntegerProperty(PROP_LOG_MEMORY_SIZE, new Integer(250)));
     ht.put(OUT, new Boolean(("true".equalsIgnoreCase(o)) ? true : false));
-    ht.put(GRABIO, new Boolean(("true".equalsIgnoreCase(getProperty(
-                                                                    PROP_LOG_GRABIO, "false")) ? true : false)));
-    ht.put(FILE, new Boolean(("true".equalsIgnoreCase(getProperty(
-                                                                  PROP_LOG_FILE, "false")) ? true : false)));
+    ht.put(GRABIO,
+           new Boolean(("true".equalsIgnoreCase(getProperty(PROP_LOG_GRABIO,"false")) ? true : false)));
+    ht.put(FILE, new Boolean(("true".equalsIgnoreCase(getProperty(PROP_LOG_FILE, "false")) ? true : false)));
     String dirStr = getProperty(PROP_LOG_FILE_DIR,null);
     if (dirStr != null)
       ht.put(DIR, dirStr);
@@ -525,7 +610,8 @@ class LogConfigImpl implements ManagedService, LogConfig {
     return ht;
   }
 
-  static String getProperty(String key, String def) {
+  static String getProperty(String key, String def)
+  {
     String result = def;
     try {
       result = bc.getProperty(key);
@@ -539,7 +625,8 @@ class LogConfigImpl implements ManagedService, LogConfig {
     return result;
   }
 
-  static Integer getIntegerProperty(String key, Integer def) {
+  static Integer getIntegerProperty(String key, Integer def)
+  {
     Integer result = def;
     try {
       final String str = bc.getProperty(key);
@@ -583,11 +670,13 @@ class LogConfigImpl implements ManagedService, LogConfig {
 
   LogReaderServiceFactory lsrf;
 
-  void setLogReaderServiceFactory(LogReaderServiceFactory lsrf) {
+  void setLogReaderServiceFactory(LogReaderServiceFactory lsrf)
+  {
     this.lsrf = lsrf;
   }
 
-  void updateGrabIO() {
+  void updateGrabIO()
+  {
     boolean bDebugClass = "true".equals
       (getProperty("org.knopflerfish.framework.debug.classloader", "false"));
     if (!bDebugClass) {
@@ -599,21 +688,21 @@ class LogConfigImpl implements ManagedService, LogConfig {
     }
   }
 
-  void grabIO() {
+  void grabIO()
+  {
     if (!getOut()) {
       if (!bGrabbed) {
         origOut = System.out;
         origErr = System.err;
-        System.setOut(new WrapStream("[stdout] ", System.out,
-                                     org.osgi.service.log.LogService.LOG_INFO));
-        System.setErr(new WrapStream("[stderr] ", System.out,
-                                     org.osgi.service.log.LogService.LOG_ERROR));
+        System.setOut(new WrapStream("[stdout] ", System.out, LOG_INFO));
+        System.setErr(new WrapStream("[stderr] ", System.out, LOG_ERROR));
         bGrabbed = true;
       }
     }
   }
 
-  void ungrabIO() {
+  void ungrabIO()
+  {
     if (bGrabbed) {
       System.setOut(origOut);
       System.setErr(origErr);
@@ -621,38 +710,46 @@ class LogConfigImpl implements ManagedService, LogConfig {
     }
   }
 
-  class WrapStream extends PrintStream {
+  class WrapStream
+    extends PrintStream
+  {
     String prefix;
 
     int level;
 
-    WrapStream(String prefix, PrintStream out, int level) {
+    WrapStream(String prefix, PrintStream out, int level)
+    {
       super(out);
       this.prefix = prefix;
       this.level = level;
     }
 
-    public void println(String s) {
+    public void println(String s)
+    {
       super.print(prefix);
       super.println(s);
       log(s);
     }
 
-    public void print(String s) {
+    public void print(String s)
+    {
       super.print(s);
     }
 
-    public void println(Object x) {
+    public void println(Object x)
+    {
       super.print(prefix);
       super.println(x);
       log("" + x);
     }
 
-    public void print(Object x) {
+    public void print(Object x)
+    {
       super.print(x);
     }
 
-    void log(String s) {
+    void log(String s)
+    {
       if (s != null && -1 != s.indexOf(prefix)) {
         return;
       }
@@ -674,8 +771,9 @@ class LogConfigImpl implements ManagedService, LogConfig {
    * used for ALL properties, i.e., no property will be set if one item in the
    * configuration is invalid.
    */
-  private void checkValidity(Dictionary cfg) throws ConfigurationException,
-                                                    IllegalArgumentException {
+  private void checkValidity(Dictionary cfg)
+    throws ConfigurationException, IllegalArgumentException
+  {
     boolean valid = false;
     Hashtable rollBack = (Hashtable) configCollection.clone();
     try {
@@ -717,8 +815,9 @@ class LogConfigImpl implements ManagedService, LogConfig {
   }
 
   /* Check log level property for faults. */
-  private void checkLogLevel(Dictionary cfg) throws ConfigurationException,
-                                                    IllegalArgumentException {
+  private void checkLogLevel(Dictionary cfg)
+    throws ConfigurationException, IllegalArgumentException
+  {
     String filter = null;
     Object obj = cfg.get(L_FILTER);
     if (obj == null) {
@@ -739,8 +838,7 @@ class LogConfigImpl implements ManagedService, LogConfig {
                                        + filter + ">.");
     }
     if (filterVal == 0) {
-      cfg.put(L_FILTER, LogUtil
-              .fromLevel(org.osgi.service.log.LogService.LOG_WARNING));
+      cfg.put(L_FILTER, LogUtil.fromLevel(LOG_WARNING));
     }
   }
 
@@ -806,21 +904,23 @@ class LogConfigImpl implements ManagedService, LogConfig {
 
   /*
    * Called when an incoming configuration seems correct. Should the
-   * checkChange method throw an exception the configuration will be reset to
-   * the former valid state.
+   * checkChange method throw an exception the configuration will be
+   * reset to the former valid state.
    */
-  private void acceptConfig(Dictionary cfg) {
+  private void acceptConfig(Dictionary cfg)
+  {
     firstValid = DEFAULT_CONFIG;
     DEFAULT_CONFIG = false;
     checkChange(cfg);
   }
 
   /*
-   * Checking which property actually changed. Called once the validity of the
-   * incoming configuration has been checked. If some property changed notify
-   * about change.
+   * Checking which property actually changed. Called once the
+   * validity of the incoming configuration has been checked. If some
+   * property changed notify about change.
    */
-  private void checkChange(Dictionary cfg) {
+  private void checkChange(Dictionary cfg)
+  {
     setFilterCfg((Vector) cfg.get(BL_FILTERS));
     Object newV = null;
     if ((newV = diff(L_FILTER, cfg)) != null) {
@@ -832,8 +932,9 @@ class LogConfigImpl implements ManagedService, LogConfig {
     }
     if ((newV = diff(OUT, cfg)) != null) {
       if (DEFAULT_CONFIG) {
-        set(OUT, "true".equalsIgnoreCase(getProperty(PROP_LOG_OUT,
-                                                     "false")) ? Boolean.TRUE : Boolean.FALSE);
+        final String pValue = getProperty(PROP_LOG_OUT, "false");
+        set(OUT,
+            "true".equalsIgnoreCase(pValue) ? Boolean.TRUE : Boolean.FALSE);
       } else {
         set(OUT, newV);
       }
@@ -881,41 +982,49 @@ class LogConfigImpl implements ManagedService, LogConfig {
    * Check bundle log level and see if changes has been made. If so change
    * internal representation of bundle log levels.
    */
-  private void setFilterCfg(Vector newV) {
+  private void setFilterCfg(Vector newV)
+  {
     if (newV != null) {
       String[] bundle = null;
       int newFilter = -1;
+      Set newKeys = new HashSet();
       HashMap tmpFilters = new HashMap();
       for (int i = 0; (i < newV.size()); i++) {
         bundle = getBL(newV.elementAt(i));
-        newFilter = LogUtil.toLevel((bundle[FILTER_POS].trim()),
-                                    org.osgi.service.log.LogService.LOG_WARNING);
-        tmpFilters.put(bundle[LOCATION_POS], new Integer(newFilter));
+        newFilter = LogUtil.toLevel((bundle[FILTER_POS].trim()), LOG_WARNING);
+        blFilters.put(bundle[LOCATION_POS], new Integer(newFilter));
+        newKeys.add(bundle[LOCATION_POS]);
       }
-      synchronized (blFilters) {
-        blFilters = tmpFilters;
+      // Remove obsolete bl filter mappings.
+      Set obsoleteKeys = new HashSet(blFilters.keySet());
+      obsoleteKeys.removeAll(newKeys);
+      for (Iterator okit = obsoleteKeys.iterator(); okit.hasNext(); ) {
+        blFilters.remove(okit.next());
       }
       set(BL_FILTERS, newV);
+      computeBidFilters();
     }
   }
 
-  private Object diff(String key, Dictionary cfg) {
+  private Object diff(String key, Dictionary cfg)
+  {
     Object newV = null;
-    return ((newV = cfg.get(key)) != null && !newV.equals(configCollection
-                                                          .get(key))) ? newV : null;
+    return ((newV = cfg.get(key)) != null
+            && !newV.equals(configCollection.get(key))) ? newV : null;
   }
 
-  private void notify(String key, Object newV) {
+  private void notify(String key, Object newV)
+  {
     if (logReaderCallback != null) {
       logReaderCallback
         .configChange(key, configCollection.get(key), newV);
     }
   }
 
-  private void log(String msg) {
+  private void log(String msg)
+  {
     if (logReaderCallback != null) {
-      logReaderCallback.log(new LogEntryImpl(bc.getBundle(),
-                                             org.osgi.service.log.LogService.LOG_INFO, msg));
+      logReaderCallback.log(new LogEntryImpl(bc.getBundle(), LOG_INFO, msg));
     }
   }
 }
