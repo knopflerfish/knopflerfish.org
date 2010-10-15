@@ -2214,7 +2214,6 @@ public class BundleImpl implements Bundle {
   HeaderDictionary getHeaders0(String locale) {
     BundleArchive tmpArchive = archive;
     HeaderDictionary tmp = cachedRawHeaders;
-    HeaderDictionary res;
     if (tmp == null) {
       tmp = tmpArchive.getUnlocalizedAttributes();
       cachedRawHeaders = tmp;
@@ -2225,19 +2224,25 @@ public class BundleImpl implements Bundle {
     if (cachedHeaders == null) {
       String base = (String)tmp.get(Constants.BUNDLE_LOCALIZATION);
       try {
-        res = localize((HeaderDictionary)tmp.clone(),
-                       getLocaleDictionary(locale, base));
-        // Check if we have been updated during operation,
+        HeaderDictionary res = localize((HeaderDictionary)tmp.clone(),
+                                        getLocaleDictionary(locale, base));
+        // Check if we have changed state during operation,
         // if so fetch again.
-        if (tmpArchive != archive) {
-          return getHeaders0(locale);
+        if (tmpArchive == archive) {
+          return res;
         }
-        return res;
-      } catch (Exception gotUninstalled) {
+      } catch (Exception e) {
         // We assume that we got an exception because we got
-        // uninstalled during the operation and fall through
-        // to the cached version saved during uninstall.
-      } 
+        // state change during the operation. Check!
+        if (tmpArchive == archive) {
+          throw (RuntimeException)e;
+        }
+      }
+      // If we went to uninstalled, then use saved value.
+      // Otherwise try again
+      if (cachedHeaders == null) {
+        return getHeaders0(locale);
+      }
     }
     return (HeaderDictionary)cachedHeaders.clone();
   }
