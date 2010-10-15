@@ -261,18 +261,17 @@ public class PackageAdminImpl implements PackageAdmin {
       // Stop affected bundles and remove their classloaders
       // in reverse start order
       for (int bx = bi.length; bx-- > 0; ) {
-        Exception be = null;
         if (bi[bx].state == Bundle.ACTIVE || bi[bx].state == Bundle.STARTING) {
           startList.add(0, bi[bx]);
           try {
             bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", false);
-            be = bi[bx].stop0();
-          } catch (BundleException we) {
-            be = we;
+            Exception be = bi[bx].stop0();
+            if (be != null) {
+              fwCtx.listeners.frameworkError(bi[bx], be);
+            }
+          } catch (BundleException ignore) {
+            // Wait failed, we will try again
           }
-        }
-        if (be != null) {
-          fwCtx.listeners.frameworkError(bi[bx], be);
         }
       }
 
@@ -284,11 +283,22 @@ public class PackageAdminImpl implements PackageAdmin {
         switch (bi[bx].state) {
         case Bundle.STARTING:
         case Bundle.ACTIVE:
-          try {
-            bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", false);
-            be = bi[bx].stop0();
-          } catch (BundleException we) {
-            be = we;
+          // Bundle must stop before we can continue
+          // We could hang forever here.
+          while (true) {
+            try {
+              bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", true);
+              break;
+            } catch (BundleException we) {
+              if (fwCtx.debug.packages) {
+                fwCtx.debug.println("PackageAdminImpl.refreshPackages() timeout on bundle stop, retry...");
+              }
+              fwCtx.listeners.frameworkWarning(bi[bx], we);
+            }
+          }
+          be = bi[bx].stop0();
+          if (be != null) {
+            fwCtx.listeners.frameworkError(bi[bx], be);
           }
           if (nextStart != bi[bx]) {
             startList.add(startPos + 1, bi[bx]);
@@ -306,9 +316,6 @@ public class PackageAdminImpl implements PackageAdmin {
           break;
         }
         bi[bx].purge();
-        if (be != null) {
-          fwCtx.listeners.frameworkError(bi[bx], be);
-        }
       }
     }
     if (fwCtx.debug.packages) {

@@ -266,11 +266,22 @@ class Listeners {
   /**
    * Convenience method for throwing framework info event.
    *
-   * @param b Bundle which caused the error.
+   * @param b Bundle which caused the throwable.
    * @param t Throwable generated.
    */
   void frameworkInfo(Bundle b, Throwable t) {
     frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t));
+  }
+
+
+  /**
+   * Convenience method for throwing framework warning event.
+   *
+   * @param b Bundle which caused the throwable.
+   * @param t Throwable generated.
+   */
+  void frameworkWarning(Bundle b, Throwable t) {
+    frameworkEvent(new FrameworkEvent(FrameworkEvent.WARNING, b, t));
   }
 
 

@@ -10,7 +10,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-  Framework 5.1.5
+  Framework 5.1.6
+
+  - Always wait for stop operations to complete before continuing.
 
   - Fixed bug with call to removed a removed service listener.
 
