@@ -377,6 +377,8 @@ public class MakeHTMLTask
       content = Util.replace(content, "$(SVN_REPO_URL)",
                              proj.getProperty("svn.repo.url"));
       content = Util.replace(content, "$(SVN_TAG)",proj.getProperty("svn.tag"));
+      content = Util.replace(content, "$(JAVADOCPATH)", pathToJavadocDir);
+      content = Util.replace(content, "$(JAVADOCLINK)", pathToJavadocDir + "/index.html?");
 
       // Used for bundle_doc generation
       if (do_manpage) {
@@ -391,7 +393,7 @@ public class MakeHTMLTask
         generateJardocPath(sbuf, "do_build_all", all_suffix);
         generateJardocPath(sbuf, "do_build_impl", impl_suffix);
         content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
-
+	
         String epkgs = proj.getProperty("bmfa.Export-Package");
         if ("[bundle.emptystring]".equals(epkgs)) {
           epkgs = "";
