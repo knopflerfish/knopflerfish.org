@@ -41,7 +41,7 @@
     <property name = "docs.dir" location = "${topdir}/out/doc"/>
     <antcall target="build_doc">
       <param name="docbuild.name" value="xml_index"/>
-      <param name="docbuild.title" value="XML / xml"/>
+      <param name="docbuild.title" value="XML parsers in Knopflerfish"/>
       <param name="docbuild.fromdir" location="doc"/>
       <param name="docbuild.outdir"  location="${docs.dir}/xml_index"/>
       <param name="docbuild.description"

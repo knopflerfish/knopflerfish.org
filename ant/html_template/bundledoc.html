@@ -4,8 +4,16 @@
     <link href="../../css/knopflerfish.css" rel="stylesheet" type="text/css">
     <link href="../../css/kf_man.css" rel="stylesheet" type="text/css">
     <title>Bundle User Documentation - $(BUNDLE_NAME), v$(BUNDLE_VERSION)</title>
+    <script type="text/javascript">
+      function windowTitle() {
+        if (location.href.indexOf('is-external=true') == -1) {
+           parent.document.title=document.title;
+        }
+      }
+    </script>
+    <noscript></noscript>
   </head>
-  <body class="mainblock">
+  <body class="mainblock" onload="windowTitle();">
     <div class="manpage">
       <div class="userdoc_hdr_left">
 	Bundle: $(BUNDLE_NAME)
@@ -14,6 +22,7 @@
 	Version $(BUNDLE_VERSION)
       </div>
       $(MAIN)
+
       <h2>Bundle Jar docs</h2>
       $(BUNDLE_JARDOCS)
 
