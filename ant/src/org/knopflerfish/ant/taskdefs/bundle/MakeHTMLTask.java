@@ -35,7 +35,9 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,6 +52,8 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.taskdefs.Manifest;
+import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.FileUtils;
 
@@ -393,13 +397,9 @@ public class MakeHTMLTask
         generateJardocPath(sbuf, "do_build_all", all_suffix);
         generateJardocPath(sbuf, "do_build_impl", impl_suffix);
         content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
-	
-        String epkgs = proj.getProperty("bmfa.Export-Package");
-        if ("[bundle.emptystring]".equals(epkgs)) {
-          epkgs = "";
-        }
 
-        epkgs = formatPkgsWithJavadocLinks(epkgs, pathToJavadocDir);
+        final String epkgs
+          = formatPkgsWithJavadocLinks(getExports(), pathToJavadocDir);
         content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", epkgs);
 
         // Replce H1-H3 headers to man page style, if manpage style
@@ -527,30 +527,94 @@ public class MakeHTMLTask
   }
 
 
-  private final String packageListRow = "${namelink}&nbsp;${version}<br/>\n";
+  // Get the value of the export package manifest header for this bundle.
+  private String getExports()
+  {
+    final Project proj = getProject();
 
+    // First try to get Export-Package header from the generated manifests
+    final String outdirS = proj.getProperty("outdir");
+    if (null!=outdirS && 0<outdirS.length()) {
+      final File outdir = new File(outdirS);
+      final String[] mfFileNames = { "api.mf", "lib.mf", "all.mf", "impl.mf" };
+      for (int i = 0; i<mfFileNames.length; i++) {
+        final File mfFile = new File(outdir, mfFileNames[i]);
+        if (mfFile.exists()) {
+          InputStreamReader ir = null;
+          try {
+            final FileInputStream   is = new FileInputStream(mfFile);
+            ir = new InputStreamReader(is, "UTF-8");
+            final Manifest mf = new Manifest(ir);
+            final Manifest.Attribute attr
+              = mf.getMainSection().getAttribute("Export-Package");
+            if (null!=attr) {
+              final String value = attr.getValue();
+              if (null!=value && 0<value.length()) {
+                return value;
+              }
+            }
+          } catch (ManifestException me) {
+            throw new BuildException("Manifest file " + mfFile + " is invalid",
+                                     me, getLocation());
+          } catch (IOException ioe) {
+            throw new BuildException("Failed to read " + mfFile,
+                                     ioe, getLocation());
+          } finally {
+            if (ir != null) {
+              try {
+                ir.close();
+              } catch (IOException e) {
+                // ignore
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback to the value from the template manifest.
+    String res = proj.getProperty("bmfa.Export-Package");
+    if ("[bundle.emptystring]".equals(res)) {
+      res = "";
+    }
+    return res;
+  }
+
+  /** Template row for an exported package. */
+  private static final String packageListRow
+    = "${namelink}&nbsp;${version}<br/>\n";
+
+  /**
+   * Create one row in the output for each exported package. The
+   * format of the row is determined by {@link #packageListRow}.
+   *
+   * @param epkgs The value of the "Export-Package" attribute to
+   *              present.
+   * @param pathToJavadoc Relative path from the output directory to
+   *              the root of the javadoc tree to link to.
+   */
   private String formatPkgsWithJavadocLinks(final String epkgs,
                                             final String pathToJavadoc)
   {
-    String row = "";
+    final StringBuffer res = new StringBuffer();
 
     // Maps pkgName -> version
-    Map epkgMap = BundleHTMLExtractorTask.parseNames(epkgs, false, null);
+    final Map epkgMap = BundleHTMLExtractorTask.parseNames(epkgs, false, null);
     if (0<epkgMap.size()) {
-      row = packageListRow;
       for (Iterator it = epkgMap.entrySet().iterator(); it.hasNext(); ) {
         final Map.Entry entry = (Map.Entry) it.next();
         final String pkg = (String) entry.getKey();
         final Version version = (Version) entry.getValue();
 
-        String docFile = replace(pkg, ".", "/") +"/package-summary.html";
-        String docPath = pathToJavadoc +"/index.html?" +docFile;
+        final String docFile = replace(pkg, ".", "/") +"/package-summary.html";
+        final String docPath = pathToJavadoc +"/index.html?" +docFile;
 
-        File f = new File(outdir +File.separator
-                          +pathToJavadoc.replace('/', File.separatorChar)
-                          +File.separator
-                          +docFile.replace('/', File.separatorChar));
+        final File f = new File(outdir +File.separator
+                                +pathToJavadoc.replace('/', File.separatorChar)
+                                +File.separator
+                                +docFile.replace('/', File.separatorChar));
 
+        String row = packageListRow;
         if(pathToJavadoc != null && !"".equals(pathToJavadoc)) {
           if (!f.exists()) {
             row = replace(row, "${namelink}", "${name}");
@@ -565,9 +629,11 @@ public class MakeHTMLTask
         row = replace(row, "${name}", pkg);
         row = replace(row, "${version}", version.toString());
         row = replace(row, "${javadoc}", docPath);
+
+        res.append(row);
       }
     }
-    return row;
+    return res.toString();
   }
 
 }
