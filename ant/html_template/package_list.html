@@ -26,16 +26,23 @@
         font-weight:     bold;
       }
   </style>
+  <title>Knopflerfish Bundle Packages</title>
+  <script type="text/javascript">
+    function windowTitle() {
+      if (location.href.indexOf('is-external=true') == -1) {
+        parent.document.title=document.title;
+      }
+    }
+  </script>
 </head>
 
-<body>
-<div id="package_list">
-<table>
-<tr><th>Package</th><th>Provider(s)</th></tr>
-${package.list}
-</table>
-</div>
-</p>
+<body onload="windowTitle();">
+  <div id="package_list">
+    <table>
+      <tr><th>Package</th><th>Provider(s)</th></tr>
+      ${package.list}
+    </table>
+  </div>
 </body>
 
 </html>
