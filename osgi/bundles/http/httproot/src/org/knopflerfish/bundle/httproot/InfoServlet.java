@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -198,10 +198,20 @@ public class InfoServlet extends HttpServlet {
     out.println("<LINK href=\"/knopflerfish.css\" rel=\"stylesheet\" type=\"text/css\">");
     out.println("</head>");
     out.println("<body>");
-    
+    out.println("<div id=\"main\">");
+    out.println("<div id=\"header\">");
+    out.println("<div id=\"header_logo\">");
+    out.println("<a href=\"/\"><img src=\"/images/kf300_black.png\" border=0 alt=\"knopflerfish logo\"></a>");
+    out.println("  </div>");
+    out.println("<div id=\"header_fade\">");
+    out.println("</div>");
+    out.println("</div>");
+    out.println("<div id=\"mainblock\">");
   }
 
   void printFooter(PrintWriter out) throws IOException {
+    out.println("</div>");
+    out.println("</div>");
     out.println("</body>");
     out.println("</html>");  
   }
