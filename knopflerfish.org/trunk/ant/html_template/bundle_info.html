@@ -1,11 +1,18 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
-  <LINK href="${relpathup}style.css" rel="stylesheet" type="text/css">
-  <title>Bundle info: ${FILE}</title>
+  <link href="${relpathup}style.css" rel="stylesheet" type="text/css">
+  <title>${FILE}</title>
+  <script type="text/javascript">
+    function windowTitle() {
+      if (location.href.indexOf('is-external=true') == -1) {
+        parent.document.title=document.title;
+      }
+    }
+  </script>
 </head>
 
-<body>
+<body onload="windowTitle();">
 
 <h2>${FILE}</h2>
 

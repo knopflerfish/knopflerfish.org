@@ -132,6 +132,8 @@ import org.osgi.framework.Version;
  *    bundle_index.html
  *    bundle_list.html
  *    bundle_main.html
+ *    bundle_info.html
+ *    package_list.html
  *    style.css
  *   </pre>
  *   </td>
