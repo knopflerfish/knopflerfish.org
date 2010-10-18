@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,6 @@ import org.osgi.framework.ServiceReference;
  *
  *
  * </P>
-
  * <P>
  *
  * To use the LogRef you need to import
@@ -115,12 +114,12 @@ import org.osgi.framework.ServiceReference;
 
 public class LogRef implements ServiceListener, LogService {
     // Class name of the OSGI log service
-    private final static String LOG_CLASS_OSGI = org.osgi.service.log.LogService.class
-            .getName();
+    private final static String LOG_CLASS_OSGI
+        = org.osgi.service.log.LogService.class.getName();
 
     // Class name of Knopflerfish extended log service
-    private final static String LOG_CLASS_KF = org.knopflerfish.service.log.LogService.class
-            .getName();
+    private final static String LOG_CLASS_KF
+        = org.knopflerfish.service.log.LogService.class.getName();
 
     private final static String logServiceFilter = "(|" + "(objectClass="
             + LOG_CLASS_KF + ")(objectClass=" + LOG_CLASS_OSGI + "))";
