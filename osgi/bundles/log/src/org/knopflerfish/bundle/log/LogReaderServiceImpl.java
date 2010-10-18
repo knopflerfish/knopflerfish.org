@@ -42,35 +42,35 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 /**
- * * A LogReaderServiceImpl keeps track of the log subscribes from one *
- * BundleContext. It also contains a reference to the * LogReaderServiceFactory,
- * where the log functionality is * implemented. * * The log function in
- * registered LogListeners are called when the * LogReaderServiceFactory calls
+ * A LogReaderServiceImpl keeps track of the log subscribes from one
+ * BundleContext. It also contains a reference to the LogReaderServiceFactory,
+ * where the log functionality is implemented. The log function in
+ * registered LogListeners are called when the {@link LogReaderServiceFactory} calls
  * the callback method.
  */
 public class LogReaderServiceImpl implements LogReaderService {
 
-    /** The log reader service factory that implements the log functionlity. */
+    /** The log reader service factory that implements the log functionality. */
     LogReaderServiceFactory lrsf;
 
     /**
-     * * A Vector with LogListener objects.
+     * A Vector with LogListener objects.
      */
     Vector listeners = new Vector(2);
 
     /**
-     * * The constructor saves the LogReaderServiceFactory. *
+     * The constructor saves the LogReaderServiceFactory.
      * 
      * @param lrsf
-     *            the log reader service factory that implements the * log
-     *            functionlity.
+     *            the log reader service factory that implements the log
+     *            functionality.
      */
     LogReaderServiceImpl(LogReaderServiceFactory lrsf) {
         this.lrsf = lrsf;
     }
 
     /**
-     * * Subscribe method. *
+     * Subscribe method.
      * 
      * @param l
      *            A log listener to be notify when new log entries arrives.
@@ -84,8 +84,8 @@ public class LogReaderServiceImpl implements LogReaderService {
     }
 
     /**
-     * * Unsubscribe method. * LogListeners are removed when number of
-     * subscriptions are 0. *
+     * Unsubscribe method. LogListeners are removed when number of
+     * subscriptions are 0.
      * 
      * @param l
      *            A log listener to be removed.
@@ -104,11 +104,11 @@ public class LogReaderServiceImpl implements LogReaderService {
     }
 
     /**
-     * * Used by LogReaderServiceFactory for every new log entry. * * Note that
-     * the callback operation is not disturbed by changes in * the listener set
-     * since such changes will result in that * <code>listerners</code> refers
-     * to a new object, but the callback * operation will continue its
-     * enumeration of the old listeners * object. * *
+     * Used by {@link LogReaderServiceFactory} for every new log entry. Note that
+     * the callback operation is not disturbed by changes in the listener set
+     * since such changes will result in that <code>listerners</code> refers
+     * to a new object, but the callback operation will continue its
+     * enumeration of the old listeners object.
      * 
      * @param le
      *            A log entry to send to all listeners.

@@ -81,6 +81,8 @@ public final class LogReaderServiceFactory
   /**
    * The constructor fetches the destination(s) of the log entries
    * from the system properties.
+   * @param bc Our handle to the framework.
+   * @param lc The log configuration to use.
    */
   public LogReaderServiceFactory(final BundleContext bc,
                                  final LogConfigImpl lc)
@@ -120,6 +122,7 @@ public final class LogReaderServiceFactory
    * Reset number of log entries that are kept in memory.
    *
    * @param size the new maximum number of log entries in memory.
+   * @param memorySize the current maximum number of in memory log entries.
    */
   synchronized void resetMemorySize(int size, int memorySize) {
     if (size <= 0) {
@@ -233,7 +236,8 @@ public final class LogReaderServiceFactory
   /**
    * Returns the filter level for a specific bundle.
    *
-   * @param bundel the bundle to get the filter level for.
+   * @param bundle the bundle to get the filter level for.
+   * @return log filter level for the specified bundle.
    */
   protected int getLogLevel(final Bundle bundle) {
     // The synchronized block below is needed to work around a bug in
@@ -291,6 +295,7 @@ public final class LogReaderServiceFactory
   /**
    * Get current filter level given a bundle. *
    *
+   * @param b the bundle to get the filter level for.
    * @return filter level.
    */
   private int getFilterLevel(Bundle b) {

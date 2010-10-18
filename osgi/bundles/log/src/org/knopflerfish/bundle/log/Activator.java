@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,52 +39,49 @@ import org.osgi.framework.BundleContext;
 import org.osgi.service.log.LogService;
 
 /**
- * * Bundle activator for <code>log_gs</code>. * *
- * 
- * @author Gatespace AB *
- * @version $Revision: 1.1 $
+ * Bundle activator for the Knopflerfish log implementation.
  */
 public class Activator implements BundleActivator {
 
-    static final String[] LOG_SERVICE_CLASSES = {
-            org.osgi.service.log.LogService.class.getName(),
-            org.knopflerfish.service.log.LogService.class.getName() };
+  static final String[] LOG_SERVICE_CLASSES = {
+      org.osgi.service.log.LogService.class.getName(),
+      org.knopflerfish.service.log.LogService.class.getName()};
 
-    static final String LOG_READER_SERVICE_CLASS = org.osgi.service.log.LogReaderService.class
-            .getName();
+  static final String LOG_READER_SERVICE_CLASS = org.osgi.service.log.LogReaderService.class
+      .getName();
 
-    private LogServiceFactory lsf;
+  private LogServiceFactory lsf;
 
-    private LogReaderServiceFactory lrsf;
+  private LogReaderServiceFactory lrsf;
 
-    private LogConfigImpl lc;
+  private LogConfigImpl lc;
 
-    /** BundleActivator callback. */
-    public void start(BundleContext bc) {
+  // BundleActivator callback.
+  public void start(BundleContext bc) {
 
-        lc = new LogConfigImpl(bc);
-        lrsf = new LogReaderServiceFactory(bc, lc);
-        lsf = new LogServiceFactory(lrsf);
+    lc = new LogConfigImpl(bc);
+    lrsf = new LogReaderServiceFactory(bc, lc);
+    lsf = new LogServiceFactory(lrsf);
 
-        // Catch all framework error and place in the log.
-        LogFrameworkListener lfl = new LogFrameworkListener(lrsf);
-        bc.addFrameworkListener(lfl);
-        bc.addBundleListener(lfl);
-        bc.addServiceListener(lfl);
+    // Catch all framework error and place in the log.
+    LogFrameworkListener lfl = new LogFrameworkListener(lrsf);
+    bc.addFrameworkListener(lfl);
+    bc.addBundleListener(lfl);
+    bc.addServiceListener(lfl);
 
-        // Register our services
-        bc.registerService(LOG_READER_SERVICE_CLASS, lrsf, null);
-        bc.registerService(LOG_SERVICE_CLASSES, lsf, null);
+    // Register our services
+    bc.registerService(LOG_READER_SERVICE_CLASS, lrsf, null);
+    bc.registerService(LOG_SERVICE_CLASSES, lsf, null);
 
-        lc.setLogReaderServiceFactory(lrsf);
-    }
+    lc.setLogReaderServiceFactory(lrsf);
+  }
 
-    /** BundleActivator callback. */
-    public void stop(BundleContext bc) {
-        lrsf.log(new LogEntryImpl(bc.getBundle(), LogService.LOG_INFO,
-                "Log stopped."));
-        lrsf.stop();
-        lc.ungrabIO();
-    }
+  // BundleActivator callback.
+  public void stop(BundleContext bc) {
+    lrsf.log(new LogEntryImpl(bc.getBundle(), LogService.LOG_INFO,
+        "Log stopped."));
+    lrsf.stop();
+    lc.ungrabIO();
+  }
 
 }
