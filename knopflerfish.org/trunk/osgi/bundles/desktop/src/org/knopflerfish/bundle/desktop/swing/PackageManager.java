@@ -50,29 +50,29 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.knopflerfish.util.Text;
 
 public class PackageManager  {
-  ServiceTracker pkgTracker;
+  final ServiceTracker pkgTracker;
 
   public PackageManager(ServiceTracker pkgTracker) {
     this.pkgTracker = pkgTracker;
     refresh();
   }
 
-  Map bundleExports = new HashMap();
-  Map bundleImports = new HashMap();
-  Map bundleReqs    = new HashMap();
-  Map manifestImports = new HashMap();
-  Map missingImports = new HashMap();
+  final Map bundleExports = new HashMap();
+  final Map bundleImports = new HashMap();
+  final Map bundleReqs    = new HashMap();
+  final Map manifestImports = new HashMap();
+  final Map missingImports = new HashMap();
 
 
   // Bundle -> RequiredBundle
-  Map requiredBundleMap = new HashMap();
+  final Map requiredBundleMap = new HashMap();
 
   // RequiredBundle -> Boolean
-  Map isRequiringMap = new HashMap();
+  final Map isRequiringMap = new HashMap();
 
   // int maxSize = 0;
 
-  Object lock = new Object();
+  final Object lock = new Object();
 
   /*
   public int getMaxSize() {
@@ -83,41 +83,41 @@ public class PackageManager  {
   */
 
   public PackageAdmin getPackageAdmin() {
-    return (PackageAdmin)pkgTracker.getService();
+    return (PackageAdmin) pkgTracker.getService();
   }
 
   static final Bundle[] EMPTY_BUNDLES = new Bundle[0];
 
-  public Bundle[] getHosts(Bundle b) {
-    PackageAdmin pkgAdmin = getPackageAdmin();
-    Bundle[] bl = pkgAdmin.getHosts(b);
+  public Bundle[] getHosts(final Bundle b) {
+    final PackageAdmin pkgAdmin = getPackageAdmin();
+    final Bundle[] bl = null!=pkgAdmin ? pkgAdmin.getHosts(b) : null;
     return bl != null ? bl : EMPTY_BUNDLES;
   }
 
- public Bundle[] getFragments(Bundle b) {
-    PackageAdmin pkgAdmin = getPackageAdmin();
-    Bundle[] bl = pkgAdmin.getFragments(b);
+  public Bundle[] getFragments(final Bundle b) {
+    final PackageAdmin pkgAdmin = getPackageAdmin();
+    final Bundle[] bl = null!=pkgAdmin ? pkgAdmin.getFragments(b) : null;
     return bl != null ? bl : EMPTY_BUNDLES;
   }
 
-  public Collection getImportedPackages(Bundle b) {
+  public Collection getImportedPackages(final Bundle b) {
     synchronized(lock) {
-      Collection s = (Collection)bundleImports.get(b);
+      final Collection s = (Collection) bundleImports.get(b);
       return s != null ? s : Collections.EMPTY_SET;
     }
   }
 
-  public Collection getRequiredPackages(Bundle b) {
+  public Collection getRequiredPackages(final Bundle b) {
     synchronized(lock) {
-      Collection s = (Collection)bundleReqs.get(b);
+      final Collection s = (Collection) bundleReqs.get(b);
       return s != null ? s : Collections.EMPTY_SET;
     }
   }
 
 
-  public Collection getManifestImports(Bundle b) {
+  public Collection getManifestImports(final Bundle b) {
     synchronized(lock) {
-      Collection c = (Collection)manifestImports.get(b);
+      Collection c = (Collection) manifestImports.get(b);
       if(c == null) {
         c = getPackageNames(b, "Import-Package");
         manifestImports.put(b, c);
@@ -127,9 +127,9 @@ public class PackageManager  {
     }
   }
 
-  public Collection getMissingImports(Bundle b) {
+  public Collection getMissingImports(final Bundle b) {
     synchronized(lock) {
-      Collection missing = (Collection)missingImports.get(b);
+      Collection missing = (Collection) missingImports.get(b);
       if(missing == null) {
         missing = new TreeSet();
         missing.addAll(getManifestImports(b));
@@ -138,7 +138,7 @@ public class PackageManager  {
 
         // Remove wired imports
         for(Iterator it = okSet.iterator(); it.hasNext(); ) {
-          ExportedPackage pkg = (ExportedPackage)it.next();
+          final ExportedPackage pkg = (ExportedPackage) it.next();
           missing.remove(pkg.getName());
         }
 
@@ -147,7 +147,7 @@ public class PackageManager  {
         // wires)
         okSet = getExportedPackages(b);
         for(Iterator it = okSet.iterator(); it.hasNext(); ) {
-          ExportedPackage pkg = (ExportedPackage)it.next();
+          final ExportedPackage pkg = (ExportedPackage) it.next();
           missing.remove(pkg.getName());
         }
 
@@ -164,7 +164,9 @@ public class PackageManager  {
    *
    * @return a collection of strings
    */
-  protected Collection getPackageNames(Bundle b, String headerName) {
+  protected Collection getPackageNames(final Bundle b,
+                                       final String headerName)
+  {
     final Set res = new TreeSet();
     final String v = (String) b.getHeaders().get(headerName);
 
@@ -185,13 +187,14 @@ public class PackageManager  {
   }
 
 
-  public Collection getExportedPackages(Bundle b) {
+  public Collection getExportedPackages(final Bundle b) {
     synchronized(lock) {
-      Collection r = (Collection)bundleExports.get(b);
+      Collection r = (Collection) bundleExports.get(b);
       if(r == null) {
         r = new TreeSet(pkgComparator);
-        PackageAdmin pkgAdmin = getPackageAdmin();
-        ExportedPackage[] pkgs = pkgAdmin.getExportedPackages(b);
+        final PackageAdmin pkgAdmin = getPackageAdmin();
+        ExportedPackage[] pkgs = null!=pkgAdmin
+          ? pkgAdmin.getExportedPackages(b) : null;
         for(int i = 0; pkgs != null && i < pkgs.length; i++) {
           if(accept(pkgs[i])) {
             r.add(pkgs[i]);
@@ -225,10 +228,9 @@ public class PackageManager  {
   }
 
 
-  protected boolean accept(ExportedPackage pkg) {
+  protected boolean accept(final ExportedPackage pkg) {
     if(packageFilter != null) {
-      boolean b = packageFilter.accept(pkg);
-      return b;
+      return packageFilter.accept(pkg);
     } else {
       return true;
     }
@@ -239,7 +241,7 @@ public class PackageManager  {
   }
 
   public static class NoCommonPackagesFilter implements PackageFilter {
-    public boolean accept(ExportedPackage pkg) {
+    public boolean accept(final ExportedPackage pkg) {
       String name = pkg.getName();
       if(name.startsWith("org.eclipse.swt.")) {
         return false;
@@ -280,47 +282,49 @@ public class PackageManager  {
 
       // makeBundleIndex();
 
-      PackageAdmin      pkgAdmin = getPackageAdmin();
-      ExportedPackage[] pkgs     = pkgAdmin.getExportedPackages((Bundle)null);
-      RequiredBundle[]  rbl      = pkgAdmin.getRequiredBundles(null);
+      final PackageAdmin pkgAdmin = getPackageAdmin();
+      if (null!=pkgAdmin) {
+        final ExportedPackage[] pkgs
+          = pkgAdmin.getExportedPackages((Bundle)null);
+        final RequiredBundle[] rbl = pkgAdmin.getRequiredBundles(null);
 
-      for(int i = 0; pkgs != null && i < pkgs.length; i++) {
+        for(int i = 0; pkgs != null && i < pkgs.length; i++) {
 
-        if(accept(pkgs[i])) {
-          Bundle   fromB = pkgs[i].getExportingBundle();
-          if (null==fromB) continue; // Ignore STALE epkgs
-
-          Collection r = (Collection)bundleExports.get(fromB);
-          if(r == null) {
-            r = new TreeSet(pkgComparator);
-            bundleExports.put(fromB, r);
-          }
           if(accept(pkgs[i])) {
-            r.add(pkgs[i]);
-          }
+            Bundle   fromB = pkgs[i].getExportingBundle();
+            if (null==fromB) continue; // Ignore STALE epkgs
 
-          Bundle[] bl    = pkgs[i].getImportingBundles();
-          for(int j = 0; bl != null && j < bl.length; j++) {
-            if (isBundleRequiredBy(rbl, fromB, bl[j])) {
-              Set reqs = (Set)bundleReqs.get(bl[j]);
-              if(reqs == null) {
-                reqs = new TreeSet(pkgComparator);
-                bundleReqs.put(bl[j], reqs);
-              }
+            Collection r = (Collection)bundleExports.get(fromB);
+            if(r == null) {
+              r = new TreeSet(pkgComparator);
+              bundleExports.put(fromB, r);
+            }
+            if(accept(pkgs[i])) {
+              r.add(pkgs[i]);
+            }
 
-              reqs.add(pkgs[i]);
-            } else {
-              Set imports = (Set)bundleImports.get(bl[j]);
-              if(imports == null) {
-                imports = new TreeSet(pkgComparator);
-                bundleImports.put(bl[j], imports);
+            Bundle[] bl    = pkgs[i].getImportingBundles();
+            for(int j = 0; bl != null && j < bl.length; j++) {
+              if (isBundleRequiredBy(rbl, fromB, bl[j])) {
+                Set reqs = (Set)bundleReqs.get(bl[j]);
+                if(reqs == null) {
+                  reqs = new TreeSet(pkgComparator);
+                  bundleReqs.put(bl[j], reqs);
+                }
+
+                reqs.add(pkgs[i]);
+              } else {
+                Set imports = (Set)bundleImports.get(bl[j]);
+                if(imports == null) {
+                  imports = new TreeSet(pkgComparator);
+                  bundleImports.put(bl[j], imports);
+                }
+                imports.add(pkgs[i]);
               }
-              imports.add(pkgs[i]);
             }
           }
         }
       }
-
       long t1 = System.currentTimeMillis();
     }
   }
@@ -336,13 +340,14 @@ public class PackageManager  {
    * @return <tt>true</tt> if requiredbundle is required by
    *         requiringBundle, <tt>false</tt> otherwsie.
    */
-  public boolean isBundleRequiredBy(RequiredBundle[] rbl,
-                                    Bundle requiredBundle,
-                                    Bundle requiringBundle)
+  public boolean isBundleRequiredBy(final RequiredBundle[] rbl,
+                                    final Bundle requiredBundle,
+                                    final Bundle requiringBundle)
   {
-    RequiredBundle rb = getRequiredBundle(rbl, requiredBundle);
+    final RequiredBundle rb = getRequiredBundle(rbl, requiredBundle);
 
-    Bundle[] requiringBundles = rb!=null ? rb.getRequiringBundles() : null;
+    final Bundle[] requiringBundles
+      = rb!=null ? rb.getRequiringBundles() : null;
     for (int j=0; requiringBundles!=null && j<requiringBundles.length;j++){
       if (requiringBundles[j].getBundleId()==requiringBundle.getBundleId()){
         return true;
@@ -361,14 +366,14 @@ public class PackageManager  {
    * @return The RequiredBundle object for the given bundle or
    *         <tt>null</tt> if the bundle is not required.
    */
-  public RequiredBundle getRequiredBundle(RequiredBundle[] rbl,
-                                          Bundle b)  {
-    RequiredBundle rb = (RequiredBundle)requiredBundleMap.get(b);
+  public RequiredBundle getRequiredBundle(final RequiredBundle[] rbl,
+                                          final Bundle b)  {
+    final RequiredBundle rb = (RequiredBundle) requiredBundleMap.get(b);
     if(rb != null) {
       return rb;
     }
     for (int i=0; rbl!=null && i<rbl.length; i++) {
-      Bundle rbb = rbl[i].getBundle();
+      final Bundle rbb = rbl[i].getBundle();
       if (rbb != null && rbb.getBundleId()==b.getBundleId()) {
         requiredBundleMap.put(b, rbl[i]);
         return rbl[i];

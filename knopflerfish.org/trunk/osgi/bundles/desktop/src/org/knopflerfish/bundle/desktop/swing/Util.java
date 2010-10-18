@@ -548,25 +548,16 @@ public class Util {
      * Get transitive closure of a target bundle
      * by searching for all exporters to the target.
      *
-     * @param pkgAdmin   PackageAdmin service used for export search
-     * @param allBundles list of all bundles in fw
-     * @param target     Target bundle to calculate closure for
-     * @param handled    Set of already scanned bundles. Should be
-     *                   null or empty set on top level call
-     * @return           Set of <tt>Bundle</tt>
+     * @param pm      Package mananger
+     * @param target  Target bundle to calculate closure for
+     * @param handled Set of already scanned bundles. Should be
+     *                null or empty set on top level call
+     * @return        Set of <tt>Bundle</tt>
      */
     static public Set getPackageClosure(PackageManager pm,
-                                        // PackageAdmin pkgAdmin,
-                                        // Bundle[]     allBundles,
                                         Bundle       target,
-                                        Set          handled) {
-
-      /*
-      if(pkgAdmin == null) {
-        throw new IllegalArgumentException("pkgAdmin argument cannot be null");
-      }
-      */
-
+                                        Set          handled)
+    {
       if(handled == null) {
         handled = new HashSet();
       }

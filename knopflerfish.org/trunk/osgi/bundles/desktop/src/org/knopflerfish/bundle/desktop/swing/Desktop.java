@@ -303,11 +303,13 @@ public class Desktop
   public void start() {
 
     slTracker =
-      new ServiceTracker(Activator.getTargetBC(), StartLevel.class.getName(), null);
+      new ServiceTracker(Activator.getTargetBC(),
+                         StartLevel.class.getName(), null);
     slTracker.open();
 
     pkgTracker =
-      new ServiceTracker(Activator.getTargetBC(), PackageAdmin.class.getName(), null);
+      new ServiceTracker(Activator.getTargetBC(),
+                         PackageAdmin.class.getName(), null);
     pkgTracker.open();
 
 
@@ -2043,8 +2045,7 @@ public class Desktop
       base = base.substring(0, ix);
     }
 
-    PackageAdmin pkgAdmin = (PackageAdmin)pkgTracker.getService();
-
+    final PackageAdmin pkgAdmin = (PackageAdmin) pkgTracker.getService();
     if(pkgAdmin == null) {
       Activator.log.error("No pkg admin available for save");
       return;
