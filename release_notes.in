@@ -143,8 +143,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     builds will use the repository of that release.
 
 
-  Desktop 3.1.4
+  Desktop 3.1.5
 
+  - Ensure that all code handles a null PackageAdmin-service object.
   - When the path from the property "org.knopflerfish.gosg.jars"
     contains more than one element, use the first one that exists as
     the starting directory of the install bundle dialog.
