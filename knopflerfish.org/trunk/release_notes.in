@@ -87,8 +87,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     in the Export-Package header that was wrong.
 
 
-  Log 3.0.3
+  Log 3.0.4
 
+  - Clean up old broken javadoc comments and remove a potential
+    problem with synchronization on non-final variables.
   - Use a cache to avoid recomputing the log-level for a bundle for
     each entry it sends to the logs.
   - Resolved some dead-locks and NullPointerExceptions occuring during

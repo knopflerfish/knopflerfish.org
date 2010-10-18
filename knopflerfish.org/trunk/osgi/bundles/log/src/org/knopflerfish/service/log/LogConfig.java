@@ -30,8 +30,15 @@ public interface LogConfig {
     public int getFilter();
 
     /**
-     * Set the default filter level.
+     * Set the filter level for bundles that matches the pattern.
+     * The pattern may be one of:
+     * <ul>
+     *   <li>The location of the bundle.
+     *   <li>The symbolic name of the bundle.
+     *   <li>The name of the bundle.
+     * </ul>
      * 
+     * @param bundleLocation A pattern to be matched against the bundle.
      * @param filter
      *            the new default filter level.
      */
@@ -40,7 +47,7 @@ public interface LogConfig {
     public HashMap getFilters();
 
     /**
-     * Property controling if log entries are written to <code>System.out</code>
+     * Property controlling if log entries are written to <code>System.out</code>
      * or not.
      * 
      * @param b

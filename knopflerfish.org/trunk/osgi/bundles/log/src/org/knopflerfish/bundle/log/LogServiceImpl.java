@@ -39,12 +39,9 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 
 /**
- * * The LogServiceImpl is repsonsible for creating a LogEntry with the * log
- * data it receives, and forward it to the * LogReaderServiceFactory that
- * implements the log functionality. * *
- * 
- * @author Gatespace AB *
- * @version $Revision: 1.1.1.1 $
+ * The LogServiceImpl is responsible for creating a LogEntry with the log
+ * data it receives, and forward it to the LogReaderServiceFactory that
+ * implements the log functionality.
  */
 public class LogServiceImpl implements LogService {
 
@@ -55,12 +52,12 @@ public class LogServiceImpl implements LogService {
     private LogReaderServiceFactory lrsf;
 
     /**
-     * * The constructor saves the Bundle and the LogReaderServiceFactory. * *
+     * The constructor saves the Bundle and the LogReaderServiceFactory.
      * 
      * @param bundle
-     *            The bundle that requested this service. *
+     *            The bundle that requested this service.
      * @param lrsf
-     *            The LogReaderServiceFactory that implements the * log
+     *            The LogReaderServiceFactory that implements the log
      *            functionality.
      */
     public LogServiceImpl(Bundle bundle, LogReaderServiceFactory lrsf) {
@@ -69,10 +66,10 @@ public class LogServiceImpl implements LogService {
     }
 
     /**
-     * * Create LogEntry object and send it to <code>lrsf</code>. *
+     * Create LogEntry object and send it to <code>lrsf</code>.
      * 
      * @param level
-     *            The severity level of the entry to create. *
+     *            The severity level of the entry to create.
      * @param msg
      *            The message of the entry to create.
      */
@@ -81,12 +78,12 @@ public class LogServiceImpl implements LogService {
     }
 
     /**
-     * * Create LogEntry object and send it to <code>lrsf</code>. *
+     * Create LogEntry object and send it to <code>lrsf</code>.
      * 
      * @param level
-     *            The severity level of the entry to create. *
+     *            The severity level of the entry to create.
      * @param msg
-     *            The message of the entry to create. *
+     *            The message of the entry to create.
      * @param t
      *            A Throwable that goes with the entry.
      */
@@ -95,12 +92,12 @@ public class LogServiceImpl implements LogService {
     }
 
     /**
-     * * Create LogEntry object and send it to <code>lrsf</code>. *
+     * Create LogEntry object and send it to <code>lrsf</code>.
      * 
      * @param sref
-     *            A ServiceReference for the service that wants this entry. *
+     *            A ServiceReference for the service that wants this entry.
      * @param level
-     *            The severity level of the entry to create. *
+     *            The severity level of the entry to create.
      * @param msg
      *            The message of the entry to create.
      */
@@ -109,14 +106,14 @@ public class LogServiceImpl implements LogService {
     }
 
     /**
-     * * Create LogEntry object and send it to <code>lrsf</code>. *
+     * Create LogEntry object and send it to <code>lrsf</code>.
      * 
      * @param sref
-     *            A ServiceReference for the service that wants this entry. *
+     *            A ServiceReference for the service that wants this entry.
      * @param level
-     *            The severity level of the entry to create. *
+     *            The severity level of the entry to create.
      * @param msg
-     *            The message of the entry to create. *
+     *            The message of the entry to create.
      * @param t
      *            A Throwable that goes with the entry.
      */
@@ -125,17 +122,20 @@ public class LogServiceImpl implements LogService {
     }
 
     /**
-     * * Get the current log level. The log will discard log entires * with a
-     * level that is less severe than the current level. * I.e. entries with a
-     * level that is numerically larger than the * value returned by this
-     * method. * * E.g. If the current log level is LOG_WARNING then the log
-     * will * discard all log entries with level LOG_INFO and LOG_DEBUG. I.e. *
-     * there is no need for a bundle to try to send such log entries * to the
-     * log. The bundle may actually save a number of CPU-cycles * by getting the
-     * log level and do nothing if the intended log * entry is less severe than
-     * the current log level. * *
+     * Get the current log level. The file log and the memory log will discard
+     * log entries with a level that is less severe than the current level. 
+     * I.e., entries with a level that is numerically larger than the value
+     * returned by this method. All log entries are always forwarded to registered
+     * log listeners. 
+     *
+     * E.g., If the current log level is LOG_WARNING then the log
+     * will discard all log entries with level LOG_INFO and LOG_DEBUG. I.e.,
+     * there is no need for a bundle to try to send such log entries to the
+     * log. The bundle may actually save a number of CPU-cycles by getting the
+     * log level and do nothing if the intended log entry is less severe than
+     * the current log level.
      * 
-     * @return the lowest severity level that is accepted into the * log.
+     * @return the lowest severity level that is accepted into the log.
      */
     public int getLogLevel() {
         return lrsf.getLogLevel(bundle);

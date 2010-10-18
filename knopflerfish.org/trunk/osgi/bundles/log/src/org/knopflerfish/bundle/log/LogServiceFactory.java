@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,19 +39,16 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 
 /**
- * * The LogServiceFactory creates an implementation of the * interface of the
- * LogService that will forward all calls to the * LogReaderServiceFactory that
- * implements the log functionlity. * * The reason a Factory is used is that we
- * need the BundleContext of * the bundle using the LogService. * *
- * 
- * @author Gatespace AB *
- * @version $Revision: 1.1.1.1 $ *
+ * The LogServiceFactory creates a LogService implementation that will
+ * forward all calls to the LogReaderServiceFactory that implements the
+ * actual log functionality. The reason a Factory is used is that we
+ * need the BundleContext of the bundle using the LogService.
  */
 public class LogServiceFactory implements ServiceFactory {
 
     /**
-     * A reference to the log reader service factory that implements * the log
-     * functionlity.
+     * A reference to the log reader service factory that implements the log
+     * functionality.
      */
     LogReaderServiceFactory lrsf;
 

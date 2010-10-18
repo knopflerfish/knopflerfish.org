@@ -45,15 +45,13 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 
 /**
- * * Catch all framework generated events and add them to the log. *
- * <p> * Mapping from event to log entry is according to the proposal *
- * <b>Mapping Rules from Framework-Generated Events to Log Entries * (Draft 1)</b>
- * to CPEG by Jan Luehe (Sun) 2000-08-29. * The severity level of service events
- * for modified services has * been changed to debug since such event may be
- * very frequent. * *
- * 
- * @author Gatespace AB *
- * @version $Revision: 1.1.1.1 $
+ * Catch all framework generated events and add them to the log.
+ * <p/>
+ * Mapping from event to log entry is according to the proposal
+ * <b>Mapping Rules from Framework-Generated Events to Log Entries (Draft 1)</b>
+ * to CPEG by Jan Luehe (Sun) 2000-08-29. The severity level of service events
+ * for modified services has been changed to debug since such event may be
+ * very frequent.
  */
 public class LogFrameworkListener implements FrameworkListener, /*Synchronous*/BundleListener,
         ServiceListener {
@@ -65,14 +63,14 @@ public class LogFrameworkListener implements FrameworkListener, /*Synchronous*/B
     }
 
     /**
-     * * The framework event callback method inserts all framework events * into
-     * the log. * * Events of type <code>error</code> are logged at the error
-     * level * other event types are logged on the info level. *
-     * <p>
-     * FrameworkListener callback. *
+     * The framework event callback method inserts all framework events into
+     * the log. Events of type <code>error</code> are logged at the error
+     * level other event types are logged on the info level.
+     * <p/>
+     * FrameworkListener callback.
      * 
      * @param fe
-     *            the framework event that has occured.
+     *            the framework event that has occurred.
      */
     public void frameworkEvent(FrameworkEvent fe) {
         int level = LogService.LOG_INFO;
