@@ -255,17 +255,25 @@ public class LogRef implements ServiceListener, LogService {
     protected synchronized void doLog(String msg, int level,
             ServiceReference sr, Throwable e) {
         if (bc != null && log == null) {
-            logSR = bc.getServiceReference(LOG_CLASS_KF);
-            if (logSR == null) {
-                // No service implementing the Knopflerfish extended log, try to
-                // look for a standard OSGi log service.
-                logSR = bc.getServiceReference(LOG_CLASS_OSGI);
-            }
-            if (logSR != null) {
-                log = (org.osgi.service.log.LogService) bc.getService(logSR);
-            }
-            if (log == null) {
-                // Failed to get log service clear the service reference.
+            try {
+                logSR = bc.getServiceReference(LOG_CLASS_KF);
+                if (logSR == null) {
+                    // No service implementing the Knopflerfish
+                    // extended log, try to look for a standard OSGi
+                    // log service.
+                    logSR = bc.getServiceReference(LOG_CLASS_OSGI);
+                }
+                if (logSR != null) {
+                    log = (org.osgi.service.log.LogService) bc.getService(logSR);
+                }
+                if (log == null) {
+                    // Failed to get log service clear the service reference.
+                    logSR = null;
+                }
+            } catch (IllegalStateException ise) {
+                // Bundle not active, can not fetch a log service.
+                bc = null;
+                log = null;
                 logSR = null;
             }
         }
