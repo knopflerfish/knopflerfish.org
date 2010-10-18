@@ -114,7 +114,7 @@ class LogConfigImpl
 
   private final static String PID = "service.pid";
 
-  private String pid;
+  private final String pid = "org.knopflerfish.bundle.log.LogConfig";
 
   final static String MEM = "memory.size";
 
@@ -139,7 +139,7 @@ class LogConfigImpl
   /* Variables containing configuration. */
   private File dir;
 
-  private final Hashtable configCollection = getDefault();
+  private final Hashtable configCollection = new Hashtable();
 
   // Mapping from bundle pattern
   // (location/BundleSymbolicName/BundleName) to log level (Integer),
@@ -155,12 +155,15 @@ class LogConfigImpl
 
   public LogConfigImpl(BundleContext bc) {
     LogConfigImpl.bc = bc;
+
+    // Initialize with default values.
+    checkChange(getDefault());
+
     bc.addBundleListener(this);
     start();
   }
 
   synchronized void start() {
-    this.pid = this.getClass().getName();
     initDir();
     String[] clazzes = new String[]{ManagedService.class.getName(),
         LogConfig.class.getName()};
@@ -983,6 +986,14 @@ class LogConfigImpl
     if ((newV = diff(GEN, cfg)) != null) {
       notify(GEN, newV);
       set(GEN, newV);
+    }
+
+    if ((newV = diff(GRABIO, cfg)) != null) {
+      set(GRABIO, newV);
+    }
+
+    if ((newV = diff(PID, cfg)) != null) {
+      set(PID, newV);
     }
   }
 
