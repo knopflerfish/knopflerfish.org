@@ -208,7 +208,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-Version";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-Version", "1.0.1", info);
+      assertEquals("bad Bundle-Version", "1.0.2", info);
 
       k =  "Bundle-ManifestVersion";
       info = (String) ai.get(k);
@@ -2895,43 +2895,57 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame161a extends FWTestCase {
     public void runTest() throws Throwable {
-      String resourceName = "java/lang/Thread.class";
+      final String resourceName = "java/lang/Thread.class";
 
-      URL url1 = bc.getBundle().getResource(resourceName);
-      URL url2 = this.getClass().getClassLoader().getResource(resourceName);
+      final URL url1 = bc.getBundle().getResource(resourceName);
+      final URL url2 = this.getClass().getClassLoader().getResource(resourceName);
 
-      //System.out.println("URL from bundle.getResource() = "+url1);
-      //System.out.println("URL from classLoader.getResource() = "+url2);
+      // Compare result with value returned by the bootstrap class
+      // loader, since bootstrap classes are not available as
+      // resources in all JREs (embedded JREs save space this way).
+      ClassLoader bClsL = Thread.class.getClassLoader();
+      if (null==bClsL) {
+        // null is used for the bootstrap class loader in this JRE, try
+        // with the system class loader.
+        bClsL = ClassLoader.getSystemClassLoader();
+      }
+      final URL url3 = bClsL.getResource(resourceName);
+
+      out.println("URL from bundle.getResource() = "+url1);
+      out.println("URL from classLoader.getResource() = "+url2);
+      out.println("URL from bClsL.getResource() = "+url3);
 
       // Bundle.getResource() as well as ClassLoader.getResource()
       // should return resources according to the class space
       // (classpath), i.e., delegate to parent class loader before
-      // searching its own paths.
-      assertNotNull("bundle.getResource(\"" +resourceName+"\")" , url1);
-      assertNotNull("bundleClassLoader.getResource(\""+resourceName+"\")",url2);
-      assertEquals("Same URL returned from booth classloader and bundle",
-                   url1,url2);
+      // searching its own paths. Note that the resulting URLs may be
+      // null in the case of a JRE that uses pre-defined standard
+      // classes (embedded JREs).
+      assertEquals("Same resource URL for \"" +resourceName
+                   +"\" returned from booth bundle and system class loader",
+                   url1, url3);
+      assertEquals("Same resource URL for \"" +resourceName
+                   +"\" returned from booth bundle class loader "
+                   +"and system class loader",
+                   url2, url3);
     }
   }
 
   public final static String [] HELP_FRAME162A =  {
     "Test bundle resource retrieval from boot class path; "
-    +" a resource outside the java package."
+    +" a resource outside the java package that should not be found."
   };
 
   class Frame162a extends FWTestCase {
     public void runTest() throws Throwable {
-      out.println("### framework test bundle :FRAME162A start");
-      boolean pass = true;
-
       // The Any class have been present since 1.2
-      String resourceName = "org/omg/CORBA/Any.class";
+      final String resourceName = "org/omg/CORBA/Any.class";
 
-      URL url1 = bc.getBundle().getResource(resourceName);
-      URL url2 = this.getClass().getClassLoader().getResource(resourceName);
+      final URL url1 = bc.getBundle().getResource(resourceName);
+      final URL url2 = this.getClass().getClassLoader().getResource(resourceName);
 
-      //System.out.println("URL from bundle.getResource() = "+url1);
-      //System.out.println("URL from classLoader.getResource() = "+url2);
+      out.println("URL from bundle.getResource() = "+url1);
+      out.println("URL from classLoader.getResource() = "+url2);
 
       // Bundle.getResource() and BundleClassLoader.getResource()
       // should both return resources according to the class space
@@ -2939,52 +2953,51 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // the resource does not belong to the java-package.
       assertNull("bundle.getResource(\"" +resourceName+"\")" , url1);
       assertNull("bundleClassLoader.getResource(\""+resourceName+"\")",url2);
-
-      if (pass == true) {
-        out.println("### framework test bundle :FRAME162A:PASS");
-      } else {
-        fail("### framework test bundle :FRAME162A:FAIL");
-      }
     }
   }
 
   public final static String [] HELP_FRAME163A =  {
     "Test bundle resource retrieval from boot class path; "
-    +" a resource via boot delegation."
+    +" a resource found via boot delegation."
   };
 
   class Frame163a extends FWTestCase {
     public void runTest() throws Throwable {
-      out.println("### framework test bundle :FRAME163A start");
-      boolean pass = true;
-
       // The Context class have been present in Java SE since 1.3
-      String resourceName = "javax/naming/Context.class";
+      final String resourceName = "javax/naming/Context.class";
 
-      if (System.getProperty("java.vendor").equals("/k/ Embedded Java Solutions")) {
-        resourceName = "javax/crypto/Cipher.class";
+      final URL url1 = bc.getBundle().getResource(resourceName);
+      final URL url2 = this.getClass().getClassLoader().getResource(resourceName);
+
+      // Compare result with value returned by the bootstrap class
+      // loader, since bootstrap classes are not available as
+      // resources in all JREs (embedded JREs save space this way).
+      ClassLoader bClsL = Thread.class.getClassLoader();
+      if (null==bClsL) {
+        // null is used for the bootstrap class loader in this JRE, try
+        // with the system class loader.
+        bClsL = ClassLoader.getSystemClassLoader();
       }
+      final URL url3 = bClsL.getResource(resourceName);
 
-      URL url1 = bc.getBundle().getResource(resourceName);
-      URL url2 = this.getClass().getClassLoader().getResource(resourceName);
-
-      //System.out.println("URL from bundle.getResource() = "+url1);
-      //System.out.println("URL from classLoader.getResource() = "+url2);
+      out.println("URL from bundle.getResource() = "+url1);
+      out.println("URL from classLoader.getResource() = "+url2);
+      out.println("URL from bClsL.getResource() = "+url3);
 
       // Bundle.getResource() as well as ClassLoader.getResource()
       // should return resources according to the class space
       // (classpath), i.e., delegate to parent class loader before
-      // searching its own paths.
-      assertNotNull("bundle.getResource(\"" +resourceName+"\")" , url1);
-      assertNotNull("bundleClassLoader.getResource(\""+resourceName+"\")",url2);
-      assertEquals("Same URL returned from booth classloader and bundle",
-                   url1,url2);
-
-      if (pass == true) {
-        out.println("### framework test bundle :FRAME163A:PASS");
-      } else {
-        fail("### framework test bundle :FRAME163A:FAIL");
-      }
+      // searching its own paths. Note that the resulting URL may be
+      // null in the case of a JRE that uses pre-defined standard
+      // classes (embedded JREs).
+      assertEquals("Same resource URL for \"" +resourceName
+                   +"\" returned from bundle.getResource() "
+                   +"and system class loader",
+                   url1, url3);
+      assertEquals("Same resource URL for \"" +resourceName
+                   +"\" returned from bundle class loader "
+                   +"and system class loader",
+                   url2, url3);
     }
   }
 
@@ -2996,8 +3009,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
   class Frame164a extends FWTestCase {
     public void runTest() throws Throwable {
-      out.println("### framework test bundle :FRAME164A start");
-
       // Use the Util-class as test target.
       final String resourceName
         = "org/knopflerfish/bundle/framework_test/Util.class";
@@ -3009,8 +3020,6 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       testRelativeURL(url1, "../../..", "/org/");
       testRelativeURL(url1, "../../../..", "/");
       testRelativeURL(url1, "../../../../..", "/../");
-
-      out.println("### framework test bundle :FRAME164A:PASS");
     }
 
     private void testRelativeURL(URL baseURL, String path, String resPath)
@@ -3019,9 +3028,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       URL url2 = new URL( baseURL, path +"/");
       URL url3 = new URL( baseURL, path );
 
-      System.out.println("baseURL = "+baseURL);
-      System.out.println("URL from new URL(\""+path+"/\") = "+url2);
-      System.out.println("URL from new URL(\""+path+"\") = "+url3);
+      out.println("baseURL = "+baseURL);
+      out.println("URL from new URL(\""+path+"/\") = "+url2);
+      out.println("URL from new URL(\""+path+"\") = "+url3);
 
       assertNotNull("url2 = new URL(baseURL, \""+path +"/\")",url2);
       assertNotNull("url3 = new URL(baseURL, \""+path +"\")",url3);
@@ -3046,8 +3055,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       URL url1 = bc.getBundle().getResource(res1);
       URL url2 = bc.getBundle().getResource(res2);
 
-      System.out.println("URL from bundle.getResource(\"" +res1+"\") = "+url1);
-      System.out.println("URL from bundle.getResource(\"" +res2+"\") = "+url2);
+      out.println("URL from bundle.getResource(\"" +res1+"\") = "+url1);
+      out.println("URL from bundle.getResource(\"" +res2+"\") = "+url2);
 
       assertNotNull("bundle.getResource(\"" +res1+"\")" , url1);
       assertNotNull("bundle.getResource(\"" +res2+"\")" , url2);
