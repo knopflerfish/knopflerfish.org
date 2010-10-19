@@ -13,43 +13,29 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   Framework 5.1.6
 
   - Always wait for stop operations to complete before continuing.
-
   - Fixed bug with call to removed a removed service listener.
-
-  - Fixed race conditions in startlevel service and Bundle.getHeaders.
-
-  - Fixed bug when shutting down a framework running at startlevel 1.
-
-  - Fixed IllegalArgumentException for StartLevel service.
-
+  - Fixed race conditions in StartLevel-service and Bundle.getHeaders().
+  - Fixed bug when shutting down a framework running at start level 1.
+  - Fixed IllegalArgumentException for StartLevel-service.
   - Add threaded handling of listeners, this means that asynchronous listeners
     will be called asynchronously. The number of threads used is controlled via
     the property, org.knopflerfish.framework.listener.n_threads. Default value
-    is 1. If the value is 0 then we will revert to the old behavouir and call
+    is 1. If the value is 0 then we will revert to the old behavior and call
     all listeners synchronously. Also fixed some minor bugs that was revealed
     during the testing of the new listener handling.
-
   - Use system properties to set default values for OSGi framework properties.
-
   - Recognize deprecated processor value "arm" in native code matching.
-
   - Fixed locking problem when stopping a crashed bundle.
-
   - Fixed NPE when unregistering URLStreamHandlerService.
-
   - Fixed getEntry() method for system bundle. The result will
     vary depending on the JVM since we use getResource() via the
-    framework classloader.
-
-  - Fixed handling of none null bootclassloader.
-
+    framework class loader.
+  - Fixed handling of none null boot-classloader.
   - Fixed bug in lazy activation class filtering.
-
   - Fixed handling of org.osgi.framework.storage property on command line.
-
-  - Merged fix of classloader problem when running on Android 7/8 from
+  - Merged fix of class loader problem when running on Android 7/8 from
     the kf_2_support branch. The boot-classloader of Android does not
-    return the expected null as its parent classloader, it returns
+    return the expected null as its parent class loader, it returns
     itself.
 
 
@@ -90,16 +76,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   Log 3.0.5
 
   - Fix NPE in 3.0.4. Register ManagedService with a PID that matches
-    configuration metadata. LogRef now handles calls to the
-    log()-methods occuring after the bundle it logs for have been
+    configuration meta data. LogRef now handles calls to the
+    log()-methods occurring after the bundle it logs for have been
     stopped.
-  - Clean up old broken javadoc comments and remove a potential
+  - Clean up old broken Java-Doc comments and remove a potential
     problem with synchronization on non-final variables.
   - Use a cache to avoid recomputing the log-level for a bundle for
     each entry it sends to the logs.
-  - Resolved some dead-locks and NullPointerExceptions occuring during
+  - Resolved some dead-locks and NullPointerExceptions occurring during
     shut-down that was made visible by the listener handling changes
-    in the v 5.1 of the framwork.
+    in the v 5.1 of the framework.
 
 
   Measurement 3.0.1
@@ -156,7 +142,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     contains more than one element, use the first one that exists as
     the starting directory of the install bundle dialog.
   - Removed some NullPointerExceptions during shut-down that was made
-    visible by the listener handling changes in  v 5.1 of the framwork.
+    visible by the listener handling changes in  v 5.1 of the framework.
   - The version of the "org.osgi.service.cm"-package
     that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
     should be 1.3.0 and nothing else. Note that it was only the
@@ -182,20 +168,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     selections.
   
 
-  httpclient connector 3.0.0
-
-  - Added support for specifying non-proxy hosts via framework or
-    system properties. For detail see the README file:
-    https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/readme.txt
-
-
   FW-Tray 3.0.2
 
   - A class loader may throw a NoClassDefFoundError when it fails to
     define a class since some class that the class to be loaded needs
     are missing. Changed the tray icon bundle to handle this, i.e., it
     now catches Throwable and not just Exception when trying to
-    instanciate java.awt.SystemTray.
+    instantiate java.awt.SystemTray.
 
 
   Xalan 2.7.1.kf3_01
@@ -206,7 +185,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
   Build System
 
-  - The "Bundle" task now uses the version from the packageinfo-file
+  - The "Bundle" task now uses the version from the "packageinfo"-file
     when generating the export packages header.
   - bundlebuidl.xml did not create an Export-Package header for
     impl-bundles that specified an "impl-api.pattern".
