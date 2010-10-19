@@ -54,9 +54,9 @@
 -Forg.knopflerfish.log.file=true
 
 # bootdelegation
-# The test case FRAME163a reuires boot delegation for javax.naming or javax.crypto
+# The test case FRAME163a reuires boot delegation for javax.naming
 # to actually check that it works.
--Forg.osgi.framework.bootdelegation=sun.*,javax.naming,javax.crypto
+-Forg.osgi.framework.bootdelegation=sun.*,javax.naming
 
 # Shall bc.getService(ServiceReference) return the service while it is
 # in the state unregistering or not.
