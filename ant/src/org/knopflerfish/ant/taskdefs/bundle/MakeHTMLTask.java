@@ -232,6 +232,8 @@ public class MakeHTMLTask
   private ArrayList filesets = new ArrayList();
   private String disable;
 
+  private final Map fragments = new HashMap();
+
   public void setFromfile(String s) {
     fromFile = s;
   }
@@ -276,6 +278,19 @@ public class MakeHTMLTask
   public void addFileset(FileSet fs) {
     filesets.add(fs);
   }
+
+  public void addConfiguredHtmlFragment(HtmlFragment fragment) {
+    final String name = fragment.getName();
+    if (name == null) {
+      throw new BuildException("Nested HTML-fragments must have a name");
+    }
+    if (null==fragment.getFromFile()) {
+      throw new BuildException("Nested HTML-fragments must have a from file");
+    }
+    fragments.put(name, fragment);
+  }
+
+
 
   public void execute() {
     Project proj = getProject();
@@ -354,6 +369,20 @@ public class MakeHTMLTask
       String content = Util.loadFile(template.toString());
       content = Util.replace(content, "$(LINKS)", links());
       content = Util.replace(content, "$(MAIN)", Util.loadFile(fromFile));
+      for (Iterator it = fragments.keySet().iterator(); it.hasNext(); ) {
+        final String key = (String) it.next();
+        final HtmlFragment frag = (HtmlFragment) fragments.get(key);
+        final String linkText = frag.getLinkText();
+        if (null!=linkText && 0<linkText.length()) {
+          String fragLink = "<a href=\"#" +key +"\">" +linkText +"</a>";
+          content = Util.replace(content, "$("+key +"_LINK)", fragLink);
+        }
+        String fragCont = Util.loadFile(frag.getFromFile().getPath());
+        if (null!=fragCont && 0<fragCont.length()) {
+          fragCont = "<a name=\"" +key +"\"></a>\n" + fragCont;
+        }
+        content = Util.replace(content, "$("+key +")", fragCont);
+      }
       content = Util.replace(content, "$(TITLE)", title);
       content = Util.replace(content, "$(DESC)", description);
       content = Util.replace(content, "$(TSTAMP)", TIMESTAMP);
