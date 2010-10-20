@@ -43,8 +43,8 @@
   <!-- Properties used by this task: -->
   <!--   xargs.template.in"   The template xargs file  (abspath)   -->
   <!--   xargs.out.file"      The processed xargs file (abspath)   -->
-  <!--   jars.dir"            A direcotry to scan for bundles      -->
-  <!--   test.jars.dir"       A direcotry to scan for bundles      -->
+  <!--   jars.dir"            A directory to scan for bundles      -->
+  <!--   test.jars.dir"       A directory to scan for bundles      -->
   <!--   gosg.jars"           Replacement value for $(GOSG_JARS)   -->
   <!--   test_jars            Replacement value for $(TESTJARS)    -->
   <!--   xargs.os.template    File with replacement for $(OS_ARGS) -->
