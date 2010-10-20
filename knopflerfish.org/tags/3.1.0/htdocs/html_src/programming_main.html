@@ -1,0 +1,1135 @@
+<div style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px;">
+
+<h2>Programming Knopflerfish</h2>
+
+<h3>Contents</h3>
+<ol>
+  <li><a href="#eclipse_create">Using Eclipse to create bundles</a>
+  <li><a href="#ant_create">Using Ant to create bundles</a>
+  <li><a href="#activator">The BundleActivator</a>
+  <li><a href="osgi_service_tutorial.html">OSGi Service tutorial</a>
+  <li><a href="#dataaccess">Bundle data access</a>
+  <li><a href="#win32">Win32 tips</a>
+  <li><a href="#optimizing">Optimizing startup time, memory or disk usage</a>
+  <li><a href="#custom">Details on the included ant build system</a>
+  <li><a href="svn_info.html">Using the Subversion repository</a>
+  <!-- <li><a href="perf.html">Performance test</a> I don't think this is up-to-date ? [CL] -->
+</ol>
+
+<a name="eclipse_create"></a>
+<h3>Using Eclipse to create bundles</h3>
+See <a href="eclipse_plugin.html">Knopflerfish Eclipse Plugin</a>.
+
+<a name="ant_create"></a>
+<h3>Using Ant to create bundles</h3>
+<h4>Prerequisites</h4>
+<ul>
+  <li><i><a href="http://en.wikipedia.org/wiki/Java_Development_Kit">Java Development Kit (JDK)</a>
+  <li><i>Ant 1.7 or later</i>, available from <a href="http://ant.apache.org/">ant.apache.org</a>
+</ul>
+
+
+<h4>Creating a new bundle</h4>
+New bundles can be created using the included ant build
+system. Naturally, you can create bundles manually, but this requires
+some knowledge about the OSGi manifest format.
+<p>
+<tt><i>knopflerfish</i></tt> refers to the unpacked knopflerfish directory, typically <tt>knopflerfish.org</tt>
+</p>
+
+<h4>Using the included ant build system to create a new bundle</h4>
+<table>
+  <tr>
+    <td><b>1. Create a directory</b> for the new bundle</td>
+    <td>
+      <pre>
+&gt; cd <i>knopflerfish</i>/osgi/bundles
+&gt; mkdir mybundle
+      </pre>
+    </td>
+  </tr>
+
+  <tr>
+    <td><b>2. Copy</b> the ant bundle build <a
+      href="../ant/build_example.xml">template</a>
+    </td>
+    <td>
+      <pre>
+&gt; cp <i>knopflerfish</i>/ant/build_example.xml build.xml
+      </pre>
+    </td>
+  </tr>
+
+  <tr>
+    <td><b>3. Change</b> the project name in the <tt>build.xml</tt> file
+
+      <p>Set the <tt><b>impl.pattern</b></tt> and
+      <tt><b>api.pattern</b></tt> properties to the packages that
+      contains implementation and API code.</p>
+
+      <p>Depending on where you have put your new bundle, you might
+      have to modify the path to <tt><b>bundlebuild.xml</b></tt> in
+      the <tt>&lt;import
+      file="${proj.dir}/../../../ant/bundlebuild.xml"/&gt;</tt> element
+      at the end of the build-file.</p>
+
+      <p> For details on bundle generation, see
+      <tt><i>knopflerfish</i>/ant/bundlebuild.xml</tt> </p>
+
+    </td>
+    <td>
+      <pre>
+&lt;project name="<b>mybundle</b>" default="all"&gt;
+...
+&lt;property name  = "impl.pattern"
+          value = "example/mybundle/impl/**"/&gt;
+..
+&lt;property name  = "api.pattern"
+          value = "example/mybundle/*"/&gt;
+
+      </pre>
+    </td>
+  </tr>
+
+  <tr>
+    <td><b>4. Create the java source code</b> in <tt>src</tt>
+      directory.
+    </td>
+    <td>
+      <pre>
+&gt; mkdir -p src/example/mybundle/impl
+      </pre>
+
+      <b>Example BundleActivator:</b> src/examples/mybundle/impl/Activator.java
+      <pre>
+package example.mybundle.impl;
+
+import org.osgi.framework.BundleActivator;
+
+public class Activator implements BundleActivator {
+  ...
+  public void start(BundleContext bc) {
+    ...
+  }
+  public void stop(BundleContext bc) {
+    ...
+  }
+      </pre>
+    </td>
+  </tr>
+
+  <tr>
+    <td><p><b>5. Compile</b> the bundle.</p>
+
+      <p>The ant build system will <b>automatically</b> find the
+      BundleActivator, imports and exports and generate a <b>bundle
+      manifest</b> file.</p>
+
+      <p>The resulting file will be generated to <font size="-1">
+      <tt><i>knopflerfish</i>/osgi/jars/mybundle/mybundle.jar</tt></font></p>
+
+      <p>Intermediate build results will be placed in <font size="-1">
+      <tt><i>knopflerfish</i>/osgi/out/mybundle</tt></font></p>
+
+    </td>
+    <td>
+      <pre>
+&gt; ant
+      </pre>
+    </td>
+  </tr>
+
+  <tr>
+    <td><p><b>6. Install</b> the bundle.</p>
+
+      <p>This can be done either by using the <b>text console</b>,
+      dragging the bundle using the Swing <b>desktop</b> UI or by
+      modifying the framework startup file
+      <tt><b>init.xargs</b></tt></p>
+
+    </td>
+    <td>
+      <b>Using the console to install and start the bundle.
+      <pre>
+&gt; install file:jars/mybundle/mybundle.jar
+&gt; start mybundle.jar
+      </pre>
+      <b>Drag a bundle into the Desktop UI to install and start the bundle.<br>
+      <img src="images/desktop-clip.png">
+    </td>
+  </tr>
+
+  <tr>
+    <td><b>7. Using ant commands and telnet</b> console to install/start/stop/update bundles.
+  <p>
+   The ant build has support for communicating to a running framework and
+   install, start, stop, update and uninstall bundles.
+  </p>
+
+  <p>Given that the <tt>consoletelnet</tt> bundle is running, you can
+  simply use these built-in targets to handle the life cycle of the
+  bundle.</p>
+
+  <p>The properties <tt>console.host</tt>, <tt>console.port</tt>,
+  <tt>console.user</tt> and <tt>console.pwd</tt> controls the details
+  of the console connection.</p>
+
+  <p><b>Note</b>: requires netcomponents.jar in $ANT_HOME/lib. Needs
+  to be separately downloaded from <a
+  href="http://www.savarese.org/oro/downloads">http://www.savarese.org/oro/downloads</a></p>
+
+</td>
+
+<td>
+<pre>
+&gt; ant install
+</pre>
+to install the compiled bundle. Similarly, type
+<pre>
+&gt; ant start
+</pre>
+to start the bundle. Type
+<pre>
+&gt; ant -projecthelp
+</pre>
+to see all available targets.
+   </td>
+
+  </tr>
+</table>
+
+<a class=top href="#top">top</a>
+
+<h3>Coding Style guides</h3>
+
+When writing OSGi bundles, all normal java guidelines apply, but some things
+might be worth noting. The list below is intended to give some hints on
+writing stable bundles, but feel free to use your own judgment.
+
+<p>
+
+<a name="activator"></a>
+<h3>The BundleActivator</h3>
+
+The BundleActivator can be considered your application's main class. A bundle
+which is expected to start, register or use other service, <b>must</b>
+have a BundleActivator implementation and a reference to the BundleActivator's
+class name in its manifest file.
+
+<table border=0>
+
+<tr>
+<td class="tableheader" colspan=2>Naming the BundleActivator</td>
+</tr>
+
+  <tr>
+    <td valign=top>
+      Preferably name the <code>BundleActivator</code> class <b>Activator</b>.
+This makes it easy to find for other developers.
+    </td>
+    <td valign=top>
+      <pre>
+public class <b>Activator</b> implements BundleActivator {
+  ...
+}
+</pre>
+
+    </td>
+  </tr>
+
+<tr>
+<td class="tableheader" colspan=2>Use package names</td>
+</tr>
+
+  <tr>
+    <td valign=top>
+<p>
+<b>Do</b> use normal package name conventions. One convention is to suffix
+the implementation parts of bundle with <tt>.impl</tt>
+</p>
+
+<p>
+However, the implementation parts can theoretically
+have any package name you want, since the framework keeps separate
+name spaces for separate bundles.
+</p>
+    </td>
+    <td valign=top>
+      <pre>
+// This is the not exported implementation part of a bundle
+package com.acme.osgi.test.impl;
+
+// from the bundle's API part
+import com.acme.osgi.test.TestService;
+
+public class <b>Activator</b> implements BundleActivator {
+  TestService testService = ...
+  ...
+}
+</pre>
+
+    </td>
+  </tr>
+
+
+<tr>
+<td class="tableheader" colspan=2>Store the BundleContext</td>
+</tr>
+
+  <tr>
+    <td valign=top>
+      You can use a <b>static</b> <code>BundleContext</code> in the
+      <code>Activator</code> class.<br>
+      There is really no need for passing around <code>bc</code> by
+      parameter to all internal classes. The same trick should be used for
+      other <b>singular</b> common objects as the log service tracker.
+    </td>
+    <td valign=top>
+      <pre>
+// Static bundle context
+public class <b>Activator</b> implements BundleActivator {
+
+   <b>static</b> BundleContext bc;
+
+   public void start(BundleContext bc) {
+     Activator.bc = bc;
+     ...
+   }
+
+   public void stop(BundleContext bc) {
+     Activator.bc = null; // allow for garbage collection
+     ...
+   }
+}
+</pre>
+
+    </td>
+  </tr>
+
+<tr>
+<td class="tableheader" colspan=2>Automatic cleanup of services</td>
+</tr>
+  <tr>
+    <td valign=top>There is <b>no need to unregister
+      services in the stop()</b> method. This
+      is done automatically by the framework.<br>
+      However, static variables <b>should</b> be nulled to allow
+      for garbage collection.
+    </td>
+    <td valign=top>
+      <pre>
+public void stop(BundleContext bc) {
+  Activator.bc = null;
+}
+</pre>
+    </td>
+  </tr>
+
+<tr>
+<td class="tableheader" colspan=2>No automatic cleanup of memory, threads, windows etc</td>
+</tr>
+  <tr>
+    <td valign=top>
+      <b>Do</b> deallocate
+      any other resources as threads or (gah!) Swing windows.
+      They are <b>not</b> stopped or closed automatically.
+    </td>
+    <td valign=top>
+      <pre>
+// Cleanup up resources in stop method
+public void stop(BundleContext bc) {
+  Activator.bc = null;
+  if(window != null) {
+    window.setVisible(false);
+    window = null;
+  }
+}
+</pre>
+    </td>
+  </tr>
+
+<tr>
+<td class="tableheader" colspan=2>Beware of re-using service object</td>
+</tr>
+
+  <tr>
+    <td valign=top>Beware of re-using an object for
+      multiple service registrations.<br>
+      If you register a <b>public</b> class with one or
+      more <b>public</b> methods, these public methods
+      <b>will</b> become available to
+      all other bundles if they have <code>get</code>
+      permission on the service. Instead, make sure you
+      only implement public methods which are members of
+      the registered service's
+      interface.
+      <p>
+      A more compact method than multiple interfaces,
+      is to use anonymous inner classes.
+      </p>
+    </td>
+
+    <td valign=top>
+      <b>Common mistake of re-using the activator as service implementation:</b>
+      <pre>
+import org.osgi.framework.BundleActivator;
+import org.osgi.service.cm.ManagesService;
+
+public class Activator
+       implements BundleActivator, <b>ManagedService</b> {
+
+  // implements BundleActivator
+  public void start(BundleContext bc) {
+
+    Hashtable props = new Hashtable();
+    props.put("service.pid", "myfantasticpid");
+
+    // We can register ourselves as a ManagedService,
+    // This is formally OK, but a service
+    // that can get this service (as a ManagedService),
+    // can also call start() and stop() using
+    // reflection trickery or casting. Which hardly
+    // was the intention of the bundle programmer.
+    bc.registerService(ManagedService.class.getName(),
+                       this, props);
+
+  }
+
+  // implements BundleActivator
+  public void stop(BundleContext bc) {
+    ...
+  }
+
+  // implements ManagedService
+  // should be avoided.
+  public void updated(Dictionary conf) {
+    ...
+  }
+}
+</pre>
+
+      <b>Better variant, using anonymous inner class:</b>
+      <pre>
+public class Activator implements BundleActivator {
+
+  public void start(BundleContext bc) {
+
+    Hashtable props = new Hashtable();
+    props.put("service.pid", "myfantasticpid");
+
+    ManagedService mg = new <b>ManagedService</b>() {
+      public void updated(Dictionary conf) {
+        ...
+      }
+    };
+
+    // BundleActivator methods now hidden
+    // from outside access.
+    bc.registerService(ManagedService.class.getName(),
+                       mg, props);
+
+  }
+  ...
+}
+
+
+</pre>
+    </td>
+  </tr>
+
+<tr>
+<td class="tableheader" colspan=2>Spawning a startup thread</td>
+</tr>
+
+  <tr>
+    <td>
+      Do <b>not hang</b> in the Activator. Spawn a new thread if
+      the bundle is not completely event-driven.
+<p>
+      Nothing about threads is really specified or forbidden in the
+      OSGi spec, so there is currently no need for any special, external
+      thread service.
+</p>
+    </td>
+    <td>
+      <pre>
+  public void start(BundleContext bc) {
+    new Thread("longTaskName") {
+      { start(); } // I like instance initializer blocks ;)
+      public void run() {
+         ...long operation
+      }
+    };
+  }
+</pre>
+
+    </td>
+  </tr>
+
+<tr>
+<td class="tableheader" colspan=2>Setting the context classloader</td>
+</tr>
+
+<tr>
+<td>
+<p>
+Many external libraries, like most JNDI lookup services requires a correctly
+set <b>thread context classloader</b>. If this is not set,
+ClassNotFoundException, or similar might be thrown even if you have
+included all necessary libs.
+</p>
+
+<p>
+To fix this, simple spawn a new thread in the activator and do the work
+from that thread. If you use the lib in any callback methods from the
+framework, as <tt>ServiceListener</tt> or <tt>BundleListener</tt> you should
+do a similar trick inside of these listeners.
+</p>
+
+<p>It is <b>not</b> recommended to set the context class loader
+persistently on the startup thread, since that thread might not be
+unique for your bundle.  Effects might vary depending on OSGi
+vendor. If you don't spawn a new thread, you <b>must</b> reset the
+context class loader before returning.</p>
+
+</td>
+<td>
+<pre>
+public class Activator implements BundleActivator {
+   public void start(BundleContext bc) {
+
+     final ClassLoader classLoader =
+        getClass().getClassLoader();
+
+     Thread thread = new Thread() {
+       public void run() {
+         Thread.currentThread()
+           .setContextClassLoader(classLoader);
+         ...
+         // do any work that uses the context
+         // class loader, like :
+         context.lookup("QueueConnectionFactory");
+       }
+     };
+
+     thread.start();
+   }
+</pre>
+Thanks to Rob Evans for this example.
+
+</td>
+</tr>
+
+
+</table>
+
+<a class=top href="#top">top</a>
+
+<a name="services"></a>
+<h3>Using services</h3>
+<table>
+
+<tr>
+<td class="tableheader" colspan=2>Track all services!</td>
+</tr>
+
+  <tr>
+    <td valign=top>Be prepared that services might not exists, or suddenly
+      disappear.<p>
+      Use the <tt>ServiceTracker</tt> if you are interested in using a single
+      service.
+    <td valign=top>
+      <pre>
+  ServiceTracker logTracker =
+    new ServiceTracker(bc,
+                       LogService.class.getName(),
+                       null);
+  logTracker.open();
+
+  // this might throw a NullPointerException
+  // if the log is not available
+  (LogService)logTracker
+    .getService().log(LogService.LOG_INFO,
+                      "Hello log");
+
+</pre>
+    </td>
+  </tr>
+
+<tr>
+<td class="tableheader" colspan=2>Track service using <tt>ServiceListener</tt></td>
+</tr>
+
+  <tr>
+    <td valign=top>
+      If you really need to act on multiple service appearing and
+      disappearing, a <tt>ServiceListener</tt> is preferred.
+      <p>
+    </td>
+    <td valign=top>
+      <b>Act on every http service that appears and disappears.</b>
+      <pre>
+  ...
+  ServiceListener listener = new ServiceListener() {
+    public void serviceChanged(ServiceEvent ev) {
+     ServiceReference sr = ev.getServiceReference();
+
+      switch(ev.getType()) {
+        case ServiceEvent.REGISTERED:
+          ...
+          break;
+        case ServiceEvent.UNREGISTERING:
+          ...
+         break;
+      }
+    }
+  };
+
+  String filter =
+   "(objectclass=" + HttpService.class.getName() + ")";
+
+  try {
+    bc.addServiceListener(listener, filter);
+
+    // get all already registered services.
+    ServiceReference[] srl =
+      bc.getServiceReferences(null, filter);
+
+    for(int i = 0; srl != null && i < srl.length; i++) {
+      listener.serviceChanged(
+          new ServiceEvent(ServiceEvent.REGISTERED,
+          srl[i]));
+    }
+  } catch (Exception e) {
+     log.error("Failed to set up listener for http",
+               e);
+  }
+</pre>
+    </td>
+  </tr>
+</table>
+
+<a class=top href="#top">top</a>
+
+<a name="dataaccess"></a>
+<h3>Bundle data access</h3>
+
+<table>
+
+<tr>
+<td class="tableheader" colspan=2>Access bundle data as streams</td>
+</tr>
+
+  <tr>
+    <td valign=top>You can access bundle data using
+      the <b>getResourceAsStream</b> method
+    </td>
+    <td valign=top>
+      <pre>
+// Get the bundle's manifest file using the
+// bundle class loader
+InputStream in =
+  getClass()
+   .getResourceAsStream("/META-INF/MANIFEST.MF");
+..
+</pre>
+    </td>
+
+  </tr>
+
+<tr>
+<td class="tableheader" colspan=2>Access bundle data as URLs</td>
+</tr>
+
+  <tr>
+    <td valign=top>You can access bundle data using the <b>bundle:&nbsp;URL</b>
+      syntax.
+    </td>
+    <td valign=top>
+      <pre>
+ // Get the bundle's raw manifest file using an URL
+ // Syntax: (jar number represents internal jars,
+ // where 0 is the top level jar)
+ //  "bundle://&lt;bundle id&gt;:&lt;jar number&gt;&lt;path&gt;"
+ String s =
+   "bundle://" + bc.getBundle().getBundleId() + ":0" +
+   "/META-INF/MANIFEST.MF";
+
+ URL url = new URL(s);
+
+ InputStream in = url.openStream();
+
+ ..
+</pre>
+    </td>
+  </tr>
+
+
+<!--- #refreshing -->
+<tr>
+<td class="tableheader" colspan=2>
+<a name="refreshing"></a>
+Bundles must be refreshed after an update</td>
+</tr>
+  <tr>
+    <td valign=top>
+Bundle update does <b>not</b> automatically release all exported packages.
+<p>
+This means that a bundle that has exported any package to another bundle, or
+to the framework itself, needs to be explicitly <b>refreshed</b> before
+classes in those packages are releases.
+</p>
+<p>
+If you happen to have exported the package that your BundleActivator
+resides in, this could mean that the "old" class will be used and not
+the newly installed one.
+</p>
+    </td>
+    <td valign=top>
+Both the console and desktop provides means of calling refresh:
+<p>
+Console:
+<pre>
+ &gt; /framework refresh
+</pre>
+</p>
+<p>
+Desktop: <br>
+Bundles -&gt; Refresh bundle packages<br>
+or CTRL + R
+</p>
+<p>
+
+Both of these methods uses the <tt>org.osgi.service.PackageAdmin</tt> service
+to refresh packages:
+<pre>
+  // refresh all bundles
+  packageAdmin.refreshPackages(null)
+</pre>
+
+
+    </td>
+  </tr>
+<!--- /#refreshing -->
+
+</table>
+
+<a class=top href="#top">top</a>
+
+<a name="win32"></a>
+<h3>Win32 tips</h3>
+
+<table>
+<tr>
+<td class="tableheader" colspan=2>Using the Java Media framework</td>
+</tr>
+
+  <tr>
+    <td valign=top>The <b>Java Media Framework</b> 2.1 is tricky
+      to install. If you fail to install properly it may still
+      work, but start very slowly.
+    </td>
+    <td valign=top>
+      <ol>
+  <li>Install all the .dlls and jars in the
+  <b>JRE runtime</b> <code>ext/</code> directory. <br>
+  Common installation directory:
+  <pre>
+C:\Program Files\JavaSoft\JRE\1.3\lib\ext\
+    </pre>
+  <li>This is not enough, copy the file <code>jmutils.dll</code> to the
+  JRE runtime <code>bin/</code> directory. <br>
+  Common installation directory:
+  <pre>
+C:\Program Files\JavaSoft\JRE\1.3\bin\
+    </pre>
+
+      </ol>
+    </td>
+  </tr>
+
+</table>
+
+<a name="custom"></a>
+<h2>Details on the included ant build system</h2>
+
+<b>Properties and elements used in <tt>bundlebuild_include.xml</tt></b>
+<table>
+
+ <tr>
+   <td class="tableheader"><b>Name</b>
+   <td class="tableheader"><b>Description</b>
+ </tr>
+
+ <tr>
+  <td class="tableheader" colspan="2">Files and directories</td>
+ </tr>
+
+ <tr>
+  <td>topdir</td>
+  <td>Must be set to the top directory of build. This should be the same
+     directory where framework.jar is located.
+  </td>
+ </tr>
+
+ <tr>
+  <td>ant.dir</td>
+  <td>Directory containing ant build files.
+      <br>Default is "${topdir}/../ant"
+  </td>
+ </tr>
+
+ <tr>
+  <td>src.dir</td>
+  <td>Directory where all bundle source is located.
+      <br>Default is "src"
+  </td>
+ </tr>
+
+ <tr>
+  <td>resources.dir</td>
+  <td>Directory where all bundle data is located. This directory will
+      be copied into the root of the bundle jar file, without the directory
+      name itself.
+      <br>Default is "resources"
+  </td>
+ </tr>
+
+<tr>
+  <td>bundle.build.api</td>
+  <td>If "true", build ${jar.api} bundle jar.<br>Default is "true"</td>
+ </tr>
+
+ <tr>
+  <td>bundle.build.lib</td>
+  <td>If "true", build ${jar.lib} bundle jar.<br>Default is "false"</td>
+ </tr>
+
+ <tr>
+  <td>bundle.build.impl</td>
+  <td>If "true", build ${jar.impl} bundle jar.<br>Default is "true"</td>
+ </tr>
+
+ <tr>
+  <td>bundle.build.all</td>
+  <td>If "true", build ${jar.all} bundle jar.<br>Default is "true"</td>
+ </tr>
+
+ <tr>
+  <td>jar.all</td>
+  <td>Location and name of jar file containing both API and implementation code<br/>
+Default is <tt>${jardir}/${ant.project.name}${all.suffix}.jar</tt>
+</td>
+ </tr>
+
+ <tr>
+  <td>api.all</td>
+  <td>Location of jar file containing API code</td>
+ </tr>
+
+ <tr>
+  <td>impl.all</td>
+  <td>Location of jar file containing implementation code</td>
+ </tr>
+
+ <tr>
+  <td>all.suffix</td>
+  <td>Suffix string for the ${all.jar} output file<br/>
+Default is <tt>_all-${bundle.version}</tt>
+</td>
+ </tr>
+
+ <tr>
+  <td class="tableheader" colspan="2">Bundle manifest attributes</td>
+ </tr>
+
+
+ <tr>
+  <td>bundle.name</td>
+  <td>Name of bundle. Will be stored in manifest as "Bundle-Name".
+      <br>Default value is ${ant.project.name}
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.version</td>
+  <td>Version of bundle. Will be stored in manifest as "Bundle-Version".
+      <br>Default value is "current"
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.vendor</td>
+  <td>Vendor of bundle. Will be stored in manifest as "Bundle-Vendor".
+  <br>Default value is "Knopflerfish"
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.apivendor</td>
+  <td>Vendor of a bundle's API. Will be stored in manifest as "Bundle-APIVendor".
+  <br>Default value is "[bundle.emptystring]"
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.description</td>
+  <td>Description of bundle. Will be stored in manifest as "Bundle-Description"
+      <br>Default value is empty
+ </td>
+ </tr>
+
+
+ <tr>
+  <td>bundle.icon</td>
+  <td>Optional URL to bundle icon, used by the desktop. Will be stored
+      in manifest as "Application-Icon". <br>Default value is empty</td>
+ </tr>
+
+ <tr>
+  <td>bundle.classpath</td>
+  <td>Bundle classpath. Will be stored in manifest as "Bundle-Classpath".
+      <br>Default value is "."</td>
+ </tr>
+
+ <tr>
+  <td>bundle.docurl</td>
+  <td>Bundle doc URL. Will be stored in manifest as "Bundle-DocURL".
+      <br>Default value is "http://www.knopflerfish.org"
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.contactaddress</td>
+  <td>Bundle contact address. Will be stored in manifest as "Bundle-ContactAddress".
+  <br>Default value is "http://www.knopflerfish.org"
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.activator</td>
+  <td>Class name of bundle activator. Will be stored in manifest as "Bundle-Activator".
+  <br>Default value is automatically derived from bundle classes in impl code.
+  </td>
+ </tr>
+
+ <tr>
+  <td>import.package</td>
+  <td>Comma-separated list of packages. Will be stored in manifest as "Import-Package".
+  <br>Default value is automatically derived from bundle classes in impl code
+  </td>
+ </tr>
+
+ <tr>
+  <td>export.package</td>
+  <td>Comma-separated list of packages. Will be stored in manifest as "Export-Package".
+  <br>Default value is automatically derived from bundle classes in API code
+  </td>
+ </tr>
+
+ <tr>
+  <td>dynamicimport.package</td>
+  <td>Comma-separated list of dynamic import packages. Will be stored in
+  manifest as "DynamicImport-Package".
+  <br>Default value is empty
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.nativecode</td>
+  <td>Comma-separated list of native code specifications. Will be stored in
+  manifest as "Bundle-NativeCode".
+  <br>Default value is empty
+  </td>
+ </tr>
+
+ <tr>
+  <td>import.service</td>
+  <td>Optional comma-separated list of service class names. Will be stored in manifest as "Import-Service".
+  </td>
+ </tr>
+
+ <tr>
+  <td>export.service</td>
+  <td>Optional comma-separated list of service class names. Will be stored in manifest as "Import-Package".
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.uuid</td>
+  <td>Optional "Universally Unique ID" for a bundle. Will be stored in manifest as "Bundle-UUID".<br/>
+Default is <tt>org.knopflerfish:${bundle.name}:${bundle.version}</tt>
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.symbolicname</td>
+  <td>Optional ID used by the Eclipse OSGi framework. Will be stored in manifest as "Bundle-SymbolicName".<br/>
+Default is <tt>${bundle.uuid}</tt>
+  </td>
+
+ <tr>
+  <td colspan=2><b>Note</b>: If any of the manifest attributes above are set to the
+   special value <tt>"[bundle.emptystring]"</tt>, that attribute will not
+be present at all in the manifest, not even as a zero-length string.
+ </td>
+ </tr>
+
+ </tr>
+
+
+ <tr>
+  <td class="tableheader" colspan="2">Flow control</td>
+ </tr>
+
+ <tr>
+  <td>do.bundle.custom.pre</td>
+  <td>If set, run the target <tt>bundle.custom.pre</tt>. Default is unset</td>
+ </tr>
+ <tr>
+  <td>do.bundle.custom.post</td>
+  <td>If set, run the target <tt>bundle.custom.post</tt>. Default is unset</td>
+ </tr>
+
+ <tr>
+  <td class="tableheader" colspan="2">Build control</td>
+ </tr>
+
+ <tr>
+  <td>api.pattern</td>
+  <td>Path pattern string for all classes that define the bundle's API</td>
+ </tr>
+
+ <tr>
+  <td>impl.pattern</td>
+  <td>Path pattern string for all classes that define the bundle's implementation</td>
+ </tr>
+
+ <tr>
+  <td>ee.check.foundation</td>
+  <td>If set, verify build with CLDC/Foundation standard OSGi profile.
+      <br>Default is unset.
+  </td>
+ </tr>
+
+ <tr>
+  <td class="tableheader" colspan="2">Other elements</td>
+ </tr>
+
+ <tr>
+  <td>Path element <tt>bundle.compile.path</tt></td>
+  <td><p>This path is used to make other bundles and JAR-files that the
+  bundle depends on availble to the compiler during the compilation of
+  the bundle.</p>
+
+  <p>Example - make the log API available during compilation:</p>
+<pre>
+ &lt;path id = "bundle.compile.path"&gt;
+   &lt;pathelement location="log_api-N.N.N.jar"/&gt;
+ &lt;/path&gt;
+</pre>
+
+  <p>The <tt>N.N.N</tt> notation in the file name tells the build
+  system to look for and use the highest version available in the
+  directory tree starting at <tt>${jars.dir}</tt>. It is possible to
+  ask for the highest version available with a fixed major revision by
+  writing a pathelement like <tt>log_api-2.N.N.jar"</tt>.</p>
+
+</td>
+ </tr>
+
+
+ <tr>
+  <td></td>
+  <td></td>
+ </tr>
+ <tr>
+  <td></td>
+  <td></td>
+ </tr>
+
+</table>
+
+<h3>Special pre and post target</h3>
+
+If you need special handling of the bundle build process, you can
+add the special targets <tt>bundle.custom.pre</tt> or
+<tt>bundle.custom.post</tt>. These will be run just before and just after
+the standard bundle build.
+
+<br>
+<b>Example of pre target - copying a file</b>
+
+<pre>
+&lt;!-- set do.bundle.custom.pre to anything to trigger pre target --&gt;
+&lt;property name="do.bundle.custom.pre" value=""/&gt;
+&lt;target name="bundle.custom.pre"&gt;
+   &lt;copy file  = "myfile"  todir = "resources"/&gt;
+  &lt;/target&gt;
+
+</pre>
+
+<b>Example of post target - a custom manifest attribute</b>
+
+<pre>
+&lt;!-- set do.bundle.custom.post to anything to trigger post target --&gt;
+&lt;property name="do.bundle.custom.post" value=""/&gt;
+
+&lt;target name="bundle.custom.post"&gt;
+  &lt;jar jarfile  = "${impl.jar}"  update   = "true"&gt;
+   &lt;manifest&gt;
+    &lt;attribute name = "myattribyte"       value = "myvalue"/&gt;
+   &lt;/manifest&gt;
+  &lt;/jar&gt;
+&lt;/target&gt;
+</pre>
+
+<a name="optimizing"></a>
+<h3>Optimizing startup time, memory or disk usage</h3>
+
+<p>
+The Knopflerfish framework can be started in either disk-optimizing or
+memory-optimizing modes. This is useful for systems with lower memory or
+small or slow disks. It also affects the startup time for the framework.
+</p>
+
+<!-- 
+<p>
+See <a href="perf.html">Knopflerfish performance test</a> for actual performance data
+with different methods.
+</p>
+-->
+
+The following apply:
+
+<ol>
+ <li>If you need quick startup, remember that initial startup is always
+     much slower than a restart, so
+     a avoid deleting the <tt>fwdir</tt> bundle storage directory, if
+     possible.
+
+ <li> Jar unpacking to disk costs time and disk space. When you
+    have a slow write-disk (as flash mem) this is really
+    notable.
+
+<p>
+    As a solution, memory can be used as bundle storage
+    instead of disk. Just start with
+</p>
+<pre>
+     -Dorg.knopflerfish.framework.bundlestorage=memory
+</pre>
+<p>
+    This has the side-effect of not making the bundles persistent,
+    so the 1) case does no longer apply. Also, this means that
+    the one part of OSGi compliance is lost.
+</p>
+
+ <li> Jar-files inside of bundles tend to take longer time than
+    unpacked class files. This is related to 2) since they must
+    be extracted from the bundle to be accessed.
+<p>
+    A work-around is to manually unpack a lib jar file and add it
+    to a bundle (instead of referencing the .jar from <tt>Bundle-Classpath</tt>)
+</p>
+</ol>

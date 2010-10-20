@@ -1,0 +1,206 @@
+Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
+--------------------------------------------------
+
+  Maintenance release of Knopflerfish available from
+  @DOWNLOAD_URL@
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+
+=== Framework (Core) ===
+
+  Framework 5.1.6
+
+  - Always wait for stop operations to complete before continuing.
+  - Fixed bug with call to removed a removed service listener.
+  - Fixed race conditions in StartLevel-service and Bundle.getHeaders().
+  - Fixed bug when shutting down a framework running at start level 1.
+  - Fixed IllegalArgumentException for StartLevel-service.
+  - Add threaded handling of listeners, this means that asynchronous listeners
+    will be called asynchronously. The number of threads used is controlled via
+    the property, org.knopflerfish.framework.listener.n_threads. Default value
+    is 1. If the value is 0 then we will revert to the old behavior and call
+    all listeners synchronously. Also fixed some minor bugs that was revealed
+    during the testing of the new listener handling.
+  - Use system properties to set default values for OSGi framework properties.
+  - Recognize deprecated processor value "arm" in native code matching.
+  - Fixed locking problem when stopping a crashed bundle.
+  - Fixed NPE when unregistering URLStreamHandlerService.
+  - Fixed getEntry() method for system bundle. The result will
+    vary depending on the JVM since we use getResource() via the
+    framework class loader.
+  - Fixed handling of none null boot-classloader.
+  - Fixed bug in lazy activation class filtering.
+  - Fixed handling of org.osgi.framework.storage property on command line.
+  - Merged fix of class loader problem when running on Android 7/8 from
+    the kf_2_support branch. The boot-classloader of Android does not
+    return the expected null as its parent class loader, it returns
+    itself.
+
+
+=== Services (Compendium) ===
+
+  Event 3.0.4
+  
+  - Fixed infinite loop when debug logging was enabled for event admin.
+
+
+  Deploymentadmin 1.0.1
+
+  - The version of the "org.osgi.service.deploymentadmin.spi"-package
+    that this bundle exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.0.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+
+
+  Dmtree 1.0.1
+
+  - The version of the "org.osgi.service.dmtree"-package
+    that this bundle exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.0.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - This bundle must use dynamic import package "*" to allow a bundle
+    to provide the digest class specified by the system property
+    "org.osgi.vendor.dmtree.DigestDelegate".
+
+
+  HTTP-Server 3.0.1
+
+  - The version of the "org.osgi.service.http"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.2.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Log 3.0.5
+
+  - Fix NPE in 3.0.4. Register ManagedService with a PID that matches
+    configuration meta data. LogRef now handles calls to the
+    log()-methods occurring after the bundle it logs for have been
+    stopped.
+  - Clean up old broken Java-Doc comments and remove a potential
+    problem with synchronization on non-final variables.
+  - Use a cache to avoid recomputing the log-level for a bundle for
+    each entry it sends to the logs.
+  - Resolved some dead-locks and NullPointerExceptions occurring during
+    shut-down that was made visible by the listener handling changes
+    in the v 5.1 of the framework.
+
+
+  Measurement 3.0.1
+
+  - The version of the "org.osgi.util.measurement"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Position 3.0.1
+
+  - The version of the "org.osgi.util.position"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Prefs (OSGi Preferences Service) 3.0.1
+
+  - The version of the "org.osgi.service.prefs"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.1.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Xml 3.0.1
+
+  - The version of the "org.osgi.util.xml"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Kf_metatype 3.0.1
+
+  - Made bundle listeners synchronous, so that we always have
+    the correct state of the metatype information.
+
+
+=== Misc (KF specific, start scripts, build system etc) ===
+
+  Bundlerepository 3.1.2
+
+  - Use "http://www.knopflerfish.org/releases/current-kf_3/repository.xml"
+    as the default repository URL for non-release builds. Release
+    builds will use the repository of that release.
+
+
+  Desktop 3.1.5
+
+  - Ensure that all code handles a null PackageAdmin-service object.
+  - When the path from the property "org.knopflerfish.gosg.jars"
+    contains more than one element, use the first one that exists as
+    the starting directory of the install bundle dialog.
+  - Removed some NullPointerExceptions during shut-down that was made
+    visible by the listener handling changes in  v 5.1 of the framework.
+  - The version of the "org.osgi.service.cm"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.3.0 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - The version of the "org.osgi.service.event"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.2.0 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - The version of the "org.osgi.service.prefs"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.1.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - Fixed a dead-lock problem caused by a bundle listener that did
+    call-backs to the framework on the event delivery thread which a
+    framework implementation does not need to support.
+  - The large icons displayer now scrolls to make new bundles visible
+    again.
+  - The set of selected bundles no longer changes when a bundle is
+    started, stopped, updated, refreshed. The problem was caused by
+    the bundle details displayer that fired to coarse table model
+    change events when receiving bundle change events from the
+    framework, causing the underlying swing table model to clear all
+    selections.
+  
+
+  FW-Tray 3.0.2
+
+  - A class loader may throw a NoClassDefFoundError when it fails to
+    define a class since some class that the class to be loaded needs
+    are missing. Changed the tray icon bundle to handle this, i.e., it
+    now catches Throwable and not just Exception when trying to
+    instantiate java.awt.SystemTray.
+
+
+  Xalan 2.7.1.kf3_01
+
+  - Set export and import versions of javax.xml.* packages so that
+    it works together with the Xerxes bundle. 
+
+
+  Build System
+
+  - The "Bundle" task now uses the version from the "packageinfo"-file
+    when generating the export packages header.
+  - bundlebuidl.xml did not create an Export-Package header for
+    impl-bundles that specified an "impl-api.pattern".
+  - The BundleInfoTask now assigns versions to exported packages based
+    on the version specified in the "packageinfo"-file in the
+    directory that holds the classes of the package. The build will
+    fail if there is a miss-match between the version given in the
+    template manifest and the version in the "packageinfo"-file.
+  - bundlebuild.xml now copies resources from the source tree to the
+    classes tree in the compile step. The internal target that added
+    resources from the source tree to the bundle jar file has been
+    removed since those resources are added to the jar 
+
+----------------------------------------------
+
+Please read on the KF site for more information.
+
+ http://www.knopflerfish.org/

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="rb_C" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.rb_C}"/>
+  <import  file="${proj.dir}/../../../test_import.xml"/>
+
+  <property name = "bundle.build.all"  value="false"/>
+  <property name = "bundle.build.api"  value="true"/>
+  <property name = "bundle.build.lib"  value="false"/>
+  <property name = "bundle.build.impl" value="true"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name  = "api.pattern"
+            value = "test_rb/C/**"/>
+  <property name  = "impl.pattern"
+            value = "test_rb/bundle/**"/>
+
+  <!-- Don't complain about the follwoing intentionally missing imports.-->
+  <!-- They are imported from rb_D via Require-Package. -->
+  <property name="bundle.stdimports"  value="java.,test_rb.D"/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="${impl.jar}/../rb_D_api-0.1.0.jar"/>
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>
+
+
+

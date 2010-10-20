@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Name of generated jar files will be:  -->
+<!--  ${ant.project.name}-${version}.jar     (refered to as impl-bundle) -->
+<!--  ${ant.project.name}_api-${version}.jar  (refered to as api-bundle) -->
+<!--  ${ant.project.name}_all-${version}.jar  (refered to as all-bundle) -->
+
+<project name="build_example" default="all">
+
+  <!-- Where this project lives in the file system. -->
+  <dirname  property="proj.dir" file="${ant.file.build_example}"/>
+
+  <!-- Set to top directory, this is the root of the temporary out    -->
+  <!-- directory for compilation output named "out" and also the root -->
+  <!-- for the bundle repository directory, named "jars".             -->
+<!--
+  <property name="topdir"       location="${proj.dir}/../.."/>
+-->
+
+  <!-- Pattern that must match all private code to be included in     -->
+  <!-- the bundle. The value may contain several comma separated      -->
+  <!-- patterns. Used when compiling, and when packing the impl-,     -->
+  <!-- all- variant of the bundle.                                    -->
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/httptest/**"/>
+
+  <!-- Pattern that must match all exported (API) code to be included -->
+  <!-- in the bundle. The value may contain several comma separated   -->
+  <!-- patterns. Used when compiling, and when packing the api-,      -->
+  <!-- lib-, and all- variant of the bundle. Also used to derive the  -->
+  <!-- Export-Package manifest header if not explicitly given.        -->
+<!--
+  <property name  = "api.pattern"
+            value = "org/knopflerfish/service/http/**"/>
+-->
+
+  <!-- Pattern that must match all internal but exported code         -->
+  <!-- (internal APIs) to be included in the bundle. Used when        -->
+  <!-- compiling, and when packing the impl- and all- variant         -->
+  <!-- of the bundle, but not for the api-variant of the bundle.      -->
+  <!-- Also used to derive the Export-Package manifest header if not  -->
+  <!-- explicitly given.                                -->
+<!--
+  <property name  = "impl-api.pattern"
+            value = "org/knopflerfish/bundle/shared/http/**"/>
+-->
+
+  <!-- Compile-time dependencies, either an explicit path or a     -->
+  <!-- symbolic bundle name that ends with "N.N.N.jar".            -->
+  <!-- Path elements defined like location="console_api-N.N.N.jar" -->
+  <!-- will be expanded to the bundle with the highest version     -->
+  <!-- number available in the directory given by ${jars.dir}.     -->
+ <path id="bundle.compile.path">
+   <pathelement location="console_api-N.N.N.jar"/>
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="jsdk_api-2.N.N.jar"/>
+  </path>
+
+
+  <!-- Activator, imports, exports etc are automatically found but    -->
+  <!-- can be specified explicitly with properties or by providing a  -->
+  <!-- template bundle manifest file, named "bundle.manifest".        -->
+  <!-- See bundlebuild_include.xml for details                        -->
+
+  <!-- The default bundle name (property "bmfa.Bundle-Name") will be: -->
+  <!--   ${ant.project.name}                                          -->
+  <!-- The default bundle symbolic name (property                     -->
+  <!-- "bmfa.Bundle-SymbolicName") will be:                           -->
+  <!--   ${domain.reverse}.bundle.${ant.project.name}                 -->
+
+  <property name="domain.reverse"          value="org.knopflerfish"/>
+
+  <property name="bmfa.Bundle-Description" value="HTTP test servlet"/>
+  <property name="bmfa.Bundle-Vendor"      value="Knopflerfish"/>
+
+  <!-- Import the master build file that defines everything else. -->
+  <import file="${proj.dir}/../../../ant/bundlebuild.xml"/>
+
+</project>

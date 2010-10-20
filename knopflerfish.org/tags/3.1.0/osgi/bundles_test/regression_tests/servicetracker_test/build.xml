@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<project name="servicetracker_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.servicetracker_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
+  <property name="all.suffix.name"   value=""/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  </path>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+    <mkdir dir="${ttb.outdir}"/>
+    <antcall target="bundleS_test"/>
+  </target>
+
+  <target name="bundleS_test">
+    <ant dir="test_target_bundles/bundleS_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleS_test"/>
+    </ant>
+  </target>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

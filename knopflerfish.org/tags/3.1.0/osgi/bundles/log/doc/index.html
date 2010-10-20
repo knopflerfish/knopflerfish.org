@@ -1,0 +1,107 @@
+<h1>Log</h1>
+
+<div class="abstract">
+  OSGi Log service implementation.
+</div>
+
+<h2>Description</h2>
+
+<p>
+This bundle provides a log-service and a log-reader-service
+according to the OSGi Compendium specification. It also exports a
+managed service implementing both
+<tt>org.osgi.service.cm.ManagedService</tt> and
+<tt>org.knopflerfish.service.log.LogConfig</tt>
+to allow for configuration of the log service.
+</p>
+
+<p>
+Console commands for interacting with the log service are provided
+by the bundle
+<a href="../logcommands/index.html"><tt>logcommands</tt></a>.
+</p>
+
+
+<h2>Configuration properties</h2>
+
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.log.out</td>
+    <td>
+
+	Print new log entries on System.out when set to "true".
+
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.log.grabio</td>
+    <td>
+
+	If <code>true</code> grab all text printed on System.out and
+	System.err and add it to the log.
+
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.log.level</td>
+    <td>
+
+	The default log level. All log records that are of lesser
+	severity than this level will be skipped when writing to the
+	log file and not keept in memory.
+
+    </td>
+    <td>Case insensitive String, one of "INFO", "DEBUG", "WARNING", "ERROR",
+    "DEFAULT".</td>
+    <td>INFO</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.log.file</td>
+    <td>
+
+	If <code>true</code> write log entries to file. Only entires
+	with the severity given by
+	<code>org.knopflerfish.log.level</code> or higher are written.
+
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.log.file.dir</td>
+    <td>
+
+	The path to the directory to write the cyclic file log to.  If
+	empty or not given the data direcotry of the log-bundles will
+	be used.
+
+    </td>
+    <td>String</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.log.memory.size</td>
+    <td>
+
+	Number of log records to keep in memeory.
+
+    </td>
+    <td>Integer</td>
+    <td>250</td>
+  </tr>
+</table>
+
+
+<h2>See Also</h2>
+<a href="../logcommands/index.html">Logcommands</a>
+  

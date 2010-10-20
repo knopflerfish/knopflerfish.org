@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: measurement
+Bundle-SymbolicName: org.knopflerfish.bundle.measurement
+Bundle-Version: 3.0.1
+Bundle-Category: API
+Bundle-Description: Measurement API
+Bundle-Vendor: OSGi
+Bundle-APIVendor: OSGi
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Export-Package: org.osgi.util.measurement; version=1.0.1

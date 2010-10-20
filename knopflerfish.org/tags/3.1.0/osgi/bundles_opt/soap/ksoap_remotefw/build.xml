@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="ksoap_remotefw" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.ksoap_remotefw}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+
+  <property name = "bundle.build.api"      value = "false"/>
+  <property name = "bundle.build.impl"     value = "false"/>
+  <property name = "bundle.build.lib"      value = "false"/>
+  <property name = "bundle.build.all"      value = "true"/>
+  <property name = "bundle.build.doc"      value = "true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/soap/**"/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/service/soap/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="util-N.N.N.jar"/>
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="console_api-N.N.N.jar"/>
+   <pathelement location="remotefw_api-N.N.N.jar"/>
+   <pathelement location="../ksoap-osgi/resources/ksoap2-j2me-full.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

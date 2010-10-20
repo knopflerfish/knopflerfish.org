@@ -1,0 +1,356 @@
+<h1>Logcommands</h1>
+
+<div class="abstract">
+  Log service console commands to view log entries and configure the
+  log-service.
+</div>
+
+
+<h2>Description</h2>
+The logcommands bundle publishes two command groups:
+<ul>
+  <li>log - Log commands</li>
+  <li>logconfig - Configuration commands for the log</li>
+</ul>      
+
+The <tt>log</tt> command group consists of a single command
+<tt>show</tt> that interacts directly with the log service to get and
+display available log entries.
+
+The <tt>logconfig</tt> command group offers commands for configuring a
+log service implementation. E.g., number of log entries to keep in
+memory, if entries should be printed to standard out or not, if
+entries are to be saved to a file or not.
+
+
+<h2>Log - Log commands</h2>
+
+<p>
+The <tt>log</tt> command group consists of a single command,
+<tt>show</tt>, that interacts directly with the log-reader service to
+get and display available log entries.
+</p>
+
+<p>
+  The group contains the following command:
+</p>
+
+<ul><li>
+    <tt>show [-help] [-f] [-h #hours#] [-l #level#] [-n #count#] [-s] [&lt;bundle&gt;] ...</tt></li>
+</ul>
+
+<p>
+This command group works with any OSGi compliant log-service
+implementation.
+</p>
+
+
+<h3>show</h3>
+
+<p>
+  The <tt>show</tt> command is used to show selected log entries
+  that are available from the log service, i.e., held in memory.
+</p>
+
+<p>
+  Entries will be ordered with the most recent entry first. If no
+  bundle argument is supplied, log entries from all bundles are
+  considered.
+</p>
+
+<pre>
+  show [-help] [-f] [-h #hours#] [-l #level#] [-n #count#] [-s] [&lt;bundle&gt;] ...
+</pre>
+
+<p>Parameters:</p>
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  
+  <dt><b>-f</b></dt><dd>Show only entries for events from the framework.</dd>
+  <dt><b>-h #hours#</b></dt><dd>Show only entries since #hours#
+    back. Note that 'hours' is a float so that smaller time than one
+    hour is possible.</dd>
+  <dt><b>-l #level#</b></dt><dd>Show only entries with minimum #level#
+    of one of <tt>error</tt>, <tt>warning</tt>, <tt>info</tt>
+    or <tt>debug</tt>.</dd>
+  
+  <dt><b>-n #count#</b></dt><dd>Show at most #count# entries, that is, the
+    #count# most recent entries that fulfills the selection criteria.</dd>
+  <dt><b>-s</b></dt><dd>Show the stack trace for exceptions.</dd>
+  <dt><b>&lt;bundle&gt;</b></dt><dd>Name or id of bundle. The value
+    <tt>"*"</tt> may be used to list entries from all bundles
+    except the framework itself.</dd>
+</dl>
+
+<h3>Examples</h3>
+<p>
+Show log error entries.
+</p>
+<pre>
+  log&gt; show -l error
+  07/06 15:16:41 ERROR #19, messenger -
+  Failed to load configuration / java.io.FileNotFoundException:
+  /demo/gatespace/bin/host.conf
+  (No such file or directory)
+  07/06 15:16:41 ERROR FRAMEWORK -
+  FrameworkError: org.osgi.framework.BundleException:
+  Bundle.start: BundleActivator start failed
+  07/06 15:16:41 ERROR #18, authentication -
+  Failed to read KeyStore / java.net.MalformedURLException:
+  null: java.lang.NullPointerException: 
+</pre>
+
+
+<h2>Logconfig - Configuration commands for the log</h2>
+
+<p>
+The <tt>logconfig</tt> command group offers commands for configuring a
+log service implementation.
+</p>
+
+<p>
+This command group only works with log service implementations that
+publishes a <tt>org.knopflerfish.service.log.LogConfig</tt>.
+</p>
+
+<p>
+  The group contains the following commands:
+</p>
+
+<ul><li>
+    <tt>memory [-help] [&lt;int&gt;] </tt></li>
+  <li>
+    <tt>setlevel [-help] &lt;level&gt; [&lt;bundle&gt;] ... </tt>
+  </li>
+
+  <li>
+    <tt>showlevel [-help] [&lt;bundle&gt;] ... </tt></li>
+  <li>
+    <tt>out [-help] [-on | -off] </tt></li>
+  <li>
+    <tt>file [-help] [-on | -off [-size #size#] [-gen #gen#] [-flush | -noflush] </tt></li>
+</ul>
+
+
+
+<h3>memory</h3>
+
+<p>
+  The memory command is used to control the number of log entries 
+  that are held in memory.
+</p>
+
+<p>
+  If the command is given without any parameters the current maximum
+  number of log entries is shown.
+</p>
+
+<p> 
+  Show and set the number of log entries in memory.
+</p>
+<pre>
+  memory [-help] [&lt;int&gt;]
+</pre>
+
+Parameters:
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+
+  <dt><b>&lt;int&gt;</b></dt><dd>The maximum number of log entries held in memory.
+  </dd>
+</dl>
+
+
+
+<h3>setlevel</h3>
+
+<p>
+  The setlevel command is used to control what log entries are
+  actually written to the log. There is one default log level
+  and in addition each bundle can have its own setting. A
+  log level may also be set giving a bundle short name in which
+  case all bundles with this name will be logged at the given
+  level. The default level is used for bundles without log
+  levels of their own.</p> 
+
+<p>
+  Entries with a severity level higher or the same as the
+  current default level will be logged. For example, with the
+  default level set to warning, entries with level warning or
+  error will be logged. 
+</p>
+
+<p>
+The severity order of the levels is: 
+</p>
+<ul><li>
+    ERROR </li>
+  <li>
+    Warning </li>
+  <li>
+    info </li>
+  <li>
+    debug </li>
+
+</ul>
+
+
+<p>
+  Set log level.
+</p>
+<pre>
+  setlevel [-help] &lt;level&gt; [&lt;bundle&gt;] ...
+</pre>
+
+Parameters:
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>&lt;level&gt;</b></dt><dd>The new log level. One of <tt>error</tt>,
+    <tt>warning</tt>, <tt>info</tt>,
+    <tt>debug</tt> or <tt>default</tt>.
+  </dd>
+
+  <dt><b>&lt;bundle&gt;</b></dt><dd>URL, short name, or id of bundle.
+    A URL or bundle id must be used if wanting to set the log
+    level of one specific bundle. When supplying a bundle short
+    name all bundles with this name will be logged at the given level. 
+    If no bundle is given the default log level is set.</dd>
+</dl>
+
+
+
+<h3> showlevel</h3>
+
+<p>
+  The showlevel command lists the default log level and the levels for
+  the specified bundles, or for all bundles if no bundle is specified
+  (only bundles with a level different from the default level
+  are listed). 
+</p>
+
+<p>
+  The output has columns for bundle id, log level and bundle
+  name. A "<tt>*</tt>" in the id column indicates the
+  default level, and a "<tt>-</tt>" in the same column
+  indicates that the log level was set with a bundle short name
+  or that the bundle is not yet installed. The bundle name
+  column may contain a bundle short name or if the log level of a
+  bundle not yet installed is set the bundle location will be
+  displayed instead.
+</p>
+
+<p>
+  Show current log levels.
+</p>
+<pre>
+  showlevel [-help] [&lt;bundle&gt;] ...
+</pre>
+
+Parameters:
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>&lt;bundle&gt;</b></dt><dd>URL, bundle short name or id. Shows
+    level for a specific bundle if a bundle id or location is
+    given. When supplying a bundle short name the log level for all
+    bundles with this name will be displayed.</dd>
+</dl>
+
+
+<b>Example:</b> Default and bundle log levels
+<pre>
+
+  logconfig&gt; setlevel warning console
+  logconfig&gt; showlevel
+  *  debug    (default)
+  2  Warning  console
+  -  Warning  console   (default)</pre>
+
+
+<h3>out</h3>
+
+<p>
+  Enables printout of all log entries on standard out. The entries are
+  written to the log as well.
+</p>
+
+<p>The <tt> out </tt> command is disabled if no valid configuration has been
+  received, that is, the Configuration Management(CM) component has
+  not generated a configuration or the CM component is not available.
+  See [<a href="#IG-PROD_GDSP_CP_PFM_LOG">1</a>] for further
+  description of the configuration procedure.</p>
+
+<p>
+  If the command is given without parameters the present setting is shown.
+</p>
+
+<pre>
+  out [-help] [-on | -off]
+</pre>
+
+Parameters:
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+  <dt><b>-on</b></dt><dd>Turns on writing of log entries to standard out.</dd>
+  <dt><b>-off</b></dt><dd>Turns off writing of log entries to standard out.</dd>
+
+</dl>
+
+
+<h3>file</h3>
+<p>
+  This command controls the writing of log entries to file, the size 
+  of log files, how many generations of log files to keep and whether each
+  log entry should be flushed to file.
+</p>
+
+<p>The <tt> file </tt> command is disabled if no valid configuration has been
+  received, that is, the Configuration Management(CM) component has
+  not generated a configuration or the CM component is not
+  available. See [<a href="#IG-PROD_GDSP_CP_PFM_LOG">1</a>] for further
+  description of the configuration procedure.
+</p>
+
+<p>
+If the command is given without parameters the present setting is shown.
+</p>
+
+<p>
+Note that a change in log file size does not take effect until the
+present log file has been filled and a new is started.
+</p>
+
+<p>
+  Configures the writing of log entries to file.
+</p>
+
+<pre>
+  file [-help] [-on | -off [-size #size#] [-gen #gen#] [-flush | -noflush] 
+</pre>
+
+Parameters:
+<dl><dt><b>-help</b></dt><dd>Display command help text.</dd>
+
+  <dt><b>-on</b></dt><dd>Turns on writing of log entries to file.</dd>
+  <dt><b>-off</b></dt><dd>Turns off writing of log entries to file.
+    <a name="B1"><a href="#F1"><sup>1</sup></a>
+    </dd>
+    <dt><b>-size #size#</b></dt><dd>Sets the maximum size (in characters) of a log file.</dd>
+    <dt><b>-gen #gen#</b></dt><dd>Sets the number of log file generations that are kept.</dd>
+    <dt><b>-flush</b></dt><dd>Turns on log file flushing after each log entry.</dd>
+
+    <dt><b>-noflush</b></dt><dd>Turns off log file flushing after each log entry.</dd>
+  </dl>
+
+
+<h3>Examples</h3>
+  <p>
+    Turn on writing to standard out
+    <pre>
+      logconfig&gt; out -on
+    </pre>
+  </p>
+  <p>Turn on flushing of buffers after each log entry.
+    <pre>
+      logconfig&gt; file -flush
+    </pre>
+  </p>
+
+
+
+<h2>See Also</h2>
+<a href="../log/index.html">Log</a>
