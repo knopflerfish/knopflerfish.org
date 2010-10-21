@@ -698,6 +698,58 @@ public class BundleManifestTask extends Task {
   }
 
 
+  private final static String DOC_URL_PREFIX
+    = "http://www.knopflerfish.org/releases/current/";
+  private final static String SVN_URL_PREFIX
+    = "https://www.knopflerfish.org/svn/knopflerfish.org/trunk/";
+
+  /**
+   * If this is a distribution build (the
+   * <code>Knopflerfish-Version</code> attribute is present) then use
+   * the version number as replacemnt for:
+   * <ul>
+   *   <li>the <code>current</code>-part of a Bundle-DocURL
+   *       value that start with {@link #DOC_URL_PREFIX}.
+   *   <li>the <code>trunk</code>-part of a Bundle-SubversionURL
+   *       value that start with {@link #SVN_URL_PREFIX}.
+   * </ul>
+   */
+  private void replaceTrunkWithVersion(Manifest mf)
+  {
+    final Manifest.Attribute kfVerAttr
+      = mf.getMainSection().getAttribute("Knopflerfish-Version");
+    if (null!=kfVerAttr) {
+      final String version = kfVerAttr.getValue();
+      // Ignore snapshot-versions.
+      if (-1==version.indexOf("snapshot")) {
+        final Manifest.Attribute docAttr
+          = mf.getMainSection().getAttribute("Bundle-DocURL");
+        if (null!=docAttr) {
+          final String docURL = docAttr.getValue();
+          if (docURL.startsWith(DOC_URL_PREFIX)) {
+            String newDocURL
+              = DOC_URL_PREFIX.substring(0,DOC_URL_PREFIX.indexOf("current/"))
+              +version +docURL.substring(DOC_URL_PREFIX.length()-1);
+            docAttr.setValue(newDocURL);
+          }
+        }
+
+        final Manifest.Attribute svnAttr
+          = mf.getMainSection().getAttribute("Bundle-SubversionURL");
+        if (null!=svnAttr) {
+          final String svnURL = svnAttr.getValue();
+          if (svnURL.startsWith(SVN_URL_PREFIX)) {
+            String newSvnURL
+              = SVN_URL_PREFIX.substring(0,SVN_URL_PREFIX.indexOf("trunk/"))
+              +"tags/" +version +svnURL.substring(SVN_URL_PREFIX.length()-1);
+            svnAttr.setValue(newSvnURL);
+          }
+        }
+      }
+    }
+  }
+
+
   /**
    * Create or update the Manifest when used as a task.
    *
@@ -816,6 +868,8 @@ public class BundleManifestTask extends Task {
       }
       overrideAttributes(manifestToWrite, bundleKind+"-");
     }
+
+    replaceTrunkWithVersion(manifestToWrite);
 
     if (null==manifestFile) {
       updatePropertiesFromMainSectionAttributeValues(manifestToWrite);
