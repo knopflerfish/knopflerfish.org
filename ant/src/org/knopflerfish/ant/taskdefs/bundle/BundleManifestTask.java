@@ -734,7 +734,7 @@ public class BundleManifestTask extends Task {
           final int ix = DOC_URL_PREFIX.indexOf(toReplace);
           final String newDocURL
             = DOC_URL_PREFIX.substring(0,ix)
-            +replacement +docURL.substring(ix + toReplace.length() -1);
+            +replacement +docURL.substring(ix + toReplace.length());
           docAttr.setValue(newDocURL);
         }
       }
