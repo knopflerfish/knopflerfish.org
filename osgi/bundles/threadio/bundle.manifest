@@ -6,9 +6,11 @@ Bundle-Version: 0.1.0
 Bundle-Description: ThreadIO Service
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
-Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/threadio/
 Bundle-Activator: org.knopflerfish.bundle.threadio.Activator
 Bundle-Category: service
 Export-Package: org.osgi.service.threadio; version=1.0

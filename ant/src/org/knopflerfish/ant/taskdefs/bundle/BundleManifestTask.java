@@ -720,20 +720,26 @@ public class BundleManifestTask extends Task {
       = mf.getMainSection().getAttribute("Knopflerfish-Version");
     if (null!=kfVerAttr) {
       final String version = kfVerAttr.getValue();
-      // Ignore snapshot-versions.
-      if (-1==version.indexOf("snapshot")) {
-        final Manifest.Attribute docAttr
-          = mf.getMainSection().getAttribute("Bundle-DocURL");
-        if (null!=docAttr) {
-          final String docURL = docAttr.getValue();
-          if (docURL.startsWith(DOC_URL_PREFIX)) {
-            String newDocURL
-              = DOC_URL_PREFIX.substring(0,DOC_URL_PREFIX.indexOf("current/"))
-              +version +docURL.substring(DOC_URL_PREFIX.length()-1);
-            docAttr.setValue(newDocURL);
-          }
-        }
+      final boolean isSnapshot = -1<version.indexOf("snapshot");
 
+      final String toReplace   = "/releases/current/";
+      final String replacement = isSnapshot
+        ? "/snapshots/" +version +"/"
+        : ("/releases/" +version +"/");
+      final Manifest.Attribute docAttr
+        = mf.getMainSection().getAttribute("Bundle-DocURL");
+      if (null!=docAttr) {
+        final String docURL = docAttr.getValue();
+        if (docURL.startsWith(DOC_URL_PREFIX)) {
+          final int ix = DOC_URL_PREFIX.indexOf(toReplace);
+          final String newDocURL
+            = DOC_URL_PREFIX.substring(0,ix)
+            +replacement +docURL.substring(ix + toReplace.length() -1);
+          docAttr.setValue(newDocURL);
+        }
+      }
+
+      if (!isSnapshot) {
         final Manifest.Attribute svnAttr
           = mf.getMainSection().getAttribute("Bundle-SubversionURL");
         if (null!=svnAttr) {

@@ -6,9 +6,11 @@ Bundle-Version: 3.0.1
 Bundle-Category: service
 Bundle-Description: SOAP remote framework
 Bundle-Vendor: Knopflerfish
-Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/soap_remotefw/
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?soap_remotefw
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/soap/soap_remotefw/
 Bundle-Activator: org.knopflerfish.bundle.soap.remotefw.Activator
 Export-Package: org.knopflerfish.service.soap.remotefw
 Import-Package: org.osgi.framework,

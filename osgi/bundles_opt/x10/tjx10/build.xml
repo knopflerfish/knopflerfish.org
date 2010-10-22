@@ -37,6 +37,8 @@
 
 
   <property name="bmfa.Bundle-DocURL"    value="http://x10.homelinux.org/"/>
+  <property name="bmfa.Bundle-SubversionURL"
+	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/"/>
 
   <property name="bmfa.Import-Package"   value="org.osgi.framework,org.osgi.service.cm,javax.comm,org.knopflerfish.service.log"/>
 

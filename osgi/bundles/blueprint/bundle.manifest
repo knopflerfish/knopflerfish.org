@@ -7,9 +7,10 @@ Bundle-Category: API
 Bundle-Description: Blueprint Container API
 Bundle-Vendor: OSGi
 Bundle-APIVendor: osgi
-Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
+ g/trunk/osgi/bundles/blueprint
 Export-Package: org.osgi.service.blueprint.container ; version="1.0",
                 org.osgi.service.blueprint.reflect ; version="1.0"
 Import-Package: org.osgi.framework

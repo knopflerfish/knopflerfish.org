@@ -7,9 +7,11 @@ Bundle-Category: lib
 Bundle-Copyright: http://www.apache.org/licenses/LICENSE-2.0
 Bundle-Description: The Apache Xalan-Java XML transformer
 Bundle-Vendor: Apache/Knopflerfish
-Bundle-DocURL: http://xml.apache.org/xalan-j/
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=xalan/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/xml/xalan/
 Bundle-Activator: org.osgi.util.xml.XMLTransformerActivator
 Bundle-Classpath: .,xml-apis.jar,xalan.jar
 Export-Package: javax.xml.transform;version=1.3.0.selectFirst,

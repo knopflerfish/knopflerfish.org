@@ -7,10 +7,9 @@ Bundle-Category: console
 Bundle-Description: AWT framework desktop
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
- g/trunk/osgi/bundles/desktop_awt/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/desktop_awt/
 Bundle-Activator: org.knopflerfish.bundle.desktopawt.Activator
 Import-Package: org.osgi.framework; version="[1.2,2)",
  org.osgi.service.packageadmin,
