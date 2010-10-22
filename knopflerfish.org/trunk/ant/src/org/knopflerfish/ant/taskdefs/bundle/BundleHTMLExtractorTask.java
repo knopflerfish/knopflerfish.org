@@ -1100,7 +1100,7 @@ public class BundleHTMLExtractorTask extends Task {
             // If value is a valid URL, present it as a link
             try {
               final URL url = new URL(value);
-              value = "<a href=\"" +url +"\">" +value +"</a>";
+              value = "<a target=\"_top\" href=\"" +url +"\">" +value +"</a>";
             } catch (MalformedURLException mue) {
             }
             sb.append("<tr>\n" +
