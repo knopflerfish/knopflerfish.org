@@ -6,8 +6,11 @@ Bundle-Version: 2.0.0
 Bundle-Description: Misc utilities
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/util/
 Bundle-Category: util
 Export-Package: org.knopflerfish.util,
  org.knopflerfish.util.sort,

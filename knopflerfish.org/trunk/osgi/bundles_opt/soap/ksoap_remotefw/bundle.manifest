@@ -7,9 +7,11 @@ Bundle-Category: service
 Bundle-Description: kSOAP based implementation of a remote framework
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=remotefw/index.html
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?remotefw/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/soap/ksoap_remotefw/
 Bundle-Activator: org.knopflerfish.bundle.soap.remotefw.Activator
 Export-Package: org.knopflerfish.service.soap.remotefw
 Import-Package: org.ksoap2,

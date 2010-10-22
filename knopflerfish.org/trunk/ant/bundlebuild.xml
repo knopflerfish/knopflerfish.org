@@ -96,8 +96,6 @@
             value="http://www.knopflerfish.org"/>
   <property name="bmfa.Bundle-DocURL"
             value="http://www.knopflerfish.org"/>
-  <property name="bmfa.Bundle-SubversionURL"
-            value="https://www.knopflerfish.org/svn/"/>
 
   <!-- Define all other known bundle mainfest attribute properties with -->
   <!-- the special empty value so that we do not end up with headers    -->

@@ -7,6 +7,9 @@ Bundle-Category: API
 Bundle-Description: Measurement API
 Bundle-Vendor: OSGi
 Bundle-APIVendor: OSGi
-Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/measurement/
 Export-Package: org.osgi.util.measurement; version=1.0.1

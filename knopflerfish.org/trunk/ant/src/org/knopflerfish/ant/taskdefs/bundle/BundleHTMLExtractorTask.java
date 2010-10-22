@@ -40,6 +40,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -1095,9 +1096,16 @@ public class BundleHTMLExtractorTask extends Task {
 
         if(!handledSet.contains(key.toString())) {
           if(!skipAttribSet.contains(key.toString())) {
+            String value = attribs.getValue(key.toString());
+            // If value is a valid URL, present it as a link
+            try {
+              final URL url = new URL(value);
+              value = "<a href=\"" +url +"\">" +value +"</a>";
+            } catch (MalformedURLException mue) {
+            }
             sb.append("<tr>\n" +
                       " <td>" + key + "</td>\n" +
-                      " <td>" + attribs.getValue(key.toString()) + "</td>\n" +
+                      " <td>" + value + "</td>\n" +
                       "</tr>\n");
           }
         }

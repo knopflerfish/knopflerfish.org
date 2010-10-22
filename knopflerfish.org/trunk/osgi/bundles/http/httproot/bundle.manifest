@@ -6,9 +6,11 @@ Bundle-Version: 2.0.2
 Bundle-Category: example
 Bundle-Description: Demo HTTP root servlet
 Bundle-Vendor: Knopflerfish
-Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/http/httproot/
 Bundle-Activator: org.knopflerfish.bundle.httproot.Activator
 Import-Package: javax.servlet,
  javax.servlet.http,
