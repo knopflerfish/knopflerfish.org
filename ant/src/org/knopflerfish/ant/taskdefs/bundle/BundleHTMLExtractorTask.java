@@ -124,7 +124,7 @@ import org.osgi.framework.Version;
  *   </td>
  *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
- *  <tr>
+*  <tr>
  *   <td valign=top>templateHTMLDir</td>
  *   <td valign=top>
  *   Directory containing HTML template files. This directory must
@@ -325,20 +325,21 @@ public class BundleHTMLExtractorTask extends Task {
                      //              "Built-From",
                      );
 
-    setAlwaysProps("Bundle-Activator," +
-                   "Bundle-Vendor," +
-                   "Bundle-Name," +
-                   "Bundle-Description," +
-                   "Export-Package," +
-                   "Import-Package," +
-                   "Import-Service," +
-                   "Export-Service," +
-                   "Main-class," +
-                   "Build-Date," +
-                   "Bundle-DocURL," +
+    setAlwaysProps("Build-Date," +
+                   "Bundle-Activator," +
                    "Bundle-Classpath," +
                    "Bundle-ContactAddress," +
-                   "Bundle-Activator");
+                   "Bundle-Description," +
+                   "Bundle-DocURL," +
+                   "Bundle-ManifestVersion," +
+                   "Bundle-Name," +
+                   "Bundle-SymbolicName," +
+                   "Bundle-Vendor," +
+                   "DynamicImport-Package," +
+                   "Export-Package," +
+                   "Import-Package," +
+                   "Main-class"
+                   );
   }
 
   public void setCheckJavaDoc(boolean b) {
@@ -1046,40 +1047,20 @@ public class BundleHTMLExtractorTask extends Task {
 
         String str = (String)attribs.get(key);
 
-        if("Export-Package".equals(key.toString()) ||
-           "Import-Package".equals(key.toString()) ||
-           "Import-Service".equals(key.toString()) ||
-           "Export-Service".equals(key.toString())) {
-        } else {
-          if(listPropSet.contains(key.toString())) {
-            str = replace(str, ",", listSeparator);
-          }
-
-          template = replace(template, "${" + key + "}", str);
+        // Special formatting of the value for some keys:
+        if ("Export-Package".equals(key.toString())) {
+          str = getPackagesString(pkgExportMap, "/package-summary.html");
+        } else if ("Import-Package".equals(key.toString())) {
+          str = getPackagesString(pkgImportMap, "/package-summary.html");
+        } else if ("Import-Service".equals(key.toString())) {
+          str = getPackagesString(serviceImportMap, ".html");
+        } else if ("Export-Service".equals(key.toString())) {
+          str = getPackagesString(serviceExportMap, ".html");
+        } else if (listPropSet.contains(key.toString())) {
+          str = replace(str, ",", listSeparator);
         }
+        template = replace(template, "${" + key + "}", str);
       }
-
-
-      template = replace(template,
-                         "${Export-Package}",
-                         getPackagesString(pkgExportMap,
-                                           "/package-summary.html"));
-
-      template = replace(template,
-                         "${Import-Package}",
-                         getPackagesString(pkgImportMap,
-                                           "/package-summary.html"));
-
-
-      template = replace(template,
-                         "${Export-Service}",
-                         getPackagesString(serviceExportMap,
-                                           ".html"));
-
-      template = replace(template,
-                         "${Import-Service}",
-                         getPackagesString(serviceImportMap,
-                                           ".html"));
 
 
       for(Iterator it = alwaysPropSet.iterator(); it.hasNext(); ) {
@@ -1096,16 +1077,30 @@ public class BundleHTMLExtractorTask extends Task {
 
         if(!handledSet.contains(key.toString())) {
           if(!skipAttribSet.contains(key.toString())) {
-            String value = attribs.getValue(key.toString());
+            String str = attribs.getValue(key.toString());
+
+            // Special formatting of the value for some keys:
+            if ("Export-Package".equals(key.toString())) {
+              str = getPackagesString(pkgExportMap, "/package-summary.html");
+            } else if ("Import-Package".equals(key.toString())) {
+              str = getPackagesString(pkgImportMap, "/package-summary.html");
+            } else if ("Import-Service".equals(key.toString())) {
+              str = getPackagesString(serviceImportMap, ".html");
+            } else if ("Export-Service".equals(key.toString())) {
+              str = getPackagesString(serviceExportMap, ".html");
+            } else if (listPropSet.contains(key.toString())) {
+              str = replace(str, ",", listSeparator);
+            }
+
             // If value is a valid URL, present it as a link
             try {
-              final URL url = new URL(value);
-              value = "<a target=\"_top\" href=\"" +url +"\">" +value +"</a>";
+              final URL url = new URL(str);
+              str = "<a target=\"_top\" href=\"" +url +"\">" +str +"</a>";
             } catch (MalformedURLException mue) {
             }
             sb.append("<tr>\n" +
                       " <td>" + key + "</td>\n" +
-                      " <td>" + value + "</td>\n" +
+                      " <td>" + str + "</td>\n" +
                       "</tr>\n");
           }
         }
