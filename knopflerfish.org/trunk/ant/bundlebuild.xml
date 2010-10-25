@@ -388,6 +388,7 @@
 
     <javac destdir="${classes.out.dir}"
            debug="on"
+	   includeAntRuntime="false"
            srcdir="${src.dir}"
            target="${javac.target}"
            source="${javac.source}"
@@ -427,6 +428,7 @@
 
     <javac destdir="${classes.out.dir}"
            debug="on"
+	   includeAntRuntime="false"
            srcdir="${src.dir}"
            classpathref="bundle.path.Expanded"
            target="${javac.target}"
