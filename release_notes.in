@@ -8,8 +8,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   last release.
 
 
-No changes yet.
 
+=== Misc (KF specific, start scripts, build system etc) ===
+
+  Build System
+
+  - Added an antlib.xml file defining all the provided tasks to the
+    bundle_tasks.jar.
+  - The bundle_tasks.jar is now only built if not present. I.e.,
+    when changing any of the taskt an explicit build must be done in
+    the ant-subdir to create an up-to date version of the
+    bundle_tasks.jar-file.
 
 
 
