@@ -17,7 +17,7 @@
   <path id="bundle.compile.path">
    <!-- To get acess to javax.xml.xpath.XPathFactory when building
 	with JDK 1.4-->
-   <pathelement location="xerces-N.N.N.jar"/>
+   <pathelement location="${osgi.dir}/bundles/xml/xerces/resources/xml-apis.jar"/>
   </path>
 
   <property name="all.suffix.name" value=""/>
