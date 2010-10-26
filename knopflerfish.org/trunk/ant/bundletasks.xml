@@ -75,9 +75,6 @@
       <available type="file" file="${asm.jar}"/>
     </and>
   </condition>
-  <condition property="bundle_tasks.jar.present">
-    <available type="file" file="${bundle_tasks.jar}"/>
-  </condition>
 
   <path id="bundle_tasks.path">
     <pathelement location="${antclasses}"/>
@@ -86,8 +83,8 @@
     <path refid="bindex.path"/>
   </path>
 
-
-  <target name="maybe_build_bundle_tasks" unless="bundle_tasks.jar.present">
+  <!-- Must build when source is present to ensure that the antlib is up to date. -->
+  <target name="maybe_build_bundle_tasks" if="bundle_tasks.src.present">
     <antcall target="build_bundle_tasks"/>
   </target>
 
