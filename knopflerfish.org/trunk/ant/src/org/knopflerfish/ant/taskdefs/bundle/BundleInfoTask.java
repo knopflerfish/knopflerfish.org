@@ -36,10 +36,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -59,7 +61,7 @@ import org.apache.tools.ant.util.StringUtils;
 import org.osgi.framework.Version;
 
 /**
- * Task that analyzes a set of java sources or class files, and lists all
+ * Task that analyzes a set of class files (or source files), and lists all
  * imported and defined packages. Also tries to find any class implementing
  * <tt>org.osgi.framework.BundleActivator</tt>.
  *
@@ -358,13 +360,31 @@ import org.osgi.framework.Version;
  * </table>
  *
  * <h3>Parameters specified as nested elements</h3>
- * <h4>fileset</h4>
+ *
+ * The set of provided packages (classes) is the union of the packages
+ * found via &lt;exports&gt; and &lt;impls&gt; file-sets. The
+ * import-package header is derived (checked agains) the set of
+ * provided packages.
+ *
+ * <h4>exports</h4>
+ *
+ * (optional)<br>
+ *
+ * <p>Nested &lt;exports&gt; are filesets that will be analysed to
+ * determine the set of Java packages to be exported by the
+ * bundle.</p>
+ *
+ * <p>Unsupported file types matched by the file set are ignored.</p>
+ *
+ * <h4>impls</h4>
  *
  * (required)<br>
- * <p>
- * All files must be specified as a fileset. Unsupported file types
- * are ignored.
- * </p>
+ *
+ * <p>Nested &lt;impls&gt; are filesets that will be analysed to
+ * determine the set of private Java packages provided by the
+ * bundle.</p>
+ *
+ * <p>Unsupported file types matched by the file set are ignored.</p>
  *
  * <h3>Examples</h3>
  *
@@ -404,7 +424,8 @@ import org.osgi.framework.Version;
  */
 public class BundleInfoTask extends Task {
 
-  private Vector    filesets = new Vector();
+  private List implsFilesets = new ArrayList();
+  private List exportsFilesets  = new ArrayList();
   private FileUtils fileUtils;
 
   private String importsProperty   = "";
@@ -426,6 +447,7 @@ public class BundleInfoTask extends Task {
   private boolean bCheckSMFEE        = false;
   private boolean bImplicitImports   = true;
   private boolean bSetActivator      = true;
+  private boolean bActivatorOptional = false;
   private boolean failOnExports      = true;
   private boolean failOnImports      = true;
   private boolean failOnActivator    = true;
@@ -549,7 +571,9 @@ public class BundleInfoTask extends Task {
   public void setServiceComponent(String serviceComponent) {
     this.serviceComponent = serviceComponent;
     if (!BundleManifestTask.isPropertyValueEmpty(this.serviceComponent)) {
-      bSetActivator = false;
+      // A bundle with service components may have an activator but it
+      // is not recommended.
+      bActivatorOptional = true;
     }
   }
 
@@ -559,6 +583,7 @@ public class BundleInfoTask extends Task {
   public void setFragmentHost(String fragmentHost) {
     this.fragmentHost = fragmentHost;
     if (!BundleManifestTask.isPropertyValueEmpty(this.fragmentHost)) {
+      // A fragment bundle must not have an activator.
       bSetActivator = false;
     }
   }
@@ -602,8 +627,22 @@ public class BundleInfoTask extends Task {
     }
   }
 
-  public void addFileset(FileSet set) {
-    filesets.addElement(set);
+  /**
+   * Add a file set with classes that shall be exported.
+   *
+   * @param set The file set with exports to add.
+   */
+  public void addConfiguredExports(FileSet set) {
+    exportsFilesets.add(set);
+  }
+
+  /**
+   * Add a file set with classes that are private to the bundles.
+   *
+   * @param set The file set with private implementations to add.
+   */
+  public void addConfiguredImpls(FileSet set) {
+    implsFilesets.add(set);
   }
 
   /**
@@ -619,12 +658,38 @@ public class BundleInfoTask extends Task {
   // Scan all files in fileset and delegate to analyze()
   // then write back values to properties.
   public void execute() throws BuildException {
-    if (filesets.size() == 0) {
-      throw new BuildException("No fileset specified", getLocation());
+    if (0==exportsFilesets.size() && 0==implsFilesets.size()) {
+      throw new BuildException("Neither exports nor impls specified",
+                               getLocation());
     }
 
-    for (int i = 0; i < filesets.size(); i++) {
-      FileSet fs = (FileSet) filesets.elementAt(i);
+    // First scan all exports
+    for (Iterator it = exportsFilesets.iterator(); it.hasNext(); ) {
+      FileSet fs = (FileSet) it.next();
+      DirectoryScanner ds = fs.getDirectoryScanner(project);
+      File fromDir = fs.getDir(project);
+
+      String[] srcFiles = ds.getIncludedFiles();
+      String[] srcDirs = ds.getIncludedDirectories();
+
+      for (int j = 0; j < srcFiles.length ; j++) {
+        analyze(new File(fromDir, srcFiles[j]));
+      }
+
+      for (int j = 0; j < srcDirs.length ; j++) {
+        analyze(new File(fromDir, srcDirs[j]));
+      }
+    }// Scan done
+    bpInfo.toJavaNames();
+
+    // The sub-set of the provided packages that will be exported
+    final Set providedExportSet = getProvidedExportSet();
+    log("Provided packages to export: " +providedExportSet, Project.MSG_DEBUG);
+
+
+    // Scan all impls
+    for (Iterator it = implsFilesets.iterator(); it.hasNext(); ) {
+      FileSet fs = (FileSet) it.next();
       DirectoryScanner ds = fs.getDirectoryScanner(project);
       File fromDir = fs.getDir(project);
 
@@ -673,10 +738,6 @@ public class BundleInfoTask extends Task {
     log("Un-provided extra packages to import: " +unprovidedExtraImportSet,
         Project.MSG_DEBUG);
     importSet.addAll(unprovidedExtraImportSet);
-
-    // The sub-set of the provided packages that will be exported
-    final Set providedExportSet = getProvidedExportSet();
-    log("Provided packages to export: " +providedExportSet, Project.MSG_DEBUG);
 
     // The set of packages that will be mentioned in the
     // Export-Package or the Import-Package header.
@@ -789,11 +850,13 @@ public class BundleInfoTask extends Task {
         // No Bundle-Activator given; use derived value if possible.
         switch(bpInfo.countProvidedActivatorClasses()) {
         case 0:
-          final String msg1 = "Requested to derive Bundle-Activator but "
-            +"there is no class implementing BundleActivator.";
-          log(msg1, Project.MSG_ERR);
-          if (failOnActivator) {
-            throw new BuildException(msg1, getLocation());
+          if (!bActivatorOptional) {
+            final String msg1 = "Requested to derive Bundle-Activator but "
+              +"there is no class implementing BundleActivator.";
+            log(msg1, Project.MSG_ERR);
+            if (failOnActivator) {
+              throw new BuildException(msg1, getLocation());
+            }
           }
           break;
         case 1:

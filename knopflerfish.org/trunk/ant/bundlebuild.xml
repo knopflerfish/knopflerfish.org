@@ -521,51 +521,38 @@
   <target name    = "jar_impl"
           depends = "init,bundle_tasks,compile"
           if      = "do_build_impl">
-    <echo message = "${impl.jar}"/>
+    <echo message="${impl.jar}"/>
 
     <!-- Use the impl version of manifest properties, define it if needed. -->
     <property name="bmfa.impl-Import-Package"   value="${bmfa.Import-Package}"/>
+    <property name="bmfa.impl-Export-Package"   value="${bmfa.Export-Package}"/>
     <property name="bmfa.impl-Bundle-Activator" value="${bmfa.Bundle-Activator}"/>
     <!-- Create a file set for the Bundle-Classpath -->
     <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
 			 dir="${resources.dir}"
 			 filesetId="impl.bundleClasspath"/>
 
-    <!-- Determine / validate set of packages to be exported. -->
-    <bundleinfo exports="bmfa.impl-Export-Package"
+    <!-- Derive import/export package and activator headers. -->
+    <bundleinfo activator="bmfa.impl-Bundle-Activator"
+		imports="bmfa.impl-Import-Package"
+		exports="bmfa.impl-Export-Package"
 		stdimports="${bundle.stdimports}"
+		extraimports="${bundle.extraimports}"
+		implicitImports="${bundle.implicit.imports.impl}"
+		serviceComponent="${bmfa.Service-Component}"
+		fragmentHost="${bmfa.Fragment-Host}"
 		manifestVersion="${bmfa.Bundle-ManifestVersion}"
-		uses="false"
+		uses="${bundleinfo.uses}"
 		failOnExports="${bundleinfo.failOnExports}"
 		failOnImports="${bundleinfo.failOnImports}"
 		failOnActivator="${bundleinfo.failOnActivator}"
 		checkFoundationEE="${ee.check.foundation}">
-      <fileset dir="${classes.out.dir}"
-               includes="${impl-api.pattern}">
-      </fileset>
-      <fileset refid="impl.bundleClasspath"/>
+      <exports dir="${classes.out.dir}" includes="${impl-api.pattern}"/>
+      <exports refid="impl.bundleClasspath"/>
+      <impls dir="${classes.out.dir}" includes="${impl.pattern}"/>
     </bundleinfo>
 
-    <bundleinfo activator = "bmfa.impl-Bundle-Activator"
-		imports   = "bmfa.impl-Import-Package"
-		stdimports        = "${bundle.stdimports}"
-		extraimports      = "${bundle.extraimports}"
-		implicitImports   = "${bundle.implicit.imports.impl}"
-		serviceComponent  = "${bmfa.Service-Component}"
-		fragmentHost      = "${bmfa.Fragment-Host}"
-		manifestVersion   = "${bmfa.Bundle-ManifestVersion}"
-		uses              = "${bundleinfo.uses}"
-		failOnExports     = "${bundleinfo.failOnExports}"
-		failOnImports     = "${bundleinfo.failOnImports}"
-		failOnActivator   = "${bundleinfo.failOnActivator}"
-		checkFoundationEE = "${ee.check.foundation}">
-      <fileset dir      = "${classes.out.dir}"
-               includes = "${impl.pattern},${impl-api.pattern}">
-      </fileset>
-      <fileset refid="impl.bundleClasspath"/>
-    </bundleinfo>
-
-    <mkdir dir = "${jardir}"/>
+    <mkdir dir="${jardir}"/>
 
     <bundlemanifest kind="impl"
                     mode="${bundlemanifest.mode}"
@@ -607,7 +594,7 @@
   <target name    = "jar_api"
           depends = "init,bundle_tasks,compile_api"
           if      = "do_build_api">
-    <echo message = "${api.jar}"/>
+    <echo message="${api.jar}"/>
 
     <!-- If api-variant unspecified use the standard def. -->
     <property name="bmfa.api-Export-Package" value="${bmfa.Export-Package}"/>
@@ -620,21 +607,22 @@
 			 dir="${resources.dir}"
 			 filesetId="api.bundleClasspath"/>
 
-    <bundleinfo exports = "bmfa.api-Export-Package"
-		imports = "bmfa.api-Import-Package"
-		stdimports        = "${bundle.stdimports}"
-		extraimports      = "${bundle.extraimports}"
-		implicitImports   = "${bundle.implicit.imports.api}"
-		serviceComponent  = "${bmfa.Service-Component}"
-		fragmentHost      = "${bmfa.Fragment-Host}"
-		manifestVersion   = "${bmfa.Bundle-ManifestVersion}"
-		uses              = "${bundleinfo.uses}"
-		failOnExports     = "${bundleinfo.failOnExports}"
-		failOnImports     = "${bundleinfo.failOnImports}"
-		failOnActivator   = "${bundleinfo.failOnActivator}"
-		checkFoundationEE = "${ee.check.foundation}">
-      <fileset dir="${classes.out.dir}" includes="${api.pattern}"/>
-      <fileset refid="api.bundleClasspath"/>
+    <!-- Derive import/export package and activator headers. -->
+    <bundleinfo exports="bmfa.api-Export-Package"
+		imports="bmfa.api-Import-Package"
+		stdimports="${bundle.stdimports}"
+		extraimports="${bundle.extraimports}"
+		implicitImports="${bundle.implicit.imports.api}"
+		serviceComponent="${bmfa.Service-Component}"
+		fragmentHost="${bmfa.Fragment-Host}"
+		manifestVersion="${bmfa.Bundle-ManifestVersion}"
+		uses="${bundleinfo.uses}"
+		failOnExports="${bundleinfo.failOnExports}"
+		failOnImports="${bundleinfo.failOnImports}"
+		failOnActivator="${bundleinfo.failOnActivator}"
+		checkFoundationEE="${ee.check.foundation}">
+      <exports dir="${classes.out.dir}" includes="${api.pattern}"/>
+      <exports refid="api.bundleClasspath"/>
     </bundleinfo>
 
     <mkdir dir="${jardir}"/>
@@ -713,7 +701,7 @@
   <target name    = "jar_lib"
           depends = "init,bundle_tasks,compile_api"
           if      = "do_build_lib">
-    <echo message = "${lib.jar}"/>
+    <echo message="${lib.jar}"/>
 
     <!-- Use the api version of manifest properties, define if needed. -->
     <property name="bmfa.lib-Import-Package" value="${bmfa.Import-Package}"/>
@@ -723,24 +711,25 @@
 			 dir="${resources.dir}"
 			 filesetId="lib.bundleClasspath"/>
 
-    <bundleinfo exports = "bmfa.lib-Export-Package"
-		imports = "bmfa.lib-Import-Package"
-		stdimports        = "${bundle.stdimports}"
-		extraimports      = "${bundle.extraimports}"
-		implicitImports   = "${bundle.implicit.imports.lib}"
-		serviceComponent  = "${bmfa.Service-Component}"
-		fragmentHost      = "${bmfa.Fragment-Host}"
-		manifestVersion   = "${bmfa.Bundle-ManifestVersion}"
-		uses              = "${bundleinfo.uses}"
-		failOnExports     = "${bundleinfo.failOnExports}"
-		failOnImports     = "${bundleinfo.failOnImports}"
-		failOnActivator   = "${bundleinfo.failOnActivator}"
-		checkFoundationEE = "${ee.check.foundation}">
-      <fileset dir="${classes.out.dir}" includes="${api.pattern}"/>
-      <fileset refid="lib.bundleClasspath"/>
+    <!-- Derive import/export package and activator headers. -->
+    <bundleinfo exports="bmfa.lib-Export-Package"
+		imports="bmfa.lib-Import-Package"
+		stdimports="${bundle.stdimports}"
+		extraimports="${bundle.extraimports}"
+		implicitImports="${bundle.implicit.imports.lib}"
+		serviceComponent="${bmfa.Service-Component}"
+		fragmentHost="${bmfa.Fragment-Host}"
+		manifestVersion="${bmfa.Bundle-ManifestVersion}"
+		uses="${bundleinfo.uses}"
+		failOnExports="${bundleinfo.failOnExports}"
+		failOnImports="${bundleinfo.failOnImports}"
+		failOnActivator="${bundleinfo.failOnActivator}"
+		checkFoundationEE="${ee.check.foundation}">
+      <exports dir="${classes.out.dir}" includes="${api.pattern}"/>
+      <exports refid="lib.bundleClasspath"/>
     </bundleinfo>
 
-    <mkdir dir = "${jardir}"/>
+    <mkdir dir="${jardir}"/>
 
     <bundlemanifest kind="lib"
                     mode="${bundlemanifest.mode}"
@@ -754,11 +743,11 @@
       <attribute name="Export-Package" value="${bmfa.Export-Package}"/>
     </bundlemanifest>
 
-    <jar basedir  = "${classes.out.dir}"
-	 jarfile  = "${lib.jar}"
-	 includes = "${api.pattern}"
+    <jar basedir="${classes.out.dir}"
+	 jarfile="${lib.jar}"
+	 includes="${api.pattern}"
 	 manifestencoding="UTF-8" 
-	 manifest = "${outdir}/lib.mf">
+	 manifest="${outdir}/lib.mf">
     </jar>
 
     <antcall target="add_resources" inheritRefs="true">
@@ -782,50 +771,38 @@
   <target name    = "jar_all"
           depends = "init,bundle_tasks,compile"
           if      = "do_build_all">
-    <echo message = "${all.jar}"/>
+    <echo message="${all.jar}"/>
 
     <!-- Create a file set for the Bundle-Classpath -->
     <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
 			 dir="${resources.dir}"
 			 filesetId="all.bundleClasspath"/>
 
-    <!-- Determine / validate set of packages to be exported. -->
-    <bundleinfo exports="bmfa.Export-Package"
+    <!-- Derive import/export package and activator headers. -->
+    <bundleinfo activator="bmfa.Bundle-Activator"
+		imports="bmfa.Import-Package"
+		exports="bmfa.Export-Package"
 		stdimports="${bundle.stdimports}"
+		extraimports="${bundle.extraimports}"
+		implicitImports="${bundle.implicit.imports.all}"
+		serviceComponent="${bmfa.Service-Component}"
+		fragmentHost="${bmfa.Fragment-Host}"
 		manifestVersion="${bmfa.Bundle-ManifestVersion}"
-		uses="false"
+		uses="${bundleinfo.uses}"
 		failOnExports="${bundleinfo.failOnExports}"
 		failOnImports="${bundleinfo.failOnImports}"
 		failOnActivator="${bundleinfo.failOnActivator}"
 		checkFoundationEE="${ee.check.foundation}">
-      <fileset dir      = "${classes.out.dir}"
-               includes = "${api.pattern},${impl-api.pattern}">
-      </fileset>
-      <fileset refid="all.bundleClasspath"/>
+      <exports dir="${classes.out.dir}"
+               includes="${api.pattern},${impl-api.pattern}">
+      </exports>
+      <exports refid="all.bundleClasspath"/>
+      <impls dir="${classes.out.dir}"
+             includes="${impl.pattern}">
+      </impls>
     </bundleinfo>
 
-    <bundleinfo activator = "bmfa.Bundle-Activator"
-		imports   = "bmfa.Import-Package"
-		exports   = "bmfa.Export-Package"
-		stdimports        = "${bundle.stdimports}"
-		extraimports      = "${bundle.extraimports}"
-		implicitImports   = "${bundle.implicit.imports.all}"
-		serviceComponent  = "${bmfa.Service-Component}"
-		fragmentHost      = "${bmfa.Fragment-Host}"
-		manifestVersion   = "${bmfa.Bundle-ManifestVersion}"
-		uses              = "${bundleinfo.uses}"
-		failOnExports     = "${bundleinfo.failOnExports}"
-		failOnImports     = "${bundleinfo.failOnImports}"
-		failOnActivator   = "${bundleinfo.failOnActivator}"
-		checkFoundationEE = "${ee.check.foundation}"
-		importsOnly       = "true">
-      <fileset dir      = "${classes.out.dir}"
-               includes = "${api.pattern},${impl-api.pattern},${impl.pattern}">
-      </fileset>
-      <fileset refid="all.bundleClasspath"/>
-    </bundleinfo>
-
-    <mkdir dir = "${jardir}"/>
+    <mkdir dir="${jardir}"/>
 
     <bundlemanifest kind=""
                     mode="${bundlemanifest.mode}"

@@ -189,11 +189,9 @@
  <import file="${topdir}/../ant/bundletasks.xml"/>
 
  <target name="list" depends="bundle_tasks">
-  <bundleinfo checkFoundationEE = "true" 
-              checkMinimumEE = "true" >
-    <fileset dir      = "${classout}" 
-             includes = "**/*.class">
-    </fileset>
+  <bundleinfo checkFoundationEE="true" 
+              checkMinimumEE="true" >
+    <impls dir="${classout}" includes="**/*.class"/>
   </bundleinfo>
  </target>
 </project>
