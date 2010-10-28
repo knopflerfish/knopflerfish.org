@@ -131,6 +131,7 @@
   <target name="distrib_clean">
     <delete dir="${distrib.dir}"/>
     <delete dir="${distrib.out.dir}"/>
+    <ant dir="ant" target="clean"/>
   </target>
 
   <!-- Create top-level directories used by the distrib target. -->
@@ -196,7 +197,6 @@
   <target name="distrib_build">
     <mkdir dir="${distrib.osgi.dir}"/>
 
-    <ant dir="ant"                 target="all" />
     <ant dir="${jarunpacker.dir}"  target="jar">
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
     </ant>
