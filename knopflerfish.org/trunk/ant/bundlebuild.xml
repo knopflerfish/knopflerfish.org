@@ -519,13 +519,13 @@
 
   <!-- ============================= IMPL =============================== -->
   <target name    = "jar_impl"
-          depends = "init,bundle_tasks,compile"
+          depends = "init,compile"
           if      = "do_build_impl">
     <echo message="${impl.jar}"/>
 
     <!-- Use the impl version of manifest properties, define it if needed. -->
     <property name="bmfa.impl-Import-Package"   value="${bmfa.Import-Package}"/>
-    <property name="bmfa.impl-Export-Package"   value="${bmfa.Export-Package}"/>
+    <property name="bmfa.impl-Export-Package"   value="${bundle.emptystring}"/>
     <property name="bmfa.impl-Bundle-Activator" value="${bmfa.Bundle-Activator}"/>
     <!-- Create a file set for the Bundle-Classpath -->
     <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
@@ -592,7 +592,7 @@
 
   <!-- ============================= API =============================== -->
   <target name    = "jar_api"
-          depends = "init,bundle_tasks,compile_api"
+          depends = "init,compile_api"
           if      = "do_build_api">
     <echo message="${api.jar}"/>
 
@@ -699,7 +699,7 @@
 
   <!-- ============================= LIB =============================== -->
   <target name    = "jar_lib"
-          depends = "init,bundle_tasks,compile_api"
+          depends = "init,compile_api"
           if      = "do_build_lib">
     <echo message="${lib.jar}"/>
 
@@ -769,7 +769,7 @@
 
   <!-- ============================= ALL =============================== -->
   <target name    = "jar_all"
-          depends = "init,bundle_tasks,compile"
+          depends = "init,compile"
           if      = "do_build_all">
     <echo message="${all.jar}"/>
 
@@ -884,7 +884,7 @@
 
   <target name="bundle_doc"
 	  description="Creates bundle specific doc"
-	  depends="setup_build,bundle_tasks,setup_manifest_props"
+	  depends="init"
 	  if="do_build_doc">
     <makehtml title="${bmfa.Bundle-Name}"
               description="${bmfa.Bundle-Description}"

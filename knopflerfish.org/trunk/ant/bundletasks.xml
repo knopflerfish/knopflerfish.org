@@ -114,7 +114,10 @@
          compress="true"
          filesonly="true">
       <manifest>
-        <attribute name="knopflerfish-version" value="${version}"/>
+        <attribute name="Implementation-Vendor" value="Knopflerfish"/>
+        <attribute name="Implementation-Title"
+		   value="Knopflerfish Bundle Tasks"/>
+        <attribute name="Knopflerfish-Version" value="${version}"/>
       </manifest>
       <zipfileset dir="${antclasses}"/>
       <zipfileset src="${asm.jar}" includes="org/**"/>
@@ -125,8 +128,12 @@
           description="Defines the custom Knopflerfish bundle tasks"
           depends="install_bindex,
                    maybe_build_bundle_tasks">
-    <taskdef resource="org/knopflerfish/ant/taskdefs/bundle/antlib.xml"
-             classpathref="bundle_tasks.path"/>
+    <taskdef resource="org/knopflerfish/ant/taskdefs/bundle/antlib.xml">
+      <classpath>
+	<pathelement location="${bundle_tasks.jar}"/>
+	<path refid="bindex.path"/>
+      </classpath>
+    </taskdef>
   </target>
 
   <target name="default" depends="bundle_tasks"/>
