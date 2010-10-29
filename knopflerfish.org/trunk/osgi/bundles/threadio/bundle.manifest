@@ -13,3 +13,5 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/threadio/
 Bundle-Activator: org.knopflerfish.bundle.threadio.Activator
 Bundle-Category: service
+Import-Package: org.osgi.framework,
+ org.osgi.service.threadio;version="[1.0,2)"
