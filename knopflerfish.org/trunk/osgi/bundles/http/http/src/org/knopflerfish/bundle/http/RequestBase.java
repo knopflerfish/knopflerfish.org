@@ -202,6 +202,13 @@ public class RequestBase extends HeaderBase {
     // requests with an absolute path. Currently we only support
     // absoluteURI and abs_path.
     try {
+      if (uri.charAt(0) == '/') {
+        // uri is path
+        // Some URL implementations look for a schema even when uri starts
+        // with a slash -> Malformed URL Exception if uri contains a ':'
+        // (which is not OK but still happens in the real world)
+        uri = "http:" + uri; // add schema to help URL constructor
+      }
       URL url = new URL(BASE_HTTP_URL, uri);
       uri = url.getPath();
       int sessionPos = uri.lastIndexOf(HttpUtil.SESSION_PARAMETER_KEY);
@@ -212,6 +219,7 @@ public class RequestBase extends HeaderBase {
       }
       queryString = url.getQuery();
     } catch (MalformedURLException mue) {
+      Activator.log.warn("Could not make URI from request path", mue);
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST,
                               mue.getMessage());
     }
