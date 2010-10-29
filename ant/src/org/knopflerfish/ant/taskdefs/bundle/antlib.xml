@@ -6,6 +6,9 @@
   <taskdef name="bundlemanifest" 
            classname="org.knopflerfish.ant.taskdefs.bundle.BundleManifestTask"/>
 
+  <taskdef name="bundle" 
+           classname="org.knopflerfish.ant.taskdefs.bundle.Bundle"/>
+
   <taskdef name="bundleClasspathUtil" 
            classname="org.knopflerfish.ant.taskdefs.bundle.BundleClasspathTask"/>
 
