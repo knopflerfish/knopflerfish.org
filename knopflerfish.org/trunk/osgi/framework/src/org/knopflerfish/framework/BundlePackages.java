@@ -54,11 +54,7 @@ import org.osgi.framework.*;
  */
 class BundlePackages {
 
-  final BundleImpl bundle;
-
-  final int generation;
-
-  private ClassLoader classLoader = null;
+  final BundleGeneration bg;
 
   /* Sorted list of exports */
   private ArrayList /* ExportPkg */ exports = new ArrayList(1);
@@ -90,16 +86,14 @@ class BundlePackages {
   /**
    * Create package entry.
    */
-  BundlePackages(BundleImpl b,
-                 int gen,
-                 String exportStr,
-                 String importStr,
-                 String dimportStr,
-                 String requireStr) {
-    this.bundle = b;
-    this.generation = gen;
+  BundlePackages(BundleGeneration bg)
+  {
+    this.bg = bg;
+    final BundleArchive ba = bg.archive;
 
-    Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, false, true, false);
+    Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE,
+                                   ba.getAttribute(Constants.IMPORT_PACKAGE),
+                                   false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
       Iterator pi = ((List)e.remove("$keys")).iterator();
@@ -119,7 +113,9 @@ class BundlePackages {
       }
     }
 
-    i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, false, true, false);
+    i = Util.parseEntries(Constants.EXPORT_PACKAGE,
+                          ba.getAttribute(Constants.EXPORT_PACKAGE),
+                          false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
       Iterator pi = ((List)e.remove("$keys")).iterator();
@@ -127,7 +123,7 @@ class BundlePackages {
       for (;;) {
         int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
         exports.add(ei, ep);
-        if (!b.v2Manifest) {
+        if (!bg.v2Manifest) {
           ImportPkg ip = new ImportPkg(ep);
           int ii = Util.binarySearch(imports, ipComp, ip);
           if (ii < 0) {
@@ -142,7 +138,9 @@ class BundlePackages {
       }
     }
 
-    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE, dimportStr, false, true, false);
+    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE,
+                          ba.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
+                          false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
       if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
@@ -173,7 +171,9 @@ class BundlePackages {
         }
       }
     }
-    i = Util.parseEntries(Constants.REQUIRE_BUNDLE, requireStr, true, true, false);
+    i = Util.parseEntries(Constants.REQUIRE_BUNDLE,
+                          ba.getAttribute(Constants.REQUIRE_BUNDLE),
+                          true, true, false);
     if (i.hasNext()) {
       require = new ArrayList();
       do {
@@ -193,11 +193,45 @@ class BundlePackages {
 
 
   /**
+   * Create package entry used by system bundle.
+   */
+  BundlePackages(BundleGeneration bg, String exportString)
+  {
+    this.bg = bg;
+
+    Iterator i = Util.parseEntries(Constants.EXPORT_PACKAGE,
+                                   exportString, false, true, false);
+    while (i.hasNext()) {
+      Map e = (Map)i.next();
+      Iterator pi = ((List)e.remove("$keys")).iterator();
+      ExportPkg ep = new ExportPkg((String)pi.next(), e, this);
+      for (;;) {
+        int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
+        exports.add(ei, ep);
+        if (!bg.v2Manifest) {
+          ImportPkg ip = new ImportPkg(ep);
+          int ii = Util.binarySearch(imports, ipComp, ip);
+          if (ii < 0) {
+            imports.add(-ii - 1, ip);
+          }
+        }
+        if (pi.hasNext()) {
+          ep = new ExportPkg(ep, (String)pi.next());
+        } else {
+          break;
+        }
+      }
+    }
+      require = null;
+  }
+
+
+  /**
    * Register bundle packages in framework.
    *
    */
   void registerPackages() {
-    bundle.fwCtx.packages.registerPackages(exports.iterator(), imports.iterator());
+    bg.bundle.fwCtx.packages.registerPackages(exports.iterator(), imports.iterator());
     registered = true;
   }
 
@@ -209,7 +243,7 @@ class BundlePackages {
   synchronized boolean unregisterPackages(boolean force) {
     if (registered) {
       List i = okImports != null ? okImports : imports;
-      if (bundle.fwCtx.packages.unregisterPackages(exports, i, force)) {
+      if (bg.bundle.fwCtx.packages.unregisterPackages(exports, i, force)) {
         okImports = null;
         registered = false;
         unRequireBundles();
@@ -230,7 +264,7 @@ class BundlePackages {
    *         getResolveFailReason().
    */
   boolean resolvePackages() {
-    failReason = bundle.fwCtx.packages.resolve(bundle, imports.iterator());
+    failReason = bg.bundle.fwCtx.packages.resolve(bg.bundle, imports.iterator());
     if (failReason == null) {
       okImports = new ArrayList(imports.size());
       for (Iterator i = imports.iterator(); i.hasNext(); ) {
@@ -264,7 +298,7 @@ class BundlePackages {
    * @return BundlePackages exporting the pkg.
    */
   synchronized BundlePackages getProviderBundlePackages(String pkg) {
-    if (bundle instanceof SystemBundle) {
+    if (bg.bundle instanceof SystemBundle) {
       return (getExport(pkg) != null) ? this : null;
     }
     if (okImports == null) {
@@ -299,7 +333,7 @@ class BundlePackages {
           (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
           pkg.equals(ip.name)) {
         ImportPkg nip = new ImportPkg(ip, pkg);
-        ExportPkg ep = bundle.fwCtx.packages.registerDynamicImport(nip);
+        ExportPkg ep = bg.bundle.fwCtx.packages.registerDynamicImport(nip);
         if (ep != null) {
           nip.provider = ep;
           okImports.add(-ii - 1, nip);
@@ -457,19 +491,7 @@ class BundlePackages {
    * @return ClassLoader handling these packages.
    */
   ClassLoader getClassLoader() {
-    if (classLoader == null) {
-      classLoader = bundle.getClassLoader(this);
-    }
-    return classLoader;
-  }
-
-
-  /**
-   * Invalidate class loader for these packages.
-   *
-   */
-  void invalidateClassLoader() {
-    classLoader = null;
+    return bg.getClassLoader();
   }
 
 
@@ -492,7 +514,7 @@ class BundlePackages {
   String attachFragment(BundlePackages fbpkgs) {
     if (fragments == null) {
       fragments = new HashMap();
-    } else if (fragments.containsKey(fbpkgs.bundle)) {
+    } else if (fragments.containsKey(fbpkgs.bg.bundle)) {
       throw new RuntimeException("Fragments packages already attached: "
                                  +fbpkgs);
     }
@@ -503,7 +525,7 @@ class BundlePackages {
       ImportPkg fip = (ImportPkg)iiter.next();
       ImportPkg ip = getImport(fip.name);
 
-      if (ip == null && bundle.state != Bundle.INSTALLED) {
+      if (ip == null && bg.bundle.state != Bundle.INSTALLED) {
         return "Can not dynamicly attach, because host has no import for: "
           +fip;
       }
@@ -537,7 +559,7 @@ class BundlePackages {
           }
         }
         if (!match) {
-          if (bundle.state != Bundle.INSTALLED) {
+          if (bg.bundle.state != Bundle.INSTALLED) {
             return "Can not attach a fragment with new required bundles to "
               +"a resolved host";
           }
@@ -554,16 +576,16 @@ class BundlePackages {
       }
       int rpos = require.size(); // Append
 
-      if (null!=bundle.fragments) {
+      if (null!=bg.bundle.fragments) {
         int i = 0;
-        for (; i<bundle.fragments.size(); i++) {
-          BundleImpl b = (BundleImpl) bundle.fragments.get(i);
-          if (b.id > fbpkgs.bundle.id) {
+        for (; i<bg.bundle.fragments.size(); i++) {
+          BundleImpl b = (BundleImpl) bg.bundle.fragments.get(i);
+          if (b.id > fbpkgs.bg.bundle.id) {
             break;
           }
         }
-        for (; i<bundle.fragments.size(); i++) {
-          BundleImpl b = (BundleImpl)bundle.fragments.get(i);
+        for (; i<bg.bundle.fragments.size(); i++) {
+          BundleImpl b = (BundleImpl)bg.bundle.fragments.get(i);
           List[] added = (List[]) fragments.get(b);
           if (null!=added && added[0].size()>0) {
             rpos = require.indexOf(added[0].get(0));
@@ -619,9 +641,9 @@ class BundlePackages {
       }
     }
 
-    bundle.fwCtx.packages.registerPackages(newExports.iterator(),
-                                               newImports.iterator());
-    fragments.put(fbpkgs.bundle,
+    bg.bundle.fwCtx.packages.registerPackages(newExports.iterator(),
+                                              newImports.iterator());
+    fragments.put(fbpkgs.bg.bundle,
                   new ArrayList [] { newRequired, newExports, newImports });
     return null;
   }
@@ -637,11 +659,11 @@ class BundlePackages {
   void fragmentIsZombie(BundleImpl fb)
   {
     if (null!=exports) {
-      if(bundle.fwCtx.debug.packages) {
-        bundle.fwCtx.debug.println("Marking all packages exported by host bundle(id="
-                                   +bundle.id +",gen=" +generation
-                                   +") as zombies since the attached fragment (id="
-                                   +fb.getBundleId() +") was updated/uninstalled.");
+      if(bg.bundle.fwCtx.debug.packages) {
+        bg.bundle.fwCtx.debug.println("Marking all packages exported by host bundle(id="
+                                      +bg.bundle.id +",gen=" +bg.generation
+                                      +") as zombies since the attached fragment (id="
+                                      +fb.getBundleId() +") was updated/uninstalled.");
       }
       for (Iterator eiter = exports.iterator(); eiter.hasNext(); ) {
         ((ExportPkg)eiter.next()).zombie = true;
@@ -707,7 +729,7 @@ class BundlePackages {
           imports.remove(iiter.next());
         }
         if (unregister) {
-          bundle.fwCtx.packages.unregisterPackages(added[1], added[2],true);
+          bg.bundle.fwCtx.packages.unregisterPackages(added[1], added[2],true);
         }
       }
     }
@@ -720,7 +742,7 @@ class BundlePackages {
    * @return A message string.
    */
   public String toString() {
-    return "BundlePackages(id=" + bundle.id + ",gen=" + generation + ")";
+    return "BundlePackages(id=" + bg.bundle.id + ",gen=" + bg.generation + ")";
   }
 
   //

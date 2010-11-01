@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,9 +99,9 @@ public interface FileArchive {
 
 
   /**
-   * Get bundle id for this archive.
+   * Get BundleGeneration object for this archive.
    */
-  long getBundleId();
+  BundleGeneration getBundleGeneration();
 
 
   /**

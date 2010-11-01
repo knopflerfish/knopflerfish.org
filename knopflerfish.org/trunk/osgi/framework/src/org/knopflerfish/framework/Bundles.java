@@ -85,10 +85,7 @@ public class Bundles {
   BundleImpl install(final String location, final InputStream in)
     throws BundleException
   {
-    if (null==fwCtx) { // This bundles object have been closed!
-      throw new IllegalStateException
-        ("Bundles.getBundle(id) called on closed bundles object.");
-    }
+    checkIllegalState();
     BundleImpl b;
     synchronized (this) {
       b = (BundleImpl)bundles.get(location);
@@ -178,10 +175,7 @@ public class Bundles {
    *         if bundle was not found.
    */
   public Bundle getBundle(long id) {
-    if (null==fwCtx) { // This bundles object have been closed!
-      throw new IllegalStateException
-        ("Bundles.getBundle(id) called on closed bundles object.");
-    }
+    checkIllegalState();
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
@@ -202,10 +196,7 @@ public class Bundles {
    *         if bundle was not found.
    */
   public Bundle getBundle(String location) {
-    if (null==fwCtx) { // This bundles object have been closed!
-      throw new IllegalStateException
-        ("Bundles.getBundle(id) called on closed bundles object.");
-    }
+    checkIllegalState();
     return (Bundle) bundles.get(location);
   }
 
@@ -218,14 +209,11 @@ public class Bundles {
    * @return BundleImpl for bundle or null.
    */
   BundleImpl getBundle(String name, Version version) {
-    if (null==fwCtx) { // This bundles object have been closed!
-      throw new IllegalStateException
-        ("Bundles.getBundle(id) called on closed bundles object.");
-    }
+    checkIllegalState();
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
-        if (name.equals(b.symbolicName) && version.equals(b.version)) {
+        if (name.equals(b.gen.symbolicName) && version.equals(b.gen.version)) {
           return b;
         }
       }
@@ -240,10 +228,6 @@ public class Bundles {
    * @return A Bundle array with bundles.
    */
   List getBundles() {
-    if (null==fwCtx) { // This bundles object have been closed!
-      throw new IllegalStateException
-        ("Bundles.getBundle(id) called on closed bundles object.");
-    }
     ArrayList res = new ArrayList(bundles.size());
     synchronized (bundles) {
       res.addAll(bundles.values());
@@ -263,7 +247,7 @@ public class Bundles {
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
         BundleImpl b = (BundleImpl)e.nextElement();
-        if (name.equals(b.symbolicName)) {
+        if (name.equals(b.gen.symbolicName)) {
           res.add(b);
         }
       }
@@ -281,17 +265,14 @@ public class Bundles {
    * @return A List of BundleImpl.
    */
   List getBundles(String name, VersionRange range) {
-    if (null==fwCtx) { // This bundles object have been closed!
-      throw new IllegalStateException
-        ("Bundles.getBundle(id) called on closed bundles object.");
-    }
+    checkIllegalState();
     List res = getBundles(name);
     for (int i = 0; i < res.size(); ) {
       BundleImpl b = (BundleImpl)res.remove(i);
-      if (range.withinRange(b.version)) {
+      if (range.withinRange(b.gen.version)) {
         int j = i;
         while (--j >= 0) {
-          if (b.version.compareTo(((BundleImpl)res.get(j)).version) <= 0) {
+          if (b.gen.version.compareTo(((BundleImpl)res.get(j)).gen.version) <= 0) {
             break;
           }
         }
@@ -309,10 +290,7 @@ public class Bundles {
    * @return A List of BundleImpl.
    */
   List getActiveBundles() {
-    if (null==fwCtx) { // This bundles object have been closed!
-      throw new IllegalStateException
-        ("Bundles.getBundle(id) called on closed bundles object.");
-    }
+    checkIllegalState();
     ArrayList slist = new ArrayList();
     synchronized (bundles) {
       for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
@@ -392,13 +370,23 @@ public class Bundles {
     ArrayList retval = new ArrayList();
     for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
       BundleImpl b = (BundleImpl)e.nextElement();
-      if (b.isFragment() &&
+      if (b.gen.isFragment() &&
           b.state != Bundle.UNINSTALLED &&
-          b.fragment.isTarget(target)) {
+          b.gen.fragment.isTarget(target)) { /* FIX SYNC */
         retval.add(b);
       }
     }
     return retval;
+  }
+
+  
+  /**
+   * Check if this bundles object have been closed!
+   */
+  private void checkIllegalState() {
+    if (null == fwCtx) {
+      throw new IllegalStateException("This framework instance is not active.");
+    }
   }
 
 }

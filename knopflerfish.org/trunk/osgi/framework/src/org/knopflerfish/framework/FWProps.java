@@ -443,7 +443,7 @@ public class FWProps  {
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
     // Only first framework support framework extension
     // NYI! Improve this in the future
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 1 ? TRUE : FALSE);
+    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 0 ? TRUE : FALSE);
     // Only first framework can support bootclasspath extension
     // NYI! Improve this in the future
     setPropertyIfNotSet(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);

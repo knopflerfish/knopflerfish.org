@@ -132,17 +132,12 @@ public class Archive implements FileArchive {
   /**
    *
    */
-  BundleStorageImpl storage;
+  final private BundleArchiveImpl ba;
 
   /**
    *
    */
-  private long bundleId;
-
-  /**
-   *
-   */
-  private int subId;
+  final private int subId;
 
 
   /**
@@ -150,20 +145,19 @@ public class Archive implements FileArchive {
    * the archive is saved as local copy in the specified
    * directory.
    *
-   * @param storage BundleStorageImpl for this archive.
+   * @param ba BundleArchiveImpl for this archive.
    * @param dir Directory to save data in.
    * @param rev Revision of bundle content (used for updates).
    * @param is Jar file data in an InputStream.
    * @param url URL to use to CodeSource.
    * @param location Location for archive
    */
-  Archive(BundleStorageImpl storage, File dir, int rev, InputStream is,
-          URL source, String location, long id) throws IOException
+  Archive(BundleArchiveImpl ba, File dir, int rev, InputStream is,
+          URL source, String location) throws IOException
   {
     this.location = location;
-    this.storage  = storage;
-    bundleId = id;
-    subId = -1;
+    this.ba  = ba;
+    subId = 0;
 
     boolean isDirectory = false;
     final FileTree sourceFile;
@@ -196,15 +190,15 @@ public class Archive implements FileArchive {
     boolean doUnpack = false;;
     if (manifest == null) {
       bis = new BufferedInputStream(is);
-      if (storage.alwaysUnpack) {
-        ji = new JarInputStream(bis, storage.checkSigned);
+      if (ba.storage.alwaysUnpack) {
+        ji = new JarInputStream(bis, ba.storage.checkSigned);
         manifest = ji.getManifest();
         doUnpack = true;
-      } else if (storage.unpack) {
+      } else if (ba.storage.unpack) {
         // Is 1000000 enough, Must be big enough to hold the MANIFEST.MF entry
         // Hope implement of BufferedInputStream allocates dynamicly.
         bis.mark(1000000);
-        ji = new JarInputStream(bis, storage.checkSigned);
+        ji = new JarInputStream(bis, ba.storage.checkSigned);
         manifest = ji.getManifest();
         // If manifest == null then, Manifest probably not first in JAR, should we complain?
         // Now, try to use the jar anyway. Maybe the manifest is there.
@@ -221,7 +215,7 @@ public class Archive implements FileArchive {
         }
         file.mkdirs();
         if (manifest == null) {
-          if (storage.checkSigned) {
+          if (ba.storage.checkSigned) {
             // TBD? Which exception to use?
             throw new IOException("MANIFEST.MF must be first in archive when using signatures.");
           }
@@ -236,7 +230,7 @@ public class Archive implements FileArchive {
             o.close();
           }
         }
-        boolean verify = storage.checkSigned;
+        boolean verify = ba.storage.checkSigned;
         int verifiedEntries = 0;
         while (processNextJarEntry(ji, verify, file)) {
           if (verify) {
@@ -258,7 +252,7 @@ public class Archive implements FileArchive {
         if (!fileIsReference) {
           sourceFile.copyTo(file);
         }
-        if (storage.checkSigned) {
+        if (ba.storage.checkSigned) {
           // NYI! Verify signed directory
         }
         jar = null;
@@ -266,14 +260,14 @@ public class Archive implements FileArchive {
         if (!fileIsReference) {
           loadFile(file, bis);
         }
-        if (storage.checkSigned) {
+        if (ba.storage.checkSigned) {
           processSignedJar(file);
         }
         jar = new ZipFile(file);
       }
     }
     if (manifest != null) {
-      manifest = new AutoManifest(storage.framework, manifest, location);
+      manifest = new AutoManifest(ba.storage.framework, manifest, location);
     } else {
       manifest = getManifest();
     }
@@ -310,7 +304,7 @@ public class Archive implements FileArchive {
   boolean isReference(URL source) {
     return (source != null) &&
       ("reference".equals(source.getProtocol())
-       || (storage.fileReference && isFile(source)));
+       || (ba.storage.fileReference && isFile(source)));
   }
 
 
@@ -320,12 +314,12 @@ public class Archive implements FileArchive {
    * Take lowest versioned archive and remove rest.
    *
    */
-  Archive(BundleStorageImpl storage, File dir, int rev, String location,
-          long id) throws IOException {
+  Archive(BundleArchiveImpl ba, File dir, int rev, String location)
+    throws IOException
+  {
     this.location = location;
-    this.storage  = storage;
-    bundleId = id;
-    subId = -1;
+    this.ba  = ba;
+    subId = 0;
     String [] f = dir.list();
     file = null;
     if (rev != -1) {
@@ -386,7 +380,7 @@ public class Archive implements FileArchive {
     } else {
       jar = new ZipFile(file);
     }
-    if (storage.checkSigned) {
+    if (ba.storage.checkSigned) {
       loadCertificates();
     }
     if (manifest == null) {
@@ -408,8 +402,7 @@ public class Archive implements FileArchive {
    */
   Archive(Archive a, String path, int id) throws IOException {
     this.location = a.location;
-    this.storage  = a.storage;
-    bundleId = a.bundleId;
+    this.ba  = a.ba;
     subId = id;
     if (a.jar != null) {
       jar = a.jar;
@@ -468,8 +461,8 @@ public class Archive implements FileArchive {
   /**
    * Get bundle id for this archive.
    */
-  public long getBundleId() {
-    return bundleId;
+  public BundleGeneration getBundleGeneration() {
+    return ba.getBundleGeneration();
   }
 
 
@@ -816,16 +809,16 @@ public class Archive implements FileArchive {
   private void setPerm(File f)
   {
      // No OS-cmd for setting permissions given.
-    if (storage.execPermCmd.length() == 0) {
+    if (ba.storage.execPermCmd.length() == 0) {
       return;
     }
     final String abspath = f.getAbsolutePath();
-    final String[] execarray = Util.splitwords(storage.execPermCmd);
+    final String[] execarray = Util.splitwords(ba.storage.execPermCmd);
     final String[] cmdarray;
     int start;
 
     // Windows systems need a "cmd /c" at the begin
-    if (storage.isWindows && !execarray[0].equalsIgnoreCase("cmd")) {
+    if (ba.storage.isWindows && !execarray[0].equalsIgnoreCase("cmd")) {
       cmdarray = new String [execarray.length + 2];
       cmdarray[0] = "cmd";
       cmdarray[1] = "/c";
@@ -1039,7 +1032,7 @@ public class Archive implements FileArchive {
     // TBD: Should recognize entry with lower case?
     BundleResourceStream mi = getBundleResourceStream("META-INF/MANIFEST.MF");
     if (mi != null) {
-      return new AutoManifest(storage.framework, new Manifest(mi), location);
+      return new AutoManifest(ba.storage.framework, new Manifest(mi), location);
     } else {
       throw new IOException("Manifest is missing");
     }

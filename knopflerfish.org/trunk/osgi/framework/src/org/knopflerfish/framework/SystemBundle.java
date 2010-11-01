@@ -99,11 +99,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   SystemBundle(FrameworkContext fw)
   {
-    super(fw,
-          0,
-          Constants.SYSTEM_BUNDLE_LOCATION,
-          Constants.SYSTEM_BUNDLE_SYMBOLICNAME,
-          new Version(Main.readVersion()));
+    super(fw);
   }
 
 
@@ -172,7 +168,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         final BundleImpl b = (BundleImpl)
           fwCtx.bundles.getBundle((String)i.next());
         try {
-          final int autostartSetting = b.archive.getAutostartSetting();
+          final int autostartSetting = b.gen.archive.getAutostartSetting();
           // Launch must not change the autostart setting of a bundle
           int option = Bundle.START_TRANSIENT;
           if (Bundle.START_ACTIVATION_POLICY == autostartSetting) {
@@ -298,7 +294,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   public Dictionary getHeaders(String locale) {
     secure.checkMetadataAdminPerm(this);
     Hashtable headers = new Hashtable();
-    headers.put(Constants.BUNDLE_SYMBOLICNAME, symbolicName);
+    headers.put(Constants.BUNDLE_SYMBOLICNAME, getSymbolicName());
     headers.put(Constants.BUNDLE_NAME, location);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
     headers.put(Constants.BUNDLE_VERSION, Main.readRelease());
@@ -316,6 +312,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @see org.osgi.framework.Bundle#findEntries
    */
   public Enumeration findEntries(String path, String filePattern, boolean recurse) {
+    // TBD, What should system bundle return?
     return null;
   }
 
@@ -342,6 +339,16 @@ public class SystemBundle extends BundleImpl implements Framework {
   //
   // Package method
   //
+
+  /**
+   * Get class loader for this bundle.
+   *
+   * @return System Bundle classloader.
+   */
+  ClassLoader getClassLoader() {
+    return getClass().getClassLoader();
+  }
+
 
   /**
    * Set system bundle state to stopping
@@ -379,7 +386,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
     } else {
       try {
-        addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
+        addClassPathURL(new URL("file:" + extension.gen.archive.getJarLocation()));
         super.attachFragment(extension);
       } catch (Exception e) {
         throw new UnsupportedOperationException("Framework extension could not be dynamicly activated, " + e);
@@ -416,7 +423,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       String l = baseName + locale + ".properties";
       for (int i = fragments.size() - 1; i >= 0; i--) {
         BundleImpl b = (BundleImpl)fragments.get(i);
-        Hashtable tmp = b.archive.getLocalizationEntries(l);
+        Hashtable tmp = b.gen.archive.getLocalizationEntries(l);
         if (tmp != null) {
           localization_entries.putAll(tmp);
           return;
@@ -472,10 +479,9 @@ public class SystemBundle extends BundleImpl implements Framework {
       sp.append(",").append(extraPkgs);
     }
     exportPackageString = sp.toString();
-
-    bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
-    bpkgs.registerPackages();
-    bpkgs.resolvePackages();
+    gen = new BundleGeneration(this, exportPackageString);
+    gen.bpkgs.registerPackages();
+    gen.bpkgs.resolvePackages();
   }
 
 
@@ -795,7 +801,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator();
          i.hasNext(); ) {
       BundleImpl eb = (BundleImpl)i.next();
-      String path = eb.archive.getJarLocation();
+      String path = eb.gen.archive.getJarLocation();
       if (eb.isBootClassPathExtension()) {
         if (bootClasspath.length()>0) {
           bootClasspath.append(File.pathSeparator);

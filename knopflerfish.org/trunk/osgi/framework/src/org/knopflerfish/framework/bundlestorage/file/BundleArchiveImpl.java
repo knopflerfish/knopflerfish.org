@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,17 +64,19 @@ class BundleArchiveImpl implements BundleArchive
   private final static String LAST_MODIFIED_FILE = "lastModifed";
 
 
+  final BundleStorageImpl storage;
+
   private Archive archive;
+
+  private BundleGeneration bundleGeneration = null;
 
   private long id;
 
-  private String location;
+  final private String location;
 
   private int autostartSetting = -1; // => not started.
 
   private FileTree bundleDir;
-
-  private BundleStorageImpl storage;
 
   private ArrayList /* FileArchive */ archives;
 
@@ -108,7 +110,7 @@ class BundleArchiveImpl implements BundleArchive
     storage          = bundleStorage;
     id               = bundleId;
     location         = bundleLocation;
-    archive          = new Archive(storage, bundleDir, 0, is, source, location, id);
+    archive          = new Archive(this, bundleDir, 0, is, source, location);
     putContent(LOCATION_FILE, location);
     //    putContent(STARTLEVEL_FILE, Integer.toString(startLevel));
   }
@@ -157,7 +159,7 @@ class BundleArchiveImpl implements BundleArchive
 
     id            = bundleId;
     storage       = bundleStorage;
-    archive       = new Archive(storage, bundleDir, rev, location, id);
+    archive       = new Archive(this, bundleDir, rev, location);
   }
 
 
@@ -180,7 +182,7 @@ class BundleArchiveImpl implements BundleArchive
     if(bReference) {
       source = new URL(location);
     }
-    archive = new Archive(storage, bundleDir, rev, is, source, location, id);
+    archive = new Archive(this, bundleDir, rev, is, source, location);
     if(!bReference) {
       putContent(REV_FILE, Integer.toString(rev));
     }
@@ -250,6 +252,26 @@ class BundleArchiveImpl implements BundleArchive
    */
   public HeaderDictionary getUnlocalizedAttributes() {
     return new HeaderDictionary(archive.manifest.getMainAttributes());
+  }
+
+
+  /**
+   * Get bundle generation associated with this bundle archive.
+   *
+   * @return BundleGeneration object.
+   */
+  public BundleGeneration getBundleGeneration() {
+    return bundleGeneration;
+  }
+
+
+  /**
+   * Set bundle generation associated with this bundle archive.
+   *
+   * @param BundleGeneration object.
+   */
+  public void setBundleGeneration(BundleGeneration bg) {
+    bundleGeneration = bg; 
   }
 
 

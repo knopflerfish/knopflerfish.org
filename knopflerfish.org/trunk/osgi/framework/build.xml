@@ -49,13 +49,14 @@
           description = "compiles all java sources">
     <mkdir dir="${classout}"/>
 
-    <javac destdir       = "${classout}" 
-           srcdir        = "${src.dir}" 
-           debug         = "on"
-	   includes      = "**/*.java"
-           target        = "${javac.target}"
-           source        = "${javac.source}"
-           classpathref  = "compile.path"
+    <javac destdir           = "${classout}" 
+           srcdir            = "${src.dir}" 
+           debug             = "on"
+	   includeantruntime = "false"
+	   includes          = "**/*.java"
+           target            = "${javac.target}"
+           source            = "${javac.source}"
+           classpathref      = "compile.path"
     >
    </javac>
   </target>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,28 +80,22 @@ class BundleURLConnection extends URLConnection {
   private BundleArchive getBundleArchive()
   {
     bundle = null;
-    long ai = -1;
-    long fi = -1;
+    long gen = 0;
     try {
       String s = url.getHost();
       int i = s.indexOf('!');
       if (i >= 0) {
         s = s.substring(0,i);
       }
-      i = s.indexOf('_');
-      if (i >= 0) {
-        fi = Long.parseLong(s.substring(i+1));
-        s = s.substring(0,i);
-      }
       i = s.indexOf('.');
       if (i >= 0) {
-        ai = Long.parseLong(s.substring(i+1));
+        gen = Long.parseLong(s.substring(i+1));
         s = s.substring(0,i);
       }
       bundle = (BundleImpl) fwCtx.bundles.getBundle(Long.parseLong(s));
     } catch (NumberFormatException _ignore) { }
     if (bundle != null) {
-      return bundle.getBundleArchive(ai, fi);
+      return bundle.getBundleArchive(gen);
     }
     return null;
   }

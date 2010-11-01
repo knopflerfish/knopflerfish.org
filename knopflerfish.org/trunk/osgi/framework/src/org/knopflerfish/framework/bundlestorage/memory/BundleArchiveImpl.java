@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, Knopflerfish project
+ * Copyright (c) 2003-2010, Knopflerfish project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,14 +38,7 @@ import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
 import java.security.cert.Certificate;
-import java.util.Enumeration;
-import java.util.Vector;
-import java.util.Hashtable;
-import java.util.StringTokenizer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
+import java.util.*;
 
 
 /**
@@ -59,6 +52,8 @@ class BundleArchiveImpl implements BundleArchive
 {
 
   private Archive archive;
+
+  private BundleGeneration bundleGeneration = null;
 
   private long id;
 
@@ -85,7 +80,7 @@ class BundleArchiveImpl implements BundleArchive
                     long bundleId)
     throws Exception
   {
-    archive  = new Archive(is);
+    archive  = new Archive(this, is);
     storage  = bundleStorage;
     id       = bundleId;
     location = bundleLocation;
@@ -104,7 +99,7 @@ class BundleArchiveImpl implements BundleArchive
     storage = old.storage;
     id = old.id;
     autostartSetting = old.autostartSetting;
-    archive = new Archive(is);
+    archive = new Archive(this, is);
     setClassPath();
   }
 
@@ -158,6 +153,26 @@ class BundleArchiveImpl implements BundleArchive
    */
   public HeaderDictionary getUnlocalizedAttributes() {
     return new HeaderDictionary(archive.manifest.getMainAttributes());
+  }
+
+
+  /**
+   * Get bundle generation associated with this bundle archive.
+   *
+   * @return BundleGeneration object.
+   */
+  public BundleGeneration getBundleGeneration() {
+    return bundleGeneration;
+  }
+
+
+  /**
+   * Set bundle generation associated with this bundle archive.
+   *
+   * @param BundleGeneration object.
+   */
+  public void setBundleGeneration(BundleGeneration bg) {
+    bundleGeneration = bg; 
   }
 
 

@@ -203,7 +203,7 @@ public class FrameworkContext  {
   /**
    * Id to use for next instance of KF framework.
    */
-  static int globalId = 1;
+  static int globalId = 0;
 
   /**
    * Reference counter for security manager.
@@ -240,7 +240,7 @@ public class FrameworkContext  {
         if (p != null) {
           ExportPkg ep = p.getBestProvider();
           if (ep != null) {
-            return ep.bpkgs.bundle.getClassLoader();
+            return ep.bpkgs.bg.getClassLoader();
           }
         }
       }
@@ -372,8 +372,6 @@ public class FrameworkContext  {
     registerStartLevel();
 
     bundles.load();
-    // Set framework classloader.
-    systemBundle.setClassLoader(getClass().getClassLoader());
 
     log("inited");
 
@@ -442,14 +440,6 @@ public class FrameworkContext  {
 
     parentClassLoader = null;
     bootDelegationPatterns = null;
-  }
-
-
-  /**
-   *
-   */
-  int getId() {
-    return id;
   }
 
 

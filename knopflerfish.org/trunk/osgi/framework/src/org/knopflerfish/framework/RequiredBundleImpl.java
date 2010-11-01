@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ public class RequiredBundleImpl implements RequiredBundle
    * @return The symbolic name of this required bundle.
    */
   public String getSymbolicName() {
-    return bpkgs.bundle.symbolicName;
+    return bpkgs.bg.symbolicName;
   }
 
 
@@ -76,7 +76,7 @@ public class RequiredBundleImpl implements RequiredBundle
    */
   public Bundle getBundle() {
     if (bpkgs.isRegistered()) {
-      return (Bundle)bpkgs.bundle;
+      return (Bundle)bpkgs.bg.bundle;
     } else {
       return null;
     }
@@ -97,10 +97,10 @@ public class RequiredBundleImpl implements RequiredBundle
    */
   public Bundle[] getRequiringBundles() {
     if (bpkgs.isRegistered()) {
-      List rl = bpkgs.bundle.getRequiredBy();
+      List rl = bpkgs.bg.bundle.getRequiredBy();
       Bundle[] res = new Bundle[rl.size()];
       for (int i = rl.size() - 1; i >= 0; i--) {
-        res[i] = ((BundlePackages)rl.get(i)).bundle;
+        res[i] = ((BundlePackages)rl.get(i)).bg.bundle;
       }
       return res;
     }
@@ -116,7 +116,7 @@ public class RequiredBundleImpl implements RequiredBundle
    *         available.
    */
   public Version getVersion() {
-    return bpkgs.bundle.version;
+    return bpkgs.bg.version;
   }
 
 
@@ -129,7 +129,7 @@ public class RequiredBundleImpl implements RequiredBundle
    *         become stale; <code>false</code> otherwise.
    */
   public boolean isRemovalPending() {
-    return bpkgs.bundle.bpkgs != bpkgs;
+    return bpkgs.bg.bundle.gen != bpkgs.bg;
   }
 
 }

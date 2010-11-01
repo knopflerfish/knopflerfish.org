@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2009, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -206,8 +206,8 @@ class ImportPkg {
     /* Predefined attributes */
     if (!okPackageVersion(ep.version) ||
         (bundleSymbolicName != null &&
-         !bundleSymbolicName.equals(ep.bpkgs.bundle.symbolicName)) ||
-        !bundleRange.withinRange(ep.bpkgs.bundle.version)) {
+         !bundleSymbolicName.equals(ep.bpkgs.bg.symbolicName)) ||
+        !bundleRange.withinRange(ep.bpkgs.bg.version)) {
       return false;
     }
     /* Other attributes */
@@ -229,7 +229,7 @@ class ImportPkg {
    * @return True if okay, otherwise false.
    */
   boolean checkPermission(ExportPkg ep) {
-    return bpkgs.bundle.fwCtx.perm.hasImportPackagePermission(bpkgs.bundle, ep);
+    return bpkgs.bg.bundle.fwCtx.perm.hasImportPackagePermission(bpkgs.bg.bundle, ep);
   }
 
 
@@ -296,7 +296,7 @@ class ImportPkg {
    * @return String.
    */
   public String toString() {
-    return pkgString() + "(" + bpkgs.bundle + ")";
+    return pkgString() + "(" + bpkgs.bg.bundle + ")";
   }
 
 
