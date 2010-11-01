@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2009, KNOPFLERFISH project
+ * Copyright (c) 2005-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -228,9 +228,9 @@ class ExportPkg {
    */
   synchronized boolean isExported() {
     if (checkPermission() && pkg != null &&
-        ((bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
+        ((bpkgs.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
       BundlePackages bp = bpkgs.getProviderBundlePackages(name);
-      return bp == null || bp.bundle == bpkgs.bundle;
+      return bp == null || bp.bg.bundle == bpkgs.bg.bundle;
     }
     return false;
   }
@@ -249,7 +249,7 @@ class ExportPkg {
         for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
           ImportPkg ip = (ImportPkg)i.next();
           if (ip.provider == this && ip.bpkgs != bpkgs) {
-            res.add(ip.bpkgs.bundle);
+            res.add(ip.bpkgs.bg.bundle);
           }
         }
       }
@@ -266,8 +266,8 @@ class ExportPkg {
    */
   boolean checkPermission() {
     // NYI! cache permission when we have resolved and while resolving
-    if (bpkgs.bundle.state == BundleImpl.INSTALLED) {
-      hasPermission = bpkgs.bundle.fwCtx.perm.hasExportPackagePermission(this);
+    if (bpkgs.bg.bundle.state == BundleImpl.INSTALLED) {
+      hasPermission = bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
     }
     return hasPermission;
   }

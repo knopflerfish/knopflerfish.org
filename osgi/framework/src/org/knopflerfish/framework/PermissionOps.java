@@ -226,8 +226,8 @@ class PermissionOps {
   }
 
 
-  HeaderDictionary callGetHeaders0(final BundleImpl b, final String locale) {
-    return b.getHeaders0(locale);
+  HeaderDictionary callGetHeaders0(final BundleGeneration bg, final String locale) {
+    return bg.getHeaders0(locale);
   }
 
 
@@ -237,12 +237,11 @@ class PermissionOps {
   }
 
 
-  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs,
-                                         final BundleArchive archive,
-                                         final ArrayList fragments,
-                                         final ProtectionDomain protectionDomain)
-    throws BundleException {
-    return new BundleClassLoader(bpkgs, archive, fragments, protectionDomain, this);
+  BundleClassLoader newBundleClassLoader(final BundleGeneration bg,
+                                         final Vector fragments)
+    throws BundleException
+  {
+    return new BundleClassLoader(bg, fragments);
   }
 
   //
@@ -315,7 +314,7 @@ class PermissionOps {
   // Permissions package functionality
   //
 
-  ProtectionDomain getProtectionDomain(BundleImpl b) {
+  ProtectionDomain getProtectionDomain(final BundleGeneration bg) {
     return null;
   }
 

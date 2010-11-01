@@ -38,7 +38,7 @@ import java.io.*;
 import java.util.*;
 import java.util.jar.*;
 
-import org.knopflerfish.framework.BundleResourceStream;
+import org.knopflerfish.framework.*;
 
 import org.osgi.framework.Constants;
 
@@ -49,7 +49,12 @@ import org.osgi.framework.Constants;
  * @author Philippe Laporte
  * @version $Revision$
  */
-class Archive {
+class Archive implements FileArchive {
+
+  /**
+   *
+   */
+  final private BundleArchiveImpl ba;
 
   /**
    * Archives manifest
@@ -71,7 +76,8 @@ class Archive {
    *
    * @param is Jar file data in an InputStream.
    */
-  Archive(InputStream is) throws IOException {
+  Archive(BundleArchiveImpl ba, InputStream is) throws IOException {
+    this.ba = ba;
     JarInputStream ji = new JarInputStream(is);
     manifest = ji.getManifest();
     if (manifest == null) {
@@ -92,6 +98,7 @@ class Archive {
    * @exception IOException if failed to read Jar file.
    */
   Archive(Archive a, String path) throws IOException {
+    ba = a.ba;
     if (null!=path && path.length()>0 && '/'==path.charAt(0)) {
       path = path.substring(1);
     }
@@ -102,6 +109,22 @@ class Archive {
     } else {
       throw new FileNotFoundException("No such file: " + path);
     }
+  }
+
+
+  /**
+   * Get bundle id for this archive.
+   */
+  public BundleGeneration getBundleGeneration() {
+    return ba.getBundleGeneration();
+  }
+
+
+  /**
+   * Get sub-archive id for this archive.
+   */
+  public int getSubId() {
+    return 0;
   }
 
 
@@ -124,7 +147,7 @@ class Archive {
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  byte[] getClassBytes(String classFile) throws IOException {
+  public byte[] getClassBytes(String classFile) throws IOException {
     byte[] bytes;
     if ((bytes = (byte[]) content.remove(classFile)) == null) {
       if (subDirs == null) {
@@ -154,7 +177,7 @@ class Archive {
    * @param component Entry to get reference to.
    * @return InputStream to entry or null if it doesn't exist.
    */
-  BundleResourceStream getBundleResourceStream(String component) {
+  public BundleResourceStream getBundleResourceStream(String component) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
@@ -169,7 +192,7 @@ class Archive {
   //Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like the manifest
   //gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
   //investigate further later
-  Enumeration findResourcesPath(String path) {
+  public Enumeration findResourcesPath(String path) {
     Vector answer = new Vector();
     // "normalize" + erroneous path check: be generous
     path = path.replace('\\', '/');
@@ -219,6 +242,26 @@ class Archive {
     return new Archive(this, path);
   }
 
+
+  /**
+   * Check for native library in archive.
+   *
+   * @param path Name of native code file to get.
+   * @return If native library exist return libname, otherwise null.
+   */
+  public String checkNativeLibrary(String path) {
+    return null;
+  }
+
+  /**
+   * Get native code library filename.
+   *
+   * @param libNameKey Key for native lib to get.
+   * @return A string with the path to the native library.
+   */
+  public String getNativeLibrary(String libNameKey) {
+    return null;
+  }
 
   //
   // Private methods

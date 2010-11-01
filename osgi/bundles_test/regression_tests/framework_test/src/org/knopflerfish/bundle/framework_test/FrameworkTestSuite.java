@@ -444,30 +444,25 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME019A start");
       Bundle bA = null;
       try {
+        URL url = bc.getBundle().getResource("bundleA_test-1.0.0.jar");
+
+        // if the URL can be created, it should be possible to install
+        // from the URL string representation
+        bA = bc.installBundle(url.toString());
+
+        assertNotNull("Bundle should be possible to install from " + url, bA);
         try {
-          URL url = new URL("bundle://" + bc.getBundle().getBundleId() + "/" +
-                            "bundleA_test-1.0.0.jar");
-
-          // if the URL can be created, it should be possible to install
-          // from the URL string representation
-          bA = bc.installBundle(url.toString());
-
-          assertNotNull("Bundle should be possible to install from " + url, bA);
-          try {
-            bA.start();
-          } catch (Exception e) {
-            fail(url + " couldn't be started, FRAME019A:FAIL");
-          }
-
-          assertEquals("Bundle should be in ACTIVE state",
-                       Bundle.ACTIVE, bA.getState());
-
-          out.println("### FRAME019A: PASSED, bundle URL " + url);
-
-          // finally block will uninstall bundle and clean up events
-        } catch (MalformedURLException e) {
-          out.println("### FRAME019A: PASSED, bundle: URL not supported: " + e);
+          bA.start();
+        } catch (Exception e) {
+          fail(url + " couldn't be started, FRAME019A:FAIL");
         }
+
+        assertEquals("Bundle should be in ACTIVE state",
+                     Bundle.ACTIVE, bA.getState());
+
+        out.println("### FRAME019A: PASSED, bundle URL " + url);
+
+        // finally block will uninstall bundle and clean up events
       } finally {
         try {
           if(bA != null) {

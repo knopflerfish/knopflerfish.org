@@ -89,13 +89,13 @@ public class BundleClassPath
     checkBundleArchive(ba, frags);
     if (frags != null) {
       for (Iterator i = frags.iterator(); i.hasNext(); ) {
-        checkBundleArchive(((BundleImpl)i.next()).archive, null);
+        checkBundleArchive(((BundleImpl)i.next()).gen.archive, null);
       }
     }
     resolveNativeCode(ba, false);
     if (frags != null) {
       for (Iterator i = frags.iterator(); i.hasNext(); ) {
-        resolveNativeCode(((BundleImpl)i.next()).archive, true);
+        resolveNativeCode(((BundleImpl)i.next()).gen.archive, true);
       }
     }
   }
@@ -247,7 +247,7 @@ public class BundleClassPath
         FileArchive a = ba.getFileArchive(path);
         if (a == null && frags != null) {
           for (Iterator i = frags.iterator(); i.hasNext(); ) {
-            a = ((BundleImpl)i.next()).archive.getFileArchive(path);
+            a = ((BundleImpl)i.next()).gen.archive.getFileArchive(path);
             if (a != null) {
               break;
             }
@@ -440,7 +440,7 @@ public class BundleClassPath
         String name = (String)p.next();
         for (Iterator i = archives.iterator(); i.hasNext(); ) {
           FileArchive fa = (FileArchive)i.next();
-          if (!isFrag || fa.getBundleId() == ba.getBundleId()) {
+          if (!isFrag || fa.getBundleGeneration().archive == ba) {
             String key = fa.checkNativeLibrary(name);
             if (key != null) {
               nativeLibs.put(key, fa);

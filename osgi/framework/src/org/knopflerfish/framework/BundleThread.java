@@ -45,34 +45,37 @@ class BundleThread extends Thread {
 
   final private static int KEEP_ALIVE = 1000;
 
-  private final FrameworkContext fwCtx;
+  final private FrameworkContext fwCtx;
+  final private Object lock = new Object();
   volatile private BundleEvent be;
   volatile private BundleImpl bundle;
   volatile private int operation = OP_IDLE;
   volatile private Object res;
-  volatile private Object lock = new Object();
+  volatile private boolean doRun;
 
 
   BundleThread(FrameworkContext fc) {
     super(fc.threadGroup, "BundleThread waiting");
     setDaemon(false);
     fwCtx = fc;
+    doRun = true;
     start();
   }
+
 
   /**
    *
    */
   void quit() {
-    lock = null;
+    doRun = false;
     interrupt();
   }
 
 
   public void run() {
-    while (true) {
+    while (doRun) {
       synchronized (lock) {
-        while (lock != null && operation == OP_IDLE) {
+        while (doRun && operation == OP_IDLE) {
           try {
             lock.wait(KEEP_ALIVE);
             if (operation != OP_IDLE) {
@@ -85,7 +88,7 @@ class BundleThread extends Thread {
             }
           } catch (InterruptedException ie) { }
         }
-        if (lock == null) {
+        if (!doRun) {
           break;
         }
         Object tmpres = null;

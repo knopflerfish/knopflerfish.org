@@ -35,8 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
-import java.net.URL;
-import java.net.MalformedURLException;
+import java.net.*;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.util.*;
@@ -246,22 +245,22 @@ class SecurePermissionOps extends PermissionOps {
 
   boolean okFragmentBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.FRAGMENT));
+    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.FRAGMENT));
   }
 
   boolean okHostBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.HOST));
+    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.HOST));
   }
 
   boolean okProvideBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.PROVIDE));
+    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.PROVIDE));
   }
 
   boolean okRequireBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.REQUIRE));
+    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.REQUIRE));
   }
 
   boolean okAllPerm(BundleImpl b) {
@@ -274,7 +273,7 @@ class SecurePermissionOps extends PermissionOps {
   //
 
   boolean hasExportPackagePermission(ExportPkg ep) {
-    BundleImpl b = ep.bpkgs.bundle;
+    BundleImpl b = ep.bpkgs.bg.bundle;
     if (b.id != 0) {
       PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
       return pc.implies(new PackagePermission(ep.name, PackagePermission.EXPORTONLY));
@@ -285,7 +284,7 @@ class SecurePermissionOps extends PermissionOps {
   boolean hasImportPackagePermission(BundleImpl b, ExportPkg ep) {
     if (b.id != 0) {
       PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-      return pc.implies(new PackagePermission(ep.name, ep.bpkgs.bundle,
+      return pc.implies(new PackagePermission(ep.name, ep.bpkgs.bg.bundle,
                                               PackagePermission.IMPORT));
     }
     return true;
@@ -352,7 +351,7 @@ class SecurePermissionOps extends PermissionOps {
 
 
   Enumeration callFindResourcesPath(final BundleArchive archive,
-                                   final String path) {
+                                    final String path) {
     return (Enumeration)AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
           return archive.findResourcesPath(path);
@@ -453,11 +452,11 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  HeaderDictionary callGetHeaders0(final BundleImpl b, final String locale) {
+  HeaderDictionary callGetHeaders0(final BundleGeneration bg, final String locale) {
     return (HeaderDictionary)
       AccessController.doPrivileged(new PrivilegedAction() {
           public Object run() {
-            return b.getHeaders0(locale);
+            return bg.getHeaders0(locale);
           }
         });
   }
@@ -474,15 +473,17 @@ class SecurePermissionOps extends PermissionOps {
   }
   
 
-  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs, final BundleArchive archive, final ArrayList fragments,
-                                   final ProtectionDomain protectionDomain) throws BundleException {
+  BundleClassLoader newBundleClassLoader(final BundleGeneration bg,
+                                         final Vector fragments)
+    throws BundleException
+  {
     try {
-      return (BundleClassLoader)AccessController.doPrivileged(new PrivilegedExceptionAction() {
-                                                        public Object run() throws Exception {
-                                                        return  new BundleClassLoader(bpkgs, archive, fragments,
-                                                                                      protectionDomain, SecurePermissionOps.this);
-                                                        }
-                                                        });
+      return (BundleClassLoader)
+        AccessController.doPrivileged(new PrivilegedExceptionAction() {
+            public Object run() throws Exception {
+              return new BundleClassLoader(bg, fragments);
+            }
+          });
     } catch (PrivilegedActionException pe) {
       throw (BundleException)pe.getException();
     }    
@@ -606,20 +607,21 @@ class SecurePermissionOps extends PermissionOps {
   /**
    * Get protection domain for bundle
    */
-  ProtectionDomain getProtectionDomain(BundleImpl b) {
+  ProtectionDomain getProtectionDomain(final BundleGeneration bg) {
     try {
       // We cannot use getBundleURL() here because that will
       // trigger a persmission check while we're still in
       // the phase of building permissions
-      URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL,
-                              Long.toString(b.id) + "." + Long.toString(b.generation),
-                              -1,
-                              "",
-                              b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
+      String h = Long.toString(bg.bundle.id);
+      if (bg.generation != 0) {
+        h += "." + Long.toString(bg.generation);
+      }
+      URLStreamHandler ush = bg.bundle.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL);
+      URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, h, -1, "", ush);
 
-      InputStream pis = b.archive.getBundleResourceStream("OSGI-INF/permissions.perm", 0);
-      PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
-      List cc = b.archive.getCertificateChains(false);
+      InputStream pis = bg.archive.getBundleResourceStream("OSGI-INF/permissions.perm", 0);
+      PermissionCollection pc = ph.createPermissionCollection(bg.bundle.location, bg.bundle, pis);
+      List cc = bg.archive.getCertificateChains(false);
       Certificate [] cca;
       if (cc != null) {
         ArrayList tmp = new ArrayList();

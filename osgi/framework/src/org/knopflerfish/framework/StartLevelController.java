@@ -279,7 +279,7 @@ public class StartLevelController
         BundleImpl bs  = (BundleImpl)i.next();
         if (canStart(bs)) {
           if (bs.getStartLevel() == currentLevel) {
-            if (bs.archive.getAutostartSetting()!=-1) {
+            if (bs.gen.archive.getAutostartSetting()!=-1) {
               set.addElement(bs);
             }
           }
@@ -291,12 +291,12 @@ public class StartLevelController
       for (int i = 0; i < set.size(); i++) {
         BundleImpl bs = (BundleImpl)set.elementAt(i);
         try {
-          if (bs.archive.getAutostartSetting()!=-1) {
+          if (bs.gen.archive.getAutostartSetting()!=-1) {
             if (fwCtx.debug.startlevel) {
               fwCtx.debug.println("startlevel: start " + bs);
             }
             int startOptions = Bundle.START_TRANSIENT;
-            if (isBundleActivationPolicyUsed(bs.archive)) {
+            if (isBundleActivationPolicyUsed(bs.gen.archive)) {
               startOptions |= Bundle.START_ACTIVATION_POLICY;
             }
             bs.start(startOptions);
@@ -323,7 +323,7 @@ public class StartLevelController
         BundleImpl bs  = (BundleImpl)i.next();
 
         if (bs.getState() == Bundle.ACTIVE ||
-            (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
+            (bs.getState() == Bundle.STARTING && bs.gen.lazyActivation)) {
           if (bs.getStartLevel() == currentLevel + 1) {
             set.addElement(bs);
           }
@@ -336,7 +336,7 @@ public class StartLevelController
         for (int i = 0; i < set.size(); i++) {
           BundleImpl bs = (BundleImpl)set.elementAt(i);
           if (bs.getState() == Bundle.ACTIVE ||
-              (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
+              (bs.getState() == Bundle.STARTING && bs.gen.lazyActivation)) {
             if (fwCtx.debug.startlevel) {
               fwCtx.debug.println("startlevel: stop " + bs);
             }
@@ -410,12 +410,12 @@ public class StartLevelController
         synchronized (fwCtx.packages) {
           if (bs.getStartLevel() <= currentLevel) {
             if ((bs.getState() & (Bundle.INSTALLED|Bundle.RESOLVED|Bundle.STOPPING)) != 0
-                && bs.archive.getAutostartSetting()!=-1) {
+                && bs.gen.archive.getAutostartSetting()!=-1) {
               if (fwCtx.debug.startlevel) {
                 fwCtx.debug.println("startlevel: start " + bs);
               }
               int startOptions = Bundle.START_TRANSIENT;
-              if (isBundleActivationPolicyUsed(bs.archive)) {
+              if (isBundleActivationPolicyUsed(bs.gen.archive)) {
                 startOptions |= Bundle.START_ACTIVATION_POLICY;
               }
               bs.start(startOptions);
@@ -540,7 +540,7 @@ public class StartLevelController
 
     private BundleArchive getBundleArchive(Bundle b) {
       BundleImpl bi = checkBundle(b);
-      BundleArchive res = bi.archive;
+      BundleArchive res = bi.gen.archive;
       if (res == null && bi.id != 0) {
         throw new IllegalArgumentException("Bundle is in UNINSTALLED state");
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -138,7 +138,7 @@ class Pkg {
       // See if there are any resolved exporters.
       for (Iterator i = exporters.iterator(); i.hasNext(); ) {
         ExportPkg ep = (ExportPkg)i.next();
-        if ((ep.bpkgs.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
+        if ((ep.bpkgs.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
           if (best == null || best.version.compareTo(ep.version) < 0) {
             best = ep;
           }
@@ -199,7 +199,7 @@ class Pkg {
 	ExportPkg b = (ExportPkg)ob;
 	int d = a.version.compareTo(b.version);
 	if (d == 0) {
-	  long ld = b.bpkgs.bundle.id - a.bpkgs.bundle.id;
+	  long ld = b.bpkgs.bg.bundle.id - a.bpkgs.bg.bundle.id;
 	  if (ld < 0)
 	    d = -1;
 	  else if (ld > 0)
@@ -225,7 +225,7 @@ class Pkg {
 	ImportPkg b = (ImportPkg)ob;
 	int d = a.packageRange.compareTo(b.packageRange);
 	if (d == 0) {
-	  long ld = b.bpkgs.bundle.id - a.bpkgs.bundle.id;
+	  long ld = b.bpkgs.bg.bundle.id - a.bpkgs.bg.bundle.id;
 	  if (ld < 0)
 	    d = -1;
 	  else if (ld > 0)

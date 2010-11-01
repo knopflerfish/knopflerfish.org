@@ -65,7 +65,7 @@ final public class BundleClassLoader
   /**
    * Framework class loader
    */
-  final private ClassLoader parent;
+  final FrameworkContext fwCtx;
 
   /**
    * Handle to secure operations.
@@ -95,7 +95,8 @@ final public class BundleClassLoader
   /**
    * Fragment archives that we load code from.
    */
-  private ArrayList /* BundleImpl */ fragments;
+  // TBD do we need fragments here!?
+  private Vector /* BundleImpl */ fragments;
 
   // Array of bundles for which a classload is triggering activation.
   private static ThreadLocal tlBundlesToActivate = new ThreadLocal();
@@ -147,21 +148,20 @@ final public class BundleClassLoader
   /**
    * Create class loader for specified bundle.
    */
-  BundleClassLoader(BundlePackages bpkgs, BundleArchive ba, ArrayList frags,
-                    ProtectionDomain pd, PermissionOps secure)
-  throws BundleException
+  BundleClassLoader(final BundleGeneration gen, final Vector frags)
+    throws BundleException
   {
     //otherwise getResource will bypass OUR parent
-    super(bpkgs.bundle.fwCtx.parentClassLoader);
+    super(gen.bundle.fwCtx.parentClassLoader);
 
-    this.debug = bpkgs.bundle.fwCtx.debug;
-    this.parent = bpkgs.bundle.fwCtx.parentClassLoader;
-    this.secure = secure;
-    protectionDomain = pd;
-    this.bpkgs = bpkgs;
-    archive = ba;
+    fwCtx = gen.bundle.fwCtx;
+    debug = fwCtx.debug;
+    secure = fwCtx.perm;
+    protectionDomain = gen.getProtectionDomain();
+    bpkgs = gen.bpkgs;
+    archive = gen.archive;
     fragments = frags;
-    classPath = new BundleClassPath(ba, frags, bpkgs.bundle.fwCtx);
+    classPath = new BundleClassPath(archive, frags, fwCtx);
     if (debug.classLoader) {
       debug.println(this + " Created new classloader");
     }
@@ -193,7 +193,7 @@ final public class BundleClassLoader
       }
     }
 
-    return bHasASM && bpkgs.bundle.fwCtx.props.getBooleanProperty(FWProps.PATCH_PROP);
+    return bHasASM && fwCtx.props.getBooleanProperty(FWProps.PATCH_PROP);
   }
 
   /**
@@ -205,11 +205,11 @@ final public class BundleClassLoader
    */
   protected Class findClass(String name) throws ClassNotFoundException {
     if (name.startsWith("java.")) {
-      return parent.loadClass(name);
+      return fwCtx.parentClassLoader.loadClass(name);
     }
-    if (bpkgs.bundle.fwCtx.isBootDelegated(name)) {
+    if (fwCtx.isBootDelegated(name)) {
       try {
-        Class bootDelegationCls = parent.loadClass(name);
+        Class bootDelegationCls = fwCtx.parentClassLoader.loadClass(name);
         if (debug.classLoader && bootDelegationCls!=null) {
           debug.println(this +" findClass: " +name +" boot delegation: "
                         +bootDelegationCls);
@@ -233,16 +233,16 @@ final public class BundleClassLoader
       return res;
     }
 
-    if(!bpkgs.bundle.fwCtx.props.STRICTBOOTCLASSLOADING) {
+    if(!fwCtx.props.STRICTBOOTCLASSLOADING) {
       if(isBootClassContext(name)) {
         if(debug.classLoader) {
           debug.println(this + " trying parent loader for class=" +name
                         +", since it was loaded on the system loader itself");
         }
-        res = parent.loadClass(name);
+        res = fwCtx.parentClassLoader.loadClass(name);
         if(res != null) {
           if(debug.classLoader) {
-            debug.println(this + " loaded " + name + " from " + parent);
+            debug.println(this + " loaded " + name + " from " + fwCtx.parentClassLoader);
           }
         }
         return res;
@@ -386,7 +386,7 @@ final public class BundleClassLoader
           try {
             secure.callFinalizeActivation(b);
           } catch (BundleException e) {
-            b.fwCtx.listeners.frameworkError(b, e);
+            fwCtx.listeners.frameworkError(b, e);
           }
         } else {
           // add bundle to list of bundles to activate when the
@@ -435,15 +435,15 @@ final public class BundleClassLoader
     }
     URL res = null;
     if (name.startsWith("java/")) {
-      res = parent.getResource(name);
+      res = fwCtx.parentClassLoader.getResource(name);
       if (debug.classLoader) {
         debug.println(this +" getResource: " +name +" file in java pkg: "+res);
       }
       return res;
     }
 
-    if (bpkgs.bundle.fwCtx.isBootDelegatedResource(name)) {
-      res = parent.getResource(name);
+    if (fwCtx.isBootDelegatedResource(name)) {
+      res = fwCtx.parentClassLoader.getResource(name);
       if (res!=null) {
         if (debug.classLoader) {
           debug.println(this +" getResource: " +name +" boot delegation: "
@@ -488,12 +488,12 @@ final public class BundleClassLoader
     }
     int start = name.startsWith("/") ? 1 : 0;
     if (name.substring(start).startsWith("java/")) {
-      return parent.getResources(name);
+      return fwCtx.parentClassLoader.getResources(name);
     }
 
     Enumeration res = null;
-    if (bpkgs.bundle.fwCtx.isBootDelegatedResource(name)) {
-      res = parent.getResources(name);
+    if (fwCtx.isBootDelegatedResource(name)) {
+      res = fwCtx.parentClassLoader.getResources(name);
     }
 
     if (res==null || !res.hasMoreElements()) {
@@ -532,15 +532,15 @@ final public class BundleClassLoader
   public String toString() {
     return "BundleClassLoader("
       //+"fw=" +bpkgs.bundle.fwCtx.hashCode()
-      +"id=" + bpkgs.bundle.id
-      +",gen=" + bpkgs.generation
+      +"id=" + bpkgs.bg.bundle.id
+      +",gen=" + bpkgs.bg.generation
       +")";
   }
 
 
   // Implements BundleReference
   public Bundle getBundle() {
-    return bpkgs.bundle;
+    return bpkgs.bg.bundle;
   }
 
 
@@ -549,38 +549,13 @@ final public class BundleClassLoader
   //
 
   /**
-   * Get bundle archive belonging to this class loader.
-   */
-  BundleArchive getBundleArchive(long frag) {
-    if (frag >= 0) {
-      if (fragments != null) {
-        for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-          // NYI improve this solution
-          BundleImpl b = (BundleImpl)i.next();
-          if (b.getBundleId() == frag) {
-            return b.archive;
-          }
-        }
-      }
-      return null;
-    } else {
-      return archive;
-    }
-  }
-
-
-  /**
    * Close down this classloader.
    * We don't give out any new classes. Perhaps we should
    * block all classloads.
    */
   void close() {
     archive = null;
-    bpkgs.invalidateClassLoader();
-    if (fragments != null) {
-      fragments.clear();
-      fragments = null;
-    }
+    fragments = null;
     if (debug.classLoader) {
       debug.println(this + " Cleared archives");
     }
@@ -593,14 +568,6 @@ final public class BundleClassLoader
    *
    */
   void purge(boolean purgeArchive) {
-    bpkgs.unregisterPackages(true);
-    if (protectionDomain != null) {
-      bpkgs.bundle.fwCtx.perm.purge(bpkgs.bundle, protectionDomain);
-    }
-    // NYI, refactor archive purge
-    if (purgeArchive && archive != null) {
-      archive.purge();
-    }
     if (fragments != null) {
         // NYI handle multihost and zombie archives
 //       for (Iterator i = fragments.iterator(); i.hasNext(); ) {
@@ -645,25 +612,6 @@ final public class BundleClassLoader
 
 
   /**
-   * Find localization files and load.
-   *
-   */
-  Hashtable getLocalizationEntries(String name) {
-    Hashtable res = archive.getLocalizationEntries(name);
-    if (res == null && fragments != null) {
-      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-        BundleArchive ba = ((BundleImpl)i.next()).archive;
-        res = ba.getLocalizationEntries(name);
-        if (res != null) {
-          break;
-        }
-      }
-    }
-    return res;
-  }
-
-
-  /**
    * Get bundle package handler.
    *
    */
@@ -674,6 +622,7 @@ final public class BundleClassLoader
   //
   // Private
   //
+  
   /**
    * Seraches for and loads classes and resources according to OSGi
    * search order. When lazy activation of bundles are used this
@@ -733,7 +682,7 @@ final public class BundleClassLoader
           try {
             tmp.finalizeActivation();
           } catch (BundleException e) {
-            b.fwCtx.listeners.frameworkError(tmp, e);
+            fwCtx.listeners.frameworkError(tmp, e);
           }
         }
       }
@@ -826,9 +775,9 @@ final public class BundleClassLoader
       pbp = bpkgs.getProviderBundlePackages(pkg);
       if (pbp != null) {
 
-        if (isSystemBundle(pbp.bundle)) {
+        if (isSystemBundle(pbp.bg.bundle)) {
           try {
-            return pbp.bundle.fwCtx.systemBundle.getClassLoader().loadClass(name);
+            return fwCtx.systemBundle.getClassLoader().loadClass(name);
           } catch (ClassNotFoundException e) {
             // continue
           }
@@ -843,7 +792,7 @@ final public class BundleClassLoader
             if (cl != null) {
               if (debug.classLoader) {
                 debug.println(this + " Import search: " + path +
-                              " from #" + pbp.bundle.id);
+                              " from #" + pbp.bg.bundle.id);
               }
               return secure.callSearchFor(cl, name, pkg, path, action,
                                           onlyFirst, requestor, visited);
@@ -869,7 +818,7 @@ final public class BundleClassLoader
               if (cl != null && !visited.contains(cl)) {
                 if (debug.classLoader) {
                   debug.println(this + " Required bundle search: " +
-                                path + " from #" + pbp.bundle.id);
+                                path + " from #" + pbp.bg.bundle.id);
                 }
                 Object res = secure.callSearchFor(cl, name, pkg, path, action,
                                                   onlyFirst, requestor, visited);
@@ -898,7 +847,7 @@ final public class BundleClassLoader
        try {
          return action.get(av, path, name, pkg, this );
        } catch (IOException ioe) {
-         bpkgs.bundle.fwCtx.listeners.frameworkError(bpkgs.bundle, ioe);
+         fwCtx.listeners.frameworkError(bpkgs.bg.bundle, ioe);
          return null;
        }
     }
@@ -912,9 +861,9 @@ final public class BundleClassLoader
       pbp = bpkgs.getDynamicProviderBundlePackages(pkg);
       if (pbp != null) {
         /* 9 */
-        if (isSystemBundle(pbp.bundle)) {
+        if (isSystemBundle(pbp.bg.bundle)) {
           try {
-            return pbp.bundle.fwCtx.systemBundle.getClassLoader().loadClass(name);
+            return fwCtx.systemBundle.getClassLoader().loadClass(name);
           } catch (ClassNotFoundException e) {
             // continue
           }
@@ -923,7 +872,7 @@ final public class BundleClassLoader
           if (cl != null) {
             if (debug.classLoader) {
               debug.println(this + " Dynamic import search: " +
-                  path + " from #" + pbp.bundle.id);
+                  path + " from #" + pbp.bg.bundle.id);
             }
             return secure.callSearchFor(cl, name, pkg, path, action,
                 onlyFirst, requestor, visited);
@@ -967,7 +916,7 @@ final public class BundleClassLoader
             bytes = ClassPatcher.getInstance(cl).patch(name, bytes);
           }
           if (cl.debug.classLoader) {
-            cl.debug.println("classLoader(#" + cl.bpkgs.bundle.id
+            cl.debug.println("classLoader(#" + cl.bpkgs.bg.bundle.id
                           + ") - load class: " + name);
           }
           synchronized (cl) {
@@ -1056,20 +1005,17 @@ final public class BundleClassLoader
         Vector answer = new Vector();
         for(int i = 0; i < items.size(); i++) {
           FileArchive fa = (FileArchive) items.elementAt(i);
-             URL url = cl.bpkgs.bundle.getURL(cl.bpkgs.generation,
-                                              fa.getBundleId(),
-                                              fa.getSubId(),
-                                              path);
-            if (url != null) {
-              if (cl.debug.classLoader) {
-                cl.debug.println("classLoader(#" + cl.bpkgs.bundle.id
-                                 + ") - found: " +
-                                 path + " -> " + url);
-              }
-              answer.addElement(url);
-            } else {
-              return null;
+          URL url = fa.getBundleGeneration().getURL(fa.getSubId(), path);
+          if (url != null) {
+            if (cl.debug.classLoader) {
+              cl.debug.println("classLoader(#" + cl.bpkgs.bg.bundle.id
+                               + ") - found: " +
+                               path + " -> " + url);
             }
+            answer.addElement(url);
+          } else {
+            return null;
+          }
         }
         return answer.elements();
       }
@@ -1086,4 +1032,4 @@ final public class BundleClassLoader
     return classPath.getNativeLibrary(name);
   }
 
-} //class
+}

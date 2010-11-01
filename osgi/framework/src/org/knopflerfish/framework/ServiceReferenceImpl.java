@@ -384,17 +384,17 @@ public class ServiceReferenceImpl implements ServiceReference
       final Pkg p = fwCtx.packages.getPkg(name);
       // Is package exported by a bundle
       if (p != null) {
-        final BundlePackages pkgExporter
-          = registration.bundle.bpkgs.getProviderBundlePackages(name);
+        final BundlePackages rbp = registration.bundle.gen.bpkgs;
+        final BundlePackages pkgExporter = rbp.getProviderBundlePackages(name);
         List pkgProvider;
         if (pkgExporter == null) {
           // Package not imported by provide, is it required
-          pkgProvider = registration.bundle.bpkgs.getRequiredBundlePackages(name);
+          pkgProvider = rbp.getRequiredBundlePackages(name);
         } else {
           pkgProvider = new ArrayList(1);
           pkgProvider.add(pkgExporter);
         }
-        final BundlePackages bb = ((BundleImpl)bundle).bpkgs;
+        final BundlePackages bb = ((BundleImpl)bundle).gen.bpkgs;
         final BundlePackages bbp = bb.getProviderBundlePackages(name);
         List pkgConsumer;
         if (bbp == null) {

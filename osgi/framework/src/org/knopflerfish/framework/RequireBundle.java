@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,8 +80,8 @@ class RequireBundle {
            +Constants.VISIBILITY_DIRECTIVE +":="+this.visibility
            +"' in manifest header '"
            +Constants.REQUIRE_BUNDLE +": " +this.name
-           +"' of bundle with id " +this.requestor.bundle.getBundleId()
-           +" ("+this.requestor.bundle.getSymbolicName()+")"
+           +"' of bundle with id " +this.requestor.bg.bundle.getBundleId()
+           +" ("+this.requestor.bg.symbolicName+")"
            +". The value must be either '"
            +Constants.VISIBILITY_PRIVATE  +"' or '"
            +Constants.VISIBILITY_REEXPORT +"'.");
@@ -98,8 +98,8 @@ class RequireBundle {
            +Constants.RESOLUTION_DIRECTIVE +":="+this.resolution
            +"' in manifest header '"
            +Constants.REQUIRE_BUNDLE +": " +this.name
-           +"' of bundle with id " +this.requestor.bundle.getBundleId()
-           +" ("+this.requestor.bundle.getSymbolicName()+")"
+           +"' of bundle with id " +this.requestor.bg.bundle.getBundleId()
+           +" ("+this.requestor.bg.symbolicName+")"
            +". The value must be either '"
            +Constants.RESOLUTION_MANDATORY +"' or '"
            +Constants.RESOLUTION_OPTIONAL  +"'.");
