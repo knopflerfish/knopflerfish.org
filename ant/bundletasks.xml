@@ -84,11 +84,11 @@
   </path>
 
   <!-- Must build when source is present to ensure that the antlib is up to date. -->
-  <target name="maybe_build_bundle_tasks" if="bundle_tasks.src.present">
+  <target name="maybe_build_bundle_tasks" unless="bundle_tasks.built">
     <antcall target="build_bundle_tasks"/>
   </target>
 
-  <target name="build_bundle_tasks">
+  <target name="build_bundle_tasks" if="bundle_tasks.src.present">
     <mkdir dir="${antclasses}"/>
     <javac destdir="${antclasses}"
            classpathref="bundle_tasks.path"
@@ -104,14 +104,9 @@
       <include name="org/osgi/framework/Constants.java"/>
     </javac>
 
-    <!-- Copy resources -->
-    <copy toDir="${antclasses}">
-      <fileset dir="${ant.dir}/src"
-               includes="**/antlib.xml"/>
-    </copy>
-
     <jar destfile="${bundle_tasks.jar}"
          compress="true"
+	 update="false"
          filesonly="true">
       <manifest>
         <attribute name="Implementation-Vendor" value="Knopflerfish"/>
@@ -119,21 +114,28 @@
 		   value="Knopflerfish Bundle Tasks"/>
         <attribute name="Knopflerfish-Version" value="${version}"/>
       </manifest>
+      <zipfileset dir="${ant.dir}/src"
+		  includes="**/antlib.xml"/>
       <zipfileset dir="${antclasses}"/>
       <zipfileset src="${asm.jar}" includes="org/**"/>
     </jar>       
   </target>
 
-  <target name="bundle_tasks" 
-          description="Defines the custom Knopflerfish bundle tasks"
-          depends="install_bindex,
-                   maybe_build_bundle_tasks">
+  <target name="define_bundle_tasks" 
+          description="Defines the Knopflerfish bundle tasks">
     <taskdef resource="org/knopflerfish/ant/taskdefs/bundle/antlib.xml">
       <classpath>
 	<pathelement location="${bundle_tasks.jar}"/>
 	<path refid="bindex.path"/>
       </classpath>
     </taskdef>
+  </target>
+
+  <target name="bundle_tasks" 
+          description="Builds and defines the Knopflerfish bundle tasks"
+          depends="install_bindex,
+                   maybe_build_bundle_tasks,
+		   define_bundle_tasks">
   </target>
 
   <target name="default" depends="bundle_tasks"/>
