@@ -107,6 +107,7 @@
   <target name="all"
           description="Builds entire platform including optional and test bundles" >
     <ant dir="${ant.dir}"          target="all"/>
+    <property name="bundle_tasks.built" value="true"/> 
     <ant dir="${jarunpacker.dir}"  target="jar"/>
     <ant dir="osgi"                target="all"/>
   </target>

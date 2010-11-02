@@ -68,7 +68,10 @@
 	  depends="init,bundles_test_missing,bundles_test_present" />
   <target name="bundles_test_present" if="dir.bundles_test.present">
     <ant dir="bundles_test" target="all"
-         inheritAll="false" inheritRefs="false"/>
+         inheritAll="false" inheritRefs="false">
+      <!-- No need to build the bundles tasks in this case. -->
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
     <antcall target="xargs"/>
   </target>
   <target name="bundles_test_missing" unless="dir.bundles_test.present">
