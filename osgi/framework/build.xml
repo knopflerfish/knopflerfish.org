@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 
 <project name="framework" default="all">
-
+  <!-- Are we building for Dalvik/Android? -->
+  <available property="android.exists" file="${ANDROID_HOME}"/>
+  
   <!-- build properties -->
 
   <property name="topdir"       location=".."/>
@@ -22,7 +24,14 @@
 
   <property name="jarfile"      location="${topdir}/${ant.project.name}.jar"/>
 
-  <property name="javac.target" value="1.1"/>
+   <!-- Android dx.jar requires 1.5 target -->
+  <condition
+    property="javac.target"
+    value="1.5"
+    else="1.1">
+    <istrue value="${android.exists}"/>
+  </condition>
+  
   <property name="javac.source" value="1.2"/>
 
   <property name="src.dir" location="src"/>
@@ -123,7 +132,6 @@
      </manifest>
     </jar>  
 
-  <available property="android.exists" file="${ANDROID_HOME}"/>
   <antcall target="add_dex" inheritRefs="true">
      <param name="jarfile" value="${jarfile}"/>
    </antcall>
@@ -131,24 +139,28 @@
  </target>  
 
  <target name="add_dex" if="android.exists">
-  <property name="dexlib.jar" location="${ANDROID_HOME}/tools/lib/dx.jar"/>
-  <property name="classes.dex" value="classes.dex"/>
-
-  <java fork  = "true" 
-        jar   = "${dexlib.jar}"
-        dir   = "${classout}">
+  <echo message="add_dex ${jarfile}"/>
+  <basename file="${jarfile}" suffix="jar" property="jarfile.basename"/>
+  <tempfile destdir="${outdir}" prefix="${jarfile.basename}" property="temp.dir"/>
+  <mkdir dir="${temp.dir}"/>
+  <property name="temp.dex" value="${temp.dir}/classes.dex"/>
+    
+  <java fork="true" jar="${ANDROID_HOME}/tools/lib/dx.jar">
     <arg value="--dex"/>
-    <arg value="--output=${classes.dex}"/>
+    <arg value="--output=${temp.dex}"/>
     <arg value="${jarfile}"/>
   </java>
 
-  <property name="aapt.cmd" location="${ANDROID_HOME}/tools/aapt"/>
-
-  <exec executable="${aapt.cmd}" dir   = "${classout}">
-    <arg value="add"/>
+  <property name="aapt.cmd" value="${ANDROID_HOME}/tools/aapt"/>
+    
+  <exec executable = "${aapt.cmd}">
+    <arg value="add"/>     
+    <arg value="-f"/>
     <arg value="${jarfile}"/>
-    <arg value="${classes.dex}"/>
+    <arg value="${temp.dex}"/>
   </exec>
+  
+  <delete dir="${temp.dir}"/>
 
  </target>
  
