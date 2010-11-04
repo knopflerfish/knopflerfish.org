@@ -38,31 +38,52 @@
     </bundle_locator>
     <copy todir="${classes.out.dir}">
       <zipfileset src="${bap.remotefw_api}">
-        <patternset><exclude name="META-INF/*"/></patternset>
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
       </zipfileset>
       
       <zipfileset src="${bap.console_api}">
-        <patternset><exclude name="META-INF/*"/></patternset>
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
       </zipfileset>
       
       <zipfileset src="${bap.log_api}">
-        <patternset><exclude name="META-INF/*"/></patternset>
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
       </zipfileset>
       
       <zipfileset src="${bap.util}">
-        <patternset><exclude name="META-INF/*"/></patternset>
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
       </zipfileset>
       
       <zipfileset src="${bap.cm_api}">
-        <patternset><exclude name="META-INF/*"/></patternset>
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
       </zipfileset>
       
       <zipfileset src="${bap.event_api}">
-        <patternset><exclude name="META-INF/*"/></patternset>
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
       </zipfileset>
 
       <zipfileset src="${bap.prefs_api}">
-        <patternset><exclude name="META-INF/*"/></patternset>
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
       </zipfileset>
     </copy>
 
