@@ -196,16 +196,16 @@
   <!-- Where to store compiler output. -->
   <property name="classes.out.dir"     location="${outdir}/classes"/>
 
-  <!-- If lib-verison of bundle shall be built or not. -->
+  <!-- If lib-variant of bundle shall be built or not. -->
   <property name="bundle.build.lib"    value="false"/>
 
-  <!-- If api-verison of bundle shall be built or not. -->
+  <!-- If api-variant of bundle shall be built or not. -->
   <property name="bundle.build.api"    value="true"/>
 
-  <!-- If impl-verison of bundle shall be built or not. -->
+  <!-- If impl-variant of bundle shall be built or not. -->
   <property name="bundle.build.impl"   value="true"/>
 
-  <!-- If all-verison of bundle shall be built or not. -->
+  <!-- If all-variant of bundle shall be built or not. -->
   <property name="bundle.build.all"    value="true"/>
 
   <!-- If bundle-doc for bundle shall be built or not. -->
@@ -223,8 +223,8 @@
   <property name="bundle.stdimports"   value="java."/>
 
   <!-- A comma separated list of packages that needs to be imported even -->
-  <!-- though that they are not explicitly referenced. -->
-  <!-- E.g. classes loaded using reflection. -->
+  <!-- though that they are not explicitly referenced from inside the -->
+  <!-- bundle. E.g. classes loaded using reflection. -->
   <property name="bundle.extraimports"   value=""/>
 
   <!-- First part of the suffix to insert right before "-jar" in the -->
@@ -331,8 +331,9 @@
                     templateFile="${bundlemanifest.template}">
     </bundlemanifest>
 
-    <!-- Defines default values for properties where the default value depends -->
-    <!-- on another bundle manifest header values, e.g., the bundle version.   -->
+    <!-- Defines default values for properties where the default value -->
+    <!-- depends on other bundle manifest header values -->
+    <!-- e.g., the bundle version.   -->
     <property name="bmfa.Bundle-UUID"
               value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
     <property name="impl.suffix"
@@ -352,12 +353,14 @@
     <property name="all.jar"
               location="${jardir}/${ant.project.name}${all.suffix}.jar"/>
 
-    <path id = "bundle.api.path">
-      <pathelement location = "${api.jar}"/>
+    <path id="bundle.api.path">
+      <pathelement location="${api.jar}"/>
     </path>
   </target>
 
-  <target name="all" depends="init" description="Builds the bundle.">
+  <target name="all"
+          depends="init"
+          description="Builds all specified variants of the bundle.">
     <antcall inheritRefs="true" target="try_bundle.custom.pre"/>
     <antcall inheritRefs="true" target="jars"/>
     <antcall inheritRefs="true" target="try_bundle.custom.post"/>
@@ -375,13 +378,17 @@
 
   <macrodef name="bundlebuild_compile"
             description="Compiles bundle source code">
-    <attribute name="includes"/>
+    <attribute name="includes"
+               description="Pattern selecting what to compile in src.dir"/>
+    <attribute name="failOnMissingBundles"
+               description="If all bundles on the bundle.path must exist or not"
+               default="true"/>
     <sequential>
       <mkdir dir="${classes.out.dir}"/>
 
       <bundle_locator classPathRef="bundle.path"
                       newClassPathId="bundle.path.Expanded"
-                      failOnMissingBundles="true">
+                      failOnMissingBundles="@{failOnMissingBundles}">
         <!-- Search the local repository first (where jars are placed) -->
         <fileset dir="${jars.dir}">
           <include name="**/*.jar"/>
@@ -427,6 +434,7 @@
           description="Compiles the bundles, API only"
           if="do_compile_api">
     <bundlebuild_compile
+       failOnMissingBundles="false"
        includes="${api.pattern}"/>
   </target>
 
@@ -505,10 +513,11 @@
   </target>
 
 
-  <!-- ============================= JAR =============================== -->
+  <!-- ========================= PACK BUNDLE =========================== -->
   <macrodef name="bundlebuild_pack_bundle"
             description="Pack a bundle jar given resources and compiled files">
-    <attribute name="jar" description="Name of the jar-file to create."/>
+    <attribute name="jar"
+               description="Name of the jar-file to create."/>
     <attribute name="kind"
                description="Packing kind, one of 'lib', 'api', 'impl', 'all'"/>
     <attribute name="kind-bundlemanifest"
@@ -517,19 +526,25 @@
     <attribute name="imports"
                description="Name of property holding Import-Package"/>
     <attribute name="imports-default"
-               description="The default value of Import-Package"/>
+               description="The default value of Import-Package"
+               default="${bundle.emptystring}"/>
     <attribute name="exports"
                description="Name of property holding Export-Package"/>
     <attribute name="exports-default"
-               description="The default value of Export-Package"/>
+               description="The default value of Export-Package"
+               default="${bundle.emptystring}"/>
     <attribute name="activator"
-               description="Name of property holding the Bundle-Activator"/>
+               description="Name of property holding the Bundle-Activator"
+               default=""/>
     <attribute name="activator-default"
-               description="The default value of Bundle-Activator"/>
+               description="The default value of Bundle-Activator"
+               default=""/>
     <attribute name="includes-exports"
-               description="Includes pattern selecting classes to export"/>
+               description="Includes pattern selecting classes to export"
+               default="--SHOULD-NOT-MATCH-ANY-FILE--"/>
     <attribute name="includes-impls"
-               description="Includes pattern selecting private impl classes"/>
+               description="Includes pattern selecting private impl classes"
+               default="--SHOULD-NOT-MATCH-ANY-FILE--"/>
     <element name="extraContents"
              optional="true"
              description="Place holder element called when the jar has been created, normally used to add more contents to the jar-file."/>
@@ -643,8 +658,7 @@
        exports-default="${bmfa.Export-Package}"
        activator=""
        activator-default=""
-       includes-exports="${api.pattern}"
-       includes-impls="-SHOULD-NOT-MATCH-ANY-FILE-"/>
+       includes-exports="${api.pattern}"/>
   </target>
 
 
@@ -662,8 +676,7 @@
        exports-default="${bmfa.Export-Package}"
        activator=""
        activator-default=""
-       includes-exports="${api.pattern}"
-       includes-impls="-SHOULD-NOT-MATCH-ANY-FILE-">
+       includes-exports="${api.pattern}">
       <extraContents>
         <antcall target="add_resources" inheritRefs="true">
           <param name="add.resource.jarfile"  value="${lib.jar}"/>
