@@ -1046,7 +1046,11 @@ public class BundleInfoTask extends Task {
           final Map impEntry = (Map) impIt.next();
           importSet.add( impEntry.get("$key") );
         }
+      } else {
+        // Spec is empty, must remove the emtpy value marker for now.
+        importsSpec = "";
       }
+      final StringBuffer sb = new StringBuffer(importsSpec);
 
       final String exportsSpec = proj.getProperty(exportsProperty);
       if (!BundleManifestTask.isPropertyValueEmpty(exportsSpec)) {
@@ -1064,8 +1068,15 @@ public class BundleInfoTask extends Task {
               pkg += ";specification-version="+sver;
             }
             log("implicitImport - adding: "+pkg, Project.MSG_DEBUG);
-            importsSpec += "," +pkg;
+            if (0<sb.length()) {
+              sb.append(",");
+            }
+            sb.append(pkg);
           }
+        }
+        importsSpec = sb.toString();
+        if (0==importsSpec.length()) {
+          importsSpec = BundleManifestTask.BUNDLE_EMPTY_STRING;
         }
         log("implicitImport - after: "+importsSpec, Project.MSG_VERBOSE);
         proj.setProperty(importsProperty, importsSpec );
