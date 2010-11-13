@@ -137,7 +137,7 @@ import org.apache.tools.ant.types.ZipFileSet;
  * The table below shows how different bundle class path entries are
  * translated int patterns.
  * <table border="1">
- *  <th><td>Entry</td><td>Pattern</td></th>
+ *  <tr><th>Entry</th><th>Pattern</th></tr>
  *  <tr><td>.</td><td>&#x2A;&#x2A;/&#x2A;.class</td></tr>
  *  <tr><td> rxtx</td><td>rxtx/&#x2A;&#x2A;/&#x2A;.class</td></tr>
  *  <tr><td>/rxtx</td><td>rxtx/&#x2A;&#x2A;/&#x2A;.class</td></tr>
