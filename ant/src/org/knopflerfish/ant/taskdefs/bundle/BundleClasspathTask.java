@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,15 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.ZipFileSet;
 
 /**
  * Task that translates the value of the OSGi specified manifest
@@ -46,6 +49,16 @@ import org.apache.tools.ant.types.FileSet;
  * suitable for use as the includes attribute in a file set that will
  * find all classes and jars that the framework may use given the
  * specified Bundle-Classpath manifest attribute.
+ *
+ * <p>This task may also be used as a nested element in the bundle
+ * info task. In that case it will be used to generate a list of file
+ * sets, one for each entry in the given bundle classpath. If the
+ * excludes attribute is given the file sets will use that as exclude
+ * pattern otherwise the includes attriubte is used as includes
+ * pattern. If the bundle classpath entry is a jar-file then a
+ * ZipFileSet will be created for it with the jar-file as source and
+ * the excludes (or includes) attribute as excludes (includes)
+ * pattern.</p>
  *
  * <h3>Parameters</h3>
  *
@@ -94,6 +107,30 @@ import org.apache.tools.ant.types.FileSet;
  *   </td>
  *   <td valign=top>No.<br>No default value.</td>
  *  </tr>
+ *  <tr>
+ *   <td valign=top>includes</td>
+ *   <td valign=top>Includes pattern to apply to each file set created
+ *       from the entires in the bundle classpath when building a list
+ *       of file sets.
+ *   </td>
+ *   <td valign="top">At least one of includes and excludes must be
+ *       given when building a list of file sets from the bundle
+ *       classpath.<br>
+ *       No default value.</td>
+ *  </tr>
+ *  <tr>
+ *   <td valign="top">excludes</td>
+ *   <td valign=top>Excludes pattern to apply to each file set created
+ *       from the entires in the bundle classpath when building a list
+ *       of file sets. Note: This attribute is only used when the
+ *       &lt;bundleclasspath&gt; is used as a nested element inside a
+ *       &lt;bundleinfo&gt; element.
+ *   </td>
+ *   <td valign=top>At least one of includes and excludes must be
+ *       given when building a list of file sets from the bundle
+ *       classpath.<br>
+ *       No default value.</td>
+ *  </tr>
  * </table>
  *
  * <h3>Examples</h3>
@@ -115,6 +152,8 @@ public class BundleClasspathTask extends Task {
   private String filesetId;
   private String bundleClasspath = ".";
   private String propertyName;
+  private String includes = null;
+  private String excludes = null;
 
   public BundleClasspathTask() {
   }
@@ -152,6 +191,89 @@ public class BundleClasspathTask extends Task {
     log("filesetId="+filesetId, Project.MSG_DEBUG);
   }
 
+  /**
+   * Set the includes pattern to use in the collection of file sets
+   * returned by {@link #getFileSets()}.
+   */
+  public void setIncludes(String s) {
+    this.includes = s;
+    log("includes="+this.includes, Project.MSG_DEBUG);
+  }
+
+  /**
+   * Set the excludes pattern to use in the collection of file sets
+   * returned by {@link #getFileSets()}.
+   */
+  public void setExcludes(String s) {
+    this.excludes = s;
+    log("excludes="+this.excludes, Project.MSG_DEBUG);
+  }
+
+  /**
+   * Get a collection of file sets selecting all classes in the bundle
+   * class path that matches the given pattern.
+   *
+   * @return A list with file sets, one file set for each entry on the
+   *         bundle class path. If the entry is for a Jar/Zip file
+   *         then its list item will be a zip file set.
+   */
+  public List getFileSets()
+  {
+    final List res = new ArrayList();
+    final Project proj = getProject();
+
+    if (dir==null) {
+      throw new BuildException("The dir attribute (root of the bundle "
+                               +"class path) is required.");
+    } else if (!dir.exists()) {
+      log("Bundle class path root dir '" +dir
+          +"' does not exist, returning empty list of file sets.",
+          Project.MSG_VERBOSE);
+      return res;
+    }
+
+    if (null==bundleClasspath || 0==bundleClasspath.length() ) {
+      // Use the default bundle class path
+      bundleClasspath = ".";
+    }
+
+    // Convert path entries to file sets.
+    final StringTokenizer st = new StringTokenizer(bundleClasspath, ",");
+    while (st.hasMoreTokens()) {
+      String entry = st.nextToken().trim();
+      if (entry.startsWith("/")) {
+        // Entry is a relative path, must not start with a '/', fix it.
+        entry = entry.substring(1);
+      }
+
+      FileSet fileSet = null;
+      File src= new File(dir, entry);
+
+      // Bundle class path entries are either directories or jar/zip-files!
+      if (!src.isDirectory()) {
+        fileSet = new ZipFileSet();
+        ((ZipFileSet) fileSet).setSrc(src);
+      } else {
+        fileSet = new FileSet();
+        fileSet.setDir(src);
+      }
+
+      fileSet.setProject(proj);
+      if (null!=includes) {
+        fileSet.setIncludes(includes);
+      }
+      if (null!=excludes) {
+        fileSet.setExcludes(excludes);
+      }
+      res.add(fileSet);
+      log("Added FileSet with root '" +src +"', includes: '" +includes
+          +"', excludes: '" +excludes +"'.", Project.MSG_DEBUG);
+    }
+
+    return res;
+  }
+
+
   // Implements Task
   //
   public void execute() throws BuildException {
@@ -168,26 +290,29 @@ public class BundleClasspathTask extends Task {
     if (null==bundleClasspath || 0==bundleClasspath.length() )
       bundleClasspath = ".";
 
-    StringBuffer    sb = new StringBuffer(100);
+    final StringBuffer sb = new StringBuffer(100);
 
     // Convert path entries to patterns.
-    StringTokenizer st = new StringTokenizer(bundleClasspath, ",");
+    final StringTokenizer st = new StringTokenizer(bundleClasspath, ",");
     while (st.hasMoreTokens()) {
       String entry = st.nextToken().trim();
+      if (entry.startsWith("/")) {
+        // Entry is a relative path, must not start with a '/', fix it.
+        entry = entry.substring(1);
+      }
+
       if (".".equals(entry)) {
         sb.append("**/*.class");
       } else if (entry.endsWith(".jar")) {
-        if (entry.startsWith("/")) entry = entry.substring(1);
         sb.append(entry);
       } else {
-        if (entry.startsWith("/")) entry = entry.substring(1);
         sb.append(entry + "/**/*.class");
       }
       if (st.hasMoreTokens())
         sb.append(",");
     }
 
-    Project proj = getProject();
+    final Project proj = getProject();
 
     // Conversion done - write back properties
     if (null!=propertyName) {
@@ -198,7 +323,7 @@ public class BundleClasspathTask extends Task {
     }
 
     if (null!=filesetId) {
-      FileSet fileSet = new FileSet();
+      final FileSet fileSet = new FileSet();
       fileSet.setProject(proj);
       if (dir.exists()) {
         fileSet.setDir(dir);

@@ -997,12 +997,48 @@ be present at all in the manifest, not even as a zero-length string.
 
  <tr>
   <td>api.pattern</td>
-  <td>Path pattern string for all classes that define the bundle's API</td>
+  <td>
+      Path pattern string that must match all Java packages that are
+      part of the bundle's API (i.e., that shall be exported). Note
+      that this pattern must not only match all packages in the source
+      tree, but also all packages that shall be exported from the
+      bundle class path (i.e., in nested jars).
+
+      <p/>
+
+      The "API"-variant of the bundle will only contain classes that
+      is the result of compiling those java-source files that matches
+      this pattern from the source tree.
+  </td>
  </tr>
 
  <tr>
   <td>impl.pattern</td>
-  <td>Path pattern string for all classes that define the bundle's implementation</td>
+  <td>
+      Path pattern string that must match all private (implementation
+      specific) Java packages in the source tree that shall be
+      included in the bundle but not exported. All Java packages on the
+      bundle class path that does not match the api.pattern are
+      inlcuded in the bundle as private packages.
+
+      <p/>
+
+      The "IMPL"-variant of the bundle will contain classes that
+      is the result of compiling those java-source files that matches
+      any of the impl.pattern and impl-api.pattern.
+  </td>
+ </tr>
+
+ <tr>
+  <td>impl-api.pattern</td>
+  <td>
+      Path pattern string that must match all Java packages in the
+      source tree and on the bundle class path that shall be included
+      in and exported from the "IMPL" variant of the the bundle but
+      not in the "API"-variant of the bundle. Typically used when the
+      implementation part of the bundle needs to export implementation
+      specific Java packages that is not part of the bundles API.
+  </td>
  </tr>
 
  <tr>

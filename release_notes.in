@@ -27,6 +27,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
   Build System
 
+  - The build system now requires that all packages to be exported by
+    a bundle matches one of the patterns defined in the properties
+    named 'api.pattern' or 'impl-api.pattern'. This applies to
+    packages in the source-directory as well as to packages from
+    nested jar-files on the bundle class path.
+  - Previously the build system assumed that all packages from
+    jar-files on the bundle class path was to be exported. Now it is
+    only packages that matches one of 'api.pattern' or
+    'impl-api.pattern' that are assumed to be exported, all other
+    packages in the bundle class path are considered private.
   - Started to use macrodefs in bundlebuild.xml to reduce its size and
     increase readability. No functional change.
   - The bundlesinfo-task can now derive both Import-Package and

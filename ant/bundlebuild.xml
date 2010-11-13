@@ -557,11 +557,6 @@
       <property name="@{exports}" value="@{exports-default}"/>
       <property name="@{activator}" value="@{activator-default}"/>
 
-      <!-- Create a file set for the Bundle-Classpath -->
-      <bundleClasspathUtil BundleClasspath="${bmfa.Bundle-Classpath}"
-                           dir="${resources.dir}"
-                           filesetId="@{kind}.bundleClasspath"/>
-
       <!-- Derive import/export package and activator headers. -->
       <bundleinfo activator="@{activator}"
                   imports="@{imports}"
@@ -578,8 +573,15 @@
                   failOnActivator="${bundleinfo.failOnActivator}"
                   checkFoundationEE="${ee.check.foundation}">
         <exports dir="${classes.out.dir}" includes="@{includes-exports}"/>
-        <exports refid="@{kind}.bundleClasspath"/>
+        <exportsBundleClasspath bundleClasspath="${bmfa.Bundle-Classpath}"
+				dir="${resources.dir}"
+				includes="@{includes-exports}"/>
         <impls dir="${classes.out.dir}" includes="@{includes-impls}"/>
+	<!-- Everything on the bundle classpath that is not exported -->
+	<!-- is classified as impls. -->
+        <implsBundleClasspath bundleClasspath="${bmfa.Bundle-Classpath}"
+			      dir="${resources.dir}"
+			      excludes="@{includes-exports}"/>
       </bundleinfo>
 
       <mkdir dir="${jardir}"/>

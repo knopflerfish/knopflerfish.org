@@ -34,7 +34,8 @@ package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,9 +46,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
 
 import org.apache.tools.ant.BuildException;
@@ -55,6 +57,10 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.ResourceCollection;
+import org.apache.tools.ant.types.resources.Restrict;
+import org.apache.tools.ant.types.resources.selectors.ResourceSelector;
 import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.StringUtils;
 
@@ -362,29 +368,53 @@ import org.osgi.framework.Version;
  * <h3>Parameters specified as nested elements</h3>
  *
  * The set of provided packages (classes) is the union of the packages
- * found via &lt;exports&gt; and &lt;impls&gt; file-sets. The
- * import-package header is derived (checked agains) the set of
- * provided packages.
+ * found via &lt;exports&gt;, &lt;exportsBundleClasspath&gt; and
+ * &lt;impls&gt;, &lt;implsBundleClasspath&gt; resource
+ * collections. The <code>import-package</code> header is derived
+ * (checked agains) the set of provided packages.
  *
  * <h4>exports</h4>
  *
  * (optional)<br>
  *
- * <p>Nested &lt;exports&gt; are filesets that will be analysed to
- * determine the set of Java packages to be exported by the
- * bundle.</p>
+ * <p>Nested &lt;exports&gt;-elements are filesets that will be
+ * analysed to determine the set of provided Java packages to be
+ * exported by the bundle.</p>
+ *
+ * <p>Unsupported file types matched by the file set are ignored.</p>
+ *
+ * <h4>exportsBundleClasspath</h4>
+ *
+ * (optional)<br>
+ *
+ * <p>Nested &lt;exportsBundleClasspath&gt;-elements are instances of
+ * {@link BundleClasspathTaks} that will derive a list of file sets to
+ * be analysed to determine the set of provided Java packages to be
+ * exported by the bundle.</p>
  *
  * <p>Unsupported file types matched by the file set are ignored.</p>
  *
  * <h4>impls</h4>
  *
- * (required)<br>
+ * (optional)<br>
  *
- * <p>Nested &lt;impls&gt; are filesets that will be analysed to
- * determine the set of private Java packages provided by the
+ * <p>Nested &lt;impls&gt;-elements are filesets that will be analysed
+ * to determine the set of private Java packages provided by the
  * bundle.</p>
  *
  * <p>Unsupported file types matched by the file set are ignored.</p>
+ *
+ * <h4>implsBundleClasspath</h4>
+ *
+ * (optional)<br>
+ *
+ * <p>Nested &lt;implsBundleClasspath&gt;-elements are instances of
+ * {@link BundleClasspathTaks} that will derive a list of file sets
+ * are to be analysed to determine the set of private Java packages
+ * provided by the bundle.</p>
+ *
+ * <p>Unsupported file types matched by the file set are ignored.</p>
+ *
  *
  * <h3>Examples</h3>
  *
@@ -398,7 +428,7 @@ import org.osgi.framework.Version;
  * <pre>
  *  &lt;bundleinfo  activator = "bmfa.Bundle-Activator"
  *               imports   = "impl.import.package"&gt;
- *   &lt;fileset dir="classes" includes="test/impl/*"/&gt;
+ *   &lt;impls dir="classes" includes="test/impl/*"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports   = ${impl.import.package}"/&gt;
  *  &lt;echo message="activator = ${bmfa.Bundle-Activator}"/&gt;
@@ -415,7 +445,8 @@ import org.osgi.framework.Version;
  * <pre>
  *  &lt;bundleinfo  exports  = "api.export.package"
  *               imports  = "api.import.package"&gt;
- *   &lt;fileset dir="classes" includes="test/*"/&gt;
+ *   &lt;exports dir="classes" includes="test/*"/&gt;
+ *   &lt;impls   dir="classes" includes="test/impl/*"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports  = ${api.import.package}"/&gt;
  *  &lt;echo message="exports  = ${api.export.package}"/&gt;
@@ -424,8 +455,8 @@ import org.osgi.framework.Version;
  */
 public class BundleInfoTask extends Task {
 
-  private List implsFilesets = new ArrayList();
-  private List exportsFilesets  = new ArrayList();
+  private List implsResourceCollections = new ArrayList();
+  private List exportsResourceCollections = new ArrayList();
   private FileUtils fileUtils;
 
   private String importsProperty   = "";
@@ -633,7 +664,24 @@ public class BundleInfoTask extends Task {
    * @param set The file set with exports to add.
    */
   public void addConfiguredExports(FileSet set) {
-    exportsFilesets.add(set);
+    final Restrict restrict = new Restrict();
+    restrict.add(set);
+    restrict.add(classAndPackageInfoRestriction);
+    exportsResourceCollections.add(restrict);
+  }
+
+  /**
+   * Add file sets for classes exported from the bundle classpath.
+   *
+   * @param bcpt The bundle classpath that the bundle will have.
+   */
+  public void addConfiguredExportsBundleClasspath(BundleClasspathTask bcpt) {
+    for (Iterator it = bcpt.getFileSets().iterator(); it.hasNext();) {
+      final Restrict restrict = new Restrict();
+      restrict.add((ResourceCollection) it.next());
+      restrict.add(classAndPackageInfoRestriction);
+      exportsResourceCollections.add(restrict);
+    }
   }
 
   /**
@@ -642,7 +690,24 @@ public class BundleInfoTask extends Task {
    * @param set The file set with private implementations to add.
    */
   public void addConfiguredImpls(FileSet set) {
-    implsFilesets.add(set);
+    final Restrict restrict = new Restrict();
+    restrict.add(set);
+    restrict.add(classAndPackageInfoRestriction);
+    implsResourceCollections.add(restrict);
+  }
+
+  /**
+   * Add file sets for private classes on the bundle classpath.
+   *
+   * @param bcpt The bundle classpath that the bundle will have.
+   */
+  public void addConfiguredImplsBundleClasspath(BundleClasspathTask bcpt) {
+    for (Iterator it = bcpt.getFileSets().iterator(); it.hasNext();) {
+      final Restrict restrict = new Restrict();
+      restrict.add((ResourceCollection) it.next());
+      restrict.add(classAndPackageInfoRestriction);
+      implsResourceCollections.add(restrict);
+    }
   }
 
   /**
@@ -654,59 +719,90 @@ public class BundleInfoTask extends Task {
   }
 
   // Implements Task
-  //
-  // Scan all files in fileset and delegate to analyze()
-  // then write back values to properties.
+  /**
+   * Analyze all resources in the exports and impls resource
+   * collections to determine the set of Java packages provided by
+   * this bundle. Update the given properties for export- and import
+   * package accordingly.
+   */
   public void execute() throws BuildException {
-    if (0==exportsFilesets.size() && 0==implsFilesets.size()) {
+    if (0==exportsResourceCollections.size()
+        && 0==implsResourceCollections.size()) {
       throw new BuildException("Neither exports nor impls specified",
                                getLocation());
     }
 
-    // First scan all exports
-    for (Iterator it = exportsFilesets.iterator(); it.hasNext(); ) {
-      FileSet fs = (FileSet) it.next();
-      DirectoryScanner ds = fs.getDirectoryScanner(project);
-      File fromDir = fs.getDir(project);
+    // First analyze the exports resource collections
+    for (Iterator it = exportsResourceCollections.iterator(); it.hasNext(); ) {
+      final ResourceCollection rc = (ResourceCollection) it.next();
 
-      String[] srcFiles = ds.getIncludedFiles();
-      String[] srcDirs = ds.getIncludedDirectories();
-
-      for (int j = 0; j < srcFiles.length ; j++) {
-        analyze(new File(fromDir, srcFiles[j]));
-      }
-
-      for (int j = 0; j < srcDirs.length ; j++) {
-        analyze(new File(fromDir, srcDirs[j]));
+      for (Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
+        final Resource res = (Resource) rcIt.next();
+        log("Exports resource: "+res, Project.MSG_DEBUG);
+        analyze(res);
       }
     }// Scan done
+
+    // Get the sub-set of the provided packages to be exported
     bpInfo.toJavaNames();
-
-    // The sub-set of the provided packages that will be exported
-    final Set providedExportSet = getProvidedExportSet();
-    log("Provided packages to export: " +providedExportSet, Project.MSG_DEBUG);
-
-
-    // Scan all impls
-    for (Iterator it = implsFilesets.iterator(); it.hasNext(); ) {
-      FileSet fs = (FileSet) it.next();
-      DirectoryScanner ds = fs.getDirectoryScanner(project);
-      File fromDir = fs.getDir(project);
-
-      String[] srcFiles = ds.getIncludedFiles();
-      String[] srcDirs = ds.getIncludedDirectories();
-
-      for (int j = 0; j < srcFiles.length ; j++) {
-        analyze(new File(fromDir, srcFiles[j]));
+    final Set providedExportSet = new TreeSet(bpInfo.getProvidedPackages());
+    final Set manifestExportSet = getPredefinedExportSet();
+    if (null!=manifestExportSet) {
+      // An Export-Package header was given it shall contain
+      // precisely the provided export set of Java packages.
+      if (!manifestExportSet.equals(providedExportSet)) {
+        // Found export package missmatch
+        log("Provided package to export:  " +providedExportSet,
+            Project.MSG_ERR);
+        log("Given Export-Package header: " +manifestExportSet,
+            Project.MSG_ERR);
+        final StringBuffer msg = new StringBuffer();
+        final TreeSet tmp = new TreeSet(manifestExportSet);
+        tmp.removeAll(providedExportSet);
+        if (0<tmp.size()) {
+          msg.append("The following non-provided packages are present in the ")
+            .append("Export-Package header: ")
+            .append(tmp.toString())
+            .append(". ");
+        }
+        tmp.clear();
+        tmp.addAll(providedExportSet);
+        tmp.removeAll(manifestExportSet);
+        if (0<tmp.size()) {
+          if (0<msg.length()) {
+            msg.append("\n");
+          }
+          msg.append("The following packages are missing from ")
+            .append("the given Export-Package header: ")
+            .append(tmp.toString())
+            .append(".");
+        }
+        tmp.clear();
+        log(msg.toString(), Project.MSG_ERR);
+        throw new BuildException(msg.toString(), getLocation());
       }
+    }
+    log("Provided packages to export: " +providedExportSet,
+        Project.MSG_VERBOSE);
 
-      for (int j = 0; j < srcDirs.length ; j++) {
-        analyze(new File(fromDir, srcDirs[j]));
+
+    // Analyze the impls resource collections to find all provided
+    // Java packages.
+    for (Iterator it = implsResourceCollections.iterator(); it.hasNext(); ) {
+      final ResourceCollection rc = (ResourceCollection) it.next();
+
+      for (Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
+        final Resource res = (Resource) rcIt.next();
+        log("Impl resource: "+res, Project.MSG_DEBUG);
+        analyze(res);
       }
     }// Scan done
+
+    // Get the set of packages provided by the bundle
     bpInfo.toJavaNames();
-    log("Provided packages: " +bpInfo.getProvidedPackagesAsExportPackageValue(),
-        Project.MSG_DEBUG);
+    log("All provided packages: "
+        +bpInfo.getProvidedPackagesAsExportPackageValue(),
+        Project.MSG_VERBOSE);
 
     // created importSet from the set of unprovided referenced packages
     final SortedSet unprovidedReferencedPackages
@@ -770,7 +866,7 @@ public class BundleInfoTask extends Task {
           }
         }
       } else {
-        // Export-Package given; check or add versions and and uses directives.
+        // Export-Package given; add version and uses directives.
         final String newExportsVal = validateExportPackagesValue(exportsVal);
         if (!exportsVal.equals(newExportsVal)) {
           log("Updating \"" +exportsProperty +"\" to \""+newExportsVal +"\"",
@@ -1009,12 +1105,14 @@ public class BundleInfoTask extends Task {
 
 
   /**
-   * The sub-set of the provided packages that will be exported.
+   * Get the set of Java packages to export according to the given
+   * <code>Export-Package</code> header.
+   *
+   * @return the set of Java packages to export or null if no
+   * <code>Export-Package</code> header was given.
    */
-  private SortedSet getProvidedExportSet()
+  private SortedSet getPredefinedExportSet()
   {
-    final SortedSet res = new TreeSet();
-
     if(!"".equals(exportsProperty)) {
       log("Exports property set", Project.MSG_DEBUG);
 
@@ -1023,6 +1121,7 @@ public class BundleInfoTask extends Task {
         log("Found non-empty Export-Package attribute: '" +exportsVal +"'",
             Project.MSG_DEBUG);
 
+        final SortedSet res = new TreeSet();
         final Iterator expIt = Util.parseEntries("export.package", exportsVal,
                                                  true, true, false );
         while (expIt.hasNext()) {
@@ -1032,20 +1131,12 @@ public class BundleInfoTask extends Task {
             res.add(pkgName);
           }
         }
-      } else if (!bImportsOnly) {
-        log("Empty Export-Package, importsOnly not set; will export all "
-            +"provided packages.", Project.MSG_DEBUG);
-        res.addAll(bpInfo.getProvidedPackages());
-      } else {
-        log("Empty Export-Package, importsOnly set; will not export.",
-            Project.MSG_DEBUG);
+        return res;
       }
-    } else {
-      log("Exports property set to all provided packages.", Project.MSG_DEBUG);
-      res.addAll(bpInfo.getProvidedPackages());
     }
-    return res;
+    return null;
   }
+
 
   private void appendUsesDirective(final StringBuffer sb, final String pkgName)
   {
@@ -1103,7 +1194,7 @@ public class BundleInfoTask extends Task {
 
   /**
    * Validate a given Export-Package header value. Check existing
-   * version parameters add missing package versions. Check uses
+   * version parameters, add missing package versions. Check uses
    * directives and add those that are missing.
    *
    * @param oldExportsVal the Export-Package value to validate and update.
@@ -1231,16 +1322,20 @@ public class BundleInfoTask extends Task {
 
 
   /**
-   * Analyze a file by checking its suffix and delegate to
-   * <tt>analyzeClass</tt>, <tt>analyzeJava</tt> etc
+   * Analyze a resource by checking its suffix and delegate to {@LINK
+   * #analyzeClass(Resource)}, {@LINK #analyzeJar(Resource)}, etc.
+   *
+   * @param res The resource to be analyzed.
    */
-  protected void analyze(File file) throws BuildException {
-    if(file.getName().endsWith(".class")) {
-      analyzeClass(file);
-    } else if(file.getName().endsWith(".jar")) {
-      analyzeJar(file);
-    } else if(file.getName().endsWith(".java")) {
-      analyzeJava(file);
+  protected void analyze(Resource res) throws BuildException {
+    if(res.getName().endsWith(".class")) {
+      analyzeClass(res);
+    } else if(res.getName().endsWith(".jar")) {
+      analyzeJar(res);
+    } else if(res.getName().endsWith(".java")) {
+      analyzeJava(res);
+    } else if(res.getName().endsWith("/packageinfo")) {
+      analyzePackageinfo(res);
     } else {
       // Just ignore all other files
     }
@@ -1277,39 +1372,45 @@ public class BundleInfoTask extends Task {
   }
 
 
-  protected void analyzeJar(File file) throws BuildException {
-    log("Analyze jar file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
+  protected void analyzeJar(Resource res) throws BuildException {
+    log("Analyze jar file " + res, Project.MSG_VERBOSE);
 
     try {
-      final JarFile jarFile = new JarFile(file);
+      final JarInputStream jarStream = new JarInputStream(res.getInputStream());
 
-      for (Enumeration entries = jarFile.entries();
-           entries.hasMoreElements(); ) {
-        final ZipEntry     ze = (ZipEntry) entries.nextElement();
+      ZipEntry ze = jarStream.getNextEntry();
+      while(null!=ze) {
         final String fileName = ze.getName();
         if (fileName.endsWith(".class")) {
           log("Analyze jar class file " + fileName, Project.MSG_VERBOSE);
-          asmAnalyser.analyseClass(jarFile.getInputStream(ze), fileName);
+          asmAnalyser.analyseClass(jarStream, fileName);
         }
+        ze = jarStream.getNextEntry();
       }
     } catch (Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to analyze class-file " +
-                               file + ", exception=" + e, getLocation());
+                               res + ", exception=" + e, getLocation());
     }
   }
 
-  protected void analyzeClass(File file) throws BuildException {
-    log("Analyze class file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
+  protected void analyzeClass(Resource res) throws BuildException {
+    log("Analyze class file " + res, Project.MSG_VERBOSE);
 
     try {
-      asmAnalyser.analyseClass(file);
+      asmAnalyser.analyseClass(res.getInputStream(), res.toString());
     } catch (Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to analyze class-file "
-                               +file + ", exception=" + e,
+                               +res + ", exception=" + e,
                                getLocation());
     }
+  }
+
+  protected void analyzePackageinfo(Resource res) throws BuildException {
+    log("Analyze packageinfo file " + res, Project.MSG_VERBOSE);
+
+    bpInfo.setPackageVersion(res);
   }
 
 
@@ -1321,10 +1422,10 @@ public class BundleInfoTask extends Task {
    * <b>Note</b>: This code does not attempt to find any class implementing
    * <tt>BundleActivator</tt>
    */
-  protected void analyzeJava(File file) throws BuildException {
+  protected void analyzeJava(Resource res) throws BuildException {
 
     if(bDebug) {
-      System.out.println("Analyze java file " + file.getAbsolutePath());
+      System.out.println("Analyze java file " + res);
     }
 
     BufferedReader reader = null;
@@ -1334,7 +1435,7 @@ public class BundleInfoTask extends Task {
       String line;
       int    lineNo = 0;
 
-      reader = new BufferedReader(new FileReader(file));
+      reader = new BufferedReader(new InputStreamReader(res.getInputStream()));
 
       while(null != (line = reader.readLine())) {
         lineNo++;
@@ -1356,7 +1457,7 @@ public class BundleInfoTask extends Task {
         }
       }
     } catch (Exception e) {
-      throw new BuildException("Failed to scan " + file + ", err=" + e,
+      throw new BuildException("Failed to scan " +res +", err=" +e,
                                getLocation());
     } finally {
       if(reader != null) {
@@ -1364,6 +1465,22 @@ public class BundleInfoTask extends Task {
       }
     }
   }
+
+  /**
+   * A resource selector that selects <code>.class</code>-files and
+   * <code>packageinfo</code>-files.
+   */
+  public static final ResourceSelector classAndPackageInfoRestriction
+    = new ResourceSelector() {
+        public boolean isSelected(final Resource r)
+        {
+          // The second condition handles UNIX and Zip-files,
+          // The third handles Windows files.
+          return r.getName().endsWith(".class")
+            || r.getName().endsWith("/packageinfo")
+            || r.getName().endsWith("\\packageinfo");
+        }
+      };
 
   /**
    * Convert Set elements to a string.
