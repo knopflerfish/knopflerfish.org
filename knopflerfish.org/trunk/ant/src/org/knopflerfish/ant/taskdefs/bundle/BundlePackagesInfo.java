@@ -33,8 +33,10 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -45,6 +47,7 @@ import java.util.TreeSet;
 import org.osgi.framework.Version;
 
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.types.Resource;
 
 /**
  * Class that holds the results of the Java package analysis of all
@@ -316,18 +319,21 @@ public class BundlePackagesInfo {
     return (String) packageToInfofile.get(pkgName);
   }
 
+
   /**
-   * Read the version from a <code>packageinfo</code>-file.
+   * Read the version from a <code>packageinfo</code>-file given a
+   * resource-object.
    *
-   * @param pkgInfoFile The file to read a version line from.
+   * @param res Resource encapsulating a <code>packageinfo</code>-file.
+   *
    * @return The version or <code>null</code> if no valid version was
    *         found.
    */
-  private Version getVersion(final File pkgInfoFile)
+  private Version getVersion(final Resource res)
   {
     BufferedReader br = null;
     try {
-      br = new BufferedReader(new FileReader(pkgInfoFile));
+      br = new BufferedReader(new InputStreamReader(res.getInputStream()));
       String line = br.readLine();
       while (null!=line) {
         if (line.startsWith("version ")) {
@@ -337,55 +343,54 @@ public class BundlePackagesInfo {
         line = br.readLine();
       }
     } catch (Throwable t) {
-      final String msg = "Failed to get version from '"+pkgInfoFile
+      final String msg = "Failed to get version from '" +res.toString()
         +"'; " +t.getMessage();
       throw new BuildException(msg, t);
-    } finally {
-      if (null!=br) {
-        try { br.close(); } catch (Throwable _t) {}
-      }
     }
     return null;
   }
 
 
   /**
-   * Try to assign a version to the given package by searching for a
-   * file named <code>packageinfo</code> in the directory where the
-   * given class-file resides.
+   * Try to assign a version to the Java that the given
+   * <code>packageinfo</code>-file resides in. This code assumes that
+   * the resource has been created in such a way that
+   * <code>res.getName()</code> returns a relative path to the
+   * <code>packageinfo</code>-file that starts in its package
+   * root. I.e., the path is the Java package that the
+   * <code>packageinfo</code>-file provides data for.
    *
-   * @param pkgName The name of the provided package that the
-   *                    given class-file belongs to.
-   * @param classFile   A class file in the given package.
-   *
+   * @param res Resource encapsulating a <code>packageinfo</code>-file.
    */
-  public void setPackageVersion(final String pkgName,
-                                final File classFile)
+  public void setPackageVersion(final Resource res)
   {
-    final File newPkgInfoFile = new File(classFile.getParent(), "packageinfo");
+    // The relative path to packageinfo-file starting from the root of
+    // its classpath.
+    final String pkgInfoPath = res.getName();
+    // 12 = "/packageinfo".lenght()
+    final String pkgName = pkgInfoPath.substring(0, pkgInfoPath.length()-12);
+
+    // Currently registered path for version providing packageinfo
+    // file, if any.
     final String curPkgInfoPath = (String) packageToInfofile.get(pkgName);
-    final String newPkgInfoPath = newPkgInfoFile.getAbsolutePath();
 
-    if (null==curPkgInfoPath || !curPkgInfoPath.equals(newPkgInfoPath)) {
-      // No previous package version, or different pkgInfoFile to check.
-      if (newPkgInfoFile.canRead()) {
-        final Version newVersion = getVersion(newPkgInfoFile);
-        if (null!=newVersion) {
-          final Version curVersion = getProvidedPackageVersion(pkgName);
+    if (null==curPkgInfoPath || !curPkgInfoPath.equals(pkgInfoPath)) {
+      final Version newVersion = getVersion(res);
+      if (null!=newVersion) {
+        final Version curVersion = getProvidedPackageVersion(pkgName);
 
-          if (null==curVersion) {
-            packageToVersion.put(pkgName, newVersion);
-            packageToInfofile.put(pkgName, newPkgInfoPath);
-          } else if (!newVersion.equals(curVersion)) {
-            // May happen when the classes of a package are in two
-            // different directories on the class path.
-            throw new BuildException("Conflicting versions for '"
-                                     +pkgName +"' previous  '"
-                                     +curVersion +"' from '"
-                                     +curPkgInfoPath +"', new '"
-                                     +newVersion +"' in '"
-                                     +newPkgInfoPath +"'.");
-          }
+        if (null==curVersion) {
+          packageToVersion.put(pkgName, newVersion);
+          packageToInfofile.put(pkgName, pkgInfoPath);
+        } else if (!newVersion.equals(curVersion)) {
+          // May happen when the classes of a package are in two
+          // different directories on the class path.
+          throw new BuildException("Conflicting versions for '"
+                                   +pkgName +"' previous  '"
+                                   +curVersion +"' from '"
+                                   +curPkgInfoPath +"', new '"
+                                   +newVersion +"' in '"
+                                   +pkgInfoPath +"'.");
         }
       }
     }

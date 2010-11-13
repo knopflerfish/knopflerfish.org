@@ -19,7 +19,8 @@
                    kxml/**"/>
   <property name="api.pattern"
             value="org/ungoverned/osgi/service/bundlerepository/**,
-                   org/knopflerfish/service/console/*"/>
+                   org/knopflerfish/service/console/*,
+                   org/kxml/**"/>
 
   <property name="do.bundle.custom.pre" value="true"/>
 
@@ -37,11 +38,11 @@
           <exclude name="*.dex"/>
         </patternset>
       </zipfileset>
-   </copy>
+    </copy>
   </target>
 
   <path id="bundle.compile.path">
-    <pathelement location="desktop_api-N.N.N.jar"/>  
+    <pathelement location="desktop_api-N.N.N.jar"/>
     <pathelement location="console_api-N.N.N.jar"/>
     <pathelement location="libs/oscar-shell_api-1.0.0.jar"/>
     <pathelement location="resources/kxml-min.jar"/>

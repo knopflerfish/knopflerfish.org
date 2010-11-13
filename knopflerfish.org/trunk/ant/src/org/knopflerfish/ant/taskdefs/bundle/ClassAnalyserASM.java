@@ -152,7 +152,6 @@ public class ClassAnalyserASM
     task.log("Analysing class '" +name +"'.", Project.MSG_VERBOSE);
 
     currentPackage = bpInfo.addProvidedClass(name);
-    bpInfo.setPackageVersion(currentPackage, currentClassFile);
     if (null!=superName) {
       addReferencedType(Type.getObjectType(superName));
     }
