@@ -778,8 +778,12 @@ public class BundleInfoTask extends Task {
             .append(".");
         }
         tmp.clear();
-        log(msg.toString(), Project.MSG_ERR);
-        throw new BuildException(msg.toString(), getLocation());
+        if (failOnExports) {
+          log(msg.toString(), Project.MSG_ERR);
+          throw new BuildException(msg.toString(), getLocation());
+        } else {
+          log(msg.toString(), Project.MSG_WARN);
+        }
       }
     }
     log("Provided packages to export: " +providedExportSet,
@@ -1125,9 +1129,8 @@ public class BundleInfoTask extends Task {
   private SortedSet getPredefinedExportSet()
   {
     if(!"".equals(exportsProperty)) {
-      log("Exports property set", Project.MSG_DEBUG);
-
       final String exportsVal = getProject().getProperty(exportsProperty);
+
       if (!BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
         log("Found non-empty Export-Package attribute: '" +exportsVal +"'",
             Project.MSG_DEBUG);
@@ -1138,9 +1141,7 @@ public class BundleInfoTask extends Task {
         while (expIt.hasNext()) {
           final Map expEntry = (Map) expIt.next();
           final String pkgName = (String) expEntry.get("$key");
-          if (bpInfo.providesPackage(pkgName)) {
-            res.add(pkgName);
-          }
+          res.add(pkgName);
         }
         return res;
       }
