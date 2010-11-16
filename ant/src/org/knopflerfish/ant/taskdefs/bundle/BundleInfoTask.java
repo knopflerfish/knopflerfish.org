@@ -495,7 +495,7 @@ public class BundleInfoTask extends Task {
    */
   private Set extraImportSet       = new TreeSet();
 
-  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo();
+  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
   private final ClassAnalyserASM asmAnalyser
     = new ClassAnalyserASM(bpInfo, this);
 
@@ -666,7 +666,7 @@ public class BundleInfoTask extends Task {
   public void addConfiguredExports(FileSet set) {
     final Restrict restrict = new Restrict();
     restrict.add(set);
-    restrict.add(classAndPackageInfoRestriction);
+    restrict.add(analyzeRestriction);
     exportsResourceCollections.add(restrict);
   }
 
@@ -679,7 +679,7 @@ public class BundleInfoTask extends Task {
     for (Iterator it = bcpt.getFileSets().iterator(); it.hasNext();) {
       final Restrict restrict = new Restrict();
       restrict.add((ResourceCollection) it.next());
-      restrict.add(classAndPackageInfoRestriction);
+      restrict.add(analyzeRestriction);
       exportsResourceCollections.add(restrict);
     }
   }
@@ -692,7 +692,7 @@ public class BundleInfoTask extends Task {
   public void addConfiguredImpls(FileSet set) {
     final Restrict restrict = new Restrict();
     restrict.add(set);
-    restrict.add(classAndPackageInfoRestriction);
+    restrict.add(analyzeRestriction);
     implsResourceCollections.add(restrict);
   }
 
@@ -705,7 +705,7 @@ public class BundleInfoTask extends Task {
     for (Iterator it = bcpt.getFileSets().iterator(); it.hasNext();) {
       final Restrict restrict = new Restrict();
       restrict.add((ResourceCollection) it.next());
-      restrict.add(classAndPackageInfoRestriction);
+      restrict.add(analyzeRestriction);
       implsResourceCollections.add(restrict);
     }
   }
@@ -743,8 +743,7 @@ public class BundleInfoTask extends Task {
       }
     }// Scan done
 
-    // Get the sub-set of the provided packages to be exported
-    bpInfo.toJavaNames();
+    // Get the sub-set of the provided packages that are the exports set
     final Set providedExportSet = new TreeSet(bpInfo.getProvidedPackages());
     final Set manifestExportSet = getPredefinedExportSet();
     if (null!=manifestExportSet) {
@@ -803,7 +802,7 @@ public class BundleInfoTask extends Task {
     }// Scan done
 
     // Get the set of packages provided by the bundle
-    bpInfo.toJavaNames();
+    bpInfo.toJavaNames(); // Make package name in bpInfo '.' separated.
     log("All provided packages: "
         +bpInfo.getProvidedPackagesAsExportPackageValue(),
         Project.MSG_VERBOSE);
@@ -1335,18 +1334,15 @@ public class BundleInfoTask extends Task {
 
   /**
    * Analyze a resource by checking its suffix and delegate to {@LINK
-   * #analyzeClass(Resource)}, {@LINK #analyzeJar(Resource)}, etc.
+   * #analyzeClass(Resource)} or {@LINK
+   * #analyzePackageinfo(Resource)}.
    *
    * @param res The resource to be analyzed.
    */
   protected void analyze(Resource res) throws BuildException {
     if(res.getName().endsWith(".class")) {
       analyzeClass(res);
-    } else if(res.getName().endsWith(".jar")) {
-      analyzeJar(res);
-    } else if(res.getName().endsWith(".java")) {
-      analyzeJava(res);
-    } else if(res.getName().endsWith("/packageinfo")) {
+    } else if(res.getName().endsWith("packageinfo")) {
       analyzePackageinfo(res);
     } else {
       // Just ignore all other files
@@ -1384,28 +1380,6 @@ public class BundleInfoTask extends Task {
   }
 
 
-  protected void analyzeJar(Resource res) throws BuildException {
-    log("Analyze jar file " + res, Project.MSG_VERBOSE);
-
-    try {
-      final JarInputStream jarStream = new JarInputStream(res.getInputStream());
-
-      ZipEntry ze = jarStream.getNextEntry();
-      while(null!=ze) {
-        final String fileName = ze.getName();
-        if (fileName.endsWith(".class")) {
-          log("Analyze jar class file " + fileName, Project.MSG_VERBOSE);
-          asmAnalyser.analyseClass(jarStream, fileName);
-        }
-        ze = jarStream.getNextEntry();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " +
-                               res + ", exception=" + e, getLocation());
-    }
-  }
-
   protected void analyzeClass(Resource res) throws BuildException {
     log("Analyze class file " + res, Project.MSG_VERBOSE);
 
@@ -1426,71 +1400,28 @@ public class BundleInfoTask extends Task {
   }
 
 
-  /**
-   * Analyze java source file by reading line by line and looking
-   * for keywords such as "import", "package".
-   *
-   * <p>
-   * <b>Note</b>: This code does not attempt to find any class implementing
-   * <tt>BundleActivator</tt>
-   */
-  protected void analyzeJava(Resource res) throws BuildException {
-
-    if(bDebug) {
-      System.out.println("Analyze java file " + res);
-    }
-
-    BufferedReader reader = null;
-
-    try {
-      String packageName = null;
-      String line;
-      int    lineNo = 0;
-
-      reader = new BufferedReader(new InputStreamReader(res.getInputStream()));
-
-      while(null != (line = reader.readLine())) {
-        lineNo++;
-        line = line.replace(';', ' ').replace('\t', ' ').trim();
-
-        if(line.startsWith("package")) {
-          final Vector v = StringUtils.split(line, ' ');
-          if(v.size() > 1 && "package".equals(v.elementAt(0))) {
-            packageName = (String)v.elementAt(1);
-            bpInfo.addProvidedPackage(packageName);
-          }
-        }
-        if(line.startsWith("import")) {
-          final Vector v = StringUtils.split(line, ' ');
-          if(v.size() > 1 && "import".equals(v.elementAt(0))) {
-            final String name = (String)v.elementAt(1);
-            bpInfo.addReferencedClass(packageName, name);
-          }
-        }
-      }
-    } catch (Exception e) {
-      throw new BuildException("Failed to scan " +res +", err=" +e,
-                               getLocation());
-    } finally {
-      if(reader != null) {
-        try { reader.close(); } catch (Exception ignored) { }
-      }
-    }
-  }
+  public static final Set ANALYZE_SUFFIXES = new TreeSet() {{
+    add(".class");
+    add("/packageinfo"); // packageinfo-files inside jar-files
+    add(File.separatorChar +"packageinfo"); // packageinfo-files in
+                                            // the file system
+  }};
 
   /**
-   * A resource selector that selects <code>.class</code>-files and
+   * A resource selector that selects files to be analyzed. I.e., it
+   * selects <code>.class</code>-files and
    * <code>packageinfo</code>-files.
    */
-  public static final ResourceSelector classAndPackageInfoRestriction
+  public static final ResourceSelector analyzeRestriction
     = new ResourceSelector() {
         public boolean isSelected(final Resource r)
         {
-          // The second condition handles UNIX and Zip-files,
-          // The third handles Windows files.
-          return r.getName().endsWith(".class")
-            || r.getName().endsWith("/packageinfo")
-            || r.getName().endsWith("\\packageinfo");
+          final Iterator it= BundleInfoTask.ANALYZE_SUFFIXES.iterator();
+          while (it.hasNext()) {
+            final String suffix = (String) it.next();
+            if (r.getName().endsWith(suffix)) return true;
+          }
+          return false;
         }
       };
 

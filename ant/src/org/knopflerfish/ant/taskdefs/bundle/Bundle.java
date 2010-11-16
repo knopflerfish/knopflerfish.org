@@ -261,7 +261,7 @@ public class Bundle extends Jar {
     standardPackagePrefixes.add("java.");
   }
 
-  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo();
+  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
   private final ClassAnalyserASM   asmAnalyser
     = new ClassAnalyserASM(bpInfo, this);
 
