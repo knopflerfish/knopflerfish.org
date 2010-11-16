@@ -47,6 +47,8 @@ import java.util.TreeSet;
 import org.osgi.framework.Version;
 
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Resource;
 
 /**
@@ -91,6 +93,14 @@ public class BundlePackagesInfo {
   }
 
 
+  // The task using this object to provide logging functionality.
+  final Task task;
+
+  public BundlePackagesInfo(final Task task)
+  {
+    this.task   = task;
+  }
+
   /**
    * The set of classes provided by the bundle.
    * The elements of the set are the fully qualified class name.
@@ -117,6 +127,8 @@ public class BundlePackagesInfo {
     addProvidedPackage(pkgName);
     addReferencedClass(pkgName, className);
 
+    task.log("Added provided class '" +className +"'.",
+             Project.MSG_DEBUG);
     return pkgName;
   }
 
@@ -149,6 +161,9 @@ public class BundlePackagesInfo {
   {
     activatorClasses.add(className);
     providedClasses.add(className);
+
+    task.log("Added provided BundleActivator class '" +className +"'.",
+             Project.MSG_DEBUG);
   }
 
   /**
@@ -235,11 +250,15 @@ public class BundlePackagesInfo {
   /**
    * Get a copy of the set of provided Java packages.
    *
+   * This method may be called before {@link #toJavaNames()}.
+   *
    * @return A copy of the set of provided Java packages.
    */
   public SortedSet/*<String>*/ getProvidedPackages()
   {
-    return new TreeSet(providedPackages);
+    SortedSet res = new TreeSet(providedPackages);
+    toJavaNames(res); // Ensure that '.' is used as package separator
+    return res;
   }
 
   /**
@@ -382,6 +401,9 @@ public class BundlePackagesInfo {
         if (null==curVersion) {
           packageToVersion.put(pkgName, newVersion);
           packageToInfofile.put(pkgName, pkgInfoPath);
+          task.log("Package version for '" +pkgName +"' set to "
+                   +newVersion +" based on data from '" +pkgInfoPath +"'.",
+                   Project.MSG_VERBOSE);
         } else if (!newVersion.equals(curVersion)) {
           // May happen when the classes of a package are in two
           // different directories on the class path.
@@ -459,7 +481,7 @@ public class BundlePackagesInfo {
    * Add a reference to a named class from some class in the
    * referencing Java package.
    *
-   * If the given referenced class is an inner class, the we also add
+   * If the given referenced class is an inner class, then we also add
    * a reference for its outer class. This is not really needed for
    * static inner classes, but there is no way to detect that on this
    * level.
@@ -498,6 +520,9 @@ public class BundlePackagesInfo {
       }
       using.add(referencedPackage);
     }
+    task.log("Added reference to class '" +referencedClass
+             +"' from the package '" +referencingPackage +"'.",
+             Project.MSG_DEBUG);
   }
 
   /**
