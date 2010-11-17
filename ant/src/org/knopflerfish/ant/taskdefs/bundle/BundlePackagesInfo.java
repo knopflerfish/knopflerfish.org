@@ -384,8 +384,8 @@ public class BundlePackagesInfo {
   public void setPackageVersion(final Resource res)
   {
     // The relative path to packageinfo-file starting from the root of
-    // its classpath.
-    final String pkgInfoPath = res.getName();
+    // its classpath. Allways using forward slash as separator char.
+    final String pkgInfoPath = res.getName().replace(File.separatorChar, '/');
     // 12 = "/packageinfo".lenght()
     final String pkgName = pkgInfoPath.substring(0, pkgInfoPath.length()-12);
 
