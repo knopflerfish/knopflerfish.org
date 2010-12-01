@@ -285,7 +285,7 @@ public class BundleClassPath
       String procP = props.getProperty(Constants.FRAMEWORK_PROCESSOR);
       proc.add(props.getProperty(Constants.FRAMEWORK_PROCESSOR).toLowerCase());
       String procS = System.getProperty("os.arch").toLowerCase();
-      if (procP.equals(procS)) {
+      if (!procP.equals(procS)) {
         proc.add(procS);
       }
       // Handle deprecated value "arm"
