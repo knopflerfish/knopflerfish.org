@@ -53,7 +53,7 @@
 
   <!-- Download and install BIndex the RFC-0112 Bundle Repository creator.  -->
   <path id="bindex.path">
-    <pathelement location = "${ant.lib}/bindex.jar"/>
+    <pathelement location="${ant.lib}/bindex.jar"/>
   </path>
 
   <available classname="org.osgi.impl.bundle.bindex.Index"
