@@ -67,34 +67,12 @@ import org.apache.tools.ant.util.StringUtils;
 import org.osgi.framework.Version;
 
 /**
- * Task that analyzes a set of class files (or source files), and lists all
- * imported and defined packages. Also tries to find any class implementing
- * <tt>org.osgi.framework.BundleActivator</tt>.
+ * Task that analyzes sets of class files and jar files that will be
+ * the contents of some bundle. The output is the set of packages to
+ * be exported and imported by the bundle. Also tries to find any
+ * class implementing <tt>org.osgi.framework.BundleActivator</tt>.
  *
- * <ul>
- * <li><b>Class files</b>
- * <p>
- * Java class files are analyzed using the ASM library.
- * <br>
- * <b>Note</b>: Scanning <i>only</i> applies
- * to the listed files - a complete closure of all referenced classes is
- * not done.
- * </p>
- *
- * <li><b>Source code</b>
- * <p>
- * Java source code is analyzed using very simple line-based scanning of
- * files. <br>
- * <b>Note</b>: Source code analysis does not attempt to find any
- * <tt>BundleActivator</tt>
- * </p>
- *
- * <li><b>Jar files</b>
- * <p>
- * All classes in jar files are analyzed.
- * </p>
- *
- * </ul>
+ * <p>The set of files to analyze are specified as nested ant file sets.</p>
  *
  * <h3>Parameters</h3>
  *
@@ -229,11 +207,13 @@ import org.osgi.framework.Version;
  *   <td valign=top>serviceComponent</td>
  *   <td valign=top>
  *       The value of the <tt>Service-Component</tt> manifest header.
- *       <p>
- *       If set to non-empty, leave the value of the activator
+ *
+ *       <p>If set to non-empty, leave the value of the activator
  *       property untouched and do not complain if there are no class
- *       that implements BundleActivator in the bundle.
- *       </p>
+ *       that implements BundleActivator in the bundle. A bundle using
+ *       declarative services does not need a bundle activator but it
+ *       may have one anyhow.</p>
+ *
  *  </td>
  *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
@@ -241,12 +221,12 @@ import org.osgi.framework.Version;
  *   <td valign=top>fragmentHost</td>
  *   <td valign=top>
  *       The value of the <tt>Fragment-Host</tt> manifest header.
- *       <p>
- *       If set to non-empty (i.e., this is a fragment bundle), leave
- *       the value of the activator property untouched and do not
- *       complain if there are no class that implements
- *       BundleActivator in the bundle.
- *       </p>
+ *
+ *       <p>If set to non-empty (i.e., this is a fragment bundle),
+ *       leave the value of the activator property untouched and do
+ *       not complain if there are no class that implements
+ *       BundleActivator in the bundle.</p>
+ *
  *  </td>
  *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
