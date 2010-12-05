@@ -63,7 +63,6 @@ import org.apache.tools.ant.types.PatternSet;
 import org.apache.tools.ant.types.Reference;
 import org.apache.tools.ant.types.Resource;
 //import org.apache.tools.ant.types.resources.FileResource;
-import org.apache.tools.ant.util.FileUtils;
 
 /**
  * Determines a sub-set of bundles from a given file set. The
@@ -357,7 +356,7 @@ import org.apache.tools.ant.util.FileUtils;
  *         <td valign="top">
  *
  *           The relative path to the bundle from the root-directory
- *           of the file set that the matching bundle ordinates from.
+ *           of the file set that the matching bundle originates from.
  *
  *         </td>
  *       <tr>
@@ -383,7 +382,8 @@ public class BundleLocator extends Task {
   private final static String PROPS_PREFIX = "bap.";
 
   private final Vector    filesets = new Vector();
-  private final FileUtils fileUtils;
+
+  private BundleArchives bas;
 
   private String    bundleName           = null;
   private String    bundleNames          = null;
@@ -395,28 +395,8 @@ public class BundleLocator extends Task {
   private File      replacefilterfile    = null;
   private boolean   extendedReplaceFilter= false;
 
-  /**
-   * A list with all BundeInfo-objects that has been created in the
-   * order that they are specified through the included file sets.
-   */
-  final private SortedSet allBis = new TreeSet();
-
-  /**
-   * Mapping from bundle symbolic name to a sorted set with all
-   * BundleInfo objects of that bundle.
-   */
-  final private Map bsnMap = new HashMap();
-
-  /**
-   * Mapping that for bundles named like <tt>bundleName-N.N.N.jar</tt>
-   * maps from the <tt>bundleName</tt> part to a sorted set of
-   * BundleInfo objects for all matching bundles.
-   */
-  final private Map bundleMap = new HashMap();
-
 
   public BundleLocator() {
-    fileUtils = FileUtils.newFileUtils();
   }
 
   public void setProperty(String s) {
@@ -465,7 +445,7 @@ public class BundleLocator extends Task {
     if (filesets.size() == 0) {
       throw new BuildException("No fileset specified");
     }
-    analyze();
+    bas = new BundleArchives(this, filesets);
 
     if (null!=bundleName) {
       setProperty();
@@ -490,246 +470,7 @@ public class BundleLocator extends Task {
 
 
   /**
-   * Holder of the value in the bundle version map.
-   */
-  static class BundleInfo implements Comparable
-  {
-    /** The short bundle name. I.e., the name to the left of the last '-'.*/
-    public String  name;
-    /** The bundle file name without path.*/
-    public String  fileName;
-    /** The bundle symbolic name.*/
-    public String  bsn;
-    /** The bundles version. I.e., the part to the right of the last '-'.*/
-    public Version version;
-    /** The relative path from the root of the file set holding the bundle.*/
-    public String  relPath;
-    /** The absolute path of the bundle. */
-    public File file;
-
-    /** Sort on bundle symbolic name then on the bundle version. */
-    public int compareTo(Object o)
-    {
-      BundleInfo other = (BundleInfo) o;
-      // The bsn may be null for pre OSGi R4 bundles!
-      String objName = this.bsn != null ? this.bsn : this.name;
-      String otherName = other.bsn != null ? other.bsn : other.name;
-
-      int res = objName.compareTo(otherName);
-      return res!=0 ? res : this.version.compareTo(other.version);
-    }
-
-    public String toString()
-    {
-      return "BundleInfo[fileName=" +fileName +", name=" +name
-        +", Bundle-SymbolicName=" +bsn +", version=" +version
-        +", relPath=" +relPath +", absPath=" +file.getAbsolutePath() +"]";
-    }
-  }
-
-
-  private String encodeBundleName(final String bundleName)
-  {
-    String name = bundleName;
-    if (null!=name) {
-      name = name.replace(':', '.');
-      name = name.replace(' ', '_');
-    }
-    return name;
-  }
-
-  /**
-   * Format the OSGi version as Maven 2 does in versioned file names.
-   */
-  private String toMavenVersion(final Version version)
-  {
-    final StringBuffer sb = new StringBuffer(40);
-
-    sb.append(String.valueOf(version.getMajor())).append(".");
-    sb.append(String.valueOf(version.getMinor())).append(".");
-    sb.append(String.valueOf(version.getMicro()));
-
-    final String qualifier = version.getQualifier();
-    if (0<qualifier.length()) {
-      sb.append("-").append(qualifier);
-    }
-
-    return sb.toString();
-  }
-
-  /**
-   * Get the bundle symbolic name from the manifest. If the
-   * <tt>Bundle-SymbolicName</tt> attribute is missing use the
-   * <tt>Bundle-Name</tt> but replace all ':' with '.' and all '&nbsp;'
-   * with '_' in the returned value.
-   *
-   * @param attributes The main attributes from the bundle's manifest.
-   */
-  private String getBundleSymbolicName(final Attributes attributes)
-  {
-    String name = attributes.getValue(Constants.BUNDLE_SYMBOLICNAME);
-    if (null==name) {
-      name = attributes.getValue(Constants.BUNDLE_NAME);
-    }
-    return encodeBundleName(name);
-  }
-
-  /**
-   * Get the bundle manifest version from the manifest.
-   *
-   * @param attributes The main attributes from the bundle's manifest.
-   */
-  private String getBundleManifestVersion(final File file,
-                                           final Attributes attributes)
-    throws NumberFormatException
-  {
-    String manifestVersion
-      = attributes.getValue(Constants.BUNDLE_MANIFESTVERSION);
-    if (null==manifestVersion) {
-      // Pre OSGi R4 bundle with non-standard version format; use
-      // version "1".
-      manifestVersion = "1";
-    }
-    return manifestVersion.trim();
-  }
-
-  /**
-   * Get the bundle version from the manifest.
-   *
-   * @param attributes The main attributes from the bundle's manifest.
-   */
-  private Version getBundleVersion(final File file,
-                                   final Attributes attributes)
-    throws NumberFormatException
-  {
-    final String versionS = attributes.getValue(Constants.BUNDLE_VERSION);
-    if (null==versionS) {
-      return Version.emptyVersion;
-    }
-
-    try {
-      return new Version(versionS);
-    } catch (NumberFormatException nfe) {
-      final String manifestVersion = getBundleManifestVersion(file, attributes);
-      if ("1".equals(manifestVersion)) {
-        // Pre OSGi R4 bundle with non-standard version format; use
-        // the default version.
-        return Version.emptyVersion;
-      }
-      log("Invalid bundle version '" +versionS +"' found in " +file +": "+nfe,
-          Project.MSG_ERR);
-      throw nfe;
-    }
-  }
-
-  /**
-   * Create a BundleInfo-object for the given file if it is a bundle.
-   */
-  private BundleInfo createBundleInfo(final File rootDir,
-                                      final String relPath)
-    throws Exception
-  {
-    final File   file     = new File(rootDir, relPath);
-    final String fileName = file.getName();
-
-    BundleInfo bi = null;
-    if(file.getName().endsWith(".jar")) {
-      log( "Processing candidate " +file, Project.MSG_DEBUG);
-      String bundleName   = null;
-      Version nameVersion = null;
-      String bundleManifestVersion = null;
-
-      int ix = fileName.lastIndexOf('-');
-      if (0<ix) {
-        bundleName = fileName.substring(0,ix);
-        final String versionS = fileName.substring(ix+1,fileName.length()-4);
-        try {
-          nameVersion = new Version(versionS);
-        } catch (NumberFormatException nfe) {
-          bundleName = null; // Not valid due to missing version.
-          log("Invalid version in bundle file name '" +versionS +"': "+nfe,
-              Project.MSG_VERBOSE);
-        }
-      } else {
-        bundleName = fileName.substring(0,fileName.length()-4);
-      }
-      final JarFile bundle  = new JarFile(file);
-      String  bsn     = null;
-      Version version = null;
-      try {
-        final Manifest   manifest       = bundle.getManifest();
-        final Attributes mainAttributes = manifest.getMainAttributes();
-        bsn     = getBundleSymbolicName(mainAttributes);
-        version = getBundleVersion(file, mainAttributes);
-        bundleManifestVersion = getBundleManifestVersion(file, mainAttributes);
-      } finally {
-        if (null!=bundle) {
-          try { bundle.close(); } catch (IOException _ioe) {}
-        }
-      }
-
-      if (null!=nameVersion && 0!=nameVersion.compareTo(version)) {
-        if (nameVersion.getMajor() == version.getMajor() &&
-            nameVersion.getMinor() == version.getMinor() &&
-            nameVersion.getMicro() == version.getMicro() &&
-            "".equals(nameVersion.getQualifier()) ) {
-          log("Found version '" +nameVersion +"' in the file name '"
-              +fileName +"', but the version in the bundle's manifest has qualifier '"
-              +version +"'.",
-              Project.MSG_DEBUG);
-        } else {
-          log("Found version '" +nameVersion +"' in the file name '"
-              +fileName +"', but the version in the bundle's manifest is '"
-              +version +"'.",
-              Project.MSG_INFO);
-        }
-      }
-
-      if (0<version.getQualifier().length()) {
-        // Maven uses '-' and not '.' as separator for the qualifier
-        // in its bundle names. Check if bundleName needs to be
-        // updated.
-        final String mavenSuffix = "-" +toMavenVersion(version) +".jar";
-        if (fileName.endsWith(mavenSuffix)) {
-          bundleName
-            = fileName.substring(0, fileName.length() -mavenSuffix.length());
-        }
-      }
-
-      if ("1".equals(bundleManifestVersion) || bsn != null) {
-        bi = new BundleInfo();
-        bi.name     = bundleName;
-        bi.bsn      = bsn;
-        bi.version  = version;
-        bi.fileName = fileName;
-        bi.relPath  = relPath;
-        bi.file     = file;
-        log("Found " +bi, Project.MSG_DEBUG);
-      } else {
-        log("Found bundle with Bundle-MainfestVersion >= 2 without Bundle-SymbolicName: "
-            + fileName, Project.MSG_INFO);
-      }
-    }
-    return bi;
-  }
-
-  private void updateMap(Map map, String key, BundleInfo bi)
-  {
-    if (null==key) return;
-
-    SortedSet bis = (SortedSet) map.get(key);
-    if (null==bis) {
-      bis = new TreeSet();
-      map.put(key, bis);
-      log("Found bundle '" +key +"'.", Project.MSG_DEBUG);
-    }
-    if (bis.add(bi)) {
-      log("Found bundle '" +key +"' '" +bi.version +"'.", Project.MSG_DEBUG);
-    }
-  }
-
-  /**
-   * Chgeck if the given bundle name contains a wildcard version descriptor.
+   * Check if the given bundle name contains a wildcard version descriptor.
    *
    *
    * @param name The bundle name to check.
@@ -737,7 +478,7 @@ public class BundleLocator extends Task {
    * @return <code>true</code> if a bundle version with wildcard is
    *         part of the bundle name, <code>false</code> otherwise.
    */
-  private boolean isBundleNameWithWildcardVersion(final String name)
+  static private boolean isBundleNameWithWildcardVersion(final String name)
   {
     final Pattern pattern = Pattern.compile
       ("^(.+)-(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.([-_0-9a-zA-Z]+))))(?:.jar|.zip)$");
@@ -752,7 +493,7 @@ public class BundleLocator extends Task {
   }
 
   /**
-   * Get the bundle info for the given bundle name.
+   * Get the bundle archive for the given bundle name.
    *
    * <ol>
    *  <li> Remove any <tt>.jar</tt> or <tt>.zip</tt> suffix form the name.
@@ -767,23 +508,27 @@ public class BundleLocator extends Task {
    * @param name Name of the bundle to look for. May contain a version
    *             suffix.
    *
-   * @return <code>null</code> if no matching bundle info was found.
+   * @return <code>null</code> if no matching bundle archive was found.
    */
-  private BundleInfo getBundleInfo(String name)
+  private BundleArchives.BundleArchive getBundleArchive(String name)
   {
-    log("getBundleInfo("+name +")", Project.MSG_DEBUG);
+    log("getBundleArchive("+name +")", Project.MSG_DEBUG);
     if (null==name || 0==name.length()) return null;
 
-    if (name.endsWith(".jar")) name = name.substring(0, name.length()-4);
-    if (name.endsWith(".zip")) name = name.substring(0, name.length()-4);
-    if (name.endsWith("-N.N.N")) name = name.substring(0, name.length() -6);
+    if (name.endsWith(".jar"))   name = name.substring(0, name.length()-4);
+    if (name.endsWith(".zip"))   name = name.substring(0, name.length()-4);
+    if (name.endsWith("-N.N.N")) name = name.substring(0, name.length()-6);
 
-    SortedSet bis = (SortedSet) bundleMap.get(name);
-    if (null==bis) bis = (SortedSet) bsnMap.get(name);
-    if (null!=bis) {
-      final BundleInfo bi = (BundleInfo) bis.last();
-      log("getBundleInfo("+name +")->"+bi, Project.MSG_VERBOSE);
-      return bi;
+    SortedSet baSet = (SortedSet) bas.bnToBundleArchives.get(name);
+    if (null==baSet) {
+      baSet = (SortedSet)
+        bas.bsnToBundleArchives.get(BundleArchives.encodeBundleName(name));
+    }
+    if (null!=baSet) {
+      final BundleArchives.BundleArchive ba
+        = (BundleArchives.BundleArchive) baSet.last();
+      log("getBundleArchive("+name +")->"+ba, Project.MSG_VERBOSE);
+      return ba;
     }
 
     final Pattern pattern = Pattern.compile
@@ -805,7 +550,7 @@ public class BundleLocator extends Task {
         version += s;
       }
       if (level<0) {
-        return getBundleInfo(name, null, null);
+        return getBundleArchive(name, null, null);
       } else {
         Version min = new Version(version);
         Version max = null;
@@ -824,119 +569,60 @@ public class BundleLocator extends Task {
         default:
           max = min;
         }
-        return getBundleInfo(name, min, max);
+        return getBundleArchive(name, min, max);
       }
     } else {
-      log("getBundleInfo(" +name +") no valid version found in the name.",
+      log("getBundleArchive(" +name +") no valid version found in the name.",
           Project.MSG_VERBOSE);
     }
     return null;
   }
 
   /**
-   * Get the bundle info with the highest version within the given
+   * Get the bundle archive with the highest version within the given
    * intervall for the given bundle.
    *
    * @param name Name of the bundle to look for. Either the part of
-   *             the file name that cames before the file version or
+   *             the file name that comes before the file version or
    *             the bundle symbolic name.
    * @param min  The lowest acceptable version number (inclusive).
    * @param max  The highest acceptable version number (exclusive). If
    *             null the highest version of this bundle will be
    *             selected.
-   * @return <code>null</code> if no matching bundle info was found.
+   * @return <code>null</code> if no matching bundle archive was found.
    *
    */
-  private BundleInfo getBundleInfo(final String name,
-                                   Version min,
-                                   final Version max)
+  private BundleArchives.BundleArchive getBundleArchive(final String name,
+                                                        Version min,
+                                                        final Version max)
   {
-    SortedSet bis = (SortedSet)  bundleMap.get(name);
-    if (null==bis) {
-      bis = (SortedSet) bsnMap.get(encodeBundleName(name));
+    SortedSet baSet = (SortedSet) bas.bnToBundleArchives.get(name);
+    if (null==baSet) {
+      baSet = (SortedSet)
+        bas.bsnToBundleArchives.get(BundleArchives.encodeBundleName(name));
     }
-    BundleInfo bi = null;
+    BundleArchives.BundleArchive ba = null;
 
-    if (null!=bis) {
+    if (null!=baSet) {
       if (null==max) { // Select highest available version
-        bi = (BundleInfo) bis.last();
+        ba = (BundleArchives.BundleArchive) baSet.last();
       } else {
         if (null==min) min = Version.emptyVersion;
-        for (Iterator it = bis.iterator(); it.hasNext(); ) {
-          final BundleInfo candBi = (BundleInfo) it.next();
-          if (candBi.version.compareTo(min)<0) continue;
-          if (candBi.version.compareTo(max)>=0) break;
-          bi = candBi;
+        for (Iterator it = baSet.iterator(); it.hasNext(); ) {
+          final BundleArchives.BundleArchive candBa
+            = (BundleArchives.BundleArchive) it.next();
+          if (candBa.version.compareTo(min)<0) continue;
+          if (candBa.version.compareTo(max)>=0) break;
+          ba = candBa;
         }
       }
     }
 
-    log("getBundleInfo("+name +", " +min +", " +max +")->"+bi,
+    log("getBundleArchive("+name +", " +min +", " +max +")->"+ba,
         Project.MSG_VERBOSE);
-    return bi;
+    return ba;
   }
 
-
-  /**
-   * Traverses the given file sets, identify files that are bundles
-   * and add them to the bundle info maps.
-   */
-  private void analyze()
-  {
-    try {
-      for (int i = 0; i < filesets.size(); i++) {
-        final FileSet          fs      = (FileSet) filesets.elementAt(i);
-        final File             projDir = fs.getDir(project);
-        if (!projDir.exists()) {
-          log("Skipping nested file set rooted at '" +projDir
-              +"' since that directory does not exist.",
-              Project.MSG_WARN);
-          continue;
-        } else {
-          log( "Processing file set rooted at " +projDir, Project.MSG_DEBUG);
-        }
-        final DirectoryScanner ds      = fs.getDirectoryScanner(project);
-
-        final String[] srcFiles = ds.getIncludedFiles();
-        final String[] srcDirs  = ds.getIncludedDirectories();
-
-        for (int j = 0; j < srcFiles.length ; j++) {
-          final BundleInfo bi = createBundleInfo(projDir, srcFiles[j]);
-          if (null!=bi) {
-            allBis.add(bi);
-            updateMap(bundleMap, bi.name, bi);
-            updateMap(bsnMap,    bi.bsn,  bi);
-          }
-        }
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BuildException("Failed locate bundle: " + e, e);
-    }
-  }
-
-  private void setProperty(final String bn,
-                           final String propName)
-  {
-    log("Searching for a bundle with name '" +bn +"'.", Project.MSG_DEBUG);
-    BundleInfo bi = getBundleInfo(bn);
-
-    if (bi!=null) {
-      project.setProperty(propName, bi.file.getAbsolutePath());
-      log(propName +" = " +bi.file, Project.MSG_VERBOSE);
-    } else {
-      final int logLevel = failOnMissingBundles
-        ? Project.MSG_ERR : Project.MSG_INFO;
-      log("No bundle with name '" +bn +"' found.", logLevel);
-      final TreeSet knownNames = new TreeSet(bundleMap.keySet());
-      knownNames.addAll(bsnMap.keySet());
-      log("Known bundles names: " +knownNames, logLevel);
-
-      if (failOnMissingBundles) {
-        throw new BuildException("No bundle with name '" +bn+"' found.");
-      }
-    }
-  }
 
   private void setProperty()
   {
@@ -945,6 +631,27 @@ public class BundleLocator extends Task {
     } else {
       throw new BuildException
         ("The attribute 'bundleName' requires 'property'");
+    }
+  }
+
+  private void setProperty(final String bn,
+                           final String propName)
+  {
+    log("Searching for a bundle with name '" +bn +"'.", Project.MSG_DEBUG);
+    BundleArchives.BundleArchive ba = getBundleArchive(bn);
+
+    if (ba!=null) {
+      project.setProperty(propName, ba.file.getAbsolutePath());
+      log(propName +" = " +ba.file, Project.MSG_VERBOSE);
+    } else {
+      final int logLevel = failOnMissingBundles
+        ? Project.MSG_ERR : Project.MSG_INFO;
+      log("No bundle with name '" +bn +"' found.", logLevel);
+      log("Known bundles names: " +bas.getKnownNames(), logLevel);
+
+      if (failOnMissingBundles) {
+        throw new BuildException("No bundle with name '" +bn+"' found.");
+      }
     }
   }
 
@@ -987,9 +694,9 @@ public class BundleLocator extends Task {
           log("Found non existing path element: " +pathElement,
               Project.MSG_DEBUG);
           final String fileName = pathElement.getName();
-          final BundleInfo bi = getBundleInfo(fileName);
-          if (bi!=null) {
-            final String filePath = bi.file.getAbsolutePath();
+          final BundleArchives.BundleArchive ba = getBundleArchive(fileName);
+          if (ba!=null) {
+            final String filePath = ba.file.getAbsolutePath();
             newPath.setPath(filePath);
             added = true;
             log(fileName +" => " +filePath, Project.MSG_VERBOSE);
@@ -998,9 +705,7 @@ public class BundleLocator extends Task {
               ? Project.MSG_ERR : Project.MSG_INFO;
             log("No match for '" +fileName +"' when expanding the path named '"
                 +classPathRef.getRefId() +"'.", logLevel);
-            TreeSet knownNames = new TreeSet(bundleMap.keySet());
-            knownNames.addAll(bsnMap.keySet());
-            log("Known bundles names: " +knownNames, logLevel);
+            log("Known bundles names: " +bas.getKnownNames(), logLevel);
             if (failOnMissingBundles) {
               throw new BuildException
                 ("No bundle with name like '" +fileName+"' found.");
@@ -1027,10 +732,12 @@ public class BundleLocator extends Task {
     log("Creating a patternset for the bundles with id='" +patternSetId +"'.",
         Project.MSG_DEBUG);
 
-    for (Iterator it=allBis.iterator(); it.hasNext();) {
-      BundleInfo bi = (BundleInfo) it.next();
-      patternSet.setIncludes(bi.relPath);
-      log("Adding includes '" +bi.relPath +"'.", Project.MSG_DEBUG);
+    for (Iterator it=bas.allBundleArchives.iterator(); it.hasNext();) {
+      BundleArchives.BundleArchive ba
+        = (BundleArchives.BundleArchive) it.next();
+
+      patternSet.setIncludes(ba.relPath);
+      log("Adding includes '" +ba.relPath +"'.", Project.MSG_DEBUG);
     }
     project.addReference(patternSetId, patternSet);
   } // end of create pattern set for bundles
@@ -1042,7 +749,7 @@ public class BundleLocator extends Task {
    * @param version The version to create patterns for.
    * @return Set of version patterns.
    */
-  private String[] getVersionPatterns(Version version)
+  private static String[] getVersionPatterns(Version version)
   {
     if (null==version) {
       return new String[]{"-N.N.N"};
@@ -1068,40 +775,41 @@ public class BundleLocator extends Task {
   private void writeReplaceFilterFile()
   {
     final Properties props = new Properties();
-    for (Iterator it = allBis.iterator(); it.hasNext();) {
-      final BundleInfo bi = (BundleInfo) it.next();
+    for (Iterator it = bas.allBundleArchives.iterator(); it.hasNext();) {
+      final BundleArchives.BundleArchive ba
+        = (BundleArchives.BundleArchive) it.next();
       //Note: since the path is an URL we must ensure that '/' is used.
-      final String relPath = bi.relPath.replace('\\','/');
-      final String[] versPatterns = getVersionPatterns(bi.version);
+      final String relPath = ba.relPath.replace('\\','/');
+      final String[] versPatterns = getVersionPatterns(ba.version);
 
-      if (null!=bi.bsn) {
-        props.put("@" +bi.bsn +".jar@", relPath);
+      if (null!=ba.bsn) {
+        props.put("@" +ba.bsn +".jar@", relPath);
         if (extendedReplaceFilter) {
-          props.put("@" +bi.bsn +".location@", bi.file.getAbsolutePath());
-          props.put("@" +bi.bsn +".name@", bi.bsn);
-          props.put("@" +bi.bsn +".version@", bi.version.toString());
+          props.put("@" +ba.bsn +".location@", ba.file.getAbsolutePath());
+          props.put("@" +ba.bsn +".name@", ba.bsn);
+          props.put("@" +ba.bsn +".version@", ba.version.toString());
         }
         for (int i=0; i<versPatterns.length; i++) {
-          final String prefix = "@" +bi.bsn +versPatterns[i];
+          final String prefix = "@" +ba.bsn +versPatterns[i];
           props.put(prefix +".jar@", relPath);
           if (extendedReplaceFilter) {
-            props.put(prefix +".location@", bi.file.getAbsolutePath());
-            props.put(prefix +".name@", bi.bsn);
-            props.put(prefix +".version@", bi.version.toString());
+            props.put(prefix +".location@", ba.file.getAbsolutePath());
+            props.put(prefix +".name@", ba.bsn);
+            props.put(prefix +".version@", ba.version.toString());
           }
         }
       }
 
-      if (null!=bi.name) {
+      if (null!=ba.bundleName) {
         for (int i=0; i<versPatterns.length; i++) {
-          final String prefix = "@" +bi.name +versPatterns[i];
+          final String prefix = "@" +ba.bundleName +versPatterns[i];
           props.put(prefix +".jar@", relPath);
           if (extendedReplaceFilter) {
-            props.put(prefix +".location@", bi.file.getAbsolutePath());
-            if (null!=bi.bsn) {
-              props.put(prefix +".name@", bi.bsn);
+            props.put(prefix +".location@", ba.file.getAbsolutePath());
+            if (null!=ba.bsn) {
+              props.put(prefix +".name@", ba.bsn);
             }
-            props.put(prefix +".version@", bi.version.toString());
+            props.put(prefix +".version@", ba.version.toString());
           }
         }
       }
