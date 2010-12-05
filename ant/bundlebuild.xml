@@ -385,6 +385,7 @@
                default="true"/>
     <sequential>
       <mkdir dir="${classes.out.dir}"/>
+      <mkdir dir="${jars.dir}"/>
 
       <bundle_locator classPathRef="bundle.path"
                       newClassPathId="bundle.path.Expanded"
