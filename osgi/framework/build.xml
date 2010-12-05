@@ -124,6 +124,8 @@
       <attribute name = "Bundle-SymbolicName"    value="org.knopflerfish.framework"/>
       <attribute name = "Bundle-Name"            value="frameworkbundle"/>
       <attribute name = "Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
+      <attribute name = "Bundle-License"
+		 value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
       <attribute name = "Export-Package"         value="${fw.export-package}"/>
       <attribute name = "Bundle-DocURL"          value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
       <attribute name = "Bundle-SubversionURL"   value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/framework/"/>
