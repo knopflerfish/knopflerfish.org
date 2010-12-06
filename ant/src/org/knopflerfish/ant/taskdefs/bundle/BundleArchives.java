@@ -32,34 +32,17 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Vector;
 import java.util.SortedSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
@@ -124,6 +107,18 @@ public class BundleArchives {
     try {
       for (Iterator it = resourceCollections.iterator(); it.hasNext(); ) {
         final ResourceCollection rc = (ResourceCollection) it.next();
+
+        // Ignore file sets with a non existing root dir.
+        if (rc instanceof FileSet) {
+          final FileSet fs = (FileSet) rc;
+          final File fsRootDir = fs.getDir(task.getProject());
+          if (!fsRootDir.exists()) {
+            task.log("Skipping nested file set rooted at '" +fsRootDir
+                     +"' since that directory does not exist.",
+                     Project.MSG_WARN);
+            continue;
+          }
+        }
 
         for (Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
           final Resource res = (Resource) rcIt.next();
