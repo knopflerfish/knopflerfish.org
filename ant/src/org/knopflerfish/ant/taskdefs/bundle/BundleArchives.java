@@ -123,7 +123,7 @@ public class BundleArchives {
         for (Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
           final Resource res = (Resource) rcIt.next();
           if(res.getName().endsWith(".jar")) {
-            task.log("Adding bundle: "+res, Project.MSG_INFO);
+            task.log("Adding bundle: "+res, Project.MSG_VERBOSE);
             final BundleArchive ba
               = new BundleArchive( task, (FileResource) res);
             allBundleArchives.add(ba);
