@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,16 +39,28 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * * Reads an input stream and extracts telnet commands. * When a command is
- * found a callback is made to the * telnet session. * * The following
- * transformations are made: * * CR null to CR * CR LF to CR * CR n, where n is
- * not null or LF is discarded * IAC IAC to IAC * * in the data part of the
- * input stream. * * While parsing telnet commands no transforms * except IAC
- * IAC to IAC are made. * * A state machine is used to parse the telnet
- * commands.
+ * Reads an input stream and extracts telnet commands.  When a command
+ * is found a callback is made to the telnet session.
+ *
+ * <p>The following transformations are made in the data part of the
+ *  input stream:<br>
+ *  <table>
+ *    <tr><th>From</th><th>To</th></tr>
+ *    <tr><td>CR null</td><td>CR</td></tr>
+ *    <tr><td>CR LF</td><td>CR</td></tr>
+ *    <tr><td>CR n</td><td>where n is not null or LF is discarded</td></tr>
+ *    <tr><td>IAC IAC</td><td>IAC</td></tr>
+ *  </table>
+ *
+ * While parsing telnet commands no transforms
+ * except IAC IAC to IAC are made.
+ *
+ * A state machine is used to parse the telnet commands.
  */
 
-public class TelnetInputStream extends FilterInputStream {
+public class TelnetInputStream
+  extends FilterInputStream
+{
     private TelnetStateMachine tsm;
 
     private int prevChar;
