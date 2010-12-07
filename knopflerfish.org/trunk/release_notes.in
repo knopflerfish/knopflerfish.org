@@ -234,6 +234,15 @@ Release Notes Knopflerfish 3.1.0 (OSGi R4 v4.2)
     instantiate java.awt.SystemTray.
 
 
+  ConsoleTelnet 3.0.1
+
+  - A telnet client that closed its socket directly after sending a
+    quit command resulted in a looping thread in the consoletelnet
+    bundle. The root of this problem was the the internal TelnetReader
+    class did not return the proper values indicating End of File when
+    its underlaying reader was closed.
+
+
   Xalan 2.7.1.kf3_01
 
   - Set export and import versions of javax.xml.* packages so that
