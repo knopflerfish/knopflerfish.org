@@ -31,6 +31,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
     snapshot build on trunk since both of these repositories requires
     the KF-3 version of the bundlerepository-bundle.
 
+  consoletelnet 2.0.5
+
+  - A telnet client that closed its socket directly after sending a
+    quit command resulted in a looping thread in the consoletelnet
+    bundle. The root of this problem was the the internal TelnetReader
+    class did not return the proper values indicating End of File when
+    its underlaying reader was closed. 
+
+    This problem was reported the SourceForge bug tracker, item 3131427:
+    https://sourceforge.net/tracker/index.php?func=detail&aid=3131427&group_id=82798&atid=567241
 
 
 ========================================================================
