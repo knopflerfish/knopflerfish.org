@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,13 @@ import java.io.Reader;
 import java.util.Vector;
 
 /**
- * * Reads an input stream and extracts telnet TVM character * * This class
- * provides a very limited line editing capability
+ * Reads an input stream and extracts telnet TVM character.
+ *
+ * This class provides a very limited line editing capability.
  */
-
-public class TelnetReader extends Reader {
+public class TelnetReader
+  extends Reader
+{
     // private InputStreamReader ir;
     private TelnetSession tels;
 
@@ -83,11 +85,14 @@ public class TelnetReader extends Reader {
     }
 
     /**
-     * * Block here until end of line (CR) and then return * * This method
-     * provides very limited line editing functionality * * CR -> return from
-     * read * BS -> back one step in buffer *
+     * Block here until end of line (CR) and then return
+     *
+     * This method provides very limited line editing functionality
+     *
+     * CR -&lt; return from read
+     * BS -&lt; back one step in buffer
+     *
      */
-
     public int read(char[] buf, int off, int len) throws IOException {
         int count = 0;
         int character;
@@ -146,8 +151,13 @@ public class TelnetReader extends Reader {
                 default:
                     // System.out.println("char=" + character);
                     lineBuf.addElement(new Integer(character));
-                // tels.echoChar(character);
+                    // tels.echoChar(character);
                 }
+            } else {
+              // The input stream is closed; ignore the buffered data
+              // and return -1 to to tell next layer that the reader
+              // is closed.
+              return -1;
             }
         }
         return count;
@@ -182,7 +192,6 @@ public class TelnetReader extends Reader {
         if (c == TCC.CR) {
           skipLF = true;
         }
-
         return c;
     }
 
@@ -212,6 +221,13 @@ public class TelnetReader extends Reader {
                 character = readChar();
                 if (character == TCC.CR) {
                     break;
+                }
+
+                if (-1==character) {
+                  // The input stream is closed; ignore the buffered
+                  // data and return null to to tell next layer that
+                  // the reader is closed.
+                  return null;
                 }
                 // System.out.println("TelnetReader.readLine() add char " +
                 // character);
