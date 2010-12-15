@@ -273,9 +273,9 @@ public class Util {
    *   PARAM = attribute '=' value
    *   PARAM = directive ':=' value
    *
-   * @param a Attribute being parsed
-   * @param s String to parse
-   * @param single If true, only allow one key per ENTRY
+   * @param a Name of attribute being parsed (for error messages).
+   * @param s The attribute value to parse.
+   * @param single If true, only allow one key per ENTRY.
    * @param unique Only allow unique parameters for each ENTRY.
    * @param single_entry If true, only allow one ENTRY is allowed.
    * @return Iterator(Map(param -> value)) or null if input string is null.
