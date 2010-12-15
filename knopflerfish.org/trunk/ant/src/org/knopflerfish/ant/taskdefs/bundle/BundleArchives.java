@@ -34,11 +34,14 @@ package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -63,7 +66,9 @@ import org.osgi.framework.Version;
 public class BundleArchives {
 
   // This constant is missing from org.osgi.framework.Constants
-  public static final String BUNDLE_LICENSE = "Bundle-License";
+  public static final String BUNDLE_BLUEPRINT  = "Bundle-Blueprint";
+  public static final String BUNDLE_LICENSE    = "Bundle-License";
+  public static final String SERVICE_COMPONENT = "Service-Component";
 
   /**
    * The ant task that is using this helper class. Used for logging
@@ -93,9 +98,49 @@ public class BundleArchives {
    */
   final SortedSet allBundleArchives = new TreeSet();
 
+  /**
+   * Set with all packages exported from some bundle in this collection
+   * of bundle archives. The key in the map is the package name, the
+   * value is a map from package version to a set of bundle archives
+   * that exports that version of the package.
+   *
+   * <p>A call to {@link #doProviders()} must be made to compute this
+   * mapping.</p>
+   */
+  final SortedMap allExports = new TreeMap();
 
+
+  /**
+   * Traverse the given list of resource collections and create {@link
+   * BundleArchive}-objects for all bundle jars found.
+   *
+   * @param task The task that uses this class, used for logging and
+   *             project access.
+   * @param resourceCollections The collection of resource collections
+   *             selecting the bundle archives to load.
+   */
   public BundleArchives(final Task task,
-                        final List resourceCollections) {
+                        final List resourceCollections)
+  {
+    this(task, resourceCollections, false);
+  }
+
+  /**
+   * Traverse the given list of resource collections and create {@link
+   * BundleArchive}-objects for all bundle jars found.
+   *
+   * @param task The task that uses this class, used for logging and
+   *             project access.
+   * @param resourceCollections The collection of resource collections
+   *             selecting the bundle archives to load.
+   * @param parseExportImport If <code>true</code> then the created
+   *             bundle archive objects will parse the import / export package /
+   *             service headers.
+   */
+  public BundleArchives(final Task task,
+                        final List resourceCollections,
+                        final boolean parseExportImport)
+  {
     this.task = task;
 
     if (resourceCollections.size() == 0) {
@@ -125,7 +170,7 @@ public class BundleArchives {
           if(res.getName().endsWith(".jar")) {
             task.log("Adding bundle: "+res, Project.MSG_VERBOSE);
             final BundleArchive ba
-              = new BundleArchive( task, (FileResource) res);
+              = new BundleArchive( task, (FileResource) res, parseExportImport);
             allBundleArchives.add(ba);
             addToMap(bnToBundleArchives, ba.bundleName, ba);
             addToMap(bsnToBundleArchives, ba.bsn, ba);
@@ -147,6 +192,109 @@ public class BundleArchives {
     final TreeSet knownNames = new TreeSet(bnToBundleArchives.keySet());
     knownNames.addAll(bsnToBundleArchives.keySet());
     return knownNames;
+  }
+
+  /**
+   * Computes the global <code>allExports</code> mapping and the
+   * <code>pkgProvidersMap</code> for all bundle archives.
+   */
+  void doProviders()
+  {
+    // First build the allExports structure.
+    allExports.clear();
+    for(Iterator itBa = allBundleArchives.iterator(); itBa.hasNext(); ) {
+      final BundleArchive ba = (BundleArchive) itBa.next();
+      // Clear bundle archive maps holding results from this analysis
+      ba.pkgProvidersMap.clear();
+      ba.pkgUnprovidedMap.clear();
+      ba.pkgProvidedMap.clear();
+
+      final Iterator itEe = ba.pkgExportMap.entrySet().iterator();
+      while (itEe.hasNext()) {
+        final Map.Entry eE = (Map.Entry) itEe.next();
+        final String pkgName = (String) eE.getKey();
+        final Version pkgVersion = (Version) eE.getValue();
+
+        SortedMap versions = (SortedMap) allExports.get(pkgName);
+        if (null==versions) {
+          versions = new TreeMap();
+          allExports.put(pkgName, versions);
+        }
+
+        SortedSet exporters = (SortedSet) versions.get(pkgVersion);
+        if (null==exporters) {
+          exporters = new TreeSet();
+          versions.put(pkgVersion, exporters);
+        }
+        exporters.add(ba);
+      }
+    }
+
+    // For each bundle build the pkgProvidersMap
+    for(Iterator itBa = allBundleArchives.iterator(); itBa.hasNext(); ) {
+      final BundleArchive ba = (BundleArchive) itBa.next();
+
+      final Iterator itIe = ba.pkgImportMap.entrySet().iterator();
+      while (itIe.hasNext()) {
+        final Map.Entry iE = (Map.Entry) itIe.next();
+        final String pkgName = (String) iE.getKey();
+        final VersionRange range = (VersionRange) iE.getValue();
+
+        SortedMap versions = (SortedMap) allExports.get(pkgName);
+        if (null!=versions) {
+          final Iterator itV = versions.entrySet().iterator();
+          while (itV.hasNext()) {
+            final Map.Entry vE = (Map.Entry) itV.next();
+            final Version pkgVersion = (Version) vE.getKey();
+
+            if (range.contains(pkgVersion)) {
+              final SortedSet providers = (SortedSet) vE.getValue();
+
+              final Iterator itP = providers.iterator();
+              while(itP.hasNext()) {
+                final BundleArchive provider = (BundleArchive) itP.next();
+
+                // The package pkgName may be imported by ba from provider,
+                // update ba's providers map
+                SortedSet pkgNames = (SortedSet)
+                  ba.pkgProvidersMap.get(provider);
+                if (null==pkgNames) {
+                  pkgNames = new TreeSet();
+                  ba.pkgProvidersMap.put(provider, pkgNames);
+                }
+                pkgNames.add(pkgName);
+
+                // Non self exported package, add to pkgCtProvidersMap
+                if (!ba.pkgExportMap.containsKey(pkgName)) {
+                  SortedSet pkgNamesCt = (SortedSet)
+                    ba.pkgCtProvidersMap.get(provider);
+                  if (null==pkgNamesCt) {
+                    pkgNamesCt = new TreeSet();
+                    ba.pkgCtProvidersMap.put(provider, pkgNamesCt);
+                  }
+                  pkgNamesCt.add(pkgName);
+                }
+
+                // The package pkgName is provided (exported) by
+                // provider to ba, update provider.pkgProvidedMap to
+                // reflect this.
+                SortedSet pkgNamesProvidedToBa = (SortedSet)
+                  provider.pkgProvidedMap.get(ba);
+                if (null==pkgNamesProvidedToBa) {
+                  pkgNamesProvidedToBa = new TreeSet();
+                  provider.pkgProvidedMap.put(provider, pkgNamesProvidedToBa);
+                }
+                pkgNamesProvidedToBa.add(pkgName);
+              }
+            }
+          }
+        } else {
+          ba.pkgUnprovidedMap.put(pkgName, range);
+          task.log(ba +" importing no provider for package " +pkgName
+                   +" " +range, Project.MSG_DEBUG);
+        }
+      }
+    }
   }
 
   /**
@@ -230,8 +378,82 @@ public class BundleArchives {
     final Version version;
     final String  name;
 
+    /** Mapping from exported package name to its version. */
+    final Map pkgExportMap;
 
-    public BundleArchive(final Task task, final FileResource resource)
+    /** Mapping from imported package name to its version range constraint. */
+    final Map pkgImportMap;
+
+    /** Set with names of imported packages that are optional. */
+    final Set pkgImportOptional = new TreeSet();
+
+    /**
+     * Collection of bundles that provides packages that this bundle
+     * are importing. The mapping key is a bundle arvhice and the
+     * value is the set of package names that the bundle archive may
+     * provide to this bundle.
+     *
+     * <p>Initially empty, to fill in this map call {@link
+     * #doProviders()}.</p>
+     */
+    final Map pkgProvidersMap = new TreeMap();
+
+    /**
+     * Collection of bundles that provides packages that this bundle
+     * needs access to at compile time. I.e., packages that the bundle
+     * is importing but not exporting. The mapping key is a bundle
+     * arvhice and the value is the set of package names that the
+     * bundle archive may provide to this bundle.
+     *
+     * <p>Initially empty, to fill in this map call {@link
+     * #doProviders()}.</p>
+     */
+    final Map pkgCtProvidersMap = new TreeMap();
+
+    /**
+     * Collection of bundles that this bundle provides packages to,
+     * i.e., bundles importing the exports of this bundle.
+     * The mapping key is a bundle arvhice and the
+     * value is the set of package names that the bundle archive may
+     * import from this bundle.
+     *
+     * <p>Initially empty, to fill in this map call {@link
+     * #doProviders()}.</p>
+     */
+    final Map pkgProvidedMap = new TreeMap();
+
+    /**
+     * Sub set of the entires in the imported packages map for which
+     * there are no matching exporter. Mapping from package name to
+     * its version range constraint.
+     *
+     * <p>Initially empty, to fill in this map call {@link
+     * #doProviders()}.</p>
+     */
+    final Map pkgUnprovidedMap = new TreeMap();
+
+
+    /** Mapping from exported service name to its version. */
+    final Map serviceExportMap;
+
+    /** Mapping from imported srevice name to its version range constraint. */
+    final Map serviceImportMap;
+
+    /**
+     * Create a bundle archive object for the given bundle jar file.
+     *
+     * @param task The task that uses this class, used for logging and
+     *             project access.
+     * @param resource The bundle jar file to create a bundle archive
+     *             object for.
+     * @param parseExportImport If <code>true</code> then populate the
+     *             pkgExportMap, pkgImportMap, pkgImportOptional set
+     *             with data parsed from the import / export package
+     *             manifest attributes.
+     */
+    public BundleArchive(final Task task,
+                         final FileResource resource,
+                         final boolean parseExportImport)
       throws IOException
     {
       this.task = task;
@@ -324,6 +546,18 @@ public class BundleArchives {
         final String msg = "Found bundle with Bundle-MainfestVersion >= 2 "
           +"without Bundle-SymbolicName: "+ fileName;
         throw new BuildException(msg);
+      }
+
+      if (parseExportImport) {
+        pkgExportMap = parseNames("Export-Package", false, null);
+        pkgImportMap = parseNames("Import-Package", true, pkgImportOptional);
+        serviceExportMap = parseNames("Export-Service", false, null);
+        serviceImportMap = parseNames("Import-Service", true, null);
+      } else {
+        pkgExportMap = null;
+        pkgImportMap = null;
+        serviceExportMap = null;
+        serviceImportMap = null;
       }
     }
 
@@ -422,6 +656,54 @@ public class BundleArchives {
       }
     }
 
+    /**
+     * Parse import/export package/service headers.
+     *
+     * @param s The name the header to parse.
+     * @param range if versions shall be parsed as ranges or not.
+     * @param optionals Optional Set to add packages that are marked
+     *              with the directive resolution:=optional to.
+     *
+     * @return Mapping from package/service name to version/version range.
+     */
+    private Map parseNames(String s, boolean range, Set optionals)
+    {
+      final Map res = new TreeMap();
+
+      final String v = mainAttributes.getValue(s);
+      final Iterator pathIter = Util.parseEntries(s, v, false, true, false);
+
+      while (pathIter.hasNext()) {
+        final Map pathMap = (Map) pathIter.next();
+        String versionS = (String) pathMap.get("version");
+        // Fall back to "specification-version" for pre OSGi R4 bundles.
+        if (null==versionS) {
+          versionS = (String) pathMap.get("specification-version");
+        }
+        if (null==versionS) {
+          versionS = "0"; // The default version
+        }
+        final Object version = range
+          ? (Object) new VersionRange(versionS)
+          : (Object) new Version(versionS);
+
+        final Iterator nameIter = ((List) pathMap.get("$keys")).iterator();
+        while (nameIter.hasNext()) {
+          final String pkgName = (String) nameIter.next();
+          res.put(pkgName, version);
+          // Is this package/service optional
+          if (null!=optionals) {
+            Set directiveNames = (Set) pathMap.get("$directives");
+            if (directiveNames.contains("resolution")
+                && "optional".equals(pathMap.get("resolution"))) {
+              optionals.add(pkgName);
+            }
+          }
+        }
+      }
+      return res;
+    }
+
     public String getBundleDescription()
     {
       final String res = mainAttributes.getValue(Constants.BUNDLE_DESCRIPTION);
@@ -449,6 +731,50 @@ public class BundleArchives {
           +" manifest header '" +value +"' in " +file +": " +e;
         throw new BuildException(msg, e);
       }
+    }
+
+    /**
+     * @return <code>true</code> if this bundle includes Declarative
+     * Services Components, <code>false</code> otherwise.
+     */
+    public boolean isSCBundle()
+    {
+      return null!=mainAttributes.getValue(BundleArchives.SERVICE_COMPONENT);
+    }
+
+    /**
+     * @return <code>true</code> if this bundle includes blueprint
+     * components, <code>false</code> otherwise.
+     */
+    public boolean isBlueprintBundle()
+    {
+      // TODO: If header not present the default pattern,
+      // "OSGI-INF/blueprint/*.xml" should be checked.
+
+      return null!=mainAttributes.getValue(BundleArchives.BUNDLE_BLUEPRINT);
+    }
+
+    /**
+     * @return <code>true</code> if this bundle includes a bundle
+     * activator, <code>false</code> otherwise.
+     */
+    public boolean isActivatorBundle()
+    {
+      return null!=mainAttributes.getValue(Constants.BUNDLE_ACTIVATOR);
+    }
+
+    /**
+     * @return <code>true</code> if this bundle is an API only
+     * bundle. I.e. if it exports pacakges but does not have a bundle
+     * activator, service component or blueprint component.
+     * activator, <code>false</code> otherwise.
+     */
+    public boolean isAPIBundle()
+    {
+      return 0<pkgExportMap.size()
+        && !isActivatorBundle()
+        && !isSCBundle()
+        && !isBlueprintBundle();
     }
 
   } // class BundleArchive
