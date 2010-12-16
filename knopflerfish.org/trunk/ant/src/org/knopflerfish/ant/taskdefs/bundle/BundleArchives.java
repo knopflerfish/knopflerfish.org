@@ -713,13 +713,20 @@ public class BundleArchives {
     public Iterator getBundleLicense()
     {
       String value = mainAttributes.getValue(BundleArchives.BUNDLE_LICENSE);
-      if (null!=value && value.startsWith("http://")) {
-        // Unquoted URI, try to add qoutes
-        int pos = value.indexOf(';');
-        if (-1 < pos) {
-          value = "\"" +value.substring(0, pos) +"\"" +value.substring(pos);
-        } else if (-1 < (pos=value.indexOf(','))) {
-          value = "\"" +value.substring(0, pos) +"\"" +value.substring(pos);
+      if (null!=value) {
+        value = value.trim();
+        if (value.startsWith("http://")) {
+          // Unquoted URI, try to add qoutes in a couple of simple cases
+          int pos = value.indexOf(';');
+          if (-1 < pos) {
+            // param  present, stop qoute before it starts
+            value = "\"" +value.substring(0, pos) +"\"" +value.substring(pos);
+          } else if (-1 < (pos=value.indexOf(','))) {
+            // Multiple licenses present, quote the first one...
+            value = "\"" +value.substring(0, pos) +"\"" +value.substring(pos);
+          } else {
+            value = "\"" +value +"\"";
+          }
         }
       }
 

@@ -64,6 +64,9 @@
 	       default="http://www.knopflerfish.org/"/>
     <attribute name="artifactBundle"
                description="Bundle jar file for the artifact to deploy"/>
+    <attribute name="packing"
+               description="Artifact packing type"
+	       default="bundle"/>
     <element name="dependencies"
              optional="true"
              description="Place holder element for pom dependency."/>
@@ -78,7 +81,7 @@
 		    groupId="@{groupId}"
 		    artifactId="@{artifactId}"
 		    version="@{version}"
-		    packaging="bundle"
+		    packaging="@{packing}"
 		    name="@{artifactName}"
 		    description="@{description}">
 	<organization name="@{orgName}" url="@{orgUrl}"/>
