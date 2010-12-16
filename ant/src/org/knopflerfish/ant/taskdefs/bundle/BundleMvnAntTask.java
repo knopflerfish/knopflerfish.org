@@ -103,6 +103,16 @@ import org.osgi.framework.Version;
  *   <td valign=top>Yes.<br>No default value.</td>
  *  </tr>
  *
+ *  <tr>
+ *   <td valign=top>groupId</td>
+ *   <td valign=top>
+ *   Maven group id to use for bundles, for which a group id can not
+ *   be derived from the bundles symbolic name.
+ *   </td>
+ *  </td>
+ *   <td valign=top>No.<br>Default 'org.knopflerfish'.</td>
+ *  </tr>
+ *
  * </table>
  *
  * <h3>Parameters specified as nested elements</h3>
@@ -133,6 +143,11 @@ public class BundleMvnAntTask extends Task {
   public BundleMvnAntTask() {
   }
 
+
+  private String groupId = "org.knopflerfish";
+  public void setGroupId(final String s) {
+    this.groupId = s;
+  }
 
   private File templateAntFile;
   public void setTemplateAntFile(File f) {
@@ -219,6 +234,14 @@ public class BundleMvnAntTask extends Task {
           targets.append("\n").append(prefix3)
             .append("description=\"").append(description).append("\"");
         }
+
+        // Packing kind
+        if (ba.pkgExportMap.containsKey("org.osgi.framework")) {
+          targets.append("\n").append(prefix3).append("packing=\"jar\"");
+        } else {
+          targets.append("\n").append(prefix3).append("packing=\"bundle\"");
+        }
+
         targets.append(">\n");
 
         addLicenses(targets, ba, "    ");
@@ -251,7 +274,7 @@ public class BundleMvnAntTask extends Task {
   {
     final int ix = ba.bsn.lastIndexOf('.');
     final String aId = -1==ix ? ba.bsn : ba.bsn.substring(ix+1);
-    final String gId = -1==ix ? (String) null : ba.bsn.substring(0,ix);
+    final String gId = -1==ix ? (String) groupId : ba.bsn.substring(0,ix);
     final Version v = ba.version;
 
     if (null!=gId) {
