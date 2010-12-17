@@ -910,6 +910,10 @@ public class BundleImpl implements Bundle {
           bundleDir = null;
         }
         // id, location and headers survives after uninstall.
+
+        // There might be bundle threads that are running start or stop
+        // operation. This will wake them and give them an chance to terminate.
+        fwCtx.packages.notifyAll();
         break;
       }
     }

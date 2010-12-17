@@ -82,6 +82,15 @@ public class FWProps  {
     "org.knopflerfish.framework.service.permissionadmin";
 
   /**
+   * Property specifying how bundle threads which are aborted should be handled.
+   * Possible values are {@link BundleThread#ABORT_ACTION_STOP},
+   * {@link BundleThread#ABORT_ACTION_MINPRIO},
+   * {@link BundleThread#ABORT_ACTION_IGNORE}. The default value is
+   * {@link BundleThread#ABORT_ACTION_IGNORE}.
+   */
+  public final static String BUNDLETHREAD_ABORT = "org.knopflerfish.framework.bundlethread.abort";
+  
+  /**
    * Name of system property for basic system packages to be exported.
    * The normal OSGi exports will be added to this list.
    */
