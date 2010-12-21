@@ -52,6 +52,13 @@ ANTv = ${ANT} -Dversion=${VERSION} \
               -Dbuild.kind=${BUILD_KIND} \
 	      -Dbase.url=${OUT_URL}
 
+# Ant pre-configured for generating maven 2 repository (JSE 5 or higher required)
+TAGsABS=$(shell /bin/pwd)/${TAGs}
+ANTmvn = env JAVA_HOME=/usr ${ANT} \
+         -Dant.dir=${TAGsABS}/ant \
+         -Dmvn2.repo.dir=${TAGsABS}/out/distrib_${VERSION}/maven2 \
+         -Droot.out.dir=${TAGsABS}/out/tmp
+
 .PHONY: help all  clean version checkout update status
 .PHONY: build distrib
 .PHONY: copyout outindex clean_snapshots
@@ -94,6 +101,7 @@ build:
 
 distrib:
 	(cd ${TAGs} && ${ANTv} distrib)
+	[ -r ${TAGs}/out/tmp/toMvn.xml ] && (cd ${TAGs} && ${ANTmvn} -f out/tmp/toMvn.xml)
 
 clean:
 	$(RM) -rf ${TAGs}

@@ -6,7 +6,6 @@
   <property name="ant.dir"      location="$(ANT_DIR)"/>
   <property name="topdir"       location="${ant.dir}/.."/>
   <property name="osgi.dir"     location="${topdir}/osgi"/>
-  <property name="jars.dir"     location="${osgi.dir}/jars"/>
   <property name="root.out.dir" location="${osgi.dir}/out"/>
 
   <property name="mvn2.repo.dir" location="${root.out.dir}/maven2"/>
