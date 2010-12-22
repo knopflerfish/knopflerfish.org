@@ -80,7 +80,7 @@ public class BundleClassPath
    *
    * @throws BundleException if native code resolve failed.
    */
-  BundleClassPath(BundleArchive ba, List /* BundleImpl */ frags, FrameworkContext fwCtx)
+  BundleClassPath(BundleArchive ba, List /* BundleGeneration */ frags, FrameworkContext fwCtx)
     throws BundleException
   {
     props = fwCtx.props;
@@ -89,13 +89,13 @@ public class BundleClassPath
     checkBundleArchive(ba, frags);
     if (frags != null) {
       for (Iterator i = frags.iterator(); i.hasNext(); ) {
-        checkBundleArchive(((BundleImpl)i.next()).gen.archive, null);
+        checkBundleArchive(((BundleGeneration)i.next()).archive, null);
       }
     }
     resolveNativeCode(ba, false);
     if (frags != null) {
       for (Iterator i = frags.iterator(); i.hasNext(); ) {
-        resolveNativeCode(((BundleImpl)i.next()).gen.archive, true);
+        resolveNativeCode(((BundleGeneration)i.next()).archive, true);
       }
     }
   }

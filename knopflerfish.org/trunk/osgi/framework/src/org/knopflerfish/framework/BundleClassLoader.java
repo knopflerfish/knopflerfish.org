@@ -757,7 +757,7 @@ final public class BundleClassLoader
                     HashSet visited)
   {
     BundlePackages pbp;
-    ExportPkg ep;
+    Iterator /* ExportPkg */ ep;
 
     // TBD! Should this be an action method
     if (action == classSearch && requestor != this) {
@@ -779,9 +779,9 @@ final public class BundleClassLoader
           try {
             return fwCtx.systemBundle.getClassLoader().loadClass(name);
           } catch (ClassNotFoundException e) {
-            // continue
+            // TBD, continue!?
+            return null;
           }
-
         } else {
           BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
           // Second check avoids a loop when a required bundle imports a
@@ -834,13 +834,25 @@ final public class BundleClassLoader
           }
         }
       }
-      ep = bpkgs.getExport(pkg);
+      ep = bpkgs.getExports(pkg);
     } else {
       ep = null;
     }
     /* 5 + 6 */
-    if (this != requestor && ep != null && !ep.checkFilter(name)) {
-      return null;
+    if (this != requestor && ep != null) {
+      boolean blocked = true;
+      while (ep.hasNext()) {
+        if (((ExportPkg)ep.next()).checkFilter(name)) {
+          blocked = false;
+          break;
+        }
+      }
+      if (blocked) {
+        if (debug.classLoader) {
+          debug.println(this + " Filter check blocked search for: " + name);
+        }
+        return null;
+      }
     }
     Vector av = classPath.componentExists(path, onlyFirst);
     if (av != null) {
@@ -931,21 +943,21 @@ final public class BundleClassLoader
 
               // Use dalvik DexFile class loading when running
               // on the dalvik VM
-              if(bDalvik) {
-                  try {
-                      c = cl.getDexFileClass(name);
-                  } catch (Exception e) {
-                      throw new IOException("Failed to load dex class '" + name + "', " + e);
-                  }
+              if (bDalvik) {
+                try {
+                  c = cl.getDexFileClass(name);
+                } catch (Exception e) {
+                  throw new IOException("Failed to load dex class '" + name + "', " + e);
+                }
               }
 
-              if(c == null) {
+              if (c == null) {
                 if (cl.protectionDomain == null) {
                   // Kaffe can't handle null protectiondomain
                   c = cl.defineClass(name, bytes, 0, bytes.length);
                 } else {
                   c = cl.defineClass(name, bytes, 0, bytes.length,
-                                   cl.protectionDomain);
+                                     cl.protectionDomain);
                 }
               }
             }

@@ -364,19 +364,27 @@ public class Bundles {
    * already attached and targets given bundle.
    *
    * @param target the targetted bundle
-   * @return a list of all matching fragment bundles.
+   * @return a list of all matching fragment bundle generations.
    */
-  List getFragmentBundles(BundleImpl target) {
-    ArrayList retval = new ArrayList();
+  Collection /* BundleGeneration */ getFragmentBundles(BundleImpl target) {
+    HashMap res = new HashMap();
     for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
       BundleImpl b = (BundleImpl)e.nextElement();
-      if (b.gen.isFragment() &&
+      BundleGeneration bg = b.gen;
+      if (bg.isFragment() &&
           b.state != Bundle.UNINSTALLED &&
-          b.gen.fragment.isTarget(target)) { /* FIX SYNC */
-        retval.add(b);
+          bg.fragment.isTarget(target)) {
+        String sym = bg.symbolicName;
+        BundleGeneration old = (BundleGeneration)res.get(sym);
+        if (old != null && old.symbolicName.equals(sym)) {
+          if (old.version.compareTo(bg.version) > 0) {
+            continue;
+          }
+        }
+        res.put(sym, bg);
       }
     }
-    return retval;
+    return res.values();
   }
 
   

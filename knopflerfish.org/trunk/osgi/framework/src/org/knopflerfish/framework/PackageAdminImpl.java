@@ -411,14 +411,19 @@ public class PackageAdminImpl implements PackageAdmin {
       return null;
     }
 
-    BundleImpl b = (BundleImpl)bundle;
+    BundleGeneration bg = ((BundleImpl)bundle).gen;
 
-    if (b.gen.isFragment()) {
+    if (bg.isFragment()) {
       return null;
     }
 
-    if (b.isFragmentHost()) {
-      return (Bundle[])b.fragments.toArray(new Bundle[0]);
+    if (bg.isFragmentHost()) {
+      Vector fix = (Vector)bg.fragments.clone();
+      Bundle [] r = new Bundle[fix.size()];
+      for (int i = fix.size() - 1; i >= 0; i--) {
+        r[i] = ((BundleGeneration)fix.get(i)).bundle;
+      } 
+      return r;
     } else {
       return null;
     }
@@ -428,7 +433,12 @@ public class PackageAdminImpl implements PackageAdmin {
   public Bundle[] getHosts(Bundle bundle) {
     BundleImpl b = (BundleImpl)bundle;
     if (b != null && b.gen.isFragment() && b.isAttached()) {
-      return b.gen.fragment.hostsArray();
+      BundleGeneration [] bga = b.gen.fragment.hostsArray();
+      Bundle [] r = new Bundle[bga.length];
+      for (int i = 0; i < r.length; i++) {
+        r[i] = bga[i].bundle;
+      } 
+      return r;
     }
     return null;
   }

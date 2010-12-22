@@ -244,34 +244,34 @@ class ImportPkg {
 
 
   /**
-   * Check that we completly overlap specifed ImportPkg.
+   * Check that we intersect specifed ImportPkg.
    *
    * @param ip ImportPkg to check.
    * @return True if we overlap, otherwise false.
    */
-  boolean overlap(ImportPkg ip) {
-    if (ip.bundleSymbolicName == null ? bundleSymbolicName != null :
+  boolean intersect(ImportPkg ip) {
+    if (ip.bundleSymbolicName != null && bundleSymbolicName != null &&
         !ip.bundleSymbolicName.equals(bundleSymbolicName)) {
       return false;
     }
 
-    // Check that all other attributes match
+    // Check that no other attributes conflict
     for (Iterator i = attributes.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry e = (Map.Entry)i.next();
       String a = (String)ip.attributes.get(e.getKey());
-      if (a == null || !a.equals(e.getValue())) {
+      if (a != null && !a.equals(e.getValue())) {
         return false;
       }
     }
 
-    if (resolution.equals(Constants.RESOLUTION_MANDATORY) &&
-        !ip.resolution.equals(Constants.RESOLUTION_MANDATORY)) {
+    // Resolution doesn't need to be checked.
+    // This is handle when resolving package.
+    // If one import is mandatory then all must match.
+
+    if (!packageRange.intersectRange(ip.packageRange)) {
       return false;
     }
-    if (!packageRange.withinRange(ip.packageRange)) {
-      return false;
-    }
-    return bundleRange.withinRange(ip.bundleRange);
+    return bundleRange.intersectRange(ip.bundleRange);
   }
 
 

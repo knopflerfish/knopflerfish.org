@@ -406,7 +406,7 @@ public class ServiceReferenceImpl implements ServiceReference
         }
         if (pkgConsumer == null) {
           // NYI! Check dynamic import?
-          if (bb.getExport(name) != null) {
+          if (bb.isExported(name)) {
             // If bundle only exports package, then return true if
             // bundle is provider.
             return pkgProvider!=null ? pkgProvider.contains(bb) : true;

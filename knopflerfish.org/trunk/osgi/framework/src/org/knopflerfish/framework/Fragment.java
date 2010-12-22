@@ -46,7 +46,7 @@ class Fragment {
   final String hostName;
   final String extension;
   final VersionRange versionRange;
-  private ArrayList /* BundleImpl */ hosts = new ArrayList(2);
+  private ArrayList /* BundleGeneration */ hosts = new ArrayList(2);
 
   Fragment(String hostName, String extension, String range) {
     this.hostName = hostName;
@@ -57,12 +57,12 @@ class Fragment {
   }
 
 
-  void addHost(BundleImpl host) {
+  void addHost(BundleGeneration host) {
     hosts.add(host);
   }
 
 
-  void removeHost(BundleImpl host) {
+  void removeHost(BundleGeneration host) {
     if (host == null) {
       hosts.clear();
     } else {
@@ -86,8 +86,8 @@ class Fragment {
   }
 
 
-  Bundle [] hostsArray() {
-    return (Bundle [])hosts.toArray(new Bundle [hosts.size()]);
+  BundleGeneration [] hostsArray() {
+    return (BundleGeneration [])hosts.toArray(new BundleGeneration [hosts.size()]);
   }
 
 

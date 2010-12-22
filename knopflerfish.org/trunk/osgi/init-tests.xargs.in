@@ -21,8 +21,9 @@
 -Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
 
 # Various debug flags
--Forg.knopflerfish.framework.debug.packages=false
--Forg.knopflerfish.framework.debug.errors=false
+-Forg.knopflerfish.framework.debug.packages=true
+-Forg.knopflerfish.framework.debug.errors=true
+-Forg.knopflerfish.framework.debug.warnings=true
 -Forg.knopflerfish.framework.debug.classloader=false
 -Forg.knopflerfish.framework.debug.startlevel=false
 -Forg.knopflerfish.framework.debug.ldap=false
