@@ -146,6 +146,13 @@ public class Debug {
   public static String URL_PROP = "org.knopflerfish.framework.debug.url";
   boolean url;
 
+  /**
+   * Report warning handling events.
+   */
+  public static String WARNINGS_PROP = "org.knopflerfish.framework.debug.warnings";
+  boolean warnings;
+
+
 
   public Debug(FWProps props) {
     props.setPropertyDefault(AUTOMANIFEST_PROP, FWProps.FALSE);
@@ -176,6 +183,7 @@ public class Debug {
     service_reference = props.getBooleanProperty(SERVICE_REFERENCE_PROP);
     startlevel = props.getBooleanProperty(STARTLEVEL_PROP);
     url = props.getBooleanProperty(URL_PROP);
+    warnings = props.getBooleanProperty(WARNINGS_PROP);
   }
 
 

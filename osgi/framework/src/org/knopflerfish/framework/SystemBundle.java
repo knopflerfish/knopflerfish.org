@@ -376,18 +376,18 @@ public class SystemBundle extends BundleImpl implements Framework {
    * Adds an bundle as an extension that will be included
    * in the boot class path on restart.
    */
-  void attachFragment(BundleImpl extension) {
+  void attachExtension(BundleGeneration extension) {
     if (extension.isBootClassPathExtension()) {
       // if we attach during startup, we assume that bundle is in BCP.
       if (getClassLoader() == null) {
-        super.attachFragment(extension);
+        gen.attachFragment(extension);
       } else {
         throw new UnsupportedOperationException("Bootclasspath extension can not be dynamicly activated");
       }
     } else {
       try {
-        addClassPathURL(new URL("file:" + extension.gen.archive.getJarLocation()));
-        super.attachFragment(extension);
+        addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
+        gen.attachFragment(extension);
       } catch (Exception e) {
         throw new UnsupportedOperationException("Framework extension could not be dynamicly activated, " + e);
       }
@@ -405,10 +405,10 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @param baseName the basename for localization properties,
    *        <code>null</code> will choose OSGi default
    */
-  protected void readLocalization(String locale,
-                                  Hashtable localization_entries,
-                                  String baseName) {
-    if (fragments == null) {
+  void readLocalization(String locale,
+                        Hashtable localization_entries,
+                        String baseName) {
+    if (gen.fragments == null) {
       // NYI! read localization from framework.
       // There is no need for this now since it isn't used.
       return;
@@ -421,9 +421,9 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     while (true) {
       String l = baseName + locale + ".properties";
-      for (int i = fragments.size() - 1; i >= 0; i--) {
-        BundleImpl b = (BundleImpl)fragments.get(i);
-        Hashtable tmp = b.gen.archive.getLocalizationEntries(l);
+      for (int i = gen.fragments.size() - 1; i >= 0; i--) {
+        BundleGeneration bg = (BundleGeneration)gen.fragments.get(i);
+        Hashtable tmp = bg.archive.getLocalizationEntries(l);
         if (tmp != null) {
           localization_entries.putAll(tmp);
           return;
@@ -493,8 +493,8 @@ public class SystemBundle extends BundleImpl implements Framework {
     bundleContext = null;
     if (!bootClassPathHasChanged) {
       for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator(); i.hasNext(); ) {
-        BundleImpl b = (BundleImpl)i.next();
-        if (b.isBootClassPathExtension() && b.extensionNeedsRestart()) {
+        BundleGeneration bg = (BundleGeneration)i.next();
+        if (bg.isBootClassPathExtension() && bg.bundle.extensionNeedsRestart()) {
           bootClassPathHasChanged = true;
           break;
         }
@@ -800,10 +800,10 @@ public class SystemBundle extends BundleImpl implements Framework {
     StringBuffer bootClasspath = new StringBuffer();
     for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator();
          i.hasNext(); ) {
-      BundleImpl eb = (BundleImpl)i.next();
-      String path = eb.gen.archive.getJarLocation();
-      if (eb.isBootClassPathExtension()) {
-        if (bootClasspath.length()>0) {
+      BundleGeneration ebg = (BundleGeneration)i.next();
+      String path = ebg.archive.getJarLocation();
+      if (ebg.isBootClassPathExtension()) {
+        if (bootClasspath.length() > 0) {
           bootClasspath.append(File.pathSeparator);
         }
         bootClasspath.append(path);

@@ -198,21 +198,23 @@ class Packages {
    * @return True if all packages were succesfully unregistered,
    *         otherwise false.
    */
-  synchronized boolean unregisterPackages(List exports,
-                                          List imports,
+  synchronized boolean unregisterPackages(Iterator exports,
+                                          Iterator imports,
                                           boolean force)
   {
     // Check if somebody other than ourselves use our exports
     if (!force) {
-      for (Iterator i = exports.iterator(); i.hasNext(); ) {
+      ArrayList saved = new ArrayList();
+      for (Iterator i = exports; i.hasNext(); ) {
         ExportPkg ep = (ExportPkg)i.next();
+        saved.add(ep);
         // Is the exporting bundle wired to any bundle via Require-Bundle
-        if (ep.bpkgs.requiredBy!=null && ep.bpkgs.requiredBy.size()>0) {
+        if (ep.bpkgs.isRequired()) {
           if (framework.debug.packages) {
             framework.debug.println("unregisterPackages: Failed to unregister, "
                                     + ep +" is still in use via Require-Bundle.");
           }
-          markAsZombies(exports);
+          markAsZombies(saved, exports);
           return false;
         }
         Pkg p = ep.pkg;
@@ -224,16 +226,17 @@ class Packages {
                 framework.debug.println("unregisterPackages: Failed to unregister, "
                                         + ep +" is still in use via import-package.");
               }
-              markAsZombies(exports);
+              markAsZombies(saved, exports);
               return false;
             }
           }
         }
       }
+      exports = saved.iterator();
     }
 
-    for (Iterator i = exports.iterator(); i.hasNext(); ) {
-      ExportPkg ep = (ExportPkg)i.next();
+    while (exports.hasNext()) {
+      ExportPkg ep = (ExportPkg)exports.next();
       Pkg p = ep.pkg;
       if (framework.debug.packages) {
         framework.debug.println("unregisterPackages: unregister export - " + ep);
@@ -244,8 +247,8 @@ class Packages {
       }
     }
 
-    for (Iterator i = imports.iterator(); i.hasNext(); ) {
-      ImportPkg ip = (ImportPkg)i.next();
+    while (imports.hasNext()) {
+      ImportPkg ip = (ImportPkg)imports.next();
       Pkg p = ip.pkg;
       if (framework.debug.packages) {
         framework.debug.println("unregisterPackages: unregister import - "
@@ -418,18 +421,16 @@ class Packages {
             }
           }
         }
-        if (ep.bpkgs.requiredBy!=null) {
-          for (Iterator rbi = ep.bpkgs.requiredBy.iterator(); rbi.hasNext();) {
-            BundlePackages rbpkgs = (BundlePackages) rbi.next();
-            Bundle rb = rbpkgs.bg.bundle;
-            if (!affected.contains(rb)) {
-              moreBundles.add(rb);
-              if (framework.debug.packages) {
-                framework.debug.println("getZombieAffected: added requiring bundle - "
-                                        + rb);
-              }
-              affected.add(rb);
+        for (Iterator rbi = ep.bpkgs.getRequiredBy().iterator(); rbi.hasNext();) {
+          BundlePackages rbpkgs = (BundlePackages) rbi.next();
+          Bundle rb = rbpkgs.bg.bundle;
+          if (!affected.contains(rb)) {
+            moreBundles.add(rb);
+            if (framework.debug.packages) {
+              framework.debug.println("getZombieAffected: added requiring bundle - "
+                                      + rb);
             }
+            affected.add(rb);
           }
         }
       }
@@ -487,9 +488,12 @@ class Packages {
    *
    * @param exporters List of ExportPkg.
    */
-  private void markAsZombies(List exports) {
-    for (Iterator i = exports.iterator(); i.hasNext();) {
+  private void markAsZombies(List e1, Iterator e2) {
+    for (Iterator i = e1.iterator(); i.hasNext();) {
       ((ExportPkg)i.next()).zombie = true;
+    }
+    while (e2.hasNext()) {
+      ((ExportPkg)e2.next()).zombie = true;
     }
   }
 
@@ -819,7 +823,8 @@ class Packages {
    */
   private String checkRequireBundle(BundleImpl b) {
     // NYI! More speed?
-    if (b.gen.bpkgs.require != null) {
+    Iterator i = b.gen.bpkgs.getRequire();
+    if (i != null) {
       if (framework.debug.packages) {
         framework.debug.println("checkRequireBundle: check requiring bundle " + b);
       }
@@ -827,7 +832,7 @@ class Packages {
         return b.gen.symbolicName;
       }
       HashMap res = new HashMap();
-      for (Iterator i = b.gen.bpkgs.require.iterator(); i.hasNext(); ) {
+      do {
         RequireBundle br = (RequireBundle)i.next();
         List bl = framework.bundles.getBundles(br.name, br.bundleRange);
         BundleImpl ok = null;
@@ -863,7 +868,7 @@ class Packages {
           }
           return br.name;
         }
-      }
+      } while (i.hasNext());
       tempRequired.putAll(res);
     }
     return null;
@@ -883,10 +888,7 @@ class Packages {
       BundlePackages bpkgs = (BundlePackages)e.getValue();
       RequireBundle br = (RequireBundle)e.getKey();
       br.bpkgs = bpkgs;
-      if (bpkgs.requiredBy == null) {
-        bpkgs.requiredBy = new ArrayList(1);
-      }
-      bpkgs.requiredBy.add(br.requestor);
+      bpkgs.addRequiredBy(br.requestor);
       if (framework.debug.packages) {
         framework.debug.println("registerNewProviders: '"
                                 + Constants.REQUIRE_BUNDLE +": " + br.name

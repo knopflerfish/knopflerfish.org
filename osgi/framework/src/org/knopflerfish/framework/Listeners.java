@@ -340,6 +340,14 @@ class Listeners {
                                         evt.getThrowable());
       }
     }
+    if (framework.debug.warnings) {
+      if (evt.getType() == FrameworkEvent.WARNING) {
+        framework.debug.println("warnings - FrameworkErrorEvent bundle #" +
+                                evt.getBundle().getBundleId());
+        framework.debug.printStackTrace("warnings - FrameworkErrorEvent throwable: ",
+                                        evt.getThrowable());
+      }
+    }
     if (asyncEventQueue != null) {
       synchronized (asyncEventQueue) {
         synchronized (frameworkListeners) {

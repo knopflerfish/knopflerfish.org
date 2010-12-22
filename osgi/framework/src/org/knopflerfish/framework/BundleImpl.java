@@ -112,11 +112,6 @@ public class BundleImpl implements Bundle {
   protected BundleActivator bactivator = null;
 
   /**
-   * All fragment bundles this bundle hosts.
-   */
-  Vector /* BundleImpl */ fragments = null;
-
-  /**
    * Stores the default locale entries when uninstalled.
    */
   volatile private HeaderDictionary cachedHeaders = null;
@@ -183,7 +178,7 @@ public class BundleImpl implements Bundle {
 
     // Activate extension as soon as they are installed so that
     // they get added in bundle id order.
-    if (gen.isExtension() && resolveFragment(fwCtx.systemBundle)) {
+    if (gen.isExtension() && attachToFragmentHost(fwCtx.systemBundle.gen)) {
       state = RESOLVED;
     }
   }
@@ -738,7 +733,7 @@ public class BundleImpl implements Bundle {
           }
         } else {
           for (Iterator i = oldFragment.getHosts(); i.hasNext(); ) {
-            ((BundleImpl)i.next()).gen.bpkgs.fragmentIsZombie(this);
+            ((BundleGeneration)i.next()).bpkgs.fragmentIsZombie(this);
           }
         }
         oldFragment.removeHost(null);
@@ -748,17 +743,13 @@ public class BundleImpl implements Bundle {
       }
     } else {
       // Remove this bundle's packages
-      purgeOld = gen.bpkgs.unregisterPackages(false);
+      purgeOld = gen.unregisterPackages(false);
 
       // Loose old bundle if no exporting packages left
       if (purgeOld) {
         gen.closeClassLoader();
       } else {
         saveZombiePackages();
-      }
-
-      if (isFragmentHost()) {
-        detachFragments();
       }
     }
 
@@ -857,14 +848,14 @@ public class BundleImpl implements Bundle {
         if (gen.isFragment()) {
           if (isAttached()) {
             if (gen.isExtension()) {
-              if (isBootClassPathExtension()) {
+              if (gen.isBootClassPathExtension()) {
                 fwCtx.systemBundle.bootClassPathHasChanged = true;
               }
             } else {
               for (Iterator i = gen.fragment.getHosts(); i.hasNext(); ) {
-                BundleImpl hb = (BundleImpl)i.next();
-                if (hb.gen.bpkgs != null) {  /* FIX SYNC */
-                  hb.gen.bpkgs.fragmentIsZombie(this);
+                BundleGeneration hbg = (BundleGeneration)i.next();
+                if (hbg.bpkgs != null) {
+                  hbg.bpkgs.fragmentIsZombie(this);
                 }
               }
             }
@@ -874,7 +865,7 @@ public class BundleImpl implements Bundle {
           }
         } else { // Non-fragment bundle
           // Try to unregister this bundle's packages
-          boolean pkgsUnregistered = gen.bpkgs.unregisterPackages(false);
+          boolean pkgsUnregistered = gen.unregisterPackages(false);
 
           if (pkgsUnregistered) {
             // No exports in use, clean up.
@@ -883,10 +874,6 @@ public class BundleImpl implements Bundle {
           } else {
             // Exports are in use, save as zombie packages
             saveZombiePackages();
-          }
-
-          if (isFragmentHost()) {
-            detachFragments();
           }
         }
 
@@ -1152,17 +1139,10 @@ public class BundleImpl implements Bundle {
                 }
               }
             } else {
-              // TODO, should we do this as a part of package resolving.
-              attachFragments();
-              if (gen.resolvePackages(fragments)) {
+              if (gen.resolvePackages()) {
                 state = RESOLVED;
                 operation = RESOLVING;
-                if (fragments != null) {
-                  for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-                    BundleImpl fb = (BundleImpl)i.next();
-                    fb.getUpdatedState();
-                  }
-                }
+                gen.updateStateFragments();
                 bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
                 operation = IDLE;
               } else {
@@ -1175,7 +1155,6 @@ public class BundleImpl implements Bundle {
         }
       } catch (BundleException be) {
         resolveFailException = be;
-        detachFragments();
         fwCtx.listeners.frameworkError(this, be);
       }
     }
@@ -1184,18 +1163,21 @@ public class BundleImpl implements Bundle {
 
 
   /**
-   * Resolve fragment
+   * Attach a fragment to host bundle
    */
-  boolean resolveFragment(BundleImpl host) {
+  boolean attachToFragmentHost(BundleGeneration host) {
     BundleGeneration fix = gen;
     if (fix.isFragment() && secure.okFragmentBundlePerm(this)) {
       try {
-        // NYI! Fix fragment handling BundleGeneration
-        host.attachFragment(this);
+        if (fix.isExtension()) {
+          fwCtx.systemBundle.attachExtension(fix);
+        } else {
+          host.attachFragment(fix);
+        }
         fix.fragment.addHost(host);
         return true;
-      } catch (Exception _ignore) { 
-        // TODO, Log this?
+      } catch (Exception e) { 
+        fwCtx.listeners.frameworkWarning(this, e);
       }
     }
     return false;
@@ -1240,10 +1222,7 @@ public class BundleImpl implements Bundle {
         gen.fragment.removeHost(null);
       } else {
         gen.closeClassLoader();
-        gen.bpkgs.unregisterPackages(true);
-        if (isFragmentHost()) {
-          detachFragments();
-        }
+        gen.unregisterPackages(true);
         gen.bpkgs.registerPackages();
       }
       state = INSTALLED;
@@ -1309,6 +1288,7 @@ public class BundleImpl implements Bundle {
       HashSet res = new HashSet();
       for (int i = fix.size() - 1; i >= 0; i--) {
         BundleGeneration bg = (BundleGeneration)fix.get(i);
+        // NYI Check that we export the right version or should we export all?
         for (Iterator j = bg.bpkgs.getExports(); j.hasNext();) {
           res.add(j.next());
         }
@@ -1332,29 +1312,29 @@ public class BundleImpl implements Bundle {
    *
    * @return Iterator of all imported packages as ImportPkg.
    */
-  Iterator getImports() {
-    BundlePackages bp = gen.bpkgs;
-    Vector fix = oldGenerations;
-    if (fix != null) {
-      HashSet res = new HashSet();
-      for (int i = fix.size() - 1; i >= 0; i--) {
-        BundleGeneration bg = (BundleGeneration)fix.get(i);
-        for (Iterator j = bg.bpkgs.getImports(); j.hasNext();) {
-          res.add(j.next());
-        }
-      }
-      if (bp != null) {
-        for (Iterator i = bp.getImports(); i.hasNext();) {
-          res.add(i.next());
-        }
-      }
-      return res.iterator();
-    } else if (bp != null) {
-      return bp.getImports();
-    } else {
-      return Collections.EMPTY_LIST.iterator();
-    }
-  }
+  // Iterator getImports() {
+  //   BundlePackages bp = gen.bpkgs;
+  //   Vector fix = oldGenerations;
+  //   if (fix != null) {
+  //     HashSet res = new HashSet();
+  //     for (int i = fix.size() - 1; i >= 0; i--) {
+  //       BundleGeneration bg = (BundleGeneration)fix.get(i);
+  //       for (Iterator j = bg.bpkgs.getImports(); j.hasNext();) {
+  //         res.add(j.next());
+  //       }
+  //     }
+  //     if (bp != null) {
+  //       for (Iterator i = bp.getImports(); i.hasNext();) {
+  //         res.add(i.next());
+  //       }
+  //     }
+  //     return res.iterator();
+  //   } else if (bp != null) {
+  //     return bp.getImports();
+  //   } else {
+  //     return Collections.EMPTY_LIST.iterator();
+  //   }
+  // }
 
   /**
    * Get a list of all BundlePackages that require the exported
@@ -1517,30 +1497,10 @@ public class BundleImpl implements Bundle {
           getUpdatedState();
         }
       }
-      return secure.callFindEntries0(this, path, filePattern, recurse);
+      return secure.callFindEntries(gen, path, filePattern, recurse);
     } else {
       return null;
     }
-  }
-
-
-  /**
-   *
-   */
-  Enumeration findEntries0(String path,
-                           String filePattern,
-                           boolean recurse)
-  {
-        Vector res = new Vector();
-        gen.addResourceEntries(res, path, filePattern, recurse);
-        // NYI fragments must be consistent with gen.
-        if (isFragmentHost()) {
-          for (Iterator i = fragments.iterator(); i.hasNext(); ) {
-            BundleImpl fb = (BundleImpl)i.next();
-            fb.gen.addResourceEntries(res, path, filePattern, recurse);
-          }
-        }
-        return res.size() != 0 ? res.elements() : null;
   }
 
 
@@ -1666,16 +1626,6 @@ public class BundleImpl implements Bundle {
 
 
   /**
-   * Checks if this bundle is a boot class path extension bundle
-   */
-  boolean isBootClassPathExtension() {
-    BundleGeneration fix = gen;
-    return fix.fragment != null && fix.fragment.extension != null
-      && fix.fragment.extension.equals(Constants.EXTENSION_BOOTCLASSPATH);
-  }
-
-
-  /**
    * Checks if this bundle is attached to a fragment host.
    */
   boolean isAttached() {
@@ -1698,80 +1648,6 @@ public class BundleImpl implements Bundle {
   }
 
 
-  /**
-   * Determines whether this bundle is a fragment host
-   * or not.
-   */
-  boolean isFragmentHost() {
-    return fragments != null && fragments.size() > 0;
-  }
-
-
-  /**
-   * Attaches all relevant fragments to this bundle.
-   */
-  void attachFragments() {
-    if (!gen.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
-      List hosting = fwCtx.bundles.getFragmentBundles(this);
-      if (hosting.size() > 0 && secure.okHostBundlePerm(this)) {
-        // retrieve all fragments this bundle host
-        for (Iterator iter = hosting.iterator(); iter.hasNext(); ) {
-          BundleImpl fb = (BundleImpl)iter.next();
-          fb.resolveFragment(this);
-        }
-      }
-    }
-  }
-
-
-  /**
-   * Attaches a fragment to this bundle.
-   */
-  void attachFragment(BundleImpl fragmentBundle) {
-    checkUninstalled();
-    if (gen.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
-      throw new IllegalStateException("Bundle does not allow fragments to attach");
-    }
-    if (gen.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME) &&
-        (state & RESOLVED_FLAGS) != 0) {
-      throw new IllegalStateException("Bundle does not allow fragments to attach dynamicly");
-    }
-
-    String failReason = gen.bpkgs.attachFragment(fragmentBundle.gen.bpkgs);
-    if (failReason != null) {
-      throw new IllegalStateException(failReason);
-    }
-
-    if(fwCtx.debug.packages) {
-      fwCtx.debug.println("Fragment(id=" +fragmentBundle.getBundleId()
-                          +") attached to host(id=" +id
-                          +",gen=" +gen.generation +")");
-
-
-    }
-    if (fragments == null) {
-      fragments = new Vector();
-    }
-    int i = 0;
-    for (; i < fragments.size(); i++) {
-      BundleImpl b = (BundleImpl)fragments.get(i);
-      if (b.id > fragmentBundle.id) {
-        break;
-      }
-    }
-    fragments.add(i, fragmentBundle);
-  }
-
-
-  /**
-   * Returns a iterator over all attached fragments.
-   */
-  Iterator getFragments() {
-    Vector fix = fragments;
-    return fix == null ? Collections.EMPTY_LIST.iterator() : fix.iterator();
-  }
-
-
   // Lazy bundles in state STARTING must not be actiavted during shutdown
   boolean triggersActivationPkg(String pkg) {
     return Bundle.STOPPING!= fwCtx.systemBundle.getState()
@@ -1779,6 +1655,7 @@ public class BundleImpl implements Bundle {
       && operation != ACTIVATING
       && gen.isPkgActivationTrigger(pkg);
   }
+
 
   // Lazy bundles in state STARTING must not be actiavted during shutdown
   boolean triggersActivationCls(String name) {
@@ -1864,39 +1741,6 @@ public class BundleImpl implements Bundle {
     gen.closeClassLoader();
   }
 
-
-  /**
-   * Detach all fragments from this bundle and its bundle packages.
-   */
-  private void detachFragments() {
-    if (fragments != null) {
-      while (fragments.size() > 0) {
-        detachFragment((BundleImpl)fragments.get(0));
-      }
-    }
-  }
-
-
-  /**
-   * Detach fragment from this bundle.
-   */
-  private void detachFragment(BundleImpl fb) {
-    // NYI! extensions
-    if (fragments.remove(fb)) {
-      gen.bpkgs.detachFragment(fb);
-      if(fwCtx.debug.packages) {
-        fwCtx.debug.println("Fragment(id=" +fb.getBundleId()
-                            +") detached from host(id=" +id
-                            +",gen=" +gen.generation +")");
-      }
-      if (fb.state != UNINSTALLED) {
-        fb.gen.fragment.removeHost(this);
-        if (!fb.gen.fragment.hasHosts()) {
-          fb.setStateInstalled(true);
-        }
-      }
-    }
-  }
 
   /**
    * Check if bundle is in state UNINSTALLED. If so, throw exception.

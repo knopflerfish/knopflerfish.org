@@ -48,13 +48,12 @@ class RequireBundle {
 
   /**
    * A re-required bundle for fragment hosts.
+   * @param parent    The fragment require bundle object to re-require.
    * @param requestor The bundle packages of the fragment host that
    *                  re-requires a required bundle from one of its
    *                  fragments.
-   * @param parent    The fragment require bundle object to re-require.
    */
-  RequireBundle(BundlePackages requestor,
-                RequireBundle  parent)
+  RequireBundle(RequireBundle  parent, BundlePackages requestor)
   {
     this.requestor  = requestor;
     this.name       = parent.name;

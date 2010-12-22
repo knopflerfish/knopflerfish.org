@@ -10,8 +10,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-  Framework 5.1.8
+  Framework 5.1.9
 
+  - Refactored fragment handling and improved handling of
+    conflicting imports.
   - Bundle threads hanging in bundle start or stop methods are
     now aborted if the bundle is uninstalled. A new framework 
     property, "org.knopflerfish.framework.bundlethread.abort" 

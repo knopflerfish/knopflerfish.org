@@ -231,9 +231,9 @@ class PermissionOps {
   }
 
 
-  Enumeration callFindEntries0(final BundleImpl b, final String path,
-                               final String filePattern, final boolean recurse) {
-    return b.findEntries0(path, filePattern, recurse);
+  Enumeration callFindEntries(final BundleGeneration bg, final String path,
+                              final String filePattern, final boolean recurse) {
+    return bg.findEntries(path, filePattern, recurse);
   }
 
 

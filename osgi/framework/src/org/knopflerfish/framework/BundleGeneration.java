@@ -49,7 +49,7 @@ import org.osgi.framework.*;
  * @author Jan Stein
  */
 
-public class BundleGeneration {
+public class BundleGeneration implements Comparable {
 
   /**
    * Bundle
@@ -115,6 +115,11 @@ public class BundleGeneration {
    *
    */
   final long timeStamp;
+
+  /**
+   * All fragment bundles this bundle hosts.
+   */
+  Vector /* BundleGeneration */ fragments = null;
 
   /**
    * Stores the raw manifest headers.
@@ -382,6 +387,22 @@ public class BundleGeneration {
     classLoader = null;
   }
 
+  /**
+   * Compares this <code>BundleGeneration</code> object to another object.
+   * It compares the bundle identifier value.
+   * 
+   */
+  public int compareTo(Object obj) {
+    long diff = bundle.id - ((BundleGeneration)obj).bundle.id;
+    if (diff < 0) {
+      return -1;
+    } else if (diff == 0) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+
   //
   // Package methods
   //
@@ -417,12 +438,25 @@ public class BundleGeneration {
   /**
    *
    */
-  boolean resolvePackages(Vector fragments)
+  boolean resolvePackages()
     throws BundleException
   {
-    if (bpkgs.resolvePackages()) {
-      classLoader = bundle.secure.newBundleClassLoader(this, fragments);
-      return true;
+    attachFragments();
+    while (true) {
+      if (bpkgs.resolvePackages()) {
+        classLoader = bundle.secure.newBundleClassLoader(this, fragments);
+        return true;
+      }
+      if (fragments != null) {
+        if (bundle.fwCtx.debug.packages) {
+          bundle.fwCtx.debug.println("Resolve failed, remove last fragment and retry");
+        }
+        if (detachLastFragment()) {
+          fragments = null;
+        }
+      } else {
+        break;
+      }
     }
     return false;
   }
@@ -462,10 +496,125 @@ public class BundleGeneration {
 
 
   /**
+   * Attaches all relevant fragments to this bundle.
+   */
+  private void attachFragments() {
+    if (!attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
+      Collection hosting = bundle.fwCtx.bundles.getFragmentBundles(bundle);
+      if (hosting.size() > 0 && bundle.secure.okHostBundlePerm(bundle)) {
+        // retrieve all fragments this bundle host
+        for (Iterator iter = hosting.iterator(); iter.hasNext(); ) {
+          BundleGeneration fbg = (BundleGeneration)iter.next();
+          fbg.bundle.attachToFragmentHost(this);
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Attaches a fragment to this bundle generation.
+   */
+  void attachFragment(BundleGeneration fragmentBundle) {
+    if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
+      throw new IllegalStateException("Bundle does not allow fragments to attach");
+    }
+    if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME) &&
+        (bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
+      throw new IllegalStateException("Bundle does not allow fragments to attach dynamicly");
+    }
+
+    bpkgs.attachFragment(fragmentBundle.bpkgs);
+    if (bundle.fwCtx.debug.packages) {
+      bundle.fwCtx.debug.println("Fragment(" + fragmentBundle.bundle
+                                 + ") attached to host(id=" + bundle.id
+                                 + ",gen=" + generation + ")");
+    }
+    if (fragments == null) {
+      fragments = new Vector();
+    }
+    int i = 0;
+    for (; i < fragments.size(); i++) {
+      BundleGeneration b = (BundleGeneration)fragments.get(i);
+      if (b.bundle.id > fragmentBundle.bundle.id) {
+        break;
+      }
+    }
+    fragments.add(i, fragmentBundle);
+  }
+
+
+  /**
+   * Detach all fragments from this bundle and its bundle packages.
+   */
+  void detachFragments() {
+  }
+
+
+  /**
+   * Detach fragment from this bundle.
+   *
+   * @return true if we removed last fragment, otherwise false.
+   */
+  private boolean detachLastFragment() {
+    // NYI! extensions
+    int last = fragments.size() - 1;
+    if (last >= 0) {
+      BundleGeneration fbg = (BundleGeneration)fragments.remove(last);
+      bpkgs.detachFragment(fbg);
+      if (bundle.fwCtx.debug.packages) {
+        bundle.fwCtx.debug.println("Fragment(id=" + fbg.bundle.id
+                                   + ") detached from host(id=" + bundle.id
+                                   + ",gen=" + generation + ")");
+      }
+      if (fbg.bundle.state != Bundle.UNINSTALLED) {
+        fbg.fragment.removeHost(this);
+        if (!fbg.fragment.hasHosts()) {
+          if (fbg == fbg.bundle.gen) {
+            fbg.bundle.setStateInstalled(true);
+          } else {
+            //... NYI zombie detach
+          }
+        }
+      }
+    }
+    return last <= 0;
+  }
+
+
+  void updateStateFragments() {
+    if (fragments != null) {
+      for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+        BundleImpl fb = ((BundleGeneration)i.next()).bundle;
+        fb.getUpdatedState();
+      }
+    }
+  }
+
+
+  /**
    * Checks if this bundle is a fragment
    */
   boolean isFragment() {
     return fragment != null;
+  }
+
+
+  /**
+   * Determines whether this bundle is a fragment host
+   * or not.
+   */
+  boolean isFragmentHost() {
+    return fragments != null && fragments.size() > 0;
+  }
+
+
+  /**
+   * Checks if this bundle is a boot class path extension bundle
+   */
+  boolean isBootClassPathExtension() {
+    return fragment != null && fragment.extension != null
+      && fragment.extension.equals(Constants.EXTENSION_BOOTCLASSPATH);
   }
 
 
@@ -480,7 +629,7 @@ public class BundleGeneration {
   /**
    * Get locale dictionary for this bundle.
    */
-  Dictionary getLocaleDictionary(String locale, String baseName) {
+  private Dictionary getLocaleDictionary(String locale, String baseName) {
     final String defaultLocale = Locale.getDefault().toString();
 
     if (locale == null) {
@@ -494,21 +643,21 @@ public class BundleGeneration {
       baseName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
     }
     if (fragment != null) {
-      BundleImpl best;
+      BundleGeneration best;
       while (true) {
         try {
           Iterator i = fragment.getHosts();
           best = null;
           while (i.hasNext()) {
-            BundleImpl b = (BundleImpl)i.next();
-            if (best == null || b.getVersion().compareTo(best.getVersion()) > 0) {
-              best = b;
+            BundleGeneration bg = (BundleGeneration)i.next();
+            if (best == null || bg.version.compareTo(best.version) > 0) {
+              best = bg;
             }
           }
           break;
         } catch (ConcurrentModificationException ignore) { }
       }
-      if (best == bundle.fwCtx.systemBundle) {
+      if (best == bundle.fwCtx.systemBundle.gen) {
         bundle.fwCtx.systemBundle.readLocalization("", localization_entries, baseName);
         bundle.fwCtx.systemBundle.readLocalization(defaultLocale, localization_entries, baseName);
         if (!locale.equals(defaultLocale)) {
@@ -516,7 +665,7 @@ public class BundleGeneration {
         }
         return localization_entries;
       } else if (best != null) {
-        return best.gen.getLocaleDictionary(locale, baseName);
+        return best.getLocaleDictionary(locale, baseName);
       }
       // Didn't find a host, fall through.
     }
@@ -596,6 +745,25 @@ public class BundleGeneration {
 
 
   /**
+   *
+   */
+  Enumeration findEntries(String path,
+                           String filePattern,
+                           boolean recurse)
+  {
+        Vector res = new Vector();
+        addResourceEntries(res, path, filePattern, recurse);
+        if (isFragmentHost()) {
+          for (Iterator i = fragments.iterator(); i.hasNext(); ) {
+            BundleGeneration fbg = (BundleGeneration)i.next();
+            fbg.addResourceEntries(res, path, filePattern, recurse);
+          }
+        }
+        return res.size() != 0 ? res.elements() : null;
+  }
+
+
+  /**
    * Construct URL to bundle resource
    */
   URL getURL(int subId, String path) {
@@ -646,6 +814,21 @@ public class BundleGeneration {
     if (archive != null) {
       archive.purge();
     }
+  }
+
+
+  /**
+   * 
+   *
+   */
+  boolean unregisterPackages(boolean force) {
+    boolean res = bpkgs.unregisterPackages(force);
+    if (res && isFragmentHost()) {
+      while (!detachLastFragment())
+        ;
+      fragments = null;
+    }
+    return res;
   }
 
 
@@ -786,9 +969,10 @@ public class BundleGeneration {
    */
   private Hashtable getLocalizationEntries(String name) {
     Hashtable res = archive.getLocalizationEntries(name);
-    if (res == null) {
-      for (Iterator i = bundle.getFragments(); i.hasNext(); ) {
-        BundleGeneration bg = ((BundleImpl)i.next()).gen;
+    if (res == null && fragments != null) {
+      Vector fix = (Vector)fragments.clone();
+      for (Iterator i = fix.iterator(); i.hasNext(); ) {
+        BundleGeneration bg = (BundleGeneration)i.next();
         if (bg.archive != null) {
           res = bg.archive.getLocalizationEntries(name);
           if (res != null) {

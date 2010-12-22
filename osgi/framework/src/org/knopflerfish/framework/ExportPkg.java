@@ -274,7 +274,7 @@ class ExportPkg {
 
 
   /**
-   * Check if the name, version, attributes and directoves are equal.
+   * Check if the name, version, attributes and directives are equal.
    *
    * @return true if all package information is equal, otherwise false.
    */

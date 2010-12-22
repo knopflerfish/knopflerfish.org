@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2008, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,13 @@ public class Activator implements BundleActivator {
     }
     {
       TestSuite suite = new RequireBundleTestSuite(bc);
+      Hashtable props = new Hashtable();
+      props.put("service.pid", suite.getName());
+      ServiceRegistration sr
+        = bc.registerService(TestSuite.class.getName(), suite, props);
+    }
+    {
+      TestSuite suite = new FragmentTestSuite(bc);
       Hashtable props = new Hashtable();
       props.put("service.pid", suite.getName());
       ServiceRegistration sr
