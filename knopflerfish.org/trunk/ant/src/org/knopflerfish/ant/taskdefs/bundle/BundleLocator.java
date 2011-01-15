@@ -36,33 +36,22 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
-import java.util.TreeSet;
 import java.util.Vector;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.osgi.framework.Version;
-import org.osgi.framework.Constants;
-
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
 import org.apache.tools.ant.types.PatternSet;
 import org.apache.tools.ant.types.Reference;
-import org.apache.tools.ant.types.Resource;
-//import org.apache.tools.ant.types.resources.FileResource;
+import org.osgi.framework.Version;
 
 /**
  * Determines a sub-set of bundles from a given file set. The
@@ -72,7 +61,7 @@ import org.apache.tools.ant.types.Resource;
  *
  * <p>
  *
- * An <em>OSGi version spec</em> used below is a string on the format
+ * An <em>OSGi version specification</em> used below is a string on the format
  * <tt><em>Major</em>.<em>Minor</em>.<em>Micro</em>.<em>Qualifier</em></tt>
  * where major, minor and micro are integers, and all parts of the
  * version except major are optional. See {@link
@@ -470,12 +459,12 @@ public class BundleLocator extends Task {
 
 
   /**
-   * Check if the given bundle name contains a wildcard version descriptor.
+   * Check if the given bundle name contains a wild-card version descriptor.
    *
    *
    * @param name The bundle name to check.
    *
-   * @return <code>true</code> if a bundle version with wildcard is
+   * @return <code>true</code> if a bundle version with wild-card is
    *         part of the bundle name, <code>false</code> otherwise.
    */
   static private boolean isBundleNameWithWildcardVersion(final String name)
@@ -535,7 +524,6 @@ public class BundleLocator extends Task {
       ("^(.+)-(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.(\\d+|N)(?:|\\.([-_0-9a-zA-Z]+))))$");
     final Matcher matcher = pattern.matcher(name);
     if (matcher.matches()) {
-      int groupCount = matcher.groupCount();
       name = matcher.group(1);
       String version = "";
       int level = -1;
@@ -580,7 +568,7 @@ public class BundleLocator extends Task {
 
   /**
    * Get the bundle archive with the highest version within the given
-   * intervall for the given bundle.
+   * interval for the given bundle.
    *
    * @param name Name of the bundle to look for. Either the part of
    *             the file name that comes before the file version or
@@ -641,7 +629,7 @@ public class BundleLocator extends Task {
     BundleArchives.BundleArchive ba = getBundleArchive(bn);
 
     if (ba!=null) {
-      project.setProperty(propName, ba.file.getAbsolutePath());
+      getProject().setProperty(propName, ba.file.getAbsolutePath());
       log(propName +" = " +ba.file, Project.MSG_VERBOSE);
     } else {
       final int logLevel = failOnMissingBundles
@@ -669,7 +657,7 @@ public class BundleLocator extends Task {
 
   private void transformPath()
   {
-    final Path newPath = new Path(project);
+    final Path newPath = new Path(getProject());
     log("Updating bundle paths in class path reference '"
         +classPathRef.getRefId() +"'.", Project.MSG_DEBUG);
 
@@ -721,7 +709,7 @@ public class BundleLocator extends Task {
       }
       log(newClassPathId +" = " +newPath, Project.MSG_VERBOSE);
     }
-    project.addReference(newClassPathId, newPath);
+    getProject().addReference(newClassPathId, newPath);
   } // end of transform path structure.
 
 
@@ -739,7 +727,7 @@ public class BundleLocator extends Task {
       patternSet.setIncludes(ba.relPath);
       log("Adding includes '" +ba.relPath +"'.", Project.MSG_DEBUG);
     }
-    project.addReference(patternSetId, patternSet);
+    getProject().addReference(patternSetId, patternSet);
   } // end of create pattern set for bundles
 
 

@@ -37,7 +37,7 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Misc static utility code.
+ * Miscellaneous static utility code.
  */
 public class Util {
   public static byte [] loadURL(URL url) throws IOException {
@@ -119,7 +119,7 @@ public class Util {
 
 
   /**
-   * Replace all occurences of a substring with another string.
+   * Replace all occurrences of a substring with another string.
    *
    * <p>
    * If no replacements are needed, the methods returns the original string.
@@ -251,7 +251,7 @@ public class Util {
   }
 
 
-  // Allways write files using UTF-8.
+  // Always write files using UTF-8.
   static void writeStringToFile(File outFile, String s) throws IOException {
     OutputStreamWriter writer = null;
     try {

@@ -32,9 +32,7 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -100,8 +98,8 @@ public class BIndexTask extends Task {
     try {
       for (int i = 0; i < filesets.size(); i++) {
         FileSet          fs      = (FileSet) filesets.elementAt(i);
-        DirectoryScanner ds      = fs.getDirectoryScanner(project);
-        File             projDir = fs.getDir(project);
+        DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
+        File             projDir = fs.getDir(getProject());
 
         String[] srcFiles = ds.getIncludedFiles();
 
@@ -161,12 +159,9 @@ public class BIndexTask extends Task {
         // generate the bindex.xml file.
         Class bIndexClazz = Class.forName("org.osgi.impl.bundle.bindex.Index");
 
-        //if (isBindexRootFileSettable(bIndexClazz))
-        {
-          // Prepend the -d <rootFile> option
-          cmdList.add(2,baseDir.getAbsolutePath());
-          cmdList.add(2,"-d");
-        } //else
+        // Prepend the -d <rootFile> option
+        cmdList.add(2, baseDir.getAbsolutePath());
+        cmdList.add(2, "-d");
         try {
           // Hack for older bindex without -d option. Use reflection
           // to set org.osgi.impl.bundle.bindex.Index.rootFile to
@@ -199,38 +194,5 @@ public class BIndexTask extends Task {
 
     } catch (Exception e) { e.printStackTrace(); }
   }
-
-  private boolean isBindexRootFileSettable(Class bIndexClazz)
-  {
-    boolean res = false;
-
-    try {
-      // Call org.osgi.impl.bundle.bindex.Index.main("-q -help") to
-      // determine if "-d" option is present or not.
-
-      String[] args = new String[]{ "-q", "-help"};
-      Method mainMethod
-        = bIndexClazz.getDeclaredMethod("main",
-                                        new Class[]{args.getClass()});
-      PrintStream orgErr = System.err;
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-      System.setErr(new PrintStream(baos, false, "UTF-8"));
-      mainMethod.invoke(null, new Object[]{args});
-      System.setErr(orgErr);
-      String bIndexUsageMessage = baos.toString("UTF-8");
-      log("bindex usage message is: '" + bIndexUsageMessage +"'.",
-          Project.MSG_DEBUG);
-      res = bIndexUsageMessage.indexOf("[-d rootFile]") > -1;
-      log("Using 'bindex -d rootFile' is " +(res?"":"not ") +"supported. ",
-          Project.MSG_INFO);
-    } catch (Exception e) {
-      log("Failed to execute BIndex: " +e.getMessage(), Project.MSG_ERR);
-      e.printStackTrace();
-    }
-
-    return res;
-  }
-
 
 }

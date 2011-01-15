@@ -34,15 +34,14 @@ package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -54,12 +53,11 @@ import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.FileResource;
-
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 /**
- * A class that analyses all bundle jar files given by a
+ * A class that analyzes all bundle jar files given by a
  * list of resource collections (file sets).
  *
  */
@@ -77,15 +75,15 @@ public class BundleArchives {
   private final Task task;
 
   /**
-   * Mapp from bundle name (the bundles file without version and
-   * ".jar" sufixes) to a sorted set of a bundle archive object with
+   * Map from bundle name (the bundles file without version and
+   * ".jar" suffixes) to a sorted set of a bundle archive object with
    * details about the bundle . The set will contain more than one
    * element when more than one version of the bundle has been found.
    */
   final Map bnToBundleArchives = new TreeMap();
 
   /**
-   * Mapp from bundle symbolic name to a sorted set of a bundle
+   * Map from bundle symbolic name to a sorted set of a bundle
    * archive object with details about the bundle. The set will
    * contain more than one element when more than one version of the
    * bundle has been found.
@@ -318,7 +316,7 @@ public class BundleArchives {
 
   /**
    * Add a bundle archive to a map using the given key. The values of
-   * the map are sorted sets of bundle arvchives.
+   * the map are sorted sets of bundle archives.
    */
   private void addToMap(final Map map,
                         final String key,
@@ -350,7 +348,7 @@ public class BundleArchives {
 
 
   /**
-   * A BundleArchive-object describes one bundle wiht data derived
+   * A BundleArchive-object describes one bundle with data derived
    * from its file name and manifest.
    */
   static class BundleArchive
@@ -389,7 +387,7 @@ public class BundleArchives {
 
     /**
      * Collection of bundles that provides packages that this bundle
-     * are importing. The mapping key is a bundle arvhice and the
+     * are importing. The mapping key is a bundle archive and the
      * value is the set of package names that the bundle archive may
      * provide to this bundle.
      *
@@ -402,7 +400,7 @@ public class BundleArchives {
      * Collection of bundles that provides packages that this bundle
      * needs access to at compile time. I.e., packages that the bundle
      * is importing but not exporting. The mapping key is a bundle
-     * arvhice and the value is the set of package names that the
+     * archive and the value is the set of package names that the
      * bundle archive may provide to this bundle.
      *
      * <p>Initially empty, to fill in this map call {@link
@@ -413,7 +411,7 @@ public class BundleArchives {
     /**
      * Collection of bundles that this bundle provides packages to,
      * i.e., bundles importing the exports of this bundle.
-     * The mapping key is a bundle arvhice and the
+     * The mapping key is a bundle archive and the
      * value is the set of package names that the bundle archive may
      * import from this bundle.
      *
@@ -423,7 +421,7 @@ public class BundleArchives {
     final Map pkgProvidedMap = new TreeMap();
 
     /**
-     * Sub set of the entires in the imported packages map for which
+     * Sub set of the entries in the imported packages map for which
      * there are no matching exporter. Mapping from package name to
      * its version range constraint.
      *
@@ -436,7 +434,7 @@ public class BundleArchives {
     /** Mapping from exported service name to its version. */
     final Map serviceExportMap;
 
-    /** Mapping from imported srevice name to its version range constraint. */
+    /** Mapping from imported service name to its version range constraint. */
     final Map serviceImportMap;
 
     /**
@@ -716,10 +714,10 @@ public class BundleArchives {
       if (null!=value) {
         value = value.trim();
         if (value.startsWith("http://")) {
-          // Unquoted URI, try to add qoutes in a couple of simple cases
+          // Unquoted URI, try to add quotes in a couple of simple cases
           int pos = value.indexOf(';');
           if (-1 < pos) {
-            // param  present, stop qoute before it starts
+            // param  present, stop quote before it starts
             value = "\"" +value.substring(0, pos) +"\"" +value.substring(pos);
           } else if (-1 < (pos=value.indexOf(','))) {
             // Multiple licenses present, quote the first one...
@@ -772,7 +770,7 @@ public class BundleArchives {
 
     /**
      * @return <code>true</code> if this bundle is an API only
-     * bundle. I.e. if it exports pacakges but does not have a bundle
+     * bundle. I.e. if it exports packages but does not have a bundle
      * activator, service component or blueprint component.
      * activator, <code>false</code> otherwise.
      */

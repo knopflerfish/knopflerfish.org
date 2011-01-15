@@ -119,7 +119,7 @@ import org.apache.tools.ant.types.EnumeratedAttribute;
  *                     If set and "file" is given then export all attributes
  *                     written to the main section as properties.
  *                     <p>
- *                     The name of property that mapps to a main
+ *                     The name of property that maps to a main
  *                     section attribute is the value of
  *                     "attributePropertyPrefix" followed by the
  *                     attribute name. The value is the attribute value.
@@ -486,7 +486,7 @@ public class BundleManifestTask extends Task {
    * <code>updatePropertiesFromMainSectionAttributeValues()</code> are
    * the same as the one used in the build files, i.e., the one used
    * in the OSGi specification. If not it may happen that a we get two
-   * propreties defined for the same attribute (with different cases)
+   * properties defined for the same attribute (with different cases)
    * if this happens there will be an error when adding back the
    * properties to the generated manifest.  Thus we need a list of all
    * OSGi specified attribute names in the case used in the
@@ -525,7 +525,7 @@ public class BundleManifestTask extends Task {
     };
 
   /**
-   * Mapping from attribute key, all lowercase, to attribute name
+   * Mapping from attribute key, all lower case, to attribute name
    * with case according to the OSGi specification.
    */
   private static final Hashtable osgiAttrNamesMap = new Hashtable();
@@ -547,7 +547,6 @@ public class BundleManifestTask extends Task {
   private void updatePropertiesFromMainSectionAttributeValues(Manifest mf)
   {
     if (null!=attributePropertyPrefix) {
-      int       prefixLength = attributePropertyPrefix.length();
       Project   project      = getProject();
       Manifest.Section mainS = mf.getMainSection();
       for (Enumeration ae = mainS.getAttributeKeys(); ae.hasMoreElements();) {
@@ -706,7 +705,7 @@ public class BundleManifestTask extends Task {
   /**
    * If this is a distribution build (the
    * <code>Knopflerfish-Version</code> attribute is present) then use
-   * the version number as replacemnt for:
+   * the version number as replacement for:
    * <ul>
    *   <li>the <code>current</code>-part of a Bundle-DocURL
    *       value that start with {@link #DOC_URL_PREFIX}.
@@ -810,7 +809,7 @@ public class BundleManifestTask extends Task {
 
     try {
       if (mode.getValue().equals("update")) {
-        // resutling manifest based on data from
+        // Resulting manifest based on data from
         // template file + manifest properties + nested data
         if (manifestTemplate != null) {
           manifestToWrite.merge(manifestTemplate);
@@ -824,7 +823,7 @@ public class BundleManifestTask extends Task {
             manifestFile==null ? Project.MSG_DEBUG: Project.MSG_VERBOSE);
       }
       if (mode.getValue().equals("replace")) {
-        // resutling manifest based on propeties and nested data
+        // Resulting manifest based on properties and nested data
         manifestToWrite.merge(manifestProps);
         manifestToWrite.merge(manifestNested);
         log("Creating bundle manifets based on data from"
@@ -832,7 +831,7 @@ public class BundleManifestTask extends Task {
             manifestFile==null ? Project.MSG_DEBUG: Project.MSG_VERBOSE);
       }
       if (mode.getValue().startsWith("template")) {
-        // resutling manifest based on template and nested data.
+        // Resulting manifest based on template and nested data.
         if (manifestTemplate != null) {
           manifestToWrite.merge(manifestTemplate);
         }

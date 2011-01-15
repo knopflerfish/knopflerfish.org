@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
@@ -124,7 +123,7 @@ import org.apache.tools.ant.Task;
  *   </td>
  *   <td>
  *    The directory with one sub-directory for each user documentation
- *    link to create. Defaults to outdir.
+ *    link to create. Defaults to <code>outdir</code>.
  *
  *    <p>All sub-directories of <tt>docdir</tt> will result in a link
  *       on the generated navigation page. The link will belong to the
@@ -142,8 +141,8 @@ import org.apache.tools.ant.Task;
  *     <dt><tt>category</tt></dt>
  *     <dd>The name of the category to present the link under.</dd>
  *
- *     <dt><tt>title</tt></dt>
  *     <dd>The link text.</dd>
+ *     <dt><tt>title</tt></dt>
  *
  *     <dt><tt>linkPath</tt></dt>
  *     <dd>The path that the link points to. The default is a relative
@@ -271,7 +270,7 @@ public class BundleUserDocNavigateTask
     lds.add(ld);
   }
 
-  // Build a html-stirng with links to the lds in the set.
+  // Build a html-string with links to the lds in the set.
   private String links(final Set lds)
   {
     final StringBuffer sb = new StringBuffer(1024);
@@ -333,8 +332,6 @@ public class BundleUserDocNavigateTask
 
   private void analyzeDocDir()
   {
-    final Project proj = getProject();
-
     final File[] files = docDir.listFiles();
     for (int i=0; i<files.length; i++) {
       final File file = files[i];

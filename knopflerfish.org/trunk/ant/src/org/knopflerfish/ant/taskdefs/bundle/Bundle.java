@@ -33,9 +33,7 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,10 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -58,9 +54,6 @@ import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ZipFileSet;
-//import org.apache.tools.zip.ZipFile;
-
-
 import org.osgi.framework.Version;
 
 /**
@@ -146,7 +139,7 @@ import org.osgi.framework.Version;
  * version of a package to add to the Export-Package manifest
  * header. If package analysis is not turned off, a warning will be
  * issued if the specified package cannot be found in the bundle.
- * When package analyses is turned on the version from the
+ * When package analysis is turned on the version from the
  * <tt>packageinfo</tt>-file in the directory of the package is read
  * and used as the version of the exported package. In this case, if a
  * version is specified in the <tt>exportpackage</tt> element that
@@ -168,7 +161,7 @@ import org.osgi.framework.Version;
  * runtime environment (i.e., via boot delegation).
  * </p>
  *
- * <h3>Implicit fileset</h3>
+ * <h3>Implicit file set</h3>
  * <p>
  * The implicit fileset is specified by the <tt>baseDir</tt> attribute of the
  * bundle task and the nested <tt>include</tt> and <tt>exclude</tt> elements.
@@ -256,7 +249,6 @@ public class Bundle extends Jar {
 
   private Manifest generatedManifest = new Manifest();
 
-  private Set referencedPackages = new HashSet();
   private Set standardPackagePrefixes = new HashSet(); {
     standardPackagePrefixes.add("java.");
   }
@@ -265,20 +257,6 @@ public class Bundle extends Jar {
   private final ClassAnalyserASM   asmAnalyser
     = new ClassAnalyserASM(bpInfo, this);
 
-
-  /**
-   * The set of classes that are refrenced from the included classes.
-   * May be used to check execution environment, see {@link BundleInfo}.
-   */
-  private Set classSet             = new TreeSet();
-  /**
-   * A mapping from package name of included classes to a set of
-   * package names that the classes in the key package references.
-   */
-  private Map packageUsingMap      = new HashMap();
-
-
-  // private methods
 
   private void analyze() {
     if (activator == ACTIVATOR_AUTO ||

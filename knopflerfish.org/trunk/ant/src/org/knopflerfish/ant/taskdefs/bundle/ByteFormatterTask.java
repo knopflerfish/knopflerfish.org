@@ -186,14 +186,12 @@ public class ByteFormatterTask extends Task {
   }
 
 
-  private File file;
   /**
    * Set the file to get the size of as the the value to format.
    *
    * @param file the file to return a formatted file size for.
    */
-  public void setFile(File file) {
-    this.file = file;
+  public void setFile(final File file) {
     this.value = file.length();
   }
 

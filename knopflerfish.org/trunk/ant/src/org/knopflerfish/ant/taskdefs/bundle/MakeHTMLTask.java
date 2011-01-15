@@ -44,8 +44,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.Map.Entry;
-import java.util.Map.Entry;
 import java.util.Map;
 
 import org.apache.tools.ant.BuildException;
@@ -56,7 +54,6 @@ import org.apache.tools.ant.taskdefs.Manifest;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.util.FileUtils;
-
 import org.osgi.framework.Version;
 
 /**
@@ -68,8 +65,8 @@ import org.osgi.framework.Version;
  *
  * <p>
  *  Task that creates web sites given a template and a source file.
- *  Currently used to create parts of the docs directory in the KF
- *  dist.  It does this by simply replacing certain text strings with
+ *  Currently used to create parts of the <code>docs</code> directory in the KF
+ *  distribution.  It does this by simply replacing certain text strings with
  *  others. For more information on which text strings this is please
  *  check the source code.
  * </p>
@@ -102,7 +99,7 @@ import org.osgi.framework.Version;
  *    tofile
  *   </td>
  *   <td>
- *    The releative path to where the generated file should be
+ *    The relative path to where the generated file should be
  *    copied. That is the actual location of the generated file
  *    will be <code>outdir</code>/<code>tofile</code>
  *   </td>
@@ -523,7 +520,7 @@ public class MakeHTMLTask
     return buf.toString();
   }
 
-  // Returns a bool for s Project prop. If null => false
+  // Returns a boolean for a Project prop. If <code>null</code> => <code>false</code>.
   private boolean getBoolProperty(String prop) {
     if (prop == null)
       return false;

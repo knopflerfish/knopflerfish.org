@@ -169,7 +169,7 @@ public class ClassAnalyserASM
    *
    * @param source the name of the source file from which the class was
    *        compiled. May be <tt>null</tt>.
-   * @param debug additional debug information to compute the correspondance
+   * @param debug additional debug information to compute the correspondence
    *        between source and compiled elements of the class. May be
    *        <tt>null</tt>.
    */
