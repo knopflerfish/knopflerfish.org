@@ -110,7 +110,7 @@ import org.apache.tools.ant.types.ZipFileSet;
  *  <tr>
  *   <td valign=top>includes</td>
  *   <td valign=top>Includes pattern to apply to each file set created
- *       from the entires in the bundle classpath when building a list
+ *       from the entries in the bundle classpath when building a list
  *       of file sets.
  *   </td>
  *   <td valign="top">At least one of includes and excludes must be

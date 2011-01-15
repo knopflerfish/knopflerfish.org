@@ -32,42 +32,22 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Vector;
-import java.util.SortedSet;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.Resource;
-import org.apache.tools.ant.types.ResourceCollection;
-
 import org.osgi.framework.Version;
 
 /**
@@ -252,7 +232,7 @@ public class BundleMvnAntTask extends Task {
       }
     }
 
-    ant = replace(ant, "$(ANT_DIR)", project.getProperty("ant.dir"));
+    ant = replace(ant, "$(ANT_DIR)", getProject().getProperty("ant.dir"));
     ant = replace(ant, "$(DEPLOY_BUNDLE_TARGET_NAMES)", targetNames.toString());
     ant = replace(ant, "$(DEPLOY_BUNDLE_TARGETS)", targets.toString());
 

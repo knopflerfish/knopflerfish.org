@@ -82,7 +82,7 @@ public class VersionRange {
   }
 
   /**
-   * Check if the specified version is conatined in this version
+   * Check if the specified version is contained in this version
    * range.
    * @param ver The version to check.
    * @return <tt>true</tt> if the specified version is in this range,

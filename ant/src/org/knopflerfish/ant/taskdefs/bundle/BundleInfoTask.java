@@ -32,28 +32,18 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.jar.JarInputStream;
-import java.util.zip.ZipEntry;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
@@ -61,9 +51,7 @@ import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ResourceCollection;
 import org.apache.tools.ant.types.resources.Restrict;
 import org.apache.tools.ant.types.resources.selectors.ResourceSelector;
-import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.StringUtils;
-
 import org.osgi.framework.Version;
 
 /**
@@ -263,7 +251,7 @@ import org.osgi.framework.Version;
  *  <tr>
  *   <td valign=top>checkMinimumEE</td>
  *   <td valign=top>
- *       Flag for testing for the Minum Execution Environment
+ *       Flag for testing for the Minimum Execution Environment
  *       <p>
  *       If set to "true", the task will check if all used classes
  *       is in the set of the Minimum Execution Environment.
@@ -351,14 +339,14 @@ import org.osgi.framework.Version;
  * found via &lt;exports&gt;, &lt;exportsBundleClasspath&gt; and
  * &lt;impls&gt;, &lt;implsBundleClasspath&gt; resource
  * collections. The <code>import-package</code> header is derived
- * (checked agains) the set of provided packages.
+ * (checked against) the set of provided packages.
  *
  * <h4>exports</h4>
  *
  * (optional)<br>
  *
  * <p>Nested &lt;exports&gt;-elements are filesets that will be
- * analysed to determine the set of provided Java packages to be
+ * analyzed to determine the set of provided Java packages to be
  * exported by the bundle.</p>
  *
  * <p>Unsupported file types matched by the file set are ignored.</p>
@@ -369,7 +357,7 @@ import org.osgi.framework.Version;
  *
  * <p>Nested &lt;exportsBundleClasspath&gt;-elements are instances of
  * {@link BundleClasspathTaks} that will derive a list of file sets to
- * be analysed to determine the set of provided Java packages to be
+ * be analyzed to determine the set of provided Java packages to be
  * exported by the bundle.</p>
  *
  * <p>Unsupported file types matched by the file set are ignored.</p>
@@ -378,7 +366,7 @@ import org.osgi.framework.Version;
  *
  * (optional)<br>
  *
- * <p>Nested &lt;impls&gt;-elements are filesets that will be analysed
+ * <p>Nested &lt;impls&gt;-elements are filesets that will be analyzed
  * to determine the set of private Java packages provided by the
  * bundle.</p>
  *
@@ -390,7 +378,7 @@ import org.osgi.framework.Version;
  *
  * <p>Nested &lt;implsBundleClasspath&gt;-elements are instances of
  * {@link BundleClasspathTaks} that will derive a list of file sets
- * are to be analysed to determine the set of private Java packages
+ * are to be analyzed to determine the set of private Java packages
  * provided by the bundle.</p>
  *
  * <p>Unsupported file types matched by the file set are ignored.</p>
@@ -437,19 +425,16 @@ public class BundleInfoTask extends Task {
 
   private List implsResourceCollections = new ArrayList();
   private List exportsResourceCollections = new ArrayList();
-  private FileUtils fileUtils;
 
   private String importsProperty   = "";
   private String exportsProperty   = "";
   private String activatorProperty = "";
-  private String mainProperty      = "";
   private String serviceComponent  = "";
   private String fragmentHost      = "";
   private Version manifestVersion  = new Version("1");
   private boolean bUses            = true;
 
   private Set     stdImports       = new TreeSet();
-  private boolean bDebug           = false;
 
   private boolean bPrintClasses      = false;
 
@@ -480,7 +465,6 @@ public class BundleInfoTask extends Task {
     = new ClassAnalyserASM(bpInfo, this);
 
   public BundleInfoTask() {
-    fileUtils = FileUtils.newFileUtils();
     setDefaultImports("");
     setStdImports("java.");
   }
@@ -612,17 +596,6 @@ public class BundleInfoTask extends Task {
   public void setUses(boolean uses) {
     this.bUses = uses;
   }
-
-  /**
-   * Set property receiving any Main class.
-   * <p>
-   * Not yet implemented.
-   * </p>
-   */
-  public void setMain(String propName) {
-    this.mainProperty = propName;
-  }
-
 
   /**
    * Set set of packages always imported.
@@ -1155,7 +1128,7 @@ public class BundleInfoTask extends Task {
   }
 
   /**
-   * Return the value of the Export-Package based on the analyzis.
+   * Return the value of the Export-Package based on the analysis.
    *
    * @param exportPackages The sub-set of provided packages to be exported.
    */
@@ -1189,7 +1162,7 @@ public class BundleInfoTask extends Task {
    * directives and add those that are missing.
    *
    * @param oldExportsVal the Export-Package value to validate and update.
-   * @throws BuildException when confilicting version specifications
+   * @throws BuildException when conflicting version specifications
    *         are found for a package.
    */
   protected String validateExportPackagesValue(final String oldExportsVal)
@@ -1380,12 +1353,15 @@ public class BundleInfoTask extends Task {
   }
 
 
-  public static final Set ANALYZE_SUFFIXES = new TreeSet() {{
-    add(".class");
-    add("/packageinfo"); // packageinfo-files inside jar-files
-    add(File.separatorChar +"packageinfo"); // packageinfo-files in
-                                            // the file system
-  }};
+  public static final Set ANALYZE_SUFFIXES = new TreeSet() {
+    private static final long serialVersionUID = 2628940819429424154L;
+    {
+      add(".class");
+      add("/packageinfo"); // packageinfo-files inside jar-files
+      add(File.separatorChar + "packageinfo"); // packageinfo-files in
+                                               // the file system
+    }
+  };
 
   /**
    * A resource selector that selects files to be analyzed. I.e., it
@@ -1408,7 +1384,7 @@ public class BundleInfoTask extends Task {
   /**
    * Convert Set elements to a string.
    *
-   * @param separator String to use as sperator between elements.
+   * @param separator String to use as separator between elements.
    */
   static protected String toString(Set set, String separator) {
     final StringBuffer sb = new StringBuffer();

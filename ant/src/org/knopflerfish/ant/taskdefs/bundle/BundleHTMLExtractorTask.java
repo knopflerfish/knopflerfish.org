@@ -50,10 +50,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.SortedSet;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -65,8 +65,6 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.util.FileUtils;
-
 import org.osgi.framework.Version;
 
 /**
@@ -78,7 +76,7 @@ import org.osgi.framework.Version;
 
  * All generated HTML will be stored in the directory specified with
  * the attribute <code>outDir</code> preserving the directory
- * structure underneath the direcotry, <code>baseDir</code> that is
+ * structure underneath the directory, <code>baseDir</code> that is
  * scanned for jar-files, e.g a jar file
  *
  * <pre>
@@ -250,9 +248,7 @@ import org.osgi.framework.Version;
  */
 public class BundleHTMLExtractorTask extends Task {
 
-  private Vector    filesets = new Vector();
-  private FileUtils fileUtils;
-
+  private Vector filesets            = new Vector();
   private File   templateHTMLDir     = new File(".");
   private String listSeparator       = "<br>\n";
   private File   outDir              = new File(".");
@@ -280,9 +276,6 @@ public class BundleHTMLExtractorTask extends Task {
   private String missingRow   =
     "<tr><td>${name}</td><td>${version}</td></tr>\n";
 
-  private String rowHTML      =
-    "<a href=\"${bundle.uri}\">${FILE.short}</a><br>\n";
-
   private String pkgHTML      =
     "${namelink}&nbsp;${version}<br>\n";
 
@@ -300,8 +293,6 @@ public class BundleHTMLExtractorTask extends Task {
   Map     missingDocs = new TreeMap();
 
   public BundleHTMLExtractorTask() {
-
-    fileUtils = FileUtils.newFileUtils();
 
     setListProps("Export-Package," +
                  "Import-Package," +
@@ -453,15 +444,13 @@ public class BundleHTMLExtractorTask extends Task {
 
     try {
       for (int i = 0; i < filesets.size(); i++) {
-        FileSet          fs      = (FileSet) filesets.elementAt(i);
-        DirectoryScanner ds      = fs.getDirectoryScanner(project);
-        File             projDir = fs.getDir(project);
+        final FileSet          fs      = (FileSet) filesets.elementAt(i);
+        final DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
+        final File             projDir = fs.getDir(getProject());
 
-        String[] srcFiles = ds.getIncludedFiles();
-        String[] srcDirs  = ds.getIncludedDirectories();
-
+        final String[] srcFiles = ds.getIncludedFiles();
         for (int j = 0; j < srcFiles.length ; j++) {
-          File file = new File(projDir, srcFiles[j]);
+          final File file = new File(projDir, srcFiles[j]);
           if(file.getName().endsWith(".jar")) {
             jarMap.put(file, new BundleInfo(file));
           }
@@ -1033,7 +1022,7 @@ public class BundleHTMLExtractorTask extends Task {
       Set handledSet = new TreeSet();
 
       for(Iterator it = attribs.keySet().iterator(); it.hasNext(); ) {
-        Object key = it.next();
+        final Object key = it.next();
 
         if(-1 != template.indexOf("${" + key.toString() + "}")) {
           handledSet.add(key.toString());
@@ -1041,10 +1030,7 @@ public class BundleHTMLExtractorTask extends Task {
       }
 
       for(Iterator it = attribs.keySet().iterator(); it.hasNext(); ) {
-        Object key = it.next();
-        Object val = attribs.get(key);
-
-
+        final Object key = it.next();
         String str = (String)attribs.get(key);
 
         // Special formatting of the value for some keys:
