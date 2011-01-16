@@ -3,7 +3,7 @@
 <project name="mvn_repo" default="all"
 	 xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
-  <property name="ant.dir"      location="$(ANT_DIR)"/>
+  <property name="ant.dir"      location="-- PLEASE FILL IN --"/>
   <property name="topdir"       location="${ant.dir}/.."/>
   <property name="osgi.dir"     location="${topdir}/osgi"/>
   <property name="root.out.dir" location="${osgi.dir}/out"/>
@@ -101,8 +101,6 @@
   <!-- Targets for bundles will be added after this line -->
   <target name="all"
 	  description="Deploy all bundles to the Maven 2 repository."
-	  depends="init$(DEPLOY_BUNDLE_TARGET_NAMES)"/>
-
-  $(DEPLOY_BUNDLE_TARGETS)
+	  depends="init"/>
 
 </project>

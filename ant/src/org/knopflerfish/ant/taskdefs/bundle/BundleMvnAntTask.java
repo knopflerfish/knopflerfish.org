@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,12 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
 import org.osgi.framework.Version;
+import org.w3c.dom.Comment;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * Task that analyzes a set of bundle jar files and builds an ant
@@ -173,162 +178,221 @@ public class BundleMvnAntTask extends Task {
   private void writeAntFile()
     throws IOException
   {
-    log("Creating build file: " +outFile, Project.MSG_VERBOSE);
-
-    String ant = Util.loadFile(templateAntFile.getAbsolutePath());
-
-    final StringBuffer targetNames = new StringBuffer(2048);
-    final StringBuffer targets = new StringBuffer(2048);
+    log("Creating build file: " + outFile, Project.MSG_VERBOSE);
 
     final String prefix1 = "  ";
     final String prefix2 = prefix1 + "  ";
-    final String prefix3 = prefix2 + "  ";
+
+    final Document doc = Util.loadXML(templateAntFile);
+    final Element project = (Element) doc.getDocumentElement();
+
+    setPropertyLocation(project,"ant.dir", getProject().getProperty("ant.dir"));
+
+    final StringBuffer targetNames = new StringBuffer(2048);
 
     final Iterator it = bas.bsnToBundleArchives.entrySet().iterator();
     while (it.hasNext()) {
       final Map.Entry entry = (Map.Entry) it.next();
       final Set bsnSet = (Set) entry.getValue();
-      //Sorted set with bundle archives, same bsn, different versions
-      for (Iterator itV = bsnSet.iterator(); itV.hasNext(); ) {
-        final BundleArchives.BundleArchive ba
-          = (BundleArchives.BundleArchive) itV.next();
-        final String targetName = ba.bsn +"-" +ba.version;
+      // Sorted set with bundle archives, same bsn, different versions
+      for (Iterator itV = bsnSet.iterator(); itV.hasNext();) {
+        final BundleArchive ba = (BundleArchive) itV.next();
+        final String targetName = ba.bsn + "-" + ba.version;
+        targetNames.append(",").append(targetName);
 
-        targetNames.append(",\n").append(targetName);
-        targets.append("\n\n")
-          .append("<!-- ").append(ba.relPath).append(" -->\n")
-          .append("<target name=\"").append(targetName).append("\">\n")
-          .append(prefix1).append("<mvn_deploy_bundle\n")
-          .append(prefix3).append("projDirName=\"").append(ba.projectName)
-          .append("\"\n");
-        addMavenCoordinates(targets, ba, prefix3);
-        targets.append("\n").append(prefix3)
-          .append("artifactName=\"").append(ba.name)
-          .append("\"\n").append(prefix3)
-          .append("artifactBundle=\"").append(ba.file.getAbsolutePath())
-          .append("\"");
+        final Comment comment = doc.createComment(ba.relPath);
+        final Element target = doc.createElement("target");
+        target.setAttribute("name", targetName);
+
+        final Element mvnDeployBundle = doc.createElement("mvn_deploy_bundle");
+        target.appendChild(doc.createTextNode("\n"+prefix2));
+        target.appendChild(mvnDeployBundle);
+
+        mvnDeployBundle.setAttribute("projDirName", ba.projectName);
+        addMavenCoordinates(mvnDeployBundle, ba);
+        mvnDeployBundle.setAttribute("artifactName", ba.name);
+        mvnDeployBundle.setAttribute("artifactBundle", ba.file.getAbsolutePath());
 
         // Optional attributes
         final String description = ba.getBundleDescription();
-        if (null!=description) {
-          targets.append("\n").append(prefix3)
-            .append("description=\"").append(description).append("\"");
+        if (null != description) {
+          mvnDeployBundle.setAttribute("description", description);
         }
 
         // Packing kind
         if (ba.pkgExportMap.containsKey("org.osgi.framework")) {
-          targets.append("\n").append(prefix3).append("packing=\"jar\"");
+          mvnDeployBundle.setAttribute("packing", "jar");
         } else {
-          targets.append("\n").append(prefix3).append("packing=\"bundle\"");
+          mvnDeployBundle.setAttribute("packing", "bundle");
         }
 
-        targets.append(">\n");
+        addLicense(mvnDeployBundle, ba, prefix2);
+        addDependencies(mvnDeployBundle, ba, prefix2);
 
-        addLicenses(targets, ba, "    ");
-        addDependencies(targets, ba, "    ");
+        // Put the end of the target-element on a separate line
+        target.appendChild(doc.createTextNode("\n"+prefix1));
 
-        targets.append("  </mvn_deploy_bundle>\n")
-          .append("</target>");
+        project.appendChild(doc.createTextNode("\n"+prefix1));
+        project.appendChild(comment);
+        project.appendChild(doc.createTextNode("\n"+prefix1));
+        project.appendChild(target);
+        project.appendChild(doc.createTextNode("\n"+prefix1));
       }
     }
 
-    ant = replace(ant, "$(ANT_DIR)", getProject().getProperty("ant.dir"));
-    ant = replace(ant, "$(DEPLOY_BUNDLE_TARGET_NAMES)", targetNames.toString());
-    ant = replace(ant, "$(DEPLOY_BUNDLE_TARGETS)", targets.toString());
+    setTargetAttr(project, "all", "depends", "init" +targetNames.toString());
 
-    Util.writeStringToFile(outFile, ant);
-    log("wrote " + outFile, Project.MSG_INFO);
+    Util.writeDocumentToFile(outFile, doc);
+    log("wrote " + outFile, Project.MSG_VERBOSE);
   }
 
+  /**
+   * Set the location of the named ant property. The property must exist and be
+   * a child of the specified element.
+   *
+   * @param elem
+   *          The element owning the property element to update
+   * @param name
+   *          The name of the property to set location of.
+   * @param location
+   *          The new location value.
+   */
+  private void setPropertyLocation(final Element el, final String name, final String location) {
+    final NodeList propertyNL = el.getElementsByTagName("property");
+    boolean found = false;
+    for (int i = 0; i<propertyNL.getLength(); i++) {
+      final Element property = (Element) propertyNL.item(i);
+      if (name.equals(property.getAttribute("name"))) {
+        log("Setting <property name=\"" +name +"\" location=\"" +location +"\" ...>.", Project.MSG_DEBUG);
+        property.setAttribute("location", location);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      throw new BuildException("No <property name=\"" +name +"\" ...> in XML document " +el);
+    }
+  }
 
   /**
-   * Add Maven coordinates (group id, artifact id and version) for the
-   * given bundle to the string buffer.
-   * @param sb String buffer to append to.
-   * @param ba Bundle archive to append coordinates for.
-   * @param prefix Prefix to start each row with.
+   * Set an attribute on the named target element. The target element must exist
+   * and be a child of the project-element.
+   *
+   * @param el
+   *          The element owning the target element to be updated.
+   * @param name
+   *          The name of the target-element to set an attribute for.
+   * @param attrName
+   *          The name of the attribute to set.
+   * @param attrValue
+   *          The new attribute value.
    */
-  private void addMavenCoordinates(final StringBuffer sb,
-                                   final BundleArchives.BundleArchive ba,
-                                   final String prefix)
-  {
+  private void setTargetAttr(final Element el, final String name, final String attrName, final String attrValue) {
+    final NodeList propertyNL = el.getElementsByTagName("target");
+    boolean found = false;
+    for (int i = 0; i<propertyNL.getLength(); i++) {
+      final Element target = (Element) propertyNL.item(i);
+      if (name.equals(target.getAttribute("name"))) {
+        log("Setting <target name=\"" +name +"\" attrName =\"" +attrValue +"\" ...>.", Project.MSG_DEBUG);
+        target.setAttribute(attrName, attrValue);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      throw new BuildException("No <property name=\"" +name +"\" ...> in XML document " +el);
+    }
+  }
+
+  /**
+   * Add Maven coordinates, attributes for group id, artifact id and version to
+   * the given element.
+   *
+   * @param el
+   *          The element to add Maven coordinates to.
+   * @param ba
+   *          The bundle archive to defining the coordinates.
+   */
+  private void addMavenCoordinates(final Element el, final BundleArchive ba) {
     final int ix = ba.bsn.lastIndexOf('.');
     final String aId = -1==ix ? ba.bsn : ba.bsn.substring(ix+1);
     final String gId = -1==ix ? (String) groupId : ba.bsn.substring(0,ix);
     final Version v = ba.version;
 
     if (null!=gId) {
-      sb.append(prefix).append("groupId=\"").append(gId).append("\"\n");
+      el.setAttribute("groupId", gId);
     }
-    sb.append(prefix).append("artifactId=\"").append(aId).append("\"\n");
-    sb.append(prefix).append("version=\"").append(v).append("\"");
+    el.setAttribute("artifactId", aId);
+    el.setAttribute("version", v.toString());
   }
 
-
   /**
-   * Add licenses element for the given bundle to the string
-   * buffer.
+   * Add licenses element for the given bundle to the string buffer.
    *
-   * @param sb String buffer to append to.
-   * @param ba Bundle archive to append dependencies for.
-   * @param prefix Prefix to start each row with.
+   * @param el
+   *          element to add the license element to.
+   * @param ba
+   *          The bundle archive to defining the coordinates.
+   * @param prefix
+   *          Whitespace to added before the owning element.
    */
-  private void addLicenses(final StringBuffer sb,
-                           final BundleArchives.BundleArchive ba,
-                           final String prefix)
+  private void addLicense(final Element el, final BundleArchive ba, final String prefix)
   {
-    sb.append(prefix).append("<licenses>\n");
+    final Element licenses = el.getOwnerDocument().createElement("licenses");
+    final String prefix1 = prefix + "  ";
+    final String prefix2 = prefix1 + "  ";
 
-    final String prefix1 = prefix +"  ";
-    final String prefix2 = prefix1 +"    ";
+    el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
+    el.appendChild(licenses);
+    el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix));
+
     boolean addDefault = true;
 
     final Iterator licenseIt = ba.getBundleLicense();
     while (licenseIt.hasNext()) {
       addDefault = false;
       final Map licenseMap = (Map) licenseIt.next();
-      sb.append(prefix2).append("<license name=\"")
-        .append(licenseMap.get("$key"))
-        .append("\"");
+      final Element license = el.getOwnerDocument().createElement("license");
+      license.setAttribute("name", licenseMap.get("$key").toString());
+      licenses.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
+      licenses.appendChild(license);
 
       if (licenseMap.containsKey("description")) {
-        sb.append("\n").append(prefix2).append("comments=\"")
-          .append(licenseMap.get("description"))
-          .append("\"");
+        license.setAttribute("comments", licenseMap.get("description").toString());
       }
-
       if (licenseMap.containsKey("link")) {
-        sb.append("\n").append(prefix2).append("url=\"")
-          .append(licenseMap.get("link"))
-          .append("\"");
+        license.setAttribute("url", licenseMap.get("link").toString());
       }
-
-      sb.append("/>\n");
     }
 
     if (addDefault) {
-      sb.append(prefix2)
-        .append("<license name=\"&lt;&lt;EXTERNAL&gt;&gt;\"/>\n");
+      final Element license = el.getOwnerDocument().createElement("license");
+      license.setAttribute("name", "<<EXTERNAL>>");
+      licenses.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
+      licenses.appendChild(license);
     }
-
-    sb.append(prefix).append("</licenses>\n");
+    licenses.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
   }
 
-
   /**
-   * Add dependencies element for the given bundle to the string
-   * buffer.
-   * @param sb String buffer to append to.
-   * @param ba Bundle archive to append dependencies for.
-   * @param prefix Prefix to start each row with.
+   * Add dependencies element for the given bundle to the string buffer.
+   *
+   * @param el
+   *          element to add the dependencies to.
+   * @param ba
+   *          The bundle archive to defining the coordinates.
+   * @param prefix
+   *          Whitespace to add before the new element.
    */
-  private void addDependencies(final StringBuffer sb,
-                               final BundleArchives.BundleArchive ba,
-                               final String prefix)
+  private void addDependencies(Element el, BundleArchive ba, String prefix)
   {
-    sb.append(prefix).append("<dependencies>\n");
+    final Element dependencies = el.getOwnerDocument().createElement("dependencies");
     final String prefix1 = prefix + "  ";
-    final String prefix2 = prefix1 + "    ";
+    final String prefix2 = prefix1 + "  ";
+
+    el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
+    el.appendChild(dependencies);
+    el.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix));
 
     final Iterator depEntryIter = selectCtDeps(ba).entrySet().iterator();
     while (depEntryIter.hasNext()) {
@@ -337,24 +401,26 @@ public class BundleMvnAntTask extends Task {
         depEntry.getKey();
       final Set pkgNames = (Set) depEntry.getValue();
 
-      sb.append(prefix1).append("<dependency\n");
-      addMavenCoordinates(sb, depBa, prefix2);
+      dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
+      dependencies.appendChild(el.getOwnerDocument().createComment(pkgNames.toString()));
+
+      final Element dependency = el.getOwnerDocument().createElement("dependency");
+      addMavenCoordinates(dependency, depBa);
       if (pkgNames.contains("org.osgi.framework")) {
-        sb.append("\n").append(prefix2).append("scope=\"provided\"");
+        dependency.setAttribute("scope", "provided");
       }
-      sb.append(">\n");
-      sb.append(prefix2).append("<!--").append(pkgNames).append("-->\n");
-      sb.append(prefix1).append("</dependency>\n");
+
+      dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix2));
+      dependencies.appendChild(dependency);
+      dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"));
     }
+    dependencies.appendChild(el.getOwnerDocument().createTextNode("\n"+prefix1));
 
     if (0<ba.pkgUnprovidedMap.size()) {
       log("  Imports without any provider: " +ba.pkgUnprovidedMap,
           Project.MSG_DEBUG);
     }
-
-    sb.append(prefix).append("</dependencies>\n");
   }
-
 
   /**
    * Selects a subset of the compile time dependencies so that each
@@ -369,10 +435,10 @@ public class BundleMvnAntTask extends Task {
     // The total set of packages that are provided by the dependencies.
     final Set pkgs = new TreeSet();
 
-    // The sub-set of the dependency entires that are API-bundles.
+    // The sub-set of the dependency entries that are API-bundles.
     final List depsApi = new ArrayList();
 
-    // The sub-set of the dependency entires that are not API-bundles.
+    // The sub-set of the dependency entries that are not API-bundles.
     final List depsNonApi = new ArrayList();
 
     // The resulting collection of dependencies
@@ -415,7 +481,7 @@ public class BundleMvnAntTask extends Task {
    * provides at least one of the packages in <code>pkgs</code>. Try
    * to avoid having multiple providers of the same package.
    *
-   * @param res  The providers to make depencies of.
+   * @param res  The selected providers to make dependencies of.
    * @param pkgs The set of packages that shall be provided by the
    *             providers added to res.
    * @param deps Provider bundles that are dependency candidates.
