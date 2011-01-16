@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,34 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import java.net.*;
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Result;
+import javax.xml.transform.Source;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.apache.tools.ant.BuildException;
+import org.w3c.dom.Document;
 
 /**
  * Miscellaneous static utility code.
@@ -70,6 +95,19 @@ public class Util {
       return new String(loadURL(url));
     } catch (Exception e) {
       return loadFile(fileOrURL);
+    }
+  }
+
+  /**
+   * Load an XML-formated file into a DOM-document.
+   */
+  public static Document loadXML(final File file) {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    try {
+      final DocumentBuilder db = dbf.newDocumentBuilder();
+      return db.parse(file);
+    } catch (Exception e) {
+      throw new BuildException("Failed to parse XML file '" +file +"': " +e, e);
     }
   }
 
@@ -265,6 +303,21 @@ public class Util {
     }
   }
 
+  public static void writeDocumentToFile(final File outFile, final Document doc) {
+    final Source source = new DOMSource(doc);
+    final Result result = new StreamResult(outFile);
+
+    // Write the DOM document to the file
+    Transformer xformer;
+    try {
+      xformer = TransformerFactory.newInstance().newTransformer();
+      xformer.transform(source, result);
+    } catch (Exception e) {
+      throw new BuildException("Failed to write XML to '" + outFile +"', "+e, e);
+    }
+  }
+
+
   /**
    * Parse strings of format:
    *
@@ -353,9 +406,8 @@ public class Util {
 }
 
 
-
 /**
- * Class for tokenize an attribute string.
+ * Class makes tokens of an attribute string.
  */
 class AttributeTokenizer {
 
@@ -374,7 +426,7 @@ class AttributeTokenizer {
     boolean quote = false;
     StringBuffer val = new StringBuffer();
     int end = 0;
-  loop:
+    loop:
     for (; pos < length; pos++) {
       if (backslash) {
         backslash = false;
@@ -510,5 +562,4 @@ class AttributeTokenizer {
       }
     }
   }
-
 }
