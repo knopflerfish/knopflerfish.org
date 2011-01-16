@@ -1122,14 +1122,14 @@ public class EE {
   }
 
   /**
-   * Check if a class is allowed by the "Mimimum" profile.
+   * Check if a class is allowed by the "Minimum" profile.
    */
   public static boolean isMinimum(String className) {
     return minimumMap.containsKey(className);
   }
 
   /**
-   * Check if a class is allowed by the "Mimimum" profile.
+   * Check if a class is allowed by the "Minimum" profile.
    */
   public static boolean isSMF(String className) {
     return smfMap.containsKey(className);
