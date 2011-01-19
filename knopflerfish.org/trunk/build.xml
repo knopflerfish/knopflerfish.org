@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-   ** Copyright (c) 2004-2010, KNOPFLERFISH project
+   ** Copyright (c) 2004-2011, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -272,7 +272,8 @@
     <mkdir dir="${distrib.mvn.repo.dir}"/>
 
     <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
-                  outFile="${distrib.tmp.dir}/toMvn.xml">
+                  outFile="${distrib.tmp.dir}/toMvn.xml"
+		  dependencyManagementFile="${distrib.doc.dir}/maven_dependencyManagement.xml">
       <!-- Include framework.jar -->
       <fileset dir="${distrib.osgi.dir}">
         <include name="framework.jar"/>

@@ -100,6 +100,9 @@ public class Util {
 
   /**
    * Load an XML-formated file into a DOM-document.
+   *
+   * @param file The XML file to load.
+   * @return DOM document.
    */
   public static Document loadXML(final File file) {
     final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -108,6 +111,24 @@ public class Util {
       return db.parse(file);
     } catch (Exception e) {
       throw new BuildException("Failed to parse XML file '" +file +"': " +e, e);
+    }
+  }
+
+  /**
+   * Create an empty DOM-document.
+   *
+   * @param rootElement The name of the root element of the new document.
+   * @return DOM document with a root element.
+   */
+  public static Document createXML(final String rootElement) {
+    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+    try {
+      final DocumentBuilder db = dbf.newDocumentBuilder();
+      final Document res = db.newDocument();
+      res.appendChild(res.createElement(rootElement));
+      return res;
+    } catch (Exception e) {
+      throw new BuildException("Failed to create new DOM-document:" +e, e);
     }
   }
 
