@@ -98,6 +98,16 @@ import org.w3c.dom.NodeList;
  *   <td valign=top>No.<br>Default 'org.knopflerfish'.</td>
  *  </tr>
  *
+ *  <tr>
+ *   <td valign=top>dependencyManagementFile</td>
+ *   <td valign=top>
+ *    Path to write an XML file with a &lt;dependencyManagement&gt;-element
+ *    describing all the artifacts that will be created by the generated build
+ *    file.
+ *   </td>
+ *   <td valign=top>No.<br> No default value.</td>
+ *  </tr>
+ *
  * </table>
  *
  * <h3>Parameters specified as nested elements</h3>
@@ -154,6 +164,14 @@ public class BundleMvnAntTask extends Task {
     }
   }
 
+  private File dependecyManagementFile;
+  public void setDependencyManagementFile(File f) {
+    dependecyManagementFile = f;
+    if(dependecyManagementFile.exists() && !dependecyManagementFile.canWrite()) {
+      throw new BuildException("dependencyManagementFile: " + f + " exists but is not writable");
+    }
+  }
+
   private List rcs = new ArrayList();
   public void addFileSet(FileSet fs) {
     rcs.add(fs);
@@ -166,7 +184,8 @@ public class BundleMvnAntTask extends Task {
     bas.doProviders();
 
     try {
-      writeAntFile();
+      writeBuildFile();
+      writeDependencyManagementFile();
     } catch (Exception e) {
       final String msg = "Failed to create ant build file: " +e;
       log(msg, Project.MSG_ERR);
@@ -175,7 +194,7 @@ public class BundleMvnAntTask extends Task {
 
   }
 
-  private void writeAntFile()
+  private void writeBuildFile()
     throws IOException
   {
     log("Creating build file: " + outFile, Project.MSG_VERBOSE);
@@ -244,6 +263,66 @@ public class BundleMvnAntTask extends Task {
 
     Util.writeDocumentToFile(outFile, doc);
     log("wrote " + outFile, Project.MSG_VERBOSE);
+  }
+
+  private void writeDependencyManagementFile()
+    throws IOException
+  {
+    log("Creating dependency management file: " + dependecyManagementFile, Project.MSG_VERBOSE);
+
+    final String prefix1 = "  ";
+    final String prefix2 = prefix1 + "  ";
+    final String prefix3 = prefix2 + "  ";
+
+    final Document doc = Util.createXML("dependencyManagement");
+    final Element root = (Element) doc.getDocumentElement();
+
+    root.appendChild(doc.createTextNode("\n"+prefix1));
+    final Element dependencies = doc.createElement("dependencies");
+    root.appendChild(dependencies);
+
+    final Iterator it = bas.bsnToBundleArchives.entrySet().iterator();
+    while (it.hasNext()) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      final Set bsnSet = (Set) entry.getValue();
+      // Sorted set with bundle archives, same bsn, different versions
+      for (Iterator itV = bsnSet.iterator(); itV.hasNext();) {
+        final BundleArchive ba = (BundleArchive) itV.next();
+
+        dependencies.appendChild(doc.createTextNode("\n\n" +prefix2));
+        dependencies.appendChild(doc.createComment(ba.relPath));
+        dependencies.appendChild(doc.createTextNode("\n" +prefix2));
+
+        final Element dependency = doc.createElement("dependency");
+        dependencies.appendChild(dependency);
+
+        // Dummy element to read mvn coordinates from
+        final Element coordinateEl = doc.createElement("dummy");
+        addMavenCoordinates(coordinateEl, ba);
+
+        dependency.appendChild(doc.createTextNode("\n" +prefix3));
+        final Element groupId = doc.createElement("groupId");
+        dependency.appendChild(groupId);
+        groupId.appendChild(doc.createTextNode(coordinateEl.getAttribute("groupId")));
+
+        dependency.appendChild(doc.createTextNode("\n" +prefix3));
+        final Element artifactId = doc.createElement("artifactId");
+        dependency.appendChild(artifactId);
+        artifactId.appendChild(doc.createTextNode(coordinateEl.getAttribute("artifactId")));
+
+        dependency.appendChild(doc.createTextNode("\n" +prefix3));
+        final Element version = doc.createElement("version");
+        dependency.appendChild(version);
+        version.appendChild(doc.createTextNode(coordinateEl.getAttribute("version")));
+
+        dependency.appendChild(doc.createTextNode("\n" +prefix2));
+      }
+    }
+    dependencies.appendChild(doc.createTextNode("\n" +prefix1));
+    root.appendChild(doc.createTextNode("\n"));
+
+    Util.writeDocumentToFile(dependecyManagementFile, doc);
+    log("wrote " + dependecyManagementFile, Project.MSG_VERBOSE);
   }
 
   /**
