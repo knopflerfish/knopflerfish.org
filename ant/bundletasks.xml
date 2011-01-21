@@ -2,23 +2,23 @@
 <!--
    ** Copyright (c) 2003-2009, KNOPFLERFISH project
    ** All rights reserved.
-   ** 
-   ** Redistribution and use in source and binary forms, with or without 
-   ** modification, are permitted provided that the following conditions 
+   **
+   ** Redistribution and use in source and binary forms, with or without
+   ** modification, are permitted provided that the following conditions
    ** are met:
-   ** 
-   ** - Redistributions of source code must retain the above copyright notice, 
-   **   this list of conditions and the following disclaimer. 
-   ** 
-   ** - Redistributions in binary form must reproduce the above copyright 
-   **   notice, this list of conditions and the following disclaimer in 
-   **   the documentation and/or other materials provided with the 
-   **   distribution. 
-   ** 
-   ** - Neither the name of the KNOPFLERFISH project nor the names of its 
-   **   contributors may be used to endorse or promote products derived 
-   **   from this software without specific prior written permission. 
-   ** 
+   **
+   ** - Redistributions of source code must retain the above copyright notice,
+   **   this list of conditions and the following disclaimer.
+   **
+   ** - Redistributions in binary form must reproduce the above copyright
+   **   notice, this list of conditions and the following disclaimer in
+   **   the documentation and/or other materials provided with the
+   **   distribution.
+   **
+   ** - Neither the name of the KNOPFLERFISH project nor the names of its
+   **   contributors may be used to endorse or promote products derived
+   **   from this software without specific prior written permission.
+   **
    ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
    ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
    ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -44,7 +44,7 @@
 
 
   <!-- ASM bytecode manipulation and analysis framework -->
-  <property name="asm.version" value="3.2"/> 
+  <property name="asm.version" value="3.2"/>
   <property name="asm.jar"
             location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
   <path id="asm.path">
@@ -56,17 +56,21 @@
     <pathelement location="${ant.lib}/bindex.jar"/>
   </path>
 
-  <available classname="org.osgi.impl.bundle.bindex.Index"
-             classpathref="bindex.path"
-             property="bindex.present"/>
+  <condition property="bindex.present">
+    <and>
+      <available classname="org.osgi.impl.bundle.bindex.Index"
+                 classpathref="bindex.path"/>
+      <available type="file" file="${ant.lib}/obr2html.xsl"/>
+    </and>
+  </condition>
 
   <target name="install_bindex" unless="bindex.present">
 
-    <get src="http://www.osgi.org/download/bindex.jar" 
+    <get src="http://www.osgi.org/download/bindex.jar"
          dest="${ant.lib}/bindex.jar"/>
     <!-- The default OBR style sheet (must be local) -->
     <get src="http://www2.osgi.org/www/obr2html.xsl"
-	 dest="${ant.lib}/obr2html.xsl"/>
+         dest="${ant.lib}/obr2html.xsl"/>
   </target>
 
 
@@ -110,36 +114,36 @@
 
     <jar destfile="${bundle_tasks.jar}"
          compress="true"
-	 update="false"
+         update="false"
          filesonly="true">
       <manifest>
         <attribute name="Implementation-Vendor" value="Knopflerfish"/>
         <attribute name="Implementation-Title"
-		   value="Knopflerfish Bundle Tasks"/>
+                   value="Knopflerfish Bundle Tasks"/>
         <attribute name="Knopflerfish-Version" value="${version}"/>
       </manifest>
       <zipfileset dir="${antclasses}"/>
       <zipfileset dir="${ant.dir}/src"
-		  includes="**/antlib.xml"/>
+                  includes="**/antlib.xml"/>
       <zipfileset src="${asm.jar}" includes="org/**"/>
-    </jar>       
+    </jar>
   </target>
 
-  <target name="define_bundle_tasks" 
+  <target name="define_bundle_tasks"
           description="Defines the Knopflerfish bundle tasks">
     <taskdef resource="org/knopflerfish/ant/taskdefs/bundle/antlib.xml">
       <classpath>
-	<pathelement location="${bundle_tasks.jar}"/>
-	<path refid="bindex.path"/>
+        <pathelement location="${bundle_tasks.jar}"/>
+        <path refid="bindex.path"/>
       </classpath>
     </taskdef>
   </target>
 
-  <target name="bundle_tasks" 
+  <target name="bundle_tasks"
           description="Builds and defines the Knopflerfish bundle tasks"
           depends="install_bindex,
                    maybe_build_bundle_tasks,
-		   define_bundle_tasks">
+                   define_bundle_tasks">
   </target>
 
   <target name="default" depends="bundle_tasks"/>
