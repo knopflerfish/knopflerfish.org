@@ -61,8 +61,12 @@
              property="bindex.present"/>
 
   <target name="install_bindex" unless="bindex.present">
+
     <get src="http://www.osgi.org/download/bindex.jar" 
          dest="${ant.lib}/bindex.jar"/>
+    <!-- The default OBR style sheet (must be local) -->
+    <get src="http://www2.osgi.org/www/obr2html.xsl"
+	 dest="${ant.lib}/obr2html.xsl"/>
   </target>
 
 

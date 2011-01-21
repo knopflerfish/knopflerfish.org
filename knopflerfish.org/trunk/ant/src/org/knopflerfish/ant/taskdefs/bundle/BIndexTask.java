@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,6 +85,18 @@ public class BIndexTask extends Task {
     filesets.addElement(set);
   }
 
+  private String styleSheet;
+
+  /**
+   * URL or relative path of the style sheet that the generated XML-file points
+   * to for HTML conversion.
+   *
+   * @param styleSheet
+   */
+  public void setStyleSheet(final String styleSheet) {
+    this.styleSheet = styleSheet;
+  }
+
   // Implements Task
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
@@ -137,12 +149,17 @@ public class BIndexTask extends Task {
       cmdList.add("-t");
       cmdList.add(baseURL +"/%p/%f ");
 
+      if (null!=styleSheet) {
+        cmdList.add("-stylesheet");
+        cmdList.add(styleSheet);
+      }
+
       // -d <rootFile> here
 
       cmdList.add("-r");
       cmdList.add(outFile);
 
-      // Don't print the resulting XML documnet on System.out.
+      // Don't print the resulting XML document on System.out.
       cmdList.add("-q");
 
       if (null!=repoName && repoName.length()>0) {
@@ -163,7 +180,7 @@ public class BIndexTask extends Task {
         cmdList.add(2, baseDir.getAbsolutePath());
         cmdList.add(2, "-d");
         try {
-          // Hack for older bindex without -d option. Use reflection
+          // Hack for older BIndex without -d option. Use reflection
           // to set org.osgi.impl.bundle.bindex.Index.rootFile to
           // baseDir to get correctly computed paths in the bundle
           // URLs.

@@ -639,12 +639,14 @@
     <antcall target="bindex_bare">
       <param name="bindex.dest.dir" location="repo"/>
       <param name="bindex.base.url" value="http://www.knopflerfish.org/repo"/>
+      <param name="bindex.xslt" location="${ant.dir}/lib/obr2html.xsl"/>
     </antcall>
 
     <!-- The release directory REPO file -->
     <antcall target="bindex_bare">
       <param name="bindex.dest.dir" location="${distrib.dir}"/>
       <param name="bindex.base.url" value="${base.url}/${version}/osgi"/>
+      <param name="bindex.xslt" location="${ant.dir}/lib/obr2html.xsl"/>
     </antcall>
   </target>
 
@@ -660,6 +662,7 @@
             baseDir="${bindex.base.dir}"
             baseURL="${bindex.base.url}"
             repoName="${bindex.repo.name}"
+	    stylesheet="obr2html.xsl"
             >
 
       <fileset dir="${bindex.jars.dir}">
@@ -672,6 +675,10 @@
         <exclude name="*/*_api-*.jar"/>
       </fileset>
     </bindex>
+    <copy file="${bindex.xslt}"
+          toFile="${bindex.dest.dir}/obr2html.xsl"
+          overwrite="true">
+    </copy>
   </target>
 
 
