@@ -79,6 +79,7 @@
   <property name="bundleinfo.failOnExports"   value="true"/>
   <property name="bundleinfo.failOnImports"   value="true"/>
   <property name="bundleinfo.failOnActivator" value="true"/>
+  <property name="bundleinfo.failOnClassPath" value="true"/>
   <property name="bundleinfo.uses"            value="true"/>
 
   <!-- Bundle manifest attributes corresponds to ant properties with  -->
@@ -572,6 +573,7 @@
                   failOnExports="${bundleinfo.failOnExports}"
                   failOnImports="${bundleinfo.failOnImports}"
                   failOnActivator="${bundleinfo.failOnActivator}"
+                  failOnClassPath="${bundleinfo.failOnClassPath}"
                   checkFoundationEE="${ee.check.foundation}">
         <exports dir="${classes.out.dir}" includes="@{includes-exports}"/>
         <exportsBundleClasspath bundleClasspath="${bmfa.Bundle-Classpath}"

@@ -331,6 +331,19 @@ import org.osgi.framework.Version;
  *     Default value is "true"
  *   </td>
  *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>failOnClassParh</td>
+ *   <td valign=top>
+ *       If a non-existing entry is detected in the given bundle
+ *       classpath header and this attribute is set to <tt>true</tt>
+ *       then a build failure is trigger.
+ *   </td>
+ *   <td valign=top>
+ *     No.<br>
+ *     Default value is "true"
+ *   </td>
+ *  </tr>
  * </table>
  *
  * <h3>Parameters specified as nested elements</h3>
@@ -447,6 +460,7 @@ public class BundleInfoTask extends Task {
   private boolean failOnExports      = true;
   private boolean failOnImports      = true;
   private boolean failOnActivator    = true;
+  private boolean failOnClassPath    = true;
   private boolean bImportsOnly       = false;
 
   /**
@@ -502,6 +516,10 @@ public class BundleInfoTask extends Task {
 
   public void setFailOnActivator(boolean b) {
     this.failOnActivator = b;
+  }
+
+  public void setFailOnClassPath(boolean b) {
+    this.failOnClassPath = b;
   }
 
   public void setImplicitImports(String s) {
@@ -629,7 +647,7 @@ public class BundleInfoTask extends Task {
    * @param bcpt The bundle classpath that the bundle will have.
    */
   public void addConfiguredExportsBundleClasspath(BundleClasspathTask bcpt) {
-    for (Iterator it = bcpt.getFileSets().iterator(); it.hasNext();) {
+    for (Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
       final Restrict restrict = new Restrict();
       restrict.add((ResourceCollection) it.next());
       restrict.add(analyzeRestriction);
@@ -655,7 +673,7 @@ public class BundleInfoTask extends Task {
    * @param bcpt The bundle classpath that the bundle will have.
    */
   public void addConfiguredImplsBundleClasspath(BundleClasspathTask bcpt) {
-    for (Iterator it = bcpt.getFileSets().iterator(); it.hasNext();) {
+    for (Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
       final Restrict restrict = new Restrict();
       restrict.add((ResourceCollection) it.next());
       restrict.add(analyzeRestriction);
