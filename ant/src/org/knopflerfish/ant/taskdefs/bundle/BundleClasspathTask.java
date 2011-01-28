@@ -217,7 +217,7 @@ public class BundleClasspathTask extends Task {
    *         bundle class path. If the entry is for a Jar/Zip file
    *         then its list item will be a zip file set.
    */
-  public List getFileSets()
+  public List getFileSets(boolean failOnClassPath)
   {
     final List res = new ArrayList();
     final Project proj = getProject();
@@ -250,12 +250,25 @@ public class BundleClasspathTask extends Task {
       File src= new File(dir, entry);
 
       // Bundle class path entries are either directories or jar/zip-files!
-      if (!src.isDirectory()) {
+      if (src.isDirectory()) {
+        fileSet = new FileSet();
+        fileSet.setDir(src);
+      } else if (src.exists()) {
         fileSet = new ZipFileSet();
         ((ZipFileSet) fileSet).setSrc(src);
       } else {
-        fileSet = new FileSet();
-        fileSet.setDir(src);
+        final StringBuffer msg = new StringBuffer();
+        msg.append("The following entry in the Bundle-ClassPath")
+          .append(" header doesn't exist in the bundle: ")
+          .append(entry)
+          .append(".");
+        if (failOnClassPath) {
+          log(msg.toString(), Project.MSG_ERR);
+          throw new BuildException(msg.toString(), getLocation());
+        } else {
+          log(msg.toString(), Project.MSG_WARN);
+          continue;
+        }
       }
 
       fileSet.setProject(proj);
