@@ -1049,6 +1049,43 @@ be present at all in the manifest, not even as a zero-length string.
  </tr>
 
  <tr>
+  <td>bundleinfo.failOnExports</td>
+  <td>If set, verify that the given <code>Export-Package</code>
+      manifest header is valid. If not valid the build will fail.
+      <br>Default is <code>true</code>.
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundleinfo.failOnImports</td>
+  <td>If set, verify that the given <code>Import-Package</code>
+      manifest header is valid. If not valid the build will fail.
+      <br>Default is <code>true</code>.
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundleinfo.failOnActivator</td>
+  <td>If set, verify that the given <code>Bundle-Activator</code>
+      manifest header is valid. E.g., that the class is included in
+      the bundle archive and that it implements
+      <code>org.osgi.framework.BundleActivator</code>. If not valid the
+      build will fail. 
+      <br>Default is <code>true</code>.
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundleinfo.failOnClassPath</td>
+  <td>If set, verify that the given <code>Bundle-Classpath</code>
+      manifest header is valid. E.g., that all files, directories in
+      it existis inside the bundle archive. If not valid the build
+      will fail.
+      <br>Default is <code>true</code>.
+  </td>
+ </tr>
+
+ <tr>
   <td class="tableheader" colspan="2">Other elements</td>
  </tr>
 
