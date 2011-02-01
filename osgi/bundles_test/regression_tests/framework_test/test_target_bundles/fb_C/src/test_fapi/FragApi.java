@@ -1,8 +1,9 @@
 package test_fapi;
 
-public class FragApi {
+public interface FragApi {
 
-  public int getVersion() {
-    return 1;
-  }
+  public static int VERSION = 1;
+
+  public String where();
+
 }
