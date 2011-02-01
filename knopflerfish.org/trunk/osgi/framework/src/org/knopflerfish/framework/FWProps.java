@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010, KNOPFLERFISH project
+ * Copyright (c) 2009-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
 import java.net.URLClassLoader;
 import java.util.*;
 
@@ -43,43 +42,32 @@ import org.osgi.framework.*;
 /**
  * This class contains properties used by the framework
  */
-public class FWProps  {
+public class FWProps {
 
   /**
    * Constants for knopflerfish framework properties
    */
-  public final static String ALL_SIGNED_PROP =
-    "org.knopflerfish.framework.all_signed";
+  public final static String ALL_SIGNED_PROP = "org.knopflerfish.framework.all_signed";
 
-  public final static String AUTOMANIFEST_PROP =
-    "org.knopflerfish.framework.automanifest";
+  public final static String AUTOMANIFEST_PROP = "org.knopflerfish.framework.automanifest";
 
-  public final static String AUTOMANIFEST_CONFIG_PROP =
-    "org.knopflerfish.framework.automanifest.config";
+  public final static String AUTOMANIFEST_CONFIG_PROP = "org.knopflerfish.framework.automanifest.config";
 
-  public final static String BUNDLESTORAGE_PROP =
-    "org.knopflerfish.framework.bundlestorage";
+  public final static String BUNDLESTORAGE_PROP = "org.knopflerfish.framework.bundlestorage";
 
-  public final static String BUNDLESTORAGE_CHECKSIGNED_PROP =
-    "org.knopflerfish.framework.bundlestorage.checksigned";
+  public final static String BUNDLESTORAGE_CHECKSIGNED_PROP = "org.knopflerfish.framework.bundlestorage.checksigned";
 
-  public final static String PATCH_PROP =
-    "org.knopflerfish.framework.patch";
+  public final static String PATCH_PROP = "org.knopflerfish.framework.patch";
 
-  public final static String PATCH_CONFIGURL_PROP =
-    "org.knopflerfish.framework.patch.configurl";
+  public final static String PATCH_CONFIGURL_PROP = "org.knopflerfish.framework.patch.configurl";
 
-  public final static String PATCH_DUMPCLASSES_PROP =
-    "org.knopflerfish.framework.patch.dumpclasses";
+  public final static String PATCH_DUMPCLASSES_PROP = "org.knopflerfish.framework.patch.dumpclasses";
 
-  public final static String PATCH_DUMPCLASSES_DIR_PROP =
-    "org.knopflerfish.framework.patch.dumpclasses.dir";
+  public final static String PATCH_DUMPCLASSES_DIR_PROP = "org.knopflerfish.framework.patch.dumpclasses.dir";
 
-  public final static String SERVICE_CONDITIONALPERMISSIONADMIN_PROP =
-    "org.knopflerfish.framework.service.conditionalpermissionadmin";
+  public final static String SERVICE_CONDITIONALPERMISSIONADMIN_PROP = "org.knopflerfish.framework.service.conditionalpermissionadmin";
 
-  public final static String SERVICE_PERMISSIONADMIN_PROP =
-    "org.knopflerfish.framework.service.permissionadmin";
+  public final static String SERVICE_PERMISSIONADMIN_PROP = "org.knopflerfish.framework.service.permissionadmin";
 
   /**
    * Property specifying how bundle threads which are aborted should be handled.
@@ -89,92 +77,73 @@ public class FWProps  {
    * {@link BundleThread#ABORT_ACTION_IGNORE}.
    */
   public final static String BUNDLETHREAD_ABORT = "org.knopflerfish.framework.bundlethread.abort";
-  
+
   /**
-   * Name of system property for basic system packages to be exported.
-   * The normal OSGi exports will be added to this list.
+   * Name of system property for basic system packages to be exported. The
+   * normal OSGi exports will be added to this list.
    */
-  public final static String SYSTEM_PACKAGES_BASE_PROP =
-    "org.knopflerfish.framework.system.packages.base";
+  public final static String SYSTEM_PACKAGES_BASE_PROP = "org.knopflerfish.framework.system.packages.base";
 
   /**
    * Property name pointing to file listing of system-exported packages
    */
-  public final static String SYSTEM_PACKAGES_FILE_PROP =
-    "org.knopflerfish.framework.system.packages.file";
+  public final static String SYSTEM_PACKAGES_FILE_PROP = "org.knopflerfish.framework.system.packages.file";
 
   /**
    * Property name for selecting exporting profile of system packages.
    */
-  public final static String SYSTEM_PACKAGES_VERSION_PROP =
-    "org.knopflerfish.framework.system.packages.version";
+  public final static String SYSTEM_PACKAGES_VERSION_PROP = "org.knopflerfish.framework.system.packages.version";
 
-  public final static String IS_DOUBLECHECKED_LOCKING_SAFE_PROP =
-    "org.knopflerfish.framework.is_doublechecked_locking_safe";
+  public final static String IS_DOUBLECHECKED_LOCKING_SAFE_PROP = "org.knopflerfish.framework.is_doublechecked_locking_safe";
 
-  public final static String LDAP_NOCACHE_PROP =
-    "org.knopflerfish.framework.ldap.nocache";
+  public final static String LDAP_NOCACHE_PROP = "org.knopflerfish.framework.ldap.nocache";
 
-  public final static String LISTENER_N_THREADS_PROP =
-    "org.knopflerfish.framework.listener.n_threads";
-
-  
+  public final static String LISTENER_N_THREADS_PROP = "org.knopflerfish.framework.listener.n_threads";
 
   /**
-   * If the Main-Class manifest attribute is set and this
-   * bundles location is present in the value (comma separated
-   * list) of the (System) property named
-   * org.knopflerfish.framework.main.class.activation then setup
-   * up a bundle activator that calls the main-method of the
-   * Main-Class when the bundle is started, and if the
-   * Main-Class contains a method named stop() call that
+   * If the Main-Class manifest attribute is set and this bundles location is
+   * present in the value (comma separated list) of the (System) property named
+   * org.knopflerfish.framework.main.class.activation then setup up a bundle
+   * activator that calls the main-method of the Main-Class when the bundle is
+   * started, and if the Main-Class contains a method named stop() call that
    * method when the bundle is stopped.
    */
-  public final static String MAIN_CLASS_ACTIVATION_PROP =
-    "org.knopflerfish.framework.main.class.activation";
+  public final static String MAIN_CLASS_ACTIVATION_PROP = "org.knopflerfish.framework.main.class.activation";
 
-  public final static String STRICTBOOTCLASSLOADING_PROP =
-   "org.knopflerfish.framework.strictbootclassloading";
+  public final static String STRICTBOOTCLASSLOADING_PROP = "org.knopflerfish.framework.strictbootclassloading";
 
-  public final static String VALIDATOR_PROP =
-    "org.knopflerfish.framework.validator";
+  public final static String VALIDATOR_PROP = "org.knopflerfish.framework.validator";
 
-  public final static String SETCONTEXTCLASSLOADER_PROP =
-    "org.knopflerfish.osgi.setcontextclassloader";
+  public final static String SETCONTEXTCLASSLOADER_PROP = "org.knopflerfish.osgi.setcontextclassloader";
 
-  public final static String REGISTERSERVICEURLHANDLER_PROP =
-    "org.knopflerfish.osgi.registerserviceurlhandler";
+  public final static String REGISTERSERVICEURLHANDLER_PROP = "org.knopflerfish.osgi.registerserviceurlhandler";
 
-  public final static String STARTLEVEL_USE_PROP =
-    "org.knopflerfish.startlevel.use";
+  public final static String STARTLEVEL_USE_PROP = "org.knopflerfish.startlevel.use";
 
   /**
-   * Set to true indicates startlevel compatability mode.
-   * all bundles and current start level will be 1
+   * Set to true indicates startlevel compatability mode. all bundles and
+   * current start level will be 1
    */
-  public final static String STARTLEVEL_COMPAT_PROP =
-    "org.knopflerfish.framework.startlevel.compat";
-
+  public final static String STARTLEVEL_COMPAT_PROP = "org.knopflerfish.framework.startlevel.compat";
 
   /**
-   * Name of special property containing a comma-separated list of all
-   * other property names.
+   * Name of special property containing a comma-separated list of all other
+   * property names.
    */
   public static final String KEY_KEYS = "org.knopflerfish.framework.bundleprops.keys";
 
   /**
    * Common true string.
    */
-  public final static String TRUE   = "true";
+  public final static String TRUE = "true";
 
   /**
    * Common false string.
    */
-  public final static String FALSE  = "false";
-
+  public final static String FALSE = "false";
 
   // If set to true, use strict rules for loading classes from the
-  // boot class loader.  If false, accept class loading from the boot
+  // boot class loader. If false, accept class loading from the boot
   // class path from classes themselves on the boot class, but which
   // incorrectly assumes they may access all of the boot classes on
   // any class loader (such as the bundle class loader).
@@ -184,18 +153,16 @@ public class FWProps  {
   // OSGi R4 behavior.
   public boolean STRICTBOOTCLASSLOADING;
 
-
   /**
    * The properties for this framework instance.
    */
-  protected Map/*<String, String>*/ props = new Hashtable();
+  protected Map/* <String, String> */props = new Hashtable();
 
   /**
-   * The default properties for this framework instance.
-   * TBD, maybe we should make this JVM global!?
+   * The default properties for this framework instance. TBD, maybe we should
+   * make this JVM global!?
    */
-  protected Map/*<String, String>*/ props_default = new Hashtable();
-
+  protected Map/* <String, String> */props_default = new Hashtable();
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
@@ -208,7 +175,6 @@ public class FWProps  {
 
   public boolean REGISTERSERVICEURLHANDLER = true;
 
-
   public static int javaVersionMajor = -1;
   public static int javaVersionMinor = -1;
   public static int javaVersionMicro = -1;
@@ -216,33 +182,30 @@ public class FWProps  {
   static {
     String javaVersion = System.getProperty("java.version");
     // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
-    if (null!=javaVersion) {
+    if (null != javaVersion) {
       int startPos = 0;
-      int endPos   = 0;
-      int max      = javaVersion.length();
-      while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))) {
+      int endPos = 0;
+      int max = javaVersion.length();
+      while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
         endPos++;
       }
-      if (startPos<endPos) {
+      if (startPos < endPos) {
         try {
-          javaVersionMajor
-            = Integer.parseInt(javaVersion.substring(startPos,endPos));
-          startPos = endPos +1;
-          endPos   = startPos;
-          while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))) {
+          javaVersionMajor = Integer.parseInt(javaVersion.substring(startPos, endPos));
+          startPos = endPos + 1;
+          endPos = startPos;
+          while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
             endPos++;
           }
-          if (startPos<endPos) {
-            javaVersionMinor
-              = Integer.parseInt(javaVersion.substring(startPos,endPos));
-            startPos = endPos +1;
-            endPos   = startPos;
-            while (endPos<max && Character.isDigit(javaVersion.charAt(endPos))){
+          if (startPos < endPos) {
+            javaVersionMinor = Integer.parseInt(javaVersion.substring(startPos, endPos));
+            startPos = endPos + 1;
+            endPos = startPos;
+            while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
               endPos++;
             }
-            if (startPos<endPos) {
-              javaVersionMicro
-                = Integer.parseInt(javaVersion.substring(startPos,endPos));
+            if (startPos < endPos) {
+              javaVersionMicro = Integer.parseInt(javaVersion.substring(startPos, endPos));
             }
           }
         } catch (NumberFormatException _nfe) {
@@ -251,11 +214,9 @@ public class FWProps  {
     }
   }
 
-
   /**
-   * Is it safe to use double-checked locking or not.
-   * It is safe if JSR 133 is included in the running JRE.
-   * I.e., for Java SE if version is 1.5 or higher.
+   * Is it safe to use double-checked locking or not. It is safe if JSR 133 is
+   * included in the running JRE. I.e., for Java SE if version is 1.5 or higher.
    */
   public boolean isDoubleCheckedLockingSafe;
 
@@ -282,8 +243,9 @@ public class FWProps  {
 
 
   /**
-   * Retrieve boolean value of the named framework property, with a default value.
-   *
+   * Retrieve boolean value of the named framework property, with a default
+   * value.
+   * 
    */
   public boolean getBooleanProperty(String key) {
     String v = getProperty(key);
@@ -296,13 +258,13 @@ public class FWProps  {
 
   /**
    * Retrieve the value of the named framework property, with a default value.
-   *
+   * 
    */
   public String getProperty(String key) {
     if (KEY_KEYS.equals(key)) {
       return makeKeys();
     }
-    String v = (String) props.get(key);
+    String v = (String)props.get(key);
     if (v == null) {
       v = System.getProperty(key);
       if (v == null) {
@@ -323,8 +285,8 @@ public class FWProps  {
 
 
   /**
-   * Set property if not set to system property if it exists
-   * otherwise set to supplied value.
+   * Set property if not set to system property if it exists otherwise set to
+   * supplied value.
    */
   public void setPropertyIfNotSet(String key, String val) {
     if (!props.containsKey(key)) {
@@ -333,7 +295,7 @@ public class FWProps  {
   }
 
 
-  public Dictionary getProperties(){
+  public Dictionary getProperties() {
     Hashtable p = new Hashtable(props_default);
     p.putAll(System.getProperties());
     p.putAll(props);
@@ -344,13 +306,13 @@ public class FWProps  {
 
   protected String makeKeys() {
     StringBuffer sb = new StringBuffer();
-    for (Iterator it = props.keySet().iterator(); it.hasNext(); ) {
+    for (Iterator it = props.keySet().iterator(); it.hasNext();) {
       if (sb.length() > 0) {
         sb.append(',');
       }
       sb.append(it.next().toString());
     }
-    for (Iterator it = props_default.keySet().iterator(); it.hasNext(); ) {
+    for (Iterator it = props_default.keySet().iterator(); it.hasNext();) {
       sb.append(',');
       sb.append(it.next().toString());
     }
@@ -364,7 +326,7 @@ public class FWProps  {
   protected void initProperties(FrameworkContext fwCtx) {
     setPropertyIfNotSet(Constants.FRAMEWORK_BOOTDELEGATION, "");
     setPropertyIfNotSet(Constants.FRAMEWORK_BUNDLE_PARENT,
-                        Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
+        Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");
 
     if (!props.containsKey(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)) {
@@ -374,9 +336,9 @@ public class FWProps  {
       ee.append(",OSGi/Minimum-1.1");
       ee.append(",OSGi/Minimum-1.2");
       // Set up the default ExecutionEnvironment
-      if (1==javaVersionMajor) {
-        for (int i=javaVersionMinor; i>1; i--) {
-          ee.append((i>5) ? ",JavaSE-1." : ",J2SE-1.");
+      if (1 == javaVersionMajor) {
+        for (int i = javaVersionMinor; i > 1; i--) {
+          ee.append((i > 5) ? ",JavaSE-1." : ",J2SE-1.");
           ee.append(i);
         }
       }
@@ -387,7 +349,7 @@ public class FWProps  {
     setPropertyIfNotSet(Constants.FRAMEWORK_LIBRARY_EXTENSIONS, "");
 
     setPropertyIfNotSet(Constants.FRAMEWORK_OS_NAME,
-                        Alias.unifyOsName(System.getProperty("os.name")));
+        Alias.unifyOsName(System.getProperty("os.name")));
 
     if (!props.containsKey(Constants.FRAMEWORK_OS_VERSION)) {
       String ver = System.getProperty("os.version");
@@ -413,7 +375,8 @@ public class FWProps  {
               }
             }
           }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {
+        }
       }
       Version osVersion;
       try {
@@ -425,7 +388,7 @@ public class FWProps  {
     }
 
     setPropertyIfNotSet(Constants.FRAMEWORK_PROCESSOR,
-                        Alias.unifyProcessor(System.getProperty("os.arch")));
+        Alias.unifyProcessor(System.getProperty("os.arch")));
 
     setPropertyIfNotSet(Constants.FRAMEWORK_SECURITY, "");
 
@@ -452,7 +415,8 @@ public class FWProps  {
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
     // Only first framework support framework extension
     // NYI! Improve this in the future
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION, getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 0 ? TRUE : FALSE);
+    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+        getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 0 ? TRUE : FALSE);
     // Only first framework can support bootclasspath extension
     // NYI! Improve this in the future
     setPropertyIfNotSet(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);
@@ -461,6 +425,7 @@ public class FWProps  {
       props.put(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);
     }
   }
+
 
   /**
    * Create the default set of KF specific framework properties.
@@ -479,16 +444,15 @@ public class FWProps  {
     setPropertyDefault(SERVICE_PERMISSIONADMIN_PROP, TRUE);
     setPropertyDefault(SYSTEM_PACKAGES_BASE_PROP, "");
     setPropertyDefault(SYSTEM_PACKAGES_FILE_PROP, "");
-    setPropertyDefault(SYSTEM_PACKAGES_VERSION_PROP,
-                       Integer.toString(javaVersionMajor) + "." + javaVersionMinor);
-    setPropertyDefault(IS_DOUBLECHECKED_LOCKING_SAFE_PROP, 
-                       javaVersionMajor>=1 && javaVersionMinor>=5 ? TRUE : FALSE);
+    setPropertyDefault(SYSTEM_PACKAGES_VERSION_PROP, Integer.toString(javaVersionMajor) + "."
+        + javaVersionMinor);
+    setPropertyDefault(IS_DOUBLECHECKED_LOCKING_SAFE_PROP, javaVersionMajor >= 1
+        && javaVersionMinor >= 5 ? TRUE : FALSE);
     setPropertyDefault(LDAP_NOCACHE_PROP, FALSE);
     setPropertyDefault(MAIN_CLASS_ACTIVATION_PROP, "");
     setPropertyDefault(STRICTBOOTCLASSLOADING_PROP, FALSE);
-    setPropertyDefault(VALIDATOR_PROP,
-                       getProperty(Constants.FRAMEWORK_TRUST_REPOSITORIES).length() > 0 ?
-                       "JKSValidator" : "none");
+    setPropertyDefault(VALIDATOR_PROP, getProperty(Constants.FRAMEWORK_TRUST_REPOSITORIES)
+        .length() > 0 ? "JKSValidator" : "none");
     setPropertyDefault(SETCONTEXTCLASSLOADER_PROP, FALSE);
     setPropertyDefault(REGISTERSERVICEURLHANDLER_PROP, TRUE);
     setPropertyDefault(STARTLEVEL_COMPAT_PROP, FALSE);

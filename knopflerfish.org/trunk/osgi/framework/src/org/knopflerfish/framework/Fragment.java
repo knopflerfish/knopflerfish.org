@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,22 +38,21 @@ import java.util.*;
 
 import org.osgi.framework.*;
 
-
 /**
- *
+ * Fragment information
  */
 class Fragment {
   final String hostName;
   final String extension;
   final VersionRange versionRange;
-  private ArrayList /* BundleGeneration */ hosts = new ArrayList(2);
+  private Vector /* BundleGeneration */hosts = new Vector(2);
+
 
   Fragment(String hostName, String extension, String range) {
     this.hostName = hostName;
     this.extension = extension;
-    this.versionRange = range == null ?
-      VersionRange.defaultVersionRange :
-      new VersionRange(range);
+    this.versionRange = range == null ? VersionRange.defaultVersionRange
+        : new VersionRange(range);
   }
 
 
@@ -71,13 +70,13 @@ class Fragment {
   }
 
 
-  boolean isHost(BundleImpl host) {
+  boolean isHost(BundleGeneration host) {
     return hosts.contains(host);
   }
 
 
-  Iterator getHosts() {
-    return hosts.iterator();
+  Vector getHosts() {
+    return hosts.isEmpty() ? null : (Vector)hosts.clone();
   }
 
 
@@ -86,24 +85,18 @@ class Fragment {
   }
 
 
-  BundleGeneration [] hostsArray() {
-    return (BundleGeneration [])hosts.toArray(new BundleGeneration [hosts.size()]);
-  }
-
-
   boolean isTarget(BundleImpl b) {
     return hostName.equals(b.gen.symbolicName) && versionRange.withinRange(b.gen.version);
   }
 
 
-  List /* BundleImpl */ targets(final FrameworkContext fwCtx) {
+  List /* BundleImpl */targets(final FrameworkContext fwCtx) {
     List bundles = fwCtx.bundles.getBundles(hostName, versionRange);
-    for (Iterator iter = bundles.iterator(); iter.hasNext(); ) {
+    for (Iterator iter = bundles.iterator(); iter.hasNext();) {
       BundleImpl t = (BundleImpl)iter.next();
 
-      if (t.state == Bundle.UNINSTALLED ||
-	  t.gen.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
-	iter.remove();
+      if (t.gen.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
+        iter.remove();
       }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.framework;
 
 import org.osgi.framework.*;
 
-
 class BundleThread extends Thread {
   final private static int OP_IDLE = 0;
   final private static int OP_BUNDLE_EVENT = 1;
@@ -44,7 +43,7 @@ class BundleThread extends Thread {
   final private static int OP_STOP = 3;
 
   final private static int KEEP_ALIVE = 1000;
-  
+
   final static String ABORT_ACTION_STOP = "stop";
   final static String ABORT_ACTION_MINPRIO = "minprio";
   final static String ABORT_ACTION_IGNORE = "ignore";
@@ -90,7 +89,8 @@ class BundleThread extends Thread {
                 return;
               }
             }
-          } catch (InterruptedException ie) { }
+          } catch (InterruptedException ie) {
+          }
         }
         if (!doRun) {
           break;
@@ -162,16 +162,16 @@ class BundleThread extends Thread {
     boolean abort = false;
     do {
       try {
-          fwCtx.packages.wait();
+        fwCtx.packages.wait();
       } catch (InterruptedException ie) {
       }
       // Abort start/stop operation if bundle has been uninstalled
-      if ( (op == OP_START || op == OP_STOP) && b.getState() ==  Bundle.UNINSTALLED) {
+      if ((op == OP_START || op == OP_STOP) && b.getState() == Bundle.UNINSTALLED) {
         abort = true;
         break;
       }
     } while (res == Boolean.FALSE);
-    
+
     if (abort) {
       // Bundle thread is aborted
       String s = fwCtx.props.getProperty(FWProps.BUNDLETHREAD_ABORT);

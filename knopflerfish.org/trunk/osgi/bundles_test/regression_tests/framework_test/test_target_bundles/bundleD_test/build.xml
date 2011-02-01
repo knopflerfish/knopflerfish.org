@@ -32,13 +32,14 @@
 
   <target name="compile">
     <mkdir dir="${classes.out.dir}"/>
-    <javac destdir       = "${classes.out.dir}" 
-           debug         = "on"
-           srcdir        = "${src.dir}"
-           target        = "${javac.target}"
-           source        = "${javac.source}"
-           classpathref  = "bundle.path"
-           includes      = "**/*.java">
+    <javac destdir="${classes.out.dir}" 
+           debug="on"
+           includeAntRuntime="false"
+           srcdir="${src.dir}"
+           target="${javac.target}"
+           source="${javac.source}"
+           classpathref="bundle.path"
+           includes="**/*.java">
     </javac>
   </target>
 
