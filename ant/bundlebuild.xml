@@ -42,7 +42,7 @@
 
   <!-- Are we building for Dalvik/Android? -->
   <available property="android.exists" file="${ANDROID_HOME}"/>
-  
+
   <!-- Special value to be used as the value for a bundle manifest      -->
   <!-- properties that shall not be included in the generated manifest. -->
   <!-- DO NOT CHANGE THIS VALUE.                                        -->
@@ -50,7 +50,7 @@
 
   <!-- Map environment variables to properties starting with "sysprops."-->
   <property environment="sysprops"/>
-  
+
   <!-- Android dx.jar requires 1.5 target -->
   <condition
      property="javac.target"
@@ -58,7 +58,7 @@
      else="1.2">
     <istrue value="${android.exists}"/>
   </condition>
-  
+
   <property name="javac.source"       value="1.2"/>
 
   <!-- If set to "true" check that the bundle does not use any classes -->
@@ -75,7 +75,7 @@
 
 
   <!-- Import-Package / Export-Package manifest headers that are found -->
-  <!-- invalid by the bundleinfo-task shall trigger build error.      -->
+  <!-- invalid by the bundleinfo-task shall trigger build error.       -->
   <property name="bundleinfo.failOnExports"   value="true"/>
   <property name="bundleinfo.failOnImports"   value="true"/>
   <property name="bundleinfo.failOnActivator" value="true"/>
@@ -150,6 +150,9 @@
 
   <!-- The deault resoruces directory to search.                       -->
   <property name="resources.dir"  location="resources"/>
+
+  <!-- The deault doc directory to search.                             -->
+  <property name="doc.dir"        location="doc"/>
 
   <!-- The root directory to place all intermediate build producs in.  -->
   <property name="root.out.dir"   location="${topdir}/out"/>
@@ -454,6 +457,7 @@
 
     <available property="src.dir.exists"       file="${src.dir}"/>
     <available property="resources.dir.exists" file="${resources.dir}"/>
+    <available property="doc.dir.exists"       file="${doc.dir}"/>
 
     <condition property="do_build_lib">
       <equals arg1="${bundle.build.lib}"  arg2="true"/>
@@ -493,10 +497,16 @@
       </and>
     </condition>
     <condition property="do_build_doc">
-      <equals arg1="${bundle.build.doc}"  arg2="true"/>
+      <and>
+        <equals arg1="${bundle.build.doc}"  arg2="true"/>
+        <isset property="doc.dir.exists"/>
+      </and>
     </condition>
     <condition property="do_include_source">
-      <equals arg1="${include.source}"    arg2="true"/>
+      <and>
+	<equals arg1="${include.source}"    arg2="true"/>
+        <isset property="src.dir.exists"/>
+      </and>
     </condition>
 
     <!-- If a template manifest file exists use it and ignore       -->
@@ -604,7 +614,7 @@
            jarfile="@{jar}"
            includes="@{includes-impls},@{includes-exports}"
            excludes="**/pspbrwse.jbf"
-           manifestencoding="UTF-8" 
+           manifestencoding="UTF-8"
            manifest="${outdir}/@{kind}.mf">
       </jar>
 
@@ -735,28 +745,28 @@
   </target>
 
   <!-- Helper taget that adds Android dex data to the bundle. -->
-  <target name="add_dex" if="android.exists">    
+  <target name="add_dex" if="android.exists">
     <echo message="add_dex ${jarfile}"/>
     <basename file="${jarfile}" suffix="jar" property="jarfile.basename"/>
     <tempfile destdir="${outdir}" prefix="${jarfile.basename}" property="temp.dir"/>
     <mkdir dir="${temp.dir}"/>
     <property name="temp.dex" value="${temp.dir}/classes.dex"/>
-    
+
     <java fork="true" jar="${ANDROID_HOME}/tools/lib/dx.jar">
       <arg value="--dex"/>
       <arg value="--output=${temp.dex}"/>
       <arg value="${jarfile}"/>
     </java>
-    
+
     <property name="aapt.cmd" value="${ANDROID_HOME}/tools/aapt"/>
-    
+
     <exec executable="${aapt.cmd}">
-      <arg value="add"/>     
+      <arg value="add"/>
       <arg value="-f"/>
       <arg value="${jarfile}"/>
       <arg value="${temp.dex}"/>
     </exec>
-    
+
     <delete dir="${temp.dir}"/>
   </target>
 
@@ -794,13 +804,13 @@
               template="${bundledoc_template}"
               outdir="${outdocdir}"
               manstyle="true">
-      <fileset dir="doc">
+      <fileset dir="${doc.dir}">
         <include name="**/*.html"/>
       </fileset>
     </makehtml>
 
     <copy todir="${outdocdir}">
-      <fileset dir="doc">
+      <fileset dir="${doc.dir}">
         <exclude name="**/*.html"/>
       </fileset>
     </copy>
