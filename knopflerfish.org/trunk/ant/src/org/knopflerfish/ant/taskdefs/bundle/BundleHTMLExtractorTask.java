@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,203 +32,167 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Vector;
-import java.util.jar.Attributes;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import org.osgi.framework.Version;
+import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
 
 /**
- * Task that analyzes a set of bundle jar files and builds HTML
- * documentation from these bundles. Also creates cross-references to
- * bundle dependencies.
+ * Task that analyzes a set of bundle jar files and builds HTML documentation
+ * from these bundles. Also creates cross-references to bundle dependencies.
  *
  * <p>
-
- * All generated HTML will be stored in the directory specified with
- * the attribute <code>outDir</code> preserving the directory
- * structure underneath the directory, <code>baseDir</code> that is
- * scanned for jar-files, e.g a jar file
+ * All generated HTML will be stored in the directory specified with the
+ * attribute <code>outDir</code> preserving the directory structure underneath
+ * the files sets that are scanned for jar-files.
  *
+ * E.g., a nested file set that selects
  * <pre>
- *  <it>baseDir</it>/log/log-api.jar
+ *  log/log-api.jar
  * </pre>
+ *
  * will result in an HTML-file
+ *
  * <pre>
  *  <it>outDir</it>/log/log-api.html
  * </pre>
  *
  *
  * <p>
- * Bundle jar files files are analyzed using the static manifest
- * attributes.
+ * The bundle analyzes is based on the attributes in the manifest.
  * </p>
  *
  * <h3>Parameters</h3>
  *
  * <table border=>
- *  <tr>
- *   <td valign=top><b>Attribute</b></td>
- *   <td valign=top><b>Description</b></td>
- *   <td valign=top><b>Required</b></td>
- *  </tr>
- *  <tr>
- *   <td valign=top>javadocRelPath</td>
- *   <td valign=top>Relative path (from outDir) to javadocs.
- *   </td>
- *   <td valign=top>No.<br> Default value is "."</td>
- *  </tr>
- *  <tr>
- *   <td valign=top>outDir</td>
- *   <td valign=top>
- *    Directory to place resulting files in.
- *   </td>
- *   <td valign=top>No.<br> Default value is "."</td>
- *  </tr>
- *  <tr>
- *   <td valign=top>baseDir</td>
- *   <td valign=top>
- *    Remove this part of the path from the specified jar-files and
- *    use the remainder as file name in the outDir.
- *   </td>
- *   <td valign=top>No.<br> Default value is ""</td>
- *  </tr>
-*  <tr>
- *   <td valign=top>templateHTMLDir</td>
- *   <td valign=top>
- *   Directory containing HTML template files. This directory must
- *   contain the files:
- *   <pre>
+ * <tr>
+ * <td valign=top><b>Attribute</b></td>
+ * <td valign=top><b>Description</b></td>
+ * <td valign=top><b>Required</b></td>
+ * </tr>
+ * <tr>
+ * <td valign=top>javadocRelPath</td>
+ * <td valign=top>Relative path (from outDir) to javadocs.</td>
+ * <td valign=top>No.<br>
+ * Default value is "."</td>
+ * </tr>
+ * <tr>
+ * <td valign=top>outDir</td>
+ * <td valign=top>
+ * Directory to place resulting files in.</td>
+ * <td valign=top>No.<br>
+ * Default value is "."</td>
+ * </tr>
+ * <tr>
+ * <td valign=top>templateHTMLDir</td>
+ * <td valign=top>
+ * Directory containing HTML template files. This directory must contain the
+ * files:
+ *
+ * <pre>
  *    bundle_index.html
  *    bundle_list.html
  *    bundle_main.html
  *    bundle_info.html
  *    package_list.html
  *    style.css
- *   </pre>
- *   </td>
- *  </td>
- *   <td valign=top>No.<br> Default value is "."</td>
- *  </tr>
+ * </pre>
  *
- *  <tr>
- *   <td valign=top>systemPackageSet</td>
- *   <td valign=top>
- *    Comma-separated set of packages which are system packages and
- *    thus globally available.
- *    These are not cross-referenced.
- *   </td>
- *   <td valign=top>No.<br>
- *     Default value is <code>javax.swing, javax.accessibility,
- *     javax.servlet, javax.xml,org.xml, org.w3c, java, com.sun</code>
- *   </td>
+ * </td>
+ * </td>
+ * <td valign=top>No.<br>
+ * Default value is "."</td>
+ * </tr>
  *
- *  <tr>
- *   <td valign=top>skipAttribSet</td>
- *   <td valign=top>
- *    Comma-separated set of manifest attributes which shouldn't be printed.
- *   </td>
- *   <td valign=top>No.<br>
- *     Default value is <code>Manifest-Version, Ant-Version,
- *     Bundle-Config, Created-By, Built-From</code>
- *   </td>
- *  </tr>
+ * <tr>
+ * <td valign=top>systemPackageSet</td>
+ * <td valign=top>
+ * Comma-separated set of packages which are system packages and thus globally
+ * available. These are not cross-referenced.</td>
+ * <td valign=top>No.<br>
+ * Default value is <code>javax.swing, javax.accessibility,
+ *     javax.servlet, javax.xml,org.xml, org.w3c, java, com.sun</code></td>
  *
- *  <tr>
- *   <td valign=top>includeSourceFiles</td>
- *   <td valign=top>
- *    Controls if Java source files shall be copied and linked into
- *    the HTML structure.
- *   </td>
- *   <td valign=top>No.<br>
- *   Default value "False"
- *   </td>
- *  </tr>
+ * <tr>
+ * <td valign=top>skipAttribSet</td>
+ * <td valign=top>
+ * Comma-separated set of manifest attributes which shouldn't be printed.</td>
+ * <td valign=top>No.<br>
+ * Default value is <code>Manifest-Version, Ant-Version,
+ *     Bundle-Config, Created-By, Built-From</code></td>
+ * </tr>
  *
- *  <tr>
- *   <td valign=top>includeSourceFileRepositoryLinks</td>
- *   <td valign=top>
- *     Controls if links to the repository version of Java source
- *     files shall be added to the HTML structure. The link target
- *     will be created from local file names by replacing the path
- *     prefix that matches the property <code>rootDir</code> by
- *     <code>repositoryURL</code>.
- *   </td>
- *   <td valign=top>No.<br>
- *   Default value "False"
- *   </td>
- *  </tr>
+ * <tr>
+ * <td valign=top>includeSourceFiles</td>
+ * <td valign=top>
+ * Controls if Java source files shall be copied and linked into the HTML
+ * structure.</td>
+ * <td valign=top>No.<br>
+ * Default value "False"</td>
+ * </tr>
  *
- *  <tr>
- *   <td valign=top>rootDir</td>
- *   <td valign=top>
- *     The prefix of the source file absolute path to remove when
- *     creating a repository URL for the source file. See
- *     <code>includeSourceFileRepositoryLinks</code> for details.
- *   </td>
- *   <td valign=top>No.<br>
- *   Default value ""
- *   </td>
- *  </tr>
+ * <tr>
+ * <td valign=top>includeSourceFileRepositoryLinks</td>
+ * <td valign=top>
+ * Controls if links to the repository version of Java source files shall be
+ * added to the HTML structure. The link target will be created from local file
+ * names by replacing the path prefix that matches the property
+ * <code>rootDir</code> by <code>repositoryURL</code>.</td>
+ * <td valign=top>No.<br>
+ * Default value "False"</td>
+ * </tr>
  *
- *  <tr>
- *   <td valign=top>repositoryURL</td>
- *   <td valign=top>
- *     The base URL to source file repository. See
- *     <code>includeSourceFileRepositoryLinks</code> for details.
- *   </td>
- *   <td valign=top>No.<br>
- *   Default value ""
- *   </td>
- *  </tr>
+ * <tr>
+ * <td valign=top>rootDir</td>
+ * <td valign=top>
+ * The prefix of the source file absolute path to remove when creating a
+ * repository URL for the source file. See
+ * <code>includeSourceFileRepositoryLinks</code> for details.</td>
+ * <td valign=top>No.<br>
+ * Default value ""</td>
+ * </tr>
  *
- *  <tr>
- *   <td valign=top>listHeader</td>
- *   <td valign=top>
- *    Heading to print at the top of the bundle list in the left frame
- *    of the page.
- *   </td>
- *   <td valign=top>No.<br> Default value is ""</td>
- *  </tr>
+ * <tr>
+ * <td valign=top>repositoryURL</td>
+ * <td valign=top>
+ * The base URL to source file repository. See
+ * <code>includeSourceFileRepositoryLinks</code> for details.</td>
+ * <td valign=top>No.<br>
+ * Default value ""</td>
+ * </tr>
+ *
+ * <tr>
+ * <td valign=top>listHeader</td>
+ * <td valign=top>
+ * Heading to print at the top of the bundle list in the left frame of the page.
+ * </td>
+ * <td valign=top>No.<br>
+ * Default value is ""</td>
+ * </tr>
  *
  * </table>
  *
- * <h3>Parameters specified as nested elements</h3>
- * <h4>fileset</h4>
+ * <h3>Parameters specified as nested elements</h3> <h4>fileset</h4>
  *
  * (required)<br>
  * <p>
- * All jar files must be specified as a fileset. No jar files
- * are ignored.
+ * Jar files to analyze must be selected by a nested file set. All jar file
+ * selected by a nested file set will be analyzed.
  * </p>
  *
  * <h3>Examples</h3>
@@ -248,49 +212,49 @@ import org.osgi.framework.Version;
  */
 public class BundleHTMLExtractorTask extends Task {
 
-  private Vector filesets            = new Vector();
-  private File   templateHTMLDir     = new File(".");
-  private String listSeparator       = "<br>\n";
-  private File   outDir              = new File(".");
-  private File   baseDir             = null;
-  private String javadocRelPath      = null;
-  private String listHeader          = "";
+  /** Last part of the javadoc URL for a class / interface. */
+  private static final String HTML = ".html";
+  /** Last part of the javadoc URL for a package. */
+  private static final String PACKAGE_SUMMARY_HTML = "/package-summary.html";
 
-  private String indexListHeader = "<h2>${bundle.list.header}</h2>";
+  private BundleArchives bas;
 
-  private String indexListRow =
-    "<a target=\"bundle_main\" href=\"${bundledoc}\">${FILE.short}</a><br>";
+  private final String listSeparator   = "<br>\n";
+  private final String indexListHeader = "<h2>${bundle.list.header}</h2>";
 
-  private String indexMainRow =
+  private final String indexListRow =
+    "<a target=\"bundle_main\" href=\"${bundledoc}\">${FILE.short}</a><br>\n";
+
+  private final String indexMainRow =
     "<tr>" +
     "<td><a target=\"bundle_main\" href=\"${bundledoc}\">${FILE.short}</a></td><td>" +
     "<td>${Bundle-Description}</td>" +
     "</tr>\n";
 
-  private String bundleRow    =
+  private final String indexMainUnresolved =
+    "<table>\n <tr><td colspan=2 class=\"mfheader\">Unresolved packages</td></tr>\n${unresolvedRows}\n</table>\n";
+
+  private final String indexMainUnresolvedRow = " <tr><td>${FILE.short}</td>\n  <td>${pkgs}</td></tr>\n";
+
+  private final String bundleRow    =
     "<tr><td><a href=\"${bundledoc}\">${FILE.short}</a></td><td>${what}</td></tr>\n";
 
-  private String packageListRow   =
-    "<tr><td>${namelink}&nbsp;${version}</td><td>${providers}</td></tr>\n";
+  private final String packageListRow   =
+    "<tr><td>${pkg}</td><td>${providers}</td></tr>\n";
 
-  private String missingRow   =
+  private final String missingRow   =
     "<tr><td>${name}</td><td>${version}</td></tr>\n";
 
-  private String pkgHTML      =
-    "${namelink}&nbsp;${version}<br>\n";
+  private final String pkgHTML        = "${namelink}";
+  private final String pkgHTMLversion = "${namelink}&nbsp;${version}";
 
-  private boolean bCheckJavaDoc  = true;
-  private boolean include_source_files  = false;
+  private final Map globalVars = new TreeMap();
 
-  private boolean includeSourceFileRepositoryLinks = false;
-  private String rootDir = null;
-  private URL repositoryURL = null;
-
-  Map     jarMap     = new TreeMap(new FileNameComparator());
-  Map     globalVars = new TreeMap();
-
-
-  Map     missingDocs = new TreeMap();
+  /**
+   * Mapping from package name to bundle archive that uses the package
+   * containing one entry for each package that does not have any java doc.
+   */
+  private final Map missingDocs = new TreeMap();
 
   public BundleHTMLExtractorTask() {
 
@@ -333,9 +297,13 @@ public class BundleHTMLExtractorTask extends Task {
                    );
   }
 
+  private boolean bCheckJavaDoc  = true;
+
   public void setCheckJavaDoc(boolean b) {
     this.bCheckJavaDoc = b;
   }
+
+  private File   templateHTMLDir     = new File(".");
 
   public void setTemplateHTMLDir(File f) {
     this.templateHTMLDir = f;
@@ -348,19 +316,27 @@ public class BundleHTMLExtractorTask extends Task {
     }
   }
 
+  private boolean include_source_files  = false;
+
   public void setIncludeSourceFiles(boolean b) {
     this.include_source_files = b;
   }
+
+  private boolean includeSourceFileRepositoryLinks = false;
 
   public void setIncludeSourceFileRepositoryLinks(boolean b)
   {
     this.includeSourceFileRepositoryLinks = b;
   }
 
+  private String rootDir = null;
+
   public void setRootDir(File f)
   {
     rootDir = f.getAbsolutePath() +File.separator;
   }
+
+  private URL repositoryURL = null;
 
   public void setRepositoryURL(URL url)
   {
@@ -395,42 +371,54 @@ public class BundleHTMLExtractorTask extends Task {
     return new File(templateHTMLDir, "bundle_header.html");
   }
 
+  private File   outDir              = new File(".");
+
   public void setOutDir(String s) {
     this.outDir = new File((new File(s)).getAbsolutePath());
   }
 
-  public void setBaseDir(String s) {
-    this.baseDir = new File((new File(s)).getAbsolutePath());
-  }
+  private String javadocRelPath      = null;
 
   public void setJavadocRelPath(String s) {
     this.javadocRelPath = s;
   }
 
+  private List   filesets            = new ArrayList();
+
   public void addFileset(FileSet set) {
-    filesets.addElement(set);
+    filesets.add(set);
   }
 
   Set listPropSet      = new HashSet();
-  Set skipAttribSet    = new HashSet();
-  Set alwaysPropSet    = new HashSet();
-  Set systemPackageSet = new HashSet();
 
   public void setListProps(String s) {
     listPropSet = Util.makeSetFromStringList(s);
   }
 
+  Set alwaysPropSet    = new HashSet();
+
+  /**
+   * Comma separated string with keys that shall have an empty default value.
+   *
+   * @param s
+   */
   public void setAlwaysProps(String s) {
     alwaysPropSet = Util.makeSetFromStringList(s);
   }
+
+  Set skipAttribSet    = new HashSet();
 
   public void setSkipAttribSet(String s) {
     skipAttribSet = Util.makeSetFromStringList(s);
   }
 
+  Set systemPackageSet = new HashSet();
+
   public void setSystemPackageSet(String s) {
     systemPackageSet = Util.makeSetFromStringList(s);
   }
+
+  private String listHeader = "";
 
   public void setListHeader(String s) {
     listHeader = s;
@@ -439,233 +427,640 @@ public class BundleHTMLExtractorTask extends Task {
   // Implements Task
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
-      throw new BuildException("No fileset specified");
+      throw new BuildException("No nested file sets specified");
     }
 
-    try {
-      for (int i = 0; i < filesets.size(); i++) {
-        final FileSet          fs      = (FileSet) filesets.elementAt(i);
-        final DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
-        final File             projDir = fs.getDir(getProject());
+    log("Loading bundle information:", Project.MSG_VERBOSE);
+    bas = new BundleArchives(this, filesets, true);
+    bas.doProviders();
 
-        final String[] srcFiles = ds.getIncludedFiles();
-        for (int j = 0; j < srcFiles.length ; j++) {
-          final File file = new File(projDir, srcFiles[j]);
-          if(file.getName().endsWith(".jar")) {
-            jarMap.put(file, new BundleInfo(file));
-          }
+    log("Writing bundle jar docs pages.", Project.MSG_VERBOSE);
+    try {
+      final Iterator itBSN = bas.bsnToBundleArchives.entrySet().iterator();
+      while (itBSN.hasNext()) {
+        final Map.Entry entry = (Map.Entry) itBSN.next();
+        final Set bsnSet = (Set) entry.getValue();
+        // Sorted set with bundle archives, same BSN, different versions
+        for (Iterator itV = bsnSet.iterator(); itV.hasNext();) {
+          final BundleArchive ba = (BundleArchive) itV.next();
+          writeBundlePage(ba);
         }
       }
 
-      log("analyzing " + jarMap.size() + " bundles");
-      if (include_source_files) {
-        log("including source files in jardoc");
-      }
-      else {
-        log("includeSourceFiles is not set, skipping sources");
-      }
+      final String mainPageTemplate = Util.loadFile(getBundleMainTemplate().getAbsolutePath());
+      writeBundlesPage(new File(outDir, "main.html"), mainPageTemplate, indexMainRow, bas);
 
-      for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
-        File       file = (File)it.next();
-        BundleInfo info = (BundleInfo)jarMap.get(file);
+      final String menuPageTemplate = Util.loadFile(getBundleListTemplate().getAbsolutePath());
+      writeBundlesPage(new File(outDir, "list.html"), menuPageTemplate, indexListRow, bas);
 
-        info.load();
-      }
+      final String pkgListPageTemplate = Util.loadFile(getPackageListTemplate().getAbsolutePath());
+      writePkgListPage(new File(outDir, "package_list.html"), pkgListPageTemplate, packageListRow, bas);
 
-      System.out.println("writing bundle info html pages");
-      for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
-        File       file = (File)it.next();
-        BundleInfo info = (BundleInfo)jarMap.get(file);
-
-        info.writeInfo();
-      }
-
-      makeListPage(getBundleMainTemplate(),
-                   new File(outDir, "main.html"),
-                   indexMainRow);
-
-      makeListPage(getBundleListTemplate(),
-                   new File(outDir, "list.html"),
-                   indexListRow);
-
-      makePackageListPage(getPackageListTemplate(),
-                          new File(outDir, "package_list.html"),
-                          packageListRow);
-
-      copyFile(getBundleIndexTemplate(),
-               new File(outDir, "index.html"));
-
-      copyFile(getBundleHeaderTemplate(),
-               new File(outDir, "header.html"));
-
-      copyFile(getBundleCSSTemplate(),
-               new File(outDir, "style.css"));
-
+      copyFile(getBundleIndexTemplate(), new File(outDir, "index.html"));
+      copyFile(getBundleHeaderTemplate(), new File(outDir, "header.html"));
+      copyFile(getBundleCSSTemplate(), new File(outDir, "style.css"));
 
       for(Iterator it = missingDocs.keySet().iterator(); it.hasNext();) {
-        String name = (String)it.next();
+        final String name = (String)it.next();
 
-        System.out.println("Missing javadoc for " + name);
+        log("Missing javadoc for " + name, Project.MSG_WARN);
       }
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BuildException("Failed to extract bundle info: " + e, e);
+    } catch (IOException e) {
+      throw new BuildException("Faild to write bundle jar docs: " + e, e);
     }
   }
 
-  void makeListPage(File templateFile,
-                    File outFile,
-                    String rowTemplate)
-    throws IOException {
+  /**
+   * Mapping from bundle archive to Map with variables and their expansion for
+   * the that particular bundle archive.
+   */
+  private final Map ba2varMap = new HashMap();
 
-    int unresolvedCount = 0;
+  /**
+   * Get the variable expansion map the the given bundle archive.
+   *
+   * @param ba bundle archive to get variable expansions for.
+   * @return Mapping form variable name to expansion.
+   * @throws IOException When outDir can not be made canonical.
+   */
+  private Map getVarMap(final BundleArchive ba) throws IOException {
+    Map res = (Map) ba2varMap.get(ba);
+    if (null == res) {
+      res = new HashMap();
+      ba2varMap.put(ba, res);
 
-    String html = Util.loadFile(templateFile.getAbsolutePath());
+      // Populate the variable expansion map
+      final String relPath = replace(ba.relPath, ".jar", "");
+      final String path = outDir.getCanonicalPath() + File.separator + relPath;
+      res.put("html.file", path + HTML);
+      res.put("html.uri",  replace(relPath, "\\", "/") + HTML);
+      res.put("src.dir", path + "/src");
+      res.put("src.uri", replace(relPath, "\\", "/") +"/src");
+      // relative path from the outDir to the bundle doc file for this bundle
+      res.put("bundledoc", replace(relPath, "\\", "/") + HTML);
 
-    String listHeaderRow
-      = (null!=listHeader && listHeader.length()>0)
-      ? replace(indexListHeader, "${bundle.list.header}", listHeader)
-      : listHeader;
-    html = replace(html, "${bundle.list.header}", listHeaderRow);
+      res.put("FILE",  ba.file.getName());
+      res.put("FILE.short",  replace(ba.file.getName(), ".jar", ""));
+      res.put("BYTES", String.valueOf(ba.file.length()));
+      res.put("KBYTES", String.valueOf(ba.file.length() / 1024));
+      res.put("FILEINFO", ba.file.length() +" bytes"
+              +(0<ba.srcCount ? ", includes source" : ""));
 
-    StringBuffer sb = new StringBuffer();
-    for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
-      File       file = (File)it.next();
-      BundleInfo info = (BundleInfo)jarMap.get(file);
+      int sepIx = ba.relPath.indexOf(File.separator);
+      String relPathUp = "";
+      while (sepIx>-1) {
+        relPathUp += ".." +File.separator;;
+        sepIx = ba.relPath.indexOf(File.separator,sepIx+1);
+      }
+      res.put("relpathup",  relPathUp);
 
-      unresolvedCount += info.unresolvedMap.size();
+      res.put("jarRelPath", createRelPath(new File(path).getParentFile(),
+                                          ba.file.getCanonicalPath()));
+      res.put("javadocdir", javadocRelPath != null ? javadocRelPath : "");
 
-      String row = rowTemplate;
-      row = info.stdReplace(row, false);
-      row = replace(row, "${bundledoc}", info.relPath +".html");
+      // Manifest entries
+      for(Iterator it = ba.mainAttributes.entrySet().iterator(); it.hasNext(); ) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final String key = entry.getKey().toString();
+        String value = entry.getValue().toString();
 
-      sb.append(row);
-    }
+        // Special formatting of the value for some keys:
+        if ("Export-Package".equals(key)) {
+          value = getPackagesJavadocString(ba, relPathUp, ba.pkgExportMap, PACKAGE_SUMMARY_HTML);
+        } else if ("Import-Package".equals(key)) {
+          value = getPackagesJavadocString(ba, relPathUp, ba.pkgImportMap, PACKAGE_SUMMARY_HTML);
+        } else if ("Import-Service".equals(key)) {
+          value = getPackagesJavadocString(ba, relPathUp, ba.serviceImportMap, HTML);
+        } else if ("Export-Service".equals(key)) {
+          value = getPackagesJavadocString(ba, relPathUp, ba.serviceExportMap, HTML);
+        } else if (listPropSet.contains(key)) {
+          value = replace(value, ",", listSeparator);
+        }
+        res.put(key, value);
+      }
 
 
+      // Key that shall have an empty value if not set from some other data.
+      for (Iterator it = alwaysPropSet.iterator(); it.hasNext();) {
+        final String key = it.next().toString();
 
-    html = replace(html, "${bundle.list}", sb.toString());
-
-    sb = new StringBuffer();
-
-    if(unresolvedCount > 0) {
-
-      sb.append("<table>\n");
-      sb.append("<tr>\n" +
-                " <td colspan=2 class=\"mfheader\">Unresolved packages</td>\n" +
-                "</tr>\n");
-
-      for(Iterator it = jarMap.keySet().iterator(); it.hasNext();) {
-        File       file = (File)it.next();
-        BundleInfo info = (BundleInfo)jarMap.get(file);
-
-        if(info.unresolvedMap.size() > 0) {
-          sb.append("<tr>\n" +
-                    " <td>" + info.file.getName() + "</td>\n");
-
-          sb.append("<td>");
-          for(Iterator it2 = info.unresolvedMap.keySet().iterator();
-              it2.hasNext();)
-            {
-              String pkgName = (String)it2.next();
-              Object version = info.unresolvedMap.get(pkgName);
-              boolean optional = info.pkgImportOptional.contains(pkgName);
-              sb.append(pkgName +" " +version
-                        +(optional ? " <em>optional</em>" : "")
-                        +"<br>\n");
-            }
-          sb.append("</td>");
-          sb.append("<tr>");
+        if (!res.containsKey(key)) {
+          res.put(key, "");
         }
       }
-      sb.append("</table>\n");
+
+    }
+    return res;
+  }
+
+  /**
+   * Build a HTML formated string with one row for each class / package in the
+   * given map.
+   *
+   * @param ba
+   *          The bundle archive that owns the package mapping to present.
+   * @param relPathUp
+   *          relative path up from the directory where the file with the return
+   *          string will be written to the specified out directory.
+   * @param map
+   *          Mapping from package name to package version.
+   * @param linkSuffix
+   *          Suffix to add to the java doc link for the package.
+   * @return String representation of the packages in the map.
+   */
+  private String getPackagesJavadocString(final BundleArchive ba,
+                                          final String relPathUp,
+                                          final Map map,
+                                          final String linkSuffix)
+  {
+    final StringBuffer sb = new StringBuffer();
+
+    for(Iterator it = map.entrySet().iterator(); it.hasNext(); ) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      final String name    = entry.getKey().toString();
+      final String version = entry.getValue().toString();
+
+      sb.append(getJavadocString(ba, relPathUp, name, version, linkSuffix)).append("<br>\n");
     }
 
-    html = replace(html, "${unresolved.list}", sb.toString());
+    return sb.toString();
+  }
 
-    Util.writeStringToFile(outFile, html);
-    System.out.println("wrote " + outFile);
+  /**
+   * Builds a comma separated string with the package names in the set (linking
+   * to javadoc).
+   *
+   * @param relPathUp
+   *          relative path up from the directory where the file with the return
+   *          string will be written to the specified out directory.
+   * @param set
+   *          The package names to present links for.
+   * @return Comma separated string with all the packages in the set.
+   */
+  private String getPackagesJavadocString(final String relPathUp, final Set set) {
+    final StringBuffer sb = new StringBuffer();
+    for (Iterator it = set.iterator(); it.hasNext();) {
+      if (0<sb.length()) sb.append(", ");
+      sb.append(getPackageJavadocString(null, relPathUp, it.next().toString(), ""));
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Build a HTML formated string with links to the javadoc for one named package.
+   *
+   * @param ba
+   *          The bundle archive that owns the package mapping to present.
+   * @param relPathUp
+   *          relative path up from the directory where the file with the return
+   *          string will be written to the specified out directory.
+   * @param map
+   *          Mapping from package name to package version.
+   * @param linkSuffix
+   *          Suffix to add to the java doc link for the package.
+   * @return String representation of the packages in the map.
+   */
+  private String getPackageJavadocString(final BundleArchive ba,
+                                         final String relPathUp,
+                                         final String pkg,
+                                         final String version)
+  {
+    return getJavadocString(ba, relPathUp, pkg, version, PACKAGE_SUMMARY_HTML);
+  }
+
+  /**
+   * Build a HTML formated string (one row) for the given package / class.
+   *
+   * @param ba
+   *          The bundle archive that owns the package mapping to present.
+   * @param relPathUp
+   *          relative path up from the directory where the file with the return
+   *          string will be written to the specified out directory.
+   * @param pkg
+   *          The java package to present.
+   * @param version
+   *          The version of the java package to present.
+   * @param linkSuffix
+   *          Suffix to add to the java doc link for the package. Should be
+   *          {@link #HTML} for classes and {@link #PACKAGE_SUMMARY_HTML} when
+   *          <code>pkg</code> is a java package.
+   *
+   * @return HTML string representation of the package / class linking to local
+   *         Javadoc.
+   */
+  private String getJavadocString(final BundleArchive ba,
+                                  final String relPathUp,
+                                  final String pkg,
+                                  final String version,
+                                  final String linkSuffix)
+  {
+    String row = (null==version || 0==version.length()) ? pkgHTML : pkgHTMLversion;
+
+    final String docFile = replace(pkg, ".", "/") + linkSuffix;
+    final String docPath = relPathUp + javadocRelPath + "/index.html?" + docFile;
+
+    final File f = new File(outDir + File.separator
+                            + javadocRelPath + File.separator + docFile);
+
+    if(javadocRelPath != null && !"".equals(javadocRelPath)) {
+      if( isSystemPackage(pkg) ) {
+        row = replace(row, "${namelink}", "${name}");
+      } else if ( (bCheckJavaDoc && !f.exists()) ) {
+        row = replace(row, "${namelink}", "${name}");
+        if (null!=ba) {
+          missingDocs.put(pkg, ba);
+        }
+      } else {
+        row = replace(row,
+                      "${namelink}",
+                      "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
+      }
+    } else {
+      row = replace(row, "${namelink}", "${name}");
+    }
+
+    row = replace(row, "${name}", pkg);
+    row = replace(row, "${version}", version);
+    row = replace(row, "${javadoc}", docPath);
+
+    return row;
   }
 
 
-  void makePackageListPage(File templateFile,
-                           File outFile,
-                           String rowTemplate)
+  private String stdReplace(final BundleArchive ba, final String template)
     throws IOException
   {
-    String html = Util.loadFile(templateFile.getAbsolutePath());
+    String res = template;
 
-    SortedSet pkgs = new TreeSet();
-    for (Iterator it=jarMap.values().iterator(); it.hasNext();) {
-      BundleInfo info = (BundleInfo) it.next();
-      pkgs.addAll(info.pkgExportMap.keySet());
+    for(Iterator it = globalVars.entrySet().iterator(); it.hasNext(); ) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      res = replace(res, "${" + entry.getKey() + "}", entry.getValue().toString());
     }
 
-    StringBuffer sb = new StringBuffer();
-    for(Iterator it = pkgs.iterator(); it.hasNext();) {
-      String pkg = (String) it.next();
+    final Map baVars = getVarMap(ba);
+    for(Iterator it = baVars.entrySet().iterator(); it.hasNext(); ) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      res = replace(res, "${" + entry.getKey() + "}", entry.getValue().toString());
+    }
 
-      TreeMap pkgVersions = new TreeMap();
-      for (Iterator it2=jarMap.values().iterator(); it2.hasNext();) {
-        BundleInfo info = (BundleInfo) it2.next();
-        Version ver = (Version) info.pkgExportMap.get(pkg);
-        if (null!=ver) {
-          TreeSet providers = (TreeSet) pkgVersions.get(ver);
-          if (null==providers) {
-            providers = new TreeSet(new BundleInfoComparator());
-          }
-          providers.add(info);
-          pkgVersions.put(ver,providers);
-        }
-      }
-      for (Iterator it3=pkgVersions.keySet().iterator(); it3.hasNext();) {
-        String  row = rowTemplate;
-        Version version = (Version) it3.next();
+    return res;
+  }
 
-        String docFile = replace(pkg, ".", "/") +"/package-summary.html";
-        String docPath = javadocRelPath +"/index.html?" +docFile;
+  /**
+   * Replace <code>${MF.UNHANDLED}</code> with one line for each manifest
+   * attribute of <code>ba</code>that is not explicitly substituted in the
+   * template string and this is not included in the set of manifest attributes
+   * to be skipped.
+   *
+   * @param template
+   *          The template string to do the replacement in.
+   * @param ba
+   *          The bundle archive to insert manifest attributes from.
+   * @return the template string with <code>${MF.UNHANDLED}</code> replaced.
+   * @throws IOException
+   */
+  private String mfaReplace(final String template, final BundleArchive ba)
+    throws IOException
+  {
+    final Set handledSet = new TreeSet();
+    // The set of manifest attribute names in the bundle.
+    final Set mfanSet = new TreeSet();
+    for(Iterator it = ba.mainAttributes.keySet().iterator(); it.hasNext(); ) {
+      final String mfan = it.next().toString();
 
-        File f = new File(outDir +File.separator
-                          +javadocRelPath +File.separator +docFile);
-
-        if(javadocRelPath != null && !"".equals(javadocRelPath)) {
-          if( isSystemPackage(pkg) ) {
-            row = replace(row, "${namelink}", "${name}");
-          } else if ( (bCheckJavaDoc && !f.exists()) ) {
-            row = replace(row, "${namelink}", "${name}");
-          } else {
-            row = replace(row,
-                          "${namelink}",
-                          "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
-          }
-        } else {
-          row = replace(row, "${namelink}", "${name}");
-        }
-        row = replace(row, "${name}", pkg);
-        row = replace(row, "${version}", version.toString());
-        row = replace(row, "${javadoc}", docPath);
-
-        TreeSet providers = (TreeSet) pkgVersions.get(version);
-        StringBuffer sbProviders = new StringBuffer();
-        for (Iterator it4=providers.iterator(); it4.hasNext();) {
-          BundleInfo info = (BundleInfo) it4.next();
-          String providerRow = indexListRow;
-          providerRow = info.stdReplace(providerRow, false);
-          providerRow = replace(providerRow,
-                                "${bundledoc}",
-                                info.relPath +".html");
-          sbProviders.append(providerRow);
-        }
-        row = replace(row, "${providers}", sbProviders.toString());
-        sb.append(row);
+      mfanSet.add(mfan);
+      if(-1 != template.indexOf("${" + mfan + "}")) {
+        handledSet.add(mfan);
       }
     }
 
-    html = replace(html, "${package.list}", sb.toString());
+    // Build replacement string for ${MF.UNHANDLED} that shall contain one row for
+    // each manifest attribute not in the template and not in the skip set.
+    final Map varMap = getVarMap(ba);
+    final Set otherMfans = new TreeSet(mfanSet);
+    otherMfans.removeAll(skipAttribSet);
+    otherMfans.removeAll(handledSet);
+    final StringBuffer mfOtherAttributes = new StringBuffer();
+    for (Iterator it = otherMfans.iterator(); it.hasNext();) {
+      final String key = it.next().toString();
+
+      String value = (String) varMap.get(key);
+      // If value is a valid URL, present it as a link
+      try {
+        final URL url = new URL(value);
+        value = "<a target=\"_top\" href=\"" + url + "\">" + value + "</a>";
+      } catch (MalformedURLException mue) {
+      }
+      mfOtherAttributes.append("<tr>\n").append(" <td>").append(key)
+        .append("</td>\n").append(" <td>").append(value).append("</td>\n")
+        .append("</tr>\n");
+    }
+    return replace(template, "${MF.UNHANDLED}",  mfOtherAttributes.toString());
+  }
+
+  /**
+   * Replace <code>${depending.list}</code> with one row for each bundle that
+   * may import a package exported by <code>ba</code>. The row will contain the
+   * bundle name and all the packages it may import.
+   *
+   * @param template
+   *          The template string to do the replacement in.
+   * @param ba
+   *          The bundle archive to insert manifest attributes from.
+   * @return the template string with <code>${depending.list}</code> replaced.
+   * @throws IOException
+   */
+  private String dependingReplace(final String template, final BundleArchive ba)
+    throws IOException
+  {
+    final Map varMap = getVarMap(ba);
+    final String relPathUp = varMap.get("relpathup").toString();
+
+    // Build list of bundles depending on this bundle.
+    final StringBuffer dependingList = new StringBuffer();
+    if(ba.pkgProvidedMap.size() == 0) {
+      dependingList.append("None found");
+    } else {
+      for(Iterator it = ba.pkgProvidedMap.entrySet().iterator(); it.hasNext();) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final BundleArchive dependentBa = (BundleArchive) entry.getKey();
+        final Set pkgs = (Set) entry.getValue();
+
+        String row = replace(bundleRow, "${what}", getPackagesJavadocString(relPathUp, pkgs));
+        row = replace(row, "${bundledoc}", relPathUp + getVarMap(dependentBa).get("html.uri"));
+        row = stdReplace(dependentBa, row);
+        dependingList.append(row);
+      }
+    }
+    return replace(template, "${depending.list}",  dependingList.toString());
+  }
+
+  /**
+   * Replace <code>${depends.list}</code> with one row for each bundle that
+   * may import a package exported by <code>ba</code>. The row will contain the
+   * bundle name and all the packages it may import.
+   *
+   * @param template
+   *          The template string to do the replacement in.
+   * @param ba
+   *          The bundle archive to insert manifest attributes from.
+   * @return the template string with <code>${depends.list}</code> replaced.
+   * @throws IOException
+   */
+  private String providersReplace(final String template, final BundleArchive ba)
+    throws IOException
+  {
+    final Map varMap = getVarMap(ba);
+    final String relPathUp = varMap.get("relpathup").toString();
+
+    // Build list of bundles that this bundle depends on, i.e., bundles that provides pkgs to this one.
+    final StringBuffer providersList = new StringBuffer();
+    if(ba.pkgProvidersMap.size() == 0 && ba.pkgUnprovidedMap.size() == 0) {
+      providersList.append("None found");
+    } else {
+      for(Iterator it = ba.pkgProvidersMap.entrySet().iterator(); it.hasNext();) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final BundleArchive providingBa = (BundleArchive) entry.getKey();
+        final Set pkgs = (Set) entry.getValue();
+
+        String row = replace(bundleRow, "${what}", getPackagesJavadocString(relPathUp, pkgs));
+        row = replace(row, "${bundledoc}", relPathUp + getVarMap(providingBa).get("html.uri"));
+        row = stdReplace(providingBa, row);
+        providersList.append(row);
+      }
+
+      boolean unresolvedHeadingInculded = false;
+      for (Iterator it = ba.pkgUnprovidedMap.entrySet().iterator(); it
+             .hasNext();) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final String pkgName = entry.getKey().toString();
+
+        if (!isSystemPackage(pkgName)) {
+          if (!unresolvedHeadingInculded) {
+            String row = missingRow;
+            row = replace(row, "${name}", "<b>Unresolved</b>");
+            row = replace(row, "${version}", "");
+
+            providersList.append(row);
+            unresolvedHeadingInculded = true;
+          }
+          final Object versionRange = entry.getValue();
+
+          String row = missingRow;
+          row = replace(row, "${name}", pkgName);
+          row = replace(row, "${version}", versionRange.toString());
+
+          providersList.append(row);
+        }
+      }
+    }
+    return replace(template, "${depends.list}", providersList.toString());
+  }
+
+  /**
+   * Replace <code>${sources.list}</code> with one row for each source file that
+   * can be found.
+   *
+   * @param template
+   *          The template string to do the replacement in.
+   * @param ba
+   *          The bundle archive to insert manifest attributes from.
+   * @return the template string with <code>${sources.list}</code> replaced.
+   * @throws IOException
+   */
+  private String sourcesReplace(final String template, final BundleArchive ba)
+    throws IOException
+  {
+    final Map varMap = getVarMap(ba);
+    final List srcList = new ArrayList();
+    final StringBuffer sb = new StringBuffer();
+
+    if (include_source_files) {
+      log("including source files in jardoc", Project.MSG_VERBOSE);
+      srcList.addAll(ba.extractSources(new File((String) varMap.get("src.dir"))));
+    } else {
+      log("includeSourceFiles is not set, skipping sources", Project.MSG_VERBOSE);
+    }
+
+    if(srcList.size() > 0) {
+      sb.append("<table>\n");
+      for(Iterator it = srcList.iterator(); it.hasNext();) {
+        final String name = (String) it.next();
+        final String uri = replace(ba.file.getName(), ".jar", "") +"/src/" + name;
+        
+        sb.append(" <tr>\n");
+        sb.append("  <td>\n");
+        sb.append("    <a href=\"" +uri +"\">" +name +"<a>\n");
+        sb.append("  </td>\n");
+        sb.append(" </tr>\n");
+
+      }
+      sb.append("</table>");
+    } else {
+      // No source files extracted, shall we create links to SVN?
+      if (includeSourceFileRepositoryLinks) {
+        final Map srcRepositoryLinkMap = ba.getSrcRepositoryLinks(rootDir, repositoryURL);
+
+        if (0 < srcRepositoryLinkMap.size()) {
+          sb.append("<table>");
+          for (Iterator it = srcRepositoryLinkMap.entrySet().iterator(); it
+                 .hasNext();) {
+            final Map.Entry entry = (Map.Entry) it.next();
+            final String name = (String) entry.getKey();
+            final String href = (String) entry.getValue();
+
+            sb.append(" <tr>\n");
+            sb.append("  <td>\n");
+            sb.append("    <a href=\"" + href + "\">" + name + "<a>\n");
+            sb.append("  </td>\n");
+            sb.append(" </tr>\n");
+
+          }
+          sb.append("</table>");
+        }
+
+      }
+    }
+    if (0==sb.length()) {
+      sb.append("None found");
+    }
+    return replace(template, "${sources.list}", sb.toString());
+  }
+
+
+  private void writeBundlePage(final BundleArchive ba)
+    throws IOException
+  {
+    final Map varMap = getVarMap(ba);
+
+    final String template = Util.load(getBundleInfoTemplate().getAbsolutePath());
+    String res = mfaReplace(template, ba);
+    res = dependingReplace(res, ba);
+    res = providersReplace(res, ba);
+    res = sourcesReplace(res, ba);
+    res = stdReplace(ba, res);
+
+    final String outName = (String) varMap.get("html.file");
+    Util.writeStringToFile(new File(outName), res);
+    log("Wrote " +outName, Project.MSG_VERBOSE);
+  }
+
+  /**
+   * Write the a page that lists all bundles.
+   *
+   * @param outFile
+   *          The file to write to.
+   * @param template
+   *          The template to use for this file.
+   * @param rowTemplate
+   *          Template to use for a bundle row in the listing.
+   * @throws IOException
+   */
+  private void writeBundlesPage(final File outFile,
+                                final String template,
+                                final String rowTemplate,
+                                final BundleArchives bas)
+    throws IOException
+  {
+    final String listHeaderRow = (null != listHeader && listHeader.length() > 0) ? replace(
+                                                                                           indexListHeader, "${bundle.list.header}", listHeader) : listHeader;
+    String html = replace(template, "${bundle.list.header}", listHeaderRow);
+
+    StringBuffer bundleList = new StringBuffer();
+    StringBuffer unresolvedList = new StringBuffer();
+
+    // Build the list of bundles
+    final Iterator itBSN = bas.bnToBundleArchives.entrySet().iterator();
+    while (itBSN.hasNext()) {
+      final Map.Entry entry = (Map.Entry) itBSN.next();
+      final Set bsnSet = (Set) entry.getValue();
+      // Sorted set with bundle archives, same BSN, different versions
+      for (Iterator itV = bsnSet.iterator(); itV.hasNext();) {
+        final BundleArchive ba = (BundleArchive) itV.next();
+        bundleList.append(stdReplace(ba, rowTemplate));
+
+        if(0<ba.pkgUnprovidedMap.size()) {
+          // Build one row for each unprovided, non-system package
+          String urow = stdReplace(ba, indexMainUnresolvedRow);
+          StringBuffer sbUpkg = new StringBuffer();
+          for (Iterator itUpkg = ba.pkgUnprovidedMap.entrySet().iterator(); itUpkg
+                 .hasNext();) {
+            final Map.Entry uPkgEntry = (Map.Entry) itUpkg.next();
+            final String pkgName = (String) uPkgEntry.getKey();
+            if (isSystemPackage(pkgName)) continue;
+            final String version = uPkgEntry.getValue().toString();
+
+            if (0<sbUpkg.length()) {
+              sbUpkg.append(",<br>\n   ");
+            }
+            sbUpkg.append(getPackageJavadocString(ba, "../", pkgName, version));
+            if (ba.pkgImportOptional.contains(pkgName)) {
+              sbUpkg.append(" <em>optional</em>");
+            }
+          }
+          if (0<sbUpkg.length()) {
+            unresolvedList.append(replace(urow, "${pkgs}", sbUpkg.toString()));
+          }
+        }
+      }
+    }
+    html = replace(html, "${bundle.list}", bundleList.toString());
+    bundleList.setLength(0);
+
+    if (0 < unresolvedList.length()) {
+      final String unresolved = replace(indexMainUnresolved,
+                                        "${unresolvedRows}", unresolvedList.toString());
+      html = replace(html, "${unresolved.list}", unresolved);
+      unresolvedList.setLength(0);
+    }
+    html = replace(html, "${unresolved.list}", "");
 
     Util.writeStringToFile(outFile, html);
-    System.out.println("wrote " + outFile);
+    log("wrote " + outFile, Project.MSG_VERBOSE);
+  }
+
+  /**
+   * Write a page listing all the provided Java packages and the bundles that provides each package.
+   *
+   * @param outFile
+   *          The file to write to.
+   * @param template
+   *          The template to use for this file.
+   * @param rowTemplate
+   *          Template to use for a bundle row in the listing.
+   *
+   * @throws IOException
+   */
+  private void writePkgListPage(final File outFile,
+                                final String template,
+                                final String rowTemplate,
+                                final BundleArchives bas)
+    throws IOException
+  {
+    final StringBuffer sb = new StringBuffer();
+
+    for (Iterator it = bas.allExports.entrySet().iterator(); it.hasNext(); ) {
+      final Map.Entry entry = (Map.Entry) it.next();
+      final String pkg = entry.getKey().toString();
+      final Map vpMap = (Map) entry.getValue();
+
+      for (Iterator itVP = vpMap.entrySet().iterator(); itVP.hasNext(); ) {
+        final Map.Entry vpEntry = (Map.Entry) itVP.next();
+        final String version = vpEntry.getKey().toString();
+        final Set providerBas = (Set) vpEntry.getValue();
+
+        String row = replace(rowTemplate, "${pkg}", getPackageJavadocString(null, "", pkg, version));
+        final StringBuffer sbProviders = new StringBuffer();
+        for (Iterator itP = providerBas.iterator(); itP.hasNext(); ) {
+          BundleArchive provider = (BundleArchive) itP.next();
+          sbProviders.append(stdReplace(provider, indexListRow));
+        }
+        sb.append(replace(row, "${providers}", sbProviders.toString()));
+      }
+    }
+
+    Util.writeStringToFile(outFile, replace(template, "${package.list}", sb.toString()));
+    log("wrote " + outFile, Project.MSG_VERBOSE);
   }
 
   void copyFile(File templateFile, File outFile)
@@ -674,667 +1069,28 @@ public class BundleHTMLExtractorTask extends Task {
     String src = Util.loadFile(templateFile.getAbsolutePath());
 
     Util.writeStringToFile(outFile, src);
-    System.out.println("copied " + outFile);
+    log("copied " + outFile, Project.MSG_VERBOSE);
   }
 
-  interface MapSelector {
-    public Map getMap(BundleInfo info);
-  }
-
-
-  class BundleInfo {
-    File       file;
-    Attributes attribs;
-    Map        vars      = new TreeMap();
-
-    // String (package name) -> Version
-    Map        pkgExportMap = new TreeMap();
-    // String (package name) -> VersionRange
-    Map        pkgImportMap = new TreeMap();
-    // String (package name)
-    List       pkgImportOptional = new ArrayList();
-
-    // String (service interface) -> Version
-    Map        serviceExportMap = new TreeMap();
-    // String (service interface) -> VersionRange
-    Map        serviceImportMap = new TreeMap();
-
-    String     relPath   = "";
-    String     relPathUp = "";
-    String     path      = "";
-    String     jarRelPath = "";
-
-    Map unresolvedMap = new TreeMap();
-
-    public BundleInfo(File file) throws IOException  {
-      this.file = file;
-
-      String filePath = file.getCanonicalPath();
-      String basePath = baseDir.getCanonicalPath();
-
-      if (filePath.startsWith(basePath)) {
-        relPath = filePath.substring(basePath.length()+1);
-        if (relPath.endsWith(".jar")) {
-          relPath = relPath.substring(0,relPath.length()-4);
-        }
-        path = outDir.getCanonicalPath() + File.separator + relPath;
-        int sepIx = relPath.indexOf(File.separator);
-        while (sepIx>-1) {
-          relPathUp += ".." +File.separator;;
-          sepIx = relPath.indexOf(File.separator,sepIx+1);
-        }
-        jarRelPath = createRelPath(new File(path).getParentFile(), filePath);
-      } else {
-        String fileDir = file.getParentFile().getCanonicalPath();
-        if (basePath.startsWith(fileDir)) {
-          // Outside baseDir, place resulting file directly in outDir
-          relPath    = file.getName();
-          if (relPath.endsWith(".jar")) {
-            relPath = relPath.substring(0,relPath.length()-4);
-          }
-          path       = outDir.getCanonicalPath() + File.separator + relPath;
-          relPathUp  = "";
-          jarRelPath = createRelPath(new File(path).getParentFile(), filePath);
-        } else {
-          throw new BuildException("The file '"+filePath
-                                   +"' does not reside in baseDir ("
-                                   +basePath +")!");
-        }
-      }
-    }
-
-    /**
-     * Derive relative path from <tt>fromDir</tt> to the file given by
-     * <tt>filePath</tt>.
-     */
-    private String createRelPath(File fromDir, String filePath)
-    {
-      String res = "";
-      while (fromDir!=null && !filePath.startsWith(fromDir.toString())) {
-        if (res.length()>0) {
-          res += File.separator;
-        }
-        res += "..";
-        fromDir = fromDir.getParentFile();
-      }
+  /**
+   * Derive relative path from <tt>fromDir</tt> to the file given by
+   * <tt>filePath</tt>.
+   */
+  static String createRelPath(File fromDir, String filePath)
+  {
+    String res = "";
+    while (fromDir!=null && !filePath.startsWith(fromDir.toString())) {
       if (res.length()>0) {
         res += File.separator;
       }
-      res += filePath.substring(fromDir.toString().length()+1);
-      return res;
+      res += "..";
+      fromDir = fromDir.getParentFile();
     }
-
-    public void load() throws Exception {
-      JarFile    jarFile      = new JarFile(file);
-      Manifest   mf           = jarFile.getManifest();
-      attribs                 = mf.getMainAttributes();
-
-      vars.put("html.file", path +".html");
-      vars.put("html.uri",  replace(relPath, "\\", "/"));
-
-      pkgExportMap     = parseNames(attribs.getValue("Export-Package"), false, null);
-      pkgImportMap     = parseNames(attribs.getValue("Import-Package"), true, pkgImportOptional);
-      serviceExportMap = parseNames(attribs.getValue("Export-Service"), false, null);
-      serviceImportMap = parseNames(attribs.getValue("Import-Service"), true, null);
-
-      extractSource(jarFile, new File( path +"/src"));
-
-      sourceRepositoryLinks();
+    if (res.length()>0) {
+      res += File.separator;
     }
-
-
-    // String -> String
-    Map sourceMap = new TreeMap();
-    boolean bSourceInside = false;
-
-    void extractSource(JarFile jarFile, File destDir) throws IOException {
-
-      if (!include_source_files) {
-        return;
-      }
-
-      String prefix = "OSGI-OPT/src";
-
-      int count = 0;
-      for(Enumeration e = jarFile.entries(); e.hasMoreElements(); ) {
-        ZipEntry entry = (ZipEntry)e.nextElement();
-
-        if(entry.getName().startsWith(prefix)) {
-          count++;
-        }
-      }
-
-
-      if(count > 0) {
-        bSourceInside = true;
-
-        //System.out.println("found " + count + " source files in " + jarFile.getName());
-
-        //System.out.println("creating "+ destDir.getAbsolutePath());
-        destDir.mkdirs();
-
-        for(Enumeration e = jarFile.entries(); e.hasMoreElements(); ) {
-          ZipEntry entry = (ZipEntry)e.nextElement();
-
-          if(entry.getName().startsWith(prefix)) {
-            if(entry.isDirectory()) {
-              makeDir(jarFile, entry, destDir, prefix);
-            } else {
-              copyEntry(jarFile, entry, destDir, prefix);
-
-              String s = replace(entry.getName(), prefix + "/", "");
-              sourceMap.put(s, s);
-            }
-            count++;
-          }
-        }
-
-      } else {
-        // Check if we can copy source from original pos
-        String sourceDir = (String)attribs.getValue("Built-From");
-        if(sourceDir != null && !"".equals(sourceDir)) {
-          File src = new File(sourceDir, "src");
-          copyTree(src, destDir, src.toString() + File.separator, ".java");
-        }
-      }
-    }
-
-    void copyTree(File src, File dest,
-                  String prefix,
-                  String suffix) throws IOException {
-      if(src.isDirectory()) {
-        if(!dest.exists()) {
-          dest.mkdirs();
-        }
-
-        String[] files = src.list();
-        for(int i = 0; i < files.length; i++) {
-          copyTree(new File(src, files[i]),
-                   new File(dest, files[i]),
-                   prefix,
-                   suffix);
-        }
-      } else if(src.isFile()) {
-        if(src.getName().endsWith(suffix)) {
-          String path = src.getAbsolutePath();
-
-          String s = replace(replace(path, prefix, ""), "\\", "/");
-
-          copyStream(new FileInputStream(src),  new FileOutputStream(dest));
-          sourceMap.put(s, s);
-        }
-      }
-    }
-
-
-    void makeDir(ZipFile file,
-                 ZipEntry entry,
-                 File destDir,
-                 String prefix) throws IOException {
-      File d = new File(destDir, replace(entry.getName(), prefix, ""));
-
-      d.mkdirs();
-      //System.out.println("created dir  " + d.getAbsolutePath());
-    }
-
-
-    void copyEntry(ZipFile file,
-                   ZipEntry entry,
-                   File destDir,
-                   String prefix) throws IOException {
-      File d = new File(destDir, replace(entry.getName(), prefix, ""));
-
-      File dir = d.getParentFile();
-
-      if(!dir.exists()) {
-        dir.mkdirs();
-      }
-
-      //System.out.println("extracting to " + d.getAbsolutePath());
-
-      copyStream(new BufferedInputStream(file.getInputStream(entry)),
-                 new BufferedOutputStream(new FileOutputStream(d)));
-    }
-
-
-    void copyStream(InputStream is, OutputStream os) throws IOException {
-      byte[] buf = new byte[1024];
-
-
-      BufferedInputStream in   = null;
-      BufferedOutputStream out = null;
-
-      try {
-        in  = new BufferedInputStream(is);
-        out = new BufferedOutputStream(os);
-        int n;
-        int total = 0;
-        while ((n = in.read(buf)) > 0) {
-          out.write(buf, 0, n);
-          total += n;
-        }
-      } finally {
-        try { in.close(); } catch (Exception ignored) { }
-        try { out.close(); } catch (Exception ignored) { }
-      }
-    }
-
-
-    // sourcePath (rel src-dir) -> repository URL.
-    Map sourceRepositoryLinkMap = new TreeMap();
-
-    void sourceRepositoryLinks()
-      throws IOException
-    {
-      if (!includeSourceFileRepositoryLinks) {
-        return;
-      }
-
-      // Check if we can locate a source tree based on the
-      // "Built-From" header.
-      String sourceDir = (String) attribs.getValue("Built-From");
-      if(null==sourceDir || sourceDir.length()<1) {
-        log("No 'Built-From' manifest header in bundle, "
-            +"can not locate source files.", Project.MSG_VERBOSE);
-
-        return;
-      }
-
-      File src = new File(sourceDir, "src");
-      if (src.isDirectory()) {
-        sourceRepositoryLinks(src, src.getAbsolutePath() + File.separator);
-      } else {
-        log("No src sub-directory in 'Built-From' location, "
-            +src.getAbsolutePath() +", can not locate source files.",
-            Project.MSG_VERBOSE);
-      }
-    }
-
-    void sourceRepositoryLinks(final File src, final String prefix)
-      throws IOException
-    {
-      if (src.isDirectory()) {
-        String[] files = src.list();
-        for(int i = 0; i < files.length; i++) {
-          sourceRepositoryLinks(new File(src, files[i]), prefix);
-        }
-      } else if (src.isFile()) {
-        final String path = src.getAbsolutePath();
-        if (src.getName().endsWith(".java")) {
-          final String bundlePath = replace(path, prefix, "");
-          if (path.startsWith(rootDir)) {
-            final String repoPath = replace(path, rootDir, "")
-              .replace(File.separatorChar, '/');
-            final String href = new URL(repositoryURL, repoPath).toString();
-
-            sourceRepositoryLinkMap.put(bundlePath, href);
-
-            log("Found Java source file in repository, " +path
-                +" with href '" +href +"'.",
-                Project.MSG_VERBOSE);
-          } else {
-            log("Skipping non-repository Java source file, " +path +".",
-                Project.MSG_DEBUG);
-          }
-
-        } else {
-          log("Skipping non-Java source file, " +path +".", Project.MSG_DEBUG);
-        }
-      }
-    }
-
-
-    public void writeInfo() throws IOException {
-
-      String template = stdReplace(Util.load(getBundleInfoTemplate().getAbsolutePath()));
-      String outName  = (String)vars.get("html.file");
-
-      //System.out.println("jar info from " + file + " to " +outName);
-
-      Util.writeStringToFile(new File(outName), template);
-    }
-
-    public String stdReplace(String template) throws IOException {
-      return stdReplace(template, true);
-    }
-
-
-    public String stdReplace(String template, boolean bDepend) throws IOException {
-
-      for(Iterator it = globalVars.keySet().iterator(); it.hasNext(); ) {
-        Object key = it.next();
-        Object val = globalVars.get(key);
-
-        template = replace(template, "${" + key + "}", "" + val);
-
-        //System.out.println(key + "->" + val);
-      }
-
-      for(Iterator it = vars.keySet().iterator(); it.hasNext(); ) {
-        Object key = it.next();
-        Object val = vars.get(key);
-
-        template = replace(template, "${" + key + "}", "" + val);
-
-        //System.out.println(key + "->" + val);
-      }
-
-      Set handledSet = new TreeSet();
-
-      for(Iterator it = attribs.keySet().iterator(); it.hasNext(); ) {
-        final Object key = it.next();
-
-        if(-1 != template.indexOf("${" + key.toString() + "}")) {
-          handledSet.add(key.toString());
-        }
-      }
-
-      for(Iterator it = attribs.keySet().iterator(); it.hasNext(); ) {
-        final Object key = it.next();
-        String str = (String)attribs.get(key);
-
-        // Special formatting of the value for some keys:
-        if ("Export-Package".equals(key.toString())) {
-          str = getPackagesString(pkgExportMap, "/package-summary.html");
-        } else if ("Import-Package".equals(key.toString())) {
-          str = getPackagesString(pkgImportMap, "/package-summary.html");
-        } else if ("Import-Service".equals(key.toString())) {
-          str = getPackagesString(serviceImportMap, ".html");
-        } else if ("Export-Service".equals(key.toString())) {
-          str = getPackagesString(serviceExportMap, ".html");
-        } else if (listPropSet.contains(key.toString())) {
-          str = replace(str, ",", listSeparator);
-        }
-        template = replace(template, "${" + key + "}", str);
-      }
-
-
-      for(Iterator it = alwaysPropSet.iterator(); it.hasNext(); ) {
-        String key = (String)it.next();
-        String val = "";
-
-        template = replace(template, "${" + key + "}", val);
-      }
-
-      StringBuffer sb = new StringBuffer();
-
-      for(Iterator it = attribs.keySet().iterator(); it.hasNext(); ) {
-        Object key = it.next();
-
-        if(!handledSet.contains(key.toString())) {
-          if(!skipAttribSet.contains(key.toString())) {
-            String str = attribs.getValue(key.toString());
-
-            // Special formatting of the value for some keys:
-            if ("Export-Package".equals(key.toString())) {
-              str = getPackagesString(pkgExportMap, "/package-summary.html");
-            } else if ("Import-Package".equals(key.toString())) {
-              str = getPackagesString(pkgImportMap, "/package-summary.html");
-            } else if ("Import-Service".equals(key.toString())) {
-              str = getPackagesString(serviceImportMap, ".html");
-            } else if ("Export-Service".equals(key.toString())) {
-              str = getPackagesString(serviceExportMap, ".html");
-            } else if (listPropSet.contains(key.toString())) {
-              str = replace(str, ",", listSeparator);
-            }
-
-            // If value is a valid URL, present it as a link
-            try {
-              final URL url = new URL(str);
-              str = "<a target=\"_top\" href=\"" +url +"\">" +str +"</a>";
-            } catch (MalformedURLException mue) {
-            }
-            sb.append("<tr>\n" +
-                      " <td>" + key + "</td>\n" +
-                      " <td>" + str + "</td>\n" +
-                      "</tr>\n");
-          }
-        }
-      }
-
-      template = replace(template,  "${MF.UNHANDLED}",  sb.toString());
-
-      template = replace(template,  "${FILE}",  file.getName());
-      template = replace(template,  "${FILE.short}",  replace(file.getName(), ".jar", ""));
-      template = replace(template,  "${BYTES}", "" + file.length());
-      template = replace(template,  "${KBYTES}", "" + (file.length() / 1024));
-
-      template = replace(template,  "${relpathup}",  relPathUp);
-      template = replace(template,  "${jarRelPath}", jarRelPath);
-      template = replace(template,  "${javadocdir}",
-                         javadocRelPath != null ? javadocRelPath : "");
-
-
-      if(bDepend) {
-        unresolvedMap = new TreeMap();
-
-        template = replace(template,
-                           "${depending.list}",
-                           getDepend(
-                                     new MapSelector() {
-                                       public Map getMap(BundleInfo info) {
-                                         return info.pkgExportMap;
-                                       }
-                                     },
-                                     new MapSelector() {
-                                       public Map getMap(BundleInfo info) {
-                                         return info.pkgImportMap;
-                                       }
-                                     },
-                                     null,
-                                     false));
-
-        template = replace(template,
-                           "${depends.list}",
-                           getDepend(
-                                     new MapSelector() {
-                                       public Map getMap(BundleInfo info) {
-                                         return info.pkgImportMap;
-                                       }
-                                     },
-                                     new MapSelector() {
-                                       public Map getMap(BundleInfo info) {
-                                         return info.pkgExportMap;
-                                       }
-                                     },
-                                     unresolvedMap,
-                                     true));
-
-      }
-
-      sb = new StringBuffer();
-      if(sourceMap.size() > 0) {
-
-        String srcBase = replace(file.getName(), ".jar", "") + "/src";
-
-        sb.append("<table>");
-        for(Iterator it = sourceMap.keySet().iterator(); it.hasNext();) {
-          String name = (String)it.next();
-
-
-          sb.append(" <tr>\n");
-          sb.append("  <td>\n");
-          sb.append("    <a href=\"" +srcBase +"/" +name +"\">" +name +"<a>\n");
-          sb.append("  </td>\n");
-          sb.append(" </tr>\n");
-
-        }
-        sb.append("</table>");
-
-      }
-
-      if (sourceRepositoryLinkMap.size()>0) {
-        sb.append("<table>");
-        for(Iterator it = sourceRepositoryLinkMap.entrySet().iterator();
-            it.hasNext();) {
-          final Map.Entry entry = (Map.Entry) it.next();
-          final String name = (String) entry.getKey();
-          final String href = (String) entry.getValue();
-
-          sb.append(" <tr>\n");
-          sb.append("  <td>\n");
-          sb.append("    <a href=\"" +href +"\">" +name +"<a>\n");
-          sb.append("  </td>\n");
-          sb.append(" </tr>\n");
-
-        }
-        sb.append("</table>");
-      }
-
-      if (0==sb.length()) {
-        sb.append("None found");
-      }
-
-      template = replace(template, "${sources.list}", sb.toString());
-      if(bSourceInside && sourceMap.size() > 0) {
-        template = replace(template,
-                           "${FILEINFO}",
-                           file.length()
-                           +" bytes, includes <a href=\"#source\">source</a>");
-      } else {
-        template = replace(template,
-                           "${FILEINFO}",
-                           file.length() +" bytes");
-      }
-
-
-      return template;
-    }
-
-
-    String getDepend(MapSelector importMap,
-                     MapSelector exportMap,
-                     Map         unresolvedMapDest,
-                     boolean bShowUnresolved) throws IOException {
-
-      final Map map        = new TreeMap();
-
-      if(unresolvedMapDest == null) {
-        unresolvedMapDest = new TreeMap();
-      }
-
-      for(Iterator it = importMap.getMap(this).keySet().iterator();
-          it.hasNext(); ) {
-        final String name    = (String)it.next();
-        final Object version = importMap.getMap(this).get(name);
-
-        boolean bFound = false;
-        for(Iterator it2 = jarMap.keySet().iterator(); it2.hasNext();) {
-          final File jarFile = (File)it2.next();
-          final BundleInfo info = (BundleInfo)jarMap.get(jarFile);
-
-          for(Iterator it3 = exportMap.getMap(info).keySet().iterator(); it3.hasNext(); ) {
-            final String name2    = (String) it3.next();
-            final Object version2 = exportMap.getMap(info).get(name);
-
-            if(name.equals(name2)) {
-              final VersionRange versions = (version instanceof VersionRange)
-                ? (VersionRange) version : (VersionRange) version2;
-              final Version ver = (version instanceof Version)
-                ? (Version) version : (Version) version2;
-              if(versions.contains(ver)) {
-                bFound = true;
-                String pkgNames = (String) map.get(jarFile);
-                pkgNames = null==pkgNames ? name : (pkgNames +", "+name);
-                map.put(jarFile, pkgNames);
-              }
-            }
-          }
-        }
-
-        if(!bFound && !isSystemPackage(name)) {
-          unresolvedMapDest.put(name, version);
-        }
-
-      }
-      final StringBuffer sb = new StringBuffer();
-
-      if(map.size() == 0 && unresolvedMapDest.size() == 0) {
-        sb.append("None found");
-      } else {
-        for(Iterator it = map.keySet().iterator(); it.hasNext();) {
-          final Object     key     = it.next();
-          final File       jarFile = (File) key;
-          final BundleInfo info    = (BundleInfo) jarMap.get(jarFile);
-          final String     what    = (String) map.get(jarFile);
-
-          String row = info.stdReplace(bundleRow, false);
-          row = replace(row, "${what}", what);
-          row = replace(row, "${bundledoc}", relPathUp +info.relPath +".html");
-          sb.append(row);
-        }
-
-
-        if(bShowUnresolved) {
-          if(unresolvedMapDest.size() > 0) {
-            String row = missingRow;
-            row = replace(row, "${name}",    "<b>Unresolved</b>");
-            row = replace(row, "${version}", "");
-
-            sb.append(row);
-          }
-          for(Iterator it = unresolvedMapDest.keySet().iterator(); it.hasNext();) {
-            final String name    = (String) it.next();
-            final Object version = unresolvedMapDest.get(name);
-
-            String row = missingRow;
-            row = replace(row, "${name}",    name);
-            row = replace(row, "${version}", version.toString());
-
-            sb.append(row);
-
-          }
-        }
-
-      }
-      return sb.toString();
-    }
-
-
-    String getPackageString(String pkg, Object version, String linkSuffix)
-    {
-      String row = pkgHTML;
-
-      String docFile = replace(pkg, ".", "/") + linkSuffix;
-      String docPath = relPathUp + javadocRelPath + "/index.html?" + docFile;
-
-      File f = new File(outDir + File.separator
-                        + javadocRelPath + File.separator + docFile);
-
-      if(javadocRelPath != null && !"".equals(javadocRelPath)) {
-        if( isSystemPackage(pkg) ) {
-          row = replace(row, "${namelink}", "${name}");
-        } else if ( (bCheckJavaDoc && !f.exists()) ) {
-          row = replace(row, "${namelink}", "${name}");
-          missingDocs.put(pkg, this);
-        } else {
-          row = replace(row,
-                        "${namelink}",
-                        "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
-        }
-      } else {
-        row = replace(row, "${namelink}", "${name}");
-      }
-
-      row = replace(row, "${name}", pkg);
-      row = replace(row, "${version}", version.toString());
-      row = replace(row, "${javadoc}", docPath);
-
-      return row;
-    }
-
-    String getPackagesString(Map map, String linkSuffix) {
-      StringBuffer sb = new StringBuffer();
-
-      for(Iterator it = map.keySet().iterator(); it.hasNext(); ) {
-        String name    = (String)it.next();
-        Object version = map.get(name);
-
-        sb.append(getPackageString(name, version, linkSuffix));
-      }
-
-      return sb.toString();
-    }
+    res += filePath.substring(fromDir.toString().length()+1);
+    return res;
   }
 
 
@@ -1350,102 +1106,21 @@ public class BundleHTMLExtractorTask extends Task {
   }
 
 
+  /**
+   * A variant of {@link Util.replace(String,String,String)} that uses the empty
+   * string as replacement for null values.
+   *
+   * @param src
+   *          The template string to do replace all matches in.
+   * @param a
+   *          The math-string to be replaced.
+   * @param b
+   *          The replacement string to use.
+   * @return The template with all occurrences of <code>a</code> replaced by
+   *         <code>b</code>.
+   */
   String replace(String src, String a, String b) {
     return Util.replace(src, a, b == null ? "" : b);
-  }
-
-  /**
-   * Parse import/export package header.
-   * @param s The value of the header to parse.
-   * @param range if versions shall be parsed as ranges or not.
-   * @param optionals Optional list to add packages that are marked
-   *              with the directive resolution=optional.
-   * @return Mapping from package name to version/version range.
-   */
-  static Map parseNames(String s, boolean range, List optionals)
-  {
-    final Map map = new TreeMap();
-
-    //System.out.println(file + ": " + s);
-    if(s != null) {
-      s = s.trim();
-      final String[] lines = Util.splitwords(s, ",", '\"');
-      for(int i = 0; i < lines.length; i++) {
-        final String[] words = Util.splitwords(lines[i].trim(), ";", '\"');
-        if(words.length < 1) {
-          throw new RuntimeException("bad package spec '" + s + "'");
-        }
-        String spec = "0";
-        String name = words[0].trim();
-
-        for(int j = 1; j < words.length; j++) {
-          final String[] info = Util.splitwords(words[j], "=", '\"');
-
-          if(info.length == 2) {
-            if("specification-version".equals(info[0].trim())) {
-              spec = info[1].trim();
-            } else if("version".equals(info[0].trim())) {
-              spec = info[1].trim();
-            } else if (null!=optionals) {
-              if(info[0].endsWith(":")) {
-                final String directive
-                  = info[0].substring(0,info[0].length()-1).trim();
-                if ("resolution".equals(directive)
-                    && "optional".equals(info[1].trim())) {
-                  optionals.add(name);
-                }
-              }
-            }
-          }
-        }
-        if (range) {
-          map.put(name, new VersionRange(spec));
-        } else {
-          map.put(name, new Version(spec));
-        }
-      }
-    }
-
-    return map;
-  }
-
-
-  /**
-   * Comparator that sorts file objects based on their file name.
-   */
-  class FileNameComparator
-    implements Comparator
-  {
-    public int compare(Object o1, Object o2)
-    {
-      File f1 = (File) o1;
-      File f2 = (File) o2;
-      return f1.getName().compareTo(f2.getName());
-    }
-
-    public boolean equals(Object obj)
-    {
-      return this==obj;
-    }
-  }
-
-  /**
-   * Comparator that sorts BundleInfo objects based on their file name.
-   */
-  class BundleInfoComparator
-    implements Comparator
-  {
-    public int compare(Object o1, Object o2)
-    {
-      BundleInfo info1 = (BundleInfo) o1;
-      BundleInfo info2 = (BundleInfo) o2;
-      return info1.file.getName().compareTo(info2.file.getName());
-    }
-
-    public boolean equals(Object obj)
-    {
-      return this==obj;
-    }
   }
 
 }

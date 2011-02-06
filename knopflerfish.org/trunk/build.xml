@@ -251,7 +251,6 @@
 
     <bundlehtml templateHTMLDir="${ant.dir}/html_template"
                 outDir="${distrib.jardocs.dir}"
-                baseDir="${distrib.osgi.dir}/jars"
                 listHeader="${bundle.list.header}"
                 javadocRelPath="../javadoc"
                 includeSourceFiles="false"
