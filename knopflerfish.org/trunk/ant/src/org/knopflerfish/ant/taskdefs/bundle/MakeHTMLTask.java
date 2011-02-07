@@ -35,9 +35,7 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,17 +44,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
-import org.apache.tools.ant.taskdefs.Manifest;
-import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.selectors.FilenameSelector;
 import org.apache.tools.ant.util.FileUtils;
-import org.osgi.framework.Version;
+import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
 
 /**
  * <p>
@@ -185,10 +182,6 @@ public class MakeHTMLTask
   private final static String YEAR
     = new SimpleDateFormat("yyyy",  Locale.ENGLISH).format(new Date());
 
-  private String lib_suffix = "";
-  private String api_suffix = "_api";
-  private String impl_suffix = "";
-  private String all_suffix = "_all";
   private String projectName = "";
   private boolean do_manpage = false;
   private String javadocRelPath = "../../javadoc";
@@ -303,12 +296,6 @@ public class MakeHTMLTask
       throw new BuildException("Need to specify tofile and fromfile or give a fileset");
     }
 
-    // Set suffixes
-    impl_suffix = proj.getProperty("impl.suffix");
-    api_suffix = proj.getProperty("api.suffix");
-    lib_suffix = proj.getProperty("lib.suffix");
-    all_suffix = proj.getProperty("all.suffix");
-
     if (filesets.isEmpty()) {
       // log("Project base is: " + getProject().getBaseDir());
       // log("Attempting to transform: " + fromFile);
@@ -410,7 +397,8 @@ public class MakeHTMLTask
                              proj.getProperty("svn.repo.url"));
       content = Util.replace(content, "$(SVN_TAG)",proj.getProperty("svn.tag"));
       content = Util.replace(content, "$(JAVADOCPATH)", pathToJavadocDir);
-      content = Util.replace(content, "$(JAVADOCLINK)", pathToJavadocDir + "/index.html?");
+      content = Util.replace(content, "$(JAVADOCLINK)",
+                             pathToJavadocDir + "/index.html?");
 
       // Used for bundle_doc generation
       if (do_manpage) {
@@ -418,17 +406,13 @@ public class MakeHTMLTask
         content = Util.replace(content, "$(BUNDLE_VERSION)",
                                proj.getProperty("bmfa.Bundle-Version"));
 
-        // Create links to generated jardoc for this bundle
-        StringBuffer sbuf = new StringBuffer();
-        generateJardocPath(sbuf, "do_build_lib", lib_suffix);
-        generateJardocPath(sbuf, "do_build_api", api_suffix);
-        generateJardocPath(sbuf, "do_build_all", all_suffix);
-        generateJardocPath(sbuf, "do_build_impl", impl_suffix);
-        content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
+        final BundleArchives bas = getBundleArchives();
 
-        final String epkgs
-          = formatPkgsWithJavadocLinks(getExports(), pathToJavadocDir);
-        content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", epkgs);
+        // Create links to jardoc for bundles built from this project
+        content = Util.replace(content, "$(BUNDLE_JARDOCS)", basToString(bas));
+
+        content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)",
+                               getExportPkgs(bas, pathToJavadocDir));
 
         // Replce H1-H3 headers to man page style, if manpage style
         content = Util.replace(content, "<h1", "<h1 class=\"man\"");
@@ -448,12 +432,14 @@ public class MakeHTMLTask
         for (int i = 0; i < navPages.length; i++) {
           // System.out.println("Checking: " + navPages[i]);
           if (disable != null && disable.equals(navPages[i])) {
-            // System.out.println("Disabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
-            content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navDisabled);
+            content = Util.replace(content,
+                                   "$(CLASS_NAVIGATION_" + navPages[i] + ")",
+                                   navDisabled);
           }
           else {
-            // System.out.println("Enabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
-            content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navEnabled);
+            content = Util.replace(content,
+                                   "$(CLASS_NAVIGATION_" + navPages[i] + ")",
+                                   navEnabled);
           }
         }
       }
@@ -522,201 +508,157 @@ public class MakeHTMLTask
     return buf.toString();
   }
 
-  // Returns a boolean for a Project prop. If <code>null</code> => <code>false</code>.
-  private boolean getBoolProperty(String prop) {
-    if (prop == null)
-      return false;
-
-    Boolean b = Boolean.valueOf(getProject().getProperty(prop));
-
-    return b.booleanValue();
-  }
-
-  private void generateJardocPath(StringBuffer sbuf,
-                                  String prop,
-                                  String suffix)
-  {
-    if (getBoolProperty(prop)) {
-      sbuf.append("<a target=\"_top\" href=\"../../jars/index.html?bundle=");
-      sbuf.append(this.projectName);
-      sbuf.append("/");
-      sbuf.append(this.projectName);
-      sbuf.append(suffix);
-      sbuf.append(".html\">");
-      sbuf.append(this.projectName);
-      sbuf.append(suffix);
-      sbuf.append("</a><br>\n");
+  /**
+   * Loads the bundle archives built from this project.
+   *
+   * @return bundle archives object holding the bundle archives related to this
+   *         project or null if the project has not defined the
+   *         property "jars.dir".
+   */
+  private BundleArchives getBundleArchives() {
+    // Create a file set with root in ${jars.dir} that scans for all jar files
+    // in the sub-directory ${jarsdir.name}
+    final Project proj = getProject();
+    final String jarsDir = proj.getProperty("jars.dir");
+    log("Searching for build results using jars.dir: " +jarsDir,
+        Project.MSG_DEBUG);
+    if (null != jarsDir && 0 < jarsDir.length()) {
+      final FileSet fileSet = new FileSet();
+      fileSet.setProject(proj);
+      fileSet.setDir(new File(jarsDir));
+      final FilenameSelector fns = new FilenameSelector();
+      fns.setName(proj.getProperty("jardir.name") + "/**/*.jar");
+      fileSet.add(fns);
+      log("Found build results: " +fileSet, Project.MSG_DEBUG);
+      final List fileSets = new ArrayList();
+      fileSets.add(fileSet);
+      final BundleArchives bas = new BundleArchives(this, fileSets, true);
+      bas.doProviders();
+      return bas;
     }
+    return null;
   }
-
 
   static String replace(String src, String a, String b) {
     return Util.replace(src, a, b == null ? "" : b);
   }
 
+  /** Template row for an exported package. */
+  private static final String packageListRow
+    = " <tr><td>${namelink}</td><td align=\"center\">${version}</td><td>${providers}</td></tr>\n";
 
-  // Get the value of the export package manifest header for this bundle.
-  private String getExports()
-  {
-    final Project proj = getProject();
+  /** The table heading for the list of exported packages. */
+  private static final String packageListHeading
+    = "<table border=\"1\">\n <tr><th>Package</th><th>Version</th><th>Providers</th></tr>\n";
 
-    // First try to get Export-Package header from the generated manifests
-    final String outdirS = proj.getProperty("outdir");
-    if (null!=outdirS && 0<outdirS.length()) {
-      final File outdir = new File(outdirS);
-      final String[] mfFileNames = { "api.mf", "lib.mf", "all.mf", "impl.mf" };
-      for (int i = 0; i<mfFileNames.length; i++) {
-        final File mfFile = new File(outdir, mfFileNames[i]);
-        if (mfFile.exists()) {
-          InputStreamReader ir = null;
-          try {
-            final FileInputStream   is = new FileInputStream(mfFile);
-            ir = new InputStreamReader(is, "UTF-8");
-            final Manifest mf = new Manifest(ir);
-            final Manifest.Attribute attr
-              = mf.getMainSection().getAttribute("Export-Package");
-            if (null!=attr) {
-              final String value = attr.getValue();
-              if (null!=value && 0<value.length()) {
-                return value;
-              }
+  /** The table footer for the list of exported packages. */
+  private static final String packageListFooter
+    = "</table>\n";
+
+  /**
+   * Return HTML-formated String with one exported package per line, linking the
+   * package name to its javadoc (if present).
+   *
+   * @param bas
+   *          Bundle archives object that holds the set of packages and the
+   *          exporters.
+   * @param pathToJavadocDir
+   *          Relative path from the file we are generating to the javadoc
+   *          directory.
+   * @return HTML string with all exported packages.
+   */
+  private String getExportPkgs(final BundleArchives bas, final String pathToJavadocDir) {
+    final StringBuffer res = new StringBuffer();
+
+    if (null != bas) {
+      final boolean javadocPresent = pathToJavadocDir != null && 0<pathToJavadocDir.length();
+      for (Iterator pkgIt = bas.allExports.entrySet().iterator(); pkgIt.hasNext(); ) {
+        final Map.Entry pkgEntry = (Map.Entry) pkgIt.next();
+        final String pkg = pkgEntry.getKey().toString();
+        final Map verToProvides = (Map) pkgEntry.getValue();
+
+        final String docFile = replace(pkg, ".", "/") +BundleHTMLExtractorTask.PACKAGE_SUMMARY_HTML;
+        final String docPath = pathToJavadocDir +"/index.html?" +docFile;
+        final File f = new File(outdir +File.separator
+                                +pathToJavadocDir.replace('/', File.separatorChar)
+                                +File.separator
+                                +docFile.replace('/', File.separatorChar));
+        for (Iterator vIt = verToProvides.entrySet().iterator(); vIt.hasNext(); ) {
+          final Map.Entry vtpEntry = (Map.Entry) vIt.next();
+          final String version = vtpEntry.getKey().toString();
+          final Set providers = (Set) vtpEntry.getValue();
+
+          String row = packageListRow;
+          if(javadocPresent) {
+            if (!f.exists()) {
+              row = replace(row, "${namelink}", "${name}");
+            } else {
+              row = replace(row,
+                            "${namelink}",
+                            "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
             }
-          } catch (ManifestException me) {
-            throw new BuildException("Manifest file " + mfFile + " is invalid",
-                                     me, getLocation());
-          } catch (IOException ioe) {
-            throw new BuildException("Failed to read " + mfFile,
-                                     ioe, getLocation());
-          } finally {
-            if (ir != null) {
-              try {
-                ir.close();
-              } catch (IOException e) {
-                // ignore
-              }
-            }
+          } else {
+            row = replace(row, "${namelink}", "${name}");
           }
+          row = replace(row, "${name}", pkg);
+          row = replace(row, "${version}", version.toString());
+          row = replace(row, "${javadoc}", docPath);
+          row = replace(row, "${providers}", providersToString(providers));
+
+          res.append(row);
         }
       }
     }
-
-    // Fallback to the value from the template manifest.
-    String res = proj.getProperty("bmfa.Export-Package");
-    if ("[bundle.emptystring]".equals(res)) {
-      res = "";
+    if (0<res.length()) {
+      return packageListHeading + res.toString() + packageListFooter;
+    } else {
+      return res.toString();
     }
-    return res;
   }
 
-  /** Template row for an exported package. */
-  private static final String packageListRow
-    = "${namelink}&nbsp;${version}<br/>\n";
-
-  /**
-   * Create one row in the output for each exported package. The
-   * format of the row is determined by {@link #packageListRow}.
-   *
-   * @param epkgs The value of the "Export-Package" attribute to
-   *              present.
-   * @param pathToJavadoc Relative path from the output directory to
-   *              the root of the javadoc tree to link to.
-   */
-  private String formatPkgsWithJavadocLinks(final String epkgs,
-                                            final String pathToJavadoc)
-  {
+  private String basToString(final BundleArchives bas) {
     final StringBuffer res = new StringBuffer();
 
-    // Maps pkgName -> version
-    final Map epkgMap = parseNames(epkgs, false, null);
-    if (0<epkgMap.size()) {
-      for (Iterator it = epkgMap.entrySet().iterator(); it.hasNext(); ) {
-        final Map.Entry entry = (Map.Entry) it.next();
-        final String pkg = (String) entry.getKey();
-        final Version version = (Version) entry.getValue();
+    if (null != bas) {
+      for (Iterator it = bas.allBundleArchives.iterator(); it.hasNext();) {
+        final BundleArchive ba = (BundleArchive) it.next();
 
-        final String docFile = replace(pkg, ".", "/") +"/package-summary.html";
-        final String docPath = pathToJavadoc +"/index.html?" +docFile;
-
-        final File f = new File(outdir +File.separator
-                                +pathToJavadoc.replace('/', File.separatorChar)
-                                +File.separator
-                                +docFile.replace('/', File.separatorChar));
-
-        String row = packageListRow;
-        if(pathToJavadoc != null && !"".equals(pathToJavadoc)) {
-          if (!f.exists()) {
-            row = replace(row, "${namelink}", "${name}");
-          } else {
-            row = replace(row,
-                          "${namelink}",
-                          "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
-          }
-        } else {
-          row = replace(row, "${namelink}", "${name}");
+        if (0 < res.length()) {
+          res.append("<br>\n");
         }
-        row = replace(row, "${name}", pkg);
-        row = replace(row, "${version}", version.toString());
-        row = replace(row, "${javadoc}", docPath);
-
-        res.append(row);
+        res.append(providerToString(ba));
       }
     }
     return res.toString();
   }
 
-  /**
-   * Parse import/export package header.
-   * @param s The value of the header to parse.
-   * @param range if versions shall be parsed as ranges or not.
-   * @param optionals Optional list to add packages that are marked
-   *              with the directive resolution=optional.
-   * @return Mapping from package name to version/version range.
-   */
-  static Map parseNames(String s, boolean range, List optionals)
-  {
-    final Map map = new TreeMap();
+  private String providersToString(final Set providers) {
+    final StringBuffer res = new StringBuffer();
 
-    //System.out.println(file + ": " + s);
-    if(s != null) {
-      s = s.trim();
-      final String[] lines = Util.splitwords(s, ",", '\"');
-      for(int i = 0; i < lines.length; i++) {
-        final String[] words = Util.splitwords(lines[i].trim(), ";", '\"');
-        if(words.length < 1) {
-          throw new RuntimeException("bad package spec '" + s + "'");
-        }
-        String spec = "0";
-        String name = words[0].trim();
+    for (Iterator it = providers.iterator(); it.hasNext();) {
+      final BundleArchive ba = (BundleArchive) it.next();
 
-        for(int j = 1; j < words.length; j++) {
-          final String[] info = Util.splitwords(words[j], "=", '\"');
-
-          if(info.length == 2) {
-            if("specification-version".equals(info[0].trim())) {
-              spec = info[1].trim();
-            } else if("version".equals(info[0].trim())) {
-              spec = info[1].trim();
-            } else if (null!=optionals) {
-              if(info[0].endsWith(":")) {
-                final String directive
-                  = info[0].substring(0,info[0].length()-1).trim();
-                if ("resolution".equals(directive)
-                    && "optional".equals(info[1].trim())) {
-                  optionals.add(name);
-                }
-              }
-            }
-          }
-        }
-        if (range) {
-          map.put(name, new VersionRange(spec));
-        } else {
-          map.put(name, new Version(spec));
-        }
+      if (0 < res.length()) {
+        res.append(", ");
       }
+      res.append(providerToString(ba));
     }
+    return res.toString();
+  }
 
-    return map;
+  private static final String packageListProviderTemplate
+    = "<a target=\"_top\" href=\"../../jars/index.html?bundle=${bundledoc.uri}\">${bundle.name.short}</a>";
+
+  private String providerToString(final BundleArchive ba) {
+    final String relPath = replace(ba.relPath, ".jar", "");
+    final String htmlURI = replace(relPath, "\\", "/")
+      + BundleHTMLExtractorTask.HTML;
+    final String bundleShortName = replace(ba.file.getName(), ".jar", "");
+
+    String provider = replace(packageListProviderTemplate, "${bundledoc.uri}",
+                              htmlURI);
+    provider = replace(provider, "${bundle.name.short}", bundleShortName);
+    return provider;
   }
 
 }

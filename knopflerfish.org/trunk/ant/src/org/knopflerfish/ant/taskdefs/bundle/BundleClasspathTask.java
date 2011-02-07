@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -253,6 +253,7 @@ public class BundleClasspathTask extends Task {
       if (src.isDirectory()) {
         fileSet = new FileSet();
         fileSet.setDir(src);
+        fileSet.setProject(getProject());
       } else if (src.exists()) {
         fileSet = new ZipFileSet();
         ((ZipFileSet) fileSet).setSrc(src);
@@ -291,7 +292,7 @@ public class BundleClasspathTask extends Task {
   //
   public void execute() throws BuildException {
     if (   (null==propertyName || 0==propertyName.length())
-        && (null==filesetId    || 0==filesetId.length()) ) {
+           && (null==filesetId    || 0==filesetId.length()) ) {
       throw new BuildException
         ("Either propertyName or filesetId must be given.");
     }
@@ -355,6 +356,4 @@ public class BundleClasspathTask extends Task {
           Project.MSG_VERBOSE);
     }
   }
-
-
 }
