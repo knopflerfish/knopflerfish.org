@@ -213,9 +213,9 @@ import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
 public class BundleHTMLExtractorTask extends Task {
 
   /** Last part of the javadoc URL for a class / interface. */
-  private static final String HTML = ".html";
+  static final String HTML = ".html";
   /** Last part of the javadoc URL for a package. */
-  private static final String PACKAGE_SUMMARY_HTML = "/package-summary.html";
+  static final String PACKAGE_SUMMARY_HTML = "/package-summary.html";
 
   private BundleArchives bas;
 
@@ -887,7 +887,7 @@ public class BundleHTMLExtractorTask extends Task {
       for(Iterator it = srcList.iterator(); it.hasNext();) {
         final String name = (String) it.next();
         final String uri = replace(ba.file.getName(), ".jar", "") +"/src/" + name;
-        
+
         sb.append(" <tr>\n");
         sb.append("  <td>\n");
         sb.append("    <a href=\"" +uri +"\">" +name +"<a>\n");
