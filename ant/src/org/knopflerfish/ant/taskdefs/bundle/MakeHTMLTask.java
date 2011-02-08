@@ -535,28 +535,33 @@ public class MakeHTMLTask
     // File set for bundlebuild.xml properties
     final String jarsDir = proj.getProperty("jars.dir");
     if (null != jarsDir && 0 < jarsDir.length()) {
-      final FileSet fileSet = new FileSet();
-      fileSet.setProject(proj);
-      fileSet.setDir(new File(jarsDir));
-      final FilenameSelector fns = new FilenameSelector();
-      fns.setName(proj.getProperty("jardir.name") + "/**/*.jar");
-      fileSet.add(fns);
-      fileSets.add(fileSet);
-      log("Found build results (bundlebuild): " + fileSet, Project.MSG_DEBUG);
+      final File file = new File(jarsDir);
+      if (file.exists()) {
+        final FileSet fileSet = new FileSet();
+        fileSet.setProject(proj);
+        fileSet.setDir(file);
+        final FilenameSelector fns = new FilenameSelector();
+        fns.setName(proj.getProperty("jardir.name") + "/**/*.jar");
+        fileSet.add(fns);
+        fileSets.add(fileSet);
+        log("Found build results (bundlebuild): " + fileSet, Project.MSG_DEBUG);
+      }
     }
 
     // File set for jarfile-property (e.g., framework.jar)
     final String jarfile = proj.getProperty("jarfile");
     if (null!=jarfile && 0<jarfile.length()) {
       final File file = new File(jarfile);
-      final FileSet fileSet = new FileSet();
-      fileSet.setProject(proj);
-      fileSet.setDir(file.getParentFile());
-      final FilenameSelector fns = new FilenameSelector();
-      fns.setName(file.getName());
-      fileSet.add(fns);
-      fileSets.add(fileSet);
-      log("Found build results (jarfile): " + fileSet, Project.MSG_DEBUG);
+      if (file.exists()) {
+        final FileSet fileSet = new FileSet();
+        fileSet.setProject(proj);
+        fileSet.setDir(file.getParentFile());
+        final FilenameSelector fns = new FilenameSelector();
+        fns.setName(file.getName());
+        fileSet.add(fns);
+        fileSets.add(fileSet);
+        log("Found build results (jarfile): " + fileSet, Project.MSG_DEBUG);
+      }
     }
 
     // FileSet defined with id (for bundle overview documentation).
