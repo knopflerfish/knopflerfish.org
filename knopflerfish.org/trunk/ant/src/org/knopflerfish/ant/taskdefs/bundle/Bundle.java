@@ -352,8 +352,8 @@ public class Bundle extends Jar {
   }
 
   /**
-   * Analyze a resource by checking its suffix and delegate to {@LINK
-   * #analyzeClass(Resource)}, {@LINK #analyzeJar(Resource)}, etc.
+   * Analyze a resource by checking its suffix and delegate to {@link
+   * #analyzeClass(Resource)}, {@link #analyzeJar(Resource)}, etc.
    *
    * @param res The resource to be analyzed.
    */

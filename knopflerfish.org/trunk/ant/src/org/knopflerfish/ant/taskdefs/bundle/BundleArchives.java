@@ -121,7 +121,7 @@ public class BundleArchives {
 
   /**
    * Traverse the given list of resource collections and create
-   * {@link BundleArchive}-objects for all bundle jars found.
+   * {@link BundleArchives.BundleArchive}-objects for all bundle jars found.
    *
    * @param task
    *          The task that uses this class, used for logging and project
@@ -136,7 +136,7 @@ public class BundleArchives {
 
   /**
    * Traverse the given list of resource collections and create
-   * {@link BundleArchive}-objects for all bundle jars found.
+   * {@link BundleArchives.BundleArchive}-objects for all bundle jars found.
    *
    * @param task
    *          The task that uses this class, used for logging and project

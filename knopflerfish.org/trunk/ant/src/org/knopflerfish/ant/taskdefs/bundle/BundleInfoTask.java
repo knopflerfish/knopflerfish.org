@@ -1304,8 +1304,8 @@ public class BundleInfoTask extends Task {
 
 
   /**
-   * Analyze a resource by checking its suffix and delegate to {@LINK
-   * #analyzeClass(Resource)} or {@LINK
+   * Analyze a resource by checking its suffix and delegate to {@link
+   * #analyzeClass(Resource)} or {@link
    * #analyzePackageinfo(Resource)}.
    *
    * @param res The resource to be analyzed.
