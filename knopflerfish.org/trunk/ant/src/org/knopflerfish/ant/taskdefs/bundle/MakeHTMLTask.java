@@ -522,6 +522,7 @@ public class MakeHTMLTask
    * will have its dir-property set to the value <code>jars.dir</code> and an
    * includes pattern of the form
    * <code>${jardir.name}/&ast;&ast;/&ast;.jar</code>.
+   * <li>The file set with id <code>docbuild.jarfiles</code>.
    * </ul>
    *
    * @return bundle archives object holding the bundle archives selected by the
