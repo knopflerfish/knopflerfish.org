@@ -524,9 +524,9 @@ public class MakeHTMLTask
    * <code>${jardir.name}/&ast;&ast;/&ast;.jar</code>.
    * </ul>
    *
-   * @return bundle archives object holding the bundle archives related to this
-   *         project or null if the project has not defined the property
-   *         "jars.dir".
+   * @return bundle archives object holding the bundle archives seleted by the
+   *         file sets described above or null if the project has not defined
+   *         the property "jars.dir".
    */
   private BundleArchives getBundleArchives() {
     final List fileSets = new ArrayList();
