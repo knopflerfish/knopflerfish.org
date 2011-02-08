@@ -510,18 +510,30 @@ public class MakeHTMLTask
 
   /**
    * Loads the bundle archives built from this project.
+   * <p>
+   * The jar files to analyze is determined from:
+   * <ul>
+   * <li>The project property named <code>jarfile</code>. This is used to create
+   * a file set with dir set to the directory part of the property value that
+   * selects the file named by the file name part of the property value.</li>
+   * <li>The project properties <code>jars.dir</code> and
+   * <code>jardir.name</code> (set by all projects based on
+   * <code>bundlebuild.xml</code>. The file set derived from these properties
+   * will have its dir-property set to the value <code>jars.dir</code> and an
+   * includes pattern of the form
+   * <code>${jardir.name}/&ast;&ast;/&ast;.jar</code>.
+   * </ul>
    *
    * @return bundle archives object holding the bundle archives related to this
-   *         project or null if the project has not defined the
-   *         property "jars.dir".
+   *         project or null if the project has not defined the property
+   *         "jars.dir".
    */
   private BundleArchives getBundleArchives() {
-    // Create a file set with root in ${jars.dir} that scans for all jar files
-    // in the sub-directory ${jarsdir.name}
+    final List fileSets = new ArrayList();
     final Project proj = getProject();
+
+    // File set for bundlebuild.xml properties
     final String jarsDir = proj.getProperty("jars.dir");
-    log("Searching for build results using jars.dir: " +jarsDir,
-        Project.MSG_DEBUG);
     if (null != jarsDir && 0 < jarsDir.length()) {
       final FileSet fileSet = new FileSet();
       fileSet.setProject(proj);
@@ -529,9 +541,32 @@ public class MakeHTMLTask
       final FilenameSelector fns = new FilenameSelector();
       fns.setName(proj.getProperty("jardir.name") + "/**/*.jar");
       fileSet.add(fns);
-      log("Found build results: " +fileSet, Project.MSG_DEBUG);
-      final List fileSets = new ArrayList();
       fileSets.add(fileSet);
+      log("Found build results (bundlebuild): " + fileSet, Project.MSG_DEBUG);
+    }
+
+    // File set for jarfile-property (e.g., framework.jar)
+    final String jarfile = proj.getProperty("jarfile");
+    if (null!=jarfile && 0<jarfile.length()) {
+      final File file = new File(jarfile);
+      final FileSet fileSet = new FileSet();
+      fileSet.setProject(proj);
+      fileSet.setDir(file.getParentFile());
+      final FilenameSelector fns = new FilenameSelector();
+      fns.setName(file.getName());
+      fileSet.add(fns);
+      fileSets.add(fileSet);
+      log("Found build results (jarfile): " + fileSet, Project.MSG_DEBUG);
+    }
+
+    // FileSet defined with id (for bundle overview documentation).
+    final FileSet docbuildeFileSet = (FileSet) proj.getReference("docbuild.jarfiles");
+    if (null!=docbuildeFileSet) {
+      fileSets.add(docbuildeFileSet);
+      log("Found build results (docbuild.jarfiles): " + docbuildeFileSet, Project.MSG_DEBUG);
+    }
+
+    if (0 < fileSets.size()) {
       final BundleArchives bas = new BundleArchives(this, fileSets, true);
       bas.doProviders();
       return bas;
@@ -612,7 +647,7 @@ public class MakeHTMLTask
     if (0<res.length()) {
       return packageListHeading + res.toString() + packageListFooter;
     } else {
-      return res.toString();
+      return "No exported packages.";
     }
   }
 
