@@ -146,10 +146,12 @@
   <target name="distrib_build_framework">
     <mkdir dir="${distrib.osgi.dir}"/>
 
+    <!-- Note: This will build the bundle_tasks.jar -->
     <ant dir="${osgi.dir}/framework" inheritall="false">
       <property name="jarfile" location="${distrib.osgi.dir}/framework.jar"/>
       <property name="version" value="${version}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
+      <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
 
@@ -165,6 +167,7 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
+      <property name="bundle_tasks.built" value="true"/>
     </ant>
   </target>
 
@@ -180,6 +183,7 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
+      <property name="bundle_tasks.built" value="true"/>
     </ant>
   </target>
 
@@ -192,6 +196,7 @@
       <property name="jars.dir"      location="${distrib.osgi.dir}/test_jars"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
+      <property name="bundle_tasks.built" value="true"/>
     </ant>
   </target>
 

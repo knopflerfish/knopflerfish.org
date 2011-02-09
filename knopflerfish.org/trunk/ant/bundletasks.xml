@@ -122,9 +122,9 @@
                    value="Knopflerfish Bundle Tasks"/>
         <attribute name="Knopflerfish-Version" value="${version}"/>
       </manifest>
-      <zipfileset dir="${antclasses}"/>
       <zipfileset dir="${ant.dir}/src"
                   includes="**/antlib.xml"/>
+      <zipfileset dir="${antclasses}"/>
       <zipfileset src="${asm.jar}" includes="org/**"/>
     </jar>
   </target>
