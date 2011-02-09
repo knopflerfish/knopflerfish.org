@@ -292,7 +292,7 @@
 
     <!-- Get documentation from the bundles -->
     <ant dir="${osgi.dir}/framework"      target="framework_doc">
-      <property name="jars.dir"     location="${distrib.osgi.dir}/jars"/>
+      <property name="jarfile"      location="${distrib.osgi.dir}/framework.jar"/>
       <property name="docs.dir"     location="${distrib.bundledoc.dir}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
     </ant>
