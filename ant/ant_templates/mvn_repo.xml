@@ -65,7 +65,7 @@
                description="Bundle jar file for the artifact to deploy"/>
     <attribute name="packing"
                description="Artifact packing type"
-	       default="bundle"/>
+	       default="jar"/>
     <element name="dependencies"
              optional="true"
              description="Place holder element for pom dependency."/>
