@@ -231,18 +231,12 @@ public class BundleMvnAntTask extends Task {
         addMavenCoordinates(mvnDeployBundle, ba);
         mvnDeployBundle.setAttribute("artifactName", ba.name);
         mvnDeployBundle.setAttribute("artifactBundle", ba.file.getAbsolutePath());
+        mvnDeployBundle.setAttribute("packing", "jar");
 
         // Optional attributes
         final String description = ba.getBundleDescription();
         if (null != description) {
           mvnDeployBundle.setAttribute("description", description);
-        }
-
-        // Packing kind
-        if (ba.pkgExportMap.containsKey("org.osgi.framework")) {
-          mvnDeployBundle.setAttribute("packing", "jar");
-        } else {
-          mvnDeployBundle.setAttribute("packing", "bundle");
         }
 
         addLicense(mvnDeployBundle, ba, prefix2);
