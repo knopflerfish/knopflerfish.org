@@ -193,7 +193,7 @@ public class BundleClasspathTask extends Task {
 
   /**
    * Set the includes pattern to use in the collection of file sets
-   * returned by {@link #getFileSets()}.
+   * returned by {@link #getFileSets(boolean)}.
    */
   public void setIncludes(String s) {
     this.includes = s;
@@ -202,7 +202,7 @@ public class BundleClasspathTask extends Task {
 
   /**
    * Set the excludes pattern to use in the collection of file sets
-   * returned by {@link #getFileSets()}.
+   * returned by {@link #getFileSets(boolean)}.
    */
   public void setExcludes(String s) {
     this.excludes = s;
