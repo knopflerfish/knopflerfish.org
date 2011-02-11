@@ -252,8 +252,16 @@
     <property name="javadoc.footer"
               value="${javadoc.header}"/>
 
+    <property name="javadoc.windowtitle"
+              value="${javadoc.header} javadoc"/>
+
+    <property name="javadoc.doctitle"
+              value="${javadoc.header} API documentation"/>
+
     <javadoc header="${javadoc.header}"
              footer="${javadoc.footer}"
+	     windowtitle="${javadoc.windowtitle}"
+	     doctitle="${javadoc.doctitle}"
              destdir="${javadoc.out.dir}"
              packagenames="${javadoc.packages}"
 	     sourcepathref="sources.path"
@@ -281,8 +289,38 @@
 	<pathelement location="${osgi.dir}/bundles_opt/serial/comm-win32/resources/comm.jar"/>
       </classpath>
     </javadoc>
+
+    <!-- KF documentation uses links to javadoc with a seach-part that -->
+    <!-- points to a java package or file. Check that the generated    -->
+    <!-- top-level index.html supports this; if not add script.        -->
+    <condition property="javadoc.seach.support">
+      <resourcecontains
+	 resource="${javadoc.out.dir}/index.html"
+	 substring="SCRIPT"/>
+    </condition>
+    <antcall target="javadocSearchFix"/>
   </target>
 
+  <target name="javadocSearchFix" unless="javadoc.seach.support">
+    <replace file="${javadoc.out.dir}/index.html">
+      <replacetoken>&lt;/HEAD&gt;</replacetoken>
+      <replacevalue><![CDATA[<SCRIPT type="text/javascript">
+    targetPage = "" + window.location.search;
+    if (targetPage != "" && targetPage != "undefined")
+        targetPage = targetPage.substring(1);
+    if (targetPage.indexOf(":") != -1)
+        targetPage = "undefined";
+    function loadFrames() {
+        if (targetPage != "" && targetPage != "undefined")
+             top.classFrame.location = top.targetPage;
+    }
+</SCRIPT>
+<NOSCRIPT>
+</NOSCRIPT>
+</HEAD>
+]]></replacevalue>
+    </replace>
+  </target>
 
  <target name="run"
          description="(Re)start the framework.">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -369,7 +369,7 @@ import org.osgi.framework.Version;
  * (optional)<br>
  *
  * <p>Nested &lt;exportsBundleClasspath&gt;-elements are instances of
- * {@link BundleClasspathTaks} that will derive a list of file sets to
+ * {@link BundleClasspathTask} that will derive a list of file sets to
  * be analyzed to determine the set of provided Java packages to be
  * exported by the bundle.</p>
  *
@@ -390,7 +390,7 @@ import org.osgi.framework.Version;
  * (optional)<br>
  *
  * <p>Nested &lt;implsBundleClasspath&gt;-elements are instances of
- * {@link BundleClasspathTaks} that will derive a list of file sets
+ * {@link BundleClasspathTask} that will derive a list of file sets
  * are to be analyzed to determine the set of private Java packages
  * provided by the bundle.</p>
  *
