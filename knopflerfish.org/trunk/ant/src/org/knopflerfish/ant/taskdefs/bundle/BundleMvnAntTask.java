@@ -105,7 +105,15 @@ import org.w3c.dom.NodeList;
  *    describing all the artifacts that will be created by the generated build
  *    file.
  *   </td>
- *   <td valign=top>No.<br> No default value.</td>
+ *   <td valign=top>No.<br>No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>settingsFile</td>
+ *   <td valign=top>
+ *    The maven settings.xml file to use when loading pom-files.
+ *   </td>
+ *   <td valign=top>No.<br>No default value.</td>
  *  </tr>
  *
  * </table>
@@ -166,10 +174,20 @@ public class BundleMvnAntTask extends Task {
 
   private File dependecyManagementFile;
   public void setDependencyManagementFile(File f) {
-    dependecyManagementFile = f;
-    if(dependecyManagementFile.exists() && !dependecyManagementFile.canWrite()) {
-      throw new BuildException("dependencyManagementFile: " + f + " exists but is not writable");
+    if(null!=f && f.exists() && !f.canWrite()) {
+      throw new BuildException("dependencyManagementFile: " + f
+                               + " exists but is not writable");
     }
+    dependecyManagementFile = f;
+  }
+
+  private File settingsFile;
+  public void setSettingsFile(File f) {
+    if(null!=f && f.exists() && !f.canRead()) {
+      throw new BuildException("settingsFile: " + f
+                               + " exists but is not readable");
+    }
+    settingsFile = f;
   }
 
   private List rcs = new ArrayList();
@@ -207,6 +225,17 @@ public class BundleMvnAntTask extends Task {
 
     setPropertyLocation(project,"ant.dir", getProject().getProperty("ant.dir"));
 
+    final String distribTmpDir = getProject().getProperty("distrib.tmp.dir");
+    if (null!=distribTmpDir && 0<distribTmpDir.length()) {
+      setPropertyLocation(project,"out.dir", distribTmpDir);
+    }
+
+    final String distribMvnDir
+      = getProject().getProperty("distrib.mvn.repo.dir");
+    if (null!=distribMvnDir && 0<distribMvnDir.length()) {
+      setPropertyLocation(project,"mvn2.repo.dir", distribMvnDir);
+    }
+
     final StringBuffer targetNames = new StringBuffer(2048);
 
     final Iterator it = bas.bsnToBundleArchives.entrySet().iterator();
@@ -239,6 +268,11 @@ public class BundleMvnAntTask extends Task {
           mvnDeployBundle.setAttribute("description", description);
         }
 
+        if (null!=settingsFile) {
+          mvnDeployBundle.setAttribute("settingsFile",
+                                       settingsFile.getAbsolutePath());
+        }
+
         addLicense(mvnDeployBundle, ba, prefix2);
         addDependencies(mvnDeployBundle, ba, prefix2);
 
@@ -262,6 +296,10 @@ public class BundleMvnAntTask extends Task {
   private void writeDependencyManagementFile()
     throws IOException
   {
+    if (null==dependecyManagementFile) {
+      return;
+    }
+
     log("Creating dependency management file: " + dependecyManagementFile, Project.MSG_VERBOSE);
 
     final String prefix1 = "  ";

@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-   ** Copyright (c) 2004-2011, KNOPFLERFISH project
-   ** All rights reserved.
-   **
-   ** Redistribution and use in source and binary forms, with or without
-   ** modification, are permitted provided that the following conditions
-   ** are met:
-   **
-   ** - Redistributions of source code must retain the above copyright notice,
-   **   this list of conditions and the following disclaimer.
-   **
-   ** - Redistributions in binary form must reproduce the above copyright
-   **   notice, this list of conditions and the following disclaimer in
-   **   the documentation and/or other materials provided with the
-   **   distribution.
-   **
-   ** - Neither the name of the KNOPFLERFISH project nor the names of its
-   **   contributors may be used to endorse or promote products derived
-   **   from this software without specific prior written permission.
-   **
-   ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-   ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-   ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-   ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-   ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-   ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-   ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-   ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-   ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-   ** OF THE POSSIBILITY OF SUCH DAMAGE.
+    ** Copyright (c) 2004-2011, KNOPFLERFISH project
+    ** All rights reserved.
+    **
+    ** Redistribution and use in source and binary forms, with or without
+    ** modification, are permitted provided that the following conditions
+    ** are met:
+    **
+    ** - Redistributions of source code must retain the above copyright notice,
+    **   this list of conditions and the following disclaimer.
+    **
+    ** - Redistributions in binary form must reproduce the above copyright
+    **   notice, this list of conditions and the following disclaimer in
+    **   the documentation and/or other materials provided with the
+    **   distribution.
+    **
+    ** - Neither the name of the KNOPFLERFISH project nor the names of its
+    **   contributors may be used to endorse or promote products derived
+    **   from this software without specific prior written permission.
+    **
+    ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+    ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+    ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+    ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+    ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+    ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+    ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+    ** OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 
 
@@ -109,7 +109,6 @@
   <target name="all"
           description="Builds entire platform including optional and test bundles" >
     <ant dir="${ant.dir}"          target="all"/>
-    <property name="bundle_tasks.built" value="true"/>
     <ant dir="${jarunpacker.dir}"  target="jar"/>
     <ant dir="osgi"                target="all"/>
   </target>
@@ -167,7 +166,6 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
-      <property name="bundle_tasks.built" value="true"/>
     </ant>
   </target>
 
@@ -183,7 +181,6 @@
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
-      <property name="bundle_tasks.built" value="true"/>
     </ant>
   </target>
 
@@ -196,7 +193,6 @@
       <property name="jars.dir"      location="${distrib.osgi.dir}/test_jars"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
-      <property name="bundle_tasks.built" value="true"/>
     </ant>
   </target>
 
@@ -273,11 +269,12 @@
   </target>
 
   <target name="distrib_mvn_repo" depends="bundle_tasks">
-    <mkdir dir="${distrib.mvn.repo.dir}"/>
+    <mkdir dir="${distrib.mvn.repo.dir}/org/knopflerfish"/>
 
     <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
                   outFile="${distrib.tmp.dir}/toMvn.xml"
-		  dependencyManagementFile="${distrib.doc.dir}/maven_dependencyManagement.xml">
+                  dependencyManagementFile="${distrib.mvn.repo.dir}/org/knopflerfish/KF-${version}_dependencyManagement.xml"
+                  settingsFile="${knopflerfish.dir}/tools/mvnrepo/settings.xml">
       <!-- Include framework.jar -->
       <fileset dir="${distrib.osgi.dir}">
         <include name="framework.jar"/>
@@ -669,7 +666,7 @@
             baseDir="${bindex.base.dir}"
             baseURL="${bindex.base.url}"
             repoName="${bindex.repo.name}"
-	    stylesheet="obr2html.xsl"
+            stylesheet="obr2html.xsl"
             >
 
       <fileset dir="${bindex.jars.dir}">
@@ -827,15 +824,15 @@
   </target>
 
   <!--|
-     | The program used to check for broken links is the W3C checklink program:
-     | http://validator.w3.org/docs/checklink.html
-     |
-     | It must be locally installed as it checks the generated docs on the local
-     | file system. Only tested on OS X so far.
-     |
-     | The program is perl based. Please note the special step that needs to be
-     | taken to enable SSL/HTTPS support
-     |
+      | The program used to check for broken links is the W3C checklink program:
+      | http://validator.w3.org/docs/checklink.html
+      |
+      | It must be locally installed as it checks the generated docs on the local
+      | file system. Only tested on OS X so far.
+      |
+      | The program is perl based. Please note the special step that needs to be
+      | taken to enable SSL/HTTPS support
+      |
     -->
   <target name="docs.checklink"
           description="Checks that all links are valid in the generated html documents">
