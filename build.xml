@@ -272,8 +272,10 @@
     <mkdir dir="${distrib.mvn.repo.dir}/org/knopflerfish"/>
 
     <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
-                  outFile="${distrib.tmp.dir}/toMvn.xml"
-                  dependencyManagementFile="${distrib.mvn.repo.dir}/org/knopflerfish/KF-${version}_dependencyManagement.xml"
+                  repoDir="${distrib.mvn.repo.dir}"
+                  outDir="${distrib.tmp.dir}"
+                  buildFile="toMvn.xml"
+                  dependencyManagementFile="KF-${version}_dependencyManagement.xml"
                   settingsFile="${knopflerfish.dir}/tools/mvnrepo/settings.xml">
       <!-- Include framework.jar -->
       <fileset dir="${distrib.osgi.dir}">

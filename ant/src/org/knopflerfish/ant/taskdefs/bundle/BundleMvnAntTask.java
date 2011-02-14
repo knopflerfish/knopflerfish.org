@@ -72,14 +72,6 @@ import org.w3c.dom.NodeList;
  *  </tr>
  *
  *  <tr>
- *   <td valign=top>outFile</td>
- *   <td valign=top>
- *    Path for the resulting ant build file.
- *   </td>
- *   <td valign=top>Yes.<br> No default value.</td>
- *  </tr>
- *
- *  <tr>
  *   <td valign=top>templateAntFile</td>
  *   <td valign=top>
  *   Path to a template ant file for creating Maven 2 repositories.
@@ -89,23 +81,52 @@ import org.w3c.dom.NodeList;
  *  </tr>
  *
  *  <tr>
- *   <td valign=top>groupId</td>
+ *   <td valign=top>outDir</td>
  *   <td valign=top>
- *   Maven group id to use for bundles, for which a group id can not
- *   be derived from the bundles symbolic name.
+ *     Directory to write generated files to. I.e., the intermediate
+ *     build file and the dependency management file.
  *   </td>
- *  </td>
- *   <td valign=top>No.<br>Default 'org.knopflerfish'.</td>
+ *   <td valign=top>Yes.<br>No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>buildFile</td>
+ *   <td valign=top>
+ *    Name of the intermediate ant build file that this task creates.
+ *   </td>
+ *   <td valign=top>Yes.<br>No default value.</td>
  *  </tr>
  *
  *  <tr>
  *   <td valign=top>dependencyManagementFile</td>
  *   <td valign=top>
- *    Path to write an XML file with a &lt;dependencyManagement&gt;-element
- *    describing all the artifacts that will be created by the generated build
- *    file.
+ *     Name of the XML file with a
+ *     &lt;dependencyManagement&gt;-element describing all the
+ *     artifacts that will be created by the generated build file. The
+ *     file is written to the <code>outDir</code> by this task, then
+ *     copied to the directory for the default group id by the
+ *     generated intermediate build file.
  *   </td>
  *   <td valign=top>No.<br>No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>repoDir</td>
+ *   <td valign=top>
+ *     The path to the root of the maven 2 repository to update with
+ *     the artefacts identified by this task.
+ *   </td>
+ *   <td valign=top>Yes.<br>No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>groupId</td>
+ *   <td valign=top>
+ *     Maven group id to use for bundles, for which a group id can not
+ *     be derived from the bundles symbolic name.
+ *   </td>
+ *  </td>
+ *   <td valign=top>No.<br>Default 'org.knopflerfish'.</td>
  *  </tr>
  *
  *  <tr>
@@ -130,7 +151,9 @@ import org.w3c.dom.NodeList;
  *
  * <pre>
  * &lt;bundlemvnant templateAntFile  = "${ant.dir}/ant_templates/toMvn.xml"
- *                  outFile          = "${root.out.dir}/toMvn.xml"
+ *                  repoDir          = "${distrib.mvn.repo.dir}"
+ *                  outDir           = "${root.out.dir}"
+ *                  buildFile        = "toMvn.xml"
  *   &gt;
  *
  *     &lt;fileset dir="${release.dir}/osgi/jars"&gt;
@@ -164,21 +187,30 @@ public class BundleMvnAntTask extends Task {
     }
   }
 
-  private File outFile;
-  public void setOutFile(File f) {
-    outFile = f;
-    if(outFile.exists() && !outFile.canWrite()) {
-      throw new BuildException("outFile: " + f + " exists but is not writable");
-    }
+  private File outDir;
+  public void setOutDir(File f) {
+    outDir = f;
   }
 
-  private File dependecyManagementFile;
-  public void setDependencyManagementFile(File f) {
-    if(null!=f && f.exists() && !f.canWrite()) {
-      throw new BuildException("dependencyManagementFile: " + f
-                               + " exists but is not writable");
+  private File buildFile;
+  public void setBuildFile(String f) {
+    if(null==f || 0==f.length()) {
+      throw new BuildException("The attribute 'buildFile' must be non-null.");
     }
-    dependecyManagementFile = f;
+    buildFile = new File(outDir,f);
+  }
+
+  private File dependencyManagementFile;
+  public void setDependencyManagementFile(String f) {
+    if(null==f || 0==f.length()) {
+      throw new BuildException("The attribute 'dependencyManagementFile' must be non-null.");
+    }
+    dependencyManagementFile = new File(outDir, f);
+  }
+
+  private File repoDir;
+  public void setRepoDir(File f) {
+    repoDir = f;
   }
 
   private File settingsFile;
@@ -197,6 +229,23 @@ public class BundleMvnAntTask extends Task {
 
   // Implements Task
   public void execute() throws BuildException {
+    if (null==outDir) {
+      throw new BuildException("Mandatory attribute 'outDir' missing.");
+    }
+    outDir.mkdirs();
+
+    if (null==buildFile) {
+      throw new BuildException("Mandatory attribute 'buildFile' missing.");
+    }
+
+    if (null==dependencyManagementFile) {
+      throw new BuildException("Mandatory attribute 'dependencyManagementFile' missing.");
+    }
+
+    if (null==repoDir) {
+      throw new BuildException("Mandatory attribute 'repoDir' missing.");
+    }
+
     log("Loading bundle information:", Project.MSG_VERBOSE);
     bas = new BundleArchives(this, rcs, true);
     bas.doProviders();
@@ -215,7 +264,7 @@ public class BundleMvnAntTask extends Task {
   private void writeBuildFile()
     throws IOException
   {
-    log("Creating build file: " + outFile, Project.MSG_VERBOSE);
+    log("Creating build file: " + buildFile, Project.MSG_VERBOSE);
 
     final String prefix1 = "  ";
     final String prefix2 = prefix1 + "  ";
@@ -223,18 +272,23 @@ public class BundleMvnAntTask extends Task {
     final Document doc = Util.loadXML(templateAntFile);
     final Element project = (Element) doc.getDocumentElement();
 
+    setPropertyValue(project,"group.id", groupId);
+
     setPropertyLocation(project,"ant.dir", getProject().getProperty("ant.dir"));
+    setPropertyLocation(project,"out.dir", outDir.getAbsolutePath());
+    setPropertyLocation(project,"mvn2.repo.dir", repoDir.getAbsolutePath());
 
-    final String distribTmpDir = getProject().getProperty("distrib.tmp.dir");
-    if (null!=distribTmpDir && 0<distribTmpDir.length()) {
-      setPropertyLocation(project,"out.dir", distribTmpDir);
-    }
+    // Path to the dependency managment file that this task will write.
+    setPropertyLocation(project, "dependency.management.file",
+                        dependencyManagementFile.getAbsolutePath());
+    // Path to the dependency managment file in the repository
+    File depMgmtRepoFile = new File(repoDir,
+                                    groupId.replace('.', File.separatorChar));
+    depMgmtRepoFile = new File(depMgmtRepoFile,
+                               dependencyManagementFile.getName());
+    setPropertyLocation(project, "dependency.management.repo.file",
+                        depMgmtRepoFile.getAbsolutePath());
 
-    final String distribMvnDir
-      = getProject().getProperty("distrib.mvn.repo.dir");
-    if (null!=distribMvnDir && 0<distribMvnDir.length()) {
-      setPropertyLocation(project,"mvn2.repo.dir", distribMvnDir);
-    }
 
     final StringBuffer targetNames = new StringBuffer(2048);
 
@@ -289,18 +343,19 @@ public class BundleMvnAntTask extends Task {
 
     setTargetAttr(project, "all", "depends", "init" +targetNames.toString());
 
-    Util.writeDocumentToFile(outFile, doc);
-    log("wrote " + outFile, Project.MSG_VERBOSE);
+    Util.writeDocumentToFile(buildFile, doc);
+    log("wrote " + buildFile, Project.MSG_VERBOSE);
   }
 
   private void writeDependencyManagementFile()
     throws IOException
   {
-    if (null==dependecyManagementFile) {
+    if (null==dependencyManagementFile) {
       return;
     }
 
-    log("Creating dependency management file: " + dependecyManagementFile, Project.MSG_VERBOSE);
+    log("Creating dependency management file: " + dependencyManagementFile,
+        Project.MSG_VERBOSE);
 
     final String prefix1 = "  ";
     final String prefix2 = prefix1 + "  ";
@@ -353,8 +408,38 @@ public class BundleMvnAntTask extends Task {
     dependencies.appendChild(doc.createTextNode("\n" +prefix1));
     root.appendChild(doc.createTextNode("\n"));
 
-    Util.writeDocumentToFile(dependecyManagementFile, doc);
-    log("wrote " + dependecyManagementFile, Project.MSG_VERBOSE);
+    Util.writeDocumentToFile(dependencyManagementFile, doc);
+    log("wrote " + dependencyManagementFile, Project.MSG_VERBOSE);
+  }
+
+  /**
+   * Set the value of the named ant property. The property must exist and be
+   * a child of the specified element.
+   *
+   * @param elem
+   *          The element owning the property element to update
+   * @param name
+   *          The name of the property to set location of.
+   * @param value
+   *          The new value.
+   */
+  private void setPropertyValue(final Element el,
+                                final String name,
+                                final String value) {
+    final NodeList propertyNL = el.getElementsByTagName("property");
+    boolean found = false;
+    for (int i = 0; i<propertyNL.getLength(); i++) {
+      final Element property = (Element) propertyNL.item(i);
+      if (name.equals(property.getAttribute("name"))) {
+        log("Setting <property name=\"" +name +"\" value=\"" +value +"\" ...>.", Project.MSG_DEBUG);
+        property.setAttribute("value", value);
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      throw new BuildException("No <property name=\"" +name +"\" ...> in XML document " +el);
+    }
   }
 
   /**
