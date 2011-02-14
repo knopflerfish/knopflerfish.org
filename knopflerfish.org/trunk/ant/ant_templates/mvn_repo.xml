@@ -4,13 +4,17 @@
          xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
   <property name="ant.dir"       location="-- PLEASE FILL IN --"/>
-  <property name="topdir"        location="${ant.dir}/.."/>
-  <property name="osgi.dir"      location="${topdir}/osgi"/>
-  <property name="out.dir"       location="${osgi.dir}/out"/>
-  <property name="mvn2.repo.dir" location="${out.dir}/maven2"/>
+  <property name="out.dir"       location="-- PLEASE FILL IN --"/>
+  <property name="mvn2.repo.dir" location="-- PLEASE FILL IN --"/>
+
+  <property name="dependency.management.file" location="-- PLEASE FILL IN --"/>
+  <property name="dependency.management.repo.file" location="-- PLEASE FILL IN --"/>
 
   <!-- The default group id of the artefacts. -->
-  <property name="group.id"         value="org.knopflerfish"/>
+  <property name="group.id"      value="-- PLEASE FILL IN --"/>
+
+  <!-- Property for the maven deploy plugin. -->
+  <property name="updateReleaseInfo" value="true"/>
 
   <!-- Download and define maven ant tasks -->
   <property name="maven-ant-tasks.version" value="2.1.1"/>
@@ -105,6 +109,9 @@
   <!-- Targets for bundles will be added after this line -->
   <target name="all"
           description="Deploy all bundles to the Maven 2 repository."
-          depends="init"/>
+          depends="init">
+    <copy file="${dependency.management.file}"
+          toFile="${dependency.management.repo.file}"/>
+  </target>
 
 </project>

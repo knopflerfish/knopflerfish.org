@@ -49,8 +49,10 @@
       <mkdir dir="${out.dir}"/>
 
       <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
-                    outFile="${out.dir}/KFtoMvn-@{version}.xml"
-                    dependencyManagementFile="${out.dir}/maven_dependencyManagement-@{version}.xml"
+                    repoDir="@{repo}"
+                    outDir="${out.dir}"
+                    buildFile="KFtoMvn-@{version}.xml"
+                    dependencyManagementFile="KF-@{version}_dependencyManagement.xml"
                     settingsFile="${projdir}/settings.xml">
         <!-- Include framework.jar -->
         <fileset dir="${releases.dir}/@{version}/osgi">
@@ -62,14 +64,8 @@
         </fileset>
       </bundleMvnAnt>
 
-      <ant dir="${out.dir}"
-           antfile="KFtoMvn-@{version}.xml"
-           target="all">
-        <property name="mvn2.repo.dir" location="@{repo}"/>
-      </ant>
-      <!-- Add the dependency management file to the repo. -->
-      <copy file="${out.dir}/maven_dependencyManagement-@{version}.xml"
-            toFile="@{repo}/org/knopflerfish/KF-@{version}_dependencyManagement.xml"/>
+      <ant dir="${out.dir}" antfile="KFtoMvn-@{version}.xml"
+           target="all" inheritAll="false" inheritRefs="false"/>
     </sequential>
   </macrodef>
 
@@ -105,6 +101,6 @@
   <target name="clean"
           description="Removes all generated files">
     <delete dir="${tmp.mvn2.repo.dir}" failonerror="false"/>
-    <delete dir="${outdir}" failonerror="false"/>
+    <delete dir="${out.dir}" failonerror="false"/>
   </target>
 </project>

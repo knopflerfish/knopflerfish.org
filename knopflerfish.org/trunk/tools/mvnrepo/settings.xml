@@ -7,49 +7,11 @@
     <profile>
       <id>release-profile</id>
       <activation>
-        <property>
-          <name>performRelease</name>
-          <value>true</value>
-        </property>
+        <activeByDefault/>
       </activation>
-      <build>
-        <plugins>
-          <!--plugin>
-              <inherited>true</inherited>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-source-plugin</artifactId>
-              <executions>
-                <execution>
-                  <id>attach-sources</id>
-                  <goals>
-                    <goal>jar</goal>
-                  </goals>
-                </execution>
-              </executions>
-          </plugin-->
-          <!--plugin>
-              <inherited>true</inherited>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-javadoc-plugin</artifactId>
-              <executions>
-                <execution>
-                  <id>attach-javadocs</id>
-                  <goals>
-                    <goal>jar</goal>
-                  </goals>
-                </execution>
-              </executions>
-          </plugin-->
-          <plugin>
-            <inherited>true</inherited>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-deploy-plugin</artifactId>
-            <configuration>
-              <updateReleaseInfo>true</updateReleaseInfo>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <updateReleaseInfo>true</updateReleaseInfo>
+      </properties>
     </profile>
   </profiles>
 </settings>
