@@ -52,6 +52,7 @@
                     repoDir="@{repo}"
                     outDir="${out.dir}"
                     buildFile="KFtoMvn-@{version}.xml"
+                    version="@{version}"
                     dependencyManagementFile="KF-@{version}_dependencyManagement.xml"
                     settingsFile="${projdir}/settings.xml">
         <!-- Include framework.jar -->

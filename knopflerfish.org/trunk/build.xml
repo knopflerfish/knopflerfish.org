@@ -276,6 +276,7 @@
                   outDir="${distrib.tmp.dir}"
                   buildFile="toMvn.xml"
                   dependencyManagementFile="KF-${version}_dependencyManagement.xml"
+                  version="${version}"
                   settingsFile="${knopflerfish.dir}/tools/mvnrepo/settings.xml">
       <!-- Include framework.jar -->
       <fileset dir="${distrib.osgi.dir}">

@@ -54,6 +54,7 @@ import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.ProcessingInstruction;
 
 /**
  * Task that analyzes a set of bundle jar files and builds an ant
@@ -106,6 +107,15 @@ import org.w3c.dom.NodeList;
  *     file is written to the <code>outDir</code> by this task, then
  *     copied to the directory for the default group id by the
  *     generated intermediate build file.
+ *   </td>
+ *   <td valign=top>No.<br>No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>version</td>
+ *   <td valign=top>
+ *     Value of the version attribute on the root element of the
+ *     dependency management file.
  *   </td>
  *   <td valign=top>No.<br>No default value.</td>
  *  </tr>
@@ -192,20 +202,27 @@ public class BundleMvnAntTask extends Task {
     outDir = f;
   }
 
+  private String buildFileName;
   private File buildFile;
   public void setBuildFile(String f) {
     if(null==f || 0==f.length()) {
       throw new BuildException("The attribute 'buildFile' must be non-null.");
     }
-    buildFile = new File(outDir,f);
+    buildFileName = f;
   }
 
+  private String dependencyManagementFileName;
   private File dependencyManagementFile;
   public void setDependencyManagementFile(String f) {
     if(null==f || 0==f.length()) {
       throw new BuildException("The attribute 'dependencyManagementFile' must be non-null.");
     }
-    dependencyManagementFile = new File(outDir, f);
+    dependencyManagementFileName = f;
+  }
+
+  private String version = "0.0.0";
+  public void setVersion(final String s) {
+    this.version = s;
   }
 
   private File repoDir;
@@ -234,13 +251,15 @@ public class BundleMvnAntTask extends Task {
     }
     outDir.mkdirs();
 
-    if (null==buildFile) {
+    if (null==buildFileName) {
       throw new BuildException("Mandatory attribute 'buildFile' missing.");
     }
+    buildFile = new File(outDir,buildFileName);
 
-    if (null==dependencyManagementFile) {
+    if (null==dependencyManagementFileName) {
       throw new BuildException("Mandatory attribute 'dependencyManagementFile' missing.");
     }
+    dependencyManagementFile = new File(outDir, dependencyManagementFileName);
 
     if (null==repoDir) {
       throw new BuildException("Mandatory attribute 'repoDir' missing.");
@@ -361,12 +380,24 @@ public class BundleMvnAntTask extends Task {
     final String prefix2 = prefix1 + "  ";
     final String prefix3 = prefix2 + "  ";
 
-    final Document doc = Util.createXML("dependencyManagement");
+    final Document doc = Util.createXML("KF");
     final Element root = (Element) doc.getDocumentElement();
 
-    root.appendChild(doc.createTextNode("\n"+prefix1));
+    // Create and add the xml-stylesheet instruction
+    final ProcessingInstruction pi
+      = doc.createProcessingInstruction("xml-stylesheet",
+                                        "type='text/xsl' href='mvn_dep_mgmt.xsl'");
+    doc.insertBefore(pi, root);
+
+    root.setAttribute("version", version);
+    root.appendChild(doc.createTextNode("\n"));
+
+    final Element dm = doc.createElement("dependencyManagement");
+    root.appendChild(dm);
+
+    dm.appendChild(doc.createTextNode("\n"+prefix1));
     final Element dependencies = doc.createElement("dependencies");
-    root.appendChild(dependencies);
+    dm.appendChild(dependencies);
 
     final Iterator it = bas.bsnToBundleArchives.entrySet().iterator();
     while (it.hasNext()) {
@@ -406,6 +437,7 @@ public class BundleMvnAntTask extends Task {
       }
     }
     dependencies.appendChild(doc.createTextNode("\n" +prefix1));
+    dm.appendChild(doc.createTextNode("\n"));
     root.appendChild(doc.createTextNode("\n"));
 
     Util.writeDocumentToFile(dependencyManagementFile, doc);

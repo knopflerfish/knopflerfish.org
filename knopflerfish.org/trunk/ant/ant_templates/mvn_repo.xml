@@ -112,6 +112,8 @@
           depends="init">
     <copy file="${dependency.management.file}"
           toFile="${dependency.management.repo.file}"/>
+    <copy file="${ant.dir}/html_template/mvn_dep_mgmt.xsl"
+          toFile="${dependency.management.repo.file}/../mvn_dep_mgmt.xsl"/>
   </target>
 
 </project>
