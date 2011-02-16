@@ -40,15 +40,16 @@
         <div id="mainblock_mvn">
           <h2>Knopflerfish <xsl:value-of select="@version"/> Maven Artifacts</h2>
           <div style="margin-left: 20px; margin-right: 20px; margin-top: 5px; margin-bottom: 5px;">
-            This is a listing of all artifacts in the Knopflerfish
-            <xsl:value-of select="@version"/> release.<p/>
+            This page contains a listing of all artifacts in the
+            maven2 repository that belongs to Knopflerfish
+            <xsl:value-of select="@version"/>.<p/>
             
             You may copy the Maven <code>&lt;dependy&gt;</code>
             elements from this file and paste them into the
             <code>&lt;dependencyManagement&gt;</code>-element of the
             <code>settings.xml</code>-file or the top-level pom-file
             for a collection of projects that uses this Knopflerfish
-            release.
+            version.
 
           </div>
           
