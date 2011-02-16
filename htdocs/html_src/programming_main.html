@@ -6,6 +6,7 @@
 <ol>
   <li><a href="#eclipse_create">Using Eclipse to create bundles</a>
   <li><a href="#ant_create">Using Ant to create bundles</a>
+  <li><a href="#maven_build">Using Maven to build bundles</a>
   <li><a href="#activator">The BundleActivator</a>
   <li><a href="osgi_service_tutorial.html">OSGi Service tutorial</a>
   <li><a href="#dataaccess">Bundle data access</a>
@@ -24,7 +25,7 @@ See <a href="eclipse_plugin.html">Knopflerfish Eclipse Plugin</a>.
 <h3>Using Ant to create bundles</h3>
 <h4>Prerequisites</h4>
 <ul>
-  <li><i><a href="http://en.wikipedia.org/wiki/Java_Development_Kit">Java Development Kit (JDK)</a>
+  <li><a href="http://en.wikipedia.org/wiki/Java_Development_Kit"><i>Java Development Kit (JDK)</i></a>
   <li><i>Ant 1.7 or later</i>, available from <a href="http://ant.apache.org/">ant.apache.org</a>
 </ul>
 
@@ -199,6 +200,142 @@ to see all available targets.
 </table>
 
 <a class=top href="#top">top</a>
+
+<a name="maven_build"></a>
+<h3>Using Maven to build bundles</h3>
+<h4>Prerequisites</h4>
+<ul>
+  <li><a href="http://en.wikipedia.org/wiki/Java_Development_Kit"><i>Java Development Kit (JDK)</i></a>
+  <li><a href="http://maven.apache.org/"><i>Maven 2 or later.</i></a>
+</ul>
+
+
+<h4>Knopflerfish Releases Repository</h4>
+
+To simplify building bundles that depends on OSGi or Knopflerfish APIs
+with Maven Knopflerfish offers a Maven 2 repository with all released
+artifacts (framework and bundles).
+
+This Maven2 repository id called "Knopflerfish Releases Repository"
+and can be found at<br/>
+
+<a
+href="http://www.knopflerfish.org/maven2/"><code>http://www.knopflerfish.org/maven2/</code></a><br/>
+
+It contains all artifacts from Knopflerfish release builds starting with
+2.3.3, 2.4, 3.0, 3.1, ...
+
+<p/>
+
+To make it easy to find artifacts that belongs to the same
+Knopflerfish release the repository contains an xml-document for each
+release that lists all artifacts with group id, artifact id and
+version. These documents are located in<br/>
+
+<a href="http://www.knopflerfish.org./maven2/org/knopflerfish/"><code>http://www.knopflerfish.org/maven2/org/knopflerfish/</code><br/></a>
+
+and are named like
+<code>KF-<it>VERSION</it>_dependencyManagement.xml</code>.<br/>
+
+E.g., the file with URL <a
+href="http://www.knopflerfish.org/maven2/org/knopflerfish/KF-3.1.0_dependencyManagement.xml"><code>http://www.knopflerfish.org/maven2/org/knopflerfish/KF-3.1.0_dependencyManagement.xml</code></a>
+will list all artifacts from the Knopflerfish 3.1 release.
+
+<p/>
+
+Each nightly build and release build (as of Knopflerfish 3.2) will also
+have a build specific Maven2 repository that contains exactly those
+artifacts that belongs to the build. The URL of these repositories are
+on the form<br/>
+
+<a
+href="http://www.knopflerfish.org/snapshots/current_trunk/maven2/"><code>http://www.knopflerfish.org/snapshots/current_trunk/maven2/</code></a></br>
+
+<a
+href="http://www.knopflerfish.org/releases/3.2.0/maven2/"><code>http://www.knopflerfish.org/releases/3.2.0/maven2/</code></a>
+
+
+<h4>A sample POM file for building a simple bundle</h4>
+
+Here is a sample POM-file that may be used to build a simple
+bundle. Following Maven conventions the source code of the bundle
+should be in the subdirectory named <code>src/main/java</code>,
+resources should be in <code>src/main/resources</code>.
+
+<pre>
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"&gt;
+
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+  &lt;groupId&gt;org.knopflerfish.examples&lt;/groupId&gt; 
+  &lt;artifactId&gt;example1&lt;/artifactId&gt; 
+  &lt;version&gt;1.0&lt;/version&gt; 
+  &lt;packaging&gt;bundle&lt;/packaging&gt;
+
+  &lt;name&gt;Example 1&lt;/name&gt;
+  &lt;description&gt;A bundle that exports a package.&lt;/description&gt;
+
+  &lt;properties&gt;
+    &lt;bundle.namespace&gt;${pom.groupId}.${pom.artifactId}&lt;/bundle.namespace&gt;
+  &lt;/properties&gt;
+
+  &lt;build&gt;
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
+        &lt;artifactId&gt;maven-bundle-plugin&lt;/artifactId&gt;
+        &lt;extensions&gt;true&lt;/extensions&gt;
+        &lt;configuration&gt;
+          &lt;instructions&gt;
+            &lt;Export-Package&gt;${bundle.namespace}&lt;/Export-Package&gt;
+            &lt;Private-Package&gt;!${bundle.namespace}&lt;/Private-Package&gt;
+          &lt;/instructions&gt;
+        &lt;/configuration&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+  &lt;repositories&gt;
+    &lt;repository&gt;
+      &lt;releases&gt;
+        &lt;enabled&gt;true&lt;/enabled&gt;
+        &lt;updatePolicy&gt;never&lt;/updatePolicy&gt;
+        &lt;checksumPolicy&gt;fail&lt;/checksumPolicy&gt;
+      &lt;/releases&gt;
+      &lt;snapshots&gt;
+        &lt;enabled&gt;false&lt;/enabled&gt;
+        &lt;updatePolicy&gt;never&lt;/updatePolicy&gt;
+        &lt;checksumPolicy&gt;fail&lt;/checksumPolicy&gt;
+      &lt;/snapshots&gt;
+      &lt;id&gt;Knopflerfish&lt;/id&gt;
+      &lt;name&gt;Knopflerfish Releases Repository&lt;/name&gt;
+      &lt;url&gt;http://www.knopflerfish.org/maven2&lt;/url&gt;
+      &lt;layout&gt;default&lt;/layout&gt;
+    &lt;/repository&gt;
+  &lt;/repositories&gt;
+  &lt;dependencyManagement&gt;
+    &lt;dependencies&gt; 
+      &lt;!-- KF 3.1.0 --&gt;
+
+      &lt;!--framework.jar--&gt;
+      &lt;dependency&gt;
+        &lt;groupId&gt;org.knopflerfish&lt;/groupId&gt;
+        &lt;artifactId&gt;framework&lt;/artifactId&gt;
+        &lt;version&gt;5.1.6&lt;/version&gt;
+      &lt;/dependency&gt;
+    &lt;/dependencies&gt; 
+  &lt;/dependencyManagement&gt;
+&lt;/project&gt;
+</pre>
+
+Note: The <code>&lt;repository&gt;</code>-element is normally placed
+in the top-level parent POM or in the <code>settings</code>-file. In
+this example it has been added to the bundles POM-file to keep the
+example short. The same applies to the
+<code>&lt;dependencyManagement&gt;</code>-element.
+
+
 
 <h3>Coding Style guides</h3>
 
