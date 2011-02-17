@@ -110,10 +110,18 @@
   <target name="all"
           description="Deploy all bundles to the Maven 2 repository."
           depends="init">
+    <tstamp>
+      <format property="tstamp.year" pattern="yyyy" locale="en"/>
+    </tstamp>
+
     <copy file="${dependency.management.file}"
           toFile="${dependency.management.repo.file}"/>
     <copy file="${ant.dir}/html_template/mvn_dep_mgmt.xsl"
-          toFile="${dependency.management.repo.file}/../mvn_dep_mgmt.xsl"/>
+          toFile="${dependency.management.repo.file}/../mvn_dep_mgmt.xsl">
+      <filterset>
+	<filter token="YEAR" value="${tstamp.year}"/>
+      </filterset>
+    </copy>
   </target>
 
 </project>
