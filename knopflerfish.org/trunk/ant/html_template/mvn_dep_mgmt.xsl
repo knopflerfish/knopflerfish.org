@@ -24,40 +24,57 @@
             content    = "NO-CACHE"/>
       
       <title>Knopflerfish <xsl:value-of select="@version"/> Maven Artifacts</title>
-      <LINK href="http://www.knopflerfish.org/css/knopflerfish2.css" rel="stylesheet" type="text/css"/>
+      <link rel="stylesheet" type="text/css"
+	    href="http://www.knopflerfish.org./css/knopflerfish2.css"/>
+      <link rel="shortcut icon"
+	    href="http://www.knopflerfish.org./images/favicon.png"/>
     </head>
 
     <body>
       <div id="main">
         <a name="top"></a>
-        
         <div id="header">
           <div id="header_logo">
-            <a href="http://www.knopflerfish.org/index.html"><img src="http://www.knopflerfish.org/images/kf300_black.png" border="0" alt="knopflerfish OSGi logo"/></a>
+            <a href="http://www.knopflerfish.org/index.html"><img src="http://www.knopflerfish.org./images/kf300_black.png" border="0" alt="Knopflerfish logo"/></a>
           </div>
-          <div id="header_fade"></div>
+	  <div id="header_menu">
+	    <a class="button_closed" href="http://www.knopflerfish.org./index.html">Home</a>
+	  </div>
         </div>
-        <div id="mainblock_mvn">
+
+	<div id="leftmenu">
+	  <div class="nrow1"><a href="http://www.knopflerfish.org./license.html">License</a></div>
+	  <div class="nrow">&#160;</div>
+	  <div class="nrow"><a href="http://www.knopflerfish.org./mailman/listinfo">Mailing lists </a></div>
+	  <div class="nrow"><a  href="http://sourceforge.net/tracker/?atid=567241&amp;group_id=82798&amp;func=browse">Bug tracker <img border="0" alt="" src="http://www.knopflerfish.org./images/extlink.gif"/></a></div>
+	  <div class="nrow"><a href="https://sourceforge.net/forum/forum.php?forum_id=328005">Forum<img border="0" src="http://www.knopflerfish.org./images/extlink.gif" alt=""/></a></div>
+	  <div class="nrow"><a href="http://knopflerfish.blogspot.com/">Knopflerfish Blog<img border="0" src="http://www.knopflerfish.org./images/extlink.gif" alt=""/></a></div>
+	  <div class="makewave">Maintained by<br/>
+	    <a href="http://www.makewave.com"><img src="http://www.knopflerfish.org./images/makewave_logo_126x16.gif" alt="Makewave" border="0"/></a><br/>
+	    <div class="makewave_2">
+	      <a href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro<img border="0" alt="" src="http://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	      <a href="http://www.makewave.com/site.en/products/osgi_training.shtml">OSGi Training<img border="0" alt="" src="http://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	      <a href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services<img border="0" alt="" src="http://www.knopflerfish.org./images/extlink.gif"/></a><br/>
+	    </div>
+	  </div>
+	</div>
+
+	<div id="mainblock">
           <h2>Knopflerfish <xsl:value-of select="@version"/> Maven Artifacts</h2>
-          <div style="margin-left: 20px; margin-right: 20px; margin-top: 5px; margin-bottom: 5px;">
-            This page contains a listing of all artifacts in the
-            maven2 repository that belongs to Knopflerfish
-            <xsl:value-of select="@version"/>.<p/>
-            
-            You may copy the Maven <code>&lt;dependy&gt;</code>
-            elements from this file and paste them into the
-            <code>&lt;dependencyManagement&gt;</code>-element of the
-            <code>settings.xml</code>-file or the top-level pom-file
-            for a collection of projects that uses this Knopflerfish
-            version.
 
-          </div>
+          This page contains a listing of all artifacts in the
+          maven2 repository that belongs to Knopflerfish
+          <xsl:value-of select="@version"/>.<p/>
           
-          <br clear="all"/>
+          You may copy the Maven <code>&lt;dependy&gt;</code>
+          elements from this file and paste them into the
+          <code>&lt;dependencyManagement&gt;</code>-element of the
+          <code>settings.xml</code>-file or the top-level pom-file
+          for a collection of projects that uses this Knopflerfish
+          version.<p/>
 
-          <table class="fancy">
-
-            <tr class="fancy">
+          <table class="fancy" cellpadding="12">
+            <tr class="fancy" >
               <th class="fancy">Group id</th>
               <th class="fancy">Artifact id</th>
               <th class="fancy">Version</th>
@@ -66,10 +83,13 @@
 	    <xsl:apply-templates select="dependencyManagement/dependencies/dependency"/>
 
           </table>
-          
-          <!-- stop -->
-          <a class="top" href="#top">top</a>
         </div>
+	<div id="footer">
+	  <div id="copyright">
+	    Copyright &#169; 2008-@YEAR@ The Knopflerfish Project. All
+	    rights reserved.
+	  </div>
+	</div>
       </div>
     </body>
   </xsl:template>

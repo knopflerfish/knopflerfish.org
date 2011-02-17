@@ -235,7 +235,7 @@ version. These documents are located in<br/>
 <a href="http://www.knopflerfish.org./maven2/org/knopflerfish/"><code>http://www.knopflerfish.org/maven2/org/knopflerfish/</code><br/></a>
 
 and are named like
-<code>KF-<it>VERSION</it>_dependencyManagement.xml</code>.<br/>
+<code>KF-<i>VERSION</i>_dependencyManagement.xml</code>.<br/>
 
 E.g., the file with URL <a
 href="http://www.knopflerfish.org/maven2/org/knopflerfish/KF-3.1.0_dependencyManagement.xml"><code>http://www.knopflerfish.org/maven2/org/knopflerfish/KF-3.1.0_dependencyManagement.xml</code></a>
@@ -297,7 +297,7 @@ resources should be in <code>src/main/resources</code>.
     &lt;/plugins&gt;
   &lt;/build&gt;
   &lt;repositories&gt;
-    &lt;repository&gt;
+    <b>&lt;repository&gt;
       &lt;releases&gt;
         &lt;enabled&gt;true&lt;/enabled&gt;
         &lt;updatePolicy&gt;never&lt;/updatePolicy&gt;
@@ -310,30 +310,45 @@ resources should be in <code>src/main/resources</code>.
       &lt;/snapshots&gt;
       &lt;id&gt;Knopflerfish&lt;/id&gt;
       &lt;name&gt;Knopflerfish Releases Repository&lt;/name&gt;
-      &lt;url&gt;http://www.knopflerfish.org/maven2&lt;/url&gt;
+      &lt;url&gt;<i>http://www.knopflerfish.org/maven2</i>&lt;/url&gt;
       &lt;layout&gt;default&lt;/layout&gt;
-    &lt;/repository&gt;
+    &lt;/repository&gt;</b>
   &lt;/repositories&gt;
   &lt;dependencyManagement&gt;
     &lt;dependencies&gt; 
       &lt;!-- KF 3.1.0 --&gt;
 
       &lt;!--framework.jar--&gt;
-      &lt;dependency&gt;
+      <b>&lt;dependency&gt;
         &lt;groupId&gt;org.knopflerfish&lt;/groupId&gt;
         &lt;artifactId&gt;framework&lt;/artifactId&gt;
         &lt;version&gt;5.1.6&lt;/version&gt;
+      &lt;/dependency&gt;</b>
+
+      &lt;!--log/log_api-3.0.5.jar--&gt;
+      &lt;dependency&gt;
+        &lt;groupId&gt;org.knopflerfish&lt;/groupId&gt;
+        &lt;artifactId&gt;log-API&lt;/artifactId&gt;
+        &lt;version&gt;3.0.5&lt;/version&gt;
       &lt;/dependency&gt;
+
+      &lt;!--cm/cm_api-3.0.1.jar--&gt;
+      &lt;dependency&gt;
+        &lt;groupId&gt;org.knopflerfish.bundle&lt;/groupId&gt;
+        &lt;artifactId&gt;cm-API&lt;/artifactId&gt;
+        &lt;version&gt;3.0.1&lt;/version&gt;
+      &lt;/dependency&gt;
+
     &lt;/dependencies&gt; 
   &lt;/dependencyManagement&gt;
 &lt;/project&gt;
 </pre>
 
-Note: The <code>&lt;repository&gt;</code>-element is normally placed
-in the top-level parent POM or in the <code>settings</code>-file. In
-this example it has been added to the bundles POM-file to keep the
-example short. The same applies to the
-<code>&lt;dependencyManagement&gt;</code>-element.
+Note: The <b><code>&lt;repository&gt;</code></b>-element is normally
+placed in the top-level parent POM or in the
+<code>settings</code>-file. In this example it has been added to the
+bundles POM-file to keep it all in one file. The same applies to the
+<b><code>&lt;dependencyManagement&gt;</code></b>-element.
 
 
 
@@ -666,9 +681,15 @@ Thanks to Rob Evans for this example.
 <h3>Using services</h3>
 <table>
 
-<tr>
-<td class="tableheader" colspan=2>Track all services!</td>
-</tr>
+  <tr>
+    <td class="tableheader" colspan=2>
+      This is short introduction to service usage, to learn more about
+      it read the 
+      <a href="osgi_service_tutorial.html">service tutorial</a>.
+      <p/>
+      <b>Track all services!</b>
+    </td>
+  </tr>
 
   <tr>
     <td valign=top>Be prepared that services might not exists, or suddenly
@@ -745,6 +766,7 @@ Thanks to Rob Evans for this example.
     </td>
   </tr>
 </table>
+
 
 <a class=top href="#top">top</a>
 
