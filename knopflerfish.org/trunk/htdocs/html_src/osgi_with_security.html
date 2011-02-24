@@ -1,0 +1,236 @@
+
+<h3>Contents</h3>
+<ol>
+ <li><a href="#why">Why Security?</a>
+ <li><a href="#select">Select your Security</a>
+ <li><a href="#turn_it_on">Turn it On</a>
+ <li><a href="#easy">An Easy Set-up</a>
+ <li><a href="#console">Using the Console</a>
+ <li><a href="#cpa">Using Conditional Permission Admin</a>
+ <li><a href="#tested_bundle">The Tested Bundle</a>
+ <li><a href="#calling_bundle">A Calling Bundle</a>
+</ol>
+
+
+
+<a name="why"></a>
+<h3>Why Security?</h3>
+
+<div class="intro" style="width: 400px;">
+For most of us, the normal way is to run our OSGi frameworks with
+security off. When we have absolute control of the set of installed
+bundles, turning on security only gives us a set-up hassle and a
+performance hit. 
+</div>
+
+<p>
+But even if your framework is not exposed to bundles from unknown
+sources, you might have to run with security on in order to properly
+test bundles that need to do security right, in case someone else
+decides to run their framework with security on.
+</p>
+
+<p>
+The scenario for this tutorial is that we are developing a bundle and
+it is now time to test how it handles in a framework with security on.
+</p>
+
+<a name="select"></a>
+<h3>Select your Security</h3>
+
+<div class="intro" style="width: 400px;">
+To complicate things, there is more than one way to set up security.
+</div>
+
+<p>
+The OSGi core specification contains both the Permission Admin and the
+Conditional Permission Admin that supersedes the former one. On top of
+that, it is also possible to specify a Java 2 policy file that grants
+permissions to code from specified code sources (based on location or
+signature).
+</p>
+
+<p>
+It is preferred to use Conditional Permission Admin (CPA) in favor of
+the old Permission Admin (as it is newer, but also more powerful).
+The Java 2 policy file is a lot less flexible than using CPA since it
+is not really possible to change permissions dynamically that way.
+This tutorial will use the Conditional Permission Admin (CPA), the
+policy file will only be used to grant the framework sufficient
+permission.
+</p>
+
+<p>
+A few final words about the policy file. It can be useful to know
+that the Knopflerfish framework will by default use a Java 2 policy
+file that is included in the framework jar file. But if the system
+property java.security.policy is set, the specified policy file will
+be used instead. The KF default policy file grants AllPermission to
+everyone, which is likely to be what you want; the framework needs
+AllPermission and since CPA will be used to control permissions for
+the bundles, you want the policy file to have -- no policy at all.
+</p>
+
+<a name="turn_it_on"></a>
+<h3>Turn it On</h3>
+
+<div class="intro" style="width: 400px;">
+Turning security on in Knopflerfish is easy, just a framework
+property that needs to be set.
+</div>
+
+<p>
+To set a security manager and thus turn on security, set the framework
+environment property "org.osgi.framework.security" to "osgi". For
+Knopflerfish this will set the KFSecurityManager as security manager.
+</p>
+
+<p>
+With a security manager set (either using -Djava.security.manager, or
+-Forg.osgi.framework.security=osgi) the KF system bundle will publish
+services PermissionAdmin and ConditionalPermissionAdmin. If you know
+that PermissionAdmin is not going to be used, you can turn it off by
+setting -Forg.knopflerfish.framework.service.permissionadmin=false.
+</p>
+
+<p>
+As you can see, turning security on is easy. Unfortunately just
+turning it on will not do much since by default (as long as no
+permission has been set with CPA) is to grant everyone AllPermission.
+All we have accomplished so far is to slow thing down a little bit by
+installing a security manager. 
+</p>
+
+<a name="easy"></a>
+<h3>An Easy Set-up</h3>
+
+<div class="intro" style="width: 400px;">
+An easy set-up for permissions is to continue to grant AllPermission
+for bundles that you have control over/are not security testing.
+</div>
+
+<p>
+In this tutorial we are supposed to be testing a bundle under
+development. We do not really care about other bundles that might be
+installed and running, like the KF log, cm, http, event, etc bundles.
+To keep these working like before, we will grant them AllPermission by
+adding a policy that allow AllPermission under the condition that the
+bundle location matches the location where the KF bundles are stored
+in the local file system:
+<pre class="codeexample">
+ALLOW {
+  [org.osgi.service.condpermadmin.BundleLocationCondition "file:jars/*"]
+  (java.security.AllPermission)
+}
+</pre>
+</p>
+
+<p>
+A bundle that we do not trust/are testing should be given less
+permission. A good starting point is to give them permission to import
+any package. If we give no permissions at all, the bundle will not
+even be allowed to resolve and will be difficult to test. A even more
+restricted starting point is to only allow import of the
+org.osgi.framework package.
+</p>
+
+<p>
+In this tutorial the bundle that we are testing is stored in the local
+file system at /opt/kf/totest, and to give all bundles located here
+permission to import any package we need:
+<pre class="codeexample">
+ALLOW {
+  [org.osgi.service.condpermadmin.BundleLocationCondition "file:/opt/kf/totest"]
+  (org.osgi.framework.PackagePermission "*" "import")
+}
+</pre>
+</p>
+
+<p>
+Both of the policies above used a bundle location condition. It is
+also possible to use a bundle signer condition to grant permission to
+bundles that are signed by a particular signature, or to use no
+condition at all if a permission should be granted to all bundles.  
+</p>
+
+<p>
+When we start to test our bundle, we will probably need to give it
+more permission. For example, if it is using the Log service, it will
+need a ServicePermisson for that.
+</p>
+
+<p>
+One way to add these policies to use the setcondpermission command in
+the KF framework command group. Another way is to write a bundle that
+uses the ConditionalPermissinAdmin service to programmatically add
+conditional permissions.
+</p>
+
+<a name="console"></a>
+<h3>Using the Console</h3>
+
+<div class="intro" style="width: 400px;">
+Make sure that the bundle frameworkcommands is installed.  
+</div>
+
+<p>
+In the console, type
+<pre class="codeexample">
+  > framework setcondpermission \
+  '[org.osgi.service.condpermadmin.BundleLocationCondition "file:jars/*"]' \
+  (java.security.AllPermission)
+</pre>
+and 
+<pre class="codeexample">
+  > fr setcond '[org.osgi.service.condpermadmin.BundleLocationCondition \
+  "file:/opt/kf/totest/*"]' \
+  '(org.osgi.framework.PackagePermission "*" "import")'
+</pre>
+</p>
+<p>
+The permissions will be part of the framework state, they will survive
+a restart as long as you do not use the -init flag to clear the state.
+</p>
+
+<a name="cpa"></a>
+<h3>Using the Conditional Permission Admin</h3>
+
+<div class="intro" style="width: 400px;">
+The plan is to write a bundle that have permission (at least) to use
+the CPA to set up the permissions we need for our testing.
+</div>
+
+<p>
+This section has not been written yet.
+</p>
+
+<a name="tested_bundle"></a>
+<h3>The Tested Bundle</h3>
+
+<div class="intro" style="width: 400px;">
+Example code for a bundle that is using a service (the LogService) and
+therefore needs permission to get that service. The tested bundle will
+also publish a service for others to use.
+</div>
+
+<p>
+This section has not been written yet.
+</p>
+
+<a name="calling_bundle"></a>
+<h3>A Calling Bundle</h3>
+
+<div class="intro" style="width: 400px;">
+A simple bundle that gets the service of our bundle being tested, to
+demonstrate how to achieve that this bundle should not need permission
+to use the log.
+</div>
+
+<p>
+This section has not been written yet.
+</p>
+
+
+<hr>
+
+<i>$Rev: $, $Author: $</i>
