@@ -1,14 +1,16 @@
+<h2>Running OSGi with Ssecurity</h2>
 
 <h3>Contents</h3>
 <ol>
  <li><a href="#why">Why Security?</a>
- <li><a href="#select">Select your Security</a>
+ <li><a href="#choose">Choose your Security</a>
  <li><a href="#turn_it_on">Turn it On</a>
  <li><a href="#easy">An Easy Set-up</a>
  <li><a href="#console">Using the Console</a>
  <li><a href="#cpa">Using Conditional Permission Admin</a>
  <li><a href="#tested_bundle">The Tested Bundle</a>
  <li><a href="#calling_bundle">A Calling Bundle</a>
+ <li><a href="#references">References</a>
 </ol>
 
 
@@ -16,7 +18,7 @@
 <a name="why"></a>
 <h3>Why Security?</h3>
 
-<div class="intro" style="width: 400px;">
+<div class="intro">
 For most of us, the normal way is to run our OSGi frameworks with
 security off. When we have absolute control of the set of installed
 bundles, turning on security only gives us a set-up hassle and a
@@ -32,13 +34,13 @@ decides to run their framework with security on.
 
 <p>
 The scenario for this tutorial is that we are developing a bundle and
-it is now time to test how it handles in a framework with security on.
+it is now time to test how it behaves in a framework with security on.
 </p>
 
-<a name="select"></a>
-<h3>Select your Security</h3>
+<a name="choose"></a>
+<h3>Choose your Security</h3>
 
-<div class="intro" style="width: 400px;">
+<div class="intro">
 To complicate things, there is more than one way to set up security.
 </div>
 
@@ -64,33 +66,37 @@ permission.
 A few final words about the policy file. It can be useful to know
 that the Knopflerfish framework will by default use a Java 2 policy
 file that is included in the framework jar file. But if the system
-property java.security.policy is set, the specified policy file will
-be used instead. The KF default policy file grants AllPermission to
-everyone, which is likely to be what you want; the framework needs
-AllPermission and since CPA will be used to control permissions for
-the bundles, you want the policy file to have -- no policy at all.
+property <code>java.security.policy</code> is set, the specified
+policy file will be used instead. The KF default policy file grants
+AllPermission to everyone, which is likely to be what you want; the
+framework needs AllPermission and since CPA will be used to control
+permissions for the bundles, you want the policy file to have -- no
+policy at all.
 </p>
 
 <a name="turn_it_on"></a>
 <h3>Turn it On</h3>
 
-<div class="intro" style="width: 400px;">
+<div class="intro">
 Turning security on in Knopflerfish is easy, just a framework
 property that needs to be set.
 </div>
 
 <p>
 To set a security manager and thus turn on security, set the framework
-environment property "org.osgi.framework.security" to "osgi". For
-Knopflerfish this will set the KFSecurityManager as security manager.
+environment property <code>org.osgi.framework.security</code> to
+<code>osgi</code>. For Knopflerfish this will set the
+KFSecurityManager as security manager.
 </p>
 
 <p>
-With a security manager set (either using -Djava.security.manager, or
--Forg.osgi.framework.security=osgi) the KF system bundle will publish
-services PermissionAdmin and ConditionalPermissionAdmin. If you know
-that PermissionAdmin is not going to be used, you can turn it off by
-setting -Forg.knopflerfish.framework.service.permissionadmin=false.
+With a security manager set (either using
+<code>-Djava.security.manager</code> or
+<code>-Forg.osgi.framework.security=osgi</code>) the KF system bundle
+will publish services PermissionAdmin and ConditionalPermissionAdmin.
+If you know that PermissionAdmin is not going to be used, you can turn
+it off by setting
+<code>-Forg.knopflerfish.framework.service.permissionadmin=false</code>.
 </p>
 
 <p>
@@ -104,7 +110,7 @@ installing a security manager.
 <a name="easy"></a>
 <h3>An Easy Set-up</h3>
 
-<div class="intro" style="width: 400px;">
+<div class="intro">
 An easy set-up for permissions is to continue to grant AllPermission
 for bundles that you have control over/are not security testing.
 </div>
@@ -136,8 +142,8 @@ org.osgi.framework package.
 
 <p>
 In this tutorial the bundle that we are testing is stored in the local
-file system at /opt/kf/totest, and to give all bundles located here
-permission to import any package we need:
+file system at <code>/opt/kf/totest</code>, and to give all bundles
+located here permission to import any package we need:
 <pre class="codeexample">
 ALLOW {
   [org.osgi.service.condpermadmin.BundleLocationCondition "file:/opt/kf/totest"]
@@ -147,7 +153,7 @@ ALLOW {
 </p>
 
 <p>
-Both of the policies above used a bundle location condition. It is
+Both of the policies above use a bundle location condition. It is
 also possible to use a bundle signer condition to grant permission to
 bundles that are signed by a particular signature, or to use no
 condition at all if a permission should be granted to all bundles.  
@@ -160,16 +166,16 @@ need a ServicePermisson for that.
 </p>
 
 <p>
-One way to add these policies to use the setcondpermission command in
-the KF framework command group. Another way is to write a bundle that
-uses the ConditionalPermissinAdmin service to programmatically add
-conditional permissions.
+One way to add these policies is to use the setcondpermission command
+in the KF framework command group. Another way is to write a bundle
+that uses the ConditionalPermissinAdmin service to programmatically
+add conditional permissions.
 </p>
 
 <a name="console"></a>
 <h3>Using the Console</h3>
 
-<div class="intro" style="width: 400px;">
+<div class="intro">
 Make sure that the bundle frameworkcommands is installed.  
 </div>
 
@@ -189,13 +195,14 @@ and
 </p>
 <p>
 The permissions will be part of the framework state, they will survive
-a restart as long as you do not use the -init flag to clear the state.
+a restart as long as you do not use the <code>-init</code> flag to
+clear the state.
 </p>
 
 <a name="cpa"></a>
 <h3>Using the Conditional Permission Admin</h3>
 
-<div class="intro" style="width: 400px;">
+<div class="intro">
 The plan is to write a bundle that have permission (at least) to use
 the CPA to set up the permissions we need for our testing.
 </div>
@@ -207,7 +214,7 @@ This section has not been written yet.
 <a name="tested_bundle"></a>
 <h3>The Tested Bundle</h3>
 
-<div class="intro" style="width: 400px;">
+<div class="intro">
 Example code for a bundle that is using a service (the LogService) and
 therefore needs permission to get that service. The tested bundle will
 also publish a service for others to use.
@@ -220,7 +227,7 @@ This section has not been written yet.
 <a name="calling_bundle"></a>
 <h3>A Calling Bundle</h3>
 
-<div class="intro" style="width: 400px;">
+<div class="intro">
 A simple bundle that gets the service of our bundle being tested, to
 demonstrate how to achieve that this bundle should not need permission
 to use the log.
@@ -230,7 +237,9 @@ to use the log.
 This section has not been written yet.
 </p>
 
+<a name="references"></a>
+<h3>References</h3>
 
-<hr>
-
-<i>$Rev: $, $Author: $</i>
+<p>
+This section has not been written yet.
+</p>
