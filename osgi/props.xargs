@@ -27,7 +27,7 @@
 #-Forg.knopflerfish.framework.validator.jks.ca_certs_password=
 
 # URL to bundle repository
-#-Doscar.repository.url=http://www.knopflerfish.org/releases/current/repository.xml
+#-Foscar.repository.url=http://www.knopflerfish.org/releases/current/repository.xml
 
 # Various debug flags
 #-Forg.knopflerfish.framework.debug.packages=true
@@ -72,7 +72,7 @@
 
 # If set to true, export all framework properties as system properties.
 #
-#-Dorg.knopflerfish.framework.xargs.writesysprops=false
+#-Forg.knopflerfish.framework.main.xargs.writesysprops=false
 
 # Web server properties
 -Forg.knopflerfish.http.dnslookup=false

@@ -34,7 +34,7 @@ The Knopflerfish framework can be further controlled by:
 <ul>
   <li><a href="#options">Supplying command line options</a></li>
   <li><a href="#xargs">Creating xargs file</a></li>
-  <li><a href="#sysprops">Setting system properties</a></li>
+  <li><a href="#props">Setting framework and system properties</a></li>
 </ul>
 
 For a complete description of all framework feature please refer to
@@ -45,7 +45,7 @@ the
 
 <a name="options"></a>
 <h3>Knopflerfish command line options</h3>
-To control the behaviour of Knopflerfish OSGi command line options can
+To control the behavior of Knopflerfish OSGi command line options can
 be supplied. To get help on the framework options, run the framework with the help option.
 <pre>
     java -jar framework.jar -help
@@ -78,7 +78,7 @@ See http://www.knopflerfish.org for more information.
                   framework instance.
    -ff FF         Specify the name of the FrameworkFactory to use when
                   creating the framework instance.
-   -init          Start an empty platform (i.e., clear old presistent data).
+   -init          Start an empty platform (i.e., clear old persistent data).
    -launch        Launch framework (i.e., start it).
    -shutdown mSEC Shutdown framework, timeout in milliseconds.
 
@@ -115,7 +115,7 @@ See http://www.knopflerfish.org for more information.
 <p>
 The xargs file are Knopflerfish command line options specified in a
 text file, typically ending in .xargs. This is a convenient method for
-specifying which bundles to start as well as setting system
+specifying which bundles to start as well as setting framework
 properties.
 </p>
 <p>
@@ -128,21 +128,14 @@ The Knopflerfish SDK includes the following .xargs files by default
       xargs argument is given. See also 
       <a href="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html#init_restart">
 	Initial start vs restart
-      </a>
+      </a>.
       <p>
-	Generated from template.xargs.in (only present in a full source file installation)
+	Generated from template.xargs.in (only present in a full source file installation).
       </p>
-    </dd>
-    <dt>restart.xargs</dt>
-    <dd>
-      Created by the framework upon initial start and used when restarting. See also 
-      <a href="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html#init_restart">
-	Initial start vs restart
-      </a>
     </dd>
     <dt>minimal.xargs</dt>
     <dd>
-      Starts the framework and a minimal set of bundles
+      Starts the framework and a minimal set of bundles.
     </dd>
     <dt>props.xargs</dt>
     <dd>
@@ -178,17 +171,16 @@ The Knopflerfish SDK includes the following .xargs files by default
   </dl>    
 </div>
 
-<a name="sysprops"></a>
-<h3>System Properties</h3>
+<a name="props"></a>
+<h3>Framework and System Properties</h3>
 <p>
-  The behaviour of Knopflerfish can be further controlled by specifying
-  system properties that are either specified by OSGi or Knopflerfish
-  specific. The system properties are described in detail in the 
+  The behavior of Knopflerfish can be further controlled by specifying
+  framework and system properties that are either specified by OSGi or Knopflerfish
+  specific. The framework and system properties are described in detail in the 
   <a href="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html">
     framework bundle documentation
   </a>.
 </p>
 <p>
-  There is a default system properties setting in
-  the <tt>props.xargs</tt> file.
+  There is a default properties setting in the <tt>props.xargs</tt> file.
 </p>
