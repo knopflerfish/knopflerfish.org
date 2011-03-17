@@ -135,6 +135,10 @@ public class ExecutableBundleActivator implements BundleActivator {
   public void start(BundleContext bc) throws BundleException {
     this.bc = bc;
     debug("start " + this);
+
+    String stopS = (String) bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP);
+    bProcessExitMeansStopBundle = stopS == null || "true".equals(stopS);
+
     try {
       initFiles();
 
@@ -152,10 +156,6 @@ public class ExecutableBundleActivator implements BundleActivator {
   public void stop(BundleContext bc) throws BundleException {
     try {
       debug("stop " + this);
-
-      String stopS = (String)bc.getBundle().getHeaders().get(BUNDLE_START_EXECUTABLE_EXIT_MEANS_BUNDLESTOP);
-
-      bProcessExitMeansStopBundle = stopS == null || "true".equals(stopS);
 
       if(runProcess != null) {
         runProcess.destroy();
@@ -236,9 +236,11 @@ public class ExecutableBundleActivator implements BundleActivator {
    * @param e exception to log
    */
   public void debug(String s, Exception e) {
-    System.out.println("ExecutableBundleActivator: " + s);
-    if(e != null) {
-      e.printStackTrace();
+    if (isDebug()) {
+      System.out.println("ExecutableBundleActivator: " + s);
+      if(e != null) {
+        e.printStackTrace();
+      }
     }
   }
 
