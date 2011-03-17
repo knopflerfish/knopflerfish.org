@@ -781,8 +781,8 @@ but "-D" should also work.
       A comma-separated list of locations of bundles whose Main-Class
       (set in manifest) should be used as activator if no
       BundleActivator is specified. 
-      The Main-Class will be used as activator if the jar file 
-      does not specify a Bundle-Activator header and the bundle's
+      The Main-Class will be used as activator if and only if the jar
+      file does not specify a Bundle-Activator header and the bundle's
       location(see Bundle.getLocation) is found in the comma-separated
       list (case-sensitive). 
 <pre class="man">
