@@ -8,9 +8,7 @@
 
 # Semicolon seprated list of base URLs for searching (completing)
 # bundle URLs in "-install URL" command line options and in the console.
--Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
-
--init
+-Forg.knopflerfish.gosg.jars=$(GOSG_JARS)
 
 ## Basic KF bundles
 -initlevel 1

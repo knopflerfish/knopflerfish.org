@@ -102,7 +102,7 @@ public class FWProps {
 
   /**
    * If the Main-Class manifest attribute is set and this bundles location is
-   * present in the value (comma separated list) of the (System) property named
+   * present in the value (comma separated list) of the Framework property named
    * org.knopflerfish.framework.main.class.activation then setup up a bundle
    * activator that calls the main-method of the Main-Class when the bundle is
    * started, and if the Main-Class contains a method named stop() call that
