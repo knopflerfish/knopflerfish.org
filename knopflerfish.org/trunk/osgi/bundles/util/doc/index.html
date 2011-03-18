@@ -31,6 +31,7 @@ extracted and started when the bundle starts.
   The following are the required headers for a simple example.
 <pre>
  Manifest-Version: 1.0
+ Bundle-Manifest-Version: 2
  Bundle-SymbolicName: org.knopflerfish.bundle.ebaexample
  Bundle-Activator: org.knopflerfish.util.framework.ExecutableBundleActivator
  Import-Package = org.knopflerfish.util.framework,org.osgi.framework
@@ -70,7 +71,7 @@ Complete list of custom headers for this utility class:
   </dd>
   <dt><b>Bundle-Stop-Executable</b></dt>
   <dd>Similar to <tt>Bundle-Start-Executable</tt> but the executable
-      is lunched when the bundle stops.</dd>
+      is launched when the bundle stops.</dd>
   <dt><b>Bundle-Stop-Executable-Args</b></dt>
   <dd>Arguments (separated with spaces) for the bundle stop executable.
   </dd>
