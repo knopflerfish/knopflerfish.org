@@ -26,6 +26,7 @@
   <property name="junit.out.dir" location="junit_grunt"/>
   <property name="test.dir"
 	    location="${osgi.dir}/bundles_test/regression_tests"/>
+  <property name="test_jars"      value="$${user.dir}/test_jars"/>
   <property name="test.jars.dir"  location="test_jars"/>
   <property name="test.gosg.jars" value="file:jars/;file:test_jars/"/>
 
@@ -91,6 +92,7 @@
     <antcall target="xargs_filter">
       <param name="xargs.template.in" location="minimal.xargs.in"/>
       <param name="xargs.out.file"    location="${xargs.out.dir}/minimal.xargs"/>
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
@@ -102,6 +104,7 @@
     <antcall target="xargs_filter">
       <param name="xargs.template.in" location="template.xargs.in"/>
       <param name="xargs.out.file"    location="${xargs.out.dir}/remote-init.xargs"/>
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${base.url}/${version}/osgi/jars/"/>
@@ -114,6 +117,7 @@
     <antcall target="xargs_filter">
       <param name="xargs.template.in" location="${osgi.dir}/bundles/remotefw/doc/server.xargs.in"/>
       <param name="xargs.out.file"    location="${osgi.dir}/bundles/remotefw/doc/server.xargs"/>
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
@@ -122,6 +126,7 @@
     <antcall target="xargs_filter">
       <param name="xargs.template.in" location="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"/>
       <param name="xargs.out.file"    location="${osgi.dir}/bundles/remotefw/doc/client.xargs"/>
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
@@ -134,6 +139,7 @@
       <param name="xargs.template.in" location="template.xargs.in"/>
       <param name="xargs.out.file"    location="${xargs.out.dir}/init.xargs"/>
       <!--param name="xargs.os.template" location="windows.xargs.in"/-->
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${jars.dir}"/>
       <param name="gosg.jars"     value="${gosg.jars}"/>
@@ -145,6 +151,7 @@
     <antcall target="xargs_filter">
       <param name="xargs.template.in" location="init-tests.xargs.in"/>
       <param name="xargs.out.file"    location="${xargs.out.dir}/init-tests.xargs"/>
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${test.jars.dir}"/>
       <param name="gosg.jars"     value="${test.gosg.jars}"/>
@@ -156,6 +163,7 @@
 	     location="${test.dir}/axis2_soapclient_adb/soapcline_adb_test.xargs.in"/>
       <param name="xargs.out.file"
 	     location="${xargs.out.dir}/soapcline_adb_test.xargs"/>
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${test.jars.dir}"/>
       <param name="gosg.jars"     value="${test.gosg.jars}"/>
@@ -167,6 +175,7 @@
 	     location="${test.dir}/restart_test/test-restart1.xargs.in"/>
       <param name="xargs.out.file"
 	     location="${xargs.out.dir}/test-restart1.xargs"/>
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${test.jars.dir}"/>
       <param name="gosg.jars"     value="${test.gosg.jars}"/>
@@ -177,6 +186,7 @@
 	     location="${test.dir}/restart_test/test-restart2.xargs.in"/>
       <param name="xargs.out.file"
 	     location="${xargs.out.dir}/test-restart2.xargs"/>
+      <param name="test_jars"     value="${test_jars}"/>
       <param name="jars.dir"      location="${jars.dir}"/>
       <param name="test.jars.dir" location="${test.jars.dir}"/>
       <param name="gosg.jars"     value="${test.gosg.jars}"/>
@@ -406,6 +416,7 @@
      <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
+     <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
    </java>
  </target>
  <target name="run-test-secure" if="run.test.secure">
@@ -421,6 +432,7 @@
      <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
+     <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
    </java>
  </target>
 
