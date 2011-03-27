@@ -62,7 +62,7 @@
     <property name="gosg.jars"          value="file:jars/;file:test_jars/"/>
     <property name="test_jars"          value="$${user.dir}/test_jars"/>
 
-    <!-- Must exists for this target to work. -->
+    <!-- Directories must exist for this target to work. -->
     <mkdir dir="${jars.dir}"/>
     <mkdir dir="${root.out.dir}"/>
 
