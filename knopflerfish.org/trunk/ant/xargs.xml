@@ -66,13 +66,12 @@
     <mkdir dir="${jars.dir}"/>
     <mkdir dir="${root.out.dir}"/>
 
-    <bundle_locator replacefilterfile="${bundleVersionFilter}">
-      <fileset dir="${jars.dir}">
-        <include name="${xargs.jars.pattern}"/>
-      </fileset>
-      <fileset dir="${test.jars.dir}">
-        <include name="${xargs.jars.pattern}"/>
-      </fileset>
+    <!-- Note that we specify both bundlePath and nested file-sets -->
+    <!-- to handle the case when gosg.jars uses http:-URLs         -->
+    <bundle_locator replacefilterfile="${bundleVersionFilter}"
+		    bundlePath="${gosg.jars}">
+      <fileset dir="${jars.dir}"      includes="${xargs.jars.pattern}"/>
+      <fileset dir="${test.jars.dir}" includes="${xargs.jars.pattern}"/>
     </bundle_locator>
 
     <!-- Set xargs.os.args if not set by load_os_xargs -->
