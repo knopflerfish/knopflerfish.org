@@ -168,7 +168,19 @@ public class BundleArchives {
           final File fsRootDir = fs.getDir(task.getProject());
           if (!fsRootDir.exists()) {
             task.log("Skipping nested file set rooted at '" + fsRootDir
-                     + "' since that directory does not exist.", Project.MSG_WARN);
+                + "' since that directory does not exist.", Project.MSG_WARN);
+            continue;
+          }
+          try {
+            if (fs.size()<1) {
+              task.log("Skipping nested file set rooted at '" + fsRootDir
+                  + "' since that file set is empty.", Project.MSG_VERBOSE);
+              continue;
+              
+            }
+          } catch (Exception e) {
+            task.log("Skipping nested file set rooted at '" + fsRootDir
+                + "' since size computation throws exception.", e, Project.MSG_VERBOSE);
             continue;
           }
         }
