@@ -59,9 +59,9 @@ import org.osgi.framework.Version;
  * Determines a sub-set of bundles from a given file set. The resulting set of
  * bundles will only contain the highest version of each bundle in the original
  * file set. The resulting set of bundles may then be used in several ways.
- * 
+ *
  * <p>
- * 
+ *
  * An <em>OSGi version specification</em> used below is a string on the format
  * <tt><em>Major</em>.<em>Minor</em>.<em>Micro</em>.<em>Qualifier</em></tt>
  * where major, minor and micro are integers, and all parts of the version
@@ -71,13 +71,13 @@ import org.osgi.framework.Version;
  * 2 is also recognized, i.e., a '&#x2011;' between the micro and qualifier
  * fields:
  * <tt><em>Major</em>.<em>Minor</em>.<em>Micro</em>&#x2011;<em>Qualifier</em></tt>.
- * 
+ *
  * <p>
- * 
+ *
  * Given a partial bundle name and a file set with bundles, this task may be
  * used to select the bundle with the highest version number and name that
  * matches. E.g.,
- * 
+ *
  * <pre>
  *   &lt;bundle_locator bundleName="http" property="http.path"&gt;
  *     &lt;fileset dir="${jars.dir}"&gt;
@@ -85,16 +85,16 @@ import org.osgi.framework.Version;
  *     &lt;/fileset&gt;
  *   &lt;/bundle_locator&gt;
  * </pre>
- * 
+ *
  * will set the project property <tt>http.path</tt> to the absolute path of the
  * highest version of the bundle named <tt>http</tt> within the given file set.
  * By setting the <tt>bundleName</tt> to <tt>http-1.N.N</tt> the task will
  * select the highest version of the <tt>http</tt>-bundle with the restriction
  * that the Major part of the version number of the selection must be exactly
  * <tt>1</tt>.
- * 
+ *
  * <p>
- * 
+ *
  * The bundle locator task can also iterate over a path and replace all
  * non-existing file resources in it that either has a name ending with
  * <tt>-N.N.N.jar</tt> or that is the symbolic name of a bundle with the
@@ -105,7 +105,7 @@ import org.osgi.framework.Version;
  * same applies to path entries ending with <tt>-N.N.N.jar</tt> that does not
  * yield a match. The search may be further restricted to specific versions by
  * replacing the <tt>N</tt> in the resource name with a specific version number.
- * 
+ *
  * <pre>
  *   &lt;bundle_locator classPathRef="bundle.path"
  *                   newClassPathId="bundle.path.Expanded"
@@ -115,18 +115,18 @@ import org.osgi.framework.Version;
  *     &lt;/fileset&gt;
  *   &lt;/bundle_locator&gt;
  * </pre>
- * 
+ *
  * this will build a new path added to the project with the id
  * <tt>bundle.path.Expanded</tt>. The new path will be a copy of the original,
  * <tt>bundle.path</tt>, but with all path elements with a name ending in
  * <tt>-N.N.N.jar</tt> replaced with the corresponding match or removed if no
  * match was found.
- * 
+ *
  * <p>
- * 
+ *
  * Another usage of the bundle locator task is to ensure that only the highest
  * version of a bundle is matched by a certain pattern set.
- * 
+ *
  * <pre>
  *   &lt;bundle_locator patternSetId="my.ps.exact"&gt;
  *     &lt;fileset dir="${jars.dir}"&gt;
@@ -134,7 +134,7 @@ import org.osgi.framework.Version;
  *     &lt;/fileset&gt;
  *   &lt;/bundle_locator&gt;
  * </pre>
- * 
+ *
  * Here the original pattern set <tt>my.ps</tt> is used to find bundles in the
  * directory <tt>jars.dir</tt>, if more than one version of a bundle matches
  * then only the one with the highest version will be selected. A new pattern
@@ -143,15 +143,15 @@ import org.osgi.framework.Version;
  * each matching bundle. The value of the include pattern is the relative path
  * of that bundle (relative to the root directory of the file set that the
  * matching bundle originates from).
- * 
+ *
  * <p>
- * 
+ *
  * Finally this task may also be used to create a properties file suitable for
  * using as a replacement filter that will replace bundle names on the form
  * <tt>@name-N.N.N.jar@</tt> or bundle symbolic names on the form
  * <tt>@bundleSymbolicName.jar@</tt> with the relative path within the given
  * file set of the bundle with the given name and the highest version.
- * 
+ *
  * <pre>
  *   &lt;bundle_locator replacefilterfile="my.filter"&gt;
  *     &lt;fileset dir="${jars.dir}"&gt;
@@ -159,17 +159,17 @@ import org.osgi.framework.Version;
  *     &lt;/fileset&gt;
  *   &lt;/bundle_locator&gt;
  * </pre>
- * 
- * 
+ *
+ *
  * <h3>Parameters</h3>
- * 
+ *
  * <table border=>
  * <tr>
  * <td valign=top><b>Attribute</b></td>
  * <td valign=top><b>Description</b></td>
  * <td valign=top><b>Required</b></td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>bundleName</td>
  * <td valign=top>
@@ -181,19 +181,19 @@ import org.osgi.framework.Version;
  * <tt>bundleName</tt>-attribute may be specified as <tt>name</tt>.
  * <li>The symbolic name of the bundle.
  * </ul>
- * 
+ *
  * A property with name given by the value of the attribute <tt>property</tt>
  * with the location (absolute path) of the bundle as value is added to the
  * project.
- * 
+ *
  * </td>
  * <td valign=top>No. No default value.</td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>bundleNames</td>
  * <td valign=top>
- * 
+ *
  * A comma separated list of bundle names to look for. There are several ways to
  * specify the bundle name.
  * <ul>
@@ -202,19 +202,19 @@ import org.osgi.framework.Version;
  * <tt>bundleName</tt>-attribute may be specified as <tt>name</tt>.
  * <li>The symbolic name of the bundle.
  * </ul>
- * 
+ *
  * The absolute path of the matching bundle will be stored in a project property
  * named <tt>bap.<em>bundleName</em></tt>.
- * 
+ *
  * <p>
- * 
+ *
  * If the attribute <tt>property</tt> is set its value will be used as prefix
  * for the property names in stead of the default <tt>bap.</tt>
- * 
+ *
  * </td>
  * <td valign=top>No. No default value.</td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>property</td>
  * <td valign=top>
@@ -223,14 +223,14 @@ import org.osgi.framework.Version;
  * <td valign=top>Yes when <tt>bundleName</tt> is specified.<br>
  * No default value.</td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>classPathRef</td>
  * <td valign=top>
  * The reference name (id) of a path-structure to transform.</td>
  * <td valign=top>No. No default value.</td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>newClassPathId</td>
  * <td valign=top>
@@ -239,7 +239,7 @@ import org.osgi.framework.Version;
  * <td valign=top>Yes when <tt>classPathRef</tt> is specified.<br>
  * No default value.</td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>patternSetId</td>
  * <td valign=top>
@@ -247,7 +247,7 @@ import org.osgi.framework.Version;
  * file set(s) and add it to the project using this name (id).</td>
  * <td valign=top>No. No default value.</td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>bundlePath</td>
  * <td valign=top>
@@ -258,30 +258,40 @@ import org.osgi.framework.Version;
  * that is defined as a file-URL.</td>
  * <td valign=top>No. No default value.</td>
  * </tr>
- * 
+ *
+ * <tr>
+ * <td valign=top>baseDir</td>
+ * <td valign=top>
+ * Path to directory to use as base-directory to complete relative
+ * file URLs in the <code>bundlePath</code>.
+ * </td>
+ * <td valign=top>No. Defaults to the empty string, i.e., the current
+ * working directory.</td>
+ * </tr>
+ *
  * <tr>
  * <td valign=top>failOnMissingBundles</td>
  * <td valign=top>
- * 
+ *
  * If an entry with a file name like <tt><em>bundleName</em>-N.N.N.jar</tt> is
  * found on the classpath to transform and there is no matching bundle in the
  * file set then a build failure is triggered if this attribute is set to
  * <tt>true</tt>. Same applies if the given <tt>bundleName</tt> or one of the
  * given <tt>bundleNames</tt> does not yield a match.
- * 
+ *
  * </td>
  * <td valign=top>No.<br>
  * Defaults to <tt>true</tt>.</td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>extendedReplaceFilter</td>
  * <td valign=top>
- * 
+ *
  * If set to <tt>true</tt> then the replace filter generated by the
  * <tt>replacefilter</tt> attribute will be extended with the following set of
  * replacements for each matching bundle.
- * 
+ *
  * <table>
  * <tr>
  * <th>Key</th>
@@ -292,10 +302,10 @@ import org.osgi.framework.Version;
  * <tt>@<em>bundleName</em>&#x2011;N.N.N.name@</tt><br>
  * <tt>@<em>Bundle&#x2011;SymbolicName</em>.name@</tt></td>
  * <td valign="top">
- * 
+ *
  * The bundle symbolic name from the manifest. For bundles with manifest version
  * 1 (i.e., pre OSGi R4 bundles) the bundle name.
- * 
+ *
  * </td>
  * <tr>
  * <tr>
@@ -303,9 +313,9 @@ import org.osgi.framework.Version;
  * <tt>@<em>bundleName</em>&#x2011;N.N.N.version@</tt><br>
  * <tt>@<em>Bundle&#x2011;SymbolicName</em>.version@</tt></td>
  * <td valign="top">
- * 
+ *
  * The bundle version from the manifest.
- * 
+ *
  * </td>
  * <tr>
  * <tr>
@@ -313,26 +323,26 @@ import org.osgi.framework.Version;
  * <tt>@<em>bundleName</em>&#x2011;N.N.N.location@</tt><br>
  * <tt>@<em>Bundle&#x2011;SymbolicName</em>.location@</tt></td>
  * <td valign="top">
- * 
+ *
  * The absolute path of the bundle.
- * 
+ *
  * </td>
  * <tr>
  * </table>
- * 
+ *
  * </td>
  * <td valign=top>No.<br>
  * Defaults to <tt>false</tt>.</td>
  * </tr>
- * 
+ *
  * <tr>
  * <td valign=top>replacefilterfile</td>
  * <td valign=top>
- * 
+ *
  * Creates a property file suitable for use as the <tt>replacefilterfile</tt>
  * argument in the replace-task. The generated file will contain two entries for
  * each matching bundle.
- * 
+ *
  * <table>
  * <tr>
  * <th>Key</th>
@@ -343,29 +353,29 @@ import org.osgi.framework.Version;
  * <tt>@<em>bundleName</em>&#x2011;N.N.N.jar@</tt><br>
  * <tt>@<em>Bundle&#x2011;SymbolicName</em>.jar@</tt></td>
  * <td valign="top">
- * 
+ *
  * The relative path to the bundle from the root-directory of the file set that
  * the matching bundle originates from.
- * 
+ *
  * </td>
  * <tr>
  * </table>
- * 
+ *
  * </td>
  * <td valign=top>No.<br>
  * No default value.</td>
  * </tr>
- * 
+ *
  * </table>
- * 
+ *
  * <h3>Parameters specified as nested elements</h3>
  * <h4>fileset</h4>
- * 
+ *
  * (required)<br>
  * <p>
  * The jar files to match against must be specified as a fileset.
  * </p>
- * 
+ *
  */
 public class BundleLocator extends Task {
 
@@ -385,6 +395,7 @@ public class BundleLocator extends Task {
   private File      replacefilterfile    = null;
   private boolean   extendedReplaceFilter= false;
   private String    bundlePath           = null;
+  private File      baseDir              = new File(".");
 
 
   public BundleLocator() {
@@ -433,35 +444,58 @@ public class BundleLocator extends Task {
   public void setBundlePath(String bundlePath) throws BuildException {
     this.bundlePath = bundlePath;
     log("bundlePath='" + bundlePath + "'.", Project.MSG_DEBUG);
+  }
 
-    // Create a file set for each entry in the path.
-    String[] urls = Util.splitwords(this.bundlePath, ";", '"');
-    for (int i = 0; i < urls.length; i++) {
-      log("Processing URL '" + urls[i] + "' from bundlePath '"
-          + this.bundlePath + "'.", Project.MSG_DEBUG);
-      try {
-        final URL url = new URL(urls[i].trim());
-        if ("file".equals(url.getProtocol())) {
-          final String path = url.getPath();
-          final File dir = new File(path.replace('/', File.separatorChar));
-          log("Adding file set with dir '" + dir
-              + "' for bundlePath file URL with path '" + path + "'.",
-              Project.MSG_VERBOSE);
-          FileSet fs = new FileSet();
-          fs.setDir(dir);
-          fs.setIncludes("**/*.jar");
-          fs.setProject(getProject());
-          filesets.add(fs);
+  public void setBaseDir(File f)
+  {
+    baseDir = f;
+  }
+
+  private URL getBaseURL()
+  {
+    try {
+      return baseDir.toURI().toURL();
+    } catch (MalformedURLException e) {
+      throw new BuildException("Invalid baseDir, '" + baseDir + "'.", e);
+    }
+  }
+
+  private void processBundlePath()
+  {
+    if (null!=bundlePath && 0<bundlePath.length()) {
+      final URL baseUrl = getBaseURL();
+      // Create a file set for each entry in the bundle path.
+      String[] urls = Util.splitwords(this.bundlePath, ";", '"');
+      for (int i = 0; i < urls.length; i++) {
+        log("Processing URL '" + urls[i] + "' from bundlePath '"
+            + this.bundlePath + "'.", Project.MSG_DEBUG);
+        try {
+          final URL url = new URL(baseUrl, urls[i].trim());
+          if ("file".equals(url.getProtocol())) {
+            final String path = url.getPath();
+            final File dir = new File(path.replace('/', File.separatorChar));
+            log("Adding file set with dir '" + dir
+                + "' for bundlePath file URL with path '" + path + "'.",
+                Project.MSG_VERBOSE);
+            FileSet fs = new FileSet();
+            fs.setDir(dir);
+            fs.setIncludes("**/*.jar");
+            fs.setProject(getProject());
+            filesets.add(fs);
+          }
+        } catch (MalformedURLException e) {
+          throw new BuildException("Invalid URL, '" + urls[i]
+                                   + "' found in bundlePath: '"
+                                   + bundlePath + "'.", e);
         }
-      } catch (MalformedURLException e) {
-        throw new BuildException("Invalid URL, '" + urls[i]
-            + "' found in bundlePath: '" + bundlePath + "'.", e);
       }
     }
   }
 
   // Implements Task
   public void execute() throws BuildException {
+    processBundlePath();
+
     if (filesets.size() == 0) {
       throw new BuildException("No fileset specified");
     }
