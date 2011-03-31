@@ -215,7 +215,8 @@
     <delete dir="${distrib.osgi.dir}" includes="*.xargs"/>
 
     <ant dir="${osgi.dir}" target="xargs">
-      <property name="xargs.out.dir" location="${distrib.osgi.dir}"/>
+      <property name="xargs.out.dir"  location="${distrib.osgi.dir}"/>
+      <property name="xargs.base.dir" location="${distrib.osgi.dir}"/>
       <property name="jars.dir"      location="${distrib.osgi.dir}/jars"/>
       <property name="gosg.jars"     value="file:jars/"/>
       <property name="base.url"      value="${base.url}"/>
@@ -404,6 +405,7 @@
       <property name="jars.dir"      location="${distrib.osgi.dir}/jars"/>
       <property name="test.jars.dir" location="${distrib.osgi.dir}/test_jars"/>
       <property name="xargs.out.dir" location="${distrib.osgi.dir}"/>
+      <property name="xargs.base.dir" location="${distrib.osgi.dir}"/>
       <property name="run.test.dir"  location="${distrib.osgi.dir}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
     </ant>
