@@ -29,6 +29,9 @@
     <element name="bundles"
              optional="true"
              description="Place holder element that specifies file-sets to search for bundles to use when expanding symbolic bundle names in the template file."/>
+    <element name="replacefilters"
+             optional="true"
+             description="Additional replacefilter elements applied to the resulting xargs file."/>
 
     <sequential>
       <delete file="@{xargs}"/>
@@ -67,6 +70,7 @@
 	<replacefilter token="$(VERSION)"         value="${version}"/>
 	<replacefilter token="$(OS_ARGS)"         value="${xargs.os.args}"/>
 	<replacefilter token="$(DO_CPA_TEST)"     value="${do.cpa.test}"/>
+	<replacefilters/>
       </replace>
     </sequential>
   </macrodef>
