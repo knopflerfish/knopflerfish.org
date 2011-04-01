@@ -336,6 +336,10 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		catch (IllegalStateException e) {
 			/* In case the context was stopped. */
 		}
+                // Backport fix waking up listeners waiting from OSGi 4.2. (GE)
+                synchronized (outgoing) {
+                        outgoing.notifyAll(); /* wake up any waiters */
+                }
 		if (references != null) {
 			for (int i = 0; i < references.length; i++) {
 				outgoing.untrack(references[i]);
@@ -445,11 +449,14 @@ public class ServiceTracker implements ServiceTrackerCustomizer {
 		}
 		Object object = getService();
 		while (object == null) {
-			Tracked tracked = this.tracked; /*
+			final Tracked tracked = this.tracked; /*
 											 * use local var since we are not
 											 * synchronized
 											 */
 			if (tracked == null) { /* if ServiceTracker is not open */
+                          if (DEBUG) {
+                            System.out.println("ServiceTracker.waitForService returning null since ServiceTracker closed");
+                          }
 				return null;
 			}
 			synchronized (tracked) {
