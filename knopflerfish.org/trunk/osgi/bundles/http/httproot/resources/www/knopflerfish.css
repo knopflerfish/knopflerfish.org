@@ -20,16 +20,64 @@ BODY  {
   height: 65px;
 }
 
-#header_fade {
-  height: 10px;
-  background-image: url('images/fadeout_15.png');
+#header_menu {
+  height: 25px;
+  background-image: url('/images/fade_menu.png');
   background-repeat: repeat-x;
+  padding: 8px 0px 2px 20px;
+  font-size: 12px;
+  word-spacing: +10px;
+}
+
+#header_menu A {
+  color: #fff;
+  text-decoration: none;
+}
+	     
+#header_menu A:hover {
+  text-decoration: underline;
 }
 
 #mainblock {
-  margin: 20px 10px 20px 10px;
-  font-family: Helvetica, sans-serif;
-  font-size: 11pt;
+  margin: 40px 20px 40px 20px;
+}
+
+/********** Footer **********/
+#footer {
+  clear:both;
+  border-style: solid;
+  border-color: #802060;
+  border-width: 1px 0px 0px 0px;
+  margin:	20px 15px 15px 15px;
+}
+
+#copyright {
+  margin-left: 200px;
+  font-size:10px;
+  color: #000;
+  text-align: right;
+  padding: 5px 10px 0px 0px;
+}	  
+
+.button_closed, .button_open {
+ padding-top:    5px;
+ padding-left:   5px;
+ padding-bottom: 5px;
+ padding-right:  5px;
+ border-left-color:   #eaeaF2;
+ border-top-color:    #eaeaF2;
+ border-bottom-color: #eaeaF2;
+ border-right-color:  #eaeaF2;
+ border-style:        none;
+ border-left-width:   1px;
+ border-right-width:  1px;
+ border-top-width:    1px;
+ border-bottom-width: 1px;
+ font-weight: bold;
+}
+
+.button_open {
+ font-weight: normal;
 }
 
 

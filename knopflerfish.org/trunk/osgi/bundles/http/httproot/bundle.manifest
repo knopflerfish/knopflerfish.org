@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HTTP-root
 Bundle-SymbolicName: org.knopflerfish.bundle.httproot
-Bundle-Version: 2.0.2
+Bundle-Version: 3.0.0
 Bundle-Category: example
-Bundle-Description: Demo HTTP root servlet
+Bundle-Description: Demo HTTP Service user that publishes on the root
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
@@ -16,4 +16,5 @@ Import-Package: javax.servlet,
  javax.servlet.http,
  org.knopflerfish.service.log,
  org.osgi.framework,
- org.osgi.service.http
+ org.osgi.service.http,
+ org.osgi.util.tracker

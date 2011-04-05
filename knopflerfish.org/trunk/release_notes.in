@@ -36,8 +36,24 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
+  HTTP-root 3.0.0
+
+  - Added example of a Http Service registration that publishes
+    contents from the local file system (the Knopflerfish
+    documentation). Updated look and feel of the published pages to
+    match the one used on the Knopflerfish web-site. Replaced the
+    service listener with a ServiceTracker.
+    
+
   Build System
 
+  - The xargs-filtering target in the xargs include file has been
+    replaced by a task that can be used to expand bundle names and
+    variables in xargs-file templates. With the new task it is
+    possible to add your own variables to replace as well as searching
+    for bundles on more than two jars-directories to determine
+    expansions for bundle names with -N.N.N.jar in the template xargs
+    file.
   - The build system now requires that all packages to be exported by
     a bundle matches one of the patterns defined in the properties
     named 'api.pattern' or 'impl-api.pattern'. This applies to
@@ -62,6 +78,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     the ant-subdir to create an up-to date version of the
     bundle_tasks.jar-file.
   - Fixed so that KF builds with ant 1.8.
+
 
 
 Release Notes Knopflerfish 3.1.0 (OSGi R4 v4.2)
