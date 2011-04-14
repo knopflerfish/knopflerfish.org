@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HTTP-root
 Bundle-SymbolicName: org.knopflerfish.bundle.httproot
-Bundle-Version: 3.0.0
+Bundle-Version: 3.0.1
 Bundle-Category: example
 Bundle-Description: Demo HTTP Service user that publishes on the root
 Bundle-Vendor: Knopflerfish

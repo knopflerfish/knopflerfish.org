@@ -36,8 +36,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
-  HTTP-root 3.0.0
+  HTTP-root 3.0.1
 
+  - Sort entries on the Http-Server-Info page.
   - Added example of a Http Service registration that publishes
     contents from the local file system (the Knopflerfish
     documentation). Updated look and feel of the published pages to

@@ -36,11 +36,14 @@ package org.knopflerfish.bundle.httproot;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.servlet.ServletException;
@@ -91,7 +94,8 @@ public class InfoServlet extends HttpServlet {
   }
 
   void printMain(PrintWriter out) throws IOException {
-    String[] keys = httpSR.getPropertyKeys();
+    final String[] keys = httpSR.getPropertyKeys();
+    Arrays.sort(keys);
 
     out.println("<h2>Web server properties</h2>");
 
@@ -129,11 +133,18 @@ public class InfoServlet extends HttpServlet {
   }
 
   void printDictionary(PrintWriter out, Dictionary d) throws IOException {
+    // Sort keys using a sorted set.
+    final TreeSet keys = new TreeSet();
+    for(Enumeration e = d.keys(); e.hasMoreElements();) {
+      final String key = (String) e.nextElement();
+      keys.add(key);
+    }
 
     out.println("<table>");
-    for(Enumeration e = d.keys(); e.hasMoreElements();) {
-      Object key = e.nextElement();
-      Object val = d.get(key);
+    for(Iterator it = keys.iterator(); it.hasNext();) {
+      final String key = (String) it.next();
+      final Object val = d.get(key);
+
       out.println("<tr>");
 
       out.println("<td>");
@@ -150,11 +161,13 @@ public class InfoServlet extends HttpServlet {
   }
 
   void printMap(PrintWriter out, Map m) throws IOException {
+    // Sorted map
+    final TreeMap ms = new TreeMap(m);
 
     out.println("<table>");
-    for(Iterator it = m.keySet().iterator(); it.hasNext();) {
-      Object key = it.next();
-      Object val = m.get(key);
+    for(Iterator it = ms.keySet().iterator(); it.hasNext();) {
+      final Object key = it.next();
+      final Object val = ms.get(key);
 
       out.println("<tr>");
 
