@@ -36,6 +36,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
+  Desktop 3.1.6
+
+  - Bundles are now allways selected when installed and deselected
+    when uninstalled. The viewers did not allways show details for a
+    new bundle when it was installed (the bundle was selected, but due
+    to a race condition the selection notification was sometimes
+    ignored).
+  - Viewers are now updated when one of the selected bundles are
+    changes. E.g., when updated.
+
+
   HTTP-root 3.0.1
 
   - Sort entries on the Http-Server-Info page.
