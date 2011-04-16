@@ -395,6 +395,12 @@ public class BundleMvnAntTask extends Task {
     final Element dm = doc.createElement("dependencyManagement");
     root.appendChild(dm);
 
+    // Element hodling extra presentation data for each bundle artifact
+    final Element bundles = doc.createElement("bundles");
+    root.appendChild(doc.createTextNode("\n"));
+    root.appendChild(bundles);
+
+
     dm.appendChild(doc.createTextNode("\n"+prefix1));
     final Element dependencies = doc.createElement("dependencies");
     dm.appendChild(dependencies);
@@ -417,26 +423,54 @@ public class BundleMvnAntTask extends Task {
         // Dummy element to read mvn coordinates from
         final Element coordinateEl = doc.createElement("dummy");
         addMavenCoordinates(coordinateEl, ba);
-
-        dependency.appendChild(doc.createTextNode("\n" +prefix3));
-        final Element groupId = doc.createElement("groupId");
-        dependency.appendChild(groupId);
-        groupId.appendChild(doc.createTextNode(coordinateEl.getAttribute("groupId")));
-
-        dependency.appendChild(doc.createTextNode("\n" +prefix3));
-        final Element artifactId = doc.createElement("artifactId");
-        dependency.appendChild(artifactId);
-        artifactId.appendChild(doc.createTextNode(coordinateEl.getAttribute("artifactId")));
-
-        dependency.appendChild(doc.createTextNode("\n" +prefix3));
-        final Element version = doc.createElement("version");
-        dependency.appendChild(version);
-        version.appendChild(doc.createTextNode(coordinateEl.getAttribute("version")));
+        addMavenCoordinates(coordinateEl, dependency, prefix3);
 
         dependency.appendChild(doc.createTextNode("\n" +prefix2));
+
+        // Bundle metadata for xsl rendering
+        final Element bundle = doc.createElement("bundle");
+        bundles.appendChild(doc.createTextNode("\n" +prefix2));
+        bundles.appendChild(bundle);
+
+        bundle.appendChild(doc.createTextNode("\n" +prefix3));
+        final Element name = doc.createElement("name");
+        bundle.appendChild(name);
+        name.appendChild(doc.createTextNode(ba.name));
+
+        bundle.appendChild(doc.createTextNode("\n" +prefix3));
+        final Element descr = doc.createElement("description");
+        bundle.appendChild(descr);
+        descr.appendChild(doc.createTextNode(ba.getBundleDescription()));
+
+        addMavenCoordinates(coordinateEl, bundle, prefix3);
+
+        bundle.appendChild(doc.createTextNode("\n" +prefix3));
+        final Element url = doc.createElement("url");
+        bundle.appendChild(url);
+        String path = coordinateEl.getAttribute("groupId");
+        if (groupId.equals(path)) {
+          path = "";
+        } else if (path.startsWith(groupId)) {
+          path = path.substring(groupId.length()+1).replace('.','/') +"/";
+        } else {
+          path = "../../" + path.replace('.','/') + "/";
+        }
+        path = path
+          +coordinateEl.getAttribute("artifactId")
+          +"/"
+          +coordinateEl.getAttribute("version")
+          +"/"
+          +coordinateEl.getAttribute("artifactId")
+          +"-"
+          +coordinateEl.getAttribute("version")
+          +".jar";
+        url.appendChild(doc.createTextNode(path));
+
+        bundle.appendChild(doc.createTextNode("\n" +prefix2));
       }
     }
     dependencies.appendChild(doc.createTextNode("\n" +prefix1));
+    bundles.appendChild(doc.createTextNode("\n" +prefix1));
     dm.appendChild(doc.createTextNode("\n"));
     root.appendChild(doc.createTextNode("\n"));
 
@@ -533,15 +567,17 @@ public class BundleMvnAntTask extends Task {
   }
 
   /**
-   * Add Maven coordinates, attributes for group id, artifact id and version to
-   * the given element.
+   * Add Maven coordinates as attributes for group id, artifact id and
+   * version to the given element.
    *
    * @param el
    *          The element to add Maven coordinates to.
    * @param ba
    *          The bundle archive to defining the coordinates.
    */
-  private void addMavenCoordinates(final Element el, final BundleArchive ba) {
+  private void addMavenCoordinates(final Element el,
+                                   final BundleArchive ba)
+  {
     final int ix = ba.bsn.lastIndexOf('.');
     final String aId = -1==ix ? ba.bsn : ba.bsn.substring(ix+1);
     final String gId = -1==ix ? (String) groupId : ba.bsn.substring(0,ix);
@@ -553,6 +589,38 @@ public class BundleMvnAntTask extends Task {
     el.setAttribute("artifactId", aId);
     el.setAttribute("version", v.toString());
   }
+
+  /**
+   * Add Maven coordinates specified as attributes on the first
+   * element as child elements to the second element.
+   *
+   * @param ela
+   *          The element with Maven coordinates as attributes.
+   * @param elc
+   *          The element to add Maven coordinates as childe nodes to.
+   */
+  private void addMavenCoordinates(final Element ela,
+                                   final Element elc,
+                                   final String prefix)
+  {
+    final Document doc = elc.getOwnerDocument();
+
+    elc.appendChild(doc.createTextNode("\n" +prefix));
+    final Element groupId = doc.createElement("groupId");
+    elc.appendChild(groupId);
+    groupId.appendChild(doc.createTextNode(ela.getAttribute("groupId")));
+
+    elc.appendChild(doc.createTextNode("\n" +prefix));
+    final Element artifactId = doc.createElement("artifactId");
+    elc.appendChild(artifactId);
+    artifactId.appendChild(doc.createTextNode(ela.getAttribute("artifactId")));
+
+    elc.appendChild(doc.createTextNode("\n" +prefix));
+    final Element version = doc.createElement("version");
+    elc.appendChild(version);
+    version.appendChild(doc.createTextNode(ela.getAttribute("version")));
+  }
+
 
   /**
    * Add licenses element for the given bundle to the string buffer.
