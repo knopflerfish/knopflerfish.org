@@ -28,6 +28,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Services (Compendium) ===
 
+  Component (SCR) 3.0.1
+
+  - The value of a property specified in the body of the
+    property-element is now returned allways an as array. 
+    For details see the issue in the tracker, 
+    https://sourceforge.net/tracker/?func=detail&aid=3285927&group_id=82798&atid=567241
+
+
   HTTP-Server 3.0.3
 
   - Changed request uri parsing logic in order to avoid problems with
