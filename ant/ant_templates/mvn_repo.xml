@@ -17,7 +17,7 @@
   <property name="updateReleaseInfo" value="true"/>
 
   <!-- Download and define maven ant tasks -->
-  <property name="maven-ant-tasks.version" value="2.1.2"/>
+  <property name="maven-ant-tasks.version" value="2.1.3"/>
   <property name="maven-ant-tasks.jar"
             value="maven-ant-tasks-${maven-ant-tasks.version}.jar"/>
   <property name="maven-ant-tasks.path"
@@ -35,7 +35,7 @@
   </target>
 
   <target name="install_maven-ant-tasks" unless="maven-ant-tasks.present">
-    <!-- http://www.eu.apache.org/dist/maven/binaries/maven-ant-tasks-2.1.2.jar-->
+    <!-- http://www.eu.apache.org/dist/maven/binaries/maven-ant-tasks-${maven-ant-tasks.version}.jar-->
     <get src="http://apache.dataphone.se/maven/binaries/maven-ant-tasks-${maven-ant-tasks.version}.jar"
          dest="${maven-ant-tasks.path}"/>
   </target>
