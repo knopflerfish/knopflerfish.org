@@ -436,35 +436,38 @@ public class BundleMvnAntTask extends Task {
         final Element name = doc.createElement("name");
         bundle.appendChild(name);
         name.appendChild(doc.createTextNode(ba.name));
+        log("name: " +ba.name, Project.MSG_VERBOSE);
 
+        String description = ba.getBundleDescription();
+        log("description: " +description, Project.MSG_VERBOSE);
+        if (null==description) {
+          description = "";
+        }
         bundle.appendChild(doc.createTextNode("\n" +prefix3));
-        final Element descr = doc.createElement("description");
-        bundle.appendChild(descr);
-        descr.appendChild(doc.createTextNode(ba.getBundleDescription()));
+        final Element descrEl = doc.createElement("description");
+        bundle.appendChild(descrEl);
+        descrEl.appendChild(doc.createTextNode(description));
 
         addMavenCoordinates(coordinateEl, bundle, prefix3);
 
         bundle.appendChild(doc.createTextNode("\n" +prefix3));
+        String mvnPath = getMavenPath(coordinateEl);
+        final String groupIdPath = groupId.replace('.','/');
+        if (mvnPath.startsWith(groupIdPath)) {
+          mvnPath = mvnPath.substring(groupIdPath.length()+1);
+        } else {
+          // Add one "../" to mvnPath for each level in the groupId
+          mvnPath = "../" +mvnPath;
+          int pPos = groupIdPath.indexOf('.');
+          while (-1<pPos) {
+            mvnPath = "../" +mvnPath;
+            pPos = groupIdPath.indexOf('.', pPos+1);
+          }
+        }
         final Element url = doc.createElement("url");
         bundle.appendChild(url);
-        String path = coordinateEl.getAttribute("groupId");
-        if (groupId.equals(path)) {
-          path = "";
-        } else if (path.startsWith(groupId)) {
-          path = path.substring(groupId.length()+1).replace('.','/') +"/";
-        } else {
-          path = "../../" + path.replace('.','/') + "/";
-        }
-        path = path
-          +coordinateEl.getAttribute("artifactId")
-          +"/"
-          +coordinateEl.getAttribute("version")
-          +"/"
-          +coordinateEl.getAttribute("artifactId")
-          +"-"
-          +coordinateEl.getAttribute("version")
-          +".jar";
-        url.appendChild(doc.createTextNode(path));
+        log("mvnPath: " +mvnPath, Project.MSG_VERBOSE);
+        url.appendChild(doc.createTextNode(mvnPath));
 
         bundle.appendChild(doc.createTextNode("\n" +prefix2));
       }
@@ -621,6 +624,26 @@ public class BundleMvnAntTask extends Task {
     version.appendChild(doc.createTextNode(ela.getAttribute("version")));
   }
 
+  /**
+   * Build the relative path to the bundle represented by the givne
+   * maven coordinates.
+   *
+   * @param ela
+   *          An element with Maven coordinates as attributes.
+   *
+   * @return relative path from the root of the maven2 repository to
+   *         the bundle represented by the spceified coordinates.
+   */
+  private String getMavenPath(final Element ela)
+  {
+    String path = ela.getAttribute("groupId").replace('.','/') +"/"
+      +ela.getAttribute("artifactId") +"/"
+      +ela.getAttribute("version")    +"/"
+      +ela.getAttribute("artifactId") +"-"
+      +ela.getAttribute("version")    +".jar";
+
+    return path;
+  }
 
   /**
    * Add licenses element for the given bundle to the string buffer.
