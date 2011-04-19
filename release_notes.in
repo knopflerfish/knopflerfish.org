@@ -12,6 +12,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4.0.1)
 
   Framework 4.1.15
 
+  Added a Bundle-SymbolicName manifest attribute to framework.jar to
+  simplify use of it in PDE-projects in Eclipse.
+
   Backport fix for a problem in the org.osgi.util.ServiceTracker from OSGi 4.2. 
   Threads waiting in ServiceTracker.waitForService() where not notified
   when the serivce tracker was closed.
