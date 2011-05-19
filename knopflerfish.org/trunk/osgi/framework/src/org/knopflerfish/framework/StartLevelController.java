@@ -147,9 +147,10 @@ public class StartLevelController
                                       + "'.", nfe);
         }
       }
-      if (-1 < startLevel) {
-        setStartLevel0(startLevel, false, false, true);
+      if (startLevel<0) {
+        startLevel = 1;
       }
+      setStartLevel0(startLevel, false, false, true);
 
       // Restore the initial bundle start level
       try {
