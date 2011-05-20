@@ -90,18 +90,19 @@ public class StartLevelController
       fwCtx.debug.println("startlevel: open");
     }
 
-    final Runnable firstJob = (Runnable)jobQueue.firstElement();
+    final Runnable lastJob = (Runnable)jobQueue.lastElement();
     wc = new Thread(fwCtx.threadGroup, this, "startlevel job");
-    synchronized (firstJob) {
+    synchronized (lastJob) {
       bRun = true;
       wc.start();
       if (!acceptChanges) {
         acceptChanges = true;
         restoreState();
       }
-      // Wait for first job to complete before return
+      // Wait for the last of the jobs scheduled before starting the
+      // framework to complete before return
       try {
-        firstJob.wait();
+        lastJob.wait();
       } catch (InterruptedException _ignore) { }
     }
   }
