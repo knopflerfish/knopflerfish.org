@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2005, KNOPFLERFISH project
+ * Copyright (c) 2004-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   // Sample export bundle
   Bundle buA;
   Bundle buA1;
+  Bundle buI;
 
   // Package version test bundles
   Bundle buPT1;
@@ -88,6 +89,12 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Setup());
     addTest(new Frame310a());
     addTest(new Cleanup());
+    addTest(new Setup());
+    addTest(new Frame320a());
+    addTest(new Cleanup());
+    addTest(new Setup());
+    addTest(new Frame325a());
+    addTest(new Cleanup());
   }
  
 
@@ -122,6 +129,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
       Bundle[] bundles = new Bundle[] {
 	buA ,
 	buA1,
+	buI,
 	buPT1,
 	buPT2,
 	buPT3
@@ -134,6 +142,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
       // Package version test bundles
       buA = null;
       buA1 = null;
+      buI = null;
       buPT1 = null;
       buPT2 = null;
       buPT3 = null;
@@ -148,34 +157,25 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   class Frame300a extends FWTestCase {
 
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-
       // Register and start the two test bundles 
       try {
 	buPT1 = Util.installBundle(bc, "bundlePT1_test-1.0.0.jar");
 	buPT1.start();
       }
       catch (BundleException bexcR) {
-	teststatus = false;
 	fail("framework test bundle "+ bexcR +"(" + bexcR.getNestedException() + ") :FRAME300A:FAIL");
       }
       catch (SecurityException secR) {
-	teststatus = false;
 	fail("framework test bundle "+ secR +" :FRAME300A:FAIL");
       }
 
-      String ciStr = checkImport(bc, buA_package, new Version(1,5,2), buPT1);
+      String ciStr = checkImport(bc, buA_package, new Version(1,5,2),
+                                 new Bundle[] {buPT1});
       if ( ciStr != null ) {
-	  teststatus = false;
 	  fail(ciStr +  ":FRAME300A:FAIL");
       }
 
-      if (teststatus == true) {
-	out.println("### framework test bundle :FRAME300A:PASS");
-      }
-      else {
-	fail("### framework test bundle :FRAME300A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME300A:PASS");
     }
   }
 
@@ -187,34 +187,24 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   class Frame305a extends FWTestCase {
 
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-
-      // Register and start the two test bundles 
       try {
 	buPT2 = Util.installBundle(bc, "bundlePT2_test-1.0.0.jar");
 	buPT2.start();
       }
       catch (BundleException bexcR) {
-	teststatus = false;
 	fail("framework test bundle "+ bexcR +"(" + bexcR.getNestedException() + ") :FRAME305A:FAIL");
       }
       catch (SecurityException secR) {
-	teststatus = false;
 	fail("framework test bundle "+ secR +" :FRAME305A:FAIL");
       }
 
-      String ciStr = checkImport(bc, buA_package, new Version(1,0,0), buPT2);
+      String ciStr = checkImport(bc, buA_package, new Version(1,0,0),
+                                 new Bundle[] {buPT2});
       if ( ciStr != null ) {
-	  teststatus = false;
 	  fail(ciStr +  ":FRAME305A:FAIL");
       }
 
-      if (teststatus == true) {
-	out.println("### framework test bundle :FRAME305A:PASS");
-      }
-      else {
-	fail("### framework test bundle :FRAME305A:FAIL");
-      }
+      out.println("### framework test bundle :FRAME305A:PASS");
     }
   }
 
@@ -226,17 +216,13 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   class Frame310a extends FWTestCase {
 
     public void runTest() throws Throwable {
-      boolean teststatus = true;
-
       try {
 	buPT3 = Util.installBundle(bc, "bundlePT3_test-1.0.0.jar");
       }
       catch (BundleException bexcR) {
-	teststatus = false;
 	fail("framework test bundle "+ bexcR +"(" + bexcR.getNestedException() + ") :FRAME310A:FAIL");
       }
       catch (SecurityException secR) {
-	teststatus = false;
 	fail("framework test bundle "+ secR +" :FRAME310A:FAIL");
       }
       try {
@@ -247,16 +233,127 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
 	// start should fail with BundleException
       }
       catch (SecurityException secR) {
-	teststatus = false;
 	fail("framework test bundle "+ secR +" :FRAME310A:FAIL");
       }
 
-      if (teststatus == true) {
-	out.println("### framework test bundle :FRAME310A:PASS");
+      out.println("### framework test bundle :FRAME310A:PASS");
+    }
+  }
+
+
+  public final static String [] HELP_FRAME320A =  {
+    "Optional import test. BundleA exports package A version 1.0 and B",
+    "BundleA1 exports package A version 1.5.2.",
+    "Start bundleI that imports package A 1.5 or better optionaly and B",
+    "any version. BundleI should import package A from A1 and package B",
+    " from A and BundleA should import package A from A1."
+  };
+
+  class Frame320a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME320A start");
+
+      try {
+        buI = Util.installBundle(bc, "bundleI_test-1.0.0.jar");
+        assertTrue("BundleI should be INSTALLED",
+                   buI.getState() == Bundle.INSTALLED);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME320A:FAIL");
+      } catch (SecurityException secA) {
+        out.println("Unexpected security exception: "+secA);
+        secA.printStackTrace();
+        fail("framework test bundle "+ secA +" :FRAME320A:FAIL");
       }
-      else {
-	fail("### framework test bundle :FRAME310A:FAIL");
+
+      // Start I
+      try {
+        buI.start();
+        assertTrue("BundleI should be ACTIVE",
+                   buI.getState() == Bundle.ACTIVE);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME320A:FAIL");
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME320A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME320A:FAIL");
       }
+      assertTrue("BundleA should be RESOLVED",
+                 buA.getState() == Bundle.RESOLVED);
+      assertTrue("BundleA1 should be RESOLVED",
+                 buA1.getState() == Bundle.RESOLVED);
+      String ciStr = checkImport(bc, buA_package, new Version(1,5,2),
+                                 new Bundle[] {buI, buA});
+      if ( ciStr != null ) {
+	  fail(ciStr +  ":FRAME320A:FAIL");
+      }
+
+      out.println("### framework test bundle :FRAME320A:PASS");
+    }
+  }
+
+
+  public final static String [] HELP_FRAME325A =  {
+    "Optional import test. BundleA exports package version 1.0",
+    "then start bundleI that imports 1.5 or better optionally. Check that",
+    "bundle start fails, meaning it did not get the package. But the bundle",
+    "resolves, meaning that the import was optional."
+  };
+
+  class Frame325a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME325A start");
+
+      try {
+        buI = Util.installBundle(bc, "bundleI_test-1.0.0.jar");
+        assertTrue("BundleI should be INSTALLED",
+                   buI.getState() == Bundle.INSTALLED);
+      } catch (BundleException bexcA) {
+        out.println("Unexpected bundle exception: "+bexcA);
+        bexcA.printStackTrace();
+        fail("framework test bundle "+ bexcA +" :FRAME325A:FAIL");
+      } catch (SecurityException secA) {
+        out.println("Unexpected security exception: "+secA);
+        secA.printStackTrace();
+        fail("framework test bundle "+ secA +" :FRAME325A:FAIL");
+      }
+
+      // Uninstall exporter of package version 1.5.2
+      buA1.uninstall();
+
+      // Start I
+      try {
+        buI.start();
+        fail("framework test bundleI start should fail :FRAME325A:FAIL");
+      } catch (BundleException bexcA) {
+        System.out.println("STATE I = " + buI.getState() + " should " + Bundle.RESOLVED);
+        assertTrue("BundleI should be RESOLVED",
+                   buI.getState() == Bundle.RESOLVED);
+      } catch (IllegalStateException ise) {
+        out.println("Unexpected illegal state exception: "+ise);
+        ise.printStackTrace();
+        fail("framework test bundle "+ ise +" :FRAME325A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME325A:FAIL");
+      }
+      assertTrue("BundleA should be RESOLVED",
+                 buA.getState() == Bundle.RESOLVED);
+      String ciStr = checkImport(bc, buA_package, new Version(1,0,0),
+                                 new Bundle[] {});
+      if ( ciStr != null ) {
+	  fail(ciStr +  ":FRAME325A:FAIL");
+      }
+
+      out.println("### framework test bundle :FRAME325A:PASS");
     }
   }
 
@@ -265,7 +362,7 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
   // Help methods
   //
 
-  private String checkImport(BundleContext bc, String pkg, Version ver, Bundle b)
+  private String checkImport(BundleContext bc, String pkg, Version ver, Bundle[] eibs)
   {
       PackageAdmin packService = null;
 
@@ -285,6 +382,25 @@ public class PackageTestSuite extends TestSuite implements FrameworkTest {
 	return "Imported wrong package, found no version";
       } else if (ver.compareTo(exp.getVersion()) != 0) {
 	return "Imported wrong package, found " + exp;
+      }
+      Bundle[] ibs = exp.getImportingBundles();
+      for (int i = 0; i < eibs.length; i++) {
+        for (int j = 0; j < ibs.length; j++) {
+          if (eibs[i] == ibs[j]) {
+            eibs[i] = null;
+            ibs[j] = null;
+          } 
+        }
+      }
+      for (int i = 0; i < eibs.length; i++) {
+        if (eibs[i] != null) {
+          return "Missing importer: " + eibs[i].getLocation();
+        }
+      }
+      for (int j = 0; j < ibs.length; j++) {
+        if (ibs[j] != null) {
+          return "Unexpected importer: " + ibs[j].getLocation();
+        }
       }
       return null;
   }

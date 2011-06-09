@@ -50,6 +50,7 @@
     <antcall target="bundleE_test"/>
     <antcall target="bundleF_test"/>
     <antcall target="bundleG_test"/>
+    <antcall target="bundleI_test"/>
     <antcall target="bundleJ_test"/>
     <antcall target="bundleU_test"/>
     <antcall target="bundleV_test"/>
@@ -165,6 +166,14 @@
 	 inheritAll="false">
       <property name="jardir"  location="${resources.dir}"/>
       <property name="outdir"  location="${ttb.outdir}/bundleG_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleI_test">
+    <ant dir="test_target_bundles/bundleI_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleI_test"/>
       <property name="bundle_tasks.built" value="true"/> 
     </ant>
   </target>

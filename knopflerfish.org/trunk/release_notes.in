@@ -10,8 +10,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-  Framework 5.1.12
+  Framework 5.1.13
 
+  - Fixed bug when resolving bundles with optional resolution that isn't
+    satisfied, see
+    http://sourceforge.net/tracker/?func=detail&atid=567241&aid=3301526&group_id=82798
+  - Fixed bug when wiring packages with conflicting attributes.
+  - Fixed permission check bug for package import.
   - Fixed a problem with the beginning start level for the start level
     service, see 
     https://sourceforge.net/tracker/?func=detail&aid=3303909&group_id=82798&atid=567241
