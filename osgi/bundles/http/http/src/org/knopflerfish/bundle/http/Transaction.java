@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,10 +131,18 @@ public class Transaction
                                  remoteAddress, remotePort, httpConfig);
                     response.init(os, request, httpConfig);
 
+		    String method = request.getMethod();
                     String uri = request.getRequestURI();
                     RequestDispatcherImpl dispatcher = registrations
-                            .getRequestDispatcher(uri);
-                    if (dispatcher != null) {
+		      .getRequestDispatcher(uri);
+
+		    if ("TRACE".equals(request.getMethod()) && !httpConfig.isTraceEnabled()) {
+		      response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+		    }
+		    else if (dispatcher == null) {
+		      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+		    }
+		    else {
                         // HACK SMA Expect: 100-Continue
                         String expect = request.getHeader(HeaderBase.EXPECT_HEADER_KEY);
                         if (expect != null){
@@ -157,12 +165,10 @@ public class Transaction
                         } catch (ServletException se) {
                             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                         }
-                    } else {
-                        response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                    }
+		    }
 
                 } catch (HttpException he) {
-                    response.init(os, httpConfig);
+		    response.init(os, httpConfig);
                     response.sendError(he.getCode(), he.getMessage());
                 }
 
