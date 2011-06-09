@@ -565,9 +565,13 @@ class Packages {
             // NYI, print what is missing
           }
           provider = null;
-        } else if (!ip.checkPermission(provider)) {
-          // We can not make internal wire because it could collide with the
+        } else if (ip.bpkgs != provider.bpkgs && !ip.checkPermission(provider)) {
+          // We can not make internal wire if it collide with the
           // provided version.
+          if (framework.debug.packages) {
+            framework.debug.println("resolvePackages: " + ip.name +
+                                    " -  has no permission to use - " + provider);
+          }
           provider = null;
         }
       } else {
@@ -687,7 +691,10 @@ class Packages {
     }
     for (Iterator i = possibleProvider.iterator(); i.hasNext();) {
       ExportPkg ep = (ExportPkg)i.next();
-      if (tempResolved.contains(ep.bpkgs.bg.bundle) || checkResolve(ep.bpkgs.bg.bundle)) {
+      if (framework.debug.packages) {
+        framework.debug.println("pickProvider: check possible provider - " + ep);
+      }
+      if (tempResolved.contains(ep.bpkgs.bg.bundle) || checkResolve(ep.bpkgs.bg.bundle, ep)) {
         if (framework.debug.packages) {
           framework.debug.println("pickProvider: " + ip + " - got provider - " + ep);
         }
@@ -707,14 +714,18 @@ class Packages {
    * installed state.
    * 
    * @param b Bundle to be checked.
+   * @param ep ExportPkg that must be exported by bundle.
    * @return true if resolvable otherwise false.
    */
-  private boolean checkResolve(BundleImpl b) {
+  private boolean checkResolve(BundleImpl b, ExportPkg ep) {
     if (checkBundleSingleton(b) == null) {
       HashSet oldTempResolved = (HashSet)tempResolved.clone();
       HashMap oldTempProvider = (HashMap)tempProvider.clone();
       HashMap oldTempRequired = (HashMap)tempRequired.clone();
       HashSet oldTempBlackList = (HashSet)tempBlackList.clone();
+      if (ep != null) {
+        tempProvider.put(ep.pkg.pkg, ep);
+      }
       tempResolved.add(b);
       if (checkRequireBundle(b) == null) {
         List r = resolvePackages(b.gen.bpkgs.getImports());
@@ -864,7 +875,7 @@ class Packages {
             }
           } else if (b2.state == Bundle.INSTALLED &&
                      framework.perm.okProvideBundlePerm(b2) &&
-                     checkResolve(b2)) {
+                     checkResolve(b2, null)) {
             ok = b2;
           }
         }
@@ -946,7 +957,7 @@ class Packages {
             }
           } else {
             // NYI! This check is already done, we should cache result
-            if (ip.checkPermission(ep)) {
+            if (ip.checkAttributes(ep) && ip.checkPermission(ep)) {
               ip.provider = ep;
             } else {
               // Check if got a missmatching internal wire.
