@@ -113,6 +113,14 @@ public class HttpConfigWrapper {
       return config.isTraceEnabled();
     }
 
+    public int getLimitPostSize() {
+      return config.getLimitPostSize();
+    }
+
+    public int getLimitRequestHeaders() {
+      return config.getLimitRequestHeaders();
+    }
+
     String getDefaultCharacterEncoding() {
       return config.getDefaultCharacterEncoding();
     }

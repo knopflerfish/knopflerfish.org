@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -213,13 +213,18 @@ public class HeaderBase {
     String name = null;
     String value = null;
     ArrayList values = null;
+    final int limit = httpConfig.getLimitRequestHeaders() - 1;
 
     String line = in.readLine();
     while (line != null && line.length() > 0) {
-
+      
+      if (headers.size() > limit) {
+	throw new HttpException(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);
+      }
+      
       char c = line.charAt(0);
       if (c == ' ' || c == '\t') { // continued header value
-
+	
         // check not first line
         if (!(name != null && value != null && values != null))
           throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);

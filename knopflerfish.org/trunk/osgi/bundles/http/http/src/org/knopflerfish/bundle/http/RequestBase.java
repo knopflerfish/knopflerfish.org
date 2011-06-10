@@ -184,7 +184,7 @@ public class RequestBase extends HeaderBase {
     index = line.indexOf(' ');
     if (index == -1)
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
-    method = line.substring(0, index);
+    method = line.substring(0, index).toUpperCase();
 
     // get uri
     line = line.substring(index + 1);
