@@ -587,7 +587,11 @@ public class RequestDispatcherImpl
 } // RequestDispatcherImpl
 
 
-
+/* 
+ * Methods below reused/copied from JSDK, HttpServlet.java
+ * Provided under a Apache-2 license
+ */
+   
 /*
  * A response that includes no body, for use in (dumb) "HEAD" support.
  * This just swallows that body, counting the bytes in order to set
@@ -613,7 +617,7 @@ class NoBodyResponse implements HttpServletResponse {
       resp.setContentLength(noBody.getContentLength());
   }
 
-
+  
   // SERVLET RESPONSE interface methods
 
   public void setContentLength(int len) {

@@ -171,6 +171,13 @@ public class RequestImpl implements Request, PoolableObject {
       connection = getHeader("Proxy-Connection");
     }
 
+    boolean isPost = RequestBase.POST_METHOD.equals(base.getMethod());
+    if (isPost) {
+      int limit = httpConfig.getLimitPostSize();
+      if (limit > 0 && available > limit)
+	throw new HttpException(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);
+    }
+
     if (available != -1) {
       if (http_1_1) {
         if (!"Close".equals(connection)) {

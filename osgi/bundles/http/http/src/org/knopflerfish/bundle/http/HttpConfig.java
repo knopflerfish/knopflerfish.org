@@ -73,6 +73,10 @@ public class HttpConfig {
     = "org.knopflerfish.http.trace.enabled";
   public final static String LIMIT_REQUEST_LINE
     = "org.knopflerfish.http.limit.requestline";
+  public final static String LIMIT_POST_SIZE
+    = "org.knopflerfish.http.limit.postsize";
+  public final static String LIMIT_REQUEST_HEADERS
+    = "org.knopflerfish.http.limit.requestheaders";
 
   //
   public HttpConfigWrapper HTTP  = new HttpConfigWrapper(false, this);
@@ -98,7 +102,9 @@ public class HttpConfig {
   private boolean requireClientAuth = false;
   private boolean traceEnabled = false;
   private int limitRequestLine = 8190;
-  
+  private int limitPostSize = -1; // no limit
+  private int limitRequestHeaders = 100;
+
   // constructor(s)
 
   public HttpConfig(BundleContext bc, Dictionary configuration)
@@ -201,6 +207,14 @@ public class HttpConfig {
                getPropertyAsInteger(bc,
 				    HttpConfig.LIMIT_REQUEST_LINE,
 				    8190));
+    config.put(HttpConfig.LIMIT_POST_SIZE,
+               getPropertyAsInteger(bc,
+				    HttpConfig.LIMIT_POST_SIZE,
+				    -1));
+    config.put(HttpConfig.LIMIT_REQUEST_HEADERS,
+               getPropertyAsInteger(bc,
+				    HttpConfig.LIMIT_REQUEST_HEADERS,
+				    100));
     config.put(HttpConfig.REQ_CLIENT_AUTH_KEY,
                getPropertyAsBoolean(bc,
                                     "org.knopflerfish.http.req.client.auth",
@@ -276,6 +290,12 @@ public class HttpConfig {
 	  this.limitRequestLine = ((Integer) value).intValue();
 	  ServletInputStreamImpl.setLimitRequestLine(this.limitRequestLine); // set globally
 	  this.configuration.put(key, value);
+        } else if (key.equals(LIMIT_POST_SIZE)) {
+	  this.limitPostSize = ((Integer) value).intValue();
+	  this.configuration.put(key, value);
+        } else if (key.equals(LIMIT_REQUEST_HEADERS)) {
+	  this.limitRequestHeaders = ((Integer) value).intValue();
+	  this.configuration.put(key, value);
         } else if (key.equals(REQ_CLIENT_AUTH_KEY)) {
           this.requireClientAuth = ((Boolean) value).booleanValue();
           this.configuration.put(key, value);
@@ -335,6 +355,14 @@ public class HttpConfig {
 
   public boolean isTraceEnabled() {
     return traceEnabled;
+  }
+
+  public int getLimitPostSize() {
+    return limitPostSize;
+  }
+
+  public int getLimitRequestHeaders() {
+    return limitRequestHeaders;
   }
 
   public String getHost() {
