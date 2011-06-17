@@ -39,13 +39,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   Component (SCR) 3.0.1
 
   - The value of a property specified in the body of the
-    property-element is now returned allways an as array. 
+    property-element is now returned always an as array. 
     For details see the issue in the tracker, 
     https://sourceforge.net/tracker/?func=detail&aid=3285927&group_id=82798&atid=567241
 
 
-  HTTP-Server 3.0.4
-  - Configurable features and limits added to better control and handle DoS attacks:
+  HTTP-Server 3.0.5
+  - Improved handling of persistent connections for GET and HEAD (3.0.5)
+
+  - Configurable features and limits added to better control and handle DoS attacks: (3.0.4)
     org.knopflerfish.http.trace.enabled (false)
     org.knopflerfish.http.limit.requestline (8090)
     org.knopflerfish.http.limit.requestheaders (100)
@@ -59,8 +61,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
   Desktop 3.1.6
 
-  - Bundles are now allways selected when installed and deselected
-    when uninstalled. The viewers did not allways show details for a
+  - Bundles are now all-ways selected when installed and deselected
+    when uninstalled. The viewers did not all-ways show details for a
     new bundle when it was installed (the bundle was selected, but due
     to a race condition the selection notification was sometimes
     ignored).
@@ -107,7 +109,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - Added an antlib.xml file defining all the provided tasks to the
     bundle_tasks.jar.
   - The bundle_tasks.jar is now only built if not present. I.e.,
-    when changing any of the taskt an explicit build must be done in
+    when changing any of the tasks an explicit build must be done in
     the ant-subdir to create an up-to date version of the
     bundle_tasks.jar-file.
   - Fixed so that KF builds with ant 1.8.
@@ -299,7 +301,7 @@ Release Notes Knopflerfish 3.1.0 (OSGi R4 v4.2)
     quit command resulted in a looping thread in the consoletelnet
     bundle. The root of this problem was the the internal TelnetReader
     class did not return the proper values indicating End of File when
-    its underlaying reader was closed.
+    its underlying reader was closed.
 
 
   Xalan 2.7.1.kf3_01
