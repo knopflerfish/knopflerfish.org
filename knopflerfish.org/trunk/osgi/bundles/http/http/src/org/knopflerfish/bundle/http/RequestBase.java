@@ -62,6 +62,10 @@ public class RequestBase extends HeaderBase {
 
   // protected constants
 
+  protected static final String GET_METHOD = "GET";
+
+  protected static final String HEAD_METHOD = "HEAD";
+
   protected static final String POST_METHOD = "POST";
 
   protected static final String HTTP_1_0_PROTOCOL = "HTTP/1.0";
@@ -189,10 +193,10 @@ public class RequestBase extends HeaderBase {
     // get uri
     line = line.substring(index + 1);
     index = line.indexOf(' ');
-    if (index == -1)
+    if (index == -1 || index == 0)
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
     uri = line.substring(0, index);
-
+    
     // get protocol
     protocol = line.substring(index + 1).trim();
 

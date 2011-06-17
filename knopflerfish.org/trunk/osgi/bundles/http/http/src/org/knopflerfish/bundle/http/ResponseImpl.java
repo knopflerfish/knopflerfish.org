@@ -150,6 +150,7 @@ public class ResponseImpl
       setStatus(statusCode);
 
     if (keepAlive && containsHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY)) {
+      // Connection: Keep-Alive should only be set for HTTP/1.0 clients?
       setHeader(HeaderBase.CONNECTION_HEADER_KEY, "Keep-Alive");
       keepAlive = true;
     } else {
