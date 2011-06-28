@@ -94,7 +94,10 @@
              locale   = "en"/>
     </tstamp>
 
-    <echo message="${fw.impl.version}"  file="resources/version"/>
+ 	<!-- delete in case the file is read-only -->
+    <delete file="resources/version"/>
+ 	<echo message="${fw.impl.version}"  file="resources/version"/>
+    <delete file="resources/tstamp"/>
     <echo message="${framework.tstamp}" file="resources/tstamp"/>
     
     <condition property="version.isset">
@@ -192,6 +195,7 @@
  </target>
 
  <target name="writerelease" if="version.isset">
+  <delete file="resources/release"/>
   <echo message="${version}" file="resources/release"/>
  </target>
 
