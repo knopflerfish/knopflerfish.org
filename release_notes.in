@@ -59,6 +59,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
+  ConsoleTelnet 3.0.1
+
+  - A telnet client that closed its socket directly after sending a
+    quit command resulted in a looping thread in the consoletelnet
+    bundle. The root of this problem was the the internal TelnetReader
+    class did not return the proper values indicating End of File when
+    its underlying reader was closed.
+
+
   Desktop 3.1.6
 
   - Bundles are now all-ways selected when installed and deselected
@@ -293,15 +302,6 @@ Release Notes Knopflerfish 3.1.0 (OSGi R4 v4.2)
     are missing. Changed the tray icon bundle to handle this, i.e., it
     now catches Throwable and not just Exception when trying to
     instantiate java.awt.SystemTray.
-
-
-  ConsoleTelnet 3.0.1
-
-  - A telnet client that closed its socket directly after sending a
-    quit command resulted in a looping thread in the consoletelnet
-    bundle. The root of this problem was the the internal TelnetReader
-    class did not return the proper values indicating End of File when
-    its underlying reader was closed.
 
 
   Xalan 2.7.1.kf3_01
