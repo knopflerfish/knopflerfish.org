@@ -20,8 +20,6 @@
   <property name="bmfa.Bundle-Vendor"         value="knopflerfish"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
   <property name="bmfa.Bundle-Version"        value="1.0.0"/>
-  <property name="bmfa.Bundle-SubversionURL"
-	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype/metatype_demo/"/>
 
   <property name="bmfa.Import-Package"
 	    value="org.osgi.service.cm,org.knopflerfish.util.metatype,org.knopflerfish.service.log,org.osgi.framework,org.osgi.service.metatype"/>

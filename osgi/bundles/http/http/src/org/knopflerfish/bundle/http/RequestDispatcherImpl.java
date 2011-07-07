@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Dictionary;
@@ -48,10 +47,6 @@ import java.util.Hashtable;
 import java.util.Stack;
 import java.util.Vector;
 import java.util.zip.GZIPOutputStream;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.Locale;
-import java.util.Enumeration;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.Servlet;
@@ -64,7 +59,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.SingleThreadModel;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Cookie;
 
 import org.osgi.service.http.HttpContext;
 
@@ -177,29 +171,7 @@ public class RequestDispatcherImpl
   private void serviceResource(HttpServletRequest request,
                                HttpServletResponse response,
                                ServletConfig config)
-    throws IOException, ServletException
-  {
-
-    String method = request.getMethod();
-    if ("HEAD".equalsIgnoreCase(method)) {
-      NoBodyResponse nb_response = new NoBodyResponse(response);
-      serviceGet(request, nb_response, config);
-      nb_response.setContentLength();
-    }
-    else if ("GET".equalsIgnoreCase(method)) {
-      serviceGet(request, response, config);
-    }
-    else if ("TRACE".equalsIgnoreCase(method)) {
-      serviceTrace(request, response);
-    }
-    else { // unsupported 
-      response.setStatus(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
-      return;
-    }
-  }
-  
-
-  private void serviceGet(HttpServletRequest request, HttpServletResponse response, ServletConfig config) throws IOException
+    throws IOException
   {
     String uri = (String) request
       .getAttribute("javax.servlet.include.request_uri");
@@ -305,34 +277,6 @@ public class RequestDispatcherImpl
       }
       is.close();
     }
-  }
-
-  private void serviceTrace(HttpServletRequest req, HttpServletResponse resp) 
-    throws IOException 
-  {
-    int responseLength;
-	
-    String CRLF = "\r\n";
-    String responseString = "TRACE "+ req.getRequestURI()+
-      " " + req.getProtocol();
-	
-    Enumeration reqHeaderEnum = req.getHeaderNames();
-    
-    while( reqHeaderEnum.hasMoreElements() ) {
-      String headerName = (String)reqHeaderEnum.nextElement();
-      responseString += CRLF + headerName + ": " +
-	req.getHeader(headerName); 
-    }
-	
-    responseString += CRLF;
-	
-    responseLength = responseString.length();
-	
-    resp.setContentType("message/http");
-    resp.setContentLength(responseLength);
-    ServletOutputStream out = resp.getOutputStream();
-    out.print(responseString);	
-    out.close();
   }
 
 
@@ -585,185 +529,3 @@ public class RequestDispatcherImpl
   }
 
 } // RequestDispatcherImpl
-
-
-/* 
- * Methods below reused/copied from JSDK, HttpServlet.java
- * Provided under a Apache-2 license
- */
-   
-/*
- * A response that includes no body, for use in (dumb) "HEAD" support.
- * This just swallows that body, counting the bytes in order to set
- * the content length appropriately.  All other methods delegate directly
- * to the HTTP Servlet Response object used to construct this one.
- */
-// file private
-class NoBodyResponse implements HttpServletResponse {
-  private HttpServletResponse		resp;
-  private NoBodyOutputStream		noBody;
-  private PrintWriter			writer;
-  private boolean			didSetContentLength;
-
-  // file private
-  NoBodyResponse(HttpServletResponse r) {
-    resp = r;
-    noBody = new NoBodyOutputStream();
-  }
-
-  // file private
-  void setContentLength() {
-    if (!didSetContentLength)
-      resp.setContentLength(noBody.getContentLength());
-  }
-
-  
-  // SERVLET RESPONSE interface methods
-
-  public void setContentLength(int len) {
-    resp.setContentLength(len);
-    didSetContentLength = true;
-  }
-
-  public void setCharacterEncoding(String charset)
-  { resp.setCharacterEncoding(charset); }
-
-  public void setContentType(String type)
-  { resp.setContentType(type); }
-
-  public String getContentType()
-  { return resp.getContentType(); }
-
-  public ServletOutputStream getOutputStream() throws IOException
-  { return noBody; }
-
-  public String getCharacterEncoding()
-  { return resp.getCharacterEncoding(); }
-
-  public PrintWriter getWriter() throws UnsupportedEncodingException
-  {
-    if (writer == null) {
-      OutputStreamWriter w;
-
-      w = new OutputStreamWriter(noBody, getCharacterEncoding());
-      writer = new PrintWriter(w);
-    }
-    return writer;
-  }
-
-  public void setBufferSize(int size) throws IllegalStateException
-  { resp.setBufferSize(size); }
-
-  public int getBufferSize()
-  { return resp.getBufferSize(); }
-
-  public void reset() throws IllegalStateException
-  { resp.reset(); }
-      
-  public void resetBuffer() throws IllegalStateException
-  { resp.resetBuffer(); }
-
-  public boolean isCommitted()
-  { return resp.isCommitted(); }
-
-  public void flushBuffer() throws IOException
-  { resp.flushBuffer(); }
-
-  public void setLocale(Locale loc)
-  { resp.setLocale(loc); }
-
-  public Locale getLocale()
-  { return resp.getLocale(); }
-
-
-  // HTTP SERVLET RESPONSE interface methods
-
-  public void addCookie(Cookie cookie)
-  { resp.addCookie(cookie); }
-
-  public boolean containsHeader(String name)
-  { return resp.containsHeader(name); }
-
-  /** @deprecated */
-  public void setStatus(int sc, String sm)
-  { resp.setStatus(sc, sm); }
-
-  public void setStatus(int sc)
-  { resp.setStatus(sc); }
-
-  public void setHeader(String name, String value)
-  { resp.setHeader(name, value); }
-
-  public void setIntHeader(String name, int value)
-  { resp.setIntHeader(name, value); }
-
-  public void setDateHeader(String name, long date)
-  { resp.setDateHeader(name, date); }
-
-  public void sendError(int sc, String msg) throws IOException
-  { resp.sendError(sc, msg); }
-
-  public void sendError(int sc) throws IOException
-  { resp.sendError(sc); }
-
-  public void sendRedirect(String location) throws IOException
-  { resp.sendRedirect(location); }
-    
-  public String encodeURL(String url) 
-  { return resp.encodeURL(url); }
-
-  public String encodeRedirectURL(String url)
-  { return resp.encodeRedirectURL(url); }
-      
-  public void addHeader(String name, String value)
-  { resp.addHeader(name, value); }
-      
-  public void addDateHeader(String name, long value)
-  { resp.addDateHeader(name, value); }
-      
-  public void addIntHeader(String name, int value)
-  { resp.addIntHeader(name, value); }
-      
-     
-  public String encodeUrl(String url) 
-  { return this.encodeURL(url); }
-      
-  public String encodeRedirectUrl(String url)
-  { return this.encodeRedirectURL(url); }
-
-}
-
-
-/*
- * Servlet output stream that gobbles up all its data.
- */
- 
-// file private
-class NoBodyOutputStream extends ServletOutputStream {
-  
-  private int		contentLength = 0;
-
-  // file private
-  NoBodyOutputStream() {}
-
-  // file private
-  int getContentLength() {
-    return contentLength;
-  }
-
-  public void write(int b) {
-    contentLength++;
-  }
-
-  public void write(byte buf[], int offset, int len)
-    throws IOException
-  {
-    if (len >= 0) {
-      contentLength += len;
-    } else {
-      // XXX
-      // isn't this really an IllegalArgumentException?
-      throw new IOException("negative length");
-    }
-  }
-}

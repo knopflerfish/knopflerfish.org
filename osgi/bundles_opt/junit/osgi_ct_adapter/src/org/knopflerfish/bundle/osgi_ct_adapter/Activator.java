@@ -89,13 +89,10 @@ public class Activator implements BundleActivator, BundleTrackerCustomizer {
       List testNames = new ArrayList();
       String testCases = (String) b.getHeaders().get("Test-Cases");
       if (testCases != null) {
-        int s = 0;
-        int e;
-        while ((e = testCases.indexOf(",", s)) >= 0) {
-          testNames.add(testCases.substring(s, e).trim());
-          s = e + 1;
+        String[] classes = testCases.split("\\s*,\\s*");
+        for (int i = 0; i < classes.length; i++) {
+          testNames.add(classes[i]);
         }
-        testNames.add(testCases.substring(s).trim());
       }
       if (testNames.isEmpty()) {
         return null;

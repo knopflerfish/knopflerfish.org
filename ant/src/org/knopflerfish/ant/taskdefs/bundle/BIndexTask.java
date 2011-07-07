@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,9 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -85,18 +87,6 @@ public class BIndexTask extends Task {
     filesets.addElement(set);
   }
 
-  private String styleSheet;
-
-  /**
-   * URL or relative path of the style sheet that the generated XML-file points
-   * to for HTML conversion.
-   *
-   * @param styleSheet
-   */
-  public void setStyleSheet(final String styleSheet) {
-    this.styleSheet = styleSheet;
-  }
-
   // Implements Task
   public void execute() throws BuildException {
     if (filesets.size() == 0) {
@@ -110,8 +100,8 @@ public class BIndexTask extends Task {
     try {
       for (int i = 0; i < filesets.size(); i++) {
         FileSet          fs      = (FileSet) filesets.elementAt(i);
-        DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
-        File             projDir = fs.getDir(getProject());
+        DirectoryScanner ds      = fs.getDirectoryScanner(project);
+        File             projDir = fs.getDir(project);
 
         String[] srcFiles = ds.getIncludedFiles();
 
@@ -149,17 +139,12 @@ public class BIndexTask extends Task {
       cmdList.add("-t");
       cmdList.add(baseURL +"/%p/%f ");
 
-      if (null!=styleSheet) {
-        cmdList.add("-stylesheet");
-        cmdList.add(styleSheet);
-      }
-
       // -d <rootFile> here
 
       cmdList.add("-r");
       cmdList.add(outFile);
 
-      // Don't print the resulting XML document on System.out.
+      // Don't print the resulting XML documnet on System.out.
       cmdList.add("-q");
 
       if (null!=repoName && repoName.length()>0) {
@@ -176,11 +161,14 @@ public class BIndexTask extends Task {
         // generate the bindex.xml file.
         Class bIndexClazz = Class.forName("org.osgi.impl.bundle.bindex.Index");
 
-        // Prepend the -d <rootFile> option
-        cmdList.add(2, baseDir.getAbsolutePath());
-        cmdList.add(2, "-d");
+        //if (isBindexRootFileSettable(bIndexClazz))
+        {
+          // Prepend the -d <rootFile> option
+          cmdList.add(2,baseDir.getAbsolutePath());
+          cmdList.add(2,"-d");
+        } //else
         try {
-          // Hack for older BIndex without -d option. Use reflection
+          // Hack for older bindex without -d option. Use reflection
           // to set org.osgi.impl.bundle.bindex.Index.rootFile to
           // baseDir to get correctly computed paths in the bundle
           // URLs.
@@ -211,5 +199,38 @@ public class BIndexTask extends Task {
 
     } catch (Exception e) { e.printStackTrace(); }
   }
+
+  private boolean isBindexRootFileSettable(Class bIndexClazz)
+  {
+    boolean res = false;
+
+    try {
+      // Call org.osgi.impl.bundle.bindex.Index.main("-q -help") to
+      // determine if "-d" option is present or not.
+
+      String[] args = new String[]{ "-q", "-help"};
+      Method mainMethod
+        = bIndexClazz.getDeclaredMethod("main",
+                                        new Class[]{args.getClass()});
+      PrintStream orgErr = System.err;
+      ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+      System.setErr(new PrintStream(baos, false, "UTF-8"));
+      mainMethod.invoke(null, new Object[]{args});
+      System.setErr(orgErr);
+      String bIndexUsageMessage = baos.toString("UTF-8");
+      log("bindex usage message is: '" + bIndexUsageMessage +"'.",
+          Project.MSG_DEBUG);
+      res = bIndexUsageMessage.indexOf("[-d rootFile]") > -1;
+      log("Using 'bindex -d rootFile' is " +(res?"":"not ") +"supported. ",
+          Project.MSG_INFO);
+    } catch (Exception e) {
+      log("Failed to execute BIndex: " +e.getMessage(), Project.MSG_ERR);
+      e.printStackTrace();
+    }
+
+    return res;
+  }
+
 
 }

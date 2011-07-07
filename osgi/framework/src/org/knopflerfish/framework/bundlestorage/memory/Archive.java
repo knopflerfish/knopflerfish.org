@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,20 +38,18 @@ import java.io.*;
 import java.util.*;
 import java.util.jar.*;
 
-import org.knopflerfish.framework.*;
+import org.knopflerfish.framework.BundleResourceStream;
+
+import org.osgi.framework.Constants;
 
 /**
  * JAR file handling.
- * 
+ *
  * @author Jan Stein
  * @author Philippe Laporte
+ * @version $Revision$
  */
-class Archive implements FileArchive {
-
-  /**
-   *
-   */
-  final private BundleArchiveImpl ba;
+class Archive {
 
   /**
    * Archives manifest
@@ -59,22 +57,21 @@ class Archive implements FileArchive {
   Manifest manifest;
 
   /**
-   * JAR Entry handle for file that contains current archive. If not null, it is
-   * a sub jar instead.
+   * JAR Entry handle for file that contains current archive.
+   * If not null, it is a sub jar instead.
    */
-  protected HashMap /* String -> byte[] */content;
+  protected HashMap /* String -> byte[] */ content;
 
-  ArrayList subDirs/* = null */;
-
+  ArrayList subDirs/*= null*/;
 
   /**
-   * Create an Archive based on contents of an InputStream, get file object for
-   * the stream and use it. Native code is not allowed.
-   * 
+   * Create an Archive based on contents of an InputStream,
+   * get file object for the stream and use it. Native code
+   * is not allowed.
+   *
    * @param is Jar file data in an InputStream.
    */
-  Archive(BundleArchiveImpl ba, InputStream is) throws IOException {
-    this.ba = ba;
+  Archive(InputStream is) throws IOException {
     JarInputStream ji = new JarInputStream(is);
     manifest = ji.getManifest();
     if (manifest == null) {
@@ -85,21 +82,20 @@ class Archive implements FileArchive {
 
 
   /**
-   * Create a Sub-Archive based on a path to in an already existing Archive. The
-   * new archive is saved in a subdirectory below local copy of the existing
-   * Archive.
-   * 
+   * Create a Sub-Archive based on a path to in an already
+   * existing Archive. The new archive is saved in a subdirectory
+   * below local copy of the existing Archive.
+   *
    * @param a Parent Archive.
    * @param path Path of new Archive inside old Archive.
    * @exception FileNotFoundException if no such Jar file in archive.
    * @exception IOException if failed to read Jar file.
    */
   Archive(Archive a, String path) throws IOException {
-    ba = a.ba;
-    if (null != path && path.length() > 0 && '/' == path.charAt(0)) {
+    if (null!=path && path.length()>0 && '/'==path.charAt(0)) {
       path = path.substring(1);
     }
-    byte[] bs = (byte[])a.content.remove(path);
+    byte [] bs = (byte [])a.content.remove(path);
     if (bs != null) {
       JarInputStream ji = new JarInputStream(new ByteArrayInputStream(bs));
       content = loadJarStream(ji);
@@ -110,24 +106,8 @@ class Archive implements FileArchive {
 
 
   /**
-   * Get bundle id for this archive.
-   */
-  public BundleGeneration getBundleGeneration() {
-    return ba.getBundleGeneration();
-  }
-
-
-  /**
-   * Get sub-archive id for this archive.
-   */
-  public int getSubId() {
-    return 0;
-  }
-
-
-  /**
    * Get an attribute from the manifest of the archive.
-   * 
+   *
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
    */
@@ -137,23 +117,24 @@ class Archive implements FileArchive {
 
 
   /**
-   * Get a byte array containg the contents of named file from the archive.
-   * 
+   * Get a byte array containg the contents of named file from
+   * the archive.
+   *
    * @param component File to get.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
    */
-  public byte[] getClassBytes(String classFile) throws IOException {
+  byte[] getClassBytes(String classFile) throws IOException {
     byte[] bytes;
-    if ((bytes = (byte[])content.remove(classFile)) == null) {
+    if ((bytes = (byte[]) content.remove(classFile)) == null) {
       if (subDirs == null) {
         return null;
       }
       Iterator it = subDirs.iterator();
       boolean found = false;
       while (it.hasNext()) {
-        String subDir = (String)it.next();
-        bytes = (byte[])content.remove(subDir + "/" + classFile);
+        String subDir = (String) it.next();
+        bytes = (byte[]) content.remove(subDir + "/" + classFile);
         if (bytes != null) {
           found = true;
           break;
@@ -169,15 +150,15 @@ class Archive implements FileArchive {
 
   /**
    * Get an InputStream to named entry inside an Archive.
-   * 
+   *
    * @param component Entry to get reference to.
    * @return InputStream to entry or null if it doesn't exist.
    */
-  public BundleResourceStream getBundleResourceStream(String component) {
+  BundleResourceStream getBundleResourceStream(String component) {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    byte[] b = (byte[])content.get(component);
+    byte[] b = (byte[]) content.get(component);
     if (b != null) {
       return new BundleResourceStream(new ByteArrayInputStream(b), b.length);
     } else {
@@ -185,12 +166,10 @@ class Archive implements FileArchive {
     }
   }
 
-
-  // Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like
-  // the manifest
-  // gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
-  // investigate further later
-  public Enumeration findResourcesPath(String path) {
+  //Known issues: see FrameworkTestSuite Frame068a and Frame211a. Seems like the manifest
+  //gets skipped (I guess in getNextJarEntry in loadJarStream) for some reason
+  //investigate further later
+  Enumeration findResourcesPath(String path) {
     Vector answer = new Vector();
     // "normalize" + erroneous path check: be generous
     path = path.replace('\\', '/');
@@ -205,7 +184,7 @@ class Archive implements FileArchive {
 
     Iterator it = content.keySet().iterator();
     while (it.hasNext()) {
-      String entry = (String)it.next();
+      String entry = (String) it.next();
       if (entry.startsWith(path)) {
         String terminal = entry.substring(path.length());
         StringTokenizer st = new StringTokenizer(terminal, "/");
@@ -230,7 +209,7 @@ class Archive implements FileArchive {
 
   /**
    * Get an Archive handle to a named Jar file within this archive.
-   * 
+   *
    * @param path Name of Jar file to get.
    * @return An Archive object representing new archive.
    * @exception FileNotFoundException if no such Jar file in archive.
@@ -241,35 +220,13 @@ class Archive implements FileArchive {
   }
 
 
-  /**
-   * Check for native library in archive.
-   * 
-   * @param path Name of native code file to get.
-   * @return If native library exist return libname, otherwise null.
-   */
-  public String checkNativeLibrary(String path) {
-    return null;
-  }
-
-
-  /**
-   * Get native code library filename.
-   * 
-   * @param libNameKey Key for native lib to get.
-   * @return A string with the path to the native library.
-   */
-  public String getNativeLibrary(String libNameKey) {
-    return null;
-  }
-
-
   //
   // Private methods
   //
 
   /**
    * Loads all files in a JarInputStream and stores it in a HashMap.
-   * 
+   *
    * @param ji JarInputStream to read from.
    */
   private HashMap loadJarStream(JarInputStream ji) throws IOException {
@@ -277,7 +234,7 @@ class Archive implements FileArchive {
     JarEntry je;
     while ((je = ji.getNextJarEntry()) != null) {
       if (!je.isDirectory()) {
-        int len = (int)je.getSize();
+        int len = (int) je.getSize();
         if (len == -1) {
           len = 8192;
         }

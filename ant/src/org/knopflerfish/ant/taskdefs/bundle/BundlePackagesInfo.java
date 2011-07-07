@@ -33,8 +33,8 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -42,11 +42,9 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.Project;
-import org.apache.tools.ant.Task;
-import org.apache.tools.ant.types.Resource;
 import org.osgi.framework.Version;
+
+import org.apache.tools.ant.BuildException;
 
 /**
  * Class that holds the results of the Java package analysis of all
@@ -90,14 +88,6 @@ public class BundlePackagesInfo {
   }
 
 
-  // The task using this object to provide logging functionality.
-  final Task task;
-
-  public BundlePackagesInfo(final Task task)
-  {
-    this.task   = task;
-  }
-
   /**
    * The set of classes provided by the bundle.
    * The elements of the set are the fully qualified class name.
@@ -124,8 +114,6 @@ public class BundlePackagesInfo {
     addProvidedPackage(pkgName);
     addReferencedClass(pkgName, className);
 
-    task.log("Added provided class '" +className +"'.",
-             Project.MSG_DEBUG);
     return pkgName;
   }
 
@@ -158,9 +146,6 @@ public class BundlePackagesInfo {
   {
     activatorClasses.add(className);
     providedClasses.add(className);
-
-    task.log("Added provided BundleActivator class '" +className +"'.",
-             Project.MSG_DEBUG);
   }
 
   /**
@@ -247,15 +232,11 @@ public class BundlePackagesInfo {
   /**
    * Get a copy of the set of provided Java packages.
    *
-   * This method may be called before {@link #toJavaNames()}.
-   *
    * @return A copy of the set of provided Java packages.
    */
   public SortedSet/*<String>*/ getProvidedPackages()
   {
-    SortedSet res = new TreeSet(providedPackages);
-    toJavaNames(res); // Ensure that '.' is used as package separator
-    return res;
+    return new TreeSet(providedPackages);
   }
 
   /**
@@ -335,21 +316,18 @@ public class BundlePackagesInfo {
     return (String) packageToInfofile.get(pkgName);
   }
 
-
   /**
-   * Read the version from a <code>packageinfo</code>-file given a
-   * resource-object.
+   * Read the version from a <code>packageinfo</code>-file.
    *
-   * @param res Resource encapsulating a <code>packageinfo</code>-file.
-   *
+   * @param pkgInfoFile The file to read a version line from.
    * @return The version or <code>null</code> if no valid version was
    *         found.
    */
-  private Version getVersion(final Resource res)
+  private Version getVersion(final File pkgInfoFile)
   {
     BufferedReader br = null;
     try {
-      br = new BufferedReader(new InputStreamReader(res.getInputStream()));
+      br = new BufferedReader(new FileReader(pkgInfoFile));
       String line = br.readLine();
       while (null!=line) {
         if (line.startsWith("version ")) {
@@ -359,57 +337,55 @@ public class BundlePackagesInfo {
         line = br.readLine();
       }
     } catch (Throwable t) {
-      final String msg = "Failed to get version from '" +res.toString()
+      final String msg = "Failed to get version from '"+pkgInfoFile
         +"'; " +t.getMessage();
       throw new BuildException(msg, t);
+    } finally {
+      if (null!=br) {
+        try { br.close(); } catch (Throwable _t) {}
+      }
     }
     return null;
   }
 
 
   /**
-   * Try to assign a version to the Java that the given
-   * <code>packageinfo</code>-file resides in. This code assumes that
-   * the resource has been created in such a way that
-   * <code>res.getName()</code> returns a relative path to the
-   * <code>packageinfo</code>-file that starts in its package
-   * root. I.e., the path is the Java package that the
-   * <code>packageinfo</code>-file provides data for.
+   * Try to assign a version to the given package by searching for a
+   * file named <code>packageinfo</code> in the directory where the
+   * given class-file resides.
    *
-   * @param res Resource encapsulating a <code>packageinfo</code>-file.
+   * @param pkgName The name of the provided package that the
+   *                    given class-file belongs to.
+   * @param classFile   A class file in the given package.
+   *
    */
-  public void setPackageVersion(final Resource res)
+  public void setPackageVersion(final String pkgName,
+                                final File classFile)
   {
-    // The relative path to packageinfo-file starting from the root of
-    // its classpath. Allways using forward slash as separator char.
-    final String pkgInfoPath = res.getName().replace(File.separatorChar, '/');
-    // 12 = "/packageinfo".lenght()
-    final String pkgName = pkgInfoPath.substring(0, pkgInfoPath.length()-12);
-
-    // Currently registered path for version providing packageinfo
-    // file, if any.
+    final File newPkgInfoFile = new File(classFile.getParent(), "packageinfo");
     final String curPkgInfoPath = (String) packageToInfofile.get(pkgName);
+    final String newPkgInfoPath = newPkgInfoFile.getAbsolutePath();
 
-    if (null==curPkgInfoPath || !curPkgInfoPath.equals(pkgInfoPath)) {
-      final Version newVersion = getVersion(res);
-      if (null!=newVersion) {
-        final Version curVersion = getProvidedPackageVersion(pkgName);
+    if (null==curPkgInfoPath || !curPkgInfoPath.equals(newPkgInfoPath)) {
+      // No previous package version, or different pkgInfoFile to check.
+      if (newPkgInfoFile.canRead()) {
+        final Version newVersion = getVersion(newPkgInfoFile);
+        if (null!=newVersion) {
+          final Version curVersion = getProvidedPackageVersion(pkgName);
 
-        if (null==curVersion) {
-          packageToVersion.put(pkgName, newVersion);
-          packageToInfofile.put(pkgName, pkgInfoPath);
-          task.log("Package version for '" +pkgName +"' set to "
-                   +newVersion +" based on data from '" +pkgInfoPath +"'.",
-                   Project.MSG_VERBOSE);
-        } else if (!newVersion.equals(curVersion)) {
-          // May happen when the classes of a package are in two
-          // different directories on the class path.
-          throw new BuildException("Conflicting versions for '"
-                                   +pkgName +"' previous  '"
-                                   +curVersion +"' from '"
-                                   +curPkgInfoPath +"', new '"
-                                   +newVersion +"' in '"
-                                   +pkgInfoPath +"'.");
+          if (null==curVersion) {
+            packageToVersion.put(pkgName, newVersion);
+            packageToInfofile.put(pkgName, newPkgInfoPath);
+          } else if (!newVersion.equals(curVersion)) {
+            // May happen when the classes of a package are in two
+            // different directories on the class path.
+            throw new BuildException("Conflicting versions for '"
+                                     +pkgName +"' previous  '"
+                                     +curVersion +"' from '"
+                                     +curPkgInfoPath +"', new '"
+                                     +newVersion +"' in '"
+                                     +newPkgInfoPath +"'.");
+          }
         }
       }
     }
@@ -478,7 +454,7 @@ public class BundlePackagesInfo {
    * Add a reference to a named class from some class in the
    * referencing Java package.
    *
-   * If the given referenced class is an inner class, then we also add
+   * If the given referenced class is an inner class, the we also add
    * a reference for its outer class. This is not really needed for
    * static inner classes, but there is no way to detect that on this
    * level.
@@ -517,9 +493,6 @@ public class BundlePackagesInfo {
       }
       using.add(referencedPackage);
     }
-    task.log("Added reference to class '" +referencedClass
-             +"' from the package '" +referencingPackage +"'.",
-             Project.MSG_DEBUG);
   }
 
   /**

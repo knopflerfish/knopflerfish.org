@@ -96,9 +96,9 @@ http://ws.apache.org/axis2/
 -	Bundlerepository Bundle Notice
 ----------------------------------------------------------------------
 This product includes the bundlerepository bundle which includes
-the following software:
+the follwing software:
 
-  OBR related software developed by the the Oscar Project.
+  OBR related softare developed by the the Oscar Project.
   Copyright (c) 2004, Richard S. Hall
 
   XML Parser software
@@ -108,7 +108,7 @@ the following software:
   Copyright (c) 2002,2003, Stefan Haustein, Oberhausen, Rhld., Germany
 
 ----------------------------------------------------------------------
--	Commons Logging Bundle Notice
+-	Commons Loggin Bundle Notice
 ----------------------------------------------------------------------
 This product includes the commons_logging bundle which includes
 software developed by the Apache Commons Logging project released
@@ -146,7 +146,7 @@ developed by the kSOAP project.
 http://www.ksoap.org
 
 Copyright (c) 2002,2004, Stefan Haustein, Oberhausen, Rhld., Germany
-
+x
 ----------------------------------------------------------------------
 -	kxml Bundle Notice
 ----------------------------------------------------------------------

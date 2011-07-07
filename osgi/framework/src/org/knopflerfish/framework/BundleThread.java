@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import org.osgi.framework.*;
 
+
 class BundleThread extends Thread {
   final private static int OP_IDLE = 0;
   final private static int OP_BUNDLE_EVENT = 1;
@@ -44,41 +45,34 @@ class BundleThread extends Thread {
 
   final private static int KEEP_ALIVE = 1000;
 
-  final static String ABORT_ACTION_STOP = "stop";
-  final static String ABORT_ACTION_MINPRIO = "minprio";
-  final static String ABORT_ACTION_IGNORE = "ignore";
-
-  final private FrameworkContext fwCtx;
-  final private Object lock = new Object();
+  private final FrameworkContext fwCtx;
   volatile private BundleEvent be;
   volatile private BundleImpl bundle;
   volatile private int operation = OP_IDLE;
   volatile private Object res;
-  volatile private boolean doRun;
+  volatile private Object lock = new Object();
 
 
   BundleThread(FrameworkContext fc) {
     super(fc.threadGroup, "BundleThread waiting");
-    setDaemon(true);
+    setDaemon(false);
     fwCtx = fc;
-    doRun = true;
     start();
   }
-
 
   /**
    *
    */
   void quit() {
-    doRun = false;
+    lock = null;
     interrupt();
   }
 
 
   public void run() {
-    while (doRun) {
+    while (true) {
       synchronized (lock) {
-        while (doRun && operation == OP_IDLE) {
+        while (lock != null && operation == OP_IDLE) {
           try {
             lock.wait(KEEP_ALIVE);
             if (operation != OP_IDLE) {
@@ -89,10 +83,9 @@ class BundleThread extends Thread {
                 return;
               }
             }
-          } catch (InterruptedException ie) {
-          }
+          } catch (InterruptedException ie) { }
         }
-        if (!doRun) {
+        if (lock == null) {
           break;
         }
         Object tmpres = null;
@@ -159,60 +152,19 @@ class BundleThread extends Thread {
       operation = op;
       lock.notifyAll();
     }
-    boolean abort = false;
     do {
       try {
-        fwCtx.packages.wait();
+          fwCtx.packages.wait();
       } catch (InterruptedException ie) {
       }
-      // Abort start/stop operation if bundle has been uninstalled
-      if ((op == OP_START || op == OP_STOP) && b.getState() == Bundle.UNINSTALLED) {
-        abort = true;
-        break;
-      }
     } while (res == Boolean.FALSE);
-
-    if (abort) {
-      // Bundle thread is aborted
-      String s = fwCtx.props.getProperty(FWProps.BUNDLETHREAD_ABORT);
-      if (s == null) {
-        s = ABORT_ACTION_IGNORE;
+    synchronized (fwCtx.bundleThreads) {
+      fwCtx.bundleThreads.addFirst(this);
+      if (op != operation) {
+        // NYI! Handle when operation has changed.
+        // i.e. uninstall during operation?
       }
-      fwCtx.debug.println("bundle thread aborted during "
-          + (op == OP_START ? "start" : "stop") + " of bundle #"
-          + b.getBundleId() + ", abort action set to '" + s + "'");
-      quit();
-
-      // Check what abort action to use
-      if (ABORT_ACTION_STOP.equalsIgnoreCase(s)) {
-        stop();
-      } else if (ABORT_ACTION_MINPRIO.equalsIgnoreCase(s)) {
-        setPriority(Thread.MIN_PRIORITY);
-      }
-
-      switch (op) {
-      case OP_START:
-        res = new BundleException("Bundle start failed",
-            BundleException.STATECHANGE_ERROR, new Exception(
-                "Bundle uninstalled during start()"));
-        break;
-      case OP_STOP:
-        res = new BundleException("Bundle stop failed",
-            BundleException.STATECHANGE_ERROR, new Exception(
-                "Bundle uninstalled during stop()"));
-        break;
-      }
-
       return res;
-    } else {
-      synchronized (fwCtx.bundleThreads) {
-        fwCtx.bundleThreads.addFirst(this);
-        if (op != operation) {
-          // NYI! Handle when operation has changed.
-          // i.e. uninstall during operation?
-        }
-        return res;
-      }
     }
   }
 }

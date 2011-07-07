@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,39 +36,49 @@ package org.knopflerfish.framework;
 
 import java.util.EventListener;
 
+import org.osgi.framework.*;
+
 class ListenerEntry {
   final BundleContextImpl bc;
   final EventListener listener;
   boolean bRemoved = false;
+
 
   ListenerEntry(BundleContextImpl bc, EventListener l) {
     this.bc = bc;
     listener = l;
   }
 
+
   /**
-   * Listener are considered equal if bc and listener are equal, this so that
-   * the HashSet of listeners should work.
+   * Listener are considered equal if bc and listener are
+   * equal, this so that the HashSet of listeners should
+   * work.
    */
   public boolean equals(Object o) {
     if (o instanceof ListenerEntry) {
-      return bc == ((ListenerEntry) o).bc && listener == ((ListenerEntry) o).listener;
+      return bc == ((ListenerEntry)o).bc &&
+	listener == ((ListenerEntry)o).listener;
     }
     return false;
   }
 
+
   /**
-   * Only use listener as hash value, since it is almost always unique.
+   * Only use listener as hash value, since it is
+   * almost always unique.
    */
   public int hashCode() {
     return listener.hashCode();
   }
+
 
   /**
    */
   void setRemoved(boolean b) {
     this.bRemoved = b;
   }
+
 
   /**
    */

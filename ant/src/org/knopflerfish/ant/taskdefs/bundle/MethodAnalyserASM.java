@@ -33,6 +33,8 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import org.apache.tools.ant.Project;
+import org.apache.tools.ant.Task;
+
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
@@ -48,7 +50,7 @@ public class MethodAnalyserASM
   implements MethodVisitor
 {
 
-  // The ClassAnalyserASM instance that this method analyzer is
+  // The ClassAnalyserASM instance that this method analyser is
   // belonging to.
   private final ClassAnalyserASM ca;
 
@@ -67,7 +69,7 @@ public class MethodAnalyserASM
    *         annotation interface method, or <tt>null</tt> if this visitor
    *         is not interested in visiting this default value. The 'name'
    *         parameters passed to the methods of this annotation visitor are
-   *         ignored. Moreover, exactly one visit method must be called on this
+   *         ignored. Moreover, exacly one visit method must be called on this
    *         annotation visitor, followed by visitEnd.
    */
   public AnnotationVisitor visitAnnotationDefault()
@@ -125,7 +127,7 @@ public class MethodAnalyserASM
   /*
    * Visits the current state of the local variables and operand stack
    * elements. This method must(*) be called <i>just before</i> any
-   * instruction <b>i</b> that follows an unconditional branch instruction
+   * instruction <b>i</b> that follows an unconditionnal branch instruction
    * such as GOTO or THROW, that is the target of a jump instruction, or that
    * starts an exception handler block. The visited types must describe the
    * values of the local variables and of the operand stack elements <i>just

@@ -18,13 +18,14 @@ import org.kxml2.wap.*;
 
 
 
-/**
- * Wireless Village.</p>
- *    Wireless Village CSP 1.1 ("OMA-WV-CSP-V1_1-20021001-A.pdf")
- *    Wireless Village CSP 1.2 ("OMA-IMPS-WV-CSP_WBXML-v1_2-20030221-C.PDF")
- *    There are some bugs in the 1.2 spec but this is Ok. 1.2 is candidate  
+   /** 
+	 *    Wireless Village CSP 1.1 ("OMA-WV-CSP-V1_1-20021001-A.pdf")
+	 *    Wireless Village CSP 1.2 ("OMA-IMPS-WV-CSP_WBXML-v1_2-20030221-C.PDF")
+	 *    There are some bugs in the 1.2 spec but this is Ok. 1.2 is candidate  
  *
+
  * @author  Bogdan Onoiu
+
  */
 
 public abstract class WV {

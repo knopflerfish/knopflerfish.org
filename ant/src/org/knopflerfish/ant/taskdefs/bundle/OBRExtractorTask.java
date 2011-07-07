@@ -54,6 +54,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.util.FileUtils;
 
 /**
  * <p>
@@ -130,7 +131,8 @@ import org.apache.tools.ant.types.FileSet;
  */
 public class OBRExtractorTask extends Task {
 
-  private Vector filesets            = new Vector();
+  private Vector    filesets = new Vector();
+  private FileUtils fileUtils;
 
   private File   baseDir             = new File(".");
   private String baseURL             = "";
@@ -140,6 +142,9 @@ public class OBRExtractorTask extends Task {
   private String externRepoURLs      = null;
 
   public OBRExtractorTask() {
+
+    fileUtils = FileUtils.newFileUtils();
+
   }
 
   public void setBaseDir(String s) {
@@ -186,10 +191,11 @@ public class OBRExtractorTask extends Task {
     try {
       for (int i = 0; i < filesets.size(); i++) {
         FileSet          fs      = (FileSet) filesets.elementAt(i);
-        DirectoryScanner ds      = fs.getDirectoryScanner(getProject());
-        File             projDir = fs.getDir(getProject());
+        DirectoryScanner ds      = fs.getDirectoryScanner(project);
+        File             projDir = fs.getDir(project);
 
         String[] srcFiles = ds.getIncludedFiles();
+        String[] srcDirs  = ds.getIncludedDirectories();
 
         for (int j = 0; j < srcFiles.length ; j++) {
           File file = new File(projDir, srcFiles[j]);

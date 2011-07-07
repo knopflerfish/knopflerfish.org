@@ -1,9 +1,7 @@
 <?xml version="1.0"?>
 
 <project name="framework" default="all">
-  <!-- Are we building for Dalvik/Android? -->
-  <available property="android.exists" file="${ANDROID_HOME}"/>
-  
+
   <!-- build properties -->
 
   <property name="topdir"       location=".."/>
@@ -19,19 +17,12 @@
   <property name="frameworkdoc_template"
 	    location="${ant.dir}/html_template/frameworkdoc.html"/>
 
-  <property name="fw.impl.version"   value="5.1.13"/>
-  <property name="fw.export-package" value="org.osgi.framework;version=1.5,org.osgi.framework.launch;version=1.0,org.osgi.framework.hooks.service;version=1.0,org.osgi.service.packageadmin;version=1.2,org.osgi.service.permissionadmin;version=1.2,org.osgi.util.tracker;version=1.4,org.osgi.service.startlevel;version=1.1,org.osgi.service.url;version=1.0,org.osgi.service.condpermadmin;version=1.1"/>
+  <property name="fw.impl.version"   value="5.1.6"/>
+  <property name="fw.export-package" value="org.osgi.framework;version=1.5,org.osgi.framework.launch;version=1.0,org.osgi.framework.hooks.service;version=1.0,org.osgi.service.packageadmin;version=1.2,org.osgi.service.permissionadmin;version=1.2,org.osgi.util.tracker;version=1.4,org.osgi.service.startlevel;version=1.1,org.osgi.service.condpermadmin;version=1.1"/>
 
   <property name="jarfile"      location="${topdir}/${ant.project.name}.jar"/>
 
-   <!-- Android dx.jar requires 1.5 target -->
-  <condition
-    property="javac.target"
-    value="1.5"
-    else="1.1">
-    <istrue value="${android.exists}"/>
-  </condition>
-  
+  <property name="javac.target" value="1.1"/>
   <property name="javac.source" value="1.2"/>
 
   <property name="src.dir" location="src"/>
@@ -58,14 +49,13 @@
           description = "compiles all java sources">
     <mkdir dir="${classout}"/>
 
-    <javac destdir           = "${classout}" 
-           srcdir            = "${src.dir}" 
-           debug             = "on"
-	   includeantruntime = "false"
-	   includes          = "**/*.java"
-           target            = "${javac.target}"
-           source            = "${javac.source}"
-           classpathref      = "compile.path"
+    <javac destdir       = "${classout}" 
+           srcdir        = "${src.dir}" 
+           debug         = "on"
+	   includes      = "**/*.java"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+           classpathref  = "compile.path"
     >
    </javac>
   </target>
@@ -94,10 +84,7 @@
              locale   = "en"/>
     </tstamp>
 
- 	<!-- delete in case the file is read-only -->
-    <delete file="resources/version"/>
- 	<echo message="${fw.impl.version}"  file="resources/version"/>
-    <delete file="resources/tstamp"/>
+    <echo message="${fw.impl.version}"  file="resources/version"/>
     <echo message="${framework.tstamp}" file="resources/tstamp"/>
     
     <condition property="version.isset">
@@ -127,16 +114,14 @@
       <attribute name = "Bundle-SymbolicName"    value="org.knopflerfish.framework"/>
       <attribute name = "Bundle-Name"            value="frameworkbundle"/>
       <attribute name = "Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
-      <attribute name = "Bundle-License"
-		 value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
       <attribute name = "Export-Package"         value="${fw.export-package}"/>
-      <attribute name = "Bundle-DocURL"          value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
-      <attribute name = "Bundle-SubversionURL"   value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/framework/"/>
+      <attribute name = "Bundle-DocURL"          value="http://www.knopflerfish.org"/>
       <attribute name = "Build-Date"             value="${framework.tstamp}"/>
       <attribute name = "SplashScreen-Image"     value="kfsplash.gif"/>
      </manifest>
     </jar>  
 
+  <available property="android.exists" file="${ANDROID_HOME}"/>
   <antcall target="add_dex" inheritRefs="true">
      <param name="jarfile" value="${jarfile}"/>
    </antcall>
@@ -144,28 +129,24 @@
  </target>  
 
  <target name="add_dex" if="android.exists">
-  <echo message="add_dex ${jarfile}"/>
-  <basename file="${jarfile}" suffix="jar" property="jarfile.basename"/>
-  <tempfile destdir="${outdir}" prefix="${jarfile.basename}" property="temp.dir"/>
-  <mkdir dir="${temp.dir}"/>
-  <property name="temp.dex" value="${temp.dir}/classes.dex"/>
-    
-  <java fork="true" jar="${ANDROID_HOME}/tools/lib/dx.jar">
+  <property name="dexlib.jar" location="${ANDROID_HOME}/tools/lib/dx.jar"/>
+  <property name="classes.dex" value="classes.dex"/>
+
+  <java fork  = "true" 
+        jar   = "${dexlib.jar}"
+        dir   = "${classout}">
     <arg value="--dex"/>
-    <arg value="--output=${temp.dex}"/>
+    <arg value="--output=${classes.dex}"/>
     <arg value="${jarfile}"/>
   </java>
 
-  <property name="aapt.cmd" value="${ANDROID_HOME}/tools/aapt"/>
-    
-  <exec executable = "${aapt.cmd}">
-    <arg value="add"/>     
-    <arg value="-f"/>
+  <property name="aapt.cmd" location="${ANDROID_HOME}/tools/aapt"/>
+
+  <exec executable="${aapt.cmd}" dir   = "${classout}">
+    <arg value="add"/>
     <arg value="${jarfile}"/>
-    <arg value="${temp.dex}"/>
+    <arg value="${classes.dex}"/>
   </exec>
-  
-  <delete dir="${temp.dir}"/>
 
  </target>
  
@@ -195,7 +176,6 @@
  </target>
 
  <target name="writerelease" if="version.isset">
-  <delete file="resources/release"/>
   <echo message="${version}" file="resources/release"/>
  </target>
 
@@ -208,9 +188,11 @@
  <import file="${topdir}/../ant/bundletasks.xml"/>
 
  <target name="list" depends="bundle_tasks">
-  <bundleinfo checkFoundationEE="true" 
-              checkMinimumEE="true" >
-    <impls dir="${classout}" includes="**/*.class"/>
+  <bundleinfo checkFoundationEE = "true" 
+              checkMinimumEE = "true" >
+    <fileset dir      = "${classout}" 
+             includes = "**/*.class">
+    </fileset>
   </bundleinfo>
  </target>
 </project>

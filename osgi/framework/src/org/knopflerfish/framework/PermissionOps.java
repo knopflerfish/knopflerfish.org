@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,24 +42,22 @@ import java.net.MalformedURLException;
 
 import org.osgi.framework.*;
 
+
 /**
- * This is a wrapper class for operations that requires some kind of security
- * checks or privileged operations.
+ * This is a wrapper class for operations that requires some kind
+ * of security checks.
  */
 class PermissionOps {
 
   void init() {
   }
 
-
   void registerService() {
   }
-
 
   boolean checkPermissions() {
     return false;
   }
-
 
   //
   // Permission checks
@@ -69,59 +67,45 @@ class PermissionOps {
     return true;
   }
 
-
   void checkExecuteAdminPerm(Bundle b) {
   }
-
 
   void checkExtensionLifecycleAdminPerm(Bundle b) {
   }
 
-
   void checkExtensionLifecycleAdminPerm(Bundle b, Object checkContext) {
   }
-
 
   void checkLifecycleAdminPerm(Bundle b) {
   }
 
-
   void checkLifecycleAdminPerm(Bundle b, Object checkContext) {
   }
-
 
   void checkListenerAdminPerm(Bundle b) {
   }
 
-
   void checkMetadataAdminPerm(Bundle b) {
   }
 
-
   void checkResolveAdminPerm() {
   }
-
-
+  
   void checkResourceAdminPerm(Bundle b) {
   }
-
-
+  
   boolean okResourceAdminPerm(Bundle b) {
     return true;
   }
 
-
   void checkContextAdminPerm(Bundle b) {
   }
-
-
+  
   void checkStartLevelAdminPerm() {
   }
 
-
   void checkGetProtectionDomain() {
   }
-
 
   //
   // Bundle permission checks
@@ -131,26 +115,21 @@ class PermissionOps {
     return true;
   }
 
-
   boolean okHostBundlePerm(BundleImpl b) {
     return true;
   }
-
 
   boolean okProvideBundlePerm(BundleImpl b) {
     return true;
   }
 
-
   boolean okRequireBundlePerm(BundleImpl b) {
     return true;
   }
 
-
   boolean okAllPerm(BundleImpl b) {
     return true;
   }
-
 
   //
   // Package permission checks
@@ -160,65 +139,63 @@ class PermissionOps {
     return true;
   }
 
-
   boolean hasImportPackagePermission(BundleImpl b, ExportPkg ep) {
     return true;
   }
 
-
   //
   // Service permission checks
-  //
+  //  
 
   void checkRegisterServicePerm(String clazz) {
   }
 
-
   void checkGetServicePerms(ServiceReference sr) {
   }
-
 
   boolean okGetServicePerms(ServiceReference sr) {
     return true;
   }
 
-
   void filterGetServicePermission(Set srs) {
   }
-
 
   //
   // BundleArchive secure operations
   //
 
   BundleResourceStream callGetBundleResourceStream(final BundleArchive archive,
-                                                   final String name, final int ix) {
+                                                   final String name,
+                                                   final int ix) {
     return archive.getBundleResourceStream(name, ix);
   }
 
 
-  Enumeration callFindResourcesPath(final BundleArchive archive, final String path) {
+  Enumeration callFindResourcesPath(final BundleArchive archive,
+                                    final String path) {
     return archive.findResourcesPath(path);
   }
-
 
   //
   // BundleClassLoader secure operations
   //
 
-  Object callSearchFor(final BundleClassLoader cl, final String name, final String pkg,
-                       final String path, final BundleClassLoader.SearchAction action,
+  Object callSearchFor(final BundleClassLoader cl,
+                       final String name,
+                       final String pkg,
+                       final String path,
+                       final BundleClassLoader.SearchAction action,
                        final boolean onlyFirst,
-                       final BundleClassLoader requestor, final HashSet visited) {
+                       final BundleClassLoader requestor,
+                       final HashSet visited) {
     return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
   }
 
-
-  String callFindLibrary0(final BundleClassLoader cl, final String name) {
+  String callFindLibrary0(final BundleClassLoader cl,
+                          final String name) {
     return cl.findLibrary0(name);
   }
-
-
+  
   //
   // BundleImpl secure operations
   //
@@ -228,13 +205,13 @@ class PermissionOps {
   }
 
 
-  BundleThread createBundleThread(final FrameworkContext fc) {
+  BundleThread createBundleThread(final FrameworkContext fc)  {
     return new BundleThread(fc);
   }
 
 
   void callUpdate0(final BundleImpl b, final InputStream in, final boolean wasActive)
-      throws BundleException {
+    throws BundleException {
     b.update0(in, wasActive, null);
   }
 
@@ -249,64 +226,66 @@ class PermissionOps {
   }
 
 
-  HeaderDictionary callGetHeaders0(final BundleGeneration bg, final String locale) {
-    return bg.getHeaders0(locale);
+  HeaderDictionary callGetHeaders0(final BundleImpl b, final String locale) {
+    return b.getHeaders0(locale);
   }
 
 
-  Enumeration callFindEntries(final BundleGeneration bg, final String path,
-                              final String filePattern, final boolean recurse) {
-    return bg.findEntries(path, filePattern, recurse);
+  Enumeration callFindEntries0(final BundleImpl b, final String path,
+                               final String filePattern, final boolean recurse) {
+    return b.findEntries0(path, filePattern, recurse);
   }
 
 
-  BundleClassLoader newBundleClassLoader(final BundleGeneration bg) throws BundleException {
-    return new BundleClassLoader(bg);
+  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs,
+                                         final BundleArchive archive,
+                                         final ArrayList fragments,
+                                         final ProtectionDomain protectionDomain)
+    throws BundleException {
+    return new BundleClassLoader(bpkgs, archive, fragments, protectionDomain, this);
   }
-
 
   //
   // Bundles Secure operation
   //
 
   BundleImpl callInstall0(final Bundles bs, final String location, final InputStream in)
-      throws BundleException {
+    throws BundleException {
     return bs.install0(location, in, null);
   }
-
 
   //
   // Listeners Secure operations
   //
 
   void callBundleChanged(final FrameworkContext fwCtx, final BundleEvent evt) {
-    fwCtx.listeners.bundleChanged(evt);
+     fwCtx.listeners.bundleChanged(evt);
   }
 
-
-  void callServiceChanged(final FrameworkContext fwCtx, final Collection receivers,
-                          final ServiceEvent evt, final Set matchBefore) {
+  void callServiceChanged(final FrameworkContext fwCtx,
+                          final Collection receivers,
+                          final ServiceEvent evt,
+                          final Set matchBefore) {
     fwCtx.listeners.serviceChanged(receivers, evt, matchBefore);
   }
-
 
   //
   // PackageAdmin secure operations
   //
 
-  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle[] bundles) {
+  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle [] bundles) {
     pa.refreshPackages0(bundles);
   }
-
 
   //
   // ServiceReferenceImpl secure operations
   //
 
-  Object callGetService(final ServiceFactory sf, final Bundle b, final ServiceRegistration sr) {
+  Object callGetService(final ServiceFactory sf,
+                        final Bundle b,
+                        final ServiceRegistration sr) {
     return sf.getService(b, sr);
   }
-
 
   //
   // ServiceRegisterationImpl secure operations
@@ -316,7 +295,6 @@ class PermissionOps {
     sr.unregister0();
   }
 
-
   //
   // StartLevelController secure operations
   //
@@ -324,7 +302,6 @@ class PermissionOps {
   void callSetStartLevel(final BundleImpl b, final int startlevel) {
     b.setStartLevel(startlevel);
   }
-
 
   //
   // SystemBundle secure operations
@@ -334,40 +311,36 @@ class PermissionOps {
     sb.shutdown(restart);
   }
 
-
   //
   // Permissions package functionality
   //
 
-  ProtectionDomain getProtectionDomain(final BundleGeneration bg) {
+  ProtectionDomain getProtectionDomain(BundleImpl b) {
     return null;
   }
 
-
   /**
    * Get bundle URL using a bundle: spec and the BundleURLStreamHandler.
-   * 
+   *
    * <p>
    * Note:<br>
-   * Creating bundle: URLs by the URL(String) constructor will only work if the
-   * the fw URL handler is registered, which may be turned off.
+   * Creating bundle: URLs by the URL(String) constructor will only
+   * work if the the fw URL handler is registered, which may be turned
+   * off.
    * </p>
    */
   URL getBundleURL(FrameworkContext fwCtx, String s) throws MalformedURLException {
-    return new URL(null, s,
-        fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
+    return new URL(null, s, fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL)); 
   }
-
-
+  
   //
   // Privileged system calls
   //
-
+  
   ClassLoader getClassLoaderOf(final Class c) {
     return c.getClassLoader();
   }
-
-
+  
   //
   // Cleaning
   //

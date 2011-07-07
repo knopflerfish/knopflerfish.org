@@ -152,6 +152,7 @@ public class ClassAnalyserASM
     task.log("Analysing class '" +name +"'.", Project.MSG_VERBOSE);
 
     currentPackage = bpInfo.addProvidedClass(name);
+    bpInfo.setPackageVersion(currentPackage, currentClassFile);
     if (null!=superName) {
       addReferencedType(Type.getObjectType(superName));
     }
@@ -169,7 +170,7 @@ public class ClassAnalyserASM
    *
    * @param source the name of the source file from which the class was
    *        compiled. May be <tt>null</tt>.
-   * @param debug additional debug information to compute the correspondence
+   * @param debug additional debug information to compute the correspondance
    *        between source and compiled elements of the class. May be
    *        <tt>null</tt>.
    */

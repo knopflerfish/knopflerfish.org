@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,15 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 
+
 /**
- * FileTree is extension to java.io.File that handles copying and deletion of
- * complete file structures.
- * 
+ * FileTree is extension to java.io.File that handles copying
+ * and deletion of complete file structures.
+ *
  * @author Jan Stein
  */
-public class FileTree extends File {
-
-  private static final long serialVersionUID = 3396907770563704920L;
-
+public class FileTree extends File
+{
 
   /**
    * Creates a new FileTree instance based on given pathname string.
@@ -56,8 +55,8 @@ public class FileTree extends File {
 
 
   /**
-   * Creates a new Filetree instance by a pathname string to an existing File or
-   * FileTree.
+   * Creates a new Filetree instance by a pathname string to an existing
+   * File or FileTree.
    */
   public FileTree(File file, String name) {
     super(file, name);
@@ -65,8 +64,8 @@ public class FileTree extends File {
 
 
   /**
-   * Creates a new FileTree instance from a parent pathname string and a child
-   * pathname string.
+   * Creates a new FileTree instance from a parent pathname string and
+   * a child pathname string.
    */
   public FileTree(String n1, String n2) {
     super(n1, n2);
@@ -75,15 +74,16 @@ public class FileTree extends File {
 
   /**
    * Copy this file tree to specified destination.
-   * 
+   *
    * @param copyFile File object representing the destination.
-   * @exception IOException if copy failed. Will leave destination in an
-   *              unspecified state.
+   * @exception IOException if copy failed. Will leave destination
+   *            in an unspecified state.
    */
-  public void copyTo(File copyFile) throws IOException {
+  public void copyTo(File copyFile) throws IOException
+  {
     if (isDirectory()) {
       copyFile.mkdirs();
-      String[] dirs = list();
+      String [] dirs = list();
       for (int i = dirs.length - 1; i >= 0; i--) {
         (new FileTree(this, dirs[i])).copyTo(new File(copyFile, dirs[i]));
       }
@@ -93,10 +93,10 @@ public class FileTree extends File {
       try {
         is = new BufferedInputStream(new FileInputStream(this));
         os = new BufferedOutputStream(new FileOutputStream(copyFile));
-        byte[] buf = new byte[4096];
+        byte[] buf=new byte[4096];
         for (;;) {
-          int n = is.read(buf);
-          if (n < 0) {
+          int n=is.read(buf);
+          if (n<0) {
             break;
           }
           os.write(buf, 0, n);
@@ -118,15 +118,16 @@ public class FileTree extends File {
 
   /**
    * Delete this file tree from disk.
-   * 
+   *
    * @return True if operation completed okay.
    */
-  public boolean delete() {
+  public boolean delete()
+  {
     boolean allDeleted = true;
     if (isDirectory()) {
-      String[] dirs = list();
-      if (dirs != null) {
-        for (int i = dirs.length - 1; i >= 0; i--) {
+      String [] dirs = list();
+      if(dirs != null) {
+        for (int i = dirs.length - 1; i>= 0; i--) {
           allDeleted &= (new FileTree(this, dirs[i])).delete();
         }
       }

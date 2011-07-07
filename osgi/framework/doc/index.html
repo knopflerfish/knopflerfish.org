@@ -14,10 +14,8 @@
     <li><a href="#framework">Starting the framework</a></li>
     <li><a href="#xargs">Default selection of .xargs</a></li>
     <li><a href="#proxy">Using a HTTP proxy</a></li>
-    <li><a href="#props">Framework and System Properties</a></li>
     <li><a href="#osgiprop">OSGi Specified Framework Properties</a></li>
-    <li><a href="#kfsysprop">Knopflerfish Specified System Properties</a></li>
-    <li><a href="#kffwprop">Knopflerfish Specified Framework Properties</a></li>
+    <li><a href="#kfprop">Knopflerfish Specified Framework Properties</a></li>
   </ol>
 <a name="startup"></a>
 <h2>Knopflerfish framework.jar startup</h2>
@@ -60,7 +58,7 @@ Two cases of framework startup should be noted:
 </p>
 <ol>
   <li>Initial, bootstrap, startup<br/>
-    An initial startup must contain enough options
+    An initial startup must contains enough options
     to install bundles allowing further management, using 
     -install options. If no bundles are installed, an empty 
     framework will be started but nothing can be done with it..
@@ -74,15 +72,9 @@ Two cases of framework startup should be noted:
   </li>
  </ol>
 <p>
- NB! Framework properties (-Fx=y) supplied at initial startup are saved as
- part of the framework state, and need not to be supplied again at framework
- restart. System properties (-Da=b) are not included in the framework state.
- Since the two different startup cases probably will use separate startup
- files, care must be taken so system properties are set correctly in both
- files, when so required.
-</p>
-
-<p>
+ NB! Since these two different cases probably will use separate startup
+     files, care must be taken so system properties a set correctly in
+     both files, when so required.
 </p>
 <p>
 It is up to a system integrator to decide when to use initial startup
@@ -156,8 +148,8 @@ following algorithm:
 </p>
 <ol>
   <li>If there exists a previous "fwdir" AND previous options
-      does not contain "-init", use a file in "fwdir" named:<br/>
-    <tt>fwprops.xargs</tt>
+      does not contain "-init", search for a file named:<br/>
+    <tt>restart.xargs</tt>
   </li>
   <li>If no fwdir exist, OR options contain an "-init", 
        search for a file named:
@@ -201,11 +193,11 @@ instance is written by the Knopflerfish framework on every startup
 <p>
 The standard JVM system properties
 </p>
-<ul>
- <li>http.proxyHost</li>
- <li>http.proxyPort</li>
- <li>http.nonProxyHosts</li> 
-</ul>
+<p>
+ http.proxyHost
+ http.proxyPort
+ http.nonProxyHosts 
+</p>
 <p>
 should be used to set proxy information. This will be global to 
 all HTTP request from all bundles and the framework.
@@ -213,9 +205,9 @@ all HTTP request from all bundles and the framework.
 <p>
 Additionally, the KF-specific system property
 </p>
-<ul>
- <li>http.proxyAuth</li>
-</ul>
+<p>
+ http.proxyAuth
+</p>
 <p>
 can be set to a value on the form user:password
 </p>
@@ -226,58 +218,8 @@ made from the framework, However, bundles using the URL class internally
 must explictly set this header themselves.
 </p>
 
-<a name="props"></a>
-<h2>Framework and System Properties</h2>
-<p>
-Both Framework and Java System properties are used to control the framework.
-</p>
-<p>
-Framework properties are the standard properties listed in the OSGi
-specification (section 4.5.3 in r4.core) and proprietary properties for
-the Knopflerfish framework. Framework properties are also used for
-configuration of Knopflerfish bundles. 
-</p>
-<p>
-Framework properties are specified on the command line or in .xarg files
-using "-F". If you have more than one framework instance, each instance
-has its own set of Framework properties.
-</p>
-<p>
-A framework property is accessed by using
-<tt>org.osgi.framework.BundleContext.getProperty(String)</tt>.
-</p>
-<p>
-Java System properties are specified on the command line or in .xargs
-files using "-D". System properties are accessed using
-<tt>java.lang.System.getProperty(String)</tt> but
-<tt>BundleContext.getProperty</tt> can also be used as it will look
-for a System property if there is no matching Framework property.
-</p>
-<p>
-Because of the different handling of Framework and System properties when
-the framework is <a href="#init_restart">restarted</a>, it is recommended
-to use only Framework properties in .xargs files. If you do, and use the
-default init.xargs/props.xargs files, initial starts and restarts become
-conveniently short on the command line:
-</p>
-<p>
-<tt>java -jar framework.jar -init  </tt> (initial start)
-</p>
-<p>
-<tt>java -jar framework.jar  </tt> (restart)
-</p>
-<p>
-Unfortunately, it is not always possible to avoid using Java System
-properties. For example, a bundle may include a class library that uses
-System properties for configuration. Also, properties that are read
-during start-up, before the framework has been initialized, need to be
-System properties, see <a href="#kfsysprop">KF System Properties</a>.
-</p>
 <a name="osgiprop"></a>
 <h2>OSGi Specified Framework Properties</h2>
-<p>
-OSGi Framework properties should be specified using "-F".
-</p>
 
 <table class="man">
   <tr>
@@ -483,36 +425,8 @@ OSGi Framework properties should be specified using "-F".
 </table>
 
 
-<a name="kfsysprop"></a>
-<h2>Knopflerfish Specified System Properties</h2>
-<p>
-Knopflerfish System properties should be specified using "-D".
-</p>
-<table class="man">
-  <tr>
-    <th>Name</th>
-    <th>Description</th>
-    <th>Value type</th>
-    <th>Default value</th>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.framework.main.verbosity</td>
-    <td>
-     Verbosity level of the Main class starting the framework. 0 means
-     few messages. Specify on the command line in order to see messages
-     from the very beginning.
-    </td>
-    <td>Integer</td>
-    <td>0</td>
-  </tr>
-</table>
-
-<a name="kffwprop"></a>
+<a name="kfprop"></a>
 <h2>Knopflerfish Specified Framework Properties</h2>
-<p>
-The recommendation is to use "-F" for Knopflerfish Framework properties
-but "-D" should also work. 
-</p>
 
 <table class="man">
   <tr>
@@ -616,13 +530,31 @@ but "-D" should also work.
     <td>True</td>
   </tr>
   <tr>
-    <td>org.knopflerfish.framework.bundlethread.abort</td>
+    <td>org.knopflerfish.framework.system.packages.base</td>
     <td>
-     Property specifying how bundle threads which are aborted should be handled.
-     Possible values are "stop", "minprio" and "ignore". 
+     An alternative to setting org.osgi.framework.system.packages.
+     When this property is used the list of packages given will be
+     appended with the default set of osgi-packges for the current
+     framework and then used as the exports of the system bundle.
+    </td>
+    <td>String , ...</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.system.packages.file</td>
+    <td>
+      File containing list of packages exported by the system bundle.
     </td>
     <td>String</td>
-    <td>ignore</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.system.packages.version</td>
+    <td>
+      Name for selected exporting profile of system packages.
+    </td>
+    <td>String</td>
+    <td>MAJOR.MINOR from system property "java.version"</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.debug.automanifest</td>
@@ -781,14 +713,14 @@ but "-D" should also work.
       A comma-separated list of locations of bundles whose Main-Class
       (set in manifest) should be used as activator if no
       BundleActivator is specified. 
-      The Main-Class will be used as activator if and only if the jar
-      file does not specify a Bundle-Activator header and the bundle's
+      The Main-Class will be used as activator iff the jar file 
+      does not specify a Bundle-Activator header and the bundle's
       location(see Bundle.getLocation) is found in the comma-separated
       list (case-sensitive). 
 <pre class="man">
-> java -jar framework.jar
-    -Forg.knopflerfish.framework.main.class.activation=\ 
-    file:/foo/bar.jar,http://foo.com/bar.jar ...
+> java -Dorg.knopflerfish.framework.main.class.activation=\ 
+    file:/foo/bar.jar,http://foo.com/bar.jar \ 
+   -jar framework.jar ...
 </pre>
       </pre>
     </td>
@@ -799,22 +731,10 @@ but "-D" should also work.
     <td>org.knopflerfish.framework.main.verbosity</td>
     <td>
      Verbosity level of the Main class starting the framework. 0 means
-     few messages. Specify as a System property on the command line
-     in order to see messages from the very beginning.
+     few messages.
     </td>
     <td>Integer</td>
     <td>0</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.framework.main.xargs.writesysprops</td>
-    <td>
-      Properties defined using -Fname=value in xargs-files are available
-      for bundles using BundleContext.getProperty(name).
-      This property controls weather such properties shall also be
-      exported as system properties or not.
-    </td>
-    <td>Boolean</td>
-    <td>False</td>
   </tr>
   <tr>
     <td>org.knopflerfish.framework.listener.n_threads</td>
@@ -834,9 +754,9 @@ but "-D" should also work.
       runtime class patching.
       Example:
 <pre>
-> java -cp framework.jar:asm-3.2.jar \
-    org.knopflerfish.framework.Main \
-    -Forg.knopflerfish.framework.patch=true\   
+java -Dorg.knopflerfish.framework.patch=true\
+  -cp framework.jar:asm-3.2.jar \
+  org.knopflerfish.framework.Main        
 </pre>
     </td>
     <td>Boolean</td>
@@ -905,33 +825,6 @@ but "-D" should also work.
     <td>False</td>
   </tr>
   <tr>
-    <td>org.knopflerfish.framework.system.packages.base</td>
-    <td>
-     An alternative to setting org.osgi.framework.system.packages.
-     When this property is used the list of packages given will be
-     appended with the default set of osgi-packges for the current
-     framework and then used as the exports of the system bundle.
-    </td>
-    <td>String , ...</td>
-    <td>-</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.framework.system.packages.file</td>
-    <td>
-      File containing list of packages exported by the system bundle.
-    </td>
-    <td>String</td>
-    <td>-</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.framework.system.packages.version</td>
-    <td>
-      Name for selected exporting profile of system packages.
-    </td>
-    <td>String</td>
-    <td>MAJOR.MINOR from system property "java.version"</td>
-  </tr>
-  <tr>
     <td>org.knopflerfish.framework.usingwrapperscript</td>
     <td>
       If set to "true", KF will assume that it has been
@@ -989,12 +882,23 @@ but "-D" should also work.
     <td>True</td>
   </tr>
   <tr>
+    <td>org.knopflerfish.framework.main.xargs.writesysprops</td>
+    <td>
+      Properties defined using -Fname=value in xargs-files are available
+      for bundles using BundleContext.getProperty(name).
+      This property controls weather such properties shall also be
+      exported as system properties or not.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
     <td>org.knopflerfish.gosg.jars</td>
     <td>
      Semicolon separated list of base URLs for relative install commands
     </td>
     <td>URL;...</td>
-    <td>URLs to the "jars" folder and all its subfolders</td>
+    <td>file:jars/</td>
   </tr>
   <tr>
     <td>org.knopflerfish.startlevel.compat</td>

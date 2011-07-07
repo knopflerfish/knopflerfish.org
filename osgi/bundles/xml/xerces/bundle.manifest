@@ -7,11 +7,9 @@ Bundle-Category: lib
 Bundle-Copyright: http://www.apache.org/licenses/LICENSE-2.0
 Bundle-Description: The Apache Xerces2 Java XML parser
 Bundle-Vendor: Apache/Knopflerfish
+Bundle-DocURL: http://xerces.apache.org/xerces2-j/
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
- /index.html?docpage=xerces/index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/xml/xerces/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Activator: org.osgi.util.xml.XMLParserActivator
 Bundle-Classpath: .,xercesImpl.jar,xml-apis.jar,resolver.jar,serializer.jar
 Export-Package: javax.xml;version=1.3,

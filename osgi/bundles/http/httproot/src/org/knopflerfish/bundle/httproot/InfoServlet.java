@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003,2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,50 +34,39 @@
 
 package org.knopflerfish.bundle.httproot;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Vector;
+import java.util.*;
+import java.net.URL;
+import java.io.*;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.osgi.framework.ServiceReference;
+import org.osgi.framework.*;
+import org.osgi.service.http.*;
+import org.knopflerfish.service.log.LogRef;
 
 public class InfoServlet extends HttpServlet {
 
-  private static final long serialVersionUID = 6985595442868609560L;
+  ServiceReference httpSR;
 
-  private final ServiceReference httpSR;
-
-  public InfoServlet(final ServiceReference httpSR) {
+  public InfoServlet(ServiceReference httpSR) {
     this.httpSR = httpSR;
   }
 
-  public void doPost(HttpServletRequest  request,
-                     HttpServletResponse response)
+  public void doPost(HttpServletRequest  request, 
+		     HttpServletResponse response) 
     throws ServletException,
-           IOException
+	   IOException 
   {
     // Handle just as GET
     doGet(request, response);
   }
 
-  public void doGet(HttpServletRequest  request,
-                    HttpServletResponse response)
+  public void doGet(HttpServletRequest  request, 
+		    HttpServletResponse response) 
     throws ServletException, IOException {
 
     PrintWriter out = response.getWriter();
-
+    
     response.setContentType("text/html");
 
     printHeader(out);
@@ -88,14 +77,13 @@ public class InfoServlet extends HttpServlet {
     } catch (Exception e) {
       out.println("<pre>");
       e.printStackTrace(out);
-      out.println("</pre>");
+      out.println("</pre>");      
     }
 
   }
 
   void printMain(PrintWriter out) throws IOException {
-    final String[] keys = httpSR.getPropertyKeys();
-    Arrays.sort(keys);
+    String[] keys = httpSR.getPropertyKeys();
 
     out.println("<h2>Web server properties</h2>");
 
@@ -133,18 +121,11 @@ public class InfoServlet extends HttpServlet {
   }
 
   void printDictionary(PrintWriter out, Dictionary d) throws IOException {
-    // Sort keys using a sorted set.
-    final TreeSet keys = new TreeSet();
-    for(Enumeration e = d.keys(); e.hasMoreElements();) {
-      final String key = (String) e.nextElement();
-      keys.add(key);
-    }
 
     out.println("<table>");
-    for(Iterator it = keys.iterator(); it.hasNext();) {
-      final String key = (String) it.next();
-      final Object val = d.get(key);
-
+    for(Enumeration e = d.keys(); e.hasMoreElements();) {
+      Object key = e.nextElement();
+      Object val = d.get(key);
       out.println("<tr>");
 
       out.println("<td>");
@@ -161,13 +142,11 @@ public class InfoServlet extends HttpServlet {
   }
 
   void printMap(PrintWriter out, Map m) throws IOException {
-    // Sorted map
-    final TreeMap ms = new TreeMap(m);
 
     out.println("<table>");
-    for(Iterator it = ms.keySet().iterator(); it.hasNext();) {
-      final Object key = it.next();
-      final Object val = ms.get(key);
+    for(Iterator it = m.keySet().iterator(); it.hasNext();) {
+      Object key = it.next();
+      Object val = m.get(key);
 
       out.println("<tr>");
 
@@ -188,7 +167,7 @@ public class InfoServlet extends HttpServlet {
     for(int i = 0; i < a.length; i++) {
       printObject(out, a[i]);
       if(i < a.length - 1) {
-        out.println("<br>");
+	out.println("<br>");
       }
     }
   }
@@ -197,7 +176,7 @@ public class InfoServlet extends HttpServlet {
     for(Iterator it = a.iterator(); it.hasNext();) {
       printObject(out, it.next());
       if(it.hasNext()) {
-        out.println("<br>");
+	out.println("<br>");
       }
     }
   }
@@ -206,7 +185,7 @@ public class InfoServlet extends HttpServlet {
     for(int i = 0; i < a.size(); i++) {
       printObject(out, a.elementAt(i));
       if(i < a.size() - 1) {
-        out.println("<br>");
+	out.println("<br>");
       }
     }
   }
@@ -214,36 +193,26 @@ public class InfoServlet extends HttpServlet {
   void printHeader(PrintWriter out) throws IOException {
     out.println("<html>");
     out.println("<head>");
-    out.println(" <meta http-equiv=\"CACHE-CONTROL\" content=\"NO-CACHE\"/>");
-    out.println(" <title>Knopflerfish OSGi Http Service Info</title>");
-    out.println(" <link href=\"/knopflerfish.css\" rel=\"stylesheet\" type=\"text/css\">");
-    out.println(" <link rel=\"shortcut icon\" href=\"/images/favicon.png\"/>");
+    out.println("<title>Knopflerfish OSGi info</title>");
+    
+    out.println("<LINK href=\"/knopflerfish.css\" rel=\"stylesheet\" type=\"text/css\">");
     out.println("</head>");
     out.println("<body>");
-    out.println(" <div id=\"main\">");
-    out.println("  <div id=\"header\">");
-    out.println("   <div id=\"header_logo\">");
-    out.println("    <a href=\"/\"><img src=\"/images/kf300_black.png\" border=0 alt=\"knopflerfish logo\"></a>");
-    out.println("   </div>");
-    out.println("   <div id=\"header_menu\">");
-    out.println("    <a class=\"button_closed\" href=\"/index.html\">Home</a>");
-    out.println("    <a class=\"button_closed\" href=\"/docs/\">Documentation</a>");
-    out.println("    <a class=\"button_open\" href=\"/servlet/knopflerfish-info\">Http-Server-Info</a>");
-    out.println("    <a class=\"button_closed\" href=\"http://www.knopflerfish.org/\">www.knopflerfish.org</a>");
-    out.println("   </div>");
+    out.println("<div id=\"main\">");
+    out.println("<div id=\"header\">");
+    out.println("<div id=\"header_logo\">");
+    out.println("<a href=\"/\"><img src=\"/images/kf300_black.png\" border=0 alt=\"knopflerfish logo\"></a>");
     out.println("  </div>");
-    out.println(" <div id=\"mainblock\">");
+    out.println("<div id=\"header_fade\">");
+    out.println("</div>");
+    out.println("</div>");
+    out.println("<div id=\"mainblock\">");
   }
 
   void printFooter(PrintWriter out) throws IOException {
-    out.println("  </div>");
-    out.println("  <div id=\"footer\">");
-    out.println("   <div id=\"copyright\">");
-    out.println("    Copyright &#169; 2003-2011 The Knopflerfish Project. All rights reserved.");
-    out.println("   </div>");
-    out.println("  </div>");
-    out.println(" </div>");
+    out.println("</div>");
+    out.println("</div>");
     out.println("</body>");
-    out.println("</html>");
+    out.println("</html>");  
   }
 }

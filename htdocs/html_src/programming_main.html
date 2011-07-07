@@ -6,7 +6,6 @@
 <ol>
   <li><a href="#eclipse_create">Using Eclipse to create bundles</a>
   <li><a href="#ant_create">Using Ant to create bundles</a>
-  <li><a href="#maven_build">Using Maven to build bundles</a>
   <li><a href="#activator">The BundleActivator</a>
   <li><a href="osgi_service_tutorial.html">OSGi Service tutorial</a>
   <li><a href="#dataaccess">Bundle data access</a>
@@ -25,7 +24,7 @@ See <a href="eclipse_plugin.html">Knopflerfish Eclipse Plugin</a>.
 <h3>Using Ant to create bundles</h3>
 <h4>Prerequisites</h4>
 <ul>
-  <li><a href="http://en.wikipedia.org/wiki/Java_Development_Kit"><i>Java Development Kit (JDK)</i></a>
+  <li><i><a href="http://en.wikipedia.org/wiki/Java_Development_Kit">Java Development Kit (JDK)</a>
   <li><i>Ant 1.7 or later</i>, available from <a href="http://ant.apache.org/">ant.apache.org</a>
 </ul>
 
@@ -200,157 +199,6 @@ to see all available targets.
 </table>
 
 <a class=top href="#top">top</a>
-
-<a name="maven_build"></a>
-<h3>Using Maven to build bundles</h3>
-<h4>Prerequisites</h4>
-<ul>
-  <li><a href="http://en.wikipedia.org/wiki/Java_Development_Kit"><i>Java Development Kit (JDK)</i></a>
-  <li><a href="http://maven.apache.org/"><i>Maven 2 or later.</i></a>
-</ul>
-
-
-<h4>Knopflerfish Releases Repository</h4>
-
-To simplify building bundles that depends on OSGi or Knopflerfish APIs
-with Maven Knopflerfish offers a Maven 2 repository with all released
-artifacts (framework and bundles).
-
-This Maven2 repository id called "Knopflerfish Releases Repository"
-and can be found at<br/>
-
-<a
-href="http://www.knopflerfish.org/maven2/"><code>http://www.knopflerfish.org/maven2/</code></a><br/>
-
-It contains all artifacts from Knopflerfish release builds starting with
-2.3.3, 2.4, 3.0, 3.1, ...
-
-<p/>
-
-To make it easy to find artifacts that belongs to the same
-Knopflerfish release the repository contains an xml-document for each
-release that lists all artifacts with group id, artifact id and
-version. These documents are located in<br/>
-
-<a href="http://www.knopflerfish.org./maven2/org/knopflerfish/"><code>http://www.knopflerfish.org/maven2/org/knopflerfish/</code><br/></a>
-
-and are named like
-<code>KF-<i>VERSION</i>_dependencyManagement.xml</code>.<br/>
-
-E.g., the file with URL <a
-href="http://www.knopflerfish.org/maven2/org/knopflerfish/KF-3.1.0_dependencyManagement.xml"><code>http://www.knopflerfish.org/maven2/org/knopflerfish/KF-3.1.0_dependencyManagement.xml</code></a>
-will list all artifacts from the Knopflerfish 3.1 release.
-
-<p/>
-
-Each nightly build and release build (as of Knopflerfish 3.2) will also
-have a build specific Maven2 repository that contains exactly those
-artifacts that belongs to the build. The URL of these repositories are
-on the form<br/>
-
-<a
-href="http://www.knopflerfish.org/snapshots/current_trunk/maven2/"><code>http://www.knopflerfish.org/snapshots/current_trunk/maven2/</code></a></br>
-
-<a
-href="http://www.knopflerfish.org/releases/3.2.0/maven2/"><code>http://www.knopflerfish.org/releases/3.2.0/maven2/</code></a>
-
-
-<h4>A sample POM file for building a simple bundle</h4>
-
-Here is a sample POM-file that may be used to build a simple
-bundle. Following Maven conventions the source code of the bundle
-should be in the subdirectory named <code>src/main/java</code>,
-resources should be in <code>src/main/resources</code>.
-
-<pre>
-&lt;project xmlns="http://maven.apache.org/POM/4.0.0" 
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"&gt;
-
-  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
-
-  &lt;groupId&gt;org.knopflerfish.examples&lt;/groupId&gt; 
-  &lt;artifactId&gt;example1&lt;/artifactId&gt; 
-  &lt;version&gt;1.0&lt;/version&gt; 
-  &lt;packaging&gt;bundle&lt;/packaging&gt;
-
-  &lt;name&gt;Example 1&lt;/name&gt;
-  &lt;description&gt;A bundle that exports a package.&lt;/description&gt;
-
-  &lt;properties&gt;
-    &lt;bundle.namespace&gt;${pom.groupId}.${pom.artifactId}&lt;/bundle.namespace&gt;
-  &lt;/properties&gt;
-
-  &lt;build&gt;
-    &lt;plugins&gt;
-      &lt;plugin&gt;
-        &lt;groupId&gt;org.apache.felix&lt;/groupId&gt;
-        &lt;artifactId&gt;maven-bundle-plugin&lt;/artifactId&gt;
-        &lt;extensions&gt;true&lt;/extensions&gt;
-        &lt;configuration&gt;
-          &lt;instructions&gt;
-            &lt;Export-Package&gt;${bundle.namespace}&lt;/Export-Package&gt;
-            &lt;Private-Package&gt;!${bundle.namespace}&lt;/Private-Package&gt;
-          &lt;/instructions&gt;
-        &lt;/configuration&gt;
-      &lt;/plugin&gt;
-    &lt;/plugins&gt;
-  &lt;/build&gt;
-  &lt;repositories&gt;
-    <b>&lt;repository&gt;
-      &lt;releases&gt;
-        &lt;enabled&gt;true&lt;/enabled&gt;
-        &lt;updatePolicy&gt;never&lt;/updatePolicy&gt;
-        &lt;checksumPolicy&gt;fail&lt;/checksumPolicy&gt;
-      &lt;/releases&gt;
-      &lt;snapshots&gt;
-        &lt;enabled&gt;false&lt;/enabled&gt;
-        &lt;updatePolicy&gt;never&lt;/updatePolicy&gt;
-        &lt;checksumPolicy&gt;fail&lt;/checksumPolicy&gt;
-      &lt;/snapshots&gt;
-      &lt;id&gt;Knopflerfish&lt;/id&gt;
-      &lt;name&gt;Knopflerfish Releases Repository&lt;/name&gt;
-      &lt;url&gt;<i>http://www.knopflerfish.org/maven2</i>&lt;/url&gt;
-      &lt;layout&gt;default&lt;/layout&gt;
-    &lt;/repository&gt;</b>
-  &lt;/repositories&gt;
-  &lt;dependencyManagement&gt;
-    &lt;dependencies&gt; 
-      &lt;!-- KF 3.1.0 --&gt;
-
-      &lt;!--framework.jar--&gt;
-      <b>&lt;dependency&gt;
-        &lt;groupId&gt;org.knopflerfish&lt;/groupId&gt;
-        &lt;artifactId&gt;framework&lt;/artifactId&gt;
-        &lt;version&gt;5.1.6&lt;/version&gt;
-      &lt;/dependency&gt;</b>
-
-      &lt;!--log/log_api-3.0.5.jar--&gt;
-      &lt;dependency&gt;
-        &lt;groupId&gt;org.knopflerfish&lt;/groupId&gt;
-        &lt;artifactId&gt;log-API&lt;/artifactId&gt;
-        &lt;version&gt;3.0.5&lt;/version&gt;
-      &lt;/dependency&gt;
-
-      &lt;!--cm/cm_api-3.0.1.jar--&gt;
-      &lt;dependency&gt;
-        &lt;groupId&gt;org.knopflerfish.bundle&lt;/groupId&gt;
-        &lt;artifactId&gt;cm-API&lt;/artifactId&gt;
-        &lt;version&gt;3.0.1&lt;/version&gt;
-      &lt;/dependency&gt;
-
-    &lt;/dependencies&gt; 
-  &lt;/dependencyManagement&gt;
-&lt;/project&gt;
-</pre>
-
-Note: The <b><code>&lt;repository&gt;</code></b>-element is normally
-placed in the top-level parent POM or in the
-<code>settings</code>-file. In this example it has been added to the
-bundles POM-file to keep it all in one file. The same applies to the
-<b><code>&lt;dependencyManagement&gt;</code></b>-element.
-
-
 
 <h3>Coding Style guides</h3>
 
@@ -681,15 +529,9 @@ Thanks to Rob Evans for this example.
 <h3>Using services</h3>
 <table>
 
-  <tr>
-    <td class="tableheader" colspan=2>
-      This is short introduction to service usage, to learn more about
-      it read the 
-      <a href="osgi_service_tutorial.html">service tutorial</a>.
-      <p/>
-      <b>Track all services!</b>
-    </td>
-  </tr>
+<tr>
+<td class="tableheader" colspan=2>Track all services!</td>
+</tr>
 
   <tr>
     <td valign=top>Be prepared that services might not exists, or suddenly
@@ -766,7 +608,6 @@ Thanks to Rob Evans for this example.
     </td>
   </tr>
 </table>
-
 
 <a class=top href="#top">top</a>
 
@@ -1156,91 +997,18 @@ be present at all in the manifest, not even as a zero-length string.
 
  <tr>
   <td>api.pattern</td>
-  <td>
-      Path pattern string that must match all Java packages that are
-      part of the bundle's API (i.e., that shall be exported). Note
-      that this pattern must not only match all packages in the source
-      tree, but also all packages that shall be exported from the
-      bundle class path (i.e., in nested jars).
-
-      <p/>
-
-      The "API"-variant of the bundle will only contain classes that
-      is the result of compiling those java-source files that matches
-      this pattern from the source tree.
-  </td>
+  <td>Path pattern string for all classes that define the bundle's API</td>
  </tr>
 
  <tr>
   <td>impl.pattern</td>
-  <td>
-      Path pattern string that must match all private (implementation
-      specific) Java packages in the source tree that shall be
-      included in the bundle but not exported. All Java packages on the
-      bundle class path that does not match the api.pattern are
-      inlcuded in the bundle as private packages.
-
-      <p/>
-
-      The "IMPL"-variant of the bundle will contain classes that
-      is the result of compiling those java-source files that matches
-      any of the impl.pattern and impl-api.pattern.
-  </td>
- </tr>
-
- <tr>
-  <td>impl-api.pattern</td>
-  <td>
-      Path pattern string that must match all Java packages in the
-      source tree and on the bundle class path that shall be included
-      in and exported from the "IMPL" variant of the the bundle but
-      not in the "API"-variant of the bundle. Typically used when the
-      implementation part of the bundle needs to export implementation
-      specific Java packages that is not part of the bundles API.
-  </td>
+  <td>Path pattern string for all classes that define the bundle's implementation</td>
  </tr>
 
  <tr>
   <td>ee.check.foundation</td>
   <td>If set, verify build with CLDC/Foundation standard OSGi profile.
       <br>Default is unset.
-  </td>
- </tr>
-
- <tr>
-  <td>bundleinfo.failOnExports</td>
-  <td>If set, verify that the given <code>Export-Package</code>
-      manifest header is valid. If not valid the build will fail.
-      <br>Default is <code>true</code>.
-  </td>
- </tr>
-
- <tr>
-  <td>bundleinfo.failOnImports</td>
-  <td>If set, verify that the given <code>Import-Package</code>
-      manifest header is valid. If not valid the build will fail.
-      <br>Default is <code>true</code>.
-  </td>
- </tr>
-
- <tr>
-  <td>bundleinfo.failOnActivator</td>
-  <td>If set, verify that the given <code>Bundle-Activator</code>
-      manifest header is valid. E.g., that the class is included in
-      the bundle archive and that it implements
-      <code>org.osgi.framework.BundleActivator</code>. If not valid the
-      build will fail. 
-      <br>Default is <code>true</code>.
-  </td>
- </tr>
-
- <tr>
-  <td>bundleinfo.failOnClassPath</td>
-  <td>If set, verify that the given <code>Bundle-Classpath</code>
-      manifest header is valid. E.g., that all files, directories in
-      it existis inside the bundle archive. If not valid the build
-      will fail.
-      <br>Default is <code>true</code>.
   </td>
  </tr>
 

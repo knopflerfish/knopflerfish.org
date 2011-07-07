@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,35 +32,61 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.util.ArrayList;
+import java.io.FileReader;
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.jar.JarFile;
+import java.util.zip.ZipEntry;
 
 import org.apache.tools.ant.BuildException;
+import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.Resource;
-import org.apache.tools.ant.types.ResourceCollection;
-import org.apache.tools.ant.types.resources.Restrict;
-import org.apache.tools.ant.types.resources.selectors.ResourceSelector;
+import org.apache.tools.ant.util.FileUtils;
 import org.apache.tools.ant.util.StringUtils;
+
 import org.osgi.framework.Version;
 
 /**
- * Task that analyzes sets of class files and jar files that will be
- * the contents of some bundle. The output is the set of packages to
- * be exported and imported by the bundle. Also tries to find any
- * class implementing <tt>org.osgi.framework.BundleActivator</tt>.
+ * Task that analyzes a set of java sources or class files, and lists all
+ * imported and defined packages. Also tries to find any class implementing
+ * <tt>org.osgi.framework.BundleActivator</tt>.
  *
- * <p>The set of files to analyze are specified as nested ant file sets.</p>
+ * <ul>
+ * <li><b>Class files</b>
+ * <p>
+ * Java class files are analyzed using the ASM library.
+ * <br>
+ * <b>Note</b>: Scanning <i>only</i> applies
+ * to the listed files - a complete closure of all referenced classes is
+ * not done.
+ * </p>
+ *
+ * <li><b>Source code</b>
+ * <p>
+ * Java source code is analyzed using very simple line-based scanning of
+ * files. <br>
+ * <b>Note</b>: Source code analysis does not attempt to find any
+ * <tt>BundleActivator</tt>
+ * </p>
+ *
+ * <li><b>Jar files</b>
+ * <p>
+ * All classes in jar files are analyzed.
+ * </p>
+ *
+ * </ul>
  *
  * <h3>Parameters</h3>
  *
@@ -195,13 +221,11 @@ import org.osgi.framework.Version;
  *   <td valign=top>serviceComponent</td>
  *   <td valign=top>
  *       The value of the <tt>Service-Component</tt> manifest header.
- *
- *       <p>If set to non-empty, leave the value of the activator
+ *       <p>
+ *       If set to non-empty, leave the value of the activator
  *       property untouched and do not complain if there are no class
- *       that implements BundleActivator in the bundle. A bundle using
- *       declarative services does not need a bundle activator but it
- *       may have one anyhow.</p>
- *
+ *       that implements BundleActivator in the bundle.
+ *       </p>
  *  </td>
  *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
@@ -209,12 +233,12 @@ import org.osgi.framework.Version;
  *   <td valign=top>fragmentHost</td>
  *   <td valign=top>
  *       The value of the <tt>Fragment-Host</tt> manifest header.
- *
- *       <p>If set to non-empty (i.e., this is a fragment bundle),
- *       leave the value of the activator property untouched and do
- *       not complain if there are no class that implements
- *       BundleActivator in the bundle.</p>
- *
+ *       <p>
+ *       If set to non-empty (i.e., this is a fragment bundle), leave
+ *       the value of the activator property untouched and do not
+ *       complain if there are no class that implements
+ *       BundleActivator in the bundle.
+ *       </p>
  *  </td>
  *   <td valign=top>No.<br> Default value is ""</td>
  *  </tr>
@@ -251,7 +275,7 @@ import org.osgi.framework.Version;
  *  <tr>
  *   <td valign=top>checkMinimumEE</td>
  *   <td valign=top>
- *       Flag for testing for the Minimum Execution Environment
+ *       Flag for testing for the Minum Execution Environment
  *       <p>
  *       If set to "true", the task will check if all used classes
  *       is in the set of the Minimum Execution Environment.
@@ -331,71 +355,16 @@ import org.osgi.framework.Version;
  *     Default value is "true"
  *   </td>
  *  </tr>
- *
- *  <tr>
- *   <td valign=top>failOnClassParh</td>
- *   <td valign=top>
- *       If a non-existing entry is detected in the given bundle
- *       classpath header and this attribute is set to <tt>true</tt>
- *       then a build failure is trigger.
- *   </td>
- *   <td valign=top>
- *     No.<br>
- *     Default value is "true"
- *   </td>
- *  </tr>
  * </table>
  *
  * <h3>Parameters specified as nested elements</h3>
+ * <h4>fileset</h4>
  *
- * The set of provided packages (classes) is the union of the packages
- * found via &lt;exports&gt;, &lt;exportsBundleClasspath&gt; and
- * &lt;impls&gt;, &lt;implsBundleClasspath&gt; resource
- * collections. The <code>import-package</code> header is derived
- * (checked against) the set of provided packages.
- *
- * <h4>exports</h4>
- *
- * (optional)<br>
- *
- * <p>Nested &lt;exports&gt;-elements are filesets that will be
- * analyzed to determine the set of provided Java packages to be
- * exported by the bundle.</p>
- *
- * <p>Unsupported file types matched by the file set are ignored.</p>
- *
- * <h4>exportsBundleClasspath</h4>
- *
- * (optional)<br>
- *
- * <p>Nested &lt;exportsBundleClasspath&gt;-elements are instances of
- * {@link BundleClasspathTask} that will derive a list of file sets to
- * be analyzed to determine the set of provided Java packages to be
- * exported by the bundle.</p>
- *
- * <p>Unsupported file types matched by the file set are ignored.</p>
- *
- * <h4>impls</h4>
- *
- * (optional)<br>
- *
- * <p>Nested &lt;impls&gt;-elements are filesets that will be analyzed
- * to determine the set of private Java packages provided by the
- * bundle.</p>
- *
- * <p>Unsupported file types matched by the file set are ignored.</p>
- *
- * <h4>implsBundleClasspath</h4>
- *
- * (optional)<br>
- *
- * <p>Nested &lt;implsBundleClasspath&gt;-elements are instances of
- * {@link BundleClasspathTask} that will derive a list of file sets
- * are to be analyzed to determine the set of private Java packages
- * provided by the bundle.</p>
- *
- * <p>Unsupported file types matched by the file set are ignored.</p>
- *
+ * (required)<br>
+ * <p>
+ * All files must be specified as a fileset. Unsupported file types
+ * are ignored.
+ * </p>
  *
  * <h3>Examples</h3>
  *
@@ -409,7 +378,7 @@ import org.osgi.framework.Version;
  * <pre>
  *  &lt;bundleinfo  activator = "bmfa.Bundle-Activator"
  *               imports   = "impl.import.package"&gt;
- *   &lt;impls dir="classes" includes="test/impl/*"/&gt;
+ *   &lt;fileset dir="classes" includes="test/impl/*"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports   = ${impl.import.package}"/&gt;
  *  &lt;echo message="activator = ${bmfa.Bundle-Activator}"/&gt;
@@ -426,8 +395,7 @@ import org.osgi.framework.Version;
  * <pre>
  *  &lt;bundleinfo  exports  = "api.export.package"
  *               imports  = "api.import.package"&gt;
- *   &lt;exports dir="classes" includes="test/*"/&gt;
- *   &lt;impls   dir="classes" includes="test/impl/*"/&gt;
+ *   &lt;fileset dir="classes" includes="test/*"/&gt;
  *  &lt;/bundleinfo&gt;
  *  &lt;echo message="imports  = ${api.import.package}"/&gt;
  *  &lt;echo message="exports  = ${api.export.package}"/&gt;
@@ -436,18 +404,20 @@ import org.osgi.framework.Version;
  */
 public class BundleInfoTask extends Task {
 
-  private List implsResourceCollections = new ArrayList();
-  private List exportsResourceCollections = new ArrayList();
+  private Vector    filesets = new Vector();
+  private FileUtils fileUtils;
 
   private String importsProperty   = "";
   private String exportsProperty   = "";
   private String activatorProperty = "";
+  private String mainProperty      = "";
   private String serviceComponent  = "";
   private String fragmentHost      = "";
   private Version manifestVersion  = new Version("1");
   private boolean bUses            = true;
 
   private Set     stdImports       = new TreeSet();
+  private boolean bDebug           = false;
 
   private boolean bPrintClasses      = false;
 
@@ -456,11 +426,9 @@ public class BundleInfoTask extends Task {
   private boolean bCheckSMFEE        = false;
   private boolean bImplicitImports   = true;
   private boolean bSetActivator      = true;
-  private boolean bActivatorOptional = false;
   private boolean failOnExports      = true;
   private boolean failOnImports      = true;
   private boolean failOnActivator    = true;
-  private boolean failOnClassPath    = true;
   private boolean bImportsOnly       = false;
 
   /**
@@ -474,11 +442,12 @@ public class BundleInfoTask extends Task {
    */
   private Set extraImportSet       = new TreeSet();
 
-  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
+  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo();
   private final ClassAnalyserASM asmAnalyser
     = new ClassAnalyserASM(bpInfo, this);
 
   public BundleInfoTask() {
+    fileUtils = FileUtils.newFileUtils();
     setDefaultImports("");
     setStdImports("java.");
   }
@@ -516,10 +485,6 @@ public class BundleInfoTask extends Task {
 
   public void setFailOnActivator(boolean b) {
     this.failOnActivator = b;
-  }
-
-  public void setFailOnClassPath(boolean b) {
-    this.failOnClassPath = b;
   }
 
   public void setImplicitImports(String s) {
@@ -584,9 +549,7 @@ public class BundleInfoTask extends Task {
   public void setServiceComponent(String serviceComponent) {
     this.serviceComponent = serviceComponent;
     if (!BundleManifestTask.isPropertyValueEmpty(this.serviceComponent)) {
-      // A bundle with service components may have an activator but it
-      // is not recommended.
-      bActivatorOptional = true;
+      bSetActivator = false;
     }
   }
 
@@ -596,7 +559,6 @@ public class BundleInfoTask extends Task {
   public void setFragmentHost(String fragmentHost) {
     this.fragmentHost = fragmentHost;
     if (!BundleManifestTask.isPropertyValueEmpty(this.fragmentHost)) {
-      // A fragment bundle must not have an activator.
       bSetActivator = false;
     }
   }
@@ -616,6 +578,17 @@ public class BundleInfoTask extends Task {
   }
 
   /**
+   * Set property receiving any Main class.
+   * <p>
+   * Not yet implemented.
+   * </p>
+   */
+  public void setMain(String propName) {
+    this.mainProperty = propName;
+  }
+
+
+  /**
    * Set set of packages always imported.
    *
    * @param packageList Comma-separated list of package names.
@@ -629,56 +602,8 @@ public class BundleInfoTask extends Task {
     }
   }
 
-  /**
-   * Add a file set with classes that shall be exported.
-   *
-   * @param set The file set with exports to add.
-   */
-  public void addConfiguredExports(FileSet set) {
-    final Restrict restrict = new Restrict();
-    restrict.add(set);
-    restrict.add(analyzeRestriction);
-    exportsResourceCollections.add(restrict);
-  }
-
-  /**
-   * Add file sets for classes exported from the bundle classpath.
-   *
-   * @param bcpt The bundle classpath that the bundle will have.
-   */
-  public void addConfiguredExportsBundleClasspath(BundleClasspathTask bcpt) {
-    for (Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
-      final Restrict restrict = new Restrict();
-      restrict.add((ResourceCollection) it.next());
-      restrict.add(analyzeRestriction);
-      exportsResourceCollections.add(restrict);
-    }
-  }
-
-  /**
-   * Add a file set with classes that are private to the bundles.
-   *
-   * @param set The file set with private implementations to add.
-   */
-  public void addConfiguredImpls(FileSet set) {
-    final Restrict restrict = new Restrict();
-    restrict.add(set);
-    restrict.add(analyzeRestriction);
-    implsResourceCollections.add(restrict);
-  }
-
-  /**
-   * Add file sets for private classes on the bundle classpath.
-   *
-   * @param bcpt The bundle classpath that the bundle will have.
-   */
-  public void addConfiguredImplsBundleClasspath(BundleClasspathTask bcpt) {
-    for (Iterator it = bcpt.getFileSets(failOnClassPath).iterator(); it.hasNext();) {
-      final Restrict restrict = new Restrict();
-      restrict.add((ResourceCollection) it.next());
-      restrict.add(analyzeRestriction);
-      implsResourceCollections.add(restrict);
-    }
+  public void addFileset(FileSet set) {
+    filesets.addElement(set);
   }
 
   /**
@@ -690,93 +615,33 @@ public class BundleInfoTask extends Task {
   }
 
   // Implements Task
-  /**
-   * Analyze all resources in the exports and impls resource
-   * collections to determine the set of Java packages provided by
-   * this bundle. Update the given properties for export- and import
-   * package accordingly.
-   */
+  //
+  // Scan all files in fileset and delegate to analyze()
+  // then write back values to properties.
   public void execute() throws BuildException {
-    if (0==exportsResourceCollections.size()
-        && 0==implsResourceCollections.size()) {
-      throw new BuildException("Neither exports nor impls specified",
-                               getLocation());
+    if (filesets.size() == 0) {
+      throw new BuildException("No fileset specified", getLocation());
     }
 
-    // First analyze the exports resource collections
-    for (Iterator it = exportsResourceCollections.iterator(); it.hasNext(); ) {
-      final ResourceCollection rc = (ResourceCollection) it.next();
+    for (int i = 0; i < filesets.size(); i++) {
+      FileSet fs = (FileSet) filesets.elementAt(i);
+      DirectoryScanner ds = fs.getDirectoryScanner(project);
+      File fromDir = fs.getDir(project);
 
-      for (Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
-        final Resource res = (Resource) rcIt.next();
-        log("Exports resource: "+res, Project.MSG_DEBUG);
-        analyze(res);
+      String[] srcFiles = ds.getIncludedFiles();
+      String[] srcDirs = ds.getIncludedDirectories();
+
+      for (int j = 0; j < srcFiles.length ; j++) {
+        analyze(new File(fromDir, srcFiles[j]));
+      }
+
+      for (int j = 0; j < srcDirs.length ; j++) {
+        analyze(new File(fromDir, srcDirs[j]));
       }
     }// Scan done
-
-    // Get the sub-set of the provided packages that are the exports set
-    final Set providedExportSet = new TreeSet(bpInfo.getProvidedPackages());
-    final Set manifestExportSet = getPredefinedExportSet();
-    if (null!=manifestExportSet) {
-      // An Export-Package header was given it shall contain
-      // precisely the provided export set of Java packages.
-      if (!manifestExportSet.equals(providedExportSet)) {
-        // Found export package missmatch
-        log("Provided package to export:  " +providedExportSet,
-            Project.MSG_ERR);
-        log("Given Export-Package header: " +manifestExportSet,
-            Project.MSG_ERR);
-        final StringBuffer msg = new StringBuffer();
-        final TreeSet tmp = new TreeSet(manifestExportSet);
-        tmp.removeAll(providedExportSet);
-        if (0<tmp.size()) {
-          msg.append("The following non-provided packages are present in the ")
-            .append("Export-Package header: ")
-            .append(tmp.toString())
-            .append(". ");
-        }
-        tmp.clear();
-        tmp.addAll(providedExportSet);
-        tmp.removeAll(manifestExportSet);
-        if (0<tmp.size()) {
-          if (0<msg.length()) {
-            msg.append("\n");
-          }
-          msg.append("The following packages are missing from ")
-            .append("the given Export-Package header: ")
-            .append(tmp.toString())
-            .append(".");
-        }
-        tmp.clear();
-        if (failOnExports) {
-          log(msg.toString(), Project.MSG_ERR);
-          throw new BuildException(msg.toString(), getLocation());
-        } else {
-          log(msg.toString(), Project.MSG_WARN);
-        }
-      }
-    }
-    log("Provided packages to export: " +providedExportSet,
-        Project.MSG_VERBOSE);
-
-
-    // Analyze the impls resource collections to find all provided
-    // Java packages.
-    for (Iterator it = implsResourceCollections.iterator(); it.hasNext(); ) {
-      final ResourceCollection rc = (ResourceCollection) it.next();
-
-      for (Iterator rcIt = rc.iterator(); rcIt.hasNext();) {
-        final Resource res = (Resource) rcIt.next();
-        log("Impl resource: "+res, Project.MSG_DEBUG);
-        analyze(res);
-      }
-    }// Scan done
-
-    // Get the set of packages provided by the bundle
-    bpInfo.toJavaNames(); // Make package name in bpInfo '.' separated.
-    log("All provided packages: "
-        +bpInfo.getProvidedPackagesAsExportPackageValue(),
-        Project.MSG_VERBOSE);
+    bpInfo.toJavaNames();
+    log("Provided packages: " +bpInfo.getProvidedPackagesAsExportPackageValue(),
+        Project.MSG_DEBUG);
 
     // created importSet from the set of unprovided referenced packages
     final SortedSet unprovidedReferencedPackages
@@ -809,6 +674,10 @@ public class BundleInfoTask extends Task {
         Project.MSG_DEBUG);
     importSet.addAll(unprovidedExtraImportSet);
 
+    // The sub-set of the provided packages that will be exported
+    final Set providedExportSet = getProvidedExportSet();
+    log("Provided packages to export: " +providedExportSet, Project.MSG_DEBUG);
+
     // The set of packages that will be mentioned in the
     // Export-Package or the Import-Package header.
     final Set allImpExpPkgs = new TreeSet(providedExportSet);
@@ -840,7 +709,7 @@ public class BundleInfoTask extends Task {
           }
         }
       } else {
-        // Export-Package given; add version and uses directives.
+        // Export-Package given; check or add versions and and uses directives.
         final String newExportsVal = validateExportPackagesValue(exportsVal);
         if (!exportsVal.equals(newExportsVal)) {
           log("Updating \"" +exportsProperty +"\" to \""+newExportsVal +"\"",
@@ -920,13 +789,11 @@ public class BundleInfoTask extends Task {
         // No Bundle-Activator given; use derived value if possible.
         switch(bpInfo.countProvidedActivatorClasses()) {
         case 0:
-          if (!bActivatorOptional) {
-            final String msg1 = "Requested to derive Bundle-Activator but "
-              +"there is no class implementing BundleActivator.";
-            log(msg1, Project.MSG_ERR);
-            if (failOnActivator) {
-              throw new BuildException(msg1, getLocation());
-            }
+          final String msg1 = "Requested to derive Bundle-Activator but "
+            +"there is no class implementing BundleActivator.";
+          log(msg1, Project.MSG_ERR);
+          if (failOnActivator) {
+            throw new BuildException(msg1, getLocation());
           }
           break;
         case 1:
@@ -1020,11 +887,7 @@ public class BundleInfoTask extends Task {
           final Map impEntry = (Map) impIt.next();
           importSet.add( impEntry.get("$key") );
         }
-      } else {
-        // Spec is empty, must remove the emtpy value marker for now.
-        importsSpec = "";
       }
-      final StringBuffer sb = new StringBuffer(importsSpec);
 
       final String exportsSpec = proj.getProperty(exportsProperty);
       if (!BundleManifestTask.isPropertyValueEmpty(exportsSpec)) {
@@ -1042,15 +905,8 @@ public class BundleInfoTask extends Task {
               pkg += ";specification-version="+sver;
             }
             log("implicitImport - adding: "+pkg, Project.MSG_DEBUG);
-            if (0<sb.length()) {
-              sb.append(",");
-            }
-            sb.append(pkg);
+            importsSpec += "," +pkg;
           }
-        }
-        importsSpec = sb.toString();
-        if (0==importsSpec.length()) {
-          importsSpec = BundleManifestTask.BUNDLE_EMPTY_STRING;
         }
         log("implicitImport - after: "+importsSpec, Project.MSG_VERBOSE);
         proj.setProperty(importsProperty, importsSpec );
@@ -1090,35 +946,43 @@ public class BundleInfoTask extends Task {
 
 
   /**
-   * Get the set of Java packages to export according to the given
-   * <code>Export-Package</code> header.
-   *
-   * @return the set of Java packages to export or null if no
-   * <code>Export-Package</code> header was given.
+   * The sub-set of the provided packages that will be exported.
    */
-  private SortedSet getPredefinedExportSet()
+  private SortedSet getProvidedExportSet()
   {
-    if(!"".equals(exportsProperty)) {
-      final String exportsVal = getProject().getProperty(exportsProperty);
+    final SortedSet res = new TreeSet();
 
+    if(!"".equals(exportsProperty)) {
+      log("Exports property set", Project.MSG_DEBUG);
+
+      final String exportsVal = getProject().getProperty(exportsProperty);
       if (!BundleManifestTask.isPropertyValueEmpty(exportsVal)) {
         log("Found non-empty Export-Package attribute: '" +exportsVal +"'",
             Project.MSG_DEBUG);
 
-        final SortedSet res = new TreeSet();
         final Iterator expIt = Util.parseEntries("export.package", exportsVal,
                                                  true, true, false );
         while (expIt.hasNext()) {
           final Map expEntry = (Map) expIt.next();
           final String pkgName = (String) expEntry.get("$key");
-          res.add(pkgName);
+          if (bpInfo.providesPackage(pkgName)) {
+            res.add(pkgName);
+          }
         }
-        return res;
+      } else if (!bImportsOnly) {
+        log("Empty Export-Package, importsOnly not set; will export all "
+            +"provided packages.", Project.MSG_DEBUG);
+        res.addAll(bpInfo.getProvidedPackages());
+      } else {
+        log("Empty Export-Package, importsOnly set; will not export.",
+            Project.MSG_DEBUG);
       }
+    } else {
+      log("Exports property set to all provided packages.", Project.MSG_DEBUG);
+      res.addAll(bpInfo.getProvidedPackages());
     }
-    return null;
+    return res;
   }
-
 
   private void appendUsesDirective(final StringBuffer sb, final String pkgName)
   {
@@ -1146,7 +1010,7 @@ public class BundleInfoTask extends Task {
   }
 
   /**
-   * Return the value of the Export-Package based on the analysis.
+   * Return the value of the Export-Package based on the analyzis.
    *
    * @param exportPackages The sub-set of provided packages to be exported.
    */
@@ -1176,11 +1040,11 @@ public class BundleInfoTask extends Task {
 
   /**
    * Validate a given Export-Package header value. Check existing
-   * version parameters, add missing package versions. Check uses
+   * version parameters add missing package versions. Check uses
    * directives and add those that are missing.
    *
    * @param oldExportsVal the Export-Package value to validate and update.
-   * @throws BuildException when conflicting version specifications
+   * @throws BuildException when confilicting version specifications
    *         are found for a package.
    */
   protected String validateExportPackagesValue(final String oldExportsVal)
@@ -1304,17 +1168,16 @@ public class BundleInfoTask extends Task {
 
 
   /**
-   * Analyze a resource by checking its suffix and delegate to {@link
-   * #analyzeClass(Resource)} or {@link
-   * #analyzePackageinfo(Resource)}.
-   *
-   * @param res The resource to be analyzed.
+   * Analyze a file by checking its suffix and delegate to
+   * <tt>analyzeClass</tt>, <tt>analyzeJava</tt> etc
    */
-  protected void analyze(Resource res) throws BuildException {
-    if(res.getName().endsWith(".class")) {
-      analyzeClass(res);
-    } else if(res.getName().endsWith("packageinfo")) {
-      analyzePackageinfo(res);
+  protected void analyze(File file) throws BuildException {
+    if(file.getName().endsWith(".class")) {
+      analyzeClass(file);
+    } else if(file.getName().endsWith(".jar")) {
+      analyzeJar(file);
+    } else if(file.getName().endsWith(".java")) {
+      analyzeJava(file);
     } else {
       // Just ignore all other files
     }
@@ -1351,58 +1214,98 @@ public class BundleInfoTask extends Task {
   }
 
 
-  protected void analyzeClass(Resource res) throws BuildException {
-    log("Analyze class file " + res, Project.MSG_VERBOSE);
+  protected void analyzeJar(File file) throws BuildException {
+    log("Analyze jar file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
 
     try {
-      asmAnalyser.analyseClass(res.getInputStream(), res.toString());
+      final JarFile jarFile = new JarFile(file);
+
+      for (Enumeration entries = jarFile.entries();
+           entries.hasMoreElements(); ) {
+        final ZipEntry     ze = (ZipEntry) entries.nextElement();
+        final String fileName = ze.getName();
+        if (fileName.endsWith(".class")) {
+          log("Analyze jar class file " + fileName, Project.MSG_VERBOSE);
+          asmAnalyser.analyseClass(jarFile.getInputStream(ze), fileName);
+        }
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new BuildException("Failed to analyze class-file " +
+                               file + ", exception=" + e, getLocation());
+    }
+  }
+
+  protected void analyzeClass(File file) throws BuildException {
+    log("Analyze class file " + file.getAbsolutePath(), Project.MSG_VERBOSE);
+
+    try {
+      asmAnalyser.analyseClass(file);
     } catch (Exception e) {
       e.printStackTrace();
       throw new BuildException("Failed to analyze class-file "
-                               +res + ", exception=" + e,
+                               +file + ", exception=" + e,
                                getLocation());
     }
   }
 
-  protected void analyzePackageinfo(Resource res) throws BuildException {
-    log("Analyze packageinfo file " + res, Project.MSG_VERBOSE);
-
-    bpInfo.setPackageVersion(res);
-  }
-
-
-  public static final Set ANALYZE_SUFFIXES = new TreeSet() {
-    private static final long serialVersionUID = 2628940819429424154L;
-    {
-      add(".class");
-      add("/packageinfo"); // packageinfo-files inside jar-files
-      add(File.separatorChar + "packageinfo"); // packageinfo-files in
-                                               // the file system
-    }
-  };
 
   /**
-   * A resource selector that selects files to be analyzed. I.e., it
-   * selects <code>.class</code>-files and
-   * <code>packageinfo</code>-files.
+   * Analyze java source file by reading line by line and looking
+   * for keywords such as "import", "package".
+   *
+   * <p>
+   * <b>Note</b>: This code does not attempt to find any class implementing
+   * <tt>BundleActivator</tt>
    */
-  public static final ResourceSelector analyzeRestriction
-    = new ResourceSelector() {
-        public boolean isSelected(final Resource r)
-        {
-          final Iterator it= BundleInfoTask.ANALYZE_SUFFIXES.iterator();
-          while (it.hasNext()) {
-            final String suffix = (String) it.next();
-            if (r.getName().endsWith(suffix)) return true;
+  protected void analyzeJava(File file) throws BuildException {
+
+    if(bDebug) {
+      System.out.println("Analyze java file " + file.getAbsolutePath());
+    }
+
+    BufferedReader reader = null;
+
+    try {
+      String packageName = null;
+      String line;
+      int    lineNo = 0;
+
+      reader = new BufferedReader(new FileReader(file));
+
+      while(null != (line = reader.readLine())) {
+        lineNo++;
+        line = line.replace(';', ' ').replace('\t', ' ').trim();
+
+        if(line.startsWith("package")) {
+          final Vector v = StringUtils.split(line, ' ');
+          if(v.size() > 1 && "package".equals(v.elementAt(0))) {
+            packageName = (String)v.elementAt(1);
+            bpInfo.addProvidedPackage(packageName);
           }
-          return false;
         }
-      };
+        if(line.startsWith("import")) {
+          final Vector v = StringUtils.split(line, ' ');
+          if(v.size() > 1 && "import".equals(v.elementAt(0))) {
+            final String name = (String)v.elementAt(1);
+            bpInfo.addReferencedClass(packageName, name);
+          }
+        }
+      }
+    } catch (Exception e) {
+      throw new BuildException("Failed to scan " + file + ", err=" + e,
+                               getLocation());
+    } finally {
+      if(reader != null) {
+        try { reader.close(); } catch (Exception ignored) { }
+      }
+    }
+  }
 
   /**
    * Convert Set elements to a string.
    *
-   * @param separator String to use as separator between elements.
+   * @param separator String to use as sperator between elements.
    */
   static protected String toString(Set set, String separator) {
     final StringBuffer sb = new StringBuffer();

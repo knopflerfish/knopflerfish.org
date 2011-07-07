@@ -6,11 +6,11 @@ Bundle-Version: 3.0.0
 Bundle-Category: service
 Bundle-Description: CM desktop plugin
 Bundle-Vendor: Knopflerfish
-Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/metatype/cm_desktop/readme.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/metatype/cm_desktop/
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.or
+ g/trunk/osgi/bundles/metatype/cm_desktop/
 Bundle-Activator: org.knopflerfish.bundle.desktop.cm.Activator
 Import-Package: org.osgi.service.cm,
  org.knopflerfish.service.desktop,

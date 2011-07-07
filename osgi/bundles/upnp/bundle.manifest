@@ -7,9 +7,7 @@ Bundle-Category: API
 Bundle-Description: UPnP
 Bundle-Vendor: OSGi
 Bundle-APIVendor: OSGi
+Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
- /index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/upnp/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Export-Package: org.osgi.service.upnp; version=1.1

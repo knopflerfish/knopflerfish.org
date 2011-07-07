@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,25 +35,29 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
+import java.util.Map.Entry;
+import java.util.Map.Entry;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.taskdefs.Manifest;
+import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.selectors.FilenameSelector;
 import org.apache.tools.ant.util.FileUtils;
-import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
+
+import org.osgi.framework.Version;
 
 /**
  * <p>
@@ -64,8 +68,8 @@ import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
  *
  * <p>
  *  Task that creates web sites given a template and a source file.
- *  Currently used to create parts of the <code>docs</code> directory in the KF
- *  distribution.  It does this by simply replacing certain text strings with
+ *  Currently used to create parts of the docs directory in the KF
+ *  dist.  It does this by simply replacing certain text strings with
  *  others. For more information on which text strings this is please
  *  check the source code.
  * </p>
@@ -98,7 +102,7 @@ import org.knopflerfish.ant.taskdefs.bundle.BundleArchives.BundleArchive;
  *    tofile
  *   </td>
  *   <td>
- *    The relative path to where the generated file should be
+ *    The releative path to where the generated file should be
  *    copied. That is the actual location of the generated file
  *    will be <code>outdir</code>/<code>tofile</code>
  *   </td>
@@ -182,6 +186,10 @@ public class MakeHTMLTask
   private final static String YEAR
     = new SimpleDateFormat("yyyy",  Locale.ENGLISH).format(new Date());
 
+  private String lib_suffix = "";
+  private String api_suffix = "_api";
+  private String impl_suffix = "";
+  private String all_suffix = "_all";
   private String projectName = "";
   private boolean do_manpage = false;
   private String javadocRelPath = "../../javadoc";
@@ -296,6 +304,12 @@ public class MakeHTMLTask
       throw new BuildException("Need to specify tofile and fromfile or give a fileset");
     }
 
+    // Set suffixes
+    impl_suffix = proj.getProperty("impl.suffix");
+    api_suffix = proj.getProperty("api.suffix");
+    lib_suffix = proj.getProperty("lib.suffix");
+    all_suffix = proj.getProperty("all.suffix");
+
     if (filesets.isEmpty()) {
       // log("Project base is: " + getProject().getBaseDir());
       // log("Attempting to transform: " + fromFile);
@@ -397,8 +411,7 @@ public class MakeHTMLTask
                              proj.getProperty("svn.repo.url"));
       content = Util.replace(content, "$(SVN_TAG)",proj.getProperty("svn.tag"));
       content = Util.replace(content, "$(JAVADOCPATH)", pathToJavadocDir);
-      content = Util.replace(content, "$(JAVADOCLINK)",
-                             pathToJavadocDir + "/index.html?");
+      content = Util.replace(content, "$(JAVADOCLINK)", pathToJavadocDir + "/index.html?");
 
       // Used for bundle_doc generation
       if (do_manpage) {
@@ -406,13 +419,17 @@ public class MakeHTMLTask
         content = Util.replace(content, "$(BUNDLE_VERSION)",
                                proj.getProperty("bmfa.Bundle-Version"));
 
-        final BundleArchives bas = getBundleArchives();
+        // Create links to generated jardoc for this bundle
+        StringBuffer sbuf = new StringBuffer();
+        generateJardocPath(sbuf, "do_build_lib", lib_suffix);
+        generateJardocPath(sbuf, "do_build_api", api_suffix);
+        generateJardocPath(sbuf, "do_build_all", all_suffix);
+        generateJardocPath(sbuf, "do_build_impl", impl_suffix);
+        content = Util.replace(content, "$(BUNDLE_JARDOCS)", sbuf.toString());
 
-        // Create links to jardoc for bundles built from this project
-        content = Util.replace(content, "$(BUNDLE_JARDOCS)", basToString(bas));
-
-        content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)",
-                               getExportPkgs(bas, pathToJavadocDir));
+        final String epkgs
+          = formatPkgsWithJavadocLinks(getExports(), pathToJavadocDir);
+        content = Util.replace(content, "$(BUNDLE_EXPORT_PACKAGE)", epkgs);
 
         // Replce H1-H3 headers to man page style, if manpage style
         content = Util.replace(content, "<h1", "<h1 class=\"man\"");
@@ -432,14 +449,12 @@ public class MakeHTMLTask
         for (int i = 0; i < navPages.length; i++) {
           // System.out.println("Checking: " + navPages[i]);
           if (disable != null && disable.equals(navPages[i])) {
-            content = Util.replace(content,
-                                   "$(CLASS_NAVIGATION_" + navPages[i] + ")",
-                                   navDisabled);
+            // System.out.println("Disabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
+            content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navDisabled);
           }
           else {
-            content = Util.replace(content,
-                                   "$(CLASS_NAVIGATION_" + navPages[i] + ")",
-                                   navEnabled);
+            // System.out.println("Enabling: " + "$(CLASS_NAVIGATION_" + navPages[i] + ")");
+            content = Util.replace(content, "$(CLASS_NAVIGATION_" + navPages[i] + ")", navEnabled);
           }
         }
       }
@@ -508,197 +523,146 @@ public class MakeHTMLTask
     return buf.toString();
   }
 
-  /**
-   * Loads the bundle archives built from this project.
-   * <p>
-   * The jar files to analyze is determined from:
-   * <ul>
-   * <li>The project property named <code>jarfile</code>. This is used to create
-   * a file set with dir set to the directory part of the property value that
-   * selects the file named by the file name part of the property value.</li>
-   * <li>The project properties <code>jars.dir</code> and
-   * <code>jardir.name</code> (set by all projects based on
-   * <code>bundlebuild.xml</code>. The file set derived from these properties
-   * will have its dir-property set to the value <code>jars.dir</code> and an
-   * includes pattern of the form
-   * <code>${jardir.name}/&ast;&ast;/&ast;.jar</code>.
-   * <li>The file set with id <code>docbuild.jarfiles</code>.
-   * </ul>
-   *
-   * @return bundle archives object holding the bundle archives selected by the
-   *         file sets described above or null if no file set was defined.
-   */
-  private BundleArchives getBundleArchives() {
-    final List fileSets = new ArrayList();
-    final Project proj = getProject();
+  // Returns a bool for s Project prop. If null => false
+  private boolean getBoolProperty(String prop) {
+    if (prop == null)
+      return false;
 
-    // File set for bundlebuild.xml properties
-    final String jarsDir = proj.getProperty("jars.dir");
-    if (null != jarsDir && 0 < jarsDir.length()) {
-      final File file = new File(jarsDir);
-      if (file.exists()) {
-        final FileSet fileSet = new FileSet();
-        fileSet.setProject(proj);
-        fileSet.setDir(file);
-        final FilenameSelector fns = new FilenameSelector();
-        fns.setName(proj.getProperty("jardir.name") + "/**/*.jar");
-        fileSet.add(fns);
-        fileSets.add(fileSet);
-        log("Found build results (bundlebuild): " + fileSet, Project.MSG_DEBUG);
-      }
-    }
+    Boolean b = Boolean.valueOf(getProject().getProperty(prop));
 
-    // File set for jarfile-property (e.g., framework.jar)
-    final String jarfile = proj.getProperty("jarfile");
-    if (null!=jarfile && 0<jarfile.length()) {
-      final File file = new File(jarfile);
-      if (file.exists()) {
-        final FileSet fileSet = new FileSet();
-        fileSet.setProject(proj);
-        fileSet.setDir(file.getParentFile());
-        final FilenameSelector fns = new FilenameSelector();
-        fns.setName(file.getName());
-        fileSet.add(fns);
-        fileSets.add(fileSet);
-        log("Found build results (jarfile): " + fileSet, Project.MSG_DEBUG);
-      }
-    }
-
-    // FileSet defined with id (for bundle overview documentation).
-    final FileSet docbuildeFileSet = (FileSet) proj.getReference("docbuild.jarfiles");
-    if (null!=docbuildeFileSet) {
-      fileSets.add(docbuildeFileSet);
-      log("Found build results (docbuild.jarfiles): " + docbuildeFileSet, Project.MSG_DEBUG);
-    }
-
-    if (0 < fileSets.size()) {
-      final BundleArchives bas = new BundleArchives(this, fileSets, true);
-      bas.doProviders();
-      return bas;
-    }
-    return null;
+    return b.booleanValue();
   }
+
+  private void generateJardocPath(StringBuffer sbuf,
+                                  String prop,
+                                  String suffix)
+  {
+    if (getBoolProperty(prop)) {
+      sbuf.append("<a target=\"_top\" href=\"../../jars/index.html?bundle=");
+      sbuf.append(this.projectName);
+      sbuf.append("/");
+      sbuf.append(this.projectName);
+      sbuf.append(suffix);
+      sbuf.append(".html\">");
+      sbuf.append(this.projectName);
+      sbuf.append(suffix);
+      sbuf.append("</a><br>\n");
+    }
+  }
+
 
   static String replace(String src, String a, String b) {
     return Util.replace(src, a, b == null ? "" : b);
   }
 
+
+  // Get the value of the export package manifest header for this bundle.
+  private String getExports()
+  {
+    final Project proj = getProject();
+
+    // First try to get Export-Package header from the generated manifests
+    final String outdirS = proj.getProperty("outdir");
+    if (null!=outdirS && 0<outdirS.length()) {
+      final File outdir = new File(outdirS);
+      final String[] mfFileNames = { "api.mf", "lib.mf", "all.mf", "impl.mf" };
+      for (int i = 0; i<mfFileNames.length; i++) {
+        final File mfFile = new File(outdir, mfFileNames[i]);
+        if (mfFile.exists()) {
+          InputStreamReader ir = null;
+          try {
+            final FileInputStream   is = new FileInputStream(mfFile);
+            ir = new InputStreamReader(is, "UTF-8");
+            final Manifest mf = new Manifest(ir);
+            final Manifest.Attribute attr
+              = mf.getMainSection().getAttribute("Export-Package");
+            if (null!=attr) {
+              final String value = attr.getValue();
+              if (null!=value && 0<value.length()) {
+                return value;
+              }
+            }
+          } catch (ManifestException me) {
+            throw new BuildException("Manifest file " + mfFile + " is invalid",
+                                     me, getLocation());
+          } catch (IOException ioe) {
+            throw new BuildException("Failed to read " + mfFile,
+                                     ioe, getLocation());
+          } finally {
+            if (ir != null) {
+              try {
+                ir.close();
+              } catch (IOException e) {
+                // ignore
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback to the value from the template manifest.
+    String res = proj.getProperty("bmfa.Export-Package");
+    if ("[bundle.emptystring]".equals(res)) {
+      res = "";
+    }
+    return res;
+  }
+
   /** Template row for an exported package. */
   private static final String packageListRow
-    = " <tr><td>${namelink}</td><td align=\"center\">${version}</td><td>${providers}</td></tr>\n";
-
-  /** The table heading for the list of exported packages. */
-  private static final String packageListHeading
-    = "<table border=\"1\">\n <tr><th>Package</th><th>Version</th><th>Providers</th></tr>\n";
-
-  /** The table footer for the list of exported packages. */
-  private static final String packageListFooter
-    = "</table>\n";
+    = "${namelink}&nbsp;${version}<br/>\n";
 
   /**
-   * Return HTML-formated String with one exported package per line, linking the
-   * package name to its javadoc (if present).
+   * Create one row in the output for each exported package. The
+   * format of the row is determined by {@link #packageListRow}.
    *
-   * @param bas
-   *          Bundle archives object that holds the set of packages and the
-   *          exporters.
-   * @param pathToJavadocDir
-   *          Relative path from the file we are generating to the javadoc
-   *          directory.
-   * @return HTML string with all exported packages.
+   * @param epkgs The value of the "Export-Package" attribute to
+   *              present.
+   * @param pathToJavadoc Relative path from the output directory to
+   *              the root of the javadoc tree to link to.
    */
-  private String getExportPkgs(final BundleArchives bas, final String pathToJavadocDir) {
+  private String formatPkgsWithJavadocLinks(final String epkgs,
+                                            final String pathToJavadoc)
+  {
     final StringBuffer res = new StringBuffer();
 
-    if (null != bas) {
-      final boolean javadocPresent = pathToJavadocDir != null && 0<pathToJavadocDir.length();
-      for (Iterator pkgIt = bas.allExports.entrySet().iterator(); pkgIt.hasNext(); ) {
-        final Map.Entry pkgEntry = (Map.Entry) pkgIt.next();
-        final String pkg = pkgEntry.getKey().toString();
-        final Map verToProvides = (Map) pkgEntry.getValue();
+    // Maps pkgName -> version
+    final Map epkgMap = BundleHTMLExtractorTask.parseNames(epkgs, false, null);
+    if (0<epkgMap.size()) {
+      for (Iterator it = epkgMap.entrySet().iterator(); it.hasNext(); ) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final String pkg = (String) entry.getKey();
+        final Version version = (Version) entry.getValue();
 
-        final String docFile = replace(pkg, ".", "/") +BundleHTMLExtractorTask.PACKAGE_SUMMARY_HTML;
-        final String docPath = pathToJavadocDir +"/index.html?" +docFile;
+        final String docFile = replace(pkg, ".", "/") +"/package-summary.html";
+        final String docPath = pathToJavadoc +"/index.html?" +docFile;
+
         final File f = new File(outdir +File.separator
-                                +pathToJavadocDir.replace('/', File.separatorChar)
+                                +pathToJavadoc.replace('/', File.separatorChar)
                                 +File.separator
                                 +docFile.replace('/', File.separatorChar));
-        for (Iterator vIt = verToProvides.entrySet().iterator(); vIt.hasNext(); ) {
-          final Map.Entry vtpEntry = (Map.Entry) vIt.next();
-          final String version = vtpEntry.getKey().toString();
-          final Set providers = (Set) vtpEntry.getValue();
 
-          String row = packageListRow;
-          if(javadocPresent) {
-            if (!f.exists()) {
-              row = replace(row, "${namelink}", "${name}");
-            } else {
-              row = replace(row,
-                            "${namelink}",
-                            "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
-            }
-          } else {
+        String row = packageListRow;
+        if(pathToJavadoc != null && !"".equals(pathToJavadoc)) {
+          if (!f.exists()) {
             row = replace(row, "${namelink}", "${name}");
+          } else {
+            row = replace(row,
+                          "${namelink}",
+                          "<a target=\"_top\" href=\"${javadoc}\">${name}</a>");
           }
-          row = replace(row, "${name}", pkg);
-          row = replace(row, "${version}", version.toString());
-          row = replace(row, "${javadoc}", docPath);
-          row = replace(row, "${providers}", providersToString(providers));
-
-          res.append(row);
+        } else {
+          row = replace(row, "${namelink}", "${name}");
         }
-      }
-    }
-    if (0<res.length()) {
-      return packageListHeading + res.toString() + packageListFooter;
-    } else {
-      return "No exported packages.";
-    }
-  }
+        row = replace(row, "${name}", pkg);
+        row = replace(row, "${version}", version.toString());
+        row = replace(row, "${javadoc}", docPath);
 
-  private String basToString(final BundleArchives bas) {
-    final StringBuffer res = new StringBuffer();
-
-    if (null != bas) {
-      for (Iterator it = bas.allBundleArchives.iterator(); it.hasNext();) {
-        final BundleArchive ba = (BundleArchive) it.next();
-
-        if (0 < res.length()) {
-          res.append("<br>\n");
-        }
-        res.append(providerToString(ba));
+        res.append(row);
       }
     }
     return res.toString();
-  }
-
-  private String providersToString(final Set providers) {
-    final StringBuffer res = new StringBuffer();
-
-    for (Iterator it = providers.iterator(); it.hasNext();) {
-      final BundleArchive ba = (BundleArchive) it.next();
-
-      if (0 < res.length()) {
-        res.append(", ");
-      }
-      res.append(providerToString(ba));
-    }
-    return res.toString();
-  }
-
-  private static final String packageListProviderTemplate
-    = "<a target=\"_top\" href=\"../../jars/index.html?bundle=${bundledoc.uri}\">${bundle.name.short}</a>";
-
-  private String providerToString(final BundleArchive ba) {
-    final String relPath = replace(ba.relPath, ".jar", "");
-    final String htmlURI = replace(relPath, "\\", "/")
-      + BundleHTMLExtractorTask.HTML;
-    final String bundleShortName = replace(ba.file.getName(), ".jar", "");
-
-    String provider = replace(packageListProviderTemplate, "${bundledoc.uri}",
-                              htmlURI);
-    provider = replace(provider, "${bundle.name.short}", bundleShortName);
-    return provider;
   }
 
 }

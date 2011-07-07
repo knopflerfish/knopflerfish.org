@@ -52,10 +52,6 @@ ANTv = ${ANT} -Dversion=${VERSION} \
               -Dbuild.kind=${BUILD_KIND} \
 	      -Dbase.url=${OUT_URL}
 
-# Ant pre-configured for generating maven 2 repository (JSE 5 or higher required)
-ANTmvn = env JAVA_HOME=/usr ${ANT}
-
-
 .PHONY: help all  clean version checkout update status
 .PHONY: build distrib
 .PHONY: copyout outindex clean_snapshots
@@ -66,7 +62,7 @@ help:
 	@echo "update       clean and update"
 	@echo "all          builds distribution, tests it and publishes it."
 
-all: version distrib mvnrepo copyout clean_snapshots outindex
+all: version distrib copyout clean_snapshots outindex
 
 version:
 	@echo "Current Knopflerfish version is: ${REL_VERSION}"
@@ -98,10 +94,6 @@ build:
 
 distrib:
 	(cd ${TAGs} && ${ANTv} distrib)
-	[ -r ${TAGs}/out/tmp/toMvn.xml ] && (cd ${TAGs} && ${ANTmvn} -f out/tmp/toMvn.xml)
-
-mvnrepo:
-	[ -r ${TAGs}/out/tmp/toMvn.xml ] && (cd ${TAGs} && ${ANTmvn} -f out/tmp/toMvn.xml)
 
 clean:
 	$(RM) -rf ${TAGs}

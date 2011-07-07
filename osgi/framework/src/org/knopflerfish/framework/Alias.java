@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,53 +34,56 @@
 
 package org.knopflerfish.framework;
 
+import java.util.ArrayList;
+
 /**
  * This class contains aliases for system properties.
- * 
+ *
  * @author Jan Stein
  */
 public class Alias {
 
   /**
-   * List of processor aliases. The first entry is the true name. All matching
-   * aliases must be in lowercase.
+   * List of processor aliases. The first entry is the true name.
+   * All matching aliases must be in lowercase.
    */
   final public static String[][] processorAliases = {
-      { "arm_le", "armv*l" },
-      { "arm_be", "armv*" },
-      { "Ignite", "psc1k" },
-      { "PowerPC", "power", "ppc", "ppcbe" },
-      { "x86", "pentium", "i386", "i486", "i586", "i686" },
-      { "x86-64", "amd64", "em64t", "x86_64" }
+    { "arm_le",  "armv*l" },
+    { "arm_be",  "armv*" },
+    { "Ignite",  "psc1k" },
+    { "PowerPC", "power", "ppc", "ppcbe" },
+    { "x86",     "pentium", "i386", "i486", "i586", "i686" },
+    { "x86-64",  "amd64", "em64t", "x86_64" }
   };
 
+
   /**
-   * List of OS name aliases. The first entry is the true name. All matching
-   * aliases must be in lowercase.
+   * List of OS name aliases. The first entry is the true name.
+   * All matching aliases must be in lowercase.
    */
   final public static String[][] osNameAliases = {
-      { "Epoc32", "symbianos" },
-      { "HPUX", "hp-ux" },
-      { "MacOS", "mac os" },
-      { "MacOSX", "mac os x" },
-      { "OS2", "os/2" },
-      { "QNX", "procnto" },
-      { "Windows95", "win*95", "win32" },
-      { "Windows98", "win*98", "win32" },
-      { "WindowsNT", "win*nt", "win32" },
-      { "WindowsCE", "win*ce", "win32" },
-      { "Windows2000", "win*2000", "win32" },
-      { "WindowsXP", "win*xp", "win32" },
-      { "Windows2003", "win*2003", "win32" },
-      { "WindowsVista", "win*vista", "win32" },
-      { "Windows7", "win*7", "win32" },
-      { "WindowsServer2008", "win*2008", "win32" }
+    { "Epoc32",            "symbianos" },
+    { "HPUX",              "hp-ux" },
+    { "MacOS",             "mac os" },
+    { "MacOSX",            "mac os x" },
+    { "OS2",               "os/2" },
+    { "QNX",               "procnto" },
+    { "Windows95",         "win*95", "win32" },
+    { "Windows98",         "win*98", "win32" },
+    { "WindowsNT",         "win*nt", "win32" },
+    { "WindowsCE",         "win*ce", "win32" },
+    { "Windows2000",       "win*2000", "win32" },
+    { "WindowsXP",         "win*xp", "win32" },
+    { "Windows2003",       "win*2003", "win32" },
+    { "WindowsVista",      "win*vista", "win32" },
+    { "Windows7",          "win*7", "win32"},
+    { "WindowsServer2008", "win*2008", "win32" }
   };
 
 
   /**
    * Unify processor names.
-   * 
+   *
    * @param name Processor name.
    * @return The unified name.
    */
@@ -98,11 +101,11 @@ public class Alias {
 
 
   /**
-   * Unify OS names.
-   * 
-   * @param name OS name.
-   * @return The unified name.
-   */
+     * Unify OS names.
+     *
+     * @param name OS name.
+     * @return The unified name.
+     */
   static public String unifyOsName(String name) {
     String lname = name.toLowerCase();
     for (int i = 0; i < osNameAliases.length; i++) {

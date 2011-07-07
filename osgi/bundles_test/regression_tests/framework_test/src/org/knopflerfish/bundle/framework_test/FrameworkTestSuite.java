@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2011, KNOPFLERFISH project
+ * Copyright (c) 2004-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -208,7 +208,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
 
       k =  "Bundle-Version";
       info = (String) ai.get(k);
-      assertEquals("bad Bundle-Version", "1.0.3", info);
+      assertEquals("bad Bundle-Version", "1.0.2", info);
 
       k =  "Bundle-ManifestVersion";
       info = (String) ai.get(k);
@@ -444,25 +444,30 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME019A start");
       Bundle bA = null;
       try {
-        URL url = bc.getBundle().getResource("bundleA_test-1.0.0.jar");
-
-        // if the URL can be created, it should be possible to install
-        // from the URL string representation
-        bA = bc.installBundle(url.toString());
-
-        assertNotNull("Bundle should be possible to install from " + url, bA);
         try {
-          bA.start();
-        } catch (Exception e) {
-          fail(url + " couldn't be started, FRAME019A:FAIL");
+          URL url = new URL("bundle://" + bc.getBundle().getBundleId() + "/" +
+                            "bundleA_test-1.0.0.jar");
+
+          // if the URL can be created, it should be possible to install
+          // from the URL string representation
+          bA = bc.installBundle(url.toString());
+
+          assertNotNull("Bundle should be possible to install from " + url, bA);
+          try {
+            bA.start();
+          } catch (Exception e) {
+            fail(url + " couldn't be started, FRAME019A:FAIL");
+          }
+
+          assertEquals("Bundle should be in ACTIVE state",
+                       Bundle.ACTIVE, bA.getState());
+
+          out.println("### FRAME019A: PASSED, bundle URL " + url);
+
+          // finally block will uninstall bundle and clean up events
+        } catch (MalformedURLException e) {
+          out.println("### FRAME019A: PASSED, bundle: URL not supported: " + e);
         }
-
-        assertEquals("Bundle should be in ACTIVE state",
-                     Bundle.ACTIVE, bA.getState());
-
-        out.println("### FRAME019A: PASSED, bundle URL " + url);
-
-        // finally block will uninstall bundle and clean up events
       } finally {
         try {
           if(bA != null) {
@@ -1382,7 +1387,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // files or directories are added or removed to / from the top
       // level of the bundle jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number "
-                   +"of elements.", 62, i);
+                   +"of elements.", 54, i);
 
       //another existing directory
       out.println("getEntryPaths(\"/org/knopflerfish/bundle/framework_test\")");
@@ -1400,7 +1405,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number of "
-                   +"elements.", 139, i);
+                   +"elements.", 126, i);
 
       //existing file, non-directory, ending with slash
       enume = bc.getBundle().getEntryPaths("/bundleA_test-1.0.0.jar/");
@@ -4843,6 +4848,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       out.println("### framework test bundle :FRAME285A:PASS");
     }
   }
+
 
 
   // General status check functions

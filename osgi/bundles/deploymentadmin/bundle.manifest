@@ -7,11 +7,9 @@ Bundle-Category: API
 Bundle-Description: Deployment Admin API
 Bundle-Vendor: OSGi
 Bundle-APIVendor: osgi
+Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
- /index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/deploymentadmin/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 DynamicImport-Package: *
 Export-Package: org.osgi.service.deploymentadmin ; version="1.1",
                 org.osgi.service.deploymentadmin.spi ; version="1.0.1"

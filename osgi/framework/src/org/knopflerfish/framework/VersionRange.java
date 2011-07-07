@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2006, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,30 +148,6 @@ public class VersionRange implements Comparable
       return c > 0 || (c == 0 && highIncluded == range.highIncluded);
     }
     return false;
-  }
-
-
-  /**
-   * Check if objects range intersect another VersionRange.
-   *
-   * @param range VersionRange to compare to.
-   * @return Return true if within range, otherwise false.
-   */
-  public boolean intersectRange(VersionRange range) {
-    if (this == range) {
-      return true;
-    }
-    boolean low_below_high = range.high == null;
-    if (!low_below_high) {
-      int c = low.compareTo(range.high);
-      low_below_high = c < 0 || (c == 0 && lowIncluded && range.highIncluded);
-    }
-    boolean high_above_low = high == null;
-    if (!high_above_low) {
-      int c = high.compareTo(range.low);
-      high_above_low = c > 0 || (c == 0 && highIncluded && range.lowIncluded);
-    }
-    return low_below_high && high_above_low;
   }
 
 

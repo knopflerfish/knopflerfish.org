@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2011, KNOPFLERFISH project
+ * Copyright (c) 2005-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,10 @@ import java.util.*;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
+
 /**
  * Data structure for import package definitions.
- * 
+ *
  * @author Jan Stein
  */
 class ImportPkg {
@@ -61,7 +62,6 @@ class ImportPkg {
   // Link to interal exporter ok to use
   ExportPkg internalOk = null;
 
-
   /**
    * Create an import package entry.
    */
@@ -75,7 +75,7 @@ class ImportPkg {
     if (res != null) {
       if (Constants.RESOLUTION_OPTIONAL.equals(res)) {
         this.resolution = Constants.RESOLUTION_OPTIONAL;
-      } else if (Constants.RESOLUTION_MANDATORY.equals(res)) {
+      }  else if (Constants.RESOLUTION_MANDATORY.equals(res)) {
         this.resolution = Constants.RESOLUTION_MANDATORY;
       } else {
         throw new IllegalArgumentException("Directive " + Constants.RESOLUTION_DIRECTIVE +
@@ -90,7 +90,7 @@ class ImportPkg {
     if (specVersionStr != null) {
       this.packageRange = new VersionRange(specVersionStr);
       if (versionStr != null && !this.packageRange.equals(new VersionRange(versionStr))) {
-        throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
+        throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE + 
                                            " and " + Constants.PACKAGE_SPECIFICATION_VERSION +
                                            "are specified, but differs");
       }
@@ -106,10 +106,10 @@ class ImportPkg {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
     // Remove all meta-data and all directives from the set of tokens.
-    Set directiveNames = (Set)tokens.remove("$directives");
-    if (null != directiveNames) {
-      for (Iterator dit = directiveNames.iterator(); dit.hasNext();) {
-        tokens.remove((String)dit.next());
+    Set directiveNames = (Set) tokens.remove("$directives");
+    if (null!=directiveNames) {
+      for (Iterator dit=directiveNames.iterator(); dit.hasNext();) {
+        tokens.remove((String) dit.next());
       }
     }
     tokens.remove("$key");
@@ -145,14 +145,13 @@ class ImportPkg {
     this.attributes = ip.attributes;
   }
 
-
   /**
    * Create an import package entry.
    */
   ImportPkg(ExportPkg p) {
     this.name = p.name;
     this.bpkgs = p.bpkgs;
-    this.resolution = Constants.RESOLUTION_MANDATORY;
+    this.resolution = Constants.RESOLUTION_MANDATORY;;
     this.bundleSymbolicName = null;
     if (p.version == Version.emptyVersion) {
       this.packageRange = VersionRange.defaultVersionRange;
@@ -183,10 +182,10 @@ class ImportPkg {
 
   /**
    * Check if version fullfills import package constraints.
-   * 
+   *
    * @param ver Version to compare to.
-   * @return Return 0 if equals, negative if this object is less than obj and
-   *         positive if this object is larger then obj.
+   * @return Return 0 if equals, negative if this object is less than obj
+   *         and positive if this object is larger then obj.
    */
   public boolean okPackageVersion(Version ver) {
     return packageRange.withinRange(ver);
@@ -195,7 +194,7 @@ class ImportPkg {
 
   /**
    * Check that all package attributes match.
-   * 
+   *
    * @param ep Exported package.
    * @return True if okay, otherwise false.
    */
@@ -207,12 +206,12 @@ class ImportPkg {
     /* Predefined attributes */
     if (!okPackageVersion(ep.version) ||
         (bundleSymbolicName != null &&
-         !bundleSymbolicName.equals(ep.bpkgs.bg.symbolicName)) ||
-        !bundleRange.withinRange(ep.bpkgs.bg.version)) {
+         !bundleSymbolicName.equals(ep.bpkgs.bundle.symbolicName)) ||
+        !bundleRange.withinRange(ep.bpkgs.bundle.version)) {
       return false;
     }
     /* Other attributes */
-    for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
+    for (Iterator i = attributes.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry e = (Map.Entry)i.next();
       String a = (String)ep.attributes.get(e.getKey());
       if (a == null || !a.equals(e.getValue())) {
@@ -225,18 +224,18 @@ class ImportPkg {
 
   /**
    * Check that we have import permission for exported package.
-   * 
+   *
    * @param ep Exported package.
    * @return True if okay, otherwise false.
    */
   boolean checkPermission(ExportPkg ep) {
-    return bpkgs.bg.bundle.fwCtx.perm.hasImportPackagePermission(bpkgs.bg.bundle, ep);
+    return bpkgs.bundle.fwCtx.perm.hasImportPackagePermission(bpkgs.bundle, ep);
   }
 
 
   /**
    * Check that we can do an internal wire to the exported package.
-   * 
+   *
    * @return True if okay, otherwise false.
    */
   boolean mustBeResolved() {
@@ -245,40 +244,40 @@ class ImportPkg {
 
 
   /**
-   * Check that we intersect specifed ImportPkg.
-   * 
+   * Check that we completly overlap specifed ImportPkg.
+   *
    * @param ip ImportPkg to check.
    * @return True if we overlap, otherwise false.
    */
-  boolean intersect(ImportPkg ip) {
-    if (ip.bundleSymbolicName != null && bundleSymbolicName != null &&
+  boolean overlap(ImportPkg ip) {
+    if (ip.bundleSymbolicName == null ? bundleSymbolicName != null :
         !ip.bundleSymbolicName.equals(bundleSymbolicName)) {
       return false;
     }
 
-    // Check that no other attributes conflict
-    for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
+    // Check that all other attributes match
+    for (Iterator i = attributes.entrySet().iterator(); i.hasNext(); ) {
       Map.Entry e = (Map.Entry)i.next();
       String a = (String)ip.attributes.get(e.getKey());
-      if (a != null && !a.equals(e.getValue())) {
+      if (a == null || !a.equals(e.getValue())) {
         return false;
       }
     }
 
-    // Resolution doesn't need to be checked.
-    // This is handle when resolving package.
-    // If one import is mandatory then all must match.
-
-    if (!packageRange.intersectRange(ip.packageRange)) {
+    if (resolution.equals(Constants.RESOLUTION_MANDATORY) &&
+        !ip.resolution.equals(Constants.RESOLUTION_MANDATORY)) {
       return false;
     }
-    return bundleRange.intersectRange(ip.bundleRange);
+    if (!packageRange.withinRange(ip.packageRange)) {
+      return false;
+    }
+    return bundleRange.withinRange(ip.bundleRange);
   }
 
 
   /**
    * String describing package name and specification version, if specified.
-   * 
+   *
    * @return String.
    */
   public String pkgString() {
@@ -293,23 +292,23 @@ class ImportPkg {
 
   /**
    * String describing this object.
-   * 
+   *
    * @return String.
    */
   public String toString() {
-    return pkgString() + "(" + bpkgs.bg.bundle + ")";
+    return pkgString() + "(" + bpkgs.bundle + ")";
   }
 
 
   /**
    * Check that we have all mandatory attributes.
-   * 
+   *
    * @param mandatory Collection of mandatory attribute.
    * @return Return true if we have all mandatory attributes, otherwise false.
    */
   private boolean checkMandatory(Collection mandatory) {
     if (mandatory != null) {
-      for (Iterator i = mandatory.iterator(); i.hasNext();) {
+      for (Iterator i = mandatory.iterator(); i.hasNext(); ) {
         String a = (String)i.next();
         if (Constants.VERSION_ATTRIBUTE.equals(a)) {
           if (!packageRange.isSpecified()) {
@@ -330,5 +329,6 @@ class ImportPkg {
     }
     return true;
   }
+
 
 }

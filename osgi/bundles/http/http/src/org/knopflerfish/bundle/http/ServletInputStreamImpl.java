@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003,2011, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletResponse;
 
 public class ServletInputStreamImpl extends ServletInputStream {
 
@@ -49,8 +48,6 @@ public class ServletInputStreamImpl extends ServletInputStream {
     private final InputStream is;
 
     private byte[] lineBuffer = null;
-
-    private static int limitRequestLine = 8190;
 
     public ServletInputStreamImpl(final InputStream is) {
         this(is, -1);
@@ -69,10 +66,6 @@ public class ServletInputStreamImpl extends ServletInputStream {
         this.isLimited = available != -1;
     }
 
-  public static void setLimitRequestLine(int limit) {
-    limitRequestLine = limit;
-  }
-
     public int read() throws IOException {
 
         if (isLimited && --available < 0)
@@ -81,7 +74,7 @@ public class ServletInputStreamImpl extends ServletInputStream {
         return is.read();
     }
 
-  public String readLine() throws IOException, HttpException {
+    public String readLine() throws IOException {
 
         if (lineBuffer == null)
             lineBuffer = new byte[127];
@@ -92,11 +85,7 @@ public class ServletInputStreamImpl extends ServletInputStream {
         while (count > 0 && offset == lineBuffer.length
                 && lineBuffer[offset - 1] != '\n') {
             // double the size of the buffer
-   	    int newsize = offset*2 + 1;
-	    if (newsize >limitRequestLine) {
-	      throw new HttpException(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE, "Request line length exceeds upper limit");
-	    }
-            byte[] tmp = new byte[newsize];
+            byte[] tmp = new byte[offset * 2 + 1];
             System.arraycopy(lineBuffer, 0, tmp, 0, offset);
             lineBuffer = tmp;
             tmp = null;

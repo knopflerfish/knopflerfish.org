@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -141,9 +141,10 @@ public class Queue extends Vector {
   }
 
   /**
-   * Closes the queue. I.e., wakes up all threads blocking on a call to
+   * Closes the queue, i.e. wakes up all threads blocking on a call to
    * {@link #remove()} or {@link #removeWait(float)}.
    */
+
   public synchronized void close() {
     queueClosed = true;
     notifyAll();

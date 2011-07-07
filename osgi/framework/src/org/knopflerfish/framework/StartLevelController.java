@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,70 +90,62 @@ public class StartLevelController
       fwCtx.debug.println("startlevel: open");
     }
 
-    final Runnable lastJob = (Runnable)jobQueue.lastElement();
+    if (jobQueue.isEmpty()) {
+      int beginningLevel = 1;
+      final String sBeginningLevel
+        = fwCtx.props.getProperty(Constants.FRAMEWORK_BEGINNING_STARTLEVEL);
+      try {
+        beginningLevel = Integer.parseInt(sBeginningLevel);
+      } catch (NumberFormatException nfe) {
+        fwCtx.debug.printStackTrace("Invalid number '" + sBeginningLevel +
+                                    "' in value of property named '"
+                                    + Constants.FRAMEWORK_BEGINNING_STARTLEVEL
+                                    + "'.", nfe);
+      }
+      setStartLevel0(beginningLevel, false, false, true);
+    }
+    Runnable firstJob = (Runnable)jobQueue.firstElement();
     wc = new Thread(fwCtx.threadGroup, this, "startlevel job");
-    synchronized (lastJob) {
+    synchronized (firstJob) {
       bRun = true;
       wc.start();
       if (!acceptChanges) {
         acceptChanges = true;
         restoreState();
       }
-      // Wait for the last of the jobs scheduled before starting the
-      // framework to complete before return
+      // Wait for first job to complete before return
       try {
-        lastJob.wait();
+        firstJob.wait();
       } catch (InterruptedException _ignore) { }
     }
   }
 
   /**
-   * Load persistent state from storage and set up all actions
-   * necessary to bump bundle states. If no persisten state was found,
-   * try to set the target start level from the beginning start level
-   * framework property.
+   * Load persistent state from storage and
+   * set up all actions necessary to bump bundle
+   * states.
    *
-   * <p>Note that {@link open()} needs to be called for any work to
-   * be done.</p>
+   * After this call, getStartLevel will have the correct value.
+   *
+   * <p>
+   * Note that open() needs to be called for any work to
+   * be done.
+   * </p>
    */
   void restoreState() {
     if (fwCtx.debug.startlevel) {
       fwCtx.debug.println("startlevel: restoreState");
     }
     if (storage != null) {
-      // Set the target start level to go to when open() is called.
-      int startLevel = -1;
       try {
-        final String s = Util.getContent(new File(storage, LEVEL_FILE));
+        String s = Util.getContent(new File(storage, LEVEL_FILE));
         if (s != null) {
-          startLevel = Integer.parseInt(s);
-          if (fwCtx.debug.startlevel) {
-            fwCtx.debug.println("startlevel: restored level " + startLevel);
+          int oldStartLevel = Integer.parseInt(s);
+          if (oldStartLevel != -1) {
+            setStartLevel0(oldStartLevel, false, false, true);
           }
         }
       } catch (Exception _ignored) { }
-      if (startLevel == -1) {
-        // No stored start level to restore, try the beginning start level
-        final String sBeginningLevel
-          = fwCtx.props.getProperty(Constants.FRAMEWORK_BEGINNING_STARTLEVEL);
-        try {
-          startLevel = Integer.parseInt(sBeginningLevel);
-          if (fwCtx.debug.startlevel) {
-            fwCtx.debug.println("startlevel: beginning level " + startLevel);
-          }
-        } catch (NumberFormatException nfe) {
-          fwCtx.debug.printStackTrace("Invalid number '" + sBeginningLevel +
-                                      "' in value of property named '"
-                                      + Constants.FRAMEWORK_BEGINNING_STARTLEVEL
-                                      + "'.", nfe);
-        }
-      }
-      if (startLevel<0) {
-        startLevel = 1;
-      }
-      setStartLevel0(startLevel, false, false, true);
-
-      // Restore the initial bundle start level
       try {
         String s = Util.getContent(new File(storage, INITIAL_LEVEL_FILE));
         if (s != null) {
@@ -287,7 +279,7 @@ public class StartLevelController
         BundleImpl bs  = (BundleImpl)i.next();
         if (canStart(bs)) {
           if (bs.getStartLevel() == currentLevel) {
-            if (bs.gen.archive.getAutostartSetting()!=-1) {
+            if (bs.archive.getAutostartSetting()!=-1) {
               set.addElement(bs);
             }
           }
@@ -299,12 +291,12 @@ public class StartLevelController
       for (int i = 0; i < set.size(); i++) {
         BundleImpl bs = (BundleImpl)set.elementAt(i);
         try {
-          if (bs.gen.archive.getAutostartSetting()!=-1) {
+          if (bs.archive.getAutostartSetting()!=-1) {
             if (fwCtx.debug.startlevel) {
               fwCtx.debug.println("startlevel: start " + bs);
             }
             int startOptions = Bundle.START_TRANSIENT;
-            if (isBundleActivationPolicyUsed(bs.gen.archive)) {
+            if (isBundleActivationPolicyUsed(bs.archive)) {
               startOptions |= Bundle.START_ACTIVATION_POLICY;
             }
             bs.start(startOptions);
@@ -331,7 +323,7 @@ public class StartLevelController
         BundleImpl bs  = (BundleImpl)i.next();
 
         if (bs.getState() == Bundle.ACTIVE ||
-            (bs.getState() == Bundle.STARTING && bs.gen.lazyActivation)) {
+            (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
           if (bs.getStartLevel() == currentLevel + 1) {
             set.addElement(bs);
           }
@@ -344,7 +336,7 @@ public class StartLevelController
         for (int i = 0; i < set.size(); i++) {
           BundleImpl bs = (BundleImpl)set.elementAt(i);
           if (bs.getState() == Bundle.ACTIVE ||
-              (bs.getState() == Bundle.STARTING && bs.gen.lazyActivation)) {
+              (bs.getState() == Bundle.STARTING && bs.lazyActivation)) {
             if (fwCtx.debug.startlevel) {
               fwCtx.debug.println("startlevel: stop " + bs);
             }
@@ -418,12 +410,12 @@ public class StartLevelController
         synchronized (fwCtx.packages) {
           if (bs.getStartLevel() <= currentLevel) {
             if ((bs.getState() & (Bundle.INSTALLED|Bundle.RESOLVED|Bundle.STOPPING)) != 0
-                && bs.gen.archive.getAutostartSetting()!=-1) {
+                && bs.archive.getAutostartSetting()!=-1) {
               if (fwCtx.debug.startlevel) {
                 fwCtx.debug.println("startlevel: start " + bs);
               }
               int startOptions = Bundle.START_TRANSIENT;
-              if (isBundleActivationPolicyUsed(bs.gen.archive)) {
+              if (isBundleActivationPolicyUsed(bs.archive)) {
                 startOptions |= Bundle.START_ACTIVATION_POLICY;
               }
               bs.start(startOptions);
@@ -542,13 +534,13 @@ public class StartLevelController
           }
           throw new IllegalArgumentException("Bundle is in UNINSTALLED state");
         }
-      }
+      } 
       throw new IllegalArgumentException("Bundle doesn't belong to the same framework as the StartLevel service");
     }
 
     private BundleArchive getBundleArchive(Bundle b) {
       BundleImpl bi = checkBundle(b);
-      BundleArchive res = bi.gen.archive;
+      BundleArchive res = bi.archive;
       if (res == null && bi.id != 0) {
         throw new IllegalArgumentException("Bundle is in UNINSTALLED state");
       }

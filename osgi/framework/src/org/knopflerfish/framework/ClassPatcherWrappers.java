@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,38 +34,42 @@
 
 package org.knopflerfish.framework;
 
+import org.osgi.framework.Bundle;
+
 /**
- * Class containing static wrapper methods used by ClassPatcher. These methods
- * are typically referenced from the patcher.conf file.
- * 
+ * Class containing static wrapper methods used by ClassPatcher. These
+ * methods are typically referenced from the patcher.conf file.
+ *
  * <p>
- * Each wrapper must have the exact same signature as the original method, plus
- * one extra long argument representing the bundle id and one object argument
- * representing the caller's context (this) The context object may be null when
- * called from a static context
+ * Each wrapper must have the exact same signature as the original
+ * method, plus one extra long argument representing the bundle id
+ * and one object argument representing the caller's context (this)
+ * The context object may be null when called from a static context
  * </p>
- * 
+ *
  * @see ClassPatcher
  * @author Erik Wistrand
  */
 public class ClassPatcherWrappers {
-
+ 
   protected static BundleClassLoader getBundleClassLoader(long bid) {
     // NYI, we only handle framwork start via Main.
-    BundleImpl b = (BundleImpl) Main.main.framework;
-    b = (BundleImpl) b.bundleContext.getBundle(bid);
+    BundleImpl b = (BundleImpl)Main.main.framework;
+    b = (BundleImpl)b.bundleContext.getBundle(bid);
     if (b != null) {
-      return (BundleClassLoader) b.getClassLoader();
+      return (BundleClassLoader)b.getClassLoader();
     }
     return null;
   }
 
-  public static void systemExitWrapper(int code, long bid, Object context) {
-    System.out.println("CP.systemExit code=" + code + ", bid=" + bid + ", context=" + context);
+  public static void systemExitWrapper(int    code,
+                                       long   bid,
+                                       Object context)  {
+    System.out.println("CP.systemExit code=" + code + ", bid=" + bid + ", context=" + context);    
     try {
       // NYI, we only handle framwork start via Main.
-      BundleImpl b = (BundleImpl) Main.main.framework;
-      b = (BundleImpl) b.bundleContext.getBundle(bid);
+      BundleImpl b = (BundleImpl)Main.main.framework;
+      b = (BundleImpl)b.bundleContext.getBundle(bid);
       System.out.println("stopping " + b);
       b.stop();
     } catch (Exception e) {
@@ -78,7 +82,7 @@ public class ClassPatcherWrappers {
    */
   public static ClassLoader getSystemClassLoaderWrapper(long bid, Object context) {
     ClassLoader bcl = getBundleClassLoader(bid);
-    if (bcl == null) {
+    if(bcl == null) {
       throw new IllegalStateException("Undefined bid=" + bid);
     }
     return bcl;
@@ -86,59 +90,60 @@ public class ClassPatcherWrappers {
 
   /**
    * Use bundle class loader at Class.forName(String) calls
-   * 
+   *
    * <p>
-   * First, try Class.forName(String). If this fails, try the context's class
-   * loader. If this fails too, explicitly try the bundle class loader.
+   * First, try Class.forName(String). If this fails, try the context's class loader.
+   * If this fails too, explicitly try the bundle class loader.
    * </p>
    */
-  public static Class forName1Wrapper(String name, long bid, Object context)
-      throws ClassNotFoundException {
+  public static Class forName1Wrapper(String name,
+                                      long   bid,
+                                      Object context) throws ClassNotFoundException {
     try {
       return Class.forName(name);
     } catch (ClassNotFoundException e) {
       try {
-        if (context != null) {
+        if(context != null) {
           return Class.forName(name, true, context.getClass().getClassLoader());
         }
-      } catch (ClassNotFoundException keeptrying) {
+      } catch (ClassNotFoundException keeptrying) {  
         // noop
       }
-      BundleClassLoader bcl = (BundleClassLoader) getBundleClassLoader(bid);
-      if (bcl == null) {
-        throw new ClassNotFoundException("Undefined class '" + name + "' since bid=" + bid
-            + " is undefined");
+      BundleClassLoader bcl = (BundleClassLoader)getBundleClassLoader(bid);
+      if(bcl == null) {
+        throw new ClassNotFoundException("Undefined class '" + name + "' since bid=" + bid + " is undefined");
       }
       return bcl.loadClass(name, true);
     }
   }
 
   /**
-   * Use bundle class loader at Class.forName(String, boolean, ClassLoader)
-   * calls.
-   * 
+   * Use bundle class loader at Class.forName(String, boolean, ClassLoader) calls.
+   *
    * <p>
-   * First, try the supplied class loader. If this failes, try the bundle class
-   * loader instead.
+   * First, try the supplied class loader. If this failes, try the bundle
+   * class loader instead.
    * </p>
    */
-  public static Class forName3Wrapper(String name, boolean initialize, ClassLoader cl,
-      long bid, Object context) throws ClassNotFoundException {
+  public static Class forName3Wrapper(String      name, 
+                                      boolean     initialize, 
+                                      ClassLoader cl, 
+                                      long        bid,
+                                      Object      context) throws ClassNotFoundException {
     try {
       return Class.forName(name, initialize, cl);
     } catch (ClassNotFoundException e) {
       // keep trying with the context's class loader
       try {
-        if (context != null) {
+        if(context != null) {
           return Class.forName(name, initialize, context.getClass().getClassLoader());
         }
-      } catch (ClassNotFoundException keeptrying) {
+      } catch (ClassNotFoundException keeptrying) { 
         // keep trying with the bundle class loader
       }
       BundleClassLoader bcl = getBundleClassLoader(bid);
-      if (bcl == null) {
-        throw new ClassNotFoundException("Undefined class '" + name + "' since bid=" + bid
-            + " is undefined");
+      if(bcl == null) {
+        throw new ClassNotFoundException("Undefined class '" + name + "' since bid=" + bid + " is undefined");
       }
       return bcl.loadClass(name, true);
     }

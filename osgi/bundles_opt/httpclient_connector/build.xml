@@ -1,22 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <project name="httpclient_connector" default="all">
 
   <dirname  property="proj.dir" file="${ant.file.httpclient_connector}"/>
   <property name="topdir"       location="${proj.dir}/../.."/>
 
-  <property name="api.pattern"
-	    value="org/apache/commons/httpclient/*,
-		   org/apache/commons/httpclient/auth/*,
-		   org/apache/commons/httpclient/util/*,
-		   org/apache/commons/httpclient/methods/*,
-		   org/apache/commons/httpclient/params/*,
-		   org/apache/commons/httpclient/cookie/*,
-		   org/apache/commons/httpclient/protocol/*,
-		   org/apache/commons/codec/*"/>
-
   <property name="impl.pattern"
-            value="org/knopflerfish/**,
-		   org/apache/commons/httpclient/*"/>
+            value="org/knopflerfish/**,org/apache/commons/httpclient/**"/>
 
   <path id="bundle.compile.path">
    <pathelement location="io_all-N.N.N.jar"/>

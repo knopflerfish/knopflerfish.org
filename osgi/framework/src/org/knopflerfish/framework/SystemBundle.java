@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ import org.osgi.framework.launch.Framework;
 
 /**
  * Implementation of the System Bundle object.
- * 
+ *
  * @see org.osgi.framework.Bundle
  * @author Jan Stein
  * @author Philippe Laporte
@@ -71,8 +71,8 @@ public class SystemBundle extends BundleImpl implements Framework {
   private String exportPackageString;
 
   /**
-   * The event to return to callers waiting in Framework.waitForStop() when the
-   * framework has been stopped.
+   * The event to return to callers waiting in Framework.waitForStop()
+   * when the framework has been stopped.
    */
   volatile private FrameworkEvent stopEvent = null;
 
@@ -86,6 +86,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   private Object lock = new Object();
 
+
   /**
    * Marker that we need to restart JVM.
    */
@@ -94,16 +95,21 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Construct the System Bundle handle.
-   * 
+   *
    */
-  SystemBundle(FrameworkContext fw) {
-    super(fw);
+  SystemBundle(FrameworkContext fw)
+  {
+    super(fw,
+          0,
+          Constants.SYSTEM_BUNDLE_LOCATION,
+          Constants.SYSTEM_BUNDLE_SYMBOLICNAME,
+          new Version(Main.readVersion()));
   }
 
 
   /**
    * Initialize this framework.
-   * 
+   *
    * @see org.osgi.framework.Framework#init
    */
   public void init() throws BundleException {
@@ -129,7 +135,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Start this framework.
-   * 
+   *
    * @see org.osgi.framework.Framework#start
    */
   public void start(int options) throws BundleException {
@@ -163,9 +169,10 @@ public class SystemBundle extends BundleImpl implements Framework {
       // Start bundles according to their autostart setting.
       final Iterator i = bundlesToStart.iterator();
       while (i.hasNext()) {
-        final BundleImpl b = (BundleImpl)fwCtx.bundles.getBundle((String)i.next());
+        final BundleImpl b = (BundleImpl)
+          fwCtx.bundles.getBundle((String)i.next());
         try {
-          final int autostartSetting = b.gen.archive.getAutostartSetting();
+          final int autostartSetting = b.archive.getAutostartSetting();
           // Launch must not change the autostart setting of a bundle
           int option = Bundle.START_TRANSIENT;
           if (Bundle.START_ACTIVATION_POLICY == autostartSetting) {
@@ -190,10 +197,12 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    *
    */
-  public FrameworkEvent waitForStop(long timeout) throws InterruptedException {
+  public FrameworkEvent waitForStop(long timeout)
+    throws InterruptedException
+  {
     synchronized (lock) {
       // Already stopped?
-      if (((INSTALLED | RESOLVED) & state) == 0) {
+      if (((INSTALLED|RESOLVED) & state) == 0) {
         stopEvent = null;
         while (true) {
           long st = System.currentTimeMillis();
@@ -202,8 +211,7 @@ public class SystemBundle extends BundleImpl implements Framework {
             if (stopEvent != null) {
               break;
             }
-          } catch (InterruptedException _) {
-          }
+          } catch (InterruptedException _) { }
           if (timeout > 0) {
             timeout = timeout - (System.currentTimeMillis() - st);
             if (timeout <= 0) {
@@ -215,8 +223,7 @@ public class SystemBundle extends BundleImpl implements Framework {
           return new FrameworkEvent(FrameworkEvent.WAIT_TIMEDOUT, this, null);
         }
       } else if (stopEvent == null) {
-        // Return this if stop or update have not been called and framework is
-        // stopped.
+        // Return this if stop or update have not been called and framework is stopped.
         stopEvent = new FrameworkEvent(FrameworkEvent.STOPPED, this, null);
       }
       return stopEvent;
@@ -226,7 +233,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Stop this framework.
-   * 
+   *
    * @see org.osgi.framework.Framework#stop
    */
   public void stop(int options) throws BundleException {
@@ -237,7 +244,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Restart this framework.
-   * 
+   *
    * @see org.osgi.framework.Framework#update
    */
   public void update(InputStream in) throws BundleException {
@@ -245,8 +252,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     if (in != null) {
       try {
         in.close();
-      } catch (IOException ignore) {
-      }
+      } catch (IOException ignore) {}
     }
     secure.callShutdown(this, true);
   }
@@ -254,19 +260,19 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Uninstall of framework are not allowed.
-   * 
+   *
    * @see org.osgi.framework.Framework#uninstall
    */
   public void uninstall() throws BundleException {
     secure.checkLifecycleAdminPerm(this);
     throw new BundleException("uninstall of System bundle is not allowed",
-        BundleException.INVALID_OPERATION);
+                              BundleException.INVALID_OPERATION);
   }
 
 
   /**
    * The system has all the permissions.
-   * 
+   *
    * @see org.osgi.framework.Bundle#hasPermission
    */
   public boolean hasPermission(Object permission) {
@@ -276,7 +282,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Get header data.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getHeaders
    */
   public Dictionary getHeaders() {
@@ -286,31 +292,30 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Get header data.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getHeaders
    */
   public Dictionary getHeaders(String locale) {
     secure.checkMetadataAdminPerm(this);
     Hashtable headers = new Hashtable();
-    headers.put(Constants.BUNDLE_SYMBOLICNAME, getSymbolicName());
+    headers.put(Constants.BUNDLE_SYMBOLICNAME, symbolicName);
     headers.put(Constants.BUNDLE_NAME, location);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
     headers.put(Constants.BUNDLE_VERSION, Main.readRelease());
     headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
     headers.put(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT,
-        fwCtx.props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT));
-    headers.put("Bundle-Icon", "icon.png;size=32,icon64.png;size=64");
+                fwCtx.props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT));
+    headers.put("Bundle-Icon","icon.png;size=32,icon64.png;size=64");
     return headers;
   }
 
 
   /**
    * Get bundle data. Get resources from bundle or fragment jars.
-   * 
+   *
    * @see org.osgi.framework.Bundle#findEntries
    */
   public Enumeration findEntries(String path, String filePattern, boolean recurse) {
-    // TBD, What should system bundle return?
     return null;
   }
 
@@ -339,16 +344,6 @@ public class SystemBundle extends BundleImpl implements Framework {
   //
 
   /**
-   * Get class loader for this bundle.
-   * 
-   * @return System Bundle classloader.
-   */
-  ClassLoader getClassLoader() {
-    return getClass().getClassLoader();
-  }
-
-
-  /**
    * Set system bundle state to stopping
    */
   void systemShuttingdown(final boolean restart) throws BundleException {
@@ -371,42 +366,42 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Adds an bundle as an extension that will be included in the boot class path
-   * on restart.
+   * Adds an bundle as an extension that will be included
+   * in the boot class path on restart.
    */
-  void attachExtension(BundleGeneration extension) {
+  void attachFragment(BundleImpl extension) {
     if (extension.isBootClassPathExtension()) {
       // if we attach during startup, we assume that bundle is in BCP.
       if (getClassLoader() == null) {
-        gen.attachFragment(extension);
+        super.attachFragment(extension);
       } else {
-        throw new UnsupportedOperationException(
-            "Bootclasspath extension can not be dynamicly activated");
+        throw new UnsupportedOperationException("Bootclasspath extension can not be dynamicly activated");
       }
     } else {
       try {
         addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
-        gen.attachFragment(extension);
+        super.attachFragment(extension);
       } catch (Exception e) {
-        throw new UnsupportedOperationException(
-            "Framework extension could not be dynamicly activated, " + e);
+        throw new UnsupportedOperationException("Framework extension could not be dynamicly activated, " + e);
       }
     }
   }
 
 
   /**
-   * Reads all localization entries that affects this bundle (including its
-   * host/fragments)
-   * 
-   * @param locale locale == "" the bundle.properties will be read o/w it will
-   *          read the files as described in the spec.
+   * Reads all localization entries that affects this bundle
+   * (including its host/fragments)
+   *
+   * @param locale locale == "" the bundle.properties will be read
+   *               o/w it will read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
-   * @param baseName the basename for localization properties, <code>null</code>
-   *          will choose OSGi default
+   * @param baseName the basename for localization properties,
+   *        <code>null</code> will choose OSGi default
    */
-  void readLocalization(String locale, Hashtable localization_entries, String baseName) {
-    if (gen.fragments == null) {
+  protected void readLocalization(String locale,
+                                  Hashtable localization_entries,
+                                  String baseName) {
+    if (fragments == null) {
       // NYI! read localization from framework.
       // There is no need for this now since it isn't used.
       return;
@@ -419,9 +414,9 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     while (true) {
       String l = baseName + locale + ".properties";
-      for (int i = gen.fragments.size() - 1; i >= 0; i--) {
-        BundleGeneration bg = (BundleGeneration)gen.fragments.get(i);
-        Hashtable tmp = bg.archive.getLocalizationEntries(l);
+      for (int i = fragments.size() - 1; i >= 0; i--) {
+        BundleImpl b = (BundleImpl)fragments.get(i);
+        Hashtable tmp = b.archive.getLocalizationEntries(l);
         if (tmp != null) {
           localization_entries.putAll(tmp);
           return;
@@ -441,8 +436,8 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   void initSystemBundle() {
     bundleContext = new BundleContextImpl(this);
-    StringBuffer sp = new StringBuffer(
-        fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES));
+    StringBuffer sp =
+      new StringBuffer(fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES));
     if (sp.length() == 0) {
       // Try the system packages file
       addSysPackagesFromFile(sp, fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_FILE_PROP));
@@ -450,20 +445,21 @@ public class SystemBundle extends BundleImpl implements Framework {
         // Try the system packages base property.
         sp.append(fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_BASE_PROP));
 
-        if (sp.length() == 0) {
+        if (sp.length()==0) {
           // use default set of packages.
           String jver = fwCtx.props.getProperty(FWProps.SYSTEM_PACKAGES_VERSION_PROP);
 
           if (jver == null) {
-            jver = Integer.toString(FWProps.javaVersionMajor) + "." + FWProps.javaVersionMinor;
+            jver = Integer.toString(fwCtx.props.javaVersionMajor)
+              + "." + fwCtx.props.javaVersionMinor;
           }
           try {
             addSysPackagesFromFile(sp, "packages" + jver + ".txt");
           } catch (IllegalArgumentException iae) {
             if (fwCtx.debug.framework) {
               fwCtx.debug.println("No built in list of Java packages to be exported "
-                  + "by the system bundle for JRE with version '" + jver
-                  + "', using the list for 1.6.");
+                                  + "by the system bundle for JRE with version '"
+                                  + jver + "', using the list for 1.6.");
             }
             addSysPackagesFromFile(sp, "packages1.6.txt");
           }
@@ -472,13 +468,14 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
     }
     final String extraPkgs = fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA);
-    if (extraPkgs.length() > 0) {
+    if (extraPkgs.length()>0) {
       sp.append(",").append(extraPkgs);
     }
     exportPackageString = sp.toString();
-    gen = new BundleGeneration(this, exportPackageString);
-    gen.bpkgs.registerPackages();
-    gen.bpkgs.resolvePackages();
+
+    bpkgs = new BundlePackages(this, 0, exportPackageString, null, null, null);
+    bpkgs.registerPackages();
+    bpkgs.resolvePackages();
   }
 
 
@@ -489,16 +486,15 @@ public class SystemBundle extends BundleImpl implements Framework {
     bundleContext.invalidate();
     bundleContext = null;
     if (!bootClassPathHasChanged) {
-      for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator(); i.hasNext();) {
-        BundleGeneration bg = (BundleGeneration)i.next();
-        if (bg.isBootClassPathExtension() && bg.bundle.extensionNeedsRestart()) {
+      for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator(); i.hasNext(); ) {
+        BundleImpl b = (BundleImpl)i.next();
+        if (b.isBootClassPathExtension() && b.extensionNeedsRestart()) {
           bootClassPathHasChanged = true;
           break;
         }
       }
     }
   }
-
 
   //
   // Private methods
@@ -518,83 +514,89 @@ public class SystemBundle extends BundleImpl implements Framework {
    * Add all built-in system packages to a stringbuffer.
    */
   private void addSystemPackages(StringBuffer sp) {
-    if (sp.length() > 0 && ',' != sp.charAt(sp.length() - 1)) {
+    if (sp.length()>0 && ','!=sp.charAt(sp.length()-1)) {
       sp.append(",");
     }
     // Set up org.osgi.framework package
     String name = Bundle.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append(name + ";" + Constants.VERSION_ATTRIBUTE + "=" + FrameworkContext.SPEC_VERSION);
+    sp.append(name + ";" + Constants.VERSION_ATTRIBUTE +
+          "=" + FrameworkContext.SPEC_VERSION);
 
-    sp.append(",org.osgi.framework.launch;" + Constants.VERSION_ATTRIBUTE + "="
-        + FrameworkContext.LAUNCH_VERSION);
-    sp.append(",org.osgi.framework.hooks.service;" + Constants.VERSION_ATTRIBUTE + "="
-        + FrameworkContext.HOOKS_VERSION);
+    sp.append(",org.osgi.framework.launch;"
+              +Constants.VERSION_ATTRIBUTE
+              +"=" +FrameworkContext.LAUNCH_VERSION);
+    sp.append(",org.osgi.framework.hooks.service;"
+              +Constants.VERSION_ATTRIBUTE
+              +"=" +FrameworkContext.HOOKS_VERSION);
 
     // Set up packageadmin package
     name = PackageAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + PackageAdminImpl.SPEC_VERSION);
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
+          "=" +  PackageAdminImpl.SPEC_VERSION);
 
     // Set up permissionadmin package
     name = PermissionAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + PermissionAdminImpl.SPEC_VERSION);
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
+          "=" +  PermissionAdminImpl.SPEC_VERSION);
 
     // Set up conditionalpermissionadmin package
     name = ConditionalPermissionAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + ConditionalPermissionAdminImpl.SPEC_VERSION);
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
+          "=" +  ConditionalPermissionAdminImpl.SPEC_VERSION);
 
     // Set up startlevel package
     name = StartLevel.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + StartLevelController.SPEC_VERSION);
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
+          "=" +  StartLevelController.SPEC_VERSION);
 
     // Set up tracker package
     name = ServiceTracker.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "=" + "1.4");
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
+          "=" +  "1.4");
 
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "=" + "1.0");
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE +
+          "=" +  "1.0");
   }
 
 
   /**
-   * Read a file with package names and add them to a stringbuffer. The file is
-   * searched for in the current working directory, then on the class path.
-   * 
+   * Read a file with package names and add them to a stringbuffer.
+   * The file is searched for in the current working directory, then
+   * on the class path.
    * @param sp Buffer to append the exports to. Same format as the
-   *          Export-Package manifest header.
-   * @param sysPkgFile Name of the file to load packages to be exported from.
+   *           Export-Package manifest header.
+   * @param sysPkgFile Name of the file to load packages to be
+   *           exported from.
    */
   private void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile) {
-    if (null == sysPkgFile || 0 == sysPkgFile.length())
-      return;
+    if (null==sysPkgFile || 0==sysPkgFile.length() ) return;
 
-    if (fwCtx.debug.packages) {
-      fwCtx.debug.println("Will add system packages from file " + sysPkgFile);
+    if(fwCtx.debug.packages) {
+      fwCtx.debug.println("Will add system packages from file "
+                          +sysPkgFile);
     }
 
-    URL url = null;
+    URL  url = null;
     File f = new File(new File(sysPkgFile).getAbsolutePath());
 
     if (!f.exists() || !f.isFile()) {
       url = SystemBundle.class.getResource(sysPkgFile);
-      if (null == url) {
-        url = SystemBundle.class.getResource("/" + sysPkgFile);
+      if (null==url) {
+        url = SystemBundle.class.getResource("/" +sysPkgFile);
       }
-      if (null == url) {
+      if (null==url) {
         if (fwCtx.debug.packages) {
-          fwCtx.debug.println("Could not add system bundle package exports from '" + sysPkgFile
-              + "', file not found.");
+          fwCtx.debug.println("Could not add system bundle package exports from '"
+                              + sysPkgFile + "', file not found.");
         }
       }
     }
@@ -603,7 +605,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       Reader reader = null;
       String source = null;
 
-      if (null == url) {
+      if (null==url) {
         reader = new FileReader(f);
         source = f.getAbsolutePath().toString();
       } else {
@@ -612,7 +614,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       }
       in = new BufferedReader(reader);
       if (fwCtx.debug.packages) {
-        fwCtx.debug.println("\treading from " + source);
+        fwCtx.debug.println("\treading from " +source);
       }
 
       String line;
@@ -624,33 +626,31 @@ public class SystemBundle extends BundleImpl implements Framework {
         }
       }
     } catch (IOException e) {
-      throw new IllegalArgumentException("Failed to read " + sysPkgFile + ": " + e);
+      throw new IllegalArgumentException("Failed to read " +sysPkgFile +": " +e);
     } finally {
       try {
         in.close();
-      } catch (Exception ignored) {
-      }
+      } catch (Exception ignored) { }
     }
   }
 
 
   /**
-   * This method start a thread that stop this Framework, stopping all started
-   * bundles.
-   * 
-   * <p>
-   * If the framework is not started, this method does nothing. If the framework
-   * is started, this method will:
+   * This method start a thread that stop this Framework,
+   * stopping all started bundles.
+   *
+   * <p>If the framework is not started, this method does nothing.
+   * If the framework is started, this method will:
    * <ol>
    * <li>Set the state of the FrameworkContext to <i>inactive</i>.</li>
    * <li>Suspended all started bundles as described in the
-   * {@link Bundle#stop(int)} method except that the persistent state of the
-   * bundle will continue to be started. Reports any exceptions that occur
-   * during stopping using <code>FrameworkErrorEvents</code>.</li>
+   * {@link Bundle#stop(int)} method except that the persistent
+   * state of the bundle will continue to be started.
+   * Reports any exceptions that occur during stopping using
+   * <code>FrameworkErrorEvents</code>.</li>
    * <li>Disable event handling.</li>
-   * </ol>
-   * </p>
-   * 
+   * </ol></p>
+   *
    */
   void shutdown(final boolean restart) {
     synchronized (lock) {
@@ -668,10 +668,10 @@ public class SystemBundle extends BundleImpl implements Framework {
           try {
             final boolean wa = wasActive;
             shutdownThread = new Thread(fwCtx.threadGroup, "Framework shutdown") {
-              public void run() {
-                shutdown0(restart, wa);
-              }
-            };
+                public void run() {
+                  shutdown0(restart, wa);
+                }
+              };
             shutdownThread.setDaemon(false);
             shutdownThread.start();
           } catch (Exception e) {
@@ -686,27 +686,27 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
   }
 
-
   /**
-   * Stop this FrameworkContext, suspending all started contexts. This method
-   * suspends all started contexts so that they can be automatically restarted
-   * when this FrameworkContext is next launched.
-   * 
-   * <p>
-   * If the framework is not started, this method does nothing. If the framework
-   * is started, this method will:
+   * Stop this FrameworkContext, suspending all started contexts.
+   * This method suspends all started contexts so that they can be
+   * automatically restarted when this FrameworkContext is next launched.
+   *
+   * <p>If the framework is not started, this method does nothing.
+   * If the framework is started, this method will:
    * <ol>
    * <li>Set the state of the FrameworkContext to <i>inactive</i>.</li>
-   * <li>Stop all started bundles as described in the {@link Bundle#stop(int)}
-   * method except that the persistent state of the bundle will continue to be
-   * started. Reports any exceptions that occur during stopping using
+   * <li>Stop all started bundles as described in the
+   * {@link Bundle#stop(int)} method except that the persistent
+   * state of the bundle will continue to be started.
+   * Reports any exceptions that occur during stopping using
    * <code>FrameworkErrorEvents</code>.</li>
    * <li>Disable event handling.</li>
    * </ol>
    * </p>
-   * 
+   *
    */
-  private void shutdown0(final boolean restart, final boolean wasActive) {
+  private void shutdown0(final boolean restart, final boolean wasActive)
+  {
     try {
       synchronized (lock) {
         waitOnOperation(lock, "Framework." + (restart ? "update" : "stop"), true);
@@ -734,7 +734,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       shutdownThread = null;
       systemShuttingdownDone(new FrameworkEvent(FrameworkEvent.ERROR, this, e));
     }
-
+    
   }
 
 
@@ -755,7 +755,8 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Stop and unresolve all bundles.
    */
-  private void stopAllBundles() {
+  private void stopAllBundles()
+  {
     if (fwCtx.startLevelController != null) {
       fwCtx.startLevelController.shutdown();
     }
@@ -763,10 +764,10 @@ public class SystemBundle extends BundleImpl implements Framework {
     // Stop all active bundles, in reverse bundle ID order
     // The list will be empty when the start level service is in use.
     final List activeBundles = fwCtx.bundles.getActiveBundles();
-    for (int i = activeBundles.size() - 1; i >= 0; i--) {
-      final BundleImpl b = (BundleImpl)activeBundles.get(i);
+    for (int i = activeBundles.size()-1; i >= 0; i--) {
+      final BundleImpl b = (BundleImpl) activeBundles.get(i);
       try {
-        if (((Bundle.ACTIVE | Bundle.STARTING) & b.getState()) != 0) {
+        if ( ((Bundle.ACTIVE|Bundle.STARTING) & b.getState()) != 0) {
           // Stop bundle without changing its autostart setting.
           b.stop(Bundle.STOP_TRANSIENT);
         }
@@ -778,8 +779,8 @@ public class SystemBundle extends BundleImpl implements Framework {
     final List allBundles = fwCtx.bundles.getBundles();
 
     // Set state to INSTALLED and purge any unrefreshed bundles
-    for (Iterator i = allBundles.iterator(); i.hasNext();) {
-      final BundleImpl b = (BundleImpl)i.next();
+    for (Iterator i = allBundles.iterator(); i.hasNext(); ) {
+      final BundleImpl b = (BundleImpl) i.next();
       if (b.getBundleId() != 0) {
         b.setStateInstalled(false);
         b.purge();
@@ -788,13 +789,15 @@ public class SystemBundle extends BundleImpl implements Framework {
   }
 
 
-  private void saveClasspaths() {
+  private void saveClasspaths()
+  {
     StringBuffer bootClasspath = new StringBuffer();
-    for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator(); i.hasNext();) {
-      BundleGeneration ebg = (BundleGeneration)i.next();
-      String path = ebg.archive.getJarLocation();
-      if (ebg.isBootClassPathExtension()) {
-        if (bootClasspath.length() > 0) {
+    for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator();
+         i.hasNext(); ) {
+      BundleImpl eb = (BundleImpl)i.next();
+      String path = eb.archive.getJarLocation();
+      if (eb.isBootClassPathExtension()) {
+        if (bootClasspath.length()>0) {
           bootClasspath.append(File.pathSeparator);
         }
         bootClasspath.append(path);
@@ -817,7 +820,9 @@ public class SystemBundle extends BundleImpl implements Framework {
   }
 
 
-  private void saveStringBuffer(File f, StringBuffer content) throws IOException {
+  private void saveStringBuffer(File f, StringBuffer content)
+    throws IOException
+  {
     PrintStream out = null;
     try {
       out = new PrintStream(new FileOutputStream(f));
@@ -836,7 +841,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     Class c = cl.getClass();
     while (true) {
       try {
-        m = c.getDeclaredMethod("addURL", new Class[] { URL.class });
+        m = c.getDeclaredMethod("addURL", new Class[] {URL.class});
         break;
       } catch (NoSuchMethodException e) {
         c = c.getSuperclass();

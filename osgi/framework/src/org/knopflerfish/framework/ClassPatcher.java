@@ -106,7 +106,7 @@ public class ClassPatcher {
   FrameworkContext framework;
   protected ClassPatcher(BundleClassLoader classLoader) {
     this.classLoader = classLoader;
-    this.framework = classLoader.bpkgs.bg.bundle.fwCtx;
+    this.framework = classLoader.bpkgs.bundle.fwCtx;
     init();
   }
 
@@ -344,7 +344,7 @@ public class ClassPatcher {
   // bundle location and id
   protected void makeMatchProps() {
     matchProps = new Hashtable();
-    Dictionary d = classLoader.bpkgs.bg.bundle.getHeaders();
+    Dictionary d = classLoader.bpkgs.bundle.getHeaders();
 
     for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
       Object key = e.nextElement();
@@ -420,7 +420,7 @@ class ClassAdapterPatcher extends ClassAdapter {
     this.bcl       = bcl;
     this.bid       = bid;
     this.cp        = cp;
-    this.framework = bcl.bpkgs.bg.bundle.fwCtx;
+    this.framework = bcl.bpkgs.bundle.fwCtx;
   }
 
   public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -446,7 +446,7 @@ class ClassAdapterPatcher extends ClassAdapter {
 
     super.visitEnd();
 
-    if(bcl.bpkgs.bg.bundle.fwCtx.debug.patch) {
+    if(bcl.bpkgs.bundle.fwCtx.debug.patch) {
       cp.dumpInfo();
     }
   }

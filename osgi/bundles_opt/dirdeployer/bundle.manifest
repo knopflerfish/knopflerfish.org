@@ -8,11 +8,9 @@ Bundle-Description: Monitors a set of file system directory for bundles
  to deploy
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=dirdeployer/index.html
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
- /index.html?docpage=dirdeployer/index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles_opt/dirdeployer/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Activator: org.knopflerfish.bundle.dirdeployer.Activator
 Export-Package: org.knopflerfish.service.dirdeployer
 Import-Package: org.knopflerfish.service.dirdeployer,

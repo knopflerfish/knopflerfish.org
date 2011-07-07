@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,195 +34,127 @@
 
 package org.knopflerfish.bundle.httproot;
 
-import java.io.File;
+import java.util.*;
 import java.net.URL;
-import java.util.Hashtable;
+import java.io.InputStream;
+import javax.servlet.*;
+import javax.servlet.http.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.osgi.framework.*;
+import org.osgi.service.http.*;
 import org.knopflerfish.service.log.LogRef;
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.HttpContext;
-import org.osgi.service.http.HttpService;
-import org.osgi.util.tracker.ServiceTracker;
 
-public class Activator
-  implements BundleActivator
-{
+public class Activator implements BundleActivator {
+
   // This is my world
   static BundleContext bc;
   static LogRef        log;
 
-  // Aliases for HttpService registrations
-  private final static String ALIAS_ROOT = "/";
-  private final static String ALIAS_DOCS = "/docs";
-  private final static String ALIAS_SERVLET = "/servlet/knopflerfish-info";
+  static final String  RES_ALIAS     = "/";     // the http server root
+  static final String  RES_DIR       = "/www";  // bundle resource directory
 
-  // Directory inside the bundle that holds the resources to be published
-  private final static String  RES_ROOT = "/www";
+  static final String  SERVLET_ALIAS = "/servlet/knopflerfish-info"; // a small servlet
 
-  private ServiceTracker httpTracker;
+  Hashtable registrations = new Hashtable();
 
+  public void start(BundleContext bc) throws BundleException {
 
-  public void start(final BundleContext bc)
-    throws BundleException
-  {
-    Activator.bc  = bc;
-    Activator.log = new LogRef(bc);
+    this.bc  = bc;
+    this.log = new LogRef(bc);
 
-    httpTracker = new ServiceTracker(bc, HttpService.class.getName(), null) {
-        public Object addingService(final ServiceReference sr)
-        {
-          return register(sr);
-        }
+    ServiceListener listener = new ServiceListener() {
+        public void serviceChanged(ServiceEvent ev) {
+          ServiceReference sr = ev.getServiceReference();
 
-        public void removedService(final ServiceReference sr,
-                                   final Object service)
-        {
-          unregister((HttpService) service);
+          switch(ev.getType()) {
+          case ServiceEvent.REGISTERED:
+            setRoot(sr);
+            break;
+          case ServiceEvent.UNREGISTERING:
+            unsetRoot(sr);
+            break;
+          }
         }
       };
-    httpTracker.open();
-  }
 
-  public void stop(final BundleContext bc)
-    throws BundleException
-  {
-    httpTracker.close();
-  }
-
-
-  private HttpService register(final ServiceReference sr)
-  {
-    log.info("Registering with added HttpService");
-
-    final HttpService http = (HttpService) bc.getService(sr);
+    String filter = "(objectclass=" + HttpService.class.getName() + ")";
 
     try {
-      http.registerResources(ALIAS_ROOT, RES_ROOT, new CompletingHttpContext());
-      http.registerServlet(ALIAS_SERVLET, new InfoServlet(sr),
-                           new Hashtable(), null);
-      http.registerResources(ALIAS_DOCS, "", new DirectoryHttpContext());
+      bc.addServiceListener(listener, filter);
+
+      ServiceReference[] srl = bc.getServiceReferences(null, filter);
+      for(int i = 0; srl != null && i < srl.length; i++) {
+        listener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
+                                                 srl[i]));
+      }
     } catch (Exception e) {
-      log.error("Failed to register in HttpService: " +e.getMessage(), e);
-    }
-
-    log.info("Registration done.");
-    return http;
-  }
-
-  protected void unregister(HttpService http) {
-    log.info("Unregistering from removed HttpService");
-
-    http.unregister(ALIAS_ROOT);
-    http.unregister(ALIAS_SERVLET);
-    http.unregister(ALIAS_DOCS);
-
-    log.info("Unregistration done.");
-  }
-
-  /**
-   * An HttpContext implementation that adds "index.html" to all
-   * requests ending in a '/'. This avoids returning directory
-   * listings when the name parameter points to a directory.
-   */
-  static class CompletingHttpContext
-    implements HttpContext
-  {
-    public boolean handleSecurity(final HttpServletRequest request,
-                                  final HttpServletResponse response)
-      throws java.io.IOException
-    {
-      return true;
-    }
-
-    public URL getResource(String name)
-    {
-      // Add "index.html" to all directories
-      if (name.endsWith("/")) {
-        name += "index.html";
-      }
-      return getClass().getResource(name);
-    }
-
-    public String getMimeType(final String reqEntry) {
-      return null;
+      log.error("Failed to set up listener for http service", e);
     }
   }
 
-  /**
-   * An HttpContext implementation that serves files from a directory
-   * in the local file system (or from another http-server).
-   */
-  static class DirectoryHttpContext
-    implements HttpContext
-  {
-    // Default location of documentation relative to the
-    // osgi-directory in a Knopflerfish distribution.
-    private final static String RES_DOC_ROOT = "../docs";
+  public void stop(BundleContext bc) throws BundleException {
+  }
 
-    // Fall-back http-URL for the documentation
-    private static final String  RES_DOC_URL
-      = "http://www.knopflerfish.org/releases/current/docs";
+  void setRoot(ServiceReference sr) {
 
-    private File baseDir = null;
-    private URL  baseURL  = null;
+    if(registrations.containsKey(sr)) {
+      return; // already done
+    }
 
-    public DirectoryHttpContext() {
-      try {
-        baseDir = new File(RES_DOC_ROOT);
-        if (!baseDir.exists() || !baseDir.isDirectory()
-            || !new File(baseDir,"index.html").canRead()) {
-          baseDir = null;
-          baseURL = new URL(RES_DOC_URL);
+    log.info("set root for " + sr);
+
+    HttpService http = (HttpService)bc.getService(sr);
+
+    HttpContext context = new HttpContext() {
+        public boolean handleSecurity(HttpServletRequest  request,
+                                      HttpServletResponse response)
+          throws java.io.IOException {
+          return true;
         }
-        log.info("Documentation from "
-                 +(null==baseDir ? baseURL.toString() : baseDir.toString()));
-      } catch (Exception e) {
-        log.error("Failed to create base URL.", e);
-      }
-    }
 
-    public boolean handleSecurity(final HttpServletRequest  request,
-                                  final HttpServletResponse response)
-      throws java.io.IOException
-    {
-      return true;
-    }
+        public URL getResource(String name) {
 
-    public URL getResource(String name)
-    {
-      // Default to index.html to avoid publishing directory listings
-      if (name.endsWith("/")) {
-        name += "index.html";
-      }
-      try {
-        URL url = null;
-        if (null!=baseDir) {
-          File f = new File(baseDir, name);
-          if (f.exists()) {
-            if (f.isDirectory()) {
-              f = new File(f, "index.html");
-            }
-            url = f.toURI().toURL();
+          // default to index.html
+          if(name.equals(RES_DIR) || name.equals(RES_DIR + "/")) {
+            name = "/www/index.html";
           }
-        } else {
-          url = new URL(baseURL, name);
+
+          // and send the plain file
+          URL url = getClass().getResource(name);
+
+          return url;
         }
-        return url;
-      } catch (Exception e) {
-        log.error("DirectoryHttpContext: Failed to create resource URL.", e);
-      }
-      return null;
+
+        public String getMimeType(String reqEntry) {
+          return null; // server decides type
+        }
+      };
+
+    try {
+      http.registerResources(RES_ALIAS, RES_DIR, context);
+      http.registerServlet(SERVLET_ALIAS, new InfoServlet(sr), new Hashtable(), context);
+
+      registrations.put(sr, context);
+    } catch (Exception e) {
+      log.error("Failed to register resource", e);
+    }
+  }
+
+  void unsetRoot(ServiceReference sr) {
+    if(!registrations.containsKey(sr)) {
+      return; // nothing to do
     }
 
-    public String getMimeType(final String reqEntry)
-    {
-      return null;
+    log.info("unset root for " + sr);
+
+    HttpService http = (HttpService)bc.getService(sr);
+
+    if(http != null) {
+      http.unregister(RES_ALIAS);
+      http.unregister(SERVLET_ALIAS);
+      bc.ungetService(sr);
     }
-  };
+    registrations.remove(sr);
+  }
+
 }

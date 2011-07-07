@@ -384,17 +384,17 @@ public class ServiceReferenceImpl implements ServiceReference
       final Pkg p = fwCtx.packages.getPkg(name);
       // Is package exported by a bundle
       if (p != null) {
-        final BundlePackages rbp = registration.bundle.gen.bpkgs;
-        final BundlePackages pkgExporter = rbp.getProviderBundlePackages(name);
+        final BundlePackages pkgExporter
+          = registration.bundle.bpkgs.getProviderBundlePackages(name);
         List pkgProvider;
         if (pkgExporter == null) {
           // Package not imported by provide, is it required
-          pkgProvider = rbp.getRequiredBundlePackages(name);
+          pkgProvider = registration.bundle.bpkgs.getRequiredBundlePackages(name);
         } else {
           pkgProvider = new ArrayList(1);
           pkgProvider.add(pkgExporter);
         }
-        final BundlePackages bb = ((BundleImpl)bundle).gen.bpkgs;
+        final BundlePackages bb = ((BundleImpl)bundle).bpkgs;
         final BundlePackages bbp = bb.getProviderBundlePackages(name);
         List pkgConsumer;
         if (bbp == null) {
@@ -406,7 +406,7 @@ public class ServiceReferenceImpl implements ServiceReference
         }
         if (pkgConsumer == null) {
           // NYI! Check dynamic import?
-          if (bb.isExported(name)) {
+          if (bb.getExport(name) != null) {
             // If bundle only exports package, then return true if
             // bundle is provider.
             return pkgProvider!=null ? pkgProvider.contains(bb) : true;

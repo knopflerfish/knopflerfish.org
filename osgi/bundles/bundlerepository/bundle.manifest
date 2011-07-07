@@ -9,9 +9,8 @@ Bundle-Vendor: Oscar/Knopflerfish
 Bundle-APIVendor: Oscar/Knopflerfish
 Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/bundlerepository/readme.txt
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/bundlerepository/
 Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/bundlerepository/
 Bundle-Classpath: .,kxml-min.jar
 DynamicImport-Package: *
 Bundle-Activator: org.knopflerfish.osgi.bundle.bundlerepository.Activator

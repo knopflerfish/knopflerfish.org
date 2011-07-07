@@ -33,7 +33,9 @@
 package org.knopflerfish.ant.taskdefs.bundle;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,8 +43,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.jar.JarInputStream;
+import java.util.TreeSet;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -52,8 +55,10 @@ import org.apache.tools.ant.taskdefs.Jar;
 import org.apache.tools.ant.taskdefs.Manifest;
 import org.apache.tools.ant.taskdefs.ManifestException;
 import org.apache.tools.ant.types.FileSet;
-import org.apache.tools.ant.types.Resource;
 import org.apache.tools.ant.types.ZipFileSet;
+//import org.apache.tools.zip.ZipFile;
+
+
 import org.osgi.framework.Version;
 
 /**
@@ -139,7 +144,7 @@ import org.osgi.framework.Version;
  * version of a package to add to the Export-Package manifest
  * header. If package analysis is not turned off, a warning will be
  * issued if the specified package cannot be found in the bundle.
- * When package analysis is turned on the version from the
+ * When package analyses is turned on the version from the
  * <tt>packageinfo</tt>-file in the directory of the package is read
  * and used as the version of the exported package. In this case, if a
  * version is specified in the <tt>exportpackage</tt> element that
@@ -161,7 +166,7 @@ import org.osgi.framework.Version;
  * runtime environment (i.e., via boot delegation).
  * </p>
  *
- * <h3>Implicit file set</h3>
+ * <h3>Implicit fileset</h3>
  * <p>
  * The implicit fileset is specified by the <tt>baseDir</tt> attribute of the
  * bundle task and the nested <tt>include</tt> and <tt>exclude</tt> elements.
@@ -249,14 +254,29 @@ public class Bundle extends Jar {
 
   private Manifest generatedManifest = new Manifest();
 
+  private Set referencedPackages = new HashSet();
   private Set standardPackagePrefixes = new HashSet(); {
     standardPackagePrefixes.add("java.");
   }
 
-  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo(this);
+  private final BundlePackagesInfo bpInfo = new BundlePackagesInfo();
   private final ClassAnalyserASM   asmAnalyser
     = new ClassAnalyserASM(bpInfo, this);
 
+
+  /**
+   * The set of classes that are refrenced from the included classes.
+   * May be used to check execution environment, see {@link BundleInfo}.
+   */
+  private Set classSet             = new TreeSet();
+  /**
+   * A mapping from package name of included classes to a set of
+   * package names that the classes in the key package references.
+   */
+  private Map packageUsingMap      = new HashMap();
+
+
+  // private methods
 
   private void analyze() {
     if (activator == ACTIVATOR_AUTO ||
@@ -266,10 +286,49 @@ public class Bundle extends Jar {
 
       for (Iterator i = srcFilesets.iterator(); i.hasNext();) {
         FileSet fileset = (FileSet) i.next();
-
-        for (Iterator fsIt = fileset.iterator(); fsIt.hasNext();) {
-          final Resource res = (Resource) fsIt.next();
-          analyze(res);
+        File srcFile = getZipFile(fileset);
+        if (srcFile == null) {
+          File filesetBaseDir = fileset.getDir(getProject());
+          DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
+          String[] files = ds.getIncludedFiles();
+          for (int j = 0; j < files.length; j++) {
+            String fileName = files[j];
+            if (fileName.endsWith(".class")) {
+              File file = new File(filesetBaseDir, fileName);
+              try {
+                asmAnalyser.analyseClass(file);
+              } catch (Exception e) {
+                e.printStackTrace();
+                throw new BuildException
+                  ("Failed to analyze class file " +file +", exception=" +e,
+                   getLocation());
+              }
+            }
+          }
+        } else {
+          try {
+            ZipFile zipFile = new ZipFile(srcFile);
+            DirectoryScanner ds = fileset.getDirectoryScanner(getProject());
+            String[] entries = ds.getIncludedFiles();
+            for (int kk = 0; kk<entries.length; kk++) {
+              if (entries[kk].endsWith(".class")) {
+                try {
+                  ZipEntry entry = zipFile.getEntry(entries[kk]);
+                  asmAnalyser.analyseClass(zipFile.getInputStream(entry),
+                                           entries[kk]);
+                } catch (IOException ioe) {
+                  throw new BuildException
+                    ("Failed to parse analyze class file " +entries[kk]
+                     +" from zip archive: " +srcFile.getAbsolutePath(),
+                     ioe);
+                }
+              }
+            }
+          } catch (IOException ioe) {
+            throw new BuildException
+              ("Failed to read zip file: " +srcFile.getAbsolutePath(),
+               ioe);
+          }
         }
       }
       // Scan done
@@ -351,68 +410,6 @@ public class Bundle extends Jar {
     }
   }
 
-  /**
-   * Analyze a resource by checking its suffix and delegate to {@link
-   * #analyzeClass(Resource)}, {@link #analyzeJar(Resource)}, etc.
-   *
-   * @param res The resource to be analyzed.
-   */
-  protected void analyze(Resource res) throws BuildException {
-    if(res.getName().endsWith(".class")) {
-      analyzeClass(res);
-    } else if(res.getName().endsWith(".jar")) {
-      analyzeJar(res);
-    } else if(res.getName().endsWith("/packageinfo")) {
-      analyzePackageinfo(res);
-    } else {
-      // Just ignore all other files
-    }
-  }
-
-  protected void analyzeJar(Resource res) throws BuildException {
-    log("Analyze jar file " + res, Project.MSG_VERBOSE);
-
-    try {
-      final JarInputStream jarStream = new JarInputStream(res.getInputStream());
-
-      ZipEntry ze = jarStream.getNextEntry();
-      while(null!=ze) {
-        final String fileName = ze.getName();
-        if (fileName.endsWith(".class")) {
-          log("Analyze jar class file " + fileName, Project.MSG_VERBOSE);
-          asmAnalyser.analyseClass(jarStream, fileName);
-        }
-        ze = jarStream.getNextEntry();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file " +
-                               res + ", exception=" + e, getLocation());
-    }
-  }
-
-  protected void analyzeClass(Resource res) throws BuildException {
-    log("Analyze class file " + res, Project.MSG_VERBOSE);
-
-    try {
-      asmAnalyser.analyseClass(res.getInputStream(), res.toString());
-    } catch (BuildException be) {
-      throw be;
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw new BuildException("Failed to analyze class-file "
-                               +res + ", exception=" + e,
-                               getLocation());
-    }
-  }
-
-  protected void analyzePackageinfo(Resource res) throws BuildException {
-    log("Analyze packageinfo file " + res, Project.MSG_VERBOSE);
-
-    bpInfo.setPackageVersion(res);
-  }
-
-
   private void addZipGroups() {
     for (int i = 0; i < zipgroups.size(); i++) {
       FileSet fileset = (FileSet) zipgroups.get(i);
@@ -432,6 +429,15 @@ public class Bundle extends Jar {
       FileSet fileset = (FileSet) getImplicitFileSet().clone();
       fileset.setDir(baseDir);
       srcFilesets.add(fileset);
+    }
+  }
+
+  private File getZipFile(FileSet fileset) {
+    if (fileset instanceof ZipFileSet) {
+      ZipFileSet zipFileset = (ZipFileSet) fileset;
+      return zipFileset.getSrc(getProject());
+    } else {
+      return null;
     }
   }
 

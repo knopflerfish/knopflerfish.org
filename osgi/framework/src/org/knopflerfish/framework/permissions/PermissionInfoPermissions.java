@@ -191,8 +191,6 @@ class PermissionInfoPermissions extends PermissionCollection {
           unresolved--;
           pinfo[i] = null;
         }
-      } else if (debug.permissions) {
-        debug.println("makePermission: Failed to create permission " + pinfo[i]);
       }
     }
     if (unresolved == 0) {
@@ -221,7 +219,7 @@ class PermissionInfoPermissions extends PermissionCollection {
     String a = pi.getActions();
     String n = pi.getName();
     try {
-      Class pc = Class.forName(t, true, cl);
+      Class pc = Class.forName(t, true, framework.getClassLoader(t));
       Constructor c = pc.getConstructor(new Class[] { String.class, String.class });
       if (FilePermission.class.equals(pc) && !"<<ALL FILES>>".equals(n)) {
         File f = new File(n);

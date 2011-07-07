@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,8 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
-import java.net.*;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.util.*;
@@ -46,6 +47,7 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 
 import org.knopflerfish.framework.PermissionOps;
 import org.knopflerfish.framework.permissions.PermissionsHandle;
+
 
 class SecurePermissionOps extends PermissionOps {
 
@@ -59,10 +61,16 @@ class SecurePermissionOps extends PermissionOps {
   private static final int AP_CONTEXT = 7;
   private static final int AP_MAX = 8;
 
-  private static String[] AP_TO_STRING = new String[] { AdminPermission.CLASS,
-      AdminPermission.EXECUTE, AdminPermission.EXTENSIONLIFECYCLE, AdminPermission.LIFECYCLE,
-      AdminPermission.LISTENER, AdminPermission.METADATA, AdminPermission.RESOURCE,
-      AdminPermission.CONTEXT, };
+  private static String [] AP_TO_STRING = new String [] {
+    AdminPermission.CLASS,
+    AdminPermission.EXECUTE,
+    AdminPermission.EXTENSIONLIFECYCLE,
+    AdminPermission.LIFECYCLE,
+    AdminPermission.LISTENER,
+    AdminPermission.METADATA,
+    AdminPermission.RESOURCE,
+    AdminPermission.CONTEXT,
+  };
 
   private final FrameworkContext framework;
   private PermissionsHandle ph;
@@ -72,14 +80,15 @@ class SecurePermissionOps extends PermissionOps {
 
   private RuntimePermission rp_getprotectiondomain = null;
 
-  Hashtable /* Bundle -> AdminPermission [] */adminPerms = new Hashtable();
+
+  Hashtable /* Bundle -> AdminPermission [] */ adminPerms = new Hashtable();
 
 
   SecurePermissionOps(FrameworkContext fw) {
     framework = fw;
   }
 
-
+  
   void init() {
     ph = new PermissionsHandle(framework);
   }
@@ -87,14 +96,14 @@ class SecurePermissionOps extends PermissionOps {
 
   void registerService() {
     if (framework.props.getBooleanProperty(FWProps.SERVICE_PERMISSIONADMIN_PROP)) {
-      String[] classes = new String[] { PermissionAdmin.class.getName() };
+      String[] classes = new String [] { PermissionAdmin.class.getName() };
       framework.services.register(framework.systemBundle, classes,
-          ph.getPermissionAdminService(), null);
+                                  ph.getPermissionAdminService(), null);
     }
     if (framework.props.getBooleanProperty(FWProps.SERVICE_CONDITIONALPERMISSIONADMIN_PROP)) {
       ConditionalPermissionAdmin cpa = ph.getConditionalPermissionAdminService();
       if (cpa != null) {
-        String[] classes = new String[] { ConditionalPermissionAdmin.class.getName() };
+        String[] classes = new String [] { ConditionalPermissionAdmin.class.getName() };
         framework.services.register(framework.systemBundle, classes, cpa, null);
       }
     }
@@ -105,7 +114,6 @@ class SecurePermissionOps extends PermissionOps {
     return true;
   }
 
-
   //
   // Permission checks
   //
@@ -113,7 +121,7 @@ class SecurePermissionOps extends PermissionOps {
   boolean okClassAdminPerm(Bundle b) {
     try {
       SecurityManager sm = System.getSecurityManager();
-      if (null != sm) {
+      if(null!=sm){
         sm.checkPermission(getAdminPermission(b, AP_CLASS));
       }
       return true;
@@ -122,73 +130,67 @@ class SecurePermissionOps extends PermissionOps {
     }
   }
 
-
-  void checkExecuteAdminPerm(Bundle b) {
+  void checkExecuteAdminPerm(Bundle b){
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(getAdminPermission(b, AP_EXECUTE));
     }
   }
 
-
   void checkExtensionLifecycleAdminPerm(Bundle b) {
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(getAdminPermission(b, AP_EXTENSIONLIFECYCLE));
     }
   }
 
-
   void checkExtensionLifecycleAdminPerm(Bundle b, Object checkContext) {
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm && checkContext != null) {
-      sm.checkPermission(getAdminPermission(b, AP_EXTENSIONLIFECYCLE), checkContext);
+    if(null != sm && checkContext != null){
+      sm.checkPermission(getAdminPermission(b, AP_EXTENSIONLIFECYCLE),
+                         checkContext);
     }
   }
 
-
   void checkLifecycleAdminPerm(Bundle b) {
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(getAdminPermission(b, AP_LIFECYCLE));
     }
   }
 
-
   void checkLifecycleAdminPerm(Bundle b, Object checkContext) {
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm && checkContext != null) {
-      sm.checkPermission(getAdminPermission(b, AP_LIFECYCLE), checkContext);
+    if(null != sm && checkContext != null){
+      sm.checkPermission(getAdminPermission(b, AP_LIFECYCLE),
+                         checkContext);
     }
   }
 
-
   void checkListenerAdminPerm(Bundle b) {
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(getAdminPermission(b, AP_LISTENER));
     }
   }
 
-
   void checkMetadataAdminPerm(Bundle b) {
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(getAdminPermission(b, AP_METADATA));
     }
   }
 
-
   void checkResolveAdminPerm() {
     if (ap_resolve == null) {
-      ap_resolve = new AdminPermission(framework.systemBundle, AdminPermission.RESOLVE);
+      ap_resolve = new AdminPermission(framework.systemBundle,
+                                            AdminPermission.RESOLVE);
     }
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(ap_resolve);
     }
   }
-
 
   void checkResourceAdminPerm(Bundle b) {
     SecurityManager sm = System.getSecurityManager();
@@ -197,50 +199,46 @@ class SecurePermissionOps extends PermissionOps {
     }
   }
 
-
   boolean okResourceAdminPerm(Bundle b) {
     try {
       checkResourceAdminPerm(b);
       return true;
     } catch (SecurityException ignore) {
       if (framework.debug.bundle_resource) {
-        framework.debug.printStackTrace(
-            "No permission to access resources in bundle #" + b.getBundleId(), ignore);
+        framework.debug.printStackTrace("No permission to access resources in bundle #"
+                                        + b.getBundleId(), ignore);
       }
       return false;
     }
   }
 
-
   void checkContextAdminPerm(Bundle b) {
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(getAdminPermission(b, AP_CONTEXT));
     }
   }
 
-
-  void checkStartLevelAdminPerm() {
+  void checkStartLevelAdminPerm(){
     if (ap_startlevel == null) {
-      ap_startlevel = new AdminPermission(framework.systemBundle, AdminPermission.STARTLEVEL);
+      ap_startlevel = new AdminPermission(framework.systemBundle,
+                                               AdminPermission.STARTLEVEL);
     }
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(ap_startlevel);
     }
   }
-
 
   void checkGetProtectionDomain() {
     if (rp_getprotectiondomain == null) {
       rp_getprotectiondomain = new RuntimePermission("getProtectionDomain");
     }
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if(null!=sm){
       sm.checkPermission(rp_getprotectiondomain);
     }
   }
-
 
   //
   // Bundle permission checks
@@ -248,40 +246,35 @@ class SecurePermissionOps extends PermissionOps {
 
   boolean okFragmentBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.FRAGMENT));
+    return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.FRAGMENT));
   }
-
 
   boolean okHostBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.HOST));
+    return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.HOST));
   }
-
 
   boolean okProvideBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.PROVIDE));
+    return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.PROVIDE));
   }
-
 
   boolean okRequireBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.REQUIRE));
+    return pc.implies(new BundlePermission(b.symbolicName, BundlePermission.REQUIRE));
   }
-
 
   boolean okAllPerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
     return pc.implies(new AllPermission());
   }
 
-
   //
   // Package permission checks
   //
 
   boolean hasExportPackagePermission(ExportPkg ep) {
-    BundleImpl b = ep.bpkgs.bg.bundle;
+    BundleImpl b = ep.bpkgs.bundle;
     if (b.id != 0) {
       PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
       return pc.implies(new PackagePermission(ep.name, PackagePermission.EXPORTONLY));
@@ -289,16 +282,14 @@ class SecurePermissionOps extends PermissionOps {
     return true;
   }
 
-
   boolean hasImportPackagePermission(BundleImpl b, ExportPkg ep) {
     if (b.id != 0) {
       PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-      return pc.implies(new PackagePermission(ep.name, ep.bpkgs.bg.bundle,
-          PackagePermission.IMPORT));
+      return pc.implies(new PackagePermission(ep.name, ep.bpkgs.bundle,
+                                              PackagePermission.IMPORT));
     }
     return true;
   }
-
 
   //
   // Service permission checks
@@ -306,11 +297,10 @@ class SecurePermissionOps extends PermissionOps {
 
   void checkRegisterServicePerm(String clazz) {
     SecurityManager sm = System.getSecurityManager();
-    if (null != sm) {
+    if (null != sm){
       sm.checkPermission(new ServicePermission(clazz, ServicePermission.REGISTER));
     }
   }
-
 
   void checkGetServicePerms(ServiceReference sr) {
     SecurityManager sm = System.getSecurityManager();
@@ -319,85 +309,84 @@ class SecurePermissionOps extends PermissionOps {
     }
   }
 
-
   boolean okGetServicePerms(ServiceReference sr) {
     try {
       checkGetServicePerms(sr);
       return true;
     } catch (SecurityException ignore) {
       if (framework.debug.service_reference) {
-        framework.debug.printStackTrace(
-            "No permission to get service ref: " + sr.getProperty(Constants.OBJECTCLASS),
-            ignore);
+        framework.debug.printStackTrace("No permission to get service ref: " +
+                                        sr.getProperty(Constants.OBJECTCLASS), ignore);
       }
     }
     return false;
   }
 
-
   /**
    * Filter out all services that we don't have permission to get.
-   * 
+   *
    * @param srs Set of ServiceRegistrationImpls to check.
    */
   void filterGetServicePermission(Set srs) {
     for (Iterator i = srs.iterator(); i.hasNext();) {
-      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)i.next();
-      ;
+      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)i.next();;
       if (!okGetServicePerms(sr.getReference())) {
         i.remove();
       }
     }
   }
 
-
   //
   // BundleArchive secure operations
   //
 
   BundleResourceStream callGetBundleResourceStream(final BundleArchive archive,
-                                                   final String name, final int ix) {
+                                                   final String name,
+                                                   final int ix) {
     return (BundleResourceStream)AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return archive.getBundleResourceStream(name, ix);
-      }
-    });
+        public Object run() {
+          return archive.getBundleResourceStream(name, ix);
+        }
+      });
   }
 
 
-  Enumeration callFindResourcesPath(final BundleArchive archive, final String path) {
+  Enumeration callFindResourcesPath(final BundleArchive archive,
+                                   final String path) {
     return (Enumeration)AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return archive.findResourcesPath(path);
-      }
-    });
+        public Object run() {
+          return archive.findResourcesPath(path);
+        }
+      });
   }
-
 
   //
   // BundleClassLoader secure operations
   //
 
-  Object callSearchFor(final BundleClassLoader cl, final String name, final String pkg,
-                       final String path, final BundleClassLoader.SearchAction action,
+  Object callSearchFor(final BundleClassLoader cl,
+                       final String name,
+                       final String pkg,
+                       final String path,
+                       final BundleClassLoader.SearchAction action,
                        final boolean onlyFirst,
-                       final BundleClassLoader requestor, final HashSet visited) {
+                       final BundleClassLoader requestor,
+                       final HashSet visited) {
     return AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
-      }
-    });
+        public Object run() {
+          return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+        }
+      });
   }
 
-
-  String callFindLibrary0(final BundleClassLoader cl, final String name) {
-    return (String)AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return cl.findLibrary0(name);
-      }
-    });
+  String callFindLibrary0(final BundleClassLoader cl,
+                          final String name) {
+    return (String) AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          return cl.findLibrary0(name);
+        }
+      });
   }
-
 
   //
   // BundleImpl secure operations
@@ -406,112 +395,117 @@ class SecurePermissionOps extends PermissionOps {
   void callFinalizeActivation(final BundleImpl b) throws BundleException {
     try {
       AccessController.doPrivileged(new PrivilegedExceptionAction() {
-        public Object run() throws BundleException {
-          b.finalizeActivation();
-          return null;
-        }
-      });
+          public Object run() throws BundleException {
+            b.finalizeActivation();
+            return null;
+          }
+        });
     } catch (PrivilegedActionException e) {
-      throw (BundleException)e.getException();
+      throw (BundleException) e.getException();
     }
   }
 
 
-  BundleThread createBundleThread(final FrameworkContext fc) {
-    return (BundleThread)AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return new BundleThread(fc);
-      }
-    });
+
+  BundleThread createBundleThread(final FrameworkContext fc)  {
+    return (BundleThread)
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return new BundleThread(fc);
+          }
+        });
   }
 
 
   void callUpdate0(final BundleImpl b, final InputStream in, final boolean wasActive)
-      throws BundleException {
+    throws BundleException {
     try {
       final AccessControlContext acc = AccessController.getContext();
       AccessController.doPrivileged(new PrivilegedExceptionAction() {
-        public Object run() throws BundleException {
-          b.update0(in, wasActive, acc);
-          return null;
-        }
-      });
+          public Object run() throws BundleException {
+            b.update0(in, wasActive, acc);
+            return null;
+          }
+        });
     } catch (PrivilegedActionException e) {
-      throw (BundleException)e.getException();
+      throw (BundleException) e.getException();
     }
   }
 
 
   void callUninstall0(final BundleImpl b) {
     AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        b.uninstall0();
-        return null;
-      }
-    });
+        public Object run() {
+          b.uninstall0();
+          return null;
+        }
+      });
   }
 
 
   void callSetAutostartSetting(final BundleImpl b, final int settings) {
     AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        b.setAutostartSetting0(settings);
-        return null;
-      }
-    });
-  }
-
-
-  HeaderDictionary callGetHeaders0(final BundleGeneration bg, final String locale) {
-    return (HeaderDictionary)AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return bg.getHeaders0(locale);
-      }
-    });
-  }
-
-
-  Enumeration callFindEntries(final BundleGeneration bg, final String path,
-                              final String filePattern, final boolean recurse) {
-    return (Enumeration)AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return bg.findEntries(path, filePattern, recurse);
-      }
-    });
-  }
-
-
-  BundleClassLoader newBundleClassLoader(final BundleGeneration bg) throws BundleException {
-    try {
-      return (BundleClassLoader)AccessController.doPrivileged(new PrivilegedExceptionAction() {
-        public Object run() throws Exception {
-          return new BundleClassLoader(bg);
+        public Object run() {
+          b.setAutostartSetting0(settings);
+          return null;
         }
       });
-    } catch (PrivilegedActionException pe) {
-      throw (BundleException)pe.getException();
-    }
   }
 
+
+  HeaderDictionary callGetHeaders0(final BundleImpl b, final String locale) {
+    return (HeaderDictionary)
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return b.getHeaders0(locale);
+          }
+        });
+  }
+
+
+  Enumeration callFindEntries0(final BundleImpl b, final String path,
+                               final String filePattern, final boolean recurse) {
+    return (Enumeration)
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return b.findEntries0(path, filePattern, recurse);
+          }
+        });
+  }
+  
+
+  BundleClassLoader newBundleClassLoader(final BundlePackages bpkgs, final BundleArchive archive, final ArrayList fragments,
+                                   final ProtectionDomain protectionDomain) throws BundleException {
+    try {
+      return (BundleClassLoader)AccessController.doPrivileged(new PrivilegedExceptionAction() {
+                                                        public Object run() throws Exception {
+                                                        return  new BundleClassLoader(bpkgs, archive, fragments,
+                                                                                      protectionDomain, SecurePermissionOps.this);
+                                                        }
+                                                        });
+    } catch (PrivilegedActionException pe) {
+      throw (BundleException)pe.getException();
+    }    
+  }
 
   //
   // Bundles Secure operation
   //
 
   BundleImpl callInstall0(final Bundles bs, final String location, final InputStream in)
-      throws BundleException {
+    throws BundleException {
     try {
       final AccessControlContext acc = AccessController.getContext();
-      return (BundleImpl)AccessController.doPrivileged(new PrivilegedExceptionAction() {
-        public Object run() throws BundleException {
-          return bs.install0(location, in, acc);
-        }
-      });
+      return (BundleImpl)
+        AccessController.doPrivileged(new PrivilegedExceptionAction() {
+            public Object run() throws BundleException {
+              return bs.install0(location, in, acc);
+            }
+          });
     } catch (PrivilegedActionException e) {
-      throw (BundleException)e.getException();
+      throw (BundleException) e.getException();
     }
   }
-
 
   //
   // Listeners Secure operations
@@ -519,51 +513,52 @@ class SecurePermissionOps extends PermissionOps {
 
   void callBundleChanged(final FrameworkContext fwCtx, final BundleEvent evt) {
     AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        fwCtx.listeners.bundleChanged(evt);
-        return null;
-      }
-    });
+        public Object run() {
+          fwCtx.listeners.bundleChanged(evt);
+          return null;
+        }
+      });
   }
 
-
-  void callServiceChanged(final FrameworkContext fwCtx, final Collection receivers,
-                          final ServiceEvent evt, final Set matchBefore) {
+  void callServiceChanged(final FrameworkContext fwCtx,
+                          final Collection receivers,
+                          final ServiceEvent evt,
+                          final Set matchBefore) {
     AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        fwCtx.listeners.serviceChanged(receivers, evt, matchBefore);
-        return null;
-      }
-    });
+        public Object run() {
+          fwCtx.listeners.serviceChanged(receivers, evt, matchBefore);
+          return null;
+        }
+      });
   }
-
 
   //
   // PackageAdmin secure operations
   //
 
-  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle[] bundles) {
+  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle [] bundles) {
     AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        pa.refreshPackages0(bundles);
-        return null;
-      }
-    });
+        public Object run() {
+          pa.refreshPackages0(bundles);
+          return null;
+        }
+      });
   }
-
 
   //
   // ServiceReferenceImpl secure operations
   //
 
-  Object callGetService(final ServiceFactory sf, final Bundle b, final ServiceRegistration sr) {
-    return AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return sf.getService(b, sr);
-      }
-    });
+  Object callGetService(final ServiceFactory sf,
+                        final Bundle b,
+                        final ServiceRegistration sr) {
+    return
+      AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            return sf.getService(b, sr);
+          }
+        });
   }
-
 
   //
   // ServiceRegisterationImpl secure operations
@@ -571,13 +566,12 @@ class SecurePermissionOps extends PermissionOps {
 
   void callUnregister0(final ServiceRegistrationImpl sr) {
     AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        sr.unregister0();
-        return null;
-      }
-    });
+        public Object run() {
+          sr.unregister0();
+          return null;
+        }
+      });
   }
-
 
   //
   // StartLevelController secure operations
@@ -585,13 +579,12 @@ class SecurePermissionOps extends PermissionOps {
 
   void callSetStartLevel(final BundleImpl b, final int startlevel) {
     AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        b.setStartLevel(startlevel);
-        return null;
-      }
-    });
+        public Object run() {
+          b.setStartLevel(startlevel);
+          return null;
+        }
+      });
   }
-
 
   //
   // SystemBundle secure operations
@@ -599,13 +592,12 @@ class SecurePermissionOps extends PermissionOps {
 
   void callShutdown(final SystemBundle sb, final boolean restart) {
     AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        sb.shutdown(restart);
-        return null;
-      }
-    });
+        public Object run() {
+          sb.shutdown(restart);
+          return null;
+        }
+      });
   }
-
 
   //
   // Permissions package functionality
@@ -614,66 +606,58 @@ class SecurePermissionOps extends PermissionOps {
   /**
    * Get protection domain for bundle
    */
-  ProtectionDomain getProtectionDomain(final BundleGeneration bg) {
+  ProtectionDomain getProtectionDomain(BundleImpl b) {
     try {
       // We cannot use getBundleURL() here because that will
       // trigger a persmission check while we're still in
       // the phase of building permissions
-      String h = Long.toString(bg.bundle.id);
-      if (bg.generation != 0) {
-        h += "." + Long.toString(bg.generation);
-      }
-      URLStreamHandler ush = bg.bundle.fwCtx.urlStreamHandlerFactory
-          .createURLStreamHandler(BundleURLStreamHandler.PROTOCOL);
-      URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL, h, -1, "", ush);
+      URL bundleUrl = new URL(BundleURLStreamHandler.PROTOCOL,
+                              Long.toString(b.id) + "." + Long.toString(b.generation),
+                              -1,
+                              "",
+                              b.fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
 
-      InputStream pis = bg.archive.getBundleResourceStream("OSGI-INF/permissions.perm", 0);
-      PermissionCollection pc = ph.createPermissionCollection(bg.bundle.location, bg.bundle,
-          pis);
-      List cc = bg.archive.getCertificateChains(false);
-      Certificate[] cca;
+      InputStream pis = b.archive.getBundleResourceStream("OSGI-INF/permissions.perm", 0);
+      PermissionCollection pc = ph.createPermissionCollection(b.location, b, pis);
+      List cc = b.archive.getCertificateChains(false);
+      Certificate [] cca;
       if (cc != null) {
         ArrayList tmp = new ArrayList();
         for (Iterator i = cc.iterator(); i.hasNext();) {
           tmp.addAll((List)i.next());
         }
-        cca = (Certificate[])tmp.toArray(new Certificate[tmp.size()]);
+        cca = (Certificate [])tmp.toArray(new Certificate [tmp.size()]);
       } else {
         cca = null;
       }
       return new ProtectionDomain(new CodeSource(bundleUrl, cca), pc);
-    } catch (MalformedURLException _ignore) {
-    }
+    } catch (MalformedURLException _ignore) { }
     return null;
   }
-
 
   URL getBundleURL(final FrameworkContext fwCtx, final String s) throws MalformedURLException {
     try {
       return (URL)AccessController.doPrivileged(new PrivilegedExceptionAction() {
-        public Object run() throws MalformedURLException {
-          return new URL(null, s, fwCtx.urlStreamHandlerFactory
-              .createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
-        }
-      });
+          public Object run() throws MalformedURLException {
+            return new URL(null, s, fwCtx.urlStreamHandlerFactory.createURLStreamHandler(BundleURLStreamHandler.PROTOCOL));
+          }
+        });
     } catch (PrivilegedActionException e) {
-      throw (MalformedURLException)e.getException();
+      throw (MalformedURLException) e.getException();
     }
   }
-
 
   //
   // Privileged system calls
   //
-
+  
   ClassLoader getClassLoaderOf(final Class c) {
     return (ClassLoader)AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        return c.getClassLoader();
-      }
-    });
+                                                                       public Object run() {
+                                                                       return c.getClassLoader();
+                                                                       }
+                                                                       });
   }
-
 
   //
   // Cleaning
@@ -688,20 +672,20 @@ class SecurePermissionOps extends PermissionOps {
     }
   }
 
-
   //
   // Private
   //
 
+
   AdminPermission getAdminPermission(Bundle b, int ti) {
-    AdminPermission[] res;
-    res = (AdminPermission[])adminPerms.get(b);
+    AdminPermission [] res;
+    res = (AdminPermission [])adminPerms.get(b);
     if (res != null) {
       if (res[ti] != null) {
         return res[ti];
       }
     } else {
-      res = new AdminPermission[AP_MAX];
+      res = new AdminPermission [AP_MAX];
       adminPerms.put(b, res);
     }
     res[ti] = new AdminPermission(b, AP_TO_STRING[ti]);

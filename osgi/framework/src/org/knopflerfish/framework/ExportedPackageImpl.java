@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +85,7 @@ public class ExportedPackageImpl implements ExportedPackage {
    */
   public Bundle getExportingBundle() {
     if (pkg.pkg != null) {
-      return pkg.bpkgs.bg.bundle;
+      return pkg.bpkgs.bundle;
     } else {
       return null;
     }
@@ -109,7 +109,7 @@ public class ExportedPackageImpl implements ExportedPackage {
       Bundle[] res = new Bundle[size + rsize];
       imps.toArray(res);
       for (int i = 0; i < rsize; i++) {
-        res[size + i] = ((BundlePackages)rl.get(i)).bg.bundle;
+        res[size + i] = ((BundlePackages)rl.get(i)).bundle;
       }
       return res;
     } else {

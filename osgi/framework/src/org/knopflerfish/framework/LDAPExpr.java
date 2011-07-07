@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,25 +42,27 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
+
 public class LDAPExpr {
-  public static final int AND = 0;
-  public static final int OR = 1;
-  public static final int NOT = 2;
-  public static final int EQ = 4;
-  public static final int LE = 8;
-  public static final int GE = 16;
-  public static final int APPROX = 32;
+  public static final int AND     =  0;
+  public static final int OR      =  1;
+  public static final int NOT     =  2;
+  public static final int EQ      =  4;
+  public static final int LE      =  8;
+  public static final int GE      = 16;
+  public static final int APPROX  = 32;
   public static final int COMPLEX = AND | OR | NOT;
-  public static final int SIMPLE = EQ | LE | GE | APPROX;
+  public static final int SIMPLE  = EQ | LE | GE | APPROX;
 
   private static final char WILDCARD = 65535;
-  private static final String WILDCARD_STRING = new String(new char[] { WILDCARD });
+  private static final String WILDCARD_STRING =
+    new String(new char [] { WILDCARD });
 
-  private static final String NULL = "Null query";
-  private static final String GARBAGE = "Trailing garbage";
-  private static final String EOS = "Unexpected end of query";
+  private static final String NULL      = "Null query";
+  private static final String GARBAGE   = "Trailing garbage";
+  private static final String EOS       = "Unexpected end of query";
   private static final String MALFORMED = "Malformed query";
-  private static final String OPERATOR = "Undefined operator";
+  private static final String OPERATOR  = "Undefined operator";
 
   private static Class classBigDecimal;
   private static Constructor consBigDecimal;
@@ -69,6 +71,9 @@ public class LDAPExpr {
   private static Class classBigInteger;
   private static Constructor consBigInteger;
   private static Method compBigInteger;
+
+
+  private static final Set emptySet = new OneSet(null);
 
   public int operator;
   public LDAPExpr[] args;
@@ -93,14 +98,12 @@ public class LDAPExpr {
     attrValue = expr.attrValue;
   }
 
-
   private LDAPExpr(int operator, LDAPExpr[] args) {
     this.operator = operator;
     this.args = args;
     this.attrName = null;
     this.attrValue = null;
   }
-
 
   private LDAPExpr(int operator, String attrName, String attrValue) {
     this.operator = operator;
@@ -109,18 +112,17 @@ public class LDAPExpr {
     this.attrValue = attrValue;
   }
 
-
   /**
    * Get object class set matched by this LDAP expression. This will not work
-   * with wildcards and NOT expressions. If a set can not be determined return
-   * null.
-   * 
+   * with wildcards and NOT expressions. If a set can not be determined return null.
+   *
    * @return Set of classes matched, otherwise <code>null</code>.
    */
   public Set getMatchedObjectClasses() {
     Set objClasses = null;
     if (operator == EQ) {
-      if (attrName.equalsIgnoreCase(Constants.OBJECTCLASS) && attrValue.indexOf(WILDCARD) < 0) {
+      if (attrName.equalsIgnoreCase(Constants.OBJECTCLASS) &&
+          attrValue.indexOf(WILDCARD) < 0) {
         objClasses = new OneSet(attrValue);
       }
     } else if (operator == AND) {
@@ -158,32 +160,32 @@ public class LDAPExpr {
 
 
   /**
-   * Checks if this LDAP expression is "simple". The definition of a simple
-   * filter is:
+   * Checks if this LDAP expression is "simple". The definition of
+   * a simple filter is:
    * <ul>
-   * <li><code>(<it>name</it>=<it>value</it>)</code> is simple if <it>name</it>
-   * is a member of the provided <code>keywords</code>, and <it>value</it> does
-   * not contain a wildcard character;</li>
-   * <li><code>(| EXPR+ )</code> is simple if all <code>EXPR</code> expressions
-   * are simple;</li>
-   * <li>No other expressions are simple.</li>
+   *  <li><code>(<it>name</it>=<it>value</it>)</code> is simple if
+   *      <it>name</it> is a member of the provided <code>keywords</code>,
+   *      and <it>value</it> does not contain a wildcard character;</li>
+   *  <li><code>(| EXPR+ )</code> is simple if all <code>EXPR</code>
+   *      expressions are simple;</li>
+   *  <li>No other expressions are simple.</li>
    * </ul>
-   * If the filter is found to be simple, the <code>cache</code> is filled with
-   * mappings from the provided keywords to lists of attribute values. The
-   * keyword-value-pairs are the ones that satisfy this expression, for the
-   * given keywords.
-   * 
+   * If the filter is found to be simple, the <code>cache</code> is
+   * filled with mappings from the provided keywords to lists
+   * of attribute values. The keyword-value-pairs are the ones that
+   * satisfy this expression, for the given keywords.
+   *
    * @param keywords The keywords to look for.
-   * @param cache An array (indexed by the keyword indexes) of lists to fill in
-   *          with values saturating this expression.
-   * @return <code>true</code> if this expression is simple, <code>false</code>
-   *         otherwise.
+   * @param cache An array (indexed by the keyword indexes) of lists to
+   * fill in with values saturating this expression.
+   * @return <code>true</code> if this expression is simple,
+   * <code>false</code> otherwise.
    */
   public boolean isSimple(List keywords, List[] cache, boolean matchCase) {
     if (operator == EQ) {
       int index;
-      if ((index = keywords.indexOf(matchCase ? attrName : attrName.toLowerCase())) >= 0
-          && attrValue.indexOf(WILDCARD) < 0) {
+      if ((index = keywords.indexOf(matchCase ? attrName : attrName.toLowerCase())) >= 0 &&
+          attrValue.indexOf(WILDCARD) < 0) {
         if (cache[index] == null) {
           cache[index] = new ArrayList();
         }
@@ -201,17 +203,18 @@ public class LDAPExpr {
   }
 
 
-  public static boolean query(String filter, Dictionary pd) throws InvalidSyntaxException {
+  public static boolean query(String filter, Dictionary pd)
+    throws InvalidSyntaxException {
     return new LDAPExpr(filter).evaluate(pd, false);
   }
-
 
   /**
    * Evaluate this LDAP filter.
    */
   public boolean evaluate(Dictionary p, boolean matchCase) {
     if ((operator & SIMPLE) != 0) {
-      return compare(p.get(matchCase ? attrName : attrName.toLowerCase()), operator, attrValue);
+      return compare(p.get(matchCase ? attrName : attrName.toLowerCase()),
+                     operator, attrValue);
     } else { // (operator & COMPLEX) != 0
       switch (operator) {
       case AND:
@@ -235,6 +238,7 @@ public class LDAPExpr {
   }
 
 
+
   /**** Private methods ****/
 
   protected boolean compare(Object obj, int op, String s) {
@@ -244,11 +248,11 @@ public class LDAPExpr {
       return true;
     try {
       if (obj instanceof String) {
-        return compareString((String)obj, op, s);
+                return compareString((String)obj, op, s);
       } else if (obj instanceof Character) {
-        return compareString(obj.toString(), op, s);
+                return compareString(obj.toString(), op, s);
       } else if (obj instanceof Boolean) {
-        if (op == LE || op == GE)
+        if (op==LE || op==GE)
           return false;
         if (((Boolean)obj).booleanValue()) {
           return s.equalsIgnoreCase("true");
@@ -257,91 +261,91 @@ public class LDAPExpr {
         }
       } else if (obj instanceof Number) {
         if (obj instanceof Byte) {
-          switch (op) {
+          switch(op) {
           case LE:
             return ((Byte)obj).byteValue() <= Byte.parseByte(s);
           case GE:
             return ((Byte)obj).byteValue() >= Byte.parseByte(s);
-          default: /* APPROX and EQ */
+          default: /*APPROX and EQ*/
             return (new Byte(s)).equals(obj);
           }
         } else if (obj instanceof Integer) {
-          switch (op) {
+          switch(op) {
           case LE:
             return ((Integer)obj).intValue() <= Integer.parseInt(s);
           case GE:
             return ((Integer)obj).intValue() >= Integer.parseInt(s);
-          default: /* APPROX and EQ */
+          default: /*APPROX and EQ*/
             return (new Integer(s)).equals(obj);
           }
         } else if (obj instanceof Short) {
-          switch (op) {
+          switch(op) {
           case LE:
             return ((Short)obj).shortValue() <= Short.parseShort(s);
           case GE:
             return ((Short)obj).shortValue() >= Short.parseShort(s);
-          default: /* APPROX and EQ */
+          default: /*APPROX and EQ*/
             return (new Short(s)).equals(obj);
           }
         } else if (obj instanceof Long) {
-          switch (op) {
+          switch(op) {
           case LE:
             return ((Long)obj).longValue() <= Long.parseLong(s);
           case GE:
             return ((Long)obj).longValue() >= Long.parseLong(s);
-          default: /* APPROX and EQ */
+          default: /*APPROX and EQ*/
             return (new Long(s)).equals(obj);
           }
         } else if (obj instanceof Float) {
-          switch (op) {
+          switch(op) {
           case LE:
             return ((Float)obj).floatValue() <= (new Float(s)).floatValue();
           case GE:
             return ((Float)obj).floatValue() >= (new Float(s)).floatValue();
-          default: /* APPROX and EQ */
+          default: /*APPROX and EQ*/
             return (new Float(s)).equals(obj);
           }
         } else if (obj instanceof Double) {
-          switch (op) {
+          switch(op) {
           case LE:
             return ((Double)obj).doubleValue() <= (new Double(s)).doubleValue();
           case GE:
             return ((Double)obj).doubleValue() >= (new Double(s)).doubleValue();
-          default: /* APPROX and EQ */
+          default: /*APPROX and EQ*/
             return (new Double(s)).equals(obj);
           }
         } else if (classBigInteger != null && classBigInteger.isInstance(obj)) {
-          Object n = consBigInteger.newInstance(new Object[] { s });
-          int c = ((Integer)compBigInteger.invoke(obj, new Object[] { n })).intValue();
+          Object n = consBigInteger.newInstance(new Object [] { s });
+          int c = ((Integer)compBigInteger.invoke(obj, new Object [] { n })).intValue();
 
-          switch (op) {
+          switch(op) {
           case LE:
             return c <= 0;
           case GE:
             return c >= 0;
-          default: /* APPROX and EQ */
+          default: /*APPROX and EQ*/
             return c == 0;
           }
         } else if (classBigDecimal != null && classBigDecimal.isInstance(obj)) {
-          Object n = consBigDecimal.newInstance(new Object[] { s });
-          int c = ((Integer)compBigDecimal.invoke(obj, new Object[] { n })).intValue();
+          Object n = consBigDecimal.newInstance(new Object [] { s });
+          int c = ((Integer)compBigDecimal.invoke(obj, new Object [] { n })).intValue();
 
-          switch (op) {
+          switch(op) {
           case LE:
             return c <= 0;
           case GE:
             return c >= 0;
-          default: /* APPROX and EQ */
+          default: /*APPROX and EQ*/
             return c == 0;
           }
         }
       } else if (obj instanceof Collection) {
-        for (Iterator i = ((Collection)obj).iterator(); i.hasNext();)
+        for (Iterator i=((Collection)obj).iterator(); i.hasNext();)
           if (compare(i.next(), op, s))
             return true;
       } else if (obj.getClass().isArray()) {
         int len = Array.getLength(obj);
-        for (int i = 0; i < len; i++)
+        for(int i=0; i<len; i++)
           if (compare(Array.get(obj, i), op, s))
             return true;
       } else {
@@ -349,25 +353,25 @@ public class LDAPExpr {
         // Allow simple EQ comparison on all classes having
         // a string constructor, and use compareTo if they
         // implement Comparable
-        Class clazz = obj.getClass();
-        Constructor cons = getConstructor(clazz);
+        Class       clazz = obj.getClass();
+        Constructor cons  = getConstructor(clazz);
 
-        if (cons != null) {
-          Object other = cons.newInstance(new Object[] { s });
-          if (obj instanceof Comparable) {
+        if(cons != null) {
+          Object     other = cons.newInstance(new Object [] { s } );
+          if(obj instanceof Comparable) {
             int c = ((Comparable)obj).compareTo(other);
-            switch (op) {
+            switch(op) {
             case LE:
               return c <= 0;
             case GE:
               return c >= 0;
-            default: /* APPROX and EQ */
+            default: /*APPROX and EQ*/
               return c == 0;
             }
           } else {
-            boolean b = false;
-            if (op == LE || op == GE || op == EQ || op == APPROX) {
-              b = obj.equals(other);
+                boolean b = false;
+            if(op == LE || op == GE ||op == EQ ||op == APPROX){
+                b = obj.equals(other);
             }
             return b;
           }
@@ -383,21 +387,20 @@ public class LDAPExpr {
   // Clazz -> Constructor(String)
   private static HashMap constructorMap = new HashMap();
 
-
   /**
    * Get cached String constructor for a class
    */
   private static Constructor getConstructor(Class clazz) {
-    synchronized (constructorMap) {
+    synchronized(constructorMap) {
 
       // This might be null
       Constructor cons = (Constructor)constructorMap.get(clazz);
 
       // ...check if we have tried before. A failed try
       // is stored as null
-      if (!constructorMap.containsKey(clazz)) {
+      if(!constructorMap.containsKey(clazz)) {
         try {
-          cons = clazz.getConstructor(new Class[] { String.class });
+          cons = clazz.getConstructor(new Class [] { String.class });
         } catch (Exception e) {
           // remember by storing null in map
         }
@@ -411,14 +414,14 @@ public class LDAPExpr {
     try {
       classBigDecimal = Class.forName("java.math.BigDecimal");
       consBigDecimal = getConstructor(classBigDecimal);
-      compBigDecimal = classBigDecimal.getMethod("compareTo", new Class[] { classBigDecimal });
+      compBigDecimal = classBigDecimal.getMethod("compareTo", new Class [] { classBigDecimal });
     } catch (Exception ignore) {
       classBigDecimal = null;
     }
     try {
       classBigInteger = Class.forName("java.math.BigInteger");
       consBigInteger = getConstructor(classBigInteger);
-      compBigInteger = classBigInteger.getMethod("compareTo", new Class[] { classBigInteger });
+      compBigInteger = classBigInteger.getMethod("compareTo", new Class [] { classBigInteger });
     } catch (Exception ignore) {
       classBigInteger = null;
     }
@@ -426,13 +429,13 @@ public class LDAPExpr {
 
 
   private static boolean compareString(String s1, int op, String s2) {
-    switch (op) {
+    switch(op) {
     case LE:
       return s1.compareTo(s2) <= 0;
     case GE:
       return s1.compareTo(s2) >= 0;
     case EQ:
-      return patSubstr(s1, s2);
+      return patSubstr(s1,s2);
     case APPROX:
       return fixupString(s2).equals(fixupString(s1));
     default:
@@ -440,11 +443,10 @@ public class LDAPExpr {
     }
   }
 
-
   private static String fixupString(String s) {
     StringBuffer sb = new StringBuffer();
     int len = s.length();
-    for (int i = 0; i < len; i++) {
+    for(int i=0; i<len; i++) {
       char c = s.charAt(i);
       if (!Character.isWhitespace(c)) {
         if (Character.isUpperCase(c))
@@ -455,55 +457,46 @@ public class LDAPExpr {
     return sb.toString();
   }
 
-
   private static boolean patSubstr(String s, String pat) {
-    return s == null ? false : patSubstr(s.toCharArray(), 0, pat.toCharArray(), 0);
+    return s==null ? false : patSubstr(s.toCharArray(),0,pat.toCharArray(),0);
   }
 
-
   private static boolean patSubstr(char[] s, int si, char[] pat, int pi) {
-    if (pat.length - pi == 0)
-      return s.length - si == 0;
+    if (pat.length-pi == 0)
+      return s.length-si == 0;
     if (pat[pi] == WILDCARD) {
       pi++;
       for (;;) {
-        if (patSubstr(s, si, pat, pi))
+        if (patSubstr( s, si, pat, pi))
           return true;
-        if (s.length - si == 0)
+        if (s.length-si == 0)
           return false;
         si++;
       }
     } else {
-      if (s.length - si == 0) {
+      if (s.length-si==0){
         return false;
       }
-      if (s[si] != pat[pi]) {
+      if(s[si]!=pat[pi]){
         return false;
       }
-      return patSubstr(s, ++si, pat, ++pi);
+      return patSubstr( s, ++si, pat, ++pi);
     }
   }
 
-
-  private static LDAPExpr parseExpr(ParseState ps) throws InvalidSyntaxException {
+  private static LDAPExpr parseExpr(ParseState ps)
+    throws InvalidSyntaxException {
     ps.skipWhite();
     if (!ps.prefix("("))
       ps.error(MALFORMED);
 
     int operator;
     ps.skipWhite();
-    switch (ps.peek()) {
-    case '&':
-      operator = AND;
-      break;
-    case '|':
-      operator = OR;
-      break;
-    case '!':
-      operator = NOT;
-      break;
-    default:
-      return parseSimple(ps);
+    switch(ps.peek()) {
+    case '&': operator = AND; break;
+    case '|': operator = OR; break;
+    case '!': operator = NOT; break;
+    default: return parseSimple(ps);
     }
     ps.skip(1); // Ignore the operator
     List v = new ArrayList();
@@ -519,8 +512,8 @@ public class LDAPExpr {
     return new LDAPExpr(operator, args);
   }
 
-
-  private static LDAPExpr parseSimple(ParseState ps) throws InvalidSyntaxException {
+  private static LDAPExpr parseSimple(ParseState ps)
+    throws InvalidSyntaxException {
     String attrName = ps.getAttributeName();
     if (attrName == null)
       ps.error(MALFORMED);
@@ -529,12 +522,12 @@ public class LDAPExpr {
       operator = EQ;
     else if (ps.prefix("<="))
       operator = LE;
-    else if (ps.prefix(">="))
+    else if(ps.prefix(">="))
       operator = GE;
-    else if (ps.prefix("~="))
+    else if(ps.prefix("~="))
       operator = APPROX;
     else {
-      // System.out.println("undef op='" + ps.peek() + "'");
+      //      System.out.println("undef op='" + ps.peek() + "'");
       ps.error(OPERATOR); // Does not return
     }
     String attrValue = ps.getAttributeValue();
@@ -542,7 +535,6 @@ public class LDAPExpr {
       ps.error(MALFORMED);
     return new LDAPExpr(operator, attrName, attrValue);
   }
-
 
   public String toString() {
     StringBuffer res = new StringBuffer();
@@ -565,7 +557,7 @@ public class LDAPExpr {
       }
       for (int i = 0; i < attrValue.length(); i++) {
         char c = attrValue.charAt(i);
-        if (c == '(' || c == ')' || c == '*' || c == '\\') {
+        if (c ==  '(' || c == ')' || c == '*' || c == '\\') {
           res.append('\\');
         } else if (c == WILDCARD) {
           c = '*';
@@ -599,14 +591,12 @@ public class LDAPExpr {
     int pos;
     String str;
 
-
     public ParseState(String str) throws InvalidSyntaxException {
       this.str = str;
       if (str.length() == 0)
         error(NULL);
       pos = 0;
     }
-
 
     public boolean prefix(String pre) {
       if (!str.startsWith(pre, pos))
@@ -615,21 +605,17 @@ public class LDAPExpr {
       return true;
     }
 
-
     public char peek() {
       return str.charAt(pos);
     }
-
 
     public void skip(int n) {
       pos += n;
     }
 
-
     public String rest() {
       return str.substring(pos);
     }
-
 
     public void skipWhite() {
       while (Character.isWhitespace(str.charAt(pos))) {
@@ -637,13 +623,14 @@ public class LDAPExpr {
       }
     }
 
-
     public String getAttributeName() {
       int start = pos;
       int end = -1;
-      for (;; pos++) {
+      for(;; pos++) {
         char c = str.charAt(pos);
-        if (c == '(' || c == ')' || c == '<' || c == '>' || c == '=' || c == '~') {
+        if (c == '(' || c == ')' ||
+            c == '<' || c == '>' ||
+            c == '=' || c == '~') {
           break;
         } else if (!Character.isWhitespace(c)) {
           end = pos;
@@ -655,12 +642,12 @@ public class LDAPExpr {
       return str.substring(start, end + 1);
     }
 
-
     public String getAttributeValue() {
       StringBuffer sb = new StringBuffer();
-      label: for (;; pos++) {
+      label:
+      for(;; pos++) {
         char c = str.charAt(pos);
-        switch (c) {
+        switch(c) {
         case '(':
         case ')':
           break label;
@@ -678,7 +665,6 @@ public class LDAPExpr {
       return sb.toString();
     }
 
-
     public void error(String m) throws InvalidSyntaxException {
       throw new InvalidSyntaxException(m, (str == null) ? "" : str.substring(pos));
     }
@@ -691,21 +677,17 @@ public class LDAPExpr {
 
     final private Object elem;
 
-
     OneSet(Object o) {
       elem = o;
     }
-
-
+    
     public Iterator iterator() {
       return new Iterator() {
         Object ielem = elem;
 
-
         public boolean hasNext() {
           return ielem != null;
         }
-
 
         public Object next() {
           if (ielem != null) {
@@ -717,14 +699,12 @@ public class LDAPExpr {
           }
         }
 
-
         public void remove() {
           throw new UnsupportedOperationException();
         }
       };
     }
-
-
+    
     public int size() {
       return elem == null ? 0 : 1;
     }

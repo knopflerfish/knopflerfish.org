@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,39 +37,35 @@ package org.knopflerfish.framework;
 import java.util.Vector;
 
 /**
- * The <code>Queue</code> class represents a first-in-first-out (FIFO) queue of
- * objects.
- * 
+ * The <code>Queue</code> class represents a first-in-first-out
+ * (FIFO) queue of objects.
  * @author Per Lundgren
  */
 public class Queue extends Vector {
-
-  private static final long serialVersionUID = 1L;
   private int m_nMaxSize = -1;
   private boolean queueClosed = false;
 
-  // ==================== Queue ====================
+  //  ====================    Queue      ====================
   /**
    ** Constructs an Queue with the specifies maximum size.
-   ** 
-   ** @param size
-   *          maximum queue size.
+   **
+   ** @param    size    maximum queue size.
    */
-  public Queue(int size) {
+  public Queue(int size)
+  {
     m_nMaxSize = size;
   }
 
-  // ==================== insert ====================
+  //  ====================    insert      ====================
   /**
    ** Inserts an item into the queue. If there are threads blocked on
    ** <code>remove</code>, one of them is unblocked.
-   ** 
-   ** @param item
-   *          the item to be inserted.
-   ** @exception IndexOutOfBoundsException
-   *              if maximum queue size is reached.
+   **
+   ** @param    item    the item to be inserted.
+   ** @exception IndexOutOfBoundsException if maximum queue size is reached.
    */
-  public synchronized void insert(Object item) throws IndexOutOfBoundsException {
+  public synchronized void insert(Object item) throws IndexOutOfBoundsException
+  {
     // Check if queue is full
     if (m_nMaxSize > 0 && size() >= m_nMaxSize)
       throw new IndexOutOfBoundsException("Queue full");
@@ -78,31 +74,31 @@ public class Queue extends Vector {
     notify();
   }
 
-  // ==================== insertFirst ====================
+  //  ====================    insertFirst      ====================
   /**
    ** Inserts an item first into the queue. If there are threads blocked on
    ** <code>remove</code>, one of them is unblocked.
-   ** 
-   ** @param item
-   *          the item to be inserted.
+   **
+   ** @param    item    the item to be inserted.
    */
-  public synchronized void insertFirst(Object item) {
+  public synchronized void insertFirst(Object item)
+  {
     insertElementAt(item, 0);
     notify();
   }
 
-  // ==================== remove ====================
+  //  ====================    remove      ====================
   /**
-   ** Removes and returns the first item in the queue. If the queue is empty, the
-   * calling thread will block.
-   ** 
-   ** @param timeout
-   *          timeout in seconds.
-   ** @return The first item in the queue, or <code>null</code> if a timeout
-   *         occurred. To distinguish timeouts, <code>null</code> items should
-   *         not be inserted in the queue.
+   ** Removes and returns the first item in the queue.
+   ** If the queue is empty, the calling thread will block.
+   **
+   ** @param    timeout timeout in seconds.
+   ** @return The first item in the queue, or <code>null</code> if a
+   ** timeout occurred. To distinguish timeouts, <code>null</code>
+   ** items should not be inserted in the queue.
    */
-  public synchronized Object removeWait(float timeout) {
+  public synchronized Object removeWait(float timeout)
+  {
     Object obj = null;
 
     // If queue is empty wait for object to be inserted
@@ -112,8 +108,7 @@ public class Queue extends Vector {
           wait(Math.round(timeout * 1000.0f));
         } else
           wait();
-      } catch (InterruptedException e) {
-      }
+      } catch (InterruptedException e) {}
     }
 
     if (queueClosed || isEmpty()) {
@@ -126,20 +121,24 @@ public class Queue extends Vector {
     return obj;
   }
 
-  // ==================== remove ====================
+  //  ====================    remove      ====================
   /**
-   ** Removes and returns the first object in the queue. Same as
-   * <code>remove(float timeout)</code> but this function blocks forever.
-   ** 
+   ** Removes and returns the first object in the queue.
+   ** Same as <code>remove(float timeout)</code> but this function
+   ** blocks forever.
+   **
    ** @return The first item in the queue.
    */
-  public Object remove() {
+  public Object remove()
+  {
     return removeWait(0);
   }
 
-  // ==================== close ====================
+
+  //  ====================     close     ====================
   /**
-   ** Closes the queue, i.e. wakes up all threads blocking on a call to remove().
+   ** Closes the queue, i.e. wakes up all threads blocking on
+   ** a call to remove().
    */
 
   public synchronized void close() {

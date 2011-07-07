@@ -6,11 +6,9 @@ Bundle-Version: 3.0.0
 Bundle-Category: service
 Bundle-Description: SOAP Services desktop plugin
 Bundle-Vendor: Knopflerfish
+Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
- /index.html?soap_desktop
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles_opt/soap/soap_desktop/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Bundle-Activator: org.knopflerfish.bundle.soap.desktop.Activator
 Import-Package: org.osgi.framework,
  javax.swing,

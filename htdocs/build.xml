@@ -217,15 +217,7 @@
               fromfile="${htdocs.dir}/html_src/osgi_service_tutorial.html"
 	      disable="SERVICE_TUTORIAL"/>
 
-    <makehtml title="${htdocs.distname} - OSGi with Security"
-              description="Running OSGi with Security"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="osgi_with_security.html"
-              fromfile="${htdocs.dir}/html_src/osgi_with_security.html"
-	      disable="SECURITY_TUTORIAL"/>
-
- 	<echo message="${htdocs.out}"/>
+    <echo message="${htdocs.out}"/>
  </target>
 
 </project>

@@ -21,13 +21,12 @@
   <property name="base.url" value="http://www.knopflerfish.org/releases"/>
 
   <!-- Test target related properties. -->
-  <property name="run.test.dir"   location="."/>
-  <property name="xargs.out.dir"  location="."/>
-  <property name="xargs.base.dir" location="."/>
-  <property name="junit.out.dir"  location="junit_grunt"/>
+  <property name="run.test.dir"  location="."/>
+  <property name="xargs.out.dir" location="."/>
+  <property name="junit.out.dir" location="junit_grunt"/>
   <property name="test.dir"
 	    location="${osgi.dir}/bundles_test/regression_tests"/>
-  <property name="test_jars"      value="$$$${user.dir}/test_jars"/>
+  <property name="test.jars.dir"  location="test_jars"/>
   <property name="test.gosg.jars" value="file:jars/;file:test_jars/"/>
 
 
@@ -69,10 +68,7 @@
 	  depends="init,bundles_test_missing,bundles_test_present" />
   <target name="bundles_test_present" if="dir.bundles_test.present">
     <ant dir="bundles_test" target="all"
-         inheritAll="false" inheritRefs="false">
-      <!-- No need to build the bundles tasks in this case. -->
-      <property name="bundle_tasks.built" value="true"/> 
-    </ant>
+         inheritAll="false" inheritRefs="false"/>
     <antcall target="xargs"/>
   </target>
   <target name="bundles_test_missing" unless="dir.bundles_test.present">
@@ -89,81 +85,100 @@
   </target>
 
   <target name="minimal_xargs">
-    <xargs template="minimal.xargs.in"
-	   xargs="${xargs.out.dir}/minimal.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in" location="minimal.xargs.in"/>
+      <param name="xargs.out.file"    location="${xargs.out.dir}/minimal.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${jars.dir}"/>
+      <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
   </target>
 
   <target name="remote_xargs">
-    <xargs template="template.xargs.in"
-	   xargs="${xargs.out.dir}/remote-init.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${base.url}/${version}/osgi/jars/"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs">
-      <bundles>
-	<fileset dir="${jars.dir}" includes="**/*.jar"/>
-      </bundles>
-    </xargs>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in" location="template.xargs.in"/>
+      <param name="xargs.out.file"    location="${xargs.out.dir}/remote-init.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${jars.dir}"/>
+      <param name="gosg.jars"     value="${base.url}/${version}/osgi/jars/"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
   </target>
 
   <target name="remotefw_xargs">
     <!-- xargs files that are part of the remote-framework documentation.-->
-    <xargs template="${osgi.dir}/bundles/remotefw/doc/server.xargs.in"
-	   xargs="${osgi.dir}/bundles/remotefw/doc/server.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
-
-    <xargs template="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"
-	   xargs="${osgi.dir}/bundles/remotefw/doc/client.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in" location="${osgi.dir}/bundles/remotefw/doc/server.xargs.in"/>
+      <param name="xargs.out.file"    location="${osgi.dir}/bundles/remotefw/doc/server.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${jars.dir}"/>
+      <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in" location="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"/>
+      <param name="xargs.out.file"    location="${osgi.dir}/bundles/remotefw/doc/client.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${jars.dir}"/>
+      <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
   </target>
 
   <target name="init_xargs">
-    <xargs template="template.xargs.in"
-	   xargs="${xargs.out.dir}/init.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in" location="template.xargs.in"/>
+      <param name="xargs.out.file"    location="${xargs.out.dir}/init.xargs"/>
+      <!--param name="xargs.os.template" location="windows.xargs.in"/-->
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${jars.dir}"/>
+      <param name="gosg.jars"     value="${gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
   </target>
 
   <target name="test_xargs">
-    <xargs template="init-tests.xargs.in"
-	   xargs="${xargs.out.dir}/init-tests.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${test.gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in" location="init-tests.xargs.in"/>
+      <param name="xargs.out.file"    location="${xargs.out.dir}/init-tests.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${test.jars.dir}"/>
+      <param name="gosg.jars"     value="${test.gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
 
-    <xargs template="${test.dir}/axis2_soapclient_adb/soapcline_adb_test.xargs.in"
-	   xargs="${xargs.out.dir}/soapcline_adb_test.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${test.gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in"
+	     location="${test.dir}/axis2_soapclient_adb/soapcline_adb_test.xargs.in"/>
+      <param name="xargs.out.file"
+	     location="${xargs.out.dir}/soapcline_adb_test.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${test.jars.dir}"/>
+      <param name="gosg.jars"     value="${test.gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
 
-    <xargs template="${test.dir}/restart_test/test-restart1.xargs.in"
-	   xargs="${xargs.out.dir}/test-restart1.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${test.gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
-
-    <xargs template="${test.dir}/restart_test/test-restart2.xargs.in"
-	   xargs="${xargs.out.dir}/test-restart2.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${test.gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in"
+	     location="${test.dir}/restart_test/test-restart1.xargs.in"/>
+      <param name="xargs.out.file"
+	     location="${xargs.out.dir}/test-restart1.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${test.jars.dir}"/>
+      <param name="gosg.jars"     value="${test.gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
+    <antcall target="xargs_filter">
+      <param name="xargs.template.in"
+	     location="${test.dir}/restart_test/test-restart2.xargs.in"/>
+      <param name="xargs.out.file"
+	     location="${xargs.out.dir}/test-restart2.xargs"/>
+      <param name="jars.dir"      location="${jars.dir}"/>
+      <param name="test.jars.dir" location="${test.jars.dir}"/>
+      <param name="gosg.jars"     value="${test.gosg.jars}"/>
+      <param name="root.out.dir"  location="${root.out.dir}"/>
+    </antcall>
   </target>
 
   <target name="javadoc"
@@ -234,16 +249,8 @@
     <property name="javadoc.footer"
               value="${javadoc.header}"/>
 
-    <property name="javadoc.windowtitle"
-              value="${javadoc.header} javadoc"/>
-
-    <property name="javadoc.doctitle"
-              value="${javadoc.header} API documentation"/>
-
     <javadoc header="${javadoc.header}"
              footer="${javadoc.footer}"
-	     windowtitle="${javadoc.windowtitle}"
-	     doctitle="${javadoc.doctitle}"
              destdir="${javadoc.out.dir}"
              packagenames="${javadoc.packages}"
 	     sourcepathref="sources.path"
@@ -271,42 +278,8 @@
 	<pathelement location="${osgi.dir}/bundles_opt/serial/comm-win32/resources/comm.jar"/>
       </classpath>
     </javadoc>
-
-    <!-- KF documentation uses links to javadoc with a seach-part that -->
-    <!-- points to a java package or file. Check that the generated    -->
-    <!-- top-level index.html supports this; if not add script.        -->
-    <condition property="javadoc.seach.support">
-      <resourcecontains
-	 resource="${javadoc.out.dir}/index.html"
-	 substring="SCRIPT"/>
-    </condition>
-    <antcall target="javadocSearchFix"/>
   </target>
 
-  <target name="javadocSearchFix" unless="javadoc.seach.support">
-    <replace file="${javadoc.out.dir}/index.html">
-      <replacetoken>&lt;/HEAD&gt;</replacetoken>
-      <replacevalue><![CDATA[<SCRIPT type="text/javascript">
-    targetPage = "" + window.location.search;
-    if (targetPage != "" && targetPage != "undefined")
-        targetPage = targetPage.substring(1);
-    if (targetPage.indexOf(":") != -1)
-        targetPage = "undefined";
-    function loadFrames() {
-        if (targetPage != "" && targetPage != "undefined")
-             top.classFrame.location = top.targetPage;
-    }
-</SCRIPT>
-<NOSCRIPT>
-</NOSCRIPT>
-</HEAD>
-]]></replacevalue>
-      <replacefilter token='FRAMESET cols="20%,80%"'
-	             value='FRAMESET cols="20%,80%" title="" onLoad="top.loadFrames()"'/>
-      <replacefilter token='FRAMESET rows="30%,70%"'
-		     value='FRAMESET rows="30%,70%" title="" onLoad="top.loadFrames()"'/>
-    </replace>
-  </target>
 
  <target name="run"
          description="(Re)start the framework.">
@@ -346,7 +319,7 @@
    <antcall target="run-kf-tests-bare"/>
  </target>
 
- <target name="run-kf-tests-bare" depends="bundle_tasks">
+ <target name="run-kf-tests-bare">
    <delete dir="${junit.out.dir}"/>
 
    <antcall target="test_xargs"/>
@@ -388,7 +361,6 @@
      <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
-     <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
    </java>
  </target>
  <target name="run-test-secure" if="run.test.secure">
@@ -404,7 +376,6 @@
      <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
      <arg value="-xargs"/>
      <arg value="${run.test.xargs}"/>
-     <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
    </java>
  </target>
 

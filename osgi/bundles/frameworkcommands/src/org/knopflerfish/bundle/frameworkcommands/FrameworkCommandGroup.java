@@ -1086,41 +1086,6 @@ public class FrameworkCommandGroup
     return 0;
   }
 
-  
-  //
-  // Meminfo command
-  //
-  public final static String USAGE_MEMINFO = "[-gc] [-b | -m]";
-
-  public final static String[] HELP_MEMINFO = new String[] {
-    "Display java memory information, in kilobytes",
-    "-gc  Run garbage collector first",
-    "-b   Display using bytes",
-    "-m   Display using megabytes" };
-
-  public int cmdMeminfo(Dictionary opts, Reader in, PrintWriter out,
-                         Session session) {
-    if (opts.get("-gc") != null) {
-      System.gc();
-    }
-    
-    int d = 1024;
-    String unit = "kB";
-    if (opts.get("-b") != null) {
-      d = 1;
-      unit = "bytes";
-    } else if (opts.get("-m") != null) {
-      d = d * 1024;
-      unit = "MB";
-    }
-    Runtime r = Runtime.getRuntime();
-    out.println("Total: " + (r.totalMemory() + d/2) / d
-        + "  Free: " + (r.freeMemory() + d/2) / d
-        + "  Max: " + (r.maxMemory() + d/2) / d + "  (" + unit + ")");
-    return 0;
-  }
-
-  
   //
   // Package command
   //
@@ -1579,8 +1544,7 @@ public class FrameworkCommandGroup
               pis.addElement(new PermissionInfo(buf.toString()));
             }
           } catch (IllegalArgumentException e) {
-            out.println("ERROR! Failed to instanciate: " + buf.toString()
-                + " " + e.getMessage());
+            out.println("ERROR! Failed to instanciate: " + buf.toString());
             return 1;
           }
           endChar = null;
@@ -1725,37 +1689,37 @@ public class FrameworkCommandGroup
   // Shutdown command
   //
 
-  public final static String USAGE_SHUTDOWN = "[-r]";
+  public final static String USAGE_SHUTDOWN = "[<exit code>]";
 
   public final static String[] HELP_SHUTDOWN = new String[] {
-    "Shutdown framework", "-r Restart framework" };
+    "Shutdown framework", "<exit code> Exit code for JVM" };
 
   public int cmdShutdown(Dictionary opts, Reader in, PrintWriter out,
                          Session session) {
 
-    boolean restart = opts.get("-r") != null;
-
-      Bundle sysBundle = bc.getBundle(0);
-      if (restart) {
-        try {
-          sysBundle.update(); // restart the framework
-        } catch (Exception e) {
-          out.println("Failed to restart the framework " + e);
-          return 1;
-        }
-      } else {
-        try {
-          sysBundle.stop(); // shut down the framework
-        } catch (Exception e) {
-          out.println("Failed to stop using system bundle " + e);
-          try {
-            System.exit(0);
-          } catch (Exception e2) {
-            out.println("Failed to exit using system exit " + e2);
-            return 1;
-          }
-        }
+    String c = (String) opts.get("exit code");
+    int ec = 0;
+    if (c != null) {
+      try {
+        ec = Integer.parseInt(c);
       }
+      catch (NumberFormatException e) {
+        out.println("Illegal exit code: must be an integer");
+        return 1;
+      }
+    }
+
+    try {
+      Bundle sysBundle = bc.getBundle(0);
+      sysBundle.stop();
+    } catch (Exception e) {
+      out.println("Failed to stop using system bundle");
+      try {
+        System.exit(0);
+      } catch (Exception e2) {
+        out.println("Failed to exit using system exit " + e2);
+      }
+    }
     return 0;
   }
 
@@ -1846,7 +1810,6 @@ public class FrameworkCommandGroup
     }
     return 0;
   }
-
 
   //
   // Uninstall command

@@ -69,7 +69,7 @@ public class Main
   // Will be filled in from manifest entry during startup
   String version = "<unknown>";
 
-  // Top directory (excluding trailing /)
+  // Top directory (including any trailing /)
   String topDir = "";
 
   // Set to true if JRE is started without any arguments
@@ -193,13 +193,12 @@ public class Main
    * Shall framework properties be exported as system properties?
    */
   private boolean writeSysProps() {
-    Object val = fwProps.get(XARGS_WRITESYSPROPS_PROP);
-    if (val == null) {
-      val = sysProps.get(XARGS_WRITESYSPROPS_PROP);
-    }
-   
-    println("writeSysProps? '" + val + "'", 2);
-    return "true".equals(val);
+    try {
+      final String val = (String)
+        sysProps.get(XARGS_WRITESYSPROPS_PROP);
+      return "true".equals(null!=val ? val : "false");
+    } catch (Exception ignored) { }
+    return false;
   }
 
 
@@ -426,7 +425,7 @@ public class Main
     // Since we must have all framework properties in the
     // fwProps-map before creating the framework instance we must
     // first handle all args that define properties. I.e., args
-    // starting with '-D' and '-F'.
+    // starting wiht '-D' and '-F'.
     processProperties(args);
     if(verbosity > 5) {
       for(int i = 0; i < args.length; i++) {
@@ -808,14 +807,15 @@ public class Main
 
 
   /**
-   * Complete location relative to topDir.
+   * Complete location relative to the base Jars URL.
+   * @param base Base URLs to complete with; first match is used.
    * @param location The location to be completed.
    */
   private String completeLocation(String location) {
     String[] base = getJarBase();
     // Handle file: case where topDir is not ""
     if(location.startsWith("file:jars/") && !topDir.equals("")) {
-      location = ("file:" + topDir + "/" + location.substring(5)).replace('\\', '/');
+      location = ("file:" + topDir + location.substring(5)).replace('\\', '/');
       println("mangled bundle location to " + location, 2);
     }
     int ic = location.indexOf(":");
@@ -1071,15 +1071,12 @@ public class Main
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = (String) fwProps.get(JARDIR_PROP);
-    if (jars == null) {
-      jars = (String) sysProps.get(JARDIR_PROP);
-    }
+    String jars = (String) sysProps.get(JARDIR_PROP);
 
     if(!(jars == null || "".equals(jars))) {
       println("old jars=" + jars, 1);
     } else {
-      String jarBaseDir = topDir + File.separator + "jars";
+      String jarBaseDir = topDir + "jars";
       println("jarBaseDir=" + jarBaseDir, 2);
 
       // avoid getAbsoluteFile since some profiles don't have this
@@ -1104,7 +1101,7 @@ public class Main
           sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
         }
         jars = sb.toString().replace('\\', '/');
-        fwProps.put(JARDIR_PROP, jars);
+        sysProps.put(JARDIR_PROP, jars);
         println("scanned " +JARDIR_PROP +"=" + jars, 2);
       }
     }
@@ -1165,7 +1162,6 @@ public class Main
     mergeSystemProperties(sysProps);
     if(writeSysProps()) {
       mergeSystemProperties(fwProps);
-      println("merged Framework to System properties " + fwProps, 2);
     }
 
   }

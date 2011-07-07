@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,37 +32,12 @@
 
 package org.knopflerfish.ant.taskdefs.bundle;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Vector;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.apache.tools.ant.BuildException;
-import org.w3c.dom.Document;
+import java.net.*;
+import java.io.*;
+import java.util.*;
 
 /**
- * Miscellaneous static utility code.
+ * Misc static utility code.
  */
 public class Util {
   public static byte [] loadURL(URL url) throws IOException {
@@ -95,40 +70,6 @@ public class Util {
       return new String(loadURL(url));
     } catch (Exception e) {
       return loadFile(fileOrURL);
-    }
-  }
-
-  /**
-   * Load an XML-formated file into a DOM-document.
-   *
-   * @param file The XML file to load.
-   * @return DOM document.
-   */
-  public static Document loadXML(final File file) {
-    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    try {
-      final DocumentBuilder db = dbf.newDocumentBuilder();
-      return db.parse(file);
-    } catch (Exception e) {
-      throw new BuildException("Failed to parse XML file '" +file +"': " +e, e);
-    }
-  }
-
-  /**
-   * Create an empty DOM-document.
-   *
-   * @param rootElement The name of the root element of the new document.
-   * @return DOM document with a root element.
-   */
-  public static Document createXML(final String rootElement) {
-    final DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    try {
-      final DocumentBuilder db = dbf.newDocumentBuilder();
-      final Document res = db.newDocument();
-      res.appendChild(res.createElement(rootElement));
-      return res;
-    } catch (Exception e) {
-      throw new BuildException("Failed to create new DOM-document:" +e, e);
     }
   }
 
@@ -178,7 +119,7 @@ public class Util {
 
 
   /**
-   * Replace all occurrences of a substring with another string.
+   * Replace all occurences of a substring with another string.
    *
    * <p>
    * If no replacements are needed, the methods returns the original string.
@@ -310,7 +251,7 @@ public class Util {
   }
 
 
-  // Always write files using UTF-8.
+  // Allways write files using UTF-8.
   static void writeStringToFile(File outFile, String s) throws IOException {
     OutputStreamWriter writer = null;
     try {
@@ -324,21 +265,6 @@ public class Util {
     }
   }
 
-  public static void writeDocumentToFile(final File outFile, final Document doc) {
-    final Source source = new DOMSource(doc);
-    final Result result = new StreamResult(outFile);
-
-    // Write the DOM document to the file
-    Transformer xformer;
-    try {
-      xformer = TransformerFactory.newInstance().newTransformer();
-      xformer.transform(source, result);
-    } catch (Exception e) {
-      throw new BuildException("Failed to write XML to '" + outFile +"', "+e, e);
-    }
-  }
-
-
   /**
    * Parse strings of format:
    *
@@ -347,9 +273,9 @@ public class Util {
    *   PARAM = attribute '=' value
    *   PARAM = directive ':=' value
    *
-   * @param a Name of attribute being parsed (for error messages).
-   * @param s The attribute value to parse.
-   * @param single If true, only allow one key per ENTRY.
+   * @param a Attribute being parsed
+   * @param s String to parse
+   * @param single If true, only allow one key per ENTRY
    * @param unique Only allow unique parameters for each ENTRY.
    * @param single_entry If true, only allow one ENTRY is allowed.
    * @return Iterator(Map(param -> value)) or null if input string is null.
@@ -427,8 +353,9 @@ public class Util {
 }
 
 
+
 /**
- * Class makes tokens of an attribute string.
+ * Class for tokenize an attribute string.
  */
 class AttributeTokenizer {
 
@@ -447,7 +374,7 @@ class AttributeTokenizer {
     boolean quote = false;
     StringBuffer val = new StringBuffer();
     int end = 0;
-    loop:
+  loop:
     for (; pos < length; pos++) {
       if (backslash) {
         backslash = false;
@@ -583,4 +510,5 @@ class AttributeTokenizer {
       }
     }
   }
+
 }

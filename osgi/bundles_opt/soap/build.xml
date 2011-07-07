@@ -40,21 +40,9 @@
   <property name="topdir" location="../.."/>
   <import file="${topdir}/../ant/docbuild_include.xml"/>
 
-  <!-- Bundles to include on the bundle_doc_overview page -->
-  <fileset id="docbuild.jarfiles" dir="${jars.dir}">
-    <include name="axis-osgi/**/*.jar"/>
-    <include name="axis2-osgi/**/*.jar"/>
-    <include name="ksoap-osgi/**/*.jar"/>
-    <include name="ksoap_remotefw/**/*.jar"/>
-    <include name="remotefw/**/*.jar"/>
-    <include name="soap_desktop/**/*.jar"/>
-    <include name="soap_remotefw/**/*.jar"/>
-    <include name="soapobject/**/*.jar"/>
-  </fileset>
-
   <target name="bundle_doc_overview">
     <!-- The root of the local bundle docs directory. -->
-    <property name="docs.dir" location="${topdir}/out/doc"/>
+    <property name = "docs.dir" location = "${topdir}/out/doc"/>
     <antcall target="build_doc">
       <param name="docbuild.name" value="soap"/>
       <param name="docbuild.title" value="Web Services / SOAP"/>

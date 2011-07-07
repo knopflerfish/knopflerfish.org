@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2011, KNOPFLERFISH project
+ * Copyright (c) 2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,32 +39,35 @@ import org.knopflerfish.framework.Validator;
 import java.security.cert.*;
 import java.util.*;
 
+
+
 /**
  * Self signed certificate validator
- * 
+ *
  * @author Jan Stein
  */
 public class SelfSignedValidator implements Validator {
 
   /**
    * Create a SelfSignedCertificate validator.
-   * 
-   * @param fw
-   *          FrameworkContext used to get configuration properties.
+   *
+   * @param fw FrameworkContext used to get configuration properties.
    */
   public SelfSignedValidator(FrameworkContext fw) {
   }
 
+
   /**
-   * Check if a certificate chain is to be trusted. We expect the input to be a
-   * correc chain.
-   * 
+   * Check if a certificate chain is to be trusted. We expect the input
+   * to be a correc chain.
+   *
    * @return true, if validator trusts certificate chain, otherwise false.
    */
-  public boolean validateCertificateChain(List /* X509Certificate */chain) {
+  public boolean validateCertificateChain(List /* X509Certificate */ chain) {
+    String certPathType = null;
     try {
-      for (Iterator i = chain.iterator(); i.hasNext();) {
-        ((X509Certificate) i.next()).checkValidity();
+      for (Iterator i = chain.iterator(); i.hasNext(); ) {
+        ((X509Certificate)i.next()).checkValidity();
       }
     } catch (CertificateException _) {
       return false;

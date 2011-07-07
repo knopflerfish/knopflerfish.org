@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.apache.tools.ant.BuildException;
@@ -50,11 +52,11 @@ import org.apache.tools.ant.types.Path;
 /**
  * Task that helps building arguments to javadoc.
  *
- * Loads source paths from a file removes duplicates and adds them to
+ * Loads source paths from a file removes dupliocates and adds them to
  * a path structure.
  *
  * Loads export package definitions from a file removes duplicates and
- * OSGi specific annotation, then adds them to a comma separated string.
+ * osgi specific annotation, then adds them to a comma separated string.
  *
  * <h3>Parameters</h3>
  *

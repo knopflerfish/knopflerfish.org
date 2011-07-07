@@ -7,10 +7,8 @@ Bundle-Category: API
 Bundle-Description: Application Admin API
 Bundle-Vendor: OSGi
 Bundle-APIVendor: osgi
+Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
- /index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/applicationadmin/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Export-Package: org.osgi.service.application ; version="1.1"
 DynamicImport-Package: *

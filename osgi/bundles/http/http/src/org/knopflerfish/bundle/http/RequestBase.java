@@ -62,10 +62,6 @@ public class RequestBase extends HeaderBase {
 
   // protected constants
 
-  protected static final String GET_METHOD = "GET";
-
-  protected static final String HEAD_METHOD = "HEAD";
-
   protected static final String POST_METHOD = "POST";
 
   protected static final String HTTP_1_0_PROTOCOL = "HTTP/1.0";
@@ -188,15 +184,15 @@ public class RequestBase extends HeaderBase {
     index = line.indexOf(' ');
     if (index == -1)
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
-    method = line.substring(0, index).toUpperCase();
+    method = line.substring(0, index);
 
     // get uri
     line = line.substring(index + 1);
     index = line.indexOf(' ');
-    if (index == -1 || index == 0)
+    if (index == -1)
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
     uri = line.substring(0, index);
-    
+
     // get protocol
     protocol = line.substring(index + 1).trim();
 
@@ -206,13 +202,6 @@ public class RequestBase extends HeaderBase {
     // requests with an absolute path. Currently we only support
     // absoluteURI and abs_path.
     try {
-      if (uri.charAt(0) == '/') {
-        // uri is path
-        // Some URL implementations look for a schema even when uri starts
-        // with a slash -> Malformed URL Exception if uri contains a ':'
-        // (which is not OK but still happens in the real world)
-        uri = "http:" + uri; // add schema to help URL constructor
-      }
       URL url = new URL(BASE_HTTP_URL, uri);
       uri = url.getPath();
       int sessionPos = uri.lastIndexOf(HttpUtil.SESSION_PARAMETER_KEY);
@@ -223,7 +212,6 @@ public class RequestBase extends HeaderBase {
       }
       queryString = url.getQuery();
     } catch (MalformedURLException mue) {
-      Activator.log.warn("Could not make URI from request path", mue);
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST,
                               mue.getMessage());
     }

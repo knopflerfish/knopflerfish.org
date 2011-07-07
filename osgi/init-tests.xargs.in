@@ -23,7 +23,6 @@
 # Various debug flags
 -Forg.knopflerfish.framework.debug.packages=false
 -Forg.knopflerfish.framework.debug.errors=false
--Forg.knopflerfish.framework.debug.warnings=false
 -Forg.knopflerfish.framework.debug.classloader=false
 -Forg.knopflerfish.framework.debug.startlevel=false
 -Forg.knopflerfish.framework.debug.ldap=false
@@ -64,7 +63,7 @@
 -Forg.knopflerfish.servicereference.valid.during.unregistering=true
 
 # Directory to store preferences in.
--Forg.knopflerfish.prefs.dir=junit_grunt/prefs
+-Dorg.knopflerfish.prefs.dir=junit_grunt/prefs
 
 # Native code testing
 -Forg.osgi.framework.os.name=linux

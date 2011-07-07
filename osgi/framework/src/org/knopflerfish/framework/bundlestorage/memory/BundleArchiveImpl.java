@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, Knopflerfish project
+ * Copyright (c) 2003-2009, Knopflerfish project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,19 +37,28 @@ package org.knopflerfish.framework.bundlestorage.memory;
 import org.osgi.framework.*;
 import org.knopflerfish.framework.*;
 import java.io.*;
-import java.util.*;
+import java.security.cert.Certificate;
+import java.util.Enumeration;
+import java.util.Vector;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+
 
 /**
- * Managing bundle data.
- * 
+ * Interface for managing bundle data.
+ *
  * @author Jan Stein
  * @author Philippe Laporte
+ * @version $Revision: 1.2 $
  */
-class BundleArchiveImpl implements BundleArchive {
+class BundleArchiveImpl implements BundleArchive
+{
 
   private Archive archive;
-
-  private BundleGeneration bundleGeneration = null;
 
   private long id;
 
@@ -59,23 +68,26 @@ class BundleArchiveImpl implements BundleArchive {
 
   private BundleStorageImpl storage;
 
-  private Archive[] archives;
+  private Archive [] archives;
 
   private int startLevel = -1;
   private long lastModified;
 
   private ArrayList failedPath = null;
 
-
   /**
    * Construct new bundle archive.
-   * 
+   *
    */
-  BundleArchiveImpl(BundleStorageImpl bundleStorage, InputStream is, String bundleLocation,
-                    long bundleId) throws Exception {
-    archive = new Archive(this, is);
-    storage = bundleStorage;
-    id = bundleId;
+  BundleArchiveImpl(BundleStorageImpl bundleStorage,
+                    InputStream       is,
+                    String            bundleLocation,
+                    long bundleId)
+    throws Exception
+  {
+    archive  = new Archive(is);
+    storage  = bundleStorage;
+    id       = bundleId;
     location = bundleLocation;
     setClassPath();
   }
@@ -83,21 +95,23 @@ class BundleArchiveImpl implements BundleArchive {
 
   /**
    * Construct new bundle archive in an existing bundle archive.
-   * 
+   *
    */
-  BundleArchiveImpl(BundleArchiveImpl old, InputStream is) throws Exception {
+  BundleArchiveImpl(BundleArchiveImpl old, InputStream is)
+    throws Exception
+  {
     location = old.location;
     storage = old.storage;
     id = old.id;
     autostartSetting = old.autostartSetting;
-    archive = new Archive(this, is);
+    archive = new Archive(is);
     setClassPath();
   }
 
 
   /**
    * Get an attribute from the manifest of a bundle.
-   * 
+   *
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
    */
@@ -107,9 +121,9 @@ class BundleArchiveImpl implements BundleArchive {
 
 
   /**
-   * Get a FileArchive handle to a named Jar file or directory within this
-   * archive.
-   * 
+   * Get a FileArchive handle to a named Jar file or directory
+   * within this archive.
+   *
    * @param path Name of Jar file or directory to get.
    * @return A FileArchive object representing new archive, null if not found.
    */
@@ -128,12 +142,10 @@ class BundleArchiveImpl implements BundleArchive {
       Properties l = new Properties();
       try {
         l.load(is);
-      } catch (IOException _ignore) {
-      }
+      } catch (IOException _ignore) { }
       try {
         is.close();
-      } catch (IOException _ignore) {
-      }
+      } catch (IOException _ignore) { }
       return l;
     } else {
       return null;
@@ -150,38 +162,17 @@ class BundleArchiveImpl implements BundleArchive {
 
 
   /**
-   * Get bundle generation associated with this bundle archive.
-   * 
-   * @return BundleGeneration object.
-   */
-  public BundleGeneration getBundleGeneration() {
-    return bundleGeneration;
-  }
-
-
-  /**
-   * Set bundle generation associated with this bundle archive.
-   * 
-   * @param BundleGeneration object.
-   */
-  public void setBundleGeneration(BundleGeneration bg) {
-    bundleGeneration = bg;
-  }
-
-
-  /**
    * Get bundle identifier for this bundle archive.
-   * 
+   *
    * @return Bundle identifier.
    */
   public long getBundleId() {
     return id;
   }
 
-
   /**
    * Get bundle location for this bundle archive.
-   * 
+   *
    * @return Bundle location.
    */
   public String getBundleLocation() {
@@ -204,14 +195,15 @@ class BundleArchiveImpl implements BundleArchive {
   }
 
 
-  public void setLastModified(long timemillisecs) throws IOException {
-    lastModified = timemillisecs;
+  public void setLastModified(long timemillisecs) throws IOException{
+          lastModified = timemillisecs;
   }
 
 
   /**
-   * Get a byte array containg the contents of named file from a bundle archive.
-   * 
+   * Get a byte array containg the contents of named file from a bundle
+   * archive.
+   *
    * @param sub index of jar, 0 means the top level.
    * @param path Path to class file.
    * @return Byte array with contents of file or null if file doesn't exist.
@@ -223,8 +215,9 @@ class BundleArchiveImpl implements BundleArchive {
 
 
   /**
-   * Check if named entry exist in bundles classpath. Leading '/' is stripped.
-   * 
+   * Check if named entry exist in bundles classpath.
+   * Leading '/' is stripped.
+   *
    * @param component Entry to get reference to.
    * @param onlyFirst End search when we find first entry if this is true.
    * @return Vector or entry numbers, or null if it doesn't exist.
@@ -234,7 +227,7 @@ class BundleArchiveImpl implements BundleArchive {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    if (0 == component.length()) {
+    if (0==component.length()) {
       // The special case asking for "/"
       v = new Vector();
       for (int i = 0; i < archives.length; i++) {
@@ -247,14 +240,13 @@ class BundleArchiveImpl implements BundleArchive {
       for (int i = 0; i < archives.length; i++) {
         InputStream is = archives[i].getBundleResourceStream(component);
         if (is != null) {
-          if (v == null) {
+          if(v == null) {
             v = new Vector();
           }
           v.addElement(new Integer(i));
           try {
             is.close();
-          } catch (IOException ignore) {
-          }
+          } catch (IOException ignore) { }
           if (onlyFirst) {
             break;
           }
@@ -266,12 +258,12 @@ class BundleArchiveImpl implements BundleArchive {
 
 
   /**
-   * Get an specific InputStream to named entry inside a bundle. Leading '/' is
-   * stripped.
-   * 
+   * Get an specific InputStream to named entry inside a bundle.
+   * Leading '/' is stripped.
+   *
    * @param component Entry to get reference to.
    * @param ix index of sub archives. A postive number is the classpath entry
-   *          index. -1 means look in the main bundle.
+   *            index. -1 means look in the main bundle.
    * @return InputStream to entry or null if it doesn't exist.
    */
   public BundleResourceStream getBundleResourceStream(String component, int ix) {
@@ -279,7 +271,7 @@ class BundleArchiveImpl implements BundleArchive {
       component = component.substring(1);
     }
 
-    if (ix == -1) {
+    if(ix == -1) {
       return archive.getBundleResourceStream(component);
     } else {
       return archives[ix].getBundleResourceStream(component);
@@ -289,7 +281,7 @@ class BundleArchiveImpl implements BundleArchive {
 
   /**
    * Get native library from JAR.
-   * 
+   *
    * @param libName Name of Jar file to get.
    * @return A string with path to native library.
    */
@@ -300,7 +292,7 @@ class BundleArchiveImpl implements BundleArchive {
 
   /**
    * Set autostart setting.
-   * 
+   *
    * @param setting the new autostart setting.
    */
   public void setAutostartSetting(int setting) throws IOException {
@@ -309,10 +301,9 @@ class BundleArchiveImpl implements BundleArchive {
     }
   }
 
-
   /**
    * Get autostart setting.
-   * 
+   *
    * @return the autostart setting.
    */
   public int getAutostartSetting() {
@@ -321,8 +312,8 @@ class BundleArchiveImpl implements BundleArchive {
 
 
   /**
-   * Remove bundle archive from persistent storage. If we removed the active
-   * revision also remove bundle status files.
+   * Remove bundle archive from persistent storage. If we removed
+   * the active revision also remove bundle status files.
    */
   public void purge() {
     storage.removeArchive(this);
@@ -330,8 +321,8 @@ class BundleArchiveImpl implements BundleArchive {
 
 
   /**
-   * Close archive for further access. It should still be possible to get
-   * attributes.
+   * Close archive for further access. It should still be possible
+   * to get attributes.
    */
   public void close() {
   }
@@ -339,17 +330,16 @@ class BundleArchiveImpl implements BundleArchive {
 
   /**
    * Get a list with all classpath entries we failed to locate.
-   * 
+   *
    * @return A List with all failed classpath entries, null if no failures.
    */
   public List getFailedClassPathEntries() {
     return failedPath;
   }
 
-
   /**
    * Resolve native code libraries.
-   * 
+   *
    * @return null if resolve ok, otherwise return an error message.
    */
   public String resolveNativeCode() {
@@ -358,7 +348,6 @@ class BundleArchiveImpl implements BundleArchive {
     }
     return null;
   }
-
 
   //
   // Private methods
@@ -373,25 +362,27 @@ class BundleArchiveImpl implements BundleArchive {
       while (st.hasMoreTokens()) {
         String path = st.nextToken().trim();
         if (".".equals(path)) {
-          a.add(archive);
-        } else if (path.endsWith(".jar")) {
-          try {
-            a.add(archive.getSubArchive(path));
-          } catch (IOException ioe) {
-            if (failedPath == null) {
-              failedPath = new ArrayList(1);
+                  a.add(archive);
+          }
+          else if (path.endsWith(".jar")){
+            try {
+              a.add(archive.getSubArchive(path));
+            } catch (IOException ioe) {
+              if (failedPath == null) {
+                failedPath = new ArrayList(1);
+              }
+              failedPath.add(path);
             }
-            failedPath.add(path);
           }
-        } else {
-          if (archive.subDirs == null) {
-            archive.subDirs = new ArrayList(1);
-          }
+          else{
+            if(archive.subDirs == null){
+              archive.subDirs = new ArrayList(1);
+            }
           // NYI Check that it exists!
-          archive.subDirs.add(path);
-        }
+            archive.subDirs.add(path);
+          }
       }
-      archives = (Archive[])a.toArray(new Archive[a.size()]);
+      archives = (Archive [])a.toArray(new Archive[a.size()]);
     } else {
       archives = new Archive[] { archive };
     }
@@ -402,7 +393,6 @@ class BundleArchiveImpl implements BundleArchive {
     return archive.findResourcesPath(path);
   }
 
-
   public String getJarLocation() {
     return null;
   }
@@ -410,7 +400,7 @@ class BundleArchiveImpl implements BundleArchive {
 
   /**
    * Return certificates for signed bundle, otherwise null.
-   * 
+   *
    * @return An array of certificates or null.
    */
   public ArrayList getCertificateChains(boolean onlyTrusted) {
@@ -418,9 +408,10 @@ class BundleArchiveImpl implements BundleArchive {
   }
 
 
+
   /**
    * Mark certificate chain as trusted.
-   * 
+   *
    */
   public void trustCertificateChain(List trustedChain) {
     throw new RuntimeException("NYI");

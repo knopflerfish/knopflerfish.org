@@ -34,13 +34,14 @@
 
 package org.knopflerfish.util;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Vector;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Comparator;
 
 /**
  * Misc static text utility methods.
@@ -493,8 +494,7 @@ public class Text {
    *   PARAM = attribute '=' value
    *   PARAM = directive ':=' value
    *
-   * @param a Attribute being parsed, the sole purpose of this param seems to be
-   * to spread confusion...
+   * @param a Attribute being parsed
    * @param s String to parse
    * @param single If true, only allow one key per ENTRY
    * @param unique Only allow unique parameters for each ENTRY.

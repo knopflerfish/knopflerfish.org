@@ -11,11 +11,6 @@
             value="org/knopflerfish/bundle/httpconsole/**"/>
 
   <property name="bmfa.Bundle-Version"        value="3.0.2"/>
-  <property name="bmfa.Bundle-DocURL"
-	    value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=httpconsole/index.html"/>
-  <property name="bmfa.Bundle-SubversionURL"
-	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/httpconsole/"/>
-
 
   <path id="bundle.compile.path">
    <pathelement location="jsdk_api-N.N.N.jar"/> 

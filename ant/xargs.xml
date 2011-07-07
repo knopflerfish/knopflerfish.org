@@ -5,75 +5,99 @@
 
 <project name="xargs" basedir=".">
 
-  <macrodef name="xargs"
-	    description="Generates xargs-file from templare.">
-    <attribute name="template"
-	       description="Location of the template xargs file to use."/>
-    <attribute name="xargs"
-	       description="Location (path) of the xargs to create."/>
-    <attribute name="gosgJars"
-	       description="Semicolon separated URL-path to replace $(GOSG_JARS) with. Also used to search for bundles."
-	       default="file:jars/;file:test_jars/"/>
-    <attribute name="baseDir"
-	       description="Base directory for relative file URLs in the gosgJars path."
-	       default=""/>
-    <attribute name="testJars"
-	       description="Replacement value for $(TESTJARS); path to the root directory of the respository holding test bundles."
-	       default="$${user.dir}/test_jars"/>
-    <attribute name="xargsOsTemplate"
-	       description="Location of file with replacement for $(OS_ARGS)."
-	       default=""/>
-    <attribute name="outDir"
-	       description="Directory to place intermediate build files in."
-	       default="out"/>
-    <element name="bundles"
-             optional="true"
-             description="Place holder element that specifies file-sets to search for bundles to use when expanding symbolic bundle names in the template file."/>
-    <element name="replacefilters"
-             optional="true"
-             description="Additional replacefilter elements applied to the resulting xargs file."/>
+  <import file="${ant.dir}/bundletasks.xml"/>
 
-    <sequential>
-      <delete file="@{xargs}"/>
+  <!-- Use this target in KF 2 -->
+  <target name="xargs_build" depends="bundle_tasks,load_os_xargs">
+    <property name="root.out.dir" location="out"/>
+    <property name="bundleVersionFilter"
+	      location="${root.out.dir}/bundleVersions.props"/>
+    <property name="xargs.jars.pattern"  value="**/*.jar"/>
+    <property name="xargs.test.jars.patten" value=""/>
+    <property name="xargs.jar_prefix" value="file:jars/"/>
 
-      <loadresource property="xargs.os.args" failonerror="false" quiet="true">
-	<file file="@{xargsOsTemplate}"/>
-      </loadresource>
-      <!-- Set default value if file did not exist. -->
-      <property name="xargs.os.args" value=""/>
+    <bundle_locator replacefilterfile="${bundleVersionFilter}">
+      <fileset dir="${jars.dir}">
+        <include name="${xargs.jars.pattern}"/>
+        <include name="${xargs.test.jars.pattern}"/>
+      </fileset>
+    </bundle_locator>
 
-      <mkdir dir="@{outDir}"/>
-      <property name="bundleVersionFilter"
-		location="@{outDir}/bundleVersionsXargs.props"/>
-      <delete file="${bundleVersionFilter}"/>
+    <!-- Set xargs.os.args if not set when callin load_os_xargs -->
+    <property name="xargs.os.args" value=""/>
 
-      <bundle_locator replacefilterfile="${bundleVersionFilter}"
-		      bundlePath="@{gosgJars}"
-		      baseDir="@{baseDir}">
-	<bundles/>
-      </bundle_locator>
+    <copy file="${xargs.template.in}"
+          tofile="${xargs.out.file}"
+          overwrite="true"/>
 
-      <antcall target="check_openssl"/>
-      <condition property="do.cpa.test" value="" else="#">
-	<and>
-          <isset property="openssl_exist"/>
-          <!-- JRE 1.5 form Sun is broken -->
-          <not><equals arg1="${ant.java.version}" arg2="1.5"/></not>
-	</and>
-      </condition>
+    <replace file="${xargs.out.file}"
+             replacefilterfile="${bundleVersionFilter}">
+      <replacefilter token="$(JAR_PREFIX)"      value="${xargs.jar_prefix}"/>
+      <replacefilter token="$(VERSION)"         value="${version}"/>
+      <replacefilter token="$(OS_ARGS)"         value="${xargs.os.args}"/>
+    </replace>
+  </target>
 
-      <copy file="@{template}" tofile="@{xargs}"/>
-      <replace file="@{xargs}"
-               replacefilterfile="${bundleVersionFilter}">
-	<replacefilter token="$(GOSG_JARS)"       value="@{gosgJars}"/>
-	<replacefilter token="$(TESTJARS)"        value="@{testJars}"/>
-	<replacefilter token="$(VERSION)"         value="${version}"/>
-	<replacefilter token="$(OS_ARGS)"         value="${xargs.os.args}"/>
-	<replacefilter token="$(DO_CPA_TEST)"     value="${do.cpa.test}"/>
-	<replacefilters/>
-      </replace>
-    </sequential>
-  </macrodef>
+
+  <!-- Use this target in KF 3 -->
+  <!-- Properties used by this task: -->
+  <!--   xargs.template.in"   The template xargs file  (abspath)   -->
+  <!--   xargs.out.file"      The processed xargs file (abspath)   -->
+  <!--   jars.dir"            A directory to scan for bundles      -->
+  <!--   test.jars.dir"       A directory to scan for bundles      -->
+  <!--   gosg.jars"           Replacement value for $(GOSG_JARS)   -->
+  <!--   test_jars            Replacement value for $(TESTJARS)    -->
+  <!--   xargs.os.template    File with replacement for $(OS_ARGS) -->
+  <target name="xargs_filter"
+	  depends="bundle_tasks,check_openssl,load_os_xargs">
+    <property name="root.out.dir" location="out"/>
+    <property name="bundleVersionFilter"
+              location="${root.out.dir}/bundleVersionsXargs.props"/>
+    <delete file="${bundleVersionFilter}"/>
+    <delete file="${xargs.out.file}"/>
+
+    <!-- Some default values -->
+    <property name="xargs.jars.pattern" value="**/*.jar"/>
+    <property name="jars.dir"           location="jars"/>
+    <property name="gosg.jars"          value="file:jars/;file:test_jars/"/>
+    <property name="test_jars"          value="$${user.dir}/test_jars"/>
+
+    <bundle_locator replacefilterfile="${bundleVersionFilter}">
+      <fileset dir="${jars.dir}">
+        <include name="${xargs.jars.pattern}"/>
+      </fileset>
+      <fileset dir="${test.jars.dir}">
+        <include name="${xargs.jars.pattern}"/>
+      </fileset>
+    </bundle_locator>
+
+    <!-- Set xargs.os.args if not set by load_os_xargs -->
+    <property name="xargs.os.args" value=""/>
+
+    <condition property="do.cpa.test" value="" else="#">
+      <and>
+        <isset property="openssl_exist"/>
+        <!-- JRE 1.5 form Sun is broken -->
+        <not><equals arg1="${ant.java.version}" arg2="1.5"/></not>
+      </and>
+    </condition>
+
+    <copy file="${xargs.template.in}" tofile="${xargs.out.file}"/>
+    <replace file="${xargs.out.file}"
+             replacefilterfile="${bundleVersionFilter}">
+      <replacefilter token="$(GOSG_JARS)"       value="${gosg.jars}"/>
+      <replacefilter token="$(TESTJARS)"        value="${test_jars}"/>
+      <replacefilter token="$(VERSION)"         value="${version}"/>
+      <replacefilter token="$(OS_ARGS)"         value="${xargs.os.args}"/>
+      <replacefilter token="$(DO_CPA_TEST)"     value="${do.cpa.test}"/>
+    </replace>
+  </target>
+
+  <target name="load_os_xargs" if="xargs.os.template">
+    <loadresource property="xargs.os.args" quiet="true">
+      <file file="${xargs.os.template}"/>
+    </loadresource>
+  </target>
 
   <target name="check_openssl" unless="check_openssl.done">
     <exec executable="openssl"

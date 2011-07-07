@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008,2011 KNOPFLERFISH project
+ * Copyright (c) 2003-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,14 +69,6 @@ public class HttpConfig {
   private static final int HTTPS_PORT_DEFAULT = 443;
   public final static String DEFAULT_CHAR_ENCODING_KEY
     = "org.knopflerfish.http.encoding.default";
-  public final static String TRACE_ENABLED
-    = "org.knopflerfish.http.trace.enabled";
-  public final static String LIMIT_REQUEST_LINE
-    = "org.knopflerfish.http.limit.requestline";
-  public final static String LIMIT_POST_SIZE
-    = "org.knopflerfish.http.limit.postsize";
-  public final static String LIMIT_REQUEST_HEADERS
-    = "org.knopflerfish.http.limit.requestheaders";
 
   //
   public HttpConfigWrapper HTTP  = new HttpConfigWrapper(false, this);
@@ -100,10 +92,6 @@ public class HttpConfig {
   private boolean httpEnabled = true;
   private String defaultCharEncoding = "ISO-8859-1";
   private boolean requireClientAuth = false;
-  private boolean traceEnabled = false;
-  private int limitRequestLine = 8190;
-  private int limitPostSize = -1; // no limit
-  private int limitRequestHeaders = 100;
 
   // constructor(s)
 
@@ -198,23 +186,6 @@ public class HttpConfig {
                                    HttpConfig.DEFAULT_CHAR_ENCODING_KEY,
                                    "ISO-8859-1"));
 
-    config.put(HttpConfig.TRACE_ENABLED,
-               getPropertyAsBoolean(bc,
-				    HttpConfig.TRACE_ENABLED,
-				    "false"));
-
-    config.put(HttpConfig.LIMIT_REQUEST_LINE,
-               getPropertyAsInteger(bc,
-				    HttpConfig.LIMIT_REQUEST_LINE,
-				    8190));
-    config.put(HttpConfig.LIMIT_POST_SIZE,
-               getPropertyAsInteger(bc,
-				    HttpConfig.LIMIT_POST_SIZE,
-				    -1));
-    config.put(HttpConfig.LIMIT_REQUEST_HEADERS,
-               getPropertyAsInteger(bc,
-				    HttpConfig.LIMIT_REQUEST_HEADERS,
-				    100));
     config.put(HttpConfig.REQ_CLIENT_AUTH_KEY,
                getPropertyAsBoolean(bc,
                                     "org.knopflerfish.http.req.client.auth",
@@ -283,19 +254,6 @@ public class HttpConfig {
         } else if (key.equals(DEFAULT_CHAR_ENCODING_KEY)) {
           this.defaultCharEncoding = (String) value;
           this.configuration.put(key, value);
-        } else if (key.equals(TRACE_ENABLED)) {
-          this.traceEnabled = ((Boolean) value).booleanValue();
-          this.configuration.put(key, value);
-        } else if (key.equals(LIMIT_REQUEST_LINE)) {
-	  this.limitRequestLine = ((Integer) value).intValue();
-	  ServletInputStreamImpl.setLimitRequestLine(this.limitRequestLine); // set globally
-	  this.configuration.put(key, value);
-        } else if (key.equals(LIMIT_POST_SIZE)) {
-	  this.limitPostSize = ((Integer) value).intValue();
-	  this.configuration.put(key, value);
-        } else if (key.equals(LIMIT_REQUEST_HEADERS)) {
-	  this.limitRequestHeaders = ((Integer) value).intValue();
-	  this.configuration.put(key, value);
         } else if (key.equals(REQ_CLIENT_AUTH_KEY)) {
           this.requireClientAuth = ((Boolean) value).booleanValue();
           this.configuration.put(key, value);
@@ -351,18 +309,6 @@ public class HttpConfig {
 
   public boolean isHttpsEnabled() {
     return httpsEnabled;
-  }
-
-  public boolean isTraceEnabled() {
-    return traceEnabled;
-  }
-
-  public int getLimitPostSize() {
-    return limitPostSize;
-  }
-
-  public int getLimitRequestHeaders() {
-    return limitRequestHeaders;
   }
 
   public String getHost() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2009, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,7 +86,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
         for (pos = 2; pos < len; pos++) {
           if (sc[pos] == ':' || sc[pos] == '/') {
             break;
-          } else if (sc[pos] == '!' || sc[pos] == '.') {
+          } else if (sc[pos] == '!' || sc[pos] == '.' || sc[pos] == '_') {
             if (id == -1) {
               id = Long.parseLong(new String(sc, 2, pos - 2));
             }
@@ -341,7 +341,8 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     int e = host.indexOf("!");
     int fwId;
     if (e == -1) {
-      fwId = 0;
+      // TBD, should we return null instead?
+      return (FrameworkContext)i.next();
     } else {
       try {
         fwId = Integer.parseInt(host.substring(e + 1));
@@ -351,7 +352,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     }
     while (i.hasNext()) {
       FrameworkContext fw = (FrameworkContext)i.next();
-      if (fw.id == fwId) {
+      if (fw.getId() == fwId) {
         return fw;
       }
     }
@@ -361,6 +362,9 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   public static long getId(String host) {
     int e = host.indexOf(".");
+    if (e == -1) {
+      e = host.indexOf("_");
+    }
     if (e == -1) {
       e = host.indexOf("!");
     }

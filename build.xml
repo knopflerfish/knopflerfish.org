@@ -1,44 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    ** Copyright (c) 2004-2011, KNOPFLERFISH project
-    ** All rights reserved.
-    **
-    ** Redistribution and use in source and binary forms, with or without
-    ** modification, are permitted provided that the following conditions
-    ** are met:
-    **
-    ** - Redistributions of source code must retain the above copyright notice,
-    **   this list of conditions and the following disclaimer.
-    **
-    ** - Redistributions in binary form must reproduce the above copyright
-    **   notice, this list of conditions and the following disclaimer in
-    **   the documentation and/or other materials provided with the
-    **   distribution.
-    **
-    ** - Neither the name of the KNOPFLERFISH project nor the names of its
-    **   contributors may be used to endorse or promote products derived
-    **   from this software without specific prior written permission.
-    **
-    ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-    ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-    ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-    ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-    ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-    ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-    ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-    ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-    ** OF THE POSSIBILITY OF SUCH DAMAGE.
+  ** Copyright (c) 2004-2010, KNOPFLERFISH project
+  ** All rights reserved.
+  **
+  ** Redistribution and use in source and binary forms, with or without
+  ** modification, are permitted provided that the following conditions
+  ** are met:
+  **
+  ** - Redistributions of source code must retain the above copyright notice,
+  **   this list of conditions and the following disclaimer.
+  **
+  ** - Redistributions in binary form must reproduce the above copyright
+  **   notice, this list of conditions and the following disclaimer in
+  **   the documentation and/or other materials provided with the
+  **   distribution.
+  **
+  ** - Neither the name of the KNOPFLERFISH project nor the names of its
+  **   contributors may be used to endorse or promote products derived
+  **   from this software without specific prior written permission.
+  **
+  ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+  ** OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 
 
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="3.1.1.svn-XXXX"/>
+  <property name="version"            value="3.1.0"/>
 
   <!-- The URL to the root of the SVN-repository -->
   <property name="svn.repo.url"
@@ -78,8 +78,6 @@
             location="${distrib.doc.dir}/jars"/>
   <property name="distrib.bundledoc.dir"
             location="${distrib.doc.dir}/bundledoc"/>
-  <property name="distrib.mvn.repo.dir"
-            location="${distrib.dir}/maven2"/>
   <property name="distrib.sdk.file"
             location="${distrib.dir}/knopflerfish_osgi_sdk_${version}.jar"/>
   <property name="distrib.tiny.file"
@@ -108,7 +106,6 @@
 
   <target name="all"
           description="Builds entire platform including optional and test bundles" >
-    <ant dir="${ant.dir}"          target="all"/>
     <ant dir="${jarunpacker.dir}"  target="jar"/>
     <ant dir="osgi"                target="all"/>
   </target>
@@ -133,7 +130,6 @@
   <target name="distrib_clean">
     <delete dir="${distrib.dir}"/>
     <delete dir="${distrib.out.dir}"/>
-    <ant dir="ant" target="clean"/>
   </target>
 
   <!-- Create top-level directories used by the distrib target. -->
@@ -145,12 +141,10 @@
   <target name="distrib_build_framework">
     <mkdir dir="${distrib.osgi.dir}"/>
 
-    <!-- Note: This will build the bundle_tasks.jar -->
     <ant dir="${osgi.dir}/framework" inheritall="false">
       <property name="jarfile" location="${distrib.osgi.dir}/framework.jar"/>
       <property name="version" value="${version}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
-      <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
 
@@ -201,6 +195,7 @@
   <target name="distrib_build">
     <mkdir dir="${distrib.osgi.dir}"/>
 
+    <ant dir="ant"                 target="all" />
     <ant dir="${jarunpacker.dir}"  target="jar">
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
     </ant>
@@ -215,8 +210,7 @@
     <delete dir="${distrib.osgi.dir}" includes="*.xargs"/>
 
     <ant dir="${osgi.dir}" target="xargs">
-      <property name="xargs.out.dir"  location="${distrib.osgi.dir}"/>
-      <property name="xargs.base.dir" location="${distrib.osgi.dir}"/>
+      <property name="xargs.out.dir" location="${distrib.osgi.dir}"/>
       <property name="jars.dir"      location="${distrib.osgi.dir}/jars"/>
       <property name="gosg.jars"     value="file:jars/"/>
       <property name="base.url"      value="${base.url}"/>
@@ -225,8 +219,8 @@
     </ant>
     <copy file="${osgi.dir}/props.xargs" todir="${distrib.osgi.dir}"/>
     <echo file="${distrib.osgi.dir}/props.xargs" append="true">
-      # Use bundle repository for this KF-version.
-      -Foscar.repository.url=${base.url}/${version}/repository.xml
+# Use bundle repository for this KF-version.
+-Foscar.repository.url=${base.url}/${version}/repository.xml
     </echo>
   </target>
 
@@ -253,12 +247,13 @@
 
     <bundlehtml templateHTMLDir="${ant.dir}/html_template"
                 outDir="${distrib.jardocs.dir}"
+                baseDir="${distrib.osgi.dir}/jars"
                 listHeader="${bundle.list.header}"
                 javadocRelPath="../javadoc"
                 includeSourceFiles="false"
-                includeSourceFileRepositoryLinks="true"
-                rootDir="${knopflerfish.dir}"
-                repositoryURL="${svn.repo.url}/${svn.tag}/">
+		includeSourceFileRepositoryLinks="true"
+		rootDir="${knopflerfish.dir}"
+		repositoryURL="${svn.repo.url}/${svn.tag}/">
       <fileset dir="${distrib.osgi.dir}/jars">
         <include name="**/*.jar"/>
       </fileset>
@@ -266,28 +261,7 @@
       <fileset dir="${distrib.osgi.dir}">
         <include name="framework.jar"/>
       </fileset>
-    </bundlehtml>
-  </target>
-
-  <target name="distrib_mvn_repo" depends="bundle_tasks">
-    <mkdir dir="${distrib.mvn.repo.dir}/org/knopflerfish"/>
-
-    <bundleMvnAnt templateAntFile="${ant.dir}/ant_templates/mvn_repo.xml"
-                  repoDir="${distrib.mvn.repo.dir}"
-                  outDir="${distrib.tmp.dir}"
-                  buildFile="toMvn.xml"
-                  dependencyManagementFile="KF-${version}_dependencyManagement.xml"
-                  version="${version}"
-                  settingsFile="${knopflerfish.dir}/tools/mvnrepo/settings.xml">
-      <!-- Include framework.jar -->
-      <fileset dir="${distrib.osgi.dir}">
-        <include name="framework.jar"/>
-      </fileset>
-      <!-- and all bunldes in the jars-directory -->
-      <fileset dir="${distrib.osgi.dir}/jars">
-        <include name="**/*.jar"/>
-      </fileset>
-    </bundleMvnAnt>
+   </bundlehtml>
   </target>
 
   <target name="distrib_bundle_doc" depends="bundle_tasks">
@@ -298,24 +272,21 @@
 
     <!-- Get documentation from the bundles -->
     <ant dir="${osgi.dir}/framework"      target="framework_doc">
-      <property name="jarfile"      location="${distrib.osgi.dir}/framework.jar"/>
       <property name="docs.dir"     location="${distrib.bundledoc.dir}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
     </ant>
     <ant dir="${osgi.dir}/bundles"      target="bundle_doc">
-      <property name="jars.dir"     location="${distrib.osgi.dir}/jars"/>
       <property name="docs.dir"     location="${distrib.bundledoc.dir}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
     </ant>
     <ant dir="${osgi.dir}/bundles_opt"  target="bundle_doc">
-      <property name="jars.dir"     location="${distrib.osgi.dir}/jars"/>
       <property name="docs.dir"     location="${distrib.bundledoc.dir}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
     </ant>
 
     <!-- Generate user doc navigation page -->
     <bundle_user_doc_navigate
-       outdir="${distrib.bundledoc.dir}"
+       outdir="${distrib.bundledoc.dir}" 
        docdir="${distrib.bundledoc.dir}"
        tofile="bundledoc_list.html"
        template="htdocs/html_templates/bundle_doc/bundledoc_list.html"
@@ -346,7 +317,7 @@
     <property name="license.html"   location="${htdocs.hs.dir}/license.html"/>
 
     <tstamp>
-      <format property="distrib_docs.tstamp.year" pattern="yyyy" locale="en"/>
+     <format property="distrib_docs.tstamp.year" pattern="yyyy" locale="en"/>
     </tstamp>
 
     <!-- The first line in this file is used by the desktop to check -->
@@ -405,7 +376,6 @@
       <property name="jars.dir"      location="${distrib.osgi.dir}/jars"/>
       <property name="test.jars.dir" location="${distrib.osgi.dir}/test_jars"/>
       <property name="xargs.out.dir" location="${distrib.osgi.dir}"/>
-      <property name="xargs.base.dir" location="${distrib.osgi.dir}"/>
       <property name="run.test.dir"  location="${distrib.osgi.dir}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
     </ant>
@@ -416,7 +386,7 @@
 
     <delete file="${distrib.sdk.file}"/>
     <jar destfile="${distrib.sdk.file}"
-         compress="true" filesonly="true" duplicate="fail">
+	 compress="true" filesonly="true" duplicate="fail">
       <manifest>
         <attribute name="Main-class"
                    value="org.knopflerfish.tools.jarunpacker.Main"/>
@@ -428,128 +398,128 @@
                    value="/LICENSE.txt"/>
         <attribute name="knopflerfish-version"
                    value="${version}"/>
-      </manifest>
+        </manifest>
 
-      <zipfileset dir="${distrib.dir}" prefix="">
-        <include name="LICENSE.txt"/>
-        <include name="NOTICE.txt"/>
-        <include name="README.txt"/>
-        <include name="release_notes.txt"/>
-      </zipfileset>
+        <zipfileset dir="${distrib.dir}" prefix="">
+          <include name="LICENSE.txt"/>
+          <include name="NOTICE.txt"/>
+          <include name="README.txt"/>
+          <include name="release_notes.txt"/>
+        </zipfileset>
 
-      <zipfileset dir="${distrib.doc.dir}" prefix="docs">
-        <include name="**/*"/>
-        <exclude name="**/doc.properties"/>
-      </zipfileset>
+        <zipfileset dir="${distrib.doc.dir}" prefix="docs">
+          <include name="**/*"/>
+          <exclude name="**/doc.properties"/>
+        </zipfileset>
 
-      <zipfileset dir="${distrib.osgi.dir}" prefix="osgi">
-        <include name="**/*"/>
-      </zipfileset>
+        <zipfileset dir="${distrib.osgi.dir}" prefix="osgi">
+          <include name="**/*"/>
+        </zipfileset>
 
-      <zipfileset dir="." prefix="">
-        <exclude name="**/*.jbf"/>
-        <exclude name="**/out/**"/>
-        <exclude name="**/*.class"/>
-        <exclude name="**/.svn"/>
-        <exclude name="keystore"/>
+        <zipfileset dir="." prefix="">
+          <exclude name="**/*.jbf"/>
+          <exclude name="**/out/**"/>
+          <exclude name="**/*.class"/>
+          <exclude name="**/.svn"/>
+          <exclude name="keystore"/>
 
-        <include name="ant/**"/>
-        <exclude name="ant/classes/**"/>
-        <exclude name="ant/lib/bindex.jar"/>
+          <include name="ant/**"/>
+          <exclude name="ant/classes/**"/>
+          <exclude name="ant/lib/bindex.jar"/>
 
-        <!--<include name="build.xml"/>-->
+          <!--<include name="build.xml"/>-->
 
-        <include name="changelog.txt"/>
+          <include name="changelog.txt"/>
 
-        <include name="osgi/*.xargs.in"/>
-        <include name="osgi/kf2"/>
-        <include name="osgi/build.xml"/>
+          <include name="osgi/*.xargs.in"/>
+          <include name="osgi/kf2"/>
+          <include name="osgi/build.xml"/>
 
-        <include name="osgi/framework/**"/>
+          <include name="osgi/framework/**"/>
 
-        <include name="osgi/bundles/build.xml"/>
+          <include name="osgi/bundles/build.xml"/>
 
-        <include name="osgi/bundles/cm/cm/**"/>
-        <include name="osgi/bundles/cm/cm_cmd/**"/>
+          <include name="osgi/bundles/cm/cm/**"/>
+          <include name="osgi/bundles/cm/cm_cmd/**"/>
 
-        <include name="osgi/bundles/log/**"/>
-        <include name="osgi/bundles/http/**"/>
-        <include name="osgi/bundles/sslj2sp/**"/>
-        <include name="osgi/bundles/device/build.xml"/>
-        <include name="osgi/bundles/device/device/**"/>
-        <include name="osgi/bundles/device/basicdriverlocator/**"/>
-        <include name="osgi/bundles/useradmin/**"/>
+          <include name="osgi/bundles/log/**"/>
+          <include name="osgi/bundles/http/**"/>
+          <include name="osgi/bundles/sslj2sp/**"/>
+          <include name="osgi/bundles/device/build.xml"/>
+          <include name="osgi/bundles/device/device/**"/>
+          <include name="osgi/bundles/device/basicdriverlocator/**"/>
+          <include name="osgi/bundles/useradmin/**"/>
 
-        <include name="osgi/bundles/jsdk/**"/>
+          <include name="osgi/bundles/jsdk/**"/>
 
-        <include name="osgi/bundles/threadio/**"/>
-        <include name="osgi/bundles/command/**"/>
+          <include name="osgi/bundles/threadio/**"/>
+          <include name="osgi/bundles/command/**"/>
 
-        <include name="osgi/bundles/console/**"/>
-        <include name="osgi/bundles/frameworkcommands/**"/>
-        <include name="osgi/bundles/logcommands/**"/>
-        <include name="osgi/bundles/util/**"/>
-        <include name="osgi/bundles/xml/build.xml"/>
-        <include name="osgi/bundles/xml/xml/**"/>
-        <include name="osgi/bundles/xml/crimson/**"/>
-        <include name="osgi/bundles/xml/kxml/**"/>
-        <include name="osgi/bundles/xml/xerces/**"/>
-        <include name="osgi/bundles/xml/xalan/**"/>
-        <include name="osgi/bundles/desktop/**"/>
-        <include name="osgi/bundles/wireadmin/**"/>
-        <include name="osgi/bundles/position/**"/>
-        <include name="osgi/bundles/measurement/**"/>
-        <include name="osgi/bundles/metatype/**"/>
+          <include name="osgi/bundles/console/**"/>
+          <include name="osgi/bundles/frameworkcommands/**"/>
+          <include name="osgi/bundles/logcommands/**"/>
+          <include name="osgi/bundles/util/**"/>
+          <include name="osgi/bundles/xml/build.xml"/>
+          <include name="osgi/bundles/xml/xml/**"/>
+          <include name="osgi/bundles/xml/crimson/**"/>
+          <include name="osgi/bundles/xml/xerces/**"/>
+          <include name="osgi/bundles/xml/xalan/**"/>
+          <include name="osgi/bundles/desktop/**"/>
+          <include name="osgi/bundles/wireadmin/**"/>
+          <include name="osgi/bundles/position/**"/>
+          <include name="osgi/bundles/measurement/**"/>
+          <include name="osgi/bundles/metatype/**"/>
 
-        <include name="osgi/bundles/component/**"/>
-        <include name="osgi/bundles/event/**"/>
-        <include name="osgi/bundles/io/**"/>
+          <include name="osgi/bundles/component/**"/>
+          <include name="osgi/bundles/event/**"/>
+          <include name="osgi/bundles/io/**"/>
 
-        <include name="osgi/bundles/prefs/**"/>
-        <include name="osgi/bundles/upnp/**"/>
-        <include name="osgi/bundles/provisioning/**"/>
+          <include name="osgi/bundles/prefs/**"/>
+          <include name="osgi/bundles/upnp/**"/>
+          <include name="osgi/bundles/provisioning/**"/>
 
-        <include name="osgi/bundles/demos/**"/>
+          <include name="osgi/bundles/demos/**"/>
 
-        <include name="osgi/bundles/trayicon/build.xml"/>
-        <include name="osgi/bundles/trayicon/readme.txt"/>
-        <include name="osgi/bundles/trayicon/trayicon/**"/>
-        <include name="osgi/bundles/trayicon/trayicon_fw/**"/>
-        <include name="osgi/bundles/remotefw/**"/>
-        <include name="osgi/bundles/bundlerepository/**"/>
+          <include name="osgi/bundles/trayicon/build.xml"/>
+          <include name="osgi/bundles/trayicon/readme.txt"/>
+          <include name="osgi/bundles/trayicon/trayicon/**"/>
+          <include name="osgi/bundles/trayicon/trayicon_fw/**"/>
+          <include name="osgi/bundles/remotefw/**"/>
+          <include name="osgi/bundles/bundlerepository/**"/>
 
-        <include name="osgi/bundles_opt/build.xml"/>
-        <include name="osgi/bundles_opt/commons-logging/**"/>
-        <include name="osgi/bundles_opt/desktop_awt/**"/>
-        <include name="osgi/bundles_opt/desktop_displayers/**"/>
-        <include name="osgi/bundles_opt/dirdeployer/**"/>
-        <include name="osgi/bundles_opt/jini/**"/>
-        <include name="osgi/bundles_opt/junit/**"/>
-        <include name="osgi/bundles_opt/oscar-shell/**"/>
-        <include name="osgi/bundles_opt/serial/**"/>
-        <include name="osgi/bundles_opt/soap/**"/>
+          <include name="osgi/bundles_opt/build.xml"/>
+          <include name="osgi/bundles_opt/commons-logging/**"/>
+          <include name="osgi/bundles_opt/desktop_awt/**"/>
+          <include name="osgi/bundles_opt/desktop_displayers/**"/>
+          <include name="osgi/bundles_opt/dirdeployer/**"/>
+          <include name="osgi/bundles_opt/jini/**"/>
+          <include name="osgi/bundles_opt/junit/**"/>
+          <include name="osgi/bundles_opt/kxml/**"/>
+          <include name="osgi/bundles_opt/oscar-shell/**"/>
+          <include name="osgi/bundles_opt/serial/**"/>
+          <include name="osgi/bundles_opt/soap/**"/>
 
-        <include name="osgi/bundles_test/**"/>
-        <exclude name="osgi/bundles_test/regression_tests/*/resources/*_test*.jar"/>
-      </zipfileset>
+          <include name="osgi/bundles_test/**"/>
+          <exclude name="osgi/bundles_test/regression_tests/*/resources/*_test*.jar"/>
+        </zipfileset>
 
-      <!-- Add required files excluded in the fileset above -->
-      <zipfileset dir="." prefix="">
-        <include name="osgi/bundles_test/regression_tests/framework_test/res1/**/*.class"/>
-        <include name="osgi/bundles_test/regression_tests/framework_test/resources/subdir/**/*.class"/>
-      </zipfileset>
+        <!-- Add required files excluded in the fileset above -->
+        <zipfileset dir="." prefix="">
+          <include name="osgi/bundles_test/regression_tests/framework_test/res1/**/*.class"/>
+          <include name="osgi/bundles_test/regression_tests/framework_test/resources/subdir/**/*.class"/>
+        </zipfileset>
 
-      <zipfileset dir="${distrib.tmp.dir}/jarunpacker/classes">
-        <include name="**"/>
-      </zipfileset>
+        <zipfileset dir="${distrib.tmp.dir}/jarunpacker/classes">
+          <include name="**"/>
+        </zipfileset>
 
-      <zipfileset dir="${jarunpacker.dir}/resources">
-        <include name="**"/>
-      </zipfileset>
+        <zipfileset dir="${jarunpacker.dir}/resources">
+          <include name="**"/>
+        </zipfileset>
 
-      <zipfileset dir="${jarunpacker.dir}/">
-        <include name="strings.properties"/>
-      </zipfileset>
+        <zipfileset dir="${jarunpacker.dir}/">
+          <include name="strings.properties"/>
+        </zipfileset>
     </jar>
   </target>
 
@@ -583,14 +553,14 @@
   <!-- Creates an HTML index page for a release build.-->
   <target name="distrib_index" depends="bundle_tasks">
     <tstamp>
-      <format property="distrib_index.tstamp"
+     <format property="distrib_index.tstamp"
               pattern="yyyy-MM-dd HH:mm"
-              locale="en"/>
+               locale="en"/>
     </tstamp>
     <tstamp>
-      <format property="distrib_index.tstamp.year"
+     <format property="distrib_index.tstamp.year"
               pattern="yyyy"
-              locale="en"/>
+               locale="en"/>
     </tstamp>
 
     <byteformatter file="${distrib.sdk.file}" unit="B"
@@ -637,7 +607,6 @@
     <antcall target="distrib_sdk"/>
     <antcall target="distrib_tiny"/>
     <antcall target="distrib_index"/>
-    <antcall target="distrib_mvn_repo"/>
     <antcall target="obr"/>
     <antcall target="bindex"/>
     <echo message="Build result placed in ${distrib.dir} and repo"/>
@@ -648,14 +617,12 @@
     <antcall target="bindex_bare">
       <param name="bindex.dest.dir" location="repo"/>
       <param name="bindex.base.url" value="http://www.knopflerfish.org/repo"/>
-      <param name="bindex.xslt" location="${ant.dir}/lib/obr2html.xsl"/>
     </antcall>
 
     <!-- The release directory REPO file -->
     <antcall target="bindex_bare">
       <param name="bindex.dest.dir" location="${distrib.dir}"/>
       <param name="bindex.base.url" value="${base.url}/${version}/osgi"/>
-      <param name="bindex.xslt" location="${ant.dir}/lib/obr2html.xsl"/>
     </antcall>
   </target>
 
@@ -671,7 +638,6 @@
             baseDir="${bindex.base.dir}"
             baseURL="${bindex.base.url}"
             repoName="${bindex.repo.name}"
-            stylesheet="obr2html.xsl"
             >
 
       <fileset dir="${bindex.jars.dir}">
@@ -684,10 +650,6 @@
         <exclude name="*/*_api-*.jar"/>
       </fileset>
     </bindex>
-    <copy file="${bindex.xslt}"
-          toFile="${bindex.dest.dir}/obr2html.xsl"
-          overwrite="true">
-    </copy>
   </target>
 
 

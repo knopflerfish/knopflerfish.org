@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -963,7 +963,7 @@ public class Desktop
   void bundlePanelShowTab(ServiceReference sr) {
     final String key = (String)sr.getProperty(SwingBundleDisplayer.PROP_NAME);
     bundlePanel.showTab(key);
-    final JRadioButtonMenuItem item = (JRadioButtonMenuItem) menuMap.get(sr);
+    JRadioButtonMenuItem item = (JRadioButtonMenuItem) menuMap.get(sr);
     if (null!=item) {
       item.setSelected(true);
     }
@@ -1847,6 +1847,8 @@ public class Desktop
 
       if(lastBundleLocation != null && !"".equals(lastBundleLocation)) {
         Bundle b = Activator.getTargetBC().installBundle(lastBundleLocation);
+        setSelected(b);
+        showBundle(b);
         Dictionary headers = b.getHeaders();
         if(Util.doAutostart() && Util.canBeStarted(b)) {
           startBundle(b);
@@ -2499,6 +2501,10 @@ public class Desktop
         {
           try {
             b.uninstall();
+            if (isSelected(b)) {
+              toggleSelected(b);
+              contentPane.invalidate();
+            }
           } catch (Exception e) {
             showErr("failed to uninstall bundle " + Util.getBundleName(b), e);
           }
@@ -2595,6 +2601,8 @@ public class Desktop
       String location = "file:" + file.getAbsolutePath();
       Bundle b = Activator.getTargetBC().installBundle(location);
 
+      setSelected(b);
+      showBundle(b);
       if(Util.doAutostart() && Util.canBeStarted(b)) {
         startBundle(b);
       }
@@ -2723,23 +2731,6 @@ public class Desktop
 
           SwingUtilities.invokeLater(new Runnable() {
               public void run() {
-                if (ev!=null && BundleEvent.INSTALLED==ev.getType()) {
-                  // Select bundle when installed
-                  setSelected(bundle);
-                  showBundle(bundle);
-                } else if (null!=bundle && isSelected(bundle)) {
-                  if (BundleEvent.UNINSTALLED==ev.getType()) {
-                    bundleSelModel.setSelected(bundle.getBundleId(), false);
-                  } else {
-                    // Trigger a selection change notification to tell
-                    // displayers to update their contents
-                    if (bundleSelModel instanceof DefaultBundleSelectionModel) {
-                      final DefaultBundleSelectionModel dbsm
-                        = (DefaultBundleSelectionModel) bundleSelModel;
-                      dbsm.fireChange(bundle.getBundleId());
-                    }
-                  }
-                }
                 updateStatusBar();
                 updateMenus();
                 toolBar.revalidate();

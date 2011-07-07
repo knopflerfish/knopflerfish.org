@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import java.net.URL;
 import java.util.*;
 
 
-/* Immutable Java representation of component description found in xml */
+/* Immutable Java representation of component description found in xml */ 
 public class ComponentDescription {
 
   final static int POLICY_OPTIONAL = 0;
@@ -346,7 +346,6 @@ public class ComponentDescription {
     String type = null;
     String name = null;
     Object val = null;
-    boolean isArray = true; // If the property values is an array or not
     ArrayList /* String */ values = new ArrayList();
 
     for (int i = 0; i < p.getAttributeCount(); i++) {
@@ -354,7 +353,6 @@ public class ComponentDescription {
         name = p.getAttributeValue(i);
       } else if (p.getAttributeName(i).equals("value")) {
         values.add(p.getAttributeValue(i));
-        isArray = false;
       } else if (p.getAttributeName(i).equals("type")) {
         for(int j = 0; j < supportedTypes.length ; j++){
           if (supportedTypes[j].equals(p.getAttributeValue(i))) {
@@ -394,7 +392,7 @@ public class ComponentDescription {
           firstChar = -1;
         } else if (!Character.isWhitespace(c)) {
           lastChar = i;
-        }
+        } 
       }
       if (firstChar >= 0) {
         values.add(text.substring(firstChar, lastChar + 1));
@@ -403,9 +401,9 @@ public class ComponentDescription {
 
     int len = values.size();
     if ("String".equals(type)) {
-      val = isArray ?  values.toArray(new String[len]) : values.get(0);
+      val = len != 1 ?  values.toArray(new String[len]) : values.get(0);
     } else if ("Boolean".equals(type)) {
-      if (!isArray) {
+      if (len == 1) {
         val = Boolean.valueOf((String)values.get(0));
       } else {
         boolean[] array = new boolean[len];
@@ -419,44 +417,44 @@ public class ComponentDescription {
       for (int i=0; i<len; i++) {
         array[i] = Byte.parseByte((String)values.get(i));
       }
-      val = isArray ? (Object) array : (Object) new Byte(array[0]);
+      val = len != 1 ? (Object) array : (Object) new Byte(array[0]);
     } else if ("Character".equals(type)) {
       char[] array = new char[len];
       for (int i=0; i<len; i++) {
         array[i] = ((String)values.get(i)).charAt(0);
         // Should we complain when more than one character
       }
-      val = isArray ? (Object) array : (Object) new Character(array[0]);
+      val = len != 1 ? (Object) array : (Object) new Character(array[0]);
     } else if ("Double".equals(type)) {
       double[] array = new double[len];
       for (int i=0; i<len; i++) {
         array[i] = Double.parseDouble((String)values.get(i));
       }
-      val = isArray ? (Object) array : (Object) new Double(array[0]);
+      val = len != 1 ? (Object) array : (Object) new Double(array[0]);
     } else if ("Float".equals(type)) {
       float[] array = new float[len];
       for (int i=0; i<len; i++) {
         array[i] = Float.parseFloat((String)values.get(i));
       }
-      val = isArray ? (Object) array : (Object) new Float(array[0]);
+      val = len != 1 ? (Object) array : (Object) new Float(array[0]);
     } else if ("Integer".equals(type)) {
       int[] array = new int[len];
       for (int i=0; i<len; i++) {
         array[i] = Integer.parseInt((String)values.get(i));
       }
-      val = isArray ? (Object) array : (Object) new Integer(array[0]);
+      val = len != 1 ? (Object) array : (Object) new Integer(array[0]);
     } else if ("Long".equals(type)) {
       long[] array = new long[len];
       for (int i=0; i<len; i++) {
         array[i] = Long.parseLong((String)values.get(i));
       }
-      val = isArray ? (Object) array : (Object) new Long(array[0]);
+      val = len != 1 ? (Object) array : (Object) new Long(array[0]);
     } else if ("Short".equals(type)) {
       short[] array = new short[len];
       for (int i=0; i<len; i++) {
         array[i] = Short.parseShort((String)values.get(i));
       }
-      val = isArray ? (Object) array : (Object) new Short(array[0]);
+      val = len != 1 ? (Object) array : (Object) new Short(array[0]);
     } else {
       throw new IllegalXMLException("Did not recognize \"" + type +
                                     "\" in property-tag.", p);

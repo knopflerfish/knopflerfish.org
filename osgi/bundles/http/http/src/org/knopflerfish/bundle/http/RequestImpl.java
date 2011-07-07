@@ -34,11 +34,12 @@
 package org.knopflerfish.bundle.http;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.Principal;
@@ -170,30 +171,23 @@ public class RequestImpl implements Request, PoolableObject {
       connection = getHeader("Proxy-Connection");
     }
 
-    String method = base.getMethod();
-    //TODO: OPTIONS and DELETE -> lengthKnown
-    boolean lengthKnown = method.equals(RequestBase.GET_METHOD)
-      || method.equals(RequestBase.HEAD_METHOD)
-      || available != -1;
-    if (lengthKnown) {
+    if (available != -1) {
       if (http_1_1) {
         if (!"Close".equals(connection)) {
+          base.getBody().setLimit(available);
           keepAlive = true;
         }
-      } else if ("Keep-Alive".equals(connection)) {
+      } else {
+        if ("Keep-Alive".equals(connection)) {
+          base.getBody().setLimit(available);
           keepAlive = true;
-      }
-    }
-    
-    if (available != -1) {
-      if (keepAlive) {
-        base.getBody().setLimit(available);        
-      } else if (!http_1_1) {
-        // perhaps not according to spec, but works better :)
-        base.getBody().setLimit(available);                
+        } else {
+          // perhaps not according to spec, but works better :)
+          base.getBody().setLimit(available);
+        }
       }
     } else {
-      if (method.equals(RequestBase.POST_METHOD)) {
+      if (base.getMethod().equals(RequestBase.POST_METHOD)) {
         String transfer_encoding = getHeader(HeaderBase.TRANSFER_ENCODING_KEY);
         if(HeaderBase.TRANSFER_ENCODING_VALUE_CHUNKED.equals(transfer_encoding)) {
           // Handle chunked body the by reading every chunk and creating

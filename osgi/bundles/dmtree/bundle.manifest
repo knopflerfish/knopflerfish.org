@@ -7,11 +7,9 @@ Bundle-Category: API
 Bundle-Description: DMT Admin API
 Bundle-Vendor: OSGi
 Bundle-APIVendor: osgi
+Bundle-DocURL: http://www.knopflerfish.org
 Bundle-ContactAddress: http://www.knopflerfish.org
-Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
- /index.html
-Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
- /osgi/bundles/dmtree/
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
 Export-Package: info.dmtree ; version="1.0.1",
  info.dmtree.spi ; version="1.0",
  info.dmtree.notification ; version="1.0",

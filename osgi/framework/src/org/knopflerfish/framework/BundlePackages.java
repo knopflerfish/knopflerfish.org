@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,39 +34,50 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.osgi.framework.*;
 
+
 /**
  * Class representing all packages imported and exported.
- * 
+ *
  * @author Jan Stein
  * @author Mats-Ola Persson
  * @author Gunnar Ekolin
  */
 class BundlePackages {
 
-  final BundleGeneration bg;
+  final BundleImpl bundle;
+
+  final int generation;
+
+  private ClassLoader classLoader = null;
 
   /* Sorted list of exports */
-  private ArrayList /* ExportPkg */exports = new ArrayList(1);
+  private ArrayList /* ExportPkg */ exports = new ArrayList(1);
 
   /* Sorted list of imports */
-  private ArrayList /* ImportPkg */imports = new ArrayList(1);
+  private ArrayList /* ImportPkg */ imports = new ArrayList(1);
 
-  private ArrayList /* String */dImportPatterns = new ArrayList(1);
+  private ArrayList /* String */ dImportPatterns = new ArrayList(1);
 
-  private TreeMap /* BundleGeneration -> BundlePackages */fragments = null;
+  private HashMap /* BundlePackages -> {List(Required),List(ExportPkg),List(ImportPkg)} */ fragments = null;
 
   /* List of RequireBundle entries. */
-  private ArrayList /* RequireBundle */require;
+  ArrayList /* RequireBundle */ require;
 
   /* List of BundlePackages that require us. */
-  private ArrayList /* BundlePackages */requiredBy = null;
+  ArrayList /* BundlePackages */ requiredBy = null;
 
   /* Sorted list of active imports */
-  private ArrayList /* ImportPkg */okImports = null;
+  private ArrayList /* ImportPkg */ okImports = null;
 
   /* Is our packages registered */
   private boolean registered = false;
@@ -76,17 +87,19 @@ class BundlePackages {
 
   final static String EMPTY_STRING = "";
 
-
   /**
    * Create package entry.
    */
-  BundlePackages(BundleGeneration bg) {
-    this.bg = bg;
-    final BundleArchive ba = bg.archive;
+  BundlePackages(BundleImpl b,
+                 int gen,
+                 String exportStr,
+                 String importStr,
+                 String dimportStr,
+                 String requireStr) {
+    this.bundle = b;
+    this.generation = gen;
 
-    Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE,
-                                   ba.getAttribute(Constants.IMPORT_PACKAGE),
-                                   false, true, false);
+    Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE, importStr, false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
       Iterator pi = ((List)e.remove("$keys")).iterator();
@@ -106,9 +119,7 @@ class BundlePackages {
       }
     }
 
-    i = Util.parseEntries(Constants.EXPORT_PACKAGE,
-                          ba.getAttribute(Constants.EXPORT_PACKAGE),
-                          false, true, false);
+    i = Util.parseEntries(Constants.EXPORT_PACKAGE, exportStr, false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
       Iterator pi = ((List)e.remove("$keys")).iterator();
@@ -116,7 +127,7 @@ class BundlePackages {
       for (;;) {
         int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
         exports.add(ei, ep);
-        if (!bg.v2Manifest) {
+        if (!b.v2Manifest) {
           ImportPkg ip = new ImportPkg(ep);
           int ii = Util.binarySearch(imports, ipComp, ip);
           if (ii < 0) {
@@ -131,9 +142,7 @@ class BundlePackages {
       }
     }
 
-    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE,
-                          ba.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
-                          false, true, false);
+    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE, dimportStr, false, true, false);
     while (i.hasNext()) {
       Map e = (Map)i.next();
       if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
@@ -143,7 +152,7 @@ class BundlePackages {
                                            " directive.");
       }
       ImportPkg tmpl = null;
-      for (Iterator pi = ((List)e.remove("$keys")).iterator(); pi.hasNext();) {
+      for (Iterator pi = ((List)e.remove("$keys")).iterator(); pi.hasNext(); ) {
         String key = (String)pi.next();
         if (key.equals("*")) {
           key = EMPTY_STRING;
@@ -152,7 +161,7 @@ class BundlePackages {
         } else if (key.endsWith(".")) {
           throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
                                              " entry ends with '.': " + key);
-        } else if (key.indexOf("*") != -1) {
+        } else if (key.indexOf("*") != - 1) {
           throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
                                            " entry contains a '*': " + key);
         }
@@ -164,9 +173,7 @@ class BundlePackages {
         }
       }
     }
-    i = Util.parseEntries(Constants.REQUIRE_BUNDLE,
-                          ba.getAttribute(Constants.REQUIRE_BUNDLE),
-                          true, true, false);
+    i = Util.parseEntries(Constants.REQUIRE_BUNDLE, requireStr, true, true, false);
     if (i.hasNext()) {
       require = new ArrayList();
       do {
@@ -186,122 +193,23 @@ class BundlePackages {
 
 
   /**
-   * Create package entry used by system bundle.
-   */
-  BundlePackages(BundleGeneration bg, String exportString) {
-    this.bg = bg;
-
-    Iterator i = Util.parseEntries(Constants.EXPORT_PACKAGE,
-                                   exportString, false, true, false);
-    while (i.hasNext()) {
-      Map e = (Map)i.next();
-      Iterator pi = ((List)e.remove("$keys")).iterator();
-      ExportPkg ep = new ExportPkg((String)pi.next(), e, this);
-      for (;;) {
-        int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
-        exports.add(ei, ep);
-        if (!bg.v2Manifest) {
-          ImportPkg ip = new ImportPkg(ep);
-          int ii = Util.binarySearch(imports, ipComp, ip);
-          if (ii < 0) {
-            imports.add(-ii - 1, ip);
-          }
-        }
-        if (pi.hasNext()) {
-          ep = new ExportPkg(ep, (String)pi.next());
-        } else {
-          break;
-        }
-      }
-    }
-    require = null;
-  }
-
-
-  /**
-   * Create package entry used to clone fragment bundle.
-   */
-  BundlePackages(BundlePackages host, BundlePackages frag) {
-    this.bg = host.bg;
-
-    /*
-     * make sure that the fragment's bundle does not conflict with this bundle's
-     * (see 3.1.4 r4-core)
-     */
-    for (Iterator iiter = frag.getImports(); iiter.hasNext();) {
-      ImportPkg fip = (ImportPkg)iiter.next();
-      ImportPkg ip = host.getImport(fip.name);
-
-      if (ip != null) {
-        if (!fip.intersect(ip)) {
-          throw new IllegalStateException(
-              "Host bundle import package and fragment bundle " +
-                  "import package doesn't intersect so a resolve isn't possible.");
-        }
-      }
-      imports.add(new ImportPkg(fip, this));
-    }
-
-    if (frag.require != null) {
-      require = new ArrayList();
-      for (Iterator iter = frag.require.iterator(); iter.hasNext();) {
-        RequireBundle fragReq = (RequireBundle)iter.next();
-        boolean match = false;
-
-        if (require != null) {
-          // check for conflicts
-          for (Iterator iter2 = host.require.iterator(); iter2.hasNext();) {
-            RequireBundle req = (RequireBundle)iter2.next();
-            if (fragReq.name.equals(req.name)) {
-              if (fragReq.overlap(req)) {
-                match = true;
-              } else {
-                throw new IllegalStateException(
-                    "Fragment bundle required bundle doesn't completely " +
-                        "overlap required bundle in host bundle.");
-              }
-            }
-          }
-        }
-        if (!match) {
-          if (bg.bundle.state != Bundle.INSTALLED) {
-            throw new IllegalStateException("Can not attach a fragment with new required " +
-                                            "bundles to a resolved host");
-          }
-          require.add(new RequireBundle(fragReq, this));
-        }
-      }
-    } else {
-      require = null;
-    }
-    for (Iterator eiter = frag.getExports(); eiter.hasNext();) {
-      ExportPkg fep = (ExportPkg)eiter.next();
-      ExportPkg hep = getExport(fep.name);
-      if (fep.pkgEquals(hep)) {
-        continue;
-      }
-      exports.add(new ExportPkg(fep, this));
-    }
-  }
-
-
-  /**
    * Register bundle packages in framework.
-   * 
+   *
    */
   void registerPackages() {
-    bg.bundle.fwCtx.packages.registerPackages(exports.iterator(), imports.iterator());
+    bundle.fwCtx.packages.registerPackages(exports.iterator(), imports.iterator());
     registered = true;
   }
 
 
   /**
    * Unregister bundle packages in framework.
-   * 
+   *
    */
   synchronized boolean unregisterPackages(boolean force) {
     if (registered) {
-      if (bg.bundle.fwCtx.packages.unregisterPackages(getExports(), getImports(), force)) {
+      List i = okImports != null ? okImports : imports;
+      if (bundle.fwCtx.packages.unregisterPackages(exports, i, force)) {
         okImports = null;
         registered = false;
         unRequireBundles();
@@ -316,19 +224,18 @@ class BundlePackages {
 
   /**
    * Resolve all the bundles' packages.
-   * 
-   * @return true if we resolved all packages. If we failed return false. Reason
-   *         for fail can be fetched with getResolveFailReason().
+   *
+   * @return true if we resolved all packages. If we failed
+   *         return false. Reason for fail can be fetched with
+   *         getResolveFailReason().
    */
   boolean resolvePackages() {
-    failReason = bg.bundle.fwCtx.packages.resolve(bg.bundle, getImports());
+    failReason = bundle.fwCtx.packages.resolve(bundle, imports.iterator());
     if (failReason == null) {
-      // TBD, Perhaps we should use complete size here
       okImports = new ArrayList(imports.size());
-      for (Iterator i = getImports(); i.hasNext();) {
+      for (Iterator i = imports.iterator(); i.hasNext(); ) {
         ImportPkg ip = (ImportPkg)i.next();
-        if (ip.provider != null) { // <=> optional import with unresolved
-                                   // provider
+        if (ip.provider != null) { // <=> optional import with unresolved provider
           okImports.add(ip);
         }
       }
@@ -341,7 +248,7 @@ class BundlePackages {
 
   /**
    * Return a string with a reason for why resolve failed.
-   * 
+   *
    * @return A error message string.
    */
   String getResolveFailReason() {
@@ -350,15 +257,15 @@ class BundlePackages {
 
 
   /**
-   * If bundle package has been resolved look for a BundlePackages that provides
-   * the requested package.
-   * 
+   * If bundle package has been resolved look for a BundlePackages
+   * that provides the requested package.
+   *
    * @param pkg Package name
    * @return BundlePackages exporting the pkg.
    */
   synchronized BundlePackages getProviderBundlePackages(String pkg) {
-    if (bg.bundle instanceof SystemBundle) {
-      return isExported(pkg) ? this : null;
+    if (bundle instanceof SystemBundle) {
+      return (getExport(pkg) != null) ? this : null;
     }
     if (okImports == null) {
       return null;
@@ -372,9 +279,9 @@ class BundlePackages {
 
 
   /**
-   * Check if we can dynamically import a package. Re-check that we haven't
-   * gotten a provider. (Do we need to do that?)
-   * 
+   * Check if we can dynamically import a package. Re-check
+   * that we haven't gotten a provider. (Do we need to do that?)
+   *
    * @param pkg Package name
    * @return Bundle exporting
    */
@@ -386,13 +293,13 @@ class BundlePackages {
     if (ii >= 0) {
       return ((ImportPkg)okImports.get(ii)).provider.bpkgs;
     }
-    for (Iterator i = dImportPatterns.iterator(); i.hasNext();) {
+    for (Iterator i = dImportPatterns.iterator(); i.hasNext(); ) {
       ImportPkg ip = (ImportPkg)i.next();
       if (ip.name == EMPTY_STRING ||
           (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
           pkg.equals(ip.name)) {
         ImportPkg nip = new ImportPkg(ip, pkg);
-        ExportPkg ep = bg.bundle.fwCtx.packages.registerDynamicImport(nip);
+        ExportPkg ep = bundle.fwCtx.packages.registerDynamicImport(nip);
         if (ep != null) {
           nip.provider = ep;
           okImports.add(-ii - 1, nip);
@@ -405,57 +312,25 @@ class BundlePackages {
 
 
   /**
-   * Get a list of all BundlePackages that exports package <code>pkg</code> that
-   * comes from bundles that we have required, in correct order. Correct order
-   * is a depth first search order.
-   * 
-   * @param pkg String with package name we are searching for, if null get all.
-   * @return List of required BundlePackages or null we don't require any
-   *         bundles.
-   */
-  Iterator getRequire() {
-    if (fragments != null) {
-      synchronized (fragments) {
-        ArrayList iters = new ArrayList(fragments.size() + 1);
-        if (require != null) {
-          iters.add(require.iterator());
-        }
-        for (Iterator i = fragments.values().iterator(); i.hasNext();) {
-          Iterator fi = ((BundlePackages)i.next()).getRequire();
-          if (fi != null) {
-            iters.add(fi);
-          }
-        }
-        return iters.isEmpty() ? null : new IteratorIterator(iters);
-      }
-    } else if (require != null) {
-      return require.iterator();
-    } else {
-      return null;
-    }
-  }
-
-
-  /**
-   * Get a list of all BundlePackages that exports package <code>pkg</code> that
-   * comes from bundles that we have required, in correct order. Correct order
-   * is a depth first search order.
-   * 
-   * @param pkg String with package name we are searching for, if null get all.
-   * @return List of required BundlePackages or null we don't require any
-   *         bundles.
+   * Get a list of all BundlePackages that exports package <code>pkg</code>
+   * that comes from bundles that we have required, in correct order.
+   * Correct order is a depth first search order.
+   *
+   * @param pkg String with package name we are searching for.
+   * @return List of required BundlePackages or null we don't require any bundles.
    */
   ArrayList getRequiredBundlePackages(String pkg) {
-    Iterator i = getRequire();
-    if (i != null) {
-      ArrayList res = new ArrayList(2);
-      do {
+    if (require != null) {
+      ArrayList res = new ArrayList();
+      for (Iterator i = require.iterator(); i.hasNext(); ) {
         RequireBundle rb = (RequireBundle)i.next();
-        if (rb.bpkgs != null && rb.bpkgs.isExported(pkg)) {
+        if (rb.bpkgs != null && rb.bpkgs.getExport(pkg) != null) {
           res.add(rb.bpkgs);
         }
-      } while (i.hasNext());
-      return res.isEmpty() ? null : res;
+      }
+      if (!res.isEmpty()) {
+        return res;
+      }
     }
     return null;
   }
@@ -463,20 +338,7 @@ class BundlePackages {
 
   /**
    * Check if this BundlePackages is required by another Bundle.
-   * 
-   * @return True if is required
-   */
-  void addRequiredBy(BundlePackages r) {
-    if (requiredBy == null) {
-      requiredBy = new ArrayList();
-    }
-    requiredBy.add(r);
-  }
-
-
-  /**
-   * Check if this BundlePackages is required by another Bundle.
-   * 
+   *
    * @return True if is required
    */
   boolean isRequired() {
@@ -485,44 +347,41 @@ class BundlePackages {
 
 
   /**
-   * Get a list of all BundlePackages that requires the exported packages that
-   * comes from the bundle owning this object.
-   * 
+   * Get a list of all BundlePackages that requires the exported packages
+   * that comes from the bundle owning this object.
+   *
    * @return List of required BundlePackages
    */
   List getRequiredBy() {
     if (requiredBy != null) {
-      if (fragments != null) {
-        ArrayList res = new ArrayList();
-        synchronized (requiredBy) {
-          res.addAll(requiredBy);
-        }
-        synchronized (fragments) {
-          for (Iterator i = fragments.values().iterator(); i.hasNext();) {
-            List fl = ((BundlePackages)i.next()).getRequiredBy();
-            if (fl != null) {
-              res.addAll(fl);
-            }
-          }
-        }
-        return res;
-      } else {
-        synchronized (requiredBy) {
-          return (List)requiredBy.clone();
-        }
-      }
+      return (List)requiredBy.clone();
     }
-    return Collections.EMPTY_LIST;
+    return new ArrayList(0);
   }
 
 
   /**
+   * Remove this bundle packages from the requiredBy list in the
+   * wired required bundle package.
+   */
+  private void unRequireBundles()
+  {
+    if (require != null) {
+      for (Iterator iter=require.iterator(); iter.hasNext(); ) {
+        RequireBundle req = (RequireBundle) iter.next();
+        if (null!=req.bpkgs && null!=req.bpkgs.requiredBy) {
+          req.bpkgs.requiredBy.remove(this);
+        }
+      }
+    }
+  }
+
+  /**
    * Check if package needs to be added as re-exported package.
-   * 
+   *
    * @param ep ExportPkg to re-export.
    */
   void checkReExport(ExportPkg ep) {
-    // NYI. Rework this solution and include fragments
     int i = Util.binarySearch(exports, epFind, ep.name);
     if (i < 0) {
       ExportPkg nep = new ExportPkg(ep, this);
@@ -535,10 +394,10 @@ class BundlePackages {
 
   /**
    * Get ExportPkg for exported package.
-   * 
+   *
    * @return ExportPkg entry or null if package is not exported.
    */
-  private ExportPkg getExport(String pkg) {
+  ExportPkg getExport(String pkg) {
     int i = Util.binarySearch(exports, epFind, pkg);
     if (i >= 0) {
       return (ExportPkg)exports.get(i);
@@ -550,230 +409,19 @@ class BundlePackages {
 
   /**
    * Get an iterator over all exported packages.
-   * 
+   *
    * @return An Iterator over ExportPkg.
    */
   Iterator getExports() {
-    if (fragments != null) {
-      synchronized (fragments) {
-        ArrayList iters = new ArrayList(fragments.size() + 1);
-        iters.add(exports.iterator());
-        for (Iterator i = fragments.values().iterator(); i.hasNext();) {
-          iters.add(((BundlePackages)i.next()).getExports());
-        }
-        return new IteratorIterator(iters);
-      }
-    } else {
-      return exports.iterator();
-    }
+    return exports.iterator();
   }
 
-
-  /**
-   * Get an iterator over all exported packages with specific name.
-   * 
-   * @return An Iterator over ExportPkg.
-   */
-  Iterator getExports(String pkg) {
-    ArrayList res = new ArrayList(2);
-    ExportPkg ep = getExport(pkg);
-    if (ep != null) {
-      res.add(ep);
-    }
-    if (fragments != null) {
-      synchronized (fragments) {
-        for (Iterator i = fragments.values().iterator(); i.hasNext();) {
-          ep = ((BundlePackages)i.next()).getExport(pkg);
-          if (ep != null) {
-            res.add(ep);
-          }
-        }
-      }
-    }
-    return res.isEmpty() ? null : res.iterator();
-  }
-
-
-  /**
-   * Check if this packaged is exported
-   */
-  boolean isExported(String pkg) {
-    if (getExport(pkg) != null) {
-      return true;
-    }
-    if (fragments != null) {
-      synchronized (fragments) {
-        for (Iterator i = fragments.values().iterator(); i.hasNext();) {
-          if (((BundlePackages)i.next()).getExport(pkg) != null) {
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-
-  /**
-   * Get an iterator over all static imported packages.
-   * 
-   * @return An Iterator over ImportPkg.
-   */
-  Iterator getImports() {
-    if (fragments != null) {
-      synchronized (fragments) {
-        ArrayList iters = new ArrayList(fragments.size() + 1);
-        iters.add(imports.iterator());
-        for (Iterator i = fragments.values().iterator(); i.hasNext();) {
-          iters.add(((BundlePackages)i.next()).getImports());
-        }
-        return new IteratorIterator(iters);
-      }
-    } else {
-      return imports.iterator();
-    }
-  }
-
-
-  /**
-   * Get an iterator over all active imported packages.
-   * 
-   * @return An Iterator over ImportPkg.
-   */
-  Iterator getActiveImports() {
-    if (okImports != null) {
-      return okImports.iterator();
-    } else {
-      // This is fragment BP, use host
-      return bg.bpkgs.getActiveImports();
-    }
-  }
-
-
-  /**
-   * Get class loader for these packages.
-   * 
-   * @return ClassLoader handling these packages.
-   */
-  ClassLoader getClassLoader() {
-    return bg.getClassLoader();
-  }
-
-
-  /**
-   * Is these packages registered in the Packages object.
-   * 
-   * @return True if packages are registered otherwise false.
-   */
-  boolean isRegistered() {
-    return registered;
-  }
-
-
-  /**
-   * Attach a fragment bundle packages.
-   * 
-   * @param fbpkgs The BundlePackages of the fragment to be attached.
-   * @return null if okay, otherwise a String with fail reason.
-   */
-  String attachFragment(BundlePackages fbpkgs) {
-    // TBD, should we lock this?!
-    BundlePackages nfbpkgs = new BundlePackages(this, fbpkgs);
-    nfbpkgs.registerPackages();
-    if (okImports != null) {
-      failReason = bg.bundle.fwCtx.packages.resolve(bg.bundle, nfbpkgs.getImports());
-      if (failReason == null) {
-        for (Iterator i = nfbpkgs.getImports(); i.hasNext();) {
-          ImportPkg ip = (ImportPkg)i.next();
-          if (ip.provider != null) { // <=> optional import with unresolved
-                                     // provider
-            okImports.add(ip);
-          }
-        }
-      } else {
-        nfbpkgs.unregisterPackages(true);
-        return failReason;
-      }
-    }
-    if (fragments == null) {
-      fragments = new TreeMap();
-    }
-    fragments.put(fbpkgs.bg, nfbpkgs);
-    return null;
-  }
-
-
-  /**
-   * An attached fragment is now a zombie since it have been updated or
-   * uninstalled. Mark all packages exported by this host as zombies, since
-   * their contents may have changed.
-   * 
-   * @param fb The fragment bundle that have been updated or uninstalled.
-   */
-  void fragmentIsZombie(BundleImpl fb) {
-    if (null != exports) {
-      if (bg.bundle.fwCtx.debug.packages) {
-        bg.bundle.fwCtx.debug.println("Marking all packages exported by host bundle(id="
-                                      + bg.bundle.id + ",gen=" + bg.generation
-                                      + ") as zombies since the attached fragment (id="
-                                      + fb.getBundleId() + ") was updated/uninstalled.");
-      }
-      for (Iterator eiter = exports.iterator(); eiter.hasNext();) {
-        ((ExportPkg)eiter.next()).zombie = true;
-      }
-    }
-  }
-
-
-  /**
-   * Detach a fragment bundle's packages.
-   * 
-   * I.e., unregister and remove the fragments import / exports from the set of
-   * packages that are imported / exported by this bundle packages.
-   * 
-   * If this bundle packages is resolved, do nothing since in that case must not
-   * change the set of imports and exports.
-   * 
-   * @param fb The fragment bundle to detach.
-   */
-  void detachFragment(BundleGeneration fbg) {
-    synchronized (fragments) {
-      detachFragment(fbg, true);
-    }
-  }
-
-
-  /**
-   * Sets these packages registered in the Packages object.
-   * 
-   * @return True if packages are registered otherwise false.
-   */
-  void unregister() {
-    registered = false;
-    unRequireBundles();
-  }
-
-
-  /**
-   * Return a string representing this objet
-   * 
-   * @return A message string.
-   */
-  public String toString() {
-    return "BundlePackages(id=" + bg.bundle.id + ",gen=" + bg.generation + ")";
-  }
-
-
-  //
-  // Private methods
-  //
 
   /**
    * Get a specific import
-   * 
    * @return an import
    */
-  private ImportPkg getImport(String pkg) {
+  ImportPkg getImport(String pkg) {
     int i = Util.binarySearch(imports, ipFind, pkg);
     if (i >= 0) {
       return (ImportPkg)imports.get(i);
@@ -784,29 +432,282 @@ class BundlePackages {
 
 
   /**
-   * Remove this bundle packages from the requiredBy list in the wired required
-   * bundle package.
+   * Get an iterator over all static imported packages.
+   *
+   * @return An Iterator over ImportPkg.
    */
-  private void unRequireBundles() {
-    if (require != null) {
-      for (Iterator iter = require.iterator(); iter.hasNext();) {
-        RequireBundle req = (RequireBundle)iter.next();
-        if (null != req.bpkgs && null != req.bpkgs.requiredBy) {
-          req.bpkgs.requiredBy.remove(this);
+  Iterator getImports() {
+    return imports.iterator();
+  }
+
+
+  /**
+   * Get an iterator over all active imported packages.
+   *
+   * @return An Iterator over ImportPkg.
+   */
+  Iterator getActiveImports() {
+    return okImports.iterator();
+  }
+
+
+  /**
+   * Get class loader for these packages.
+   *
+   * @return ClassLoader handling these packages.
+   */
+  ClassLoader getClassLoader() {
+    if (classLoader == null) {
+      classLoader = bundle.getClassLoader(this);
+    }
+    return classLoader;
+  }
+
+
+  /**
+   * Invalidate class loader for these packages.
+   *
+   */
+  void invalidateClassLoader() {
+    classLoader = null;
+  }
+
+
+  /**
+   * Is these packages registered in the Packages object.
+   *
+   * @return True if packages are registered otherwise false.
+   */
+  boolean isRegistered() {
+    return registered;
+  }
+
+
+  /**
+   * Attach a fragment bundle packages.
+   *
+   * @param fbpkgs The BundlePackages of the fragment to be attached.
+   * @return null if okay, otherwise a String with fail reason.
+   */
+  String attachFragment(BundlePackages fbpkgs) {
+    if (fragments == null) {
+      fragments = new HashMap();
+    } else if (fragments.containsKey(fbpkgs.bundle)) {
+      throw new RuntimeException("Fragments packages already attached: "
+                                 +fbpkgs);
+    }
+
+    /* make sure that the fragment's bundle does not
+       conflict with this bundle's (see 3.1.4 r4-core) */
+    for (Iterator iiter = fbpkgs.getImports(); iiter.hasNext(); ) {
+      ImportPkg fip = (ImportPkg)iiter.next();
+      ImportPkg ip = getImport(fip.name);
+
+      if (ip == null && bundle.state != Bundle.INSTALLED) {
+        return "Can not dynamicly attach, because host has no import for: "
+          +fip;
+      }
+
+      if (ip != null) {
+        if (!fip.overlap(ip)) {
+          return "Host bundle import package constraints need to be stricter " +
+            "then the import package contraints in the attaching fragment.";
         }
       }
     }
+
+    ArrayList newRequired = new ArrayList();
+    if (fbpkgs.require != null) {
+      for (Iterator iter = fbpkgs.require.iterator(); iter.hasNext(); ) {
+        RequireBundle fragReq = (RequireBundle)iter.next();
+        boolean match = false;
+
+        if (require != null) {
+          // check for conflicts
+          for (Iterator iter2 = require.iterator(); iter2.hasNext(); ) {
+            RequireBundle req = (RequireBundle)iter2.next();
+            if (fragReq.name.equals(req.name)) {
+              if (fragReq.overlap(req)) {
+                match = true;
+              } else {
+                return "Fragment bundle required bundle does not completely "
+                  +"overlap required bundle in host bundle.";
+              }
+            }
+          }
+        }
+        if (!match) {
+          if (bundle.state != Bundle.INSTALLED) {
+            return "Can not attach a fragment with new required bundles to "
+              +"a resolved host";
+          }
+          newRequired.add(new RequireBundle(this,fragReq));
+        }
+      }
+    }
+    Iterator riter = newRequired.iterator();
+    if (riter.hasNext()) {
+      // Must insert the new required bundles right before the first
+      // one contributed by a fragment with id > fbpkgs.bundle.id if any
+      if (require == null) {
+        require = new ArrayList();
+      }
+      int rpos = require.size(); // Append
+
+      if (null!=bundle.fragments) {
+        int i = 0;
+        for (; i<bundle.fragments.size(); i++) {
+          BundleImpl b = (BundleImpl) bundle.fragments.get(i);
+          if (b.id > fbpkgs.bundle.id) {
+            break;
+          }
+        }
+        for (; i<bundle.fragments.size(); i++) {
+          BundleImpl b = (BundleImpl)bundle.fragments.get(i);
+          List[] added = (List[]) fragments.get(b);
+          if (null!=added && added[0].size()>0) {
+            rpos = require.indexOf(added[0].get(0));
+            break;
+          }
+        }
+      }
+      do {
+        require.add(rpos++,(RequireBundle)riter.next());
+      } while (riter.hasNext());
+    }
+
+    ArrayList newExports = new ArrayList();
+  eloop:
+    for (Iterator eiter = fbpkgs.getExports(); eiter.hasNext(); ) {
+      ExportPkg fep = (ExportPkg) eiter.next();
+      int ei = Util.binarySearch(exports, epComp, fep);
+      if (ei < 0) {
+        ei = -ei - 1;
+      } else {
+        for (int i = ei - 1; i >= 0; i--) {
+          ExportPkg t = (ExportPkg)exports.get(i);
+          if (!fep.name.equals(t.name)) {
+            break;
+          }
+          if (fep.pkgEquals(t)) {
+            continue eloop;
+          }
+        }
+        for (int i = ei; i < exports.size(); i++) {
+          ExportPkg t = (ExportPkg)exports.get(i);
+          if (!fep.name.equals(t.name)) {
+            break;
+          }
+          if (fep.pkgEquals(t)) {
+            continue eloop;
+          }
+        }
+      }
+      ExportPkg tmp = new ExportPkg(fep, this);
+      newExports.add(tmp);
+      exports.add(ei, tmp);
+    }
+
+    ArrayList newImports = new ArrayList();
+    for (Iterator iiter = fbpkgs.getImports(); iiter.hasNext(); ) {
+      ImportPkg fip = (ImportPkg)iiter.next();;
+      int ii = Util.binarySearch(imports, ipComp, fip);
+      if (ii < 0) {
+        ImportPkg tmp = new ImportPkg(fip, this);
+        imports.add(-ii - 1, tmp);
+        newImports.add(tmp);
+      }
+    }
+
+    bundle.fwCtx.packages.registerPackages(newExports.iterator(),
+                                               newImports.iterator());
+    fragments.put(fbpkgs.bundle,
+                  new ArrayList [] { newRequired, newExports, newImports });
+    return null;
   }
 
+
+  /**
+   * An attached fragment is now a zombie since it have been updated
+   * or uninstalled. Mark all packages exported by this host as
+   * zombies, since their contents may have changed.
+   *
+   * @param fb The fragment bundle that have been updated or uninstalled.
+   */
+  void fragmentIsZombie(BundleImpl fb)
+  {
+    if (null!=exports) {
+      if(bundle.fwCtx.debug.packages) {
+        bundle.fwCtx.debug.println("Marking all packages exported by host bundle(id="
+                                   +bundle.id +",gen=" +generation
+                                   +") as zombies since the attached fragment (id="
+                                   +fb.getBundleId() +") was updated/uninstalled.");
+      }
+      for (Iterator eiter = exports.iterator(); eiter.hasNext(); ) {
+        ((ExportPkg)eiter.next()).zombie = true;
+      }
+    }
+  }
 
   /**
    * Detach all remaining fragments.
    */
   private void detachFragments() {
-    if (fragments != null) {
-      synchronized (fragments) {
-        while (!fragments.isEmpty()) {
-          detachFragment((BundleGeneration)fragments.lastKey(), false);
+    if (fragments!=null) {
+      Set fbs = new HashSet(fragments.keySet());
+      for (Iterator fbIt = fbs.iterator(); fbIt.hasNext();) {
+        BundleImpl fb = (BundleImpl) fbIt.next();
+        detachFragment(fb,false);
+      }
+    }
+  }
+
+  /**
+   * Detach a fragment bundle's packages.
+   *
+   * I.e., unregister and remove the fragments import / exports from
+   * the set of packages that are imported / exported by this bundle
+   * packages.
+   *
+   * If this bundle packages is resolved, do nothing since in that
+   * case must not change the set of imports and exports.
+   *
+   * @param fb The fragment bundle to detach.
+   */
+  void detachFragment(BundleImpl fb) {
+    detachFragment(fb, true);
+  }
+
+
+  /**
+   * Detach a fragment bundle's packages.
+   *
+   * I.e., unregister and remove the fragments import / exports from
+   * the set of packages that are imported / exported by this bundle
+   * packages.
+   *
+   * If this bundle packages is resolved, do nothing since in that
+   * case must not change the set of imports and exports.
+   *
+   * @param fb         The fragment bundle to detach.
+   * @param unregister Unregister the imports and exports of the
+   *                   specified fragment.
+   */
+  private void detachFragment(BundleImpl fb, boolean unregister) {
+    if (null==okImports) {
+      List [] added = (List [])fragments.remove(fb);
+      if (null!=added) {
+        for (Iterator riter = added[0].iterator(); riter.hasNext(); ) {
+          require.remove(riter.next());
+        }
+        for (Iterator eiter = added[1].iterator(); eiter.hasNext(); ) {
+          exports.remove(eiter.next());
+        }
+        for (Iterator iiter = added[2].iterator(); iiter.hasNext(); ) {
+          imports.remove(iiter.next());
+        }
+        if (unregister) {
+          bundle.fwCtx.packages.unregisterPackages(added[1], added[2],true);
         }
       }
     }
@@ -814,103 +715,84 @@ class BundlePackages {
 
 
   /**
-   * Detach a fragment bundle's packages.
-   * 
-   * I.e., unregister and remove the fragments import / exports from the set of
-   * packages that are imported / exported by this bundle packages.
-   * 
-   * If this bundle packages is resolved, do nothing since in that case must not
-   * change the set of imports and exports.
-   * 
-   * Note! Must be called with fragments locked.
-   * 
-   * @param fb The fragment bundle to detach.
-   * @param unregisterPkg Unregister the imports and exports of the specified
-   *          fragment.
+   * Return a string representing this objet
+   *
+   * @return A message string.
    */
-  private void detachFragment(final BundleGeneration fbg, final boolean unregisterPkg) {
-    if (null == okImports) {
-      BundlePackages fbpkgs = (BundlePackages)fragments.remove(fbg);
-      if (fbpkgs != null) {
-        if (unregisterPkg) {
-          fbpkgs.unregisterPackages(true);
-        } else {
-          fbpkgs.unregister();
-        }
-      }
-    }
+  public String toString() {
+    return "BundlePackages(id=" + bundle.id + ",gen=" + generation + ")";
   }
 
   //
-  // Pkg Comparators
+  // Private methods
   //
 
   static final Util.Comparator epComp = new Util.Comparator() {
-    /**
-     * Name compare two ExportPkg objects.
-     * 
-     * @param oa Object to compare.
-     * @param ob Object to compare.
-     * @return Return 0 if equals, negative if first object is less than second
-     *         object and positive if first object is larger then second object.
-     * @exception ClassCastException if object is not a ExportPkg object.
-     */
-    public int compare(Object oa, Object ob) throws ClassCastException {
-      ExportPkg a = (ExportPkg)oa;
-      ExportPkg b = (ExportPkg)ob;
-      return a.name.compareTo(b.name);
-    }
-  };
+      /**
+       * Name compare two ExportPkg objects.
+       *
+       * @param oa Object to compare.
+       * @param ob Object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ExportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ExportPkg a = (ExportPkg)oa;
+        ExportPkg b = (ExportPkg)ob;
+        return a.name.compareTo(b.name);
+      }
+    };
 
   static final Util.Comparator epFind = new Util.Comparator() {
-    /**
-     * Name compare ExportPkg object with String object.
-     * 
-     * @param oa ExportPkg object to compare.
-     * @param ob String object to compare.
-     * @return Return 0 if equals, negative if first object is less than second
-     *         object and positive if first object is larger then second object.
-     * @exception ClassCastException if object is not a ExportPkg object.
-     */
-    public int compare(Object oa, Object ob) throws ClassCastException {
-      ExportPkg a = (ExportPkg)oa;
-      String b = (String)ob;
-      return a.name.compareTo(b);
-    }
-  };
+      /**
+       * Name compare ExportPkg object with String object.
+       *
+       * @param oa ExportPkg object to compare.
+       * @param ob String object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ExportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ExportPkg a = (ExportPkg)oa;
+        String b = (String)ob;
+        return a.name.compareTo(b);
+      }
+    };
 
   static final Util.Comparator ipComp = new Util.Comparator() {
-    /**
-     * Name compare two ImportPkg objects.
-     * 
-     * @param oa Object to compare.
-     * @param ob Object to compare.
-     * @return Return 0 if equals, negative if first object is less than second
-     *         object and positive if first object is larger then second object.
-     * @exception ClassCastException if object is not a ImportPkg object.
-     */
-    public int compare(Object oa, Object ob) throws ClassCastException {
-      ImportPkg a = (ImportPkg)oa;
-      ImportPkg b = (ImportPkg)ob;
-      return a.name.compareTo(b.name);
-    }
-  };
+      /**
+       * Name compare two ImportPkg objects.
+       *
+       * @param oa Object to compare.
+       * @param ob Object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ImportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ImportPkg a = (ImportPkg)oa;
+        ImportPkg b = (ImportPkg)ob;
+        return a.name.compareTo(b.name);
+      }
+    };
 
   static final Util.Comparator ipFind = new Util.Comparator() {
-    /**
-     * Name compare ImportPkg object with String object.
-     * 
-     * @param oa ImportPkg object to compare.
-     * @param ob String object to compare.
-     * @return Return 0 if equals, negative if first object is less than second
-     *         object and positive if first object is larger then second object.
-     * @exception ClassCastException if object is not a ImportPkg object.
-     */
-    public int compare(Object oa, Object ob) throws ClassCastException {
-      ImportPkg a = (ImportPkg)oa;
-      String b = (String)ob;
-      return a.name.compareTo(b);
-    }
-  };
+      /**
+       * Name compare ImportPkg object with String object.
+       *
+       * @param oa ImportPkg object to compare.
+       * @param ob String object to compare.
+       * @return Return 0 if equals, negative if first object is less than second
+       *         object and positive if first object is larger then second object.
+       * @exception ClassCastException if object is not a ImportPkg object.
+       */
+      public int compare(Object oa, Object ob) throws ClassCastException {
+        ImportPkg a = (ImportPkg)oa;
+        String b = (String)ob;
+        return a.name.compareTo(b);
+      }
+    };
 
 }

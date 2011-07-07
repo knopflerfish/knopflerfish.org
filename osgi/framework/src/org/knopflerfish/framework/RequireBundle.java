@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2008, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,13 @@ class RequireBundle {
 
   /**
    * A re-required bundle for fragment hosts.
-   * @param parent    The fragment require bundle object to re-require.
    * @param requestor The bundle packages of the fragment host that
    *                  re-requires a required bundle from one of its
    *                  fragments.
+   * @param parent    The fragment require bundle object to re-require.
    */
-  RequireBundle(RequireBundle  parent, BundlePackages requestor)
+  RequireBundle(BundlePackages requestor,
+                RequireBundle  parent)
   {
     this.requestor  = requestor;
     this.name       = parent.name;
@@ -79,8 +80,8 @@ class RequireBundle {
            +Constants.VISIBILITY_DIRECTIVE +":="+this.visibility
            +"' in manifest header '"
            +Constants.REQUIRE_BUNDLE +": " +this.name
-           +"' of bundle with id " +this.requestor.bg.bundle.getBundleId()
-           +" ("+this.requestor.bg.symbolicName+")"
+           +"' of bundle with id " +this.requestor.bundle.getBundleId()
+           +" ("+this.requestor.bundle.getSymbolicName()+")"
            +". The value must be either '"
            +Constants.VISIBILITY_PRIVATE  +"' or '"
            +Constants.VISIBILITY_REEXPORT +"'.");
@@ -97,8 +98,8 @@ class RequireBundle {
            +Constants.RESOLUTION_DIRECTIVE +":="+this.resolution
            +"' in manifest header '"
            +Constants.REQUIRE_BUNDLE +": " +this.name
-           +"' of bundle with id " +this.requestor.bg.bundle.getBundleId()
-           +" ("+this.requestor.bg.symbolicName+")"
+           +"' of bundle with id " +this.requestor.bundle.getBundleId()
+           +" ("+this.requestor.bundle.getSymbolicName()+")"
            +". The value must be either '"
            +Constants.RESOLUTION_MANDATORY +"' or '"
            +Constants.RESOLUTION_OPTIONAL  +"'.");

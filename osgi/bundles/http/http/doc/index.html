@@ -3,9 +3,8 @@
 <h1>Http server</h1>
 
 <div class="abstract">
-Small footprint OSGi HTTP server implementation for embedded use. 
-The HTTP server allows bundles to register
-resources as servlets, web pages, images or multimedia into a web server
+OSGi HTTP server implementation. The HTTP server allows bundles to register
+resourses as servlets, web pages, images or multimedia into a web server
 running on the framework.
 </div>
 
@@ -186,49 +185,12 @@ be registered, but the service property "port" will not be present!
     <td>org.knopflerfish.http.req.client.auth</td>
     <td>
 
-      If client authentication shall be required or not when using
+      If client authentification shall be required or not when using
       https.
 
     </td>
     <td>boolean</td>
     <td>false</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.http.trace.enabled</td>
-    <td>
-      If the TRACE method shall be enabled or not
-    </td>
-    <td>boolean</td>
-    <td>false</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.http.limit.requestline</td>
-    <td>
-      Defines the maximum length of an HTTP request line. This limit
-      is also applied for HTTP header lines. When exceeding this limit
-      a 413 response is returned - Request Entity Too Large. 
-    </td>
-    <td>int</td>
-    <td>8090</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.http.limit.requestheaders</td>
-    <td>
-      Defines the maximum number of headers appected per request. 
-      When exceeding this limit a 413 response is returned - Request Entity Too Large. 
-    </td>
-    <td>int</td>
-    <td>100</td>
-  </tr>
-  <tr>
-    <td>org.knopflerfish.http.limit.postsize</td>
-    <td>
-      Defines the maximum content size for a POST request. A value of
-      -1 indicates there is no limit. This is also the default behaviour.
-      When exceeding this limit a 413 response is returned - Request Entity Too Large. 
-    </td>
-    <td>int</td>
-    <td>-1</td>
   </tr>
 </table>
 
