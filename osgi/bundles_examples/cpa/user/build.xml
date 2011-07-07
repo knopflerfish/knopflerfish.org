@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="cpaexample_user" default="all">
+
+  <!-- Name of generated jar files will be:  -->
+  <!--  ${ant.project.name}-${version}.jar              -->
+  <!--  ${ant.project.name}_api-${version}.jar          -->
+  <!--  ${ant.project.name}_all-${version}.jar          -->
+
+  <dirname  property="proj.dir" file="${ant.file.cpaexample_user}"/>
+  <property file="${proj.dir}/../../../../../kf.properties"/>
+  
+  <!-- Provide default values for properties normally provided by the
+       kf.properties file above. These default values are defined so
+       that the bundle can be built without any changes in an upacked
+       distribution. -->
+  <property name="kf.root.dir" location="${proj.dir}/../../../.."/>
+  <property name="topdir"      location="${kf.root.dir}/osgi"/>
+  <property name="osgi.dir"    location="${kf.root.dir}/osgi"/>
+  <property name="ant.dir"     location="${kf.root.dir}/ant"/>
+  <property name="jars.dir"    location="${kf.root.dir}/osgi/jars"/>
+
+  <!-- Select the kind of bundle(s) to build. -->
+  <property name = "bundle.build.api"      value = "false"/>
+  <property name = "bundle.build.impl"     value = "false"/>
+  <property name = "bundle.build.lib"      value = "false"/>
+  <property name = "bundle.build.all"      value = "true"/>
+
+  <!-- All private code to be included in the bundle must match this pattern.-->
+  <property name="impl.pattern" value="org/knopflerfish/cpaexample/**"/>
+  <property name="api.pattern" value="org/knopflerfish/cpaexample/**"/>
+
+
+  <!-- Compile-time dependecies on other bundles in the distribution. -->
+  <!-- The bundle with the highest version that matches against those
+       included in this distribution will be used. -->
+  <path id="bundle.compile.path">
+    <pathelement location="log_api-N.N.N.jar"/>
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>
