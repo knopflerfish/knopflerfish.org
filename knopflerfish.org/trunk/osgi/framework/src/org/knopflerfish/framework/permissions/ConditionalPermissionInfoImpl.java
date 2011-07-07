@@ -150,7 +150,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       pos = PermUtil.endOfString(eca, pos, eca.length);
       if (pos != -1) {
         StringBuffer buf = new StringBuffer();
-        PermUtil.unquote(eca, pos, buf);
+        pos = PermUtil.unquote(eca, pos, buf);
         name = buf.toString();
         if ((pos = PermUtil.endOfString(eca, pos, eca.length)) != -1) {
           throw new IllegalArgumentException("Unexpected characters at end of string: " +
