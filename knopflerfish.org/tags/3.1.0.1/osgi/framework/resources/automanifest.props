@@ -1,0 +1,17 @@
+#
+# Configuration file for automatic manifest generation. 
+#
+# See javadoc for org.knopflerfish.framework.AutoManifest for documentation
+#
+
+
+
+# Section that will set all bundles to export all of their
+# packages automatically, and dynamically import *
+
+0.match.filter=(location=*)
+0.export.filter=(pkg=*)
+0.export.file.filter=(file=*.class)
+0.header.DynamicImport-Package=*
+0.header.Import-Package=[remove]
+0.header.Export-Package=[autoexport]

@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: wireadmin
+Bundle-SymbolicName: org.knopflerfish.bundle.wireadmin
+Bundle-Version: 3.0.0
+Bundle-Category: API
+Bundle-Description: WireAdmin
+Bundle-Vendor: OSGi
+Bundle-APIVendor: osgi
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+Export-Package: org.osgi.service.wireadmin; version=1.0
+Import-Package: org.osgi.framework

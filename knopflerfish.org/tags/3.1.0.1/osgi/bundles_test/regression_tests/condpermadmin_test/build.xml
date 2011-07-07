@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="condpermadmin_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.condpermadmin_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"   value=""/>
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"  value="org/knopflerfish/service/**"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+    <antcall target="bundleP1_test"/>
+    <antcall target="bundleP2_test"/>
+    <antcall target="bundleP3_test"/>
+    <antcall target="bundleP4_test"/>
+    <antcall target="bundleP5_test"/>
+  </target>
+
+  <target name="bundleP1_test">
+    <ant dir="test_target_bundles/bundleP1_test" target="all"
+	 inheritAll="false">
+      <property name="jars.dir" location="${jars.dir}"/>
+      <property name="jardir"   location="${resources.dir}"/>
+      <property name="outdir"   location="${ttb.outdir}/bundleP1_test"/>
+    </ant>
+  </target>
+  <target name="bundleP2_test">
+    <ant dir="test_target_bundles/bundleP2_test" target="all"
+	 inheritAll="false">
+      <property name="jars.dir" location="${jars.dir}"/>
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP2_test"/>
+    </ant>
+  </target>
+  <target name="bundleP3_test">
+    <ant dir="test_target_bundles/bundleP3_test" target="all"
+	 inheritAll="false">
+      <property name="jars.dir" location="${jars.dir}"/>
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP3_test"/>
+    </ant>
+  </target>
+  <target name="bundleP4_test">
+    <ant dir="test_target_bundles/bundleP4_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP4_test"/>
+    </ant>
+  </target>
+  <target name="bundleP5_test">
+    <ant dir="test_target_bundles/bundleP5_test" target="all"
+	 inheritAll="false">
+      <property name="jars.dir" location="${jars.dir}"/>
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP5_test"/>
+    </ant>
+  </target>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

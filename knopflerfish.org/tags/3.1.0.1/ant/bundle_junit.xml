@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ** Copyright (c) 2003-2008, KNOPFLERFISH project
+  ** All rights reserved.
+  **
+  ** Redistribution and use in source and binary forms, with or without
+  ** modification, are permitted provided that the following conditions
+  ** are met:
+  **
+  ** - Redistributions of source code must retain the above copyright notice,
+  **   this list of conditions and the following disclaimer.
+  **
+  ** - Redistributions in binary form must reproduce the above copyright
+  **   notice, this list of conditions and the following disclaimer in
+  **   the documentation and/or other materials provided with the
+  **   distribution.
+  **
+  ** - Neither the name of the KNOPFLERFISH project nor the names of its
+  **   contributors may be used to endorse or promote products derived
+  **   from this software without specific prior written permission.
+  **
+  ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+  ** OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+
+<project name="bundle_junit" basedir=".">
+
+  <property name="http.host"          value="localhost"/>
+  <property name="http.port"          value="8080"/>
+  <property name="junit.runner.class" value="junit.swingui.TestRunner"/>
+  <property name="junit.formatter"    value="plain"/>
+  <property name="junit.outfile"      value="junit"/>
+
+  <target name="junit_ext"
+          description="Runs remote JUnit test using external runner">
+    <fail unless="test.id" message="test.id must be set to test suite id"/>
+    <java classname="${junit.runner.class}" fork="yes">
+      <classpath>
+	<path location="${jars.dir}/junit/junit_all-1.0.0.jar"/>
+	<path refid="bundle.compile.path"/>
+      </classpath>
+      <sysproperty key="suite.url"
+                   value="http://${http.host}:${http.port}/junit?id=${test.id}"/>
+      <arg value="org.knopflerfish.service.junit.client.JUnitClient"/>
+    </java>
+  </target>
+
+  <target name="junit_ant"
+          description="Runs remote JUnit test using Ant junit task">
+    <fail unless="test.id" message="test.id must be set to test suite id"/>
+    <echo message = "JUnit output file is '${junit.outfile}'"/>
+    <junit fork="yes" showoutput="true" printsummary="true">
+      <sysproperty key="suite.url"
+                   value="http://${http.host}:${http.port}/junit?id=${test.id}"/>
+      <classpath>
+	<path location="${jars.dir}/junit/junit_all-1.0.0.jar"/>
+	<path refid="bundle.compile.path"/>
+      </classpath>
+      <formatter type="${junit.formatter}"/>
+      <test name="org.knopflerfish.service.junit.client.JUnitClient"
+            outfile="${junit.outfile}"/>
+    </junit>
+  </target>
+
+</project>

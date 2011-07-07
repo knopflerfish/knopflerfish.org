@@ -1,0 +1,13 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: extension_test
+Bundle-SymbolicName: extension_test
+Bundle-Version: 1.0.0
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.extension_test.Activator
+Bundle-Category: test
+Import-Package: org.osgi.framework, 
+ org.osgi.service.packageadmin,
+ org.osgi.util.tracker
+DynamicImport-Package: *

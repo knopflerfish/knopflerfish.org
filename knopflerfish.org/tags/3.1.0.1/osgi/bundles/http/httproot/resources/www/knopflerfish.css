@@ -1,0 +1,67 @@
+
+BODY  {
+    background: #ccc;
+}
+
+#main {
+    width: 887; 
+    background: #fff;
+    border:		1px solid #000;
+    margin: 0px auto;
+    font-family: Helvetica, sans-serif;
+    font-size: 12px;
+    padding: 0px 0px 0px 0px;
+}
+
+
+#header_logo {
+  background: #0B2229;
+  padding: 7px 0px 0px 15px;
+  height: 65px;
+}
+
+#header_fade {
+  height: 10px;
+  background-image: url('images/fadeout_15.png');
+  background-repeat: repeat-x;
+}
+
+#mainblock {
+  margin: 20px 10px 20px 10px;
+  font-family: Helvetica, sans-serif;
+  font-size: 11pt;
+}
+
+
+TD  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ text-align:left;
+ vertical-align:top;
+ font-size:10pt;
+}
+
+TD.tableheader  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ text-align:left;
+ vertical-align:top;
+ font-size:1opt;
+ font-weight:bold;
+ background: #eeeeee;
+}
+
+TH  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:10pt;
+ color:000000;
+ text-align:left;
+ vertical-align:top;
+ font-weight:bold
+}
+
+
+H1  {
+ font-family: Verdana, Arial, Helvetica, sans-serif;
+ font-size:18pt;
+ font-weight:bold
+}
+

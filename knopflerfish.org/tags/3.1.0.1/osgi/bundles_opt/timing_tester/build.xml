@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="tester" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.tester}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name="impl.pattern" value="org/knopflerfish/**"/> 
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <property name="bmfa.Bundle-Description"    value="Tester"/>
+  <property name="bmfa.Bundle-Category"       value="test"/>
+  <property name="bmfa.Bundle-Vendor"         value="knopflerfish"/>
+  <property name="bmfa.Bundle-Version"        value="2.0.0"/>
+
+  <!-- Must import the org.knopflerfish.test.framework package since -->
+  <!-- it needs to be loaded by the system classloader for the       -->
+  <!-- wait/notify trick to work (if not the TestFW class would have -->
+  <!-- been loaded by both the system class loader and this bundles  -->
+  <!-- classloader and the two instances of the class would not live -->
+  <!-- in the same universe!                                         -->
+  <property name="bmfa.Import-Package"
+            value="org.osgi.framework,org.knopflerfish.framework,org.knopflerfish.test.framework"/>
+
+
+  <property name="xargs" location="test.xargs"/>
+  <property name="do.bundle.custom.post" value="true"/>
+  <target name="bundle.custom.post">
+    <property name="bundleVersionFilterTester"
+	      location="${outdir}/${ant.project.name}.props"/>
+    <bundle_locator replacefilterfile="${bundleVersionFilterTester}">
+      <fileset dir="${jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy file="${xargs}.in" tofile="${xargs}" overwrite="true"/>
+    <replace file="${xargs}"
+	     replacefilterfile="${bundleVersionFilterTester}">
+    </replace>	  
+  </target>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <property name="log.file.name" value="log.csv"/>
+  <property name="fw.storage"    value="file"/>
+  <property name="fw.runid"      value="undef"/>
+  <property name="fw.jar"        location="${topdir}/framework.jar"/>
+  <property name="log.prefix"
+	    value="${fw.runid}, ${fw.storage}"/>
+  <target name="run" description="Run the tests.">
+    <java fork="true"
+	  classname="org.knopflerfish.test.framework.TestFW">
+      <classpath>
+	<pathelement location="${fw.jar}"/>
+	<pathelement location="${topdir}/jars/tester/tester-${bmfa.Bundle-Version}.jar"/>
+      </classpath>
+      <jvmarg value="-Dtest.log.prefix=${log.prefix}"/>
+      <jvmarg value="-Dtest.log.file=${log.file.name}"/>
+      <jvmarg value="-Dorg.knopflerfish.framework.bundlestorage=${fw.storage}"/>
+      <jvmarg value="-Dfwdir.delete=true"/>
+      <arg value="-xargs"/>
+      <arg value="${xargs}"/>
+    </java>
+  </target>
+</project>

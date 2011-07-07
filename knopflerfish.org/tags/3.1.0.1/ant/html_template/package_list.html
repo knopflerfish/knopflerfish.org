@@ -1,0 +1,49 @@
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <style type="text/css"> 
+      BODY {
+      background: #fff;
+      margin-top:    5px;
+      margin-left:  15px;
+      margin-right: 10px;
+      }
+
+      #package_list {
+        margin-left: 8px;
+      }
+
+      #package_list A {
+        color: #000;
+        text-decoration: none;
+      }
+	      
+      #package_list A:hover {
+        color: #805362;	      
+        text-decoration: underline;
+        font-weight:     bold;
+      }
+  </style>
+  <title>Knopflerfish Bundle Packages</title>
+  <script type="text/javascript">
+    function windowTitle() {
+      if (location.href.indexOf('is-external=true') == -1) {
+        parent.document.title=document.title;
+      }
+    }
+  </script>
+</head>
+
+<body onload="windowTitle();">
+  <div id="package_list">
+    <table>
+      <tr><th>Package</th><th>Provider(s)</th></tr>
+      ${package.list}
+    </table>
+  </div>
+</body>
+
+</html>
+
