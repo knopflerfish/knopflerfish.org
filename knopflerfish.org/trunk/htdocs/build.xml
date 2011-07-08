@@ -177,14 +177,6 @@
              fromfile="${htdocs.dir}/html_src/running.html"
              disable="RUNNING"/>
 
-   <makehtml description="Running Knopflerfish OSGi with Security"
-             title="Running with Security"
-             template="${template.html}"
-             outdir="${htdocs.out}"
-             tofile="osgi_with_security.html"
-             fromfile="${htdocs.dir}/html_src/osgi_with_security.html"
-             disable="RUNNING"/>
-
    <makehtml description="Building Knopflerfish OSGi"
              title="Building"
              template="${template.html}"
@@ -223,7 +215,7 @@
               outdir="${htdocs.out}"
               tofile="osgi_service_tutorial.html"
               fromfile="${htdocs.dir}/html_src/osgi_service_tutorial.html"
-	      disable="SERVICE_TUTORIAL"/>
+	      disable="TUTORIALS"/>
 
     <makehtml title="${htdocs.distname} - OSGi with Security"
               description="Running OSGi with Security"
@@ -231,7 +223,7 @@
               outdir="${htdocs.out}"
               tofile="osgi_with_security.html"
               fromfile="${htdocs.dir}/html_src/osgi_with_security.html"
-	      disable="SECURITY_TUTORIAL"/>
+	      disable="TUTORIALS"/>
 
  	<echo message="${htdocs.out}"/>
  </target>
