@@ -184,6 +184,21 @@
     </ant>
   </target>
 
+  <target name="distrib_build_bundles_examples">
+    <mkdir dir="${distrib.osgi.dir}/examples_jars"/>
+
+    <ant dir="${osgi.dir}/bundles_examples"
+         target="all"
+         inheritall="false">
+      <property name="jars.dir" location="${distrib.osgi.dir}/example_jars"/>
+      <property name="generate.javadoc.data" value="false"/>
+      <property name="exported.file" location="${distrib.exported.file}"/>
+      <property name="sources.file"  location="${distrib.sources.file}"/>
+      <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="bmfa.Knopflerfish-Version" value="${version}"/>
+    </ant>
+  </target>
+
   <target name="distrib_build_bundles_test">
     <ant dir="${osgi.dir}/bundles_test"
          target="all"
@@ -208,6 +223,7 @@
     <antcall target="distrib_build_bundles"/>
     <antcall target="distrib_build_bundles_opt"/>
     <antcall target="distrib_build_bundles_test"/>
+    <antcall target="distrib_build_bundles_examples"/>
   </target>
 
   <target name="distrib_xargs">
@@ -379,6 +395,13 @@
         <include name="css/knopflerfish.css"/>
         <include name="css/kf_man.css"/>
         <include name="images/**"/>
+      </fileset>
+    </copy>
+
+    <mkdir dir="${distrib.doc.dir}/examples/cpa"/>
+    <copy todir="${distrib.doc.dir}/examples/cpa">
+      <fileset dir="${osgi.dir}/bundles_examples/cpa">
+        <include name="**/*"/>
       </fileset>
     </copy>
 

@@ -32,7 +32,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     specifies abort action. Valid values are "stop", "minprio"
     and "ignore".
   - Fixed bug when matching native code with "os.arch" property.
-  - Added missing export of url service in build system.
+  - Added missing export of URL service in build system.
   - Fixed consistency issues when doing update/uninstall.
 
 
@@ -49,15 +49,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 
   HTTP-Server 3.0.5
-  - Improved handling of persistent connections for GET and HEAD (3.0.5)
-
-  - Configurable features and limits added to better control and handle DoS attacks: (3.0.4)
-    org.knopflerfish.http.trace.enabled (false)
-    org.knopflerfish.http.limit.requestline (8090)
-    org.knopflerfish.http.limit.requestheaders (100)
-    org.knopflerfish.http.limit.postsize (-1) 
-
-  - Changed request uri parsing logic in order to avoid problems with
+  - Improved handling of persistent connections for GET and HEAD
+  - Configurable features and limits added to better control and
+    handle DoS attacks:
+      org.knopflerfish.http.trace.enabled (false)
+      org.knopflerfish.http.limit.requestline (8090)
+      org.knopflerfish.http.limit.requestheaders (100)
+      org.knopflerfish.http.limit.postsize (-1) 
+  - Changed request URI parsing logic in order to avoid problems with
     some URL class implementations.
 
 
@@ -92,6 +91,24 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     match the one used on the Knopflerfish web-site. Replaced the
     service listener with a ServiceTracker.
     
+
+  Documentation and Tutorials
+
+  - A new tutorial on how to run Knopflerfish OSGi with security
+    enabled has been added under "Developer's Doc / Tutorials". This
+    tutorial demonstrates how to use the Conditional Permission Admin
+    service.
+
+
+  Directory Structure
+
+  - A new bundle source code directory for example bundles has been
+    added. The name of the directory is osgi/bundles_examples, the
+    resulting jar files are placed in the directory
+    osgi/example_jars.
+  - The directory osgi/bundles/demos has been moved to
+    osgi/bundles_examples/demos.
+
 
   Build System
 

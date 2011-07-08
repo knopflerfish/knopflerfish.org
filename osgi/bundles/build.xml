@@ -77,8 +77,6 @@
     <ant target="${the.target}" dir="upnp"/>
     <ant target="${the.target}" dir="provisioning"/>
     <ant target="${the.target}" dir="bundlerepository"/>
-
-    <ant target="${the.target}" dir="demos"/>
   </target>
 
 
