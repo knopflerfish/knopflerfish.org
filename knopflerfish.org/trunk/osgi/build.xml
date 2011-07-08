@@ -39,6 +39,7 @@
     <mkdir dir="${root.out.dir}"/>
     <available property="dir.bundles_opt.present"  file="bundles_opt"/>
     <available property="dir.bundles_test.present" file="bundles_test"/>
+    <available property="dir.bundles_examples.present" file="bundles_examples"/>
   </target>
 
   <target name="default"
@@ -55,7 +56,7 @@
 
   <target name="all"
           description="Builds the framework and all bundles including optional and test bundles"
-          depends="default,bundles_opt,bundles_test">
+          depends="default,bundles_opt,bundles_test,bundles_examples">
   </target>
 
   <target name="bundles_opt" depends="init">
@@ -80,12 +81,21 @@
 	 message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
   </target>
 
+  <target name="bundles_examples" depends="init">
+   <fail unless="dir.bundles_examples.present" 
+         message="The directory for example bundles, bundles_examples, is missing."/>
+    <ant dir="bundles_examples"  target="all"/>
+    <antcall target="xargs"/>
+  </target>
+
+
 
   <target name="xargs" depends="init,bundle_tasks">
     <antcall target="minimal_xargs"/>
     <antcall target="init_xargs"/>
     <antcall target="remote_xargs"/>
     <antcall target="remotefw_xargs"/>
+    <antcall target="examples_cpa_xargs"/>
   </target>
 
   <target name="minimal_xargs">
@@ -116,6 +126,23 @@
 	   xargs="${osgi.dir}/bundles/remotefw/doc/server.xargs"
 	   baseDir="${xargs.base.dir}"
 	   gosgJars="${gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+
+    <xargs template="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"
+	   xargs="${osgi.dir}/bundles/remotefw/doc/client.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+  </target>
+
+  <target name="examples_cpa_xargs">
+    <!-- xargs files that are part of the CPA example.-->
+    <xargs template="${osgi.dir}/bundles_examples/cpa/init.xargs.in"
+	   xargs="${osgi.dir}/bundles_examples/cpa/init.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars};file:examples_jars/"
 	   testJars="${test_jars}"
 	   outDir="${root.out.dir}/xargs"/>
 

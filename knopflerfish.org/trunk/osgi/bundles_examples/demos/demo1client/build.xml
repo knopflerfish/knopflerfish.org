@@ -3,16 +3,16 @@
 <project name="demo1client" default="all">
 
   <dirname  property="proj.dir" file="${ant.file.demo1client}"/>
-  <property name="topdir"       location="${proj.dir}/../../.."/>
+  <import file="${proj.dir}/../../examples_include.xml"/>
 
-  <property name  = "impl.pattern"
-            value = "org/knopflerfish/service/demo1client/impl/*"/>
+  <property name="impl.pattern"
+            value="org/knopflerfish/service/demo1client/impl/*"/>
 
 
   <path id="bundle.compile.path">
     <pathelement location="demo1_api-N.N.N.jar"/>
   </path>
 
-  <import file="${topdir}/../ant/bundlebuild.xml"/>
+  <import file="${ant.dir}/bundlebuild.xml"/>
 
 </project>

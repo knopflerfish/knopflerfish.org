@@ -1,4 +1,4 @@
-<h2>Running OSGi with Security</h2>
+<h2>Running Knopflerfish OSGi with Security</h2>
 
 <h3>Contents</h3>
 <ol>
@@ -230,8 +230,9 @@ is loaded from the same location as the rest of the trusted KF bundles.
 </p>
 
 <p>
-Here is the <a href="AdminActivator.java">source code</a> and
-<a href="cpaexample_admin-1.0.0.jar">jar file</a> for the admin bundle.
+Here is the <a href="examples/cpa/admin/src/org/knopflerfish/cpaexample/bundle/admin/AdminActivator.java">source code</a> and
+<a href="../osgi/example_jars/cpaexample_admin/cpaexample_admin-1.0.0.jar">jar f
+ile</a> for the admin bundle.
 We have a method, installPolicies that is called when the bundle starts:
 
 <pre class="codeexample">
@@ -284,8 +285,8 @@ integrated into a management agent. It would set the CPA policies and
 then it would take care of installing and starting the rest of the
 bundles that should be included in the system. We can follow this
 strategy without writing a complex management agent by using the xargs
-functionality in KF. Here is a <a href="props.xargs">props.xargs</a> and
-an <a href="init.xargs">init.xargs</a> that will:
+functionality in KF. Here is a <a href="examples/cpa/props.xargs">props.xargs</a> and
+an <a href="examples/cpa/init.xargs">init.xargs</a> that will:
 <ol>
  <li>Install the admin bundle, schedule it for start.
  <li>Launch the framework. This will start the admin bundle.
@@ -368,9 +369,10 @@ be:
 </pre> 
 
 <p>
-The source code for the user bundle is
-<a href="UserService.java">here</a>, the jar including local permission
-definition is <a href="cpaexample_user_all-1.0.0.jar">here</a>. The
+The source code for the user bundle is <a
+href="examples/cpa/user/src/org/knopflerfish/cpaexample/service/user/UserService.java">here</a>,
+the jar including local permission definition is <a
+href="../osgi/example_jars/cpaexample_user/cpaexample_user_all-1.0.0.jar">here</a>. The
 interesting parts for this security tutorial can be found in the login
 and logout methods of UserService. Here is the login method:
 
@@ -425,14 +427,14 @@ and to get the UserService.
 This third bundle, called caller, is nothing special. All it does is
 getting the UserService and logging in a user in the start method and
 then logging out in the stop method. Here is the
-<a href="CallerActivator.java">source</a> and
-<a href="cpaexample_caller-1.0.0.jar">jar file</a>.
+<a href="examples/cpa/caller/src/org/knopflerfish/cpaexample/bundle/caller/CallerActivator.java">source</a> and
+<a href="../osgi/example_jars/cpaexample_caller/cpaexample_caller-1.0.0.jar">jar file</a>.
 
 <a name="references"></a>
 <h3>References</h3>
 
 <p>
-Chapter 9 of OSGi Service Platform Core Specifiaction, Conditional
+Chapter 9 of OSGi Service Platform Core Specification, Conditional
 Permission Admin Specification, contains a lot of information about
 the CPA service and security in OSGi in general. The specification
 can be downloaded from

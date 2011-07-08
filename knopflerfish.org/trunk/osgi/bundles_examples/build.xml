@@ -2,12 +2,32 @@
 
 <project name="bundles_examples" default="all">
 
-  <target name="all">
-   <ant dir="cpa"            target="all"/>
+  <!-- Internal target that calls a specified target in all sub-dirs. -->
+  <target name="doAntBuild">
+    <ant target="${the.target}" dir="demos"/>
+    <ant target="${the.target}" dir="cpa"/>
   </target>
 
-  <target name="clean">
-   <ant dir="cpa"            target="clean"/>
+  <target name="all" 
+	  description="Builds all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="all"/>
+    </antcall>
+  </target>
+
+  <target name="clean" 
+	  description="Cleans all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="clean"/>
+    </antcall>
+    <delete dir="../example_jars"/>
+  </target>
+  
+  <target name="bundle_doc" 
+	  description="Builds doc for all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="bundle_doc"/>
+    </antcall>
   </target>
 
 </project>
