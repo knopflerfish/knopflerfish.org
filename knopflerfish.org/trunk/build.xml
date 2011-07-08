@@ -185,7 +185,7 @@
   </target>
 
   <target name="distrib_build_bundles_examples">
-    <mkdir dir="${distrib.osgi.dir}/examples_jars"/>
+    <mkdir dir="${distrib.osgi.dir}/example_jars"/>
 
     <ant dir="${osgi.dir}/bundles_examples"
          target="all"

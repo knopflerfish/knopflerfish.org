@@ -142,7 +142,7 @@
     <xargs template="${osgi.dir}/bundles_examples/cpa/init.xargs.in"
 	   xargs="${osgi.dir}/bundles_examples/cpa/init.xargs"
 	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars};file:examples_jars/"
+	   gosgJars="${gosg.jars};file:example_jars/"
 	   testJars="${test_jars}"
 	   outDir="${root.out.dir}/xargs"/>
 
