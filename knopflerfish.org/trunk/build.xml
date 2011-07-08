@@ -190,6 +190,8 @@
     <ant dir="${osgi.dir}/bundles_examples"
          target="all"
          inheritall="false">
+      <property name="ant.dir"       location="${ant.dir}"/>
+      <property name="osgi.jars.dir" location="${distrib.osgi.dir}/jars"/>
       <property name="jars.dir" location="${distrib.osgi.dir}/example_jars"/>
       <property name="generate.javadoc.data" value="false"/>
       <property name="exported.file" location="${distrib.exported.file}"/>
