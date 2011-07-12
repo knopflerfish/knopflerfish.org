@@ -581,7 +581,8 @@ public class ComponentDescription {
     for (int i = 0; i < p.getAttributeCount(); i++) {
       if (p.getAttributeName(i).equals("servicefactory")) {
         isServiceFactory = parseBoolean(p, i);
-          if (factory != null) {
+	if (isServiceFactory) {
+	  if (factory != null) {
             throw new IllegalXMLException("Attribute servicefactory in service-tag "+
                                           "cannot be set to \"true\" when component "+
                                           "is a factory component.", p);
@@ -590,9 +591,10 @@ public class ComponentDescription {
             throw new IllegalXMLException("Attribute servicefactory in service-tag "+
                                           "cannot be set to \"true\" when component "+
                                           "is an immediate component.", p);
-          }
+	  }
+	}
       } else {
-        unrecognizedAttr(p, i);
+	unrecognizedAttr(p, i);
       }
     }
     int event = p.next();
