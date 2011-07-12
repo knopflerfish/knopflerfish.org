@@ -119,6 +119,31 @@ DD.leftmenu4  {
   padding: 5px 10px 0px 0px;
 }	  
 
+H1, H1.kf {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size:20px;
+    font-weight:bold;
+    border-style: solid;
+    border-color: #802060;
+    border-width: 0px 0px 1px 0px;
+    padding-bottom: 2px;
+}
+
+H2, H2.kf  {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size:	14px;
+    font-weight:bold;
+    border-style: solid;
+    color:		#444444;
+    border-style:  solid;
+    border-color:	#ccc;
+    border-width:	1px 0px 1px 0px;
+    background-image: url('../images/shortfadeout_20px.png');
+    background-repeat: repeat-x;
+    padding:	2px 0px 2px 4px
+}
+
+/*
 H2 {
   font-family: Verdana, Arial, Helvetica, sans-serif;
   font-size:18px;
@@ -142,6 +167,28 @@ H3  {
  padding-top:         2px;
  padding-bottom:      2px;
  padding-left:        8px;
+}
+*/
+
+H3.kf  {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size:14px;
+    font-weight:bold;
+    background:          #805362;  
+    color:		      #ffffff;
+    border-style:        solid;
+    border-color: #000000;
+    border-width: 1px;
+    padding-top:         2px;
+    padding-bottom:      2px;
+    padding-left:        8px;
+    color:		#444444;
+    border-style:  solid;
+    border-color:	#ccc #fff #ccc #fff;
+    border-width:	1px;
+    border-width:	1px 0px 1px 0px;
+    background-image: url('../images/shortfadeout_20px.png');
+    background-repeat: repeat-x;
 }
 
 .navigation_enabled
@@ -260,4 +307,45 @@ TD.fancy_row {
 
 .kf dd {
     margin-bottom: 10px;
+}
+
+table.kf {
+    border-width: 1px;
+    border-color: #666666;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    border-style: solid;
+}
+
+table.kf th {
+    font-weight: bold;
+    font-size:12px;
+    text-align:center;
+    border-width: 1px;
+    padding: 5px;
+    border-style: solid;
+    border-color: #999999;
+    background-color: #dedede;
+}
+
+
+table.kf td {
+    border-style: solid;
+    border-width: 1px;
+    padding: 5px;
+    border-color: #999999;
+    background-color: #ffffff;
+}
+
+table.kf td.subhead {
+    font-weight: bold;
+    background: #eeeeee;
+}
+
+table.kf td.kfpro {
+    color: #888888;
+    background-color: #ffffff;
+    /* background-image: url('../images/knopflerfish_pro.png');*/
+    background-repeat: no-repeat;
+    background-position: center center;
 }
