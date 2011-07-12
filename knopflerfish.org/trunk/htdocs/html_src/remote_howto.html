@@ -13,12 +13,12 @@
 
   <br clear="both"/>
 
-<h3>Terminology</h3>
+<h2 class="kf">Terminology</h2>
   <b>Server</b>: The server in this context is the remote controlled framework that waits for connections to its SOAP servlet.
   <p/>
   <b>Client</b>: The client in this context is the framework that is running the desktop that is connecting to and controlling the server.
 
-<h3>Needed Bundles</h3>
+<h2 class="kf">Needed Bundles</h2>
 
   Two special bundles are needed both on the server and the client side:
 
@@ -36,7 +36,7 @@
 
   Since a servlet is used, the <b>HTTP</b> (http_all-1.1.0.jar) and <b>JSDK</b> (jsdk-2.2.jar) bundles are also needed. As usual, some of these bundles also depend on a number of standard bundles (including the Knopflerfish util bundle).
 
-<h3>Configuration</h3>
+<h2 class="kf">Configuration</h2>
 
   The configuration is done with system properties. All of them have reasonable defaults and things will work without configuration.
 
@@ -60,7 +60,7 @@
     <li><b>org.knopflerfish.soap.remotefw.client.debug</b> - If set to true, causes the ksoap bundles to print some debug information. Defaults to false.</li>
   </ul>
 
-<h3>Connecting</h3>
+<h2 class="kf">Connecting</h2>
 
   <img src="images/remote_framework.png" align="right"/>
 
@@ -77,7 +77,7 @@
 
   <br clear="both"/>
 
-<h3>Known Problems</h3>
+<h2 class="kf">Known Problems</h2>
 
   If the remote framework is shut down (which can be done remotely by running the console command "framework shutdown"), the desktop may behave strangely.
   <p/>

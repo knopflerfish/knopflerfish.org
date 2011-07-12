@@ -1,5 +1,6 @@
+<h1 class="kf">The OSGi Service Tutorial</h1>
 
-<h3>Contents</h3>
+<h2 class="kf">Contents</h2>
 <ol>
  <li><a href="#what_is">What is a service?</a>
  <li><a href="#what_isfactory">What is a service factory?</a>
@@ -11,7 +12,7 @@
 </ol>
 
 <a name="what_is"></a>
-<h3>What is a service?</h3>
+<h2 class="kf">What is a service?</h2>
 
 <div class="intro">
 An OSGi service is a java object instance, <i>registered</i> into
@@ -50,7 +51,7 @@ bc.<a href="$(JAVADOC)/org/osgi/framework/BundleContext.html#registerService(jav
 </p>
 
 <a name="what_isfactory"></a>
-<h3>What is a service factory?</h3>
+<h2 class="kf">What is a service factory?</h2>
 
 <div class="intro">
 An OSGi service factory is a special class <a href="$(JAVADOC)/org/osgi/framework/ServiceFactory.html">ServiceFactory</a>, which
@@ -92,7 +93,7 @@ at most one service can be generated per client bundle.
 </p>
 
 <a name="what_for"></a>
-<h3>What can services be used for?</h3>
+<h2 class="kf">What can services be used for?</h2>
 
 <p>
 The service concept is a very general-purpose tool, but some examples are:
@@ -112,7 +113,7 @@ between each other.
 </p>
 
 <a name="accessing"></a>
-<h3>How are services accessed?</h3>
+<h2 class="kf">How are services accessed?</h2>
 
 <div class="intro">
 Services are always accessed via <i>ServiceReferences</i>, which uniquely
@@ -163,7 +164,7 @@ After this, the service object can be accessed as any other java object. Actuall
 </p>
 
 <a name="release"></a>
-<h3>Releasing services</h3>
+<h2 class="kf">Releasing services</h2>
 <p>
 As soon as the service isn't needed anymore, the client should <b>release</b>
 the service by calling the <a href="$(JAVADOC)/org/osgi/framework/BundleContext.html#ungetService(org.osgi.framework.ServiceReference)">BundleContext.ungetService()</a> method.
@@ -201,7 +202,7 @@ implementation does however return <tt>null</tt> in this case.
 </p>
 
 <a name="best"></a>
-<h3>Best practices for accessing OSGi services</h3>
+<h2 class="kf">Best practices for accessing OSGi services</h2>
 
 <div class="intro">
 OSGi services must always be considered volatile, and may disappear or become
@@ -369,7 +370,7 @@ usage a bit:
 </pre>
 
 <a name="white"></a>
-<h3>The white-board model</h3>
+<h2 class="kf">The white-board model</h2>
 
 <div class="intro">
 "Don't call getService(), call registerService() instead!"

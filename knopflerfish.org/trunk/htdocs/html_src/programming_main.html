@@ -1,8 +1,8 @@
 <div style="margin-left: 5px; margin-top: 5px; margin-bottom: 5px;">
 
-<h2>Programming Knopflerfish</h2>
+<h1 class="kf">Programming Knopflerfish</h1>
 
-<h3>Contents</h3>
+<h2 class="kf">Contents</h2>
 <ol>
   <li><a href="#eclipse_create">Using Eclipse to create bundles</a>
   <li><a href="#ant_create">Using Ant to create bundles</a>
@@ -18,11 +18,12 @@
 </ol>
 
 <a name="eclipse_create"></a>
-<h3>Using Eclipse to create bundles</h3>
-See <a href="eclipse_plugin.html">Knopflerfish Eclipse Plugin</a>.
+<h2 class="kf">Using Eclipse to create bundles</h2>
+See <a href="http://www.knopflerifsh.org/eclipse_plugin.html">
+  Knopflerfish  Eclipse Plugin</a> on the Knopferfish web site.  
 
 <a name="ant_create"></a>
-<h3>Using Ant to create bundles</h3>
+<h2 class="kf">Using Ant to create bundles</h2>
 <h4>Prerequisites</h4>
 <ul>
   <li><a href="http://en.wikipedia.org/wiki/Java_Development_Kit"><i>Java Development Kit (JDK)</i></a>
@@ -202,7 +203,7 @@ to see all available targets.
 <a class=top href="#top">top</a>
 
 <a name="maven_build"></a>
-<h3>Using Maven to build bundles</h3>
+<h2 class="kf">Using Maven to build bundles</h2>
 <h4>Prerequisites</h4>
 <ul>
   <li><a href="http://en.wikipedia.org/wiki/Java_Development_Kit"><i>Java Development Kit (JDK)</i></a>
@@ -352,7 +353,7 @@ bundles POM-file to keep it all in one file. The same applies to the
 
 
 
-<h3>Coding Style guides</h3>
+<h2 class="kf">Coding Style guides</h2>
 
 When writing OSGi bundles, all normal java guidelines apply, but some things
 might be worth noting. The list below is intended to give some hints on
@@ -361,7 +362,7 @@ writing stable bundles, but feel free to use your own judgment.
 <p>
 
 <a name="activator"></a>
-<h3>The BundleActivator</h3>
+<h2 class="kf">The BundleActivator</h2>
 
 The BundleActivator can be considered your application's main class. A bundle
 which is expected to start, register or use other service, <b>must</b>
@@ -678,7 +679,7 @@ Thanks to Rob Evans for this example.
 <a class=top href="#top">top</a>
 
 <a name="services"></a>
-<h3>Using services</h3>
+<h2 class="kf">Using services</h2>
 <table>
 
   <tr>
@@ -771,7 +772,7 @@ Thanks to Rob Evans for this example.
 <a class=top href="#top">top</a>
 
 <a name="dataaccess"></a>
-<h3>Bundle data access</h3>
+<h2 class="kf">Bundle data access</h2>
 
 <table>
 
@@ -876,7 +877,7 @@ to refresh packages:
 <a class=top href="#top">top</a>
 
 <a name="win32"></a>
-<h3>Win32 tips</h3>
+<h2 class="kf">Win32 tips</h2>
 
 <table>
 <tr>
@@ -1265,7 +1266,7 @@ be present at all in the manifest, not even as a zero-length string.
   system to look for and use the highest version available in the
   directory tree starting at <tt>${jars.dir}</tt>. It is possible to
   ask for the highest version available with a fixed major revision by
-  writing a pathelement like <tt>log_api-2.N.N.jar"</tt>.</p>
+  writing a pathelement like <tt>log_api-2.N.N.jar</tt>.</p>
 
 </td>
  </tr>
@@ -1282,7 +1283,7 @@ be present at all in the manifest, not even as a zero-length string.
 
 </table>
 
-<h3>Special pre and post target</h3>
+<h2 class="kf">Special pre and post target</h2>
 
 If you need special handling of the bundle build process, you can
 add the special targets <tt>bundle.custom.pre</tt> or
@@ -1317,7 +1318,7 @@ the standard bundle build.
 </pre>
 
 <a name="optimizing"></a>
-<h3>Optimizing startup time, memory or disk usage</h3>
+<h2 class="kf">Optimizing startup time, memory or disk usage</h2>
 
 <p>
 The Knopflerfish framework can be started in either disk-optimizing or

@@ -123,44 +123,6 @@
               fromfile="${htdocs.dir}/html_src/components_main.html"
               disable="COMP"/>
 
-    <makehtml description="Using the Knopflerfish Subversion repository"
-              title="Knopflerfish Subversion repository"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="svn_info.html"
-              fromfile="${htdocs.dir}/html_src/svn_main.html"
-              disable="SVN"/>
-
-    <makehtml description=""
-              title="${htdocs.distname} Eclipse Plugin"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="eclipse_plugin.html"
-              fromfile="${htdocs.dir}/html_src/eclipse_plugin_main.html"
-              disable="ECLIPSE"/>
-
-   <makehtml description=""
-              title="${htdocs.distname} Eclipse Plugin Changelog"
-              template="${template.html}"
-              outdir="${htdocs.out}"
-              tofile="eclipse_changelog.html"
-              fromfile="${htdocs.dir}/html_src/eclipse_changelog.html"
-              disable="PROG"/>
-
-   <makehtml title="Installing the ${htdocs.distname} Eclipse Plugin"
-             template="${template.html}"
-             outdir="${htdocs.out}"
-             tofile="eclipse_install.html"
-             fromfile="${htdocs.dir}/html_src/eclipse_install.html"
-             disable="PROG"/>
-
-   <makehtml title="Setting Preferences for ${htdocs.distname} Eclipse Plugin"
-             template="${template.html}"
-             outdir="${htdocs.out}"
-             tofile="eclipse_preferences.html"
-             fromfile="${htdocs.dir}/html_src/eclipse_preferences.html"
-             disable="PROG"/>
-
    <makehtml description="Installing Knopflerfish OSGi"
              title="Installing"
              template="${template.html}"
