@@ -589,7 +589,7 @@ public class MakeHTMLTask
 
   /** The table heading for the list of exported packages. */
   private static final String packageListHeading
-    = "<table border=\"1\">\n <tr><th>Package</th><th>Version</th><th>Providers</th></tr>\n";
+    = "<table class=\"man\">\n <tr><th>Package</th><th>Version</th><th>Providers</th></tr>\n";
 
   /** The table footer for the list of exported packages. */
   private static final String packageListFooter
