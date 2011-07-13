@@ -59,6 +59,20 @@
     <istrue value="${android.exists}"/>
   </condition>
 
+  <condition
+     property="android.tool.dx"
+     value="${ANDROID_HOME}/platform-tools/lib/dx.jar"
+     else="${ANDROID_HOME}/tools/lib/dx.jar">
+    <available file="${ANDROID_HOME}/platform-tools/lib/dx.jar"/>
+  </condition>
+
+  <condition
+     property="android.tool.aapt"
+     value="${ANDROID_HOME}/platform-tools/aapt"
+     else="${ANDROID_HOME}/tools/aapt">
+    <available file="${ANDROID_HOME}/platform-tools/aapt"/>
+  </condition>
+
   <property name="javac.source"       value="1.2"/>
 
   <!-- If set to "true" check that the bundle does not use any classes -->
@@ -752,15 +766,13 @@
     <mkdir dir="${temp.dir}"/>
     <property name="temp.dex" value="${temp.dir}/classes.dex"/>
 
-    <java fork="true" jar="${ANDROID_HOME}/tools/lib/dx.jar">
+    <java fork="true" jar="${android.tool.dx}">
       <arg value="--dex"/>
       <arg value="--output=${temp.dex}"/>
       <arg value="${jarfile}"/>
     </java>
 
-    <property name="aapt.cmd" value="${ANDROID_HOME}/tools/aapt"/>
-
-    <exec executable="${aapt.cmd}">
+    <exec executable = "${android.tool.aapt}">
       <arg value="add"/>
       <arg value="-f"/>
       <arg value="${jarfile}"/>
