@@ -33,7 +33,7 @@ where current working directory is same as the one containing framework.jar,
 the framework storage directory and configuration files. In these cases
 </p>
 <p>
-<tt>java -jar framework.jar</tt>
+<pre class="shell">java -jar framework.jar</pre>
 </p>
 <p>
 ...is often enough. 
@@ -43,7 +43,7 @@ To enable support for new KF2 specific features, such as extension bundles,
 you can use the "kf2" shell script. Open a terminal and type
 </p>
 <p>
-<tt>./kf2</tt>
+<pre class="shell">./kf2</pre>
 </p>
 <p>
 Note: the script requires a "sh" shell. 
@@ -97,21 +97,21 @@ to Main.java are recommended.
 The framework can be started using the startup wrapper class
 </p>
 <p>
-<tt>org.knopflerfish.framework.Main</tt>
+<pre class="shell">org.knopflerfish.framework.Main</pre>
 </p>
 <p>
 This class is also set a Main-Class in framework.jar's manifest, meaning 
 framework.jar can be started using 
 </p>
 <p>
-<tt> java -jar framework.jar [options] OR ./kf2 [options]</tt>
+<pre class="shell"> java -jar framework.jar [options] OR ./kf2 [options]</pre>
 </p>
 <p>
 The Main class supports a number of options, which can be displayed
 using:
 </p>
 <p>
-<tt>java -jar framework.jar -help OR ./kf2 -help</tt>
+<pre class="shell">java -jar framework.jar -help OR ./kf2 -help</pre>
 </p>
 <p>
 Options can also be specified using the -xargs option, which specifies
@@ -126,7 +126,7 @@ storing the state of all installed bundles, "fwdir". The default
 directory used for this is:
 </p>
 <p>
-<tt>fwdir</tt>
+<pre class="shell">fwdir</pre>
 </p>
 <p>
 in the currect directory. The "fwdir" directory can also be set
@@ -139,7 +139,7 @@ If no options are specified (any "-Fx=y", "-Da=b" or "-init" does not
 count as options in this case) an implicit
 </p>
 <p>
-<tt>-xargs "default"</tt>
+<pre class="shell">-xargs "default"</pre>
 </p>
 <p>
 is added to the options. "default" means that the default .xargs (see
@@ -157,7 +157,7 @@ following algorithm:
 <ol>
   <li>If there exists a previous "fwdir" AND previous options
       does not contain "-init", use a file in "fwdir" named:<br/>
-    <tt>fwprops.xargs</tt>
+    <pre class="shell">fwprops.xargs</pre>
   </li>
   <li>If no fwdir exist, OR options contain an "-init", 
        search for a file named:
@@ -244,13 +244,13 @@ has its own set of Framework properties.
 </p>
 <p>
 A framework property is accessed by using
-<tt>org.osgi.framework.BundleContext.getProperty(String)</tt>.
+<pre class="shell">org.osgi.framework.BundleContext.getProperty(String)</pre>.
 </p>
 <p>
 Java System properties are specified on the command line or in .xargs
 files using "-D". System properties are accessed using
-<tt>java.lang.System.getProperty(String)</tt> but
-<tt>BundleContext.getProperty</tt> can also be used as it will look
+<pre class="shell">java.lang.System.getProperty(String)</pre> but
+<pre class="shell">BundleContext.getProperty</pre> can also be used as it will look
 for a System property if there is no matching Framework property.
 </p>
 <p>
@@ -261,10 +261,10 @@ default init.xargs/props.xargs files, initial starts and restarts become
 conveniently short on the command line:
 </p>
 <p>
-<tt>java -jar framework.jar -init  </tt> (initial start)
+<pre class="shell">java -jar framework.jar -init  </pre> (initial start)
 </p>
 <p>
-<tt>java -jar framework.jar  </tt> (restart)
+<pre class="shell">java -jar framework.jar  </pre> (restart)
 </p>
 <p>
 Unfortunately, it is not always possible to avoid using Java System
@@ -833,7 +833,7 @@ but "-D" should also work.
       (by putting the asm-3.2.jar library on the system class path), enable
       runtime class patching.
       Example:
-<pre>
+<pre class="shell">
 > java -cp framework.jar:asm-3.2.jar \
     org.knopflerfish.framework.Main \
     -Forg.knopflerfish.framework.patch=true\   

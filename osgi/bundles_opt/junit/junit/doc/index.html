@@ -40,7 +40,7 @@ JUnit allows developers to write unit tests by writing classes
 implementing junit.framework.Test, e.g TestCase, TestSuite etc.
 <p>
 A typical test looks like
-<pre>
+<pre class="code">
  class MyTest extends junit.framework.TestCase {
    public void runTest() {
      ... do some work
@@ -68,7 +68,7 @@ machine.
     a TestSuite.
 <p>
     Example: register a test suite into the framework.
-<pre>
+<pre class="code">
       TestSuite suite = new TestSuite("example1");
 
       suite.addTest(new MyTest());
@@ -83,7 +83,7 @@ machine.
     allows remote running of the registered test cases.
 
     The servlet is available at
-<pre>
+<pre class="shell">
       http://<host>:<port>/junit?id=<testid>
 </pre>
     where <testid> == value of the service.pid property exported
@@ -104,7 +104,7 @@ machine.
     on the development machine (which doesn't need to run the framework!)
 <p>
     The client class name is:
-<pre>
+<pre class="shell">
      org.knopflerfish.service.junit.client.JUnitClient
 </pre>
     The target host and test id is passed to the client as a 
@@ -119,7 +119,7 @@ machine.
    as well as Ant's "junit" task.
 <p>
    Example: Using the Swing TestRunner
-<pre>
+<pre  class="shell">
     > java "-Dsuite.url=http://localhost:8080/junit?id=example1" \
        junit.swingui.TestRunner \
        org.knopflerfish.service.junit.client.JUnitClient
@@ -136,7 +136,7 @@ machine.
 
 <li>If you are using the KF console, the junit bundle registers
     a set of commands to list and run test cases.
-<pre>
+<pre class="shell">
     > enter junit
     junit> help
     Available junit commands:
@@ -151,7 +151,7 @@ machine.
   The servlet is also capable of exporting the test results as plain
   HTML. In this case, the client proxy isn't needed. Just point your
   browser at
-<pre>
+<pre class="shell">
    http://<host>:<port>/junit
 </pre>
   and you'll get a list of available tests. From this list you can
@@ -178,7 +178,7 @@ machine.
 
   <p>
     Example: register a test listener into the framework.
-<pre>
+<pre class="code">
       TestListener listener = new MyTestListener();
 
       bc.registerService(TestListener.class.getName(), listener, null);
@@ -192,24 +192,24 @@ contains support for using the JUnit client.
 
 <p>
 Example: run the swing Test runner from Ant
-<pre>
+<pre  class="shell">
    > ant -Dtest.id=example1 junit_ext
 </pre>
    
 Example: run Ant's junit task
-<pre>
+<pre  class="shell">
    > ant -Dtest.id=example1 junit_ant
 </pre>
 
 Tip: Bundles can be installed using the telnet console. The telnet
 console is installed by the default init.xargs. In this case a bundle
 can be installed and started by
-<pre>
+<pre  class="shell">
    > ant install start
 </pre>     
 
 The following Ant properties are set as default in bundlebuild.xml:
-<pre>
+<pre class="code">
   http.host              localhost
   http.port              8080
   junit.runner.class     junit.swingui.TestRunner

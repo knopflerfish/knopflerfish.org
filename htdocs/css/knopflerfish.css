@@ -244,6 +244,12 @@ PRE.code {
     background-color: #f7F7FF;
 }
  
+pre.shell {
+    border-style: solid;
+    border-color: #d0d0d0;
+    border-width: 1px;
+    background-color: #f7f7f7;
+}
 
 TH {
  text-align: left;
