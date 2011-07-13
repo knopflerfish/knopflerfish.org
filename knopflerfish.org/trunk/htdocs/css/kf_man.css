@@ -14,15 +14,6 @@ BODY {
 }
 
 H1.man {
-    /*
-    font-family: Helvetica, Arial, Verdana, sans-serif;
-    font-size:24px;
-    font-weight:bold;
-    border-style: solid;
-    border-color: #802060;
-    border-width: 0px 0px 1px 0px;
-    padding-bottom: 2px;
-    */
     font-family: Helvetica, Arial, sans-serif;
     font-size:24px;
     font-weight:bold;
@@ -41,22 +32,8 @@ H2.man {
     border-width:	1px 0px 1px 0px;
     background-image: url('../images/shortfadeout_20px.png');
     background-repeat: repeat-x;
-    padding:		2px 0px 2px 4px;
- /*
-   font-family:	Helvetica, Arial, sans-serif;
-    font-size:		16px;
-    font-weight:	bold;
-    border-style:	solid;
-    border-color:	#000;
-    border-width:	1px;
-    padding-bottom:	2px;
-    background:		#805362;
-    color:		#ffffff;
-    padding-top:         2px;
-    padding-bottom:      2px;
-    padding-left:        8px;
-    */
-    
+    padding:		2px 0px 2px 8px;
+    margin-top: 20px;
 }
 
 H3.man  {
@@ -107,7 +84,8 @@ table.man th {
     padding: 6px;
     border-style: solid;
     border-color: #666666;
-    background-color: #dedede;
+    background-color: #fafff5;
+    color:		#444444;
 }
 
 table.man td {
