@@ -187,7 +187,15 @@
               fromfile="${htdocs.dir}/html_src/osgi_with_security.html"
 	      disable="TUTORIALS"/>
 
- 	<echo message="${htdocs.out}"/>
+    <makehtml title="${htdocs.distname} - running on Android / Dalvik"
+              description="Tutorial for running KF on Android / Dalvik"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="android_dalvik_tutorial.html"
+              fromfile="${htdocs.dir}/html_src/android_dalvik_tutorial.html"
+	      disable="TUTORIALS"/>
+
+    <echo message="${htdocs.out}"/>
  </target>
 
 </project>
