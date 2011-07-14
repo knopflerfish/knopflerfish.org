@@ -19,8 +19,8 @@
 
 <a name="eclipse_create"></a>
 <h2 class="kf">Using Eclipse to create bundles</h2>
-See <a href="http://www.knopflerifsh.org/eclipse_plugin.html">
-  Knopflerfish  Eclipse Plugin</a> on the Knopferfish web site.  
+See the <a href="http://www.knopflerfish.org/eclipse_plugin.html">
+  Knopflerfish  Eclipse Plugin</a> documentation on the Knopferfish web site.  
 
 <a name="ant_create"></a>
 <h2 class="kf">Using Ant to create bundles</h2>
@@ -44,7 +44,7 @@ some knowledge about the OSGi manifest format.
   <tr>
     <td><b>1. Create a directory</b> for the new bundle</td>
     <td>
-      <pre>
+      <pre class="shell">
 &gt; cd <i>knopflerfish</i>/osgi/bundles
 &gt; mkdir mybundle
       </pre>
@@ -56,7 +56,7 @@ some knowledge about the OSGi manifest format.
       href="../ant/build_example.xml">template</a>
     </td>
     <td>
-      <pre>
+      <pre class="shell">
 &gt; cp <i>knopflerfish</i>/ant/build_example.xml build.xml
       </pre>
     </td>
@@ -80,7 +80,7 @@ some knowledge about the OSGi manifest format.
 
     </td>
     <td>
-      <pre>
+      <pre class="code">
 &lt;project name="<b>mybundle</b>" default="all"&gt;
 ...
 &lt;property name  = "impl.pattern"
@@ -98,12 +98,12 @@ some knowledge about the OSGi manifest format.
       directory.
     </td>
     <td>
-      <pre>
+      <pre class="shell">
 &gt; mkdir -p src/example/mybundle/impl
       </pre>
 
       <b>Example BundleActivator:</b> src/examples/mybundle/impl/Activator.java
-      <pre>
+      <pre class="code">
 package example.mybundle.impl;
 
 import org.osgi.framework.BundleActivator;
@@ -135,7 +135,7 @@ public class Activator implements BundleActivator {
 
     </td>
     <td>
-      <pre>
+      <pre class="shell">
 &gt; ant
       </pre>
     </td>
@@ -152,7 +152,7 @@ public class Activator implements BundleActivator {
     </td>
     <td>
       <b>Using the console to install and start the bundle.
-      <pre>
+      <pre class="shell">
 &gt; install file:jars/mybundle/mybundle.jar
 &gt; start mybundle.jar
       </pre>
@@ -183,15 +183,15 @@ public class Activator implements BundleActivator {
 </td>
 
 <td>
-<pre>
+<pre class="shell">
 &gt; ant install
 </pre>
 to install the compiled bundle. Similarly, type
-<pre>
+<pre class="shell">
 &gt; ant start
 </pre>
 to start the bundle. Type
-<pre>
+<pre class="shell">
 &gt; ant -projecthelp
 </pre>
 to see all available targets.
@@ -263,7 +263,7 @@ bundle. Following Maven conventions the source code of the bundle
 should be in the subdirectory named <code>src/main/java</code>,
 resources should be in <code>src/main/resources</code>.
 
-<pre>
+<pre class="code">
 &lt;project xmlns="http://maven.apache.org/POM/4.0.0" 
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"&gt;
@@ -381,7 +381,7 @@ class name in its manifest file.
 This makes it easy to find for other developers.
     </td>
     <td valign=top>
-      <pre>
+      <pre class="code">
 public class <b>Activator</b> implements BundleActivator {
   ...
 }
@@ -408,7 +408,7 @@ name spaces for separate bundles.
 </p>
     </td>
     <td valign=top>
-      <pre>
+      <pre class="code">
 // This is the not exported implementation part of a bundle
 package com.acme.osgi.test.impl;
 
@@ -438,7 +438,7 @@ public class <b>Activator</b> implements BundleActivator {
       other <b>singular</b> common objects as the log service tracker.
     </td>
     <td valign=top>
-      <pre>
+      <pre class="code">
 // Static bundle context
 public class <b>Activator</b> implements BundleActivator {
 
@@ -470,7 +470,7 @@ public class <b>Activator</b> implements BundleActivator {
       for garbage collection.
     </td>
     <td valign=top>
-      <pre>
+      <pre class="code">
 public void stop(BundleContext bc) {
   Activator.bc = null;
 }
@@ -488,7 +488,7 @@ public void stop(BundleContext bc) {
       They are <b>not</b> stopped or closed automatically.
     </td>
     <td valign=top>
-      <pre>
+      <pre class="code">
 // Cleanup up resources in stop method
 public void stop(BundleContext bc) {
   Activator.bc = null;
@@ -524,7 +524,7 @@ public void stop(BundleContext bc) {
 
     <td valign=top>
       <b>Common mistake of re-using the activator as service implementation:</b>
-      <pre>
+      <pre class="code">
 import org.osgi.framework.BundleActivator;
 import org.osgi.service.cm.ManagesService;
 
@@ -562,7 +562,7 @@ public class Activator
 </pre>
 
       <b>Better variant, using anonymous inner class:</b>
-      <pre>
+      <pre class="code">
 public class Activator implements BundleActivator {
 
   public void start(BundleContext bc) {
@@ -605,7 +605,7 @@ public class Activator implements BundleActivator {
 </p>
     </td>
     <td>
-      <pre>
+      <pre class="code">
   public void start(BundleContext bc) {
     new Thread("longTaskName") {
       { start(); } // I like instance initializer blocks ;)
@@ -647,7 +647,7 @@ context class loader before returning.</p>
 
 </td>
 <td>
-<pre>
+<pre class="code">
 public class Activator implements BundleActivator {
    public void start(BundleContext bc) {
 
@@ -698,7 +698,7 @@ Thanks to Rob Evans for this example.
       Use the <tt>ServiceTracker</tt> if you are interested in using a single
       service.
     <td valign=top>
-      <pre>
+      <pre class="code">
   ServiceTracker logTracker =
     new ServiceTracker(bc,
                        LogService.class.getName(),
@@ -727,7 +727,7 @@ Thanks to Rob Evans for this example.
     </td>
     <td valign=top>
       <b>Act on every http service that appears and disappears.</b>
-      <pre>
+      <pre class="code">
   ...
   ServiceListener listener = new ServiceListener() {
     public void serviceChanged(ServiceEvent ev) {
@@ -785,7 +785,7 @@ Thanks to Rob Evans for this example.
       the <b>getResourceAsStream</b> method
     </td>
     <td valign=top>
-      <pre>
+      <pre class="code">
 // Get the bundle's manifest file using the
 // bundle class loader
 InputStream in =
@@ -806,7 +806,7 @@ InputStream in =
       syntax.
     </td>
     <td valign=top>
-      <pre>
+      <pre class="code">
  // Get the bundle's raw manifest file using an URL
  // Syntax: (jar number represents internal jars,
  // where 0 is the top level jar)
@@ -849,7 +849,7 @@ the newly installed one.
 Both the console and desktop provides means of calling refresh:
 <p>
 Console:
-<pre>
+<pre class="shell">
  &gt; /framework refresh
 </pre>
 </p>
@@ -862,7 +862,7 @@ or CTRL + R
 
 Both of these methods uses the <tt>org.osgi.service.PackageAdmin</tt> service
 to refresh packages:
-<pre>
+<pre class="code">
   // refresh all bundles
   packageAdmin.refreshPackages(null)
 </pre>
@@ -894,13 +894,13 @@ to refresh packages:
   <li>Install all the .dlls and jars in the
   <b>JRE runtime</b> <code>ext/</code> directory. <br>
   Common installation directory:
-  <pre>
+  <pre class="shell">
 C:\Program Files\JavaSoft\JRE\1.3\lib\ext\
     </pre>
   <li>This is not enough, copy the file <code>jmutils.dll</code> to the
   JRE runtime <code>bin/</code> directory. <br>
   Common installation directory:
-  <pre>
+  <pre class="shell">
 C:\Program Files\JavaSoft\JRE\1.3\bin\
     </pre>
 
@@ -1256,7 +1256,7 @@ be present at all in the manifest, not even as a zero-length string.
   the bundle.</p>
 
   <p>Example - make the log API available during compilation:</p>
-<pre>
+<pre class="code">
  &lt;path id = "bundle.compile.path"&gt;
    &lt;pathelement location="log_api-N.N.N.jar"/&gt;
  &lt;/path&gt;
@@ -1293,7 +1293,7 @@ the standard bundle build.
 <br>
 <b>Example of pre target - copying a file</b>
 
-<pre>
+<pre class="shell">
 &lt;!-- set do.bundle.custom.pre to anything to trigger pre target --&gt;
 &lt;property name="do.bundle.custom.pre" value=""/&gt;
 &lt;target name="bundle.custom.pre"&gt;
@@ -1304,7 +1304,7 @@ the standard bundle build.
 
 <b>Example of post target - a custom manifest attribute</b>
 
-<pre>
+<pre class="code">
 &lt;!-- set do.bundle.custom.post to anything to trigger post target --&gt;
 &lt;property name="do.bundle.custom.post" value=""/&gt;
 
@@ -1349,7 +1349,7 @@ The following apply:
     As a solution, memory can be used as bundle storage
     instead of disk. Just start with
 </p>
-<pre>
+<pre class="shell">
      -Dorg.knopflerfish.framework.bundlestorage=memory
 </pre>
 <p>
