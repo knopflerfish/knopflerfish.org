@@ -38,8 +38,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Services (Compendium) ===
 
-  Component (SCR) 3.0.2
-
+  Component (SCR) 3.0.3
+  
+  - Corrected issue with servicefactory check when servicefactory was explicitly
+    was set to false.
   - Immediate components are now correctly activated, previously they
     were only active when they were used.
   - The value of a property specified in the body of the
@@ -49,6 +51,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 
   HTTP-Server 3.0.5
+
   - Improved handling of persistent connections for GET and HEAD
   - Configurable features and limits added to better control and
     handle DoS attacks:
@@ -91,6 +94,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     match the one used on the Knopflerfish web-site. Replaced the
     service listener with a ServiceTracker.
     
+  Util-LIB 2.0.1
+
+  - Added documentation for the Executable Bundle Activator
+
 
   Documentation and Tutorials
 
@@ -99,6 +106,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     tutorial demonstrates how to use the Conditional Permission Admin
     service.
 
+  - A new tutorial on how to build and run Knopflerfish on Android 
+    using the Dalvik VM. 
 
   Directory Structure
 
@@ -108,7 +117,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     osgi/example_jars.
   - The directory osgi/bundles/demos has been moved to
     osgi/bundles_examples/demos.
-
+  - A new tools/android directory for simplified build of dex versions 
+    of KF bundles.
 
   Build System
 
@@ -143,7 +153,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     the ant-subdir to create an up-to date version of the
     bundle_tasks.jar-file.
   - Fixed so that KF builds with ant 1.8.
-
+  - Improved support for dexifying and generating classes.dex files
 
 ========================================================================
 
