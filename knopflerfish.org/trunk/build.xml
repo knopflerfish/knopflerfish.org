@@ -121,6 +121,7 @@
     <ant    dir="osgi"               target="clean"/>
     <ant    dir="${jarunpacker.dir}" target="clean"/>
     <ant    dir="ant"                target="clean"/>
+    <ant    dir="tools/android"      target="clean"/>
   </target>
 
   <target name="version"
@@ -481,6 +482,8 @@
         <include name="ant/**"/>
         <exclude name="ant/classes/**"/>
         <exclude name="ant/lib/bindex.jar"/>
+
+        <include name="tools/android/**"/>
 
         <!--<include name="build.xml"/>-->
 

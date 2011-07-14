@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="android" default="all">
+
+  <!-- Load android property definitions -->
+  <dirname  property="proj.dir" file="${ant.file.android}"/>
+  <property name="android.properties" location="${proj.dir}/android.properties"/>
+  <property file="${android.properties}"/>
+
+  <property name="kf.root.dir" location="${proj.dir}/../.." />
+  <property name="kf.osgi.dir" location="${kf.root.dir}/osgi" />
+  <property name="out.dir"   location="${proj.dir}/out" />
+  <property name="dalvik.dir"   location="${out.dir}/dalvik" />
+  <property name="tmp.dir"   location="${out.dir}/tmp" />
+  <property name="gosg.jars"       value="file:jars/"/>
+  <property name="xargs.base.dir" location="."/>
+  <property name="ant.dir"		location="${kf.root.dir}/ant" />
+  <property name="topdir"		location="${kf.root.dir}/osgi" />
+
+  <property name="adb.exe"		location="${ANDROID_HOME}/platform-tools/adb" />
+  <property name="android.install.dir"	value="/data/kf-3.2.0" />
+  
+  <import file="${kf.root.dir}/ant/bundletasks.xml"/>
+  <import file="${kf.root.dir}/ant/xargs.xml"/>
+
+  <!-- ============================================================
+       Bundles to include in default dalvik run-time
+       ============================================================ -->
+  
+  <fileset id="dalvik.runtime.basic"
+           dir="${kf.osgi.dir}/">
+    <include name="framework.jar"/>
+    <include name="props.xargs"/>
+  </fileset>
+  
+  <fileset id="dalvik.runtime.jars.default"
+           dir="${kf.osgi.dir}/jars">
+    <include name="console/*.jar"/>
+    <include name="consoletty/*.jar"/>
+    <include name="cm/*.jar"/>
+    <include name="cm_cmd/*.jar"/>
+    <include name="event/*.jar"/>
+    <include name="frameworkcommands/*.jar"/>
+    <include name="http/*.jar"/>
+    <include name="httproot/*.jar"/>
+    <include name="log/*.jar"/>
+    <include name="logcommands/*.jar"/>
+    <include name="jsdk/*.jar"/>
+    <include name="util/*.jar"/>
+  </fileset>
+  
+  <target name="setup"
+          depends="android_properties"
+          description="Setup of environemnt for Android SDK">
+    <mkdir dir="${dalvik.dir}"/>
+  </target>
+  
+  <target name="android_properties">
+    <!-- Ensure that ANDROID_HOME is set and exists -->
+    <available property="android.exists" file="${ANDROID_HOME}" type="dir"/>
+    <fail unless="android.exists">
+      Property ANDROID_HOME points to a non-existing directory '${ANDROID_HOME}'.
+      Run "ant help" for more information.
+    </fail>
+
+    <propertyfile file="${android.properties}" comment="Android properties">
+      <entry  key="ANDROID_HOME" value="${ANDROID_HOME}"/>
+    </propertyfile>
+    <property file="${android.properties}"/>
+  </target>
+
+  <target name="build_dex">
+    <ant dir="${kf.osgi.dir}" 
+	 inheritall="false"
+ 	 target="default">
+      <property name="ANDROID_HOME"       location="${ANDROID_HOME}"/>
+    </ant>
+  </target>
+    
+  <target name="dalvik_runtime" depends="bundle_tasks">
+
+    <copy todir="${dalvik.dir}" overwrite="true">
+      <fileset refid="dalvik.runtime.basic" />
+    </copy>
+
+    <copy todir="${dalvik.dir}/jars" overwrite="true">
+      <fileset refid="dalvik.runtime.jars.default" />
+    </copy>
+    
+    <xargs template="template.dalvik.xargs"
+	   xargs="${dalvik.dir}/dalvik.xargs"
+	   baseDir="${dalvik.dir}"
+	   gosgJars="${gosg.jars}"
+	   testJars="$$$${user.dir}/${jars_test.dir.name}"
+	   outDir="${tmp.dir}"/>
+    
+  </target>
+
+  <target name="all"
+	  description="Sets up and creates a smsall default KF run-time to install on an Android device emulator"
+	  depends="setup,
+		   build_dex,
+		   dalvik_runtime"/>
+  
+  
+  <target name="install"
+	  description="Installs a KF Dalvik runtime environment on the emulator using the adb tools">
+
+    <exec dir="${dalvik.dir}/.." executable="${adb.exe}">
+      <arg line="push" />
+      <arg line="dalvik" />
+      <arg line="${android.install.dir}" />
+    </exec>
+  </target>
+  
+  <target name="clean"
+	  description="Cleans up" >
+    <delete dir="${out.dir}"/>
+  </target>
+
+</project>
