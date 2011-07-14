@@ -537,6 +537,13 @@
         <include name="osgi/bundles/upnp/**"/>
         <include name="osgi/bundles/provisioning/**"/>
 
+        <include name="osgi/bundles/applicationadmin/**"/>
+        <include name="osgi/bundles/blueprint/**"/>
+        <include name="osgi/bundles/deploymentadmin/**"/>
+        <include name="osgi/bundles/dmtree/**"/>
+        <include name="osgi/bundles/foreignapplication/**"/>
+        <include name="osgi/bundles/monitor/**"/>
+
         <include name="osgi/bundles/demos/**"/>
 
         <include name="osgi/bundles/trayicon/build.xml"/>
@@ -559,6 +566,8 @@
 
         <include name="osgi/bundles_test/**"/>
         <exclude name="osgi/bundles_test/regression_tests/*/resources/*_test*.jar"/>
+
+        <include name="osgi/bundles_examples/**"/>
       </zipfileset>
 
       <!-- Add required files excluded in the fileset above -->
