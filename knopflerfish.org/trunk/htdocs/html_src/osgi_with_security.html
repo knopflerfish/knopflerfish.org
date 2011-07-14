@@ -122,7 +122,7 @@ To keep these working like before, we will grant them AllPermission by
 adding a policy that allow AllPermission under the condition that the
 bundle location matches the location where the KF bundles are stored
 in the local file system:
-<pre class="codeexample">
+<pre class="code">
 ALLOW {
   [org.osgi.service.condpermadmin.BundleLocationCondition "file:jars/*"]
   (java.security.AllPermission)
@@ -143,7 +143,7 @@ org.osgi.framework package.
 In this tutorial the bundle that we are testing is stored in the local
 file system at <code>/opt/kf/totest</code>, and to give all bundles
 located here permission to import any package we need:
-<pre class="codeexample">
+<pre class="code">
 ALLOW {
   [org.osgi.service.condpermadmin.BundleLocationCondition "file:/opt/kf/totest/*"]
   (org.osgi.framework.PackagePermission "*" "import")
@@ -192,13 +192,13 @@ Make sure that the bundle frameworkcommands is installed.
 
 <p>
 In the console, type
-<pre class="codeexample">
+<pre class="code">
   > framework setcondpermission \
   '[org.osgi.service.condpermadmin.BundleLocationCondition "file:jars/*"]' \
   (java.security.AllPermission)
 </pre>
 and 
-<pre class="codeexample">
+<pre class="code">
   > fr setcond '[org.osgi.service.condpermadmin.BundleLocationCondition \
   "file:/opt/kf/totest/*"]' \
   '(org.osgi.framework.PackagePermission "*" "import")'
@@ -235,7 +235,7 @@ Here is the <a href="examples/cpa/admin/src/org/knopflerfish/cpaexample/bundle/a
 ile</a> for the admin bundle.
 We have a method, installPolicies that is called when the bundle starts:
 
-<pre class="codeexample">
+<pre class="code">
 01: void installPolicies(ConditionalPermissionAdmin cpa, String[] pInfos) {
 02:   ConditionalPermissionUpdate cpu = cpa.newConditionalPermissionUpdate();
 03:   List piList = cpu.getConditionalPermissionInfos();
@@ -257,7 +257,7 @@ is used to create an instance from an encoded string. The string syntax is
 specified in the CPA chapter of the OSGi core specification. The policies
 that we defined in <a href="#easy">An Easy Set-up</a> would look like this:
  
-<pre class="codeexample">
+<pre class="code">
   private static final String[] ENCODED_PINFO = {
     "allow { [org.osgi.service.condpermadmin.BundleLocationCondition \
     	\"file:jars/*\"] (java.security.AllPermission) } \"allToTrusted\"",
@@ -326,7 +326,7 @@ the file system. Finally, we need permission to export a package and
 publish a service for other bundles to import and use. The policy for
 these permissions could look like:
 
-<pre class="codeexample">
+<pre class="code">
 ALLOW {
   [org.osgi.service.condpermadmin.BundleLocationCondition "file:/opt/kf/totest/cpaexample_user*"]
   (org.osgi.framework.PackagePermission "org.osgi.framework.*" "import")
@@ -358,7 +358,7 @@ use a policy in the admin bundle that grants the user bundle
 AllPermission. The hard coded policies in the admin bundle will now
 be:
 
-<pre class="codeexample">
+<pre class="code">
   private static final String[] ENCODED_PINFO = {
     "allow { [org.osgi.service.condpermadmin.BundleLocationCondition \
     	\"file:jars/*\"] (java.security.AllPermission) } \"allToTrusted\"",
@@ -376,7 +376,7 @@ href="../osgi/example_jars/cpaexample_user/cpaexample_user_all-1.0.0.jar">here</
 interesting parts for this security tutorial can be found in the login
 and logout methods of UserService. Here is the login method:
 
-<pre class="codeexample">
+<pre class="code">
 01: public void login(final String name) {
 02:   final File f = new File(fileName);
 03:
