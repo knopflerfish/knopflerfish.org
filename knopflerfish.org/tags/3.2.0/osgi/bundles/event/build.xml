@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="event" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.event}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name="ee.check.foundation" value="true"/>
+
+  <property name="bundle.build.api"  value="true"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.doc"  value="true"/>
+
+  <property name="api.pattern"  value="org/osgi/service/event/**"/>
+  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="cm_api-N.N.N.jar"/>
+  </path>
+
+  <property name="bmfa.Bundle-Name"           value="Event-Admin"/>
+  <property name="bmfa.Bundle-Description"    value="Event Admin"/>
+  <property name="bmfa.Bundle-Category"       value="service"/>
+  <property name="bmfa.Bundle-Version"        value="3.0.4"/>
+  <property name="bmfa.Bundle-APIVendor"      value="OSGi"/>
+  <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
+  <property name="bmfa.Bundle-DocURL"
+	    value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=event/index.html"/>
+  <property name="bmfa.Bundle-SubversionURL"
+	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/event/"/>
+
+
+  <property name="bmfa.Export-Package"
+            value="org.osgi.service.event;version=1.2"/>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

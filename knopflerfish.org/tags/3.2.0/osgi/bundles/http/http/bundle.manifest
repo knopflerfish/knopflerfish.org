@@ -1,0 +1,23 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: HTTP-Server
+Bundle-SymbolicName: org.knopflerfish.bundle.http
+Bundle-Version: 3.0.5
+Bundle-Description: HTTP/HTTPS Server
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=http/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/http/http
+Bundle-Activator: org.knopflerfish.bundle.http.Activator
+Bundle-Category: service
+Export-Package: org.osgi.service.http; version=1.2.1
+Import-Package: javax.servlet; version=2.3,
+ javax.servlet.http; version=2.3,
+ org.osgi.framework,
+ org.osgi.service.log,
+ org.osgi.service.cm,
+ org.osgi.service.http,
+ org.osgi.util.tracker

@@ -1,0 +1,229 @@
+<?xml version="1.0"?>
+
+<project name="framework" default="all">
+  <!-- Are we building for Dalvik/Android? -->
+  <available property="android.exists" file="${ANDROID_HOME}"/>
+  
+  <!-- build properties -->
+
+  <property name="topdir"       location=".."/>
+  <property name="osgi.dir"     location="${topdir}"/>
+  <property name="ant.dir"      location="${topdir}/../ant"/>
+
+  <property name="root.out.dir" location="${topdir}/out"/>
+  <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
+  <property name="classout"     location="${outdir}/classes"/>
+  <property name="docs.dir"     location="${root.out.dir}/doc"/>
+  <property name="outdocdir"    location="${docs.dir}/${ant.project.name}"/>
+  <!-- Location of templates used by the framework_doc-target. -->
+  <property name="frameworkdoc_template"
+	    location="${ant.dir}/html_template/frameworkdoc.html"/>
+
+  <property name="fw.impl.version"   value="5.1.14"/>
+  <property name="fw.export-package" value="org.osgi.framework;version=1.5,org.osgi.framework.launch;version=1.0,org.osgi.framework.hooks.service;version=1.0,org.osgi.service.packageadmin;version=1.2,org.osgi.service.permissionadmin;version=1.2,org.osgi.util.tracker;version=1.4,org.osgi.service.startlevel;version=1.1,org.osgi.service.url;version=1.0,org.osgi.service.condpermadmin;version=1.1"/>
+
+  <property name="jarfile"      location="${topdir}/${ant.project.name}.jar"/>
+
+   <!-- Android dx.jar requires 1.5 target -->
+  <condition
+    property="javac.target"
+    value="1.5"
+    else="1.1">
+    <istrue value="${android.exists}"/>
+  </condition>
+
+  <condition
+     property="android.tool.dx"
+     value="${ANDROID_HOME}/platform-tools/lib/dx.jar"
+     else="${ANDROID_HOME}/tools/lib/dx.jar">
+    <available file="${ANDROID_HOME}/platform-tools/lib/dx.jar"/>
+  </condition>
+
+  <condition
+     property="android.tool.aapt"
+     value="${ANDROID_HOME}/platform-tools/aapt"
+     else="${ANDROID_HOME}/tools/aapt">
+    <available file="${ANDROID_HOME}/platform-tools/aapt"/>
+  </condition>
+
+  
+  <property name="javac.source" value="1.2"/>
+
+  <property name="src.dir" location="src"/>
+
+  <property name="printClasses" location="true"/>
+
+  <path id="compile.path">
+   <pathelement location="${topdir}/framework/resources"/>
+   <pathelement location="libs/asm-3.2.jar"/>
+  </path>
+
+  <!-- targets -->
+  <target name="all" depends="jar">
+   <antcall target="list"/>
+  </target>
+
+  <target name        = "compile">
+   <antcall target="compile_full"/>
+   <antcall target="compile_compact"/>
+  </target>
+
+  <target name        = "compile_full" 
+          unless      = "compact"
+          description = "compiles all java sources">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir           = "${classout}" 
+           srcdir            = "${src.dir}" 
+           debug             = "on"
+	   includeantruntime = "false"
+	   includes          = "**/*.java"
+           target            = "${javac.target}"
+           source            = "${javac.source}"
+           classpathref      = "compile.path"
+    >
+   </javac>
+  </target>
+
+  <target name = "compile_compact" 
+          if   = "compact"
+          description="compiles with file storage only">
+    <mkdir dir="${classout}"/>
+
+    <javac destdir       = "${classout}" 
+           srcdir        = "${src.dir}" 
+           debug         = "on"
+	   includes      = "**/*.java"
+           excludes      = "org/knopflerfish/framework/bundlestorage/memory/*.java"
+           target        = "${javac.target}"
+           source        = "${javac.source}"
+           classpathref  = "compile.path"
+    >
+   </javac>
+  </target>
+
+ <target name="jar" depends="compile" description="build jar">
+    <tstamp>
+     <format property = "framework.tstamp" 
+             pattern  = "'Build' EE MMMM d yyyy, HH:mm:ss"
+             locale   = "en"/>
+    </tstamp>
+
+ 	<!-- delete in case the file is read-only -->
+    <delete file="resources/version"/>
+ 	<echo message="${fw.impl.version}"  file="resources/version"/>
+    <delete file="resources/tstamp"/>
+    <echo message="${framework.tstamp}" file="resources/tstamp"/>
+    
+    <condition property="version.isset">
+     <isset property="version"/>
+    </condition>
+
+
+    <antcall target="writerelease"/>
+
+   
+    <delete file="${classout}/classes.dex"/>
+
+    <jar basedir="${classout}"
+         jarfile="${jarfile}"
+    >
+     <fileset dir="resources"/>
+     <manifest>
+      <attribute name = "Main-class"             value="org.knopflerfish.framework.Main"/>
+      <attribute name = "Specification-Title"    value="OSGi Framework API"/>
+      <attribute name = "Specification-Version"  value="1.5"/>
+      <attribute name = "Specification-Vendor"   value="Open Service Gateway initiative"/>
+      <attribute name = "Implementation-Title"   value="Knopflerfish OSGi Framework"/>
+      <attribute name = "Implementation-Version" value="${fw.impl.version}" />
+      <attribute name = "Implementation-Vendor"  value="Knopflerfish"/>
+      <attribute name = "Bundle-Vendor"          value="Knopflerfish"/>
+      <attribute name = "Bundle-Version"         value="${fw.impl.version}"/>
+      <attribute name = "Bundle-SymbolicName"    value="org.knopflerfish.framework"/>
+      <attribute name = "Bundle-Name"            value="frameworkbundle"/>
+      <attribute name = "Bundle-Description"     value="Knopflerfish OSGi framework system bundle"/>
+      <attribute name = "Bundle-License"
+		 value="&quot;http://www.knopflerfish.org/license.html&quot;;description=BSD;link=&quot;http://www.knopflerfish.org/license.html&quot;"/>
+      <attribute name = "Export-Package"         value="${fw.export-package}"/>
+      <attribute name = "Bundle-DocURL"          value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html"/>
+      <attribute name = "Bundle-SubversionURL"   value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/framework/"/>
+      <attribute name = "Build-Date"             value="${framework.tstamp}"/>
+      <attribute name = "SplashScreen-Image"     value="kfsplash.gif"/>
+     </manifest>
+    </jar>  
+
+  <antcall target="add_dex" inheritRefs="true">
+     <param name="jarfile" value="${jarfile}"/>
+   </antcall>
+
+ </target>  
+
+ <target name="add_dex" if="android.exists">
+  <echo message="add_dex ${jarfile}"/>
+  <basename file="${jarfile}" suffix="jar" property="jarfile.basename"/>
+  <tempfile destdir="${outdir}" prefix="${jarfile.basename}" property="temp.dir"/>
+  <mkdir dir="${temp.dir}"/>
+  <property name="temp.dex" value="${temp.dir}/classes.dex"/>
+    
+  <java fork="true" jar="${android.tool.dx}">
+    <arg value="--dex"/>
+    <arg value="--output=${temp.dex}"/>
+    <arg value="${jarfile}"/>
+  </java>
+
+  <exec executable = "${android.tool.aapt}">
+    <arg value="add"/>     
+    <arg value="-f"/>
+    <arg value="${jarfile}"/>
+    <arg value="${temp.dex}"/>
+  </exec>
+  
+  <delete dir="${temp.dir}"/>
+
+ </target>
+ 
+ <target name="framework_doc"
+	 depends="bundle_tasks">
+   <property name="bmfa.Bundle-Version" value="${fw.impl.version}"/>
+   <property name="bmfa.Export-Package" value="${fw.export-package}"/>
+   <makehtml template="${frameworkdoc_template}"
+             outdir="${outdocdir}"
+	     manstyle="true">
+     <fileset dir="doc">
+       <include name="**/*.html"/>
+     </fileset>
+   </makehtml>
+
+   <copy todir="${outdocdir}">
+     <fileset dir="doc">
+       <exclude name="**/*.html"/>
+     </fileset>
+   </copy>
+ </target>
+
+ <target name="run">
+  <java fork="true"
+        jar="${outdir}/${ant.project.name}.jar"
+	/>
+ </target>
+
+ <target name="writerelease" if="version.isset">
+  <delete file="resources/release"/>
+  <echo message="${version}" file="resources/release"/>
+ </target>
+
+
+ <target name="clean" description="removes all generated files">
+  <delete dir  = "${outdir}"/>
+  <delete file = "${jarfile}"/>
+ </target>
+
+ <import file="${topdir}/../ant/bundletasks.xml"/>
+
+ <target name="list" depends="bundle_tasks">
+  <bundleinfo checkFoundationEE="true" 
+              checkMinimumEE="true" >
+    <impls dir="${classout}" includes="**/*.class"/>
+  </bundleinfo>
+ </target>
+</project>

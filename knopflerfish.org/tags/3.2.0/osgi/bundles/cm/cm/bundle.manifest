@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: cm
+Bundle-SymbolicName: org.knopflerfish.bundle.cm
+Bundle-Version: 3.0.1
+Bundle-Category: service
+Bundle-Description: Configuration management service
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=cm/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/cm/cm/
+Bundle-Icon: icon.png;size=32
+Bundle-Activator: org.knopflerfish.bundle.cm.Activator

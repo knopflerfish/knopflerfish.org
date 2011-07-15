@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: KF-XML-Metatype
+Bundle-SymbolicName: org.knopflerfish.bundle.kf_metatype
+Bundle-Version: 3.0.1
+Bundle-Category: util
+Bundle-Description: XML format support for CM and Metatype
+Bundle-Vendor: Knopflerfish/nanoxml
+Bundle-APIVendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/metatype/kf_metatype/
+Bundle-Classpath: .,nanoxml-2.2.1.jar
+Bundle-Activator: org.knopflerfish.bundle.metatype.Activator
+Export-Package: org.knopflerfish.util.metatype,
+ net.n3.nanoxml; version=2.2.1
+Import-Package: org.knopflerfish.service.log,
+ org.knopflerfish.util,
+ org.knopflerfish.util.metatype,
+ org.kxml2.io,
+ org.osgi.framework,
+ org.osgi.service.cm,
+ org.osgi.service.metatype,
+ org.osgi.util.tracker,
+ org.xmlpull.v1

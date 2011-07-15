@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: deploymentadmin
+Bundle-SymbolicName: org.knopflerfish.bundle.deploymentadmin
+Bundle-Version: 1.0.1
+Bundle-Category: API
+Bundle-Description: Deployment Admin API
+Bundle-Vendor: OSGi
+Bundle-APIVendor: osgi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/deploymentadmin/
+DynamicImport-Package: *
+Export-Package: org.osgi.service.deploymentadmin ; version="1.1",
+                org.osgi.service.deploymentadmin.spi ; version="1.0.1"
+Import-Package: org.osgi.framework

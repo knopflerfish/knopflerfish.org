@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="desktop" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.desktop}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name="ee.check.foundation"   value="false"/>
+  <property name="bundle.extraimports"   value="javax.swing.plaf.basic"/>
+  <property name="bundle.build.doc"      value="true"/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**,
+                   org/knopflerfish/util/**,
+                   org/knopflerfish/shared/cm/**,
+                   org/osgi/service/**"/> 
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/**,
+                   org/osgi/service/**,
+                   apple/**"/> 
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+
+    <!-- Embedd APIs for OSGi services that the desktop depends on -->
+    <bundle_locator bundleNames="remotefw_api,
+                                 console_api,
+                                 log_api,
+                                 util,
+                                 cm_api,
+                                 event_api,
+                                 prefs_api">
+      <fileset dir="${jars.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.remotefw_api}">
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.console_api}">
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.log_api}">
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.util}">
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.cm_api}">
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.event_api}">
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
+      </zipfileset>
+
+      <zipfileset src="${bap.prefs_api}">
+        <patternset>
+          <exclude name="META-INF/*"/>
+          <exclude name="*.dex"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+
+    <!-- Reuse the manifest entry parser from the KF framework. -->
+    <bundle_locator bundleNames="framework">
+      <fileset dir="${jars.dir}/../">
+        <include name="framework.jar"/>
+      </fileset>
+      <fileset dir="${osgi.jars.dir}/../">
+        <include name="framework.jar"/>
+      </fileset>
+      <fileset dir="${osgi.dir}/">
+        <include name="framework.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.framework}">
+        <patternset>
+          <include name="org/knopflerfish/framework/Util*"/>
+          <include name="org/knopflerfish/framework/FileTree*"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+
+  </target>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

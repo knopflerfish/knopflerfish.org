@@ -1,0 +1,1064 @@
+<h1>Knopflerfish OSGi framework</h1>
+
+<div class="abstract">
+  This is the Knopflerfish framework. An OSGi Release 4 version 4.2
+  compliant framework. It supports all optional framework services,
+  Package Admin, Start Level, Conditional Permission Admin,
+  Permission Admin, URL Handlers and Service Hooks.
+</div>
+
+<h2>Contents</h2>
+  <ol>
+    <li><a href="#startup">Knopflerfish framework.jar startup</a></li>
+    <li><a href="#init_restart">Initial start vs restart</a></li>
+    <li><a href="#framework">Starting the framework</a></li>
+    <li><a href="#xargs">Default selection of .xargs</a></li>
+    <li><a href="#proxy">Using a HTTP proxy</a></li>
+    <li><a href="#props">Framework and System Properties</a></li>
+    <li><a href="#osgiprop">OSGi Specified Framework Properties</a></li>
+    <li><a href="#kfsysprop">Knopflerfish Specified System Properties</a></li>
+    <li><a href="#kffwprop">Knopflerfish Specified Framework Properties</a></li>
+  </ol>
+<a name="startup"></a>
+<h2>Knopflerfish framework.jar startup</h2>
+<p>
+This is a startup guide for the KF OSGi framework. Note that
+command-line startup of the framework is not specified by OSGi, and
+system integrators often need to create a wrapper script for FW
+startup.
+</p>
+<p>
+The KF Main startup class is primarily intended to be used in scenarios
+where current working directory is same as the one containing framework.jar,
+the framework storage directory and configuration files. In these cases
+</p>
+<p>
+<pre class="shell">java -jar framework.jar</pre>
+</p>
+<p>
+...is often enough. 
+</p>
+<p>
+To enable support for new KF2 specific features, such as extension bundles, 
+you can use the "kf2" shell script. Open a terminal and type
+</p>
+<p>
+<pre class="shell">./kf2</pre>
+</p>
+<p>
+Note: the script requires a "sh" shell. 
+</p>
+<p>
+Other uses are possible, but require options and possibly some tweaking
+of the default startup files.
+</p>
+
+<a name="init_restart"></a>
+<h2>Initial start vs restart</h2>
+<p>
+Two cases of framework startup should be noted:
+</p>
+<ol>
+  <li>Initial, bootstrap, startup<br/>
+    An initial startup must contain enough options
+    to install bundles allowing further management, using 
+    -install options. If no bundles are installed, an empty 
+    framework will be started but nothing can be done with it..
+  </li>
+  <li>Restart of previously initialized framework<br/>
+    Any OSGi framework can remember its state from previous startup.
+    <br/>
+    In this case, startup options should only contains system properties
+    and a -launch option for restarting the bundles, but not any
+    -install options.
+  </li>
+ </ol>
+<p>
+ NB! Framework properties (-Fx=y) supplied at initial startup are saved as
+ part of the framework state, and need not to be supplied again at framework
+ restart. System properties (-Da=b) are not included in the framework state.
+ Since the two different startup cases probably will use separate startup
+ files, care must be taken so system properties are set correctly in both
+ files, when so required.
+</p>
+
+<p>
+</p>
+<p>
+It is up to a system integrator to decide when to use initial startup
+or restart. The Main KF class can help somewhat in doing this (see below)
+but might not be enough. In those cases, wrapper scripts, or modifications
+to Main.java are recommended.
+</p>
+
+<a name="framework"></a>
+<h2>Starting the framework</h2>
+<p>
+The framework can be started using the startup wrapper class
+</p>
+<p>
+<pre class="shell">org.knopflerfish.framework.Main</pre>
+</p>
+<p>
+This class is also set a Main-Class in framework.jar's manifest, meaning 
+framework.jar can be started using 
+</p>
+<p>
+<pre class="shell"> java -jar framework.jar [options] OR ./kf2 [options]</pre>
+</p>
+<p>
+The Main class supports a number of options, which can be displayed
+using:
+</p>
+<p>
+<pre class="shell">java -jar framework.jar -help OR ./kf2 -help</pre>
+</p>
+<p>
+Options can also be specified using the -xargs option, which specifies
+a .xargs text file containing lines of new options. Typically all
+options are specified in .xargs files. Combining .xargs files and
+command line options is possible. .xargs files can also use recursive
+.xargs files.
+</p>
+<p>
+When the framework is started, it uses a file system directory for
+storing the state of all installed bundles, "fwdir". The default
+directory used for this is:
+</p>
+<p>
+<pre class="shell">fwdir</pre>
+</p>
+<p>
+in the currect directory. The "fwdir" directory can also be set
+specifically using the org.osgi.framework.storage property. Note that
+moving "fwdir" also changes the location for searching for default
+.xargs files.
+</p>
+<p>
+If no options are specified (any "-Fx=y", "-Da=b" or "-init" does not
+count as options in this case) an implicit
+</p>
+<p>
+<pre class="shell">-xargs "default"</pre>
+</p>
+<p>
+is added to the options. "default" means that the default .xargs (see
+below) is selected.
+</p>
+
+<a name="xargs"></a>
+<h2>Default selection of .xargs</h2>
+<p>
+If _no_ args are supplied (arguments of the form "-Fx=y", "-Da=b" or
+"-init" does not count in this case), or a name of "default" is given
+as -xargs argument, a default .xargs file will be searched for, by the
+following algorithm:
+</p>
+<ol>
+  <li>If there exists a previous "fwdir" AND previous options
+      does not contain "-init", use a file in "fwdir" named:<br/>
+    <pre class="shell">fwprops.xargs</pre>
+  </li>
+  <li>If no fwdir exist, OR options contain an "-init", 
+       search for a file named:
+    <ol style="list-style-type:lower-latin">
+      <li>init_[osname].xargs</li>
+      <li>init.xargs</li>
+      <li>remote-init.xargs</li>
+    </ol>
+    The search is performed in the following directories:
+    <ol style="list-style-type:lower-latin">
+      <li>fwdir</li>
+      <li>The parent directory of fwdir (if any)</li>
+      <li>The current working directory</li>
+    </ol>
+    First match winns.<br/>
+    The [osname]-part of the file name is the unified OS name as
+    specified in Alias.java (see below). Case is important if the file
+    system is case sensitive.<br/>
+    OS aliases:
+    <ul>
+      <li>OS2</li>
+      <li>QNX</li>
+      <li>Windows95</li>
+      <li>Windows98</li>
+      <li>WindowsNT</li>
+      <li>WindowsCE</li>
+      <li>Windows2000</li>
+      <li>WindowsXP</li>
+    </ul>
+  </li>
+</ol>
+<p>
+The file fwdir/restart.xargs suitable for restarting a framework
+instance is written by the Knopflerfish framework on every startup
+(unless disabled by setting the property
+"org.knopflerfish.framework.write.restart.xargs" to false).
+</p>
+
+<a name="proxy"></a>
+<h2>Using a HTTP proxy</h2>
+<p>
+The standard JVM system properties
+</p>
+<ul>
+ <li>http.proxyHost</li>
+ <li>http.proxyPort</li>
+ <li>http.nonProxyHosts</li> 
+</ul>
+<p>
+should be used to set proxy information. This will be global to 
+all HTTP request from all bundles and the framework.
+</p>
+<p>
+Additionally, the KF-specific system property
+</p>
+<ul>
+ <li>http.proxyAuth</li>
+</ul>
+<p>
+can be set to a value on the form user:password
+</p>
+<p>
+If set to non-empty, this will add the 
+Proxy-Authorization header to bundle install http/https requests 
+made from the framework, However, bundles using the URL class internally
+must explictly set this header themselves.
+</p>
+
+<a name="props"></a>
+<h2>Framework and System Properties</h2>
+<p>
+Both Framework and Java System properties are used to control the framework.
+</p>
+<p>
+Framework properties are the standard properties listed in the OSGi
+specification (section 4.5.3 in r4.core) and proprietary properties for
+the Knopflerfish framework. Framework properties are also used for
+configuration of Knopflerfish bundles. 
+</p>
+<p>
+Framework properties are specified on the command line or in .xarg files
+using "-F". If you have more than one framework instance, each instance
+has its own set of Framework properties.
+</p>
+<p>
+A framework property is accessed by using
+<pre class="shell">org.osgi.framework.BundleContext.getProperty(String)</pre>.
+</p>
+<p>
+Java System properties are specified on the command line or in .xargs
+files using "-D". System properties are accessed using
+<pre class="shell">java.lang.System.getProperty(String)</pre> but
+<pre class="shell">BundleContext.getProperty</pre> can also be used as it will look
+for a System property if there is no matching Framework property.
+</p>
+<p>
+Because of the different handling of Framework and System properties when
+the framework is <a href="#init_restart">restarted</a>, it is recommended
+to use only Framework properties in .xargs files. If you do, and use the
+default init.xargs/props.xargs files, initial starts and restarts become
+conveniently short on the command line:
+</p>
+<p>
+<pre class="shell">java -jar framework.jar -init  </pre> (initial start)
+</p>
+<p>
+<pre class="shell">java -jar framework.jar  </pre> (restart)
+</p>
+<p>
+Unfortunately, it is not always possible to avoid using Java System
+properties. For example, a bundle may include a class library that uses
+System properties for configuration. Also, properties that are read
+during start-up, before the framework has been initialized, need to be
+System properties, see <a href="#kfsysprop">KF System Properties</a>.
+</p>
+<a name="osgiprop"></a>
+<h2>OSGi Specified Framework Properties</h2>
+<p>
+OSGi Framework properties should be specified using "-F".
+</p>
+
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.bootdelegation</td>
+    <td>
+      Set the boot delegation mask. A list of packages delegated from the
+      framework to the parent classloader. The package specified can contain
+      a wildcard at the end, which matches any sub-packages.
+    </td>
+    <td>String , ...</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.bundle.parent</td>
+    <td>
+      This property is used to specify what class loader is used for 
+      boot delegation. That is, java.* and the packages specified on 
+      the org.osgi.framework.bootdelegation.
+      This property can have the following values: boot, app, ext or
+      framework.
+    </td>
+    <td>String</td>
+    <td>boot</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.command.execpermission</td>
+    <td>
+      Specifies an optional OS specific command to set file permissions
+      on a bundle's native code. This is required on some operating
+      systems to use native libraries. For example, on a UNIX 
+      style OS you could have the following value: 
+      org.osgi.framework.command.execpermission="chmod +rx ${abspath}" 
+      The ${abspath} macro will be substituted for the actual file 
+      path. 
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.executionenvironment</td>
+    <td>
+      The current execution environment. There are no restriction on
+      the execution environment if this property isn't set.
+    </td>
+    <td>String</td>
+    <td>Set based on system property java.version, if unknown set
+      to OSGi/Minimum-1.2</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.language</td>
+    <td>
+      The language used by the framework for the selection of 
+      native code.
+    </td>
+    <td>String</td>
+    <td>Set based on default locale</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.library.extensions</td>
+    <td>
+      A comma separated list of additional library file extensions that
+      must be used when searching for native code. If not set, then only
+      the library name returned by System.mapLibraryName(String) will be
+      used. This list of extensions is needed for certain operating
+      systems which allow more than one extension for native libraries.
+      For example, the AIX operating system allows library extensions of
+      .a and .so, but System.mapLibraryName(String) will only return
+      names with the .a extension.
+    </td>
+    <td>String , ...</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.os.name</td>
+    <td>
+      The name of the operating system as used in the native code clause.
+    </td>
+    <td>String</td>
+    <td>Set based on system property os.name</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.os.version</td>
+    <td>
+      The version of the operating system as used in the native code 
+      clause.
+    </td>
+    <td>String</td>
+    <td>Set based on system property os.version</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.os.processor</td>
+    <td>
+      The name of the processor as used in the native code clause.
+    </td>
+    <td></td>
+    <td>Set based on system property os.arch</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.security</td>
+    <td>
+      Specifies the type of security manager the framework must 
+      use. If not specified then the framework will not set the VM 
+      security manager. The following type is architected: 
+      <code>osgi</code> Enables a security manager that supports all 
+      security aspects of the OSGi Release 4 specifications 
+      (including postponed conditions). 
+      If specified, and there is a security manager that doesn't
+      match already installed, then a SecurityException is thrown
+      when the Framework is initialized. 
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.startlevel.beginning</td>
+    <td>
+      Specifies the beginning start level of the framework.
+    </td>
+    <td>Integer</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.storage</td>
+    <td>
+      Where we store persistent data.
+
+      On systems not supporting a current working directory,
+      as Pocket PC, this path should be set to an explicit
+      full path.
+
+      Note: Knopflerfish 1.x and 2.x used the name
+      "org.osgi.framework.dir" for this property.
+    </td>
+    <td>String</td>
+    <td>${currentWorkingDirectory}/fwdir</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.storage.clean</td>
+    <td>
+      Specifies if and when the storage area for the framework 
+      should be cleaned. If no value is specified, the framework storage
+      area will not be cleaned. The possible values is: 
+      <code>onFirstInit</code> - The framework storage area will be
+      cleaned  before the Framework bundle is initialized for the first 
+      time. Subsequent inits, starts or updates of the Framework bundle
+      will not result in cleaning the framework storage area.
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.system.packages</td>
+    <td>
+      Complete list of packages exported by the system bundle.
+
+      If not set the framework will export all OSGi packages and all
+      standard Java packages according to the version of the running
+      JRE. See also "org.knopflerfish.framework.system.packages.base"
+      and "org.osgi.framework.system.packages.extra"
+    </td>
+    <td>String , ...</td>
+    <td>Default is based on other properties</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.system.packages.extra</td>
+    <td>
+      Packages to add to the default list of packages exported by the
+      system bundle.
+    </td>
+    <td>String , ...</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.trust.repositories</td>
+    <td>
+      This property is used to configure trust repositories for the 
+      framework. The value is path of files.The file paths are separated
+      by the pathSeparator defined in the File class. Each file path
+      should point to a JKS key store. The framework will use the key
+      stores as trust repositories to authenticate certificates of
+      trusted signers. The key stores must only be used as read-only
+      trust repositories to access public keys. The keystore must not
+      have a password.
+    </td>
+    <td>String : ...</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.osgi.framework.windowsystem</td>
+    <td>
+      Provide the name of the current window system. This can be used by
+      the native code clause.
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+</table>
+
+
+<a name="kfsysprop"></a>
+<h2>Knopflerfish Specified System Properties</h2>
+<p>
+Knopflerfish System properties should be specified using "-D".
+</p>
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.main.verbosity</td>
+    <td>
+     Verbosity level of the Main class starting the framework. 0 means
+     few messages. Specify on the command line in order to see messages
+     from the very beginning.
+    </td>
+    <td>Integer</td>
+    <td>0</td>
+  </tr>
+</table>
+
+<a name="kffwprop"></a>
+<h2>Knopflerfish Specified Framework Properties</h2>
+<p>
+The recommendation is to use "-F" for Knopflerfish Framework properties
+but "-D" should also work. 
+</p>
+
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.all_signed</td>
+    <td>
+      If set to true, we require that all bundles that are installed are signed.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.automanifest</td>
+    <td>
+      Flag to enable automatic manifest generation. If true, bundle
+      manifest can be modified by a special configuration file. See
+      javadoc for org.knopflerfish.framework.AutoManifest class 
+      for details.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.automanifest.config</td>
+    <td>
+      Configuration URL for automatic manifest generation. Only
+      valid if org.knopflerfish.framework.automanifest=true.
+      An URL starting with "!!" followed by path is refer to a resource
+      on the classloader that have loaded the framework.
+    </td>
+    <td>String</td>
+    <td>!!/automanifest.props</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlestorage</td>
+    <td>
+      Storage implementation for bundles
+      [file, memory]
+    </td>
+    <td>String</td>
+    <td>file</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlestorage.file.always_unpack</td>
+    <td>
+     When using file bundle storage, bundle jars can be unpacked
+     or copied as-is. Unpacking leads to faster restart and class loading
+     but takes longer for initial startup.
+
+     If set to true, unpack all bundle jars.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlestorage.file.reference</td>
+    <td>
+     When using file bundle storage, file: URLs can optionally
+     be referenced only, not copied to the persistant area.
+
+     If set to true, file: URLs are referenced only.
+
+     Note: Individual bundles can be reference installed
+           by using URLs of the syntax:
+
+           reference:file:&lt;path&gt;
+
+           This works even if the global reference flag
+           is not enabled.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlestorage.file.trusted</td>
+    <td>
+     Are the bundles stored in the file bundle storage to be trusted, if not
+     signed bundles will be checked every time they are read.
+     Untrusted storafe leads to slower restart and class loading.
+
+     If set to true, trust bundles in bundle storage.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlestorage.file.unpack</td>
+    <td>
+     Most JVM requires that we unpack the bundle to access internal jars
+     and native code. Setting this to true will unpack the jar if it contains
+     internal jars or native code.
+
+     If set to true, unpack needed bundle jars.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlethread.abort</td>
+    <td>
+     Property specifying how bundle threads which are aborted should be handled.
+     Possible values are "stop", "minprio" and "ignore". 
+    </td>
+    <td>String</td>
+    <td>ignore</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.automanifest</td>
+    <td>
+      Print debug output for automatic manifest actions.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.bundle_resource</td>
+    <td>
+     When security is enabled, print information about resource
+     lookups that are rejected due to missing permissions for the
+     calling bundle.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.certficates</td>
+    <td>
+     Print debug information about certficate handling.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.classloader</td>
+    <td>
+     Print debug information from classloader
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.errors</td>
+    <td>
+     Print all FrameworkEvents of type ERROR
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.framework</td>
+    <td>
+     Print debug information about life-cycle events for the
+     current framework instance.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.hooks</td>
+    <td>
+     Print debug information about when service hooks are used
+     current framework instance.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.ldap</td>
+    <td>
+     Print debug information about LDAP filters
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.packages</td>
+    <td>
+     Print debug information about packages
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.patch</td>
+    <td>
+     Print debug information about class patching
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.permissions</td>
+    <td>
+     Print debug information about permission evaluation.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.print_with_do_privileged</td>
+    <td>
+     Surrond all debug print-operations originating from
+     setting org.knopflerfish.debug.* properties with a
+     doPrivileged() wrapper.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.startlevel</td>
+    <td>
+     Print debug information about startlevel service
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.service_reference</td>
+    <td>
+     When security is enabled, print information about service
+     reference lookups that are rejected due to missing permissions
+     for calling bundle.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.debug.url</td>
+    <td>
+      Print debug information about URL services
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.is_doublechecked_locking_safe</td>
+    <td>
+     Is it safe to use double-checked locking or not.
+     It is safe if JSR 133 is included in the running JRE. I.e., for
+     Java SE if version is 1.5 or higher.
+    </td>
+    <td>Boolean</td>
+    <td>
+      True if value of the system property java.version &ge; 1.5,
+      False otherwise
+    </td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.ldap.nocache</td>
+    <td>
+     Disable LDAP caching for simple filters. LDAP caching
+     speeds up framework filters considerably, but uses
+     more memory.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.main.class.activation</td>
+    <td>
+      A comma-separated list of locations of bundles whose Main-Class
+      (set in manifest) should be used as activator if no
+      BundleActivator is specified. 
+      The Main-Class will be used as activator if and only if the jar
+      file does not specify a Bundle-Activator header and the bundle's
+      location(see Bundle.getLocation) is found in the comma-separated
+      list (case-sensitive). 
+<pre class="man">
+> java -jar framework.jar
+    -Forg.knopflerfish.framework.main.class.activation=\ 
+    file:/foo/bar.jar,http://foo.com/bar.jar ...
+</pre>
+      </pre>
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.main.verbosity</td>
+    <td>
+     Verbosity level of the Main class starting the framework. 0 means
+     few messages. Specify as a System property on the command line
+     in order to see messages from the very beginning.
+    </td>
+    <td>Integer</td>
+    <td>0</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.main.xargs.writesysprops</td>
+    <td>
+      Properties defined using -Fname=value in xargs-files are available
+      for bundles using BundleContext.getProperty(name).
+      This property controls weather such properties shall also be
+      exported as system properties or not.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.listener.n_threads</td>
+    <td>
+    Number of threads used to deliver events to asynchronous listeners.
+    If the value is 0 then we will revert to the old behavouir and call
+    all listeners synchronously.
+    </td>
+    <td>Integer</td>
+    <td>1</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.patch</td>
+    <td>
+      If true AND the class org.objectweb.asm.ClassReader is available
+      (by putting the asm-3.2.jar library on the system class path), enable
+      runtime class patching.
+      Example:
+<pre class="shell">
+> java -cp framework.jar:asm-3.2.jar \
+    org.knopflerfish.framework.Main \
+    -Forg.knopflerfish.framework.patch=true\   
+</pre>
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.patch.configurl</td>
+    <td>
+     URL to class patch config file. Only used when class patching is enabled.
+     This is used as a fallback if a bundle does not specify a
+     Bundle-ClassPatcher-Config manifest header.
+
+     "!!" is used to read resources from the system class path
+     "!" can be used to read bundle resources.
+    </td>
+    <td>String</td>
+    <td>!!/patches.props</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.patch.dumpclasses</td>
+    <td>
+     If true and class patchin is enabled, dump all modified classes
+     to a directory.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.patch.dumpclasses.dir</td>
+    <td>
+      If dumpclasses is enabled, specifies a directory where to dump
+      modified classes
+    </td>
+    <td>String</td>
+    <td>patchedclasses</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.service.conditionalpermissionadmin</td>
+    <td>
+      Controls if the framework should register the Conditional Permission
+      Admin service.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.service.permissionadmin</td>
+    <td>
+      Controls if the framework should register the Permission
+      Admin service.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.strictbootclassloading</td>
+    <td>
+      If set to true, use strict rules for loading classes from the boot class loader.
+      If false, accept class loading from the boot class path from classes themselves
+      on the boot class, but which incorrectly assumes they may access all of the boot
+      classes on any class loader (such as the bundle class loader).
+      Setting this to true will, for example, result in broken serialization on the Sun 
+      JVM if bootdelegation does not exposes sun.* classes
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.system.packages.base</td>
+    <td>
+     An alternative to setting org.osgi.framework.system.packages.
+     When this property is used the list of packages given will be
+     appended with the default set of osgi-packges for the current
+     framework and then used as the exports of the system bundle.
+    </td>
+    <td>String , ...</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.system.packages.file</td>
+    <td>
+      File containing list of packages exported by the system bundle.
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.system.packages.version</td>
+    <td>
+      Name for selected exporting profile of system packages.
+    </td>
+    <td>String</td>
+    <td>MAJOR.MINOR from system property "java.version"</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.usingwrapperscript</td>
+    <td>
+      If set to "true", KF will assume that it has been
+      started with the "kf2" shell script, and that it will be 
+      restarted if KF exits with exit code = 200. Required to be 
+      able to use new KF2 features such as extension bundles. 
+      This flag is set to "true" by the "kf2" shell script.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.validator</td>
+    <td>
+      A list of which certificate validators to use. Currently available are
+      JKSValidator and SelfSignedValidator. If no validator is to be used,
+      set to "null" or "none".
+    </td>
+    <td>String</td>
+    <td>JKSValidator if org.osgi.framework.trust.repositories Is set, otherwise none</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.validator.jks.ca_certs</td>
+    <td>
+      Filename of java keystore used by JKSValidator. Used if
+      org.osgi.framework.trust.repositories isn't set.
+    </td>
+    <td>String</td>
+    <td>$JAVA_HOME/lib/security/cacerts</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.validator.jks.ca_certs_password</td>
+    <td>
+      Password to java keystore used by JKSValidator.
+    </td>
+    <td>String</td>
+    <td>changeit</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.validator.jks.cert_provider</td>
+    <td>
+      Provider for CertificateFactory to use.
+    </td>
+    <td>String</td>
+    <td>-</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.framework.main.write.fwprops.xargs</td>
+    <td>
+      Property that tells the Knopflerfish Main if it shall write a
+      fwprops.xargs file with all framework properties inside the
+      framework directory on startup or not.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.gosg.jars</td>
+    <td>
+     Semicolon separated list of base URLs for relative install commands
+    </td>
+    <td>URL;...</td>
+    <td>URLs to the "jars" folder and all its subfolders</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.startlevel.compat</td>
+    <td>
+      Set to true indicates startlevel compatability mode.
+      All bundles and current start level will be 1.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.startlevel.use</td>
+    <td>
+      Use the Start Level service. If start level is not used then
+      we do not create a non daemon thread that will keep a jvm
+      with only daemon threads alive.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.osgi.setcontextclassloader</td>
+    <td>
+     If set to "true", set the bundle startup thread's context class
+     loader to the bundle's class loader. This is useful for checking
+     if an external lib will work better with a wrapped startup. It
+     doesn't set the context classloader for event callbacks.
+
+     Note that setting the context classloader is not mandated
+     by OSGi, and might introduce dependecies on the KF framework,
+     so this flag should only be enabled for testing purposes.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.servicereference.valid.during.unregistering</td>
+    <td>
+      If set to false, then the service reference can not be used to
+      fetch an instance of the service during delivery and handling of
+      the UNREGISTERING service event. The behaviour specified in the
+      OSGi R4 v4.0.1 specification (and later), according to a
+      clarification done by CPEG February 2008, is that it shall be
+      possible to obtain a service instance during delivery of
+      UNREGISTERING events thus this property now defaults to true.
+
+      <p>Note that independent of this setting the service reference
+      of an UNREGISTERING service will not be returned by any of the
+      methods searching for service references provided by the
+      BundleContext interface.
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.osgi.registerserviceurlhandler</td>
+    <td>
+      Flag for installing OSGi service based URL handlers. 
+      Since the URL handler can only be installed once, there
+      might be cased where some external entity (not OSGi)
+      sets this. In this case, the OSGi handler can be disabled
+      by setting 
+    </td>
+    <td>Boolean</td>
+    <td>True</td>
+  </tr>
+</table>

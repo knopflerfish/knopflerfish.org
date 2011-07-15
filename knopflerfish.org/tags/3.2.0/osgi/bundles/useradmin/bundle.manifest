@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: UserAdmin
+Bundle-SymbolicName: org.knopflerfish.bundle.useradmin
+Bundle-Version: 3.0.1
+Bundle-Description: User Administration Service
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/useradmin/
+Bundle-Activator: org.knopflerfish.service.um.useradmin.impl.Activator
+Bundle-Category: service
+Application-Icon: icon.png
+Export-Package: org.knopflerfish.service.um.ipam; version=1.0,
+ org.knopflerfish.service.um.useradmin; version=1.0,
+ org.osgi.service.useradmin; version=1.1.0
+Import-Package: org.knopflerfish.service.log,
+ org.knopflerfish.service.um.ipam,
+ org.knopflerfish.service.um.useradmin,
+ org.osgi.framework,
+ org.osgi.service.event,
+ org.osgi.service.useradmin,
+ org.osgi.util.tracker

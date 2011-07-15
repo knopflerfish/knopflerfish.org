@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JSDK
+Bundle-SymbolicName: org.knopflerfish.bundle.jsdk
+Bundle-Version: 2.5.0.kf3
+Bundle-Description: The servlet API classes
+Bundle-Vendor: Knopflerfish/Sun/Apache
+Bundle-APIVendor: Sun
+Bundle-License: "http://www.apache.org/licenses/LICENSE-2.0"
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/jsdk/
+Bundle-Classpath: .
+Bundle-Category: lib
+Export-Package: javax.servlet; version=2.5,
+ javax.servlet.http; version=2.5
+Import-Package: javax.servlet; version=2.5,
+ javax.servlet.http; version=2.5

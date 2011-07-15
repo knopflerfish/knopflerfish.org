@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Console
+Bundle-SymbolicName: org.knopflerfish.bundle.console
+Bundle-Version: 3.0.1
+Bundle-Description: Knopflerfish Console Service
+Bundle-APIVendor: Knopflerfish
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=console/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/console/console/
+Bundle-Activator: org.knopflerfish.bundle.console.Activator
+Bundle-Category: service
+Bundle-Icon: icon.png;size=32
+Import-Package: org.knopflerfish.service.console; version="[2,3)",
+ org.osgi.framework,
+ org.osgi.service.log

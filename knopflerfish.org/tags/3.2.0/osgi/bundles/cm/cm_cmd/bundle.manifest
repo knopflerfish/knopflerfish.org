@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: CM-Commands
+Bundle-SymbolicName: org.knopflerfish.bundle.cm_cmd
+Bundle-Version: 3.0.1
+Bundle-Description: Commands for the CM service
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=cm_cmd/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/cm/cm_cmd/
+Bundle-Activator: org.knopflerfish.bundle.cm.commands.impl.Activator
+Bundle-Category: service
+Bundle-Icon: icon.png;size=32
+Import-Package: org.knopflerfish.service.console,
+ org.knopflerfish.shared.cm,
+ org.knopflerfish.util.sort,
+ org.osgi.framework,
+ org.osgi.service.cm

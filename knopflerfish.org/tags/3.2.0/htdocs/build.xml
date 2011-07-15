@@ -1,0 +1,201 @@
+<?xml version="1.0"?>
+
+<project name="htdocs" default="all">
+
+  <!-- Helper that creates an HTML document from any file by wrapping -->
+  <!-- it with a pre-element surrounded by appropriate headings.      -->
+  <target name="txt2html">
+    <loadfile property="main" srcfile="${fromfile}"/>
+
+    <echo message="create ${tofile}"/>
+    <copy file="${formatted.html}" tofile="${tofile}" overwrite="true"/>
+    <replace file="${tofile}">
+	<replacefilter token="$(MAIN)" value="${main}"/>
+    </replace>
+  </target>
+
+  <target name="bundle_tasks">
+    <ant target="bundle_tasks" dir=".."/>
+  </target>
+
+  <target name="all"
+	  description="Creates html docs for distribution of a release">
+    <!-- Set default values for all props used in the htdocs target. -->
+    <property name="htdocs.out"     location="../out/htdocs"/>
+
+    <property name="htdocs.dir"     location="."/>
+    <property name="htdocs.ht.dir"  location="${htdocs.dir}/html_templates"/>
+    <property name="htdocs.hs.dir"  location="${htdocs.dir}/html_src"/>
+
+    <property name="template.html"  location="${htdocs.ht.dir}/template.html"/>
+    <property name="formatted.html" location="${htdocs.ht.dir}/formatted.html"/>
+    <property name="license.html"   location="${htdocs.hs.dir}/license.html"/>
+
+    <property name="changelog.txt"  location="${distrib.dir}/changelog.txt"/>
+    <property name="release_notes.txt"
+	      location="${distrib.dir}/release_notes.txt"/>
+    <property name="LICENSE.txt"    location="${distrib.dir}/LICENSE.txt"/>
+
+    <property name="htdocs.distname" value="Knopflerfish OSGi"/>
+    <property name="base.url"
+	      value="http://www.knopflerfish.org/releases"/>
+
+    <!-- Properties used by the makehtml task. -->
+    <property name="htdocs.link.enabled.class" value="navigation_enabled"/>
+    <property name="htdocs.link.disabled.class" value="navigation_disabled"/>
+    <property name="JAVADOC"
+              value="${base.url}/${version}/docs/javadoc"/>
+    <property name="css_navigation_enabled"     value="navigation_enabled"/>
+    <property name="css_navigation_disabled"    value="navigation_disabled"/>
+    <property name="navigation_pages"           value="INDEX PROG ECLIPSE LICENSE INSTALLING RUNNING BUILDING TESTING PROG COMP DESKTOP UBICORE CHANGELOG SVN TUTORIALS"/>
+
+    <antcall target="htdocs"/>
+ </target>
+
+ <target name="htdocs" depends="bundle_tasks">
+   <antcall target="txt2html">
+     <param name="fromfile" value="${changelog.txt}"/>
+     <param name="tofile"   value="${distrib.dir}/changelog.html"/>
+   </antcall>
+
+   <antcall target="txt2html">
+     <param name="fromfile" value="${release_notes.txt}"/>
+     <param name="tofile"   value="${distrib.dir}/release_notes.html"/>
+   </antcall>
+
+   <loadfile property="htdocs.license.content" srcFile="${LICENSE.txt}"/>
+   <copy file="${license.html}"
+         tofile="${distrib.out.dir}/license.html">
+     <filterset begintoken="@" endtoken="@">
+       <filter token="LICENSE.txt" value="${htdocs.license.content}"/>
+     </filterset>
+   </copy>
+
+   <makehtml title="${htdocs.distname}"
+             description="The ${htdocs.distname} framework is a complete OSGi R4 framework"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="index.html"
+             fromfile="${htdocs.dir}/html_src/index_main.html"
+             disable="INDEX"/>
+
+   <makehtml description="Information, tips and recommendations for developing OSGi bundles"
+             title="${htdocs.distname}: Develop OSGi bundles"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="programming.html"
+             fromfile="${htdocs.dir}/html_src/programming_main.html"
+             disable="PROG"/>
+
+    <makehtml description=""
+              title="${htdocs.distname} License"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="license.html"
+              fromfile="${distrib.out.dir}/license.html"
+              disable="LICENSE"/>
+
+    <property name="changelog.file"
+	      location="${distrib.dir}/changelog.html"/>
+    <makehtml description="List of changes in ${htdocs.distname}"
+              title="${htdocs.distname} Changelog"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="changelog.html"
+              fromfile="${changelog.file}"
+              disable="CHANGELOG"/>
+
+    <property name="release_notes.file"
+	      location="${distrib.dir}/release_notes.html"/>
+    <makehtml description="Release notes for this release of ${htdocs.distname}"
+              title="${htdocs.distname} Release Notes"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="release_notes.html"
+              fromfile="${release_notes.file}"
+              disable="CHANGELOG"/>
+
+    <makehtml description="The contents of the ${htdocs.distname} distribution"
+              title="${htdocs.distname} contents"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="components.html"
+              fromfile="${htdocs.dir}/html_src/components_main.html"
+              disable="COMP"/>
+
+   <makehtml description="Installing Knopflerfish OSGi"
+             title="Installing"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="installing.html"
+             fromfile="${htdocs.dir}/html_src/installing.html"
+             disable="INSTALLING"/>
+
+   <makehtml description="Running Knopflerfish OSGi"
+             title="Running"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="running.html"
+             fromfile="${htdocs.dir}/html_src/running.html"
+             disable="RUNNING"/>
+
+   <makehtml description="Building Knopflerfish OSGi"
+             title="Building"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="building.html"
+             fromfile="${htdocs.dir}/html_src/building.html"
+             disable="BUILDING"/>
+
+   <makehtml description="Testing Knopflerfish OSGi"
+             title="Testing"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="testing.html"
+             fromfile="${htdocs.dir}/html_src/testing.html"
+             disable="TESTING"/>
+
+   <makehtml description="The Knopflerfish OSGi Desktop"
+             title="Desktop"
+             template="${template.html}"
+             outdir="${htdocs.out}"
+             tofile="desktop.html"
+             fromfile="${htdocs.dir}/html_src/desktop_main.html"
+             disable="DESKTOP"/>
+
+    <makehtml title="${htdocs.distname} - Tutorials"
+              description="The tutorials shipped with KF"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="tutorials.html"
+              fromfile="${htdocs.dir}/html_src/tutorials.html"
+	      disable="TUTORIALS"/>
+
+    <makehtml title="${htdocs.distname} - OSGi Service Tutorial"
+              description="The OSGi Service Tutorial"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="osgi_service_tutorial.html"
+              fromfile="${htdocs.dir}/html_src/osgi_service_tutorial.html"
+	      disable="TUTORIALS"/>
+
+    <makehtml title="${htdocs.distname} - OSGi with Security"
+              description="Running OSGi with Security"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="osgi_with_security.html"
+              fromfile="${htdocs.dir}/html_src/osgi_with_security.html"
+	      disable="TUTORIALS"/>
+
+    <makehtml title="${htdocs.distname} - running on Android / Dalvik"
+              description="Tutorial for running KF on Android / Dalvik"
+              template="${template.html}"
+              outdir="${htdocs.out}"
+              tofile="android_dalvik_tutorial.html"
+              fromfile="${htdocs.dir}/html_src/android_dalvik_tutorial.html"
+	      disable="TUTORIALS"/>
+
+    <echo message="${htdocs.out}"/>
+ </target>
+
+</project>

@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-Version: 1.0.0
+Bundle-Name: CPA service example
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.knopflerfish.cpaexample.user

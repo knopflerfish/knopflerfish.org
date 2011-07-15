@@ -1,0 +1,366 @@
+Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
+--------------------------------------------------
+
+  Maintenance release of Knopflerfish available from
+  @DOWNLOAD_URL@
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+
+=== Framework (Core) ===
+
+  Framework 5.1.14
+
+  - Fix bug in conditional permission admin when using names for
+    encoded policies
+  - Fixed bug when resolving bundles with optional resolution that isn't
+    satisfied, see
+    http://sourceforge.net/tracker/?func=detail&atid=567241&aid=3301526&group_id=82798
+  - Fixed bug when wiring packages with conflicting attributes.
+  - Fixed permission check bug for package import.
+  - Fixed a problem with the beginning start level for the start level
+    service, see 
+    https://sourceforge.net/tracker/?func=detail&aid=3303909&group_id=82798&atid=567241
+  - Some code clean-up and reformatting.
+  - Added support for dynamic fragment attach.
+  - Refactored fragment handling and improved handling of
+    conflicting imports.
+  - Bundle threads hanging in bundle start or stop methods are
+    now aborted if the bundle is uninstalled. A new framework 
+    property, "org.knopflerfish.framework.bundlethread.abort" 
+    specifies abort action. Valid values are "stop", "minprio"
+    and "ignore".
+  - Fixed bug when matching native code with "os.arch" property.
+  - Added missing export of URL service in build system.
+  - Fixed consistency issues when doing update/uninstall.
+
+
+=== Services (Compendium) ===
+
+  Component (SCR) 3.0.3
+  
+  - Corrected issue with servicefactory check when servicefactory was explicitly
+    was set to false.
+  - Immediate components are now correctly activated, previously they
+    were only active when they were used.
+  - The value of a property specified in the body of the
+    property-element is now returned always an as array. 
+    For details see the issue in the tracker, 
+    https://sourceforge.net/tracker/?func=detail&aid=3285927&group_id=82798&atid=567241
+
+
+  HTTP-Server 3.0.5
+
+  - Improved handling of persistent connections for GET and HEAD
+  - Configurable features and limits added to better control and
+    handle DoS attacks:
+      org.knopflerfish.http.trace.enabled (false)
+      org.knopflerfish.http.limit.requestline (8090)
+      org.knopflerfish.http.limit.requestheaders (100)
+      org.knopflerfish.http.limit.postsize (-1) 
+  - Changed request URI parsing logic in order to avoid problems with
+    some URL class implementations.
+
+
+=== Misc (KF specific, start scripts, build system etc) ===
+
+  ConsoleTelnet 3.0.1
+
+  - A telnet client that closed its socket directly after sending a
+    quit command resulted in a looping thread in the consoletelnet
+    bundle. The root of this problem was the the internal TelnetReader
+    class did not return the proper values indicating End of File when
+    its underlying reader was closed.
+
+
+  Desktop 3.1.6
+
+  - Bundles are now all-ways selected when installed and deselected
+    when uninstalled. The viewers did not all-ways show details for a
+    new bundle when it was installed (the bundle was selected, but due
+    to a race condition the selection notification was sometimes
+    ignored).
+  - Viewers are now updated when one of the selected bundles are
+    changes. E.g., when updated.
+
+
+  HTTP-root 3.0.1
+
+  - Sort entries on the Http-Server-Info page.
+  - Added example of a Http Service registration that publishes
+    contents from the local file system (the Knopflerfish
+    documentation). Updated look and feel of the published pages to
+    match the one used on the Knopflerfish web-site. Replaced the
+    service listener with a ServiceTracker.
+    
+  Util-LIB 2.0.1
+
+  - Added documentation for the Executable Bundle Activator
+
+
+  Documentation and Tutorials
+
+  - A new tutorial on how to run Knopflerfish OSGi with security
+    enabled has been added under "Developer's Doc / Tutorials". This
+    tutorial demonstrates how to use the Conditional Permission Admin
+    service.
+
+  - A new tutorial on how to build and run Knopflerfish on Android 
+    using the Dalvik VM. 
+
+  Directory Structure
+
+  - A new bundle source code directory for example bundles has been
+    added. The name of the directory is osgi/bundles_examples, the
+    resulting jar files are placed in the directory
+    osgi/example_jars.
+  - The directory osgi/bundles/demos has been moved to
+    osgi/bundles_examples/demos.
+  - A new tools/android directory for simplified build of dex versions 
+    of KF bundles.
+
+  Build System
+
+  - The xargs-filtering target in the xargs include file has been
+    replaced by a task that can be used to expand bundle names and
+    variables in xargs-file templates. With the new task it is
+    possible to add your own variables to replace as well as searching
+    for bundles on more than two jars-directories to determine
+    expansions for bundle names with -N.N.N.jar in the template xargs
+    file.
+  - The build system now requires that all packages to be exported by
+    a bundle matches one of the patterns defined in the properties
+    named 'api.pattern' or 'impl-api.pattern'. This applies to
+    packages in the source-directory as well as to packages from
+    nested jar-files on the bundle class path.
+  - Previously the build system assumed that all packages from
+    jar-files on the bundle class path was to be exported. Now it is
+    only packages that matches one of 'api.pattern' or
+    'impl-api.pattern' that are assumed to be exported, all other
+    packages in the bundle class path are considered private.
+  - Started to use macrodefs in bundlebuild.xml to reduce its size and
+    increase readability. No functional change.
+  - The bundlesinfo-task can now derive both Import-Package and
+    Export-Package in one call. Nested elements that are file-sets
+    named 'exports' and 'impls' determines which packages included in
+    the bundle that shall be exported and which packages to keep
+    private.
+  - Added an antlib.xml file defining all the provided tasks to the
+    bundle_tasks.jar.
+  - The bundle_tasks.jar is now only built if not present. I.e.,
+    when changing any of the tasks an explicit build must be done in
+    the ant-subdir to create an up-to date version of the
+    bundle_tasks.jar-file.
+  - Fixed so that KF builds with ant 1.8.
+  - Improved support for dexifying and generating classes.dex files
+
+========================================================================
+
+
+Release Notes Knopflerfish 3.1.0 (OSGi R4 v4.2)
+--------------------------------------------------
+
+  Maintenance release of Knopflerfish available from
+  http://www.knopflerfish.org/releases/3.1.0
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+
+=== Framework (Core) ===
+
+  Framework 5.1.6
+
+  - Always wait for stop operations to complete before continuing.
+  - Fixed bug with call to removed a removed service listener.
+  - Fixed race conditions in StartLevel-service and Bundle.getHeaders().
+  - Fixed bug when shutting down a framework running at start level 1.
+  - Fixed IllegalArgumentException for StartLevel-service.
+  - Add threaded handling of listeners, this means that asynchronous listeners
+    will be called asynchronously. The number of threads used is controlled via
+    the property, org.knopflerfish.framework.listener.n_threads. Default value
+    is 1. If the value is 0 then we will revert to the old behavior and call
+    all listeners synchronously. Also fixed some minor bugs that was revealed
+    during the testing of the new listener handling.
+  - Use system properties to set default values for OSGi framework properties.
+  - Recognize deprecated processor value "arm" in native code matching.
+  - Fixed locking problem when stopping a crashed bundle.
+  - Fixed NPE when unregistering URLStreamHandlerService.
+  - Fixed getEntry() method for system bundle. The result will
+    vary depending on the JVM since we use getResource() via the
+    framework class loader.
+  - Fixed handling of none null boot-classloader.
+  - Fixed bug in lazy activation class filtering.
+  - Fixed handling of org.osgi.framework.storage property on command line.
+  - Merged fix of class loader problem when running on Android 7/8 from
+    the kf_2_support branch. The boot-classloader of Android does not
+    return the expected null as its parent class loader, it returns
+    itself.
+
+
+=== Services (Compendium) ===
+
+  Event 3.0.4
+  
+  - Fixed infinite loop when debug logging was enabled for event admin.
+
+
+  Deploymentadmin 1.0.1
+
+  - The version of the "org.osgi.service.deploymentadmin.spi"-package
+    that this bundle exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.0.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+
+
+  Dmtree 1.0.1
+
+  - The version of the "org.osgi.service.dmtree"-package
+    that this bundle exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.0.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - This bundle must use dynamic import package "*" to allow a bundle
+    to provide the digest class specified by the system property
+    "org.osgi.vendor.dmtree.DigestDelegate".
+
+
+  HTTP-Server 3.0.1
+
+  - The version of the "org.osgi.service.http"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.2.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Log 3.0.5
+
+  - Fix NPE in 3.0.4. Register ManagedService with a PID that matches
+    configuration meta data. LogRef now handles calls to the
+    log()-methods occurring after the bundle it logs for have been
+    stopped.
+  - Clean up old broken Java-Doc comments and remove a potential
+    problem with synchronization on non-final variables.
+  - Use a cache to avoid recomputing the log-level for a bundle for
+    each entry it sends to the logs.
+  - Resolved some dead-locks and NullPointerExceptions occurring during
+    shut-down that was made visible by the listener handling changes
+    in the v 5.1 of the framework.
+
+
+  Measurement 3.0.1
+
+  - The version of the "org.osgi.util.measurement"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Position 3.0.1
+
+  - The version of the "org.osgi.util.position"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Prefs (OSGi Preferences Service) 3.0.1
+
+  - The version of the "org.osgi.service.prefs"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.1.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Xml 3.0.1
+
+  - The version of the "org.osgi.util.xml"-package that this
+    bundle exports was wrong, for OSGi R4 v4.2 the version should be
+    1.0.1 and nothing else. Note that it was only the version stated
+    in the Export-Package header that was wrong.
+
+
+  Kf_metatype 3.0.1
+
+  - Made bundle listeners synchronous, so that we always have
+    the correct state of the metatype information.
+
+
+=== Misc (KF specific, start scripts, build system etc) ===
+
+  Bundlerepository 3.1.2
+
+  - Use "http://www.knopflerfish.org/releases/current-kf_3/repository.xml"
+    as the default repository URL for non-release builds. Release
+    builds will use the repository of that release.
+
+
+  Desktop 3.1.5
+
+  - Ensure that all code handles a null PackageAdmin-service object.
+  - When the path from the property "org.knopflerfish.gosg.jars"
+    contains more than one element, use the first one that exists as
+    the starting directory of the install bundle dialog.
+  - Removed some NullPointerExceptions during shut-down that was made
+    visible by the listener handling changes in  v 5.1 of the framework.
+  - The version of the "org.osgi.service.cm"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.3.0 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - The version of the "org.osgi.service.event"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.2.0 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - The version of the "org.osgi.service.prefs"-package
+    that this bundle re-exports was wrong, for OSGi R4 v4.2 the version
+    should be 1.1.1 and nothing else. Note that it was only the
+    version stated in the Export-Package header that was wrong.
+  - Fixed a dead-lock problem caused by a bundle listener that did
+    call-backs to the framework on the event delivery thread which a
+    framework implementation does not need to support.
+  - The large icons displayer now scrolls to make new bundles visible
+    again.
+  - The set of selected bundles no longer changes when a bundle is
+    started, stopped, updated, refreshed. The problem was caused by
+    the bundle details displayer that fired to coarse table model
+    change events when receiving bundle change events from the
+    framework, causing the underlying swing table model to clear all
+    selections.
+  
+
+  FW-Tray 3.0.2
+
+  - A class loader may throw a NoClassDefFoundError when it fails to
+    define a class since some class that the class to be loaded needs
+    are missing. Changed the tray icon bundle to handle this, i.e., it
+    now catches Throwable and not just Exception when trying to
+    instantiate java.awt.SystemTray.
+
+
+  Xalan 2.7.1.kf3_01
+
+  - Set export and import versions of javax.xml.* packages so that
+    it works together with the Xerxes bundle. 
+
+
+  Build System
+
+  - The "Bundle" task now uses the version from the "packageinfo"-file
+    when generating the export packages header.
+  - bundlebuidl.xml did not create an Export-Package header for
+    impl-bundles that specified an "impl-api.pattern".
+  - The BundleInfoTask now assigns versions to exported packages based
+    on the version specified in the "packageinfo"-file in the
+    directory that holds the classes of the package. The build will
+    fail if there is a miss-match between the version given in the
+    template manifest and the version in the "packageinfo"-file.
+  - bundlebuild.xml now copies resources from the source tree to the
+    classes tree in the compile step. The internal target that added
+    resources from the source tree to the bundle jar file has been
+    removed since those resources are added to the jar 
+
+----------------------------------------------
+
+Please read on the KF site for more information.
+
+ http://www.knopflerfish.org/

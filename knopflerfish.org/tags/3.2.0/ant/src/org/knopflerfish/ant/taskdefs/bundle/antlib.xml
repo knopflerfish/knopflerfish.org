@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<antlib>
+  <taskdef name="bundleinfo" 
+           classname="org.knopflerfish.ant.taskdefs.bundle.BundleInfoTask"/>
+  <taskdef name="bundlemanifest" 
+           classname="org.knopflerfish.ant.taskdefs.bundle.BundleManifestTask"/>
+  <taskdef name="bundle" 
+           classname="org.knopflerfish.ant.taskdefs.bundle.Bundle"/>
+  <taskdef name="bundleClasspathUtil" 
+           classname="org.knopflerfish.ant.taskdefs.bundle.BundleClasspathTask"/>
+  <taskdef name="bundlehtml" 
+           classname="org.knopflerfish.ant.taskdefs.bundle.BundleHTMLExtractorTask"/>
+  <taskdef name="bundleobr" 
+           classname="org.knopflerfish.ant.taskdefs.bundle.OBRExtractorTask"/>
+  <taskdef name="bindex"
+           classname="org.knopflerfish.ant.taskdefs.bundle.BIndexTask"/>
+  <taskdef name="makehtml"
+           classname="org.knopflerfish.ant.taskdefs.bundle.MakeHTMLTask"/>
+  <taskdef name="byteformatter"
+           classname="org.knopflerfish.ant.taskdefs.bundle.ByteFormatterTask"/>
+  <taskdef name="bundle_locator"
+           classname="org.knopflerfish.ant.taskdefs.bundle.BundleLocator"/>
+  <taskdef name="bundle_javadoc_helper"
+           classname="org.knopflerfish.ant.taskdefs.bundle.BundleJavadocHelperTask"/>
+  <taskdef name="bundle_user_doc_navigate"
+           classname="org.knopflerfish.ant.taskdefs.bundle.BundleUserDocNavigateTask"/>
+  <taskdef name="bundleMvnAnt"
+           classname="org.knopflerfish.ant.taskdefs.bundle.BundleMvnAntTask"/>
+</antlib>

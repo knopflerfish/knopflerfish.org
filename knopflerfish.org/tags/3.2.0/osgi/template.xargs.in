@@ -1,0 +1,85 @@
+#
+# Generated from template.xargs
+# Knopflerfish release $(VERSION)
+#
+
+# load common properties
+-xargs props.xargs
+
+# Semicolon seprated list of base URLs for searching (completing)
+# bundle URLs in "-install URL" command line options and in the console.
+-Forg.knopflerfish.gosg.jars=$(GOSG_JARS)
+
+## Basic KF bundles
+-initlevel 1
+-install @log_all-N.N.N.jar@
+-install @cm_all-N.N.N.jar@
+-install @console_all-N.N.N.jar@
+-install @component_all-N.N.N.jar@
+-install @event_all-N.N.N.jar@
+-install @prefs_all-N.N.N.jar@
+-istart @trayicon_fw-N.N.N.jar@
+
+
+## Some library bundles
+-initlevel 2
+-install @util-N.N.N.jar@
+-install @crimson-N.N.N.jar@
+-install @jsdk_api-N.N.N.jar@
+-install @kxml-N.N.N.jar@
+
+# The Bundle repo commands and desktop plugin
+-install @bundlerepository_all-N.N.N.jar@
+
+## More basic KF bundles
+-initlevel 3
+-install @device_all-N.N.N.jar@
+-install @useradmin_all-N.N.N.jar@
+
+-initlevel 4
+-install @http_all-N.N.N.jar@
+
+## console command bundles
+-initlevel 5
+-install @frameworkcommands-N.N.N.jar@
+-install @logcommands-N.N.N.jar@
+-install @cm_cmd-N.N.N.jar@
+
+-install @consoletty-N.N.N.jar@
+
+-install @consoletelnet-N.N.N.jar@
+
+-initlevel 6
+-install @remotefw_api-N.N.N.jar@
+-install @desktop_all-N.N.N.jar@
+
+
+-initlevel 7
+-install @httproot-N.N.N.jar@
+
+$(OS_ARGS)
+
+-startlevel 7
+
+
+# Start of these bundles are delayed since this makes start
+# order dependencies much easier
+
+-start @log_all-N.N.N.jar@
+-start @crimson-N.N.N.jar@
+-start @cm_all-N.N.N.jar@
+-start @console_all-N.N.N.jar@
+-start @component_all-N.N.N.jar@
+-start @event_all-N.N.N.jar@
+-start @prefs_all-N.N.N.jar@
+-start @device_all-N.N.N.jar@
+-start @useradmin_all-N.N.N.jar@
+-start @bundlerepository_all-N.N.N.jar@
+-start @consoletty-N.N.N.jar@
+-start @consoletelnet-N.N.N.jar@
+-start @frameworkcommands-N.N.N.jar@
+-start @logcommands-N.N.N.jar@
+-start @cm_cmd-N.N.N.jar@
+-start @desktop_all-N.N.N.jar@
+-start @http_all-N.N.N.jar@
+-start @httproot-N.N.N.jar@

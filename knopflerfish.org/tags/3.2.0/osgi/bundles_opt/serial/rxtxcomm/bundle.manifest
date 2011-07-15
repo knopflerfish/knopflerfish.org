@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RXTXcomm
+Bundle-SymbolicName: org.knopflerfish.bundle.rxtxcomm
+Bundle-Version: 2.1.7
+Bundle-Category: api
+Bundle-Description: RXTX comm java library, requires native driver fragment
+Bundle-Vendor: Piayda/RXTX
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=serial
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/serial/rxtxcomm/
+Export-Package: gnu.io; version=2.1

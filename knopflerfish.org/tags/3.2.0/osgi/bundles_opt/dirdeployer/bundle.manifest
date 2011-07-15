@@ -1,0 +1,24 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Directory Deployer
+Bundle-SymbolicName: org.knopflerfish.bundle.dirdeployer
+Bundle-Version: 3.0.1
+Bundle-Category: example
+Bundle-Description: Monitors a set of file system directory for bundles
+ to deploy
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=dirdeployer/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/dirdeployer/
+Bundle-Activator: org.knopflerfish.bundle.dirdeployer.Activator
+Export-Package: org.knopflerfish.service.dirdeployer
+Import-Package: org.knopflerfish.service.dirdeployer,
+ org.osgi.framework; version=1.3,
+ org.osgi.service.cm,
+ org.osgi.service.log,
+ org.osgi.service.startlevel,
+ org.osgi.service.packageadmin,
+ org.osgi.util.tracker

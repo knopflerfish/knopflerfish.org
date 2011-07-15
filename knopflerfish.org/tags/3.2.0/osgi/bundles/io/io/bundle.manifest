@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: io
+Bundle-SymbolicName: org.knopflerfish.bundle.io
+Bundle-Version: 3.0.0
+Bundle-Description: IO
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/io/io/
+Bundle-Classpath: .,javax.microedition.io.jar
+Bundle-Activator: org.knopflerfish.bundle.io.Activator
+Export-Package: org.osgi.service.io; version=1.0,
+ javax.microedition.io
+Import-Package: org.osgi.framework,
+ org.osgi.service.io; version=1.0,
+ javax.microedition.io

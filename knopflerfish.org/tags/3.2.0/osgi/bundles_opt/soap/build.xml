@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="soap-dir" default="all">
+
+  <!-- Internal target that calls a specified target in all sub-dirs. -->
+  <target name="doAntBuild">
+    <ant target="${the.target}" dir="../commons-logging"/>
+    <ant target="${the.target}" dir="axis-osgi"/>
+    <ant target="${the.target}" dir="axis2-osgi"/>
+    <ant target="${the.target}" dir="soap_desktop"/>
+    <ant target="${the.target}" dir="soap_remotefw"/>
+    <ant target="${the.target}" dir="soapobject"/>
+    <ant target="${the.target}" dir="demos"/>
+    <ant target="${the.target}" dir="ksoap-osgi"/>
+    <ant target="${the.target}" dir="ksoap_remotefw"/>
+  </target>
+
+  <target name="all" 
+	  description="Builds all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="all"/>
+    </antcall>
+  </target>
+
+  <target name="clean" 
+	  description="Cleans all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="clean"/>
+    </antcall>
+  </target>
+  
+  <target name="bundle_doc" 
+	  depends="bundle_doc_overview"
+	  description="Builds doc for all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="bundle_doc"/>
+    </antcall>
+  </target>
+
+  <property name="topdir" location="../.."/>
+  <import file="${topdir}/../ant/docbuild_include.xml"/>
+
+  <!-- Bundles to include on the bundle_doc_overview page -->
+  <fileset id="docbuild.jarfiles" dir="${jars.dir}">
+    <include name="axis-osgi/**/*.jar"/>
+    <include name="axis2-osgi/**/*.jar"/>
+    <include name="ksoap-osgi/**/*.jar"/>
+    <include name="ksoap_remotefw/**/*.jar"/>
+    <include name="remotefw/**/*.jar"/>
+    <include name="soap_desktop/**/*.jar"/>
+    <include name="soap_remotefw/**/*.jar"/>
+    <include name="soapobject/**/*.jar"/>
+  </fileset>
+
+  <target name="bundle_doc_overview">
+    <!-- The root of the local bundle docs directory. -->
+    <property name="docs.dir" location="${topdir}/out/doc"/>
+    <antcall target="build_doc">
+      <param name="docbuild.name" value="soap"/>
+      <param name="docbuild.title" value="Web Services / SOAP"/>
+      <param name="docbuild.fromdir" location="doc"/>
+      <param name="docbuild.outdir"  location="${docs.dir}/soap"/>
+      <param name="docbuild.description"
+	     value="How to export a registered service as a Web Service using SOAP"/>
+    </antcall>
+  </target>
+
+</project>

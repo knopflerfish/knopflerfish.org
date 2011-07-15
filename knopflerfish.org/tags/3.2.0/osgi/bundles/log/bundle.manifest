@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-Name: Log Service
+Bundle-SymbolicName: org.knopflerfish.log
+Bundle-Version: 3.0.5
+Bundle-Category: service
+Bundle-Description: The Knopflerfish OSGi log service
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi/Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=log/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/log/
+Bundle-Activator: org.knopflerfish.bundle.log.Activator
+Bundle-Icon: icon.png;size=32
+Import-Package: org.osgi.service.log; version="[1.3,2)",
+ org.knopflerfish.service.log; version="[1.1,2)",
+ org.osgi.service.cm,
+ org.osgi.framework

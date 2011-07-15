@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+    <title>Knopflerfish - Bundle Jar Documentation</title>
+    <script type="text/javascript" language="JavaScript">
+      <!--
+	  targetPage = "" + getPageId(window.location.search);
+
+	  function getPageId ( searchStr ) {
+	    var idStartPos = searchStr.indexOf('bundle=');
+	    if (-1==idStartPos) {
+	      return "main.html";
+	    }
+	    idStartPos += 7;
+	    var idEndPos = searchStr.indexOf('&',idStartPos);
+	    if (-1==idEndPos) {
+	      return searchStr.substr(idStartPos);
+	    } 
+	    return searchStr.substring(idStartPos,idEndPos);
+	  }
+
+	  function loadFrame() {
+	    top.bundle_main.location = top.targetPage;
+	  }
+
+          //-->
+    </script> 
+  </head>
+  <frameset rows="90px,*" onLoad="top.loadFrame()">
+    <frame name="bundle_header" src="header.html"
+           frameborder="0"      scrolling="no"
+           marginwidth="0"      marginheight="0">
+    <frameset cols="240,*">
+      <frame name="bundle_list" src="list.html"
+       frameborder="0"             scrolling="auto"
+       marginwidth="0"             marginheight="0">
+      <frame name="bundle_main" src="main.html"
+       frameborder="0"             scrolling="auto">
+    </frameset>
+  </frameset>
+</html>
+

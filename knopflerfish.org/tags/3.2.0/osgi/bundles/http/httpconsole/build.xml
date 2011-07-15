@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="httpconsole" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.httpconsole}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="bundle.build.doc"   value="true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/httpconsole/**"/>
+
+  <property name="bmfa.Bundle-Version"        value="3.0.2"/>
+  <property name="bmfa.Bundle-DocURL"
+	    value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=httpconsole/index.html"/>
+  <property name="bmfa.Bundle-SubversionURL"
+	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/httpconsole/"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="jsdk_api-N.N.N.jar"/> 
+   <pathelement location="http_api-N.N.N.jar"/>
+   <pathelement location="log_api-N.N.N.jar"/> 
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

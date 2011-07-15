@@ -1,0 +1,257 @@
+<h1>The Knopflerfish Desktop</h1>
+
+<div class="abstract">
+  The Knopflerfish OSGi Desktop displays a graphical overview of the OSGi
+  framework.
+</div>
+
+
+<h2>Description</h2>
+<div style="float:right">
+  <a href="images/desktop_main.png">
+    <img src="images/desktop_main_300.png" width="300" height="201">
+  </a>
+</div>
+
+  <p>The Knopflerfish OSGi Desktop displays a graphical overview of
+  the OSGi framework. Most common operations as install, start, stop
+  and update can be performed on bundles using the
+  desktop. Additionally, bundle and service detail information is
+  shown, and an experimental "Save deploy archive" is included.</p>
+
+  <p>The desktop is a standard OSGi bundle, using Swing. The desktop
+  is primarily designed to manage a locally running framework, but can
+  be used to control a remote framework, using the optional <a
+  href="../soap/index.html">SOAP bundles</a>.  Consult the description
+  of <a href="../remotefw/index.html">how to activate the "Remote
+  framework..." menu item</a>.</p>
+
+  <p>Additionally, the <a href="../httpconsole/index.html">HTTP
+  console</a> or the <a href="../consoletelnet/index.html">Telnet
+  console</a> bundle can always be used for remote control. Both are
+  available in the <a href="http://www.knopflerfish.org/repo/">KF
+  bundle repository</a>.  </p>
+
+  <p>The desktop can be customized using plug-in services, see <a
+     target="_top"
+     href="../../javadoc/index.html?org/knopflerfish/service/desktop/SwingBundleDisplayer.html">
+     SwingBundleDisplayer</a> for details.</p>
+
+<div style="clear:both"></div>
+
+
+<h3>The desktop main areas</h3>
+
+<p>
+  When started, it creates a window with four main areas:
+  <dl>
+    <dt>Toolbar
+      <dd>The top toolbar provides quick access to common operations
+	as start/stop/update bundles.
+      </dd>
+    <dt>Bundle view</dt>
+    <dd>
+      The center bundle view area display all installed bundles
+      and their states. By clicking on bundles in this are,
+      detail information is displayed in the <b>Bundle detail area</b>
+      Three different views a supported internally (new can be installed):
+      <ul>
+	<li><a href="#view_icons">Large Icons</a> - each bundle is displayed as an icon.
+	<li><a href="#view_graph">Graph</a> - each bundle is displayed in a really cool graphics view.
+	<li><a href="#view_details">Details</a> - each bundle is displayed as a table row.
+      </ul>
+	</dd>
+    <dt>Bundle detail area</dt>
+    <dd>
+      The rightmost bundle detail area shows detailed
+      information on various aspects of the selected bundles such as:
+      <ul>
+	<li>Manifest</li>
+	<li>Bundle closure</li>
+	<li>Services, i.e imported/exported services</li>
+	<li>Packages, i.e. imported/exported packages</li>
+	<li>Log, i.e. bundle logs</li>
+	<li>Events</li>
+	<li>Prefs, i.e. bundle preferences</li>
+      </ul>
+      New detail pages can be installed run-time using plug-ins.
+    </dd>
+    <dt>Framework console</dt>
+    <dd>
+      The bottom console area allows interaction with the
+      text console. This console acts exactly as
+      the <a href="../console/index.html">consoltty</a> bundle, but does not require a shell or
+      DOS window to run. 
+    </dd>
+  </dl>
+<p>
+
+  
+<h3><a name="view_icons">Icon view</a></h3>
+
+<p>To view the installed bundles as icons, select</p>
+<pre>
+View -&gt; Large Icons
+</pre>
+
+<div style="float:left">
+  <img src="images/desktop_icons.png" width="545" height="496">
+</div>
+
+<table class="man">
+  <tr>
+    <td><img src="images/bundle.png"></td>
+    <td>Bundle which has a BundleActivator</td>
+  </tr>
+  <tr>
+    <td><img src="images/bundle_active.png"></td>
+    <td>Active bundle</td>
+  </tr>
+  <tr>
+    <td><img src="images/lib.png"></td>
+    <td>"Library" bundle which has no BundleActivator</td>
+  </tr>
+  <tr>
+  <tr>
+    <td><img src="images/frag.png"></td>
+    <td>Fragment bundle.</td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td>
+
+      <p>A bundle may provide its own icon by listing it in the
+      manifest attribute <tt>Bundle-Icon:</tt>. See the OSGi Core
+      specification R4 v4.2 for details on this.</p>
+
+      <p>Example of bundles providing their own icon are: "System
+      Bundle", "Log Service", "cm" and "Console".</p>
+    
+    </td>
+
+  </tr>
+</table>
+<div style="clear:both"></div>
+
+<p>
+Bundles can be selected by clicking.
+</p>
+
+
+<h3><a name="view_details">Detail list view</a></h3>
+
+  <p>To view the installed bundles as a detailed list, select</p>
+<pre>
+  View -&gt; Details
+</pre>
+
+  <img src="images/desktop_details.png" width="825" height="431">
+
+  <p>Bundles can be selected by clicking.</p>
+
+
+
+<h3><a name="view_graph">Graph View view</a></h3>
+
+  <div style="float:right">
+    <img src="images/desktop_graph.png" width="800" height="462">
+  </div>
+
+  <p>To view the installed bundles as graphics, select</p>
+<pre>
+View -&gt; Graph
+</pre>
+
+
+  <p>The top left corner shows the bundle id and name of the currently
+  selected bundle.</p>
+
+  <p>The lower left corner shows a bundle selection
+  history. Double-click on any of those bundles to re-select it.</p>
+
+  <p>The left hand side of the view shows package dependencies. Lines
+  below the horizon are packages that the bundle imports and lines
+  above the horizon are the packages that the bundle exports to
+  another bundle. There is one export-line for each bundle that
+  imports the package. Holding the mouse pointer over a package-line
+  will pop-up a tool tip with the name and version of the
+  package. Holding the mouse pointer over the end of a package line
+  will pop-up a tool-tip showing the bundle that the package was
+  imported from or exported to. Click on the end of a package line to
+  select the bundle associated with it (that bundle will be
+  highlighted every where it occurs in the graph), double-click to
+  center the graph on the selected bundle. Above each export
+  package line a mini-graph showing the exports of the bundle
+  importing the package is drawn.</p>
+
+
+  <p>The right hand side of the view shows service dependencies. Lines
+  below the horizon are services that the bundle uses (imports) and
+  lines above the horizon are the services that the bundle provides
+  (exports) to another bundle. There is one export-line for each
+  bundle that uses a registered service. Holding the mouse pointer
+  over a service-line will pop-up a tool tip with the service id and
+  object-class of the service it represents. Holding the mouse pointer
+  over the end of a service line will pop-up a tool-tip showing the
+  bundle that the service was imported from or exported to. Click on
+  the end of a service line to select the bundle associated with it
+  (that bundle will be highlighted every where it occurs in the
+  graph), double-click to center the graph on the selected bundle.
+  Above each export service line is a mini-graph showing the services
+  provided by the bundle using the service that the line
+  represents.</p>
+
+  <p>The transparent blue half-circle below (or above) the selected
+  bundle is a scroll-bar that scrolls the package/service lines. Drag
+  the mouse horizontally, starting in side the half circle, to
+  scroll.</p>
+
+<div style="clear:both"></div>
+
+
+
+<h2>Configuration properties</h2>
+
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.bundle.desktop.event.EventTableModel.capacity</td>
+    <td>
+
+	The maximum number of events to keep in memory in one event
+	view. Use a negative value (i.e., a value smaller than 1) to
+	indicate that old event shall never be removed.
+
+    </td>
+    <td>int</td>
+    <td>342</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.desktop.display.main</td>
+    <td>
+
+	The name of the default bundle displayer to show in the
+	desktop's main frame when starting.
+
+    </td>
+    <td>String</td>
+    <td>Large Icons</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.bundle.log.window.impl.LogTableModel.capacity</td>
+    <td>
+
+	The maximum number of log entries to keep in memory in one log
+	view. Use a negative value (i.e., a value smaller than 1) to
+	indicate that old entries shall never be removed.
+
+    </td>
+    <td>int</td>
+    <td>342</td>
+  </tr>
+</table>

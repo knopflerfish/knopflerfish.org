@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="serial-dir" default="all">
+
+  <!-- Internal target that calls a specified target in all sub-dirs. -->
+  <target name="doAntBuild">
+    <ant target="${the.target}" dir="serialportdevice"/>
+    <ant target="${the.target}" dir="comm-win32"/>
+    <ant target="${the.target}" dir="comm-linux"/>
+    <ant target="${the.target}" dir="rxtxcomm"/>
+    <ant target="${the.target}" dir="rxtxcomm-linux-arm"/>
+  </target>
+
+  <target name="all" 
+	  description="Builds all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="all"/>
+    </antcall>
+  </target>
+
+  <target name="clean" 
+	  description="Cleans all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="clean"/>
+    </antcall>
+  </target>
+  
+  <target name="bundle_doc" 
+	  depends="bundle_doc_overview"
+	  description="Builds doc for all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="bundle_doc"/>
+    </antcall>
+  </target>
+
+  <property name="topdir" location="../.."/>
+  <import file="${topdir}/../ant/docbuild_include.xml"/>
+  
+  <!-- Bundles to include on the bundle_doc_overview page -->
+  <fileset id="docbuild.jarfiles" dir="${jars.dir}">
+    <include name="serialportdevice/**/*.jar"/>
+    <include name="comm-linux/**/*.jar"/>
+    <include name="comm-win32/**/*.jar"/>
+  </fileset>
+
+  <target name="bundle_doc_overview">
+    <!-- The root of the local bundle docs directory. -->
+    <property name="docs.dir" location="${topdir}/out/doc"/>
+
+    <antcall target="build_doc">
+      <param name="docbuild.name" value="serial"/>  
+      <param name="docbuild.title" value="Serial Communication"/>
+      <param name="docbuild.fromdir" location="doc"/>
+      <param name="docbuild.outdir"  location="${docs.dir}/serial"/>
+      <param name="docbuild.description" value="Serial Port Communication"/> 
+      <param name="docbuild.description" value="Serial Port Communication"/> 
+    </antcall>
+  </target>
+
+</project>

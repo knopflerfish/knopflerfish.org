@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="desktop_boing" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.desktop_boing}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/desktop/**"/>
+
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="desktop_api-N.N.N.jar"/>
+  </path>
+  
+  <property name="bmfa.Application-Icon"   value="boing32x32.png"/>
+  <property name="bmfa.Bundle-Description" value="Boing demo desktop plugin"/>
+  <property name="bmfa.Bundle-Vendor"      value="knopflerfish"/>
+  <property name="bmfa.Bundle-Category"    value="service"/>
+  <property name="bmfa.Bundle-Version"     value="1.0.0"/>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

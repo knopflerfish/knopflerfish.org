@@ -1,0 +1,22 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: SCR
+Bundle-SymbolicName: org.knopflerfish.bundle.component
+Bundle-Version: 3.0.3
+Bundle-Category: service
+Bundle-Description: Declarative Services SCR
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/component
+Bundle-Activator: org.knopflerfish.bundle.component.Activator
+Export-Package: org.osgi.service.component ; version=1.1
+Import-Package: org.osgi.framework ; version="[1.4,2)",
+ org.osgi.service.cm ; version="[1.1,2)",
+ org.osgi.service.component ; version="[1.1,2)",
+ org.osgi.service.log ; version="[1.1,2)",
+ org.osgi.util.tracker ; version="[1.1,2)",
+ org.xmlpull.v1

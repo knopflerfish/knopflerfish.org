@@ -1,0 +1,519 @@
+<?xml version="1.0"?>
+
+<project name="osgi" default="default">
+
+  <!-- build properties -->
+
+  <property name="topdir"          location="."/>
+  <property name="osgi.dir"        location="."/>
+  <property name="ant.dir"         location="${topdir}/../ant"/>
+  <property name="jars.dir"        location="jars"/>
+  <property name="gosg.jars"       value="file:jars/"/>
+
+  <!-- Properties controling javadoc generation -->
+  <property name="root.out.dir"    location="out"/>
+  <property name="javadoc.out.dir" location="${root.out.dir}/javadoc"/>
+  <property name="exported.file"   location="${root.out.dir}/exported.txt"/>
+  <property name="sources.file"    location="${root.out.dir}/sources.txt"/>
+
+  <!-- The initial part of the URL to use for the default jars -->
+  <!-- location in the remote xargs files.  -->
+  <property name="base.url" value="http://www.knopflerfish.org/releases"/>
+
+  <!-- Test target related properties. -->
+  <property name="run.test.dir"   location="."/>
+  <property name="xargs.out.dir"  location="."/>
+  <property name="xargs.base.dir" location="."/>
+  <property name="junit.out.dir"  location="junit_grunt"/>
+  <property name="test.dir"
+	    location="${osgi.dir}/bundles_test/regression_tests"/>
+  <property name="test_jars"      value="$$$${user.dir}/test_jars"/>
+  <property name="test.gosg.jars" value="file:jars/;file:test_jars/"/>
+
+
+  <import file="${ant.dir}/bundletasks.xml"/>
+  <import file="${ant.dir}/xargs.xml"/>
+
+  <!-- targets -->
+  <target name="init">
+    <mkdir dir="${root.out.dir}"/>
+    <available property="dir.bundles_opt.present"  file="bundles_opt"/>
+    <available property="dir.bundles_test.present" file="bundles_test"/>
+    <available property="dir.bundles_examples.present" file="bundles_examples"/>
+  </target>
+
+  <target name="default"
+          description="Builds the framework and bundles in bundles-directory"
+          depends="init,bundle_tasks">
+    <delete file="${exported.file}"/>
+    <delete file="${sources.file}"/>
+    <property name="generate.javadoc.data" value="true"/>
+
+    <ant dir="framework"    target="all"/>
+    <ant dir="bundles"      target="all"/>
+    <antcall inheritAll="true" target="xargs"/>
+  </target>
+
+  <target name="all"
+          description="Builds the framework and all bundles including optional and test bundles"
+          depends="default,bundles_opt,bundles_test,bundles_examples">
+  </target>
+
+  <target name="bundles_opt" depends="init">
+   <fail unless="dir.bundles_opt.present" 
+         message="The directory for optional bundles, bundles_opt, is missing. Please download Knopflerfish_opt_&lt;version&gt;.jar and install it in the same directory as Knopflerfish_osgi_&lt;version&gt;.jar"/>
+    <ant dir="bundles_opt"  target="all"/>
+    <antcall target="xargs"/>
+  </target>
+
+  <target name="bundles_test"
+	  depends="init,bundles_test_missing,bundles_test_present" />
+  <target name="bundles_test_present" if="dir.bundles_test.present">
+    <ant dir="bundles_test" target="all"
+         inheritAll="false" inheritRefs="false">
+      <!-- No need to build the bundles tasks in this case. -->
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <antcall target="xargs"/>
+  </target>
+  <target name="bundles_test_missing" unless="dir.bundles_test.present">
+   <echo level="warning"
+	 message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
+  </target>
+
+  <target name="bundles_examples" depends="init">
+   <fail unless="dir.bundles_examples.present" 
+         message="The directory for example bundles, bundles_examples, is missing."/>
+    <ant dir="bundles_examples"  target="all"/>
+    <antcall target="xargs"/>
+  </target>
+
+
+
+  <target name="xargs" depends="init,bundle_tasks">
+    <antcall target="minimal_xargs"/>
+    <antcall target="init_xargs"/>
+    <antcall target="remote_xargs"/>
+    <antcall target="remotefw_xargs"/>
+    <antcall target="examples_cpa_xargs"/>
+  </target>
+
+  <target name="minimal_xargs">
+    <xargs template="minimal.xargs.in"
+	   xargs="${xargs.out.dir}/minimal.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+  </target>
+
+  <target name="remote_xargs">
+    <xargs template="template.xargs.in"
+	   xargs="${xargs.out.dir}/remote-init.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${base.url}/${version}/osgi/jars/"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs">
+      <bundles>
+	<fileset dir="${jars.dir}" includes="**/*.jar"/>
+      </bundles>
+    </xargs>
+  </target>
+
+  <target name="remotefw_xargs">
+    <!-- xargs files that are part of the remote-framework documentation.-->
+    <xargs template="${osgi.dir}/bundles/remotefw/doc/server.xargs.in"
+	   xargs="${osgi.dir}/bundles/remotefw/doc/server.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+
+    <xargs template="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"
+	   xargs="${osgi.dir}/bundles/remotefw/doc/client.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+  </target>
+
+  <target name="examples_cpa_xargs">
+    <!-- xargs files that are part of the CPA example.-->
+    <xargs template="${osgi.dir}/bundles_examples/cpa/init.xargs.in"
+	   xargs="${osgi.dir}/bundles_examples/cpa/init.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars};file:example_jars/"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+
+    <xargs template="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"
+	   xargs="${osgi.dir}/bundles/remotefw/doc/client.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+  </target>
+
+  <target name="init_xargs">
+    <xargs template="template.xargs.in"
+	   xargs="${xargs.out.dir}/init.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+  </target>
+
+  <target name="test_xargs">
+    <xargs template="init-tests.xargs.in"
+	   xargs="${xargs.out.dir}/init-tests.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${test.gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+
+    <xargs template="${test.dir}/axis2_soapclient_adb/soapcline_adb_test.xargs.in"
+	   xargs="${xargs.out.dir}/soapcline_adb_test.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${test.gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+
+    <xargs template="${test.dir}/restart_test/test-restart1.xargs.in"
+	   xargs="${xargs.out.dir}/test-restart1.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${test.gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+
+    <xargs template="${test.dir}/restart_test/test-restart2.xargs.in"
+	   xargs="${xargs.out.dir}/test-restart2.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${test.gosg.jars}"
+	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+  </target>
+
+  <target name="javadoc"
+	  description="Create javadoc for all exported packages"
+	  depends="bundle_tasks">
+    <fail message="You must build the 'default' or 'all' targets to create the list of exported package before you can generate javadoc.">
+      <condition>
+	<not>
+	  <and>
+	    <available file="${sources.file}"/>
+	    <available file="${exported.file}"/>
+	  </and>
+	</not>
+      </condition>
+    </fail>
+
+    <mkdir dir="${javadoc.out.dir}"/>
+
+    <!-- Explicit list of non-bundle source tree roots. -->
+    <property name="framework.dir" location="${osgi.dir}/framework"/>
+    <path id="sources.path">
+      <pathelement location="${framework.dir}/src"/>
+      <pathelement location="${ant.dir}/src"/>
+    </path>
+    <!-- Add in source roots for all compiled bundles. -->
+    <bundle_javadoc_helper srcRootsFile="${sources.file}"
+                           srcPathId="sources.path"/>
+
+    <!-- Explicit list of non-bundle exported packages to include. -->
+    <property name="javadoc.packages"
+              value="org.knopflerfish.ant.taskdefs.bundle,
+                     org.osgi.framework,
+		     org.osgi.framework.hooks.service,
+		     org.osgi.framework.launch,
+                     org.osgi.service.condpermadmin,
+                     org.osgi.service.packageadmin,
+                     org.osgi.service.permissionadmin,
+                     org.osgi.service.startlevel,
+                     org.osgi.service.url,
+                     org.osgi.util.tracker,
+                     "/>
+    <!-- Add all packages exported by the compiled bundles. -->
+    <bundle_javadoc_helper exportPkgsFile="${exported.file}"
+                           pkgPropertyName="javadoc.packages"/>
+
+    <!-- Packages to exclude from javadoc (no source available). -->
+    <property name="javadoc.excludepackages"
+              value="org.w3c.dom,
+                     org.w3c.dom.bootstrap,
+                     org.w3c.dom.css,
+                     org.w3c.dom.events,
+                     org.w3c.dom.html,
+                     org.w3c.dom.ls,
+                     org.w3c.dom.ranges,
+                     org.w3c.dom.stylesheets,
+                     org.w3c.dom.traversal,
+                     org.w3c.dom.views,
+                     org.w3c.dom.xpath,
+                     org.xml.sax,
+                     org.xml.sax.ext,
+                     org.xml.sax.helpers,
+		     org.xmlpull.v1
+                     "/>
+
+    <property name="javadoc.header"
+              value="Knopflerfish OSGi ${version}"/>
+    
+    <property name="javadoc.footer"
+              value="${javadoc.header}"/>
+
+    <property name="javadoc.windowtitle"
+              value="${javadoc.header} javadoc"/>
+
+    <property name="javadoc.doctitle"
+              value="${javadoc.header} API documentation"/>
+
+    <javadoc header="${javadoc.header}"
+             footer="${javadoc.footer}"
+	     windowtitle="${javadoc.windowtitle}"
+	     doctitle="${javadoc.doctitle}"
+             destdir="${javadoc.out.dir}"
+             packagenames="${javadoc.packages}"
+	     sourcepathref="sources.path"
+             excludepackagenames="${javadoc.excludepackages}">           
+      <!-- Custome tags used by OSGi -->
+      <tag name="ThreadSafe"    scope="all" description="ThreadSafe"/>
+      <tag name="NotThreadSafe" scope="all" description="NotThreadSafe"/>
+      <tag name="Immutable"     scope="all" description="Immutable"/>
+      <classpath>
+	<fileset dir="${ant.home}/lib/">
+	  <include name="**/*.jar"/>
+	  <exclude name="bindex.jar"/>
+	</fileset>
+	<fileset dir="${ant.dir}/lib/">
+	  <include name="**/*.jar"/>
+	  <exclude name="bindex.jar"/>
+	</fileset>
+	<!-- Make embedded jars available -->
+	<pathelement location="${osgi.dir}/bundles/io/io/resources/javax.microedition.io.jar"/>
+	<pathelement location="${osgi.dir}/bundles/metatype/kf_metatype/resources/nanoxml-2.2.1.jar"/>
+	<pathelement location="${osgi.dir}/bundles/xml/kxml/lib/xmlpull_1_1_3_1.jar"/>
+	<pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-core.jar"/>
+	<pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-ext.jar"/>
+	<pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+	<pathelement location="${osgi.dir}/bundles_opt/serial/comm-win32/resources/comm.jar"/>
+      </classpath>
+    </javadoc>
+
+    <!-- KF documentation uses links to javadoc with a seach-part that -->
+    <!-- points to a java package or file. Check that the generated    -->
+    <!-- top-level index.html supports this; if not add script.        -->
+    <condition property="javadoc.seach.support">
+      <resourcecontains
+	 resource="${javadoc.out.dir}/index.html"
+	 substring="SCRIPT"/>
+    </condition>
+    <antcall target="javadocSearchFix"/>
+  </target>
+
+  <target name="javadocSearchFix" unless="javadoc.seach.support">
+    <replace file="${javadoc.out.dir}/index.html">
+      <replacetoken>&lt;/HEAD&gt;</replacetoken>
+      <replacevalue><![CDATA[<SCRIPT type="text/javascript">
+    targetPage = "" + window.location.search;
+    if (targetPage != "" && targetPage != "undefined")
+        targetPage = targetPage.substring(1);
+    if (targetPage.indexOf(":") != -1)
+        targetPage = "undefined";
+    function loadFrames() {
+        if (targetPage != "" && targetPage != "undefined")
+             top.classFrame.location = top.targetPage;
+    }
+</SCRIPT>
+<NOSCRIPT>
+</NOSCRIPT>
+</HEAD>
+]]></replacevalue>
+      <replacefilter token='FRAMESET cols="20%,80%"'
+	             value='FRAMESET cols="20%,80%" title="" onLoad="top.loadFrames()"'/>
+      <replacefilter token='FRAMESET rows="30%,70%"'
+		     value='FRAMESET rows="30%,70%" title="" onLoad="top.loadFrames()"'/>
+    </replace>
+  </target>
+
+ <target name="run"
+         description="(Re)start the framework.">
+  <java fork="true"
+        jar="framework.jar">
+  </java>
+ </target>
+
+ <target name="run-secure"
+         description="(Re)start framework with security enabled.">
+  <java fork="true"
+        jar="framework.jar">
+    <arg value="-Forg.osgi.framework.security=osgi"/>
+  </java>
+ </target>
+
+ <target name="run-init"
+         description="Initial start with default set of bundles.">
+   <java fork="true"
+         jar="framework.jar" >
+     <arg value="-init"/>
+   </java>
+ </target>
+
+ <target name="run-secure-init"
+         description="Initial start with security enabled and default set of bundles.">
+   <java fork="true"
+         jar="framework.jar">
+     <arg value="-Forg.osgi.framework.security=osgi"/>
+     <arg value="-init"/>
+   </java>
+ </target>
+
+ <target name="run-kf-tests"
+         description="Builds then executes the KF testsuite."
+	 depends="clean,all">
+   <antcall target="run-kf-tests-bare"/>
+ </target>
+
+ <target name="run-kf-tests-bare" depends="bundle_tasks">
+   <delete dir="${junit.out.dir}"/>
+
+   <antcall target="test_xargs"/>
+   <antcall target="run-kf-tests-bare-main"/>
+   <antcall target="run-kf-tests-bare-axis2"/>
+   <antcall target="run-kf-tests-bare-restart"/>
+   <echo message="Test output is available in ${junit.out.dir}/out.txt."/>
+   <echo message="Test results are available in ${junit.out.dir}/index.xml"/>
+ </target>
+
+ <target name="run-kf-tests-secure"
+         description="Builds then executes the KF testsuite with security enabled."
+	 depends="clean,all">
+   <antcall target="run-kf-tests-bare">
+     <param name="run.test.secure" value="true"/>
+   </antcall>
+ </target>
+
+
+ <!-- Start the framework with output redirected to ${junit.out.dir}/out.txt -->
+ <!-- Parameters: -->
+ <!--  run.test.secure If set execute tests with security enabled -->
+ <!--  run.test.msg    The message (heading) to print             -->
+ <!--  run.test.append Append output to log file or start new log -->
+ <!--  run.test.xargs  The xargs file to load                     -->
+ <target name="run-test">
+   <antcall target="run-test-default"/>
+   <antcall target="run-test-secure"/>
+ </target>
+ <target name="run-test-default" unless="run.test.secure">
+   <echo message="${run.test.msg}"/>
+   <mkdir dir="${junit.out.dir}"/>
+   <java fork="true"
+	 dir="${run.test.dir}"
+	 output="${junit.out.dir}/out.txt"
+	 append="${run.test.append}"
+         jar="${run.test.dir}/framework.jar">
+     <arg value="-Forg.osgi.framework.storage=${junit.out.dir}/test_fwdir"/>
+     <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
+     <arg value="-xargs"/>
+     <arg value="${run.test.xargs}"/>
+     <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
+   </java>
+ </target>
+ <target name="run-test-secure" if="run.test.secure">
+   <echo message="${run.test.msg}"/>
+   <mkdir dir="${junit.out.dir}"/>
+   <java fork="true"
+	 dir="${run.test.dir}"
+	 output="${junit.out.dir}/out.txt"
+	 append="${run.test.append}"
+         jar="${run.test.dir}/framework.jar">
+     <arg value="-Forg.osgi.framework.security=osgi"/>
+     <arg value="-Forg.osgi.framework.storage=${junit.out.dir}/test_fwdir"/>
+     <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
+     <arg value="-xargs"/>
+     <arg value="${run.test.xargs}"/>
+     <arg value="-Forg.knopflerfish.prefs.dir=${junit.out.dir}/prefs"/>
+   </java>
+ </target>
+
+ <target name="run-kf-tests-bare-main">
+   <antcall target="run-test">
+     <param name="run.test.msg"    value="Running the main test suite..."/>
+     <param name="run.test.append" value="false"/>
+     <param name="run.test.xargs"  value="init-tests.xargs"/>
+   </antcall>
+ </target>
+
+ <target name="run-kf-tests-bare-axis2">
+   <antcall target="run-test">
+     <param name="run.test.msg"    value="Running the SOAP-Axis2TestSuite..."/>
+     <param name="run.test.append" value="true"/>
+     <param name="run.test.xargs"  value="soapcline_adb_test.xargs"/>
+   </antcall>
+ </target>
+
+ <target name="run-kf-tests-bare-restart">
+   <antcall target="run-test">
+     <param name="run.test.msg"    value="Running the restart test suite, part 1..."/>
+     <param name="run.test.append" value="true"/>
+     <param name="run.test.xargs"  value="test-restart1.xargs"/>
+   </antcall>
+   <antcall target="run-test">
+     <param name="run.test.msg"    value="Running the restart test suite, part 2..."/>
+     <param name="run.test.append" value="true"/>
+     <param name="run.test.xargs"  value="test-restart2.xargs"/>
+   </antcall>
+ </target>
+
+
+ <target name="clean"
+	 description="Removes all generated files and directories."
+	 depends="init,clean_bundles_test">
+  <delete file="framework.jar"/>
+  <delete dir="${root.out.dir}"/>
+  <delete dir="jars"/>
+  <delete dir="${ant.dir}/classes"/>
+  <delete file="minimal.xargs"/>
+  <delete file="remote-init.xargs"/>
+  <delete file="init.xargs"/>
+  <delete file="init_Windows2000.xargs"/>
+  <delete file="init_WindowsXP.xargs"/>
+  <delete file="init-tests.xargs"/>
+  <delete file="${exported.file}"/>
+  <delete file="${sources.file}"/>
+  <delete dir="${junit.out.dir}"/>
+ </target>
+
+ <target name="clean_local"
+         description="Remove all bundles built by this build-file but keep all other bundles in the jars sub-directory.">
+    <ant dir="framework"    target="clean"
+         inheritAll="false" inheritRefs="false"/>
+    <ant dir="bundles"      target="clean"
+         inheritAll="false" inheritRefs="false"/>
+    <ant target="clean_bundles_opt"/>
+    <ant target="clean_bundles_test"/>
+ </target>
+ <target name="clean_bundles_opt" if="dir.bundles_opt.present">
+   <ant dir="bundles_opt"   target="clean"
+        inheritAll="false" inheritRefs="false"/>
+ </target>
+ <target name="clean_bundles_test" if="dir.bundles_test.present">
+   <ant dir="bundles_test" target="clean"
+        inheritAll="false" inheritRefs="false"/>
+ </target>
+
+
+ <target name="rebuild"
+         description="Cleans then build build all">
+    <antcall target="clean"/>
+    <antcall target="all"/>
+ </target>
+ 
+
+ <target name="bundle_doc"
+         description="Builds bundle specific docs">
+   <ant dir="framework"	   target="framework_doc"/>
+   <ant dir="bundles"	   target="bundle_doc"/>
+   <ant dir="bundles_opt"  target="bundle_doc"/>
+ </target>
+ 
+</project>
