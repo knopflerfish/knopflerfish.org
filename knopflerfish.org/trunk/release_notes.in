@@ -8,6 +8,20 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   last release.
 
 
+
+========================================================================
+
+
+Release Notes Knopflerfish 3.2.0 (OSGi R4 v4.2)
+--------------------------------------------------
+
+  Maintenance release of Knopflerfish available from
+  http://www.knopflerfish.org/releases/3.2.0
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+
 === Framework (Core) ===
 
   Framework 5.1.14
@@ -154,6 +168,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     bundle_tasks.jar-file.
   - Fixed so that KF builds with ant 1.8.
   - Improved support for dexifying and generating classes.dex files
+
+
 
 ========================================================================
 
