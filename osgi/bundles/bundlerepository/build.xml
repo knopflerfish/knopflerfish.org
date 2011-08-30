@@ -34,8 +34,8 @@
     <copy todir="${classes.out.dir}">
       <zipfileset src="${bap.console_api}">
         <patternset>
-          <exclude name="META-INF/*"/>
-          <exclude name="*.dex"/>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
         </patternset>
       </zipfileset>
     </copy>

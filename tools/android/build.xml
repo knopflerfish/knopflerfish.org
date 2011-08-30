@@ -97,7 +97,7 @@
   </target>
 
   <target name="all"
-	  description="Sets up and creates a smsall default KF run-time to install on an Android device emulator"
+	  description="Sets up and creates a small default KF run-time to install on an Android device emulator"
 	  depends="setup,
 		   build_dex,
 		   dalvik_runtime"/>
