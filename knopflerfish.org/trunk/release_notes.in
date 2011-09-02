@@ -8,6 +8,79 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   last release.
 
 
+=== Services (Compendium) ===
+
+  Blueprint (API) 1.0.1
+  
+  - The API-bundle now imports all packages it exports.
+
+
+  Deployment Admin (API) 1.0.2
+  
+  - The API-bundle now imports all packages it exports.
+
+
+  DMTree 1.0.2
+  
+  - The API-bundle now imports all packages it exports.
+
+
+  HTTP-Server 3.0.6
+  
+  - The API-version of this bundle now imports all packages it exports.
+
+
+  IO (API) 3.0.1
+
+  - The API-version of this bundle now imports all packages it exports.
+
+
+  Log Service 3.0.6
+  
+  - The API-version of this bundle now imports all packages it
+    exports.  For details see
+
+    http://sourceforge.net/tracker/?func=detail&aid=3402741&group_id=82798&atid=567241
+
+  User Amdin 3.0.2
+
+  - The API-version of this bundle now imports all packages it exports.
+
+
+
+=== Misc (KF specific, start scripts, build system etc) ===
+
+  Desktop 3.1.7
+  
+  - The API-version of this bundle now imports all packages it exports.
+
+
+  JSDK 2.5.0.kf3-2
+  
+  - The API-version of this bundle now imports all packages it exports.
+
+
+  Serial Port Device 2.0.1
+  
+  - The API-version of this bundle now imports all packages it exports.
+
+
+  Build System
+
+  - When using the bundleinfo task with the implicitImports option set
+    to true it now adds a version range, not only a version to the
+    generated import specification. The version ranges starts with the
+    version that the bundle exports and ends with the next major
+    version (excluded). If anoter version range is needed an explicit
+    import with that range needs to be specified.
+  - The master bundle build file, bundlebuild.xml, now adds implicit
+    imports to API-bundles for packages exported by the API-bundle.
+    To override the version range in an implicitly derived import
+    package header for an API-bundle, use the template manifest file
+    to define an attribute named "api-Import-Package" with the desired
+    explicit version range for the package to be imported.
+
+
 
 ========================================================================
 

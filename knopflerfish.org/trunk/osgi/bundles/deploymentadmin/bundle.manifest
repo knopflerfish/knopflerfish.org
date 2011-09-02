@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: deploymentadmin
 Bundle-SymbolicName: org.knopflerfish.bundle.deploymentadmin
-Bundle-Version: 1.0.1
+Bundle-Version: 1.0.2
 Bundle-Category: API
 Bundle-Description: Deployment Admin API
 Bundle-Vendor: OSGi
