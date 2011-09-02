@@ -177,12 +177,23 @@ import org.osgi.framework.Version;
  *  <tr>
  *   <td valign=top>implicitImports</td>
  *   <td valign=top>
- *       Flag for adding all exported packages to the import list.
+ *       Flag for ensuring that each exported packages is included in the
+ *       import package list.
+ *
  *       <p>
  *       If set to "true", the task will add all packages mentioned in
  *       the property named by <code>exports</code> to the list of
- *       imported packages in the property named by <code>imports</code>.
- *       This emulates the implicit import behavior present in OSGi R1-3.
+ *       imported packages in the property named by
+ *       <code>imports</code> if not already present. When this task
+ *       adds an import declaration for an exported package the import
+ *       entry will be given a version range starting with the version
+ *       from the export statement and up to the next major version
+ *       (exclusive). If some other version range is needed an
+ *       explicit import with that range should be added to the
+ *       bundle manifest template.
+ *
+ *       <p>
+ *       This emulates the implicit import behavior present in OSGi R1-R3.
  *       </p>
  *   </td>
  *   <td valign=top>
@@ -1037,9 +1048,12 @@ public class BundleInfoTask extends Task {
             final String ver = (String) expEntry.get("version");
             final String sver = (String) expEntry.get("specification-version");
             if (null!=ver) {
-              pkg += ";version="+ver;
+              pkg += ";version=" +toDefaultVersionRange(ver);
             } else if (null!=sver) {
-              pkg += ";specification-version="+sver;
+              pkg += ";specification-version=" +toDefaultVersionRange(sver);
+            } else {
+              pkg += ";version="
+                +toDefaultVersionRange(Version.emptyVersion.toString());
             }
             log("implicitImport - adding: "+pkg, Project.MSG_DEBUG);
             if (0<sb.length()) {
@@ -1371,6 +1385,21 @@ public class BundleInfoTask extends Task {
   }
 
 
+  /**
+   * Given an OSGi version number on the form
+   * <code>Major.Minor.Micro.Qualifier</code> return a version range
+   * of the form <code>"[Major.Minor.Micro.Qualifier,Major)"</code>.
+   *
+   * @param version the version number to convert to a version range.
+   * @return A quoted version range string.
+   */
+  public static final String toDefaultVersionRange(final String version)
+  {
+    final Version v = new Version(version);
+    return "\"[" +v.toString() +"," +String.valueOf(v.getMajor()+1) +")\"";
+  }
+
+
   public static final Set ANALYZE_SUFFIXES = new TreeSet() {
     private static final long serialVersionUID = 2628940819429424154L;
     {
@@ -1380,6 +1409,7 @@ public class BundleInfoTask extends Task {
                                                // the file system
     }
   };
+
 
   /**
    * A resource selector that selects files to be analyzed. I.e., it

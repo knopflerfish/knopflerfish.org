@@ -232,7 +232,7 @@
   <!-- Bundles that both export packages and provides implementations -->
   <!-- shall have the implicitImport flag set in the bundleinfo task. -->
   <property name="bundle.implicit.imports.lib"   value="false"/>
-  <property name="bundle.implicit.imports.api"   value="false"/>
+  <property name="bundle.implicit.imports.api"   value="true"/>
   <property name="bundle.implicit.imports.impl"  value="false"/>
   <property name="bundle.implicit.imports.all"   value="true"/>
 
