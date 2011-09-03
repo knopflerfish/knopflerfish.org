@@ -176,7 +176,7 @@ public class BundleArchives {
               task.log("Skipping nested file set rooted at '" + fsRootDir
                   + "' since that file set is empty.", Project.MSG_VERBOSE);
               continue;
-              
+
             }
           } catch (Exception e) {
             task.log("Skipping nested file set rooted at '" + fsRootDir
@@ -473,31 +473,7 @@ public class BundleArchives {
       this.file = resource.getFile();
       this.relPath = resource.getName();
 
-      // The version derived from the file name, to be checked against
-      // the version from the manifest.
-      Version nameVersion = null;
-
-      // Derive bundle name from the file name
-      final String fileName = file.getName();
-      String bn = null;
-      // The file name format is "<bundleName>-<version>.jar"
-      final int ix = fileName.lastIndexOf('-');
-      if (0 < ix) {
-        bn = fileName.substring(0, ix);
-        final String versionS = fileName.substring(ix + 1,
-                                                   fileName.length() - 4);
-        try {
-          nameVersion = new Version(versionS);
-        } catch (NumberFormatException nfe) {
-          bn = null; // Not valid due to missing version.
-          task.log("Invalid version in bundle file name '" + versionS + "': "
-                   + nfe, Project.MSG_VERBOSE);
-        }
-      } else {
-        // No version in file name, just remove the ".jar"-suffix
-        bn = fileName.substring(0, fileName.length() - 4);
-      }
-
+      // Get data from the bundles manifest and contents
       final JarFile bundle = new JarFile(file);
       try {
         final Manifest manifest = bundle.getManifest();
@@ -526,19 +502,42 @@ public class BundleArchives {
         }
       }
 
-      // Compare version from the file name with the one from the manifest
-      if (null != nameVersion && 0 != nameVersion.compareTo(version)) {
-        if (nameVersion.getMajor() == version.getMajor()
-            && nameVersion.getMinor() == version.getMinor()
-            && nameVersion.getMicro() == version.getMicro()
-            && "".equals(nameVersion.getQualifier())) {
-          task.log("Found version '" + nameVersion + "' in the file name '"
-                   + fileName + "', but the version in the bundle's manifest "
-                   + "has qualifier '" + version + "'.", Project.MSG_DEBUG);
-        } else {
-          task.log("Found version '" + nameVersion + "' in the file name '"
-                   + fileName + "', but the version in the bundle's manifest is '"
-                   + version + "'.", Project.MSG_INFO);
+      // Derive bundle name, bn, from the file name and the manifest version.
+      // The file name format is "<bundleName>-<version>.jar"
+      String bn = null;
+      final String fileName = file.getName();
+      final String versionSuffix = "-" +this.version.toString() +".jar";
+      if (fileName.endsWith(versionSuffix)) {
+        // Simple case when Version.toString() returns the version
+        // string in the file name.
+        bn = fileName.substring(0, fileName.length() -versionSuffix.length());
+      } else {
+        // Try to find a valid version in the file name that matches
+        // the one in the manifest
+        int ix = fileName.lastIndexOf('-');
+        while (0<ix && null==bn) {
+          final String versionS
+            = fileName.substring(ix + 1, fileName.length() - 4);
+          try {
+            // Compare version from the file name with the one from the manifest
+            final Version nameVersion = new Version(versionS);
+            if (0 == nameVersion.compareTo(version)) {
+              bn = fileName.substring(0, ix);
+            } else {
+              task.log("Found version '" + nameVersion
+                       + "' in the file name '" + fileName
+                       + "', but the version in the bundle's manifest is '"
+                       + version + "'.", Project.MSG_DEBUG);
+            }
+          } catch (NumberFormatException nfe) {
+            task.log("Invalid version in bundle file name '" + versionS + "': "
+                     + nfe, Project.MSG_VERBOSE);
+          }
+          ix = fileName.lastIndexOf('-', ix-1);
+        }
+        if (null==bn) {
+          // No valid version in file name, just remove the ".jar"-suffix
+          bn = fileName.substring(0, fileName.length() - 4);
         }
       }
 
