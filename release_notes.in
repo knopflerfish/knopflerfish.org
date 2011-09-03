@@ -67,6 +67,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
   Build System
 
+  - Fixed a problem with the BundleArchives task, it failed to derives
+    the correct short bundle name from the file name of a bundle
+    archive when the qualifier part of the bundle version contained a
+    '-'.
   - When using the bundleinfo task with the implicitImports option set
     to true it now adds a version range, not only a version to the
     generated import specification. The version ranges starts with the
@@ -81,8 +85,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     explicit version range for the package to be imported.
 
 
-
 ========================================================================
+
 
 
 Release Notes Knopflerfish 3.2.0 (OSGi R4 v4.2)
