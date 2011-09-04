@@ -180,7 +180,8 @@ public class BundleArchives {
             }
           } catch (Exception e) {
             task.log("Skipping nested file set rooted at '" + fsRootDir
-                + "' since size computation throws exception.", e, Project.MSG_VERBOSE);
+                     + "' since size computation throws exception.", e,
+                     Project.MSG_VERBOSE);
             continue;
           }
         }
@@ -189,11 +190,19 @@ public class BundleArchives {
           final Resource res = (Resource) rcIt.next();
           if (res.getName().endsWith(".jar")) {
             task.log("Adding bundle: " + res, Project.MSG_VERBOSE);
-            final BundleArchive ba = new BundleArchive(task,
-                                                       (FileResource) res, parseExportImport);
-            allBundleArchives.add(ba);
-            addToMap(bnToBundleArchives, ba.bundleName, ba);
-            addToMap(bsnToBundleArchives, ba.bsn, ba);
+            try {
+              final BundleArchive ba = new BundleArchive(task,
+                                                         (FileResource) res,
+                                                         parseExportImport);
+              allBundleArchives.add(ba);
+              addToMap(bnToBundleArchives, ba.bundleName, ba);
+              addToMap(bsnToBundleArchives, ba.bsn, ba);
+            } catch (Exception e) {
+              final String msg = "Failed to analyze bundle archive: " + res
+                +"; reason: " +e;
+              task.log(msg);
+              throw new BuildException(msg, e);
+            }
           }
         }
       }// Scan done

@@ -368,7 +368,7 @@ public class Util {
         String key = at.getKey();
         if (key == null) {
           throw new IllegalArgumentException
-            ("Definition, " + a + ", expected key at: " + at.getRest()
+            ("Parsing '" + a +": " +s +"', expected key at: " + at.getRest()
              +". Key values are terminated by a ';' or a ',' and may not "
              +"contain ':', '='.");
         }
