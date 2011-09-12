@@ -40,9 +40,6 @@
   <property name="proj.dir"      location="."/>
   <property name="topdir"        location="${osgi.dir}"/>
 
-  <!-- Are we building for Dalvik/Android? -->
-  <available property="android.exists" file="${ANDROID_HOME}"/>
-
   <!-- Special value to be used as the value for a bundle manifest      -->
   <!-- properties that shall not be included in the generated manifest. -->
   <!-- DO NOT CHANGE THIS VALUE.                                        -->
@@ -51,26 +48,12 @@
   <!-- Map environment variables to properties starting with "sysprops."-->
   <property environment="sysprops"/>
 
+
+  <import file="${ant.dir}/android.xml"/>
+
   <!-- Android dx.jar requires 1.5 target -->
-  <condition
-     property="javac.target"
-     value="1.5"
-     else="1.2">
+  <condition property="javac.target"  value="1.5" else="1.2">
     <istrue value="${android.exists}"/>
-  </condition>
-
-  <condition
-     property="android.tool.dx"
-     value="${ANDROID_HOME}/platform-tools/lib/dx.jar"
-     else="${ANDROID_HOME}/tools/lib/dx.jar">
-    <available file="${ANDROID_HOME}/platform-tools/lib/dx.jar"/>
-  </condition>
-
-  <condition
-     property="android.tool.aapt"
-     value="${ANDROID_HOME}/platform-tools/aapt"
-     else="${ANDROID_HOME}/tools/aapt">
-    <available file="${ANDROID_HOME}/platform-tools/aapt"/>
   </condition>
 
   <property name="javac.source"       value="1.2"/>
@@ -518,7 +501,7 @@
     </condition>
     <condition property="do_include_source">
       <and>
-	<equals arg1="${include.source}"    arg2="true"/>
+        <equals arg1="${include.source}"    arg2="true"/>
         <isset property="src.dir.exists"/>
       </and>
     </condition>
@@ -601,14 +584,14 @@
                   checkFoundationEE="${ee.check.foundation}">
         <exports dir="${classes.out.dir}" includes="@{includes-exports}"/>
         <exportsBundleClasspath bundleClasspath="${bmfa.Bundle-Classpath}"
-				dir="${resources.dir}"
-				includes="@{includes-exports}"/>
+                                dir="${resources.dir}"
+                                includes="@{includes-exports}"/>
         <impls dir="${classes.out.dir}" includes="@{includes-impls}"/>
-	<!-- Everything on the bundle classpath that is not exported -->
-	<!-- is classified as impls. -->
+        <!-- Everything on the bundle classpath that is not exported -->
+        <!-- is classified as impls. -->
         <implsBundleClasspath bundleClasspath="${bmfa.Bundle-Classpath}"
-			      dir="${resources.dir}"
-			      excludes="@{includes-exports}"/>
+                              dir="${resources.dir}"
+                              excludes="@{includes-exports}"/>
       </bundleinfo>
 
       <mkdir dir="${jardir}"/>
@@ -761,25 +744,7 @@
   <!-- Helper taget that adds Android dex data to the bundle. -->
   <target name="add_dex" if="android.exists">
     <echo message="add_dex ${jarfile}"/>
-    <basename file="${jarfile}" suffix="jar" property="jarfile.basename"/>
-    <tempfile destdir="${outdir}" prefix="${jarfile.basename}" property="temp.dir"/>
-    <mkdir dir="${temp.dir}"/>
-    <property name="temp.dex" value="${temp.dir}/classes.dex"/>
-
-    <java fork="true" jar="${android.tool.dx}">
-      <arg value="--dex"/>
-      <arg value="--output=${temp.dex}"/>
-      <arg value="${jarfile}"/>
-    </java>
-
-    <exec executable = "${android.tool.aapt}">
-      <arg value="add"/>
-      <arg value="-f"/>
-      <arg value="${jarfile}"/>
-      <arg value="${temp.dex}"/>
-    </exec>
-
-    <delete dir="${temp.dir}"/>
+    <add_dex jarfile="${jarfile}" outdir="${outdir}"/>
   </target>
 
 
