@@ -67,6 +67,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
   Build System
 
+  - Fixed a problem with Android instrumentation on windows. Also
+    factored out the Android instrumentation to a separate build
+    file. For details, see
+    https://sourceforge.net/tracker/?func=detail&aid=3405464&group_id=82798&atid=567241
   - Fixed a problem with the BundleArchives task, it failed to derives
     the correct short bundle name from the file name of a bundle
     archive when the qualifier part of the bundle version contained a

@@ -7,18 +7,18 @@
   <property name="android.properties" location="${proj.dir}/android.properties"/>
   <property file="${android.properties}"/>
 
-  <property name="kf.root.dir" location="${proj.dir}/../.." />
-  <property name="kf.osgi.dir" location="${kf.root.dir}/osgi" />
-  <property name="out.dir"   location="${proj.dir}/out" />
-  <property name="dalvik.dir"   location="${out.dir}/dalvik" />
-  <property name="tmp.dir"   location="${out.dir}/tmp" />
-  <property name="gosg.jars"       value="file:jars/"/>
+  <property name="kf.root.dir"    location="${proj.dir}/../.." />
+  <property name="kf.osgi.dir"    location="${kf.root.dir}/osgi" />
+  <property name="out.dir"        location="${proj.dir}/out" />
+  <property name="dalvik.dir"     location="${out.dir}/dalvik" />
+  <property name="tmp.dir"        location="${out.dir}/tmp" />
+  <property name="gosg.jars"      value="file:jars/"/>
   <property name="xargs.base.dir" location="."/>
-  <property name="ant.dir"		location="${kf.root.dir}/ant" />
-  <property name="topdir"		location="${kf.root.dir}/osgi" />
+  <property name="ant.dir"        location="${kf.root.dir}/ant" />
+  <property name="topdir"         location="${kf.root.dir}/osgi" />
 
-  <property name="adb.exe"		location="${ANDROID_HOME}/platform-tools/adb" />
-  <property name="android.install.dir"	value="/data/kf-3.2.0" />
+  <property name="adb.exe"        location="${ANDROID_HOME}/platform-tools/adb" />
+  <property name="android.install.dir"  value="/data/kf-3.2.0" />
   
   <import file="${kf.root.dir}/ant/bundletasks.xml"/>
   <import file="${kf.root.dir}/ant/xargs.xml"/>
@@ -70,13 +70,14 @@
   </target>
 
   <target name="build_dex">
+    <!-- Should build to a somewhere under ${out.dir}, not to kf.osgi.dir -->
     <ant dir="${kf.osgi.dir}" 
-	 inheritall="false"
- 	 target="default">
+         inheritall="false"
+         target="default">
       <property name="ANDROID_HOME"       location="${ANDROID_HOME}"/>
     </ant>
   </target>
-    
+  
   <target name="dalvik_runtime" depends="bundle_tasks">
 
     <copy todir="${dalvik.dir}" overwrite="true">
@@ -88,23 +89,23 @@
     </copy>
     
     <xargs template="template.dalvik.xargs"
-	   xargs="${dalvik.dir}/dalvik.xargs"
-	   baseDir="${dalvik.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="$$$${user.dir}/${jars_test.dir.name}"
-	   outDir="${tmp.dir}"/>
+           xargs="${dalvik.dir}/dalvik.xargs"
+           baseDir="${dalvik.dir}"
+           gosgJars="${gosg.jars}"
+           testJars="$$$${user.dir}/${jars_test.dir.name}"
+           outDir="${tmp.dir}"/>
     
   </target>
 
   <target name="all"
-	  description="Sets up and creates a small default KF run-time to install on an Android device emulator"
-	  depends="setup,
-		   build_dex,
-		   dalvik_runtime"/>
+          description="Sets up and creates a small default KF run-time to install on an Android device emulator"
+          depends="setup,
+                   build_dex,
+                   dalvik_runtime"/>
   
   
   <target name="install"
-	  description="Installs a KF Dalvik runtime environment on the emulator using the adb tools">
+          description="Installs a KF Dalvik runtime environment on the emulator using the adb tools">
 
     <exec dir="${dalvik.dir}/.." executable="${adb.exe}">
       <arg line="push" />
@@ -114,8 +115,14 @@
   </target>
   
   <target name="clean"
-	  description="Cleans up" >
+          description="Cleans up" >
     <delete dir="${out.dir}"/>
+    <!-- Since we build to kf.osgi.dir ... -->
+    <ant dir="${kf.osgi.dir}" 
+         inheritall="false"
+         target="clean">
+      <property name="ANDROID_HOME" location="${ANDROID_HOME}"/>
+    </ant>
   </target>
 
 </project>
