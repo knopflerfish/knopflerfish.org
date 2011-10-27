@@ -20,6 +20,8 @@
 
    <log.out>true</log.out>
 
+   <timestamp.pattern>yyyyMMdd HH:mm:ss</timestamp.pattern>
+
   </org.knopflerfish.bundle.log.LogConfig>
 
  </metatype:values>

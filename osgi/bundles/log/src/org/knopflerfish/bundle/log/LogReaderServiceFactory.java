@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ package org.knopflerfish.bundle.log;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.text.SimpleDateFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.NoSuchElementException;
@@ -81,6 +82,7 @@ public final class LogReaderServiceFactory
   /**
    * The constructor fetches the destination(s) of the log entries
    * from the system properties.
+   *
    * @param bc Our handle to the framework.
    * @param lc The log configuration to use.
    */
@@ -92,12 +94,16 @@ public final class LogReaderServiceFactory
 
     history = new LogEntry[configuration.getMemorySize()];
     historyInsertionPoint = 0;
+
+    LogEntryImpl.setTimestampPattern(configuration.getTimestampPattern());
+
     try {
       if (configuration.getFile()) {
         fileLog = new FileLog(bc, configuration);
       }
     } catch (Exception e) {
     }
+
     configuration.init(this);
   }
 
@@ -166,6 +172,16 @@ public final class LogReaderServiceFactory
     historyInsertionPoint = 0;
   }
 
+  // If the file log is active, restart it since the log directory has changed.
+  private synchronized void resetFile() {
+    if (fileLog != null) {
+      fileLog.stop();
+      fileLog = null;
+      fileLog = new FileLog(bc, configuration);
+    }
+  }
+
+  // Stop or start file log
   private synchronized void resetFile(Boolean newValue, Boolean oldValue) {
     if (newValue.booleanValue() && fileLog == null) {
       fileLog = new FileLog(bc, configuration);
@@ -182,11 +198,15 @@ public final class LogReaderServiceFactory
   }
 
   /* Method called by the LogConfig to indicate chage of properties. */
-  void configChange(String propName, Object oldValue, Object newValue) {
-    String name = propName;
+  void configChange(final String propName,
+                    final Object oldValue,
+                    final Object newValue) {
+    final String name = propName;
     if (name.equals(LogConfigImpl.MEM)) {
       resetMemorySize(((Integer) newValue).intValue(),
                       ((Integer) oldValue).intValue());
+    } else if (name.equals(LogConfigImpl.DIR)) {
+      resetFile();
     } else if (name.equals(LogConfigImpl.FILE)) {
       resetFile((Boolean) newValue, (Boolean) oldValue);
     } else if (name.equals(LogConfigImpl.GEN) && fileLog != null) {
@@ -194,6 +214,8 @@ public final class LogReaderServiceFactory
         fileLog.resetGenerations(((Integer) newValue).intValue(),
                                  ((Integer) oldValue).intValue());
       }
+    } else if (name.equals(LogConfigImpl.TIMESTAMP_PATTERN)) {
+      LogEntryImpl.setTimestampPattern((String) newValue);
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -385,9 +385,92 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
     "-flush       Turns on log file flushing after each log entry.",
     "-noflush     Turns off log file flushing after each log entry.", };
 
-  public int cmdFile(Dictionary opts, Reader in, PrintWriter out,
-                     Session session) {
+  public int cmdFile(final Dictionary opts,
+                     final Reader in,
+                     final PrintWriter out,
+                     final Session session) {
 
+    // Get log configuration service
+    final LogConfig configuration = (LogConfig) LogCommands.logConfigTracker
+      .getService();
+    if (configuration == null) {
+      out.println("Unable to get a LogConfigService");
+      return 1;
+    }
+
+    if (configuration.getDir() == null) {
+      out.println(" This command is disabled; "
+                  +"writable filesystem not available.");
+      return 1;
+    }
+
+    boolean optionFound = false;
+    // File logging on/off
+    if (opts.get("-on") != null) {
+      optionFound = true;
+      configuration.setFile(true);
+    } else if (opts.get("-off") != null) {
+      optionFound = true;
+      configuration.setFile(false);
+    }
+    // Flush
+    if (opts.get("-flush") != null) {
+      optionFound = true;
+      configuration.setFlush(true);
+    } else if (opts.get("-noflush") != null) {
+      optionFound = true;
+      configuration.setFlush(false);
+    }
+    // Log size
+    String value = (String) opts.get("-size");
+    if (value != null) {
+      optionFound = true;
+      try {
+        configuration.setFileSize(Integer.parseInt(value));
+      } catch (NumberFormatException nfe1) {
+        out.println("Cannot set log size (" + nfe1 + ").");
+      }
+    }
+    // Log generations
+    value = (String) opts.get("-gen");
+    if (value != null) {
+      optionFound = true;
+      try {
+        configuration.setMaxGen(Integer.parseInt(value));
+      } catch (NumberFormatException nfe2) {
+        out.println("Cannot set generation count (" + nfe2 + ").");
+      }
+    }
+
+    if (optionFound) {
+      // Create persistent CM-config
+      configuration.commit();
+    } else {
+      // Show current config
+      final boolean isOn = configuration.getFile();
+      out.println("  file logging is " + (isOn ? "on" : "off") + ".");
+      out.println("  file size:    "   + configuration.getFileSize());
+      out.println("  generations:  " + configuration.getMaxGen());
+      out.println("  flush:        " + configuration.getFlush());
+      out.println("  log location: " + configuration.getDir());
+    }
+    return 0;
+  }
+
+  //
+  // Set timestamp pattern
+  //
+  public final static String USAGE_TIMESTAMP = "[<pattern>]";
+
+  public final static String[] HELP_TIMESTAMP = new String[] {
+    "Configures the timestamp format used by the Knopflerfish log service",
+    "The no argument version prints the current pattern.",
+    "<pattern>    Timstamp pattern as defined by java.text.SimpleDateFormat.",
+  };
+
+  public int cmdTimestamp(Dictionary opts, Reader in, PrintWriter out,
+                          Session session)
+  {
     // Get log configuration service
     LogConfig configuration = (LogConfig) LogCommands.logConfigTracker
       .getService();
@@ -396,89 +479,21 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
       return 1;
     }
 
-    if (!configuration.isDefaultConfig()) {
-      out.println("  This command is not persistent. "
-                  + "(No valid configuration has been received)");
-    }
-
-    if (configuration.getDir() != null) {
-      boolean optionFound = false;
-      // File logging on/off
-      if (opts.get("-on") != null) {
-        optionFound = true;
-        configuration.setFile(true);
-      } else if (opts.get("-off") != null) {
-        optionFound = true;
-        configuration.setFile(false);
-      }
-      // Flush
-      if (opts.get("-flush") != null) {
-        optionFound = true;
-        if (!configuration.getFile()) {
-          out
-            .println("Cannot activate flush (file logging disabled).");
-        } else {
-          configuration.setFlush(true);
-        }
-      } else if (opts.get("-noflush") != null) {
-        optionFound = true;
-        if (!configuration.getFile()) {
-          out
-            .println("Cannot deactivate flush (file logging disabled).");
-        } else {
-          configuration.setFlush(false);
-        }
-      }
-      // Log size
-      String value = (String) opts.get("-size");
-      if (value != null) {
-        optionFound = true;
-        if (!configuration.getFile()) {
-          out.println("Cannot set log size (file logging disabled).");
-        } else {
-          try {
-            configuration.setFileSize(Integer.parseInt(value));
-          } catch (NumberFormatException nfe1) {
-            out.println("Cannot set log size (" + nfe1 + ").");
-          }
-        }
-      }
-      // Log generations
-      value = (String) opts.get("-gen");
-      if (value != null) {
-        optionFound = true;
-        if (!configuration.getFile()) {
-          out
-            .println("Cannot set generation count (file logging disabled).");
-        } else {
-          try {
-            configuration.setMaxGen(Integer.parseInt(value));
-          } catch (NumberFormatException nfe2) {
-            out.println("Cannot set generation count (" + nfe2
-                        + ").");
-          }
-        }
-      }
-      // Update configuration only once
-      if (optionFound)
+    final String pattern = (String) opts.get("pattern");
+    if (null!=pattern) {
+      configuration.setTimestampPattern(pattern);
+      if (pattern.equals(configuration.getTimestampPattern())) {
         configuration.commit();
-      // Show current config
-      if (!optionFound) {
-        boolean isOn = configuration.getFile();
-        out.println("  file logging is " + (isOn ? "on" : "off") + ".");
-        if (isOn) {
-          out.println("  file size:    "
-                      + configuration.getFileSize());
-          out.println("  generations:  " + configuration.getMaxGen());
-          out.println("  flush:        " + configuration.getFlush());
-          out.println("  log location: " + configuration.getDir());
-        }
+      } else {
+        out.println("Invalid timestamp pattern, '" +pattern +"', using '"
+                    +configuration.getTimestampPattern() +"'.");
+        return 1;
       }
-      return 0;
+    } else {
+      out.println("  time stamp pattern: '"
+                  + configuration.getTimestampPattern() +"'." );
     }
 
-    out.println(" This command is disabled. "
-                + "(No filesystem support is available. )");
     return 0;
   }
 

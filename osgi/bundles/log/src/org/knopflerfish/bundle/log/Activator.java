@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,8 +47,8 @@ public class Activator implements BundleActivator {
       org.osgi.service.log.LogService.class.getName(),
       org.knopflerfish.service.log.LogService.class.getName()};
 
-  static final String LOG_READER_SERVICE_CLASS = org.osgi.service.log.LogReaderService.class
-      .getName();
+  static final String LOG_READER_SERVICE_CLASS
+    = org.osgi.service.log.LogReaderService.class.getName();
 
   private LogServiceFactory lsf;
 
@@ -72,8 +72,6 @@ public class Activator implements BundleActivator {
     // Register our services
     bc.registerService(LOG_READER_SERVICE_CLASS, lrsf, null);
     bc.registerService(LOG_SERVICE_CLASSES, lsf, null);
-
-    lc.setLogReaderServiceFactory(lrsf);
   }
 
   // BundleActivator callback.

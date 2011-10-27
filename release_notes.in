@@ -35,11 +35,20 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-version of this bundle now imports all packages it exports.
 
 
-  Log Service 3.0.6
+  Log Service 3.1.0
   
+  - Made the format of the log entry timestamp when printed to a log
+    file configurable (via LogConfig-service, CM and a new framework
+    property).  For details see
+    http://sourceforge.net/tracker/?func=detail&aid=3426947&group_id=82798&atid=567241
+  - When using the LogConfig-service to update the log configuration
+    an explicit call to LogConfig.commit() is now required to store
+    the changes in CM. Previously some methods auto-commited changes.
+  - Fixed synchronization issue; the same instance of SimpleDateFormat
+    could be used concurrently from several threads to format
+    timestamps without any synchroniztion.
   - The API-version of this bundle now imports all packages it
     exports.  For details see
-
     http://sourceforge.net/tracker/?func=detail&aid=3402741&group_id=82798&atid=567241
 
   User Amdin 3.0.2
@@ -58,6 +67,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   JSDK 2.5.0.kf3-2
   
   - The API-version of this bundle now imports all packages it exports.
+
+
+  Log Commands 3.1.0
+  
+  - Added support for setting the log entry timestamp pattern.
+  - All commands that changes the log configuration now commits the
+    new configuration to CM.
+  - It is now possible to change file logging related properties when
+    the file log is not enabled.
+
 
 
   Serial Port Device 2.0.1

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ import org.osgi.service.cm.ManagedService;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -71,60 +72,47 @@ import java.util.Vector;
  * <p/>
  * If only set method exists the property is write-only.<br>
  * If only get method exists the property is read-only.<br>
- * If both exist the property is read-write. *
+ * If both exist the property is read-write.
  */
 
 class LogConfigImpl
-    implements ManagedService, LogConfig, BundleListener {
+    implements ManagedService, LogConfig, BundleListener
+{
+
+  private static final String DEFAULT_TIMESTAMP_PATTERN = "yyyyMMdd HH:mm:ss";
+  private static final String pid = "org.knopflerfish.bundle.log.LogConfig";
 
   static BundleContext bc;
 
   /*
    * Variables indicating whether CM configuration has been received.
    */
-  boolean DEFAULT_CONFIG = true;
-
-  boolean firstValid = false;
-
-  static final String PROP_LOG_OUT = "org.knopflerfish.log.out";
-
-  static final String PROP_LOG_GRABIO = "org.knopflerfish.log.grabio";
-
-  static final String PROP_LOG_LEVEL = "org.knopflerfish.log.level";
+  boolean isDefaultConfig = true;
 
   static final String PROP_LOG_FILE = "org.knopflerfish.log.file";
-
   static final String PROP_LOG_FILE_DIR = "org.knopflerfish.log.file.dir";
-
+  static final String PROP_LOG_GRABIO = "org.knopflerfish.log.grabio";
+  static final String PROP_LOG_LEVEL = "org.knopflerfish.log.level";
   static final String PROP_LOG_MEMORY_SIZE = "org.knopflerfish.log.memory.size";
+  static final String PROP_LOG_OUT = "org.knopflerfish.log.out";
+  static final String PROP_LOG_TIMESTAMP_PATTERN
+    = "org.knopflerfish.log.timestamp.pattern";
 
-  private final static String OUT = "log.out";
-
-  private final static String GRABIO = "log.grabio";
-
-  private final static String L_FILTER = "default.level";
-
-  private final static String BL_FILTERS = "bundle.log.level";
-
-  private final static String DIR = "file.dir";
-
-  private final static String FILE_S = "file.size";
-
-  private final static String FLUSH = "file.flush";
-
-  private final static String PID = "service.pid";
-
-  private final String pid = "org.knopflerfish.bundle.log.LogConfig";
-
-  final static String MEM = "memory.size";
-
-  final static String GEN = "file.generations";
-
+  // Keys for properties in the configuration
+  final static String DIR = "file.dir";
   final static String FILE = "file";
-
-  private final static int LOCATION_POS = 0;
-
+  final static String GEN = "file.generations";
+  final static String MEM = "memory.size";
+  final static String TIMESTAMP_PATTERN = "timestamp.pattern";
+  private final static String BL_FILTERS = "bundle.log.level";
+  private final static String FILE_S = "file.size";
+  private final static String FLUSH = "file.flush";
+  private final static String GRABIO = "log.grabio";
+  private final static String L_FILTER = "default.level";
+  private final static String OUT = "log.out";
+  private final static String PID = "service.pid";
   private final static int FILTER_POS = 1;
+  private final static int LOCATION_POS = 0;
 
 
   // Local constant copies to avoid having to write fully qulified
@@ -137,6 +125,8 @@ class LogConfigImpl
 
 
   /* Variables containing configuration. */
+
+  /** The directory that the file log is written to. */
   private File dir;
 
   private final Hashtable configCollection = new Hashtable();
@@ -157,25 +147,35 @@ class LogConfigImpl
     LogConfigImpl.bc = bc;
 
     // Initialize with default values.
-    checkChange(getDefault());
+    applyConfig(getDefault());
 
     bc.addBundleListener(this);
     start();
   }
 
   synchronized void start() {
-    initDir();
+    dir = initDir((String) configCollection.get(DIR));
     String[] clazzes = new String[]{ManagedService.class.getName(),
         LogConfig.class.getName()};
     bc.registerService(clazzes, this, configCollection);
   }
 
-  private void initDir() {
-    dir = bc.getDataFile(""); // default location
-    String d = (String) configCollection.get(DIR);
-    if (d != null) {
-      dir = new File(d);     // location from config
+  private File initDir(final String d) {
+    if (d != null && 0 < d.length()) {
+      // location from config
+      final File cfgFile = new File(d.trim());
+      if (cfgFile.exists()) {
+        if (cfgFile.isDirectory()) {
+          return cfgFile;
+        }
+      } else {
+        if (cfgFile.mkdirs()) {
+          return cfgFile;
+        }
+      }
     }
+    // Fallback to the default location
+    return bc.getDataFile("");
   }
 
   void init(LogReaderServiceFactory lr) {
@@ -209,7 +209,7 @@ class LogConfigImpl
    */
 
   public boolean isDefaultConfig() {
-    return DEFAULT_CONFIG;
+    return isDefaultConfig;
   }
 
   /*
@@ -222,11 +222,8 @@ class LogConfigImpl
     int oldSize = getMemorySize();
     if (size != oldSize) {
       Integer newSize = new Integer(size);
+      notify(MEM, newSize);
       set(MEM, newSize);
-      if (logReaderCallback != null)
-        logReaderCallback.configChange(MEM, new Integer(oldSize),
-            newSize);
-      updateConfig();
     }
   }
 
@@ -253,7 +250,6 @@ class LogConfigImpl
     }
     if (filter != oldFilter) {
       set(L_FILTER, LogUtil.fromLevel(filter));
-      updateConfig();
     }
   }
 
@@ -308,7 +304,6 @@ class LogConfigImpl
     boolean oldOut = getOut();
     if (b != oldOut) {
       set(OUT, new Boolean(b));
-      updateConfig();
     }
   }
 
@@ -335,11 +330,8 @@ class LogConfigImpl
       boolean oldFile = getFile();
       if (f != oldFile) {
         Boolean newFile = f ? Boolean.TRUE : Boolean.FALSE;
+        notify(FILE, newFile);
         set(FILE, newFile);
-        if (logReaderCallback != null) {
-          logReaderCallback.configChange(FILE, oldFile ? Boolean.TRUE : Boolean.FALSE,
-              newFile);
-        }
       }
     }
   }
@@ -360,13 +352,8 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getDir()
    */
 
-  public File getDir() {
-    if (dir == null) {
-      return dir;
-    }
-    synchronized (dir) {
-      return dir;
-    }
+  public synchronized File getDir() {
+    return dir;
   }
 
   /*
@@ -398,13 +385,12 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#setMaxGen(int)
    */
 
-  public synchronized void setMaxGen(int maxGen) {
-    int oldGen = getMaxGen();
+  public synchronized void setMaxGen(final int maxGen) {
+    final int oldGen = getMaxGen();
     if (oldGen != maxGen) {
-      set(GEN, new Integer(maxGen));
-      if (logReaderCallback != null)
-        logReaderCallback.configChange(GEN, new Integer(oldGen),
-            new Integer(maxGen));
+      final Integer newGen = new Integer(maxGen);
+      notify(GEN, newGen);
+      set(GEN, newGen);
     }
   }
 
@@ -415,7 +401,7 @@ class LogConfigImpl
    */
 
   public int getMaxGen() {
-    int gen = ((Integer) get(GEN)).intValue();
+    final int gen = ((Integer) get(GEN)).intValue();
     return (gen < 1) ? 1 : gen;
   }
 
@@ -426,7 +412,7 @@ class LogConfigImpl
    */
 
   public synchronized void setFlush(boolean f) {
-    boolean oldFlush = getFlush();
+    final boolean oldFlush = getFlush();
     if (f != oldFlush) {
       set(FLUSH, new Boolean(f));
     }
@@ -442,10 +428,45 @@ class LogConfigImpl
     return ((Boolean) get(FLUSH)).booleanValue();
   }
 
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.knopflerfish.service.log.LogConfig#setTimestampPattern(String)
+   */
+  public void setTimestampPattern(String pattern)
+  {
+    final String oldPattern = getTimestampPattern();
+    if (null==pattern) {
+      pattern = DEFAULT_TIMESTAMP_PATTERN;
+    }
+    if (!pattern.equals(oldPattern)) {
+      try {
+        // Pattern must be valid for set to do anything
+        new SimpleDateFormat(pattern);
+        notify(TIMESTAMP_PATTERN, pattern);
+        set(TIMESTAMP_PATTERN, pattern);
+      } catch (Throwable t) {
+        // Keep the old pattern.
+      }
+    }
+  }
+
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.knopflerfish.service.log.LogConfig#getTimestampPattern()
+   */
+  public String getTimestampPattern()
+  {
+    return (String) get(TIMESTAMP_PATTERN);
+  }
+
   /**
    * Return the log filter level for the given bundle.
    */
-  int getLevel(Bundle bundle) {
+  int getLevel(final Bundle bundle) {
     final Long key = new Long(bundle.getBundleId());
     Integer level = null;
     synchronized (bidFilters) {
@@ -458,7 +479,7 @@ class LogConfigImpl
     return (level != null) ? level.intValue() : getFilter();
   }
 
-  static String[] getBL(Object obj) {
+  static String[] getBL(final Object obj) {
     String bundleStr = (String) obj;
     String[] bundle = new String[]{null, null};
     int ix = bundleStr.indexOf(";");
@@ -601,12 +622,12 @@ class LogConfigImpl
   /* ======================================================================== */
 
   private Hashtable getDefault() {
-    Hashtable ht = new Hashtable();
-    Vector bundleLogFilters = new Vector();
-    String o = getProperty(PROP_LOG_OUT, "false");
+    final Hashtable ht = new Hashtable();
+    final Vector bundleLogFilters = new Vector();
+    final String o = getProperty(PROP_LOG_OUT, "false");
 
-    String levelStr = getProperty(PROP_LOG_LEVEL,
-        LogUtil.fromLevel(LOG_WARNING));
+    final String levelStr = getProperty(PROP_LOG_LEVEL,
+                                        LogUtil.fromLevel(LOG_WARNING));
 
     ht.put(L_FILTER, levelStr);
     ht.put(MEM, getIntegerProperty(PROP_LOG_MEMORY_SIZE, new Integer(250)));
@@ -614,19 +635,26 @@ class LogConfigImpl
     ht.put(GRABIO,
         ("true".equalsIgnoreCase(getProperty(PROP_LOG_GRABIO, "false")) ? Boolean.TRUE : Boolean.FALSE));
     ht.put(FILE, ("true".equalsIgnoreCase(getProperty(PROP_LOG_FILE, "false")) ? Boolean.TRUE : Boolean.FALSE));
-    String dirStr = getProperty(PROP_LOG_FILE_DIR, null);
-    if (dirStr != null)
-      ht.put(DIR, dirStr);
+    ht.put(DIR, getProperty(PROP_LOG_FILE_DIR, ""));
     ht.put(FILE_S, new Integer(20000));
     ht.put(GEN, new Integer(4));
     ht.put(FLUSH, Boolean.TRUE);
     ht.put(BL_FILTERS, bundleLogFilters);
     ht.put(PID, this.pid);
 
+    final String timestampPattern = getProperty(PROP_LOG_TIMESTAMP_PATTERN,
+                                                DEFAULT_TIMESTAMP_PATTERN);
+    try {
+      new SimpleDateFormat(timestampPattern);
+      ht.put(TIMESTAMP_PATTERN, timestampPattern);
+    } catch (Throwable t) {
+      ht.put(TIMESTAMP_PATTERN, DEFAULT_TIMESTAMP_PATTERN);
+    }
+
     return ht;
   }
 
-  static String getProperty(String key, String def) {
+  static String getProperty(final String key, final String def) {
     String result = def;
     try {
       result = bc.getProperty(key);
@@ -640,7 +668,7 @@ class LogConfigImpl
     return result;
   }
 
-  static Integer getIntegerProperty(String key, Integer def) {
+  static Integer getIntegerProperty(final String key, final Integer def) {
     Integer result = def;
     try {
       final String str = bc.getProperty(key);
@@ -667,26 +695,18 @@ class LogConfigImpl
   public synchronized void updated(Dictionary cfg)
       throws ConfigurationException, IllegalArgumentException {
     if (cfg == null) {
-      DEFAULT_CONFIG = true;
-      checkChange(getDefault());
+      isDefaultConfig = true;
+      applyConfig(getDefault());
     } else {
-      checkValidity(cfg);
+      checkApplyConfig(cfg);
     }
 
     updateGrabIO();
   }
 
   boolean bGrabbed = false;
-
   PrintStream origOut = null;
-
   PrintStream origErr = null;
-
-  LogReaderServiceFactory lsrf;
-
-  void setLogReaderServiceFactory(LogReaderServiceFactory lsrf) {
-    this.lsrf = lsrf;
-  }
 
   void updateGrabIO() {
     boolean bDebugClass = "true".equals
@@ -757,9 +777,11 @@ class LogConfigImpl
         return;
       }
 
-      if (lsrf != null) {
-        lsrf.log(new LogEntryImpl(bc.getBundle(0), level, prefix + s,
-            null));
+      if (logReaderCallback != null) {
+        logReaderCallback.log(new LogEntryImpl(bc.getBundle(0),
+                                               level,
+                                               prefix + s,
+                                               null));
       }
     }
   }
@@ -768,38 +790,39 @@ class LogConfigImpl
   /* Methods for checking incoming configuration, */
   /* Methods for setting incoming configuration locally. */
   /*------------------------------------------------------------------------*/
-  /*
-   * Check that incoming configuration is correct. If not an exception will be
-   * thrown and the default configuration or the former configuration will be
-   * used for ALL properties, i.e., no property will be set if one item in the
-   * configuration is invalid.
-   */
 
-  private void checkValidity(Dictionary cfg)
-      throws ConfigurationException, IllegalArgumentException {
+  /**
+   * Check and activate the specified configuration.
+   *
+   * If the given configuration is invalid an exception will be thrown
+   * and the default configuration or the former configuration will be
+   * used for ALL properties, i.e., no property will be set if one
+   * item in the new configuration is invalid.
+   *
+   * @param cfg new configuration to validate and apply.
+   */
+  private void checkApplyConfig(Dictionary cfg)
+      throws ConfigurationException, IllegalArgumentException
+  {
     boolean valid = false;
-    Hashtable rollBack = (Hashtable) configCollection.clone();
+    final Hashtable rollBack = (Hashtable) configCollection.clone();
     try {
       checkLogLevel(cfg);
       checkBundleLogLevel(cfg);
+      checkTimestampPattern(cfg);
       valid = true;
     } finally {
-      if (!valid) {
-        // Removed call to updateConfig() because all it accomplishes
-        // is to cause an endless loop of ConfigurationAdmin
-        // calling ManagedService.update(Dictionary) on this class
-        // over and over and over with the same invalid Dictionary
-        // updateConfig();
-      } else {
+      if (valid) {
         valid = false;
         try {
-          acceptConfig(cfg);
+          applyConfig(cfg);
           valid = true;
         } catch (Exception all) {
           throw new ConfigurationException(null,
-              "Fault occurred when " + "setting configuration. "
-                  + "Check that all properties "
-                  + "are valid.");
+                                           "Fault occurred when "
+                                           +"setting configuration. "
+                                           +"Check that all properties "
+                                           +"are valid.");
         } finally {
           if (!valid) {
             // Rollback. E.g., configCollection = rollBack;
@@ -810,14 +833,6 @@ class LogConfigImpl
                 configCollection.put(key, value);
               }
             }
-            // Removed call to updateConfig() because all it
-            // accomplishes
-            // is to cause an endless loop of ConfigurationAdmin
-            // calling ManagedService.update(Dictionary) on this
-            // class
-            // over and over and over with the same invalid
-            // Dictionary
-            // updateConfig();
           }
         }
       }
@@ -853,7 +868,6 @@ class LogConfigImpl
   }
 
   /* Check bundle log level property for faults. */
-
   private void checkBundleLogLevel(Dictionary cfg)
       throws ConfigurationException, IllegalArgumentException {
     Vector v = null;
@@ -913,25 +927,39 @@ class LogConfigImpl
     }
   }
 
-  /*
-   * Called when an incoming configuration seems correct. Should the
-   * checkChange method throw an exception the configuration will be
-   * reset to the former valid state.
-   */
 
-  private void acceptConfig(Dictionary cfg) {
-    firstValid = DEFAULT_CONFIG;
-    DEFAULT_CONFIG = false;
-    checkChange(cfg);
+  // Valide the new timestamp pattern
+  private void checkTimestampPattern(final Dictionary cfg)
+      throws ConfigurationException, IllegalArgumentException {
+    final Object obj = cfg.get(TIMESTAMP_PATTERN);
+    try {
+      final String pattern = (String) obj;
+      try {
+        new SimpleDateFormat(pattern);
+      } catch (Throwable t) {
+        throw new ConfigurationException(TIMESTAMP_PATTERN,
+                                         "Invalid timestamp pattern: '"
+                                         +pattern +"' "+t.getMessage());
+      }
+    } catch (ClassCastException cce) {
+      throw new IllegalArgumentException(
+          "Wrong type supplied when attempting to set timestamp pattern."
+              + " Correct type to use is String. " + obj + " "
+              + obj.getClass().getName());
+    }
   }
 
-  /*
-   * Checking which property actually changed. Called once the
-   * validity of the incoming configuration has been checked. If some
-   * property changed notify about change.
+  /**
+   * Copy changed values from the specified config to the active
+   * configuration object. Notify about changed propeties (those that
+   * the LogReaderServiceFactory needs to handle explicitly).
+   *
+   * Called once the validity of the given configuration has been
+   * checked.
+   *
+   * @param cfg The new, validated configuration to apply.
    */
-
-  private void checkChange(Dictionary cfg) {
+  private void applyConfig(final Dictionary cfg) {
     setFilterCfg((Vector) cfg.get(BL_FILTERS));
     Object newV = null;
     if ((newV = diff(L_FILTER, cfg)) != null) {
@@ -942,26 +970,17 @@ class LogConfigImpl
       set(MEM, newV);
     }
     if ((newV = diff(OUT, cfg)) != null) {
-      if (DEFAULT_CONFIG) {
-        final String pValue = getProperty(PROP_LOG_OUT, "false");
-        set(OUT,
-            "true".equalsIgnoreCase(pValue) ? Boolean.TRUE : Boolean.FALSE);
-      } else {
-        set(OUT, newV);
-      }
+      set(OUT, newV);
     }
     if ((newV = diff(DIR, cfg)) != null) {
-      File currentDir = bc.getDataFile("/");
-      newV = ((String) newV).trim();
-      if (currentDir != null && !(newV.equals(""))) {
-        currentDir = new File((String) newV);
-      }
+      File newDir = initDir((String) newV);
       if (dir != null) {
-        synchronized (dir) {
-          dir = currentDir;
+        if (!dir.getAbsolutePath().equals(newDir.getAbsolutePath())) {
+          synchronized(this) {
+            dir = newDir;
+          }
+          notify(DIR, newV);
         }
-      } else {
-        dir = currentDir;
       }
       set(DIR, newV);
     }
@@ -973,15 +992,9 @@ class LogConfigImpl
     }
     if ((newV = diff(FILE, cfg)) != null) {
       if (dir != null) {
-        if (firstValid) {
-          synchronized (configCollection) {
-            configCollection.remove(FILE);
-          }
-          firstValid = false;
-        }
         notify(FILE, newV);
       }
-      set(FILE, (DEFAULT_CONFIG) ? new Boolean(false) : newV);
+      set(FILE, newV);
     }
     if ((newV = diff(GEN, cfg)) != null) {
       notify(GEN, newV);
@@ -994,6 +1007,11 @@ class LogConfigImpl
 
     if ((newV = diff(PID, cfg)) != null) {
       set(PID, newV);
+    }
+
+    if ((newV = diff(TIMESTAMP_PATTERN, DEFAULT_TIMESTAMP_PATTERN, cfg)) != null) {
+      notify(TIMESTAMP_PATTERN, newV);
+      set(TIMESTAMP_PATTERN, newV);
     }
   }
 
@@ -1031,6 +1049,28 @@ class LogConfigImpl
         && !newV.equals(configCollection.get(key))) ? newV : null;
   }
 
+  private Object diff(String key, Object defV, Dictionary cfg) {
+    Object newV = cfg.get(key);
+    if (null==newV) {
+      newV = defV;
+    }
+    return (newV != null
+        && !newV.equals(configCollection.get(key))) ? newV : null;
+  }
+
+
+  /**
+   * Notify the log reader service factory about a changed
+   * configuration value. Should only be called for configuration
+   * properties that the log reader service factory reacts too, see
+   * {@link LogReaderServiceFactory#configChange(String, Object, Object)}
+   *
+   * This method must be called before {@link #set(String,Object)}
+   * since it needs to get the old value from the current configuration.
+   *
+   * @param key the key of the configuration property that has changed
+   * @param newV the new value of the property.
+   */
   private void notify(String key, Object newV) {
     if (logReaderCallback != null) {
       logReaderCallback
