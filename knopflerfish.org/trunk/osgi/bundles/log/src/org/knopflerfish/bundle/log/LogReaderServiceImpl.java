@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,85 +43,86 @@ import org.osgi.service.log.LogReaderService;
 
 /**
  * A LogReaderServiceImpl keeps track of the log subscribes from one
- * BundleContext. It also contains a reference to the LogReaderServiceFactory,
- * where the log functionality is implemented. The log function in
- * registered LogListeners are called when the {@link LogReaderServiceFactory} calls
- * the callback method.
+ * BundleContext. It also contains a reference to the
+ * LogReaderServiceFactory, where the log functionality is
+ * implemented. The log function in registered LogListeners are called
+ * when the {@link LogReaderServiceFactory} calls the callback method.
  */
 public class LogReaderServiceImpl implements LogReaderService {
 
-    /** The log reader service factory that implements the log functionality. */
-    LogReaderServiceFactory lrsf;
+  /** The log reader service factory that implements the log functionality. */
+  LogReaderServiceFactory lrsf;
 
-    /**
-     * A Vector with LogListener objects.
-     */
-    Vector listeners = new Vector(2);
+  /**
+   * A Vector with LogListener objects.
+   */
+  Vector listeners = new Vector(2);
 
-    /**
-     * The constructor saves the LogReaderServiceFactory.
-     * 
-     * @param lrsf
-     *            the log reader service factory that implements the log
-     *            functionality.
-     */
-    LogReaderServiceImpl(LogReaderServiceFactory lrsf) {
-        this.lrsf = lrsf;
+  /**
+   * The constructor saves the LogReaderServiceFactory.
+   *
+   * @param lrsf
+   *            the log reader service factory that implements the log
+   *            functionality.
+   */
+  LogReaderServiceImpl(LogReaderServiceFactory lrsf) {
+    this.lrsf = lrsf;
+  }
+
+  /**
+   * Subscribe method.
+   *
+   * @param l
+   *            A log listener to be notify when new log entries arrives.
+   */
+  public synchronized void addLogListener(LogListener l) {
+    if (l == null)
+      throw new IllegalArgumentException("LogListener can not be null");
+    if (!listeners.contains(l)) {
+      listeners.addElement(l);
     }
+  }
 
-    /**
-     * Subscribe method.
-     * 
-     * @param l
-     *            A log listener to be notify when new log entries arrives.
-     */
-    public synchronized void addLogListener(LogListener l) {
-        if (l == null)
-            throw new IllegalArgumentException("LogListener can not be null");
-        if (!listeners.contains(l)) {
-            listeners.addElement(l);
-        }
+  /**
+   * Unsubscribe method. LogListeners are removed when number of
+   * subscriptions are 0.
+   *
+   * @param l
+   *            A log listener to be removed.
+   */
+  public synchronized void removeLogListener(LogListener l) {
+    if (l == null)
+      throw new IllegalArgumentException("LogListener can not be null");
+    listeners.removeElement(l);
+  }
+
+  /**
+   * * Bridge to LogReaderServiceFactory for fetching the log.
+   */
+  public Enumeration getLog() {
+    return lrsf.getLog();
+  }
+
+  /**
+   * Used by {@link LogReaderServiceFactory} for every new log
+   * entry. Note that the callback operation is not disturbed by
+   * changes in the listener set since such changes will result in
+   * that <code>listerners</code> refers to a new object, but the
+   * callback operation will continue its enumeration of the old
+   * listeners object.
+   *
+   * @param le
+   *            A log entry to send to all listeners.
+   */
+  public void callback(LogEntry le) {
+    Enumeration i = listeners.elements();
+
+    while (i.hasMoreElements()) {
+      try {
+        ((LogListener) i.nextElement()).logged(le);
+      } catch (Exception exc) {
+      }
     }
-
-    /**
-     * Unsubscribe method. LogListeners are removed when number of
-     * subscriptions are 0.
-     * 
-     * @param l
-     *            A log listener to be removed.
-     */
-    public synchronized void removeLogListener(LogListener l) {
-        if (l == null)
-            throw new IllegalArgumentException("LogListener can not be null");
-        listeners.removeElement(l);
-    }
-
-    /**
-     * * Bridge to LogReaderServiceFactory for fetching the log.
-     */
-    public Enumeration getLog() {
-        return lrsf.getLog();
-    }
-
-    /**
-     * Used by {@link LogReaderServiceFactory} for every new log entry. Note that
-     * the callback operation is not disturbed by changes in the listener set
-     * since such changes will result in that <code>listerners</code> refers
-     * to a new object, but the callback operation will continue its
-     * enumeration of the old listeners object.
-     * 
-     * @param le
-     *            A log entry to send to all listeners.
-     */
-    public void callback(LogEntry le) {
-        Enumeration i = listeners.elements();
-
-        while (i.hasMoreElements()) {
-            try {
-                ((LogListener) i.nextElement()).logged(le);
-            } catch (Exception exc) {
-            }
-        }
-    }
+  }
 
 }

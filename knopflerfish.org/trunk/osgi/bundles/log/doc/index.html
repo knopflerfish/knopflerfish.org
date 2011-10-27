@@ -31,6 +31,7 @@ by the bundle
     <th>Value type</th>
     <th>Default value</th>
   </tr>
+
   <tr>
     <td>org.knopflerfish.log.out</td>
     <td>
@@ -41,6 +42,7 @@ by the bundle
     <td>boolean</td>
     <td>false</td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.log.grabio</td>
     <td>
@@ -52,6 +54,7 @@ by the bundle
     <td>boolean</td>
     <td>false</td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.log.level</td>
     <td>
@@ -65,6 +68,7 @@ by the bundle
     "DEFAULT".</td>
     <td>INFO</td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.log.file</td>
     <td>
@@ -77,18 +81,20 @@ by the bundle
     <td>boolean</td>
     <td>false</td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.log.file.dir</td>
     <td>
 
 	The path to the directory to write the cyclic file log to.  If
-	empty or not given the data direcotry of the log-bundles will
+	empty or not given the data directory of the log-bundles will
 	be used.
 
     </td>
     <td>String</td>
     <td></td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.log.memory.size</td>
     <td>
@@ -99,6 +105,20 @@ by the bundle
     <td>Integer</td>
     <td>250</td>
   </tr>
+
+  <tr>
+    <td>org.knopflerfish.log.timestamp.pattern</td>
+    <td>
+
+	The pattern to use when formatting the timestamp of a log
+	entry. The value of this property must follow the rules of a
+	pattern as defined by the class java.text.SimpleDateFormat.
+
+    </td>
+    <td>String</td>
+    <td>yyyyMMdd HH:mm:ss</td>
+  </tr>
+
 </table>
 
 
