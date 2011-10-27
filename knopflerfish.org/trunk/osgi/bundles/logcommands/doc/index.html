@@ -128,6 +128,8 @@ publishes a <tt>org.knopflerfish.service.log.LogConfig</tt>.
     <tt>out [-help] [-on | -off] </tt></li>
   <li>
     <tt>file [-help] [-on | -off [-size #size#] [-gen #gen#] [-flush | -noflush] </tt></li>
+  <li>
+    <tt>timestamp [-help] [&lt;pattern&gt;] </tt></li>
 </ul>
 
 
@@ -335,6 +337,47 @@ Parameters:
 
     <dt><b>-noflush</b></dt><dd>Turns off log file flushing after each log entry.</dd>
   </dl>
+
+
+<h3>timestamp</h3>
+
+<p>
+  The timestamp command shows or sets the formatting pattern for the
+  time-stamp in a log entry. This formatting pattern applies to log
+  entries written to the file log and to the console when
+  <code>out</code> has been activated. It does not apply to output of
+  the <code>log</code>-command.
+</p>
+
+<p>
+  When called without an argument it prints the current formatting pattern.
+</p>
+<pre>
+  timestamp [-help] [&lt;pattern&gt;]
+</pre>
+
+Parameters:
+<dl>
+  <dt><b>-help</b></dt>
+  <dd>Display command help text.</dd>
+
+  <dt><b>&lt;pattern&gt;</b></dt>
+  <dd>The new time-stamp formatting pattern. The pattern follows the
+      rules for time formatting patterns defined by the
+      java.text.SimpleDateFormat-class. The default pattern is
+      "<code>yyyyMMdd HH:mm:ss</code>".</dd>
+</dl>
+
+
+<b>Example:</b> Extend the time-stamp format to include milliseconds,
+then call without argument to check that the new pattern was applied.
+<pre>
+
+  logconfig&gt; timestamp 'yyyyMMdd HH:mm:ss.SSS'
+  logconfig&gt; timestamp
+    time stamp pattern: 'yyyyMMdd HH:mm:ss.SSS'.
+
+</pre>
 
 
 <h3>Examples</h3>
