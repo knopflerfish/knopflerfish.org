@@ -62,10 +62,10 @@ class ImmediateComponent extends Component {
     Activator.logInfo(bc, "Satisfied: " + toString());
     ComponentConfiguration [] cc = newComponentConfiguration();
     for (int i = 0; i < cc.length; i++) {
-      cc[i].registerService();
       try {
         // Activate by getting service
         cc[i].getService(null, null);
+        cc[i].registerService();
       } catch (ComponentException _ignore) {
         // Error messages are logged by the activate method
       }
