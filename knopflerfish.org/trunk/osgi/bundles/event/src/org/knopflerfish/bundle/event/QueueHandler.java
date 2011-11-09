@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,30 +118,35 @@ public class QueueHandler extends Thread {
         eventCnt++;
       } else {
         long duration = 0;
-        synchronized (this) {
-          try {
+        try {
+          synchronized (this) {
             final long start = System.currentTimeMillis();
             wait(Activator.queueHandlerTimeout);
             final long end = System.currentTimeMillis();
             duration = end - start;
-          } catch (InterruptedException e) {
-            Activator.log.error("QueueHandler was interrupted unexpectedly");
           }
+        } catch (InterruptedException e) {
+          Activator.log.error("QueueHandler was interrupted unexpectedly");
         }
         if (0<Activator.queueHandlerTimeout
             && duration > Activator.queueHandlerTimeout) {
           // Must allways lock on queueHandlers before this when both
           // are needed.
+          boolean isTimeout = false;
           synchronized(queueHandlers) {
             synchronized (this) {
-              if (syncQueue.isEmpty()) {
+              if (isTimeout = syncQueue.isEmpty()) {
                 running = false;
                 queueHandlers.remove(getKey());
-                if (Activator.log.doDebug()) {
-                  Activator.log.debug(getName() +" time out.");
-                }
               }
             }
+          }
+          // Must not do logging from within synchronized code since
+          // that may cause deadlock between the Log-service and the
+          // EventAdmin-service; each new log entry is sent out as an
+          // event via EventAdmin...
+          if (isTimeout && Activator.log.doDebug()) {
+            Activator.log.debug(getName() +" time out.");
           }
         }
       }

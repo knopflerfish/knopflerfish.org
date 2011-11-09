@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,6 +79,7 @@ public class EventAdminService
       }
 
       QueueHandler queueHandler = null;
+      boolean newQueueHandlerCreated = false;
       synchronized(queueHandlers) {
         final Thread currentThread = Thread.currentThread();
         if (currentThread instanceof QueueHandler) {
@@ -94,12 +95,17 @@ public class EventAdminService
             queueHandler = new QueueHandler(queueHandlers, key);
             queueHandler.start();
             queueHandlers.put(queueHandler.getKey(), queueHandler);
-            if (Activator.log.doDebug()) {
-              Activator.log.debug(queueHandler.getName() +" created.");
-            }
+            newQueueHandlerCreated = true;
           }
         }
         queueHandler.addEvent(iae);
+      }
+      // Must not do logging from within synchronized code since that
+      // may cause deadlock between the Log-service and the
+      // EventAdmin-service; each new log entry is sent out as an
+      // event via EventAdmin...
+      if (newQueueHandlerCreated && Activator.log.doDebug()) {
+        Activator.log.debug(queueHandler.getName() +" created.");
       }
     } catch(Exception e){
       Activator.log.error("Unknown exception in postEvent():", e);
