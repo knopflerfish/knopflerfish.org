@@ -25,6 +25,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-bundle now imports all packages it exports.
 
 
+  Event Admin 3.0.5
+  
+  - Removed three possible dead-locks between the Log-service and the
+    Event Admin service that could happen when DEBUG-level logging was
+    enabled. For details see
+    https://sourceforge.net/tracker/?func=detail&aid=3413792&group_id=82798&atid=567241
+
+
   HTTP-Server 3.0.6
   
   - The API-version of this bundle now imports all packages it exports.
