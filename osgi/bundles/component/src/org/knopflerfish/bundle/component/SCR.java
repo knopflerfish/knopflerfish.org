@@ -464,13 +464,15 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   private Configuration[] listConfigurations(String key, String pid) {
     ConfigurationAdmin cm = (ConfigurationAdmin)cmAdminTracker.getService();
-    try {
-      return cm.listConfigurations("(" + key + "=" + pid + ")");
-    } catch (InvalidSyntaxException e) {
-      Activator.logError("Strange CM PID: " + pid, e);
-    } catch (IOException e) {
-      Activator.logError("SCR could not retrieve the configuration for pid: " +
-                          pid + ". Got IOException.", e);
+    if (cm != null) {
+      try {
+        return cm.listConfigurations("(" + key + "=" + pid + ")");
+      } catch (InvalidSyntaxException e) {
+        Activator.logError("Strange CM PID: " + pid, e);
+      } catch (IOException e) {
+        Activator.logError("SCR could not retrieve the configuration for pid: " +
+                           pid + ". Got IOException.", e);
+      }
     }
     return null;
   }

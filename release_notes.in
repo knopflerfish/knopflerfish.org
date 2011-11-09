@@ -51,7 +51,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     exports.  For details see
     http://sourceforge.net/tracker/?func=detail&aid=3402741&group_id=82798&atid=567241
 
-  User Amdin 3.0.2
+
+  SCR(component) 3.0.4
+
+  - Handle when we don't have a CM service installed.
+  - Fixed problem with components that weren't activated in the correct
+    order when we had immediate components with optional circular references.
+
+
+  User Admin 3.0.2
 
   - The API-version of this bundle now imports all packages it exports.
 
