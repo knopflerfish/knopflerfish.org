@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.service.console;
 
 import java.lang.reflect.Array;
+import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Set;
 import java.util.Vector;
@@ -276,7 +277,9 @@ public class Util {
   }
 
   /**
-   * Get the symbolic name of the specified bundle.
+   * Get the symbolic name of the specified bundle. All directives and
+   * parameters attached to the symbolic name attribute will be
+   * stripped.
    *
    * @param bundle
    *            the bundle
@@ -286,7 +289,17 @@ public class Util {
     if (bundle == null) {
       return null;
     }
-    return (String) bundle.getHeaders().get("Bundle-SymbolicName");
+
+    final Dictionary d = bundle.getHeaders("");
+    String bsn = (String) d.get("Bundle-SymbolicName");
+    if (bsn != null && bsn.length() >0) {
+      // Remove parameters and directives from the value
+      final int semiPos = bsn.indexOf(';');
+      if (-1<semiPos) {
+        bsn = bsn.substring(0, semiPos).trim();
+      }
+    }
+    return bsn;
   }
 
   /**

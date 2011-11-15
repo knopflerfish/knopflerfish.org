@@ -43,8 +43,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-version of this bundle now imports all packages it exports.
 
 
-  Log Service 3.1.0
+  Log Service 3.1.1
   
+  - The log configuration service now removes any directive or
+    parameter from the bundle symbolic name before using it. For
+    details see
+    https://sourceforge.net/tracker/?func=detail&aid=3438377&group_id=82798&atid=567241
   - Made the format of the log entry timestamp when printed to a log
     file configurable (via LogConfig-service, CM and a new framework
     property).  For details see
@@ -75,6 +79,15 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
+  Console 3.0.2
+  
+  - The method exported helper method
+    org.knopflerfish.service.console.Util.symbolicName(Bundle) now
+    removes any directive or parameter from the bundle symbolic name
+    before using it. For details see
+    https://sourceforge.net/tracker/?func=detail&aid=3438377&group_id=82798&atid=567241
+
+
   Desktop 3.1.7
   
   - The API-version of this bundle now imports all packages it exports.
@@ -85,8 +98,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-version of this bundle now imports all packages it exports.
 
 
-  Log Commands 3.1.0
+  Log Commands 3.1.1
   
+  - The showLevel and setLevel commands now removes any directive or
+    parameter from the bundle symbolic name before using it. For
+    details see
+    https://sourceforge.net/tracker/?func=detail&aid=3438377&group_id=82798&atid=567241
   - Added support for setting the log entry timestamp pattern.
   - All commands that changes the log configuration now commits the
     new configuration to CM.
@@ -102,6 +119,9 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
   Build System
 
+  - When suffixing the bundle kind to the bundle symbolic name
+    direcitves and paramters are now handled correctly. For details see
+    https://sourceforge.net/tracker/?func=detail&aid=3438377&group_id=82798&atid=567241
   - Fixed a problem with Android instrumentation on windows. Also
     factored out the Android instrumentation to a separate build
     file. For details, see

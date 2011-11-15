@@ -516,11 +516,11 @@ class LogConfigImpl
   private void computeBidFilter(final Bundle bundle) {
     Integer level = (Integer) blFilters.get(bundle.getLocation());
     if (null == level) {
-      final Dictionary d = bundle.getHeaders("");
-      String l = (String) d.get("Bundle-SymbolicName");
-      if (null == l) {
-        l = (String) d.get("Bundle-Name");
+      String l = getSymbolicName(bundle);
+      if (null==l || 0 == l.length()) {
+        l = (String) bundle.getHeaders("").get("Bundle-Name");
       }
+
       if (null != l) {
         level = (Integer) blFilters.get(l);
       }
@@ -530,6 +530,33 @@ class LogConfigImpl
       bidFilters.put(key, level);
     }
   }
+
+  /**
+   * Get the symbolic name of the specified bundle. All directives and
+   * parameters attached to the symbolic name attribute will be
+   * stripped.
+   *
+   * @param bundle
+   *            the bundle
+   * @return The bundles symbolic name or null if not specified.
+   */
+  private static String getSymbolicName(Bundle bundle) {
+    if (bundle == null) {
+      return null;
+    }
+
+    final Dictionary d = bundle.getHeaders("");
+    String bsn = (String) d.get("Bundle-SymbolicName");
+    if (bsn != null && bsn.length() >0) {
+      // Remove parameters and directives from the value
+      final int semiPos = bsn.indexOf(';');
+      if (-1<semiPos) {
+        bsn = bsn.substring(0, semiPos).trim();
+      }
+    }
+    return bsn;
+  }
+
 
   // Implements BundleListener
 
