@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Console
 Bundle-SymbolicName: org.knopflerfish.bundle.console
-Bundle-Version: 3.0.1
+Bundle-Version: 3.0.2
 Bundle-Description: Knopflerfish Console Service
 Bundle-APIVendor: Knopflerfish
 Bundle-Vendor: Knopflerfish

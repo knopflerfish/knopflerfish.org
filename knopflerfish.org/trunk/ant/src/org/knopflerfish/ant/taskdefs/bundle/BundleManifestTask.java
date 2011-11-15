@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -667,10 +667,48 @@ public class BundleManifestTask extends Task {
    * @param attrName The name of the attribute to check / update.
    * @param suffix   The required suffix.
    */
-  private void ensureAttrEndsWith(Manifest mf, String attrName, String suffix){
-    Manifest.Attribute attr = mf.getMainSection().getAttribute(attrName);
-    if (null!=attr && !attr.getValue().endsWith(suffix))
-      attr.setValue( attr.getValue() +suffix );
+  private void ensureAttrEndsWith(final Manifest mf,
+                                  final String attrName,
+                                  final String suffix){
+    final Manifest.Attribute attr = mf.getMainSection().getAttribute(attrName);
+    if (null!=attr) {
+      final String rhs = attr.getValue();
+      if (!rhs.endsWith(suffix)) {
+        attr.setValue( rhs +suffix );
+      }
+    }
+  }
+
+  /**
+   * Ensure that the first value of the named main section attribute
+   * ends with the specified suffix.
+   *
+   * @param mf       The manifest object to work with.
+   * @param attrName The name of the attribute to check / update.
+   * @param suffix   The required suffix.
+   */
+  private void ensureAttrFirstValueEndsWith(final Manifest mf,
+                                            final String attrName,
+                                            final String suffix)
+  {
+    final Manifest.Attribute attr = mf.getMainSection().getAttribute(attrName);
+    if (null != attr) {
+      final String rhs = attr.getValue();
+      if (rhs != null && 0 < rhs.length()) {
+        final int semiPos = rhs.indexOf(';');
+        if (0 < semiPos) {
+          // Found manifest attribute with parameter(s) or directive(s)
+          final String firstValue = rhs.substring(0, semiPos).trim();
+          if (!firstValue.endsWith(suffix)) {
+            attr.setValue( firstValue + suffix + rhs.substring(semiPos));
+          }
+        } else {
+          if (!rhs.endsWith(suffix)) {
+            attr.setValue( rhs +suffix );
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -864,7 +902,8 @@ public class BundleManifestTask extends Task {
       String kindLC = bundleKind.toLowerCase();
       String suffix = "-"+kindUC;
       ensureAttrEndsWith( manifestToWrite, "Bundle-Name", suffix );
-      ensureAttrEndsWith( manifestToWrite, "Bundle-SymbolicName", suffix );
+      ensureAttrFirstValueEndsWith( manifestToWrite, "Bundle-SymbolicName",
+                                    suffix );
       ensureAttrEndsWith( manifestToWrite, "Bundle-UUID", ":"+kindLC );
       ensureAttrEndsWith( manifestToWrite,
                           "Bundle-Description"," ("+kindUC+")" );

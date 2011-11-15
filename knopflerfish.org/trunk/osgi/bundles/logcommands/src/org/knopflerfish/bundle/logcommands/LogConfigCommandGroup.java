@@ -130,9 +130,11 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
     "          bundle the bundle id or the bundle location has to be given. ",
   };
 
-  public int cmdSetlevel(Dictionary opts, Reader in, PrintWriter out,
-                         Session session) {
-
+  public int cmdSetlevel(final Dictionary opts,
+                         final Reader in,
+                         final PrintWriter out,
+                         final Session session)
+  {
     // Get log configuration service
     LogConfig configuration = (LogConfig) LogCommands.logConfigTracker
       .getService();
@@ -150,10 +152,11 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
     String[] selection = (String[]) opts.get("bundle");
     if (selection != null) {
       setValidBundles(configuration, selection, level);
-      configuration.commit();
     } else {
       configuration.setFilter(level);
     }
+    configuration.commit();
+
     return 0;
   }
 
@@ -166,9 +169,8 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
         final long id = Long.parseLong(location);
         final Bundle bundle = LogCommands.bc.getBundle(id);
         if (null!=bundle) {
-          final Dictionary d = bundle.getHeaders("");
-          location = (String) d.get("Bundle-SymbolicName");
-          if (location == null) {
+          location = Util.symbolicName(bundle);
+          if (null==location || 0 == location.length()) {
             location = bundle.getLocation();
           }
         } else {
@@ -213,8 +215,8 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
 
     String[] selections = (String[]) opts.get("bundle");
     final boolean showAll = null==selections;
-    if (selections == null) {
-      HashMap filters = configuration.getFilters();
+    if (showAll) {
+      final HashMap filters = configuration.getFilters();
       selections = (String[])
         filters.keySet().toArray(new String[filters.size()]);
     }
@@ -286,10 +288,9 @@ public class LogConfigCommandGroup extends CommandGroupAdapter {
 
     level = (Integer) filters.get(bundle.getLocation());
     if (level == null) {
-      Dictionary d = bundle.getHeaders("");
-      String l = (String)d.get("Bundle-SymbolicName");
+      String l = Util.symbolicName(bundle);
       if (l == null) {
-        l = (String)d.get("Bundle-Name");
+        l = (String) bundle.getHeaders("").get("Bundle-Name");
       }
       if (l != null) {
         level = (Integer) filters.get(l);
