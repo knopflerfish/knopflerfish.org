@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,6 +68,7 @@ class ReferenceListener implements ServiceListener
    */
   void stop() {
     ref.comp.bc.removeServiceListener(this);
+    Activator.logDebug("Stop listening, ref=" + getName());
   }
 
 
@@ -83,7 +84,7 @@ class ReferenceListener implements ServiceListener
       cmTarget = null;
     }
     String filter = getFilter();
-    Activator.logDebug("Listening ref=" + getName() + " with filter=" + filter);
+    Activator.logDebug("Start listening, ref=" + getName() + " with filter=" + filter);
     TreeSet oldServiceRefs = (TreeSet)serviceRefs.clone();
     TreeSet newServiceRefs = new TreeSet();
     try {

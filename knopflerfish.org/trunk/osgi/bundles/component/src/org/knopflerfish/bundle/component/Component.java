@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -308,6 +308,11 @@ abstract class Component {
       for (int i = 0; i < pids.length; i++) {
         if (compConfigs.get(pids[i]) == null) {
           res.add(newComponentConfiguration(pids[i], null));
+          if (refs != null) {
+            for (int j = 0; j < refs.length; j++) {
+              refs[j].updateNoPid(pids[i]);
+            }
+          }
         }
       }
     } else if (compConfigs.get(NO_PID) == null) {
@@ -340,9 +345,6 @@ abstract class Component {
     ArrayList cl = new ArrayList(compConfigs.values());
     for (Iterator i = cl.iterator(); i.hasNext(); ) {
       ((ComponentConfiguration)i.next()).dispose(reason);
-    }
-    if (!compConfigs.isEmpty()) {
-      System.out.println("ASSERT compConfigs not empty!");
     }
   }
 

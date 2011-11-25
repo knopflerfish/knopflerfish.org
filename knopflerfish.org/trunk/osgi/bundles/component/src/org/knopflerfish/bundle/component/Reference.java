@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -169,6 +169,14 @@ class Reference
     }
   }
 
+  /**
+   * We got a configuration PID update if we have a listener.
+   */
+  void updateNoPid(String pid) {
+    if (listener != null && listener.isOnlyPid(Component.NO_PID)) {
+      listener.addPid(pid, true);
+    }
+  }
 
   /**
    *
@@ -200,12 +208,6 @@ class Reference
     if (listener != null) {
       return listener;
     } else {
-      System.out.println("GETLISTENER <" + pid + "> = " + factoryListeners.get(pid));
-      if (factoryListeners.get(pid) == null){
-        for (Iterator i = factoryListeners.keySet().iterator(); i.hasNext(); ) {
-          System.out.println("GETLISTENER key <" + i.next() + ">");
-        }        
-      } 
       return (ReferenceListener)factoryListeners.get(pid);
     }
   }
