@@ -33,9 +33,6 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.Dictionary;
-import org.osgi.framework.*;
-import org.osgi.service.cm.Configuration;
 import org.osgi.service.component.*;
 
 
