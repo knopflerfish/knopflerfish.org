@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: axis2-osgi
 Bundle-SymbolicName: org.knopflerfish.bundle.axis2-osgi
-Bundle-Version: 1.3.0.kf3.001
+Bundle-Version: 1.3.0.kf3-001
 Bundle-Category: service
 Bundle-Description: Axis2 Server
 Bundle-Vendor: Knopflerfish/Apache
