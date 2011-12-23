@@ -157,6 +157,10 @@ public class ComponentDescription {
     return confPolicy;
   }
 
+  String getConfigPolicyString() {
+    return supportedPolicies[confPolicy];
+  }
+
   String getDeactivateMethod() {
     return deactivateMethod;
   }
@@ -189,7 +193,7 @@ public class ComponentDescription {
     return componentName;
   }
 
-  Dictionary getProperties() {
+  Properties getProperties() {
     return properties;
   }
 

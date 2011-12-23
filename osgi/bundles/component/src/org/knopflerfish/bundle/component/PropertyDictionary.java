@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,11 +48,11 @@ class PropertyDictionary extends Hashtable
   /**
    *
    */
-  PropertyDictionary(Long id,
-                     ComponentDescription cd,
+  PropertyDictionary(Component comp,
                      Dictionary cm,
                      Dictionary instance,
                      boolean service) {
+    ComponentDescription cd = comp.compDesc;
     addDict(cd.getProperties(), service);
     if (cm != null) {
       addDict(cm, service);
@@ -60,7 +60,7 @@ class PropertyDictionary extends Hashtable
     if (instance != null) {
       addDict(instance, service);
     }
-    super.put(ComponentConstants.COMPONENT_ID, id);
+    super.put(ComponentConstants.COMPONENT_ID, comp.id);
     super.put(ComponentConstants.COMPONENT_NAME, cd.getName());
   }
 

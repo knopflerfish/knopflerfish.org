@@ -33,9 +33,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     https://sourceforge.net/tracker/?func=detail&aid=3413792&group_id=82798&atid=567241
 
 
-* HTTP-Server 3.0.6
+* HTTP-Server 3.0.7
   
   - The API-version of this bundle now imports all packages it exports.
+  - Fixed hanging when getting locale.
 
 
 * IO (API) 3.0.1
@@ -67,12 +68,26 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     http://sourceforge.net/tracker/?func=detail&aid=3402741&group_id=82798&atid=567241
 
 
-* SCR(component) 3.0.5
-
+* SCR(component) 3.1.0
+  
+  - The SCR now exports the org.apache.felix.scr.ScrService API
+    and provides the ScrService. This is useful for examining and
+    debug your service components.
+    There is a new command group scrcommands, that uses this service.
+    The service has not been thoroughly tested and the service also
+    needs to be extended to handle factory components better.
+    The service isn't thread safe yet.
   - Handle when we don't have a CM service installed.
   - Fixed problem with components that weren't activated in the correct
     order when we had immediate components with optional circular references.
   - Fixed dynamic reference problem when we added CM data. 
+
+
+* SCR Commands(scrcommands) 1.0.0
+
+  - New bundle that provides a console command group for controlling
+    and inspecting service components. See bundle documentation for
+    more information.
 
 
 * User Admin 3.0.2

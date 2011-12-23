@@ -38,8 +38,8 @@ import org.osgi.service.component.*;
 
 class ImmediateComponent extends Component {
 
-  ImmediateComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
+  ImmediateComponent(SCR scr, ComponentDescription cd, Long id) {
+    super(scr, cd, id);
   }
 
 
@@ -55,7 +55,7 @@ class ImmediateComponent extends Component {
    * there is one and activate component configurations.
    *
    */
-  void satisfied() {
+  void subclassSatisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
     ComponentConfiguration [] cc = newComponentConfiguration();
     for (int i = 0; i < cc.length; i++) {

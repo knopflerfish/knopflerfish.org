@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   private Hashtable /* String -> Component[] */ configSubscriber = new Hashtable();
   private ServiceRegistration cmListener = null;
   private ServiceTracker cmAdminTracker;
-  private volatile long nextId = 0;
+  private long nextId = 0;
 
 
   /**
@@ -84,6 +84,8 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         processBundle(bundles[i]);
       }
     }
+    bc.registerService(org.apache.felix.scr.ScrService.class.getName(),
+                       new ScrServiceImpl(this), null);
   }
 
 
@@ -100,7 +102,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     cmAdminTracker.close();
     Bundle [] b = (Bundle [])bundleComponents.keySet().toArray(new Bundle[bundleComponents.size()]);
     for (int i = 0; i < b.length; i++) {
-      removeBundle(b[i], ComponentConstants.DEACTIVATION_REASON_DISABLED);
+      removeBundle(b[i], ComponentConstants.DEACTIVATION_REASON_DISPOSED);
     }
   }
 
@@ -174,14 +176,6 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   //
 
   /**
-   * Get next unique component identifier.
-   */
-  synchronized Long getNextId() {
-    return new Long(nextId++);
-  }
-
-
-  /**
    * Check if bundle has service components and process them.
    *
    * @param b Bundle to check
@@ -236,7 +230,6 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
                 } catch (XmlPullParserException pe) {
                   Activator.logError(b, "Componenent description in '" + u +"'. " +
                                      "Got " + pe, pe);
-                } finally {
                 }
               }
             } catch (Exception exc) {
@@ -255,19 +248,19 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
       }
       if (cds.size() > 0) {
         Component [] carray = new Component [cds.size()];
-        bundleComponents.put(b, carray);
         for (int i = 0; i < carray.length; i++) {
           ComponentDescription cd = (ComponentDescription)cds.get(i);
           Component c;
+          Long id = new Long(nextId++);
           if (cd.isImmediate()) {
-            c = new ImmediateComponent(this, cd);
+            c = new ImmediateComponent(this, cd, id);
           } else if (cd.getFactory() != null) {
-            c = new FactoryComponent(this, cd);
+            c = new FactoryComponent(this, cd, id);
           } else {
-            c = new DelayedComponent(this, cd);
+            c = new DelayedComponent(this, cd, id);
           }
           carray[i] = c;
-          addComponentArray(components, c.compDesc.getName(), c);
+          addComponentArray(components, cd.getName(), c);
           String [] s = cd.getServices();
           if (s != null) {
             for (int si = 0; si < s.length; si++) {
@@ -275,6 +268,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
             }
           }
         }
+        bundleComponents.put(b, carray);
         for (int i = 0; i < carray.length; i++) {
           if (carray[i].compDesc.isEnabled()) {
             carray[i].enable();
@@ -296,7 +290,14 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     if (ca != null) {
       for (int i = 0; i < ca.length; i++) {
         ca[i].disable(reason);
-        components.remove(ca[i].compDesc.getName());
+        ComponentDescription cd = ca[i].compDesc;
+        removeComponentArray(components, cd.getName(), ca[i]);
+        String [] s = cd.getServices();
+        if (s != null) {
+          for (int si = 0; si < s.length; si++) {
+            removeComponentArray(serviceComponents, s[si], ca[i]);
+          }
+        }
       }
     }
   }
@@ -341,6 +342,26 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
 
 
   /**
+   * Get all components.
+   */
+  List /* Component */ getAllComponents() {
+    ArrayList res = new ArrayList();
+    while (true) {
+      try {
+        for (Iterator i = components.values().iterator(); i.hasNext(); ) {
+          Component [] e = (Component [])i.next();
+          for (int j = 0; j < e.length; j++) {
+            res.add(e[j]);
+          }
+        }
+        return res;
+      } catch (ConcurrentModificationException ignore) { }
+      res.clear();
+    }
+  }
+
+
+  /**
    * Get components with specified name.
    */
   Component [] getComponent(String name) {
@@ -370,7 +391,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
       return sb.toString();
     } else if (!component.isSatisfied() && !path.contains(component)) {
       // We have not checked component before and it is inactive
-      Reference [] rs = component.getReferences();
+      Reference [] rs = component.getRawReferences();
       if (rs != null) {
         path.add(component);
         for (int i = 0; i < rs.length; i++) {
@@ -455,6 +476,14 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     }
   }
 
+
+  /**
+   * Get all components for a bundle
+   */
+  Component [] getComponents(Bundle b) {
+    return (Component [])bundleComponents.get(b);
+  }
+
   //
   // Private methods
   //
@@ -491,8 +520,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
 
 
   /**
-   * Add component inside an array to map. Merge arrays if several
-   * components has the same key.
+   * Add component inside an array in a map.
    *
    */
   private static void addComponentArray(Map map, String key, Component c) {
@@ -504,6 +532,35 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
       System.arraycopy(a, 0, n, 0, a.length);
       n[a.length] = c;
       map.put(key, n);
+    }
+  }
+
+
+  /**
+   * Remove component inside an array in a map. Remove array if empty.
+   *
+   */
+  private static void removeComponentArray(Map map, String key, Component c) {
+    Component [] a = (Component [])map.get(key);
+    if (a != null) {
+      if (a.length == 1) {
+        if (a[0] == c) {
+          map.remove(key);
+        }
+      } else {
+        Component [] n = new Component[a.length - 1];
+        int offset = 0;
+        for (int i = 0; i < n.length; i++) {
+          if (a[i + offset] == c) {
+            offset = 1;
+          } else {
+            n[i] = a[i + offset];
+          }
+        }
+        if (offset == 1 || a[n.length] == c) {
+          map.put(key, n);
+        }
+      }
     }
   }
 

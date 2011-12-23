@@ -337,7 +337,7 @@ public class HeaderBase {
 
     Enumeration localeEnumeration = getHeaders(LANGUAGE_HEADER_KEY);
     while (localeEnumeration.hasMoreElements()) {
-      // String localeString = (String) localeEnumeration.nextElement();
+      String localeString = (String) localeEnumeration.nextElement();
 
       // NYI: parse locale strings
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,8 @@ class FactoryComponent extends Component implements ComponentFactory
 {
   private ServiceRegistration factoryService;
 
-  FactoryComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
+  FactoryComponent(SCR scr, ComponentDescription cd, Long id) {
+    super(scr, cd, id);
   }
 
 
@@ -59,7 +59,7 @@ class FactoryComponent extends Component implements ComponentFactory
    * Factory component satisfied, register component factory service.
    *
    */
-  void satisfied() {
+  void subclassSatisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
     Hashtable p = new Hashtable();
     p.put(ComponentConstants.COMPONENT_NAME, compDesc.getName());
@@ -82,7 +82,7 @@ class FactoryComponent extends Component implements ComponentFactory
    *
    */
   public ComponentInstance newInstance(Dictionary instanceProps) {
-    if (isSatisfied()) {
+    if (hasFactoryService()) {
       ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
       ComponentContextImpl cci = cc.activate(null);
       cc.registerService();
@@ -106,9 +106,7 @@ class FactoryComponent extends Component implements ComponentFactory
     cmDicts.put(pid, d);
     if (isEmpty && !cmConfigOptional) {
       // First mandatory config, remove constraint
-      if (--unresolvedConstraints == 0) {
-        satisfied();
-      }
+      resolvedConstraint();
     } else {
       for (Iterator i = compConfigs.values().iterator(); i.hasNext(); ) {
         ComponentConfiguration cc = (ComponentConfiguration)i.next();
@@ -128,10 +126,18 @@ class FactoryComponent extends Component implements ComponentFactory
       ComponentConfiguration cc = (ComponentConfiguration)i.next();
       cc.cmConfigUpdated(pid, null);
     }
-    if (!cmConfigOptional && unresolvedConstraints == 0) {
-      unresolvedConstraints++;
-      unsatisfied(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
+    if (!cmConfigOptional) {
+      unresolvedConstraint(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
     }
   }
 
+
+  /**
+   *
+   */
+  boolean hasFactoryService() {
+    return factoryService != null;
+  }
+
 }
+  

@@ -164,6 +164,12 @@ software developed by the Oscar project.
 Copyright (c) 2004, Richard S. Hall
 
 ----------------------------------------------------------------------
+-	Service Component Runtime Bundle
+----------------------------------------------------------------------
+This product includes the org.apache.felix.scr.ScrService API which
+is licensed under Apache Software License, Version 2.0. (c) 2001-2004
+
+----------------------------------------------------------------------
 -	Serial port Bundles
 ----------------------------------------------------------------------
 This product includes RXTX serial library which is licensed under
