@@ -55,6 +55,7 @@
     <ant target="${the.target}" dir="wireadmin"/>
     <ant target="${the.target}" dir="device"/>
     <ant target="${the.target}" dir="prefs"/>
+    <ant target="${the.target}" dir="scrcommands"/>
 
     <ant target="${the.target}" dir="applicationadmin"/>
     <ant target="${the.target}" dir="blueprint"/>

@@ -12,7 +12,8 @@
   <property name = "bundle.build.all"   value = "true"/>
   <property name = "bundle.build.lib"   value = "false"/>
 
-  <property name="api.pattern" value="org/osgi/service/component/**"/>
+  <property name="api.pattern" value="org/osgi/service/component/**,
+                                      org/apache/felix/scr/**"/>
   <property name="impl.pattern" value="org/knopflerfish/bundle/component/**"/>
 
   <path id="bundle.compile.path">

@@ -42,7 +42,7 @@ import org.osgi.service.cm.*;
 /**
  *
  */
-class Reference
+class Reference implements org.apache.felix.scr.Reference
 {
   final Component comp;
   final ReferenceDescription refDesc;
@@ -71,10 +71,120 @@ class Reference
     targetFilter = target;
   }
 
+  //
+  // org.apache.felix.scr.Reference interface
+  //
 
+  /**
+   * @see org.apache.felix.scr.Reference.getName
+   */
+  public String getName() {
+    return refDesc.name;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.getServiceName
+   */
+  public String getServiceName() {
+    return refDesc.interfaceName;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.getServiceReferences
+   */
+  public ServiceReference[] getServiceReferences() {
+    ReferenceListener l = listener;
+    ServiceReference[] res = null;
+    if (l != null)  {
+      res = l.getServiceReferences();
+      if (res.length == 0) {
+        res = null;
+      }
+    }
+    return res;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.isSatisfied
+   */
+  public boolean isSatisfied() {
+    return available > 0;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.isOptional
+   */
+  public boolean isOptional() {
+    return refDesc.optional;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.isMultiple
+   */
+  public boolean isMultiple() {
+    return refDesc.multiple;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.isStatic
+   */
+  public boolean isStatic() {
+    return !refDesc.dynamic;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.getTarget
+   */
+  public String getTarget() {
+    Filter target;
+    ReferenceListener l = listener;
+    if (l != null)  {
+      target = l.getTargetFilter();
+    } else {
+      target = targetFilter;
+    }
+    return target != null ? targetFilter.toString() : null;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.getBindMethodName
+   */
+  public String getBindMethodName() {
+    return refDesc.bind;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.getUnbindMethodName
+   */
+  public String getUnbindMethodName() {
+    return refDesc.unbind;
+  }
+
+
+  /**
+   * @see org.apache.felix.scr.Reference.getUpdatedMethodName
+   */
+  public String getUpdatedMethodName() {
+    return null;
+  }
+
+
+  /**
+   * String with info about reference.
+   */
   public String toString() {
     return "Reference " + refDesc.name + " in " + comp;
   }
+
 
   /**
    * Start listening for this reference. It is a bit tricky to
@@ -169,6 +279,7 @@ class Reference
     }
   }
 
+
   /**
    * We got a configuration PID update if we have a listener.
    */
@@ -177,6 +288,7 @@ class Reference
       listener.addPid(pid, true);
     }
   }
+
 
   /**
    *
@@ -229,14 +341,6 @@ class Reference
     return null;
   }
     
-
-  /**
-   * Is reference optional?
-   */
-  boolean isOptional() {
-    return refDesc.optional;
-  }
-
 
   /**
    * Notify component if reference became available.

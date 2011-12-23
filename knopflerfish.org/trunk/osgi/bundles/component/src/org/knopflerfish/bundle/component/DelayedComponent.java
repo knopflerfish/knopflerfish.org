@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2011, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@ import org.osgi.service.component.ComponentConstants;
 
 class DelayedComponent extends Component {
 
-  DelayedComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
+  DelayedComponent(SCR scr, ComponentDescription cd, Long id) {
+    super(scr, cd, id);
   }
 
 
@@ -59,7 +59,7 @@ class DelayedComponent extends Component {
    * there is one for each component configuration.
    *
    */
-  void satisfied() {
+  void subclassSatisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
     ComponentConfiguration [] cc = newComponentConfiguration();
     for (int i = 0; i < cc.length; i++) {

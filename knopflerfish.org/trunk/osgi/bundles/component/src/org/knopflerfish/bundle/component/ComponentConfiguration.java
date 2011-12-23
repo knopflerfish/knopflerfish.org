@@ -41,8 +41,13 @@ import org.osgi.service.component.*;
 
 public class ComponentConfiguration implements ServiceFactory {
 
+  final static int STATE_ACTIVATING = 0;
+  final static int STATE_REGISTERED = 1;
+  final static int STATE_ACTIVE = 2;
+  final static int STATE_DEACTIVATING = 3;
+  final static int STATE_DEACTIVE = 4;
+
   final Component component;
-  final Long id;
   private PropertyDictionary ccProps = null;
   private Dictionary sProps = null;
   private String cmPid = null;
@@ -53,6 +58,7 @@ public class ComponentConfiguration implements ServiceFactory {
   private HashMap /* Bundle -> ComponentContextImpl */ factoryContexts;
   private boolean unregisterInProgress = false;
   private int activeCount = 0;
+  private int state = STATE_ACTIVATING;
 
   /**
    *
@@ -64,11 +70,6 @@ public class ComponentConfiguration implements ServiceFactory {
     this.cmDict = cmDict;
     this.sProps = sProps;
     this.instanceProps = instanceProps;
-    if (sProps != null) {
-      id = (Long)sProps.get(ComponentConstants.COMPONENT_ID);
-    } else {
-      id = c.scr.getNextId();
-    }
     factoryContexts = c.compDesc.isServiceFactory() ? new HashMap() : null;
     Activator.logDebug("Created " + toString());
   }
@@ -78,7 +79,8 @@ public class ComponentConfiguration implements ServiceFactory {
    *
    */
   public String toString() {
-    return "ComponentConfiguration#" + id + ", component name = " + component.compDesc.getName();
+    return "ComponentConfiguration, component#" + component.id +
+      ", name = " + component.compDesc.getName();
   }
 
 
@@ -89,6 +91,7 @@ public class ComponentConfiguration implements ServiceFactory {
   synchronized ComponentContextImpl activate(Bundle usingBundle) {
     ComponentContextImpl res = getContext(usingBundle);
     if (res == null) {
+      state = STATE_ACTIVATING;
       Class c = component.getImplementation();
       component.getMethods(c);
       try {
@@ -110,6 +113,7 @@ public class ComponentConfiguration implements ServiceFactory {
         } else {
           componentContext = res;
         }
+        state = STATE_ACTIVE;
       } catch (ComponentException e) {
         unbindReferences(res);
         throw e;
@@ -124,10 +128,12 @@ public class ComponentConfiguration implements ServiceFactory {
    *
    */
   synchronized void deactivate(int reason) {
+    state = STATE_DEACTIVATING;
     ComponentContextImpl [] cci = getContexts();
     for (int i = 0; i < cci.length; i++) {
       deactivate(cci[i], reason);
     }
+    state = STATE_DEACTIVE;
   }
 
 
@@ -157,6 +163,7 @@ public class ComponentConfiguration implements ServiceFactory {
    *
    */
   void dispose(int reason) {
+    Activator.logDebug("CC.dispose this=" + this + ", reason=" + reason);
     unregisterService();
     deactivate(reason);
     component.removeComponentConfiguration(this);
@@ -174,12 +181,20 @@ public class ComponentConfiguration implements ServiceFactory {
 
 
   /**
+   * Get state of Component Configuration.
+   */
+  int getState() {
+    return state;
+  }
+
+
+  /**
    * Get component configuration properties.
    *
    */
   synchronized PropertyDictionary getProperties() {
     if (ccProps == null) {
-      ccProps = new PropertyDictionary(id, component.compDesc, cmDict, instanceProps, false);
+      ccProps = new PropertyDictionary(component, cmDict, instanceProps, false);
     }
     return ccProps;
   }
@@ -192,7 +207,7 @@ public class ComponentConfiguration implements ServiceFactory {
    *
    */
   private PropertyDictionary getServiceProperties() {
-    return new PropertyDictionary(id, component.compDesc, cmDict, instanceProps, true);
+    return new PropertyDictionary(component, cmDict, instanceProps, true);
   }
   
 
@@ -211,6 +226,9 @@ public class ComponentConfiguration implements ServiceFactory {
         sp = getServiceProperties();
       }
       serviceRegistration = component.bc.registerService(services, this, sp);
+      if (state == STATE_ACTIVATING) {
+        state = STATE_REGISTERED;
+      }
     }
   }
 
@@ -220,7 +238,7 @@ public class ComponentConfiguration implements ServiceFactory {
    * for this component configuration.
    *
    */
-  void modifyService() {
+  private void modifyService() {
     if (serviceRegistration != null) {
       serviceRegistration.setProperties(getServiceProperties());
     }
@@ -231,7 +249,7 @@ public class ComponentConfiguration implements ServiceFactory {
    * Unregister service registered for this component configuration.
    *
    */
-  void unregisterService() {
+  private void unregisterService() {
     if (serviceRegistration != null) {
       unregisterInProgress = true;
       try {
@@ -277,15 +295,6 @@ public class ComponentConfiguration implements ServiceFactory {
       return serviceRegistration.getReference();
     }
     return null;
-  }
-
-
-  /**
-   * Is component enabled?
-   *
-   */
-  boolean isEnabled() {
-    return component.enabled;
   }
 
 
@@ -422,7 +431,7 @@ public class ComponentConfiguration implements ServiceFactory {
    * in order specified by the component description.
    */
   void bindReferences(ComponentContextImpl cci) {
-    Reference [] refs = component.getReferences();
+    Reference [] refs = component.getRawReferences();
     if (refs != null) {
       for (int i = 0; i < refs.length; i++) {
         ReferenceListener rl = refs[i].getListener(getCMPid());
@@ -441,7 +450,7 @@ public class ComponentConfiguration implements ServiceFactory {
    * unbound in reverse order specified by the component description.
    */
   private void unbindReferences(ComponentContextImpl cci) {
-    Reference [] refs = component.getReferences();
+    Reference [] refs = component.getRawReferences();
     if (refs != null) {
       for (int i = refs.length - 1; i >= 0; i--) {
         cci.unbind(refs[i].refDesc.name);
