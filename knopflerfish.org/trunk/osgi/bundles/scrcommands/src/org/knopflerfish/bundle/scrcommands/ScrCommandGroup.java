@@ -42,8 +42,8 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.TreeSet;
-import java.util.Vector;
 
 import org.apache.felix.scr.Component;
 import org.apache.felix.scr.Reference;
@@ -408,7 +408,14 @@ public class ScrCommandGroup extends CommandGroupAdapter {
     sb.append(Util.showRight(lenBid,"BID"));
     sb.append(" Name");
     out.println(sb.toString());
-    Iterator ci = reverse ? comps.descendingIterator() : comps.iterator();
+    Iterator ci = comps.iterator();
+    if (reverse) {
+      LinkedList rev = new LinkedList();
+      while (ci.hasNext()) {
+        rev.addFirst(ci.next());
+      }
+      ci = rev.iterator();
+    } 
     while (ci.hasNext()) {
       Component c = (Component)ci.next();
       sb.setLength(0);
