@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,10 @@ import org.osgi.service.component.ComponentConstants;
  * This class needs to be a Dictionary and a Map.
  * TBD, check that this class is immutable
  */
-class PropertyDictionary extends Hashtable
+class PropertyDictionary extends Dictionary
 {
+
+  final private Hashtable props;
 
   /**
    *
@@ -52,6 +54,7 @@ class PropertyDictionary extends Hashtable
                      Dictionary cm,
                      Dictionary instance,
                      boolean service) {
+    props = new Hashtable();
     ComponentDescription cd = comp.compDesc;
     addDict(cd.getProperties(), service);
     if (cm != null) {
@@ -60,8 +63,48 @@ class PropertyDictionary extends Hashtable
     if (instance != null) {
       addDict(instance, service);
     }
-    super.put(ComponentConstants.COMPONENT_ID, comp.id);
-    super.put(ComponentConstants.COMPONENT_NAME, cd.getName());
+    props.put(ComponentConstants.COMPONENT_ID, comp.id);
+    props.put(ComponentConstants.COMPONENT_NAME, cd.getName());
+  }
+
+
+  /**
+   *
+   */
+  PropertyDictionary(Hashtable props) {
+    this.props = props;
+  }
+
+
+  /**
+   *
+   */
+  public Enumeration elements() { 
+    return props.elements();
+  }
+
+
+  /**
+   *
+   */
+  public Object get(Object key) { 
+    return props.get(key);
+  }
+
+
+  /**
+   *
+   */
+  public boolean isEmpty() { 
+    return props.isEmpty();
+  }
+
+
+  /**
+   *
+   */
+  public Enumeration keys() { 
+    return props.keys();
   }
 
 
@@ -80,6 +123,25 @@ class PropertyDictionary extends Hashtable
     throw new RuntimeException("Operation not supported.");
   }
 
+
+  /**
+   *
+   */
+  public int size() { 
+    return props.size();
+  }
+
+  //
+  // Package methods
+  //
+
+  /**
+   *
+   */
+  Dictionary writeableCopy() { 
+    return (Hashtable)props.clone();
+  }
+
   //
   // Private methods
   //
@@ -91,7 +153,7 @@ class PropertyDictionary extends Hashtable
     for (Enumeration e = d.keys(); e.hasMoreElements(); ) {
       String key = (String)e.nextElement();
       if (!service || !key.startsWith(".")) {
-        super.put(key, d.get(key));
+        props.put(key, d.get(key));
       }
     }
   }

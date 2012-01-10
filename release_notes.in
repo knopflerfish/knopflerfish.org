@@ -68,7 +68,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     http://sourceforge.net/tracker/?func=detail&aid=3402741&group_id=82798&atid=567241
 
 
-* SCR(component) 3.1.1
+* SCR(component) 3.1.2
   
   - The SCR now exports the org.apache.felix.scr API (version 1.6)
     and provides the ScrService. This is useful for examining and
@@ -80,7 +80,8 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - Handle when we don't have a CM service installed.
   - Fixed problem with components that weren't activated in the correct
     order when we had immediate components with optional circular references.
-  - Fixed dynamic reference problem when we added CM data. 
+  - Fixed dynamic reference problem when we added CM data.
+  - Fixed potentiel security problem with writeable component properties.
 
 
 * SCR Commands(scrcommands) 1.0.0
