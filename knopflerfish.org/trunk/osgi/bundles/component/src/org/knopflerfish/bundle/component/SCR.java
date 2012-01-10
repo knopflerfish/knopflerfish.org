@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -553,9 +553,8 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         for (int i = 0; i < n.length; i++) {
           if (a[i + offset] == c) {
             offset = 1;
-          } else {
-            n[i] = a[i + offset];
           }
+          n[i] = a[i + offset];
         }
         if (offset == 1 || a[n.length] == c) {
           map.put(key, n);
