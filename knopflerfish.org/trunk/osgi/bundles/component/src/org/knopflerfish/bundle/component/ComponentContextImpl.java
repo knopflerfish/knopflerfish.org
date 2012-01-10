@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ class ComponentContextImpl implements ComponentContext
   public Dictionary getProperties() {
     // TBD, remove this when TCK is correct
     if (Activator.TCK_BUG_COMPLIANT) {
-      return new Hashtable(cc.getProperties());
+      return cc.getProperties().writeableCopy();
     } else {
       return cc.getProperties();
     }

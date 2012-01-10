@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -217,6 +217,10 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * @see org.apache.felix.scr.Component.getProperties
    */
   public Dictionary getProperties() {
+    ComponentConfiguration cc = getFirstComponentConfiguration();
+    if (cc != null) {
+      return (Dictionary)cc.getProperties();
+    }
     return (Dictionary)compDesc.getProperties().clone();
   }
 
