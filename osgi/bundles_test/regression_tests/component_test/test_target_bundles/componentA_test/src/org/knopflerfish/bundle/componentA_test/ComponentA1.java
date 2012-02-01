@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,11 @@ public class ComponentA1 {
   
   public void activate(ComponentContext cc) {
     System.out.println("# In activate in ComponentA1");
-    Activator.bump();
+    Activator.bump(1);
   }
   
   public void deactivate(ComponentContext cc) {
     System.out.println("# In deactivate in ComponentA1");
-    Activator.bump();
+    Activator.bump(10);
   }
 }

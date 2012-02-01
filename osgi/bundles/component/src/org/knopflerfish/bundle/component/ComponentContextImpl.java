@@ -206,12 +206,10 @@ class ComponentContextImpl implements ComponentContext
       // Get service so that it is bound in correct order
       res = null != rl.getService(s, usingBundle);
     }
-    if (res) {
-      if (boundReferences == null) {
-        boundReferences = new HashMap();
-      }
-      boundReferences.put(rl.getName(), rl);
+    if (boundReferences == null) {
+      boundReferences = new HashMap();
     }
+    boundReferences.put(rl.getName(), rl);
     return res;
   }
 
@@ -223,6 +221,7 @@ class ComponentContextImpl implements ComponentContext
     if (boundReferences == null) {
       return;
     }
+    Activator.logDebug("Unbind " + name + " for " + cc);
     ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
     if (rl == null) {
       return;
@@ -237,6 +236,10 @@ class ComponentContextImpl implements ComponentContext
       if (sr != null) {
         unbind(rl, sr);
       }
+    }
+    HashSet srs = rl.getUnbinding();
+    for (Iterator i = srs.iterator(); i.hasNext(); ) {
+      unbind(rl, (ServiceReference)i.next());
     }
   }
 

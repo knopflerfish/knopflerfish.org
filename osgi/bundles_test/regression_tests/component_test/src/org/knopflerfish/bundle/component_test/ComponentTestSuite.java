@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2009, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,13 +56,17 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     super("ComponentTestSuite");
     this.bc = bc;
     addTest(new Test1());
-    addTest(new Test2());
+    addTest(new Test2b());
     addTest(new Test3());
     addTest(new TestSfBugs32556558());
     addTest(new TestSfBugs2883959());
+    addTest(new Test4());
+    addTest(new Test5());
   }
 
-  public void bump() {counter++;}
+  public void bump(int count) {
+    counter += count;
+  }
 
   /* from http_test */
   class FWTestCase extends TestCase {
@@ -127,7 +131,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          } catch (Exception e) {}
 
          assertNotNull("Could not get service object for A1", obj);
-         assertEquals("Should have been bumped", counter, 1);
+         assertEquals("Should have been activate bumped", 1, counter);
 
          bc.ungetService(ref);
 
@@ -135,7 +139,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
            Thread.sleep(1000);
          } catch (Exception e) {}
 
-         assertEquals("Should have been bumped again", counter, 2);
+         assertEquals("Should have been deactivate bumped", 11, counter);
 
          counter = 0;
          c1.uninstall();
@@ -147,15 +151,15 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
   }
 
 
-  private class Test2 extends FWTestCase implements LogListener {
+  private class Test2b extends FWTestCase implements LogListener {
 
     /**
      * Test setup: ComponentA references ComponentB,
-     *             ComponentB references ComponentC
+     *             ComponentB references ComponentC,TestService2
      *             ComponentC references TestService
      *             ComponentD provides TestService and reference ComponentA
      * before: no components are started. Circular condition detected
-     * action: TestService is registered
+     * action: TestService and TestService2 is registered
      * after: all components are activated
      *
      * then:
@@ -163,8 +167,10 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
      * before: all components are activated
      * action: unregister TestService
      * after: all components are deactivated
+     *        (this because when ComponentC rebinds with TestService
+     *         from ComponentD it detects that it is broken and
+     *         disposes itself).
      *
-     * (the components call bump when they are (de-)actived)
      */
     private boolean gotCircularError;
 
@@ -177,14 +183,17 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
 
     public void runTest() {
+      Bundle c1 = null;
+      ServiceReference sr = null;
+      ServiceRegistration reg = null;
+      ServiceRegistration reg2 = null;
       try {
-
         counter = 0;
         gotCircularError = false;
-        ServiceReference sr = bc.getServiceReference(LogReaderService.class.getName());
+        sr = bc.getServiceReference(LogReaderService.class.getName());
         LogReaderService lrs = (LogReaderService)bc.getService(sr);
         lrs.addLogListener(this);
-        Bundle c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
+        c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
         c1.start();
 
         Thread.sleep(1000);
@@ -195,35 +204,53 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         assertEquals("Should not have been bumped", 0, counter);
         assertTrue("Should have got circular error message", gotCircularError);
         lrs.removeLogListener(this);
-        bc.ungetService(sr);
 
-        ServiceRegistration reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable());
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
 
         Thread.sleep(1000);
 
         ServiceReference ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA");
-        bc.getService(ref);
+        assertNotNull("Should get service A", bc.getService(ref));
 
         ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB");
-        bc.getService(ref);
+        assertNotNull("Should get service B", bc.getService(ref));
 
         ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC");
-        bc.getService(ref);
+        assertNotNull("Should get service C", bc.getService(ref));
 
-        assertEquals("Should have been bumped", 3, counter);
+        assertEquals("Should have been activate/bind bumped", 103, counter);
         reg.unregister();
+        reg = null;
 
-        Thread.sleep(1000);
+        Thread.sleep(10000);
         assertNull("Should be null (1(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA"));
         assertNull("Should be null (2(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNull("Should be null (3(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
-        assertEquals("Should have been bumped", counter, 6);
+        assertEquals("Should have been bind/2*unbind and deactive bumped", 2233, counter);
 
-        c1.uninstall();
         counter = 0;
       } catch (Exception e) {
-     e.printStackTrace();
-        fail("Test2: got unexpected exception " + e);
+        e.printStackTrace();
+        fail("Test2b: got unexpected exception " + e);
+      } finally {
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (BundleException be) {
+            be.printStackTrace();
+            fail("Test2b: got uninstall exception " + be);
+          }
+        }
+        if (sr != null) {
+          bc.ungetService(sr);
+        }
+        if (reg != null) {
+          reg.unregister();
+        }
+        if (reg2 != null) {
+          reg2.unregister();
+        }
       }
     }
   }
@@ -586,6 +613,192 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       } catch (Exception e ) {
         e.printStackTrace();
         fail("Got unexpected exception: " +e);
+      }
+    }
+  }
+
+  private class Test4 extends FWTestCase  {
+
+    /**
+     * Test setup: ComponentA references ComponentB,
+     *             ComponentB references ComponentC,TestService2
+     *             ComponentC references TestService
+     *             ComponentD provides TestService and reference ComponentA
+     * before: no components are started.
+     * action: TestService and TestService2 is registered
+     * after: all components are activated
+     *
+     * then:
+     *
+     * before: all components are activated
+     * action: modify TestService2 to block ComponentB
+     * after: only ComponentC is active
+     *
+     * then:
+     *
+     * before: all components are activated
+     * action: unregister TestService and TestService2
+     * after: all components are deactivated
+     *
+     * (the components call bump when they are (de-)actived)
+     */
+
+    public void runTest() {
+      Bundle c1 = null;
+      ServiceRegistration reg = null;
+      ServiceRegistration reg2 = null;
+      try {
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable());
+
+        counter = 0;
+        c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
+        c1.start();
+
+        Thread.sleep(1000);
+
+        ServiceReference ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB");
+        assertNotNull("Should get serviceRef B", ref);
+        assertNotNull("Should get service B", bc.getService(ref));
+
+        ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC");
+        assertNotNull("Should get serviceRef C", ref);
+        assertNotNull("Should get service C", bc.getService(ref));
+
+        assertEquals("Should have been activate(B&C)/bind(C) bumped", 102, counter);
+        Hashtable p = new Hashtable();
+        p.put("block","yes");
+        reg2.setProperties(p);
+
+        Thread.sleep(1000);
+        assertNull("Should not get B", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
+        assertNotNull("Should still get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
+        assertEquals("Should have been deactivate B", 112, counter);
+
+        reg.unregister();
+        reg = null;
+
+        Thread.sleep(1000);
+
+        assertNull("Should not get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
+        assertEquals("Should have been deactivate/unbind C bumped", 1122, counter);
+
+        counter = 0;
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test4: got unexpected exception " + e);
+      } finally {
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (BundleException be) {
+            be.printStackTrace();
+            fail("Test4: got uninstall exception " + be);
+          }
+        }
+        if (reg != null) {
+          reg.unregister();
+        }
+        if (reg2 != null) {
+          reg2.unregister();
+        }
+      }
+    }
+  }
+
+  private class Test5 extends FWTestCase  {
+
+    /**
+     * Test setup: ComponentA references ComponentB,
+     *             ComponentB references ComponentC,TestService2
+     *             ComponentC references TestService
+     *             ComponentD provides TestService and reference ComponentA
+     * before: no components are started.
+     * action: TestService and TestService2 is registered
+     * after: all components are activated
+     *
+     * then:
+     *
+     * before: all components are activated
+     * action: register second TestService, then set high service ranking and
+     *         then unregister first TestService
+     * after: all components are still activated
+     *
+     * then:
+     *
+     * before: all components are activated
+     * action: unregister second TestService
+     * after: all components are deactivated
+     *
+     * (the components call bump when they are (de-)actived)
+     */
+
+    public void runTest() {
+      Bundle c1 = null;
+      ServiceRegistration reg = null;
+      ServiceRegistration regSecond = null;
+      ServiceRegistration reg2 = null;
+      try {
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        reg2 = bc.registerService(TestService2.class.getName(), new TestService2(), new Hashtable());
+
+        counter = 0;
+        c1 = Util.installBundle(bc, "componentA_test-1.0.1.jar");
+        c1.start();
+
+        Thread.sleep(1000);
+
+        ServiceReference ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB");
+        assertNotNull("Should get serviceRef B", ref);
+        assertNotNull("Should get service B", bc.getService(ref));
+
+        ref = bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC");
+        assertNotNull("Should get serviceRef C", ref);
+        assertNotNull("Should get service C", bc.getService(ref));
+
+        assertEquals("Should have been activate(B&C)/bind(C) bumped", 102, counter);
+        regSecond = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        Hashtable p = new Hashtable();
+        p.put(Constants.SERVICE_RANKING, new Integer(7));
+        regSecond.setProperties(p);
+        reg.unregister();
+        reg = null;
+
+        Thread.sleep(1000);
+        assertNotNull("Should still get B", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
+        assertNotNull("Should still get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
+        assertEquals("Should have been deactivate B", 1202, counter);
+
+        regSecond.unregister();
+        regSecond = null;
+
+        Thread.sleep(1000);
+        assertNull("Should not get B", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
+        assertNull("Should not get C", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
+        assertEquals("Should have been deactivate/unbind C bumped", 3322, counter);
+
+        counter = 0;
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test5: got unexpected exception " + e);
+      } finally {
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (BundleException be) {
+            be.printStackTrace();
+            fail("Test5: got uninstall exception " + be);
+          }
+        }
+        if (reg != null) {
+          reg.unregister();
+        }
+        if (regSecond != null) {
+          regSecond.unregister();
+        }
+        if (reg2 != null) {
+          reg2.unregister();
+        }
       }
     }
   }

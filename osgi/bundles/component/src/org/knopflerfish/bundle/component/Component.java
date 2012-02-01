@@ -571,6 +571,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * The tracked reference has become unavailable.
    */
   boolean refUnavailable(Reference r) {
+    Activator.logDebug("Reference unavailable, unresolved=" + unresolvedConstraints);
     if (!r.isOptional()) {
       synchronized (lock) {
         if (unresolvedConstraints++ == 0) {
@@ -674,8 +675,9 @@ public abstract class Component implements org.apache.felix.scr.Component {
     try {
       return compDesc.bundle.loadClass(impl);
     } catch (ClassNotFoundException e) {
-      Activator.logError(bc, "Could not find class " + impl, e);
-      return null;
+      String msg = "Could not find class " + impl;
+      Activator.logError(bc, msg, e);
+      throw new ComponentException(msg, e);
     }
   }
 

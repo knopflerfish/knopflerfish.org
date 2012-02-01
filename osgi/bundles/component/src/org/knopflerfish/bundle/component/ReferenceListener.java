@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,9 +46,12 @@ import org.osgi.service.component.ComponentConstants;
 class ReferenceListener implements ServiceListener
 {
   final Reference ref;
-  private TreeSet serviceRefs = new TreeSet();
+  private HashSet serviceRefs = new HashSet();
+  private HashSet unbinding = new HashSet();
+  private ServiceReference selectedServiceRef = null;
   private TreeSet pids = new TreeSet();
   private Filter cmTarget;
+  private LinkedList sEventQueue = new LinkedList();
 
 
   /**
@@ -85,50 +88,40 @@ class ReferenceListener implements ServiceListener
     }
     String filter = getFilter();
     Activator.logDebug("Start listening, ref=" + getName() + " with filter=" + filter);
-    TreeSet oldServiceRefs = (TreeSet)serviceRefs.clone();
-    TreeSet newServiceRefs = new TreeSet();
-    try {
-      ref.comp.bc.addServiceListener(this, filter);
-      ServiceReference [] srs = ref.comp.bc.getServiceReferences(null, filter);
+    ref.comp.bc.removeServiceListener(this);
+    synchronized (serviceRefs) {
+      HashSet oldServiceRefs = (HashSet)serviceRefs.clone();
+      serviceRefs.clear();
+      ServiceReference [] srs;
+      try {
+        ref.comp.bc.addServiceListener(this, filter);
+        srs = ref.comp.bc.getServiceReferences(null, filter);
+      } catch (InvalidSyntaxException ise) {
+        throw new RuntimeException("Should not occur, Filter already checked");
+      }
       if (srs != null) {
+        ServiceReference best = null;
         for (int i = 0; i < srs.length; i++) {
-          newServiceRefs.add(srs[i]);
+          if (oldServiceRefs.remove(srs[i])) {
+            serviceRefs.add(srs[i]);
+          } else {
+            ServiceEvent e = new ServiceEvent(ServiceEvent.REGISTERED, srs[i]);
+            if (best == null || best.compareTo(srs[i]) < 0) {
+              best = srs[i];
+              sEventQueue.addFirst(e);
+            } else {
+              sEventQueue.addLast(e);
+            }
+          }
         }
       }
-    } catch (InvalidSyntaxException ise) {
-      throw new RuntimeException("Should not occur, Filter already checked");
-    }
-    addPid(config != null ? config.getPid() : Component.NO_PID, true);
-    int i = oldServiceRefs.size();
-    ServiceReference [] oldSR = 
-      (ServiceReference [])oldServiceRefs.toArray(new ServiceReference [i--]);
-    int j = newServiceRefs.size();
-    ServiceReference [] newSR =
-      (ServiceReference [])newServiceRefs.toArray(new ServiceReference [j--]);
-    LinkedList el = new LinkedList();
-    while (true) {
-      if (i < 0) {
-        if (j < 0) {
-          break;
-        }
-        el.addLast(new ServiceEvent(ServiceEvent.REGISTERED, newSR[j--]));
-      } else if (j < 0) {
-        el.addFirst(new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, oldSR[i--]));
-      } else {
-        int c = oldSR[i].compareTo(newSR[j]);
-        if (c < 0) {
-          el.addLast(new ServiceEvent(ServiceEvent.REGISTERED, newSR[j--]));
-        } else if (c == 0) {
-          i--;
-          j--;
-        } else {
-          el.addFirst(new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, oldSR[i--]));
-        }
+      addPid(config != null ? config.getPid() : Component.NO_PID, true);
+      for (Iterator sri = oldServiceRefs.iterator(); sri.hasNext(); ) {
+        sEventQueue.addLast(new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH,
+                                             (ServiceReference)sri.next()));
       }
     }
-    for (Iterator e = el.iterator(); e.hasNext(); ) {
-      serviceChanged((ServiceEvent)e.next());
-    }
+    serviceChanged(null);
   }
 
 
@@ -236,11 +229,19 @@ class ReferenceListener implements ServiceListener
    */
   ServiceReference getServiceReference() {
     synchronized (serviceRefs) {
-      if (!serviceRefs.isEmpty()) {
-        return (ServiceReference)serviceRefs.last();
+      if (selectedServiceRef == null &&
+          !serviceRefs.isEmpty()) {
+        Iterator i = serviceRefs.iterator();
+        selectedServiceRef = (ServiceReference)i.next();
+        while (i.hasNext()) {
+          ServiceReference tst = (ServiceReference)i.next();
+          if (selectedServiceRef.compareTo(tst) < 0) {
+            selectedServiceRef = tst;
+          }
+        }
       }
     }
-    return null;
+    return selectedServiceRef;
   }
 
 
@@ -286,6 +287,14 @@ class ReferenceListener implements ServiceListener
     return res.toArray();
   }
 
+  HashSet getUnbinding() {
+    synchronized (serviceRefs) {
+      HashSet res = unbinding;
+      unbinding = new HashSet();
+      return res;
+    }
+  }
+
   //
   // ServiceListener
   //
@@ -294,34 +303,67 @@ class ReferenceListener implements ServiceListener
    *
    */
   public void serviceChanged(ServiceEvent se) {
-    ServiceReference s = se.getServiceReference();
-    int cnt;
-    boolean best;
-    switch (se.getType()) {
-    case ServiceEvent.REGISTERED:
+    do {
+      boolean doAdd;
+      int cnt;
+      boolean wasSelected = false;
+      ServiceReference s;
       synchronized (serviceRefs) {
-        serviceRefs.add(s);
-        best = serviceRefs.last() == s;
-        cnt = serviceRefs.size();
+        if (sEventQueue.isEmpty()) {
+          if (se == null) {
+            return;
+          }
+        } else {
+          if (se != null) {
+            sEventQueue.addLast(se);
+          }
+          se = (ServiceEvent)sEventQueue.removeFirst();
+        }
+        s = se.getServiceReference();
+        switch (se.getType()) {
+        case ServiceEvent.MODIFIED:
+        case ServiceEvent.REGISTERED:
+          if (!serviceRefs.add(s)) {
+            // Service properties just changed,
+            // ignore
+            return;
+          }
+          cnt = serviceRefs.size();
+          doAdd = true;
+          break;
+        case ServiceEvent.MODIFIED_ENDMATCH:
+        case ServiceEvent.UNREGISTERING:
+          serviceRefs.remove(s);
+          if  (selectedServiceRef == s) {
+            selectedServiceRef = null;
+            wasSelected = true;
+          }
+          cnt = serviceRefs.size();
+          unbinding.add(s);
+          doAdd = false;
+          break;
+        default:
+          // To keep compiler happy
+          throw new RuntimeException("Internal error");
+        }
       }
-      if (cnt != 1 || !ref.refAvailable()) {
-        refUpdated(s, false, best);
+      if (doAdd) {
+        if (cnt != 1 || !ref.refAvailable()) {
+          refUpdated(s, false, false);
+        }
+      } else {
+        if (cnt != 0 || !ref.refUnavailable()) {
+          refUpdated(s, true, wasSelected);
+          synchronized (serviceRefs) {
+            unbinding.remove(s);
+          }
+        } else {
+          // If we deactivated, we want to keep the service
+          // in unbinding so that it will be unbound during
+          // deactivation.
+        }
       }
-      break;
-    case ServiceEvent.MODIFIED:
-      refUpdated(s, false, serviceRefs.last() == s);
-      break;
-    case ServiceEvent.MODIFIED_ENDMATCH:
-    case ServiceEvent.UNREGISTERING:
-      synchronized (serviceRefs) {
-        best = (serviceRefs.last() == s);
-        serviceRefs.remove(s);
-        cnt = serviceRefs.size();
-      }
-      if (cnt != 0 || !ref.refUnavailable()) {
-        refUpdated(s, true, best);
-      }
-    }
+    } while (!sEventQueue.isEmpty());
   }
 
   //
@@ -366,13 +408,13 @@ class ReferenceListener implements ServiceListener
   /**
    * Call refUpdated for component configurations that has bound this reference.
    */
-  private void refUpdated(ServiceReference s, boolean deleted, boolean wasBest) {
+  private void refUpdated(ServiceReference s, boolean deleted, boolean wasSelected) {
     Iterator i = getPids();
     if (i != null) {
       while (i.hasNext()) {
         ComponentConfiguration cc = (ComponentConfiguration)ref.comp.compConfigs.get(i.next());
         if (cc != null) {
-          cc.refUpdated(this, s, deleted, wasBest);
+          cc.refUpdated(this, s, deleted, wasSelected);
         }
       }
     }
