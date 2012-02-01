@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,11 +51,11 @@ public class Activator implements BundleActivator {
   }
 
   
-  static void bump() {
+  static void bump(int count) {
     try {
       ServiceReference ref = Activator.bc.getServiceReference(ComponentATest.class.getName());
       ComponentATest serv = (ComponentATest)Activator.bc.getService(ref);
-      serv.bump();
+      serv.bump(count);
       Activator.bc.ungetService(ref);
     } catch (Exception e) {
       e.printStackTrace();

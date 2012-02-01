@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,5 +34,5 @@
 package org.knopflerfish.service.component_test;
 
 public interface ComponentATest {
-  public void bump();
+  public void bump(int count);
 }

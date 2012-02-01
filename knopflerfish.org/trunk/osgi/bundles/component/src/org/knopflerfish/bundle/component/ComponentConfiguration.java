@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,6 +163,10 @@ public class ComponentConfiguration implements ServiceFactory {
    *
    */
   void dispose(int reason) {
+    if (unregisterInProgress) {
+      // We are already disposing
+      return;
+    }
     Activator.logDebug("CC.dispose this=" + this + ", reason=" + reason);
     unregisterService();
     deactivate(reason);
@@ -333,35 +337,33 @@ public class ComponentConfiguration implements ServiceFactory {
    * The tracked reference has changed.
    *
    */
-  void refUpdated(ReferenceListener rl, ServiceReference s, boolean deleted, boolean wasBest) {
+  void refUpdated(ReferenceListener rl, ServiceReference s, boolean deleted, boolean wasSelected) {
     Activator.logDebug("CC.refUpdate, " + toString() + ", " + rl + ", deleted=" + deleted +
-                       ", best=" + wasBest);
+                       ", wasSelected=" + wasSelected);
     if (activeCount > 0) {
       if (rl.isDynamic()) {
         if (rl.isMultiple()) {
           if (deleted) {
             unbindReference(rl, s);
           } else {
-            // TBD, Should we re-bind when service props changed
             bindReference(rl, s);
           }
         } else {
-          if (wasBest) {
-            if (deleted) {
-              ServiceReference newS = rl.getServiceReference();
-              if (newS != null) {
-                bindReference(rl, newS);
-              }
-              unbindReference(rl, s);
-            } else {
-              // TBD, Should we re-bind when service props changed
+          if (wasSelected) { // Implies deleted
+            ServiceReference newS = rl.getServiceReference();
+            if (newS != null) {
+              bindReference(rl, newS);
+            }
+            unbindReference(rl, s);
+          } else if (!deleted) {
+            if (s == rl.getServiceReference()) {
               bindReference(rl, s);
             }
           }
         }
       } else {
         // If it is a service we use, stop and check if we should restart
-        if (rl.isMultiple() || wasBest) {
+        if (rl.isMultiple() || wasSelected) {
           dispose(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
         }
       }

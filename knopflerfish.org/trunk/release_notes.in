@@ -68,8 +68,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     http://sourceforge.net/tracker/?func=detail&aid=3402741&group_id=82798&atid=567241
 
 
-* SCR(component) 3.1.2
+* SCR(component) 3.1.3
   
+  - Fixed bug that caused reference bind methods to be called when
+    service properties was changed.
+  - Fixed ordering problem when active services changed service ranking.
   - The SCR now exports the org.apache.felix.scr API (version 1.6)
     and provides the ScrService. This is useful for examining and
     debug your service components.

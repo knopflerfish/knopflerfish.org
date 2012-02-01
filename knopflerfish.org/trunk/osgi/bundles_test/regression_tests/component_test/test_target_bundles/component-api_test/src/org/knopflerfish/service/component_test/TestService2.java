@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,39 +31,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.knopflerfish.service.component_test;
 
-package org.knopflerfish.bundle.componentA_test;
-
-import org.osgi.framework.*;
-import org.osgi.service.component.*;
-
-public class ComponentC {
-
-  ComponentContext cc = null;
-
-  protected void activate(ComponentContext cc) {
-    this.cc = cc;
-    System.out.println("# In activate componentC");
-    Activator.bump(1);
-  }
-
-  protected void deactivate(ComponentContext cc) {
-    this.cc = null;
-    System.out.println("# In deactivate componentC");
-    Activator.bump(10);
-  }
-
-  protected void bind(ServiceReference ref) {
-    System.out.println("# In bind componentC");
-    Activator.bump(100);
-    if (cc != null && cc.getBundleContext().getService(ref) == null) {
-      cc.getComponentInstance().dispose();
-    }
-  }
-
-  protected void unbind(ServiceReference ref) {
-    System.out.println("# In unbind componentC");
-    Activator.bump(1000);
-
-  }
-}
+public class TestService2 {}
