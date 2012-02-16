@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,9 +77,8 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
 
     private boolean isSecure = false;
 
-    private boolean isEnabled = false; // initial state of this object is
+    private boolean isEnabled = false;
 
-    // disabled
     private Boolean requireClientAuth = null;
 
     private boolean done = false;
