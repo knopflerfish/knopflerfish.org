@@ -530,6 +530,7 @@
         <include name="osgi/bundles/metatype/**"/>
 
         <include name="osgi/bundles/component/**"/>
+        <include name="osgi/bundles/scrcommands/**"/>
         <include name="osgi/bundles/event/**"/>
         <include name="osgi/bundles/io/**"/>
 
