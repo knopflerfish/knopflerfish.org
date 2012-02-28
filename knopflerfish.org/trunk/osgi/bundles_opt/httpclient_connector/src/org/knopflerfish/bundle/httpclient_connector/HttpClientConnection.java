@@ -51,6 +51,7 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.URI;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.HeadMethod;
@@ -71,6 +72,8 @@ class HttpClientConnection
   public final static String TIMEOUT
     = "org.knopflerfish.httpclient_connector.so_timeout";
 
+  private final static String DELETE_METHOD = "DELETE";
+  
   private final static int STATE_SETUP     = 0;
   private final static int STATE_CONNECTED = 1;
   private final static int STATE_CLOSED    = 2;
@@ -292,11 +295,13 @@ class HttpClientConnection
   public void setRequestMethod(String method) throws IOException {
     if (!HttpConnection.GET.equals(method) &&
         !HttpConnection.HEAD.equals(method) &&
-        !HttpConnection.POST.equals(method)) {
+        !HttpConnection.POST.equals(method) &&
+        !DELETE_METHOD.equals(method)) {
       throw new IllegalArgumentException("method should be one of " +
                                          HttpConnection.GET + ", " +
-                                         HttpConnection.HEAD + " and " +
-                                         HttpConnection.POST);
+                                         HttpConnection.HEAD + ", " +
+                                         HttpConnection.POST + " and " +
+                                         DELETE_METHOD);
     }
 
     if (state == STATE_CLOSED) {
@@ -465,7 +470,9 @@ class HttpClientConnection
     } else if (method.equals(HttpConnection.HEAD)) {
       resCache = new HeadMethod(uri.getEscapedURI());
     } else if (method.equals(HttpConnection.GET)) {
-      resCache = new GetMethod(uri.getEscapedURI());
+      resCache = new GetMethod(uri.getEscapedURI());      
+    } else if (method.equals(DELETE_METHOD)) {
+        resCache = new DeleteMethod(uri.getEscapedURI());
     } else {
       // hopefully this is unreachable code
       throw new IllegalStateException("Not a valid method " + method);
