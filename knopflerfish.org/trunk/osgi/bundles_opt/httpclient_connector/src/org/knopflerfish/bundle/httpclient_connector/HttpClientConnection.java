@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ import org.apache.commons.httpclient.methods.EntityEnclosingMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.HeadMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.PutMethod;
 import org.apache.commons.httpclient.util.DateParseException;
 import org.apache.commons.httpclient.util.DateUtil;
 
@@ -73,6 +74,7 @@ class HttpClientConnection
     = "org.knopflerfish.httpclient_connector.so_timeout";
 
   private final static String DELETE_METHOD = "DELETE";
+  private final static String PUT_METHOD = "PUT";
   
   private final static int STATE_SETUP     = 0;
   private final static int STATE_CONNECTED = 1;
@@ -296,11 +298,13 @@ class HttpClientConnection
     if (!HttpConnection.GET.equals(method) &&
         !HttpConnection.HEAD.equals(method) &&
         !HttpConnection.POST.equals(method) &&
+        !PUT_METHOD.equals(method) &&
         !DELETE_METHOD.equals(method)) {
       throw new IllegalArgumentException("method should be one of " +
                                          HttpConnection.GET + ", " +
                                          HttpConnection.HEAD + ", " +
-                                         HttpConnection.POST + " and " +
+                                         HttpConnection.POST + ", " +
+                                         PUT_METHOD + " and " +
                                          DELETE_METHOD);
     }
 
@@ -312,7 +316,7 @@ class HttpClientConnection
       throw new ProtocolException("Can't reset method: already connected");
     }
 
-    if (out != null && !HttpConnection.POST.equals(method)) {
+    if (out != null && !(HttpConnection.POST.equals(method) || PUT_METHOD.equals(method))) {
       // When an outputstream has been created these calls are ignored.
       return ;
     }
@@ -337,7 +341,7 @@ class HttpClientConnection
       throw new IllegalStateException("Already connected");
     }
 
-    if (out != null && !HttpConnection.POST.equals(method)) {
+    if (out != null && !(HttpConnection.POST.equals(method) || PUT_METHOD.equals(method))) {
       // When an outputstream has been created these calls are ignored.
       return ;
     }
@@ -445,7 +449,9 @@ class HttpClientConnection
       out = new OutputWrapper();
     }
 
-    setRequestMethod(HttpConnection.POST);
+    if(!(HttpConnection.POST.equals(method) || PUT_METHOD.equals(method))) {
+    	setRequestMethod(HttpConnection.POST);
+    }
 
     return out;
   }
@@ -467,7 +473,9 @@ class HttpClientConnection
 
     if (method.equals(HttpConnection.POST)) {
       resCache = new PostMethod(uri.getEscapedURI());
-    } else if (method.equals(HttpConnection.HEAD)) {
+    } else if (method.equals(PUT_METHOD)) {
+      resCache = new PutMethod(uri.getEscapedURI());
+    }else if (method.equals(HttpConnection.HEAD)) {
       resCache = new HeadMethod(uri.getEscapedURI());
     } else if (method.equals(HttpConnection.GET)) {
       resCache = new GetMethod(uri.getEscapedURI());      
