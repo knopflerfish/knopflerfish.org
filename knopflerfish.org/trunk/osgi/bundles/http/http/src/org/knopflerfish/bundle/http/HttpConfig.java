@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008,2011 KNOPFLERFISH project
+ * Copyright (c) 2003-2012 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.http;
 
+import java.io.InputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -143,19 +144,27 @@ public class HttpConfig {
 
     Properties mimeProps = new Properties();
     try {
-      mimeProps.load(HttpConfig.class
-                     .getResourceAsStream("/mime.default"));
-      String propurl = getPropertyAsString(bc,
-                                           "org.knopflerfish.http.mime.props",
-                                           "");
-      if (propurl.length() > 0) {
-        URL url = new URL(propurl);
-        Properties userMimeProps = new Properties();
-        userMimeProps.load(url.openStream());
-        Enumeration e = userMimeProps.keys();
-        while (e.hasMoreElements()) {
-          String key = (String) e.nextElement();
-          mimeProps.put(key, userMimeProps.getProperty(key));
+      InputStream mis = HttpConfig.class.getResourceAsStream("/mime.default");
+      if (mis != null) {
+        try {
+          mimeProps.load(mis);
+        } finally {
+          mis.close();
+        }
+        String propurl = getPropertyAsString(bc,
+                                             "org.knopflerfish.http.mime.props",
+                                             "");
+        if (propurl.length() > 0) {
+          URL url = new URL(propurl);
+          Properties userMimeProps = new Properties();
+          InputStream pis = url.openStream();
+          userMimeProps.load(pis);
+          Enumeration e = userMimeProps.keys();
+          while (e.hasMoreElements()) {
+            String key = (String) e.nextElement();
+            mimeProps.put(key, userMimeProps.getProperty(key));
+          }
+          pis.close();
         }
       }
     } catch (MalformedURLException ignore) {
