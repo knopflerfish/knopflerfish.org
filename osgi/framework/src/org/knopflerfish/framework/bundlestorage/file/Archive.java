@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -182,8 +182,8 @@ public class Archive implements FileArchive {
     }
 
     BufferedInputStream bis = null;
-    JarInputStream ji = null;
     boolean doUnpack = false;
+    JarInputStream ji = null;
     if (manifest == null) {
       bis = new BufferedInputStream(is);
       if (ba.storage.alwaysUnpack) {
@@ -273,6 +273,12 @@ public class Archive implements FileArchive {
     handleAutoManifest();
 
     saveCertificates();
+
+    if (ji != null) {
+      ji.close();
+    } else if (bis != null) {
+      bis.close();
+    }
   }
 
 
@@ -1154,9 +1160,10 @@ public class Archive implements FileArchive {
    */
   private void processSignedJar(File file) throws IOException {
     FileInputStream fis = new FileInputStream(file);
+    JarInputStream ji = null;
     try {
       BufferedInputStream bis = new BufferedInputStream(fis);
-      JarInputStream ji = new JarInputStream(bis);
+      ji = new JarInputStream(bis);
       int count = 0;
 
       manifest = ji.getManifest();
@@ -1170,7 +1177,11 @@ public class Archive implements FileArchive {
       }
       checkCertificates(count, true);
     } finally {
-      fis.close();
+      if (ji != null) {
+        ji.close();
+      } else {
+        fis.close();
+      }
     }
   }
 

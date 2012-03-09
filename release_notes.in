@@ -8,6 +8,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   last release.
 
 
+=== Framework (Core) ===
+
+* Framework 5.1.15
+
+  - Closed some InputStreams to avoid CloseGuard on Android.
+
+
 === Services (Compendium) ===
 
 * Blueprint (API) 1.0.1
@@ -33,7 +40,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     https://sourceforge.net/tracker/?func=detail&aid=3413792&group_id=82798&atid=567241
 
 
-* HTTP-Server 3.0.8
+* HTTP-Server 3.0.9
+  
+  - Closed some InputStreams to avoid CloseGuard on Android.
+
+  HTTP-Server 3.0.8
   
   - Added optional import of "javax.net.ssl", so that we can use the
     SSL Client Authentication property.
