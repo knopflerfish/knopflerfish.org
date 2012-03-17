@@ -563,35 +563,38 @@ public class Desktop
 
                   if(bDetail) {
                     Component comp = null;
-                    for(int i = 0; i < detailPanel.getTabCount(); i++) {
-                      if(detailPanel.getTitleAt(i).equals(name)) {
-                        comp = detailPanel.getComponentAt(i);
+                    if (null!=detailPanel) {
+                      for(int i = 0; i < detailPanel.getTabCount(); i++) {
+                        if(detailPanel.getTitleAt(i).equals(name)) {
+                          comp = detailPanel.getComponentAt(i);
+                        }
                       }
-                    }
-                    if(comp != null) {
-                      // Make sure floating windows are closed
-                      if(comp instanceof JFloatable) {
-                        ((JFloatable)comp).setAutoClose(true);
-                        ((JFloatable)comp).doUnfloat();
+                      if(comp != null) {
+                        // Make sure floating windows are closed
+                        if(comp instanceof JFloatable) {
+                          ((JFloatable)comp).setAutoClose(true);
+                          ((JFloatable)comp).doUnfloat();
+                        }
+                        detailPanel.remove(comp);
+                        detailMap.remove(sr);
                       }
-                      detailPanel.remove(comp);
-                      detailMap.remove(sr);
                     }
                   } else {
-                    Component comp = bundlePanel.getTab(name);
-                    if(comp != null) {
-                      if(comp instanceof JFloatable) {
-                        ((JFloatable)comp).setAutoClose(true);
-                        ((JFloatable)comp).doUnfloat();
+                    if (bundlePanel!=null) {
+                      Component comp = bundlePanel.getTab(name);
+                      if(comp != null) {
+                        if(comp instanceof JFloatable) {
+                          ((JFloatable)comp).setAutoClose(true);
+                          ((JFloatable)comp).doUnfloat();
+                        }
                       }
+
+                      displayMap.remove(sr);
+                      bundlePanel.removeTab(name);
+
+                      makeViewPopupMenu();
+                      viewMenu = makeViewMenu(viewMenu);
                     }
-
-                    displayMap.remove(sr);
-                    bundlePanel.removeTab(name);
-
-                    makeViewPopupMenu();
-                    viewMenu = makeViewMenu(viewMenu);
-
                   }
                 }
               });
