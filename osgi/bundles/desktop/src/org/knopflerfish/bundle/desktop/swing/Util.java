@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -986,6 +986,7 @@ public class Util {
 
   public static String getProperty(String key, String def)
   {
+    if (null==Activator.getBC()) return def;
     String sValue = Activator.getBC().getProperty(key);
     if (null!=sValue && 0<sValue.length()) {
       return sValue;
@@ -995,6 +996,7 @@ public class Util {
 
   public static int getIntProperty(String key, int def)
   {
+    if (null==Activator.getBC()) return def;
     String sValue = Activator.getBC().getProperty(key);
     if (null!=sValue && 0<sValue.length()) {
       try {
@@ -1008,6 +1010,7 @@ public class Util {
 
   public static boolean getBooleanProperty(String key, boolean def)
   {
+    if (null==Activator.getBC()) return def;
     String sValue = Activator.getBC().getProperty(key);
     if (null!=sValue && 0<sValue.length()) {
       return "true".equals(sValue);

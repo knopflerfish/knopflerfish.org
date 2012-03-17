@@ -141,6 +141,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     https://sourceforge.net/tracker/?func=detail&aid=3438377&group_id=82798&atid=567241
 
 
+* Desktop 3.1.8
+
+  - Fix bundle stop so that it works if called right after start.
+  - Add typecasts needed when compiling against version 1.6 of the
+    framework package.
+
 * Desktop 3.1.7
   
   - The API-version of this bundle now imports all packages it exports.

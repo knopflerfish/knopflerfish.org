@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -301,6 +301,9 @@ public class Desktop
 
 
   public void start() {
+    if (Activator.isStopped()) {
+      return;
+    }
 
     slTracker =
       new ServiceTracker(Activator.getTargetBC(),
@@ -2273,9 +2276,10 @@ public class Desktop
 
 
   public Bundle[] getSelectedBundles() {
-    final ArrayList res = new ArrayList(bundleCache.length);
+    int cnt = null!= bundleCache ? bundleCache.length : 0;
+    final ArrayList res = new ArrayList(cnt);
 
-    for(int i = 0; i < bundleCache.length; i++) {
+    for(int i = 0; i < cnt; i++) {
       final Bundle b = bundleCache[i];
       if(isSelected(b)) {
         res.add(b);
@@ -2630,16 +2634,30 @@ public class Desktop
 
     alive = false;
 
-    slTracker.close();
-    dispTracker.close();
-    pkgTracker.close();
+    if (null!=slTracker) {
+      slTracker.close();
+      slTracker = null;
+    }
+
+    if (null!=dispTracker) {
+      dispTracker.close();
+      dispTracker = null;
+    }
+
+    if (null!=pkgTracker) {
+      pkgTracker.close();
+      pkgTracker = null;
+    }
 
     // Make sure floating windows are closed
-    for(int i = 0; i < detailPanel.getTabCount(); i++) {
-      Component comp = detailPanel.getComponentAt(i);
-      if(comp instanceof JFloatable) {
-        ((JFloatable)comp).setAutoClose(true);
+    if (null!=detailPanel) {
+      for(int i = 0; i < detailPanel.getTabCount(); i++) {
+        Component comp = detailPanel.getComponentAt(i);
+        if(comp instanceof JFloatable) {
+          ((JFloatable)comp).setAutoClose(true);
+        }
       }
+      detailPanel = null;
     }
 
     Activator.getTargetBC().removeBundleListener(this);

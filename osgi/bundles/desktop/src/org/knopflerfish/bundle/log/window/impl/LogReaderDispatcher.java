@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ public class LogReaderDispatcher
     String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
 
     try {
-      ServiceReference [] srl = bc.getServiceReferences(null, filter);
+      ServiceReference [] srl = bc.getServiceReferences((String) null, filter);
       for(int i = 0; srl != null && i < srl.length; i++) {
 
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));

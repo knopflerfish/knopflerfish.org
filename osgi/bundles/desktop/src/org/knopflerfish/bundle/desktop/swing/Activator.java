@@ -64,15 +64,42 @@ public class Activator
 {
   static public LogRef        log;
 
-  static private BundleContext bc;
-  static private BundleContext remoteBC;
+  static private BundleContext _bc;
+  static private BundleContext _remoteBC;
+  static private boolean stopped = false;
   static public Desktop desktop;
 
   static Activator      myself;
 
-  public static BundleContext getBC() {
-    return bc;
+  // Hang on this during start-up to block stopping.
+  private final Object stopLock = new Object();
+
+  public static void setBC(final BundleContext bc) {
+    _bc = bc;
   }
+  public static BundleContext getBC() {
+    return _bc;
+  }
+  public static boolean isStopped() {
+    return stopped || null == getBC();
+  }
+
+  /**
+   * Get target BC for bundle control.
+   *
+   * <p>
+   * This in preparation for the event of the desktop
+   * being able to control a remote framework.
+   * </p>
+   */
+  public static BundleContext getTargetBC() {
+    if(_remoteBC == null) {
+      return getBC();
+    }
+
+    return _remoteBC;
+  }
+
 
   static BundleFilter bundleFilter = null;
 
@@ -102,22 +129,6 @@ public class Activator
   }
 
   /**
-   * Get target BC for bundle control.
-   *
-   * <p>
-   * This in preparation for the event of the desktop
-   * being able to control a remote framework.
-   * </p>
-   */
-  public static BundleContext getTargetBC() {
-    if(remoteBC == null) {
-      return getBC();
-    }
-
-    return remoteBC;
-  }
-
-  /**
    * Get all service references from the target BC.
    */
   public static ServiceReference[] getTargetBC_getServiceReferences()
@@ -125,7 +136,7 @@ public class Activator
     final BundleContext tbc = getTargetBC();
     if(null != tbc) {
       try {
-        return tbc.getServiceReferences(null, null);
+        return tbc.getServiceReferences((String) null, null);
       } catch (InvalidSyntaxException ise) {
         // Will not happen in this case!
       }
@@ -283,16 +294,16 @@ public class Activator
 
   public static BundleContext openRemote(String host) {
     if(host.equals(remoteHost)) {
-      return remoteBC;
+      return _remoteBC;
     }
     RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
     if(rc != null) {
       try {
         Activator.myself.closeDesktop();
         if("".equals(host) || "local".equals(host)) {
-          remoteBC = null;
+          _remoteBC = null;
         } else {
-          remoteBC = rc.connect(host);
+          _remoteBC = rc.connect(host);
         }
         remoteHost = host;
       } catch (Exception e) {
@@ -301,7 +312,7 @@ public class Activator
 
       Activator.myself.openDesktop();
     }
-    return remoteBC;
+    return _remoteBC;
   }
 
 
@@ -309,7 +320,9 @@ public class Activator
 
   Map displayers = new HashMap();
 
-  public void start(BundleContext _bc) {
+  public void start(final BundleContext bc) {
+    Activator.setBC(bc);
+
     try {
       // try to move Mac OS menu bar
       if(null == System.getProperty("apple.laf.useScreenMenuBar")) {
@@ -322,8 +335,6 @@ public class Activator
     } catch (Exception ignored) {
     }
 
-
-    Activator.bc        = _bc;
     Activator.log       = new LogRef(bc);
     Activator.myself    = this;
 
@@ -343,7 +354,13 @@ public class Activator
     // Spawn to avoid race conditions in resource loading
     javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          openDesktop();
+          // Do nothing if stopped.
+          if (!Activator.isStopped()) {
+            //Block stop() while starting.
+            synchronized(stopLock) {
+              openDesktop();
+            }
+          }
         }
       });
   }
@@ -398,14 +415,23 @@ public class Activator
     // Must be executed even later, to allow for plugin comps to be ready.
     javax.swing.SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          String defDisp = Util.getProperty("org.knopflerfish.desktop.display.main",
-                                            LargeIconsDisplayer.NAME);
-          // We really want this one to be displayed.
-          desktop.bundlePanelShowTab(defDisp);
+          // Do nothing if stopped.
+          if (!Activator.isStopped()) {
+            //Block stop() while starting.
+            synchronized(stopLock) {
+              final String defDisp
+                = Util.getProperty("org.knopflerfish.desktop.display.main",
+                                   LargeIconsDisplayer.NAME);
+              if (null!=desktop) {
+                // We really want this one to be displayed.
+                desktop.bundlePanelShowTab(defDisp);
 
-          int ix = desktop.detailPanel.indexOfTab("Manifest");
-          if(ix != -1) {
-            desktop.detailPanel.setSelectedIndex(ix);
+                final int ix = desktop.detailPanel.indexOfTab("Manifest");
+                if(ix != -1) {
+                  desktop.detailPanel.setSelectedIndex(ix);
+                }
+              }
+            }
           }
         }
       });
@@ -443,12 +469,12 @@ public class Activator
       }
       displayers.clear();
 
-      if(remoteBC != null) {
+      if(_remoteBC != null) {
         RemoteFramework rc = (RemoteFramework)remoteTracker.getService();
         if(rc != null) {
-          rc.disconnect(remoteBC);
+          rc.disconnect(_remoteBC);
         }
-        remoteBC = null;
+        _remoteBC = null;
       }
 
     } catch (Exception e) {
@@ -456,23 +482,27 @@ public class Activator
     }
   }
 
-  public void stop(BundleContext bc) {
-    try {
-      closeDesktop();
 
-      if(remoteTracker != null) {
-        remoteTracker.close();
-        remoteTracker = null;
-      }
+  public void stop(final BundleContext bc) {
+    Activator.stopped = true;
+    synchronized(stopLock) {
+      try {
+        closeDesktop();
 
-      Activator.bc     = null;
-      Activator.myself = null;
-      if (null!=Activator.log) {
-        Activator.log.close();
-        Activator.log = null;
+        if(remoteTracker != null) {
+          remoteTracker.close();
+          remoteTracker = null;
+        }
+
+        Activator.setBC(null);
+        Activator.myself = null;
+        if (null!=Activator.log) {
+          Activator.log.close();
+          Activator.log = null;
+        }
+      } catch (Exception e) {
+        e.printStackTrace();
       }
-    } catch (Exception e) {
-      e.printStackTrace();
     }
   }
 
