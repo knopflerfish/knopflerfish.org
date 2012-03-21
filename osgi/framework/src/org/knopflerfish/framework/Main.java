@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,13 +155,26 @@ public class Main
     // This typically happens when starting with "java -jar framework.jar"
     // or similar (e.g by double-clicking on framework.jar)
     bZeroArgs = (args.length == 0);
-    if (!bZeroArgs) {// Also true if started with only -D/-F args
+    if (!bZeroArgs) {// Also true if started with only -D/-F/-ff args
       bZeroArgs = true;
       for (int i=0; bZeroArgs && i<args.length; i++) {
-        // -Dx=y, -Fx=y and -init does not count as args
-        bZeroArgs = args[i].startsWith("-D")
-          || args[i].startsWith("-F")
-          || "-init".equals(args[i]);
+        // -Dx=y, -Fx=y -init and -ff class does not count as args
+        if ("-ff".equals(args[i])) {
+          if (null!=framework) {
+            throw new IllegalArgumentException
+              ("a framework instance is already created.");
+          }
+          if (i+1 < args.length) {
+            i++;
+            ff = getFrameworkFactory(args[i]);
+          } else {
+            throw new IllegalArgumentException("No framework factory argument");
+          }
+        } else {
+          bZeroArgs = args[i].startsWith("-D")
+            || args[i].startsWith("-F")
+            || "-init".equals(args[i]);
+        }
       }
     }
 
@@ -459,16 +472,8 @@ public class Main
           printJVMInfo(framework);
           System.exit(0);
         } else if ("-ff".equals(args[i])) {
-          if (null!=framework) {
-            throw new IllegalArgumentException
-              ("a framework instance is already created.");
-          }
-          if (i+1 < args.length) {
-            i++;
-            ff = getFrameworkFactory(args[i]);
-          } else {
-            throw new IllegalArgumentException("No framework factory argument");
-          }
+          // Already handled; skip class name
+          i++;
         } else if ("-create".equals(args[i])) {
           if (null!=framework
               && ((Bundle.RESOLVED)&framework.getState())==0) {
