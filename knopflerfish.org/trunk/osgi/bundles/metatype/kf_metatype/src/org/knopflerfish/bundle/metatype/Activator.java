@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ public class Activator implements BundleActivator {
         MetaTypeService.class.getName()
       },
       sysMTP,
-      new Hashtable()
+      (Dictionary) null
       );
 
     ManagedService config = new ManagedService() {
@@ -105,7 +105,7 @@ public class Activator implements BundleActivator {
               mtpRegs.clear();
 
               for(int i = 0; i < mtp.length; i++) {
-                Hashtable prop = new Hashtable();
+                Dictionary prop = new Hashtable();
                 prop.put("source.url", v.elementAt(i).toString());
                 String [] pids = mtp[i].getPids();
                 if(pids != null) {
@@ -117,7 +117,8 @@ public class Activator implements BundleActivator {
                 }
 
                 ServiceRegistration reg =
-                  bc.registerService(MetaTypeProvider.class.getName(), mtp[i], prop);
+                  bc.registerService(MetaTypeProvider.class.getName(),
+                                     mtp[i], prop);
 
                 mtpRegs.put(reg, mtp[i]);
               }
@@ -129,8 +130,9 @@ public class Activator implements BundleActivator {
         } // method
       };
 
-    Hashtable props = new Hashtable();
-    props.put("service.pid", "org.knopflerfish.util.metatype.SystemMetatypeProvider");
+    Dictionary props = new Hashtable();
+    props.put("service.pid",
+              "org.knopflerfish.util.metatype.SystemMetatypeProvider");
 
     bc.registerService(ManagedService.class.getName(), config, props);
 
@@ -154,7 +156,8 @@ public class Activator implements BundleActivator {
                   System.setProperty(key, val.toString());
                 }
                 catch (Exception ex) {
-                  log.error("Failed to set system property '" + key + "' to " + val, ex);
+                  log.error("Failed to set system property '" + key
+                            + "' to " + val, ex);
                 }
               }
             }
@@ -162,7 +165,7 @@ public class Activator implements BundleActivator {
         }
       };
 
-    Hashtable props = new Hashtable();
+    Dictionary props = new Hashtable();
     props.put("service.pid", SysPropMetatypeProvider.PID);
 
     bc.registerService(ManagedService.class.getName(), config, props);
@@ -173,7 +176,7 @@ public class Activator implements BundleActivator {
         MetaTypeProvider.class.getName()
       },
       spMTP,
-      new Hashtable() {
+      (Dictionary) new Hashtable() {
         {
           put("service.pids", spMTP.getPids());
         }
@@ -197,7 +200,7 @@ class SysPropMetatypeProvider extends MTP {
   SysPropMetatypeProvider(BundleContext bc) {
     super("System properties");
 
-    Hashtable defProps = new Hashtable();
+    Dictionary defProps = new Hashtable();
 
     Properties sysProps = System.getProperties();
 
@@ -205,7 +208,7 @@ class SysPropMetatypeProvider extends MTP {
       String key = (String)e.nextElement();
       // Use the local value for the current framework instance; props
       // that have not been exported with some value as system
-      // proepties will not be visible due to the limitation of
+      // properties will not be visible due to the limitation of
       // BundleContex.getProprty() on OSGi R4.
       Object val = (String)bc.getProperty(key);
       if(key.startsWith("java.") ||
@@ -215,7 +218,9 @@ class SysPropMetatypeProvider extends MTP {
          key.startsWith("user.")) {
         continue;
       }
-      defProps.put(key, val);
+      if (null!=val) {
+        defProps.put(key, val);
+      }
     }
 
 
