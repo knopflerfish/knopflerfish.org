@@ -48,7 +48,6 @@ import java.util.Collection;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleListener;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
@@ -57,6 +56,7 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationPlugin;
@@ -76,7 +76,7 @@ import org.osgi.service.cm.ConfigurationPermission;
  */
 
 class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
-        BundleListener {
+        SynchronousBundleListener {
 
     private Hashtable locationToPids = new Hashtable();
 
@@ -747,7 +747,18 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
               srs = ConfigurationAdminFactory.this.getTargetServiceReferences(ManagedServiceFactory.class, factoryPid);
             }
             if(srs != null && srs.length > 0) {
-                setBundleLocationAndPersist(srs[0].getBundle().getLocation(), true);
+              bundleLocation = srs[0].getBundle().getLocation();
+              setBundleLocationAndPersist(bundleLocation, true);
+            }
+          }
+          // We should tell new bundle about config
+          // TBD, should we tell old bundle about loss?
+          // TBD, should we ignore if location is the same?
+          if(bundleLocation != null) {
+            try {
+              update();
+            } catch (Exception e) {
+              Activator.log.error("Error while updating location.", e);
             }
           }
         }

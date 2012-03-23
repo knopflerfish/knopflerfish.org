@@ -28,6 +28,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-bundle now imports all packages it exports.
 
 
+* CM 3.0.2
+  
+  - The CM bundle now uses synchronous bundle listeners when
+    updating location data.
+  - Call update for new bundle when changing bundle location
+    for a configuration.
+
+
 * Deployment Admin (API) 1.0.2
   
   - The API-bundle now imports all packages it exports.
