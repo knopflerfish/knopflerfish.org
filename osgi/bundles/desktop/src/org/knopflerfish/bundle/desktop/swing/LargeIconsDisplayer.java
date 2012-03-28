@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,6 +90,8 @@ import org.osgi.service.startlevel.StartLevel;
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
   public static final String NAME = "Large Icons";
+  public static final String SORT_ORDER_PROPERTY
+    = "org.knopflerfish.desktop.display.large_icons.sort";
 
   public LargeIconsDisplayer(BundleContext bc) {
     super(bc, NAME, "Large icon display of bundles", false);
@@ -271,6 +273,17 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       contextPopupMenu = new JPopupMenu();
 
       ButtonGroup       group         = new ButtonGroup();
+
+      final String sortOrder = Util.getProperty(SORT_ORDER_PROPERTY,"id");
+      if (sortOrder.equals("name")) {
+        iconComparator = nameComparator;
+      } else if (sortOrder.equals("start_level")) {
+        iconComparator = startLevelComparator;
+      } else {
+        // Default sort order is bundle id
+        iconComparator = null;
+      }
+
 
       JCheckBoxMenuItem item = new JCheckBoxMenuItem("Sort by name");
       item.setState(iconComparator == nameComparator);
