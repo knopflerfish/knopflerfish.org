@@ -162,6 +162,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     https://sourceforge.net/tracker/?func=detail&aid=3438377&group_id=82798&atid=567241
 
 
+* Desktop 3.1.9
+
+  - Added support for selecting the initial sort order in the Large Icons
+    bundle displayer. The value of the system /framework property
+    "org.knopflerfish.desktop.display.large_icons.sort" may be set to
+    one of "id" (default), "start_level", "name" to select the sort order.
+ 
 * Desktop 3.1.8
 
   - Fix bundle stop so that it works if called right after start.
