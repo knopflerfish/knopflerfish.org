@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.prefs.Preferences;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
@@ -66,7 +67,7 @@ public abstract class DefaultSwingBundleDisplayer
     BundleSelectionListener
 {
 
-  String               name;
+  final String         name;
   String               desc;
   boolean              bDetail;
 
@@ -358,6 +359,37 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   public void showBundle(Bundle b) {
+  }
+
+
+  public static final String PREFS_NODE_NAME = "SwingBundleDisplayer";
+  final int maxErr = 10;
+  int errCount = 0;
+
+  /**
+   * Get the preferences node to store user settings for this
+   * displayer in.
+   */
+  public Preferences getPrefs() {
+    final Preferences prefsBase = Preferences.userNodeForPackage(getClass());
+
+    String spid  = Activator.getBC().getProperty("org.osgi.provisioning.spid");
+    if(spid == null) {
+      spid = "default";
+    }
+
+    final String relPath
+      = PREFS_NODE_NAME + "/" + spid + "/" + name.replace('/','_');
+    final Preferences prefs = prefsBase.node(relPath);
+    try {
+      prefs.sync(); // Get the latest version of the node.
+    } catch (Exception e) {
+      errCount++;
+      if(errCount < maxErr) {
+        Activator.log.warn("Failed to get preferences node " + relPath, e);
+      }
+    }
+    return prefs;
   }
 
 }
