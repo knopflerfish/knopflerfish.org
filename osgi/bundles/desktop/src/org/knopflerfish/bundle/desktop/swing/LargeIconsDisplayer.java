@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
 import javax.swing.AbstractAction;
@@ -90,6 +91,7 @@ import org.osgi.service.startlevel.StartLevel;
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
   public static final String NAME = "Large Icons";
+  public static final String PREFS_KEY_SORT = "sort";
   public static final String SORT_ORDER_PROPERTY
     = "org.knopflerfish.desktop.display.large_icons.sort";
 
@@ -274,22 +276,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       ButtonGroup       group         = new ButtonGroup();
 
-      final String sortOrder = Util.getProperty(SORT_ORDER_PROPERTY,"id");
-      if (sortOrder.equals("name")) {
-        iconComparator = nameComparator;
-      } else if (sortOrder.equals("start_level")) {
-        iconComparator = startLevelComparator;
-      } else {
-        // Default sort order is bundle id
-        iconComparator = null;
-      }
-
+      loadPrefs();
 
       JCheckBoxMenuItem item = new JCheckBoxMenuItem("Sort by name");
       item.setState(iconComparator == nameComparator);
       item.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             iconComparator = nameComparator;
+            storePrefs();
             rebuildPanel();
           }
         });
@@ -301,6 +295,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       item.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             iconComparator = startLevelComparator;
+            storePrefs();
             rebuildPanel();
           }
         });
@@ -312,6 +307,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       item.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             iconComparator = null;
+            storePrefs();
             rebuildPanel();
           }
         });
@@ -617,7 +613,67 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       invalidate();
       repaint();
     }
+
+    /**
+     * Stores user preferences for this displayer.
+     * I.e., the selected sort order.
+     */
+    public void storePrefs() {
+      try {
+        final Preferences prefs = getPrefs();
+
+        String sortOrder;
+        if (iconComparator == nameComparator) {
+          sortOrder = "name";
+        } else if (iconComparator == startLevelComparator) {
+          sortOrder = "start_level";
+        } else {
+          // Default sort order is bundle id
+          sortOrder = "id";
+        }
+
+        prefs.put(PREFS_KEY_SORT, sortOrder);
+        prefs.flush();
+      } catch (Exception e) {
+        errCount++;
+        if(errCount < maxErr) {
+          Activator.log.warn("Failed to store prefs for Large Icons Displayer: "
+                             +"sort order.", e);
+        }
+      }
+    }
+
+    /**
+     * Loads user preferences for this displayer.
+     * I.e, the selected sort order.
+     */
+    public void loadPrefs() {
+      try {
+        final Preferences prefs = getPrefs();
+
+        String sortOrder = Util.getProperty(SORT_ORDER_PROPERTY, null);
+        if (null==sortOrder) {
+          sortOrder = prefs.get(PREFS_KEY_SORT, "id");
+        }
+
+        if (sortOrder.equals("name")) {
+          iconComparator = nameComparator;
+        } else if (sortOrder.equals("start_level")) {
+          iconComparator = startLevelComparator;
+        } else {
+          // Default sort order is bundle id
+          iconComparator = null;
+        }
+      } catch (Exception e) {
+        errCount++;
+        if(errCount < maxErr) {
+          Activator.log.warn("Failed to load prefs for Large Icons Displayer: "
+                             +"sort order.", e);
+        }
+      }
+    }
   }
+
 
   static Comparator nameComparator = new Comparator() {
       public int compare(Object o1, Object o2) {
