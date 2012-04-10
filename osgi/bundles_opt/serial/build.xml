@@ -9,6 +9,7 @@
     <ant target="${the.target}" dir="comm-linux"/>
     <ant target="${the.target}" dir="rxtxcomm"/>
     <ant target="${the.target}" dir="rxtxcomm-linux-arm"/>
+    <ant target="${the.target}" dir="rxtxcomm-linux-x86"/>
   </target>
 
   <target name="all" 

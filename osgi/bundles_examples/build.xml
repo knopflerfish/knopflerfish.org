@@ -6,6 +6,7 @@
   <target name="doAntBuild">
     <ant target="${the.target}" dir="demos"/>
     <ant target="${the.target}" dir="cpa"/>
+    <ant target="${the.target}" dir="rxtx_echo"/>
   </target>
 
   <target name="all" 
