@@ -1,24 +1,64 @@
 /*-------------------------------------------------------------------------
-|   rxtx is a native interface to serial ports in java.
-|   Copyright 1997-2004 by Trent Jarvi taj@www.linux.org.uk
+|   RXTX License v 2.1 - LGPL v 2.1 + Linking Over Controlled Interface.
+|   RXTX is a native interface to serial ports in java.
+|   Copyright 1997-2007 by Trent Jarvi tjarvi@qbang.org and others who
+|   actually wrote it.  See individual source files for more information.
+|
+|   A copy of the LGPL v 2.1 may be found at
+|   http://www.gnu.org/licenses/lgpl.txt on March 4th 2007.  A copy is
+|   here for your convenience.
 |
 |   This library is free software; you can redistribute it and/or
-|   modify it under the terms of the GNU Library General Public
+|   modify it under the terms of the GNU Lesser General Public
 |   License as published by the Free Software Foundation; either
-|   version 2 of the License, or (at your option) any later version.
+|   version 2.1 of the License, or (at your option) any later version.
 |
 |   This library is distributed in the hope that it will be useful,
 |   but WITHOUT ANY WARRANTY; without even the implied warranty of
 |   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-|   Library General Public License for more details.
+|   Lesser General Public License for more details.
 |
-|   You should have received a copy of the GNU Library General Public
+|   An executable that contains no derivative of any portion of RXTX, but
+|   is designed to work with RXTX by being dynamically linked with it,
+|   is considered a "work that uses the Library" subject to the terms and
+|   conditions of the GNU Lesser General Public License.
+|
+|   The following has been added to the RXTX License to remove
+|   any confusion about linking to RXTX.   We want to allow in part what
+|   section 5, paragraph 2 of the LGPL does not permit in the special
+|   case of linking over a controlled interface.  The intent is to add a
+|   Java Specification Request or standards body defined interface in the 
+|   future as another exception but one is not currently available.
+|
+|   http://www.fsf.org/licenses/gpl-faq.html#LinkingOverControlledInterface
+|
+|   As a special exception, the copyright holders of RXTX give you
+|   permission to link RXTX with independent modules that communicate with
+|   RXTX solely through the Sun Microsytems CommAPI interface version 2,
+|   regardless of the license terms of these independent modules, and to copy
+|   and distribute the resulting combined work under terms of your choice,
+|   provided that every copy of the combined work is accompanied by a complete
+|   copy of the source code of RXTX (the version of RXTX used to produce the
+|   combined work), being distributed under the terms of the GNU Lesser General
+|   Public License plus this exception.  An independent module is a
+|   module which is not derived from or based on RXTX.
+|
+|   Note that people who make modified versions of RXTX are not obligated
+|   to grant this special exception for their modified versions; it is
+|   their choice whether to do so.  The GNU Lesser General Public License
+|   gives permission to release a modified version without this exception; this
+|   exception also makes it possible to release a modified version which
+|   carries forward this exception.
+|
+|   You should have received a copy of the GNU Lesser General Public
 |   License along with this library; if not, write to the Free
 |   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+|   All trademarks belong to their respective owners.
 --------------------------------------------------------------------------*/
 package  gnu.io;
 
 import  java.io.FileDescriptor;
+import java.util.HashMap;
 import  java.util.Vector;
 import  java.util.Enumeration;
 
@@ -200,14 +240,25 @@ public class CommPortIdentifier extends Object /* extends Vector? */
 	static public CommPortIdentifier getPortIdentifier(String s) throws NoSuchPortException 
 	{ 
 		if(debug) System.out.println("CommPortIdentifier:getPortIdentifier(" + s +")");
-		CommPortIdentifier index = CommPortIndex;
+		CommPortIdentifier index;
 
 		synchronized (Sync) 
 		{
-			while (index != null) 
-			{
-				if (index.PortName.equals(s)) break;
+		 	index = CommPortIndex;
+			while (index != null && !index.PortName.equals(s)) { 
 				index = index.next;
+			}
+			if (index == null) {
+				/* This may slow things down but if you pass the string for the port after
+				   a device is plugged in, you can find it now.
+
+				   http://bugzilla.qbang.org/show_bug.cgi?id=48
+				*/
+				getPortIdentifiers();
+			 	index = CommPortIndex;
+				while (index != null && !index.PortName.equals(s)) { 
+					index = index.next;
+				}
 			}
 		}
 		if (index != null) return index;
@@ -230,9 +281,10 @@ public class CommPortIdentifier extends Object /* extends Vector? */
 		throws NoSuchPortException 	
 	{ 
 		if(debug) System.out.println("CommPortIdentifier:getPortIdentifier(CommPort)");
-		CommPortIdentifier c = CommPortIndex;
+		CommPortIdentifier c;
 		synchronized( Sync )
 		{
+			c = CommPortIndex;
 			while ( c != null && c.commport != p )
 				c = c.next;
 		}
@@ -254,15 +306,53 @@ public class CommPortIdentifier extends Object /* extends Vector? */
 	static public Enumeration getPortIdentifiers() 
 	{ 
 		if(debug) System.out.println("static CommPortIdentifier:getPortIdentifiers()");
-		CommPortIndex = null;
-		try 
-		{
-			CommDriver RXTXDriver = (CommDriver) Class.forName("gnu.io.RXTXCommDriver").newInstance();
-			RXTXDriver.initialize();
-		} 
-		catch (Throwable e) 
-		{
-			System.err.println(e + " thrown while loading " + "gnu.io.RXTXCommDriver");
+		//Do not allow anybody get any ports while we are re-initializing
+		//because the CommPortIndex points to invalid instances during that time
+		synchronized(Sync) {
+			//Remember old ports in order to restore them for ownership events later
+			HashMap oldPorts = new HashMap();
+			CommPortIdentifier p = CommPortIndex;
+			while(p!=null) {
+				oldPorts.put(p.PortName, p);
+				p = p.next;
+			}
+			CommPortIndex = null;
+			try 
+			{
+				//Initialize RXTX: This leads to detecting all ports
+				//and writing them into our CommPortIndex through our method
+				//{@link #addPortName(java.lang.String, int, gnu.io.CommDriver)}
+				//This works while lock on Sync is held
+				CommDriver RXTXDriver = (CommDriver) Class.forName("gnu.io.RXTXCommDriver").newInstance();
+				RXTXDriver.initialize();
+				//Restore old CommPortIdentifier objects where possible, 
+				//in order to support proper ownership event handling.
+				//Clients might still have references to old identifiers!
+				CommPortIdentifier curPort = CommPortIndex;
+				CommPortIdentifier prevPort = null;
+				while(curPort!=null) {
+					CommPortIdentifier matchingOldPort = (CommPortIdentifier)oldPorts.get(curPort.PortName);
+					if(matchingOldPort!=null && matchingOldPort.PortType == curPort.PortType) {
+						//replace new port by old one
+						matchingOldPort.RXTXDriver = curPort.RXTXDriver;
+						matchingOldPort.next = curPort.next;
+						if(prevPort==null) {
+							CommPortIndex = matchingOldPort;
+						} else {
+							prevPort.next = matchingOldPort;
+						}
+						prevPort = matchingOldPort;
+					} else {
+						prevPort = curPort;
+					}
+					curPort = curPort.next;
+				}
+			} 
+			catch (Throwable e) 
+			{
+				System.err.println(e + " thrown while loading " + "gnu.io.RXTXCommDriver");
+				System.err.flush();
+			}
 		}
 		return new CommPortEnumerator();
 	}
@@ -309,50 +399,82 @@ public class CommPortIdentifier extends Object /* extends Vector? */
 
 /*------------------------------------------------------------------------------
 	open()
-	accept:      application makeing the call and milliseconds to block
+	accept:      application making the call and milliseconds to block
                      during open.
 	perform:     open the port if possible
-	return:      CommPort if successfull
+	return:      CommPort if successful
 	exceptions:  PortInUseException if in use.
 	comments:
 ------------------------------------------------------------------------------*/
 	private boolean HideOwnerEvents;
 
-	public synchronized CommPort open(String TheOwner, int i) 
+	public CommPort open(String TheOwner, int i) 
 		throws gnu.io.PortInUseException 
 	{ 
 		if(debug) System.out.println("CommPortIdentifier:open("+TheOwner + ", " +i+")");
-		if (Available == false)
-		{
-			synchronized (Sync)
-			{
-				fireOwnershipEvent(CommPortOwnershipListener.PORT_OWNERSHIP_REQUESTED);
-				try
-				{
-					wait(i);
-				}
-				catch ( InterruptedException e ) { }
+		boolean isAvailable;
+		synchronized(this) {
+			isAvailable = this.Available;
+			if (isAvailable) {
+			    //assume ownership inside the synchronized block
+			    this.Available = false;
+			    this.Owner = TheOwner;
 			}
 		}
-		if (Available == false)
+		if (!isAvailable)
+		{
+			long waitTimeEnd = System.currentTimeMillis() + i;
+			//fire the ownership event outside the synchronized block
+			fireOwnershipEvent(CommPortOwnershipListener.PORT_OWNERSHIP_REQUESTED);
+			long waitTimeCurr;
+			synchronized(this) {
+				while(!Available && (waitTimeCurr=System.currentTimeMillis()) < waitTimeEnd) {
+					try
+					{
+						wait(waitTimeEnd - waitTimeCurr);
+					}
+					catch ( InterruptedException e )
+					{
+						Thread.currentThread().interrupt();
+						break;
+					}
+				}
+				isAvailable = this.Available;
+				if (isAvailable) {
+					//assume ownership inside the synchronized block
+					this.Available = false;
+					this.Owner = TheOwner;
+				}
+			}
+		}
+		if (!isAvailable)
 		{
 			throw new gnu.io.PortInUseException(getCurrentOwner());
 		}
-		if(commport == null)
-		{
-			commport = RXTXDriver.getCommPort(PortName,PortType);
-		}
-		if(commport != null)
-		{
-			Owner = TheOwner;
-			Available=false;
-			fireOwnershipEvent(CommPortOwnershipListener.PORT_OWNED);
-			return commport;
-		}
-		else
-		{
-			throw new gnu.io.PortInUseException(
-					native_psmisc_report_owner(PortName));
+		//At this point, the CommPortIdentifier is owned by us.
+		try {
+			if(commport == null)
+			{
+				commport = RXTXDriver.getCommPort(PortName,PortType);
+			}
+			if(commport != null)
+			{
+				fireOwnershipEvent(CommPortOwnershipListener.PORT_OWNED);
+				return commport;
+			}
+			else
+			{
+				throw new gnu.io.PortInUseException(
+						native_psmisc_report_owner(PortName));
+			}
+		} finally {
+			if(commport == null) {
+				//something went wrong reserving the commport -> unown the port
+				synchronized(this) {
+					this.Available = true;
+					this.Owner = null;
+				}
+			}
 		}
 	}
 /*------------------------------------------------------------------------------
@@ -379,14 +501,16 @@ public class CommPortIdentifier extends Object /* extends Vector? */
 	exceptions:   None
 	comments:     None
 ------------------------------------------------------------------------------*/
-	synchronized void internalClosePort() 
+	void internalClosePort() 
 	{
-		if(debug) System.out.println("CommPortIdentifier:internalClosePort()");
-		Owner = null;
-		Available = true;
-		commport = null;
-		/*  this tosses null pointer?? */
-		notifyAll();
+		synchronized(this) {
+			if(debug) System.out.println("CommPortIdentifier:internalClosePort()");
+			Owner = null;
+			Available = true;
+			commport = null;
+			/*  this tosses null pointer?? */
+			notifyAll();
+		}
 		fireOwnershipEvent(CommPortOwnershipListener.PORT_UNOWNED);
 	}
 /*------------------------------------------------------------------------------

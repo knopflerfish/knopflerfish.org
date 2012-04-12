@@ -1,20 +1,59 @@
 /*-------------------------------------------------------------------------
-|   rxtx is a native interface to serial ports in java.
-|   Copyright 1997-2006 by Trent Jarvi taj@www.linux.org.uk.
+|   RXTX License v 2.1 - LGPL v 2.1 + Linking Over Controlled Interface.
+|   RXTX is a native interface to serial ports in java.
+|   Copyright 1997-2008 by Trent Jarvi tjarvi@qbang.org and others who
+|   actually wrote it.  See individual source files for more information.
+|
+|   A copy of the LGPL v 2.1 may be found at
+|   http://www.gnu.org/licenses/lgpl.txt on March 4th 2007.  A copy is
+|   here for your convenience.
 |
 |   This library is free software; you can redistribute it and/or
-|   modify it under the terms of the GNU Library General Public
+|   modify it under the terms of the GNU Lesser General Public
 |   License as published by the Free Software Foundation; either
-|   version 2 of the License, or (at your option) any later version.
+|   version 2.1 of the License, or (at your option) any later version.
 |
 |   This library is distributed in the hope that it will be useful,
 |   but WITHOUT ANY WARRANTY; without even the implied warranty of
 |   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-|   Library General Public License for more details.
+|   Lesser General Public License for more details.
 |
-|   You should have received a copy of the GNU Library General Public
+|   An executable that contains no derivative of any portion of RXTX, but
+|   is designed to work with RXTX by being dynamically linked with it,
+|   is considered a "work that uses the Library" subject to the terms and
+|   conditions of the GNU Lesser General Public License.
+|
+|   The following has been added to the RXTX License to remove
+|   any confusion about linking to RXTX.   We want to allow in part what
+|   section 5, paragraph 2 of the LGPL does not permit in the special
+|   case of linking over a controlled interface.  The intent is to add a
+|   Java Specification Request or standards body defined interface in the 
+|   future as another exception but one is not currently available.
+|
+|   http://www.fsf.org/licenses/gpl-faq.html#LinkingOverControlledInterface
+|
+|   As a special exception, the copyright holders of RXTX give you
+|   permission to link RXTX with independent modules that communicate with
+|   RXTX solely through the Sun Microsytems CommAPI interface version 2,
+|   regardless of the license terms of these independent modules, and to copy
+|   and distribute the resulting combined work under terms of your choice,
+|   provided that every copy of the combined work is accompanied by a complete
+|   copy of the source code of RXTX (the version of RXTX used to produce the
+|   combined work), being distributed under the terms of the GNU Lesser General
+|   Public License plus this exception.  An independent module is a
+|   module which is not derived from or based on RXTX.
+|
+|   Note that people who make modified versions of RXTX are not obligated
+|   to grant this special exception for their modified versions; it is
+|   their choice whether to do so.  The GNU Lesser General Public License
+|   gives permission to release a modified version without this exception; this
+|   exception also makes it possible to release a modified version which
+|   carries forward this exception.
+|
+|   You should have received a copy of the GNU Lesser General Public
 |   License along with this library; if not, write to the Free
 |   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+|   All trademarks belong to their respective owners.
 --------------------------------------------------------------------------*/
 package gnu.io;
 import java.io.InputStream;
@@ -47,7 +86,7 @@ final public class RXTXPort extends SerialPort
 	{
 		try {
 			z = new Zystem();
-		} catch ( Exception e ) {};
+		} catch ( Exception e ) {}
 
 		if(debug ) 
 			z.reportln( "RXTXPort {}");
@@ -101,6 +140,7 @@ final public class RXTXPort extends SerialPort
 
 	/* dont close the file while accessing the fd */
 	int IOLocked = 0;
+	Object IOLockedMutex = new Object();
 
 	/** File descriptor */
 	private int fd = 0;
@@ -303,7 +343,7 @@ final public class RXTXPort extends SerialPort
 			z.reportln( "RXTXPort:disableReceiveFramming() called and returning (noop)");
 	}
 	/** 
-	*  @returns true if framing is enabled
+	*  @return true if framing is enabled
 	*/
 	public boolean isReceiveFramingEnabled()
 	{
@@ -517,7 +557,7 @@ final public class RXTXPort extends SerialPort
 	*  Line status methods
 	*/
 	/**
-	*  @returns true if DTR is set
+	*  @return true if DTR is set
 	*/
 	public native boolean isDTR();
 	/** 
@@ -811,27 +851,23 @@ final public class RXTXPort extends SerialPort
 			if (debug)
 				z.reportln( "	RXTXPort:calling monThread.join()");
 			try {
-				monThread.join(1000);
-			} catch (Exception ex) {
-				/* yikes */
-				ex.printStackTrace();
-			}
-			if (debug)
-				z.reportln( "	RXTXPort:waiting on isAlive()");
-			while( monThread.isAlive() )
+
+				// wait a reasonable moment for the death of the monitor thread
+				monThread.join(3000);
+			} catch (InterruptedException ex) {
+				// somebody called interrupt() on us (ie wants us to abort)
+				// we dont propagate InterruptedExceptions so lets re-set the flag 
+				Thread.currentThread().interrupt();
+				return;
+ 			}
+				
+			if ( debug && monThread.isAlive() )
 			{
-				if ( debug )
-					z.reportln( "	MonThread is still alive!");
-				try {
-					monThread.join(1000);
-					Thread.sleep( 1000 );
-				} catch( Exception e ){} 
-				//monThread.stop();
+				z.reportln( "	MonThread is still alive!");
+
 			}
 			
 		}
-		if (debug)
-			z.reportln( "	RXTXPort:calling gc()");
 		monThread = null;
 		SPEventListener = null;
 		MonitorThreadLock = false;
@@ -1011,20 +1047,32 @@ final public class RXTXPort extends SerialPort
 	/**
 	*/
 	boolean closeLock = false;
-	public synchronized void close()
+	public void close()
 	{
-		if (debug)
-			z.reportln( "RXTXPort:close( " + this.name + " )"); 
-		if( closeLock ) return;
-		closeLock = true;
-		while( IOLocked > 0 )
-		{
-			if( debug )
-				z.reportln("IO is locked " + IOLocked);
-			try {
-				Thread.sleep(500);
-			} catch( Exception e ) {}
+		synchronized (this) {
+			if (debug)
+				z.reportln( "RXTXPort:close( " + this.name + " )"); 
+
+			while( IOLocked > 0 )
+			{
+				if( debug )
+					z.reportln("IO is locked " + IOLocked);
+				try {
+					this.wait(500);
+				} catch( InterruptedException ie ) {
+					// somebody called interrupt() on us
+					// we obbey and return without without closing the socket
+					Thread.currentThread().interrupt();
+					return;
+				}
+			}
+
+			// we set the closeLock after the above check because we might
+			// have returned without proceeding
+			if( closeLock ) return;
+			closeLock = true;
 		}
+
 		if ( fd <= 0 )
 		{
 			z.reportln(  "RXTXPort:close detected bad File Descriptor" );
@@ -1081,25 +1129,23 @@ final public class RXTXPort extends SerialPort
 			{
 				return;
 			}
-			IOLocked++;
-			waitForTheNativeCodeSilly();
-			if ( fd == 0 )
-			{
-				IOLocked--;
-				throw new IOException();
+			synchronized (IOLockedMutex) {
+				IOLocked++;
 			}
-			try
-			{
+			try {
+				waitForTheNativeCodeSilly();
+				if ( fd == 0 )
+				{
+					throw new IOException();
+				}
 				writeByte( b, monThreadisInterrupted );
 				if (debug_write)
 					z.reportln( "Leaving RXTXPort:SerialOutputStream:write( int )");
+			} finally {
+				synchronized (IOLockedMutex) {
+					IOLocked--;
+				}
 			}
-			catch( IOException e )
-			{
-				IOLocked--;
-				throw e;
-			}
-			IOLocked--;
 		}
 	/**
 	*  @param b[]
@@ -1117,20 +1163,19 @@ final public class RXTXPort extends SerialPort
 				return;
 			}
 			if ( fd == 0 ) throw new IOException();
-			IOLocked++;
-			waitForTheNativeCodeSilly();
-			try
-			{
+			synchronized (IOLockedMutex) {
+				IOLocked++;
+			}
+			try {
+				waitForTheNativeCodeSilly();
 				writeArray( b, 0, b.length, monThreadisInterrupted );
 				if (debug_write)
 					z.reportln( "Leaving RXTXPort:SerialOutputStream:write(" +b.length  +")");
+			} finally {
+				synchronized(IOLockedMutex) {
+					IOLocked--;
+				}
 			}
-			catch( IOException e )
-			{
-				IOLocked--;
-				throw e;
-			}
-			IOLocked--;
 			
 		}
 	/**
@@ -1161,20 +1206,20 @@ final public class RXTXPort extends SerialPort
 			{
 				return;
 			}
-			IOLocked++;
-			waitForTheNativeCodeSilly();
+			synchronized (IOLockedMutex) {
+				IOLocked++;
+			}
 			try
 			{
+				waitForTheNativeCodeSilly();
 				writeArray( send, 0, len, monThreadisInterrupted );
 				if( debug_write )
 					z.reportln( "Leaving RXTXPort:SerialOutputStream:write(" + send.length + " " + off + " " + len + " " +") "  /*+ new String(send)*/ );
+			} finally {
+				synchronized (IOLockedMutex) {
+					IOLocked--;
+				}
 			}
-			catch( IOException e )
-			{
-				IOLocked--;
-				throw e;
-			}
-			IOLocked--;
 		}
 	/**
 	*/
@@ -1190,25 +1235,27 @@ final public class RXTXPort extends SerialPort
 				z.reportln( "RXTXPort:SerialOutputStream:flush() Leaving Interrupted");
 				return;
 			}
-			IOLocked++;
-			waitForTheNativeCodeSilly();
-			/* 
-			   this is probably good on all OS's but for now
-			   just sendEvent from java on Sol
-			*/
+			synchronized(IOLockedMutex) {
+				IOLocked++;
+			}
 			try
 			{
+				waitForTheNativeCodeSilly();
+				/* 
+				   this is probably good on all OS's but for now
+				   just sendEvent from java on Sol
+				*/
 				if ( nativeDrain( monThreadisInterrupted ) )
 					sendEvent( SerialPortEvent.OUTPUT_BUFFER_EMPTY, true );
 				if (debug)
 					z.reportln( "RXTXPort:SerialOutputStream:flush() leave");
 			}
-			catch( IOException e )
+			finally
 			{
-				IOLocked--;
-				throw e;
+				synchronized (IOLockedMutex) {
+					IOLocked--;
+				}
 			}
-			IOLocked--;
 		}
 	}
 
@@ -1239,14 +1286,15 @@ final public class RXTXPort extends SerialPort
 			{
 				z.reportln( "+++++++++ read() monThreadisInterrupted" );
 			}
-			IOLocked++;
-			if (debug_read_results)
-				z.reportln(  "RXTXPort:SerialInputStream:read() L" );
-			waitForTheNativeCodeSilly();
-			if (debug_read_results)
-				z.reportln(  "RXTXPort:SerialInputStream:read() N" );
-			try
-			{
+			synchronized (IOLockedMutex) {
+				IOLocked++;
+			}
+			try {
+				if (debug_read_results)
+					z.reportln(  "RXTXPort:SerialInputStream:read() L" );
+				waitForTheNativeCodeSilly();
+				if (debug_read_results)
+					z.reportln(  "RXTXPort:SerialInputStream:read() N" );
 				int result = readByte();
 				if (debug_read_results)
 					//z.reportln(  "RXTXPort:SerialInputStream:read() returns byte = " + result );
@@ -1255,7 +1303,9 @@ final public class RXTXPort extends SerialPort
 			}				
 			finally
 			{
-				IOLocked--;
+				synchronized (IOLockedMutex) {
+					IOLocked--;
+				}
 			}
 		}
 	/**
@@ -1280,10 +1330,12 @@ final public class RXTXPort extends SerialPort
 			{
 				return(0);
 			}
-			IOLocked++;
-			waitForTheNativeCodeSilly();
+			synchronized (IOLockedMutex) {
+				IOLocked++;
+			}
 			try
 			{
+				waitForTheNativeCodeSilly();
 				result = read( b, 0, b.length);
 				if (debug_read_results)
 					z.reportln(  "RXTXPort:SerialInputStream:read() returned " + result + " bytes" );
@@ -1291,7 +1343,9 @@ final public class RXTXPort extends SerialPort
 			}
 			finally
 			{
-				IOLocked--;
+				synchronized (IOLockedMutex) {
+					IOLocked--;
+				}
 			}
 		}
 /*
@@ -1391,10 +1445,12 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 					z.reportln( "RXTXPort:SerialInputStream:read() Interrupted");
 				return(0);
 			}
-			IOLocked++;
-			waitForTheNativeCodeSilly();
+			synchronized (IOLockedMutex) {
+				IOLocked++;
+			}
 			try
 			{
+				waitForTheNativeCodeSilly();
 				result = readArray( b, off, Minimum);
 				if (debug_read_results)
 					z.reportln( "RXTXPort:SerialInputStream:read(" + b.length + " " + off + " " + len + ") returned " + result + " bytes"  /*+ new String(b) */);
@@ -1402,7 +1458,9 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 			}
 			finally
 			{
-				IOLocked--;
+				synchronized (IOLockedMutex) {
+					IOLocked--;
+				}
 			}
 		}
 
@@ -1500,10 +1558,12 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 					z.reportln( "RXTXPort:SerialInputStream:read() Interrupted");
 				return(0);
 			}
-			IOLocked++;
-			waitForTheNativeCodeSilly();
+			synchronized (IOLockedMutex) {
+				IOLocked++;
+			}
 			try
 			{
+				waitForTheNativeCodeSilly();
 				result = readTerminatedArray( b, off, Minimum, t );
 				if (debug_read_results)
 					z.reportln( "RXTXPort:SerialInputStream:read(" + b.length + " " + off + " " + len + ") returned " + result + " bytes"  /*+ new String(b) */);
@@ -1511,7 +1571,9 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 			}
 			finally
 			{
-				IOLocked--;
+				synchronized (IOLockedMutex) {
+					IOLocked--;
+				}
 			}
 		}
 	/**
@@ -1526,7 +1588,9 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 			}
 			if ( debug_verbose )
 				z.reportln( "RXTXPort:available() called" );
-			IOLocked++;
+			synchronized (IOLockedMutex) {
+				IOLocked++;
+			}
 			try
 			{
 				int r = nativeavailable();
@@ -1537,7 +1601,9 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 			}
 			finally
 			{
-				IOLocked--;
+				synchronized (IOLockedMutex) {
+					IOLocked--;
+				}
 			}
 		}
 	}
@@ -1839,8 +1905,8 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 	*
 	*  find the fd and return RTS without using a Java open() call
 	*
-	*  @param String port
-	*  @return boolean true if asserted
+	*  @param port
+	*  @return true if asserted
 	*  @throws UnsupportedCommOperationException;
 	*
 	*/
@@ -1859,8 +1925,8 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 	*
 	*  find the fd and return CD without using a Java open() call
 	*
-	*  @param String port
-	*  @return boolean true if asserted
+	*  @param port
+	*  @return true if asserted
 	*  @throws UnsupportedCommOperationException;
 	*
 	*/
@@ -1879,8 +1945,8 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 	*
 	*  find the fd and return CTS without using a Java open() call
 	*
-	*  @param String port
-	*  @return boolean true if asserted
+	*  @param port
+	*  @return true if asserted
 	*  @throws UnsupportedCommOperationException;
 	*
 	*/
@@ -1899,8 +1965,8 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 	*
 	*  find the fd and return DSR without using a Java open() call
 	*
-	*  @param String port
-	*  @return boolean true if asserted
+	*  @param port
+	*  @return true if asserted
 	*  @throws UnsupportedCommOperationException;
 	*
 	*/
@@ -1919,8 +1985,8 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 	*
 	*  find the fd and return DTR without using a Java open() call
 	*
-	*  @param String port
-	*  @return boolean true if asserted
+	*  @param port
+	*  @return true if asserted
 	*  @throws UnsupportedCommOperationException;
 	*
 	*/
@@ -1939,8 +2005,8 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 	*
 	*  find the fd and return RI without using a Java open() call
 	*
-	*  @param String port
-	*  @return boolean true if asserted
+	*  @param port
+	*  @return true if asserted
 	*  @throws UnsupportedCommOperationException;
 	*
 	*/
@@ -2071,9 +2137,9 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 	/**
 	*  Extension to CommAPI.  Set Baud Base to 38600 on Linux and W32
 	*  before using.
-	*  @param int BaudBase The clock frequency divided by 16.  Default
+	*  @param BaudBase The clock frequency divided by 16.  Default
 	*  BaudBase is 115200.
-	*  @return boolean true on success
+	*  @return true on success
 	*  @throws UnsupportedCommOperationException, IOException
 	*/
 
@@ -2088,7 +2154,7 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 
 	/**
 	*  Extension to CommAPI
-	*  @return int BaudBase
+	*  @return BaudBase
 	*  @throws UnsupportedCommOperationException, IOException
 	*/
 
@@ -2103,7 +2169,7 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 	/**
 	*  Extension to CommAPI.  Set Baud Base to 38600 on Linux and W32
 	*  before using.
-	*  @param int Divisor;
+	*  @param Divisor
 	*  @throws UnsupportedCommOperationException, IOException
 	*/
 
@@ -2117,7 +2183,7 @@ Documentation is at http://java.sun.com/products/jdk/1.2/docs/api/java/io/InputS
 
 	/**
 	*  Extension to CommAPI
-	*  @returns int Divisor;
+	*  @return Divisor;
 	*  @throws UnsupportedCommOperationException, IOException
 	*/
 

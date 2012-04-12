@@ -217,6 +217,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     the file log is not enabled.
 
 
+* RXTX 2.2.0.pre2
+
+  - Updated rxtxcomm API to 2.2.0.pre2 version.
+
+
+* RXTX linux-x86 2.2.0.pre2
+
+  - Added 2.2.0pre2 rxtxcomm native code fragment for linux-x86.
+
+
 * SCR Commands(scrcommands) 1.0.0
 
   - New bundle that provides a console command group for controlling
