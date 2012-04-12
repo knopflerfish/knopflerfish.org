@@ -43,6 +43,11 @@ NEW version to be used with KF 3
    Fragment bundle containing the native code for a linux 2.6 system
    running on an armv4t based system.
 
+ rxtxcomm-linux-x86
+
+   Fragment bundle containing the native code for a linux 2.6 system
+   running on a x86 based system.
+
 
  Note! Support for javax.comm, more supported systems and documentation
        will be added later.
