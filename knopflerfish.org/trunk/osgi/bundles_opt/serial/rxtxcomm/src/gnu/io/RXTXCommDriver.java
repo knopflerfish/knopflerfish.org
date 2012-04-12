@@ -1,23 +1,61 @@
 /*-------------------------------------------------------------------------
-|   A wrapper to convert RXTX into Linux Java Comm
+|   RXTX License v 2.1 - LGPL v 2.1 + Linking Over Controlled Interface.
+|   RXTX is a native interface to serial ports in java.
 |   Copyright 1998 Kevin Hester, kevinh@acm.org
-|   Copyright 2000-2006 Trent Jarvi, taj@www.linux.org.uk
+|   Copyright 2000-2008 Trent Jarvi tjarvi@qbang.org and others who
+|   actually wrote it.  See individual source files for more information.
+|
+|   A copy of the LGPL v 2.1 may be found at
+|   http://www.gnu.org/licenses/lgpl.txt on March 4th 2007.  A copy is
+|   here for your convenience.
 |
 |   This library is free software; you can redistribute it and/or
-|   modify it under the terms of the GNU Library General Public
+|   modify it under the terms of the GNU Lesser General Public
 |   License as published by the Free Software Foundation; either
-|   version 2 of the License, or (at your option) any later version.
+|   version 2.1 of the License, or (at your option) any later version.
 |
 |   This library is distributed in the hope that it will be useful,
 |   but WITHOUT ANY WARRANTY; without even the implied warranty of
 |   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-|   Library General Public License for more details.
+|   Lesser General Public License for more details.
 |
-|   You should have received a copy of the GNU Library General Public
+|   An executable that contains no derivative of any portion of RXTX, but
+|   is designed to work with RXTX by being dynamically linked with it,
+|   is considered a "work that uses the Library" subject to the terms and
+|   conditions of the GNU Lesser General Public License.
+|
+|   The following has been added to the RXTX License to remove
+|   any confusion about linking to RXTX.   We want to allow in part what
+|   section 5, paragraph 2 of the LGPL does not permit in the special
+|   case of linking over a controlled interface.  The intent is to add a
+|   Java Specification Request or standards body defined interface in the 
+|   future as another exception but one is not currently available.
+|
+|   http://www.fsf.org/licenses/gpl-faq.html#LinkingOverControlledInterface
+|
+|   As a special exception, the copyright holders of RXTX give you
+|   permission to link RXTX with independent modules that communicate with
+|   RXTX solely through the Sun Microsytems CommAPI interface version 2,
+|   regardless of the license terms of these independent modules, and to copy
+|   and distribute the resulting combined work under terms of your choice,
+|   provided that every copy of the combined work is accompanied by a complete
+|   copy of the source code of RXTX (the version of RXTX used to produce the
+|   combined work), being distributed under the terms of the GNU Lesser General
+|   Public License plus this exception.  An independent module is a
+|   module which is not derived from or based on RXTX.
+|
+|   Note that people who make modified versions of RXTX are not obligated
+|   to grant this special exception for their modified versions; it is
+|   their choice whether to do so.  The GNU Lesser General Public License
+|   gives permission to release a modified version without this exception; this
+|   exception also makes it possible to release a modified version which
+|   carries forward this exception.
+|
+|   You should have received a copy of the GNU Lesser General Public
 |   License along with this library; if not, write to the Free
 |   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+|   All trademarks belong to their respective owners.
 --------------------------------------------------------------------------*/
-
 /* Martin Pool <mbp@linuxcare.com> added support for explicitly-specified
  * lists of ports, October 2000. */
 /* Joseph Goldstone <joseph@lp.com> reorganized to support registered ports,
@@ -38,6 +76,7 @@ public class RXTXCommDriver implements CommDriver
 
 	private final static boolean debug = false;
 	private final static boolean devel = false;
+	private final static boolean noVersionOutput = "true".equals( System.getProperty( "gnu.io.rxtx.NoVersionOutput" ) );
 
 	static
 	{
@@ -65,10 +104,13 @@ public class RXTXCommDriver implements CommDriver
 		}
 		if ( devel )
 		{
-			System.out.println("Stable Library");
-			System.out.println("=========================================");
-			System.out.println("Native lib Version = " + LibVersion );
-			System.out.println("Java lib Version   = " + JarVersion );
+			if ( ! noVersionOutput )
+			{
+				System.out.println("Stable Library");
+				System.out.println("=========================================");
+				System.out.println("Native lib Version = " + LibVersion );
+				System.out.println("Java lib Version   = " + JarVersion );
+			}
 		}
 
 		if ( ! JarVersion.equals( LibVersion ) )
@@ -117,7 +159,7 @@ public class RXTXCommDriver implements CommDriver
 		for(int j=0;j<CandidatePortPrefixes.length;j++){
 			if(isPortPrefixValid(CandidatePortPrefixes[j])) {
 				ValidPortPrefixes[i++]=
-					new String(CandidatePortPrefixes[j]);
+					CandidatePortPrefixes[j];
 			}
 		}
 		String[] returnArray=new String[i];
@@ -150,7 +192,7 @@ public class RXTXCommDriver implements CommDriver
 	}
 
 	/** handle solaris/sunos /dev/cua/a convention */
-	private void checkSolaris(String PortName, int PortType)
+		private void checkSolaris(String PortName, int PortType)
 	{
 		char p[] =  { 91 };
 		for( p[0] =97 ;p[0] < 123; p[0]++ )
@@ -164,8 +206,20 @@ public class RXTXCommDriver implements CommDriver
 				);
 			}
 		}
+		/** check for 0-9 in case we have them (Solaris USB) */
+		for( p[0] =48 ;p[0] <= 57; p[0]++ )
+		{
+			if (testRead(PortName.concat(new String(p)),PortType))
+			{
+				CommPortIdentifier.addPortName(
+						PortName.concat(new String(p)),
+						PortType,
+						this
+				);
+			}
+		}
 	}
-	private void registerValidPorts(
+        private void registerValidPorts(
 		String CandidateDeviceNames[],
 		String ValidPortPrefixes[],
 		int PortType
@@ -233,14 +287,11 @@ public class RXTXCommDriver implements CommDriver
 					String PortName;
 					if(osName.toLowerCase().indexOf("windows") == -1 )
 					{
-						PortName =
-						new String(deviceDirectory +
-							C );
+						PortName = deviceDirectory + C;
 					}
 					else
 					{
-						PortName =
-						new String( C );
+						PortName = C;
 					}
 					if (debug)
 					{
@@ -351,6 +402,7 @@ public class RXTXCommDriver implements CommDriver
 	private boolean registerSpecifiedPorts(int PortType)
 	{
 		String val = null;
+		Properties origp = System.getProperties();//save system properties
 
 		try
 		    {
@@ -391,10 +443,13 @@ public class RXTXCommDriver implements CommDriver
 				System.out.println("unknown port type "+PortType+" passed to RXTXCommDriver.registerSpecifiedPorts()");
 		}
 
+		System.setProperties(origp); //recall saved properties
 		if (val != null) {
 			addSpecifiedPorts(val, PortType);
 			return true;
-		} else return false;
+		} else {
+			return false;
+		}
 	}
 
    /*
@@ -420,11 +475,11 @@ public class RXTXCommDriver implements CommDriver
 			String[] temp = new String[259];
 			for( int i = 1; i <= 256; i++ )
 			{
-				temp[i - 1] = new String( "COM" + i );
+				temp[i - 1] = "COM" + i;
 			}
 			for( int i = 1; i <= 3; i++ )
 			{
-				temp[i + 255] = new String( "LPT" + i );
+				temp[i + 255] = "LPT" + i;
 			}
 			CandidateDeviceNames=temp;
 			}
@@ -470,12 +525,12 @@ public class RXTXCommDriver implements CommDriver
 				File dev = null;
 
 				dev = new File( "/dev/term" );
-				if( dev.list().length > 0 );
-					term[l++] = new String( "term/" );
+				if( dev.list().length > 0 )
+					term[l++] ="term/";
 	/*
 				dev = new File( "/dev/cua0" );
-				if( dev.list().length > 0 );
-					term[l++] = new String( "cua/" );
+				if( dev.list().length > 0 )
+					term[l++] = "cua/";
 	*/
 				String[] temp = new String[l];
 				for(l--;l >= 0;l--)
@@ -521,7 +576,9 @@ public class RXTXCommDriver implements CommDriver
 						String[] Temp = {
 						"ttyS", // linux Serial Ports
 						"ttySA", // for the IPAQs
-						"ttyUSB" // for USB frobs
+						"ttyUSB", // for USB frobs
+						"rfcomm",       // bluetooth serial device
+						"ttyircomm", // linux IrCommdevices (IrDA serial emu)
 						};
 						CandidatePortPrefixes=Temp;
 					}
@@ -538,6 +595,7 @@ public class RXTXCommDriver implements CommDriver
 						"ttyircomm", // linux IrCommdevices (IrDA serial emu)
 						"ttycosa0c", // linux COSA/SRP synchronous serial card
 						"ttycosa1c", // linux COSA/SRP synchronous serial card
+						"ttyACM",// linux CDC ACM devices
 						"ttyC", // linux cyclades cards
 						"ttyCH",// linux Chase Research AT/PCI-Fast serial card
 						"ttyD", // linux Digiboard serial card
@@ -784,7 +842,7 @@ public class RXTXCommDriver implements CommDriver
 	/**
 	*  @param PortName The name of the port the OS recognizes
 	*  @param PortType CommPortIdentifier.PORT_SERIAL or PORT_PARALLEL
-	*  @returns CommPort
+	*  @return CommPort
 	*  getCommPort() will be called by CommPortIdentifier from its
 	*  openPort() method. PortName is a string that was registered earlier
 	*  using the CommPortIdentifier.addPortName() method. getCommPort()
