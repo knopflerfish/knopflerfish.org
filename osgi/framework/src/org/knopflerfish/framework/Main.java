@@ -667,7 +667,7 @@ public class Main
               bl = new Bundle[] { framework.getBundleContext().getBundle(getBundleID(framework, args[i+1])) };
             }
             for(int n = 0; bl != null && n < bl.length; n++) {
-              final Bundle b = bl[i];
+              final Bundle b = bl[n];
               b.update();
               println("Updated: ", b);
             }
