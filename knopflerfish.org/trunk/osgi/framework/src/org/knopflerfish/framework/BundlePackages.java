@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -405,12 +405,9 @@ class BundlePackages {
 
 
   /**
-   * Get a list of all BundlePackages that exports package <code>pkg</code> that
-   * comes from bundles that we have required, in correct order. Correct order
-   * is a depth first search order.
+   * Get all RequiredBundle for this BundlePackages.
    * 
-   * @param pkg String with package name we are searching for, if null get all.
-   * @return List of required BundlePackages or null we don't require any
+   * @return Iterator of RequireBundle or null we don't require any
    *         bundles.
    */
   Iterator getRequire() {
@@ -549,7 +546,8 @@ class BundlePackages {
 
 
   /**
-   * Get an iterator over all exported packages.
+   * Get an iterator over all exported packages sorted
+   * according to epComp.
    * 
    * @return An Iterator over ExportPkg.
    */
@@ -561,7 +559,7 @@ class BundlePackages {
         for (Iterator i = fragments.values().iterator(); i.hasNext();) {
           iters.add(((BundlePackages)i.next()).getExports());
         }
-        return new IteratorIterator(iters);
+        return new IteratorIteratorSorted(iters, epComp);
       }
     } else {
       return exports.iterator();
@@ -615,7 +613,8 @@ class BundlePackages {
 
 
   /**
-   * Get an iterator over all static imported packages.
+   * Get an iterator over all static imported packages sorted
+   * according to ipComp.
    * 
    * @return An Iterator over ImportPkg.
    */
@@ -627,7 +626,7 @@ class BundlePackages {
         for (Iterator i = fragments.values().iterator(); i.hasNext();) {
           iters.add(((BundlePackages)i.next()).getImports());
         }
-        return new IteratorIterator(iters);
+        return new IteratorIteratorSorted(iters, ipComp);
       }
     } else {
       return imports.iterator();
@@ -687,7 +686,10 @@ class BundlePackages {
           ImportPkg ip = (ImportPkg)i.next();
           if (ip.provider != null) { // <=> optional import with unresolved
                                      // provider
-            okImports.add(ip);
+            int ii = Util.binarySearch(okImports, ipComp, ip);
+            if (ii < 0) {
+              okImports.add(-ii - 1, ip);
+            }
           }
         }
       } else {
