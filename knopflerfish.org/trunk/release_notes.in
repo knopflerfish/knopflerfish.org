@@ -192,6 +192,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-version of this bundle now imports all packages it exports.
 
 
+* Framework Commands 3.0.4
+
+  - The call command has been updated. It is now possible to call a method
+    in a service interface that is inherited.
+
+
 * HttpClientConnector 3.1.1
 
   - Added support for HTTP "PUT" method.
