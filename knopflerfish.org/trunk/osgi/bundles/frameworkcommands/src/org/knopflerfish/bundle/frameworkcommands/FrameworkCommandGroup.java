@@ -619,7 +619,7 @@ public class FrameworkCommandGroup
     // Fallback to use the original class if the one given by si was not found.
     if (null==ifClass) ifClass = clazz;
 
-    Method[] methods = ifClass.getDeclaredMethods();
+    Method[] methods = ifClass.getMethods();
     Vector v = new Vector();
     for (int i = 0; i < methods.length; i++) {
       if (methods[i].getName().equals(name)
