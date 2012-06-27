@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -300,20 +300,16 @@ class PermissionOps {
 
 
   //
-  // ServiceReferenceImpl secure operations
-  //
-
-  Object callGetService(final ServiceFactory sf, final Bundle b, final ServiceRegistration sr) {
-    return sf.getService(b, sr);
-  }
-
-
-  //
   // ServiceRegisterationImpl secure operations
   //
 
-  void callUnregister0(final ServiceRegistrationImpl sr) {
-    sr.unregister0();
+  Object callGetService(final ServiceRegistrationImpl sr, final Bundle b) {
+    return ((ServiceFactory)sr.service).getService(b, sr);
+  }
+
+
+  void callUngetService(final ServiceRegistrationImpl sr, final Bundle b, final Object instance) {
+    ((ServiceFactory)sr.service).ungetService(b, sr, instance);
   }
 
 

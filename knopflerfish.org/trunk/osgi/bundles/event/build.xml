@@ -24,14 +24,13 @@
   <property name="bmfa.Bundle-Name"           value="Event-Admin"/>
   <property name="bmfa.Bundle-Description"    value="Event Admin"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="3.0.5"/>
+  <property name="bmfa.Bundle-Version"        value="3.0.6"/>
   <property name="bmfa.Bundle-APIVendor"      value="OSGi"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-DocURL"
 	    value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=event/index.html"/>
   <property name="bmfa.Bundle-SubversionURL"
 	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/event/"/>
-
 
   <property name="bmfa.Export-Package"
             value="org.osgi.service.event;version=1.2"/>

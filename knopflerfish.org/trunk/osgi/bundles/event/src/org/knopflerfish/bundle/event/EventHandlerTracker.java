@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,8 @@ public class EventHandlerTracker implements ServiceTrackerCustomizer {
 
   public void close() {
     tracker.close();
+    topicsToHandlers.clear();
+    wildcardsToHandlers.clear();
   }
 
 

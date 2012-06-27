@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -332,7 +332,7 @@ class Services {
       if (!secure.okGetServicePerms(sri)) {
         continue; //sr not part of returned set
       }
-      if (filter == null || ldap.evaluate(sr.properties, false)) {
+      if (filter == null || ldap.evaluate(sr.getProperties(), false)) {
         if (bundle != null) {
           String[] classes = (String[]) services.get(sr);
           for (int i = 0; i < classes.length; i++) {
@@ -371,7 +371,7 @@ class Services {
    * @param sr The ServiceRegistration object that is registered.
    */
   synchronized void removeServiceRegistration(ServiceRegistrationImpl sr) {
-    String[] classes = (String[]) sr.properties.get(Constants.OBJECTCLASS);
+    String[] classes = (String[]) sr.getProperty(Constants.OBJECTCLASS);
     services.remove(sr);
     for (int i = 0; i < classes.length; i++) {
       ArrayList s = (ArrayList) classServices.get(classes[i]);

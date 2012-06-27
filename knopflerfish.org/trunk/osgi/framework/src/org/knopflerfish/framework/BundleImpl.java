@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -625,7 +625,7 @@ public class BundleImpl implements Bundle {
       synchronized (fwCtx.packages) {
         final boolean wasActive = state == ACTIVE;
 
-        switch (getUpdatedState()) {
+        switch (getState()) {
         case ACTIVE:
           stop(STOP_TRANSIENT);
           // Fall through
@@ -1712,10 +1712,8 @@ public class BundleImpl implements Bundle {
     }
     Set s = fwCtx.services.getUsedByBundle(this);
     for (Iterator i = s.iterator(); i.hasNext();) {
-      ServiceReferenceImpl sri = ((ServiceRegistrationImpl)i.next()).reference;
-      if (sri != null) {
-        sri.ungetService(this, false);
-      }
+      ServiceRegistrationImpl sri = (ServiceRegistrationImpl)i.next();
+      sri.ungetService(this, false);
     }
   }
 

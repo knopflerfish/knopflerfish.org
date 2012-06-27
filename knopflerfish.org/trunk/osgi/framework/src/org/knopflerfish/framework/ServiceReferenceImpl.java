@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,13 +73,7 @@ public class ServiceReferenceImpl implements ServiceReference
    * @see org.osgi.framework.ServiceReference#getProperty
    */
   public Object getProperty(String key) {
-    synchronized (registration.properties) {
-      if (registration.properties != null) {
-        return cloneObject(registration.properties.get(key));
-      } else {
-        return null;
-      }
-    }
+    return cloneObject(registration.getProperty(key));
   }
 
 
@@ -89,9 +83,7 @@ public class ServiceReferenceImpl implements ServiceReference
    * @see org.osgi.framework.ServiceReference#getPropertyKeys
    */
   public String[] getPropertyKeys() {
-    synchronized (registration.properties) {
-      return registration.properties.keyArray();
-    }
+    return registration.getProperties().keyArray();
   }
 
 
@@ -182,15 +174,7 @@ public class ServiceReferenceImpl implements ServiceReference
    * @since 1.1
    */
   public Bundle[] getUsingBundles() {
-    synchronized (registration.properties) {
-      if (registration.reference != null && registration.dependents.size() > 0) {
-        Set bs = registration.dependents.keySet();
-        Bundle[] res =  new Bundle[bs.size()];
-        return (Bundle[])bs.toArray(res);
-      } else {
-        return null;
-      }
-    }
+    return registration.getUsingBundles();
   }
 
   //
@@ -204,60 +188,8 @@ public class ServiceReferenceImpl implements ServiceReference
    * @return Service requested or null in case of failure.
    */
   Object getService(final BundleImpl bundle) {
-    Object s = null;
-    synchronized (registration.properties) {
-      if (registration.available) {
-        bundle.fwCtx.perm.checkGetServicePerms(this);
-        Integer ref = (Integer)registration.dependents.get(bundle);
-        if (ref == null) {
-          String[] classes =
-            (String[])registration.properties.get(Constants.OBJECTCLASS);
-          registration.dependents.put(bundle, new Integer(1));
-          if (registration.service instanceof ServiceFactory) {
-            try {
-              s = bundle.fwCtx.perm.callGetService
-                ((ServiceFactory)registration.service, bundle, registration);
-            } catch (Throwable pe) {
-              bundle.fwCtx.listeners.frameworkError
-                (registration.bundle,
-                 new ServiceException("ServiceFactory throw an exception",
-                                      ServiceException.FACTORY_EXCEPTION, pe));
-              return null;
-            }
-            if (s == null) {
-              bundle.fwCtx.listeners.frameworkError
-                (registration.bundle,
-                 new ServiceException("ServiceFactory produced null",
-                                      ServiceException.FACTORY_ERROR));
-              return null;
-            }
-            for (int i = 0; i < classes.length; i++) {
-              final String cls = classes[i];
-              if (!registration.bundle.fwCtx.services.checkServiceClass(s, cls)) {
-                bundle.fwCtx.listeners.frameworkError
-                  (registration.bundle,
-                   new ServiceException("ServiceFactory produced an object " +
-                                        "that did not implement: " + cls,
-                                        ServiceException.FACTORY_ERROR));
-                return null;
-              }
-            }
-            registration.serviceInstances.put(bundle, s);
-          } else {
-            s = registration.service;
-          }
-        } else {
-          int count = ref.intValue();
-          registration.dependents.put(bundle, new Integer(count + 1));
-          if (registration.service instanceof ServiceFactory) {
-            s = registration.serviceInstances.get(bundle);
-          } else {
-            s = registration.service;
-          }
-        }
-      }
-    }
-    return s;
+    bundle.fwCtx.perm.checkGetServicePerms(this);
+    return registration.getService(bundle);
   }
 
 
@@ -265,50 +197,10 @@ public class ServiceReferenceImpl implements ServiceReference
    * Unget the service object.
    *
    * @param bundle Bundle who wants remove service.
-   * @param checkRefCounter If true decrement refence counter and remove service
-   *                        if we reach zero. If false remove service without
-   *                        checking refence counter.
-   * @return True if service was remove or false if only refence counter was
-   *         decremented.
+   * @return True if service was used, otherwise false.
    */
-  boolean ungetService(BundleImpl bundle, boolean checkRefCounter) {
-    synchronized (registration.properties) {
-      boolean hadReferences = false;
-      if (registration.reference != null) {
-        boolean removeService = false;
-
-        Object countInteger = registration.dependents.get(bundle);
-        int count = countInteger != null ? ((Integer) countInteger).intValue() : 0;
-        if (count > 0) {
-          hadReferences = true;
-        }
-
-        if(checkRefCounter) {
-            if (count > 1) {
-              registration.dependents.put(bundle, new Integer(count - 1));
-            } else if(count == 1) {
-                removeService = true;
-            }
-        } else {
-          removeService = true;
-        }
-
-        if(removeService) {
-          Object sfi = registration.serviceInstances.remove(bundle);
-          if (sfi != null) {
-            try {
-              ((ServiceFactory) registration.service).ungetService(bundle,
-                  registration, sfi);
-            } catch (Throwable e) {
-              bundle.fwCtx.listeners.frameworkError(registration.bundle,
-                  e);
-            }
-          }
-          registration.dependents.remove(bundle);
-        }
-      }
-      return hadReferences;
-    }
+  boolean ungetService(BundleImpl bundle) {
+    return registration.ungetService(bundle, true);
   }
 
 
@@ -319,7 +211,7 @@ public class ServiceReferenceImpl implements ServiceReference
    *         if service has been removed.
    */
   PropertiesDictionary getProperties() {
-    return registration.properties;
+    return registration.getProperties();
   }
 
   //
