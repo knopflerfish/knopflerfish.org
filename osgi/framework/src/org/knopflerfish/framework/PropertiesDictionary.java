@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,12 +116,9 @@ class PropertiesDictionary extends Dictionary
 
 
   public String [] keyArray() {
-    if (keys.length != size) {
-      String [] nkeys = new String[size];
-      System.arraycopy(keys, 0, nkeys, 0, size);
-      keys = nkeys;
-    }
-    return (String [])keys.clone();
+    String [] nkeys = new String[size];
+    System.arraycopy(keys, 0, nkeys, 0, size);
+    return nkeys;
   }
 
 

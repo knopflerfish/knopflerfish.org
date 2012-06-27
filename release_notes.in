@@ -10,7 +10,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.1.17
+* Framework 5.1.18
+
+  - Fixed dead lock problem with service listeners.
+    http://sourceforge.net/tracker/?func=detail&aid=3475479&group_id=82798&atid=567241
+  - Don't resolve bundle when doing an update.
+
+  Framework 5.1.17
 
   - Fixed faulty loop variable when using "-update <bid>" command.
   - Fixed problem with import package for fragments.
@@ -33,7 +39,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-bundle now imports all packages it exports.
 
 
-* CM 3.0.2
+* CM 3.0.3
+  
+  - Removed unnecessary update calls introduced in 3.0.2.
+
+
+  CM 3.0.2
   
   - The CM bundle now uses synchronous bundle listeners when
     updating location data.
@@ -51,8 +62,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-bundle now imports all packages it exports.
 
 
-* Event Admin 3.0.5
-  
+* Event Admin 3.0.6
+ 
+  - Removed spurious NullPointerException during shutdown.
+
+  Event Admin 3.0.5
+ 
   - Removed three possible dead-locks between the Log-service and the
     Event Admin service that could happen when DEBUG-level logging was
     enabled. For details see

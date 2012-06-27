@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -551,28 +551,23 @@ class SecurePermissionOps extends PermissionOps {
     });
   }
 
-
   //
-  // ServiceReferenceImpl secure operations
+  // ServiceRegisterationImpl secure operations
   //
 
-  Object callGetService(final ServiceFactory sf, final Bundle b, final ServiceRegistration sr) {
+  Object callGetService(final ServiceRegistrationImpl sr, final Bundle b) {
     return AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        return sf.getService(b, sr);
+        return ((ServiceFactory)sr.service).getService(b, sr);
       }
     });
   }
 
 
-  //
-  // ServiceRegisterationImpl secure operations
-  //
-
-  void callUnregister0(final ServiceRegistrationImpl sr) {
+  void callUngetService(final ServiceRegistrationImpl sr, final Bundle b, final Object instance) {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        sr.unregister0();
+        ((ServiceFactory)sr.service).ungetService(b, sr, instance);
         return null;
       }
     });

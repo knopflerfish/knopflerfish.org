@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,24 +65,29 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   /**
    * Service properties.
    */
-  PropertiesDictionary properties;
+  private PropertiesDictionary properties;
 
   /**
    * Bundles dependent on this service. Integer is used as
    * reference counter, counting number of unbalanced getService().
    */
-  HashMap /*Bundle->Integer*/ dependents = new HashMap();
+  private Hashtable /*Bundle->Integer*/ dependents = new Hashtable();
 
   /**
    * Object instances that factory has produced.
    */
-  HashMap /*Bundle->Object*/ serviceInstances = new HashMap();
+  private HashMap /*Bundle->Object*/ serviceInstances = new HashMap();
+
+  /**
+   * Unget in progress for bundle in set.
+   */
+  private HashSet /*Bundle*/ ungetInProgress = new HashSet();
 
   /**
    * Is service available. I.e., if <code>true</code> then holders
    * of a ServiceReference for the serivice are allowed to get it.
    */
-  volatile boolean available;
+  private volatile boolean available;
 
   /**
    * Lock object for synchronous event delivery.
@@ -94,7 +99,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * unregistration of this service have started but are not yet
    * finished.
    */
-  volatile boolean unregistering = false;
+  private volatile boolean unregistering = false;
 
 
   /**
@@ -138,11 +143,11 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    */
   public void setProperties(Dictionary props) {
     synchronized (eventLock) {
-      Set before;
-      // TBD, optimize the locking of services
-      synchronized (bundle.fwCtx.services) {
-        synchronized (properties) {
-          if (available) {
+      if (available) {
+        Set before;
+        // TBD, optimize the locking of services
+        synchronized (bundle.fwCtx.services) {
+          synchronized (properties) {
             // NYI! Optimize the MODIFIED_ENDMATCH code
             Object old_rank = properties.get(Constants.SERVICE_RANKING);
             before = bundle.fwCtx.listeners.getMatchingServiceListeners(reference);
@@ -154,22 +159,22 @@ public class ServiceRegistrationImpl implements ServiceRegistration
                 !((Integer)new_rank).equals(old_rank)) {
               bundle.fwCtx.services.updateServiceRegistrationOrder(this, classes);
             }
-          } else {
-            throw new IllegalStateException("Service is unregistered");
           }
         }
-      }
-      bundle.fwCtx.perm
-        .callServiceChanged(bundle.fwCtx,
-                            bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
-                            new ServiceEvent(ServiceEvent.MODIFIED, reference),
-                            before);
-      if (!before.isEmpty()) {
         bundle.fwCtx.perm
           .callServiceChanged(bundle.fwCtx,
-                              before,
-                              new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, reference),
-                              null);
+                              bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+                              new ServiceEvent(ServiceEvent.MODIFIED, reference),
+                              before);
+        if (!before.isEmpty()) {
+          bundle.fwCtx.perm
+            .callServiceChanged(bundle.fwCtx,
+                                before,
+                                new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, reference),
+                                null);
+        }
+      } else {
+        throw new IllegalStateException("Service is unregistered");
       }
     }
   }
@@ -202,10 +207,14 @@ public class ServiceRegistrationImpl implements ServiceRegistration
                             null);
     }
     synchronized (eventLock) {
+      available = false;
+      Bundle [] using = getUsingBundles();
+      if (using != null) {
+        for (int i = 0; i < using.length; i++) {
+          ungetService(using[i], false);
+        }
+      }
       synchronized (properties) {
-        available = false;
-        if (null!=bundle)
-          bundle.fwCtx.perm.callUnregister0(this);
         bundle = null;
         dependents = null;
         reference = null;
@@ -216,26 +225,153 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     }
   }
 
-  /**
-   * Unget all remaining ServiceFactory service instances.
-   */
-  void unregister0() {
-    for (Iterator i = serviceInstances.entrySet().iterator(); i.hasNext();) {
-      Map.Entry e = (Map.Entry)i.next();
-      try {
-        // NYI, don't call inside lock
-        ((ServiceFactory)service).ungetService((Bundle)e.getKey(),
-                                               this,
-                                               e.getValue());
-      } catch (Throwable ue) {
-        bundle.fwCtx.listeners.frameworkError(bundle, ue);
-      }
-    }
-  }
-
   //
   // Framework internal
   //
+
+  /**
+   * Get all properties
+   */
+  PropertiesDictionary getProperties() {
+    return properties;
+  }
+
+
+  /**
+   * Get specified property
+   */
+  Object getProperty(String key) {
+    return properties.get(key);
+  }
+
+
+  /**
+   * Get the service object.
+   *
+   * @param bundle requester of service.
+   * @return Service requested or null in case of failure.
+   */
+  Object getService(Bundle b) {
+    Integer ref;
+    synchronized (properties) {
+      if (available) {
+        ref = (Integer)dependents.get(b);
+        if (service instanceof ServiceFactory) {
+          if (ref == null) {
+            dependents.put(b, new Integer(0));
+          }
+        } else {
+          dependents.put(b, new Integer(ref != null ? ref.intValue() + 1 : 1));
+          return service;
+        }
+      } else {
+        return null;
+      }
+    }
+    Object s = null;
+    if (ref == null) {
+      try {
+        s = bundle.fwCtx.perm.callGetService(this, b);
+        if (s == null) {
+          bundle.fwCtx.listeners.frameworkError
+            (bundle,
+             new ServiceException("ServiceFactory produced null",
+                                  ServiceException.FACTORY_ERROR));
+        }
+      } catch (Throwable pe) {
+        bundle.fwCtx.listeners.frameworkError
+          (bundle,
+           new ServiceException("ServiceFactory throw an exception",
+                                ServiceException.FACTORY_EXCEPTION, pe));
+      }
+      if (s != null) {
+        String[] classes = (String[])getProperty(Constants.OBJECTCLASS);
+        for (int i = 0; i < classes.length; i++) {
+          final String cls = classes[i];
+          if (!bundle.fwCtx.services.checkServiceClass(s, cls)) {
+            bundle.fwCtx.listeners.frameworkError
+              (bundle,
+               new ServiceException("ServiceFactory produced an object " +
+                                    "that did not implement: " + cls,
+                                    ServiceException.FACTORY_ERROR));
+            s = null;
+            break;
+          }
+        }
+      }
+      if (s == null) {
+        synchronized (properties) {
+          if (dependents != null) {
+            dependents.remove(b);
+          }
+          return null;
+        }
+      }
+    }
+
+    boolean recall = false;
+    synchronized (properties) {
+      if (s == null) {
+        // Wait for service factory
+        while (true) {
+          s = serviceInstances.get(b);
+          if (s != null) {
+            break;
+          }
+          try {
+            properties.wait(500);
+          } catch (InterruptedException ie) { }
+          if (dependents == null || !dependents.containsKey(b)) {
+            // Service has been returned
+            break;
+          }
+        }
+      } else {
+        serviceInstances.put(b, s);
+        properties.notifyAll();
+      }
+      if (s != null) {
+        ref = dependents != null ? (Integer)dependents.get(b) : null;
+        if (ref != null) {
+          dependents.put(b, new Integer(ref.intValue() + 1));
+        } else {
+          // ungetService has been called during factory call.
+          // Recall service
+          recall = true;
+        }
+      }
+    }
+    if (recall) {
+      try {
+        bundle.fwCtx.perm.callUngetService(this, b, s);
+      } catch (Throwable e) {
+        bundle.fwCtx.listeners.frameworkError(bundle, e);
+      }
+      return null;
+    } else {
+      return s;
+    }
+  }
+
+  Bundle[] getUsingBundles() {
+    Hashtable d = dependents;
+    if (d != null) {
+      synchronized (d) {
+        int size = d.size() + ungetInProgress.size();
+        if (size > 0) {
+          Bundle[] res =  new Bundle[size];
+          for (Enumeration e = d.keys(); e.hasMoreElements(); ) {
+            res[--size] = (Bundle)e.nextElement();
+          }
+          for (Iterator i = ungetInProgress.iterator(); i.hasNext(); ) {
+            res[--size] = (Bundle)i.next();
+          }
+          return res;
+        }
+      }
+    }
+    return null;
+  }
 
   /**
    * Check if a bundle uses this service
@@ -244,12 +380,60 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * @return true if bundle uses this service
    */
   boolean isUsedByBundle(Bundle b) {
-    Map deps = dependents;
+    Hashtable deps = dependents;
     if (deps != null) {
       return deps.containsKey(b);
     } else {
       return false;
     }
+  }
+
+  /**
+   * Unget the service object.
+   *
+   * @param b Bundle who wants remove service.
+   * @param checkRefCounter If true decrement refence counter and remove service
+   *                        if we reach zero. If false remove service without
+   *                        checking refence counter.
+   * @return True if service was used, otherwise false.
+   *          
+   */
+  boolean ungetService(Bundle b, boolean checkRefCounter) {
+    Object serviceToRemove = null;
+    synchronized (properties) {
+      if (dependents == null) {
+        return false;
+      }
+      Object countInteger = dependents.get(b);
+      if (countInteger == null) {
+        return false;
+      }
+  
+      int count = ((Integer) countInteger).intValue();
+      if (checkRefCounter && count > 1) {
+        dependents.put(b, new Integer(count - 1));
+      } else {
+        synchronized (dependents) {
+          ungetInProgress.add(b);
+          dependents.remove(b);
+        }
+        serviceToRemove = serviceInstances.remove(b);
+      }
+    }
+
+    if (serviceToRemove != null) {
+      if (service instanceof ServiceFactory) {
+        try {
+          bundle.fwCtx.perm.callUngetService(this, b, serviceToRemove);
+        } catch (Throwable e) {
+          bundle.fwCtx.listeners.frameworkError(bundle, e);
+        }
+      }
+    }
+    synchronized (dependents) {
+      ungetInProgress.remove(b);
+    }
+    return true;
   }
 
 }
