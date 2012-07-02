@@ -363,6 +363,7 @@ class ReferenceListener implements ServiceListener
           // deactivation.
         }
       }
+      se = null;
     } while (!sEventQueue.isEmpty());
   }
 

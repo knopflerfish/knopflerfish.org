@@ -480,27 +480,32 @@ public abstract class Component implements org.apache.felix.scr.Component {
    *
    */
   void cmConfigUpdated(String pid, Configuration c) {
-    Activator.logDebug("cmConfigUpdate for pid = " + pid + " is first = " + cmDicts.isEmpty());
+    Activator.logDebug("cmConfigUpdate for pid = " + pid +
+                       " is first = " + cmDicts.isEmpty());
     // First mandatory config, remove constraint
     boolean first = cmDicts.isEmpty() && !cmConfigOptional;
     cmDicts.put(pid, c.getProperties());
     // Discard cached service props
-    if (servProps != null) {
-      servProps.remove(pid);
+    final HashMap sp = servProps;
+    if (sp != null) {
+      sp.remove(pid);
     }
-    ComponentConfiguration cc = (ComponentConfiguration)compConfigs.remove(NO_PID);
-    if (refs != null) {
-      for (int i = 0; i < refs.length; i++) {
-        refs[i].update(c, cc != null);
+    ComponentConfiguration cc;
+    synchronized (lock) {
+      cc = (ComponentConfiguration)compConfigs.remove(NO_PID);
+      if (refs != null) {
+        for (int i = 0; i < refs.length; i++) {
+          refs[i].update(c, cc != null);
+        }
       }
-    }
-    if (cc != null) {
-      // We have a first config for component configuration
-      // Connect pid  and component config, pid in CC
-      // changes when update it
-      compConfigs.put(pid, cc);
-    } else {
-      cc = (ComponentConfiguration)compConfigs.get(pid);
+      if (cc != null) {
+        // We have a first config for component configuration
+        // Connect pid  and component config, pid in CC
+        // changes when update it
+        compConfigs.put(pid, cc);
+      } else {
+        cc = (ComponentConfiguration)compConfigs.get(pid);
+      }
     }
     if (cc != null) {
       // We have an updated config, check it
@@ -520,27 +525,30 @@ public abstract class Component implements org.apache.felix.scr.Component {
    *
    */
   void cmConfigDeleted(String pid) {
+    // TODO do we need to synchronize all
     cmDicts.remove(pid);
-    if (servProps != null) {
-      servProps.remove(pid);
+    final HashMap sp = servProps;
+    if (sp != null) {
+      sp.remove(pid);
     }
-    if (refs != null) {
-      for (int i = 0; i < refs.length; i++) {
-        refs[i].remove(pid);
+    ComponentConfiguration cc;
+    synchronized (lock) {
+      if (refs != null) {
+        for (int i = 0; i < refs.length; i++) {
+          refs[i].remove(pid);
+        }
       }
-    }
-    if (cmDicts.isEmpty()) {
-      if (!cmConfigOptional) {
-        synchronized (lock) {
+      if (cmDicts.isEmpty()) {
+        if (!cmConfigOptional) {
           if (unresolvedConstraints++ == 0) {
             unsatisfied(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
             return;
           }
         }
       }
+      // We remove cc here since cmConfigUpdate loses old pid info
+      cc = (ComponentConfiguration)compConfigs.remove(pid);
     }
-    // We remove cc here since cmConfigUpdate loses old pid info
-    ComponentConfiguration cc = (ComponentConfiguration)compConfigs.remove(pid);
     if (cc != null) {
       cc.cmConfigUpdated(NO_PID, null);
     }
@@ -643,6 +651,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   void removeComponentConfiguration(ComponentConfiguration cc) {
     compConfigs.remove(cc.getCMPid());
+    Activator.logDebug("Component Config removed, check if still satisfied: " + getName() + ", " + state);
     if (isSatisfied()) {
       // If still satisfied, create missing component configurations
       satisfied();
@@ -763,17 +772,18 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   PropertyDictionary getServiceProperties(String pid) {
     PropertyDictionary pd;
-    if (servProps != null) {
-      pd = (PropertyDictionary)servProps.get(pid);
+    HashMap sp = servProps;
+    if (sp != null) {
+      pd = (PropertyDictionary)sp.get(pid);
       if (pd != null) {
         return pd;
       }
     } else {
-      servProps = new HashMap();
+      sp = servProps = new HashMap();
     }
     Dictionary cmDict =  cmDicts != null ? (Dictionary)cmDicts.get(pid) : null;
     pd = new PropertyDictionary(this, cmDict, null, true);
-    servProps.put(pid, pd);
+    sp.put(pid, pd);
     return pd;
   }
 
