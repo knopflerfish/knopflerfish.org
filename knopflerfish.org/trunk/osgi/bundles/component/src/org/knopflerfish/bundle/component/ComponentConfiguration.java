@@ -101,6 +101,11 @@ public class ComponentConfiguration implements ServiceFactory {
         throw new ComponentException("Failed to instanciate: " + c, e);
       }
       try {
+        if (factoryContexts != null) {
+          factoryContexts.put(usingBundle, res);
+        } else {
+          componentContext = res;
+        }
         bindReferences(res);
         if (component.activateMethod != null) {
           ComponentException ce = component.activateMethod.invoke(res);
@@ -108,14 +113,14 @@ public class ComponentConfiguration implements ServiceFactory {
             throw ce;
           }
         }
-        if (factoryContexts != null) {
-          factoryContexts.put(usingBundle, res);
-        } else {
-          componentContext = res;
-        }
         state = STATE_ACTIVE;
       } catch (ComponentException e) {
         unbindReferences(res);
+        if (factoryContexts != null) {
+          factoryContexts.remove(usingBundle);
+        } else {
+          componentContext = null;
+        }
         throw e;
       }
     }

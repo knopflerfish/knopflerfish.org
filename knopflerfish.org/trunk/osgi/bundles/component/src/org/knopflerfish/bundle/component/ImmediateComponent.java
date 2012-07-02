@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,10 +59,10 @@ class ImmediateComponent extends Component {
     Activator.logInfo(bc, "Satisfied: " + toString());
     ComponentConfiguration [] cc = newComponentConfiguration();
     for (int i = 0; i < cc.length; i++) {
+      cc[i].registerService();
       try {
         // Activate by getting service
         cc[i].getService(null, null);
-        cc[i].registerService();
       } catch (ComponentException _ignore) {
         // Error messages are logged by the activate method
       }
