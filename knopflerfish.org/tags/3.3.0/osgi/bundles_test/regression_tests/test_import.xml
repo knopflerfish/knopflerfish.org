@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="test_import" default="all">
+
+  <!-- Common definitions for all test bundles. -->
+  <dirname  property="topdir" file="${ant.file.test_import}"/>
+  <property name="osgi.dir"   location="${topdir}/../.."/>
+  <property name="ant.dir"    location="${osgi.dir}/../ant"/>
+  <property name="jars.dir"   location="${osgi.dir}/test_jars"/> 
+  <property name="root.out.dir" location="${topdir}/out"/>
+  <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
+
+  <property name="condperm_warnings.file" location="${osgi.dir}/WARNING-condpermadmin.txt"/>
+
+  <!--
+    || Checks and warns if the openssl program is not installed
+    || Used to skip building the condpermadmin tests int that case
+    -->
+  <target name="check_warn_openssl"
+	  depends="clear_openssl_warning, check_openssl"
+	  unless="openssl_exist">
+    <echo message="Warning, no openssl program found. CPA can not be tested"/>
+    <echo file="${condperm_warnings.file}">WARNING
+Can not find an openssl program
+
+The openssl program is needed to run the condpermadmin tests. This test will therefore fail.
+
+Please install the openssl program to enable condpermadmin testing.
+    </echo>
+  </target>      
+
+  <target name="clear_openssl_warning">
+    <delete file="${condperm_warnings.file}"  quiet="true" />
+  </target>
+
+  <target name="check_openssl">
+    <exec executable="openssl" 
+	  failifexecutionfails="false"
+	  resultproperty="openssl_return_code">
+      <arg value="version" />
+    </exec>
+    <condition property="openssl_exist">
+      <isset property="openssl_return_code"/>
+    </condition>
+  </target>
+  
+</project>
+ 

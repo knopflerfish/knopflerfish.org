@@ -1,0 +1,11 @@
+Bundle-Name: servicetracker_test
+Bundle-SymbolicName: servicetracker_test
+Bundle-Version: 1.0.1
+Bundle-Description: Test bundle for ServiceTracker class
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Import-Package: junit.framework,org.osgi.framework,org.osgi.util.tracker
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/
+

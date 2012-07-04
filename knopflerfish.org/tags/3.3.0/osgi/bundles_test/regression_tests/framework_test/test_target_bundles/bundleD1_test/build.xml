@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<project name="bundleD1_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.bundleD1_test}"/>
+  <import  file="${proj.dir}/../../../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"  value=""/>
+
+  <!-- Create invalid bundle with empty import package header. -->
+  <property name="bundleinfo.failOnImports"    value="false"/>
+  <property name="bundle.implicit.imports.all" value="false"/>
+  <property name="bundle.stdimports"           value="org.osgi.framework"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

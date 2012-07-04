@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="kxml" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.kxml}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="bundle.build.lib"   value="true"/>
+  <property name="bundle.build.api"   value="false"/>
+  <property name="bundle.build.impl"  value="false"/>
+  <property name="bundle.build.all"   value="false"/>
+  <property name="bundle.build.doc"   value="true"/>
+
+  <property name="api.pattern"
+	    value="org/kxml2/**,
+		   org/xmlpull/v1/**"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${proj.dir}/lib/xmlpull_1_1_3_1.jar">
+	<patternset><include name="org/xmlpull/v1/**"/></patternset>
+      </zipfileset>
+    </copy>
+  </target>
+
+  <path id="bundle.compile.path">
+    <!-- No external dependencies -->
+  </path>
+
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

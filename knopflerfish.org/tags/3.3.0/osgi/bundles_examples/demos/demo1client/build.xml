@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="demo1client" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.demo1client}"/>
+  <import file="${proj.dir}/../../examples_include.xml"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/service/demo1client/impl/*"/>
+
+
+  <path id="bundle.compile.path">
+    <pathelement location="demo1_api-N.N.N.jar"/>
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

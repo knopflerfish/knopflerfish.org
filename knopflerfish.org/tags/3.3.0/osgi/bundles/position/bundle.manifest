@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: position
+Bundle-SymbolicName: org.knopflerfish.bundle.position
+Bundle-Version: 3.0.1
+Bundle-Description: Position API
+Bundle-Vendor: OSGi
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/position/
+Bundle-Category: API
+Export-Package: org.osgi.util.position; version=1.0.1
+Import-Package: org.osgi.util.measurement; version="[1.0,2)"

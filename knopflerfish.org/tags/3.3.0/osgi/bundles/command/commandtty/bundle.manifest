@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: TTY-Command
+Bundle-SymbolicName: org.knopflerfish.bundle.commandtty
+Bundle-Version: 2.0.0
+Bundle-UUID: org.knopflerfish:commmandtty:2.0.0
+Bundle-Description: Command line system console
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/command/commandtty/
+Bundle-Activator: org.knopflerfish.bundle.commandtty.CommandTty
+Bundle-Category: console
+Import-Package: org.osgi.framework,
+ org.osgi.service.cm,
+ org.osgi.service.log,
+ org.osgi.util.tracker,
+ org.osgi.service.command; version=1.0,

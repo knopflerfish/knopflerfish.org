@@ -1,0 +1,124 @@
+#
+# Startup file for framework testing
+#
+
+# List of test IDs
+#-Forg.knopflerfish.junit_runner.tests=PerformanceRegistryTestSuite
+-Forg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
+#-Forg.knopflerfish.junit_runner.tests=FrameworkTestSuite ServiceTrackerTestSuite ConstantsTestSuite FilterTestSuite
+
+
+-Forg.knopflerfish.bundle.perf.servicereg.nlisteners=100
+-Forg.knopflerfish.bundle.perf.servicereg.nservices=1000
+
+# true means "quit framework when all tests are run"
+-Forg.knopflerfish.junit_runner.quit=true
+
+# Initial startup verbosity, 0 is low verbosity
+-Dorg.knopflerfish.framework.main.verbosity=0
+
+# Prefix for searching for bundle URLs from console or command line
+-Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
+
+# Various debug flags
+-Forg.knopflerfish.framework.debug.packages=false
+-Forg.knopflerfish.framework.debug.errors=false
+-Forg.knopflerfish.framework.debug.warnings=false
+-Forg.knopflerfish.framework.debug.classloader=false
+-Forg.knopflerfish.framework.debug.startlevel=false
+-Forg.knopflerfish.framework.debug.ldap=false
+-Forg.knopflerfish.framework.debug.service_reference=false
+-Forg.knopflerfish.framework.debug.bundle_resource=false
+-Forg.knopflerfish.framework.debug.permissions=false
+-Forg.knopflerfish.framework.debug.lazy_activation=false
+-Forg.knopflerfish.framework.debug.framework=false
+-Forg.knopflerfish.framework.debug.certificates=false
+
+# JKSValidator properties
+-Forg.knopflerfish.framework.validator=JKSValidator
+-Forg.knopflerfish.framework.validator.jks.ca_certs=$(TESTJARS)/test.castore
+-Forg.knopflerfish.framework.validator.jks.ca_certs_password=catest
+
+# Comma-separated list of packges exported by system classloader
+-Forg.osgi.framework.system.packages.extra=
+
+# Web server properties
+-Forg.knopflerfish.http.dnslookup=false
+-Forg.osgi.service.http.port=0
+
+-Forg.knopflerfish.startlevel.use=true
+
+# Log service properties
+-Forg.knopflerfish.log.out=false
+-Forg.knopflerfish.log.level=info
+-Forg.knopflerfish.log.grabio=true
+-Forg.knopflerfish.log.file=true
+
+# bootdelegation
+# The test case FRAME163a reuires boot delegation for javax.naming
+# to actually check that it works.
+-Forg.osgi.framework.bootdelegation=sun.*,javax.naming
+
+# Shall bc.getService(ServiceReference) return the service while it is
+# in the state unregistering or not.
+-Forg.knopflerfish.servicereference.valid.during.unregistering=true
+
+# Directory to store preferences in.
+-Forg.knopflerfish.prefs.dir=junit_grunt/prefs
+
+# Native code testing
+-Forg.osgi.framework.os.name=linux
+-Forg.osgi.framework.processor=arm_le
+
+-init
+
+-initlevel 1
+-install @log_all-N.N.N.jar@
+-install @cm_all-N.N.N.jar@
+-install @console_all-N.N.N.jar@
+-install @event_all-N.N.N.jar@
+
+-initlevel 2
+-install @util-N.N.N.jar@
+-install @jsdk_api-N.N.N.jar@
+-istart  @junit_all-N.N.N.jar@
+-istart  @kxml-N.N.N.jar@
+
+-initlevel 4
+-install @http_all-N.N.N.jar@
+-install @io_all-N.N.N.jar@
+-install @prefs_all-N.N.N.jar@
+
+# the test cases
+-istart @framework_test-N.N.N.jar@
+-istart @filter_test-N.N.N.jar@
+-istart @servicetracker_test-N.N.N.jar@
+-istart @constants_test-N.N.N.jar@
+-istart @registryperformance_test-N.N.N.jar@
+## eventadmin_tests are disabled because of timing problems on Linux!?
+#-istart @eventadmin_test-N.N.N.jar@
+-istart @http_test-N.N.N.jar@
+-istart @io_test-N.N.N.jar@
+-istart @preferences_test-N.N.N.jar@
+-istart @startlevel_test-N.N.N.jar@
+$(DO_CPA_TEST)-istart @condpermadmin_test-N.N.N.jar@
+
+# packages required by component_test
+-start  @log_all-N.N.N.jar@
+-start  @cm_all-N.N.N.jar@
+-istart @component_all-N.N.N.jar@
+-istart @component_test-N.N.N.jar@
+
+
+-startlevel 7
+
+-start  @http_all-N.N.N.jar@
+-start  @event_all-N.N.N.jar@
+-start  @io_all-N.N.N.jar@
+-start  @prefs_all-N.N.N.jar@
+
+-launch
+
+# the test case runner bundle.
+-istart @junit_runner_all-N.N.N.jar@
+

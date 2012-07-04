@@ -1,0 +1,219 @@
+<h1>The "Remote Framework" in the Knopflerfish Desktop</h1>
+
+<div class="abstract">
+  How to activate the remote framework in the Knopflerfish framework.
+</div>
+
+<h2>Description</h2>
+  <img src="images/no_remote_framework.png" align="right"/>
+
+  The Knopflerfish Desktop has the ability to remote control
+  frameworks running on other computers or devices (including headless
+  devices that cannot run the desktop them selves). This document
+  describes how to activate this feature.
+
+  <p/>
+
+  Typically, the "Remote framework&#8230;" menu item (in the File menu)
+  is grayed out. The reason for this is that, typically, the remote
+  framework service that the desktop is looking for is not present. To
+  connect to a remote framework, the desktop needs an implementation
+  of the <b>org.knopflerfish.service.remotefw.RemoteFramework</b>
+  interface. This implementation decides which protocol to use and
+  handles the communication.  <p/>
+
+  <p/>
+
+  The implementation described here uses kSOAP 2, which is a
+  small-footprint SOAP implementation on top of kXML.  Knopflerfish
+  also provides an alternative implementation using Axis&nbsp;1 for
+  the SOAP layer, see <a href="../soap_remotefw/index.html">SOAP
+  Remote Framework</a>.
+
+  <p/>
+
+  The remote framework provides remote access to almost all
+  functionality in the desktop (including the log tab and the
+  console). The exceptions are preferences and events.
+
+  <br clear="both"/>
+
+<h3>Terminology</h3>
+
+  <dl>
+    <dt><b>Server</b></dt>
+    <dd>The server in this context is the remote controlled framework
+        that waits for connections to its SOAP servlet.
+    </dd>
+
+    <dt><b>Client</b></dt>
+
+    <dd>The client in this context is the framework that is running
+        the desktop that is connecting to and controlling the server.
+    </dd>
+  </dl>
+
+
+<h3>Needed Bundles</h3>
+
+  To use the remote framework functionality there are four bundles
+  that will be needed. Two of these bundles are used on both the
+  server and the client.
+
+  <h4>Common Bundles</h4>
+  <ul>
+    <li><b>ksoap-osgi</b> - Provides the kSOAP libs and registers the
+	SOAP servlet.</li>
+
+    <li><b>ksoap_remotefw</b> - Supplies the RemoteFramework
+        implementation (on the client) and handles.</li> 
+  </ul>
+
+
+  <h4>Server Bundles</h4>
+  Other bundles needed on the server:
+  <ul>
+    <li><b>remotefw_api</b> - Provides the
+        org.knopflerfish.service.remotefw package (in cases where the
+        server executes on a JVM without swing the desktop can not be
+        used.</li>
+  </ul>
+
+  <h4>Client Client</h4>
+  Other bundles needed on the client:
+  <ul>
+    <li><b>desktop</b>  - The user interface. Also provides the
+        org.knopflerfish.service.remotefw package.</li>
+  </ul>
+
+  
+  Since the SOAP implementation uses a servlet an HttpService must be
+  present in the server framework, the Knopflerfish bundles
+  <b>HTTP</b> (http_all-2.1.5.jar or later) and <b>JSDK</b>
+  (jsdk_api-2.5.jar or later) provides the HttpService and the needed
+  API classes. As usual, some of these bundles also depend on a number
+  of standard bundles (including the Knopflerfish util bundle).
+
+
+<h3>Configuration</h3>
+
+  The configuration is done with framework properties. All of them
+  have reasonable defaults and things will work without configuration.
+
+  <h4>Server</h4>
+  <ul>
+    <li><tt>org.osgi.service.http.port</tt> - Defines the port for the
+        HTTP server. Defaults to 80 (8080 on UNIX like OS's).</li> 
+
+    <li><tt>org.knopflerfish.soap.remotefw.server</tt> - Can be set to
+        <tt>true</tt> on the client just to make it clear that it is a
+        server. Defaults to true.</li>
+
+    <li><tt>org.knopflerfish.soap.remotefw.client</tt> - Can be set to
+        <tt>false</tt> on the server. No RemoteFramework service will be
+        registered and the desktop (if installed) will not be able to
+        use the remote framework feature. Defaults to true.</li>
+
+    <li><tt>org.knopflerfish.soap.remotefw.server.debug</tt> - If set to
+        true, causes the ksoap bundles to print some debug
+        information. Defaults to false.</li>
+
+  </ul>
+
+  <h4>Client</h4>
+  <ul>
+
+    <li><tt>org.knopflerfish.soap.remotefw.client.eventinterval</tt> -
+        Defines the time (in ms) between polls to get events and log
+        entries from the server. Defaults to 3000.</li>
+
+    <li><tt>org.knopflerfish.soap.remotefw.server</tt> - Can be set to
+        <tt>false</tt> on the client. No servlet will be registered and
+        other desktops will not be able to connect to this
+        framework. Defaults to true.</li>
+
+    <li><tt>org.knopflerfish.soap.remotefw.client</tt> - Can be set to
+        <tt>true</tt> on the client just to make it clear that it is a
+        client. Defaults to true.</li>
+
+    <li><tt>org.knopflerfish.soap.remotefw.client.sendlocalpaths</tt> -
+        Set to true to avoid sending base64 encoded bundles when
+        installing. Defaults to false.</li>
+
+    <li><tt>org.knopflerfish.soap.remotefw.client.debug</tt> - If set to
+        true, causes the ksoap bundles to print some debug
+        information. Defaults to false.</li>
+
+  </ul>
+
+
+<h3>Quick start</h3>
+
+ To make it easy to start using the remote framework two xargs-file
+ fragments that can be used when starting a <a
+ href="server.xargs">server</a> / <a href="client.xargs">client</a>
+ framework are provided. Save the linked xargs-files in the
+ <tt>osgi</tt>-directory of a Knopflerfish installation and check that
+ the version part of the file name of the bundles installed, started,
+ or uninstalled by those xargs-fragments matches the bundle names in
+ the Knopflerfish installation that is used.
+
+ <p/>
+
+ To start the server framework type:
+
+<pre>
+  java -jar framework.jar -xargs init.xargs --xargs server.xargs
+</pre>
+
+ <p/>
+ To start the client framework type:
+
+<pre>
+  java -jar framework.jar -xargs init.xargs --xargs client.xargs
+</pre>
+
+
+
+<h3>Connecting</h3>
+
+  <img src="images/remote_framework.png" align="right"/>
+
+  When all the above is done and you start your frameworks, you'll
+  find that the <tt>Remote framework&#8230;</tt> menu item is
+  available. Click on it.
+
+  <p/>
+
+  Enter the address to the remote framework. You should only enter the
+  server name and the port, e.g. <tt>http://localhost:8080</tt>. The
+  rest is added automatically.
+
+  <p/>
+
+  Click OK.
+
+  <p/>
+
+  The desktop will be closed and reopened with the address to the
+  remote framework in the title bar (e.g. <tt>Knopflerfish OSGi
+  desktop (http://localhost:8080)</tt>). If the parenthesis are empty,
+  something is wrong and you need to consult your log.
+
+  <br clear="both"/>
+
+
+<h3>Known Problems</h3>
+
+  If the remote framework is shut down (which can be done remotely by
+  running the console command "framework shutdown"), the desktop may
+  behave strangely.
+
+  <p/>
+
+  Log entries can appear in unexpected order.
+
+<h2>See Also</h2>
+<a href="../soap/index.html">SOAP - WebServices</a><br/>
+<a href="../ksoap_remotefw/index.html">kSOAP Remote Framework</a><br/>
+<a href="../soap_remotefw/index.html">SOAP Remote Framework</a><br/>

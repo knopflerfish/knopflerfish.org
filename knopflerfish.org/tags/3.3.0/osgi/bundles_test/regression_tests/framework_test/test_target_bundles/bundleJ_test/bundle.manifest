@@ -1,0 +1,13 @@
+Bundle-Name: bundleJ_test
+Bundle-SymbolicName: bundleJ_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleJ_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleJ_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleJ_test
+Import-Package: org.knopflerfish.service.bundleJ_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleJ_test:1.0.0:all
+

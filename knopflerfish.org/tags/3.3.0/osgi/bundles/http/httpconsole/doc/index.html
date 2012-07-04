@@ -1,0 +1,232 @@
+<h1>Http Console</h1>
+
+<div class="abstract">
+The Knopflerfish HTTP/HTML OSGi console is a small servlet that can be
+run on any OSGi platform with an installed HTTP server. It has been
+designed for use on devices with a small screen like mobile phones and
+pocket PC devices.
+</div>
+
+
+<h2>Description</h2>
+
+<div style="float: right; margin: 5px;">
+<img alt="HTTP console on pocketPC 2003" src="images/httpconsole_ppc2003_1.png"/><br/>
+<i>Image 1: HTTP console on pocketPC 2003</i>
+</div>
+
+<p>The Knopflerfish HTTP/HTML OSGi console is a small servlet that
+can be run on any OSGi platform with an installed HTTP server.</p>
+
+<p>When started, the servlet registers at <tt>/servlet/console</tt>
+and allows access to the standard framework functions as bundle
+installation (both from URLs and using browser file upload), start,
+stop, update and uninstall. Additionally, detail info on a bundle such
+as state, manifest and services can be displayed.</p>
+
+<p> Optionally, the HTTP console can request a login/pwd before
+enabling access. See <a class="std" href="#conf">configuration</a> for
+details.</p>
+
+<p> The HTTP console has been tested on Knopflerfish, Eclipse 3.0 and
+Oscar. It also runs well on Pocket PC (tested using KF on the IBM J9
+VM).</p>
+
+<p> The main screen lists all installed bundles. One or more bundles
+can be selected by marking the check box on the left.  After selecting
+bundles, the operations available as toolbar icons can be
+performed.</p>
+
+<p>Source is available via <a class="std"
+href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/http/httpconsole/">KF
+subversion</a> </p>
+
+<br clear="all">
+
+<h2>Usage</h2>
+
+<h3>Toolbar</h3>
+
+<div style="float: right; margin: 5px;">
+<img alt="Open a local file" src="images/httpconsole_ppc2003_3.png"/><br/>
+<i>Image 2: Result after starting a bundle</i>
+<div>
+<img src="images/httpconsole_openfile.png"><br/>
+<i>Image 3: Open a local file</i>
+</div>
+</div>
+
+<p>The toolbar display a set of command icons. When an icon is
+selected, the command will be performed. Any command result or errors
+will be displayed to the right of the bundle list.</p>
+
+<table>
+ <tr>
+ <td>
+ <img  alt="Reload view" type="image" name="cmd_reload" src="images/go-home.png"> </td>
+ <td style="vertical-align:top;">
+Reload page</td>
+</tr>
+ <tr>
+ <td>
+ <img alt="Install bundle from file" type="image" name="cmd_installfile" src="images/document-open.png">
+ </td>
+ <td style="vertical-align:top;">
+Ask for a local bundle file, upload the file and install the bundle</td>
+</tr>
+ <tr>
+ <td>
+ <img  alt="Install bundle from URL" type="image" name="dialog_cmd_installurl" src="images/openurl.png"> </td>
+ <td style="vertical-align:top;">
+Ask for a bundle URL and install this bundle</td>
+</tr>
+ <tr>
+ <td>
+ <img  alt="Start selected bundles" type="image" name="cmd_start" src="images/player_play.png"> </td>
+ <td style="vertical-align:top;">
+Start selected bundles</td>
+</tr>
+ <tr>
+ <td>
+ <img  alt="Stop selected bundles" type="image" name="cmd_stop" src="images/player_stop.png"> </td>
+ <td style="vertical-align:top;">
+Stop selected bundles</td>
+</tr>
+ <tr>
+ <td>
+ <img  alt="Update selected bundles" type="image" name="cmd_update" src="images/view-refresh.png"> </td>
+ <td style="vertical-align:top;">
+Update selected bundles</td>
+</tr>
+ <tr>
+ <td>
+ <img  alt="Uninstall selected bundles" type="image" name="cmd_uninstall" src="images/player_eject.png"> </td>
+ <td style="vertical-align:top;">
+Uninstall selected bundles</td>
+</tr>
+ <tr>
+ <td>
+ <img  alt="Show info for selected bundles" type="image" name="cmd_info" src="images/info.png"> </td>
+ <td style="vertical-align:top;">
+Info about selected bundles. If no bundle is selected, show framework info</td>
+</tr>
+ <tr>
+ <td>
+ <img  alt="Show help" type="image" name="cmd_help" src="images/help.png"> </td>
+ <td style="vertical-align:top;">
+Show help page </td>
+</tr>
+</table>
+</p>
+<br clear="all"/>
+
+
+<h3>Bundle icons</h3>
+
+<div style="float: right; margin: 5px;">
+<img alt="Login screen" src="images/httpconsole_login.png"/><br/>
+<i>Image 4: Login screen</i>
+</div>
+
+<p>Each bundle is displayed using an icon, the bundle's name and the
+bundle description. If a bundle's icon is clicked, the bundle is
+selected, and the bundle info page is displayed.</p>
+
+<table>
+<tr>
+  <td><img src="images/bundle.png"></td>
+  <td>Bundle with activator</td>
+</tr>
+<tr>
+  <td><img src="images/bundle-active.png"></td>
+  <td>Started bundle with activator</td>
+</tr>
+<tr>
+  <td><img src="images/lib.png"></td>
+  <td>Bundle without activator</td>
+</tr>
+<tr>
+  <td><img src="images/bundle-lib-active.png"></td>
+  <td>Started bundle without activator</td>
+</tr>
+</table>
+<br clear="all"/>
+
+
+<h3><a name="conf">Configuration using Framework Properties</a></h3>
+
+<p> The HTTP console can be configured using system properties:</p>
+
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.httpconsole.alias</td>
+    <td>
+
+      Alias for servlet registration. If set to '/', the http root
+      will used for the console.
+
+    </td>
+    <td>String</td>
+    <td>/servlet/console</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.httpconsole.filter</td>
+    <td>
+
+      Filter string for matching HttpServices. This can be used
+      to only show the console in some registered HttpServices.
+
+    </td>
+    <td>String</td>
+    <td>(objectclass=org.osgi.service.http.HttpService)</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.httpconsole.requirelogin</td>
+    <td>
+
+      If <tt>true</tt>, require login, using name and password.
+
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.httpconsole.user</td>
+    <td>
+
+      User name required for login.
+
+    </td>
+    <td>String</td>
+    <td>admin</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.httpconsole.pwd</td>
+    <td>
+
+      User password required for login.
+
+    </td>
+    <td>String</td>
+    <td>admin</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.httpconsole.expirationtime</td>
+    <td>
+
+      Expiration time for login sessions, in seconds. After this time,
+      the user will be logged out.
+
+    </td>
+    <td>int (seconds)</td>
+    <td>600</td>
+  </tr>
+</table>
+
+<br clear="all"/>

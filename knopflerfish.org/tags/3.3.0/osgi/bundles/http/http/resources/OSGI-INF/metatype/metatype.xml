@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MetaData xmlns="http://www.osgi.org/xmlns/metatype/v1.0.0">
+
+  <OCD id="1.1.1.1" name="OCD for factory.HttpServer">
+    <AD name="port.http"
+	type="Integer"
+	id="port.http"
+	default="8080" />
+    <AD name="host"
+	type="String"
+	id="host" />
+    <AD name="session.timeout.default"
+	type="Integer"
+	id="session.timeout.default"
+	default="1200 "/>
+    <AD name="connection.max"
+	type="Integer"
+	id="connection.max"
+	default="50" />
+    <AD name="connection.timeout"
+	type="Integer"
+	id="connection.timeout"
+	default="30" />
+    <AD name="response.buffer.size.default"
+	type="Integer"
+	id="response.buffer.size.default"
+	default="16384" />
+    <AD name="service.ranking"
+	type="Integer"
+	id="service.ranking"
+	default="1" />
+    <AD name="dns.lookup"
+	type="Boolean"
+	id="dns.lookup"
+	default="false" />
+  </OCD>
+
+  <Designate 
+     pid="org.knopflerfish.bundle.http.factory.HttpServer"
+     factoryPid="org.knopflerfish.bundle.http.factory.HttpServer" 
+     bundle="ignored" >
+    <Object ocdref="1.1.1.1" >
+    </Object>
+  </Designate>
+
+</MetaData>

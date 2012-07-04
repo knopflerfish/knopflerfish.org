@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RXTX Echo
+Bundle-SymbolicName: org.knopflerfish.example.rxtx_echo
+Bundle-Version: 1.0.0
+Bundle-Activator: org.knopflerfish.example.rxtx_echo.Activator
+Import-Package: org.osgi.framework, 
+ org.osgi.util.tracker ; specification-version=1.2.0,
+ org.osgi.service.log ; specification-version=1.2.0,
+ gnu.io ; specification-version=2.1
+Bundle-Vendor: Knopflerfish
+Bundle-Description: RXTX serial port line echo

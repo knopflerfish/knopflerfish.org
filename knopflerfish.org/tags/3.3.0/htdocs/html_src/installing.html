@@ -1,0 +1,67 @@
+<h1 class="kf">Installing Knopflerfish</h1>
+
+<h2 class="kf">Installation instructions for the complete framework</h2>
+
+<p>
+You need at least <a href="http://java.sun.com">Java 1.2.2</a> to
+install the framework.
+</p>
+
+The Knopflerfish OSGi framework should be installed by simply
+running the distribution jar file, either by double-clicking on the
+distribution file, or by the command:
+<pre class="shell">
+    &gt; java -jar knopflerfish_osgi_<i>&lt;version&gt;</i>.jar
+</pre>
+
+This will open an installation wizard for selection installation directory and which components to install.
+<div class="kf">
+ <dl>
+   <dt>OSGi framework runtime files</dt>
+   <dd>The execution environment, including the Knopflerfish OSGi framework and bundles</dd>
+   <dt>Java sources and build environment</dt>
+   <dd>
+     Installs all java source code files and a 
+     <a href="building.html">
+       build system</a> for rebuilding Knopflerfish locally form the supplied source files.
+   </dd>
+   <dt>Knopflerfish Documentation</dt>
+   <dd>The Knopflerfish user and developer documentation.</dd>
+ </dl>
+</div>
+<img src="images/install_options.png">
+
+<p>
+If you don't need the wizard, installation can also be done in batch mode, by entering the command:
+
+<pre class="shell">
+    &gt; java -jar knopflerfish_osgi_<i>&lt;version&gt;</i>.jar -batch
+</pre>
+
+...or by simply unpacking the jar file manually.
+
+(WinZip is also capable of unpacking .jar files)
+
+<p>
+After successfully installing Knopflerfish you may move on to 
+<a href="running.html">
+  starting the framework.</a>
+
+<a name="download"></a>
+<h2 class="kf">Installation instructions for the tiny, remotely loading framework</h2>
+
+<ol>
+ <li>Unzip the distribution zip file
+ <li>Execute <tt>framework.jar</tt>
+<pre class="shell">
+    &gt; cd knopflerfish.org/osgi
+    &gt; java -jar framework.jar
+</pre>
+
+</ol>
+All bundles defined in <tt>remote-init.xargs</tt> will be loaded over the 
+net. 
+
+<p>
+Please see the <a href="running.html"> next section</a> for setting and configuring Knopflerfish run time options using <tt>.xargs</tt> files.
+</p>

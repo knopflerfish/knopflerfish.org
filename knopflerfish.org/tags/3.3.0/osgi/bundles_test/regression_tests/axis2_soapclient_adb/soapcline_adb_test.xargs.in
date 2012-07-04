@@ -1,0 +1,91 @@
+#
+# Startup file additions for running Axis2 ADB Client test suite
+#
+# NOTE: The base URLs for bundles assumes that the current working
+#       directory is the osgi-direcotry when this xargs-file is used.
+#
+
+# List of test IDs
+-Forg.knopflerfish.junit_runner.tests=filter:(objectclass=junit.framework.TestSuite)
+
+# true means "quit framework when all tests are run"
+-Forg.knopflerfish.junit_runner.quit=true
+
+# Initial startup verbosity, 0 is low verbosity
+-Forg.knopflerfish.verbosity=0
+
+# Prefix for searching for bundle URLs from console or command line
+-Dorg.knopflerfish.gosg.jars=$(GOSG_JARS)
+
+# Various debug flags
+-Forg.knopflerfish.framework.debug.packages=false
+-Forg.knopflerfish.framework.debug.errors=true
+-Forg.knopflerfish.framework.debug.classloader=false
+-Forg.knopflerfish.framework.debug.startlevel=false
+-Forg.knopflerfish.framework.debug.ldap=false
+
+# Comma-separated list of packages exported by the system bundle
+#-Forg.osgi.framework.system.packages=
+
+# Comma-separated list of packages to be added to the set of packages
+# exported by system classloader.
+#-Forg.osgi.framework.system.packages.extra=
+
+# Comma-separated list of packages that may be loaded by system classloader
+-Forg.osgi.framework.bootdelegation=sun.*,com.sun.*
+
+# Web server properties
+-Forg.knopflerfish.http.dnslookup=false
+-Forg.osgi.service.http.port=0
+
+-Forg.knopflerfish.startlevel.use=true
+
+# Log service properties
+-Forg.knopflerfish.log.out=false
+-Forg.knopflerfish.log.level=info
+-Forg.knopflerfish.log.grabio=true
+-Forg.knopflerfish.log.file=true
+
+
+-init
+
+-initlevel 1
+-install @log_all-N.N.N.jar@
+-install @cm_all-N.N.N.jar@
+-install @console_all-N.N.N.jar@
+-install @event_all-N.N.N.jar@
+
+-initlevel 2
+-install @jsdk_api-N.N.N.jar@
+-install @xerces-N.N.N.jar@
+-install @xalan-N.N.N.jar@
+-istart  @junit_all-N.N.N.jar@
+
+-initlevel 3
+-istart @commons-logging_all-N.N.N.jar@
+
+-initlevel 4
+-install @http_all-N.N.N.jar@
+-install @io_all-N.N.N.jar@
+-istart  @axis2-osgi_all-N.N.N.jar@
+
+# the test cases
+-istart @axis2_soapobject_all-N.N.N.jar@
+-istart @axis2_soapclient_adb-N.N.N.jar@
+
+
+-startlevel 7
+
+-start @log_all-N.N.N.jar@
+-start @cm_all-N.N.N.jar@
+-start @xerces-N.N.N.jar@
+-start @xalan-N.N.N.jar@
+-start @http_all-N.N.N.jar@
+-start @event_all-N.N.N.jar@
+-start @io_all-N.N.N.jar@
+
+-launch
+
+# the test case runner bundle.
+-istart @junit_runner_all-N.N.N.jar@
+

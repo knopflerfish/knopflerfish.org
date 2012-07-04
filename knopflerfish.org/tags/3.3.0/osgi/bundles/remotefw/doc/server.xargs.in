@@ -1,0 +1,41 @@
+#
+# Xargs fragment file for server framework managable using the Remote
+# Framework SOAP service.
+#
+# Start the server framework with a command like:
+#
+#   java -jar framework.jar -xargs init.xargs --xargs server.xargs
+#
+#
+# NOTE: You may need to adjust the version number part of the file
+#       names of the bundles that are installed, started, uninstalled
+#       below.
+#
+
+
+# Where the framework will store its state; set it to allow running
+# both server and client from the same directory (KF-installation).
+-Forg.osgi.framework.storage=fwdirServer
+
+#
+# Uninstall bundle that are not needed on the client
+# 
+-uninstall @bundlerepository_all-N.N.N.jar@
+-uninstall @desktop_all-N.N.N.jar@
+
+-initlevel 6
+-install @remotefw_api-N.N.N.jar@
+-istart @ksoap-osgi_all-N.N.N.jar@
+-istart @ksoap_remotefw_all-N.N.N.jar@
+
+# Properties controlling the server behavior
+-Forg.knopflerfish.soap.remotefw.server=true
+-Forg.knopflerfish.soap.remotefw.server.debug=false
+
+# Properties controlling the client behavior
+-Forg.knopflerfish.soap.remotefw.client=false
+-Forg.knopflerfish.soap.remotefw.client.debug=false
+
+# The server runs its HttpServer on 8080
+# This allows us to run both server and client on the same computer
+-Forg.osgi.service.http.port=8080

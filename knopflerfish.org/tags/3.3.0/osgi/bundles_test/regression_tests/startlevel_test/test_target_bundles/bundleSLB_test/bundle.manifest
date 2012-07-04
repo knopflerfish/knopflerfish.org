@@ -1,0 +1,12 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleSLB_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleSLB_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleSLB_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleSLB_test.BundleActivator
+Bundle-Category: test
+Import-Package: org.knopflerfish.service.bundleSLC_test,
+                org.osgi.framework

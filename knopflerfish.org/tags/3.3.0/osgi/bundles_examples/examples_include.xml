@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="examples_include" default="all">
+
+  <!-- Common definitions for all test bundles. -->
+  <dirname  property="bundles.examples.dir"
+	    file="${ant.file.examples_include}"/>
+  <property name="osgi.dir"     location="${bundles.examples.dir}/.."/>
+  <property name="ant.dir"      location="${osgi.dir}/../ant"/>
+  <property name="jars.dir"     location="${osgi.dir}/example_jars"/> 
+  <property name="root.out.dir" location="${osgi.dir}/out"/>
+  <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
+  
+</project>
+ 
