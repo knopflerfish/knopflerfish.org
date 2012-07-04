@@ -18,7 +18,7 @@
   <property name="topdir"         location="${kf.root.dir}/osgi" />
 
   <property name="adb.exe"        location="${ANDROID_HOME}/platform-tools/adb" />
-  <property name="android.install.dir"  value="/data/kf-3.2.0" />
+  <property name="android.install.dir"  value="/data/kf-3.3.0" />
   
   <import file="${kf.root.dir}/ant/bundletasks.xml"/>
   <import file="${kf.root.dir}/ant/xargs.xml"/>

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: CM-Commands
 Bundle-SymbolicName: org.knopflerfish.bundle.cm_cmd
-Bundle-Version: 3.0.1
+Bundle-Version: 3.0.2
 Bundle-Description: Commands for the CM service
 Bundle-Vendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org

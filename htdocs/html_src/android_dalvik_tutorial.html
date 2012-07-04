@@ -22,7 +22,7 @@
   files using the tools from the Android SDK.
 </p>
 <p>
-  This guide assumes the SDK for Android 3.1 API level 12 is used.
+  This guide assumes the SDK for Android 4.0 API level 15 is used.
 </p>
 
 
@@ -52,7 +52,7 @@
   bundles.</p>
 <p>
   After building or dexifying KF the push the necessary files to the
-  emulator, typically using <tt>adb</tt>. There is since KF 3.2 an
+  emulator, typically using <tt>adb</tt>. There is since KF 3.3 an
   android tool included to simplify this process, see next section.
 </p>
 <a name="runtime"></a>
@@ -99,7 +99,7 @@
   &gt; ant install
   </pre>
 
-  The files are installed in <tt>/data/kf-3.2.0</tt> by default on the emulator.
+  The files are installed in <tt>/data/kf-3.3.0</tt> by default on the emulator.
 </p>
 
 <a name="run"></a>
@@ -111,19 +111,19 @@
 <pre class="shell">
   &gt; adb shell
   root@android:/ #   
-  root@android:/ # cd /data/kf-3.2.0/                                          
-  root@android:/data/kf-3.2.0 # 
-  root@android:/data/kf-3.2.0 # ls
+  root@android:/ # cd /data/kf-3.3.0/                                          
+  root@android:/data/kf-3.3.0 # 
+  root@android:/data/kf-3.3.0 # ls
   dalvik.xargs
   framework.jar
   jars
   props.xargs
-  root@android:/data/kf-3.2.0 # 
+  root@android:/data/kf-3.3.0 # 
 </pre>
   The next step is to launch KF. This is done as usual, but using
   the <tt>dalvikvm</tt> instead.
 <pre class="shell">
-  root@android:/data/kf-3.2.0 # dalvikvm -classpath framework.jar \
+  root@android:/data/kf-3.3.0 # dalvikvm -classpath framework.jar \
   org.knopflerfish.framework.Main -xargs dalvik.xargs
 </pre>
   Now KF is running under the dalvik VM! The ttyconsole bundle is included in
@@ -150,3 +150,14 @@
   Android" />
 </p>
   
+<h3 class="kf">Note on Running KF under Dalvik</h3>
+<p>
+  The framework will create <jar>.dexopt files that lives side-by-side
+  with the jar files. This can cause a problem if your bundles lives
+  in a read-only directory and have the property (which is default):
+  <pre class="shell">
+  -Forg.knopflerfish.framework.bundlestorage.file.reference=true
+  </pre>
+  You then need to set the property to false, so that the bundle jars
+  are copied into the "fwdir".
+</P>

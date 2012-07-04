@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -56,6 +57,7 @@ import org.osgi.framework.BundleReference;
  * Classloader for bundle JAR files.
  * 
  * @author Jan Stein, Philippe Laporte, Mats-Ola Persson, Gunna Ekolin
+ * @author Vilmos Nebehaj (Android applicatin support)
  */
 final public class BundleClassLoader extends ClassLoader implements BundleReference {
   /**
@@ -92,7 +94,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   private static ThreadLocal tlBundlesToActivate = new ThreadLocal();
 
   // android/dalvik VM stuff
-  private static Constructor dexFileClassCons;
+  private static Method dexFileClassLoadDexMethod;
   private static Method dexFileClassLoadClassMethod;
 
   // bDalvik will be set to true if we're running on the android
@@ -101,28 +103,29 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   // for dalvik VM
   static boolean bDalvik = false;
 
-  private Object dexFile = null;
+  private ArrayList dexFile = null;
 
   static {
     try {
-      Class dexFileClass;
+      Class dexFileClass = null;
       try {
         dexFileClass = Class.forName("android.dalvik.DexFile");
       } catch (Exception ex) {
         dexFileClass = Class.forName("dalvik.system.DexFile");
       }
 
-      dexFileClassCons = dexFileClass.getConstructor(new Class[] { File.class });
+      dexFileClassLoadDexMethod = dexFileClass.getMethod("loadDex", new Class[] {
+        String.class, String.class, Integer.TYPE });
 
       dexFileClassLoadClassMethod = dexFileClass.getMethod("loadClass", new Class[] {
-          String.class, ClassLoader.class });
+        String.class, ClassLoader.class });
 
       bDalvik = true;
       // if(debug.classLoader) {
       // debug.println("running on dalvik VM");
       // }
     } catch (Exception e) {
-      dexFileClassCons = null;
+      dexFileClassLoadDexMethod = null;
       dexFileClassLoadClassMethod = null;
     }
   }
@@ -308,6 +311,18 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    */
   public boolean isBootClassContext(String name) {
     Class[] classStack = smex.getClassContext();
+
+    if (classStack == null) { // Android 4.0 returns null
+      // TODO: Find a cheaper and better solution
+      try {
+        StackTraceElement[] classNames = new Throwable().getStackTrace();
+        classStack = new Class[classNames.length];
+        for (int i = 1; i < classNames.length; i++)
+          classStack[i] = Class.forName(classNames[i].getClassName());
+      } catch (ClassNotFoundException e) {
+        return false;
+      }
+    }
 
     for (int i = 1; i < classStack.length; i++) {
       final Class currentCls = classStack[i];
@@ -908,11 +923,35 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     }
   };
 
+  private void walkAndAddJars(List dexlist, String path) throws Exception {
+    File root = new File(path);
+    File[] list = root.listFiles();
+
+    for (int i = 0; i < list.length; i++) {
+      File f = list[i];
+      if (f.isDirectory()) {
+        walkAndAddJars(dexlist, f.getAbsolutePath());
+      } else {
+        if (f.getAbsolutePath().endsWith(".jar")) {
+          if (debug.classLoader) {
+            debug.println("creating DexFile from " + f.getAbsolutePath());
+          }
+          Object dex = dexFileClassLoadDexMethod.invoke(null,
+              new Object[] { f.getAbsolutePath(),
+                f.getAbsolutePath() + ".dexopt", new Integer(0) });
+          dexlist.add(dex);
+        }
+      }
+    }
+  }
 
   /**
    * Load a class using the Dalvik DexFile API.
    * <p>
    * This relies in the bundle having a "classes.dex" in its root
+   * <p>
+   * TODO: We should create a specific bundle storage module for
+   *       DEX files.
    * <p>
    * 
    * To create such a bundle, do
@@ -928,16 +967,59 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     }
 
     if (dexFile == null) {
+      dexFile = new ArrayList();
       File f = new File(archive.getJarLocation());
-      dexFile = dexFileClassCons.newInstance(new Object[] { f });
-      if (debug.classLoader) {
-        debug.println("created DexFile from " + f);
+      if (!f.isDirectory()) {
+        if (debug.classLoader) {
+          debug.println("creating DexFile from " + f);
+        }
+        Object dex = dexFileClassLoadDexMethod.invoke(null, new Object[] {
+          f.getAbsolutePath(), f.getAbsolutePath() + ".dexopt",
+               new Integer(0) });
+        dexFile.add(dex);
+        if (debug.classLoader) {
+          debug.println("created DexFile from " + f);
+        }
+      } else {
+        // if it has an internal jar file then it was unpacked into a folder
+        if (debug.classLoader) {
+          System.err.println("creating DexFile from " + f + "/classes.dex");
+        }
+        Object dex = dexFileClassLoadDexMethod.invoke(null, new Object[] {
+          f.getAbsolutePath() + "/classes.dex",
+               f.getAbsolutePath() + ".dexopt", new Integer(0) });
+        dexFile.add(dex);
+        if (debug.classLoader) {
+          debug.println("created DexFile from " + f + File.pathSeparatorChar + "classes.dex");
+        }
+        // check for internal jar files
+        walkAndAddJars(dexFile, f.getAbsolutePath());
       }
     }
 
     String path = name.replace('.', '/');
 
-    return (Class)dexFileClassLoadClassMethod.invoke(dexFile, new Object[] { path, this });
+    Iterator i = dexFile.iterator();
+    while (i.hasNext()) {
+      Object dex = i.next();
+      if (debug.classLoader) {
+        debug.println("trying to load " + path + " from " + dex);
+      }
+      try {
+        Class clz = (Class)dexFileClassLoadClassMethod.invoke(dex, new Object[] { path, this });
+        if (clz != null) {
+          if (debug.classLoader) {
+            debug.println("loaded " + path + " from " + dex);
+          }
+          return clz;
+        }
+      } catch (Exception e) { }
+      if (debug.classLoader) {
+        debug.println("failed to load " + path + " from " + dex);
+      }
+    }
+
+    throw new ClassNotFoundException("could not find dex class " + path);
   }
 
   /**

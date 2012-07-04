@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2003-2010, KNOPFLERFISH project
  * All rights reserved.

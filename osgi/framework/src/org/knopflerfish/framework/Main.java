@@ -146,7 +146,7 @@ public class Main
 
     bootText =
       "Knopflerfish OSGi framework, version " + version + "\n" +
-      "Copyright 2003-2011 Knopflerfish. All Rights Reserved.\n\n" +
+      "Copyright 2003-2012 Knopflerfish. All Rights Reserved.\n\n" +
       "See http://www.knopflerfish.org for more information.";
 
     System.out.println(bootText);

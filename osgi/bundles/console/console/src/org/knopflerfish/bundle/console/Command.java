@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,7 +110,13 @@ public class Command implements ServiceListener, Runnable {
                 }
             });
         } catch (PrivilegedActionException e) {
-            throw (IOException) e.getException();
+            Exception ee = e.getException();
+            // Android don't supply nested exception
+            if (ee != null) {
+                throw (IOException) ee;
+            } else {
+                throw new IOException("Failed to parse command");
+            }
         }
     }
 
