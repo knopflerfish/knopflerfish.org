@@ -10,7 +10,20 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.1.18
+* Framework 5.2.0
+
+  - Detect and abort recursive service factory calls.
+  - Added support for running framework as an Android (4.x) application.
+    The framework will create <jar>.dexopt files that lives side-by-side
+    with the jar files. This can cause a problem if your bundles lives
+    in a read-only directory and have the property (which is default):
+
+    -Forg.knopflerfish.framework.bundlestorage.file.reference=true
+
+    You then need to set the property to false, so that the bundle jars
+    are copied into the "fwdir".
+
+  Framework 5.1.18
 
   - Fixed dead lock problem with service listeners.
     http://sourceforge.net/tracker/?func=detail&aid=3475479&group_id=82798&atid=567241
@@ -39,10 +52,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The API-bundle now imports all packages it exports.
 
 
-* CM 3.0.3
+* CM 3.0.4
+  
+  - Handle crippled PrivilegedExceptionAction in Android.
+
+  CM 3.0.3
   
   - Removed unnecessary update calls introduced in 3.0.2.
-
 
   CM 3.0.2
   
@@ -179,7 +195,16 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - Fix broken handling of http.nonProxyHosts system property.
 
 
-* Console 3.0.2
+* CM-Commands 3.0.2
+  
+  - Handle crippled PrivilegedExceptionAction in Android.
+
+
+* Console 3.0.3
+  
+  - Handle crippled PrivilegedExceptionAction in Android.
+
+  Console 3.0.2
   
   - The method exported helper method
     org.knopflerfish.service.console.Util.symbolicName(Bundle) now

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -604,8 +604,9 @@ public class CMCommands extends CommandGroupAdapter implements ServiceListener {
             out.println(reason == null ? "<unknown>" : reason);
         } catch (PrivilegedActionException pae) {
             out.println("Import failed. Details:");
-            String reason = pae.getException().toString();
-            out.println(reason == null ? "<unknown>" : reason);
+            Exception reason = pae.getException();
+            // Android don't supply nested exception
+            out.println(reason == null ? "<unknown>" : reason.toString());
         } catch (Exception e) {
             out.println("Import failed. Details:");
             String reason = e.getMessage();
@@ -661,19 +662,22 @@ public class CMCommands extends CommandGroupAdapter implements ServiceListener {
     /** Helper method that get the CA service. */
     ConfigurationAdmin getCA() throws Exception {
         ConfigurationAdmin srvCA = null;
-        if (refCA == null) {
-            throw new Exception("CM service is not available");
-        }
-        try {
-            srvCA = (ConfigurationAdmin) AccessController
+        if (refCA != null) {
+            try {
+                srvCA = (ConfigurationAdmin) AccessController
                     .doPrivileged(new PrivilegedExceptionAction() {
                         public Object run() throws Exception {
                             return bc.getService(refCA);
                         }
                     });
-        } catch (PrivilegedActionException pae) {
-            // Rethrow wrapped exception
-            throw pae.getException();
+            } catch (PrivilegedActionException pae) {
+                // Rethrow wrapped exception
+                Exception ee = pae.getException();
+                // Android don't supply nested exception
+                if (ee != null) {
+                    throw ee;
+                }
+            }
         }
         if (srvCA == null) {
             throw new Exception("CM service is not available");
@@ -994,6 +998,7 @@ public class CMCommands extends CommandGroupAdapter implements ServiceListener {
             return def == null ? new Boolean(false) : new Boolean(def);
         } else {
             // Unsupported type
+
             return null;
         }
     }

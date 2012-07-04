@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -391,7 +391,8 @@ class Listeners {
       }
       try {
         if (!l.isRemoved()
-            && l.bc.bundle.hasPermission(new ServicePermission(sr, ServicePermission.GET))) {
+            && (!secure.checkPermissions() ||
+                l.bc.bundle.hasPermission(new ServicePermission(sr, ServicePermission.GET)))) {
           boolean testAssignable = !(l.listener instanceof AllServiceListener);
           for (int i = 0; i < classes.length; i++) {
             if (testAssignable && !sr.isAssignableTo(l.bc.bundle, classes[i])){

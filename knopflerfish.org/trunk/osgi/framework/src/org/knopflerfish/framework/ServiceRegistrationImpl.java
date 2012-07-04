@@ -103,6 +103,13 @@ public class ServiceRegistrationImpl implements ServiceRegistration
 
 
   /**
+   * Detect recursive service factory calls. Is set to thread executing
+   * service factory code, otherwise <code>null</code>.
+   */
+  private Thread factoryThread = null;
+
+
+  /**
    * Construct a ServiceRegistration for a registered service.
    *
    * @param b Bundle providing service.
@@ -259,6 +266,11 @@ public class ServiceRegistrationImpl implements ServiceRegistration
         if (service instanceof ServiceFactory) {
           if (ref == null) {
             dependents.put(b, new Integer(0));
+            factoryThread = Thread.currentThread();
+          } else if (factoryThread != null) {
+            if (factoryThread.equals(Thread.currentThread())) {
+              throw new IllegalStateException("Recursive call of getService");
+            }
           }
         } else {
           dependents.put(b, new Integer(ref != null ? ref.intValue() + 1 : 1));
@@ -304,6 +316,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
           if (dependents != null) {
             dependents.remove(b);
           }
+          factoryThread = null;
           return null;
         }
       }
@@ -327,6 +340,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
           }
         }
       } else {
+        factoryThread = null;
         serviceInstances.put(b, s);
         properties.notifyAll();
       }

@@ -513,7 +513,13 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
           }
         });
     } catch (PrivilegedActionException e) {
-      throw (IOException) e.getException();
+      IOException ee = (IOException) e.getException();
+      // Android don't supply nested exception
+      if (ee != null) {
+        throw ee;
+      } else {
+        throw new IOException("Failed to handle persistent CM data");
+      }
     }
   }
 
@@ -539,7 +545,13 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
           }
         });
     } catch (PrivilegedActionException e) {
-      throw (IOException) e.getException();
+      IOException ee = (IOException) e.getException();
+      // Android don't supply nested exception
+      if (ee != null) {
+        throw ee;
+      } else {
+        throw new IOException("Failed to handle persistent CM data");
+      }
     }
   }
 
@@ -552,7 +564,13 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             }
           });
     } catch (PrivilegedActionException e) {
-      throw (IOException) e.getException();
+      IOException ee = (IOException) e.getException();
+      // Android don't supply nested exception
+      if (ee != null) {
+        throw ee;
+      } else {
+        throw new IOException("Failed to handle persistent CM data");
+      }
     }
   }
 
@@ -567,7 +585,13 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             }
           });
     } catch (PrivilegedActionException e) {
-      throw (IOException) e.getException();
+      IOException ee = (IOException) e.getException();
+      // Android don't supply nested exception
+      if (ee != null) {
+        throw ee;
+      } else {
+        throw new IOException("Failed to handle persistent CM data");
+      }
     }
   }
 
@@ -584,7 +608,13 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
             }
           });
     } catch (PrivilegedActionException e) {
-      throw (IOException) e.getException();
+      IOException ee = (IOException) e.getException();
+      // Android don't supply nested exception
+      if (ee != null) {
+        throw ee;
+      } else {
+        throw new IOException("Failed to handle persistent CM data");
+      }
     }
   }
   Configuration[] listConfigurations(String filterString,
@@ -1026,10 +1056,16 @@ class ConfigurationAdminFactory implements ServiceFactory, ServiceListener,
               }
             });
       } catch (PrivilegedActionException e) {
-        if (e.getException().getClass() == InvalidSyntaxException.class) {
-          throw (InvalidSyntaxException) e.getException();
+        Exception ee = e.getException();
+        // Android don't supply nested exception
+        if (ee != null) {
+          if (ee instanceof InvalidSyntaxException) {
+            throw (InvalidSyntaxException) ee;
+          }
+          throw (IOException) ee;
+        } else {
+          throw new IOException("Failed to handle CM data");
         }
-        throw (IOException) e.getException();
       }
       return configurations;
     }
