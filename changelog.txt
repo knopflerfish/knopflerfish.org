@@ -1,3 +1,453 @@
+2012-07-04 13:35:51 +0200 (Wed, 04 Jul 2012), revision 3538, jan
+Support for running KF as an Android(4.0) application. Detect and abort recursive service factory calls.
+U   knopflerfish.org/trunk/htdocs/html_src/android_dalvik_tutorial.html
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/src/org/knopflerfish/bundle/cm/ConfigurationAdminFactory.java
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm_cmd/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm_cmd/src/org/knopflerfish/bundle/cm/commands/impl/CMCommands.java
+U   knopflerfish.org/trunk/osgi/bundles/console/console/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/console/console/src/org/knopflerfish/bundle/console/Command.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Listeners.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceRegistrationImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/BundleArchiveImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+U   knopflerfish.org/trunk/tools/android/build.xml
+
+2012-07-02 13:35:57 +0200 (Mon, 02 Jul 2012), revision 3537, jan
+Fixed so that we always register service before running activation method. Fixed racing condition in service listening code. Fixed infinity loop introduced in 3.1.3
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-06-27 11:43:23 +0200 (Wed, 27 Jun 2012), revision 3536, jan
+Fixed locking problem with ServiceListeners. Fixed unnecessary update calls from CM. Remove Nullpointer exception during event admin shutdown.
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/src/org/knopflerfish/bundle/cm/ConfigurationAdminFactory.java
+U   knopflerfish.org/trunk/osgi/bundles/event/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/EventHandlerTracker.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleContextImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PermissionOps.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PropertiesDictionary.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SecurePermissionOps.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceRegistrationImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Services.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-06-21 15:20:01 +0200 (Thu, 21 Jun 2012), revision 3535, joek
+updated with framework commands 3.0.4
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-06-21 15:09:10 +0200 (Thu, 21 Jun 2012), revision 3534, joek
+new version 3.0.4, using getMethods insteadof getDeclaredMethods for call command, makes it possible to call inherrited interface methods
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/FrameworkCommandGroup.java
+
+2012-06-07 10:49:15 +0200 (Thu, 07 Jun 2012), revision 3533, jan
+Fixed faulty loop variable when using "-update <bid>" command. Fixed problem with import package for fragments.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+A   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/IteratorIteratorSorted.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-04-12 17:08:29 +0200 (Thu, 12 Apr 2012), revision 3532, jan
+Updated rxtxcomm to 2.2pre2 release.
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/readme.txt
+
+2012-04-12 11:36:35 +0200 (Thu, 12 Apr 2012), revision 3531, jan
+Updated rxtxcomm to 2.2pre2 release.
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/CommDriver.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/CommPort.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/CommPortEnumerator.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/CommPortIdentifier.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/CommPortOwnershipListener.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/Configure.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/I2C.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/I2CPort.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/I2CPortEvent.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/I2CPortEventListener.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/LPRPort.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/NoSuchPortException.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/ParallelPort.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/ParallelPortEvent.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/ParallelPortEventListener.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/PortInUseException.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RS485.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RS485Port.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RS485PortEvent.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RS485PortEventListener.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RXTXCommDriver.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RXTXPort.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RXTXVersion.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/Raw.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RawPort.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RawPortEvent.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/RawPortEventListener.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/SerialPort.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/SerialPortEvent.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/SerialPortEventListener.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/UnSupportedLoggerException.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/UnsupportedCommOperationException.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm/src/gnu/io/Zystem.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/resources/librxtxParallel.so
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/resources/librxtxSerial.so
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-04-10 18:00:02 +0200 (Tue, 10 Apr 2012), revision 3530, jan
+Added linux-x86 rxtxcomm fragment bundle and a rxtxcomm example bundle.
+U   knopflerfish.org/trunk/osgi/bundles_examples/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/src/
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/src/org/knopflerfish/example/
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/src/org/knopflerfish/example/rxtx_echo/
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/src/org/knopflerfish/example/rxtx_echo/Activator.java
+A   knopflerfish.org/trunk/osgi/bundles_examples/rxtx_echo/src/org/knopflerfish/example/rxtx_echo/SerialPortDevice.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/build.xml
+D   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-arm/resources/RXTXcomm.jar
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/resources/
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/resources/OSGI-OPT/
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/resources/OSGI-OPT/COPYING
+A   knopflerfish.org/trunk/osgi/bundles_opt/serial/rxtxcomm-linux-x86/resources/OSGI-OPT/README
+
+2012-04-04 20:14:27 +0200 (Wed, 04 Apr 2012), revision 3529, ekolin
+Save the slected sort order in the Desktops Large Icon Displayer as a user preferences value (per framework SID).
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/DefaultSwingBundleDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LargeIconsDisplayer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-03-28 20:09:06 +0200 (Wed, 28 Mar 2012), revision 3528, ekolin
+Added property to control the inital sort order used by the Large Icons bundle displayer.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LargeIconsDisplayer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-03-23 13:18:09 +0100 (Fri, 23 Mar 2012), revision 3527, jan
+The CM bundle now uses synchronous bundle listeners when updating location data. Call update for new bundle when changing bundle location for a configuration.
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/cm/cm/src/org/knopflerfish/bundle/cm/ConfigurationAdminFactory.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-03-21 19:51:11 +0100 (Wed, 21 Mar 2012), revision 3526, ekolin
+Starting a framework with the --f option shall not count as an argument when desciding on if the default xargs files shall be loaded or not. kf_metatype must not try to insert properties with an empty value into a dictionary.
+U   knopflerfish.org/trunk/osgi/bundles/metatype/kf_metatype/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/metatype/kf_metatype/src/org/knopflerfish/bundle/metatype/Activator.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-03-17 21:05:06 +0100 (Sat, 17 Mar 2012), revision 3525, ekolin
+Desktop 3.1.8: Yet another place to handle stop in
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+
+2012-03-17 20:33:03 +0100 (Sat, 17 Mar 2012), revision 3524, ekolin
+Desktop 3.1.8: Handle stop during startup, compile agains framework 4.3.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/LogReaderDispatcher.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-03-09 15:11:25 +0100 (Fri, 09 Mar 2012), revision 3523, jan
+Closed some InputStreams to avoid CloseGuard on Android.
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpConfig.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-03-07 15:57:58 +0100 (Wed, 07 Mar 2012), revision 3522, jan
+Updated CM metatype information to R4 format for log bundle. Added support for HTTP PUT to http_client_connector.
+U   knopflerfish.org/trunk/osgi/bundles/log/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles/log/resources/OSGI-INF/
+A   knopflerfish.org/trunk/osgi/bundles/log/resources/OSGI-INF/metatype/
+A   knopflerfish.org/trunk/osgi/bundles/log/resources/OSGI-INF/metatype/metatype.xml
+D   knopflerfish.org/trunk/osgi/bundles/log/resources/cmdefaults.xml
+D   knopflerfish.org/trunk/osgi/bundles/log/resources/metatype.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/src/org/knopflerfish/bundle/httpclient_connector/HttpClientConnection.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-02-28 14:25:17 +0100 (Tue, 28 Feb 2012), revision 3521, jan
+Added support for HTTP DELETE to http_client_connector 3.1.0
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/src/org/knopflerfish/bundle/httpclient_connector/HttpClientConnection.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-02-16 11:33:00 +0100 (Thu, 16 Feb 2012), revision 3520, jan
+Added missing source for scrcommands in SDK.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-02-16 10:40:28 +0100 (Thu, 16 Feb 2012), revision 3519, jan
+Added missing import to http bundle. Bumped version to 3.0.8
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/SocketListener.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-02-03 10:02:53 +0100 (Fri, 03 Feb 2012), revision 3518, cl
+Separated notes for SRC to be per version
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-02-01 12:30:57 +0100 (Wed, 01 Feb 2012), revision 3517, jan
+Fixed bugs with bind/unbind of component reference and added test cases for these. Bumped component bundle version to 3.1.3.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component-api_test/src/org/knopflerfish/service/component_test/ComponentATest.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component-api_test/src/org/knopflerfish/service/component_test/TestService2.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/resources/service.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/src/org/knopflerfish/bundle/componentA_test/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/src/org/knopflerfish/bundle/componentA_test/ComponentA.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/src/org/knopflerfish/bundle/componentA_test/ComponentA1.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/src/org/knopflerfish/bundle/componentA_test/ComponentB.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/src/org/knopflerfish/bundle/componentA_test/ComponentC.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-01-10 11:20:12 +0100 (Tue, 10 Jan 2012), revision 3516, jan
+Fixed problems with component properties.  Continuation of previous check-in.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/PropertyDictionary.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-01-10 10:36:12 +0100 (Tue, 10 Jan 2012), revision 3515, jan
+Fixed problems with component properties.
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+
+2012-01-04 15:54:08 +0100 (Wed, 04 Jan 2012), revision 3514, jan
+Updated exported version of org.apache.felix.scr to 1.6 so that we are compatible with felix scr.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-12-23 15:12:32 +0100 (Fri, 23 Dec 2011), revision 3513, jan
+Fixed Java 1.4 problem in previous commit.
+U   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/org/knopflerfish/bundle/scrcommands/ScrCommandGroup.java
+
+2011-12-23 14:46:18 +0100 (Fri, 23 Dec 2011), revision 3512, jan
+Added files that was missed in previous commit.
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/apache/
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/apache/felix/
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/apache/felix/scr/
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/apache/felix/scr/Component.java
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/apache/felix/scr/Reference.java
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/apache/felix/scr/ScrService.java
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ScrServiceImpl.java
+
+2011-12-23 13:14:05 +0100 (Fri, 23 Dec 2011), revision 3511, jan
+Added new ScrService to SCR bundle to aid debugging. Also added new bundle scrcommands that provides a console command group for this new service. Fixed bug in http server, that caused Felix webconsole failure.
+U   knopflerfish.org/trunk/NOTICE.txt
+U   knopflerfish.org/trunk/osgi/bundles/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/component/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentDescription.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/DelayedComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/PropertyDictionary.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HeaderBase.java
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/build.xml
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/doc/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/doc/doc.properties
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/doc/index.html
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/resources/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/resources/OSGI-INF/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/resources/OSGI-INF/service.xml
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/resources/icon.png
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/org/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/org/knopflerfish/bundle/scrcommands/
+A   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/org/knopflerfish/bundle/scrcommands/ScrCommandGroup.java
+U   knopflerfish.org/trunk/osgi/template.xargs.in
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-12-07 17:41:07 +0100 (Wed, 07 Dec 2011), revision 3510, ekolin
+Ooops, '.' is not allowed in the qualifier part of a version number.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-12-07 17:38:18 +0100 (Wed, 07 Dec 2011), revision 3509, ekolin
+Fix broken handling of http.nonProxyHosts property in axis2-osgi.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/apache/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/apache/axis2/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/apache/axis2/transport/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/apache/axis2/transport/http/
+A   knopflerfish.org/trunk/osgi/bundles_opt/soap/axis2-osgi/src/org/apache/axis2/transport/http/ProxyConfiguration.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-11-25 10:12:20 +0100 (Fri, 25 Nov 2011), revision 3508, jan
+Fixed SCR problem with circular references.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-11-16 09:36:35 +0100 (Wed, 16 Nov 2011), revision 3507, cl
+Changed to use individual text for every bundle release. Head version marked with '*'
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-11-15 20:50:34 +0100 (Tue, 15 Nov 2011), revision 3506, ekolin
+Directives and parameters must be removed from the bundle symbolic name manifest attribute before it can be used. Reported in https://sourceforge.net/tracker/?func=detail&aid=3438377&group_id=82798&atid=567241
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleManifestTask.java
+U   knopflerfish.org/trunk/osgi/bundles/console/console/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/console/console/src/org/knopflerfish/service/console/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/console/console/src/org/knopflerfish/service/console/packageinfo
+U   knopflerfish.org/trunk/osgi/bundles/log/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/LogConfigImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/src/org/knopflerfish/bundle/logcommands/LogConfigCommandGroup.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-11-09 17:11:29 +0100 (Wed, 09 Nov 2011), revision 3505, ekolin
+Remove three dead-locks between Log-service and EventAdmin-service. See https://sourceforge.net/tracker/?func=detail&aid=3413792&group_id=82798&atid=567241 for details.
+U   knopflerfish.org/trunk/osgi/bundles/event/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/EventAdminService.java
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/QueueHandler.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-11-09 15:47:17 +0100 (Wed, 09 Nov 2011), revision 3504, jan
+SCR fixes, handle when we don't have a CM service installed and fixed problem with components that weren't activated in the correct order when we had immediate components with optional circular references.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-10-27 20:49:42 +0200 (Thu, 27 Oct 2011), revision 3503, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/doc/index.html
+
+2011-10-27 20:13:03 +0200 (Thu, 27 Oct 2011), revision 3502, ekolin
+Extend log service configuration, see issue with id 3426947 in the Bugs tracker on sf.net.
+U   knopflerfish.org/trunk/osgi/bundles/log/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/log/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/log/resources/cmdefaults.xml
+U   knopflerfish.org/trunk/osgi/bundles/log/resources/metatype.xml
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/FileLog.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/LogConfigImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/LogEntryImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/LogReaderServiceFactory.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/LogReaderServiceImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/LogServiceImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/service/log/LogConfig.java
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/service/log/packageinfo
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/logcommands/src/org/knopflerfish/bundle/logcommands/LogConfigCommandGroup.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-09-12 18:58:52 +0200 (Mon, 12 Sep 2011), revision 3501, ekolin
+Fix a problem in the Antroid instrumentation on windows. Also factored out the android instrumentation into a separate build file. See issue with id 3405464 in the Bugs tracker on sf.net
+A   knopflerfish.org/trunk/ant/android.xml
+U   knopflerfish.org/trunk/ant/bundlebuild.xml
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+U   knopflerfish.org/trunk/tools/android/build.xml
+
+2011-09-04 11:52:05 +0200 (Sun, 04 Sep 2011), revision 3500, ekolin
+Improve error message from the BundleArchives task when it failse to parse some manifest header. The error message now tells in which bundle the broken manifest attribute was found and the entire manifest value is printed.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleArchives.java
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/Util.java
+
+2011-09-03 12:17:05 +0200 (Sat, 03 Sep 2011), revision 3499, ekolin
+Some testbundles using require bundle with split packages must not have implicit imports of exported packages.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_C/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/rb_D/build.xml
+
+2011-09-03 11:23:38 +0200 (Sat, 03 Sep 2011), revision 3498, ekolin
+Fix a problem with the BundleArchives task, did not handle '-' in the qualifier part of a bundle version in the bundles file name.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleArchives.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-09-02 19:38:11 +0200 (Fri, 02 Sep 2011), revision 3497, ekolin
+Fix for issue 3402741 reported in the bug-tracker on sourceforge. Implicit imports of all packages exported by an API-bundle is added. The implicit import will have a versionrange starting with the exported version up to the next major version (excluded).
+U   knopflerfish.org/trunk/ant/bundlebuild.xml
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleInfoTask.java
+U   knopflerfish.org/trunk/osgi/bundles/blueprint/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/deploymentadmin/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/dmtree/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/io/io/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/jsdk/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/log/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/serial/serialportdevice/bundle.manifest
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-08-31 19:24:03 +0200 (Wed, 31 Aug 2011), revision 3496, ekolin
+Spelling
+U   knopflerfish.org/trunk/htdocs/html_src/android_dalvik_tutorial.html
+
+2011-08-30 19:22:14 +0200 (Tue, 30 Aug 2011), revision 3495, ekolin
+Fix spelling and a couple of patterns.
+U   knopflerfish.org/trunk/osgi/bundles/bundlerepository/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+U   knopflerfish.org/trunk/tools/android/build.xml
+
+2011-08-23 15:56:27 +0200 (Tue, 23 Aug 2011), revision 3494, ekolin
+Set includeAntRuntime to false to remove ant 1.8 warning.
+U   knopflerfish.org/trunk/tools/jarunpacker/build.xml
+
+2011-07-17 18:58:09 +0200 (Sun, 17 Jul 2011), revision 3493, ekolin
+Post KF 3.2 update
+U   knopflerfish.org/trunk/release_notes.in
+
+2011-07-17 18:54:59 +0200 (Sun, 17 Jul 2011), revision 3492, ekolin
+Add Knopflerfish 3.2 to the set of releases to publish in the main KF-mavne2 repository.
+U   knopflerfish.org/trunk/tools/mvnrepo/build.xml
+
+2011-07-17 12:47:10 +0200 (Sun, 17 Jul 2011), revision 3491, ekolin
+Version in trunk should allways be the next bugfix release number with
+qualifier "svn-XXXX".
+U   knopflerfish.org/trunk/build.xml
+
+2011-07-17 00:08:30 +0200 (Sun, 17 Jul 2011), revision 3490, cl
+Changed default version to 3.2.0 based
+U   knopflerfish.org/trunk/build.xml
+
+2011-07-15 11:33:42 +0200 (Fri, 15 Jul 2011), revision 3487, cl
+Update changelog for the 3.2.0 release
+U   knopflerfish.org/trunk/changelog.txt
+
 2011-07-14 21:28:58 +0200 (Thu, 14 Jul 2011), revision 3486, cl
 Added missing bundles which caused a build in a download distrib to fail
 U   knopflerfish.org/trunk/build.xml
@@ -21,12 +471,12 @@ U   knopflerfish.org/trunk/htdocs/html_src/tutorials.html
 A   knopflerfish.org/trunk/htdocs/images/dalvik_httproot.png
 
 2011-07-14 11:52:55 +0200 (Thu, 14 Jul 2011), revision 3482, cl
-spelling errors + class=codeexample =&gt; class=code
+spelling errors + class=codeexample => class=code
 U   knopflerfish.org/trunk/htdocs/html_src/osgi_service_tutorial.html
 U   knopflerfish.org/trunk/htdocs/html_src/osgi_with_security.html
 
 2011-07-14 11:34:51 +0200 (Thu, 14 Jul 2011), revision 3481, cl
-Doc fixes. Using class=code on &lt;pre&gt; tags
+Doc fixes. Using class=code on <pre> tags
 U   knopflerfish.org/trunk/htdocs/html_src/building.html
 U   knopflerfish.org/trunk/htdocs/html_src/installing.html
 U   knopflerfish.org/trunk/htdocs/html_src/license.html
