@@ -53,7 +53,7 @@ U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/bundle.manifest
 U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/FrameworkCommandGroup.java
 
 2012-06-07 10:49:15 +0200 (Thu, 07 Jun 2012), revision 3533, jan
-Fixed faulty loop variable when using "-update <bid>" command. Fixed problem with import package for fragments.
+Fixed faulty loop variable when using "-update &lt;bid&gt;" command. Fixed problem with import package for fragments.
 U   knopflerfish.org/trunk/osgi/framework/build.xml
 U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
 A   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/IteratorIteratorSorted.java
@@ -471,12 +471,12 @@ U   knopflerfish.org/trunk/htdocs/html_src/tutorials.html
 A   knopflerfish.org/trunk/htdocs/images/dalvik_httproot.png
 
 2011-07-14 11:52:55 +0200 (Thu, 14 Jul 2011), revision 3482, cl
-spelling errors + class=codeexample => class=code
+spelling errors + class=codeexample =&gt; class=code
 U   knopflerfish.org/trunk/htdocs/html_src/osgi_service_tutorial.html
 U   knopflerfish.org/trunk/htdocs/html_src/osgi_with_security.html
 
 2011-07-14 11:34:51 +0200 (Thu, 14 Jul 2011), revision 3481, cl
-Doc fixes. Using class=code on <pre> tags
+Doc fixes. Using class=code on &lt;pre&gt; tags
 U   knopflerfish.org/trunk/htdocs/html_src/building.html
 U   knopflerfish.org/trunk/htdocs/html_src/installing.html
 U   knopflerfish.org/trunk/htdocs/html_src/license.html
