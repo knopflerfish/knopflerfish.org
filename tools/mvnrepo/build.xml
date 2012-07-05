@@ -80,6 +80,7 @@
     <toMavenRepo version="3.0.0" repo="${tmp.mvn2.repo.dir}"/>
     <toMavenRepo version="3.1.0" repo="${tmp.mvn2.repo.dir}"/>
     <toMavenRepo version="3.2.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.3.0" repo="${tmp.mvn2.repo.dir}"/>
 
   </target>
 
