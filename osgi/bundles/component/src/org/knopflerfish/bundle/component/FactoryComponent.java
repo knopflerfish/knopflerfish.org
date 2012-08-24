@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,7 @@ class FactoryComponent extends Component implements ComponentFactory
   public ComponentInstance newInstance(Dictionary instanceProps) {
     if (hasFactoryService()) {
       ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
-      ComponentContextImpl cci = cc.activate(null);
+      ComponentContextImpl cci = cc.activate(null, false);
       cc.registerService();
       return cci.getComponentInstance();
     }

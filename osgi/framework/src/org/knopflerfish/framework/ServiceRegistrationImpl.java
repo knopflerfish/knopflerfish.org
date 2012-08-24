@@ -414,6 +414,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    */
   boolean ungetService(Bundle b, boolean checkRefCounter) {
     Object serviceToRemove = null;
+    Hashtable deps;
     synchronized (properties) {
       if (dependents == null) {
         return false;
@@ -433,6 +434,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
         }
         serviceToRemove = serviceInstances.remove(b);
       }
+      deps = dependents;
     }
 
     if (serviceToRemove != null) {
@@ -444,7 +446,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
         }
       }
     }
-    synchronized (dependents) {
+    synchronized (deps) {
       ungetInProgress.remove(b);
     }
     return true;

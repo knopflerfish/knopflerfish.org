@@ -61,10 +61,10 @@ class ImmediateComponent extends Component {
     for (int i = 0; i < cc.length; i++) {
       cc[i].registerService();
       try {
-        // Activate by getting service
-        cc[i].getService(null, null);
+        cc[i].activate(null, true);
       } catch (ComponentException _ignore) {
         // Error messages are logged by the activate method
+        cc[i].dispose(ComponentConstants.DEACTIVATION_REASON_UNSPECIFIED);
       }
     }
   }

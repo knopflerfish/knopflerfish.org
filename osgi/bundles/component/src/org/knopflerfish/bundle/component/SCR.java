@@ -59,7 +59,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   private ServiceRegistration cmListener = null;
   private ServiceTracker cmAdminTracker;
   private long nextId = 0;
-
+  private ArrayList postponedBind = new ArrayList();
 
   /**
    *
@@ -84,6 +84,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         processBundle(bundles[i]);
       }
     }
+    checkPostponeBind();
     bc.registerService(org.apache.felix.scr.ScrService.class.getName(),
                        new ScrServiceImpl(this), null);
   }
@@ -132,6 +133,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
       removeBundle(bundle, ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED);
       break;
     }
+    checkPostponeBind();
   }
 
   //
@@ -142,7 +144,6 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    *
    */
   public void configurationEvent(ConfigurationEvent evt) {
-    try {
     String name = evt.getFactoryPid();
     String pid = evt.getPid();
     if (name == null) {
@@ -166,9 +167,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         break;
       }
     }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    checkPostponeBind();
   }
 
   //
@@ -423,6 +422,57 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
       }
     }
     return null;
+  }
+
+
+  /**
+   * Save binds that where circular binds.
+   */
+  void postponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
+    if (rl.isDynamic() && rl.isOptional()) {
+      synchronized (this) {
+        postponedBind.add(new PostponedBind(cci, rl, sr));
+      }
+      Activator.logDebug("Postpone bind service " + Activator.srInfo(sr) + " to " + cci);
+    }
+  }
+
+
+  /**
+   * Save binds that where circular binds.
+   */
+  void clearPostponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
+    if (rl.isDynamic() && rl.isOptional()) {
+      synchronized (this) {
+        for (Iterator i = postponedBind.iterator(); i.hasNext(); ) {
+          PostponedBind pb = (PostponedBind)i.next();
+          if (pb.cci == cci && pb.rl == rl && pb.sr == sr) {
+            i.remove();
+            Activator.logDebug("Cleared postponed bind " + Activator.srInfo(sr) + " to " + cci);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+
+  /**
+   * Save binds that where circular binds.
+   */
+  void checkPostponeBind() {
+    ArrayList pbs;
+    synchronized (this) {
+      if (postponedBind.isEmpty()) {
+        return;
+      }
+      pbs = postponedBind;
+      postponedBind = new ArrayList();
+    }
+    for (Iterator i = pbs.iterator(); i.hasNext(); ) {
+      ((PostponedBind)i.next()).retry();
+    }
+    // TODO, Should we try again if some failed?
   }
 
 

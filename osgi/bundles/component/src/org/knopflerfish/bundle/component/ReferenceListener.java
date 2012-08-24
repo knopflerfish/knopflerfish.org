@@ -66,6 +66,14 @@ class ReferenceListener implements ServiceListener
 
 
   /**
+   *
+   */
+  public String toString() {
+    return "ReferenceListener(" + ref + ", target=" + cmTarget + ")";
+  }
+
+
+  /**
    * Stop listening for services fulfilling this reference
    *
    */
@@ -205,6 +213,14 @@ class ReferenceListener implements ServiceListener
    */
   boolean isMultiple() {
     return ref.refDesc.multiple;
+  }
+
+
+  /**
+   * Is this reference optional;
+   */
+  boolean isOptional() {
+    return ref.refDesc.optional;
   }
 
 
@@ -365,6 +381,7 @@ class ReferenceListener implements ServiceListener
       }
       se = null;
     } while (!sEventQueue.isEmpty());
+    ref.comp.scr.checkPostponeBind();
   }
 
   //
@@ -372,17 +389,18 @@ class ReferenceListener implements ServiceListener
   //
 
   /**
-   * Get service if it belongs to this reference.
+   * Get service, but activate before so that we will
+   * get any ComponentExceptions.
    */
   private Object getServiceCheckActivate(ServiceReference sr, Bundle usingBundle) {
     Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
     if (o != null && o instanceof String) {
       Component [] cs = ref.comp.scr.getComponent((String)o);
-      if (o != null) {
+      if (cs != null) {
         for (int i = 0; i < cs.length; i++) {
           ComponentConfiguration cc = cs[i].getComponentConfiguration(sr);
           if (cc != null) {
-            cc.activate(usingBundle);
+            cc.activate(usingBundle, false);
             break;
           }
         }
