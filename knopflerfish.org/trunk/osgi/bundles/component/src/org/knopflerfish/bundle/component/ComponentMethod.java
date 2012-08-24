@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -252,7 +252,24 @@ class ComponentMethod
       } else if (params[i] == ServiceReference.class) {
         args[i] = s;
       } else {
-        args[i] = comp.bc.getService(s);
+        try {
+          args[i] = comp.bc.getService(s);
+          if (args[i] == null) {
+            Activator.logDebug("Got null service argument for " + method +
+                               " in " + instance.getClass() +  " for component " +
+                               comp.compDesc.getName() + " registered for " +
+                               comp.compDesc.bundle);
+            return new ComponentException("Got null service, " +
+                                          Activator.srInfo(s));
+          }
+        } catch (Exception e) {
+          Activator.logDebug("Got " + e + " when getting service argument for " + method +
+                             " in " + instance.getClass() +  " for component " +
+                             comp.compDesc.getName() + " registered for " +
+                             comp.compDesc.bundle);
+          return new ComponentException("Failed to get service, " +
+                                        Activator.srInfo(s), e);
+        }
       }
     }
     try {
@@ -265,7 +282,12 @@ class ComponentMethod
       Activator.logError(comp.bc, msg, e);
       return new ComponentException(msg, e);
     } catch (InvocationTargetException e) {
-      String msg = "Got exception when invoking \"" + method + "\" in: " + instance.getClass();
+      String msg = "exception";
+      Throwable cause = e.getTargetException();
+      if (cause != null) {
+        msg = cause.toString();
+      }
+      msg = "Got " + msg + " when invoking \"" + method + "\" in: " + instance.getClass();
       Activator.logError(comp.bc, msg, e);
       return new ComponentException(msg, e);
     }

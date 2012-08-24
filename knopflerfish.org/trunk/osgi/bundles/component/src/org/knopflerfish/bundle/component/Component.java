@@ -71,7 +71,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
   ComponentMethod deactivateMethod;
   ComponentMethod modifiedMethod = null;
   private transient int state = 0;
-  private boolean getMethodsDone = false;
+  private volatile boolean getMethodsDone = false;
   private Reference [] refs = null;
   private Object lock = new Object();
 
@@ -456,6 +456,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
   void resolvedConstraint() {
     synchronized (lock) {
       if (--unresolvedConstraints == 0) {
+        // TODO do we need to move this outside synchronized
         satisfied();
       }
     }
@@ -468,6 +469,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
   void unresolvedConstraint(int reason) {
     synchronized (lock) {
       if (unresolvedConstraints++ == 0) {
+        // TODO do we need to move this outside synchronized
         unsatisfied(reason);
       }
     }
@@ -495,6 +497,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
       cc = (ComponentConfiguration)compConfigs.remove(NO_PID);
       if (refs != null) {
         for (int i = 0; i < refs.length; i++) {
+          // TODO do we need to move this outside synchronized
           refs[i].update(c, cc != null);
         }
       }
@@ -525,7 +528,6 @@ public abstract class Component implements org.apache.felix.scr.Component {
    *
    */
   void cmConfigDeleted(String pid) {
-    // TODO do we need to synchronize all
     cmDicts.remove(pid);
     final HashMap sp = servProps;
     if (sp != null) {
@@ -541,6 +543,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
       if (cmDicts.isEmpty()) {
         if (!cmConfigOptional) {
           if (unresolvedConstraints++ == 0) {
+            // TODO do we need to move this outside synchronized
             unsatisfied(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
             return;
           }
@@ -566,6 +569,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
     if (!r.isOptional()) {
       synchronized (lock) {
         if (--unresolvedConstraints == 0) {
+          // TODO do we need to move this outside synchronized
           satisfied();
           return true;
         }
@@ -583,6 +587,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
     if (!r.isOptional()) {
       synchronized (lock) {
         if (unresolvedConstraints++ == 0) {
+          // TODO do we need to move this outside synchronized
           unsatisfied(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
           return true;
         }
@@ -698,7 +703,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    *
    * @param clazz Implemenation class to look for methods on.
    */
-  void getMethods(Class clazz) {
+  synchronized void getMethods(Class clazz) {
     if (!getMethodsDone) {
       getMethodsDone = true;
       HashMap lookfor = new HashMap();

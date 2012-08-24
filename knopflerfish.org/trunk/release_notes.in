@@ -10,8 +10,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
+* Framework 5.2.1
+
+  - Fixed race condition in service unregister that caused a NPE.
+
 
 === Services (Compendium) ===
+
+* SCR(component) 3.1.5
+  
+  - Fixed deadlock that could appear during component activation.
+  - Fixed circular component reference handling that could cause
+    missing optional bind and activation problems.
 
 
 === Misc (KF specific, start scripts, build system etc) ===

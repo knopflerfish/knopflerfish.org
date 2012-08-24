@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,6 +146,25 @@ public class Activator implements BundleActivator
     } else {
       log.log(level, message, t);
     }
+  }
+
+  /**
+   * Return info about ServiceReference
+   */
+  public static String srInfo(ServiceReference sr) {
+    StringBuffer sb = new StringBuffer();
+    sb.append("ServiceReference(id=");
+    sb.append(sr.getProperty(Constants.SERVICE_ID));
+    sb.append(", [");
+    String [] oc = (String [])sr.getProperty(Constants.OBJECTCLASS);
+    for (int i = 0; i < oc.length; i++) {
+      if (i > 0) {
+        sb.append(", ");
+      }
+      sb.append(oc[i]);
+    }
+    sb.append("])");
+    return sb.toString();
   }
 
 }

@@ -41,19 +41,34 @@ import org.osgi.service.component.*;
 
 class ComponentContextImpl implements ComponentContext
 {
+  final static int ACTIVATING = 0;
+  final static int ACTIVE = 1;
+  final static int DEACTIVE = 2;
+  final static int FAILED = 3;
+
   final private ComponentConfiguration cc;
   final private Bundle usingBundle;
-  final private ComponentInstanceImpl componentInstance;
-  private HashMap /* String -> ReferenceListener */ boundReferences = null;
+  final private Thread activatorThread;
+  private volatile ComponentInstanceImpl componentInstance = null;
+  private volatile int state = ACTIVATING;
+  final private HashMap /* String -> ReferenceListener */ boundReferences = new HashMap();
 
 
   /**
    *
    */
-  public ComponentContextImpl(ComponentConfiguration cc, Object instance, Bundle usingBundle) {
+  ComponentContextImpl(ComponentConfiguration cc, Bundle usingBundle) {
     this.cc = cc;
     this.usingBundle = usingBundle;
-    componentInstance = new ComponentInstanceImpl(this, instance);
+    activatorThread = Thread.currentThread();
+  }
+
+
+  /**
+   *
+   */
+  public String toString() {
+    return "ComponentContext to " + cc;
   }
 
 
@@ -74,11 +89,9 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   public Object locateService(String name) {
-    if (boundReferences != null) {
-      ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
-      if (rl != null) {
-        return rl.getService(usingBundle);
-      }
+    ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
+    if (rl != null) {
+      return rl.getService(usingBundle);
     }
     return null;
   }
@@ -88,11 +101,9 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   public Object locateService(String name, ServiceReference sRef) {
-    if (boundReferences != null) {
-      ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
-      if (rl != null) {
-        return rl.getService(sRef, usingBundle);
-      }
+    ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
+    if (rl != null) {
+      return rl.getService(sRef, usingBundle);
     }
     return null;
   }
@@ -102,11 +113,9 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   public Object[] locateServices(String name) {
-    if (boundReferences != null) {
-      ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
-      if (rl != null) {
-        return rl.getServices(usingBundle);
-      }
+    ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
+    if (rl != null) {
+      return rl.getServices(usingBundle);
     }
     return null;
   }
@@ -163,15 +172,20 @@ class ComponentContextImpl implements ComponentContext
   //
   //
 
+
+  /**
+   *
+   */
+  void setInstance(Object instance) {
+    componentInstance = new ComponentInstanceImpl(this, instance);
+  }
+
+
   /**
    * 
    */
   void dispose() {
-    if (cc.isLastContext(this)) {
-      cc.dispose(ComponentConstants.DEACTIVATION_REASON_DISPOSED);
-    } else {
-      cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED);
-    }
+    cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true);
   }
 
 
@@ -198,19 +212,35 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   boolean bind(ReferenceListener rl, ServiceReference s) {
-    Activator.logDebug("Bind service " + s + " to " + cc);
+    Activator.logDebug("Bind service " + Activator.srInfo(s) + " to " + cc);
     boolean res;
-    if (rl.ref.bindMethod != null) {
-      res = rl.ref.bindMethod.invoke(this, s) == null;
-    } else {
-      // Get service so that it is bound in correct order
-      res = null != rl.getService(s, usingBundle);
+    try {
+      Exception be;
+      if (rl.ref.bindMethod != null) {
+        res = null == rl.ref.bindMethod.invoke(this, s);
+      } else {
+        // Get service so that it is bound in correct order
+        res = null != rl.getService(s, usingBundle);
+      }
+      if (res) {
+        cc.component.scr.clearPostponeBind(this, rl, s);
+        boundReferences.put(rl.getName(), rl);
+      } else {
+        // TODO, We should only save if its because broken getService,
+        // can we test this without fetching the serve
+        if (rl.getService(s, usingBundle) == null) {
+          cc.component.scr.postponeBind(this, rl, s);
+        }
+      }
+      return res;
+    } catch (IllegalStateException ise) {
+      // Possible circular chain detected
+      // TODO, improve this since it is Framework dependent
+      cc.component.scr.postponeBind(this, rl, s);
+    } catch (Exception e) {
+      Activator.logDebug("Failed to bind service " + Activator.srInfo(s) + " to " + cc + ", " + e);
     }
-    if (boundReferences == null) {
-      boundReferences = new HashMap();
-    }
-    boundReferences.put(rl.getName(), rl);
-    return res;
+    return false;
   }
 
 
@@ -218,9 +248,6 @@ class ComponentContextImpl implements ComponentContext
    * 
    */
   void unbind(String name) {
-    if (boundReferences == null) {
-      return;
-    }
     Activator.logDebug("Unbind " + name + " for " + cc);
     ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
     if (rl == null) {
@@ -248,11 +275,74 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   void unbind(ReferenceListener rl, ServiceReference s) {
-    Activator.logDebug("Unbind service " + s + " from " + cc);
+    Activator.logDebug("Unbind service " + Activator.srInfo(s) + " from " + cc);
     // TBD, should we keep track on which services we have sucessfully bound
     // and only unbind those.
     if (rl.ref.unbindMethod != null) {
       rl.ref.unbindMethod.invoke(this, s);
+    }
+  }
+
+
+  /**
+   * Check if we have bound reference to specified service
+   */
+  boolean isBound(ReferenceListener rl) {
+    return boundReferences.containsValue(rl);
+  }
+
+
+  /**
+   * Tell all waiting on activation, activation result.
+   *
+   */
+  void activationResult(boolean success) {
+    synchronized (cc) {
+      state = success ? ACTIVE : FAILED;
+      cc.notifyAll();
+    }
+  }
+
+
+  /**
+   *
+   */
+  boolean isActive() {
+    return state == ACTIVE;
+  }
+
+
+  /**
+   *
+   */
+  void setDeactive() {
+    synchronized (cc) {
+      state = DEACTIVE;
+    }
+  }
+
+
+  /**
+   * Wait for activation of component or return directly
+   * if no activation is in progress. If activation succeded
+   * return true, otherwise return false. Must be called
+   * when holding ComponentConfiguration lock.
+   *
+   * @Return result of activation, if activation succeded
+   * return true, otherwise return false.
+   */
+  boolean waitForActivation() {
+    synchronized (cc) {
+      while (state == ACTIVATING) {
+        if (activatorThread.equals(Thread.currentThread())) {
+          Activator.logDebug("Circular activate detected: " + cc);
+          return false;
+        }
+        try {
+          cc.wait();
+        } catch (InterruptedException _ignore) { }
+      }
+      return isActive();
     }
   }
 
