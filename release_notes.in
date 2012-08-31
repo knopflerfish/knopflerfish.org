@@ -10,7 +10,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.2.1
+* Framework 5.2.2
+
+  - Fixed race condition when doing dynamic package import during
+    resolve of bundles.
+
+  Framework 5.2.1
 
   - Fixed race condition in service unregister that caused a NPE.
 
