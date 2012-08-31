@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ class Packages {
   /**
    * Temporary set of resolved bundles during a resolve operation.
    */
-  private HashSet /* BundleImpl */tempResolved = null;
+  private volatile HashSet /* BundleImpl */tempResolved = null;
 
   /**
    * Temporary map of package providers during a resolve operation.
@@ -162,6 +162,13 @@ class Packages {
     ExportPkg res = null;
     Pkg p = (Pkg)packages.get(ip.name);
     if (p != null) {
+      // Wait for other resolve operations to
+      // TODO, handle potential dead-lock if called from SynchronousBundleListener.
+      while (tempResolved != null) {
+        try {
+          wait();
+        } catch (InterruptedException _ignore) { }
+      }
       tempResolved = new HashSet();
       tempProvider = new HashMap();
       tempRequired = new HashMap();
@@ -184,6 +191,7 @@ class Packages {
       tempProvider = null;
       tempRequired = null;
       tempResolved = null;
+      notifyAll();
     }
     if (framework.debug.packages) {
       framework.debug.println("registerDynamicImport: Done for " + ip.name + ", res = " + res);
@@ -282,12 +290,15 @@ class Packages {
     }
     // If we enter with tempResolved set, it means that we already have
     // resolved bundles. Check that it is true!
-    if (tempResolved != null) {
-      if (!tempResolved.contains(bundle)) {
-        framework.listeners.frameworkError(bundle,
-                                           new Exception("resolve: InternalError1!"));
+    while (tempResolved != null) {
+      if (tempResolved.contains(bundle)) {
+        return null;
       }
-      return null;
+      // Not true, wait before starting new resolve process.
+      // TODO, handle potential dead-lock if called from SynchronousBundleListener.
+      try {
+        wait();
+      } catch (InterruptedException _ignore) { }
     }
 
     tempResolved = new HashSet();
@@ -325,6 +336,7 @@ class Packages {
     tempProvider = null;
     tempRequired = null;
     tempBlackList = null;
+    notifyAll();
     if (framework.debug.packages) {
       framework.debug.println("resolve: Done for " + bundle);
     }

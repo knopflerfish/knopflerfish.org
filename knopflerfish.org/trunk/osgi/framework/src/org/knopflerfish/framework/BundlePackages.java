@@ -200,13 +200,6 @@ class BundlePackages {
       for (;;) {
         int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
         exports.add(ei, ep);
-        if (!bg.v2Manifest) {
-          ImportPkg ip = new ImportPkg(ep);
-          int ii = Util.binarySearch(imports, ipComp, ip);
-          if (ii < 0) {
-            imports.add(-ii - 1, ip);
-          }
-        }
         if (pi.hasNext()) {
           ep = new ExportPkg(ep, (String)pi.next());
         } else {
