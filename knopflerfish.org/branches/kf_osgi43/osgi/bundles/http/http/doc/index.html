@@ -1,0 +1,318 @@
+
+
+<h1>Http server</h1>
+
+<div class="abstract">
+Small footprint OSGi HTTP server implementation for embedded use. 
+The HTTP server allows bundles to register
+resources as servlets, web pages, images or multimedia into a web server
+running on the framework.
+</div>
+
+<h2>Usage</h2>
+
+<p>
+The HTTP bundle can be configured by both CM or System properties
+</p>
+
+<p>
+As soon as the http bundle gets a valid configuration it creates and
+registers an HttpService instance into the framework. 
+</p>
+
+<p>To use HTTPS a bundle providing a <tt>SslServerSocketFactory</tt>
+must be installed.</p>
+
+<p>
+Note: If the server fails to bind to a port, an HttpService will still
+be registered, but the service property "port" will not be present!
+</p>
+
+
+<h3>Configuration using Framework Properties</h3>
+
+<table class="man">
+  <tr>
+    <th class="man">Name</th>
+    <th>Description</th>
+    <th>Type</th>
+    <th>Default</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.enabled</td>
+    <td>
+
+      If true, the bundle will start to listen in the http port.
+
+    </td>
+    <td>boolean</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.secure.enabled</td>
+    <td>
+
+      If true, the bundle will start to listen in the https
+      port. <em>Note:</em> This functionality requires that the bundle
+      is able to obtain a <tt>SslServerSocketFactory</tt> service
+      instance from the frameworks service registry.
+
+    </td>
+    <td>boolean</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>org.osgi.service.http.port</td>
+    <td>
+
+	Port number that the HTTP server will listen for http-requests
+	on.
+
+    </td>
+    <td>int</td>
+    <td>80</td>
+  </tr>
+  <tr>
+    <td>org.osgi.service.http.secure.port</td>
+    <td>
+
+	Port number that the HTTP server will listen for
+	https-requests on.
+
+    </td>
+    <td>int</td>
+    <td>443</td>
+  </tr>
+  <tr>
+    <td>org.osgi.service.http.hostname</td>
+    <td>
+
+	Host (IP interface name) to open the HTTP server socket
+	on. An empty string means all available interfaces.
+
+    </td>
+    <td>String</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.mime.props</td>
+    <td>
+
+     URL to properties file defining MIME type mappings. The key in
+     the properties file is the file name extension and the value is
+     the associated MIME type.
+
+    </td>
+    <td>String</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.dnslookup</td>
+    <td>
+
+      This boolean property decides if the server will use DNS lookup
+      when a servlet calls the HttpServletRequest.getRemoteHost
+      method. In some environments DNS lookup will cause the current
+      transaction to hang for a long period of time.
+
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.response.buffer.size.default</td>
+    <td>
+
+      This integer property decides the default buffer size in bytes
+      for an HTTP response. If a servlet or publisher does not exceed
+      this buffer, the server will calculate and send the content
+      length header in the response. If the buffer is exceeded the
+      servlet or publisher need to set the content length header
+      explicitly. The content length header is required for persistent
+      connections. If the content length is unknown the server will
+      send a connection close header. The buffer size can be set
+      runtime by the servlet using the HttpResponse.setBufferSize()
+      method.
+
+    </td>
+    <td>int</td>
+    <td>16384</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.connection.max</td>
+    <td>
+
+      This integer property decides the maximum number of concurrent
+      connections to the HTTP server.
+
+    </td>
+    <td>int</td>
+    <td>50</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.connection.timeout</td>
+    <td>
+
+      This integer property decides the timeout in seconds for a
+      persistent connection to the HTTP server.
+
+    </td>
+    <td>int</td>
+    <td>30</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.session.timeout.default</td>
+    <td>
+
+      This integer property decides the default timeout in seconds for
+      an HTTP session.
+
+    </td>
+    <td>int</td>
+    <td>1200</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.encoding.default</td>
+    <td>
+
+      The default character encoding to use for text in the HTTP
+      response.
+
+    </td>
+    <td>String</td>
+    <td>ISO-8859-1</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.req.client.auth</td>
+    <td>
+
+      If client authentication shall be required or not when using
+      https.
+
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.trace.enabled</td>
+    <td>
+      If the TRACE method shall be enabled or not
+    </td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.limit.requestline</td>
+    <td>
+      Defines the maximum length of an HTTP request line. This limit
+      is also applied for HTTP header lines. When exceeding this limit
+      a 413 response is returned - Request Entity Too Large. 
+    </td>
+    <td>int</td>
+    <td>8090</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.limit.requestheaders</td>
+    <td>
+      Defines the maximum number of headers appected per request. 
+      When exceeding this limit a 413 response is returned - Request Entity Too Large. 
+    </td>
+    <td>int</td>
+    <td>100</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.http.limit.postsize</td>
+    <td>
+      Defines the maximum content size for a POST request. A value of
+      -1 indicates there is no limit. This is also the default behaviour.
+      When exceeding this limit a 413 response is returned - Request Entity Too Large. 
+    </td>
+    <td>int</td>
+    <td>-1</td>
+  </tr>
+</table>
+
+
+<h3>Configuration using the Configuration Manager</h3>
+
+The http bundle accepts Factory configurations on the PID
+<pre>
+  org.knopflerfish.bundle.http.factory.HttpServer
+</pre>
+..with the following properties:
+
+<dl>
+
+<dt>http.enable</dt>
+<dd>If true, the bundle will start to listen in the http port.</dd>
+
+<dt>https.enable</dt>
+<dd>If true, the bundle will start to listen in the https port. Note:
+    This functionality requires that the bundle is able to obtain a
+    <tt>SslServerSocketFactory</tt> service instance from the
+    frameworks service registry.</dd>
+
+<dt>port (Integer)</dt>
+<dd>This integer property decides the default port for the server instance.
+  The default port is 80.</dd>
+
+
+<dt>host (String)</dt>
+<dd>  This string property decides the default hostname for the server
+  instance. If the server is running on a multihomed machine this
+  property will be used to decide which network interface the server will
+  listen to. If this property is not set the server will listen to all network
+  interfaces. The default is to listen to all network interfaces.
+</dd>
+
+<dt>mime.map (Vector of String[2])</dt>
+<dd>
+  This property is a vector of arrays defining MIME type mappings. Each
+  entry in the vector is an array with two elements where the first is
+  the file name extension and the second is the associated MIME type.
+  By default the most common file types are defined.
+</dd>
+
+
+<dt>session.timeout.default (Integer)</dt>
+<dd>
+  This integer property decides the default timeout in seconds for an
+  HTTP session. The default is 1200 seconds.
+</dd>
+
+<dt>connection.timeout (Integer)</dt>
+<dd>
+  This integer property decides the timeout in seconds for a persistent
+  connection to the HTTP server. The default is 30 seconds.
+</dd>
+
+<dt>connection.max (Integer)</dt>
+<dd>
+  This integer property decides the maximum number of concurrent
+  connections to the HTTP server. The default is 50.
+</dd>
+
+<dt>dns.lookup (Boolean)</dt>
+<dd>
+  This boolean property decides if the server will use DNS lookup when a
+  servlet calls the HttpServletRequest.getRemoteHost method. In some
+  environments DNS lookup will cause the current transaction to hang for
+  a long period of time. The default is to do DNS lookup.
+</dd>
+
+<dt>response.buffer.size.default (Integer)</dt>
+<dd>
+  This integer property decides the default buffer size in bytes for an
+  HTTP response. If a servlet or publisher does not exceed this buffer,
+  the server will calculate and send the content length header in the
+  response. If the buffer is exceeded the servlet or publisher need to
+  set the content length header explicitly. The content length header is
+  required for persistent connections. If the content length is unknown
+  the server will send a connection close header. The buffer size can be
+  set runtime by the servlet using the HttpResponse.setBufferSize()
+  method. The default is 16384 bytes.
+</dd>
+
+</dl>
+
+

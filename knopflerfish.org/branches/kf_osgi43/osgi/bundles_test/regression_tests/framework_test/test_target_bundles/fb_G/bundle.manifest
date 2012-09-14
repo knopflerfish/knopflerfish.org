@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-Version: 1.0.0
+Bundle-Name: fb_G
+Bundle-SymbolicName: test.fb_G
+Fragment-Host: test.fb_A

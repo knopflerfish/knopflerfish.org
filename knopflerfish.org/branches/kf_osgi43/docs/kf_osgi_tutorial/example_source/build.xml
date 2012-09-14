@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+
+<project name="tutorial" default="all">
+
+  <property name="kf.dir" location="../../../osgi"/>
+
+  <target name="doAntBuild">
+    <ant target="${the.target}" dir="simplebundle"/>
+    <ant target="${the.target}" dir="dateservice"/>
+    <ant target="${the.target}" dir="dateserviceuser_bad"/>
+    <ant target="${the.target}" dir="dateserviceuser_bad2"/>
+    <ant target="${the.target}" dir="dateserviceuser_listener"/>
+    <ant target="${the.target}" dir="dateserviceuser_tracker"/>
+    <ant target="${the.target}" dir="dateserviceuser_declarative"/>
+  </target>
+
+  <target name="all" 
+	  description="Builds all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="all"/>
+    </antcall>
+  </target>
+
+  <target name="clean"
+	  description="Cleans all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="clean"/>
+    </antcall>
+  </target>
+
+</project>

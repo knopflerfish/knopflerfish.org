@@ -1,0 +1,11 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: axis2_soapclient_adb
+Bundle-SymbolicName: org.knopflerfish.bundle.axis2_soapclient_adb
+Bundle-Version: 1.0.0
+Bundle-UUID: org.knopflerfish.bundle.axis2_soapclient_adb:1.0.0:all
+Bundle-Description: SOAP client using ADB type binding to server object
+Bundle-Vendor: Knopflerfish/Makewave
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.axis2_soapclient_adb.BundleActivator
+Bundle-Category: test

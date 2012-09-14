@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Bundlerepository
+Bundle-SymbolicName: org.knopflerfish.bundle.bundlerepository
+Bundle-Version: 3.1.2
+Bundle-Category: service
+Bundle-Description: OBR bundle repository using the KF console and desktop
+Bundle-Vendor: Oscar/Knopflerfish
+Bundle-APIVendor: Oscar/Knopflerfish
+Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/bundlerepository/readme.txt
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/bundlerepository/
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Classpath: .,kxml-min.jar
+DynamicImport-Package: *
+Bundle-Activator: org.knopflerfish.osgi.bundle.bundlerepository.Activator
+Import-Package: org.osgi.framework; version="[1.5,2)",
+ org.knopflerfish.service.desktop,
+ org.osgi.service.packageadmin,
+ org.osgi.util.tracker,
+ org.ungoverned.osgi.service.shell; resolution:=optional,
+ javax.swing; resolution:=optional,
+ javax.swing.event; resolution:=optional,
+ javax.swing.tree; resolution:=optional

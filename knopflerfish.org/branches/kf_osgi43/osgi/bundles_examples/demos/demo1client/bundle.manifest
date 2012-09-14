@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: demo1client
+Bundle-SymbolicName: org.knopflerfish.bundle.demo1client
+Bundle-Version: 2.0.0
+Bundle-Category: example
+Bundle-Description: Demo client bundle
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/demos/demo1client/
+Bundle-Activator: org.knopflerfish.service.demo1client.impl.Activator
+Import-Package: org.osgi.framework,
+ org.knopflerfish.service.demo1
+ 

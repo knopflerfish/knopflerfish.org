@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+
+<project name="endurance_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.endurance_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"   value=""/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/bundle/**"/>
+
+  <property name="bundle.stdimports"
+	    value="java., org.knopflerfish.service.bundleEnd101_test, org.knopflerfish.service.bundleEnd102_test, org.knopflerfish.service.bundleEnd7_test"/>
+
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <path id="bundle.compile.path">
+      <pathelement location="${resources.dir}/bundleEnd7_test-1.0.0.jar"/>
+      <pathelement location="${resources.dir}/bundleEnd101_test-1.0.0.jar"/>
+      <pathelement location="${resources.dir}/bundleEnd102_test-1.0.0.jar"/>
+      <pathelement location="${resources.dir}/bundleEnd151_test-1.0.0.jar"/>
+      <pathelement location="${resources.dir}/bundleEnd152_test-1.0.0.jar"/>
+      <pathelement location="log_api-N.N.N.jar"/>
+  </path>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+   <antcall target="bundleEnd1_test"/>
+   <antcall target="bundleEnd5_test"/>
+   <antcall target="bundleEnd7_test"/>
+   <antcall target="bundleEnd101_test"/>
+   <antcall target="bundleEnd102_test"/>
+   <antcall target="bundleEnd151_test"/>
+   <antcall target="bundleEnd152_test"/>
+  </target>
+
+  <target name="bundleEnd1_test">
+    <ant dir="test_target_bundles/bundleEnd1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+    </ant>
+  </target>
+  <target name="bundleEnd5_test">
+    <ant dir="test_target_bundles/bundleEnd5_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+    </ant>
+  </target>
+  <target name="bundleEnd7_test">
+    <ant dir="test_target_bundles/bundleEnd7_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+    </ant>
+  </target>
+  <target name="bundleEnd101_test">
+    <ant dir="test_target_bundles/bundleEnd101_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+    </ant>
+  </target>
+  <target name="bundleEnd102_test">
+    <ant dir="test_target_bundles/bundleEnd102_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+    </ant>
+  </target>
+  <target name="bundleEnd151_test">
+    <ant dir="test_target_bundles/bundleEnd151_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+    </ant>
+  </target>
+  <target name="bundleEnd152_test">
+    <ant dir="test_target_bundles/bundleEnd152_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+    </ant>
+  </target>
+
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+  <target name="clean">
+    <antcall target="bundlebuild.clean"/>
+    <delete dir="${proj.dir}/resources" includes="*.jar" failonerror="false"/>
+  </target>
+
+</project>

@@ -1,0 +1,229 @@
+<h1>JUnit on OSGI</h1>
+
+Bundles to support JUnit testing on a running framework. 
+<p>
+There are three bundles involved:
+<dl> 
+<dt>junit
+<dd>   bundle exporting the junit.framework.* classes
+   as well as allowing remote connection to test suites
+   in a running framework via http. This bundle also 
+   exports a JUnitService to allow other bundles in
+   the framework access to bundles.
+
+<dt> junit_runner
+<dd>    a bundle which automatically finds and runs
+    bundles in a framework. This bundle does 
+    not require any http connection, just the
+    junit bundle. See junit_runner/readme.txt
+    for more info.
+
+<dt> examples
+<dd>    some small test cases using junit
+</dl>
+
+<h2>Requirements:</h2>
+
+The junit bundle does not require any other bundles (as of revision 737)
+but can use the HTTP server and the KF console to make test access easier.
+<ul>
+<li> - optionally http server (used dynically by the server part)
+
+<li> - optionally KF console (used dynamically by the server part)
+
+<li> - XML parser (used by the client part)
+</ul>
+
+<h2>Background</h2>
+
+JUnit allows developers to write unit tests by writing classes 
+implementing junit.framework.Test, e.g TestCase, TestSuite etc.
+<p>
+A typical test looks like
+<pre class="code">
+ class MyTest extends junit.framework.TestCase {
+   public void runTest() {
+     ... do some work
+     assertTrue(someflag)
+   }
+ }
+</pre>
+As long as these test do not depend on a running framework, they
+are easy to run using normal tools, but when they depend on the
+framework, the standard test running tools become insufficient.
+<p>
+Thus, the junit bundle allows remote access to test cases running
+on a framework, from any normal test tool running on a developer 
+machine.
+
+<h2>How it works</h2>
+<ol> 
+<li>Bundle developers write tests for a bundle B just as any other 
+    JUnit tests. The tests simply extends TestCase or TestSuite.
+
+<li>The bundle developer register these tests as-is into the OSGi
+    framework, with a service.pid property giving the name
+    of the test. This should normally be the same name as the
+    test. Typically all tests from a bundle is grouped into
+    a TestSuite.
+<p>
+    Example: register a test suite into the framework.
+<pre class="code">
+      TestSuite suite = new TestSuite("example1");
+
+      suite.addTest(new MyTest());
+      Hashtable props = new Hashtable();
+      props.put("service.pid", suite.getName());
+    
+      bc.registerService(Test.class.getName(), suite, props);
+</pre>
+
+<li>The junit bundle, when started, registers a servlet in the
+    OSGi web server, if the web server exists. This servlet then 
+    allows remote running of the registered test cases.
+
+    The servlet is available at
+<pre class="shell">
+      http://<host>:<port>/junit?id=<testid>
+</pre>
+    where <testid> == value of the service.pid property exported
+    in 2) 
+<p>
+    The only interface that registered tests need to implement
+    is junit.framework.Test
+<P>
+    The junit bundle thus accesses the tests via BundleContext.getService()
+    and needs ServicePermission, if FW security is active.
+<p>
+ Note how *only* step 2) is extra work compared to writing standard
+ JUnit tests.
+
+
+
+<li>When actual testing is desired, a single client test class is used
+    on the development machine (which doesn't need to run the framework!)
+<p>
+    The client class name is:
+<pre class="shell">
+     org.knopflerfish.service.junit.client.JUnitClient
+</pre>
+    The target host and test id is passed to the client as a 
+    system property "suite.url"
+<p>
+    This client test class extends TestSuite and act as a proxy to the 
+    actual test, and can thus be passed to any test runner, as
+<p>
+     junit.swingui.TestRunner or
+     junit.textui.TestRunner
+<p>
+   as well as Ant's "junit" task.
+<p>
+   Example: Using the Swing TestRunner
+<pre  class="shell">
+    > java "-Dsuite.url=http://localhost:8080/junit?id=example1" \
+       junit.swingui.TestRunner \
+       org.knopflerfish.service.junit.client.JUnitClient
+</pre>
+    This will run the test with id "example1" on localhost:8080
+<p>
+    Note that the class path must be set fo find both junit.jar and
+    the junit_all-1.0.0.jar bundle.
+
+<li>Testing can also be done without using the servlet. The easiest
+    approach is then to use the junit_runner bundle, and provide it with
+    a list of test IDs to run. XML formatted results will then be
+    written to file.
+
+<li>If you are using the KF console, the junit bundle registers
+    a set of commands to list and run test cases.
+<pre class="shell">
+    > enter junit
+    junit> help
+    Available junit commands:
+     list [-help]  - List available tests
+     run [-help] [-out #file#] <id> - Run a test and dump XML results 
+                                      to a file or console.
+</pre>
+</ol>
+
+<b>Note1:</b><br>
+<p>
+  The servlet is also capable of exporting the test results as plain
+  HTML. In this case, the client proxy isn't needed. Just point your
+  browser at
+<pre class="shell">
+   http://<host>:<port>/junit
+</pre>
+  and you'll get a list of available tests. From this list you can
+  select suites and individual tests to run. The result will be
+  presented as HTML.
+
+<b>Note2: </b><br>
+
+  The junit_runner/resource directory contains som XSLT style
+  sheets which may be useful for formatting XML test results to
+  HTML.
+ 
+
+<h2>Monitoring test case execution</h2>
+
+  JUnit <tt>TestListener</tt>s may be used to monitor test case
+  execution.
+
+  <p>
+
+  The junit-bundle will look up all services registered
+  under the class <tt>junit.framework.TestListener</tt> in the
+  running framework and add them to the TestResult as listeners.
+
+  <p>
+    Example: register a test listener into the framework.
+<pre class="code">
+      TestListener listener = new MyTestListener();
+
+      bc.registerService(TestListener.class.getName(), listener, null);
+</pre>
+
+
+<h2>JUnit support in bundlebuild.xml</h2>
+
+As a convenience, the ant/bundlebuild.xml script
+contains support for using the JUnit client.
+
+<p>
+Example: run the swing Test runner from Ant
+<pre  class="shell">
+   > ant -Dtest.id=example1 junit_ext
+</pre>
+   
+Example: run Ant's junit task
+<pre  class="shell">
+   > ant -Dtest.id=example1 junit_ant
+</pre>
+
+Tip: Bundles can be installed using the telnet console. The telnet
+console is installed by the default init.xargs. In this case a bundle
+can be installed and started by
+<pre  class="shell">
+   > ant install start
+</pre>     
+
+The following Ant properties are set as default in bundlebuild.xml:
+<pre class="code">
+  http.host              localhost
+  http.port              8080
+  junit.runner.class     junit.swingui.TestRunner
+  junit.formatter        plain
+  junit.outfile          junit
+</pre>
+
+<h2>Known issues</h2>
+
+<ul>
+<li>TestSuites are "flattened" by the client proxy, so the
+   tree structure in the Swing runner might look a bit different
+   compared from tests run locally.
+
+<li> Proxied tests cannot (yet) be individually re-run. The entire client 
+   proxy must be re-run
+</ul>

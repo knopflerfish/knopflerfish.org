@@ -1,0 +1,11 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleExt2_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleExt2_test
+Bundle-Version: 1.0.0
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleExt2_test
+Import-Package: org.knopflerfish.service.bundleExt2_test
+Fragment-Host: system.bundle;extension:=framework

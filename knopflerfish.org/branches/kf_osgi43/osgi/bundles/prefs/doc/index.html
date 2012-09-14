@@ -1,0 +1,30 @@
+
+
+<h1>Preferences</h1>
+
+<div class="abstract">
+  The prefs bundle implements the 
+  <a  target="_top" href="$(JAVADOCLINK)org/osgi/service/prefs/PreferencesService.html">
+    OSGi Preferences service</a>
+  that provides easy to use persistent storage of bundle data. 
+</div>
+
+<h2>Description</h2>
+<p>
+  With Preferences, bundles can store data persistently. Data is stored
+  as named values in a tree structure where each node can have any
+  number of key-value pairs. For example, Preferences can be used by a
+  bundle to store application and user settings. A bundle typically uses
+  a number of preferences tree roots, one for system settings and one
+  for each user's settings. 
+</p>
+<p>
+  This component implements the OSGi Preferences service.
+</p>
+<p>
+  Note that preferences are tied to a bundle. The OSGi service
+  provides no way for a bundle to access the preferences of another
+  bundle. Once fetched though, it is possible for one bundle to share
+  its preferences with other bundles. 
+</p>
+

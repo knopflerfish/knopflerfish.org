@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="device" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.device}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "bundle.build.doc"   value = "true"/>
+  
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="log_api-N.N.N.jar"/>
+  </path>
+
+  <property name="api.pattern"   value="org/osgi/service/device/*"/>
+  <property name="impl.pattern"  value="org/knopflerfish/bundle/device/*"/>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

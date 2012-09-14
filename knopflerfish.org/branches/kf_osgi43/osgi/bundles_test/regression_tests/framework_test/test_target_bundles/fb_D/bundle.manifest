@@ -1,0 +1,5 @@
+Bundle-Manifest-Version: 2
+Bundle-Version: 2.0.0
+Bundle-Name: fb_D
+Bundle-SymbolicName: test.fb_D
+Export-Package: test_fapi ; version="2"

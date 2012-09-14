@@ -1,0 +1,6 @@
+(org.osgi.framework.PackagePermission "org.osgi.framework" "import")
+(org.osgi.framework.PackagePermission "org.osgi.service.log" "import")
+(org.osgi.framework.ServicePermission "org.osgi.service.log.LogService" "get")
+(java.io.FilePermission "/tmp/osgiuser" "read,write,delete")
+(org.osgi.framework.PackagePermission "com.makewave.cpaexample.service.user" "exportonly")
+(org.osgi.framework.ServicePermission "com.makewave.cpaexample.service.user.UserService" "register")

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="metatype_demo" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.metatype_demo}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/demo/metatype/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="metatype-N.N.N.jar"/>
+   <pathelement location="kf_metatype-N.N.N.jar"/>
+  </path>
+  
+  <property name="bmfa.Bundle-Description"    value="Metatype demo"/>
+  <property name="bmfa.Bundle-Name"           value="Metatype demo"/>
+  <property name="bmfa.Bundle-Vendor"         value="knopflerfish"/>
+  <property name="bmfa.Bundle-Category"       value="service"/>
+  <property name="bmfa.Bundle-Version"        value="1.0.0"/>
+  <property name="bmfa.Bundle-SubversionURL"
+	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/metatype/metatype_demo/"/>
+
+  <property name="bmfa.Import-Package"
+	    value="org.osgi.service.cm,org.knopflerfish.util.metatype,org.knopflerfish.service.log,org.osgi.framework,org.osgi.service.metatype"/>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>
