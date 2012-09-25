@@ -38,6 +38,7 @@ import java.security.AccessControlException;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
@@ -125,10 +126,14 @@ public class InternalAdminEvent {
   private void log(TrackedEventHandler handler, String txt)
   {
     ServiceReference sr = handler.getServiceReference();
+    Bundle  b = sr.getBundle();
+    String binfo = (sr != null) ?
+      "  bundle.id=" + sr.getBundle().getBundleId() + "  bundle.name="
+      + sr.getBundle().getSymbolicName() :
+      " No bundle info";
     Activator.log.error(txt + "  Service.id="
-        + sr.getProperty(Constants.SERVICE_ID) + "  bundle.id="
-        + sr.getBundle().getBundleId() + "  bundle.name="
-        + sr.getBundle().getSymbolicName() + "  topic=" + event.getTopic(), sr);
+                        + sr.getProperty(Constants.SERVICE_ID) + binfo +
+                        " topic=" + event.getTopic(), sr);
   }
 
   private void deliverToHandles()
