@@ -51,7 +51,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
 {
   final private BundleContext bc;
 
-  private HashSet /* Bundle */ lazy = new HashSet();
+  private Set /* Bundle */ lazy = Collections.synchronizedSet(new HashSet());
   private Hashtable /* Bundle -> Component[] */ bundleComponents = new Hashtable();
   private Hashtable /* String -> Component[] */ components = new Hashtable();
   private Hashtable /* String -> Component[] */ serviceComponents = new Hashtable();
@@ -115,7 +115,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   /**
    * Process bundle components when it starts.
    */
-  public synchronized void bundleChanged(BundleEvent event) {
+  public void bundleChanged(BundleEvent event) {
     Bundle bundle = event.getBundle();
 
     switch (event.getType()) {
@@ -434,6 +434,8 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         postponedBind.add(new PostponedBind(cci, rl, sr));
       }
       Activator.logDebug("Postpone bind service " + Activator.srInfo(sr) + " to " + cci);
+    } else {
+      Activator.logDebug("Not dynamic, skip postpone bind service " + Activator.srInfo(sr) + " to " + cci);
     }
   }
 

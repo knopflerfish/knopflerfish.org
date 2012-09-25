@@ -68,7 +68,7 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   public String toString() {
-    return "ComponentContext to " + cc;
+    return "[ComponentContext to " + cc + "]";
   }
 
 
@@ -221,10 +221,13 @@ class ComponentContextImpl implements ComponentContext
       } else {
         // Get service so that it is bound in correct order
         res = null != rl.getService(s, usingBundle);
+        Activator.logDebug("CCI.bind get service result=" + res + " for " +
+                           Activator.srInfo(s) + " to " + cc);
       }
       if (res) {
         cc.component.scr.clearPostponeBind(this, rl, s);
         boundReferences.put(rl.getName(), rl);
+        Activator.logDebug("CCI.bind OK, " + Activator.srInfo(s) + " to " + cc);
       } else {
         // TODO, We should only save if its because broken getService,
         // can we test this without fetching the serve
