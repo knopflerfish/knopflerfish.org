@@ -153,14 +153,14 @@ public class ComponentConfiguration implements ServiceFactory {
         synchronized (this) {
           // Check that the context is still active
           if (!res.isActive()) {
-            throw new ComponentException("Component deactivated");
+            throw new ComponentException("Waited for component activation that was deactivated: " + this);
           }
           if (incrementActive) {
             activeCount++;
           }
         }
       } else {
-        throw new ComponentException("Component activation failed");
+        throw new ComponentException("Waited for component activation that failed: " + this);
       }
     }
     return res;
