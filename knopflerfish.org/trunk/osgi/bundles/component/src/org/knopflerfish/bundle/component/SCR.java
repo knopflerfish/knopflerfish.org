@@ -153,13 +153,20 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     if (comp != null) {
       switch (evt.getType()) {
       case ConfigurationEvent.CM_DELETED:
+        Activator.logDebug("ConfigurationEvent deleted, pid=" + pid);
         for (int i = 0; i < comp.length; i++) {
           comp[i].cmConfigDeleted(pid);
         }
         break;
       case ConfigurationEvent.CM_UPDATED:
-        for (int i = 0; i < comp.length; i++) {
-          comp[i].cmConfigUpdated(pid, getConfiguration(pid));
+        Configuration c = getConfiguration(pid);
+        if (c != null) {
+          Activator.logDebug("ConfigurationEvent updated, pid=" + pid);
+          for (int i = 0; i < comp.length; i++) {
+            comp[i].cmConfigUpdated(pid, getConfiguration(pid));
+          }
+        } else {
+          Activator.logWarning("ConfigurationEvent updated, failed to get configuration, pid=" + pid);
         }
         break;
       default:
