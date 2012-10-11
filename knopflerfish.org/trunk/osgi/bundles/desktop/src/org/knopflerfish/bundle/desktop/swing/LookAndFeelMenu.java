@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,12 +62,12 @@ import javax.swing.UnsupportedLookAndFeelException;
  ** implementing the look and feel.
  **
  ** @author Gunnar Ekolin, Gatespace AB
- ** @version $Revision: 1.2 $
  **/
 public class LookAndFeelMenu
   extends JMenu
   implements ItemListener
 {
+  private static final long serialVersionUID = 1L;
 
   final ButtonGroup lfGroup = new ButtonGroup();
 

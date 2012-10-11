@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,30 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
-import java.util.*;
-import javax.swing.*;
-import java.net.URL;
+import java.awt.AlphaComposite;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.AffineTransform;
 
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
+import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.knopflerfish.service.desktop.*;
 
 public class JBundleHistory extends JPanel {
+
+  private static final long serialVersionUID = 1L;
 
   BundleContext bc;
 
@@ -161,6 +172,7 @@ public class JBundleHistory extends JPanel {
 
 
   class JBundle extends JPanel {
+    private static final long serialVersionUID = 1L;
     Icon icon;
     Bundle b;
     AlphaComposite alpha = alphaLow;

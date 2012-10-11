@@ -1,21 +1,55 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 
-import java.awt.*;
-import java.awt.image.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.awt.font.TextAttribute;
-import java.util.*;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Polygon;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.AffineTransform;
-import javax.swing.border.*;
-import org.osgi.framework.*;
+import java.awt.geom.CubicCurve2D;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
-import org.knopflerfish.bundle.desktop.swing.graph.*;
-import java.awt.geom.*;
+import java.awt.geom.Rectangle2D;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
+
+import javax.swing.JPanel;
+
+import org.knopflerfish.bundle.desktop.swing.graph.DefaultLink;
+import org.knopflerfish.bundle.desktop.swing.graph.DefaultNode;
+import org.knopflerfish.bundle.desktop.swing.graph.EmptyNode;
+import org.knopflerfish.bundle.desktop.swing.graph.Link;
+import org.knopflerfish.bundle.desktop.swing.graph.Node;
 
 public abstract class JSoftGraph extends JPanel {
 
+  private static final long serialVersionUID = 1L;
   Point2D mousePoint = new Point2D.Double(-1, -1);
   Point2D dragStart  = new Point2D.Double(-1, -1);
 
@@ -403,7 +437,6 @@ public abstract class JSoftGraph extends JPanel {
     Map currNodePos = new HashMap();
     Map newNodePos  = new HashMap();
     
-    int nAdds = 0;
     for(Iterator it = currentLinkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node n1 = link.getFrom();
@@ -412,11 +445,9 @@ public abstract class JSoftGraph extends JPanel {
       currNodePos.put(n2, n2.getPoint());
       if(!allLinkMap.containsKey(link)) {
         allLinkMap.put(link, link);
-        nAdds++;
       }
     }
     
-    nAdds = 0;
     for(Iterator it = newLinkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node n1 = link.getFrom();
@@ -425,7 +456,6 @@ public abstract class JSoftGraph extends JPanel {
       newNodePos.put(n2, n2.getPoint());
       if(!allLinkMap.containsKey(link)) {
         allLinkMap.put(link, link);
-        nAdds++;
       }
     }
     
@@ -629,17 +659,13 @@ public abstract class JSoftGraph extends JPanel {
       g.translate(center.getY()*.5, -3.1*center.getY());
       g.shear(-0.5, 0);
       g.setComposite(alphaSome);
-      int n = 0;
-      int n2 = 0;
       Color c1 = Util.rgbInterpolate(bottomColor, Color.black, .1);
       for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
         Link link = (Link)it.next();
         
         if(link.getType() >= 0) {
           paintLink(g, link, c1, null, false);
-          n++;
         }
-        n2++;
       }
       g.setTransform(oldTrans);
       g.setComposite(oldComp);
@@ -819,8 +845,8 @@ public abstract class JSoftGraph extends JPanel {
         
         double left = (cx-r.getWidth()/2) - pad;
         double top  = cy - (r.getHeight()/2) -pad;
-        double w    = r.getWidth() + 2 * pad;
-        double h    = r.getHeight() + 2 * pad;
+//        double w    = r.getWidth() + 2 * pad;
+//        double h    = r.getHeight() + 2 * pad;
         
         g.translate(left, top);
         g.scale(textScale, textScale);
@@ -933,17 +959,18 @@ public abstract class JSoftGraph extends JPanel {
     Point2D p1 = n1.getPoint();
     Point2D p2 = n2.getPoint();
     
-    if(false && n2.equals(currentNode)) {
-      drawLine(g, 
-               link, 
-               (int)p1.getX(),
-               (int)p1.getY(),
-               (int)p2.getX(),
-               (int)p2.getY(),
-               fillColor,
-               fadestate == STATE_FADE ? null : lineColor,
-               bFind);
-    } else {
+//    if(false && n2.equals(currentNode)) {
+//      drawLine(g, 
+//               link, 
+//               (int)p1.getX(),
+//               (int)p1.getY(),
+//               (int)p2.getX(),
+//               (int)p2.getY(),
+//               fillColor,
+//               fadestate == STATE_FADE ? null : lineColor,
+//               bFind);
+//    } else
+    {
       if(p1 != null && p2 != null) {
         Stroke oldStroke = g.getStroke();
         
@@ -983,9 +1010,9 @@ public abstract class JSoftGraph extends JPanel {
     if(r < 10) {
       return;
     }
-    long t0 = System.currentTimeMillis();
+//    long t0 = System.currentTimeMillis();
     layoutNode(node, linkMap, r, getCenter(), 10, 0.0);
-    long t1 = System.currentTimeMillis();
+//    long t1 = System.currentTimeMillis();
   }
 
   int maxDepth = 10;
@@ -1004,8 +1031,8 @@ public abstract class JSoftGraph extends JPanel {
                          double a0
                          ) {
     try {
-      double rx = r / 2 * .8;
-      double ry = rx;
+//      double rx = r / 2 * .8;
+//      double ry = rx;
 
       if(detail > maxDepth) {
         Collection outLinks = node.getOutLinks();
@@ -1071,7 +1098,7 @@ public abstract class JSoftGraph extends JPanel {
         int _n = 0;
         int n = 0;
 
-        int nImport = inLinks.size();
+//        int nImport = inLinks.size();
         double inrx = r*1;
         double inry = r*.60;
 
@@ -1295,8 +1322,6 @@ public abstract class JSoftGraph extends JPanel {
 
       GeneralPath path = new GeneralPath();
       
-      double k = 1.0;
-
       Polygon p1 = new Polygon();
       
       Node n1 = link.getFrom();
@@ -1379,8 +1404,6 @@ public abstract class JSoftGraph extends JPanel {
 
     x += 10;
     y += font.getSize() + 5;
-
-    int x2 = x + font.getSize() * 8;
 
     g.setComposite((AlphaComposite)oldComp);
 

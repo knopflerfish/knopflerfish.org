@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.Dictionary;
 import java.util.Iterator;
 
 import javax.swing.JComponent;
@@ -69,6 +68,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   class JHTML extends JHTMLBundle {
+    private static final long serialVersionUID = 1L;
 
     JHTML(DefaultSwingBundleDisplayer displayer) {
       super(displayer);
@@ -154,8 +154,6 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer {
       } catch (Exception e) {
         e.printStackTrace();
       }
-      Dictionary headers = b.getHeaders();
-
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
 
       sb.append("</table>");

@@ -1,17 +1,48 @@
+/*
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.knopflerfish.bundle.desktop.swing.graph;
 
 
-import java.util.*;
-import java.awt.geom.Point2D;
 import java.awt.Color;
-import org.osgi.framework.*;
-import org.knopflerfish.bundle.desktop.swing.Util;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
 import org.knopflerfish.bundle.desktop.swing.Activator;
 import org.knopflerfish.bundle.desktop.swing.PackageManager;
-
+import org.knopflerfish.bundle.desktop.swing.Util;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Version;
 import org.osgi.service.packageadmin.ExportedPackage;
 
 
@@ -44,15 +75,9 @@ public class PackageNode
   Color burnFragmentColor = new Color(255, 255, 200);
 
   public Collection getOutLinks() {
-    long t0 = System.currentTimeMillis();
-    long t1 = 0;
-    long t2 = 0;
-    long t3;
     if(outLinks == null) {
       try {
         outLinks = new ArrayList();
-
-        t1 = System.currentTimeMillis();
 
         Color colA = Util.rgbInterpolate(baseColor, burnColor, (double)depth/3);
         Collection pkgs = pm.getExportedPackages(b);
@@ -154,7 +179,6 @@ public class PackageNode
         Activator.log.error("Failed to get node packages", e);
       }
     }
-    t2 = System.currentTimeMillis();
     /*
     System.out.println("getOutLinks " + this +
                        " t2-t0:" + (t2 - t0) + "ms" +
@@ -169,7 +193,6 @@ public class PackageNode
 
 
   public Collection getInLinks() {
-    long t0 = System.currentTimeMillis();
     if(inLinks == null) {
       try {
         inLinks = new ArrayList();
@@ -218,8 +241,6 @@ public class PackageNode
         }
 
         if(bFragments) {
-          String symName = Util.getHeader(b, "Bundle-SymbolicName");
-          // Bundle[] bl = Activator.getBC().getBundles();
           Bundle[] bl = pm.getFragments(b);
 
           Color col = Util.rgbInterpolate(baseFragmentColor, burnFragmentColor, (double)depth/3);
@@ -311,8 +332,6 @@ public class PackageNode
         Activator.log.error("Failed to get services", e);
       }
     }
-    long t1 = System.currentTimeMillis();
-    // System.out.println("getInLinks " + this + " took " + (t1 - t0) + "ms");
 
     return inLinks;
   }

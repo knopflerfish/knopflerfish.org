@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,8 @@ import org.osgi.framework.ServiceReference;
 
 
 public class JSendEventPanel extends JPanel  {
+  private static final long serialVersionUID = 1L;
+
   JComboBox topicC;
   DefaultComboBoxModel topicModel;
   DefaultListModel allTopics;
@@ -80,12 +82,8 @@ public class JSendEventPanel extends JPanel  {
 
     updateTopics();
 
-    JLabel jl;
     JPanel tPanel = new JPanel(new BorderLayout());
 
-    // jl = new JLabel("Topic:");
-    // jl.setSize(new Dimension(100, jl.getSize().height));
-    // tPanel.add(jl, BorderLayout.WEST);
     tPanel.add(topicC, BorderLayout.CENTER);
 
     tPanel.setBorder(BorderFactory.createTitledBorder("Event topic"));
@@ -143,6 +141,8 @@ public class JSendEventPanel extends JPanel  {
     buttonPanel.add(closeButton);
 
     propTable = new JTable() {
+        private static final long serialVersionUID = 1L;
+        
         public TableCellRenderer getCellRenderer(int row, int column) {
           Object val = getValueAt(row, column);
 
@@ -208,6 +208,8 @@ public class JSendEventPanel extends JPanel  {
     }
 
     AbstractTableModel model = new AbstractTableModel() {
+        private static final long serialVersionUID = 1L;
+      
         public String   getColumnName(int column) {
           return column == 0 ? "Name" : "Value";
         }

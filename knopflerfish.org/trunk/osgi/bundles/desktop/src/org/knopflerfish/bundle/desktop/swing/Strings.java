@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ public class Strings {
    */
   static {
     strings = new Hashtable() {
+        private static final long serialVersionUID = 1L;
         {
           put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
           put("menu_quit",         "Quit");

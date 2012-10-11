@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project All rights reserved.
+ * Copyright (c) 2003-2012, KNOPFLERFISH project All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following
@@ -33,21 +33,21 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 
-import java.util.*;
-import java.awt.geom.Point2D;
-import java.awt.Color;
-import org.osgi.framework.*;
-import org.knopflerfish.bundle.desktop.swing.Util;
-import org.knopflerfish.bundle.desktop.swing.Activator;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Version;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.util.tracker.ServiceTracker;
-import org.knopflerfish.util.Text;
 
 public class PackageManager  {
   final ServiceTracker pkgTracker;
@@ -270,9 +270,6 @@ public class PackageManager  {
 
   void refresh() {
     synchronized(lock) {
-      // maxSize = 0;
-      long t0 = System.currentTimeMillis();
-
       manifestImports.clear();
       missingImports.clear();
       bundleExports.clear();
@@ -325,7 +322,6 @@ public class PackageManager  {
           }
         }
       }
-      long t1 = System.currentTimeMillis();
     }
   }
 
@@ -334,11 +330,11 @@ public class PackageManager  {
   /**
    * Check if one given bundle is required by another specified bundle.
    *
-   * @param rbl List of required bundles as returend by package admin.
+   * @param rbl List of required bundles as returned by package admin.
    * @param requiredBundle The bundle to check if it is required.
    * @param requiringBundle The bundle to check that it requires.
-   * @return <tt>true</tt> if requiredbundle is required by
-   *         requiringBundle, <tt>false</tt> otherwsie.
+   * @return <tt>true</tt> if <tt>requiredBundle</tt> is required by
+   *         requiringBundle, <tt>false</tt> otherwise.
    */
   public boolean isBundleRequiredBy(final RequiredBundle[] rbl,
                                     final Bundle requiredBundle,

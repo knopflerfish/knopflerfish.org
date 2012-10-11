@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,6 +92,8 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   class JLog extends JPanel {
+    private static final long serialVersionUID = 1L;
+
     JLogPanel           logPanel;
 
     JLogEntryDetail     logDetail;

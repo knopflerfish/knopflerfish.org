@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,12 +61,12 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
 /**
- * Utiliy swing component which display bundle info as
+ * Utility swing component which display bundle info as
  * HTML.
  *
  *<p>
  * Intended to be used as base class. Subclasses should override
- * the <tt>valueChanged</tt> method and retur an HTML string.
+ * the <tt>valueChanged</tt> method and return an HTML string.
  *</p>
  *
  * <p>
@@ -76,6 +76,8 @@ import org.osgi.framework.ServiceReference;
  * </p>
  */
 public abstract class JHTMLBundle extends JPanel  {
+  private static final long serialVersionUID = 1L;
+  
   JPanel      panel;
   JTextPane   html;
   JScrollPane scroll;
@@ -165,8 +167,10 @@ public abstract class JHTMLBundle extends JPanel  {
       html.setPreferredSize(new Dimension(300, 300));
 
       JToolBar cmds = new JToolBar() {
+          private static final long serialVersionUID = 1L;
           {
-            add(backButton = new JButton(Activator.desktop.prevIcon) {
+            add(backButton = new JButton(Desktop.prevIcon) {
+                private static final long serialVersionUID = 1L;
                 {
                   addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent ev) {
@@ -188,7 +192,8 @@ public abstract class JHTMLBundle extends JPanel  {
                 }
               });
 
-            add(fwdButton = new JButton(Activator.desktop.nextIcon) {
+            add(fwdButton = new JButton(Desktop.nextIcon) {
+                private static final long serialVersionUID = 1L;
                 {
                   addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent ev) {

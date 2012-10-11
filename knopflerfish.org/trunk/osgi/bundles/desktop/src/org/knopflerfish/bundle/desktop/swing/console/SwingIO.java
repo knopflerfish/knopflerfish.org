@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,6 @@ package org.knopflerfish.bundle.desktop.swing.console;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.Label;
 import java.awt.Panel;
 import java.awt.event.KeyAdapter;
@@ -55,11 +53,11 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.knopflerfish.bundle.desktop.swing.Util;
 import org.osgi.service.log.LogService;
 
-import org.knopflerfish.bundle.desktop.swing.Util;
-
 public class SwingIO extends JPanel {
+  private static final long serialVersionUID = 1L;
 
   JTextArea  text;
   JTextField tfCmd;
@@ -258,9 +256,6 @@ public class SwingIO extends JPanel {
         });
 
       out = new PrintStream(new TextAreaOutputStream(this, text));
-
-      GridBagLayout gridbag = new GridBagLayout();
-      GridBagConstraints c = new GridBagConstraints();
 
       panel.add(scroll,         BorderLayout.CENTER);
 

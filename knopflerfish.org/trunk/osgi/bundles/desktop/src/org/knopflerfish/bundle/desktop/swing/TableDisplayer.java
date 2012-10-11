@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,30 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.*;
-import org.osgi.service.startlevel.*;
-
-import javax.swing.table.*;
-import javax.swing.*;
-import javax.swing.event.*;
-
-import java.awt.Component;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.DefaultListSelectionModel;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.service.startlevel.StartLevel;
 
 
 public class TableDisplayer extends DefaultSwingBundleDisplayer {
@@ -129,6 +140,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   class JBundleTable extends JPanel {
+    private static final long serialVersionUID = 1L;
     JTable            table;
 
     public JBundleTable() {
@@ -136,6 +148,8 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
 
       table = new JTable() {
+          private static final long serialVersionUID = 1L;
+
           public Color getGridColor() {
             return getBackground().darker();
           }
@@ -219,6 +233,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   public static int COL_COUNT   = 7;
 
   class BundleTableModel2 extends AbstractTableModel {
+    private static final long serialVersionUID = 1L;
 
     public BundleTableModel2() {
     }
@@ -346,6 +361,8 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   class BundleTableRowSelectionModel
     extends DefaultListSelectionModel
   {
+    private static final long serialVersionUID = 1L;
+
     public BundleTableRowSelectionModel()
     {
       setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);

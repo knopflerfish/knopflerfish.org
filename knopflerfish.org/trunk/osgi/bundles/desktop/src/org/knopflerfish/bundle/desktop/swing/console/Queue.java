@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,12 +41,13 @@ import java.util.Vector;
  ** The <code>Queue</code> class represents a first-in-first-out 
  ** (FIFO) queue of objects. 
  ** @author Per Lundgren
- ** @version $Revision: 1.2 $
  */
 public class Queue extends Vector {
-/** @serial */
+  private static final long serialVersionUID = 1L;
+
+  /** @serial */
   private int m_nMaxSize = -1;
-/** @serial */
+  /** @serial */
   private boolean queueClosed = false;
   
   //  ====================    Queue      ====================

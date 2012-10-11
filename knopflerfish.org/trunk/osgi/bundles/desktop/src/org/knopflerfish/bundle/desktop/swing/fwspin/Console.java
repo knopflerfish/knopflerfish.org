@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.Vector;
 
-
-
 /**
  * @author Erik Wistrand
  */
@@ -65,7 +63,7 @@ public class Console {
   public void setBounds(int x, int y, int w, int h) {
     this.x = x;
     this.y = y;
-    this.width  = w;
+    this.width = w;
     this.height = h;
   }
 
@@ -76,74 +74,61 @@ public class Console {
   public void addLine(String line) {
     lines.addElement(line);
   }
-  
+
   public void paint(Graphics g) {
     Object oldComp = null;
-    if(spin.use2D) {
-      Graphics2D g2 = (Graphics2D)g;
+    if (spin.use2D) {
+      Graphics2D g2 = (Graphics2D) g;
       oldComp = g2.getComposite();
-      g2.setComposite((AlphaComposite)spin.alphaHalf);
+      g2.setComposite((AlphaComposite) spin.alphaHalf);
     }
 
-
     paintBox(lines, g, Color.white, Color.black, x, y, 1.0, width, height);
-    
-    if(spin.use2D) {
-      if(oldComp != null) {
-	Graphics2D g2 = (Graphics2D)g;
-	g2.setComposite((AlphaComposite)oldComp);
+
+    if (spin.use2D) {
+      if (oldComp != null) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setComposite((AlphaComposite) oldComp);
       }
     }
   }
-  
-  
-  void paintBox(Vector lines,
-		Graphics g, 
-		Color    bgCol, 
-		Color    fgCol,
-		int      x, 
-		int      y,
-		double   size,
-		int width, int height) {
-    
+
+  void paintBox(Vector lines, Graphics g, Color bgCol, Color fgCol, int x,
+      int y, double size, int width, int height) {
+
     int maxCols = 0;
-    for(int i = 0; i <lines.size(); i++) {
-      String line = (String)lines.elementAt(i);
-      if(line.length() > maxCols) {
-	maxCols = line.length();
+    for (int i = 0; i < lines.size(); i++) {
+      String line = (String) lines.elementAt(i);
+      if (line.length() > maxCols) {
+        maxCols = line.length();
       }
     }
-    
+
     Font font = spin.getFont(size);
 
     g.setColor(bgCol);
-    
-    g.fill3DRect(x, y, 
-		 Math.max(width, font.getSize() * maxCols / 2 + 30), 
-		 Math.max(height, (font.getSize() + 3) * lines.size() + 10), 
-		 true);
 
+    g.fill3DRect(x, y, Math.max(width, font.getSize() * maxCols / 2 + 30),
+        Math.max(height, (font.getSize() + 3) * lines.size() + 10), true);
 
     g.setFont(font);
-    
+
     g.setColor(fgCol);
 
     x += 10;
     y += font.getSize() + 5;
 
-    int x2 = x + font.getSize() * 8;
-
-    for(int i = 0; i <lines.size(); i++) {
-      String line = (String)lines.elementAt(i);
+    for (int i = 0; i < lines.size(); i++) {
+      String line = (String) lines.elementAt(i);
       int ix = line.indexOf("\t");
-      if(ix != -1) {
-	g.drawString(line.substring(0, ix),  x, y);
-	g.drawString(line.substring(ix + 1), x+font.getSize()*4, y);
+      if (ix != -1) {
+        g.drawString(line.substring(0, ix), x, y);
+        g.drawString(line.substring(ix + 1), x + font.getSize() * 4, y);
       } else {
-	g.drawString(line, x, y);
+        g.drawString(line, x, y);
       }
       y += font.getSize() + 3;
     }
-     
+
   }
 }

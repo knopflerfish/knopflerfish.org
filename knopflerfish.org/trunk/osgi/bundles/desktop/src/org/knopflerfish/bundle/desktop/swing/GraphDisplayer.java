@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,45 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.*;
-import java.util.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.net.URL;
-import java.text.SimpleDateFormat;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
+import javax.swing.BoxLayout;
+import javax.swing.ButtonModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+
+import org.knopflerfish.bundle.desktop.swing.graph.BundleNode;
+import org.knopflerfish.bundle.desktop.swing.graph.Node;
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
-import org.osgi.service.startlevel.StartLevel;
-import javax.swing.border.*;
-
-import org.knopflerfish.bundle.desktop.swing.graph.*;
-import org.knopflerfish.service.desktop.*;
 public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
   ButtonModel autorefreshModel = new JToggleButton.ToggleButtonModel();
@@ -137,6 +161,9 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     };
 
   class JMainBundles extends JPanel {
+
+    private static final long serialVersionUID = 1L;
+
     JPanel panel;
 
     Set views = new LinkedHashSet();
@@ -175,7 +202,6 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
       Bundle[] selbl = Activator.desktop.getSelectedBundles();
       if(selbl != null && selbl.length > 0) {
-        int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
         Bundle b = selbl[0];
         JMenuItem item = makeBundleItem(b, "#" + b.getBundleId() + " " + Util.getBundleName(b));
         menu.add(item);
@@ -333,12 +359,14 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       setLayout(new BorderLayout());
       panel = new JPanel(new BorderLayout());
 
-      JButton newButton = new JButton("+") {{
-        addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              addWindow();
-            }
-          });
+      JButton newButton = new JButton("+") {
+        private static final long serialVersionUID = 1L;
+        {
+          addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                addWindow();
+              }
+            });
       }};
       newButton.setToolTipText("Open new window");
       // newButton.setBorder(null);
@@ -346,6 +374,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       newButton.setOpaque(false);
 
       bundleHistory = new JBundleHistory(bc, null, bsmProxy, 10, 40) {
+          private static final long serialVersionUID = 1L;
           void bundleClicked(Bundle b) {
             for(Iterator it = views.iterator(); it.hasNext(); ) {
               JSoftGraphBundle view = (JSoftGraphBundle)it.next();
@@ -366,6 +395,8 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
         };
 
       final JSoftGraphBundle view1 = new JServiceView(this, bc, b, bsmProxy) {
+          private static final long serialVersionUID = 1L;
+
           public void nodeClicked(Node node, MouseEvent ev) {
             super.nodeClicked(node, ev);
             if(node instanceof BundleNode) {
@@ -386,6 +417,8 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
 
       final JSoftGraphBundle view2 = new JPackageView(this, bc, b, bsmProxy) {
+          private static final long serialVersionUID = 1L;
+
           public void nodeClicked(Node node, MouseEvent ev) {
             super.nodeClicked(node, ev);
             if(node instanceof BundleNode) {

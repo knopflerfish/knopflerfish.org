@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@ import org.osgi.framework.BundleContext;
  * </p>
  */
 public class LogTableModel extends AbstractTableModel {
+  private static final long serialVersionUID = 1L;
 
   private static final String CAPACITY_PROP_NAME
     = LogTableModel.class.getName() + ".capacity";
@@ -169,8 +170,7 @@ public class LogTableModel extends AbstractTableModel {
 
   public void logged(ExtLogEntry entry) {
     if (capacity>0 && capacity == entries.size()) {
-      // List is full; remove oldest (first) entry.
-      ExtLogEntry oldEntry = (ExtLogEntry) entries.remove(0);
+      entries.remove(0);
       fireTableRowsDeleted(0, 0);
     }
     entries.add(entry);

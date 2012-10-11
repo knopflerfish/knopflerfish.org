@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,8 @@ import javax.swing.JButton;
 public class JToolbarButton
   extends JButton
 {
+  private static final long serialVersionUID = 1L;
+
   public JToolbarButton(Action action)
   {
     super(action);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,8 @@ import javax.swing.plaf.ComponentUI;
 public class StatusBar extends JComponent 
   implements Runnable, MouseListener
 {
-
+  private static final long serialVersionUID = 1L;
+  
   static int MODE_UNKNOWN    = 0;
   static int MODE_PERCENTAGE = 1;
     
@@ -245,9 +246,6 @@ public class StatusBar extends JComponent
     // Canvas size
     Dimension d = getSize();
     if (d.width==0||d.height==0) return; //Called before added to visible frame
-    
-    // Center
-    Dimension center = new Dimension(d.width/2, d.height/2);
     
     // Create memory image, for double buffering
     Image memImage = createImage(d.width, d.height);

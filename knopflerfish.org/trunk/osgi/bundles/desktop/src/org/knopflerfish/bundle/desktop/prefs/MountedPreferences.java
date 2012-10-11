@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,20 +34,27 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.prefs.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.prefs.AbstractPreferences;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.NodeChangeEvent;
+import java.util.prefs.NodeChangeListener;
+import java.util.prefs.Preferences;
 
+import javax.swing.JFrame;
 
-import javax.swing.*;
-import java.awt.event.*;
 import org.knopflerfish.bundle.desktop.swing.Activator;
 
 
 /**
- * Preferences implemnation taht allows mounting of preference nodes
+ * Preferences implementation that allows mounting of preference nodes
  * at arbitrary paths.
  */
 public class MountedPreferences 

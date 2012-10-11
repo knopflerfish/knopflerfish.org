@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,8 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
 public class JLogPanel extends JPanel implements ClipboardOwner {
-  
+  private static final long serialVersionUID = 1L;
+
   JTextArea text;
 
   LogTableModel model;
@@ -72,34 +73,39 @@ public class JLogPanel extends JPanel implements ClipboardOwner {
     scrollpane = new JScrollPane(table);
     
     popup = new JPopupMenu() {
-	  {
-	    add(new JMenuItem("Copy log to clipboard") {
-		{
-		  addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent ev) {
-			copyToClipBoard();
-		      }
-		    });
-		}
-	      });
-	  }
-      };
-    getJLogTable().addMouseListener(new MouseAdapter() {
-	public void mousePressed(MouseEvent e) {
-	  maybeShowPopup(e);
-	}
-	
-	public void mouseReleased(MouseEvent e) {
-	  maybeShowPopup(e);
-	}
-	
-	private void maybeShowPopup(MouseEvent e) {
-	  if (e.isPopupTrigger()) {
-	    popup.show(e.getComponent(), e.getX(), e.getY());
-	  }
-	}
-      });
+      private static final long serialVersionUID = 1L;
+      {
+        add(new JMenuItem("Copy log to clipboard") {
+
+          private static final long serialVersionUID = 1L;
+
+          {
+            addActionListener(new ActionListener() {
+              public void actionPerformed(ActionEvent ev) {
+                copyToClipBoard();
+              }
+            });
+          }
+        });
+      }
+    };
     
+    getJLogTable().addMouseListener(new MouseAdapter() {
+      public void mousePressed(MouseEvent e) {
+        maybeShowPopup(e);
+      }
+
+      public void mouseReleased(MouseEvent e) {
+        maybeShowPopup(e);
+      }
+
+      private void maybeShowPopup(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+          popup.show(e.getComponent(), e.getX(), e.getY());
+        }
+      }
+    });
+
     add(scrollpane, BorderLayout.CENTER);
   }
 

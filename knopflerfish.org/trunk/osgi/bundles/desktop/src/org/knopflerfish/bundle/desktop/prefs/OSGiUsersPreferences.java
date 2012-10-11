@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,11 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.util.*;
-import java.util.prefs.*;
-import org.knopflerfish.bundle.desktop.swing.Activator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.prefs.AbstractPreferences;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import org.osgi.service.prefs.PreferencesService;
 

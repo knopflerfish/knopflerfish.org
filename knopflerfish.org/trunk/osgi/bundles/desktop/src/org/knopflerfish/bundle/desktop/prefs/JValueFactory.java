@@ -34,15 +34,7 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.util.*;
-
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
-import org.knopflerfish.bundle.desktop.swing.Activator;
+import java.util.prefs.Preferences;
 
 
 /**
