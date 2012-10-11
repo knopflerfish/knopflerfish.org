@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import org.knopflerfish.bundle.desktop.swing.Activator;
  * JTree that display display/edit a Preferences node and its subnodes.
  */
 public class JPrefsTree extends JTree {
+  private static final long serialVersionUID = 1L;
 
   JPopupMenu popup;
 
@@ -78,87 +79,119 @@ public class JPrefsTree extends JTree {
 
     JMenuItem mi;
 
-    mi = new JMenuItem("Search...") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("Search...") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doSearch();
           }
         });
-    }};
+      }
+    };
     popup.add(mi);
 
-    mi = new JMenuItem("New node...") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("New node...") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doCreate();
           }
         });
-    }};
+      }
+    };
     menuItemsRO.add(mi);
     popup.add(mi);
 
-    mi = new JMenuItem("New key...") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("New key...") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doAddKey();
           }
         });
-    }};
+      }
+    };
     menuItemsRO.add(mi);
     popup.add(mi);
 
 
-    mi = new JMenuItem("Remove this node") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("Remove this node") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doRemove();
           }
         });
-    }};
+      }
+    };
     menuItemsRO.add(mi);
     popup.add(mi);
 
-    mi = new JMenuItem("Sync") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("Sync") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doSync();
           }
         });
-    }};
+      }
+    };
     menuItemsRO.add(mi);
     popup.add(mi);
 
-    mi = new JMenuItem("Flush") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("Flush") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doFlush();
           }
         });
-    }};
+      }
+    };
     menuItemsRO.add(mi);
     popup.add(mi);
 
 
     popup.add(new JPopupMenu.Separator());
 
-    mi = new JMenuItem("Export this node as XML...") {{
-      addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doExport();
-          }
-        });
-    }};
-    //     popup.add(mi);
+//    mi = new JMenuItem("Export this node as XML...") {
+//      private static final long serialVersionUID = 1L;
+//
+//      {
+//        addActionListener(new ActionListener() {
+//          public void actionPerformed(ActionEvent ev) {
+//            doExport();
+//          }
+//        });
+//      }
+//    };
+//    popup.add(mi);
 
-    mi = new JMenuItem("Import XML...") {{
-      addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doImport();
-          }
-        });
-    }};
-    // menuItemsRO.add(mi);
-    // popup.add(mi);
+//    mi = new JMenuItem("Import XML...") {
+//      private static final long serialVersionUID = 1L;
+//
+//      {
+//        addActionListener(new ActionListener() {
+//          public void actionPerformed(ActionEvent ev) {
+//            doImport();
+//          }
+//        });
+//      }
+//    };
+//    menuItemsRO.add(mi);
+//    popup.add(mi);
 
 
     addMouseListener(new MouseAdapter() {
@@ -231,10 +264,6 @@ public class JPrefsTree extends JTree {
       TreePath tp = new TreePath(getModel().getRoot());
       search(tp, paths, name.toLowerCase(), true, 0, maxLevel);
 
-      for(Iterator it = paths.iterator(); it.hasNext(); ) {
-        TreePath p = (TreePath)it.next();
-        // Activator.log.info("" + p);
-      }
       TreeUtils.expandPaths(this, paths);
     } catch (Exception e) {
       Activator.log.warn("Failed to search", e);
@@ -447,6 +476,7 @@ public class JPrefsTree extends JTree {
 }
 
 class PrefsTreeRenderer extends DefaultTreeCellRenderer {
+  private static final long serialVersionUID = 1L;
 
   static Icon leafIcon = null;
   static Icon nodeOpenIcon = null;
@@ -497,14 +527,11 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
     this.node = node;
     this.bSel = bSel;
 
-    Component c =
-      (DefaultTreeCellRenderer)super.getTreeCellRendererComponent(tree, node,
-                                                                  bSel,bExpanded, bLeaf,
-                                                                  row, bFocus);
-
-
-    // c.setFont(Util.getFont(.8));
-    //     setBackground(tree.getBackground());
+//    Component c = (DefaultTreeCellRenderer) super.getTreeCellRendererComponent(
+//        tree, node, bSel, bExpanded, bLeaf, row, bFocus);
+//
+//    c.setFont(Util.getFont(.8));
+//    setBackground(tree.getBackground());
 
     setOpaque(false);
 
@@ -512,7 +539,6 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
     setClosedIcon(null);
     setOpenIcon(null);
 
-    Icon icon;
     if(node instanceof PrefsTreeNode) {
       try {
         PrefsTreeNode pNode = (PrefsTreeNode)node;

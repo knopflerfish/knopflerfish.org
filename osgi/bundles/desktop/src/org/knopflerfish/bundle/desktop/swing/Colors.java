@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,8 @@ import java.awt.Color;
  * color names to set to java colors instances.
  */
 public class Colors extends HashMap {
-  
+  private static final long serialVersionUID = 1L;
+
   /**
    * The color map. Keys are lower case string, values are java.awt.Color
    */

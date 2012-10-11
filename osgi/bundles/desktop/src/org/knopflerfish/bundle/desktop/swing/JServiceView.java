@@ -1,21 +1,16 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.awt.font.TextAttribute;
-import java.util.*;
-import java.awt.geom.AffineTransform;
-import javax.swing.border.*;
-import org.osgi.framework.*;
-import java.awt.geom.Point2D;
-import org.knopflerfish.bundle.desktop.swing.graph.*;
-import java.awt.geom.*;
-import org.knopflerfish.service.desktop.*;
+import org.knopflerfish.bundle.desktop.swing.graph.BundleServiceNode;
+import org.knopflerfish.bundle.desktop.swing.graph.Node;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 
 public class JServiceView extends JSoftGraphBundle {
   
+  private static final long serialVersionUID = 1L;
+
   public JServiceView(GraphDisplayer.JMainBundles jmb, 
                       BundleContext bc, 
                       Bundle b, 

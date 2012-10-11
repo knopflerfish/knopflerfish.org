@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,19 @@
 
 package org.knopflerfish.bundle.desktop.event;
 
-import java.awt.Color;
 import java.awt.Component;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.awt.Rectangle;
-
-import javax.swing.JTable;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.FontMetrics;
+
+import javax.swing.JLabel;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 
 /**
  * TableCellRenderer which displays better clipped strings.
  */
 public class StringCellRenderer extends  DefaultTableCellRenderer {
+
+  private static final long serialVersionUID = 1L;
 
   public StringCellRenderer() {
   }

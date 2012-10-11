@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003,2010, KNOPFLERFISH project
+ * Copyright (c) 2003,2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,8 @@ import org.knopflerfish.util.Text;
 
 
 public class JTips extends JPanel {
+  private static final long serialVersionUID = 1L;
+
   JFrame frame = null;
   String title = "Knopflerfish OSGi: tips";
 
@@ -188,7 +190,7 @@ public class JTips extends JPanel {
 
     topPanel.add(titleC, BorderLayout.WEST);
 
-    JLabel icon = new JLabel(Activator.desktop.tipIcon);
+    JLabel icon = new JLabel(Desktop.tipIcon);
     icon.addMouseListener(new MouseAdapter() {
 	public void mouseClicked(MouseEvent ev) {
 	  nextAction.actionPerformed(null);

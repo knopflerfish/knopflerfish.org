@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,12 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 /** 
- * In a chain of data manipulators some behaviour is common. TableMap
- * provides most of this behavour and can be subclassed by filters
+ * In a chain of data manipulators some behavior is common. TableMap
+ * provides most of this behavior and can be sub-classed by filters
  * that only need to override a handful of specific methods. TableMap 
  * implements TableModel by routing all requests to its model, and
  * TableModelListener by routing all events to its listeners. Inserting 
- * a TableMap which has not been subclassed into a chain of table filters 
+ * a TableMap which has not been sub-classed into a chain of table filters 
  * should have no effect.
  *
  * @version 1.4 12/17/97
@@ -52,6 +52,8 @@ import javax.swing.event.TableModelEvent;
 
 public class TableMap extends AbstractTableModel 
                       implements TableModelListener {
+    private static final long serialVersionUID = 1L;
+
     protected TableModel model; 
 
     public TableModel getModel() {

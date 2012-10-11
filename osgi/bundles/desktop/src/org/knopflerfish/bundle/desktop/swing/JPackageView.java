@@ -1,29 +1,18 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import java.awt.font.TextAttribute;
-import java.util.*;
-import java.awt.geom.AffineTransform;
-import javax.swing.border.*;
-import org.osgi.framework.*;
-import java.awt.geom.Point2D;
-import org.knopflerfish.bundle.desktop.swing.graph.*;
-import java.awt.geom.*;
-
+import org.knopflerfish.bundle.desktop.swing.graph.EmptyNode;
+import org.knopflerfish.bundle.desktop.swing.graph.Node;
+import org.knopflerfish.bundle.desktop.swing.graph.PackageNode;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Version;
-import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.util.tracker.ServiceTracker;
-import org.knopflerfish.service.desktop.*;
 
 public class JPackageView extends JSoftGraphBundle {
 
+  private static final long serialVersionUID = 1L;
   ServiceTracker pkgTracker;
 
   public JPackageView(GraphDisplayer.JMainBundles jmb, BundleContext bc, Bundle b, BundleSelectionModel bundleSelModel) {

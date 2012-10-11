@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ import org.osgi.service.log.LogEntry;
  */
 public class JLogTable extends JTable {
 
+  private static final long serialVersionUID = 1L;
   LogTableModel    model;
   JLogEntryDetail logEntryDetail;
 
@@ -60,14 +61,7 @@ public class JLogTable extends JTable {
     this.logEntryDetail = logEntryDetail;
     this.model          = model;
 
-    if(false) {
-      TableSorter sorter = new TableSorter(model);
-      
-      setModel(sorter);
-      sorter.addMouseListenerToHeaderInTable(this);
-    } else {
-      setModel(model);
-    }
+    setModel(model);
 
     setDefaultRenderer(Date.class, 
 		       new DateCellRenderer("HH:mm:ss, MMM dd"));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.event;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 
-import javax.swing.table.*;
-import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
@@ -50,6 +52,7 @@ import org.osgi.service.event.EventConstants;
  * </p>
  */
 public class EventTableModel extends DefaultTableModel {
+  private static final long serialVersionUID = 1L;
 
   private static final String CAPACITY_PROP_NAME
     = EventTableModel.class.getName() + ".capacity";

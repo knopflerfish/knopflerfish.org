@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,8 @@ import javax.swing.table.TableCellRenderer;
  * TableCellRenderer which display formatted dates.
  */
 public class DateCellRenderer extends JTextField implements TableCellRenderer {
+  private static final long serialVersionUID = 1L;
+
   JTextField label;
   
   SimpleDateFormat tf;

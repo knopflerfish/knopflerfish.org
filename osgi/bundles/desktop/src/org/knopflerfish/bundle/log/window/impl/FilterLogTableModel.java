@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,6 +54,7 @@ public class FilterLogTableModel
   extends    LogTableModel
   implements TableModelListener
 {
+  private static final long serialVersionUID = 1L;
 
   Object lock = new Object();
 

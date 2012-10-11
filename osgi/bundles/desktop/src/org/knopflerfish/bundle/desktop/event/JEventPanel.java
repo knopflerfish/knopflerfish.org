@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,54 @@
 
 package org.knopflerfish.bundle.desktop.event;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
-import java.util.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import javax.swing.event.ListDataEvent;
+import javax.swing.event.ListDataListener;
 
 import org.osgi.service.event.Event;
-import org.osgi.framework.Filter;
 
 
 public class JEventPanel extends JPanel implements ClipboardOwner {
+  private static final long serialVersionUID = 1L;
 
   JTextArea text;
   JComboBox topicC;
@@ -173,7 +205,8 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
           String filterS = filterC.getText().trim();
           try {
             if(filterS.length() > 0) {
-              Filter f = org.knopflerfish.bundle.desktop.swing.Activator.getBC().createFilter(filterS);
+              // Validate textual filter.
+              org.knopflerfish.bundle.desktop.swing.Activator.getBC().createFilter(filterS);
             }
             filterC.setToolTipText("Event filter");
             filterC.setForeground(txtColor);
@@ -259,6 +292,8 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
           }
         });
       sendPanel = new JSendEventPanel(table, allTopics) {
+          private static final long serialVersionUID = 1L;
+
           public void doClose() {
             sendFrame.setVisible(false);
           }
@@ -271,6 +306,8 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
   }
 
   JMenuItem copyItem = new JMenuItem("Copy events to clipboard") {
+      private static final long serialVersionUID = 1L;
+
       {
         addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {

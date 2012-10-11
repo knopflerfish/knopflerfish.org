@@ -51,7 +51,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -63,8 +62,8 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.prefs.Preferences;
 
-import javax.swing.AbstractButton;
 import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
 import javax.swing.ActionMap;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
@@ -84,7 +83,6 @@ import javax.swing.SwingUtilities;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
-
 import org.osgi.service.startlevel.StartLevel;
 
 
@@ -145,6 +143,8 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
 
   class JLargeIcons extends JPanel {
+    private static final long serialVersionUID = 1L;
+
     Map         bundleMap = new TreeMap();
     GridLayout  grid;
     ImageIcon   bundleIcon;
@@ -161,6 +161,8 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
     class MoveSelectionAction extends AbstractAction
     {
+      private static final long serialVersionUID = 1L;
+
       final int dir;
 
       public MoveSelectionAction(int dir)
@@ -210,6 +212,8 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
     class SelectAllAction extends AbstractAction
     {
+      private static final long serialVersionUID = 1L;
+
       static final String SELECT_ALL = "selectAll";
 
       public SelectAllAction()
@@ -335,6 +339,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       // handle scroll panel resizing to be able to set grid size
       scroll = new JScrollPane(panel) {
+          private static final long serialVersionUID = 1L;
           int oldW = -1;
           int oldH = -1;
           public void setBounds(int x, int y, int w, int h) {
@@ -425,6 +430,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         JLabel c = new JLabel(Util.getBundleName(b),
                               bundleIcon,
                               SwingConstants.CENTER) {
+            private static final long serialVersionUID = 1L;
             {
               addMouseListener(new MouseAdapter() {
                   public void mousePressed(MouseEvent ev) {

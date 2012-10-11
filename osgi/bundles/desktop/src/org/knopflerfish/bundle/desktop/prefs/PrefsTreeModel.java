@@ -35,15 +35,13 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
+import java.util.prefs.Preferences;
+
+import javax.swing.tree.DefaultTreeModel;
 
 public class PrefsTreeModel extends DefaultTreeModel {
 
+  private static final long serialVersionUID = 1L;
   Preferences root;
 
   public PrefsTreeModel(Preferences root, String rootName) {

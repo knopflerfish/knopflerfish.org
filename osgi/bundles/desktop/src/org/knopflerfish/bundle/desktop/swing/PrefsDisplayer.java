@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,23 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.*;
+import java.awt.BorderLayout;
+import java.util.Iterator;
+import java.util.prefs.AbstractPreferences;
+import java.util.prefs.Preferences;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.*;
-import java.awt.BorderLayout;
-import java.util.prefs.*;
-import org.osgi.service.prefs.PreferencesService;
+import javax.swing.SwingUtilities;
 
+import org.knopflerfish.bundle.desktop.prefs.JPrefsEditor;
+import org.knopflerfish.bundle.desktop.prefs.MountedPreferences;
+import org.knopflerfish.bundle.desktop.prefs.OSGiBundlesPreferences;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.prefs.PreferencesService;
 import org.osgi.util.tracker.ServiceTracker;
-
-import org.knopflerfish.bundle.desktop.prefs.*;
-import javax.swing.tree.*;
 
 public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
 
@@ -121,6 +122,8 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
   static int count = 00;
 
   class JPrefs extends JPanel {
+    private static final long serialVersionUID = 1L;
+    
     MountedPreferences rootNode;
     OSGiBundlesPreferences bundlesNode;
     JPrefsEditor editor;

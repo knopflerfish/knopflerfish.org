@@ -34,11 +34,14 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import javax.swing.*;
-import javax.swing.tree.*;
-import java.util.prefs.*;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
+
+import javax.swing.tree.DefaultMutableTreeNode;
 
 public class PrefsTreeNode extends DefaultMutableTreeNode {
+  private static final long serialVersionUID = 1L;
+
   protected  boolean     bLoaded          = false;
   protected  boolean     bHasBeenExpanded = false;
   protected  Preferences prefs;
@@ -134,6 +137,8 @@ public class PrefsTreeNode extends DefaultMutableTreeNode {
   }
   
   class DummyNode extends DefaultMutableTreeNode {
+    private static final long serialVersionUID = 1L;
+
     public DummyNode() {
       super("dummy");
     }

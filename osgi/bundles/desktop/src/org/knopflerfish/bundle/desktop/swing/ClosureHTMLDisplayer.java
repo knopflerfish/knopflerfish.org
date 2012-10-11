@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   class JHTML extends JHTMLBundle {
+    private static final long serialVersionUID = 1L;
 
     JHTML(DefaultSwingBundleDisplayer displayer) {
       super(displayer);
@@ -141,8 +142,6 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
       if(pkgAdmin == null) {
         sb.append("No PackageAdmin service found");
       } else {
-
-        Bundle[] bl = getBundleArray();
 
         Set pkgClosure = new TreeSet(Util.bundleIdComparator);
 

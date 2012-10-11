@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -283,11 +283,12 @@ public class Activator
   }
 
   static Vector remoteHosts = new Vector() {
-      {
-        addElement("http://localhost:8080");
-        addElement("http://localhost:8081");
-        addElement("http://localhost:80");
-      }
+    private static final long serialVersionUID = 1L;
+    {
+      addElement("http://localhost:8080");
+      addElement("http://localhost:8081");
+      addElement("http://localhost:80");
+    }
     };
 
   static String remoteHost = "";
@@ -441,7 +442,7 @@ public class Activator
   private void closeDesktop0()
   {
     desktop.stop();
-    desktop.theDesktop = null;
+    Desktop.theDesktop = null;
     desktop = null;
   }
 
@@ -463,7 +464,7 @@ public class Activator
       for(Iterator it = displayers.keySet().iterator(); it.hasNext();) {
         DefaultSwingBundleDisplayer disp
           = (DefaultSwingBundleDisplayer)it.next();
-        ServiceRegistration reg = (ServiceRegistration)displayers.get(disp);
+        //ServiceRegistration reg = (ServiceRegistration)displayers.get(disp);
 
         disp.unregister();
       }

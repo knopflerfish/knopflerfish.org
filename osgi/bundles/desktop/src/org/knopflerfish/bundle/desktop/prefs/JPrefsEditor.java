@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,17 +35,23 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
-import java.util.*;
-import java.net.URL;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.TreePath;
 
-import java.io.*;
 import org.knopflerfish.bundle.desktop.swing.Activator;
 
 /**
@@ -62,6 +68,8 @@ import org.knopflerfish.bundle.desktop.swing.Activator;
  * @see JPrefsPanel
  */
 public class JPrefsEditor extends JPanel {
+  private static final long serialVersionUID = 1L;
+
   JPrefsTree  tree;
   JPrefsPanel panel;  
   JSplitPane  splitPane;
@@ -85,7 +93,6 @@ public class JPrefsEditor extends JPanel {
               PrefsTreeNode pNode = (PrefsTreeNode)node;
               if(pNode.getPrefs().nodeExists("")) {
                 Preferences prefs = pNode.getPrefs();
-                String[] keys = prefs.keys();
                 panel.setPreferences(prefs);
               }
             } catch (BackingStoreException e) {

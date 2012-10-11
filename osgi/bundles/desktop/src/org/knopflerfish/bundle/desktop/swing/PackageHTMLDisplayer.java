@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project All rights reserved.
+ * Copyright (c) 2003-2012, KNOPFLERFISH project All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following
@@ -34,9 +34,8 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -48,7 +47,6 @@ import org.osgi.framework.Version;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
-import org.osgi.util.tracker.ServiceTracker;
 
 
 
@@ -75,6 +73,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   class JHTML extends JHTMLBundle {
+    private static final long serialVersionUID = 1L;
 
     JHTML(DefaultSwingBundleDisplayer displayer) {
       super(displayer);

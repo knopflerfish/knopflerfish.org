@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,30 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
-
-import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Clipboard;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.prefs.Preferences;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 
 import org.knopflerfish.bundle.desktop.swing.Activator;
 
@@ -53,7 +67,8 @@ import org.knopflerfish.bundle.desktop.swing.Activator;
  */
 public class JValue 
   extends JPanel {
-
+  private static final long serialVersionUID = 1L;
+  
   protected String      type;
   protected String      key;
   protected JLabel      label;
@@ -147,45 +162,61 @@ public class JValue
     JMenuItem mi;
 
     if(ExtPreferences.TYPE_COLOR.equals(type)) {
-      mi = new JMenuItem("Select color") {{
-        addActionListener(new ActionListener() {
+      mi = new JMenuItem("Select color") {
+        private static final long serialVersionUID = 1L;
+
+        {
+          addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
-              if(JValue.this instanceof JValueColor) {
-                JValueColor jcCol = (JValueColor)JValue.this;
+              if (JValue.this instanceof JValueColor) {
+                JValueColor jcCol = (JValueColor) JValue.this;
                 jcCol.selectColor();
               }
             }
           });
-      }};
+        }
+      };
       popup.add(mi);
     }
 
-    mi = new JMenuItem("Copy path to clipboard") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("Copy path to clipboard") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doCopyPath();
           }
         });
-    }};
+      }
+    };
     popup.add(mi);
 
-    mi = new JMenuItem("Remove") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("Remove") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doRemove();
           }
         });
-    }};
+      }
+    };
     popup.add(mi);
 
 
-    mi = new JMenuItem("Show props") {{
-      addActionListener(new ActionListener() {
+    mi = new JMenuItem("Show props") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             showExtProps();
           }
         });
-    }};
+      }
+    };
     popup.add(mi);
 
     popup.add(new JPopupMenu.Separator());
@@ -195,14 +226,18 @@ public class JValue
     for(int i = 0; i < types.length; i++) {
       final String t = types[i];
       final String n = types[i];
-      mi = new JCheckBoxMenuItem(n) {{
-      setSelected(t.equals(type));
-      addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
-            doSetType(t);
-          }
-        });
-      }};
+      mi = new JCheckBoxMenuItem(n) {
+        private static final long serialVersionUID = 1L;
+
+        {
+          setSelected(t.equals(type));
+          addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev) {
+              doSetType(t);
+            }
+          });
+        }
+      };
       popup.add(mi);
     }
 
@@ -339,6 +374,8 @@ public class JValue
 /*
  */
 class JExtPropsPanel extends JPanel {
+  private static final long serialVersionUID = 1L;
+
   public JExtPropsPanel(Preferences node, String key) {
     super();
     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));

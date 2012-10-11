@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,17 +35,31 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.PreferenceChangeEvent;
+import java.util.prefs.PreferenceChangeListener;
+import java.util.prefs.Preferences;
 
-
-
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import javax.swing.border.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
+import javax.swing.border.EmptyBorder;
 
 import org.knopflerfish.bundle.desktop.swing.Activator;
 
@@ -54,7 +68,8 @@ import org.knopflerfish.bundle.desktop.swing.Activator;
  */
 public class JPrefsPanel extends JPanel 
   implements PreferenceChangeListener {
-  
+  private static final long serialVersionUID = 1L;
+
   Preferences  node;
   Map          nodeMap = new HashMap();
   JPanel       valuePanel;
@@ -86,13 +101,17 @@ public class JPrefsPanel extends JPanel
     
     JPanel cmdPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 1, 1));
     
-    addButton = new JButton("Add key") {{
-      addActionListener(new ActionListener() {
+    addButton = new JButton("Add key") {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             doAddKey();
           }
         });
-    }};
+      }
+    };
     addButton.setToolTipText("Add new key");
     // cmdPanel.add(addButton);
 
@@ -270,7 +289,6 @@ public class JPrefsPanel extends JPanel
           
           String[] keys = getKeys(node);
           for(int i = 0; i < keys.length; i++) {
-            String val = node.get(keys[i], "");
             JValue jv = JValueFactory.createJValue(node, keys[i]);
             jv.setEditable(bEditable);
             jv.setMaximumSize(new Dimension(Short.MAX_VALUE, 20));

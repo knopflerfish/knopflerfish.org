@@ -34,16 +34,27 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.prefs.Preferences;
+
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JColorChooser;
+import javax.swing.JTextField;
+
 import org.knopflerfish.bundle.desktop.swing.Colors;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
-import java.util.*;
-
 public class JValueColor extends JValue {
+  private static final long serialVersionUID = 1L;
+
   JTextField text;
 
   JButton    colSelect;
@@ -53,8 +64,10 @@ public class JValueColor extends JValue {
     super(_node, _key, ExtPreferences.TYPE_COLOR);
 
     String val = node.get(key, "");
-    text = new JTextField(val, 15) {{
-      addActionListener(new ActionListener() {
+    text = new JTextField(val, 15) {
+      private static final long serialVersionUID = 1L;
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             node.put(key, text.getText());
           }
