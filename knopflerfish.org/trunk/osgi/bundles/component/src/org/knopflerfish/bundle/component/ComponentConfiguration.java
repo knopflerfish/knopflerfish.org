@@ -88,7 +88,7 @@ public class ComponentConfiguration implements ServiceFactory {
    * Activates a component configuration.
    *
    */
-  ComponentContextImpl activate(final Bundle usingBundle, boolean incrementActive) {
+  ComponentContextImpl activate(final Bundle usingBundle, final boolean incrementActive) {
     ComponentContextImpl res;
     Class cclass = null;
     synchronized (this) {
@@ -117,6 +117,11 @@ public class ComponentConfiguration implements ServiceFactory {
       try {
         res.setInstance(cclass.newInstance());
       }  catch (Exception e) {
+        if (factoryContexts != null) {
+          factoryContexts.remove(usingBundle);
+        } else {
+          componentContext = null;
+        }
         res.activationResult(false);
         Activator.logError(component.bc, "Failed to instanciate: " + cclass, e);
         throw new ComponentException("Failed to instanciate: " + cclass, e);
@@ -136,16 +141,17 @@ public class ComponentConfiguration implements ServiceFactory {
           state = STATE_ACTIVE;
           res.activationResult(true);
         }
-      } catch (ComponentException e) {
+      } catch (RuntimeException e) {
         unbindReferences(res);
-        // if (factoryContexts != null) {
-        //   factoryContexts.remove(usingBundle);
-        // } else {
-        //   componentContext = null;
-        // }
+        if (factoryContexts != null) {
+          factoryContexts.remove(usingBundle);
+        } else {
+          componentContext = null;
+        }
         res.activationResult(false);
         throw e;
       }
+      return res;
     } else {
       Activator.logDebug("CC.active activate in progress wait, this=" + this +
                          ", activateCount=" + activeCount);
@@ -158,12 +164,12 @@ public class ComponentConfiguration implements ServiceFactory {
           if (incrementActive) {
             activeCount++;
           }
+          return res;
         }
       } else {
-        throw new ComponentException("Waited for component activation that failed: " + this);
+        return activate(usingBundle, incrementActive);
       }
     }
-    return res;
   }
 
 
