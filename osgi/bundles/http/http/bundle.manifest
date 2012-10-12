@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: HTTP-Server
 Bundle-SymbolicName: org.knopflerfish.bundle.http
-Bundle-Version: 3.0.9
+Bundle-Version: 3.1.0
 Bundle-Description: HTTP/HTTPS Server
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
@@ -21,4 +21,6 @@ Import-Package: javax.servlet; version=2.3,
  org.osgi.service.log,
  org.osgi.service.cm,
  org.osgi.service.http,
- org.osgi.util.tracker
+ org.osgi.util.tracker,
+ org.knopflerfish.service.console;resolution:=optional
+

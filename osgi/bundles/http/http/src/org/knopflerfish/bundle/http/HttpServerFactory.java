@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
 public class HttpServerFactory implements ManagedServiceFactory {
-
+   
     final static String DEFAULT_PID = Activator.FACTORY_PID + ".default";
 
     // private fields
@@ -135,5 +135,18 @@ public class HttpServerFactory implements ManagedServiceFactory {
     public String getName() {
         return "Knopflerfish HTTP Service"; // NYI
     }
+
+  public Enumeration getServerPids() {
+    return servers.keys();
+  }
+  
+  public Enumeration getServers() {
+    return servers.elements();
+  }
+
+  public HttpServer getServer(String pid) {
+    return (HttpServer)servers.get(pid);
+  }
+
 
 } // HttpServerFactory
