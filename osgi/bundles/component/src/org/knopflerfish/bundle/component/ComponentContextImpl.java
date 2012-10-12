@@ -327,11 +327,11 @@ class ComponentContextImpl implements ComponentContext
 
   /**
    * Wait for activation of component or return directly
-   * if no activation is in progress. If activation succeded
+   * if no activation is in progress. If activation succeeded
    * return true, otherwise return false. Must be called
    * when holding ComponentConfiguration lock.
    *
-   * @Return result of activation, if activation succeded
+   * @Return result of activation, if activation succeeded
    * return true, otherwise return false.
    */
   boolean waitForActivation() {
