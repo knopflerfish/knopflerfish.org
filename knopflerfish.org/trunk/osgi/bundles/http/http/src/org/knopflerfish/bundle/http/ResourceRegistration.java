@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,9 @@ public class ResourceRegistration implements Registration {
     // HACK CSM
     private long lastModificationDate;
 
+    // Bundle that made the registration, quick fix for console
+    private Object owner;
+
     // constructors
 
     // HACK CSM
@@ -113,6 +116,14 @@ public class ResourceRegistration implements Registration {
 
     public void destroy() {
         contextManager.ungetServletContext(context);
+    }
+
+    public void setOwner(Object o) {
+	this.owner = o;
+    }
+
+    public Object getOwner() {
+	return owner;
     }
 
 } // ResourceRegistration

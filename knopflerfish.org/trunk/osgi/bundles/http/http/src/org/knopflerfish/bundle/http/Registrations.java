@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.http;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Vector;
+import java.util.Enumeration;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
@@ -104,5 +105,10 @@ public class Registrations {
             alias = alias.substring(0, index);
         }
     }
+  
 
+    public Enumeration getAliases() {
+	return registrations.keys();
+    }
+    
 } // Registrations

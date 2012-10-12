@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,7 +103,7 @@ public class HttpServiceImpl
 
         bundleRegistrations.addElement(alias);
         registrations.put(alias, registration);
-
+	registration.setOwner(bundle);
         if (log.doDebug())
             log.debug("Alias \"" + alias + "\" was registered by bundle "
                     + bundle.getBundleId());

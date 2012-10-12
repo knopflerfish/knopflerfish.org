@@ -459,4 +459,8 @@ public class SocketListener implements Runnable, ServiceTrackerCustomizer {
         socket = null;
     }
 
+    public boolean isOpen() {
+	return socket != null;
+    }
+    
 } // SocketListener
