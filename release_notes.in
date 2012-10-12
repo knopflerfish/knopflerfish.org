@@ -26,6 +26,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
   - Fixed NPE when handling unregistered services.
 
+* HTTP 3.1.0 
+
+  - Includes a new basic http console cmd group. Lists config, servlet
+    and resource registrations, and transaction status of the HTTP
+    server.  
 
 * SCR(component) 3.1.8
   
