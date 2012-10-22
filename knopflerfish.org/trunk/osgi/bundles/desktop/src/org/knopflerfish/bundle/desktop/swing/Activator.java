@@ -44,11 +44,6 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.knopflerfish.service.desktop.BundleFilter;
-import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.service.remotefw.RemoteFramework;
-import org.knopflerfish.util.Text;
-
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -57,6 +52,11 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.startlevel.StartLevel;
 import org.osgi.util.tracker.ServiceTracker;
+
+import org.knopflerfish.service.desktop.BundleFilter;
+import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.service.remotefw.RemoteFramework;
+import org.knopflerfish.util.Text;
 
 
 public class Activator
@@ -319,6 +319,7 @@ public class Activator
 
   static ServiceTracker remoteTracker;
 
+
   Map displayers = new HashMap();
 
   public void start(final BundleContext bc) {
@@ -388,6 +389,7 @@ public class Activator
       ClosureHTMLDisplayer.class.getName(),
       ServiceHTMLDisplayer.class.getName(),
       PackageHTMLDisplayer.class.getName(),
+      SCRHTMLDisplayer.class.getName(),
       LogDisplayer.class.getName(),
       EventDisplayer.class.getName(),
       PrefsDisplayer.class.getName(),

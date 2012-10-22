@@ -60,7 +60,7 @@ public class SpinDisplayer extends DefaultSwingBundleDisplayer {
     spins.add(spin);
 
     return spin;
-  } 
+  }
 
   public void close() {
     super.close();

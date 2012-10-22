@@ -61,12 +61,12 @@ public class KnopflerfishTheme extends DefaultMetalTheme {
 
   public KnopflerfishTheme() {
   }
-  
+
   // these are blue in Metal Default Theme
   protected ColorUIResource getPrimary1() {
     return primary1;
   }
-  
+
   protected ColorUIResource getPrimary2() {
     return primary2;
   }

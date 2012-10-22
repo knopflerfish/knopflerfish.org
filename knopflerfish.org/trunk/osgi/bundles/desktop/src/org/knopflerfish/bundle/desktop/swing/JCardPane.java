@@ -56,7 +56,7 @@ public class JCardPane extends JPanel {
   public Component addTab(String name, Component comp) {
     add(comp, name);
     card.addLayoutComponent(comp, name);
-    
+
     tabs.put(name, comp);
     revalidate();
 
@@ -90,4 +90,3 @@ public class JCardPane extends JPanel {
     return (Component)tabs.get(name);
   }
 }
-

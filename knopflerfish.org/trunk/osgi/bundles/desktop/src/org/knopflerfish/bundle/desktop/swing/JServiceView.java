@@ -8,12 +8,12 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 public class JServiceView extends JSoftGraphBundle {
-  
+
   private static final long serialVersionUID = 1L;
 
-  public JServiceView(GraphDisplayer.JMainBundles jmb, 
-                      BundleContext bc, 
-                      Bundle b, 
+  public JServiceView(GraphDisplayer.JMainBundles jmb,
+                      BundleContext bc,
+                      Bundle b,
                       BundleSelectionModel bundleSelModel) {
     super(jmb, bc, b, bundleSelModel);
 
@@ -26,4 +26,3 @@ public class JServiceView extends JSoftGraphBundle {
     return node;
   }
 }
-

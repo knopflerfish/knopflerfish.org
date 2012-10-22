@@ -69,7 +69,9 @@ public abstract class JSoftGraph extends JPanel {
   Node hoverNode = null;
 
   Color topColor    =  getBackground();
-  Color bottomColor =  Util.rgbInterpolate(topColor, new Color(50, 120, 200), .9);
+  Color bottomColor =  Util.rgbInterpolate(topColor,
+                                           new Color(50, 120, 200),
+                                           .9);
 
   double outMinDragStart = 0;
   double outMaxDragStart = 0;
@@ -107,7 +109,7 @@ public abstract class JSoftGraph extends JPanel {
           inMaxDragStart = currentNode.getInMax();
           inSizeDragStart = inMaxDragStart - inMinDragStart;
         }
-        
+
         public void mouseClicked(MouseEvent ev) {
           requestFocus();
           if(ev.getButton() != 1) {
@@ -155,7 +157,7 @@ public abstract class JSoftGraph extends JPanel {
         public void 	mouseMoved(MouseEvent ev) {
           mouseObject = null;
           mousePoint = new Point2D.Double(ev.getX(), ev.getY());
-          if(currentNode != null) {            
+          if(currentNode != null) {
             double dist = mousePoint.distance(currentNode.getPoint());
             if(dist < arcRadius) {
               if(currentNode.getPoint().getY() < ev.getY()) {
@@ -185,17 +187,17 @@ public abstract class JSoftGraph extends JPanel {
   void handleOutChange(Node node, MouseEvent ev) {
     double dx = ev.getX() - dragStart.getX();
     double dy = ev.getY() - dragStart.getY();
-    
+
 
     double min  = node.getOutMin();
     double max  = node.getOutMax();
     double size = max - min;
     int nTotal = node.getOutLinks().size();
-    
+
     if(nTotal > minArcSize) {
       double vx = outMinDragStart - dx / 6;
       size = Math.min(nTotal, outSizeDragStart - dy / 12);
-      
+
       if(size < minArcSize) {
         size = minArcSize;
       }
@@ -209,7 +211,7 @@ public abstract class JSoftGraph extends JPanel {
         min = vx;
         size = nTotal-min;
       }
-      
+
       if(vx < 0) {
         vx = 0;
       }
@@ -218,31 +220,31 @@ public abstract class JSoftGraph extends JPanel {
       }
       node.setOutMin(vx);
       node.setOutMax(vx + size);
-      
+
     }
   }
 
   void handleInChange(Node node, MouseEvent ev) {
     double dx = ev.getX() - dragStart.getX();
     double dy = ev.getY() - dragStart.getY();
-    
+
 
     double min  = node.getInMin();
     double max  = node.getInMax();
     double size = max - min;
     int nTotal = node.getInLinks().size();
-    
+
     if(nTotal > minArcSize) {
       double vx = inMinDragStart + dx / 6;
       size = inSizeDragStart + dy / 12;
-      
+
       if(size < minArcSize) {
         size = minArcSize;
       }
       if(size+min > nTotal) {
         size = nTotal-min;
       }
-      
+
       if(vx < 0) {
         vx = 0;
       }
@@ -288,14 +290,16 @@ public abstract class JSoftGraph extends JPanel {
 
     // Map linkMap = new HashMap();
     // layoutNode(currentNode, linkMap);
-    Map linkMap = currentLinkMap != null ? currentLinkMap : Collections.EMPTY_MAP;
-    
+    Map linkMap = currentLinkMap != null
+      ? currentLinkMap
+      : Collections.EMPTY_MAP;
+
     Node minNode = null;
     for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node n1 = link.getFrom();
       Node n2 = link.getTo();
-      
+
       Point2D p1 = n1.getPoint();
       if(p1 != null) {
         double d = mp.distance(p1);
@@ -324,7 +328,7 @@ public abstract class JSoftGraph extends JPanel {
       }
     }
     return minNode;
-    
+
   }
 
   Object lock = new Object();
@@ -348,21 +352,21 @@ public abstract class JSoftGraph extends JPanel {
       return;
     }
 
-    
+
     bDirtyTimer = false;
     fadestate   = STATE_INITFADE;
     timer       = new javax.swing.Timer(speed, timerAction);
-    timer.start();    
+    timer.start();
   }
 
   int blinkN = 0;
 
   Color[] blinkColor = new Color[] {
     Color.blue,
-    Color.black,   
+    Color.black,
   };
   Map allLinkMap = new LinkedHashMap();
-  
+
   Map nodeOldMap  = new HashMap();
   Map nodeNewMap  = new HashMap();
   Map nodeCurrMap = new HashMap();
@@ -374,7 +378,7 @@ public abstract class JSoftGraph extends JPanel {
 
   Point2D center;
 
-  
+
   ActionListener timerAction = new ActionListener() {
       public void actionPerformed(ActionEvent ev) {
         switch(fadestate) {
@@ -388,7 +392,7 @@ public abstract class JSoftGraph extends JPanel {
           fadeK          = 0.0;
           currentLinkMap = allLinkMap;
           linkColor      = Color.black;
-          
+
           updateFade(currentLinkMap, nodeOldMap, nodeNewMap, fadeK);
           break;
         case STATE_FADE:
@@ -418,25 +422,25 @@ public abstract class JSoftGraph extends JPanel {
   public void refresh() {
     repaint();
   }
-  
+
 
 
   void initFade() {
     center = getCenter();
-    
+
     nodeOldMap.clear();
     nodeNewMap.clear();
-    
+
     newNode    = makeRootNode();
     newLinkMap = new TreeMap();
-    
+
     layoutNode(newNode, newLinkMap);
-    
+
     allLinkMap.clear();
-    
+
     Map currNodePos = new HashMap();
     Map newNodePos  = new HashMap();
-    
+
     for(Iterator it = currentLinkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node n1 = link.getFrom();
@@ -447,7 +451,7 @@ public abstract class JSoftGraph extends JPanel {
         allLinkMap.put(link, link);
       }
     }
-    
+
     for(Iterator it = newLinkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node n1 = link.getFrom();
@@ -458,13 +462,13 @@ public abstract class JSoftGraph extends JPanel {
         allLinkMap.put(link, link);
       }
     }
-    
-    
+
+
     for(Iterator it = allLinkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node n1 = link.getFrom();
       Node n2 = link.getTo();
-      
+
       if(currNodePos.containsKey(n1)) {
         nodeOldMap.put(n1, (Point2D)currNodePos.get(n1));
       } else {
@@ -475,7 +479,7 @@ public abstract class JSoftGraph extends JPanel {
       } else {
         nodeOldMap.put(n2, center);
       }
-      
+
       if(newNodePos.containsKey(n1)) {
         nodeNewMap.put(n1, (Point2D)newNodePos.get(n1));
       } else {
@@ -487,42 +491,42 @@ public abstract class JSoftGraph extends JPanel {
         nodeNewMap.put(n2, center);
       }
     }
-    
-    
+
+
   }
-  
+
   String toString(Object o) {
     Point2D p = (Point2D)o;
-    return p != null 
+    return p != null
       ? ("[" + (int)p.getX() + ", " + (int)p.getY() + "]")
       : "null";
   }
-  
+
   void updateFade(Map linkMap, Map oldPos, Map newPos, double k) {
-    
+
     for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
       Node node;
       Point2D p1;
       Point2D p2;
-      
+
       node = link.getFrom();
       p1 = (Point2D)oldPos.get(node);
       p2 = (Point2D)newPos.get(node);
       node.setPoint(fade(k, p1, p2, center));
-      
-      node = link.getTo();            
+
+      node = link.getTo();
       p1 = (Point2D)oldPos.get(node);
       p2 = (Point2D)newPos.get(node);
       node.setPoint(fade(k, p1, p2, center));
     }
   }
-  
+
   void stopFade() {
     currentNode    = newNode;
     currentLinkMap = newLinkMap;
   }
-  
+
   Point2D fade(double k, Point2D p1, Point2D p2, Point2D def) {
     if(p1 == null) {
       p1 = def;
@@ -533,18 +537,18 @@ public abstract class JSoftGraph extends JPanel {
     return new Point2D.Double(p1.getX() + k * (p2.getX() - p1.getX()),
                               p1.getY() + k * (p2.getY() - p1.getY()));
   }
-  
-  
+
+
   boolean bNeedLayout = true;
-  
-  
+
+
 
   Dimension lastSize;
 
   public void paintComponent(Graphics _g) {
     Graphics2D  g = (Graphics2D)_g;
     Dimension size = getSize();
-    
+
     if(lastSize == null || lastSize.width != size.width || lastSize.height != size.height) {
       bNeedLayout = true;
     }
@@ -555,14 +559,14 @@ public abstract class JSoftGraph extends JPanel {
       layoutNode(currentNode, currentLinkMap);
       bNeedLayout = false;
     }
-    
+
     Point2D center = getCenter();
 
     if(isOpaque()) {
       g.setColor(getBackground());
       g.fillRect(0, 0, size.width, size.height);
 
-      
+
       float y0 = (float)(0.8 * center.getY());
       float y1 = (float)(size.height);
       GradientPaint painter = new GradientPaint(0.0f, y0,
@@ -572,7 +576,7 @@ public abstract class JSoftGraph extends JPanel {
       Paint oldP = g.getPaint();
       g.setPaint(painter);
       g.fill(new Rectangle2D.Double(0, y0, size.width, y1-y0));
-      
+
       g.setPaint(oldP);
 
     }
@@ -593,7 +597,7 @@ public abstract class JSoftGraph extends JPanel {
     if(label != null) {
       paintMirror(g, new Color(20, 20, 100), label, 10, size.height - 20, 1.5, true);
     }
-    
+
     if(hoverNode != null) {
       setToolTipText(hoverNode.toString());
     } else if(mouseObject != null) {
@@ -602,7 +606,7 @@ public abstract class JSoftGraph extends JPanel {
       setToolTipText(null);
     }
   }
-  
+
   String label = null;
   public void setLabel(String s) {
     label = s;
@@ -618,17 +622,17 @@ public abstract class JSoftGraph extends JPanel {
 
   Map darkColors = new HashMap();
   Set paintedNodes = new HashSet();
-  
+
   void paintLinkMap(Graphics2D g, Map linkMap) {
     paintedNodes.clear();
-    Point2D center = getCenter();    
+    Point2D center = getCenter();
     if(linkMap == null) {
       return;
     }
-    
+
     g.setColor(linkColor);
     Util.setAntialias(g, true);
-    
+
     // paint links
     for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
       Link link = (Link)it.next();
@@ -662,7 +666,7 @@ public abstract class JSoftGraph extends JPanel {
       Color c1 = Util.rgbInterpolate(bottomColor, Color.black, .1);
       for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
         Link link = (Link)it.next();
-        
+
         if(link.getType() >= 0) {
           paintLink(g, link, c1, null, false);
         }
@@ -699,7 +703,7 @@ public abstract class JSoftGraph extends JPanel {
 
 
   void paintNode(Graphics2D g, Node node) {
-    
+
   }
 
   Color arcOutCol1 = new Color(100, 100, 255, 255);
@@ -726,36 +730,36 @@ public abstract class JSoftGraph extends JPanel {
     double outMin    = node.getOutMin();
     double outMax    = node.getOutMax();
     double outSize   = outMax - outMin;
-    
+
     int nTotal    = node.getOutLinks().size();
-    
+
     if(outSize < nTotal) {
-      
+
       Composite oldComp = g.getComposite();
-      
-      Composite alpha = outArcActive ? alphaHalf : alphaSome;        
+
+      Composite alpha = outArcActive ? alphaHalf : alphaSome;
       g.setComposite(alpha);
-      
+
       double aStart = 180.0 * outMin / nTotal;
       double aSize  = Math.max(2, 180.0 * outSize / nTotal);
-      
+
       int rx = arcRadius;
       int ry = (int)(rx * .9);
-      
-      
+
+
       Util.setAntialias(g, true);
-      
+
       // background arc
       g.setColor(arcOutCol1);
-      g.fillArc((int)(0 - rx), 
+      g.fillArc((int)(0 - rx),
                 (int)(0 - ry),
                 rx * 2, ry * 2,
                 0, 180);
-      
+
       // g.setComposite(alpha);
       // size arc
       g.setColor(arcOutCol2);
-      g.fillArc((int)(0 - rx), 
+      g.fillArc((int)(0 - rx),
                 (int)(0 - ry),
                 rx * 2, ry * 2,
                 (int)aStart, (int)aSize);
@@ -763,41 +767,41 @@ public abstract class JSoftGraph extends JPanel {
       Util.setAntialias(g, false);
     }
   }
-  
+
   void paintNodeInArc(Graphics2D g, Node node) {
     double inMin    = node.getInMin();
     double inMax    = node.getInMax();
     double inSize   = inMax - inMin;
-    
+
     int nTotal    = node.getInLinks().size();
-    
+
     if(inSize < nTotal) {
-      
+
       Composite oldComp = g.getComposite();
-      
+
       Composite alpha = inArcActive ? alphaHalf : alphaSome;
-      
+
       g.setComposite(alpha);
-      
+
       double aStart = 180.0 * inMin / nTotal;
       double aSize  = Math.max(2, 180.0 * inSize / nTotal);
-      
+
       int rx = 40;
       int ry = (int)(rx * .8);
-      
+
       Util.setAntialias(g, true);
-      
+
       // background arc
       g.setColor(arcInCol1);
-      g.fillArc((int)(0 - rx), 
+      g.fillArc((int)(0 - rx),
                 (int)(0 - ry),
                 rx * 2, ry * 2,
                 180, 180);
-      
+
       // g.setComposite(alphaHalf);
       // size arc
       g.setColor(arcInCol2);
-      g.fillArc((int)(0 - rx), 
+      g.fillArc((int)(0 - rx),
                 (int)(0 - ry),
                 rx * 2, ry * 2,
                 180 + (int)aStart, (int)aSize);
@@ -811,59 +815,59 @@ public abstract class JSoftGraph extends JPanel {
     Dimension size = getSize();
     Node n1 = link.getFrom();
     Node n2 = link.getTo();
-    
-    
+
+
     Point2D p1 = n1.getPoint();
     Point2D p2 = n2.getPoint();
-    
+
     if(p1 != null && p2 != null) {
       Color c1 = Color.white;
       Color c2 = Color.black;
-      
+
       double cx = (p1.getX() + p2.getX()) / 2;
       double cy = (p1.getY() + p2.getY()) / 2;
-      
+
       // double mx = cx - mousePoint.getX();
       // double my = cy - mousePoint.getY();
       // double dist = Math.sqrt(mx * mx + my * my);
-      
-      double k = 1.0 / (1 + link.getDepth());        
+
+      double k = 1.0 / (1 + link.getDepth());
       if(link.getDepth() < 10 && size.width > 50) {
         float textScale = Math.min(1f, (float)(k * 1.8));
-        
+
         AffineTransform trans = g.getTransform();
-        
+
         String s = link.toString();
 
         FontMetrics fm = g.getFontMetrics();
-        
+
         Rectangle2D r = fm.getStringBounds(s, g);
-        
-        
-        
+
+
+
         int pad = 2;
-        
+
         double left = (cx-r.getWidth()/2) - pad;
         double top  = cy - (r.getHeight()/2) -pad;
 //        double w    = r.getWidth() + 2 * pad;
 //        double h    = r.getHeight() + 2 * pad;
-        
+
         g.translate(left, top);
         g.scale(textScale, textScale);
-        
+
         g.setColor(c1);
         g.drawString(s, 0, 0);
         g.setColor(c2);
         g.drawString(s, 1, 1);
 
         // paintString(g, link.toString(), 0, 0, bClip);
-        
+
         g.setTransform(trans);
-        
+
         /*
         g.translate((int)p2.getX(), (int)p2.getY());
         g.scale(textScale, textScale);
-        
+
         paintString(g, n2.toString(), 0, 0, bClip);
         */
 
@@ -882,18 +886,18 @@ public abstract class JSoftGraph extends JPanel {
     Util.setAntialias(g, true);
     g.translate(x, y);
     g.scale(k, k);
-    
+
     g.setColor(c);
     g.drawString(s, 0, 0);
 
     if(bMirror) {
       g.setComposite(alphaSome);
-      
+
       g.setTransform(oldTrans);
       g.translate(x, y);
       g.scale(k, -k*1.2);
       g.shear(-0.25, 0);
-      
+
       g.setColor(c);
       g.drawString(s, 0, 0);
     }
@@ -935,7 +939,7 @@ public abstract class JSoftGraph extends JPanel {
     int top  = cy - (int)(r.getHeight()/2) -pad;
     int w    = (int)r.getWidth() + 2 * pad;
     int h    = (int)r.getHeight() + 2 * pad;
-    
+
     g.setColor(Color.white);
     g.fillRect(left+1, top+1, w-1, h-1);
 
@@ -945,9 +949,9 @@ public abstract class JSoftGraph extends JPanel {
     g.drawLine(left+1, top+h, left+w-2, top+h);     // bottom
     g.drawLine(left,   top+1, left,     top+h-2);   // left
     g.drawLine(left+w, top+1, left+w,   top+h-2);   // right
-    
+
     g.setColor(txtColor);
-    
+
     g.drawString(s, left + pad, top + pad + fm.getMaxAscent());
 
   }
@@ -955,13 +959,13 @@ public abstract class JSoftGraph extends JPanel {
   void paintLink(Graphics2D g, Link link, Color fillColor, Color lineColor, boolean bFind) {
     Node n1 = link.getFrom();
     Node n2 = link.getTo();
-    
+
     Point2D p1 = n1.getPoint();
     Point2D p2 = n2.getPoint();
-    
+
 //    if(false && n2.equals(currentNode)) {
-//      drawLine(g, 
-//               link, 
+//      drawLine(g,
+//               link,
 //               (int)p1.getX(),
 //               (int)p1.getY(),
 //               (int)p2.getX(),
@@ -973,10 +977,10 @@ public abstract class JSoftGraph extends JPanel {
     {
       if(p1 != null && p2 != null) {
         Stroke oldStroke = g.getStroke();
-        
+
         double k = 1.0 / (1 + link.getDepth());
         g.setStroke(new BasicStroke((float)k));
-        drawArrow(g,  
+        drawArrow(g,
                   link,
                   (int)p1.getX(),
                   (int)p1.getY(),
@@ -985,8 +989,8 @@ public abstract class JSoftGraph extends JPanel {
                   fillColor,
                   lineColor,
                   bFind);
-        
-        
+
+
         g.setStroke(oldStroke);
       }
     }
@@ -995,7 +999,7 @@ public abstract class JSoftGraph extends JPanel {
 
   public Point2D getCenter() {
     Dimension size = getSize();
-    
+
     double cx = size.width / 2;
     double cy = .68 * size.height;
     return new Point2D.Double(cx, cy);
@@ -1040,9 +1044,9 @@ public abstract class JSoftGraph extends JPanel {
         if(node.getOutMax() == 0) {
           node.setOutMax(Math.min(maxLinks, outLinks.size()));
         }
-        
+
         double nMax = node.getOutMax() - node.getOutMin();
-        
+
         int range = outLinks.size();
         if(nMax < range) {
           range = (int)(nMax + 1);
@@ -1050,26 +1054,26 @@ public abstract class JSoftGraph extends JPanel {
 
         int _n = 0;
         int n = 0;
-        
+
         double frac = node.getOutMin() - Math.floor(node.getOutMin());
         a0 = -Math.PI * frac / range;
 
         for(Iterator it = outLinks.iterator(); it.hasNext(); ) {
           Link link = (Link)it.next();
-          if(_n >= Math.floor(node.getOutMin()) && 
+          if(_n >= Math.floor(node.getOutMin()) &&
              _n <= Math.floor(node.getOutMax())) {
             double a = a0 + Math.PI + Math.PI * n / range + Math.PI / nMax/2;
-            
+
             double x = center.getX() + r * Math.cos(a);
             double y = center.getY() + r * Math.sin(a);
-            
+
             link.getFrom().setPoint(center);
             link.getTo().setPoint(new Point2D.Double(x, y));
-            
+
             linkMap.put(link, link);
-            
+
             layoutNode(link.getTo(),
-                       linkMap, 
+                       linkMap,
                        r * .4,
                        link.getTo().getPoint(),
                        detail - 1,
@@ -1087,9 +1091,9 @@ public abstract class JSoftGraph extends JPanel {
         if(node.getInMax() == 0) {
           node.setInMax(Math.min(maxLinks, inLinks.size()));
         }
-        
+
         double nMax = node.getInMax() - node.getInMin();
-        
+
         int range = inLinks.size();
         if(nMax < range) {
           range = (int)(nMax + 1);
@@ -1107,21 +1111,21 @@ public abstract class JSoftGraph extends JPanel {
 
         for(Iterator it = inLinks.iterator(); it.hasNext(); ) {
           Link link = (Link)it.next();
-          if(_n >= Math.floor(node.getInMin()) && 
+          if(_n >= Math.floor(node.getInMin()) &&
              _n <= Math.floor(node.getInMax())) {
             double a = a0 + 2*Math.PI + Math.PI * n / range + Math.PI / range/2;
-            
+
             double x = center.getX() + inrx * Math.cos(a);
             double y = center.getY() + inry * Math.sin(a);
-            
+
             DefaultNode n1 = (DefaultNode)link.getFrom();
             Node n2 = link.getTo();
-            
+
             n1.setSize(2 + 5 * (1 + Math.sin(a)));
             n1.setPoint(new Point2D.Double(x, y));
             n2.setPoint(center);
-            
-            
+
+
             linkMap.put(link, link);
             n++;
           }
@@ -1133,9 +1137,9 @@ public abstract class JSoftGraph extends JPanel {
     }
   }
 
-  
 
-  static AlphaComposite alphaHalf 
+
+  static AlphaComposite alphaHalf
     = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .7f);
 
   static AlphaComposite alphaSome
@@ -1150,12 +1154,12 @@ public abstract class JSoftGraph extends JPanel {
     }
     return res;
   }
-  
+
   Color boxCol = new Color(200, 200, 200);
 
-  void paintBox(Graphics2D g, 
-                String s, 
-                int x, 
+  void paintBox(Graphics2D g,
+                String s,
+                int x,
                 int y) {
     paintBox(g, s, boxCol, Color.black, x, y + 3, 1, 100, 10, false, false);
   }
@@ -1165,23 +1169,23 @@ public abstract class JSoftGraph extends JPanel {
   double arrowK = 1.0;
   double arrowDK = 0.01;
 
-  public void drawArrow(Graphics2D g, 
+  public void drawArrow(Graphics2D g,
                         Link link,
-                        int x1, int y1, 
+                        int x1, int y1,
                         int x2, int y2,
                         Color fillColor,
                         Color lineColor) {
     drawArrow(g, link, x1, y1, x2, y2, fillColor, lineColor, true);
   }
 
-  public static double dist(double x1, double y1, 
+  public static double dist(double x1, double y1,
                             double x2, double y2,
                             double mx, double my) {
     double _x1 = Math.min(x1, x2);
     double _x2 = Math.max(x1, x2);
     double _y1 = Math.min(y1, y2);
     double _y2 = Math.max(y1, y2);
-    if(mx >= _x1 && mx <= _x2 && 
+    if(mx >= _x1 && mx <= _x2 &&
        my >= _y1 && my <= _y2) {
       return Line2D.ptLineDist(x1, y1, x2, y2, mx, my);
     }
@@ -1202,9 +1206,9 @@ public abstract class JSoftGraph extends JPanel {
 
   Stroke fatStroke = new BasicStroke((float)5);
 
-  public void drawArrow(Graphics2D g, 
+  public void drawArrow(Graphics2D g,
                         Link link,
-                        int x1, int y1, 
+                        int x1, int y1,
                         int x2, int y2,
                         Color fillColor,
                         Color lineColor,
@@ -1213,7 +1217,7 @@ public abstract class JSoftGraph extends JPanel {
     if((link.getDetail() >= 25 || link.getDepth() > 3)) {
       double dist = 10;
       if(bFind && mousePoint != null) {
-        dist = dist(x1, y1, x2, y2, 
+        dist = dist(x1, y1, x2, y2,
                            mousePoint.getX(),  mousePoint.getY());
         if(dist <= 2) {
           mouseObject = link;
@@ -1234,26 +1238,26 @@ public abstract class JSoftGraph extends JPanel {
       AffineTransform trans = g.getTransform();
 
       int type = link.getType();
-      
+
       g.translate(x1, y1);
       g.rotate(aDir);
 
       GeneralPath path = new GeneralPath();
-      
+
       double k = 1.0;
 
       if(Math.abs(type) == 2) {
         k = 0;
       }
 
-      Shape s1 = new CubicCurve2D.Double(0, len/20, 
+      Shape s1 = new CubicCurve2D.Double(0, len/20,
                                          len/4, k* len/4,
                                          3*len/4, k * -len/5,
                                          len, 0);
 
       path.append(s1, false);
 
-      Shape s2 = new CubicCurve2D.Double(len, 0, 
+      Shape s2 = new CubicCurve2D.Double(len, 0,
                                          3*len/4, k * -len/4,
                                          len/4, k * len/6,
                                          0, -len/20);
@@ -1275,14 +1279,14 @@ public abstract class JSoftGraph extends JPanel {
 
       if(lineColor != null) {
         if(len > 20) {
-          
+
           g.setColor(Util.rgbInterpolate(fillColor, Color.red, .3));
           g.setStroke(getStroke(link.getDepth()));
           g.draw(s2);
         }
       }
 
-      
+
       g.setStroke(oldStroke);
       if(lineColor != null) {
         g.setColor(lineColor);
@@ -1292,7 +1296,7 @@ public abstract class JSoftGraph extends JPanel {
 
 
       // g.drawLine(0, 0, (int)len, 0);
-      
+
       g.setTransform(trans);
 
     } finally {
@@ -1300,14 +1304,14 @@ public abstract class JSoftGraph extends JPanel {
     }
   }
 
-  public void drawLine(Graphics2D g, 
+  public void drawLine(Graphics2D g,
                        Link link,
-                       int x1, int y1, 
+                       int x1, int y1,
                        int x2, int y2,
                        Color fillColor,
                        Color lineColor,
                        boolean bFind) {
-    
+
     Stroke oldStroke = g.getStroke();
     try {
       int dx = x2 - x1;
@@ -1321,11 +1325,11 @@ public abstract class JSoftGraph extends JPanel {
       g.rotate(aDir);
 
       GeneralPath path = new GeneralPath();
-      
+
       Polygon p1 = new Polygon();
-      
+
       Node n1 = link.getFrom();
-      
+
       int h = (int)n1.getSize();
       p1.addPoint(0, h);
       p1.addPoint((int)len, 0);
@@ -1351,7 +1355,7 @@ public abstract class JSoftGraph extends JPanel {
         g.draw(path);
       }
       // g.drawLine(0, 0, (int)len, 0);
-      
+
       g.setTransform(trans);
 
     } finally {
@@ -1359,11 +1363,11 @@ public abstract class JSoftGraph extends JPanel {
     }
   }
 
-  void paintBox(Graphics2D g, 
-                String   s,                 
-                Color    bgCol, 
+  void paintBox(Graphics2D g,
+                String   s,
+                Color    bgCol,
                 Color    fgCol,
-                int      x, 
+                int      x,
                 int      y,
                 double   size,
                 int minWidth, int minHeight,
@@ -1371,9 +1375,9 @@ public abstract class JSoftGraph extends JPanel {
                 boolean bCenterY) {
     Object oldComp = g.getComposite();
     g.setComposite((AlphaComposite)alphaHalf);
-    
+
     String[] lines = split(s, "\n");
-    
+
     int maxCols = 0;
     for(int i = 0; i <lines.length; i++) {
       if(lines[i].length() > maxCols) {
@@ -1384,7 +1388,7 @@ public abstract class JSoftGraph extends JPanel {
     Font font = g.getFont();
 
     g.setColor(bgCol);
-    
+
     int w = Math.max(minWidth, font.getSize() * maxCols / 2 + 30);
     int h = Math.max(minHeight, (font.getSize() + 3) * lines.length + 10);
 
@@ -1395,8 +1399,8 @@ public abstract class JSoftGraph extends JPanel {
       y -= h/2;
     }
 
-    g.fill3DRect(x, y, 
-                 w, h,                 
+    g.fill3DRect(x, y,
+                 w, h,
                  true);
 
 
@@ -1417,7 +1421,6 @@ public abstract class JSoftGraph extends JPanel {
       }
       y += font.getSize() + 3;
     }
-     
+
   }
 }
-

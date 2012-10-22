@@ -37,4 +37,3 @@ package org.knopflerfish.bundle.desktop.swing;
 public interface StatusViewer {
   public void setTitle(String s);
 }
-

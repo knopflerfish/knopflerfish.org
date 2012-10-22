@@ -115,7 +115,7 @@ public class ErrorMessageDialog extends JDialog {
       friendlyMessage = moreInfo;
       moreInfo = null;
     }
-    
+
     friendLabel = new JLabel(friendlyMessage == null ? "Unknown error" : friendlyMessage);
     friendPanel = new JPanel(new BorderLayout());
     friendPanel.add(friendLabel, BorderLayout.CENTER);

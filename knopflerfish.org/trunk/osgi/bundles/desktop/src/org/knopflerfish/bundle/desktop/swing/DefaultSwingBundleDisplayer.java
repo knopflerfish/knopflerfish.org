@@ -233,7 +233,7 @@ public abstract class DefaultSwingBundleDisplayer
     boolean bHasVisible = false;
     for(Iterator it = components.iterator(); it.hasNext(); ) {
       JComponent comp = (JComponent)it.next();
-      if(comp.isVisible() && comp.isShowing()) {
+      if(comp.isShowing()) {
         bHasVisible = true;
         break;
       }
@@ -282,7 +282,7 @@ public abstract class DefaultSwingBundleDisplayer
         public void run() {
           for(Iterator it = components.iterator(); it.hasNext(); ) {
             JComponent comp = (JComponent)it.next();
-            if(comp.isVisible()) {
+            if(comp.isShowing()) {
               if(comp instanceof JHTMLBundle) {
                 JHTMLBundle jhtml = (JHTMLBundle)comp;
                 jhtml.valueChanged(bl);

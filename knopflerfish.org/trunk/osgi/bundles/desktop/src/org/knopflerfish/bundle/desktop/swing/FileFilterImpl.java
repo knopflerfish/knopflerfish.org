@@ -46,11 +46,11 @@ public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
   private String    description                = null;
   private String    fullDescription            = null;
   private boolean   useExtensionsInDescription = true;
-  
+
   public FileFilterImpl() {
     this.filters = new Hashtable();
   }
-  
+
   public boolean accept(File f) {
     if(f != null) {
       if(f.isDirectory()) {
@@ -63,7 +63,7 @@ public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
     }
     return false;
   }
-  
+
   public String getExtension(File f) {
     if(f != null) {
       String filename = f.getName();
@@ -74,7 +74,7 @@ public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
     }
     return null;
   }
-  
+
   public void addExtension(String extension) {
     if(filters == null) {
       filters = new Hashtable(5);
@@ -82,8 +82,8 @@ public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
     filters.put(extension.toLowerCase(), this);
     fullDescription = null;
   }
-  
-  
+
+
   public String getDescription() {
     if(fullDescription == null) {
       if(description == null || isExtensionListInDescription()) {
@@ -103,17 +103,17 @@ public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
     }
     return fullDescription;
   }
-  
+
   public void setDescription(String description) {
     this.description = description;
     fullDescription = null;
   }
-  
+
   public void setExtensionListInDescription(boolean b) {
     useExtensionsInDescription = b;
     fullDescription = null;
   }
-  
+
   public boolean isExtensionListInDescription() {
     return useExtensionsInDescription;
   }

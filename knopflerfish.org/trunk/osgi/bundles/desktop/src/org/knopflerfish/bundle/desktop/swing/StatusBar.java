@@ -50,16 +50,16 @@ import javax.swing.UIManager;
 import javax.swing.plaf.ComponentUI;
 
 
-public class StatusBar extends JComponent 
+public class StatusBar extends JComponent
   implements Runnable, MouseListener
 {
   private static final long serialVersionUID = 1L;
-  
+
   static int MODE_UNKNOWN    = 0;
   static int MODE_PERCENTAGE = 1;
-    
+
   int        perc      = 0;
-  int        delta     = 5;  
+  int        delta     = 5;
   String     msg       = "";
   int        block     = 6;
   int        pad       = 2;
@@ -75,7 +75,7 @@ public class StatusBar extends JComponent
   Color bgColor  = Color.lightGray;
   Color fgColor  = Color.black;
   Color txtColor = Color.black;
-  
+
   Color lowColor  = Color.black;
   Color highColor = Color.blue;
 
@@ -91,7 +91,7 @@ public class StatusBar extends JComponent
     setMinimumSize(d);
     setPreferredSize(d);
 
-    addMouseListener(this); 
+    addMouseListener(this);
 
     bgColor = getBackground();
 
@@ -128,7 +128,7 @@ public class StatusBar extends JComponent
   Object lock = new Object();
 
   private void stopRunner() {
-    //    synchronized(lock) 
+    //    synchronized(lock)
     {
       bRun = false;
       if(runner != null) {
@@ -138,7 +138,7 @@ public class StatusBar extends JComponent
       }
     }
   }
-    
+
   public void updateProgress(int percent) {
     //    System.out.print("updateProgress " + msg + " " + percent + "%");
     if(percent == -1) {
@@ -166,11 +166,11 @@ public class StatusBar extends JComponent
     } else {
     }
   }
-  
+
   public boolean isBroken() {
     return bIsBroken;
   }
-  
+
   public void startProgress(String msg, int delay) {
 
     if(runner != null && mode == MODE_UNKNOWN) {
@@ -182,10 +182,10 @@ public class StatusBar extends JComponent
     this.perc  = 0;
     this.msg   = msg;
     this.delay = delay;
-    
+
     if(runner == null) {
-      //      synchronized(lock) 
-	{	  
+      //      synchronized(lock)
+	{
 	  bIsBroken = false;
 	  bRun      = true;
 	  runner= new Thread(this, "StatusBar update " + name);
@@ -193,34 +193,34 @@ public class StatusBar extends JComponent
 	}
     }
   }
-  
+
   public void startProgress(String msg) {
     if(runner != null && mode == MODE_UNKNOWN) {
       this.msg = msg;
       return;
     }
-    
+
     this.delta = 5;
     this.perc  = 0;
     this.msg   = msg;
-    
+
     repaint();
-    
-    setCursor(Cursor.WAIT_CURSOR); 
+
+    setCursor(Cursor.WAIT_CURSOR);
   }
 
   public void stopProgress() {
     stopRunner();
-    
+
     updateProgress(0);
     perc = 0;
     msg  = "";
     repaint();
-    
+
     setCursor(Cursor.DEFAULT_CURSOR);
   }
 
-  
+
   public void showStatus(String msg) {
     this.msg = msg;
     Graphics g = getGraphics();
@@ -231,13 +231,13 @@ public class StatusBar extends JComponent
       //      No graphics in showStatus
     }
   }
-  
+
   public void update(Graphics g) {
     // Override this method, we do not need any background handling
     paint(g);
   }
 
-  
+
   public void paint(Graphics g) {
     highColor = UIManager.getColor("ScrollBar.thumb");
     if(highColor == null && highColor.equals(getBackground())) {
@@ -246,18 +246,18 @@ public class StatusBar extends JComponent
     // Canvas size
     Dimension d = getSize();
     if (d.width==0||d.height==0) return; //Called before added to visible frame
-    
+
     // Create memory image, for double buffering
     Image memImage = createImage(d.width, d.height);
     if (memImage==null) return; //Called before added to visible frame
     Graphics memG  = memImage.getGraphics();
-    
+
     // Set background
     memG.setColor(getBackground());
     memG.fillRect(0,0,d.width,d.height);
 
     memG.setColor(txtColor);
-    
+
     String s = msg;
     if(bShowPerc) {
       s = s + " " + perc + "%";
@@ -270,21 +270,21 @@ public class StatusBar extends JComponent
     memG.setColor(getBackground());
     memG.draw3DRect(0,0,d.width-barWidth-12,d.height-1, false);
     memG.draw3DRect(d.width-barWidth-10,0,barWidth+9,d.height-1, false);
-    
+
     int x0 = d.width - barWidth - 5;
     int x1 = d.width - 5;
     int diff  = x1 - x0;
-    
+
     int xmax = x0 + diff * perc / 100;
 
     int h = d.height;
-    
+
     if(mode == MODE_PERCENTAGE) {
       for(int x = x0; x < xmax; x = x + block + pad) {
 	double k = (x - x0) / (double)diff;
 	Color c = Util.rgbInterpolate(lowColor, highColor, k);
 	memG.setColor(c);
-	
+
 	memG.fillRect(x, 3, block, h - 6);
       }
     } else {
@@ -309,25 +309,25 @@ public class StatusBar extends JComponent
 	}
       }
     }
-    
+
     // Copy image to canvas
     g.drawImage(memImage, 0,0, this);
   }
-  
+
 
   public void mouseClicked(MouseEvent e) {
-  } 
-  
+  }
+
   public void mouseEntered(MouseEvent e) {
   }
   public void mouseExited(MouseEvent e) {
   }
-  
+
   public void mousePressed(MouseEvent e) {
     bIsBroken = true;
     showStatus("");
   }
-  
+
   public void mouseReleased(MouseEvent e) {
   }
 
@@ -337,4 +337,3 @@ public class StatusBar extends JComponent
       root.setCursor(Cursor.getPredefinedCursor(c));
   }
 }
-
