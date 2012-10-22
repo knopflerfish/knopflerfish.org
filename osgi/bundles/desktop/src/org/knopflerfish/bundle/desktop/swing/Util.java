@@ -34,28 +34,47 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.startlevel.*;
-import org.osgi.service.packageadmin.*;
-
-
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.net.MalformedURLException;
-import java.util.*;
-import javax.swing.*;
+import java.net.URL;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Vector;
+
+import javax.swing.Icon;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.startlevel.StartLevel;
 
 import org.knopflerfish.util.Text;
 
@@ -79,49 +98,25 @@ public class Util {
   }
 
   public static final String URL_BUNDLE_PREFIX = "http://desktop/bid/";
-  public static final String URL_SERVICE_PREFIX = "http://desktop/sid/";
-  public static final String URL_RESOURCE_PREFIX = "http://desktop/resource/";
 
+  public static URL bundleURL(final long bid) {
+    try {
+      return new URL(URL_BUNDLE_PREFIX + bid);
+    } catch (MalformedURLException e) {
+      Activator.log.error("Failed to create bundle URL.", e);
+    }
+    return null; // Should not happen!
+  }
   public static void bundleLink(StringBuffer sb, Bundle b) {
-    sb.append("<a href=\"" + URL_BUNDLE_PREFIX + b.getBundleId() + "\">");
+    sb.append("<a href=\"");
+    sb.append(bundleURL(b.getBundleId()).toString());
+    sb.append("\">");
     sb.append(Util.getBundleName(b));
-    sb.append("</a>");
-  }
-
-  public static void serviceLink(StringBuffer sb,
-                                 ServiceReference sr,
-                                 String txt) {
-    sb.append("<a href=\"" + URL_SERVICE_PREFIX +
-              sr.getProperty(Constants.SERVICE_ID) + "\">");
-    sb.append(txt);
-    sb.append("</a>");
-  }
-
-  public static void resourceLink(StringBuffer sb,
-                                  String path) {
-    sb.append("<a href=\"" + URL_RESOURCE_PREFIX + path + "\">");
-    sb.append(path);
     sb.append("</a>");
   }
 
   public static boolean isBundleLink(URL url) {
     return url.toString().startsWith(URL_BUNDLE_PREFIX);
-  }
-
-  public static boolean isServiceLink(URL url) {
-    return url.toString().startsWith(URL_SERVICE_PREFIX);
-  }
-
-  public static boolean isResourceLink(URL url) {
-    return url.toString().startsWith(URL_RESOURCE_PREFIX);
-  }
-
-  public static String resourcePathFromURL(URL url) {
-    if(!isResourceLink(url)) {
-      throw new RuntimeException("URL '" + url + "' does not start with " +
-                                 URL_RESOURCE_PREFIX);
-    }
-    return url.toString().substring(URL_RESOURCE_PREFIX.length());
   }
 
   public static long bidFromURL(URL url) {
@@ -130,14 +125,6 @@ public class Util {
                                  URL_BUNDLE_PREFIX);
     }
     return Long.parseLong(url.toString().substring(URL_BUNDLE_PREFIX.length()));
-  }
-
-  public static long sidFromURL(URL url) {
-    if(!isServiceLink(url)) {
-      throw new RuntimeException("URL '" + url + "' does not start with " +
-                                 URL_SERVICE_PREFIX);
-    }
-    return Long.parseLong(url.toString().substring(URL_SERVICE_PREFIX.length()));
   }
 
   public static String serviceEventName(int type) {
@@ -231,7 +218,9 @@ public class Util {
     return s;
   }
 
-  public static Bundle findBundleByHeader(BundleContext bc, String headerName, String headerValue) {
+  public static Bundle findBundleByHeader(BundleContext bc,
+                                          String headerName,
+                                          String headerValue) {
     if(headerName == null) {
       throw new NullPointerException("headerName cannot be null");
     }
@@ -836,7 +825,9 @@ public class Util {
   }
 
 
-  static public void printObject(PrintWriter out, Object val) throws IOException {
+  static public void printObject(PrintWriter out, Object val)
+    throws IOException
+  {
     if(val == null) {
       out.println("null");
     } else if(val.getClass().isArray()) {
@@ -855,8 +846,9 @@ public class Util {
     }
   }
 
-  static public void printDictionary(PrintWriter out, Dictionary d) throws IOException {
-
+  static public void printDictionary(PrintWriter out, Dictionary d)
+    throws IOException
+  {
     out.println("<table border=0>");
     for(Enumeration e = d.keys(); e.hasMoreElements();) {
       Object key = e.nextElement();
@@ -1043,13 +1035,15 @@ public class Util {
       };
       for(int i = 0; i < fieldNames.length; i++) {
         try {
-          Activator.log.debug("Try field " + clazz.getName() + "." + fieldNames[i]);
+          Activator.log.debug("Try field " + clazz.getName() + "."
+                              + fieldNames[i]);
 
           Field field = clazz.getDeclaredField(fieldNames[i]);
           field.setAccessible(true);
           return (BundleContext)field.get(b);
         } catch (Exception e2) {
-          Activator.log.info("Failed: field " + clazz.getName() + "." + fieldNames[i], e2);
+          Activator.log.info("Failed: field " + clazz.getName() + "."
+                             + fieldNames[i], e2);
         }
       }
     }
@@ -1109,5 +1103,4 @@ public class Util {
                           RenderingHints.VALUE_ANTIALIAS_OFF);
     }
   }
-
 }

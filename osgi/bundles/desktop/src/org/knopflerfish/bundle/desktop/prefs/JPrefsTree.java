@@ -527,14 +527,13 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
     this.node = node;
     this.bSel = bSel;
 
-//    Component c = (DefaultTreeCellRenderer) super.getTreeCellRendererComponent(
-//        tree, node, bSel, bExpanded, bLeaf, row, bFocus);
-//
-//    c.setFont(Util.getFont(.8));
-//    setBackground(tree.getBackground());
+    // Initialize this renderer with defaults for the current request.
+    super.getTreeCellRendererComponent(tree, node, bSel, bExpanded,
+                                       bLeaf, row, bFocus);
 
+    // Special configuration for rendering the JPrefsTree.
+    setBackground(tree.getBackground());
     setOpaque(false);
-
     setLeafIcon(null);
     setClosedIcon(null);
     setOpenIcon(null);
@@ -554,7 +553,6 @@ class PrefsTreeRenderer extends DefaultTreeCellRenderer {
             setIcon(nodeClosedIcon);
           }
         }
-
         setToolTipText(prefs.absolutePath());
       } catch(Exception ignored) {
         // log.warn("oups", e);

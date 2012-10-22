@@ -75,7 +75,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
       super(displayer);
     }
 
-    public void valueChanged(Bundle[] bl) {
+    public void updateView(Bundle[] bl) {
       StringBuffer sb = new StringBuffer("<html>\n");
 
 

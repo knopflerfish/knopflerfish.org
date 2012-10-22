@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop
-Bundle-Version: 3.1.10
+Bundle-Version: 3.2.0
 Bundle-Category: console
 Bundle-Description: Swing framework desktop
 Bundle-Vendor: Knopflerfish
@@ -25,6 +25,7 @@ Import-Package: org.osgi.framework;version="[1.5,2)",
  org.knopflerfish.service.desktop,
  org.knopflerfish.service.remotefw,
  org.knopflerfish.util,
+ org.apache.felix.scr;version="[1.6,2)",
  javax.swing,
  javax.swing.border,
  javax.swing.event,

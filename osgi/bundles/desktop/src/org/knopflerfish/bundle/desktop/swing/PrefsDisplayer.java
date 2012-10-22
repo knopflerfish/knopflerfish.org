@@ -123,7 +123,7 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
 
   class JPrefs extends JPanel {
     private static final long serialVersionUID = 1L;
-    
+
     MountedPreferences rootNode;
     OSGiBundlesPreferences bundlesNode;
     JPrefsEditor editor;

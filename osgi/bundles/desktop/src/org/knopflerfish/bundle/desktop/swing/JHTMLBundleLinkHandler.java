@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,41 +31,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.Component;
-import java.awt.Graphics;
 import java.net.URL;
 
-import javax.swing.ImageIcon;
+public interface JHTMLBundleLinkHandler {
 
+  /**
+   * Check if the given URL can be rendered as HTML by this class.
+   *
+   * @param url The URL to check.
+   * @return <tt>true</tt> if this class knows how to render the URL,
+   *         <tt>false</tt> otherwise.
+   */
+  boolean canRenderUrl(final URL url);
 
-public class OverlayImageIcon extends ImageIcon {
-  private static final long serialVersionUID = 1L;
+  /**
+   * Append the HTML representing the given URL to the string buffer.
+   *
+   * @param url URL specifying what to render.
+   * @param sb  string buffer to append the rendering result to.
+   */
+  void renderUrl(final URL url, final StringBuffer sb);
 
-  ImageIcon overlay = null;
-
-  public OverlayImageIcon(URL url) {
-    this(url, null);
-  }
-
-  public OverlayImageIcon(URL url, URL overlayURL) {
-    super(url);
-    if(overlayURL != null) {
-      overlay = new ImageIcon(overlayURL);
-    }
-  }
-
-
-  public void paintIcon(Component c,
-                        Graphics g,
-                        int x,
-                        int y) {
-    super.paintIcon(c, g, x, y);
-
-    if(overlay != null) {
-      overlay.paintIcon(c, g, x, y);
-    }
-  }
 }

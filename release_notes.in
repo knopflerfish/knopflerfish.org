@@ -56,6 +56,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
+* Desktop 3.2
+
+  - New displayer that shows SCR components (a.k.a. declarative
+    services) defined by a bundle. The state of the component as well
+    as the state of its references are shown.
+  - Optimizations: When the bundle selection state changes off-screen
+    displayer will not be updated.
+  - The navigation buttons (back, forward) at the bottom of some displayers
+    now updates and remembers the links when clicking on a link in the it.
+    The navigation history is cleared when a displayer becomes visible.
+
 
 ========================================================================
 

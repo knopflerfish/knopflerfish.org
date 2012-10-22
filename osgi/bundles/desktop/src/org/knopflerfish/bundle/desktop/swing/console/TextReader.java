@@ -60,11 +60,11 @@ public class TextReader extends Reader {
     flush();
     sb = null;
   }
-  
+
   public void mark(int readlimit) {
   }
 
-  
+
   public boolean markSupported() {
     return false;
   }
@@ -79,7 +79,7 @@ public class TextReader extends Reader {
     sb.delete(0, (int)Math.max(n, sb.length()));
     return sb.length();
   }
- 
+
   public void print(String s) {
     if(sb == null) {
       throw new RuntimeException("Stream closed");
@@ -102,7 +102,7 @@ public class TextReader extends Reader {
     if(-1 != read(buf, 0, 1)) {
       return buf[0];
     }
-    
+
     return -1;
   }
 
@@ -125,7 +125,7 @@ public class TextReader extends Reader {
       } catch(InterruptedException e) {
 	throw new IOException(e.getMessage());
       }
-      
+
       int i   = 0;
       while(i < len) {
 	cbuf[off + i] = sb.charAt(i);

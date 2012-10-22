@@ -90,30 +90,30 @@ public class JTips extends JPanel {
     try {
       URL url = getClass().getResource(tipFile);
       if(url != null) {
-	in = new BufferedReader(new InputStreamReader(url.openStream()));
-	String       line = null;
-	StringBuffer sb   = new StringBuffer();
-	while(null != (line = in.readLine())) {
-	  if(sep.equals(line)) {
-	    addTip(sb.toString());
-	    sb = new StringBuffer();
-	  } else {
-	    sb.append(line);
-	    sb.append("\n");
-	  }
-	}
-	if(sb != null && sb.length() > 1) {
-	  addTip(sb.toString());
-	}
+        in = new BufferedReader(new InputStreamReader(url.openStream()));
+        String       line = null;
+        StringBuffer sb   = new StringBuffer();
+        while(null != (line = in.readLine())) {
+          if(sep.equals(line)) {
+            addTip(sb.toString());
+            sb = new StringBuffer();
+          } else {
+            sb.append(line);
+            sb.append("\n");
+          }
+        }
+        if(sb != null && sb.length() > 1) {
+          addTip(sb.toString());
+        }
       } else {
-	Activator.log.warn("No tip file: " + tipFile);
+        Activator.log.warn("No tip file: " + tipFile);
       }
     } catch (Exception e) {
       Activator.log.error("Failed to load tips from " + tipFile, e);
     } finally {
       try { in.close(); } catch (Exception ignored) { }
     }
-    
+
     if(tips.size() == 0) {
       tips.add(new Tip("", "No tips found", ""));
     } else {
@@ -125,42 +125,42 @@ public class JTips extends JPanel {
     html.setContentType("text/html");
     html.setEditable(false);
 
-    html.addHyperlinkListener(new HyperlinkListener() 
+    html.addHyperlinkListener(new HyperlinkListener()
       {
-	public void hyperlinkUpdate(HyperlinkEvent ev) {
-	  if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-	    URL url = ev.getURL();
-	    try {
-	      Util.openExternalURL(url);
-	    } catch (Exception e) {
-	      Activator.log.warn("Failed to open external url=" + url, e);
-	    }
-	  }
-	}
+        public void hyperlinkUpdate(HyperlinkEvent ev) {
+          if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+            URL url = ev.getURL();
+            try {
+              Util.openExternalURL(url);
+            } catch (Exception e) {
+              Activator.log.warn("Failed to open external url=" + url, e);
+            }
+          }
+        }
       });
 
     scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(350, 200));
 
     scroll.setBorder(BorderFactory
-		     .createCompoundBorder(BorderFactory
-					   .createEmptyBorder(5, 5, 5, 5),
-					   BorderFactory
-					   .createLoweredBevelBorder()));
+                     .createCompoundBorder(BorderFactory
+                                           .createEmptyBorder(5, 5, 5, 5),
+                                           BorderFactory
+                                           .createLoweredBevelBorder()));
 
     final ActionListener nextAction = new ActionListener() {
-	public void actionPerformed(ActionEvent ev) {
-	  setTip((tipIx + 1) % tips.size());
-	}
+        public void actionPerformed(ActionEvent ev) {
+          setTip((tipIx + 1) % tips.size());
+        }
       };
-    
+
     JButton closeButton = new JButton(Strings.get("close"));
     closeButton.addActionListener(new ActionListener() {
-	public void actionPerformed(ActionEvent ev) {
-	  if(frame != null) {
-	    frame.setVisible(false);
-	  }
-	}
+        public void actionPerformed(ActionEvent ev) {
+          if(frame != null) {
+            frame.setVisible(false);
+          }
+        }
       });
 
     nextButton = new JButton(Strings.get("next_tip"));
@@ -168,9 +168,9 @@ public class JTips extends JPanel {
 
     prevButton = new JButton(Strings.get("prev_tip"));
     prevButton.addActionListener(new ActionListener() {
-	public void actionPerformed(ActionEvent ev) {
-	  setTip((tipIx + tips.size() - 1) % tips.size());
-	}
+        public void actionPerformed(ActionEvent ev) {
+          setTip((tipIx + tips.size() - 1) % tips.size());
+        }
       });
 
     JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -192,9 +192,9 @@ public class JTips extends JPanel {
 
     JLabel icon = new JLabel(Desktop.tipIcon);
     icon.addMouseListener(new MouseAdapter() {
-	public void mouseClicked(MouseEvent ev) {
-	  nextAction.actionPerformed(null);
-	}
+        public void mouseClicked(MouseEvent ev) {
+          nextAction.actionPerformed(null);
+        }
       });
     icon.setToolTipText(nextButton.getText());
 
@@ -218,20 +218,20 @@ public class JTips extends JPanel {
     String s = tip.toHTML();
     s   = Text.replace(s, "<img src=\"", "<img src=\"bundle://$(BID)/");
     s   = Text.replace(s, "$(BID)", Long.toString(Activator.getBC().getBundle().getBundleId()));
-    
+
     setHTML(Util.fontify(s));
   }
 
   void setHTML(final String s) {
     html.setText(s);
     SwingUtilities.invokeLater(new Runnable() {
-	public void run() {
-	  JViewport vp = scroll.getViewport();
-	  if(vp != null) {
-	    vp.setViewPosition(new Point(0,0));
-	    scroll.setViewport(vp);
-	  }  
-	}
+        public void run() {
+          JViewport vp = scroll.getViewport();
+          if(vp != null) {
+            vp.setViewPosition(new Point(0,0));
+            scroll.setViewport(vp);
+          }
+        }
       });
   }
 
@@ -245,24 +245,24 @@ public class JTips extends JPanel {
   public void setVisible(boolean b) {
     if(b) {
       if(frame == null) {
-	frame = new JFrame(title);
-	Activator.desktop.setIcon(frame, "/kf-");
+        frame = new JFrame(title);
+        Activator.desktop.setIcon(frame, "/kf-");
 
-	frame.getContentPane().setLayout(new BorderLayout());
-	frame.getContentPane().add(this, BorderLayout.CENTER);
-	frame.pack();
-	Point p = Activator.desktop.frame.getLocationOnScreen();
-	Dimension size = Activator.desktop.frame.getSize();
-	Dimension mySize = frame.getSize();
-	Point p2 = new Point(p.x + size.width  / 2 - mySize.width / 2,
-			     p.y + size.height / 2 - mySize.height / 2);
-	
-	frame.setLocation(p2);
+        frame.getContentPane().setLayout(new BorderLayout());
+        frame.getContentPane().add(this, BorderLayout.CENTER);
+        frame.pack();
+        Point p = Activator.desktop.frame.getLocationOnScreen();
+        Dimension size = Activator.desktop.frame.getSize();
+        Dimension mySize = frame.getSize();
+        Point p2 = new Point(p.x + size.width  / 2 - mySize.width / 2,
+                             p.y + size.height / 2 - mySize.height / 2);
+
+        frame.setLocation(p2);
       }
       frame.setVisible(true);
     } else {
       if(frame != null) {
-	frame.setVisible(false);
+        frame.setVisible(false);
       }
     }
   }
@@ -282,7 +282,7 @@ class Tip {
   public Tip(String s) {
     int ix = s.indexOf("\n");
     if(ix != -1) {
-      name = s.substring(0, ix);      
+      name = s.substring(0, ix);
       main = s.substring(ix + 1);
       ix = name.indexOf(" ");
 
@@ -294,28 +294,28 @@ class Tip {
     }
   }
 
-  
+
 
   public String toHTML() {
-    return 
-      "<b>" + name + "</b>" + 
-      "<p>" + main + "</p>" + 
+    return
+      "<b>" + name + "</b>" +
+      "<p>" + main + "</p>" +
       "<p align=right><font size=-2>#" + id + "</font></p>";
   }
 
   public String toString() {
-    return "Tip[" + 
-      "id=" + id + 
-      ", name=" + name + 
+    return "Tip[" +
+      "id=" + id +
+      ", name=" + name +
       "]";
   }
 
-  
+
   public boolean equals(Object other) {
     if(other == null || !(other instanceof Tip)) {
       return false;
     }
-    
+
     Tip t = (Tip)other;
     return id.equals(t.id);
   }
