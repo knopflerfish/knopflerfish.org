@@ -85,14 +85,14 @@ public class HttpCommandGroup extends CommandGroupAdapter {
     "-c  Show configuration info",
     "-r  Show all registrations, servlets and resources",
     "-t  Show info on transactions",
-    "-l	 List in long format, same as supplying -c -r -t, providing extensive details"
+    "-l  List in long format, same as supplying -c -r -t, providing extensive details"
   };
 
 
   public int cmdList(Dictionary opts,
-		     Reader in,
-		     PrintWriter out,
-		     Session session)
+                     Reader in,
+                     PrintWriter out,
+                     Session session)
   {
     int serverNum = 0;
     boolean doLong = null != opts.get("-l");
@@ -105,43 +105,43 @@ public class HttpCommandGroup extends CommandGroupAdapter {
       HttpServer httpServer = (HttpServer)serverFactory.getServer(pid);
       HttpConfig config = httpServer.getHttpConfig();
       if (config.isHttpEnabled()) 
-	out.println("  http: " + config.getHttpPort() 
-		    + "  " + (httpServer.isHttpOpen() ? "Open" : "Closed"));
+        out.println("  http: " + config.getHttpPort() 
+                    + "  " + (httpServer.isHttpOpen() ? "Open" : "Closed"));
       if (config.isHttpsEnabled()) 
-	out.println("  https: " + config.getHttpsPort() 
-		    + "  " + (httpServer.isHttpsOpen() ? "Open" : "Closed (pending no SSL Server Socket Factory registered)"));
+        out.println("  https: " + config.getHttpsPort() 
+                    + "  " + (httpServer.isHttpsOpen() ? "Open" : "Closed (pending no SSL Server Socket Factory registered)"));
       
       if (doLong || null != opts.get("-c")) {
-	Dictionary d = config.getConfiguration();
-	out.println("  Configuration");
-	printDictionary(out, d, 2);
+        Dictionary d = config.getConfiguration();
+        out.println("  Configuration");
+        printDictionary(out, d, 2);
       }
       if (doLong || null != opts.get("-r")) {
-	out.println("  Registrations");
-	Registrations regs = httpServer.getRegistrations();
-	for (Enumeration e2 = regs.getAliases(); e2.hasMoreElements(); ) {
-	  String alias = (String)e2.nextElement();
-	  Registration reg = regs.get(alias);
-	  if ("".equals(alias))
-	    alias = "/";
-	  out.println("    '" + alias + "'");
-	  if (reg instanceof ServletRegistration)
-	    out.print("      Servlet");
-	  else
-	    out.print("      Resource");
-	  Bundle bndl = (Bundle)reg.getOwner();
-	  if (bndl != null) 
-	    out.println(" registered by bundle: #" + bndl.getBundleId() + " - " + bndl.getSymbolicName());
-	  else
-	    out.println(" NONE - this indicates an error");
-	}
+        out.println("  Registrations");
+        Registrations regs = httpServer.getRegistrations();
+        for (Enumeration e2 = regs.getAliases(); e2.hasMoreElements(); ) {
+          String alias = (String)e2.nextElement();
+          Registration reg = regs.get(alias);
+          if ("".equals(alias))
+            alias = "/";
+          out.println("    '" + alias + "'");
+          if (reg instanceof ServletRegistration)
+            out.print("      Servlet");
+          else
+            out.print("      Resource");
+          Bundle bndl = (Bundle)reg.getOwner();
+          if (bndl != null) 
+            out.println(" registered by bundle: #" + bndl.getBundleId() + " - " + bndl.getSymbolicName());
+          else
+            out.println(" NONE - this indicates an error");
+        }
       }
       if (doLong || null != opts.get("-t")) {
-	out.println("  Transactions");
-	TransactionManager transManager = httpServer.getTransactionManager();
-	out.println("    " + "Thread Group: " + transManager.getName());
-	out.println("    " + "Active Threads: " + transManager.activeCount());
-	out.println("    " + "Transactions Handled: " + transManager.getTransactionCount());
+        out.println("  Transactions");
+        TransactionManager transManager = httpServer.getTransactionManager();
+        out.println("    " + "Thread Group: " + transManager.getName());
+        out.println("    " + "Active Threads: " + transManager.activeCount());
+        out.println("    " + "Transactions Handled: " + transManager.getTransactionCount());
       }
     }
     return 0;
@@ -156,11 +156,11 @@ public class HttpCommandGroup extends CommandGroupAdapter {
       Object key = e.nextElement();
       Object val = d.get(key);
       if (HttpConfig.MIME_PROPS_KEY.equals(key.toString()) && val instanceof Vector) {
-	out.println(blanklead.toString() + key + ":");
-	printVectorArray(out, (Vector)val, level+1);
+        out.println(blanklead.toString() + key + ":");
+        printVectorArray(out, (Vector)val, level+1);
       }
       else
-	out.println(blanklead.toString() + key + ":" + " " + ((val != null) ? val : ""));
+        out.println(blanklead.toString() + key + ":" + " " + ((val != null) ? val : ""));
     }
   }
   
@@ -173,11 +173,10 @@ public class HttpCommandGroup extends CommandGroupAdapter {
       String[] strarr = (String[])e.nextElement();
       out.print(blanklead.toString());
       for (int j = 0; j < strarr.length; j++) {
-	out.print(strarr[j] + " ");
+        out.print(strarr[j] + " ");
       }
       out.println();
     }
   }
 
 }
-

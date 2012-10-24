@@ -146,22 +146,15 @@ public class Activator implements BundleActivator {
     }
 
   
-  private final static String cmdGroupClsName = "org.knopflerfish.bundle.http.console.HttpCommandGroup";
-  
-  private void registerCommandGroup()
-  {
-    // Use reflection since the Console packages are optional.
-    try {
-      final Class cmdGroupCls = Class.forName(cmdGroupClsName);
-      final Constructor cmdGroupCtr = cmdGroupCls
-	.getConstructor(new Class[] { BundleContext.class, HttpServerFactory.class });
-      final Object cmdGroup = cmdGroupCtr.newInstance(new Object[] { bc, serverFactory });
-    } catch (ClassNotFoundException cnfe) {
-      log.warn(
-	"There is no KF-console available, command group not created.", cnfe);
-    } catch (Exception ex) {
-      log.error("Failed to create console command group: " + ex, ex);
+    private void registerCommandGroup() {
+        // Try to see if we can create the command group object.
+        try {
+            new org.knopflerfish.bundle.http.console.HttpCommandGroup(bc, serverFactory);
+        } catch (Exception ex) {
+            log.error("Failed to create console command group: " + ex, ex);
+        } catch (Error ce) {
+            log.info("There is no KF-console available, command group not created.", ce);
+        }
     }
-  }
 
 } // Activator

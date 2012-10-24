@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@ class Reference implements org.apache.felix.scr.Reference
     ReferenceListener l = listener;
     ServiceReference[] res = null;
     if (l != null)  {
-      res = l.getServiceReferences();
+      res = l.getBoundServiceReferences();
       if (res.length == 0) {
         res = null;
       }

@@ -213,31 +213,49 @@ class ComponentContextImpl implements ComponentContext
    */
   boolean bind(ReferenceListener rl, ServiceReference s) {
     Activator.logDebug("Bind service " + Activator.srInfo(s) + " to " + cc);
-    boolean res;
     try {
-      Exception be;
+      ComponentException ce = null;
+      boolean res;
       if (rl.ref.bindMethod != null) {
-        res = null == rl.ref.bindMethod.invoke(this, s);
+        if (rl.ref.bindMethod.isMissing(true)) {
+          // Should we fail when method is missing?
+          // The specification doesn't say, but the
+          // CT requires it.
+          return false;
+        }
+        ComponentMethod.Operation bindOp = rl.ref.bindMethod.prepare(this, s);
+        rl.bound(s);
+        boundReferences.put(rl.getName(), rl);
+        ce = bindOp.invoke();
       } else {
         // Get service so that it is bound in correct order
-        res = null != rl.getService(s, usingBundle);
-        Activator.logDebug("CCI.bind get service result=" + res + " for " +
-                           Activator.srInfo(s) + " to " + cc);
-      }
-      if (res) {
-        cc.component.scr.clearPostponeBind(this, rl, s);
-        boundReferences.put(rl.getName(), rl);
-        Activator.logDebug("CCI.bind OK, " + Activator.srInfo(s) + " to " + cc);
-      } else {
-        // TODO, We should only save if its because broken getService,
-        // can we test this without fetching the serve
-        if (rl.getService(s, usingBundle) == null) {
-          cc.component.scr.postponeBind(this, rl, s);
+        if (null != rl.getService(s, usingBundle)) {
+          rl.bound(s);
+          boundReferences.put(rl.getName(), rl);
+        } else {
+          throw new IllegalStateException("Retry");
         }
       }
-      return res;
+      // Check if component was disposed during bind
+      if (cc.getState() == ComponentConfiguration.STATE_DEACTIVE) {
+        Activator.logDebug(cc + " got deactiveated during bind of " + Activator.srInfo(s));
+        return false;
+      }
+      cc.component.scr.clearPostponeBind(this, rl, s);
+      String msg = "CCI.bind, bound " + Activator.srInfo(s) + " to " + cc + ". ";
+      if (ce == null) {
+        Activator.logDebug(msg + "OK");
+      } else {
+        Activator.logDebug(msg + "But bind method failed: " + ce);
+      }
+      return true;
+    } catch (ComponentException ce) {
+      // Possible circular chain detected in prepare method
+      // TODO, improve this since it is Framework dependent
+       cc.component.scr.postponeBind(this, rl, s);
     } catch (IllegalStateException ise) {
-      // Possible circular chain detected
+      // Possible circular chain detected in getService method
+      // or it returned null.
       // TODO, improve this since it is Framework dependent
       cc.component.scr.postponeBind(this, rl, s);
     } catch (Exception e) {
@@ -256,20 +274,9 @@ class ComponentContextImpl implements ComponentContext
     if (rl == null) {
       return;
     }
-    if (rl.isMultiple()) {
-      ServiceReference [] sr = rl.getServiceReferences();
-      for (int i = 0; i < sr.length; i++) {
-        unbind(rl, sr[i]);
-      }
-    } else {
-      ServiceReference sr = rl.getServiceReference();
-      if (sr != null) {
-        unbind(rl, sr);
-      }
-    }
-    HashSet srs = rl.getUnbinding();
-    for (Iterator i = srs.iterator(); i.hasNext(); ) {
-      unbind(rl, (ServiceReference)i.next());
+    ServiceReference [] sr = rl.getBoundServiceReferences();
+    for (int i = 0; i < sr.length; i++) {
+      unbind(rl, sr[i]);
     }
   }
 
@@ -278,11 +285,13 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   void unbind(ReferenceListener rl, ServiceReference s) {
-    Activator.logDebug("Unbind service " + Activator.srInfo(s) + " from " + cc);
-    // TBD, should we keep track on which services we have sucessfully bound
-    // and only unbind those.
-    if (rl.ref.unbindMethod != null) {
-      rl.ref.unbindMethod.invoke(this, s);
+    if (rl.unbound(s)) {
+      Activator.logDebug("Unbind service " + Activator.srInfo(s) + " from " + cc);
+      if (rl.ref.unbindMethod != null && !rl.ref.unbindMethod.isMissing(true)) {
+        try {
+          rl.ref.unbindMethod.prepare(this, s).invoke();
+        } catch (ComponentException _ignore) { }
+      }
     }
   }
 
