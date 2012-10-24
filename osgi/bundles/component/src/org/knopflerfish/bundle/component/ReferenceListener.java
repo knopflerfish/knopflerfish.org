@@ -46,6 +46,7 @@ import org.osgi.service.component.ComponentConstants;
 class ReferenceListener implements ServiceListener
 {
   final Reference ref;
+  private HashSet bound = new HashSet();
   private HashSet serviceRefs = new HashSet();
   private HashSet unbinding = new HashSet();
   private ServiceReference selectedServiceRef = null;
@@ -291,6 +292,28 @@ class ReferenceListener implements ServiceListener
   }
 
 
+  ServiceReference [] getBoundServiceReferences() {
+    synchronized (bound) {
+      return (ServiceReference [])bound.toArray(new ServiceReference[bound.size()]);
+    }
+  }
+
+
+  void bound(ServiceReference sr) {
+    synchronized (bound) {
+      bound.add(sr);
+    }
+  }
+
+
+  boolean unbound(ServiceReference sr) {
+    synchronized (bound) {
+      boolean r = bound.remove(sr);
+      return r;
+    }
+  }
+
+
   /**
    * Get all services.
    */
@@ -373,10 +396,6 @@ class ReferenceListener implements ServiceListener
           synchronized (serviceRefs) {
             unbinding.remove(s);
           }
-        } else {
-          // If we deactivated, we want to keep the service
-          // in unbinding so that it will be unbound during
-          // deactivation.
         }
       }
       se = null;

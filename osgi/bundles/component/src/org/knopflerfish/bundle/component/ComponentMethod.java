@@ -75,7 +75,14 @@ class ComponentMethod
    *
    */
   ComponentException invoke(ComponentContextImpl cci) {
-    return invoke(cci.getComponentInstance().getInstance(), cci, 0, null);
+    if (isMissing(true)) {
+      return new ComponentException("Missing specified method: " + name);
+    }
+    try {
+      return prepare(cci.getComponentInstance().getInstance(), cci, 0, null).invoke();
+    } catch (ComponentException ce) {
+      return ce;
+    }
   }
 
 
@@ -83,15 +90,22 @@ class ComponentMethod
    *
    */
   ComponentException invoke(ComponentContextImpl cci, int reason) {
-    return invoke(cci.getComponentInstance().getInstance(), cci, reason, null);
+    if (isMissing(true)) {
+      return new ComponentException("Missing specified method: " + name);
+    }
+    try {
+      return prepare(cci.getComponentInstance().getInstance(), cci, reason, null).invoke();
+    } catch (ComponentException ce) {
+      return ce;
+    }
   }
 
 
   /**
    *
    */
-  ComponentException invoke(ComponentContextImpl cci, ServiceReference s) {
-    return invoke(cci.getComponentInstance().getInstance(), cci, 0, s);
+  Operation prepare(ComponentContextImpl cci, ServiceReference s) {
+    return prepare(cci.getComponentInstance().getInstance(), cci, 0, s);
   }
 
 
@@ -224,11 +238,9 @@ class ComponentMethod
   /**
    *
    */
-  private ComponentException invoke(Object instance, ComponentContextImpl cci,
-                                    int reason, ServiceReference s) {
-    if (isMissing(true)) {
-      return new ComponentException("Missing specified method: " + name);
-    }
+  private Operation prepare(Object instance, ComponentContextImpl cci,
+                            int reason, ServiceReference s) {
+    Object service = null;
     method.setAccessible(true);
     Object [] args = new Object[params.length];
     for (int i = 0; i < params.length; i++) {
@@ -253,45 +265,59 @@ class ComponentMethod
         args[i] = s;
       } else {
         try {
-          args[i] = comp.bc.getService(s);
+          service = args[i] = comp.bc.getService(s);
           if (args[i] == null) {
             Activator.logDebug("Got null service argument for " + method +
                                " in " + instance.getClass() +  " for component " +
                                comp.compDesc.getName() + " registered for " +
                                comp.compDesc.bundle);
-            return new ComponentException("Got null service, " +
-                                          Activator.srInfo(s));
+            throw new ComponentException("Got null service, " + Activator.srInfo(s));
           }
         } catch (Exception e) {
           Activator.logDebug("Got " + e + " when getting service argument for " + method +
                              " in " + instance.getClass() +  " for component " +
                              comp.compDesc.getName() + " registered for " +
                              comp.compDesc.bundle);
-          return new ComponentException("Failed to get service, " +
-                                        Activator.srInfo(s), e);
+          throw new ComponentException("Failed to get service, " + Activator.srInfo(s), e);
         }
       }
     }
-    try {
-      Activator.logDebug("Call " + method + " in " + instance.getClass()
-                         +  " for component " + comp.compDesc.getName() +
-                         " registered for " + comp.compDesc.bundle);
-      method.invoke(instance, args);
-    } catch (IllegalAccessException e) {
-      String msg = "Could not invoke \"" + method + "\" in: " + instance.getClass();
-      Activator.logError(comp.bc, msg, e);
-      return new ComponentException(msg, e);
-    } catch (InvocationTargetException e) {
-      String msg = "exception";
-      Throwable cause = e.getTargetException();
-      if (cause != null) {
-        msg = cause.toString();
-      }
-      msg = "Got " + msg + " when invoking \"" + method + "\" in: " + instance.getClass();
-      Activator.logError(comp.bc, msg, e);
-      return new ComponentException(msg, e);
-    }
-    return null;
+    return new Operation(instance, args);
   }
 
+  class Operation {
+
+    final Object instance;
+    /* Reason for failure */
+    final Object [] args;
+
+    Operation(Object instance, Object [] args) {
+      this.instance = instance;
+      this.args = args;
+    }
+
+    ComponentException invoke() {
+      try {
+        Activator.logDebug("Call " + method + " in " + instance.getClass()
+                           +  " for component " + comp.compDesc.getName() +
+                           " registered for " + comp.compDesc.bundle);
+        method.invoke(instance, args);
+      } catch (IllegalAccessException e) {
+        String msg = "Could not invoke \"" + method + "\" in: " + instance.getClass();
+        Activator.logError(comp.bc, msg, e);
+        return new ComponentException(msg, e);
+      } catch (InvocationTargetException e) {
+        String msg = "exception";
+        Throwable cause = e.getTargetException();
+        if (cause != null) {
+          msg = cause.toString();
+        }
+        msg = "Got " + msg + " when invoking \"" + method + "\" in: " + instance.getClass();
+        Activator.logError(comp.bc, msg, e);
+        return new ComponentException(msg, e);
+      }
+      return null;
+    }
+
+  }
 }

@@ -223,7 +223,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         reg.unregister();
         reg = null;
 
-        Thread.sleep(10000);
+        Thread.sleep(1000);
         assertNull("Should be null (1(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentA"));
         assertNull("Should be null (2(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentB"));
         assertNull("Should be null (3(2))", bc.getServiceReference("org.knopflerfish.bundle.componentA_test.ComponentC"));
