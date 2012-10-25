@@ -69,7 +69,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
-* Desktop 3.2
+* Desktop 3.2.1
+
+  - Added support for enabling / disabling components in the SCR tab.
+  - If no bundle is selected the SCR tab will show all components.
+  - The SCR-tab is now mentioned in the documentation.
+
+  Desktop 3.2
 
   - New displayer that shows SCR components (a.k.a. declarative
     services) defined by a bundle. The state of the component as well

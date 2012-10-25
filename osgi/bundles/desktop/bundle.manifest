@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Desktop
 Bundle-SymbolicName: org.knopflerfish.bundle.desktop
-Bundle-Version: 3.2.0
+Bundle-Version: 3.2.1
 Bundle-Category: console
 Bundle-Description: Swing framework desktop
 Bundle-Vendor: Knopflerfish
@@ -34,6 +34,8 @@ Import-Package: org.osgi.framework;version="[1.5,2)",
  javax.swing.plaf.basic,
  javax.swing.plaf.metal,
  javax.swing.table,
+ javax.swing.text,
+ javax.swing.text.html,
  javax.swing.tree,
  javax.accessibility,
  com.apple.eawt;resolution:=optional
