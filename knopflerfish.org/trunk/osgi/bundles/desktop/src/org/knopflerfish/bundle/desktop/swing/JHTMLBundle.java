@@ -55,6 +55,7 @@ import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLEditorKit;
 
 import org.osgi.framework.Bundle;
 
@@ -108,6 +109,7 @@ public abstract class JHTMLBundle extends JPanel
     html = new JTextPane();
     html.setText(Strings.get("bundleinfo_startup"));
     html.setContentType("text/html");
+    ((HTMLEditorKit)html.getEditorKitForContentType("text/html")).setAutoFormSubmission(false);
 
     html.setEditable(false);
 
@@ -394,7 +396,7 @@ public abstract class JHTMLBundle extends JPanel
         sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
         startFont(sb, "-1");
         sb.append(getBundleSelectedHeader(bl[i]));
-        sb.append("</font>\n");
+        stopFont(sb);
         sb.append("</td>\n");
         sb.append("</tr>\n");
 
@@ -434,7 +436,6 @@ public abstract class JHTMLBundle extends JPanel
   public long getCurrentBID() {
     return currentBid;
   }
-
 
   void setHTML(String s) {
     html.setText(s);
@@ -482,7 +483,7 @@ public abstract class JHTMLBundle extends JPanel
     sb.append(value);
     JHTMLBundle.stopFont(sb);
 
-    sb.append("</td></tr>");
+    sb.append("</td></tr>\n");
   }
 
   static void startFont(final StringBuffer sb) {
