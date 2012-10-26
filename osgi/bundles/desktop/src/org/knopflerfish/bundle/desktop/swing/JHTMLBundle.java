@@ -41,6 +41,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -109,7 +110,17 @@ public abstract class JHTMLBundle extends JPanel
     html = new JTextPane();
     html.setText(Strings.get("bundleinfo_startup"));
     html.setContentType("text/html");
-    ((HTMLEditorKit)html.getEditorKitForContentType("text/html")).setAutoFormSubmission(false);
+    final HTMLEditorKit htmlEditor
+      = (HTMLEditorKit)html.getEditorKitForContentType("text/html");
+    try {
+      // Call htmlEditor.setAutoFormSubmission(false); if available (Java 5+)
+      final Method setAutoFormSubmissionMethod = htmlEditor.getClass()
+        .getMethod("setAutoFormSubmission", new Class[]{ Boolean.TYPE});
+      setAutoFormSubmissionMethod.invoke(htmlEditor,
+                                         new Object[]{Boolean.FALSE});
+    } catch (Throwable t) {
+      Activator.log.warn("Failed to enable auto form submission for JHTMLBundle.", t);
+    }
 
     html.setEditable(false);
 
