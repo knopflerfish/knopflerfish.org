@@ -265,7 +265,7 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
             final StringBuffer sb2 = new StringBuffer(30);
             final List/*<String>*/ patterns = Strings.splitWordSep(value, ",", '"');
             for (Iterator pit = patterns.iterator(); pit.hasNext();) {
-              final String pattern = (String) pit.next();
+              final String pattern = ((String) pit.next()).trim();
               new ResourceUrl(b, pattern, true).resourceLink(sb2);
               if (pit.hasNext()) {
                 sb2.append(", ");
