@@ -34,7 +34,9 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 /**
  * Utility class for string localization.
@@ -253,7 +255,7 @@ public class Strings {
 
 
 /**
-   * Replace occurances of substrings.
+   * Replace occurrences of substrings.
    *
    * @param s  Source string.
    * @param v1 String to be replaced with <code>v2</code>.
@@ -315,7 +317,7 @@ public class Strings {
 
   /**
    * Group string in words, replace the word separator with a given
-   * repalcement string.
+   * replacement string.
    * <p>
    * Citation chars may be used to group words with embedded word separators.
    * </p>
@@ -371,5 +373,63 @@ public class Strings {
       }
     }
     return buf.toString();
+  }
+
+  /**
+   * Split string in words, given word separator chars.
+   * Citation chars may be used to group words with embedded word separators.
+   *
+   * @param s
+   *            String to transform.
+   * @param separators
+   *            separators to split at. Any character in separators are
+   *            treated as a word separator.
+   * @param citChar
+   *            Citation character used for grouping words with embedded
+   *            separators. Typically '"'.
+   */
+  public static List/*<String>*/ splitWordSep(final String s,
+                                              final String separators,
+                                              final char citChar)
+  {
+    final ArrayList res = new ArrayList();
+    final StringBuffer buf = new StringBuffer(s.length());
+    boolean bCit = false; // true when inside citation chars.
+    boolean bSep = false; // true when inside separator chars.
+    int i = 0;
+
+    while (i < s.length()) {
+      char c = s.charAt(i);
+
+      if (bCit || separators.indexOf(c) == -1) {
+        // Build up word until we breaks on either a citation char or
+        // separator
+        if (c == citChar) {
+          bCit = !bCit;
+          buf.append(c);
+        } else {
+          if (bSep) {
+            res.add(buf.toString());
+            buf.setLength(0);
+            bSep = !bSep;
+          }
+          buf.append(c);
+        }
+        i++;
+      } else {
+        // found separator outside of citation
+        bSep = true;
+
+        // and skip separators so we start clean on a word or citation
+        // char
+        while ((i < s.length())
+               && (-1 != separators.indexOf(s.charAt(i)))) {
+          i++;
+        }
+      }
+    }
+    res.add(buf.toString());
+    buf.setLength(0);
+    return res;
   }
 }

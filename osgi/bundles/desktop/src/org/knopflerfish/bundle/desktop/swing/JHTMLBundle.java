@@ -129,7 +129,7 @@ public abstract class JHTMLBundle extends JPanel
         if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
           final URL url = e.getURL();
           if (openURL(url)) {
-            // Internal URL; add to history.
+            // Internal URL to be added to the navigation history list.
             if (null==historyCurrent) {
               historyBack.add(Util.bundleURL(getCurrentBID()));
             } else {
@@ -238,21 +238,27 @@ public abstract class JHTMLBundle extends JPanel
     }
   }
 
+  /**
+   * Open URL.
+   * @param url the URL to open / display.
+   * @return <code>true</code> if this URL shall be added to the navigation
+   * history, <code>false</code> otherwise.
+   */
   boolean openURL(final URL url) {
-    boolean isInternalUrl = true;
+    boolean addToHistory = true;
+
     if (Util.isBundleLink(url)) {
       final long bid = Util.bidFromURL(url);
 
       gotoBid(bid);
-
     } else {
       boolean handled = false;
       for (Iterator it = linkHandlers.iterator(); it.hasNext() && !handled;) {
         final JHTMLBundleLinkHandler handler
           = (JHTMLBundleLinkHandler) it.next();
         if (handler.canRenderUrl(url)) {
-          final StringBuffer sb = new StringBuffer(400);
-          handler.renderUrl(url, sb);
+          final StringBuffer sb = new StringBuffer(600);
+          addToHistory = handler.renderUrl(url, sb);
           setHTML(sb.toString());
           handled = true;
         }
@@ -263,10 +269,11 @@ public abstract class JHTMLBundle extends JPanel
         } catch (Exception e2) {
           Activator.log.error("Failed to open url " + url, e2);
         }
-        isInternalUrl = false;
+        // External URLs shall not be added to the history.
+        addToHistory = false;
       }
     }
-    return isInternalUrl;
+    return addToHistory;
   }
 
   void gotoBid(long bid) {
@@ -299,7 +306,7 @@ public abstract class JHTMLBundle extends JPanel
   /**
    * Get header text for selected bundle page.
    */
-  public String getBundleSelectedHeader(Bundle b) {
+  public static String getBundleSelectedHeader(Bundle b) {
     return
       "#" + b.getBundleId() + "  " +  Util.getBundleName(b);
   }
@@ -381,15 +388,15 @@ public abstract class JHTMLBundle extends JPanel
       sb.append("<tr><td bgcolor=\"#eeeeee\">");
       startFont(sb, "-1");
       sb.append(getNoBundleSelectedHeader());
-      sb.append("</font>\n");
+      stopFont(sb);
       sb.append("</td>\n");
       sb.append("</tr>\n");
       sb.append("</table>\n");
 
       startFont(sb);
       sb.append(getNoBundleSelectedText());
-      sb.append("</font>\n" +
-                "</p>\n" +
+      stopFont(sb);
+      sb.append("</p>\n" +
                 "</html>");
     } else {
       if(bl.length == 1) {

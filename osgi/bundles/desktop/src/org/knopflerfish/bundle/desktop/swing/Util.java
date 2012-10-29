@@ -61,6 +61,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -125,6 +126,40 @@ public class Util {
                                  URL_BUNDLE_PREFIX);
     }
     return Long.parseLong(url.toString().substring(URL_BUNDLE_PREFIX.length()));
+  }
+
+  public static Map paramsFromURL(final URL url) {
+    final Map/* <String,String> */res = new HashMap();
+    final String query = url.getQuery();
+    if (null != query) {
+      final StringTokenizer st = new StringTokenizer(query, "&");
+      while (st.hasMoreTokens()) {
+        final String tok = st.nextToken();
+        final int delimPos = tok.indexOf('=');
+        final String key = tok.substring(0, delimPos).trim();
+        final String value = tok.substring(delimPos + 1).trim();
+
+        res.put(key, value);
+      }
+    }
+    return res;
+  }
+
+  public static void appendParams(final StringBuffer sb,
+                                  final Map params) {
+    if (!params.isEmpty()) {
+      char sep = '?';
+      for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
+        sb.append(sep);
+        if ('?'==sep) {
+          sep = '&';
+        }
+        final Map.Entry entry = (Map.Entry) it.next();
+        sb.append(entry.getKey());
+        sb.append('=');
+        sb.append(entry.getValue());
+      }
+    }
   }
 
   public static String serviceEventName(int type) {

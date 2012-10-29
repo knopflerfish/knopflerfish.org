@@ -51,7 +51,12 @@ public interface JHTMLBundleLinkHandler {
    *
    * @param url URL specifying what to render.
    * @param sb  string buffer to append the rendering result to.
+   *
+   * @return <code>true</code> if this URL shall be added to the navigation
+   *         history, <code>false</code> otherwise. URL's causing state changes
+   *         should return <code>false</code> to avoid re-running the state
+   *         change when traversing the history.
    */
-  void renderUrl(final URL url, final StringBuffer sb);
+  boolean renderUrl(final URL url, final StringBuffer sb);
 
 }
