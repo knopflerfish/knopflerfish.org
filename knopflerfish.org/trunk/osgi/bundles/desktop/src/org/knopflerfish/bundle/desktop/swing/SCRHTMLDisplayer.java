@@ -43,7 +43,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 import javax.swing.JComponent;
 
@@ -135,12 +134,22 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
 
   //-------------------------------- SCR URL ---------------------------------
   /**
-   * Helper class that handles links to SCR components and their references.
+   * Helper class that handles links to bundle resources.
+   * <p>
+   * The URL will look like:
+   * <code>http://desktop/scr?sid=&lt;SID>&amp;cid=&lt;CID>&amp;ref=&lt;REFERENCE>&amp;cmd=&lt;CMD></code>.
+   * </p>
    */
   public static class ScrUrl {
-    public static final String URL_COMPONENT_PREFIX = "http://desktop/scr/";
-    private static final String URL_COMPONENT_REF_KEY = "reference";
-    private static final String URL_COMPONENT_STATE_CHANGE_KEY = "stateChange";
+    public static final String URL_SCR_HOST = "desktop";
+    public static final String URL_SCR_PREFIX_PATH = "/scr";
+    public static final String URL_SCR_KEY_SID = "bid";
+    public static final String URL_SCR_KEY_CID = "cid";
+    public static final String URL_SCR_KEY_REF = "ref";
+    public static final String URL_SCR_KEY_COMP_NAME = "compName";
+    public static final String URL_SCR_KEY_CMD = "cmd";
+    public static final String URL_SCR_CMD_ENABLE = "enable";
+    public static final String URL_SCR_CMD_DISABLE = "disable";
 
     /** Service Id of the ScrService owning the component. */
     private long sid;
@@ -148,55 +157,54 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     private long cid;
     /** The component reference that the URL points to (optional). */
     private String ref;
-    /** True if the URL contains a state change request. */
-    private boolean stateChange;
-    /** True if the state change shall enable the component.*/
-    private boolean isEnableRequest;
+    /** Search for named component. sid, cid optional when present. */
+    private String compName;
+    /** True if the URL contains a state change command. */
+    private boolean isCmd = false;
+    /** True if the URL is a command to enable the component.*/
+    private boolean doEnable = false;
+    /** True if the URL is a command to disable the component.*/
+    private boolean doDisable = false;
+
+    public static boolean isScrLink(URL url) {
+      return URL_SCR_HOST.equals(url.getHost())
+          && url.getPath().startsWith(URL_SCR_PREFIX_PATH);
+    }
 
     public ScrUrl(URL url) {
-      if(!isScrLink(url)) {
-        throw new RuntimeException("URL '" + url + "' does not start with " +
-                                   URL_COMPONENT_PREFIX);
+      if (!isScrLink(url)) {
+        throw new RuntimeException("URL '" + url + "' does not start with "
+            + "http://" + URL_SCR_HOST + URL_SCR_PREFIX_PATH);
       }
-      final String urlS = url.toString();
-      int start = URL_COMPONENT_PREFIX.length();
-      int end = urlS.indexOf('/', start+1);
-      if (end<start+1) {
-        throw new RuntimeException("Invalid service component URL '" + url
-                                   + "' component id is missing " + urlS);
-      }
-      sid = Long.parseLong(urlS.substring(start,end));
 
-      start = end+1;
-      end = urlS.indexOf('?', start+1);
-      end = -1==end ? urlS.length() : end;
-      cid = Long.parseLong(urlS.substring(start, end));
-
-      start = end + 1;
-      if (urlS.length() > start && '?' == urlS.charAt(end)) {
-        // URL with parameters
-        final String search = urlS.substring(start);
-        final StringTokenizer st = new StringTokenizer(search,"&");
-        while (st.hasMoreTokens()) {
-          final String tok = st.nextToken();
-          final int delimPos = tok.indexOf('=');
-          final String key = tok.substring(0,delimPos);
-          final String value = tok.substring(delimPos +1);
-
-          if (URL_COMPONENT_REF_KEY.equals(key)) {
-            ref = value;
-          } else if (URL_COMPONENT_STATE_CHANGE_KEY.equals(key)) {
-            stateChange = true;
-            isEnableRequest = "enable".equals(value);
-          }
+      final Map params = Util.paramsFromURL(url);
+      if (params.containsKey(URL_SCR_KEY_COMP_NAME)) {
+        this.compName = (String) params.get(URL_SCR_KEY_COMP_NAME);
+      } else {
+        if (!params.containsKey(URL_SCR_KEY_SID)) {
+          throw new RuntimeException("Invalid service component URL '" + url
+              + "' SCR service id is missing.");
+        }
+        if (!params.containsKey(URL_SCR_KEY_CID)) {
+          throw new RuntimeException("Invalid service component URL '" + url
+              + "' component id is missing.");
+        }
+        this.sid = Long.parseLong((String) params.get(URL_SCR_KEY_SID));
+        this.cid = Long.parseLong((String) params.get(URL_SCR_KEY_CID));
+        this.ref = (String) params.get(URL_SCR_KEY_REF);
+        this.isCmd = params.containsKey(URL_SCR_KEY_CMD);
+        if (this.isCmd) {
+          final String cmd = (String) params.get(URL_SCR_KEY_CMD);
+          this.doEnable = URL_SCR_CMD_ENABLE.equals(cmd);
+          this.doDisable = URL_SCR_CMD_DISABLE.equals(cmd);
         }
       }
     }
 
     public ScrUrl(final ServiceReference scrSR, final Component component) {
-      sid = ((Long) scrSR.getProperty(Constants.SERVICE_ID)).longValue();
-      cid = component.getId();
-      ref = null;
+      this.sid = ((Long) scrSR.getProperty(Constants.SERVICE_ID)).longValue();
+      this.cid = component.getId();
+      this.ref = null;
     }
 
     public ScrUrl(final long sid,
@@ -210,10 +218,14 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     public ScrUrl(final long sid, final Component component) {
       this.sid = sid;
       this.cid = component.getId();
+      this.ref = null;
     }
 
-    public static boolean isScrLink(URL url) {
-      return url.toString().startsWith(URL_COMPONENT_PREFIX);
+    public ScrUrl(final String componentName) {
+      this.compName = componentName;
+      this.sid = -1L;
+      this.cid = -1L;
+      this.ref = null;
     }
 
     public long getSid() {
@@ -228,53 +240,81 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       return ref;
     }
 
-    public boolean isStateChangeRequest() {
-      return stateChange;
+    public boolean isCommand() {
+      return isCmd;
     }
 
-    /**
-     * The value returned by this method is only valid when
-     * {@link #isStateChangeRequest()} returns <tt>true</tt>.
-     * @return <tt>true</tt> if the URL represents an enable request,
-     * <tt>false</tt> otherwise.
-     */
-    public boolean isEnableRequest() {
-      return isEnableRequest;
+    public void setCommand(final boolean isCmd) {
+      this.isCmd = isCmd;
     }
 
+    public boolean doEnable() {
+      return isCmd && doEnable;
+    }
 
-    public void scrLink(final StringBuffer sb, final String text) {
-      sb.append("<a href=\"");
-      sb.append(URL_COMPONENT_PREFIX);
-      sb.append(sid);
-      sb.append("/");
-      sb.append(cid);
-      if (null != ref) {
-        sb.append("?");
-        sb.append(URL_COMPONENT_REF_KEY);
-        sb.append("=");
-        sb.append(ref);
+    public boolean doDisable() {
+      return isCmd && doDisable;
+    }
+
+    public String getComponentName() {
+      return compName;
+    }
+
+    private void appendBaseURL(final StringBuffer sb) {
+      sb.append("http://");
+      sb.append(URL_SCR_HOST);
+      sb.append(URL_SCR_PREFIX_PATH);
+    }
+
+    private Map getParams() {
+      final Map params = new HashMap();
+      if (compName!=null) {
+        // If componentName set no other params are needed.
+        params.put(URL_SCR_KEY_COMP_NAME, compName);
+      } else {
+        params.put(URL_SCR_KEY_SID, String.valueOf(sid));
+        params.put(URL_SCR_KEY_CID, String.valueOf(cid));
+        if (null != ref) {
+          params.put(URL_SCR_KEY_REF, ref);
+        }
+        if (isCmd) {
+          params.put(URL_SCR_KEY_CMD, doEnable ? URL_SCR_CMD_ENABLE
+              : URL_SCR_CMD_DISABLE);
+        }
       }
+      return params;
+    }
+
+    public void scrLink(final StringBuffer sb, final String label) {
+      sb.append("<a href=\"");
+      appendBaseURL(sb);
+      Util.appendParams(sb, getParams());
       sb.append("\">");
-      sb.append(text);
+      sb.append(label);
       sb.append("</a>");
     }
 
     public void scrStateChangeForm(final StringBuffer sb, boolean enable) {
       sb.append("<form action=\"");
-      sb.append(URL_COMPONENT_PREFIX);
-      sb.append(sid);
-      sb.append("/");
-      sb.append(cid);
+      appendBaseURL(sb);
       sb.append("\" method=\"get\">");
       sb.append("<input valing='center' type=\"submit\" value=\"");
       sb.append(enable ? "Enable" : "Disable");
       sb.append("\">");
       sb.append("<input type=\"hidden\" name=\"");
-      sb.append(URL_COMPONENT_STATE_CHANGE_KEY);
+      sb.append(URL_SCR_KEY_CMD);
       sb.append("\" value=\"");
-      sb.append(enable ? "enable" : "disable");
+      sb.append(enable ? URL_SCR_CMD_ENABLE : URL_SCR_CMD_DISABLE);
       sb.append("\">");
+      final Map params = getParams();
+      for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        sb.append("<input type=\"hidden\" name=\"");
+        sb.append(entry.getKey());
+        sb.append("\" value=\"");
+        sb.append(entry.getValue());
+        sb.append("\">");
+      }
       sb.append("</form>");
     }
   }
@@ -313,43 +353,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
         setCurrentBID(-1L);
 
         final StringBuffer sb = new StringBuffer(600);
-        sb.append("<html>\n");
-        sb.append("<table border=\"0\" width=\"100%\">\n");
-
-        try {
-          for (Iterator it = scrServices.entrySet().iterator(); it.hasNext();) {
-            final Map.Entry entry = (Map.Entry) it.next();
-            final ServiceReference scrSR = (ServiceReference) entry.getKey();
-            final ScrService scrService = (ScrService) entry.getValue();
-            final Component[] components = scrService.getComponents();
-
-            sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
-            startFont(sb, "-1");
-            sb.append("SCR Components handled by ");
-            sb.append(getBundleSelectedHeader(scrSR.getBundle()));
-            stopFont(sb);
-            sb.append("</td></tr>\n");
-
-            sb.append("<tr><td bgcolor=\"#ffffff\">");
-            if (null == components) {
-              sb.append("No SCR components registered.<br/>\n");
-            } else {
-              startFont(sb);
-              startComponentTable(sb);
-              for (int i = 0; i < components.length; i++) {
-                final Component component = components[i];
-                appendComponentRow(sb, scrSR, component);
-              }
-              stopComponentTable(sb);
-              stopFont(sb);
-            }
-            sb.append("</td></tr>\n");
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
-        sb.append("</table>\n");
-
+        appendComponentListHTML(sb, null, null);
         setHTML(sb.toString());
       } else {
         // Use the default listing with one table per selected bundle.
@@ -375,29 +379,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
         sb.append("No Service Component Runtime available.<br>");
         stopFont(sb);
       } else {
-
-        try {
-          for (Iterator it = scrServices.entrySet().iterator(); it.hasNext();) {
-            final Map.Entry entry = (Map.Entry) it.next();
-            final ServiceReference scrSR = (ServiceReference) entry.getKey();
-            final ScrService scrService = (ScrService) entry.getValue();
-            final Component[] components = scrService.getComponents(b);
-            if (null == components) {
-              sb.append("No SCR components registered.<br/>");
-            } else {
-              startFont(sb);
-              startComponentTable(sb);
-              for (int i = 0; i < components.length; i++) {
-                final Component component = components[i];
-                appendComponentRow(sb, scrSR, component);
-              }
-              stopComponentTable(sb);
-              stopFont(sb);
-            }
-          }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
+        appendComponentListHTML(sb, b, null);
       }
 
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
@@ -405,6 +387,79 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       return sb;
     }
 
+  }
+
+  /**
+   * Create HTML table with one row for each matching component.
+   * @param sb The buffer to append the resulting table to.
+   * @param compName If non-null, only include components with a matching name.
+   */
+  private void appendComponentListHTML(final StringBuffer sb,
+                                       final Bundle bundle,
+                                       final String compName) {
+    sb.append("<html>\n");
+    sb.append("<table border=\"0\" width=\"100%\">\n");
+
+    // Table heading when not provided by caller.
+    if (null == bundle) {
+      sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+      JHTMLBundle.startFont(sb, "-1");
+      if (compName!=null) {
+        sb.append("SCR Components with name '");
+        sb.append(compName);
+        sb.append("'");
+      } else {
+        sb.append("All SCR Components");
+      }
+      JHTMLBundle.stopFont(sb);
+      sb.append("</td>\n");
+      sb.append("</tr>\n");
+    }
+
+    try {
+      for (Iterator it = scrServices.entrySet().iterator(); it.hasNext();) {
+        final Map.Entry entry = (Map.Entry) it.next();
+        final ServiceReference scrSR = (ServiceReference) entry.getKey();
+        final ScrService scrService = (ScrService) entry.getValue();
+        final Component[] components = null!=bundle
+            ? scrService.getComponents(bundle)
+            : ((null!=compName) ? scrService.getComponents(compName)
+                : scrService.getComponents());
+
+//        if (null == bundle) {
+//          sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+//          JHTMLBundle.startFont(sb, "-1");
+//          sb.append("SCR Components handled by ");
+//          sb.append(JHTMLBundle.getBundleSelectedHeader(scrSR.getBundle()));
+//          JHTMLBundle.stopFont(sb);
+//          sb.append("</td></tr>\n");
+//        }
+
+        sb.append("<tr><td bgcolor=\"#ffffff\">");
+        if (null == components) {
+          sb.append("No SCR components ");
+          if (null!=compName) {
+            sb.append("with name '");
+            sb.append(compName);
+            sb.append("' ");
+          }
+          sb.append("registered.<br/>\n");
+        } else {
+          JHTMLBundle.startFont(sb);
+          startComponentTable(sb);
+          for (int i = 0; i < components.length; i++) {
+            final Component component = components[i];
+            appendComponentRow(sb, scrSR, component);
+          }
+          stopComponentTable(sb);
+          JHTMLBundle.stopFont(sb);
+        }
+        sb.append("</td></tr>\n");
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    sb.append("</table>\n");
   }
 
   void startComponentTable(final StringBuffer sb) {
@@ -475,14 +530,22 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     return ScrUrl.isScrLink(url);
   }
 
-  public void renderUrl(final URL url, final StringBuffer sb) {
+  public boolean renderUrl(final URL url, final StringBuffer sb) {
     final ScrUrl scrUrl = new ScrUrl(url);
 
-    if (null == scrUrl.getRef()) {
-      appendComponentHTML(sb, scrUrl);
-    } else {
+    // Must save value here since the command state is cleared after execution.
+    final boolean addToHistory = !scrUrl.isCommand();
+
+    if (null != scrUrl.getRef()) {
       appendReferenceHTML(sb, scrUrl);
+    } else if (null!= scrUrl.getComponentName()) {
+      appendComponentListHTML(sb, null, scrUrl.getComponentName());
+    } else {
+      appendComponentHTML(sb, scrUrl);
     }
+
+    // URLs with a command must not be added to the history.
+    return addToHistory;
   }
 
   /**
@@ -501,18 +564,18 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
         final Component comp = scr.getComponent(scrUrl.getCid());
 
         if (null != comp) {
-
           // Shall we enable / disable the component?
-          if (scrUrl.isStateChangeRequest()) {
-            Activator.log.info("Component state change request. isEnableRequest: " +scrUrl.isEnableRequest());
-            if (scrUrl.isEnableRequest() && Component.STATE_DISABLED == comp.getState()) {
-              Activator.log.info("Enabling component: "+comp);
-              comp.enable();
-            } else if (!scrUrl.isEnableRequest() && Component.STATE_DISABLED != comp.getState()) {
-              Activator.log.info("Disabling component: "+comp);
-              comp.disable();
-            }
+          if (scrUrl.doEnable() && Component.STATE_DISABLED == comp.getState()) {
+            Activator.log.info("Enabling component: "+comp);
+            comp.enable();
+            scrUrl.setCommand(false); // Command has been performed!
           }
+          if (scrUrl.doDisable() && Component.STATE_DISABLED != comp.getState()) {
+            Activator.log.info("Disabling component: "+comp);
+            comp.disable();
+            scrUrl.setCommand(false); // Command has been performed!
+          }
+
           sb.append("<html>");
           sb.append("<table border=0>");
 

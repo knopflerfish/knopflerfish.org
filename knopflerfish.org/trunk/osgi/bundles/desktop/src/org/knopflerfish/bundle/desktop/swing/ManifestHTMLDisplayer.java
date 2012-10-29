@@ -43,8 +43,12 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JComponent;
 
@@ -62,50 +66,118 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
   //-------------------------------- Resource URL ------------------------------
   /**
    * Helper class that handles links to bundle resources.
+   * <p>
+   * The URL will look like:
+   * <code>http://desktop/resource/<PATH>?bid=<BID>&amp;scr=<isSCR></code>.
+   * </p>
    */
   public static class ResourceUrl {
-    public static final String URL_RESOURCE_PREFIX = "http://desktop/resource/";
+    public static final String URL_RESOURCE_HOST = "desktop";
+    public static final String URL_RESOURCE_PREFIX_PATH = "/resource";
+    public static final String URL_RESOURCE_KEY_BID = "bid";
+    public static final String URL_RESOURCE_KEY_SCR = "scr";
 
     /** Bundle Id of the bundle that owns the resource. */
     private long bid;
 
-    /** Path within the bundle to the resource. */
+    /**
+     * Path within the bundle to the resource. File name part may be a pattern
+     * according to the rules of the second argument of
+     * {@link Bundle#findEntries(String, String, boolean)}.
+     */
     private String path;
 
+    /**
+     * Indicates if the resource is a SCR component-xml file or not.
+     */
+    private boolean isScr;
+
+    /**
+     * Check if the given <code>url</code> is a bundle resource URL or not.
+     * @param url The <code>url</code> to check.
+     * @return <code>true</code> if the given <code>url</code> is a bundle
+     * resource URL, <code>false</code> otherwise.
+     */
+    public static boolean isResourceLink(URL url) {
+      return URL_RESOURCE_HOST.equals(url.getHost())
+          && url.getPath().startsWith(URL_RESOURCE_PREFIX_PATH);
+    }
+
+    /**
+     * Create a resource URL from a {@link URL}.
+     * @param url The URL to parse as a resource URL.
+     */
     public ResourceUrl(URL url) {
       if(!isResourceLink(url)) {
         throw new RuntimeException("URL '" + url + "' does not start with " +
-                                   URL_RESOURCE_PREFIX);
+                                   "http://" +URL_RESOURCE_HOST
+                                   + URL_RESOURCE_PREFIX_PATH);
       }
-      final String urlS = url.toString();
-      int start = URL_RESOURCE_PREFIX.length();
-      int end = urlS.indexOf('/', start+1);
-      if (end<start+1) {
+      this.path = url.getPath().substring(URL_RESOURCE_PREFIX_PATH.length());
+
+      final Map params = Util.paramsFromURL(url);
+      if (!params.containsKey(URL_RESOURCE_KEY_BID)) {
         throw new RuntimeException("Invalid bundle resource URL '" + url
-                                   + "' bundle id is missing " + urlS);
+            + "' bundle id is missing " + url.toString());
       }
-      bid = Long.parseLong(urlS.substring(start,end));
-
-      start = end;
-      path = urlS.substring(start);
+      this.bid = Long.parseLong((String) params.get(URL_RESOURCE_KEY_BID));
+      this.isScr = "true".equals((String) params.get(URL_RESOURCE_KEY_SCR));
     }
 
-    public ResourceUrl(final Bundle bundle, final String path) {
-      bid = bundle.getBundleId();
+    public ResourceUrl(final Bundle bundle,
+                       final String path,
+                       final boolean isSCR) {
+      this.bid = bundle.getBundleId();
       this.path = path;
-    }
-
-    public static boolean isResourceLink(URL url) {
-      return url.toString().startsWith(URL_RESOURCE_PREFIX);
+      this.isScr = isSCR;
     }
 
     public long getBid() {
       return bid;
     }
 
-    public String getPath() {
+    /**
+     * @return the full path including file name pattern.
+     */
+    public String getFullPath() {
       return path;
     }
+
+    /**
+     * @return the path without the file name pattern part.
+     */
+    public String getPath() {
+      final int i = path.lastIndexOf('/');
+      return i==-1 ? "" : path.substring(0, i);
+    }
+
+    /**
+     * @return the file name pattern part of the full path.
+     */
+    public String getFilenamePattern() {
+      final int i = path.lastIndexOf('/');
+      return i==-1 ? path : path.substring(i+1);
+    }
+
+    public boolean isSCR() {
+      return isScr;
+    }
+
+    private void appendBaseURL(final StringBuffer sb) {
+      sb.append("http://");
+      sb.append(URL_RESOURCE_HOST);
+      sb.append(URL_RESOURCE_PREFIX_PATH);
+      sb.append('/');
+      sb.append(path);
+    }
+
+    private Map getParams() {
+      final Map params = new HashMap();
+      params.put(URL_RESOURCE_KEY_BID, String.valueOf(bid));
+      params.put(URL_RESOURCE_KEY_SCR, String.valueOf(isScr));
+      return params;
+    }
+
 
     public void resourceLink(final StringBuffer sb) {
       resourceLink(sb, path);
@@ -114,14 +186,11 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
     public void resourceLink(final StringBuffer sb,
                              final String label) {
       sb.append("<a href=\"");
-      sb.append(URL_RESOURCE_PREFIX);
-      sb.append(bid);
-      sb.append("/");
-      sb.append(path);
+      appendBaseURL(sb);
+      Util.appendParams(sb, getParams());
       sb.append("\">");
       sb.append(label);
       sb.append("</a>");
-
     }
   }
   //-------------------------------- Resource URL ------------------------------
@@ -194,7 +263,14 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
             value = Strings.replaceWordSep(value,",", "<br>", '"');
           } else if("Service-Component".equals(key)) {
             final StringBuffer sb2 = new StringBuffer(30);
-            new ResourceUrl(b, value).resourceLink(sb2);
+            final List/*<String>*/ patterns = Strings.splitWordSep(value, ",", '"');
+            for (Iterator pit = patterns.iterator(); pit.hasNext();) {
+              final String pattern = (String) pit.next();
+              new ResourceUrl(b, pattern, true).resourceLink(sb2);
+              if (pit.hasNext()) {
+                sb2.append(", ");
+              }
+            }
             value = sb2.toString();
           } else {
             if(value.startsWith("http:") ||
@@ -216,48 +292,70 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
     return ResourceUrl.isResourceLink(url);
   }
 
-  public void renderUrl(final URL url, final StringBuffer sb) {
+  public boolean renderUrl(final URL url, final StringBuffer sb) {
     final ResourceUrl resUrl = new ResourceUrl(url);
 
     appendResourceHTML(sb, resUrl);
+    return true; // Always OK to add ResourceUrls to history.
   }
 
   void appendResourceHTML(final StringBuffer sb, final ResourceUrl resUrl) {
     final Bundle bundle = Activator.getTargetBC_getBundle(resUrl.getBid());
-    final URL url = bundle.getResource(resUrl.getPath());
-
     sb.append("<html>");
-    sb.append("<table border=0>");
+    sb.append("<table border=0 width=\"100%\">");
 
-    sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
-    JHTMLBundle.startFont(sb, "-1");
-    sb.append("#" + bundle.getBundleId() + " " + resUrl.getPath());
-    JHTMLBundle.stopFont(sb);
-    sb.append("</td>\n");
-    sb.append("</tr>\n");
+    final Enumeration resEnum = bundle.findEntries(resUrl.getPath(),
+                                                   resUrl.getFilenamePattern(),
+                                                   true);
+    while (resEnum.hasMoreElements()) {
+      final URL url = (URL) resEnum.nextElement();
 
-    sb.append("<tr>");
-    sb.append("<td>");
-    sb.append("<pre>");
-    JHTMLBundle.startFont(sb, "-1");
-    try {
-      byte[] bytes = Util.readStream(url.openStream());
-      String value = new String(bytes);
-      value = Strings.replace(value, "<", "&lt;");
-      value = Strings.replace(value, ">", "&gt;");
+      sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+      JHTMLBundle.startFont(sb, "-1");
+      sb.append("#" + bundle.getBundleId() + " " + url.getPath());
+      JHTMLBundle.stopFont(sb);
+      sb.append("</td>\n");
+      sb.append("</tr>\n");
 
-      sb.append(value);
-    } catch (Exception e) {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      e.printStackTrace(pw);
-      sb.append(sw.toString());
+      sb.append("<tr>");
+      sb.append("<td>");
+      sb.append("<pre>");
+      JHTMLBundle.startFont(sb, "-1");
+      try {
+        final byte[] bytes = Util.readStream(url.openStream());
+        String value = new String(bytes);
+        value = Strings.replace(value, "<", "&lt;");
+        value = Strings.replace(value, ">", "&gt;");
+
+        if (resUrl.isSCR()) {
+          final Pattern p = Pattern.compile(
+              "(&lt;component\\s.*?name\\s*=\\s*\")([^\"]*)(\".*?&gt;)",
+              Pattern.DOTALL);
+          final Matcher m = p.matcher(value);
+          final StringBuffer sb2 = new StringBuffer();
+          while (m.find()) {
+            final StringBuffer sb3 = new StringBuffer();
+            sb3.setLength(0);
+            sb3.append("$1");
+            new SCRHTMLDisplayer.ScrUrl(m.group(2)).scrLink(sb3, m.group(2));
+            sb3.append("$3");
+            m.appendReplacement(sb2, sb3.toString());
+          }
+          m.appendTail(sb2);
+          value = sb2.toString();
+        }
+        sb.append(value);
+      } catch (Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        sb.append(sw.toString());
+      }
+      JHTMLBundle.stopFont(sb);
+      sb.append("</pre>");
+      sb.append("</td>");
+      sb.append("</tr>");
     }
-    JHTMLBundle.stopFont(sb);
-    sb.append("</pre>");
-    sb.append("</td>");
-    sb.append("</tr>");
-
     sb.append("</table>");
     sb.append("</html>");
   }

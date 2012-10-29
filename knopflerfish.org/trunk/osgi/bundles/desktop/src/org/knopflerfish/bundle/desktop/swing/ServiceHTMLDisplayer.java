@@ -39,7 +39,9 @@ import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.swing.JComponent;
 
@@ -63,45 +65,68 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
 
   //-------------------------------- Service URL ------------------------------
   /**
-   * Helper class that handles links to OSGi Services.
+   * Helper class that handles links to OSGi services.
+   * <p>
+   * The URL will look like:
+   * <code>http://desktop/service?sid=<SID></code>.
+   * </p>
    */
   public static class ServiceUrl {
-    public static final String URL_SERVICE_PREFIX = "http://desktop/sid/";
+    public static final String URL_SERVICE_HOST = "desktop";
+    public static final String URL_SERVICE_PREFIX_PATH = "/service";
+    public static final String URL_SERVICE_KEY_SID = "sid";
 
     /** Service Id of the Service the link references. */
     private long sid;
 
+    public static boolean isServiceLink(URL url) {
+      return URL_SERVICE_HOST.equals(url.getHost())
+          && url.getPath().startsWith(URL_SERVICE_PREFIX_PATH);
+    }
+
     public ServiceUrl(URL url) {
       if(!isServiceLink(url)) {
         throw new RuntimeException("URL '" + url + "' does not start with " +
-                                   URL_SERVICE_PREFIX);
+                                   "http://" +URL_SERVICE_HOST
+                                   + URL_SERVICE_PREFIX_PATH);
       }
-      final String urlS = url.toString();
-      final int start = URL_SERVICE_PREFIX.length();
-      final int end = urlS.length();
-      sid = Long.parseLong(urlS.substring(start,end));
+
+      final Map params = Util.paramsFromURL(url);
+      if (!params.containsKey(URL_SERVICE_KEY_SID)) {
+        throw new RuntimeException("Invalid bundle service URL '" + url
+                                   + "' service id is missing.");
+      }
+      this.sid = Long.parseLong((String) params.get(URL_SERVICE_KEY_SID));
     }
 
     public ServiceUrl(final ServiceReference sr) {
-      sid = ((Long) sr.getProperty(Constants.SERVICE_ID)).longValue();
+      this.sid = ((Long) sr.getProperty(Constants.SERVICE_ID)).longValue();
     }
 
     public ServiceUrl(final Long serviceId) {
-      sid = serviceId.longValue();
-    }
-
-    public static boolean isServiceLink(URL url) {
-      return url.toString().startsWith(URL_SERVICE_PREFIX);
+      this.sid = serviceId.longValue();
     }
 
     public long getSid() {
       return sid;
     }
 
+    private void appendBaseURL(final StringBuffer sb) {
+      sb.append("http://");
+      sb.append(URL_SERVICE_HOST);
+      sb.append(URL_SERVICE_PREFIX_PATH);
+    }
+
+    private Map getParams() {
+      final Map params = new HashMap();
+      params.put(URL_SERVICE_KEY_SID, String.valueOf(sid));
+      return params;
+    }
+
     public void serviceLink(final StringBuffer sb, final String text) {
       sb.append("<a href=\"");
-      sb.append(URL_SERVICE_PREFIX);
-      sb.append(sid);
+      appendBaseURL(sb);
+      Util.appendParams(sb, getParams());
       sb.append("\">");
       sb.append(text);
       sb.append("</a>");
@@ -121,10 +146,12 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
       comp.valueChanged(bl);
     }
   }
-  public void renderUrl(final URL url, final StringBuffer sb) {
+  public boolean renderUrl(final URL url, final StringBuffer sb) {
     final ServiceUrl serviceUrl = new ServiceUrl(url);
 
     appendServiceHTML(sb, serviceUrl.getSid());
+
+    return false;
   }
 
   void appendServiceHTML(final StringBuffer sb, final long sid) {
