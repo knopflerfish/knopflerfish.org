@@ -71,6 +71,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 * Desktop 3.2.2
 
+  - Better presentation of SCR components when several SCR-bundles are
+    active.
+  - Add work around for SCR-bundles that changes the component id when
+    a component is disabled.
+
+  Desktop 3.2.2
+
   - When looking at a SCR component XML-file in the manifest displayer
     the component name is now a link that when clicked will show a
     list with all components with that name.
