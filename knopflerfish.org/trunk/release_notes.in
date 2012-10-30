@@ -75,7 +75,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
-* Desktop 3.2.3
+* Desktop 3.2.4
+
+  - Since the enable / disable operation for components are
+    asynchronous a refresh-button has been added to the component
+    details page.
+  - Improved layout on the SCR component pages.
+
+  Desktop 3.2.3
 
   - Better presentation of SCR components when several SCR-bundles are
     active.
@@ -88,7 +95,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     the component name is now a link that when clicked will show a
     list with all components with that name.
   - The manifest displayer now handles multiple values as well as
-    values with a wild-card for the Serivce-Component manifest
+    values with a wild-card for the Service-Component manifest
     attribute.
 
   Desktop 3.2.1
