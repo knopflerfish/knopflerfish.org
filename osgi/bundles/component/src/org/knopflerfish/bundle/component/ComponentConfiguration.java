@@ -219,7 +219,7 @@ public class ComponentConfiguration implements ServiceFactory {
     unbindReferences(cci);
     if (last && disposeIfLast) {
       state = STATE_DEACTIVE;
-      component.removeComponentConfiguration(this);
+      component.removeComponentConfiguration(this, reason);
       // TODO: Do we need to synchronize this?
     }
   }
@@ -250,6 +250,7 @@ public class ComponentConfiguration implements ServiceFactory {
     } else {
       // TODO: Do we need to synchronize this?
       state = STATE_DEACTIVE;
+      component.removeComponentConfiguration(this, reason);
     }
   }
 

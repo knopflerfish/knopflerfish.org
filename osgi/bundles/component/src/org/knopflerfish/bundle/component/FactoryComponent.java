@@ -45,8 +45,8 @@ class FactoryComponent extends Component implements ComponentFactory
 {
   private ServiceRegistration factoryService;
 
-  FactoryComponent(SCR scr, ComponentDescription cd, Long id) {
-    super(scr, cd, id);
+  FactoryComponent(SCR scr, ComponentDescription cd) {
+    super(scr, cd);
   }
 
 

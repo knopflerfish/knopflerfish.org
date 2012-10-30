@@ -56,12 +56,12 @@ public abstract class Component implements org.apache.felix.scr.Component {
   final SCR scr;
   final ComponentDescription compDesc;
   final BundleContext bc;
-  final Long id;
   /**
    * UnresolvedConstraints is the number of unsatisfied contraints,
    * a negative value means that we are in the process of enabling
    * and calculating constraints.
    */
+  Long id = new Long(-1);
   private int unresolvedConstraints;
   HashMap /* String -> Dictionary */ cmDicts;
   HashMap /* String -> PropertyDictionary */ servProps = null;
@@ -78,11 +78,10 @@ public abstract class Component implements org.apache.felix.scr.Component {
   /**
    *
    */
-  Component(SCR scr, ComponentDescription cd, Long id) {
+  Component(SCR scr, ComponentDescription cd) {
     this.scr = scr;
     this.bc = cd.bundle.getBundleContext();
     this.compDesc = cd;
-    this.id = id;
   }
 
   // Felix Component interface impl.
@@ -341,6 +340,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
         disposeComponentConfigs(reason);
         refs = null;
         cmDicts = null;
+        id = new Long(-1);
         state = dispose ? STATE_DISPOSED : STATE_DISABLED;
       } else if (dispose && state == STATE_DISABLED) {
         state = STATE_DISPOSED;
@@ -379,6 +379,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
     // unresolvedConstraints set to DISABLED_OFFSET, so that we don't satisfy until
     // end of this method
     unresolvedConstraints = DISABLED_OFFSET;
+    id = scr.getNextComponentId();
     state = STATE_ENABLING;
     int policy = compDesc.getConfigPolicy();
     Configuration [] config = null;
@@ -654,10 +655,13 @@ public abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Remove mapping for ComponentConfiguration to this Component.
    */
-  void removeComponentConfiguration(ComponentConfiguration cc) {
+  void removeComponentConfiguration(ComponentConfiguration cc, int reason) {
     compConfigs.remove(cc.getCMPid());
     Activator.logDebug("Component Config removed, check if still satisfied: " + getName() + ", " + state);
-    if (isSatisfied()) {
+    if (isSatisfied() &&
+        (reason == ComponentConstants.DEACTIVATION_REASON_REFERENCE ||
+         reason == ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_MODIFIED ||
+         reason == ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED)) {
       // If still satisfied, create missing component configurations
       satisfied();
     }

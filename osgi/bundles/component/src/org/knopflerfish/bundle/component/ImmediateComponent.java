@@ -38,8 +38,8 @@ import org.osgi.service.component.*;
 
 class ImmediateComponent extends Component {
 
-  ImmediateComponent(SCR scr, ComponentDescription cd, Long id) {
-    super(scr, cd, id);
+  ImmediateComponent(SCR scr, ComponentDescription cd) {
+    super(scr, cd);
   }
 
 

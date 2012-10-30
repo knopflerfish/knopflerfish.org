@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@ import org.osgi.service.component.ComponentConstants;
 
 class DelayedComponent extends Component {
 
-  DelayedComponent(SCR scr, ComponentDescription cd, Long id) {
-    super(scr, cd, id);
+  DelayedComponent(SCR scr, ComponentDescription cd) {
+    super(scr, cd);
   }
 
 

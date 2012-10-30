@@ -60,6 +60,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   private ServiceTracker cmAdminTracker;
   private long nextId = 0;
   private ArrayList postponedBind = new ArrayList();
+  private Object ppLock = new Object();
 
   /**
    *
@@ -182,6 +183,15 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   //
 
   /**
+   * Get next available component id
+   *
+   * @return Long component id.
+   */
+  synchronized Long getNextComponentId() {
+    return new Long(nextId++);
+  }
+
+  /**
    * Check if bundle has service components and process them.
    *
    * @param b Bundle to check
@@ -257,13 +267,12 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         for (int i = 0; i < carray.length; i++) {
           ComponentDescription cd = (ComponentDescription)cds.get(i);
           Component c;
-          Long id = new Long(nextId++);
           if (cd.isImmediate()) {
-            c = new ImmediateComponent(this, cd, id);
+            c = new ImmediateComponent(this, cd);
           } else if (cd.getFactory() != null) {
-            c = new FactoryComponent(this, cd, id);
+            c = new FactoryComponent(this, cd);
           } else {
-            c = new DelayedComponent(this, cd, id);
+            c = new DelayedComponent(this, cd);
           }
           carray[i] = c;
           addComponentArray(components, cd.getName(), c);
@@ -437,7 +446,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void postponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
     if (rl.isDynamic() && rl.isOptional()) {
-      synchronized (this) {
+      synchronized (ppLock) {
         postponedBind.add(new PostponedBind(cci, rl, sr));
       }
       Activator.logDebug("Postpone bind service " + Activator.srInfo(sr) + " to " + cci);
@@ -452,7 +461,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void clearPostponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
     if (rl.isDynamic() && rl.isOptional()) {
-      synchronized (this) {
+      synchronized (ppLock) {
         for (Iterator i = postponedBind.iterator(); i.hasNext(); ) {
           PostponedBind pb = (PostponedBind)i.next();
           if (pb.cci == cci && pb.rl == rl && pb.sr == sr) {
@@ -471,7 +480,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void checkPostponeBind() {
     ArrayList pbs;
-    synchronized (this) {
+    synchronized (ppLock) {
       if (postponedBind.isEmpty()) {
         return;
       }

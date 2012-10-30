@@ -37,7 +37,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     and resource registrations, and transaction status of the HTTP
     server.  
 
-* SCR(component) 3.1.9
+* SCR(component) 3.1.10
+  
+  - Fixed clean-up when disabling a component, that caused problem
+    when re-enabling the component.
+  - Update component id when re-enabling a component.
+
+  SCR(component) 3.1.9
   
   - Fixed error in Apache API. Reference.getServiceReference()
     returned all service candidates when cardinality was {0|1}..1,
@@ -69,7 +75,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Misc (KF specific, start scripts, build system etc) ===
 
-* Desktop 3.2.2
+* Desktop 3.2.3
 
   - Better presentation of SCR components when several SCR-bundles are
     active.
