@@ -340,15 +340,14 @@ class ComponentContextImpl implements ComponentContext
    * return true, otherwise return false. Must be called
    * when holding ComponentConfiguration lock.
    *
-   * @Return result of activation, if activation succeeded
+   * @return result of activation, if activation succeeded
    * return true, otherwise return false.
    */
   boolean waitForActivation() {
     synchronized (cc) {
       while (state == ACTIVATING) {
         if (activatorThread.equals(Thread.currentThread())) {
-          Activator.logDebug("Circular activate detected: " + cc);
-          return false;
+          throw new ComponentException("Circular activate/deactivate detected: " + cc);
         }
         try {
           cc.wait();

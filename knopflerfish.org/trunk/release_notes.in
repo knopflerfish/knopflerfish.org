@@ -42,6 +42,7 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - Fixed clean-up when disabling a component, that caused problem
     when re-enabling the component.
   - Update component id when re-enabling a component.
+  - Abort circular activate/deactivate.
 
   SCR(component) 3.1.9
   
