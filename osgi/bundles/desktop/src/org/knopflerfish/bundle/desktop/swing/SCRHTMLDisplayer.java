@@ -148,8 +148,9 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     public static final String URL_SCR_KEY_REF = "ref";
     public static final String URL_SCR_KEY_COMP_NAME = "compName";
     public static final String URL_SCR_KEY_CMD = "cmd";
-    public static final String URL_SCR_CMD_ENABLE = "enable";
-    public static final String URL_SCR_CMD_DISABLE = "disable";
+    public static final String URL_SCR_CMD_ENABLE = "Enable";
+    public static final String URL_SCR_CMD_DISABLE = "Disable";
+    public static final String URL_SCR_CMD_REFRESH = "Refresh";
 
     /** Service Id of the ScrService owning the component. */
     private long sid = -1;
@@ -165,6 +166,8 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     private boolean doEnable = false;
     /** True if the URL is a command to disable the component.*/
     private boolean doDisable = false;
+    /** True if the URL is a refresh command.*/
+    private boolean doRefresh = false;
 
     public static boolean isScrLink(URL url) {
       return URL_SCR_HOST.equals(url.getHost())
@@ -201,16 +204,15 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
         final String cmd = (String) params.get(URL_SCR_KEY_CMD);
         this.doEnable = URL_SCR_CMD_ENABLE.equals(cmd);
         this.doDisable = URL_SCR_CMD_DISABLE.equals(cmd);
+        this.doRefresh = URL_SCR_CMD_REFRESH.equals(cmd);
       }
     }
 
     public ScrUrl(final ServiceReference scrSR, final Component component) {
       this.sid = ((Long) scrSR.getProperty(Constants.SERVICE_ID)).longValue();
       this.cid = component.getId();
-      if (this.cid==-1) {
-        // Felix SCR impl returns -1 for disabled components.
-        this.compName = component.getName();
-      }
+      // Include component name to handle components with id=-1 or changed id
+      this.compName = component.getName();
       this.ref = null;
     }
 
@@ -267,6 +269,10 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       return isCmd && doDisable;
     }
 
+    public boolean doRefresh() {
+      return isCmd && doRefresh;
+    }
+
     public String getComponentName() {
       return compName;
     }
@@ -312,17 +318,28 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       sb.append("</a>");
     }
 
-    public void scrStateChangeForm(final StringBuffer sb, boolean enable) {
+    public void stateForm(final StringBuffer sb, final Component comp) {
+
+      sb.append("<table border=0 cellspacing=1 cellpadding=1 width='100%'>\n");
+      sb.append("<tr><td valign='middle'>");
+      JHTMLBundle.startFont(sb, "-1");
+      sb.append(getComponentState(comp));
+      JHTMLBundle.stopFont(sb);
+      sb.append("</td><td valign='middle'>");
+      JHTMLBundle.startFont(sb, "-1");
       sb.append("<form action=\"");
       appendBaseURL(sb);
       sb.append("\" method=\"get\">");
-      sb.append("<input valing='center' type=\"submit\" value=\"");
-      sb.append(enable ? "Enable" : "Disable");
-      sb.append("\">");
-      sb.append("<input type=\"hidden\" name=\"");
+      sb.append("<input type=\"submit\" name=\"");
       sb.append(URL_SCR_KEY_CMD);
       sb.append("\" value=\"");
-      sb.append(enable ? URL_SCR_CMD_ENABLE : URL_SCR_CMD_DISABLE);
+      sb.append(comp.getState()==Component.STATE_DISABLED ? URL_SCR_CMD_ENABLE : URL_SCR_CMD_DISABLE);
+      sb.append("\">");
+      sb.append("&nbsp;&nbsp;");
+      sb.append("<input type=\"submit\" name=\"");
+      sb.append(URL_SCR_KEY_CMD);
+      sb.append("\" value=\"");
+      sb.append(URL_SCR_CMD_REFRESH);
       sb.append("\">");
       final Map params = getParams();
       for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
@@ -333,8 +350,12 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
         sb.append(entry.getValue());
         sb.append("\">");
       }
+      JHTMLBundle.stopFont(sb);
       sb.append("</form>");
+      sb.append("</td></tr>");
+      sb.append("</table>");
     }
+
   }
 
 
@@ -489,7 +510,8 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
 
     sb.append("<td>");
     if (scrServices.size()>1) {
-      scrUrl.scrLink(sb, String.valueOf(component.getId()) +"@" +scrUrl.getSid());
+      scrUrl.scrLink(sb,
+                     String.valueOf(component.getId()) +"@" +scrUrl.getSid());
     } else {
       scrUrl.scrLink(sb, String.valueOf(component.getId()));
     }
@@ -510,7 +532,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     sb.append("</tr>\n");
   }
 
-  String getComponentState(final Component component) {
+  static String getComponentState(final Component component) {
     switch (component.getState()) {
     case Component.STATE_ACTIVATING:
       return "ACTIVATING";
@@ -561,6 +583,24 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     return addToHistory;
   }
 
+
+  private Component getComponent(final ScrService scr,
+                                 final long cid,
+                                 final String compName) {
+    Component comp = scr.getComponent(cid);
+    if (null==comp && null!=compName) {
+      Component[] comps = scr.getComponents(compName);
+      if (null!=comps) {
+        if (comps.length>1) {
+          Activator.log.info("Found " + comps.length +" components with name '"
+                             +compName +"', using first.");
+        }
+        comp = comps[0];
+      }
+    }
+    return comp;
+  }
+
   /**
    * Append HTML that presents a single SCR component.
    *
@@ -574,14 +614,8 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     try {
       final ScrService scr = getScrServiceById(scrUrl.getSid());
       if (null != scr) {
-        Component comp = scr.getComponent(scrUrl.getCid());
-        if (null==comp && null!=scrUrl.getComponentName()) {
-          // Search for component by name
-          Component[] comps = scr.getComponents(scrUrl.getComponentName());
-          if (null!=comps) {
-            comp = comps[0];
-          }
-        }
+        Component comp = getComponent(scr, scrUrl.getCid(),
+                                      scrUrl.getComponentName());
 
         if (null != comp) {
           // Shall we enable / disable the component?
@@ -589,24 +623,21 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
             Activator.log.info("Enabling component: "+comp);
             comp.enable();
             scrUrl.setCommand(false); // Command has been performed!
-            // ID will change on enable on FELIX
-            scrUrl.setCid(comp.getId());
-            scrUrl.setComponentName(comp.getName());
           }
           if (scrUrl.doDisable() && Component.STATE_DISABLED != comp.getState()) {
             Activator.log.info("Disabling component: "+comp);
             comp.disable();
             scrUrl.setCommand(false); // Command has been performed!
-            // ID will change on disable on FELIX
-            scrUrl.setCid(comp.getId());
-            scrUrl.setComponentName(comp.getName());
+          }
+          if (scrUrl.doRefresh()) {
+            scrUrl.setCommand(false); // Command has been performed!
           }
 
           sb.append("<html>");
-          sb.append("<table border=0>");
+          sb.append("<table border=0 width='100%'>");
 
           sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
-          sb.append("Service Component #" + scrUrl.getCid());
+          sb.append("Service Component #" + comp.getId());
           if (scrServices.size()>1) {
             sb.append("@");
             sb.append(scrUrl.getSid());
@@ -621,11 +652,10 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
             appendComponentLine(sb, "Factory name", comp.getFactory());
           }
 
-          appendComponentLine(sb, "State", getComponentState(comp));
           {
             final StringBuffer sb2 = new StringBuffer(60);
-            scrUrl.scrStateChangeForm(sb2, comp.getState()==Component.STATE_DISABLED);
-            appendComponentLine(sb, "", sb2.toString());
+            scrUrl.stateForm(sb2, comp);
+            appendComponentLine(sb, "State", sb2.toString());
           }
 
           appendComponentLine(sb, componentServicesLabel(comp),
@@ -634,11 +664,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
               comp.isServiceFactory() ? "YES" : "NO");
           appendComponentLine(sb, "Properties", componentProperties(comp));
 
-          appendComponentLine(sb, "&nbsp;", "&nbsp;");
-
           appendComponentLine(sb, "References", componentReferences(scrUrl.getSid(), comp));
-
-          appendComponentLine(sb, "&nbsp;", "&nbsp;");
 
           {
             final StringBuffer bundleSb = new StringBuffer(20);
@@ -702,7 +728,9 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
   String componentProperties(final Component comp) throws IOException {
     final StringBuffer sb = new StringBuffer(100);
 
-    sb.append("<table cellpadding=\"0\" cellspacing=\"3\" border=\"0\">");
+    // cellspacing:5 is compensated by cellpadding-left:-5 to left-justify table
+    sb.append("<table cellpadding='0' cellspacing='5' border='0' width='100%'>\n");
+    sb.append("<tr><th align='left' style='padding-left:-5'>Name</th><th align='left'>Value</th></tr>\n");
     final Dictionary props = comp.getProperties();
     for (Enumeration keys = props.keys(); keys.hasMoreElements();) {
       final String key = (String) keys.nextElement();
@@ -712,19 +740,19 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       Util.printObject(pr, props.get(key));
 
       sb.append("<tr>");
-      sb.append("<td valign=\"top\">");
-      JHTMLBundle.startFont(sb, "-1");
+      sb.append("<td valign='top' style='padding-left:-5'>");
+      JHTMLBundle.startFont(sb, "-2");
       sb.append(key);
       JHTMLBundle.stopFont(sb);
       sb.append("</td>");
 
-      sb.append("<td valign=\"top\">");
+      sb.append("<td valign='top'>");
       sb.append(sw.toString());
       sb.append("</td>");
 
-      sb.append("</tr>");
+      sb.append("</tr>\n");
     }
-    sb.append("</table>");
+    sb.append("</table>\n");
 
     return sb.toString();
   }
@@ -736,8 +764,10 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     if (null == refs) {
       sb.append("-");
     } else {
-      sb.append("<table cellpadding=\"0\" cellspacing=\"3\" border=\"0\">");
-      sb.append("<tr><th align='left'>Name</th>");
+      // cellspacing:10 is compensated by cellpadding-left:-10 to left-justify table
+      sb.append("<table cellpadding='0' cellspacing='10' border='0' width='100%'>");
+      sb.append("<tr>");
+      sb.append("<th align='left' style='padding-left:-10'>Name</th>");
       sb.append("<th align='left'>State</th>");
       sb.append("<th align='left'>Cardinality</th>");
       sb.append("<th align='left'>Policy</th>");
@@ -748,19 +778,19 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
         final Reference ref = refs[i];
 
         sb.append("<tr>");
-        sb.append("<td align='left' valign=\"top\">");
+        sb.append("<td align='left' valign='middle' style='padding-left:-10'>");
         JHTMLBundle.startFont(sb, "-1");
         new ScrUrl(sid, comp, ref).scrLink(sb, ref.getName());
         JHTMLBundle.stopFont(sb);
         sb.append("</td>");
 
-        sb.append("<td align='left' valign=\"top\">");
+        sb.append("<td align='left' valign='middle'>");
         JHTMLBundle.startFont(sb, "-1");
         sb.append(ref.isSatisfied() ? "SATISFIED" : "PENDING");
         JHTMLBundle.stopFont(sb);
         sb.append("</td>");
 
-        sb.append("<td align='center' valign=\"top\">");
+        sb.append("<td align='center' valign='middle'>");
         JHTMLBundle.startFont(sb, "-1");
         sb.append(ref.isOptional() ? "0" : "1");
         sb.append("..");
@@ -768,13 +798,13 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
         JHTMLBundle.stopFont(sb);
         sb.append("</td>");
 
-        sb.append("<td align='left' valign=\"top\">");
+        sb.append("<td align='left' valign='middle'>");
         JHTMLBundle.startFont(sb, "-1");
         sb.append(ref.isStatic() ? "static" : "dynamic");
         JHTMLBundle.stopFont(sb);
         sb.append("</td>");
 
-        sb.append("<td align='left' valign=\"top\">");
+        sb.append("<td align='left' valign='middle'>");
         JHTMLBundle.startFont(sb, "-2");
         sb.append("<tt>");
         sb.append(ref.getServiceName());
@@ -812,7 +842,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
           }
           if (null != ref) {
             sb.append("<html>");
-            sb.append("<table border=0>");
+            sb.append("<table border=0 width='100%'>");
 
             sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
             sb.append("Service Component #");
