@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,43 +34,65 @@
 
 package org.knopflerfish.bundle.frameworkcommands;
 
-import java.util.Hashtable;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.Dictionary;
 
-import org.knopflerfish.service.console.CommandGroup;
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
+import org.knopflerfish.service.console.Session;
 
 /**
- * * Bundle activator implementation. * *
+ * Interface hiding the depndency to the {@link PermissionAdmin}
+ * service for framework console commands interacting with the
+ * deprecated, optional {@link PermissionAdmin} service.
  *
- * @author Jan Stein
+ * @author Makewave AB
  */
-public class Activator implements BundleActivator {
 
-    final static String COMMAND_GROUP = org.knopflerfish.service.console.CommandGroup.class
-            .getName();
+public interface PermissionAdminHelper
+{
+  //
+  // Addpermission command
+  //
 
-    /**
-     * Called by the framework when this bundle is started.
-     *
-     * @param bc
-     *            Bundle context.
-     */
-    public void start(BundleContext bc) {
-        // Register framework commands
-        CommandGroup cg = new FrameworkCommandGroup(bc);
-        Hashtable props = new Hashtable();
-        props.put("groupName", cg.getGroupName());
-        bc.registerService(COMMAND_GROUP, cg, props);
-    }
+  int cmdAddpermission(Dictionary opts,
+                       Reader in,
+                       PrintWriter out,
+                       Session session);
 
-    /**
-     * Called by the framework when this bundle is stopped.
-     *
-     * @param bc
-     *            Bundle context.
-     */
-    public void stop(BundleContext bc) {
-    }
+  //
+  // Deletepermission command
+  //
+
+  int cmdDeletepermission(Dictionary opts,
+                          Reader in,
+                          PrintWriter out,
+                          Session session);
+
+  //
+  // Permissions command
+  //
+
+  int cmdPermissions(Dictionary opts,
+                     Reader in,
+                     PrintWriter out,
+                     Session session);
+
+  //
+  // CondPermission command
+  //
+
+  int cmdCondpermission(Dictionary opts,
+                        Reader in,
+                        PrintWriter out,
+                        Session session);
+
+  //
+  // SetCondPermission command
+  //
+
+  int cmdSetcondpermission(Dictionary opts,
+                           Reader in,
+                           PrintWriter out,
+                           Session session);
 
 }
