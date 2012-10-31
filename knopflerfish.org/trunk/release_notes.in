@@ -127,6 +127,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     The navigation history is cleared when a displayer becomes visible.
 
 
+  Framework Commands 3.1
+
+  - The dependency on packages org.osgi.service.permissionadmin and
+    org.osgi.service.condpermadmin is now optional.
+
+
 ========================================================================
 
 
