@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2011, KNOPFLERFISH project
+ * Copyright (c) 2009-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -433,8 +433,10 @@ public class BundleClassPath {
         if (optional) {
           return;
         } else {
-          throw new BundleException("No matching native code libraries found.",
-              BundleException.NATIVECODE_ERROR);
+          throw new BundleException("No matching native code libraries found for os="
+                                    + os + " version=" + osVer + ", processor="
+                                    + proc + " and language=" + osLang + ".",
+                                    BundleException.NATIVECODE_ERROR);
         }
       }
       nativeLibs = new HashMap();
