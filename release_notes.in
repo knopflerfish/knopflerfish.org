@@ -10,7 +10,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.2.2
+* Framework 5.2.3
+
+  - Display current os, os version, processor and language when
+    failing to resolving a bundles native-code header.
+
+  Framework 5.2.2
 
   - Fixed race condition when doing dynamic package import during
     resolve of bundles.
