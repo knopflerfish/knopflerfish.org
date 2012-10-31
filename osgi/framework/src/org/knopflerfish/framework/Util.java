@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -296,6 +296,31 @@ public class Util {
       } catch (Exception ignored) {
       }
     }
+  }
+
+
+  /**
+   * Read a resource into a String.
+   * 
+   * @param name resource name to read
+   * @param defaultValue if no resource is available
+   * @param encoding resource encoding
+   * @return String with contents of resource or supplied default value.
+   */
+  static String readResource(String file, String defaultValue, String encoding) {
+    try {
+      return (new String(readResource(file), encoding)).trim();
+    } catch (Exception e) {
+      return defaultValue;
+    }
+  }
+
+
+  /**
+   * Read framework version file
+   */
+  static String readFrameworkVersion() {
+    return readResource("/version", "0.0.0", "UTF-8");
   }
 
   /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -295,11 +295,13 @@ public class SystemBundle extends BundleImpl implements Framework {
     headers.put(Constants.BUNDLE_SYMBOLICNAME, getSymbolicName());
     headers.put(Constants.BUNDLE_NAME, location);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
-    headers.put(Constants.BUNDLE_VERSION, Main.readRelease());
+    headers.put(Constants.BUNDLE_VERSION, getVersion().toString());
     headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
     headers.put(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT,
         fwCtx.props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT));
     headers.put("Bundle-Icon", "icon.png;size=32,icon64.png;size=64");
+    headers.put(Constants.BUNDLE_VENDOR, "Knopflerfish");
+    headers.put(Constants.BUNDLE_DESCRIPTION, "Knopflerfish System Bundle");
     return headers;
   }
 
