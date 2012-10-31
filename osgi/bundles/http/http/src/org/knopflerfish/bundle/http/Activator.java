@@ -152,7 +152,7 @@ public class Activator implements BundleActivator {
             new org.knopflerfish.bundle.http.console.HttpCommandGroup(bc, serverFactory);
         } catch (Exception ex) {
             log.error("Failed to create console command group: " + ex, ex);
-        } catch (Error ce) {
+        } catch (LinkageError ce) {
             log.info("There is no KF-console available, command group not created.", ce);
         }
     }
