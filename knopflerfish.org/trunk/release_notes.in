@@ -33,6 +33,11 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 * HTTP 3.1.1
 
+  - Improve fix that allowed HTTP bundle to start without command
+    group when KF console API isn't available.
+
+  HTTP 3.1.1
+
   - Fixed so that HTTP bundle starts without command group when
     KF console API isn't available.
 
