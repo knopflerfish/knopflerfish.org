@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,11 @@ import org.osgi.framework.*;
  */
 
 public class BundleGeneration implements Comparable {
+
+  /**
+   * Symbolic name system bundle.
+   */
+  final static String KNOPFLERFISH_SYMBOLICNAME = "org.knopflerfish.framework";
 
   /**
    * Bundle
@@ -146,9 +151,9 @@ public class BundleGeneration implements Comparable {
     archive = null;
     generation = 0;
     v2Manifest = true;
-    symbolicName = Constants.SYSTEM_BUNDLE_SYMBOLICNAME;
+    symbolicName = KNOPFLERFISH_SYMBOLICNAME;
     singleton = false;
-    version = new Version(Main.readRelease());
+    version = new Version(Util.readFrameworkVersion());
     attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
     fragment = null;
     protectionDomain = null;
@@ -242,9 +247,10 @@ public class BundleGeneration implements Comparable {
           || Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
         // an extension bundle must target the system bundle.
         if (!Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(key)
-            && !"org.knopflerfish.framework".equals(key)) {
+            && !KNOPFLERFISH_SYMBOLICNAME.equals(key)) {
           throw new IllegalArgumentException("An extension bundle must target "
-              + "the system bundle(=" + Constants.SYSTEM_BUNDLE_SYMBOLICNAME + ")");
+              + "the system bundle(" + Constants.SYSTEM_BUNDLE_SYMBOLICNAME + " or "
+              + KNOPFLERFISH_SYMBOLICNAME + ")");
         }
 
         if (archive.getAttribute(Constants.IMPORT_PACKAGE) != null
