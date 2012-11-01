@@ -129,7 +129,7 @@ directory used for this is:
 <pre class="shell">fwdir</pre>
 </p>
 <p>
-in the currect directory. The "fwdir" directory can also be set
+in the current directory. The "fwdir" directory can also be set
 specifically using the org.osgi.framework.storage property. Note that
 moving "fwdir" also changes the location for searching for default
 .xargs files.
@@ -172,7 +172,7 @@ following algorithm:
       <li>The parent directory of fwdir (if any)</li>
       <li>The current working directory</li>
     </ol>
-    First match winns.<br/>
+    First match wins.<br/>
     The [osname]-part of the file name is the unified OS name as
     specified in Alias.java (see below). Case is important if the file
     system is case sensitive.<br/>
@@ -223,7 +223,7 @@ can be set to a value on the form user:password
 If set to non-empty, this will add the 
 Proxy-Authorization header to bundle install http/https requests 
 made from the framework, However, bundles using the URL class internally
-must explictly set this header themselves.
+must explicitly set this header themselves.
 </p>
 
 <a name="props"></a>
@@ -576,7 +576,7 @@ but "-D" should also work.
     <td>org.knopflerfish.framework.bundlestorage.file.reference</td>
     <td>
      When using file bundle storage, file: URLs can optionally
-     be referenced only, not copied to the persistant area.
+     be referenced only, not copied to the persistent area.
 
      If set to true, file: URLs are referenced only.
 
@@ -596,7 +596,7 @@ but "-D" should also work.
     <td>
      Are the bundles stored in the file bundle storage to be trusted, if not
      signed bundles will be checked every time they are read.
-     Untrusted storafe leads to slower restart and class loading.
+     Untrusted storage leads to slower restart and class loading.
 
      If set to true, trust bundles in bundle storage.
     </td>
@@ -618,8 +618,23 @@ but "-D" should also work.
   <tr>
     <td>org.knopflerfish.framework.bundlethread.abort</td>
     <td>
-     Property specifying how bundle threads which are aborted should be handled.
-     Possible values are "stop", "minprio" and "ignore". 
+      If a bundle's start() or stop() method has not returned and the
+      bundle gets uninstalled this property defines how to manage the
+      bundle's start/stop thread. Possible values are:
+      <table class="man_inner">
+	<tr>
+	  <td class="man_inner">"stop"</td>
+	  <td class="man_inner">Calls the stop() method of the bundle's thread</td>
+	</tr>
+	<tr>
+	  <td>"minprio"</td>
+	  <td>Sets a minium priority of the bundle's thred</td>
+	</tr>
+	<tr>
+	  <td>"ignore"</td>
+	  <td>Do nothing</td>
+	</tr>
+      </table>
     </td>
     <td>String</td>
     <td>ignore</td>
@@ -645,7 +660,7 @@ but "-D" should also work.
   <tr>
     <td>org.knopflerfish.framework.debug.certficates</td>
     <td>
-     Print debug information about certficate handling.
+     Print debug information about certificate handling.
     </td>
     <td>Boolean</td>
     <td>False</td>
@@ -719,7 +734,7 @@ but "-D" should also work.
   <tr>
     <td>org.knopflerfish.framework.debug.print_with_do_privileged</td>
     <td>
-     Surrond all debug print-operations originating from
+     Surround all debug print-operations originating from
      setting org.knopflerfish.debug.* properties with a
      doPrivileged() wrapper.
     </td>
@@ -820,7 +835,7 @@ but "-D" should also work.
     <td>org.knopflerfish.framework.listener.n_threads</td>
     <td>
     Number of threads used to deliver events to asynchronous listeners.
-    If the value is 0 then we will revert to the old behavouir and call
+    If the value is 0 then we will revert to the old behaviour and call
     all listeners synchronously.
     </td>
     <td>Integer</td>
@@ -831,7 +846,7 @@ but "-D" should also work.
     <td>
       If true AND the class org.objectweb.asm.ClassReader is available
       (by putting the asm-3.2.jar library on the system class path), enable
-      runtime class patching.
+      run time class patching.
       Example:
 <pre class="shell">
 > java -cp framework.jar:asm-3.2.jar \
@@ -858,7 +873,7 @@ but "-D" should also work.
   <tr>
     <td>org.knopflerfish.framework.patch.dumpclasses</td>
     <td>
-     If true and class patchin is enabled, dump all modified classes
+     If true and class patching is enabled, dump all modified classes
      to a directory.
     </td>
     <td>Boolean</td>
@@ -909,7 +924,7 @@ but "-D" should also work.
     <td>
      An alternative to setting org.osgi.framework.system.packages.
      When this property is used the list of packages given will be
-     appended with the default set of osgi-packges for the current
+     appended with the default set of osgi-packages for the current
      framework and then used as the exports of the system bundle.
     </td>
     <td>String , ...</td>
@@ -956,7 +971,7 @@ but "-D" should also work.
   <tr>
     <td>org.knopflerfish.framework.validator.jks.ca_certs</td>
     <td>
-      Filename of java keystore used by JKSValidator. Used if
+      File name of java keystore used by JKSValidator. Used if
       org.osgi.framework.trust.repositories isn't set.
     </td>
     <td>String</td>
@@ -994,12 +1009,12 @@ but "-D" should also work.
      Semicolon separated list of base URLs for relative install commands
     </td>
     <td>URL;...</td>
-    <td>URLs to the "jars" folder and all its subfolders</td>
+    <td>URLs to the "jars" folder and all its sub-folders</td>
   </tr>
   <tr>
     <td>org.knopflerfish.startlevel.compat</td>
     <td>
-      Set to true indicates startlevel compatability mode.
+      Set to true indicates startlevel compatibility mode.
       All bundles and current start level will be 1.
     </td>
     <td>Boolean</td>
@@ -1009,7 +1024,7 @@ but "-D" should also work.
     <td>org.knopflerfish.startlevel.use</td>
     <td>
       Use the Start Level service. If start level is not used then
-      we do not create a non daemon thread that will keep a jvm
+      we do not create a non daemon thread that will keep a JVM
       with only daemon threads alive.
     </td>
     <td>Boolean</td>
@@ -1024,7 +1039,7 @@ but "-D" should also work.
      doesn't set the context classloader for event callbacks.
 
      Note that setting the context classloader is not mandated
-     by OSGi, and might introduce dependecies on the KF framework,
+     by OSGi, and might introduce dependencies on the KF framework,
      so this flag should only be enabled for testing purposes.
     </td>
     <td>Boolean</td>
