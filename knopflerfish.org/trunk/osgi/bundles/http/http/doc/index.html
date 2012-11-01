@@ -28,6 +28,20 @@ Note: If the server fails to bind to a port, an HttpService will still
 be registered, but the service property "port" will not be present!
 </p>
 
+<h2>Console Commands</h2>
+The HTTP server has the built-in console command group <b>http</b>.
+The command group shows information about configuration, servlet and
+resource registrations, as well as transaction status of the HTTP
+server. 
+<pre class="code">
+Usage: list [-help] [-c] [-r] [-t] [-l]
+  List all the configured HTTP servers
+  -c  Show configuration info
+  -r  Show all registrations, servlets and resources
+  -t  Show info on transactions
+  -l  List in long format, same as supplying -c -r -t, providing extensive details
+</pre>
+
 
 <h3>Configuration using Framework Properties</h3>
 
@@ -214,7 +228,7 @@ be registered, but the service property "port" will not be present!
   <tr>
     <td>org.knopflerfish.http.limit.requestheaders</td>
     <td>
-      Defines the maximum number of headers appected per request. 
+      Defines the maximum number of headers accepted per request. 
       When exceeding this limit a 413 response is returned - Request Entity Too Large. 
     </td>
     <td>int</td>
