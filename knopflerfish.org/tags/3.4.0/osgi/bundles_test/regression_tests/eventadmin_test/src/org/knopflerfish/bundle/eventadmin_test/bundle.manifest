@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-Description: Scenario  tests
+Bundle-Name: Scenarios
+Bundle-Activator: org.knopflerfish.bundle.eventadmin_test.Activator
+Bundle-SymbolicName: org.knopflerfish.bundle.eventadmin_test.scenarios
+Bundle-Version: 1.0
+Export-Package: org.knopflerfish.bundle.eventadmin_test.scenario1,
+ org.knopflerfish.bundle.eventadmin_test.scenario2,
+ org.knopflerfish.bundle.eventadmin_test.scenario3,
+ org.knopflerfish.bundle.eventadmin_test.scenario4,
+ org.knopflerfish.bundle.eventadmin_test.scenario5,
+ org.knopflerfish.bundle.eventadmin_test.scenario6 
+Import-Package: junit.framework, 
+ org.osgi.framework,
+ org.osgi.service.event,
+ org.knopflerfish.service.demo1,
+ org.knopflerfish.service.log

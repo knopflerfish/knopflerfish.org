@@ -1,0 +1,51 @@
+<h1>Configuration Management</h1>
+
+<div class="abstract">
+  The Configuration Management bundle implements the OSGi defined 
+  <a  target="_top" href="$(JAVADOCLINK)org/osgi/service/cm/package-summary.html">
+    org.orgi.service.cm
+  </a>
+  package, a uniform way to manage
+  bundle configurations.
+</div>
+
+<h2>Description</h2>
+<p>
+  The Configuration Management bundle is designed to be a uniform way
+  to handle bundle configuration. It contains the 
+  <a  target="_top" href="$(JAVADOCLINK)org/osgi/service/cm/ManagedService.html">
+    ManagedService
+  </a>
+  interfaces to be   implemented by bundles that need configuration
+  data, and the
+  <a  target="_top" href="$(JAVADOCLINK)org/osgi/service/cm/ConfigurationAdmin.html">
+    ConfigurationAdmin
+  </a>
+   service to be used by management bundles that modify configuration data.
+<p>
+  The ConfigurationAdmin interface is the main interface to the
+  Configuration Management component. It is the interface that is
+  registered as a service in the Service Registry and it has methods
+  for creating, retrieving, and listing configurations. The
+  implementation of this interface is responsible for the persistent
+  storage of configurations, and listens for registrations of
+  ManagedServices and ManagedServiceFactories in the Service Registry
+  and passes out configuration data, if available, when they appear.  
+</p>
+<p>
+  The 
+  <a href="../cm_cmd/index.html">cm_commands</a>, 
+  bundle provides a console command group to Configuration Management.
+</p>
+<p>
+  The 
+  <a href="../prefs/index.html">Preference Service</a>, 
+  is an alternative method for storing configuration data but it lacks
+  the administrative functions the Configuration Management bundle
+  provides. 
+</p>
+
+<h2>See Also</h2>
+<a href="../cm_cmd/index.html">cm_commands</a>, 
+<a href="../prefs/index.html">prefs</a>, 
+

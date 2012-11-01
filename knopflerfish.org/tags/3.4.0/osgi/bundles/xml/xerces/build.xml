@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="xerces" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.xerces}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.doc"  value="true"/>
+
+  <property name="api.pattern"
+	    value="javax/xml/*,
+		   javax/xml/datatype/*,
+		   javax/xml/namespace/*,
+		   javax/xml/parsers/*,
+		   javax/xml/transform/*,
+		   javax/xml/transform/dom/*,
+		   javax/xml/transform/sax/*,
+		   javax/xml/transform/stream/*,
+		   javax/xml/validation/*,
+		   javax/xml/xpath/*,
+		   org/apache/html/dom/*,
+		   org/apache/wml/*,
+		   org/apache/wml/dom/*,
+		   org/apache/xerces/dom/*,
+		   org/apache/xerces/dom/events/*,
+		   org/apache/xerces/dom3/as/*,
+		   org/apache/xerces/jaxp/*,
+		   org/apache/xerces/jaxp/datatype/*,
+		   org/apache/xerces/jaxp/validation/*,
+		   org/apache/xerces/parsers/*,
+		   org/apache/xerces/util/*,
+		   org/apache/xerces/xinclude/*,
+		   org/apache/xerces/xni/*,
+		   org/apache/xerces/xni/grammars/*,
+		   org/apache/xerces/xni/parser/*,
+		   org/apache/xerces/xpointer/*,
+		   org/apache/xerces/xs/*,
+		   org/apache/xerces/xs/datatypes/*,
+		   org/apache/xml/resolver/*,
+		   org/apache/xml/resolver/apps/*,
+		   org/apache/xml/resolver/helpers/*,
+		   org/apache/xml/resolver/readers/*,
+		   org/apache/xml/resolver/tools/*,
+		   org/apache/xml/serialize/*,
+		   org/apache/xml/serializer/*,
+		   org/w3c/dom/*,
+		   org/w3c/dom/bootstrap/*,
+		   org/w3c/dom/css/*,
+		   org/w3c/dom/events/*,
+		   org/w3c/dom/html/*,
+		   org/w3c/dom/ls/*,
+		   org/w3c/dom/ranges/*,
+		   org/w3c/dom/stylesheets/*,
+		   org/w3c/dom/traversal/*,
+		   org/w3c/dom/views/*,
+		   org/w3c/dom/xpath/*,
+		   org/xml/sax/*,
+		   org/xml/sax/ext/*,
+		   org/xml/sax/helpers/*" />
+
+  <property name="impl.pattern" value="**" />
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <property name="all.suffix.name" value=""/>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

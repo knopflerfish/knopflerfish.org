@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Device-Manager
+Bundle-SymbolicName: org.knopflerfish.bundle.device
+Bundle-Version: 3.0.0
+Bundle-Description: Device manager
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/device/device/
+Bundle-Activator: org.knopflerfish.bundle.device.Activator
+Bundle-Category: service
+Import-Package: org.osgi.framework,
+ org.osgi.service.device,
+ org.osgi.service.log
+Export-Package: org.osgi.service.device; version=1.1

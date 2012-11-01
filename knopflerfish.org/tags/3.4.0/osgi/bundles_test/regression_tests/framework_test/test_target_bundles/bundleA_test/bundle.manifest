@@ -1,0 +1,15 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleA_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleA_test
+Bundle-Version: 1.0.0
+Bundle-Description: %description
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleA_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleA_test;version=1.0.0,org.knopflerfish.service.bundleIA_test
+Import-Package: org.knopflerfish.service.bundleA_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleA_test:1.0.0:all
+Acme-Defined-Header: %acmeSpecialHeader
+

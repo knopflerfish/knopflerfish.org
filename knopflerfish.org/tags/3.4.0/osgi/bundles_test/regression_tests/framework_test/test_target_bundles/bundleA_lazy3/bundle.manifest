@@ -1,0 +1,18 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: bundleA_lazy3
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleA_lazy3
+Bundle-Version: 1.0.0
+Bundle-Description: %description
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-ActivationPolicy: lazy;
+ include:="org.knopflerfish.service.bundleA_lazy";
+ exclude:="org.knopflerfish.bundle.bundleA_lazy"
+Bundle-Activator: org.knopflerfish.bundle.bundleA_lazy.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleA_lazy;version=1.0.0
+Import-Package: org.knopflerfish.service.bundleA_lazy,
+ org.osgi.framework
+Acme-Defined-Header: %acmeSpecialHeader
+

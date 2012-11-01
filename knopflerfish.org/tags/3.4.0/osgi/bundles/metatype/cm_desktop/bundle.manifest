@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: CM-Desktop
+Bundle-SymbolicName: org.knopflerfish.bundle.cm_desktop
+Bundle-Version: 3.0.0
+Bundle-Category: service
+Bundle-Description: CM desktop plugin
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/metatype/cm_desktop/readme.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/metatype/cm_desktop/
+Bundle-Activator: org.knopflerfish.bundle.desktop.cm.Activator
+Import-Package: org.osgi.service.cm,
+ org.knopflerfish.service.desktop,
+ org.knopflerfish.util.metatype,
+ org.knopflerfish.service.log,
+ org.osgi.framework,
+ org.osgi.util.tracker,
+ org.osgi.service.metatype,
+ javax.swing,
+ javax.swing.event,
+ javax.swing.table,
+ javax.swing.border

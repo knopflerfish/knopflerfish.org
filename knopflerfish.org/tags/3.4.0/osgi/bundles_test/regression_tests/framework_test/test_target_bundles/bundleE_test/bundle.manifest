@@ -1,0 +1,15 @@
+Bundle-Name: bundleE_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleE_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleE_test. As this b
+ undle is to fail at startup, the wrong start method is set on purpose
+  to a non existing method
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleX_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleE_test
+Import-Package: org.knopflerfish.service.bundleE_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleE_test:1.0.0:all
+

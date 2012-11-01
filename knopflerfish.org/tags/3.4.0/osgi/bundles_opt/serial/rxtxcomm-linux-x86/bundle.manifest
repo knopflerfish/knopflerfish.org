@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: RXTXcomm-linux-x86
+Bundle-SymbolicName: org.knopflerfish.bundle.rxtxcomm-linux-x86
+Bundle-Version: 2.2.0.pre2
+Bundle-Category: service
+Bundle-Description: RXTX comm native driver for Linux/x86
+Bundle-Vendor: Piayda/RXTX
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=serial
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/serial/rxtxcomm-linux-arm/
+Bundle-NativeCode: librxtxParallel.so; librxtxSerial.so ;
+ osname = Linux ;
+ processor = x86
+Fragment-Host: org.knopflerfish.bundle.rxtxcomm-API

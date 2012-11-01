@@ -1,0 +1,12 @@
+Bundle-Name: component_test
+Bundle-SymbolicName: component_test
+Bundle-Version: 1.1.0
+Bundle-Description: Test bundle for the DS service
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.component_test.Activator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.component_test
+Import-Package: junit.framework,org.osgi.service.component,org.osgi.framework,org.osgi.service.log
+Bundle-ClassPath: .,componentA_test-1.0.1.jar, component-api_test-1.0.0.jar

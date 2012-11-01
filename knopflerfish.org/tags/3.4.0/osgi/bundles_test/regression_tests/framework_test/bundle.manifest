@@ -1,0 +1,18 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: framework_test
+Bundle-SymbolicName: framework_test
+Bundle-Version: 1.0.3
+Bundle-Description: Test bundle for framework
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.framework_test.Activator
+Bundle-Category: test
+Bundle-Classpath: ., subdir/res1.jar, res2.jar, res1.jar, subdir
+Export-Package: org.knopflerfish.service.framework_test; specification
+ -version=1.0.0
+Import-Package: junit.framework,
+ org.knopflerfish.service.framework_test,
+ org.osgi.framework,
+ org.osgi.service.packageadmin,
+ org.osgi.service.permissionadmin

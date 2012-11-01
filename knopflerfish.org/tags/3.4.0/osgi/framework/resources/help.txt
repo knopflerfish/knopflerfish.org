@@ -1,0 +1,50 @@
+ Usage:  java [properties] org.knopflerfish.framework.Main [options]
+      or java [properties] -jar framework.jar [options]
+      or ./kf2 [options] [-- [properties]]  [--- [extra]] (*)
+
+ Options:
+   -exit          Exit the JVM process
+   -help          Print this text and exit
+   -version       Print version and exit
+   -jvminfo       Print system and framework properties and exit
+   -sleep SEC     Sleep a while before next command.
+   -xargs file    Load more command line arguments from file, exit if file
+                  cannot be loaded.
+   --xargs file   Load more command line arguments from file, continue 
+                  if file cannot be loaded (but print error)
+
+   -create        Create and initialize a new framework instance
+                  after a shutdown. The default is to reuse the old
+                  framework instance.
+   -ff FF         Specify the name of the FrameworkFactory to use when
+                  creating the framework instance.
+   -init          Start an empty platform (i.e., clear old presistent data).
+   -launch        Launch framework (i.e., start it).
+   -shutdown mSEC Shutdown framework, timeout in milliseconds.
+
+   -install URL   Install a bundle
+   -istart URL    Install and start bundle according to activation policy.
+   -start ID      Start bundle (according to its activation policy)
+   -start_e ID    Start bundle eagerly (i.e., ignore its activation policy)
+   -start_et ID   Start bundle eagerly and transiently
+   -start_pt ID   Start bundle transiently according to policy
+   -stop ID       Stop bundle
+   -stop_t ID     Stop bundle transiently (i.e, non-persistent stop)
+   -uninstall ID  Uninstall a bundle
+   -update ID     Update a bundle
+
+   -initlevel N   Set initial start level for installed bundles
+   -startlevel N  Set the beginning start level of the Start Level service
+
+ Extra: (Only applicable when using ./kf2)
+   -java PATH	  Use this JVM (Default=java)
+
+
+ The default directory used for storing bundle data is  "fwdir".
+
+ (*) Fully R4 compatible, enables support for bootclasspath extension bundles.
+
+ For extended help and list of all available system properties, see online
+ documentation or visit:
+
+ http://www.knopflerfish.org/releases/current/docs/bundledoc/framework/index.html
