@@ -1,3 +1,347 @@
+2012-11-01 12:30:04 +0100 (Thu, 01 Nov 2012), revision 3573, cl
+Added info on console cmd group + spellcheck
+U   knopflerfish.org/trunk/osgi/bundles/http/http/doc/index.html
+
+2012-11-01 12:17:35 +0100 (Thu, 01 Nov 2012), revision 3572, cl
+Improved bundlethread.abort description + spellchecking
+U   knopflerfish.org/trunk/osgi/framework/doc/index.html
+
+2012-11-01 12:16:20 +0100 (Thu, 01 Nov 2012), revision 3571, cl
+Inner table and table cell style
+U   knopflerfish.org/trunk/htdocs/css/kf_man.css
+
+2012-11-01 10:44:59 +0100 (Thu, 01 Nov 2012), revision 3570, cl
+minor adjustements and spelling
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-31 17:46:48 +0100 (Wed, 31 Oct 2012), revision 3569, jan
+Fixed framework/system bundle properties, auto set start level property.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+D   knopflerfish.org/trunk/osgi/framework/resources/revision
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleGeneration.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Main.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Util.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-31 14:51:34 +0100 (Wed, 31 Oct 2012), revision 3568, ekolin
+Frameworkcommands 3.1; dependency on the OSGi permission admin package is now optional.
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/FrameworkCommandGroup.java
+A   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/PermissionAdminHelper.java
+A   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/PermissionAdminHelperImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-31 12:52:28 +0100 (Wed, 31 Oct 2012), revision 3567, jan
+Improved error handling in last http change.
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Activator.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-31 11:25:52 +0100 (Wed, 31 Oct 2012), revision 3566, jan
+Improved exception message when failing to resolve bundle native code header.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassPath.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-30 16:20:24 +0100 (Tue, 30 Oct 2012), revision 3565, jan
+Appended missed circular abort to last check-in.
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-30 15:36:35 +0100 (Tue, 30 Oct 2012), revision 3564, ekolin
+Desktop 3.2.4; added refresh-button to SCR component details page.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/SCRHTMLDisplayer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-30 13:54:55 +0100 (Tue, 30 Oct 2012), revision 3563, jan
+Fixed component disable, clean-up and new component id.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/DelayedComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-29 19:03:57 +0100 (Mon, 29 Oct 2012), revision 3562, ekolin
+Desktop 3.2.3; improved support for when multiple SCR-bundles are active.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/SCRHTMLDisplayer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-29 17:12:34 +0100 (Mon, 29 Oct 2012), revision 3561, ekolin
+Desktop 3.2.2; add missing trim()
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ManifestHTMLDisplayer.java
+
+2012-10-29 17:05:55 +0100 (Mon, 29 Oct 2012), revision 3560, ekolin
+Desktop 3.2.2 Service component names in the SCR XLM files shown by the manifest displayer now links to listing of components wiht that name. The manifest displayer now handles all allowed values of the Service-Component mainfest attribute. Unified and simplified the desktop URLs used internally by the displayers.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundle.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundleLinkHandler.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ManifestHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/SCRHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ServiceHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Strings.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-26 07:54:26 +0200 (Fri, 26 Oct 2012), revision 3559, ekolin
+Make JHTMLBundle compilable on JDK 1.4
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundle.java
+
+2012-10-25 20:06:57 +0200 (Thu, 25 Oct 2012), revision 3558, ekolin
+Add support for enable/disable components on the SCR-tab in the desktop.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/doc/index.html
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundle.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/SCRHTMLDisplayer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-24 16:45:36 +0200 (Wed, 24 Oct 2012), revision 3557, jan
+Fixed Http start problem when there is no KF console. Fixed SCR to handle bind method correctly and Apache API Reference.getServiceReferences() to only return bound services.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentMethod.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/console/HttpCommandGroup.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-22 17:37:33 +0200 (Mon, 22 Oct 2012), revision 3556, ekolin
+Dekstop 3.2: New displayer for SCR components, performance optimizations, code cleanup.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JPrefsTree.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ClosureHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Colors.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/DefaultSwingBundleDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ErrorMessageDialog.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/FileFilterImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JBundleHistory.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JCardPane.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JFloatable.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundle.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundleLinkHandler.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JPackageView.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JServiceView.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JSoftGraph.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JTips.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/KnopflerfishLookAndFeel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/KnopflerfishTheme.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LookAndFeelMenu.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ManifestHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/OverlayImageIcon.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PrefsDisplayer.java
+A   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/SCRHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ServiceHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/SpinDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/StatusBar.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/StatusViewer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/TableMap.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/TableSorter.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/Queue.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/Strip.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/TextReader.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-12 16:07:17 +0200 (Fri, 12 Oct 2012), revision 3555, cl
+HTTP 3.1.0
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-12 15:37:45 +0200 (Fri, 12 Oct 2012), revision 3554, cl
+Added http console cmd group. Lists config, registrations and tranaction status of the HTTP server
+U   knopflerfish.org/trunk/osgi/bundles/http/http/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServer.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServerFactory.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServiceImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Registration.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/Registrations.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResourceRegistration.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ServletRegistration.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/SocketListener.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/TransactionManager.java
+A   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/console/
+A   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/console/HttpCommandGroup.java
+
+2012-10-12 15:08:20 +0200 (Fri, 12 Oct 2012), revision 3553, jan
+Fixed SCR error recovery when trying to re-activate a component that previously failed to activate.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-10-11 18:59:21 +0200 (Thu, 11 Oct 2012), revision 3552, ekolin
+Code cleanup; all compiler warnings removed.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/DateCellRenderer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/EventReaderDispatcher.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/EventTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/FilterEventTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JDetailFrame.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventEntryDetail.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JEventTable.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/JSendEventPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/StringCellRenderer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/TableMap.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/TableSorter.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/event/Util.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/Colors.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/ExtPreferences.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JPrefsEditor.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JPrefsPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JPrefsTree.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValue.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueBoolean.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueColor.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueDouble.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueFactory.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueInteger.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueLong.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/JValueString.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/MountedPreferences.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/OSGiBundlePreferences.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/OSGiBundlesPreferences.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/OSGiUsersPreferences.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/PrefsTreeModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/PrefsTreeNode.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/prefs/TreeUtils.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/BundleImageIcon.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ClosureHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Colors.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Desktop.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ErrorMessageDialog.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/EventDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/GraphDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JBundleHistory.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JCardPane.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JFloatable.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JHTMLBundle.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JPackageView.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JServiceView.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JSoftGraph.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JSoftGraphBundle.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JTips.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/JToolbarButton.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/KnopflerfishLookAndFeel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LargeIconsDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LogDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/LookAndFeelMenu.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ManifestHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/OSXAdapter.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/OverlayImageIcon.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PackageHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PackageManager.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/PrefsDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ServiceHTMLDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/SizeSaver.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/StatusBar.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/Strings.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/TableDisplayer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/TableMap.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/TableSorter.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/ConsoleSwing.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/Queue.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/Strip.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/console/SwingIO.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/fwspin/Console.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/fwspin/Spin.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/graph/BundleNode.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/graph/BundleServiceNode.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/graph/DefaultLink.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/graph/DefaultNode.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/graph/Link.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/graph/PackageNode.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/graph/ServiceLink.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/DateCellRenderer.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/FilterLogTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/JDetailFrame.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/JLogEntryDetail.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/JLogPanel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/JLogTable.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/LogTableModel.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/TableMap.java
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/log/window/impl/TableSorter.java
+
+2012-10-05 15:44:20 +0200 (Fri, 05 Oct 2012), revision 3551, jan
+Fixed CM race condition in SCR.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-09-25 08:45:48 +0200 (Tue, 25 Sep 2012), revision 3550, jan
+Fixed NPE in event admin and dead lock and faulty component deactivation in SCR.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/osgi/bundles/event/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-09-25 08:45:27 +0200 (Tue, 25 Sep 2012), revision 3549, jan
+Fixed NPE in event admin and dead lock and faulty component deactivation in SCR.
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/InternalAdminEvent.java
+
+2012-08-31 15:22:32 +0200 (Fri, 31 Aug 2012), revision 3547, jan
+Fixed race condition when doing dynamic package import during resolve of bundles.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Packages.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-08-25 09:50:50 +0200 (Sat, 25 Aug 2012), revision 3546, jan
+Added missing new file to component 3.1.5.
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/PostponedBind.java
+
+2012-08-24 13:06:13 +0200 (Fri, 24 Aug 2012), revision 3545, jan
+Fixed framework race condition and stability problems in SCR.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentMethod.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceRegistrationImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-07-05 10:44:43 +0200 (Thu, 05 Jul 2012), revision 3544, jan
+Added 3.3.0 to mvnrepo build
+U   knopflerfish.org/trunk/tools/mvnrepo/build.xml
+
+2012-07-04 15:58:08 +0200 (Wed, 04 Jul 2012), revision 3543, jan
+Post 3.3.0 release update
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-07-04 15:37:37 +0200 (Wed, 04 Jul 2012), revision 3541, jan
+Set version for 3.3.0 release.
+U   knopflerfish.org/trunk/build.xml
+
+2012-07-04 15:32:00 +0200 (Wed, 04 Jul 2012), revision 3540, jan
+Prepare for html version.
+U   knopflerfish.org/trunk/changelog.txt
+
+2012-07-04 14:04:28 +0200 (Wed, 04 Jul 2012), revision 3539, jan
+Update changelog for the 3.3 release.
+U   knopflerfish.org/trunk/changelog.txt
+
 2012-07-04 13:35:51 +0200 (Wed, 04 Jul 2012), revision 3538, jan
 Support for running KF as an Android(4.0) application. Detect and abort recursive service factory calls.
 U   knopflerfish.org/trunk/htdocs/html_src/android_dalvik_tutorial.html
