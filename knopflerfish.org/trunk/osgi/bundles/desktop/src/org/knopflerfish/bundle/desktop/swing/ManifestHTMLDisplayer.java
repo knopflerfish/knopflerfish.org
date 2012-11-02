@@ -328,8 +328,13 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
         value = Strings.replace(value, ">", "&gt;");
 
         if (resUrl.isSCR()) {
+          // Break down component start tag into 4 pieces:
+          // $1 <scr:component .* name="
+          // $2 XMLNS prefix part in $1 if present
+          // $3 the actual component name
+          // $4 " .*>
           final Pattern p = Pattern.compile(
-              "(&lt;component\\s.*?name\\s*=\\s*\")([^\"]*)(\".*?&gt;)",
+              "(&lt;(\\w*?:)?component\\s.*?name\\s*=\\s*\")([^\"]*)(\".*?&gt;)",
               Pattern.DOTALL);
           final Matcher m = p.matcher(value);
           final StringBuffer sb2 = new StringBuffer();
@@ -337,8 +342,8 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
             final StringBuffer sb3 = new StringBuffer();
             sb3.setLength(0);
             sb3.append("$1");
-            new SCRHTMLDisplayer.ScrUrl(m.group(2)).scrLink(sb3, m.group(2));
-            sb3.append("$3");
+            new SCRHTMLDisplayer.ScrUrl(m.group(3)).scrLink(sb3, m.group(3));
+            sb3.append("$4");
             m.appendReplacement(sb2, sb3.toString());
           }
           m.appendTail(sb2);
