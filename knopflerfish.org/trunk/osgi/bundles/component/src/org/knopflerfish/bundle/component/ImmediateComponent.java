@@ -64,7 +64,7 @@ class ImmediateComponent extends Component {
         cc[i].activate(null, true);
       } catch (ComponentException _ignore) {
         // Error messages are logged by the activate method
-        cc[i].dispose(ComponentConstants.DEACTIVATION_REASON_UNSPECIFIED);
+        cc[i].dispose(KF_DEACTIVATION_REASON_ACTIVATION_FAILED);
       }
     }
   }
