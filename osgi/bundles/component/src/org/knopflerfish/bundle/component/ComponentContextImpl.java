@@ -216,14 +216,15 @@ class ComponentContextImpl implements ComponentContext
     try {
       ComponentException ce = null;
       boolean res;
-      if (rl.ref.bindMethod != null) {
-        if (rl.ref.bindMethod.isMissing(true)) {
+      ComponentMethod m = rl.ref.getBindMethod();
+      if (m != null) {
+        if (m.isMissing(true)) {
           // Should we fail when method is missing?
           // The specification doesn't say, but the
           // CT requires it.
           return false;
         }
-        ComponentMethod.Operation bindOp = rl.ref.bindMethod.prepare(this, s);
+        ComponentMethod.Operation bindOp = m.prepare(this, s);
         rl.bound(s);
         boundReferences.put(rl.getName(), rl);
         ce = bindOp.invoke();
@@ -287,9 +288,10 @@ class ComponentContextImpl implements ComponentContext
   void unbind(ReferenceListener rl, ServiceReference s) {
     if (rl.unbound(s)) {
       Activator.logDebug("Unbind service " + Activator.srInfo(s) + " from " + cc);
-      if (rl.ref.unbindMethod != null && !rl.ref.unbindMethod.isMissing(true)) {
+      ComponentMethod m = rl.ref.getUnbindMethod();
+      if (m != null && !m.isMissing(true)) {
         try {
-          rl.ref.unbindMethod.prepare(this, s).invoke();
+          m.prepare(this, s).invoke();
         } catch (ComponentException _ignore) { }
       }
     }

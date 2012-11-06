@@ -48,8 +48,9 @@ class Reference implements org.apache.felix.scr.Reference
   final ReferenceDescription refDesc;
   final Filter targetFilter;
 
-  ComponentMethod bindMethod = null;
-  ComponentMethod unbindMethod = null;
+  private volatile ComponentMethod bindMethod = null;
+  private volatile ComponentMethod unbindMethod = null;
+  private volatile boolean methodsSet = false;
 
   private ReferenceListener listener = null;
   private TreeMap factoryListeners = null;
@@ -183,6 +184,33 @@ class Reference implements org.apache.felix.scr.Reference
    */
   public String toString() {
     return "Reference " + refDesc.name + " in " + comp;
+  }
+
+
+  //
+  // Package methods
+  //
+
+  private void assertMethods() {
+    if (!methodsSet) {
+      if (refDesc.bind != null) {
+        bindMethod = new ComponentMethod(refDesc.bind, comp, this);
+      }
+      if (refDesc.unbind != null) {
+        unbindMethod = new ComponentMethod(refDesc.unbind, comp, this);
+      }
+      methodsSet = true;
+    }
+  }
+
+  ComponentMethod getBindMethod() {
+    assertMethods();
+    return bindMethod;
+  }
+
+  ComponentMethod getUnbindMethod() {
+    assertMethods();
+    return unbindMethod;
   }
 
 

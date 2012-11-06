@@ -83,10 +83,19 @@ class FactoryComponent extends Component implements ComponentFactory
    */
   public ComponentInstance newInstance(Dictionary instanceProps) {
     if (hasFactoryService()) {
+      if (!isSatisfied()) {
+        throw new ComponentException("Factory is not satisfied");
+      }
       ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
       ComponentContextImpl cci = cc.activate(null, false);
-      cc.registerService();
-      return cci.getComponentInstance();
+      if (isSatisfied()) {
+        cc.registerService();
+        return cci.getComponentInstance();
+      } else {
+        // Make sure it is disposed, perhaps we should "lock" protect this code instead
+        cc.dispose(KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING);
+        throw new ComponentException("Factory is/has been deactivated");
+      }
     }
     return null;
   }

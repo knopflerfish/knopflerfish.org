@@ -11,6 +11,22 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 === Framework (Core) ===
 
 
+=== Services (Compendium) ===
+
+* SCR(component) 3.1.11
+  
+  - Fixed so that delayed components that still was satisfied
+     re-registered after being deactivated
+     (This fixes the problem that scrcommands only works once).
+  - Handle when trying to do newInstance on an unregistered
+    ComponentFactory.
+  - Fix so that static service references is valid during
+    deactivate.
+  - Fixed so that circular deactivate works, this by doing
+    unbind of dynamic optional references before deactivating
+    a component.
+
+
 === Misc (KF specific, start scripts, build system etc) ===
 
 * Desktop 3.2.5
@@ -18,6 +34,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   - The Service-Component XML presentation in the manifest-tab now
     links to the list of SCR components by name also when an
     XML-namespace prefix is present on the component-element.
+
+* Framework Commands 3.2.0
+
+  - Added "-s" flag to "threads" command for printing a
+    stack trace for the thread (Only works on java 1.5 and later).
+  - Added possibility to filter which threads to show.
 
 
 ========================================================================
@@ -166,7 +188,7 @@ Release Notes Knopflerfish 3.4.0 (OSGi R4 v4.2)
     The navigation history is cleared when a displayer becomes visible.
 
 
-  Framework Commands 3.1
+* Framework Commands 3.1
 
   - The dependency on packages org.osgi.service.permissionadmin and
     org.osgi.service.condpermadmin is now optional.

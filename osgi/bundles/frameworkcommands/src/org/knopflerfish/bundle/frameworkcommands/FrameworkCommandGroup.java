@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Reader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -1551,14 +1552,19 @@ public class FrameworkCommandGroup
   // Threads command
   //
 
-  public final static String USAGE_THREADS = "[-a]";
+  public final static String USAGE_THREADS = "[-a] [-s] [<name>] ...";
 
   public final static String[] HELP_THREADS = new String[] {
-    "Display threads within this framework", "-a  List all threads in this JVM" };
+    "Display threads within this framework",
+    "-a     List all threads in this JVM",
+    "-s     Display stack trace for thread",
+    "<name> Names of specific threads, can be a wildcard * at the end" };
 
   public int cmdThreads(Dictionary opts, Reader in, PrintWriter out,
                          Session session) {
+    final String [] threadNames = (String [])opts.get("name");
     final boolean showAll = opts.get("-a") != null;
+    final boolean showStack = opts.get("-s") != null;
     ThreadGroup tg = Thread.currentThread().getThreadGroup();
 
     for (ThreadGroup ctg = tg; ctg != null; ctg = ctg.getParent()) {
@@ -1609,6 +1615,25 @@ public class FrameworkCommandGroup
     for (int i = 0; i < count; i++) {
       try {
         StringBuffer sb = new StringBuffer();
+        if (threadNames != null) {
+          boolean match = false;
+          for (int j = 0; j < threadNames.length; j++) {
+            String name = threads[i].getName();
+            int last = threadNames[j].length() - 1;
+            if (threadNames[j].indexOf('*') == last && last >= 0) {
+              if (name.startsWith(threadNames[j].substring(0, last))) {
+                match = true;
+                break;
+              }
+            } else if (name.equals(threadNames[j])) {
+              match = true;
+              break;
+            }
+          }
+          if (!match) {
+            continue;
+          }
+        }
         int p = threads[i].getPriority();
         if (p < 10) {
           sb.append(' ');
@@ -1628,11 +1653,33 @@ public class FrameworkCommandGroup
         }
         sb.append(threads[i].getName());
         out.println(sb.toString());
+        if (showStack) {
+          out.println(printStackTrace(threads[i]));
+        }
       } catch (NullPointerException _ignore) {
         // Handle disappering thread
       }
     }
     return 0;
+  }
+
+  private String printStackTrace(Thread t) {
+    try {
+      Method m = t.getClass().getMethod("getStackTrace", null);
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      StackTraceElement [] st = (StackTraceElement [])m.invoke(t, null);
+      for (int i = 0; i < st.length; i++) {
+        pw.println(" >  " + st[i]);
+      }
+      return sw.toString();
+    } catch (IllegalAccessException _ia) {
+      return " ** Failed access StackTrace.";
+    } catch (InvocationTargetException _it) {
+      return " ** Failed to get StackTrace.";
+    } catch (NoSuchMethodException _nsm) {
+      return " ** java.lang.Thread.getStackTrace() not available.";
+    }
   }
 
 

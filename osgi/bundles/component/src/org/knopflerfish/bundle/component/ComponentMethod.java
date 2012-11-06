@@ -260,7 +260,9 @@ class ComponentMethod
           args[i] =  cci.getProperties();
         }
       } else if (params[i] == int.class || params[i] == Integer.class) {
-        args[i] = new Integer(reason);
+        args[i] = new Integer(reason > Component.KF_DEACTIVATION_REASON_BASE ?
+                              ComponentConstants.DEACTIVATION_REASON_UNSPECIFIED :
+                              reason);
       } else if (params[i] == ServiceReference.class) {
         args[i] = s;
       } else {

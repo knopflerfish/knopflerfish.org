@@ -53,6 +53,11 @@ public abstract class Component implements org.apache.felix.scr.Component {
   final private static int STATE_ENABLING = 5;
   final private static int STATE_SATISFIED = 6;
 
+  final static int KF_DEACTIVATION_REASON_BASE = 100;
+  final static int KF_DEACTIVATION_REASON_ACTIVATION_FAILED = KF_DEACTIVATION_REASON_BASE + 1;
+  final static int KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING = KF_DEACTIVATION_REASON_BASE + 2;
+  final static int KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED = KF_DEACTIVATION_REASON_BASE + 3;
+
   final SCR scr;
   final ComponentDescription compDesc;
   final BundleContext bc;
@@ -336,8 +341,8 @@ public abstract class Component implements org.apache.felix.scr.Component {
          reason == ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED;
       if (isEnabled()) {
         state = dispose ? STATE_DISPOSING : STATE_DISABLING;
-        untrackConstraints();
         disposeComponentConfigs(reason);
+        untrackConstraints();
         refs = null;
         cmDicts = null;
         id = new Long(-1);
@@ -661,7 +666,8 @@ public abstract class Component implements org.apache.felix.scr.Component {
     if (isSatisfied() &&
         (reason == ComponentConstants.DEACTIVATION_REASON_REFERENCE ||
          reason == ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_MODIFIED ||
-         reason == ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED)) {
+         reason == ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED ||
+         reason == KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED)) {
       // If still satisfied, create missing component configurations
       satisfied();
     }
@@ -725,15 +731,13 @@ public abstract class Component implements org.apache.felix.scr.Component {
       if (refs != null) {
         for (int i = 0; i < refs.length; i++) {
           Reference r = refs[i];
-          name = r.refDesc.bind;
-          if (name != null) {
-            r.bindMethod = new ComponentMethod(name, this, r);
-            saveMethod(lookfor, name, r.bindMethod);
+          ComponentMethod method = r.getBindMethod();
+          if (method != null) {
+            saveMethod(lookfor, r.refDesc.bind, method);
           }
-          name = r.refDesc.unbind;
-          if (name != null) {
-            r.unbindMethod = new ComponentMethod(name, this, r);
-            saveMethod(lookfor, name, r.unbindMethod);
+          method = r.getUnbindMethod();
+          if (method != null) {
+            saveMethod(lookfor, r.refDesc.unbind, method);
           }
         }
       }
