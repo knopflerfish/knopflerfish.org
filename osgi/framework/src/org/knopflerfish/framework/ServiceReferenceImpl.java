@@ -262,7 +262,11 @@ public class ServiceReferenceImpl implements ServiceReference
 
 
   public boolean isAssignableTo(Bundle bundle, String className) {
-    FrameworkContext fwCtx = registration.bundle.fwCtx;
+    BundleImpl sBundle = registration.bundle;
+    if (sBundle == null) {
+        throw new IllegalStateException("Service is unregistered");
+    }
+    FrameworkContext fwCtx = sBundle.fwCtx;
     if (((BundleImpl)bundle).fwCtx != fwCtx) {
       throw new IllegalArgumentException("Bundle is not from same framework as service");
     }
@@ -276,7 +280,7 @@ public class ServiceReferenceImpl implements ServiceReference
       final Pkg p = fwCtx.packages.getPkg(name);
       // Is package exported by a bundle
       if (p != null) {
-        final BundlePackages rbp = registration.bundle.gen.bpkgs;
+        final BundlePackages rbp = sBundle.gen.bpkgs;
         final BundlePackages pkgExporter = rbp.getProviderBundlePackages(name);
         List pkgProvider;
         if (pkgExporter == null) {
@@ -309,10 +313,14 @@ public class ServiceReferenceImpl implements ServiceReference
           }
         } else if (pkgProvider == null) {
           // Package not imported by registrar. E.g. proxy registration.
+          Object sService = registration.service;
+          if (sService == null) {
+            throw new IllegalStateException("Service is unregistered");
+          }
           if (p.providers.size() == 1) {
             // Only one version available, allow.
             return true;
-          } else if (registration.service instanceof ServiceFactory) {
+          } else if (sService instanceof ServiceFactory) {
             // Factory, allow.
             return true;
           } else {
@@ -323,7 +331,7 @@ public class ServiceReferenceImpl implements ServiceReference
               try {
                 Class bCls = bCL.loadClass(className);
                 // NYI, Handle Service Factories.
-                return bCls.isAssignableFrom(registration.service.getClass());
+                return bCls.isAssignableFrom(sService.getClass());
               } catch (Exception e) {
                 // If we can not load, assume that we are just a proxy.
                 return true;
@@ -341,7 +349,7 @@ public class ServiceReferenceImpl implements ServiceReference
         }
       } else {
         // Not a package under package control. System package?
-        if (name.startsWith("java.") || registration.bundle == bundle) {
+        if (name.startsWith("java.") || sBundle == bundle) {
           return true;
         } else {
           // NYI! We have a private service, check if bundle can use it.
