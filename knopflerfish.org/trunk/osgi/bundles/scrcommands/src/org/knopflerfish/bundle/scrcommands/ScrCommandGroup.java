@@ -246,7 +246,7 @@ public class ScrCommandGroup extends CommandGroupAdapter {
   // List command
   //
 
-  public final static String USAGE_LIST = "[-i] [-l] [-n] [-r] [<bundle>] ...";
+  public final static String USAGE_LIST = "[-i] [-l] [-n] [-r] [-s] [-u] [<bundle>] ...";
 
   public final static String[] HELP_LIST = new String[] {
     "List all components for specified bundles.",
@@ -256,6 +256,8 @@ public class ScrCommandGroup extends CommandGroupAdapter {
     "-l         Show long version of information",
     "-n         List components in name order",
     "-r         List components in reverse order",
+    "-s         Only list satisfied components",
+    "-u         Only list unsatisfied components",
     "<bundle>   Name or id of bundle" };
 
   public int cmdList(final Dictionary opts, final Reader in,
@@ -274,6 +276,12 @@ public class ScrCommandGroup extends CommandGroupAdapter {
     } else {
       order = new OrderBundle();
     }
+    boolean showSatisfied  = opts.get("-s") != null;
+    boolean showUnsatisfied  = opts.get("-u") != null;
+    if (!showSatisfied && !showUnsatisfied) {
+      showSatisfied = true;
+      showUnsatisfied = true;
+    }
     TreeSet /* Component */ comps = new TreeSet(order);
     if (selection != null) {
       Bundle[] b = bc.getBundles();
@@ -283,6 +291,15 @@ public class ScrCommandGroup extends CommandGroupAdapter {
           Component [] cs = scr.getComponents(b[i]);
           if (cs != null) {
             for (int j = 0; j < cs.length; j++) {
+              if (isSatisfied(cs[i])) {
+                if (!showSatisfied) {
+                  continue;
+                }
+              } else {
+                if (!showUnsatisfied) {
+                  continue;
+                }
+              }
               comps.add(cs[j]);
             }
           }
@@ -292,6 +309,15 @@ public class ScrCommandGroup extends CommandGroupAdapter {
       Component [] cs = scr.getComponents();
       if (cs != null) {
         for (int i = 0; i < cs.length; i++) {
+          if (isSatisfied(cs[i])) {
+            if (!showSatisfied) {
+              continue;
+            }
+          } else {
+            if (!showUnsatisfied) {
+              continue;
+            }
+          }
           comps.add(cs[i]);
         }
       }
@@ -300,6 +326,13 @@ public class ScrCommandGroup extends CommandGroupAdapter {
     boolean reverse = opts.get("-r") != null;
     showInfo(comps, format, reverse, out);
     return 0;
+  }
+
+  private boolean isSatisfied(Component c) {
+    return (c.getState() & (Component.STATE_ACTIVATING|
+                            Component.STATE_ACTIVE|
+                            Component.STATE_REGISTERED|
+                            Component.STATE_FACTORY)) != 0;
   }
 
   //
