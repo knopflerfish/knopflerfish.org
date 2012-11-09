@@ -193,12 +193,16 @@ class Reference implements org.apache.felix.scr.Reference
 
   private void assertMethods() {
     if (!methodsSet) {
+      HashMap lookFor = new HashMap();
       if (refDesc.bind != null) {
         bindMethod = new ComponentMethod(refDesc.bind, comp, this);
+        comp.saveMethod(lookFor, refDesc.bind, bindMethod);
       }
       if (refDesc.unbind != null) {
         unbindMethod = new ComponentMethod(refDesc.unbind, comp, this);
+        comp.saveMethod(lookFor, refDesc.unbind, unbindMethod);
       }
+      comp.scanForMethods(lookFor);
       methodsSet = true;
     }
   }

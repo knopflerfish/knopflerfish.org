@@ -114,7 +114,6 @@ public class ComponentConfiguration implements ServiceFactory {
     if (cclass != null) {
       Activator.logDebug("CC.active start activate, this=" + this +
                          ", activateCount=" + activeCount);
-      component.getMethods(cclass);
       try {
         res.setInstance(cclass.newInstance());
       }  catch (Exception e) {

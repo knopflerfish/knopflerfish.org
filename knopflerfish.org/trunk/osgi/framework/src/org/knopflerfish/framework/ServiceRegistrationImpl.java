@@ -260,6 +260,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    */
   Object getService(Bundle b) {
     Integer ref;
+    BundleImpl sBundle = null;
     synchronized (properties) {
       if (available) {
         ref = (Integer)dependents.get(b);
@@ -276,6 +277,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
           dependents.put(b, new Integer(ref != null ? ref.intValue() + 1 : 1));
           return service;
         }
+        sBundle = bundle;
       } else {
         return null;
       }
@@ -283,16 +285,16 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     Object s = null;
     if (ref == null) {
       try {
-        s = bundle.fwCtx.perm.callGetService(this, b);
+        s = sBundle.fwCtx.perm.callGetService(this, b);
         if (s == null) {
-          bundle.fwCtx.listeners.frameworkError
-            (bundle,
+          sBundle.fwCtx.listeners.frameworkError
+            (sBundle,
              new ServiceException("ServiceFactory produced null",
                                   ServiceException.FACTORY_ERROR));
         }
       } catch (Throwable pe) {
-        bundle.fwCtx.listeners.frameworkError
-          (bundle,
+        sBundle.fwCtx.listeners.frameworkError
+          (sBundle,
            new ServiceException("ServiceFactory throw an exception",
                                 ServiceException.FACTORY_EXCEPTION, pe));
       }
@@ -300,9 +302,9 @@ public class ServiceRegistrationImpl implements ServiceRegistration
         String[] classes = (String[])getProperty(Constants.OBJECTCLASS);
         for (int i = 0; i < classes.length; i++) {
           final String cls = classes[i];
-          if (!bundle.fwCtx.services.checkServiceClass(s, cls)) {
-            bundle.fwCtx.listeners.frameworkError
-              (bundle,
+          if (!sBundle.fwCtx.services.checkServiceClass(s, cls)) {
+            sBundle.fwCtx.listeners.frameworkError
+              (sBundle,
                new ServiceException("ServiceFactory produced an object " +
                                     "that did not implement: " + cls,
                                     ServiceException.FACTORY_ERROR));
@@ -357,9 +359,9 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     }
     if (recall) {
       try {
-        bundle.fwCtx.perm.callUngetService(this, b, s);
+        sBundle.fwCtx.perm.callUngetService(this, b, s);
       } catch (Throwable e) {
-        bundle.fwCtx.listeners.frameworkError(bundle, e);
+        sBundle.fwCtx.listeners.frameworkError(sBundle, e);
       }
       return null;
     } else {
@@ -415,6 +417,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   boolean ungetService(Bundle b, boolean checkRefCounter) {
     Object serviceToRemove = null;
     Hashtable deps;
+    BundleImpl sBundle;
     synchronized (properties) {
       if (dependents == null) {
         return false;
@@ -435,14 +438,15 @@ public class ServiceRegistrationImpl implements ServiceRegistration
         serviceToRemove = serviceInstances.remove(b);
       }
       deps = dependents;
+      sBundle = bundle;
     }
 
     if (serviceToRemove != null) {
       if (service instanceof ServiceFactory) {
         try {
-          bundle.fwCtx.perm.callUngetService(this, b, serviceToRemove);
+          sBundle.fwCtx.perm.callUngetService(this, b, serviceToRemove);
         } catch (Throwable e) {
-          bundle.fwCtx.listeners.frameworkError(bundle, e);
+          sBundle.fwCtx.listeners.frameworkError(sBundle, e);
         }
       }
     }

@@ -10,15 +10,25 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.2.5
+* Framework 5.2.6
 
-  - Fixed NPE when doing ServiceReference.isAssignableTo on a
+  - Fixed race condition NPE when doing ServiceReference.(un)getService()
+    on an unregistering service.
+
+  Framework 5.2.5
+
+  - Fixed NPE when doing ServiceReference.isAssignableTo on an
     unregistered service.
 
 
 === Services (Compendium) ===
 
-* SCR(component) 3.1.11
+* SCR(component) 3.1.12
+
+  - Fixed bind/unbind calls on a re-enabled component.
+  - Fixed NPE when logging to a component bundle.
+
+  Scr(component) 3.1.11
   
   - Fixed so that delayed components that still was satisfied
      re-registered after being deactivated
