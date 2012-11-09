@@ -76,7 +76,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
   ComponentMethod deactivateMethod;
   ComponentMethod modifiedMethod = null;
   private transient int state = 0;
-  private volatile boolean getMethodsDone = false;
+  private volatile Class componentClass = null;
   private Reference [] refs = null;
   private Object lock = new Object();
 
@@ -694,78 +694,62 @@ public abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Get Implementation class for this component.
    */
-  Class getImplementation() {
-    String impl = compDesc.getImplementation();
-    try {
-      return compDesc.bundle.loadClass(impl);
-    } catch (ClassNotFoundException e) {
-      String msg = "Could not find class " + impl;
-      Activator.logError(bc, msg, e);
-      throw new ComponentException(msg, e);
+  synchronized Class getImplementation() {
+    if (componentClass == null) {
+      String impl = compDesc.getImplementation();
+      try {
+        componentClass = compDesc.bundle.loadClass(impl);
+      } catch (ClassNotFoundException e) {
+        String msg = "Could not find class " + impl;
+        Activator.logError(bc, msg, e);
+        throw new ComponentException(msg, e);
+      }
+      getMethods();
     }
+    return componentClass;
   }
 
 
   /**
-   * Get all activate, deactivate, modify, bind and unbind
-   * methods specified for this component. This is done
-   * the first time this method is called.
+   * Helper method for getMethods. Saves method name to method mapping
+   * during search for methods.
    *
-   * @param clazz Implemenation class to look for methods on.
    */
-  synchronized void getMethods(Class clazz) {
-    if (!getMethodsDone) {
-      getMethodsDone = true;
-      HashMap lookfor = new HashMap();
-      String name = compDesc.getActivateMethod();
-      activateMethod = new ComponentMethod(name, this, false);
-      saveMethod(lookfor, name , activateMethod);
-      name = compDesc.getDeactivateMethod();  
-      deactivateMethod = new ComponentMethod(name, this, true);
-      saveMethod(lookfor, name, deactivateMethod);
-      name = compDesc.getModifiedMethod();
-      if (name != null) {
-        modifiedMethod = new ComponentMethod(name, this, false);
-        saveMethod(lookfor, name, modifiedMethod);
-      }
-      if (refs != null) {
-        for (int i = 0; i < refs.length; i++) {
-          Reference r = refs[i];
-          ComponentMethod method = r.getBindMethod();
-          if (method != null) {
-            saveMethod(lookfor, r.refDesc.bind, method);
-          }
-          method = r.getUnbindMethod();
-          if (method != null) {
-            saveMethod(lookfor, r.refDesc.unbind, method);
-          }
-        }
-      }
-      boolean isSCR11 = compDesc.isSCR11();
-      do {
-        Method[] methods = clazz.getDeclaredMethods();
-        HashMap nextLookfor = (HashMap)lookfor.clone();
-        for (int i = 0; i < methods.length; i++) {
-          Method m = methods[i];
-          ComponentMethod [] cm = (ComponentMethod [])lookfor.get(m.getName());
-          if (cm != null) {
-            for (int j = 0; j < cm.length; j++) {
-              if (cm[j].updateMethod(isSCR11, m, clazz)) {
-                // Found one candidate, don't look in superclass
-                nextLookfor.remove(m.getName());
-              }
+  void saveMethod(HashMap map, String key, ComponentMethod cm) {
+    ComponentMethod [] o = (ComponentMethod [])map.get(key);
+    int olen = o != null ? o.length : 0;
+    ComponentMethod [] n = new ComponentMethod [olen + 1];
+    n[olen] = cm;
+    if (o != null) {
+      System.arraycopy(o, 0, n, 0, o.length);
+    }
+    map.put(key, n);
+  }
+
+
+  /**
+   * Scan through class stack for methods
+   */
+  void scanForMethods(HashMap lookFor) {
+    boolean isSCR11 = compDesc.isSCR11();
+    Class clazz = componentClass;
+    while (clazz != null && !lookFor.isEmpty()) {
+      Method[] methods = clazz.getDeclaredMethods();
+      HashMap nextLookfor = (HashMap)lookFor.clone();
+      for (int i = 0; i < methods.length; i++) {
+        Method m = methods[i];
+        ComponentMethod [] cm = (ComponentMethod [])lookFor.get(m.getName());
+        if (cm != null) {
+          for (int j = 0; j < cm.length; j++) {
+            if (cm[j].updateMethod(isSCR11, m, clazz)) {
+              // Found one candidate, don't look in superclass
+              nextLookfor.remove(m.getName());
             }
           }
         }
-        clazz = clazz.getSuperclass();
-        lookfor = nextLookfor;
-      } while (clazz != null && !lookfor.isEmpty());
-      if (activateMethod.isMissing(false) && !compDesc.isActivateMethodSet()) {
-        activateMethod = null;
       }
-      if (deactivateMethod.isMissing(false) && !compDesc.isDeactivateMethodSet()) {
-        deactivateMethod = null;
-      }
+      clazz = clazz.getSuperclass();
+      lookFor = nextLookfor;
     }
   }
 
@@ -843,20 +827,46 @@ public abstract class Component implements org.apache.felix.scr.Component {
     return cci.hasNext() ? (ComponentConfiguration)cci.next() : null;
   }
 
-
   /**
-   * Helper method for getMethods. Saves method name to method mapping
-   * during search for methods.
+   * Get all activate, deactivate, modify, bind and unbind
+   * methods specified for this component. This is done
+   * the first time this method is called.
    *
+   * @param clazz Implemenation class to look for methods on.
    */
-  private void saveMethod(HashMap map, String key, ComponentMethod cm) {
-    ComponentMethod [] o = (ComponentMethod [])map.get(key);
-    int olen = o != null ? o.length : 0;
-    ComponentMethod [] n = new ComponentMethod [olen + 1];
-    n[olen] = cm;
-    if (o != null) {
-      System.arraycopy(o, 0, n, 0, o.length);
+  private void getMethods() {
+    HashMap lookFor = new HashMap();
+    String name = compDesc.getActivateMethod();
+    activateMethod = new ComponentMethod(name, this, false);
+    saveMethod(lookFor, name , activateMethod);
+    name = compDesc.getDeactivateMethod();  
+    deactivateMethod = new ComponentMethod(name, this, true);
+    saveMethod(lookFor, name, deactivateMethod);
+    name = compDesc.getModifiedMethod();
+    if (name != null) {
+      modifiedMethod = new ComponentMethod(name, this, false);
+      saveMethod(lookFor, name, modifiedMethod);
     }
-    map.put(key, n);
+    if (refs != null) {
+      for (int i = 0; i < refs.length; i++) {
+        Reference r = refs[i];
+        ComponentMethod method = r.getBindMethod();
+        if (method != null) {
+          saveMethod(lookFor, r.refDesc.bind, method);
+        }
+        method = r.getUnbindMethod();
+        if (method != null) {
+          saveMethod(lookFor, r.refDesc.unbind, method);
+        }
+      }
+    }
+    scanForMethods(lookFor);
+    if (activateMethod.isMissing(false) && !compDesc.isActivateMethodSet()) {
+      activateMethod = null;
+    }
+    if (deactivateMethod.isMissing(false) && !compDesc.isDeactivateMethodSet()) {
+      deactivateMethod = null;
+    }
   }
+
 }
