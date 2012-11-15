@@ -76,12 +76,7 @@ public class MTP implements MetaTypeInformation {
 
 
   static String[] toStringArray(Set set) {
-    String[] sa = new String[set.size()];
-    int i = 0;
-    for(Iterator it = set.iterator(); it.hasNext();) {
-      sa[i++] = it.next().toString();
-    }
-    return sa;
+    return (String[])set.toArray(new String[set.size()]);
   }
   
   void setBundle(Bundle bundle){

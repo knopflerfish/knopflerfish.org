@@ -232,8 +232,6 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 	    }
 	  }
 	};
-
-    setupMTListener();
   }
 
 
@@ -364,43 +362,20 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     		  set.add(pids[i]);
     	  }
       }
-      for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
-    	  ServiceReference sr = (ServiceReference)it.next();
-    	  try {
-    		  String[] pids = (String[])sr.getProperty("service.pids");
-    		  for(int i = 0; pids != null && i < pids.length; i++) {
-    			  set.add(pids[i]);
-    		  }
-    	  }
-    	  catch (Exception e) {
-    		  log.warn("No service.pids property on " + sr);
-    	  }
-      }
       return MTP.toStringArray(set);
     }
   }
 
   public String[] getFactoryPids() {
-    synchronized(providers) {
+    synchronized (providers) {
       Set set = new HashSet();
-      for(Iterator it = providers.keySet().iterator(); it.hasNext();) {
-	Bundle b   = (Bundle)it.next();
-	MetaTypeInformation mtp = (MetaTypeInformation)providers.get(b);
-	String[] pids = mtp.getFactoryPids();
-	for(int i = 0; pids != null && i < pids.length; i++) {
-	  set.add(pids[i]);
-	}
-      }
-      for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
-	ServiceReference sr = (ServiceReference)it.next();
-	try {
-	  String[] pids = (String[])sr.getProperty("factory.pids");
-	  for(int i = 0; pids != null && i < pids.length; i++) {
-	    set.add(pids[i]);
-	  }
-	} catch (Exception e) {
-	  log.warn("No factory.pids property on " + sr);
-	}
+      for (Iterator it = providers.keySet().iterator(); it.hasNext();) {
+        Bundle b = (Bundle) it.next();
+        MetaTypeInformation mtp = (MetaTypeInformation) providers.get(b);
+        String[] pids = mtp.getFactoryPids();
+        for (int i = 0; pids != null && i < pids.length; i++) {
+          set.add(pids[i]);
+        }
       }
       return MTP.toStringArray(set);
     }
@@ -451,64 +426,8 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
     		  return ocd;
     	  }
       }
-
-      synchronized(mtMap) {
-    	  for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
-    		  ServiceReference sr = (ServiceReference)it.next();
-    		  MetaTypeProvider mt = (MetaTypeProvider)mtMap.get(sr);
-    		  ObjectClassDefinition ocd = mt.getObjectClassDefinition(pid, locale);
-    		  if(ocd != null) {
-    			  return ocd;
-    		  }
-    	  }
-      }
       return null;
     }
-  }
-
-  ServiceListener mtListener = null;
-
-  // ServiceReference -> MetatypeProvider
-  Map mtMap = new HashMap();
-
-  void setupMTListener() {
-
-    mtListener = new ServiceListener() {
-
-    	public void serviceChanged(ServiceEvent ev) {
-    		ServiceReference sr = ev.getServiceReference();
-    		synchronized(mtMap) {
-    			switch(ev.getType()) {
-    				case ServiceEvent.REGISTERED:
-    					MetaTypeProvider mt = (MetaTypeProvider)bc.getService(sr);
-    					if(mt != SystemMetatypeProvider.this) {
-    						mtMap.put(sr, mt);
-    					}
-    					break;
-    				case ServiceEvent.UNREGISTERING:
-    					bc.ungetService(sr);
-    					mtMap.remove(sr);
-    					break;
-    			}
-    		}
-    	}
-    };
-
-    try {
-      String filter = "(objectclass=" + MetaTypeProvider.class.getName() + ")";
-
-      ServiceReference[] srl = bc.getServiceReferences(null, filter);
-
-      for(int i = 0; srl != null && i < srl.length; i++) {
-    	  mtListener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
-      }
-      bc.addServiceListener(mtListener, filter);
-
-    }
-    catch(Exception e) {
-      log.error("Failed to get other providers", e);
-    }
-
   }
 
   Set getCMServicePIDs() {
@@ -558,67 +477,6 @@ public class SystemMetatypeProvider extends MTP implements MetaTypeService {
 		  return mti;
 	  }
 
-	  synchronized(mtMap) {
-		  for(Iterator it = mtMap.keySet().iterator(); it.hasNext();) {
-			  ServiceReference sr = (ServiceReference)it.next();
-			  if(sr.getBundle() == bundle){
-				  MetaTypeProvider mtp = (MetaTypeProvider)mtMap.get(sr);
-				  if(!(mtp instanceof MetaTypeInformation)){
-					  return new BundleMetaTypeProvider(mtp, sr);
-				  }
-				  else{
-					  return (MetaTypeInformation) mtp;
-				  }
-			  }
-	      }
-	      return null;
-	  }
+	  return BundleMetaTypeInformationSnapshot.extractMetatypeInformation(bc, bundle);
   }
 }
-
-class BundleMetaTypeProvider implements MetaTypeInformation{
-
-	private MetaTypeProvider mtp;
-	private Bundle bundle;
-
-	//id -> MetaData
-	private String[] pids;
-	private String[] factoryPids;
-
-	public BundleMetaTypeProvider(MetaTypeProvider mtp, ServiceReference sr){
-		this.mtp = mtp;
-		this.bundle = sr.getBundle();
-
-		if(mtp instanceof ManagedService){
-			pids = new String[1];
-			pids[0] = (String) sr.getProperty(Constants.SERVICE_PID);
-			factoryPids = new String[0];
-		}
-		else if(mtp instanceof ManagedServiceFactory){
-			factoryPids = new String[1];
-			factoryPids[0] = (String) sr.getProperty(Constants.SERVICE_PID);
-			pids = new String[0];
-		}
-	}
-
-	public Bundle getBundle() {
-		return bundle;
-	}
-
-	public String[] getFactoryPids() {
-		return factoryPids;
-	}
-
-	public String[] getPids() {
-		return pids;
-	}
-
-	public String[] getLocales() {
-		return mtp.getLocales();
-	}
-
-	public ObjectClassDefinition getObjectClassDefinition(String id, String locale) {
-		return mtp.getObjectClassDefinition(id, locale);
-	}
-
-} //class

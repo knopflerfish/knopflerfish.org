@@ -1430,8 +1430,7 @@ public class Loader {
     else if (AD_E.equals(element)) {
       String id = (String) attrs.get(ATTR_ID);
       if(id == null){
-        //TODO not valid: required attribute is missing
-        return;
+        throw new Exception("Missing attribute: " + ATTR_ID);
       }
 
       String name = (String) attrs.get(ATTR_NAME);
@@ -1443,8 +1442,7 @@ public class Loader {
         type = getType(typeS);
       }
       else{
-        //TODO not valid: required attribute is missing
-        return;
+        throw new Exception("Invalid type: " + typeS);
       }
 
       String card = (String) attrs.get(ATTR_CARDINALITY);
@@ -1528,12 +1526,14 @@ public class Loader {
       if(pid != null){
         currentDesignatePid = pid;
       }
+      /*
       else{
         //TODO not valid: required attribute is missing
         if(!optionalB){
           return;
         }
       }
+      */
 
       String factoryPid = (String) attrs.get(ATTR_FACTORYPID);
       if(factoryPid != null && !factoryPid.equals("")){
@@ -1686,8 +1686,14 @@ public class Loader {
     else if("Char".equals(strType)) {
       type = AttributeDefinition.CHARACTER;
     }
+    else if("Byte".equals(strType)) {
+      type = AttributeDefinition.BYTE;
+    }
     else if("Double".equals(strType)) {
       type = AttributeDefinition.DOUBLE;
+    }
+    else if("Password".equals(strType)) {
+      type = AttributeDefinition.PASSWORD;
     }
     else {
       throw new IllegalArgumentException("Unsupported type '" + strType);

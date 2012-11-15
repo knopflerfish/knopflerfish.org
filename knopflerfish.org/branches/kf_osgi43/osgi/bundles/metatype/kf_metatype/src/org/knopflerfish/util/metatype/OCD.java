@@ -253,6 +253,9 @@ public class OCD implements ObjectClassDefinition {
    */
   public InputStream getIcon(int size) throws IOException {
     String url = getIconURL(size);
+    if(url == null) {
+      url = getIconURL(0);
+    }
     if (url != null) {
       if (sourceURL != null) {
         return new URL(new URL(sourceURL, "/"), url).openStream();
@@ -336,7 +339,7 @@ public class OCD implements ObjectClassDefinition {
     return name;
   }
 
-  /*
+  
     public String toString() {
     StringBuffer sb = new StringBuffer();
 
@@ -361,5 +364,5 @@ public class OCD implements ObjectClassDefinition {
     }
     sb.append("\n/OCD]");
     return sb.toString();
-    }*/
+    }
 }

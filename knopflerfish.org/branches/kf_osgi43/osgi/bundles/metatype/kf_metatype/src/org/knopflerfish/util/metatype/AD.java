@@ -115,7 +115,7 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
 	      String[] defValue,
 	      String[] optLabels,
 	      String[] optValues) {
-    if(type < STRING || type > BOOLEAN) {
+    if(type < STRING || type > PASSWORD) {
       throw new IllegalArgumentException("Unsupported type " + type);
     }
 
@@ -149,6 +149,9 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       case BOOLEAN:
 	s = "false"; 
 	break;
+      case PASSWORD:
+  s = "";
+  break;
       }
       defValue = new String[] { s };
     }
@@ -349,7 +352,7 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
   static Class BIGINTEGER_OBJECT    = Integer.class;
 
 
-  static final Class[] ARRAY_CLASSES     = new Class[BOOLEAN-STRING + 1];
+  static final Class[] ARRAY_CLASSES     = new Class[PASSWORD-STRING + 1];
   static final Class[] PRIMITIVE_CLASSES = new Class[] {
     String.class,  
     Long.TYPE,  
@@ -361,7 +364,8 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
     Float.TYPE,  
     BIGINTEGER_PRIMITIVE,  
     BIGDECIMAL_PRIMITIVE,  
-    Boolean.TYPE,  
+    Boolean.TYPE,
+    String.class,
   };
   static final Class[] OBJECT_CLASSES = new Class[] {
     String.class,  
@@ -374,7 +378,8 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
     Float.class,  
     BIGINTEGER_OBJECT,  
     BIGDECIMAL_OBJECT,  
-    Boolean.class,  
+    Boolean.class,
+    String.class,
   };
 
   static {    
@@ -399,7 +404,7 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
     */
 
     try {
-      for(int i = STRING; i <= BOOLEAN; i++) {
+      for(int i = STRING; i <= PASSWORD; i++) {
 	ARRAY_CLASSES[i-STRING] = 
 	  (Array.newInstance(getPrimitiveClass(i),0)).getClass();
       }
@@ -431,7 +436,7 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
 
     // Isn't there an easier way of doing this? Like
     // Array.getElementClass() or similar?
-    for(int i = STRING; i <= BOOLEAN; i++) {
+    for(int i = STRING; i <= PASSWORD; i++) {
       if(ARRAY_CLASSES[i-STRING].equals(val.getClass())) {
 	return i;
       }
@@ -465,12 +470,12 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
       return SHORT;
     } else if(val instanceof Character) {
       return CHARACTER;
+    } else if(val instanceof Byte) {
+      return BYTE;
     } else if(BIGINTEGER_OBJECT.isAssignableFrom(val.getClass())) {
       return BIGINTEGER;
     } else if(BIGDECIMAL_OBJECT.isAssignableFrom(val.getClass())) {
       return BIGDECIMAL;
-    } else if(val instanceof String) {
-      return STRING;
     } else {
       throw new IllegalArgumentException("Unsupported type " + val.getClass().getName());
     }
@@ -489,10 +494,9 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
    * </p>
    */
   public String validate(String value) {
-	  
-	if(value == null){
-		return null;
-	}
+  	if(value == null){
+  		return null;
+  	}
   
     if(card == Integer.MIN_VALUE) {
       return validateMany(value, type, Integer.MAX_VALUE);
@@ -579,15 +583,16 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
   String validateSingle(String valueS, int type) {
     try {
       switch(type) {
-      	case STRING: 
+      	case STRING:
+      	case PASSWORD:
       		try{
       			if(min != null){
-      				if(valueS.compareTo(min) < 0){
+      				if(valueS.length() < Integer.parseInt(min)){
       					return "value out of range";
       				}
       		    }
       			if(max != null){
-      				if(valueS.compareTo(max) > 0){
+      				if(valueS.length() > Integer.parseInt(max)){
       					return "value out of range";
       				}
       			}
@@ -845,7 +850,8 @@ public class AD implements AttributeDefinition, Comparable, Cloneable {
   public static Object parseSingle(String value, int type) {
 
     switch(type) {
-    case STRING: 
+    case STRING:
+    case PASSWORD:
       return value;
     case INTEGER: 
       return new Integer(value.trim());
