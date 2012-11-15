@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.event;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -148,8 +149,18 @@ public class TrackedEventHandler {
       return;
     }
 
-    String[] topics = (o instanceof String) ? new String[] { (String) o }
-        : (String[]) o;
+    String[] topics = null;
+    if(o instanceof String) {
+      topics = new String[] {(String) o};
+    } else if(o instanceof String[]) {
+      topics = (String[]) o;
+    } else if(o instanceof Collection ) { 
+        Collection c = (Collection)o;
+        topics = (String[])c.toArray(new String[c.size()]);
+    } else {
+      setBlacklist(true);
+      return;
+    }
 
     for (int i = 0; i < topics.length; ++i) {
       String t = topics[i];

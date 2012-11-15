@@ -1,6 +1,6 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2008). All Rights Reserved.
- * 
+ * Copyright (c) OSGi Alliance (2005, 2010). All Rights Reserved.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,37 +23,40 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 
 /**
- * Defines standard names for <code>EventHandler</code> properties.
- * 
- * @version $Revision: 7368 $
+ * Defines standard names for {@code EventHandler} properties.
+ *
+ * @noimplement
+ * @version $Id: 5b7adf8ef0b01a8a0f436acd5686b4208a640d2e $
  */
 public interface EventConstants {
 
 	/**
-	 * Service registration property (named <code>event.topics</code>)
-	 * specifying the <code>Event</code> topics of interest to a Event Handler
-	 * service.
+	 * Service registration property specifying the {@code Event} topics of
+	 * interest to an Event Handler service.
 	 * <p>
-	 * Event handlers SHOULD be registered with this property. The value of the
-	 * property is a string or an array of strings that describe the topics in
-	 * which the handler is interested. An asterisk ('*') may be used as a
-	 * trailing wildcard. Event Handlers which do not have a value for this
-	 * property must not receive events. More precisely, the value of each
-	 * string must conform to the following grammar:
-	 * 
+	 * Event handlers SHOULD be registered with this property. Each value of
+	 * this property is a string that describe the topics in which the handler
+	 * is interested. An asterisk ('*') may be used as a trailing wildcard.
+	 * Event Handlers which do not have a value for this property must not
+	 * receive events. More precisely, the value of each string must conform to
+	 * the following grammar:
+	 *
 	 * <pre>
 	 *  topic-description := '*' | topic ( '/*' )?
 	 *  topic := token ( '/' token )*
 	 * </pre>
-	 * 
+	 *
+	 * <p>
+	 * The value of this property must be of type {@code String},
+	 * {@code String[]}, or {@code Collection&lt;String&gt;}.
+	 *
 	 * @see Event
 	 */
 	public static final String	EVENT_TOPIC			= "event.topics";
 
 	/**
-	 * Service Registration property (named <code>event.filter</code>)
-	 * specifying a filter to further select <code>Event</code> s of interest to
-	 * a Event Handler service.
+	 * Service Registration property specifying a filter to further select
+	 * {@code Event} s of interest to an Event Handler service.
 	 * <p>
 	 * Event handlers MAY be registered with this property. The value of this
 	 * property is a string containing an LDAP-style filter specification. Any
@@ -66,29 +69,82 @@ public interface EventConstants {
 	 * <p>
 	 * If the filter syntax is invalid, then the Event Handler must be ignored
 	 * and a warning should be logged.
-	 * 
+	 *
+	 * <p>
+	 * The value of this property must be of type {@code String}.
+	 *
 	 * @see Event
 	 * @see Filter
 	 */
 	public static final String	EVENT_FILTER		= "event.filter";
 
 	/**
+	 * Service Registration property specifying the delivery qualities requested
+	 * by an Event Handler service.
+	 * <p>
+	 * Event handlers MAY be registered with this property. Each value of this
+	 * property is a string specifying a delivery quality for the Event handler.
+	 *
+	 * <p>
+	 * The value of this property must be of type {@code String},
+	 * {@code String[]}, or {@code Collection&lt;String&gt;}.
+	 *
+	 * @see #DELIVERY_ASYNC_ORDERED
+	 * @see #DELIVERY_ASYNC_UNORDERED
+	 * @since 1.3
+	 */
+	public static final String	EVENT_DELIVERY			= "event.delivery";
+
+	/**
+	 * Event Handler delivery quality value specifying the Event Handler
+	 * requires asynchronously delivered events be delivered in order. Ordered
+	 * delivery is the default for asynchronously delivered events.
+	 *
+	 * <p>
+	 * This delivery quality value is mutually exclusive with
+	 * {@link #DELIVERY_ASYNC_UNORDERED}. However, if both this value and
+	 * {@link #DELIVERY_ASYNC_UNORDERED} are specified for an event handler,
+	 * this value takes precedence.
+	 *
+	 * @see #EVENT_DELIVERY
+	 * @since 1.3
+	 */
+	public static final String	DELIVERY_ASYNC_ORDERED		= "async.ordered";
+
+	/**
+	 * Event Handler delivery quality value specifying the Event Handler does
+	 * not require asynchronously delivered events be delivered in order. This
+	 * may allow an Event Admin implementation to optimize asynchronous event
+	 * delivery by relaxing ordering requirements.
+	 *
+	 * <p>
+	 * This delivery quality value is mutually exclusive with
+	 * {@link #DELIVERY_ASYNC_ORDERED}. However, if both this value and
+	 * {@link #DELIVERY_ASYNC_ORDERED} are specified for an event handler,
+	 * {@link #DELIVERY_ASYNC_ORDERED} takes precedence.
+	 *
+	 * @see #EVENT_DELIVERY
+	 * @since 1.3
+	 */
+	public static final String	DELIVERY_ASYNC_UNORDERED	= "async.unordered";
+
+	/**
 	 * The Distinguished Names of the signers of the bundle relevant to the
 	 * event. The type of the value for this event property is
-	 * <code>String</code> or <code>Collection</code> of <code>String</code>.
+	 * {@code String} or {@code Collection} of {@code String}.
 	 */
 	public static final String	BUNDLE_SIGNER		= "bundle.signer";
 
 	/**
 	 * The Bundle Symbolic Name of the bundle relevant to the event. The type of
-	 * the value for this event property is <code>String</code>.
+	 * the value for this event property is {@code String}.
 	 */
 	public static final String	BUNDLE_SYMBOLICNAME	= "bundle.symbolicName";
 
 	/**
 	 * The Bundle id of the bundle relevant to the event. The type of the value
-	 * for this event property is <code>Long</code>.
-	 * 
+	 * for this event property is {@code Long}.
+	 *
 	 * @since 1.1
 	 */
 	public static final String	BUNDLE_ID			= "bundle.id";
@@ -96,7 +152,7 @@ public interface EventConstants {
 	/**
 	 * The Bundle object of the bundle relevant to the event. The type of the
 	 * value for this event property is {@link Bundle}.
-	 * 
+	 *
 	 * @since 1.1
 	 */
 	public static final String	BUNDLE				= "bundle";
@@ -104,7 +160,7 @@ public interface EventConstants {
 	/**
 	 * The version of the bundle relevant to the event. The type of the value
 	 * for this event property is {@link Version}.
-	 * 
+	 *
 	 * @since 1.2
 	 */
 	public static final String	BUNDLE_VERSION		= "bundle.version";
@@ -112,36 +168,36 @@ public interface EventConstants {
 	/**
 	 * The forwarded event object. Used when rebroadcasting an event that was
 	 * sent via some other event mechanism. The type of the value for this event
-	 * property is <code>Object</code>.
+	 * property is {@code Object}.
 	 */
 	public static final String	EVENT				= "event";
 
 	/**
 	 * An exception or error. The type of the value for this event property is
-	 * <code>Throwable</code>.
+	 * {@code Throwable}.
 	 */
 	public static final String	EXCEPTION			= "exception";
 
 	/**
 	 * The name of the exception type. Must be equal to the name of the class of
 	 * the exception in the event property {@link #EXCEPTION}. The type of the
-	 * value for this event property is <code>String</code>.
-	 * 
+	 * value for this event property is {@code String}.
+	 *
 	 * @since 1.1
 	 */
 	public static final String	EXCEPTION_CLASS		= "exception.class";
 
 	/**
 	 * The exception message. Must be equal to the result of calling
-	 * <code>getMessage()</code> on the exception in the event property
+	 * {@code getMessage()} on the exception in the event property
 	 * {@link #EXCEPTION}. The type of the value for this event property is
-	 * <code>String</code>.
+	 * {@code String}.
 	 */
 	public static final String	EXCEPTION_MESSAGE	= "exception.message";
 
 	/**
 	 * A human-readable message that is usually not localized. The type of the
-	 * value for this event property is <code>String</code>.
+	 * value for this event property is {@code String}.
 	 */
 	public static final String	MESSAGE				= "message";
 
@@ -153,33 +209,33 @@ public interface EventConstants {
 
 	/**
 	 * A service's id. The type of the value for this event property is
-	 * <code>Long</code>.
+	 * {@code Long}.
 	 */
 	public static final String	SERVICE_ID			= Constants.SERVICE_ID;
 
 	/**
 	 * A service's objectClass. The type of the value for this event property is
-	 * <code>String[]</code>.
+	 * {@code String[]}.
 	 */
 	public static final String	SERVICE_OBJECTCLASS	= "service.objectClass";
 
 	/**
 	 * A service's persistent identity. The type of the value for this event
-	 * property is <code>String</code>.
+	 * property is {@code String} or {@code Collection} of {@code String}.
 	 */
 	public static final String	SERVICE_PID			= Constants.SERVICE_PID;
 
 	/**
 	 * The time when the event occurred, as reported by
-	 * <code>System.currentTimeMillis()</code>. The type of the value for this
-	 * event property is <code>Long</code>.
+	 * {@code System.currentTimeMillis()}. The type of the value for this
+	 * event property is {@code Long}.
 	 */
 	public static final String	TIMESTAMP			= "timestamp";
 
 	/**
 	 * This constant was released with an incorrectly spelled name. It has been
 	 * replaced by {@link #EXCEPTION_CLASS}
-	 * 
+	 *
 	 * @deprecated As of 1.1, replaced by EXCEPTION_CLASS
 	 */
 	public static final String	EXECPTION_CLASS		= "exception.class";
