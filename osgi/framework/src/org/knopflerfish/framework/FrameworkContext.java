@@ -46,6 +46,7 @@ import org.osgi.service.startlevel.StartLevel;
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
 
+import org.knopflerfish.service.resman.ResourceManager;
 
 /**
  * This class contains references to all common data structures
@@ -370,6 +371,7 @@ public class FrameworkContext  {
                       null);
 
     registerStartLevel();
+    registerResourceManager();
 
     bundles.load();
 
@@ -529,6 +531,23 @@ public class FrameworkContext  {
     }
   }
 
+
+  /**
+   * Setup start level service, if enabled.
+   *
+   */
+  private ResourceManagerImpl resman;
+  private void registerResourceManager() {
+    this.resman = new ResourceManagerImpl(this);
+    services.register(systemBundle,
+		      new String[] { ResourceManager.class.getName() },
+		      resman,
+		      null);
+  }
+
+  ResourceManagerImpl getResourceManager() {
+    return resman;
+  }
 
   /**
    * Get private bundle data storage file handle.

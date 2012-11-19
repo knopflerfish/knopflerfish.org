@@ -65,6 +65,7 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
+import java.util.Collection;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -76,6 +77,8 @@ import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.service.startlevel.StartLevel;
+import org.knopflerfish.service.resman.ResourceManager;
+import org.knopflerfish.service.resman.BundleMonitor;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
@@ -97,7 +100,8 @@ public class FrameworkCommandGroup
   private final PackageAdmin packageAdmin;
   private final PermissionAdminHelper permissionAdminHelper;
   private final StartLevel startLevel;
-
+  private final ResourceManager resman;
+  
   /**
    * The default directories for bundle jar files.
    *
@@ -127,6 +131,9 @@ public class FrameworkCommandGroup
 
     sr = bc.getServiceReference(StartLevel.class.getName());
     startLevel = null==sr ? null : (StartLevel) bc.getService(sr);
+
+    sr = bc.getServiceReference(ResourceManager.class.getName());
+    resman = null==sr ? null : (ResourceManager) bc.getService(sr);
 
     try {
       setupJars();
@@ -1186,6 +1193,39 @@ public class FrameworkCommandGroup
     return 0;
   }
 
+  public final static String USAGE_RESMAN = "[-a]";
+
+  public final static String[] HELP_RESMAN = new String[] {
+    "Display bundle resource consumption within the framework" };
+    
+  public int cmdResman(Dictionary opts, Reader in, PrintWriter out,
+		       Session session) {
+    out.println("   id  level/state  Name                     Memory(max)   Threads(max) CPU(max)");
+    out.println("   -----------------------------------------------------------------------------");
+    
+    Bundle[] bundles = getBundles((String[]) opts.get("bundle"),true,true);
+    for (int i = 0; i < bundles.length; i++) {
+      StringBuffer sbuf = new StringBuffer(80);
+      sbuf.setLength(80);
+      for (int j = 0; j < sbuf.length(); j++) {
+	sbuf.setCharAt(j, ' ');
+      }
+      sbuf.insert(0, Util.showId(bundles[i]));
+      sbuf.insert(7, showState(bundles[i]));
+      prettyPrint(sbuf,20,16,true,Util.shortName(bundles[i]));
+
+      BundleMonitor bmon = resman.getMonitor(bundles[i]);
+      if (bmon != null) {
+	prettyPrint(sbuf, 38, 21, false, formatValueAndMax((int)bmon.getMemory(), (int)bmon.getMemoryLimit()));
+	prettyPrint(sbuf, 61, 8, false, formatValueAndMax(bmon.getThreadCount(), bmon.getThreadCountLimit()));
+	prettyPrint(sbuf, 71, 8, false, formatValueAndMax(bmon.getCPU(), bmon.getCPULimit()));
+      }
+      sbuf.setLength(80);
+      out.println(sbuf);
+    }
+    return 0;
+  }
+
   //
   // Services command
   //
@@ -2199,5 +2239,25 @@ public class FrameworkCommandGroup
     return res;
   }
 
-
+  private static void prettyPrint(StringBuffer sbuf, int start, int len, boolean leftalign, String s) {
+    // System.out.println("Pretty printing: " +s);
+    if (leftalign) {
+      sbuf.insert(start,s.substring(0,Math.min(len,s.length())));
+    }
+    else {
+      String s2 = s.substring(0,Math.min(len,s.length()));
+      sbuf.insert(start+len-s2.length(), s2);
+    }
+  }
+  
+  private static String formatValueAndMax(int val, int max) {
+    StringBuffer sbuf = new StringBuffer();
+    sbuf.append(val);
+    sbuf.append("(");
+    sbuf.append(max);
+    sbuf.append(")");
+    // System.out.println("formatValueAndMax: " + sbuf.toString());
+    return sbuf.toString();
+    
+  }
 }

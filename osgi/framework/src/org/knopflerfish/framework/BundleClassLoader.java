@@ -147,6 +147,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     bpkgs = gen.bpkgs;
     archive = gen.archive;
     classPath = new BundleClassPath(archive, gen.fragments, fwCtx);
+    fwCtx.getResourceManager().monitor(this);
     if (debug.classLoader) {
       debug.println(this + " Created new classloader");
     }

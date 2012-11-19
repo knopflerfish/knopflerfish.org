@@ -439,8 +439,9 @@ public class BundleGeneration implements Comparable {
               fragments.add(bg);
             }
           }
-        }
+	}
         classLoader = bundle.secure.newBundleClassLoader(this);
+	
         return true;
       }
       if (fragments != null) {
