@@ -1,0 +1,13 @@
+Bundle-Name: preferences_test
+Bundle-SymbolicName: preferences_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for OSGi Preferences Service
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.preferences_test.Activator
+Bundle-Category: test
+Import-Package: org.osgi.framework,
+ junit.framework,
+ org.osgi.service.prefs
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/preferences_test

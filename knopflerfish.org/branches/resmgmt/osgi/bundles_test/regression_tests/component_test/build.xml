@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+
+<project name="component_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.component_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"   value=""/>
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="component_api-N.N.N.jar"/>
+    <pathelement location="log_api-N.N.N.jar"/>
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+    <pathelement location="${resources.dir}/component-api_test-1.0.0.jar"/>
+  </path>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+    <mkdir dir="${ttb.outdir}"/>
+    <antcall target="component-api_test"/>
+    <antcall target="componentA_test"/>
+    <antcall target="componentE_test"/>
+    <antcall target="component2_test"/>
+  </target>
+
+  <target name="component-api_test">
+    <ant dir="test_target_bundles/component-api_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/component-api_test"/>
+    </ant>
+  </target>
+  <target name="componentA_test">
+    <ant dir="test_target_bundles/componentA_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/componentA_test"/>
+    </ant>
+  </target>
+  <target name="componentE_test">
+    <ant dir="test_target_bundles/componentE_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/componentE_test"/>
+    </ant>
+  </target>
+  <target name="component2_test">
+    <ant dir="test_target_bundles/component2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/component2_test"/>
+    </ant>
+  </target>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

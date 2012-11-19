@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bundlejar>
+<resource src="/jsdk/out" type="0" dst="" pattern=".*\.class"/>
+</bundlejar>

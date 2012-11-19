@@ -1,0 +1,25 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: comm-linux
+Bundle-SymbolicName: org.knopflerfish.bundle.comm-linux
+Bundle-Version: 2.0.0
+Bundle-Category: service
+Bundle-Description: Native driver for linux javax.comm using the RXTX 
+ library. Note that this bundle is LGPL and contains full source to rxtx
+Bundle-Vendor: Piayda/RXTX
+Bundle-APIVendor: Piayda/Sun
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=serial
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/serial/comm-linux/
+Bundle-NativeCode: librxtxParallel.so; librxtxSerial.so ; processor = 
+ i386 ; osname = Linux, librxtxParallel.so; librxtxSerial.so ; process
+ or = x86 ; osname = Linux, librxtxParallel.so; librxtxSerial.so ; pro
+ cessor = i386 ; osname = NetBSD
+Bundle-Classpath: .,RXTXcomm.jar,comm.jar
+Bundle-Activator: info.piayda.bundle.comm.linux.Activator
+Export-Package: javax.comm;specification-version=2.0,gnu.io;specificat
+ ion-version=2.0
+Import-Package: org.osgi.framework,javax.comm;specification-version=2.
+ 0,gnu.io;specification-version=2.0

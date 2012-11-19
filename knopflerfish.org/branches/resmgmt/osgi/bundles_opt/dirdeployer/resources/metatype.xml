@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+
+<metatype:metatype
+        xmlns:metatype = "http://www.knopflerfish.org/XMLMetatype"
+        xmlns:xsd      = "http://www.w3.org/2001/XMLSchema">
+
+  <xsd:schema >
+   <xsd:complexType name="org.knopflerfish.fileinstall">
+    <xsd:annotation>
+     <xsd:documentation><![CDATA[
+Configuration for directory deployer bundle, similar to the OSGi "fileinstall" bundle.
+]]></xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name = "org.knopflerfish.fileinstall.dir"  type="xsd:string">
+     <xsd:annotation>
+      <xsd:documentation><![CDATA[
+     Set the directories that should be scanned.
+<p>
+        The initial set of directories are read from the 
+	system property org.knopflerfish.fileinstall.dir, which 
+	should be a comma-separated list of directory paths. If this property
+	is not set, the single default path is ./load.
+</p>
+]]></xsd:documentation>
+     </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name = "org.knopflerfish.fileinstall.poll"  type="xsd:long">
+     <xsd:annotation>
+      <xsd:documentation><![CDATA[
+Poll interval in milliseconds between directory scans. Must be at least 100 ms.
+]]></xsd:documentation>
+     </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name = "org.knopflerfish.fileinstall.startlevel"  type="xsd:int">
+     <xsd:annotation>
+      <xsd:documentation><![CDATA[
+Bundle start level of all newly installed bundles.
+]]></xsd:documentation>
+     </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="org.knopflerfish.fileinstall.uninstallOnStop"
+		 type="xsd:boolean">
+     <xsd:annotation>
+      <xsd:documentation><![CDATA[
+If <code>true</code> then the directory deployer will
+uninstall all bundles that it has installed when it stopps.
+]]></xsd:documentation>
+     </xsd:annotation>
+    </xsd:element>
+
+   </xsd:complexType> 
+
+  </xsd:schema>
+  
+  <!-- the default values are represented by an instance of the -->
+  <!-- schema specified above                                   -->
+
+  <metatype:values>
+
+   <org.knopflerfish.fileinstall>
+    <org.knopflerfish.fileinstall.dir>
+     ./load
+    </org.knopflerfish.fileinstall.dir>
+    <org.knopflerfish.fileinstall.poll>
+     1000
+    </org.knopflerfish.fileinstall.poll>
+    <org.knopflerfish.fileinstall.startlevel>
+     1
+    </org.knopflerfish.fileinstall.startlevel>
+    <org.knopflerfish.fileinstall.uninstallOnStop>
+     true
+    </org.knopflerfish.fileinstall.uninstallOnStop>
+   </org.knopflerfish.fileinstall>
+
+  </metatype:values>
+
+</metatype:metatype>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+
+  <!-- A service publishing component that has an optional dynamic reference -->
+  <component name="componentE_test.E1"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.0.0">
+    <implementation
+       class="org.knopflerfish.bundle.componentE_test.ComponentE1Impl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentE_test.ComponentE1"/>
+    </service>
+    <reference name="componentE_test.E2"
+               interface="org.knopflerfish.service.componentE_test.ComponentE2"
+               cardinality="0..1"
+               policy="dynamic"
+               bind="setE2"
+               unbind="unsetE2"/>
+  </component>
+
+  <!-- A factory component that will publish an E2 service when instanciated -->
+  <component name="componentE_test.E2"
+             factory="componentE_test.E2-factory"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.0.0" >
+    <implementation
+       class="org.knopflerfish.bundle.componentE_test.ComponentE2Impl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentE_test.ComponentE2"/>
+    </service>
+ </component>
+
+</root>

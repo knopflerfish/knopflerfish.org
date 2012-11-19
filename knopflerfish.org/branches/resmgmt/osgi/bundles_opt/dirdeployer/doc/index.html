@@ -1,0 +1,141 @@
+<h1>Directory deployer</h1>
+
+<p>
+Simple bundle which scans file system directories and
+installs/uninstalls bundles found or removed from these directories.
+</p>
+
+<p>
+This is a quite useful tool for handle bundle deployment without using any 
+console. Just copy the bundles that should be started to the deploy 
+directory, and the directory deployer will find and start them. When the 
+files are removed, they are uninstalled.
+</p>
+
+<h2>Deploy method</h2>
+
+<p>The procedure for scanning and deploying is as follows:
+
+<ol>
+  <li>
+      Check if any new files have appeared or if any already deployed
+      files has been replaced with newer files.
+  </li>
+
+  <li>
+      New files are installed into the framework.<br> If they are not
+      fragment bundles, they are marked for start at the end of the
+      scan.<br> Files newer than a previously deployed bundle are
+      updated.
+  </li>
+
+  <li>
+      Files that have the same location as an already installed bundle
+      is not installed again, instead, the installed bundle is re-used
+      in the created DeployedFile instance.
+  </li>
+
+  <li>
+      Check if there are bundle installed by the directory deployer
+      that does not correspond to a file found during the directory
+      scan. If such bundles are found uninstall them.
+  </li>
+
+  <li>
+      If any bundle update was performed during the scan, perform a
+      refresh packages operation for them using the in the package
+      admin service.
+  </li>
+
+  <li>
+      Files marked for start are started.
+  </li>
+
+  <li>
+      Sleep a while
+  </li>
+
+  <li>
+      Repeat from 1.
+  </li>
+
+</ol>
+
+<h2>Configuration</h2>
+
+<p>
+See <a href="$(SVN_REPO_URL)/$(SVN_TAG)/osgi/bundles_opt/dirdeployer/resources/metatype.xml">metatype.xml</a>
+for specification using CM. The same properties as defined by CM are
+also read as default values from framework properties. Thus, the
+bundle can be both configured by CM and using system properties.
+</p>
+<p>
+Quick guide to the metatype.xml format:
+<ul>
+ <li>Top level <tt>xsd:complexType</tt> is service PIDs</li>
+ <li><tt>xsd:element</tt> is a property</li>
+ <li><tt>metatype:values</tt> defines default values</li>
+</ul>
+For details on the metatype format, see <a
+href="http://www.knopflerfish.org/XMLMetatype">http://www.knopflerfish.org/XMLMetatype/</a>
+
+<p>You can set the deployment directory in <tt>metatype.xml</tt> in
+the bundle's resource directory (defaults to <tt>./load</tt>). A
+relative deployment directory path is relative to the directory from
+which the framework is started.</p>
+
+The table below describes the framework properties that may be used to
+set the default values for the directory deployer configuration.
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Type</th>
+    <th>Default</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.fileinstall.dir</td>
+    <td>
+
+	Set the directories that should be scanned.
+
+	<p>The value should be a comma-separated list of directory
+	paths.</p>
+
+    </td>
+    <td>String</td>
+    <td>./load</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.fileinstall.poll</td>
+    <td>
+
+	Poll interval in milliseconds between directory scans. Must be
+	at least 100 ms. 
+
+    </td>
+    <td>long</td>
+    <td>1000</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.fileinstall.startlevel</td>
+    <td>
+
+	Bundle start level to assign to all newly installed bundles.
+
+    </td>
+    <td>int</td>
+    <td>The initial bundle startlevel as returned by the StartLeve-service.</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.fileinstall.uninstallOnStop</td>
+    <td>
+
+	If <code>true</code> then the directory deployer will
+        uninstall all bundles that it has installed when it stopps.
+
+    </td>
+    <td>boolean</td>
+    <td>true</td>
+  </tr>
+</table>

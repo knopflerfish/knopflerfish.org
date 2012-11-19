@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="xml-dir" default="all">
+
+  <!-- Internal target that calls a specified target in all sub-dirs. -->
+  <target name="doAntBuild">
+    <ant target="${the.target}" dir="xml"/>
+    <ant target="${the.target}" dir="kxml"/>
+    <ant target="${the.target}" dir="crimson"/>
+    <ant target="${the.target}" dir="xerces"/>
+    <ant target="${the.target}" dir="xalan"/>
+  </target>
+
+  <target name="all" 
+	  description="Builds all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="all"/>
+    </antcall>
+  </target>
+
+  <target name="clean" 
+	  description="Cleans all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="clean"/>
+    </antcall>
+  </target>
+  
+  <target name="bundle_doc" 
+	  depends="bundle_doc_overview"
+	  description="Builds doc for all bundles">
+    <antcall target="doAntBuild">
+      <param name="the.target" value="bundle_doc"/>
+    </antcall>
+  </target>
+
+  <property name="topdir" location="../.."/>
+  <import file="${topdir}/../ant/docbuild_include.xml"/>
+
+  <target name="bundle_doc_overview">
+    <!-- The root of the local bundle docs directory. -->
+    <property name = "docs.dir" location = "${topdir}/out/doc"/>
+    <antcall target="build_doc">
+      <param name="docbuild.name" value="xml_index"/>
+      <param name="docbuild.title" value="XML parsers in Knopflerfish"/>
+      <param name="docbuild.fromdir" location="doc"/>
+      <param name="docbuild.outdir"  location="${docs.dir}/xml_index"/>
+      <param name="docbuild.description"
+	     value="How to export a registered service as a Web Service using SOAP"/>
+    </antcall>
+  </target>
+
+</project>

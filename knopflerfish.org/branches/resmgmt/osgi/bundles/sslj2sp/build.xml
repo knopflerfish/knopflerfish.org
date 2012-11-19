@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="sslj2sp" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.sslj2sp}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+
+  <property name = "do.bundle.custom.pre"  value="true"/>
+  <property name = "do.bundle.custom.post" value="true"/>
+
+  <property name = "bundle.build.api"      value = "false"/>
+  <property name = "bundle.build.impl"     value = "true"/>
+  <property name = "bundle.build.lib"      value = "false"/>
+  <property name = "bundle.build.all"      value = "false"/>
+
+  <property name="impl.pattern"            value="org/knopflerfish/**/*"/>
+  <property name="resources.dir"           value="resources"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="cm_api-N.N.N.jar"/>
+    <pathelement location="log_api-N.N.N.jar"/>
+  </path>
+
+  <!-- want to include the log client w/o duplicating code -->
+  <target name="bundle.custom.pre">
+    <mkdir dir="src/org/knopflerfish/service/log"/>
+    <copy todir="src/org/knopflerfish/service/log">
+      <fileset dir="${topdir}/bundles/log/src/org/knopflerfish/service/log" />
+    </copy>
+  </target>
+
+  <!-- need to undo the bundle.custom.pre step and do not want to -->
+  <!-- overwrite clean -->
+  <target name="bundle.custom.post">
+    <delete dir="src/org/knopflerfish/service"
+            quiet="true"
+	    failonerror="false" />
+  </target>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

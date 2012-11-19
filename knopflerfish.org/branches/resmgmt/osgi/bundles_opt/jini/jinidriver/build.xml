@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="jinidriver" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.jinidriver}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.lib"  value="false"/>
+
+  <property name="api.pattern"
+	    value="net/jini/admin/*,
+		   net/jini/core/discovery/*,
+		   net/jini/core/entry/*,
+		   net/jini/core/event/*,
+		   net/jini/core/lease/*,
+		   net/jini/core/lookup/*,
+		   net/jini/discovery/*,
+		   net/jini/lease/*,
+		   net/jini/lookup/*,
+		   net/jini/lookup/entry/*,
+		   org/osgi/service/jini/*"/>
+
+  <property name="impl.pattern"
+	    value="org/knopflerfish/bundle/**"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="log_api-N.N.N.jar"/>
+    <pathelement location="jsdk_api-N.N.N.jar"/>
+    <pathelement location="http_api-N.N.N.jar"/>
+    <pathelement location="cm_api-N.N.N.jar"/>
+    <pathelement location="device_api-N.N.N.jar"/>
+    <pathelement location="resources/lib/jini-core.jar"/>
+    <pathelement location="resources/lib/jini-ext.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

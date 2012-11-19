@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   ** Copyright (c) 2003-2011, KNOPFLERFISH project
+   ** All rights reserved.
+   **
+   ** Redistribution and use in source and binary forms, with or without
+   ** modification, are permitted provided that the following conditions
+   ** are met:
+   **
+   ** - Redistributions of source code must retain the above copyright notice,
+   **   this list of conditions and the following disclaimer.
+   **
+   ** - Redistributions in binary form must reproduce the above copyright
+   **   notice, this list of conditions and the following disclaimer in
+   **   the documentation and/or other materials provided with the
+   **   distribution.
+   **
+   ** - Neither the name of the KNOPFLERFISH project nor the names of its
+   **   contributors may be used to endorse or promote products derived
+   **   from this software without specific prior written permission.
+   **
+   ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+   ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+   ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+   ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+   ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+   ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+   ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+   ** OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+
+<project name="bundletasks" basedir="." default="default">
+
+  <dirname  property="ant.dir" file="${ant.file.bundletasks}"/>
+
+  <property name="ant.lib"       location="${ant.dir}/lib"/>
+  <property name="antclasses"    location="${ant.dir}/classes"/>
+  <property name="osgi.dir"      location="${ant.dir}/../osgi"/>
+  <property name="framework.dir" location="${osgi.dir}/framework"/>
+
+
+  <!-- ASM bytecode manipulation and analysis framework -->
+  <property name="asm.version" value="3.2"/>
+  <property name="asm.jar"
+            location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
+  <path id="asm.path">
+    <pathelement location="${osgi.dir}/framework/libs/asm-${asm.version}.jar"/>
+  </path>
+
+  <!-- Download and install BIndex the RFC-0112 Bundle Repository creator.  -->
+  <path id="bindex.path">
+    <pathelement location="${ant.lib}/bindex.jar"/>
+  </path>
+
+  <condition property="bindex.present">
+    <and>
+      <available classname="org.osgi.impl.bundle.bindex.Index"
+                 classpathref="bindex.path"/>
+      <available type="file" file="${ant.lib}/obr2html.xsl"/>
+    </and>
+  </condition>
+
+  <target name="install_bindex" unless="bindex.present">
+
+    <get src="http://www.osgi.org/download/bindex.jar"
+         dest="${ant.lib}/bindex.jar"/>
+    <!-- The default OBR style sheet (must be local) -->
+    <get src="http://www2.osgi.org/www/obr2html.xsl"
+         dest="${ant.lib}/obr2html.xsl"/>
+  </target>
+
+
+  <!-- Compile and pack the Knopflerfish bundle tasks.  -->
+  <property name="bundle_tasks.jar" location="${ant.lib}/bundle_tasks.jar"/>
+
+  <path id="bundle_tasks.path">
+    <pathelement location="${antclasses}"/>
+    <pathelement location="${bundle_tasks.jar}"/>
+    <path refid="asm.path"/>
+    <path refid="bindex.path"/>
+  </path>
+
+
+  <target name="chkBundleTaskSrc">
+    <condition property="bundleTasksBuild.notRequired">
+      <not>
+	<and>
+	  <available type="dir"  file="${ant.dir}/src"/>
+	  <available type="dir"  file="${framework.dir}/src"/>
+	  <available type="file" file="${asm.jar}"/>
+	</and>
+      </not>
+    </condition>
+  </target>
+
+  <!-- This check is needed to be able to avoid rebuilding -->
+  <!-- when properties used in the manifest has changed.   -->
+  <target name="chkBundleTasksBuild" unless="bundleTasksBuild.notRequired">
+    <condition property="bundleTasksBuild.notRequired">
+      <uptodate>
+	<srcfiles dir="${ant.dir}/src"
+		  includes="org/knopflerfish/ant/**"/>
+	<srcfiles dir="${framework.dir}/src"
+		  includes="org/osgi/framework/Version.java,
+			    org/osgi/framework/Constants.java"/>
+	<mapper type="merge" to="${bundle_tasks.jar}"/>
+      </uptodate>
+    </condition>
+  </target>
+
+  <target name="build_bundle_tasks"
+	  depends="chkBundleTaskSrc,chkBundleTasksBuild"
+	  unless="bundleTasksBuild.notRequired">
+    <mkdir dir="${antclasses}"/>
+    <javac destdir="${antclasses}"
+           classpathref="bundle_tasks.path"
+           includeAntRuntime="true"
+           target="1.4"
+           source="1.4"
+           debug="on">
+      <src path="${ant.dir}/src"/>
+      <!-- org.osgi.framework.Version is used by BundleLocator. -->
+      <src path="${framework.dir}/src"/>
+      <include name="org/knopflerfish/ant/**"/>
+      <include name="org/osgi/framework/Version.java"/>
+      <include name="org/osgi/framework/Constants.java"/>
+    </javac>
+
+    <jar destfile="${bundle_tasks.jar}"
+         compress="true"
+         update="false"
+         filesonly="true">
+      <manifest>
+        <attribute name="Implementation-Vendor" value="Knopflerfish"/>
+        <attribute name="Implementation-Title"
+                   value="Knopflerfish Bundle Tasks"/>
+        <attribute name="Knopflerfish-Version" value="${version}"/>
+      </manifest>
+      <zipfileset dir="${ant.dir}/src"
+                  includes="**/antlib.xml"/>
+      <zipfileset dir="${antclasses}"/>
+      <zipfileset src="${asm.jar}" includes="org/**"/>
+    </jar>
+  </target>
+
+  <target name="define_bundle_tasks"
+          description="Defines the Knopflerfish bundle tasks">
+    <taskdef resource="org/knopflerfish/ant/taskdefs/bundle/antlib.xml">
+      <classpath>
+        <pathelement location="${bundle_tasks.jar}"/>
+        <path refid="bindex.path"/>
+      </classpath>
+    </taskdef>
+  </target>
+
+  <target name="bundle_tasks"
+          description="Builds and defines the Knopflerfish bundle tasks"
+          depends="install_bindex,
+                   build_bundle_tasks,
+                   define_bundle_tasks">
+  </target>
+
+  <target name="default" depends="bundle_tasks"/>
+
+</project>

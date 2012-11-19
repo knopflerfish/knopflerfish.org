@@ -1,0 +1,35 @@
+<h1>CM Commands</h1>
+
+<div class="abstract">
+  Console command group for Configuration Management
+</div>
+
+<h2>Description</h2>
+<p>
+  The CM Commands bundle provides the <b>configuration</b> 
+  <a href="../console/index.html"> console</a> command group. 
+  The command group defines a set of console commands
+  available for interacting with the Configuration Manager.
+  The following  list gives a short description of what the commands
+  do, for complete   details on parameters, use help on each command
+  in the console.  
+
+  <pre class="code">
+Available configuration commands:
+  list [-help] [<selection>] ... - List the pids of existing configurations.
+  show [-help] [<selection>] ... - Show the saved versions of configurations.
+  create [-help] [-f] <pid> - Create a configuration and open it for editing.
+  delete [-help] <selection> - Delete an existing configuration.
+  edit [-help] <selection> - Edit an existing configuration.
+  current [-help]  - Show the currently open configuration.
+  save [-help] [-force] - Save the currently open configuration in the CM.
+  set [-help] <property> <value> [<type>] - Set a property in the currently open configuration.
+  unset [-help] <property> - Remove a property from the currently open configuration.
+  import [-help] <url> - Import configuration data from xml file at url.
+configuration> 
+</pre>
+    
+
+<h2>See Also</h2>
+<a href="../cm/index.html">CM - Configuration Management</a>
+

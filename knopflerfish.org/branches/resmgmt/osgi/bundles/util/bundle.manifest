@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: util
+Bundle-SymbolicName: org.knopflerfish.bundle.util
+Bundle-Version: 2.0.1
+Bundle-Description: Misc utilities
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/util/
+Bundle-Category: util
+Export-Package: org.knopflerfish.util,
+ org.knopflerfish.util.sort,
+ org.knopflerfish.util.workerthread,
+ org.knopflerfish.util.framework
+Import-Package: org.osgi.framework

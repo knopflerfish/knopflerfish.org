@@ -1,0 +1,12 @@
+Bundle-Name: bundleR5_test
+Bundle-SymbolicName: bundleR5_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleR5_test, exports 
+ a resource in its package name space
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Export-Package: org.knopflerfish.bundle.bundleR5_test
+Bundle-UUID: org.knopflerfish:bundleR5_test:1.0.0:all
+
