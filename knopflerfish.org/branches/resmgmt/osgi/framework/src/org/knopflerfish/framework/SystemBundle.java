@@ -45,6 +45,7 @@ import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
+import org.knopflerfish.service.resman.ResourceManager;
 
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.service.startlevel.StartLevel;
@@ -564,6 +565,11 @@ public class SystemBundle extends BundleImpl implements Framework {
 
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();
+    name = name.substring(0, name.lastIndexOf('.'));
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "=" + "1.0");
+
+    // Set up ResMan package
+    name = org.knopflerfish.service.resman.ResourceManager.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "=" + "1.0");
   }

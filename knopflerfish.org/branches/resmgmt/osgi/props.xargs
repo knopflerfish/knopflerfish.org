@@ -89,3 +89,8 @@
 -Forg.knopflerfish.consoletelnet.user=admin
 -Forg.knopflerfish.consoletelnet.pwd=admin
 -Forg.knopflerfish.consoletelnet.port=2323
+
+-Forg.knopflerfish.http.trace.enabled=true
+-Forg.knopflerfish.http.limit.requestline=1024
+#-Forg.knopflerfish.http.limit.requestheaders=2
+-Forg.knopflerfish.http.limit.postsize=0
