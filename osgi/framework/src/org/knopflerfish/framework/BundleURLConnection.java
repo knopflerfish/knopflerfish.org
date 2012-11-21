@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,11 +126,8 @@ class BundleURLConnection extends URLConnection {
     }
   }
 
-  public InputStream getInputStream() {
-    try {
-      connect();
-    } catch (IOException ignore) {
-    }
+  public InputStream getInputStream() throws IOException {
+    connect();
     return is;
   }
 

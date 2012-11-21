@@ -10,7 +10,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.2.6
+* Framework 5.2.7
+
+  - Fixed so that BundleURLConnection.getInputStream() throws IOException
+    as it should, instead of returning null.
+
+  Framework 5.2.6
 
   - Fixed race condition NPE when doing ServiceReference.(un)getService()
     on an unregistering service.
