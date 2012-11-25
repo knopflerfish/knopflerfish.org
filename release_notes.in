@@ -28,12 +28,19 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Services (Compendium) ===
 
-* SCR(component) 3.1.12
+* SCR(component) 3.1.13
+
+  - Fixed race condition in ComponentFactory.newInstance().
+  - Split ComponentFactory and org.apache.felix.scr.Component
+    objects to be able to use permissions to hinder unwanted
+    access.
+
+  SCR(component) 3.1.12
 
   - Fixed bind/unbind calls on a re-enabled component.
   - Fixed NPE when logging to a component bundle.
 
-  Scr(component) 3.1.11
+  SCR(component) 3.1.11
   
   - Fixed so that delayed components that still was satisfied
      re-registered after being deactivated

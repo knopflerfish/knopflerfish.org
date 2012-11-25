@@ -124,8 +124,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
         return org.apache.felix.scr.Component.STATE_UNSATISFIED;
       }
     case STATE_SATISFIED:
-      if (this instanceof FactoryComponent &&
-          ((FactoryComponent)this).hasFactoryService()) {
+      if (this instanceof FactoryComponent) {
         return org.apache.felix.scr.Component.STATE_FACTORY;
       } else {
         ComponentConfiguration cc = getFirstComponentConfiguration();

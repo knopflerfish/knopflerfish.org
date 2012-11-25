@@ -41,9 +41,11 @@ import org.osgi.service.cm.*;
 import org.osgi.service.component.*;
 
 
-class FactoryComponent extends Component implements ComponentFactory
+class FactoryComponent extends Component
 {
   private ServiceRegistration factoryService;
+  private ComponentFactoryImpl componentFactory;
+
 
   FactoryComponent(SCR scr, ComponentDescription cd) {
     super(scr, cd);
@@ -61,10 +63,11 @@ class FactoryComponent extends Component implements ComponentFactory
    */
   void subclassSatisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
+    componentFactory = new ComponentFactoryImpl(this);
     Hashtable p = new Hashtable();
     p.put(ComponentConstants.COMPONENT_NAME, compDesc.getName());
     p.put(ComponentConstants.COMPONENT_FACTORY, compDesc.getFactory());
-    factoryService = bc.registerService(ComponentFactory.class.getName(), this, p);
+    factoryService = bc.registerService(ComponentFactory.class.getName(), componentFactory, p);
   }
 
 
@@ -75,29 +78,29 @@ class FactoryComponent extends Component implements ComponentFactory
   void unsatisfied(int reason) {
     Activator.logInfo(bc, "Unsatisfied: " + toString());
     factoryService.unregister();
+    componentFactory.deactivate();
+    factoryService = null;
+    componentFactory = null;
   }
 
 
   /**
    *
    */
-  public ComponentInstance newInstance(Dictionary instanceProps) {
-    if (hasFactoryService()) {
-      if (!isSatisfied()) {
-        throw new ComponentException("Factory is not satisfied");
-      }
-      ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
-      ComponentContextImpl cci = cc.activate(null, false);
-      if (isSatisfied()) {
-        cc.registerService();
-        return cci.getComponentInstance();
-      } else {
-        // Make sure it is disposed, perhaps we should "lock" protect this code instead
-        cc.dispose(KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING);
-        throw new ComponentException("Factory is/has been deactivated");
-      }
+  ComponentInstance newInstance(Dictionary instanceProps) {
+    if (!isSatisfied()) {
+      throw new ComponentException("Factory is not satisfied");
     }
-    return null;
+    ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
+    ComponentContextImpl cci = cc.activate(null, false);
+    if (isSatisfied()) {
+      cc.registerService();
+      return cci.getComponentInstance();
+    } else {
+      // Make sure it is disposed, perhaps we should "lock" protect this code instead
+      cc.dispose(KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING);
+      throw new ComponentException("Factory is/has been deactivated");
+    }
   }
 
 
@@ -138,14 +141,6 @@ class FactoryComponent extends Component implements ComponentFactory
     if (!cmConfigOptional) {
       unresolvedConstraint(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
     }
-  }
-
-
-  /**
-   *
-   */
-  boolean hasFactoryService() {
-    return factoryService != null;
   }
 
 }
