@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@ import org.osgi.service.startlevel.StartLevel;
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
 
-import org.knopflerfish.service.resman.ResourceManager;
 
 /**
  * This class contains references to all common data structures
@@ -341,8 +340,13 @@ public class FrameworkContext  {
       Constructor cons = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
       storage = (BundleStorage) cons.newInstance(new Object[] { this });
     } catch (Exception e) {
+      Throwable cause = e;
+      if (e instanceof InvocationTargetException) {
+        // Use the nested exception as cause in this case.
+        cause = ((InvocationTargetException)e).getTargetException();
+      }
       throw new RuntimeException("Failed to initialize storage "
-                                 + storageClass, e);
+                                 + storageClass, cause);
     }
     dataStorage = Util.getFileStorage(this, "data");
 
@@ -359,8 +363,9 @@ public class FrameworkContext  {
 
     bundles           = new Bundles(this);
 
-    hooks             = new Hooks(this);    
+    hooks             = new Hooks(this);
     hooks.open();
+
 
     perm.registerService();
 
@@ -371,7 +376,6 @@ public class FrameworkContext  {
                       null);
 
     registerStartLevel();
-    registerResourceManager();
 
     bundles.load();
 
@@ -531,23 +535,6 @@ public class FrameworkContext  {
     }
   }
 
-
-  /**
-   * Setup start level service, if enabled.
-   *
-   */
-  private ResourceManagerImpl resman;
-  private void registerResourceManager() {
-    this.resman = new ResourceManagerImpl(this);
-    services.register(systemBundle,
-		      new String[] { ResourceManager.class.getName() },
-		      resman,
-		      null);
-  }
-
-  ResourceManagerImpl getResourceManager() {
-    return resman;
-  }
 
   /**
    * Get private bundle data storage file handle.
@@ -719,6 +706,30 @@ public class FrameworkContext  {
     // If bootclassloader, wrap it
     if (parentClassLoader == null) {
       parentClassLoader = new BCLoader();
+    }
+  }
+
+  /**
+   * The list of active {@link ExtensionContext} instances for attached
+   * extensions with an ExtensionActivator.
+   */
+  private final List extCtxs = new ArrayList();
+
+  /**
+   * Create a new {@link ExtensionContext} instances for the specified
+   * extension. This will create an instance of the extension
+   * activator class and call its activate-method of.
+   *
+   * @param extension
+   */
+  void activateExtension(final BundleGeneration extension) {
+    extCtxs.add( new ExtensionContext(this, extension) );
+  }
+
+  void bundleClassLoaderCreated(final BundleClassLoader bcl) {
+    for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
+      final ExtensionContext extCtx = (ExtensionContext) it.next();
+      extCtx.bundleClassLoaderCreated(bcl);
     }
   }
 

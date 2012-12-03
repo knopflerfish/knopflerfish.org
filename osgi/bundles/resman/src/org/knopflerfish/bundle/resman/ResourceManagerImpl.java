@@ -1,26 +1,31 @@
-package org.knopflerfish.framework;
+package org.knopflerfish.bundle.resman;
 
-import mika.max.ResourceMonitor;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Collection;
 import java.lang.ClassLoader;
+
+import org.osgi.framework.Bundle;
+
+import org.knopflerfish.framework.BundleClassLoader;
+import org.knopflerfish.framework.ExtensionContext;
+
+import mika.max.ResourceMonitor;
+
 import org.knopflerfish.service.resman.ResourceManager;
 import org.knopflerfish.service.resman.BundleMonitor;
-import org.osgi.framework.Bundle;
-import org.knopflerfish.framework.BundleImpl;
 
 public class ResourceManagerImpl implements ResourceManager {
-  FrameworkContext fwCtx;
+  ExtensionContext extCtx;
   HashMap monitors;
-  
-  ResourceManagerImpl(FrameworkContext fwCtx) {
-    this.fwCtx = fwCtx;
+
+  public ResourceManagerImpl(ExtensionContext extCtx) {
+    this.extCtx = extCtx;
     monitors = new HashMap();
  }
-  
 
-  BundleMonitorImpl monitor(BundleClassLoader bcl) {
+
+  public BundleMonitorImpl monitor(BundleClassLoader bcl) {
     ResourceMonitor resmon = new ResourceMonitor(bcl);
     resmon.enableMemoryMonitoring(10000000);
     resmon.enableThreadCountMonitoring(20);
@@ -30,7 +35,7 @@ public class ResourceManagerImpl implements ResourceManager {
     // System.out.println("here I am");
     return bmi;
   }
-  
+
   void unmonitor(ClassLoader bcl) {
     monitors.remove(bcl);
   }
@@ -44,14 +49,18 @@ public class ResourceManagerImpl implements ResourceManager {
   }
 
   public BundleMonitor monitor(Bundle b) {
-    return monitor( (BundleClassLoader)((BundleImpl)b).gen.getClassLoader());
+    final ClassLoader cl = extCtx.getClassLoader(b);
+
+    return (cl instanceof BundleClassLoader)
+      ? monitor( (BundleClassLoader) cl)
+      : null;
   }
 
   public void unmonitor(Bundle b) {
     // monitor(((BundleImpl)b).gen.getClassLoader());
     // monitors.remove(b);
   }
-  
+
   public Collection getMonitors() {
     return monitors.values();
   }
@@ -67,7 +76,7 @@ public class ResourceManagerImpl implements ResourceManager {
 class BundleMonitorImpl implements BundleMonitor {
   BundleClassLoader bcl;
   ResourceMonitor resmon;
-  
+
   BundleMonitorImpl(BundleClassLoader bcl, ResourceMonitor resmon) {
     this.bcl = bcl;
     this.resmon = resmon;

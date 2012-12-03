@@ -43,7 +43,7 @@ import org.osgi.framework.*;
 
 /**
  * Implementation of the Bundle object.
- * 
+ *
  * @see org.osgi.framework.Bundle
  * @author Jan Stein
  * @author Philippe Laporte
@@ -138,9 +138,9 @@ public class BundleImpl implements Bundle {
 
   /**
    * Construct a new Bundle empty.
-   * 
+   *
    * Only called for system bundle
-   * 
+   *
    * @param fw Framework for this bundle.
    */
   BundleImpl(FrameworkContext fw) {
@@ -154,7 +154,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Construct a new Bundle based on a BundleArchive.
-   * 
+   *
    * @param fw FrameworkContext for this bundle.
    * @param ba Bundle archive with holding the contents of the bundle.
    * @param checkContext AccessConrolContext to do permission checks against.
@@ -189,7 +189,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get bundle state.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getState
    */
   public int getState() {
@@ -204,7 +204,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Start this bundle.
-   * 
+   *
    * @see org.osgi.framework.Bundle#start
    */
   public void start(int options) throws BundleException {
@@ -423,7 +423,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Stop this bundle.
-   * 
+   *
    * @see org.osgi.framework.Bundle#stop
    */
   public void stop() throws BundleException {
@@ -433,7 +433,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Stop this bundle.
-   * 
+   *
    * @see org.osgi.framework.Bundle#stop
    */
   public void stop(int options) throws BundleException {
@@ -547,7 +547,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Wait for an ongoing operation to finish.
-   * 
+   *
    * @param lock Object used for locking.
    * @param src Caller to include in exception message.
    * @param longWait True, if we should wait extra long before aborting.
@@ -603,7 +603,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Update this bundle.
-   * 
+   *
    * @see org.osgi.framework.Bundle#update
    */
   public void update() throws BundleException {
@@ -613,7 +613,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Update this bundle.
-   * 
+   *
    * @see org.osgi.framework.Bundle#update
    */
   public void update(final InputStream in) throws BundleException {
@@ -782,7 +782,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Uninstall this bundle.
-   * 
+   *
    * @see org.osgi.framework.Bundle#uninstall
    */
   public void uninstall() throws BundleException {
@@ -910,7 +910,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get header data. This is all entries in the bundles MANIFEST file.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getHeaders
    */
   public Dictionary getHeaders() {
@@ -920,7 +920,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get bundle identifier.
-   * 
+   *
    * @see org.osgi.fwCtx.Bundle#getBundleId
    */
   public long getBundleId() {
@@ -930,7 +930,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get bundle location.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getLocation
    */
   public String getLocation() {
@@ -941,7 +941,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get services that this bundle has registrated.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getRegisteredServices
    */
   public ServiceReference[] getRegisteredServices() {
@@ -962,7 +962,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get services that this bundle uses.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getServicesInUse
    */
   public ServiceReference[] getServicesInUse() {
@@ -983,7 +983,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Determine whether the bundle has the requested permission.
-   * 
+   *
    * @see org.osgi.framework.Bundle#hasPermission
    */
   public boolean hasPermission(Object permission) {
@@ -1005,7 +1005,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Returns this bundle's BundleContext.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getBundleContext
    * @since org.osgi.framework 1.4
    */
@@ -1043,7 +1043,7 @@ public class BundleImpl implements Bundle {
 
 
   /**
-   * 
+   *
    * @see org.osgi.framework.Bundle#getLastModified()
    */
   public long getLastModified() {
@@ -1052,7 +1052,7 @@ public class BundleImpl implements Bundle {
 
 
   /**
-   * 
+   *
    * @see org.osgi.framework.Bundle#getSignerCertificates()
    */
   public Map/* X509Certificate -> List(X509Certificate) */getSignerCertificates(int signersType) {
@@ -1081,7 +1081,7 @@ public class BundleImpl implements Bundle {
 
 
   /**
-   * 
+   *
    * @see org.osgi.framework.Bundle#getVersion()
    */
   public Version getVersion() {
@@ -1096,7 +1096,7 @@ public class BundleImpl implements Bundle {
   /**
    * Get updated bundle state. That means check if an installed bundle has been
    * resolved.
-   * 
+   *
    * @return Bundles state
    */
   int getUpdatedState() {
@@ -1183,7 +1183,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get root for persistent storage area for this bundle.
-   * 
+   *
    * @return A File object representing the data root.
    */
   File getDataRoot() {
@@ -1195,13 +1195,12 @@ public class BundleImpl implements Bundle {
    * Get class loader for this bundle. Create the classloader if we haven't done
    * this previously. This method can only be called when the bundle is
    * resolved.
-   * 
+   *
    * @return Bundles classloader.
    */
   ClassLoader getClassLoader() {
     return gen.getClassLoader();
   }
-
 
   /**
    * Set state to INSTALLED and throw away our classloader. Reset all package
@@ -1251,7 +1250,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get bundle archive.
-   * 
+   *
    * @return BundleArchive object.
    */
   BundleArchive getBundleArchive(long generation) {
@@ -1274,7 +1273,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get exported packages. Note! Can be called without packages lock held.
-   * 
+   *
    * @return Iterator of all exported packages as ExportPkg.
    */
   Iterator getExports() {
@@ -1305,7 +1304,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get Hosts for this bundle packages.
-   * 
+   *
    * @return Vector of all host bundles.
    */
   Vector getHosts(final boolean zombieHosts) {
@@ -1332,7 +1331,7 @@ public class BundleImpl implements Bundle {
   /**
    * Get a list of all BundlePackages that require the exported packages that
    * comes from this bundle.
-   * 
+   *
    * @return List of all requiring bundles as BundlePackages.
    */
   List getRequiredBy() {
@@ -1358,7 +1357,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Save the autostart setting to the persistent bundle storage.
-   * 
+   *
    * @param setting The autostart options to save.
    */
   void setAutostartSetting(int setting) {
@@ -1369,7 +1368,7 @@ public class BundleImpl implements Bundle {
   /**
    * Internal version; only to be used from inside PriviledgedActions running on
    * the framework's security context.
-   * 
+   *
    * @param setting The autostart setting to store.
    */
   void setAutostartSetting0(int setting) {
@@ -1386,7 +1385,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get the autostart setting from the bundle storage.
-   * 
+   *
    * @return the current autostart setting, "-1" if bundle not started.
    */
   int getAutostartSetting() {
@@ -1433,7 +1432,7 @@ public class BundleImpl implements Bundle {
   /**
    * Return a string representing this bundle. Only return identifier, since it
    * requires AdminPermisson to get the location.
-   * 
+   *
    * @return a String representing this bundle.
    */
   public String toString() {
@@ -1478,7 +1477,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get bundle data. Get resources from bundle or fragment jars.
-   * 
+   *
    * @see org.osgi.framework.Bundle#findEntries
    */
   public Enumeration findEntries(String path, String filePattern, boolean recurse) {
@@ -1551,7 +1550,7 @@ public class BundleImpl implements Bundle {
 
 
   /**
-   * 
+   *
    * @see org.osgi.framework.Bundle#getResources(String name)
    */
   public Enumeration getResources(String name) throws IOException {
@@ -1579,7 +1578,7 @@ public class BundleImpl implements Bundle {
 
 
   /**
-   * 
+   *
    * @see org.osgi.framework.Bundle#loadClass()
    */
   public Class loadClass(final String name) throws ClassNotFoundException {
@@ -1683,7 +1682,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Register all our import and export packages.
-   * 
+   *
    */
   private void doExportImport() {
     if (!gen.isFragment()) {
@@ -1696,7 +1695,7 @@ public class BundleImpl implements Bundle {
   /**
    * Remove a bundles all registered listeners, registered services and used
    * services.
-   * 
+   *
    */
   private void removeBundleResources() {
     fwCtx.listeners.removeAllListeners(bundleContext);
@@ -1720,7 +1719,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Save classloader for active package exports.
-   * 
+   *
    * Note, must be called with packages lock.
    */
   private void saveZombieGeneration() {

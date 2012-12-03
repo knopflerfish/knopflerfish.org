@@ -1,0 +1,17 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Resource Management (Mika)
+Bundle-SymbolicName: org.knopflerfish.bundle.resman
+Bundle-Version: 0.1.0
+Fragment-Host: system.bundle ; version="[5.2.6,6]" ; extension:=framework
+Extension-Activator: org.knopflerfish.bundle.resman.ExtActivator
+Bundle-Category: extension
+Bundle-Description: Framework extensions for resource management.
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/resman
+Export-Package: org.knopflerfish.service.resman ; version=0.1

@@ -41,58 +41,22 @@ import java.util.Dictionary;
 import org.knopflerfish.service.console.Session;
 
 /**
- * Interface hiding the dependency to the {@link PermissionAdmin}
- * service for framework console commands interacting with the
- * deprecated, optional {@link PermissionAdmin} service.
+ * Interface hiding the dependency to the Resource Manager service and
+ * to the BundleMonitor class for framework console commands
+ * interacting with the optional ResourceManager service.
  *
  * @author Makewave AB
  */
 
-public interface PermissionAdminHelper
+public interface ResourceManagerHelper
 {
-  //
-  // Addpermission command
-  //
-
-  int cmdAddpermission(Dictionary opts,
-                       Reader in,
-                       PrintWriter out,
-                       Session session);
 
   //
-  // Deletepermission command
+  // Resman command
   //
 
-  int cmdDeletepermission(Dictionary opts,
-                          Reader in,
-                          PrintWriter out,
-                          Session session);
-
-  //
-  // Permissions command
-  //
-
-  int cmdPermissions(Dictionary opts,
-                     Reader in,
-                     PrintWriter out,
-                     Session session);
-
-  //
-  // CondPermission command
-  //
-
-  int cmdCondpermission(Dictionary opts,
-                        Reader in,
-                        PrintWriter out,
-                        Session session);
-
-  //
-  // SetCondPermission command
-  //
-
-  int cmdSetcondpermission(Dictionary opts,
-                           Reader in,
-                           PrintWriter out,
-                           Session session);
-
+  int cmdResman(Dictionary opts,
+                Reader in,
+                PrintWriter out,
+                Session session) ;
 }
