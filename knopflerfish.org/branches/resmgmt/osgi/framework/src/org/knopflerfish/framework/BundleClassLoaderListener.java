@@ -32,67 +32,20 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.bundle.frameworkcommands;
-
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.util.Dictionary;
-
-import org.knopflerfish.service.console.Session;
+package org.knopflerfish.framework;
 
 /**
- * Interface hiding the dependency to the {@link PermissionAdmin}
- * service for framework console commands interacting with the
- * deprecated, optional {@link PermissionAdmin} service.
- *
- * @author Makewave AB
+ * Listener interface to notify extension bundles about the creation
+ * of new bundle class loaders.
  */
+public interface BundleClassLoaderListener {
 
-public interface PermissionAdminHelper
-{
-  //
-  // Addpermission command
-  //
-
-  int cmdAddpermission(Dictionary opts,
-                       Reader in,
-                       PrintWriter out,
-                       Session session);
-
-  //
-  // Deletepermission command
-  //
-
-  int cmdDeletepermission(Dictionary opts,
-                          Reader in,
-                          PrintWriter out,
-                          Session session);
-
-  //
-  // Permissions command
-  //
-
-  int cmdPermissions(Dictionary opts,
-                     Reader in,
-                     PrintWriter out,
-                     Session session);
-
-  //
-  // CondPermission command
-  //
-
-  int cmdCondpermission(Dictionary opts,
-                        Reader in,
-                        PrintWriter out,
-                        Session session);
-
-  //
-  // SetCondPermission command
-  //
-
-  int cmdSetcondpermission(Dictionary opts,
-                           Reader in,
-                           PrintWriter out,
-                           Session session);
+  /**
+   * Synchroneously called when a new bundle class loader has been
+   * created.
+   *
+   * @param bcl the newly created bundle class loader.
+   */
+  void bundleClassLoaderCreated(BundleClassLoader bcl);
 
 }

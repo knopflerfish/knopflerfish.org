@@ -40,7 +40,7 @@ import org.osgi.framework.*;
 
 /**
  * Class representing all packages imported and exported.
- * 
+ *
  * @author Jan Stein
  * @author Mats-Ola Persson
  * @author Gunnar Ekolin
@@ -280,7 +280,7 @@ class BundlePackages {
 
   /**
    * Register bundle packages in framework.
-   * 
+   *
    */
   void registerPackages() {
     bg.bundle.fwCtx.packages.registerPackages(exports.iterator(), imports.iterator());
@@ -290,7 +290,7 @@ class BundlePackages {
 
   /**
    * Unregister bundle packages in framework.
-   * 
+   *
    */
   synchronized boolean unregisterPackages(boolean force) {
     if (registered) {
@@ -309,7 +309,7 @@ class BundlePackages {
 
   /**
    * Resolve all the bundles' packages.
-   * 
+   *
    * @return true if we resolved all packages. If we failed return false. Reason
    *         for fail can be fetched with getResolveFailReason().
    */
@@ -334,7 +334,7 @@ class BundlePackages {
 
   /**
    * Return a string with a reason for why resolve failed.
-   * 
+   *
    * @return A error message string.
    */
   String getResolveFailReason() {
@@ -345,7 +345,7 @@ class BundlePackages {
   /**
    * If bundle package has been resolved look for a BundlePackages that provides
    * the requested package.
-   * 
+   *
    * @param pkg Package name
    * @return BundlePackages exporting the pkg.
    */
@@ -367,7 +367,7 @@ class BundlePackages {
   /**
    * Check if we can dynamically import a package. Re-check that we haven't
    * gotten a provider. (Do we need to do that?)
-   * 
+   *
    * @param pkg Package name
    * @return Bundle exporting
    */
@@ -399,7 +399,7 @@ class BundlePackages {
 
   /**
    * Get all RequiredBundle for this BundlePackages.
-   * 
+   *
    * @return Iterator of RequireBundle or null we don't require any
    *         bundles.
    */
@@ -427,22 +427,22 @@ class BundlePackages {
 
 
   /**
-   * Get a list of all BundlePackages that exports package <code>pkg</code> that
-   * comes from bundles that we have required, in correct order. Correct order
-   * is a depth first search order.
-   * 
+   * Get a list of all BundleGenerations that exports package
+   * <code>pkg</code> that comes from bundles that we have required,
+   * in correct order. Correct order is a depth first search order.
+   *
    * @param pkg String with package name we are searching for, if null get all.
-   * @return List of required BundlePackages or null we don't require any
-   *         bundles.
+   * @return List of required BundleGenerations or null if we don't
+   *         require any bundles.
    */
-  ArrayList getRequiredBundlePackages(String pkg) {
+  ArrayList /* BundleGeneration */ getRequiredBundleGenerations(String pkg) {
     Iterator i = getRequire();
     if (i != null) {
       ArrayList res = new ArrayList(2);
       do {
         RequireBundle rb = (RequireBundle)i.next();
         if (rb.bpkgs != null && rb.bpkgs.isExported(pkg)) {
-          res.add(rb.bpkgs);
+          res.add(rb.bpkgs.bg);
         }
       } while (i.hasNext());
       return res.isEmpty() ? null : res;
@@ -453,7 +453,7 @@ class BundlePackages {
 
   /**
    * Check if this BundlePackages is required by another Bundle.
-   * 
+   *
    * @return True if is required
    */
   void addRequiredBy(BundlePackages r) {
@@ -466,7 +466,7 @@ class BundlePackages {
 
   /**
    * Check if this BundlePackages is required by another Bundle.
-   * 
+   *
    * @return True if is required
    */
   boolean isRequired() {
@@ -477,7 +477,7 @@ class BundlePackages {
   /**
    * Get a list of all BundlePackages that requires the exported packages that
    * comes from the bundle owning this object.
-   * 
+   *
    * @return List of required BundlePackages
    */
   List getRequiredBy() {
@@ -508,7 +508,7 @@ class BundlePackages {
 
   /**
    * Check if package needs to be added as re-exported package.
-   * 
+   *
    * @param ep ExportPkg to re-export.
    */
   void checkReExport(ExportPkg ep) {
@@ -525,7 +525,7 @@ class BundlePackages {
 
   /**
    * Get ExportPkg for exported package.
-   * 
+   *
    * @return ExportPkg entry or null if package is not exported.
    */
   private ExportPkg getExport(String pkg) {
@@ -541,7 +541,7 @@ class BundlePackages {
   /**
    * Get an iterator over all exported packages sorted
    * according to epComp.
-   * 
+   *
    * @return An Iterator over ExportPkg.
    */
   Iterator getExports() {
@@ -562,7 +562,7 @@ class BundlePackages {
 
   /**
    * Get an iterator over all exported packages with specific name.
-   * 
+   *
    * @return An Iterator over ExportPkg.
    */
   Iterator getExports(String pkg) {
@@ -608,7 +608,7 @@ class BundlePackages {
   /**
    * Get an iterator over all static imported packages sorted
    * according to ipComp.
-   * 
+   *
    * @return An Iterator over ImportPkg.
    */
   Iterator getImports() {
@@ -629,7 +629,7 @@ class BundlePackages {
 
   /**
    * Get an iterator over all active imported packages.
-   * 
+   *
    * @return An Iterator over ImportPkg.
    */
   Iterator getActiveImports() {
@@ -644,7 +644,7 @@ class BundlePackages {
 
   /**
    * Get class loader for these packages.
-   * 
+   *
    * @return ClassLoader handling these packages.
    */
   ClassLoader getClassLoader() {
@@ -654,7 +654,7 @@ class BundlePackages {
 
   /**
    * Is these packages registered in the Packages object.
-   * 
+   *
    * @return True if packages are registered otherwise false.
    */
   boolean isRegistered() {
@@ -664,7 +664,7 @@ class BundlePackages {
 
   /**
    * Attach a fragment bundle packages.
-   * 
+   *
    * @param fbpkgs The BundlePackages of the fragment to be attached.
    * @return null if okay, otherwise a String with fail reason.
    */
@@ -702,7 +702,7 @@ class BundlePackages {
    * An attached fragment is now a zombie since it have been updated or
    * uninstalled. Mark all packages exported by this host as zombies, since
    * their contents may have changed.
-   * 
+   *
    * @param fb The fragment bundle that have been updated or uninstalled.
    */
   void fragmentIsZombie(BundleImpl fb) {
@@ -722,13 +722,13 @@ class BundlePackages {
 
   /**
    * Detach a fragment bundle's packages.
-   * 
+   *
    * I.e., unregister and remove the fragments import / exports from the set of
    * packages that are imported / exported by this bundle packages.
-   * 
+   *
    * If this bundle packages is resolved, do nothing since in that case must not
    * change the set of imports and exports.
-   * 
+   *
    * @param fb The fragment bundle to detach.
    */
   void detachFragment(BundleGeneration fbg) {
@@ -740,7 +740,7 @@ class BundlePackages {
 
   /**
    * Sets these packages registered in the Packages object.
-   * 
+   *
    * @return True if packages are registered otherwise false.
    */
   void unregister() {
@@ -751,7 +751,7 @@ class BundlePackages {
 
   /**
    * Return a string representing this objet
-   * 
+   *
    * @return A message string.
    */
   public String toString() {
@@ -765,7 +765,7 @@ class BundlePackages {
 
   /**
    * Get a specific import
-   * 
+   *
    * @return an import
    */
   private ImportPkg getImport(String pkg) {
@@ -810,15 +810,15 @@ class BundlePackages {
 
   /**
    * Detach a fragment bundle's packages.
-   * 
+   *
    * I.e., unregister and remove the fragments import / exports from the set of
    * packages that are imported / exported by this bundle packages.
-   * 
+   *
    * If this bundle packages is resolved, do nothing since in that case must not
    * change the set of imports and exports.
-   * 
+   *
    * Note! Must be called with fragments locked.
-   * 
+   *
    * @param fb The fragment bundle to detach.
    * @param unregisterPkg Unregister the imports and exports of the specified
    *          fragment.
@@ -843,7 +843,7 @@ class BundlePackages {
   static final Util.Comparator epComp = new Util.Comparator() {
     /**
      * Name compare two ExportPkg objects.
-     * 
+     *
      * @param oa Object to compare.
      * @param ob Object to compare.
      * @return Return 0 if equals, negative if first object is less than second
@@ -860,7 +860,7 @@ class BundlePackages {
   static final Util.Comparator epFind = new Util.Comparator() {
     /**
      * Name compare ExportPkg object with String object.
-     * 
+     *
      * @param oa ExportPkg object to compare.
      * @param ob String object to compare.
      * @return Return 0 if equals, negative if first object is less than second
@@ -877,7 +877,7 @@ class BundlePackages {
   static final Util.Comparator ipComp = new Util.Comparator() {
     /**
      * Name compare two ImportPkg objects.
-     * 
+     *
      * @param oa Object to compare.
      * @param ob Object to compare.
      * @return Return 0 if equals, negative if first object is less than second
@@ -894,7 +894,7 @@ class BundlePackages {
   static final Util.Comparator ipFind = new Util.Comparator() {
     /**
      * Name compare ImportPkg object with String object.
-     * 
+     *
      * @param oa ImportPkg object to compare.
      * @param ob String object to compare.
      * @return Return 0 if equals, negative if first object is less than second
