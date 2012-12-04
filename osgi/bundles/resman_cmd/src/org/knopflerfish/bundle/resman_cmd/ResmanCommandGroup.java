@@ -106,4 +106,33 @@ public class ResmanCommandGroup
     }
   }
 
+
+  //
+  // limit
+  //
+
+  public final static String USAGE_LIMIT =
+    "[-mem #mem#] [-cpu #cpu#] [-threads #threads] [<bundle>] ...";
+
+  public final static String[] HELP_LIMIT = new String[] {
+    "Set bundle resource consumption limits.",
+    "-mem #mem#         set memory limit to #mem#",
+    "-cpu #cpu#         set CPU limit to #cpu#",
+    "-threads #threads# set threads count limit to #threads#",
+    "<bundle>  Name or id of bundles to set limit for.",
+    "          If bundle list is empty, set limit for all bundles."
+  };
+
+  public int cmdLimit(Dictionary opts,
+                      Reader in,
+                      PrintWriter out,
+                      Session session) {
+    if (resmanHelper == null) {
+      out.println("Resource management service is not available");
+      return 1;
+    } else {
+      return resmanHelper.cmdLimit(opts, in, out, session);
+    }
+  }
+
 }

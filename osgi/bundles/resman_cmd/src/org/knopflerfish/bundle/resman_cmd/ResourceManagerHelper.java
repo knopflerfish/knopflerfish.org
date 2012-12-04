@@ -59,4 +59,10 @@ public interface ResourceManagerHelper
                Reader in,
                PrintWriter out,
                Session session) ;
+
+  int cmdLimit(Dictionary opts,
+               Reader in,
+               PrintWriter out,
+               Session session);
+
 }
