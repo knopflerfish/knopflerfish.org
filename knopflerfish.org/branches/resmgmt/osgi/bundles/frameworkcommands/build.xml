@@ -15,7 +15,6 @@
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
    <pathelement location="console_api-N.N.N.jar"/>
-   <pathelement location="resman_all-N.N.N.jar"/>
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>

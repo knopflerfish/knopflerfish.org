@@ -41,7 +41,7 @@ import java.util.Dictionary;
 import org.knopflerfish.service.console.Session;
 
 /**
- * Interface hiding the dependency to the {@link PermissionAdmin}
+ * Interface hiding the depndency to the {@link PermissionAdmin}
  * service for framework console commands interacting with the
  * deprecated, optional {@link PermissionAdmin} service.
  *
