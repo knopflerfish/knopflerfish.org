@@ -32,7 +32,7 @@ public class ResourceManagerImpl implements ResourceManager {
     resmon.enableThreadCpuMonitoring(100);
     BundleMonitorImpl bmi = new BundleMonitorImpl(bcl, resmon);
     monitors.put(bcl.getBundle(), bmi);
-    // System.out.println("here I am");
+
     return bmi;
   }
 
@@ -44,7 +44,8 @@ public class ResourceManagerImpl implements ResourceManager {
     Collection c = monitors.values();
     for (Iterator i = c.iterator(); i.hasNext(); ) {
       BundleMonitor bmon = (BundleMonitor)i.next();
-      System.out.println("Memory: " +bmon.getMemory() + " Threads: " + bmon.getThreadCount());
+      System.out.println("Memory: " +bmon.getMemory()
+                         + " Threads: " + bmon.getThreadCount());
     }
   }
 
@@ -100,10 +101,25 @@ class BundleMonitorImpl implements BundleMonitor {
   public long getMemoryLimit() {
     return resmon.getMaxMemory();
   }
+
+  public void setMemoryLimit(int limit) {
+    resmon.enableMemoryMonitoring(limit);
+  }
+
   public int getThreadCountLimit() {
     return resmon.getMaxThreadCount();
   }
+
+  public void setThreadCountLimit(int limit) {
+    resmon.enableThreadCountMonitoring(limit);
+  }
+
   public int getCPULimit() {
     return resmon.getMaxThreadCpu();
   }
+
+  public void setCPULimit(int limit) {
+    resmon.enableThreadCpuMonitoring(limit);
+  }
+
 }

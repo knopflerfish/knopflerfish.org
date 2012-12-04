@@ -130,6 +130,99 @@ public class ResourceManagerHelperImpl
   }
 
 
+  //
+  // limit
+  //
+
+  public int cmdLimit(Dictionary opts,
+                      Reader in,
+                      PrintWriter out,
+                      Session session)
+  {
+    int memLimit = 0;
+    final String memLimitS = (String) opts.get("-mem");
+    if (null!=memLimitS) {
+      try {
+        memLimit = Integer.parseInt(memLimitS);
+        if (memLimit<0) {
+          out.println("The given memory limit, "+ memLimit +", is <0.");
+          return 1;
+        }
+      } catch (Exception e) {
+        out.println("Failed to read integer from memory limit '"
+                    +memLimitS +"': " +e);
+        return 1;
+      }
+    }
+
+    int cpuLimit = 0;
+    final String cpuLimitS = (String) opts.get("-cpu");
+    if (null!=cpuLimitS) {
+      try {
+        cpuLimit = Integer.parseInt(cpuLimitS);
+        if (cpuLimit>100) {
+          out.println("The given CPU limit, "+ cpuLimit +", is >100%");
+          return 1;
+        }
+        if (cpuLimit<0) {
+          out.println("The given CPU limit, "+ cpuLimit +", is <0.");
+          return 1;
+        }
+      } catch (Exception e) {
+        out.println("Failed to read integer from cpu limit '"
+                    +cpuLimitS +"': " +e);
+        return 1;
+      }
+    }
+
+    int threadsLimit = 0;
+    final String threadsLimitS = (String) opts.get("-threads");
+    if (null!=threadsLimitS) {
+      try {
+        threadsLimit = Integer.parseInt(threadsLimitS);
+        if (threadsLimit<0) {
+          out.println("The given thread count limit, "+ threadsLimit
+                      +", is <0.");
+          return 1;
+        }
+      } catch (Exception e) {
+        out.println("Failed to read integer from threads limit '"
+                    +threadsLimitS +"': " +e);
+        return 1;
+      }
+    }
+
+
+    final Bundle[] bundles = getBundles((String[]) opts.get("bundle"),
+                                        true, true);
+    for (int i = 0; i < bundles.length; i++) {
+      final Bundle bundle = bundles[i];
+      if (null!=bundle) {
+        final BundleMonitor bmon = resman.getMonitor(bundle);
+        if (bmon != null) {
+          if (memLimit>0) {
+            bmon.setMemoryLimit(memLimit);
+          }
+          if (cpuLimit>0) {
+            bmon.setCPULimit(cpuLimit);
+          }
+          if (threadsLimit>0) {
+            bmon.setThreadCountLimit(threadsLimit);
+          }
+        }
+      }
+    }
+    return 0;
+  }
+
+
+
+  ////////////////////////////////////////////////////////////
+  //
+  // Private helper methods
+  //
+  ////////////////////////////////////////////////////////////
+
   private Bundle[] getBundles(String[] selection, boolean sortNumeric) {
     return getBundles(selection, sortNumeric, false, false);
   }
@@ -160,6 +253,7 @@ public class ResourceManagerHelperImpl
 
     return b;
   }
+
 
   /**
    * Sort an array of bundle objects based on their start level All entries
