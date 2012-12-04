@@ -65,7 +65,6 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.util.Collection;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -98,7 +97,6 @@ public class FrameworkCommandGroup
   private final PackageAdmin packageAdmin;
   private final PermissionAdminHelper permissionAdminHelper;
   private final StartLevel startLevel;
-  private final ResourceManagerHelper resmanHelper;
 
   /**
    * The default directories for bundle jar files.
@@ -130,8 +128,6 @@ public class FrameworkCommandGroup
     sr = bc.getServiceReference(StartLevel.class.getName());
     startLevel = null==sr ? null : (StartLevel) bc.getService(sr);
 
-    resmanHelper = initResmanHelper();
-
     try {
       setupJars();
     } catch (MalformedURLException mfe) {
@@ -149,19 +145,6 @@ public class FrameworkCommandGroup
     }
     return null;
   }
-
-  private ResourceManagerHelper initResmanHelper() {
-    // Try to see if we can create the ResmanHelper object.
-    try {
-      return new ResourceManagerHelperImpl(bc, this);
-    } catch (Exception ex) {
-      //log.error("Failed to create permissionAdminHelper: " + ex, ex);
-    } catch (LinkageError ce) {
-      //log.info("There is no PermissionAdmin service available.", ce);
-    }
-    return null;
-  }
-
 
   void setupJars()
     throws MalformedURLException
@@ -1203,21 +1186,6 @@ public class FrameworkCommandGroup
     return 0;
   }
 
-  public final static String USAGE_RESMAN = "[-a]";
-
-  public final static String[] HELP_RESMAN = new String[] {
-    "Display bundle resource consumption within the framework" };
-
-  public int cmdResman(Dictionary opts, Reader in, PrintWriter out,
-                       Session session) {
-    if (resmanHelper == null) {
-      out.println("Resource management service is not available");
-      return 1;
-    } else {
-      return resmanHelper.cmdResman(opts, in, out, session);
-    }
-  }
-
   //
   // Services command
   //
@@ -1894,20 +1862,20 @@ public class FrameworkCommandGroup
     }
   }
 
-  Bundle[] getBundles(String[] selection, boolean sortNumeric) {
+  private Bundle[] getBundles(String[] selection, boolean sortNumeric) {
     return getBundles(selection, sortNumeric, false, false);
   }
 
-  Bundle[] getBundles(String[] selection,
-                      boolean sortNumeric,
-                      boolean sortStartLevel) {
+  private Bundle[] getBundles(String[] selection,
+                              boolean sortNumeric,
+                              boolean sortStartLevel) {
     return getBundles(selection, sortNumeric, sortStartLevel, false);
   }
 
-  Bundle[] getBundles(String[] selection,
-                      boolean sortNumeric,
-                      boolean sortStartLevel,
-                      boolean sortTime) {
+  private Bundle[] getBundles(String[] selection,
+                              boolean sortNumeric,
+                              boolean sortStartLevel,
+                              boolean sortTime) {
     Bundle[] b = bc.getBundles();
     Util.selectBundles(b, selection);
     if (sortNumeric) {
@@ -2231,28 +2199,5 @@ public class FrameworkCommandGroup
     return res;
   }
 
-  static void prettyPrint(StringBuffer sbuf,
-                          int start,
-                          int len,
-                          boolean leftalign,
-                          String s) {
-    // System.out.println("Pretty printing: " +s);
-    if (leftalign) {
-      sbuf.insert(start,s.substring(0,Math.min(len,s.length())));
-    }
-    else {
-      String s2 = s.substring(0,Math.min(len,s.length()));
-      sbuf.insert(start+len-s2.length(), s2);
-    }
-  }
 
-  static String formatValueAndMax(int val, int max) {
-    StringBuffer sbuf = new StringBuffer();
-    sbuf.append(val);
-    sbuf.append("(");
-    sbuf.append(max);
-    sbuf.append(")");
-
-    return sbuf.toString();
-  }
 }
