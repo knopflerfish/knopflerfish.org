@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Resource Management Commands
+Bundle-SymbolicName: org.knopflerfish.bundle.resman_cmd
+Bundle-Version: 0.1.0
+Bundle-Activator: org.knopflerfish.bundle.resman_cmd.Activator
+Bundle-Description: Resource Management and Supervision Commands
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/resman_cmd/
+Bundle-Category: service
+Import-Service: org.osgi.service.log.LogService,
+ org.knopflerfish.service.console.ConsoleService
+Import-Package: org.osgi.framework;version="[1.5,2.0)",
+ org.knopflerfish.service.console,
+ org.osgi.service.startlevel;version="[1.1,2.0)",
+ org.knopflerfish.service.resman;resolution:=optional
