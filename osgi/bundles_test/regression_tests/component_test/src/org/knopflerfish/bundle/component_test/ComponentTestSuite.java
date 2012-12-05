@@ -62,6 +62,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new TestSfBugs2883959());
     addTest(new Test4());
     addTest(new Test5());
+    addTest(new Test6());
   }
 
   public void bump(int count) {
@@ -798,6 +799,132 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         }
         if (reg2 != null) {
           reg2.unregister();
+        }
+      }
+    }
+  }
+
+  private class Test6 extends FWTestCase  {
+
+    /**
+     * Test setup: Dynamic ComponentX optional references ComponentY,
+     *             Dynamic ComponentY static reference ComponentZ
+     *             Dynamic ComponentZ static reference ComponentX
+     * before: no components are started.
+     * action: Get ComponentX service
+     * after: all components are activated
+     *
+     * then:
+     *
+     * before: all components are activated
+     * action: disable componentZ
+     * after: only X should be active
+     *
+     * then:
+     *
+     * before: only X active
+     * action: enable componentY
+     * after: all components are deactivated
+     *
+     */
+
+    public void runTest() {
+      Bundle c1 = null;
+      try {
+        c1 = Util.installBundle(bc, "componentX_test-1.0.0.jar");
+        c1.start();
+
+        Thread.sleep(1000);
+
+        ServiceReference ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentX");
+        assertNotNull("Should get serviceRef X", ref);
+        org.knopflerfish.service.componentX_test.ComponentX x =
+          (org.knopflerfish.service.componentX_test.ComponentX)bc.getService(ref);
+        assertNotNull("Should get service X", x);
+
+        assertEquals("Should have been bind(Y) bumped", 1, x.getBindStatus().intValue());
+        assertEquals("Should have been bind(Z) bumped", 1, x.getBindYStatus().intValue());
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentZ");
+        assertNotNull("Should get serviceRef Z", ref);
+        org.knopflerfish.service.componentX_test.ComponentZ z =
+          (org.knopflerfish.service.componentX_test.ComponentZ)bc.getService(ref);
+        assertNotNull("Should get service Z", z);
+
+        assertEquals("Z should have been bind(X) bumped", 1, z.getBindStatus().intValue());
+        assertEquals("X should have been bind(Y) bumped", 1, z.getBindXStatus().intValue());
+
+        z.disableZ();
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentZ");
+        assertNull("Should not get serviceRef Z", ref);
+        assertEquals("Z should have been unbind(X) bumped", 101, z.getBindStatus().intValue());
+
+        assertEquals("Should have been unbind(Y) bumped", 101, x.getBindStatus().intValue());
+        assertNull("Should have been unbind(Z) bumped, but unaccesible", x.getBindYStatus());
+
+        x.enableZ();
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentZ");
+        assertNotNull("Should get serviceRef Z", ref);
+        z = (org.knopflerfish.service.componentX_test.ComponentZ)bc.getService(ref);
+        assertEquals("Z should have been bind(X) bumped", 1, z.getBindStatus().intValue());
+
+        assertEquals("Should have been bind(Y) bumped", 102, x.getBindStatus().intValue());
+        assertEquals("Should have been bind(Z) bumped", 1, x.getBindYStatus().intValue());
+
+        assertEquals("X should have been bind(Y) bumped", 102, z.getBindXStatus().intValue());
+        assertEquals("Z should have been bind(X) bumped", 1, z.getBindStatus().intValue());
+
+        c1.stop();
+        // Restart components
+        c1.start();
+
+        Thread.sleep(1000);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentY");
+        assertNotNull("Should get serviceRef Y", ref);
+        org.knopflerfish.service.componentX_test.ComponentY y =
+          (org.knopflerfish.service.componentX_test.ComponentY)bc.getService(ref);
+        assertNotNull("Should get service Y", y);
+
+        assertEquals("Should have been bind(Z) bumped", 1, y.getBindStatus().intValue());
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentZ");
+        assertNotNull("Should get serviceRef Z", ref);
+        z = (org.knopflerfish.service.componentX_test.ComponentZ)bc.getService(ref);
+        assertNotNull("Should get service Z", z);
+
+        assertEquals("Z should have been bind(X) bumped", 1, z.getBindStatus().intValue());
+        assertEquals("X should have been bind(Y) bumped", 1, z.getBindXStatus().intValue());
+
+        z.disableZ();
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentY");
+        assertNull("Should not get serviceRef Y", ref);
+        ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentY");
+        assertNull("Should not get serviceRef Z", ref);
+        assertEquals("Y should have been unbind(Z) bumped", 101, y.getBindStatus().intValue());
+        assertEquals("Z should have been unbind(X) bumped", 101, z.getBindStatus().intValue());
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentX_test.ComponentX");
+        assertNotNull("Should get serviceRef X", ref);
+        x = (org.knopflerfish.service.componentX_test.ComponentX)bc.getService(ref);
+        assertNotNull("Should get service X", x);
+
+        assertEquals("new X should not have been bind(Y) bumped", 0, x.getBindStatus().intValue());
+
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test6: got unexpected exception " + e);
+      } finally {
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (BundleException be) {
+            be.printStackTrace();
+            fail("Test6: got uninstall exception " + be);
+          }
         }
       }
     }

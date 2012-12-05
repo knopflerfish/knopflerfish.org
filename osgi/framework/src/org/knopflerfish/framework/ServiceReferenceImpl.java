@@ -285,27 +285,27 @@ public class ServiceReferenceImpl implements ServiceReference
         List pkgProvider;
         if (pkgExporter == null) {
           // Package not imported by provide, is it required
-          pkgProvider = rbp.getRequiredBundlePackages(name);
+          pkgProvider = rbp.getRequiredBundleGenerations(name);
         } else {
           pkgProvider = new ArrayList(1);
-          pkgProvider.add(pkgExporter);
+          pkgProvider.add(pkgExporter.bg);
         }
         final BundlePackages bb = ((BundleImpl)bundle).gen.bpkgs;
         final BundlePackages bbp = bb.getProviderBundlePackages(name);
         List pkgConsumer;
         if (bbp == null) {
           // Package not imported by bundle, is it required
-          pkgConsumer = bb.getRequiredBundlePackages(name);
+          pkgConsumer = bb.getRequiredBundleGenerations(name);
         } else {
           pkgConsumer = new ArrayList(1);
-          pkgConsumer.add(bbp);
+          pkgConsumer.add(bbp.bg);
         }
         if (pkgConsumer == null) {
           // NYI! Check dynamic import?
           if (bb.isExported(name)) {
             // If bundle only exports package, then return true if
             // bundle is provider.
-            return pkgProvider!=null ? pkgProvider.contains(bb) : true;
+            return pkgProvider!=null ? pkgProvider.contains(bb.bg) : true;
           } else {
             // If bundle doesn't import or export package, then return true and
             // assume that the bundle only uses reflection to access service.

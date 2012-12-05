@@ -10,7 +10,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.2.7
+* Framework 5.2.8
+
+  - Fixed ServiceReference.isAssignableTo() so that correctly handles
+    exported packages from fragments and extensions.
+  - Changed ServiceFactory handling so that it only sends a framework
+    warning event instead of a framework error event when the
+    ServiceFactory.getService() returns null.
+  - Fixed permission problem when storing initial bundle start level.
+  - Fixed race condition when doing refreshPackages on an uninstalling
+    bundle.
+
+  Framework 5.2.7
 
   - Fixed so that BundleURLConnection.getInputStream() throws IOException
     as it should, instead of returning null.
@@ -28,7 +39,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Services (Compendium) ===
 
-* SCR(component) 3.1.13
+* SCR(component) 3.1.14
+
+  - Fixed so that postponed binds are not rebinded to early.
+  - Corrected unbind service reference count handling.
+
+  SCR(component) 3.1.13
 
   - Fixed race condition in ComponentFactory.newInstance().
   - Split ComponentFactory and org.apache.felix.scr.Component

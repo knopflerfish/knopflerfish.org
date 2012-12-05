@@ -59,8 +59,8 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   private ServiceRegistration cmListener = null;
   private ServiceTracker cmAdminTracker;
   private long nextId = 0;
-  private ArrayList postponedBind = new ArrayList();
-  private Object ppLock = new Object();
+  private HashMap /* Thread -> List */ postponedBind = new HashMap();
+  private HashMap /* Thread -> Integer */ ppRef = new HashMap();
 
   /**
    *
@@ -79,13 +79,17 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     cmAdminTracker.open();
     cmListener = bc.registerService(ConfigurationListener.class.getName(), this, null);
     bc.addBundleListener(this);
-    final Bundle [] bundles = bc.getBundles();
-    for (int i = 0; i < bundles.length; i++)  {
-      if ((bundles[i].getState() & (Bundle.ACTIVE | Bundle.STARTING)) != 0) {
-        processBundle(bundles[i]);
+    postponeCheckin();
+    try {
+      final Bundle [] bundles = bc.getBundles();
+      for (int i = 0; i < bundles.length; i++)  {
+        if ((bundles[i].getState() & (Bundle.ACTIVE | Bundle.STARTING)) != 0) {
+          processBundle(bundles[i]);
+        }
       }
+    } finally {
+      postponeCheckout();
     }
-    checkPostponeBind();
     bc.registerService(org.apache.felix.scr.ScrService.class.getName(),
                        new ScrServiceImpl(this), null);
   }
@@ -117,24 +121,28 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * Process bundle components when it starts.
    */
   public void bundleChanged(BundleEvent event) {
-    Bundle bundle = event.getBundle();
+    postponeCheckin();
+    try {
+      Bundle bundle = event.getBundle();
 
-    switch (event.getType()) {
-    case BundleEvent.LAZY_ACTIVATION:
-      lazy.add(bundle);
-      processBundle(bundle);
-      break;
-    case BundleEvent.STARTED:
-      if (!lazy.remove(bundle)) {
+      switch (event.getType()) {
+      case BundleEvent.LAZY_ACTIVATION:
+        lazy.add(bundle);
         processBundle(bundle);
+        break;
+      case BundleEvent.STARTED:
+        if (!lazy.remove(bundle)) {
+          processBundle(bundle);
+        }
+        break;
+      case BundleEvent.STOPPING:
+        lazy.remove(bundle);
+        removeBundle(bundle, ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED);
+        break;
       }
-      break;
-    case BundleEvent.STOPPING:
-      lazy.remove(bundle);
-      removeBundle(bundle, ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED);
-      break;
+    } finally {
+      postponeCheckout();
     }
-    checkPostponeBind();
   }
 
   //
@@ -145,37 +153,41 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    *
    */
   public void configurationEvent(ConfigurationEvent evt) {
-    String name = evt.getFactoryPid();
-    String pid = evt.getPid();
-    if (name == null) {
-      name = pid;
-    }
-    Component [] comp = (Component [])configSubscriber.get(name);
-    if (comp != null) {
-      switch (evt.getType()) {
-      case ConfigurationEvent.CM_DELETED:
-        Activator.logDebug("ConfigurationEvent deleted, pid=" + pid);
-        for (int i = 0; i < comp.length; i++) {
-          comp[i].cmConfigDeleted(pid);
-        }
-        break;
-      case ConfigurationEvent.CM_UPDATED:
-        Configuration c = getConfiguration(pid);
-        if (c != null) {
-          Activator.logDebug("ConfigurationEvent updated, pid=" + pid);
-          for (int i = 0; i < comp.length; i++) {
-            comp[i].cmConfigUpdated(pid, getConfiguration(pid));
-          }
-        } else {
-          Activator.logWarning("ConfigurationEvent updated, failed to get configuration, pid=" + pid);
-        }
-        break;
-      default:
-        Activator.logWarning("Unknown ConfigurationEvent type: " + evt.getType());
-        break;
+    postponeCheckin();
+    try {
+      String name = evt.getFactoryPid();
+      String pid = evt.getPid();
+      if (name == null) {
+        name = pid;
       }
+      Component [] comp = (Component [])configSubscriber.get(name);
+      if (comp != null) {
+        switch (evt.getType()) {
+        case ConfigurationEvent.CM_DELETED:
+          Activator.logDebug("ConfigurationEvent deleted, pid=" + pid);
+          for (int i = 0; i < comp.length; i++) {
+            comp[i].cmConfigDeleted(pid);
+          }
+          break;
+        case ConfigurationEvent.CM_UPDATED:
+          Configuration c = getConfiguration(pid);
+          if (c != null) {
+            Activator.logDebug("ConfigurationEvent updated, pid=" + pid);
+            for (int i = 0; i < comp.length; i++) {
+              comp[i].cmConfigUpdated(pid, getConfiguration(pid));
+            }
+          } else {
+            Activator.logWarning("ConfigurationEvent updated, failed to get configuration, pid=" + pid);
+          }
+          break;
+        default:
+          Activator.logWarning("Unknown ConfigurationEvent type: " + evt.getType());
+          break;
+        }
+      }
+    } finally {
+      postponeCheckout();
     }
-    checkPostponeBind();
   }
 
   //
@@ -446,8 +458,14 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void postponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
     if (rl.isDynamic() && rl.isOptional()) {
-      synchronized (ppLock) {
-        postponedBind.add(new PostponedBind(cci, rl, sr));
+      final Thread ct = Thread.currentThread();
+      synchronized (ppRef) {
+        List ppBinds = (List)postponedBind.get(ct);
+        if (ppBinds == null) {
+          ppBinds = new ArrayList();
+          postponedBind.put(ct, ppBinds);
+        }
+        ppBinds.add(new PostponedBind(cci, rl, sr));
       }
       Activator.logDebug("Postpone bind service " + Activator.srInfo(sr) + " to " + cci);
     } else {
@@ -461,13 +479,15 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void clearPostponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
     if (rl.isDynamic() && rl.isOptional()) {
-      synchronized (ppLock) {
-        for (Iterator i = postponedBind.iterator(); i.hasNext(); ) {
-          PostponedBind pb = (PostponedBind)i.next();
-          if (pb.cci == cci && pb.rl == rl && pb.sr == sr) {
-            i.remove();
-            Activator.logDebug("Cleared postponed bind " + Activator.srInfo(sr) + " to " + cci);
-            break;
+      synchronized (ppRef) {
+        for (Iterator i = postponedBind.values().iterator(); i.hasNext(); ) {
+          for (Iterator j = ((List)i.next()).iterator(); j.hasNext(); ) {
+            PostponedBind pb = (PostponedBind)j.next();
+            if (pb.cci == cci && pb.rl == rl && pb.sr == sr) {
+              j.remove();
+              Activator.logDebug("Cleared postponed bind " + Activator.srInfo(sr)
+                                 + " to " + cci);
+            }
           }
         }
       }
@@ -476,21 +496,58 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
 
 
   /**
-   * Save binds that where circular binds.
+   * Check-in thread for saving postponed binds.
    */
-  void checkPostponeBind() {
-    ArrayList pbs;
-    synchronized (ppLock) {
-      if (postponedBind.isEmpty()) {
-        return;
+  void postponeCheckin() {
+    synchronized (ppRef) {
+      final Thread ct = Thread.currentThread();
+      Integer refCount = (Integer)ppRef.get(ct);
+      if (refCount != null) {
+        refCount = new Integer(refCount.intValue() + 1);
+      } else {
+        refCount = new Integer(1);
       }
-      pbs = postponedBind;
-      postponedBind = new ArrayList();
+      ppRef.put(ct, refCount);
     }
-    for (Iterator i = pbs.iterator(); i.hasNext(); ) {
-      ((PostponedBind)i.next()).retry();
+  }
+
+
+  /**
+   * Check-out thread for saving postponed binds.
+   */
+  void postponeCheckout() {
+    final Thread ct = Thread.currentThread();
+    List ppBinds;
+    synchronized (ppRef) {
+      Integer refCount = (Integer)ppRef.get(ct);
+      if (refCount != null) {
+        int i = refCount.intValue() - 1;
+        if (i > 0) {
+          ppRef.put(ct, new Integer(i));
+          return;
+        }
+      } else {
+        Activator.logError("Ref. count for postpone failed",
+                           new Throwable());
+      }
+      ppBinds = (List)postponedBind.remove(ct);
     }
-    // TODO, Should we try again if some failed?
+    if (ppBinds != null) {
+      for (Iterator i = ppBinds.iterator(); i.hasNext(); ) {
+        ((PostponedBind)i.next()).retry();
+      }
+    }
+    synchronized (ppRef) {
+      ppBinds = (List)postponedBind.remove(ct);
+      ppRef.remove(ct);
+    }
+    // We don't retry failed rebinds again
+    if (ppBinds != null) {
+      for (Iterator i = ppBinds.iterator(); i.hasNext(); ) {
+        Activator.logInfo("Skip, retried postponed bind: " +
+                          ((PostponedBind)i.next()).toString());
+      }
+    }
   }
 
 

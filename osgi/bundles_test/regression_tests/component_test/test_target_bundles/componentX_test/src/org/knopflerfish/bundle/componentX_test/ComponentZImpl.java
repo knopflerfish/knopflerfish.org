@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,44 +31,63 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.knopflerfish.bundle.component;
+package org.knopflerfish.bundle.componentX_test;
 
-import org.osgi.service.component.*;
+import org.knopflerfish.service.componentX_test.ComponentX;
+import org.knopflerfish.service.componentX_test.ComponentZ;
 
+import org.osgi.service.component.ComponentContext;
 
-class ImmediateComponent extends Component {
+public class ComponentZImpl
+  implements ComponentZ
+{
+  private Integer xStatus = new Integer(0);
+  private ComponentX x;
+  private ComponentContext cc = null;
 
-  ImmediateComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
+  void activate(ComponentContext cc)
+  {
+    this.cc = cc;
+    System.out.println("ZImpl: activate");
   }
 
-
-  public String toString() {
-    return "Immediate component: " + compDesc.getName();
+  void deactivate(ComponentContext cc)
+  {
+    this.cc = null;
+    System.out.println("ZImpl: deactivate");
   }
 
+  void setX(ComponentX x)
+  {
+    this.x = x;
+    xStatus = new Integer(xStatus.intValue() + 1);
+    System.out.println("ZImpl: binding X, " +x);
+  }
 
-  /**
-   * Immediate component satisfied, create a component configuration
-   * for each CM pid available or a single component configuration
-   * if no CM data is available. Register component service if
-   * there is one and activate component configurations.
-   *
-   */
-  void subclassSatisfied() {
-    Activator.logInfo(bc, "Satisfied: " + toString());
-    ComponentConfiguration [] cc = newComponentConfiguration();
-    for (int i = 0; i < cc.length; i++) {
-      cc[i].registerService();
-      scr.postponeCheckin();
-      try {
-        cc[i].activate(null, true);
-      } catch (ComponentException _ignore) {
-        // Error messages are logged by the activate method
-        cc[i].dispose(KF_DEACTIVATION_REASON_ACTIVATION_FAILED);
-      } finally {
-        scr.postponeCheckout();
-      }
+  void unsetX(ComponentX x)
+  {
+    this.x = null;
+    xStatus = new Integer(xStatus.intValue() + 100);
+    System.out.println("ZImpl: unbinding X, " +x);
+  }
+
+  public Integer getBindStatus()
+  {
+    return this.xStatus;
+  }
+
+  public Integer getBindXStatus()
+  {
+    return x != null ? x.getBindStatus() : null;
+  }
+
+  public void disableZ()
+  {
+    if (cc != null) {
+      System.out.println("ZImpl: disable!");
+      cc.disableComponent("componentX_test.Z");
+    } else {
+      System.out.println("ZImpl: no disable");
     }
   }
 

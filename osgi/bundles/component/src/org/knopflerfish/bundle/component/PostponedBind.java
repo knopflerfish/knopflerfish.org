@@ -52,13 +52,17 @@ class PostponedBind {
   }
 
   void retry() {
-    Activator.logDebug("Retry postponed bind service " + Activator.srInfo(sr));
+    Activator.logDebug("Retry postponed bind, " + Activator.srInfo(sr));
     if (cci.isActive()) {
       if (rl.isMultiple() || !cci.isBound(rl)) {
         // TODO, Check if we should rebind if this is higher ranked?
         cci.bind(rl, sr);
       }
     }
+  }
+
+  public String toString() {
+    return "Postponed bind, "  + Activator.srInfo(sr);
   }
 
 }

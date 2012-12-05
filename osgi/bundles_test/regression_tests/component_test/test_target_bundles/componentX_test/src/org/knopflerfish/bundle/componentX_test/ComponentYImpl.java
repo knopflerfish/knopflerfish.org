@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,45 +31,46 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.knopflerfish.bundle.component;
+package org.knopflerfish.bundle.componentX_test;
 
-import org.osgi.service.component.*;
+import org.knopflerfish.service.componentX_test.ComponentY;
+import org.knopflerfish.service.componentX_test.ComponentZ;
 
+import org.osgi.service.component.ComponentContext;
 
-class ImmediateComponent extends Component {
+public class ComponentYImpl
+  implements ComponentY
+{
+  private Integer zStatus = new Integer(0);
+  private ComponentContext cc = null;
 
-  ImmediateComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
+  void activate(ComponentContext cc)
+  {
+    this.cc = cc;
+    System.out.println("YImpl: activate");
   }
 
-
-  public String toString() {
-    return "Immediate component: " + compDesc.getName();
+  void deactivate(ComponentContext cc)
+  {
+    this.cc = null;
+    System.out.println("YImpl: deactivate");
   }
 
-
-  /**
-   * Immediate component satisfied, create a component configuration
-   * for each CM pid available or a single component configuration
-   * if no CM data is available. Register component service if
-   * there is one and activate component configurations.
-   *
-   */
-  void subclassSatisfied() {
-    Activator.logInfo(bc, "Satisfied: " + toString());
-    ComponentConfiguration [] cc = newComponentConfiguration();
-    for (int i = 0; i < cc.length; i++) {
-      cc[i].registerService();
-      scr.postponeCheckin();
-      try {
-        cc[i].activate(null, true);
-      } catch (ComponentException _ignore) {
-        // Error messages are logged by the activate method
-        cc[i].dispose(KF_DEACTIVATION_REASON_ACTIVATION_FAILED);
-      } finally {
-        scr.postponeCheckout();
-      }
-    }
+  public void setZ(ComponentZ z)
+  {
+    zStatus = new Integer(zStatus.intValue() + 1);
+    System.out.println("YImpl: binding Z, " +z);
   }
+  public void unsetZ(ComponentZ z)
+  {
+    zStatus = new Integer(zStatus.intValue() + 100);
+    System.out.println("YImpl: unbinding Z, " +z);
+  }
+
+  public Integer getBindStatus()
+  {
+    return this.zStatus;
+  }
+
 
 }

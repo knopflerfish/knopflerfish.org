@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,45 +31,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.knopflerfish.bundle.component;
-
-import org.osgi.service.component.*;
+package org.knopflerfish.service.componentX_test;
 
 
-class ImmediateComponent extends Component {
-
-  ImmediateComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
-  }
-
-
-  public String toString() {
-    return "Immediate component: " + compDesc.getName();
-  }
-
-
-  /**
-   * Immediate component satisfied, create a component configuration
-   * for each CM pid available or a single component configuration
-   * if no CM data is available. Register component service if
-   * there is one and activate component configurations.
-   *
-   */
-  void subclassSatisfied() {
-    Activator.logInfo(bc, "Satisfied: " + toString());
-    ComponentConfiguration [] cc = newComponentConfiguration();
-    for (int i = 0; i < cc.length; i++) {
-      cc[i].registerService();
-      scr.postponeCheckin();
-      try {
-        cc[i].activate(null, true);
-      } catch (ComponentException _ignore) {
-        // Error messages are logged by the activate method
-        cc[i].dispose(KF_DEACTIVATION_REASON_ACTIVATION_FAILED);
-      } finally {
-        scr.postponeCheckout();
-      }
-    }
-  }
-
+public interface ComponentZ {
+  Integer getBindStatus();
+  Integer getBindXStatus();
+  void disableZ();
 }
