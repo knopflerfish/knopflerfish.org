@@ -287,7 +287,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
       try {
         s = sBundle.fwCtx.perm.callGetService(this, b);
         if (s == null) {
-          sBundle.fwCtx.listeners.frameworkError
+          sBundle.fwCtx.listeners.frameworkWarning
             (sBundle,
              new ServiceException("ServiceFactory produced null",
                                   ServiceException.FACTORY_ERROR));

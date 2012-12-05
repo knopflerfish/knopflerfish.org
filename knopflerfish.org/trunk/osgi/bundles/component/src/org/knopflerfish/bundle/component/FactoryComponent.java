@@ -92,7 +92,13 @@ class FactoryComponent extends Component
       throw new ComponentException("Factory is not satisfied");
     }
     ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
-    ComponentContextImpl cci = cc.activate(null, false);
+    scr.postponeCheckin();
+    ComponentContextImpl cci;
+    try {
+      cci = cc.activate(null, false);
+    } finally {
+      scr.postponeCheckout();
+    }
     if (isSatisfied()) {
       cc.registerService();
       return cci.getComponentInstance();

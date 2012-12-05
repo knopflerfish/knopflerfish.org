@@ -91,7 +91,7 @@ class ComponentContextImpl implements ComponentContext
   public Object locateService(String name) {
     ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
     if (rl != null) {
-      return rl.getService(usingBundle);
+      return rl.getService();
     }
     return null;
   }
@@ -103,7 +103,7 @@ class ComponentContextImpl implements ComponentContext
   public Object locateService(String name, ServiceReference sRef) {
     ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
     if (rl != null) {
-      return rl.getService(sRef, usingBundle);
+      return rl.getService(sRef);
     }
     return null;
   }
@@ -115,7 +115,7 @@ class ComponentContextImpl implements ComponentContext
   public Object[] locateServices(String name) {
     ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
     if (rl != null) {
-      return rl.getServices(usingBundle);
+      return rl.getServices();
     }
     return null;
   }
@@ -224,14 +224,14 @@ class ComponentContextImpl implements ComponentContext
           // CT requires it.
           return false;
         }
-        ComponentMethod.Operation bindOp = m.prepare(this, s);
-        rl.bound(s);
+        ComponentMethod.Operation bindOp = m.prepare(this, s, rl);
+        // Mark service as bound even if isn't fetched in bind method.
+        rl.bound(s, null);
         boundReferences.put(rl.getName(), rl);
         ce = bindOp.invoke();
       } else {
         // Get service so that it is bound in correct order
-        if (null != rl.getService(s, usingBundle)) {
-          rl.bound(s);
+        if (null != rl.getService(s)) {
           boundReferences.put(rl.getName(), rl);
         } else {
           throw new IllegalStateException("Retry");
@@ -253,7 +253,7 @@ class ComponentContextImpl implements ComponentContext
     } catch (ComponentException ce) {
       // Possible circular chain detected in prepare method
       // TODO, improve this since it is Framework dependent
-       cc.component.scr.postponeBind(this, rl, s);
+      cc.component.scr.postponeBind(this, rl, s);
     } catch (IllegalStateException ise) {
       // Possible circular chain detected in getService method
       // or it returned null.
@@ -262,6 +262,7 @@ class ComponentContextImpl implements ComponentContext
     } catch (Exception e) {
       Activator.logDebug("Failed to bind service " + Activator.srInfo(s) + " to " + cc + ", " + e);
     }
+    rl.unbound(s);
     return false;
   }
 
@@ -285,14 +286,20 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
-  void unbind(ReferenceListener rl, ServiceReference s) {
-    if (rl.unbound(s)) {
-      Activator.logDebug("Unbind service " + Activator.srInfo(s) + " from " + cc);
-      ComponentMethod m = rl.ref.getUnbindMethod();
-      if (m != null && !m.isMissing(true)) {
-        try {
-          m.prepare(this, s).invoke();
-        } catch (ComponentException _ignore) { }
+  void unbind(ReferenceListener rl, ServiceReference sr) {
+    Activator.logDebug("Check unbind service " + Activator.srInfo(sr) + " from " + cc);
+    if (rl.doUnbound(sr)) {
+      try {
+        ComponentMethod m = rl.ref.getUnbindMethod();
+        if (m != null && !m.isMissing(true)) {
+          try {
+            m.prepare(this, sr, rl).invoke();
+          } catch (ComponentException _ignore) {
+          }
+        }
+      } finally {
+        rl.unbound(sr);
+        Activator.logDebug("Unbound service " + Activator.srInfo(sr) + " from " + cc);
       }
     }
   }

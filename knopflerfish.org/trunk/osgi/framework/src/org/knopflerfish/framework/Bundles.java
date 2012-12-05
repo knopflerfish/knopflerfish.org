@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -329,31 +329,6 @@ public class Bundles {
                            +" (" +bas[i].getBundleLocation() +")"
                            +" uninstalled it!" );
         e.printStackTrace();
-      }
-    }
-  }
-
-
-  /**
-   * Start a list of bundles in order
-   *
-   * @param slist Bundles to start.
-   */
-  void startBundles(List slist) {
-    // Sort in start order
-    // Resolve first to avoid dead lock
-    for (Iterator i = slist.iterator(); i.hasNext();) {
-      BundleImpl rb = (BundleImpl)i.next();
-      rb.getUpdatedState();
-    }
-    for (Iterator i = slist.iterator(); i.hasNext();) {
-      BundleImpl rb = (BundleImpl)i.next();
-      if (rb.getUpdatedState() == Bundle.RESOLVED) {
-        try {
-          rb.start();
-        } catch (BundleException be) {
-          rb.fwCtx.listeners.frameworkError(rb, be);
-        }
       }
     }
   }

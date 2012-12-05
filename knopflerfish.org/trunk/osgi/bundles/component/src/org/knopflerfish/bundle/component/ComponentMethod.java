@@ -79,7 +79,7 @@ class ComponentMethod
       return new ComponentException("Missing specified method: " + name);
     }
     try {
-      return prepare(cci.getComponentInstance().getInstance(), cci, 0, null).invoke();
+      return prepare(cci.getComponentInstance().getInstance(), cci, 0, null, null).invoke();
     } catch (ComponentException ce) {
       return ce;
     }
@@ -94,7 +94,7 @@ class ComponentMethod
       return new ComponentException("Missing specified method: " + name);
     }
     try {
-      return prepare(cci.getComponentInstance().getInstance(), cci, reason, null).invoke();
+      return prepare(cci.getComponentInstance().getInstance(), cci, reason, null, null).invoke();
     } catch (ComponentException ce) {
       return ce;
     }
@@ -104,8 +104,8 @@ class ComponentMethod
   /**
    *
    */
-  Operation prepare(ComponentContextImpl cci, ServiceReference s) {
-    return prepare(cci.getComponentInstance().getInstance(), cci, 0, s);
+  Operation prepare(ComponentContextImpl cci, ServiceReference s, ReferenceListener rl) {
+    return prepare(cci.getComponentInstance().getInstance(), cci, 0, s, rl);
   }
 
 
@@ -238,8 +238,11 @@ class ComponentMethod
   /**
    *
    */
-  private Operation prepare(Object instance, ComponentContextImpl cci,
-                            int reason, ServiceReference s) {
+  private Operation prepare(Object instance,
+                            ComponentContextImpl cci,
+                            int reason,
+                            ServiceReference s,
+                            ReferenceListener rl) {
     Object service = null;
     method.setAccessible(true);
     Object [] args = new Object[params.length];
@@ -267,7 +270,8 @@ class ComponentMethod
         args[i] = s;
       } else {
         try {
-          service = args[i] = comp.bc.getService(s);
+          // TODO think about exceptions and circular activations
+          service = args[i] = rl.getService(s);
           if (args[i] == null) {
             Activator.logDebug("Got null service argument for " + method +
                                " in " + instance.getClass() +  " for component " +
@@ -280,7 +284,11 @@ class ComponentMethod
                              " in " + instance.getClass() +  " for component " +
                              comp.compDesc.getName() + " registered for " +
                              comp.compDesc.bundle);
-          throw new ComponentException("Failed to get service, " + Activator.srInfo(s), e);
+          if (e instanceof ComponentException) {
+            throw (ComponentException)e;
+          } else {
+            throw new ComponentException("Failed to get service, " + Activator.srInfo(s), e);
+          }
         }
       }
     }

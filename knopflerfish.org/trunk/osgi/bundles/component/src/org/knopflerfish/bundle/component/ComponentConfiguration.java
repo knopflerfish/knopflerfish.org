@@ -224,7 +224,7 @@ public class ComponentConfiguration implements ServiceFactory {
       if (componentContext == cci) {
         componentContext = null;
       } else {
-        factoryContexts.remove(cci);
+        factoryContexts.remove(cci.getUsingBundle());
       }
     }
     if (last && disposeIfLast) {
@@ -496,8 +496,20 @@ public class ComponentConfiguration implements ServiceFactory {
   public Object getService(Bundle usingBundle,
                            ServiceRegistration reg) {
     Activator.logDebug("CC.getService(), " + toString() + ", activeCount = " + activeCount);
-    ComponentContextImpl cci = activate(usingBundle, true);
-    return cci.getComponentInstance().getInstance();
+    component.scr.postponeCheckin();
+    try {
+      ComponentContextImpl cci = activate(usingBundle, true);
+      return cci.getComponentInstance().getInstance();
+    } catch (ComponentException ce) {
+      Throwable cause = ce.getCause();
+      if (cause != null) {
+        throw ce;
+      }
+      Activator.logInfo("SCR getService return null because: " + ce);
+      return null;
+    } finally {
+      component.scr.postponeCheckout();
+    }
   }
 
 

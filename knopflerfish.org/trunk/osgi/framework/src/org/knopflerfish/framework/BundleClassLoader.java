@@ -768,20 +768,20 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         }
       } else {
         /* 4 */
-        ArrayList pl = bpkgs.getRequiredBundlePackages(pkg);
+        ArrayList pl = bpkgs.getRequiredBundleGenerations(pkg);
         if (pl != null) {
           if (visited == null) {
             visited = new HashSet();
           }
           visited.add(this);
           for (Iterator pi = pl.iterator(); pi.hasNext();) {
-            pbp = (BundlePackages)pi.next();
-            if (pbp != null) {
-              BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
+            final BundleGeneration pbg = (BundleGeneration) pi.next();
+            if (pbg != null) {
+              BundleClassLoader cl = (BundleClassLoader) pbg.getClassLoader();
               if (cl != null && !visited.contains(cl)) {
                 if (debug.classLoader) {
                   debug.println(this + " Required bundle search: " + path + " from #"
-                      + pbp.bg.bundle.id);
+                      + pbg.bundle.id);
                 }
                 Object res = secure.callSearchFor(cl, name, pkg, path, action, onlyFirst,
                     requestor, visited);

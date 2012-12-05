@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -451,10 +451,11 @@ public class StartLevelController
 
   void setInitialBundleStartLevel(int startLevel) {
     fwCtx.perm.checkStartLevelAdminPerm();
-    setInitialBundleStartLevel0(startLevel, true);
+    fwCtx.perm.callSetInitialBundleStartLevel0(this, startLevel);
   }
 
-  private void setInitialBundleStartLevel0(int startLevel, boolean save) {
+
+  void setInitialBundleStartLevel0(int startLevel, boolean save) {
     if(startLevel <= 0) {
       throw new IllegalArgumentException("Initial start level must be > 0, is " + startLevel);
     }

@@ -557,6 +557,7 @@ public class BundleImpl implements Bundle {
   void waitOnOperation(Object lock, final String src, boolean longWait) throws BundleException {
     if (operation != IDLE) {
       long left = longWait ? 20000 : 500;
+      // TODO: Don't user currentTimeMillis
       long waitUntil = System.currentTimeMillis() + left;
       do {
         try {
@@ -1104,6 +1105,7 @@ public class BundleImpl implements Bundle {
       try {
         // NYI, fix double locking
         synchronized (fwCtx.packages) {
+          waitOnOperation(fwCtx.packages, "Bundle.resolve", true);
           if (state == INSTALLED) {
             // NYI! check EE for fragments
             String ee = gen.archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);

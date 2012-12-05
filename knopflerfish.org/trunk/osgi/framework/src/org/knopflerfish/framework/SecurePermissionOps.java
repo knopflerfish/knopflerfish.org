@@ -587,6 +587,16 @@ class SecurePermissionOps extends PermissionOps {
     });
   }
 
+  void callSetInitialBundleStartLevel0(final StartLevelController slc,
+                                       final int startlevel) {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        slc.setInitialBundleStartLevel0(startlevel, true);
+        return null;
+      }
+    });
+  }
+
 
   //
   // SystemBundle secure operations
