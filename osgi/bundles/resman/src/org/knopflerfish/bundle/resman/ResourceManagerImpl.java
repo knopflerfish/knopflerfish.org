@@ -1,18 +1,19 @@
 package org.knopflerfish.bundle.resman;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Iterator;
-import java.util.Collection;
 import java.lang.ClassLoader;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import mika.max.ResourceMonitor;
 
 import org.osgi.framework.Bundle;
 
 import org.knopflerfish.framework.BundleClassLoader;
 import org.knopflerfish.framework.ExtensionContext;
-
-import mika.max.ResourceMonitor;
 
 import org.knopflerfish.service.resman.ResourceManager;
 import org.knopflerfish.service.resman.BundleMonitor;
@@ -24,6 +25,10 @@ import org.knopflerfish.service.resman.BundleRevisionMonitor;
  * @author Makewave AB.
  */
 public class ResourceManagerImpl implements ResourceManager {
+
+  // Note: All access to monitors map must be synchronized to avoid
+  // raise between adding and removing monitoring of bundle class
+  // loaders.
   final HashMap /*<Bundle,BundleMonitorImpl>*/ monitors = new HashMap();
 
   public ResourceManagerImpl() {
@@ -31,12 +36,16 @@ public class ResourceManagerImpl implements ResourceManager {
 
   BundleMonitorImpl monitor(final BundleClassLoader bcl) {
     final Bundle b  = bcl.getBundle();
-    BundleMonitorImpl bmi = (BundleMonitorImpl) monitors.get(b);
-    if (bmi == null) {
-      bmi = new BundleMonitorImpl(b, bcl);
-      monitors.put(bmi.getBundle(), bmi);
-    } else  {
-      bmi.addClassLoader(bcl);
+    BundleMonitorImpl bmi = null;
+
+    synchronized(monitors) {
+      bmi = (BundleMonitorImpl) monitors.get(b);
+      if (bmi == null) {
+        bmi = new BundleMonitorImpl(b, bcl);
+        monitors.put(bmi.getBundle(), bmi);
+      } else  {
+        bmi.addClassLoader(bcl);
+      }
     }
 
     return bmi;
@@ -44,15 +53,16 @@ public class ResourceManagerImpl implements ResourceManager {
 
   void unmonitor(final BundleClassLoader bcl) {
     final Bundle b  = bcl.getBundle();
-    final BundleMonitorImpl bmi = (BundleMonitorImpl) monitors.get(b);
-    if (bmi != null) {
-      if (bmi.removeClassLoader(bcl)) {
-        monitors.remove(bcl);
+    synchronized(monitors) {
+      final BundleMonitorImpl bmi = (BundleMonitorImpl) monitors.get(b);
+      if (bmi != null) {
+        if (bmi.removeClassLoader(bcl)) {
+          monitors.remove(bcl);
+        }
       }
     }
   }
 
-  // TODO: Is this one needed?
   public BundleMonitor monitor(final Bundle b) {
     final ClassLoader cl = ExtActivator.extCtx.getClassLoader(b);
 
@@ -62,26 +72,32 @@ public class ResourceManagerImpl implements ResourceManager {
   }
 
   public void unmonitor(final Bundle b) {
-    final BundleMonitorImpl bmi = (BundleMonitorImpl) monitors.remove(b);
-    if (bmi!=null) {
-      bmi.removeAlllClassLoaders();
+    synchronized(monitors) {
+      final BundleMonitorImpl bmi = (BundleMonitorImpl) monitors.remove(b);
+      if (bmi!=null) {
+        bmi.removeAlllClassLoaders();
+      }
     }
   }
 
   // Unmonitor all bundles.
   public void unmonitor() {
-    for (Iterator i = monitors.keySet().iterator(); i.hasNext(); ) {
-      final Bundle b = (Bundle) i.next();
-      unmonitor(b);
+    synchronized(monitors) {
+      for (Iterator i = monitors.keySet().iterator(); i.hasNext(); ) {
+        final Bundle b = (Bundle) i.next();
+        unmonitor(b);
+      }
     }
   }
 
   public Collection getMonitors() {
-    return monitors.values();
+    return Collections.unmodifiableCollection(monitors.values());
   }
 
   public BundleMonitor getMonitor(final Bundle b) {
-    return (BundleMonitor) monitors.get(b);
+    synchronized(monitors) {
+      return (BundleMonitor) monitors.get(b);
+    }
   }
 }
 
@@ -213,10 +229,13 @@ class BundleMonitorImpl implements BundleMonitor {
    *
    */
   void addClassLoader(final BundleClassLoader bcl) {
-    if (null==monitors.get(bcl)) {
-      final BundleRevisionMonitorImpl nBRM = new BundleRevisionMonitorImpl(bcl);
-      monitors.put(bcl, nBRM);
-      this.curBRM = nBRM;
+    synchronized(monitors) {
+      if (null==monitors.get(bcl)) {
+        final BundleRevisionMonitorImpl nBRM
+          = new BundleRevisionMonitorImpl(bcl);
+        monitors.put(bcl, nBRM);
+        this.curBRM = nBRM;
+      }
     }
   }
 
@@ -230,27 +249,31 @@ class BundleMonitorImpl implements BundleMonitor {
    *         loaders for this bundle is empty after the removal.
    */
   boolean removeClassLoader(final BundleClassLoader bcl) {
-    final BundleRevisionMonitorImpl oBRM
-      = (BundleRevisionMonitorImpl) monitors.remove(bcl);
+    synchronized(monitors) {
+      final BundleRevisionMonitorImpl oBRM
+        = (BundleRevisionMonitorImpl) monitors.remove(bcl);
 
-    if (this.curBRM==oBRM) {
-      this.curBRM = getCurrentBRM();
+      if (this.curBRM==oBRM) {
+        this.curBRM = getCurrentBRM();
+      }
+      oBRM.detach();
+
+      return monitors.isEmpty();
     }
-    oBRM.detach();
-
-    return monitors.isEmpty();
   }
 
   /**
    * Removes all bundle revision monitors from this bundle monitor.
    */
   void removeAlllClassLoaders()  {
-    for (Iterator it = monitors.values().iterator(); it.hasNext(); ) {
-      final BundleRevisionMonitorImpl brmi
-        = (BundleRevisionMonitorImpl) it.next();
+    synchronized(monitors) {
+      for (Iterator it = monitors.values().iterator(); it.hasNext(); ) {
+        final BundleRevisionMonitorImpl brmi
+          = (BundleRevisionMonitorImpl) it.next();
 
-      brmi.detach();
-      it.remove();
+        brmi.detach();
+        it.remove();
+      }
     }
   }
 
@@ -261,7 +284,8 @@ class BundleMonitorImpl implements BundleMonitor {
    *
    * @return the current bundle revision resource monitor.
    */
-  BundleRevisionMonitorImpl getCurrentBRM() {
+  private BundleRevisionMonitorImpl getCurrentBRM() {
+    // No synchronized(monitors) here since it is only called from such code!
     BundleRevisionMonitorImpl res = null;
 
     for (Iterator it = monitors.values().iterator(); it.hasNext(); ) {
