@@ -15,28 +15,41 @@ public class ExtActivator implements BundleClassLoaderListener
   private ResourceManagerImpl resman;
   private ServiceRegistration resmanSR;
 
-  public void activate(ExtensionContext extCtx) {
-    this.extCtx = extCtx;
+  public void activate(final ExtensionContext extCtx) {
+    ExtActivator.extCtx = extCtx;
 
-    resman = new ResourceManagerImpl(extCtx);
+    resman = new ResourceManagerImpl();
     resmanSR = extCtx.registerService
       (new String[]{ ResourceManager.class.getName() }, resman, null);
 
     extCtx.addBundleClassLoaderListener(this);
   }
 
-  public void deactivate(ExtensionContext extCtx) {
+  public void deactivate(final ExtensionContext extCtx) {
     resmanSR.unregister();
     resmanSR = null;
+    final ResourceManagerImpl resmanOld = resman;
+    resman = null;
+    resmanOld.unmonitor();
   }
 
   /**
    *
    * @see org.knopflerfish.framework.BundleClassLoaderListener#bundleClassLoaderCreated
    */
-  public void bundleClassLoaderCreated(BundleClassLoader bcl) {
+  public void bundleClassLoaderCreated(final BundleClassLoader bcl) {
     if (null!=resman) {
       resman.monitor(bcl);
+    }
+  }
+
+  /**
+   *
+   * @see org.knopflerfish.framework.BundleClassLoaderListener#bundleClassLoaderClosed
+   */
+  public void bundleClassLoaderClosed(final BundleClassLoader bcl) {
+    if (null!=resman) {
+      resman.unmonitor(bcl);
     }
   }
 

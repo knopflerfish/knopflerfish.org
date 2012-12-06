@@ -548,6 +548,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    */
   void close() {
     archive = null;
+    fwCtx.bundleClassLoaderClosed(this);
     if (debug.classLoader) {
       debug.println(this + " Cleared archives");
     }

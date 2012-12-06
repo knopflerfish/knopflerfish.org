@@ -37,11 +37,13 @@ package org.knopflerfish.bundle.resman_cmd;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.Dictionary;
+import java.util.Iterator;
 
 import org.knopflerfish.service.console.Session;
 import org.knopflerfish.service.console.Util;
 import org.knopflerfish.service.resman.ResourceManager;
 import org.knopflerfish.service.resman.BundleMonitor;
+import org.knopflerfish.service.resman.BundleRevisionMonitor;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -88,47 +90,88 @@ public class ResourceManagerHelperImpl
   //
 
   private static final String USAGE_HEADING =
-    "   id  level/state  Name                     Memory(max)   "
+    "   id level/state  Name                  Memory(max) "
     +"Threads(max) CPU(max)";
+  private static final String USAGE_HEADING_ALL =
+    "   id rev level/state  Name                  Memory(max) "
+    +"Threads(max) CPU(max)";
+
   private static final String USAGE_SEP_LINE =
-    "   --------------------------------------------------------"
-    +"---------------------";
-  private static final String USAGE_EMPTY_LINE =
-    "                                                           "
-    +"                     ";
+    "   -----------------------------------------------------"
+    +"------------------";
+  private static final String USAGE_SEP_LINE_ALL =
+    "   ---------------------------------------------------------"
+    +"------------------";
 
   public int cmdUsage(final Dictionary opts,
                       final Reader in,
                       final PrintWriter out,
                       final Session session)
   {
-    out.println(USAGE_HEADING);
-    out.println(USAGE_SEP_LINE);
-
+    final boolean allBundleRevisions = opts.get("-l") != null;
     final Bundle[] bundles = getBundles((String[]) opts.get("bundle"),
                                         true, true);
+    int genStartPos = 0;
+    final int genLength = 3;
 
+    out.println(allBundleRevisions ? USAGE_HEADING_ALL : USAGE_HEADING);
+    out.println(allBundleRevisions ? USAGE_SEP_LINE_ALL : USAGE_SEP_LINE);
+
+    final StringBuffer sbuf = new StringBuffer(82);
     for (int i = 0; i < bundles.length; i++) {
       final Bundle bundle = bundles[i];
       if (null!=bundle) {
-        final StringBuffer sbuf = new StringBuffer(USAGE_EMPTY_LINE);
-        sbuf.insert( 0, Util.showId(bundle) );
-        sbuf.insert( 7, showState(bundle) );
-        prettyPrint( sbuf, 20, 16, true, Util.shortName(bundle) );
+        sbuf.setLength(0);
+        sbuf.append(Util.showId(bundle));
+        if (allBundleRevisions) {
+          genStartPos = sbuf.length();
+          sbuf.append(Util.showRight(genLength, "rev"));
+          sbuf.append(" ");
+        }
+        sbuf.append(showState(bundle));
+        sbuf.append(Util.showLeft(16, Util.shortName(bundle)));
 
         final BundleMonitor bmon = resman.getMonitor(bundle);
         if (bmon != null) {
-          prettyPrint(sbuf, 38, 21, false, formatValueAndMax((int)bmon.getMemory(), (int)bmon.getMemoryLimit()));
-          prettyPrint(sbuf, 61, 8, false, formatValueAndMax(bmon.getThreadCount(), bmon.getThreadCountLimit()));
-          prettyPrint(sbuf, 71, 8, false, formatValueAndMax(bmon.getCPU(), bmon.getCPULimit()));
+          if (allBundleRevisions) {
+            final int monStartPos = sbuf.length();
+
+            for (Iterator it=bmon.getBundleRevisionMonitors(); it.hasNext();) {
+              final BundleRevisionMonitor brmon
+                = (BundleRevisionMonitor) it.next();
+              final String gen
+                = Util.showRight(genLength,
+                                 String.valueOf(brmon.getBundleGeneration()));
+              sbuf.replace(genStartPos, genStartPos+genLength, gen);
+              appendBundlerRevisionMonitorData(sbuf, brmon);
+              out.println(sbuf);
+              // Truncate sbuf
+              sbuf.setLength(monStartPos);
+            }
+          } else {
+            appendBundlerRevisionMonitorData(sbuf, bmon);
+            out.println(sbuf);
+          }
         }
-        sbuf.setLength(80);
-        out.println(sbuf);
       }
     }
     return 0;
   }
 
+  private void appendBundlerRevisionMonitorData(final StringBuffer sbuf,
+                                                final BundleRevisionMonitor brmon)
+  {
+    String vm = formatValueAndMax((int)brmon.getMemory(),
+                                  (int)brmon.getMemoryLimit());
+    sbuf.append(Util.showRight(21, vm));
+
+    vm = formatValueAndMax(brmon.getThreadCount(),
+                           brmon.getThreadCountLimit());
+    sbuf.append(Util.showRight( 9, vm));
+
+    vm = formatValueAndMax(brmon.getCPU(), brmon.getCPULimit());
+    sbuf.append(Util.showRight( 9, vm));
+  }
 
   //
   // limit
@@ -339,31 +382,6 @@ public class ResourceManagerHelperImpl
     }
 
     return sb.toString();
-  }
-
-  /**
-   * Insert the given string into the stringbuffer left or right
-   * aligend.
-   *
-   * @param sbuf the stringbuffer to insert into.
-   * @param start position to insert the string on.
-   * @param len max length of the inserted string.
-   * @param leftalig if true left align the insertion.
-   * @param s the string to insert.
-   */
-  private static void prettyPrint(final StringBuffer sbuf,
-                                  final int start,
-                                  final int len,
-                                  final boolean leftalign,
-                                  final String s) {
-    // System.out.println("Pretty printing: " +s);
-    final String s2 = s.substring(0, Math.min(len,s.length()));
-
-    if (leftalign) {
-      sbuf.insert(start, s2);
-    } else {
-      sbuf.insert(start+len-s2.length(), s2);
-    }
   }
 
   /**

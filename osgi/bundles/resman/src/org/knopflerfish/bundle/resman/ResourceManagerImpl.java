@@ -1,6 +1,8 @@
 package org.knopflerfish.bundle.resman;
 
+import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.Collection;
 import java.lang.ClassLoader;
@@ -14,112 +16,354 @@ import mika.max.ResourceMonitor;
 
 import org.knopflerfish.service.resman.ResourceManager;
 import org.knopflerfish.service.resman.BundleMonitor;
+import org.knopflerfish.service.resman.BundleRevisionMonitor;
 
+/**
+ * Resource manager implementation for Mika Max.
+ *
+ * @author Makewave AB.
+ */
 public class ResourceManagerImpl implements ResourceManager {
-  ExtensionContext extCtx;
-  HashMap monitors;
+  final HashMap /*<Bundle,BundleMonitorImpl>*/ monitors = new HashMap();
 
-  public ResourceManagerImpl(ExtensionContext extCtx) {
-    this.extCtx = extCtx;
-    monitors = new HashMap();
- }
+  public ResourceManagerImpl() {
+  }
 
-
-  public BundleMonitorImpl monitor(BundleClassLoader bcl) {
-    ResourceMonitor resmon = new ResourceMonitor(bcl);
-    resmon.enableMemoryMonitoring(10000000);
-    resmon.enableThreadCountMonitoring(20);
-    resmon.enableThreadCpuMonitoring(100);
-    BundleMonitorImpl bmi = new BundleMonitorImpl(bcl, resmon);
-    monitors.put(bcl.getBundle(), bmi);
+  BundleMonitorImpl monitor(final BundleClassLoader bcl) {
+    final Bundle b  = bcl.getBundle();
+    BundleMonitorImpl bmi = (BundleMonitorImpl) monitors.get(b);
+    if (bmi == null) {
+      bmi = new BundleMonitorImpl(b, bcl);
+      monitors.put(bmi.getBundle(), bmi);
+    } else  {
+      bmi.addClassLoader(bcl);
+    }
 
     return bmi;
   }
 
-  void unmonitor(ClassLoader bcl) {
-    monitors.remove(bcl);
-  }
-
-  void printMonitors() {
-    Collection c = monitors.values();
-    for (Iterator i = c.iterator(); i.hasNext(); ) {
-      BundleMonitor bmon = (BundleMonitor)i.next();
-      System.out.println("Memory: " +bmon.getMemory()
-                         + " Threads: " + bmon.getThreadCount());
+  void unmonitor(final BundleClassLoader bcl) {
+    final Bundle b  = bcl.getBundle();
+    final BundleMonitorImpl bmi = (BundleMonitorImpl) monitors.get(b);
+    if (bmi != null) {
+      if (bmi.removeClassLoader(bcl)) {
+        monitors.remove(bcl);
+      }
     }
   }
 
-  public BundleMonitor monitor(Bundle b) {
-    final ClassLoader cl = extCtx.getClassLoader(b);
+  // TODO: Is this one needed?
+  public BundleMonitor monitor(final Bundle b) {
+    final ClassLoader cl = ExtActivator.extCtx.getClassLoader(b);
 
     return (cl instanceof BundleClassLoader)
       ? monitor( (BundleClassLoader) cl)
       : null;
   }
 
-  public void unmonitor(Bundle b) {
-    // monitor(((BundleImpl)b).gen.getClassLoader());
-    // monitors.remove(b);
+  public void unmonitor(final Bundle b) {
+    final BundleMonitorImpl bmi = (BundleMonitorImpl) monitors.remove(b);
+    if (bmi!=null) {
+      bmi.removeAlllClassLoaders();
+    }
+  }
+
+  // Unmonitor all bundles.
+  public void unmonitor() {
+    for (Iterator i = monitors.keySet().iterator(); i.hasNext(); ) {
+      final Bundle b = (Bundle) i.next();
+      unmonitor(b);
+    }
   }
 
   public Collection getMonitors() {
     return monitors.values();
   }
 
-  public BundleMonitor getMonitor(Bundle b) {
-    return (BundleMonitor)monitors.get(b);
+  public BundleMonitor getMonitor(final Bundle b) {
+    return (BundleMonitor) monitors.get(b);
   }
-
 }
 
 
-
+////////////////////////////////////////////////////////////
+// BundleMonitorImpl
+////////////////////////////////////////////////////////////
 class BundleMonitorImpl implements BundleMonitor {
-  BundleClassLoader bcl;
-  ResourceMonitor resmon;
+  int memoryLimit = 10000000;
+  int threadCountLimit = 20;
+  int cpuLimit = 100;
 
-  BundleMonitorImpl(BundleClassLoader bcl, ResourceMonitor resmon) {
-    this.bcl = bcl;
-    this.resmon = resmon;
+  final Bundle bundle;
+
+  /** The current bundle revision resource monitor. */
+  BundleRevisionMonitorImpl curBRM = null;
+
+  /**
+   * List of bundle class loaders and their associated bundle revision
+   * monitors.
+   */
+  final Map /*<BundleClassLoader,BundleRevisionMonitorImpl>*/ monitors
+    = new LinkedHashMap();
+
+  BundleMonitorImpl(final Bundle bundle, final BundleClassLoader bcl) {
+    this.bundle = bundle;
+    addClassLoader(bcl);
   }
+
+
+  ////////////////////////////////////////////////////////////
+  //
+  // BundleMonitor methods.
+  //
+  ////////////////////////////////////////////////////////////
+
+  public Iterator /*<BundleRevisionMonitor>*/ getBundleRevisionMonitors() {
+    return monitors.values().iterator();
+  }
+
+
+  ////////////////////////////////////////////////////////////
+  //
+  // BundleRevisionMonitor methods.
+  //
+  ////////////////////////////////////////////////////////////
 
   public Bundle getBundle() {
-    return bcl.getBundle();
+    return bundle;
   }
+
+  public int getBundleGeneration() {
+    return curBRM.getBundleGeneration();
+  }
+
+
+  ////////////////////////////////////////////////////////////
+  //
+  // Memory
+  //
+  ////////////////////////////////////////////////////////////
 
   public long getMemory() {
-    return resmon.getCurrentMemory();
-  }
-  public int getThreadCount() {
-    return resmon.getCurrentThreadCount();
-  }
-
-  public int getCPU() {
-    return resmon.getCurrentThreadCpu();
+    return curBRM.getMemory();
   }
 
   public long getMemoryLimit() {
-    return resmon.getMaxMemory();
+    return curBRM.getMemoryLimit();
   }
 
   public void setMemoryLimit(int limit) {
-    resmon.enableMemoryMonitoring(limit);
+    memoryLimit = limit;
+    curBRM.setMemoryLimit(limit);
+  }
+
+
+  ////////////////////////////////////////////////////////////
+  //
+  // Threads
+  //
+  ////////////////////////////////////////////////////////////
+
+  public int getThreadCount() {
+    return curBRM.getThreadCount();
   }
 
   public int getThreadCountLimit() {
-    return resmon.getMaxThreadCount();
+    return curBRM.getThreadCountLimit();
   }
 
   public void setThreadCountLimit(int limit) {
-    resmon.enableThreadCountMonitoring(limit);
+    threadCountLimit = limit;
+    curBRM.setThreadCountLimit(limit);
+  }
+
+
+  ////////////////////////////////////////////////////////////
+  //
+  // CPU
+  //
+  ////////////////////////////////////////////////////////////
+
+  public int getCPU() {
+    return curBRM.getCPU();
   }
 
   public int getCPULimit() {
-    return resmon.getMaxThreadCpu();
+    return curBRM.getCPULimit();
   }
 
   public void setCPULimit(int limit) {
-    resmon.enableThreadCpuMonitoring(limit);
+    cpuLimit = limit;
+    curBRM.setCPULimit(limit);
   }
+
+
+  ////////////////////////////////////////////////////////////
+  //
+  // Internal methods
+  //
+  ////////////////////////////////////////////////////////////
+
+  /**
+   * Adds a bundle class loader to the set of monitored bundle
+   * class loaders for this bundle. The last added class loader is the
+   * current one.
+   *
+   * @param bcl the bundle class loader to start monitoring.
+   *
+   */
+  void addClassLoader(final BundleClassLoader bcl) {
+    if (null==monitors.get(bcl)) {
+      final BundleRevisionMonitorImpl nBRM = new BundleRevisionMonitorImpl(bcl);
+      monitors.put(bcl, nBRM);
+      this.curBRM = nBRM;
+    }
+  }
+
+  /**
+   * Remove a bundle class loader from the set of monitored bundle
+   * class loaders for this bundle.
+   *
+   * @param bcl the bundle class loader to stop monitoring.
+   *
+   * @return <code>true</code> if the set of monitored bundle class
+   *         loaders for this bundle is empty after the removal.
+   */
+  boolean removeClassLoader(final BundleClassLoader bcl) {
+    final BundleRevisionMonitorImpl oBRM
+      = (BundleRevisionMonitorImpl) monitors.remove(bcl);
+
+    if (this.curBRM==oBRM) {
+      this.curBRM = getCurrentBRM();
+    }
+    oBRM.detach();
+
+    return monitors.isEmpty();
+  }
+
+  /**
+   * Removes all bundle revision monitors from this bundle monitor.
+   */
+  void removeAlllClassLoaders()  {
+    for (Iterator it = monitors.values().iterator(); it.hasNext(); ) {
+      final BundleRevisionMonitorImpl brmi
+        = (BundleRevisionMonitorImpl) it.next();
+
+      brmi.detach();
+      it.remove();
+    }
+  }
+
+
+  /**
+   * The current bundle revision resource monitor is the last one
+   * created for this bundle.
+   *
+   * @return the current bundle revision resource monitor.
+   */
+  BundleRevisionMonitorImpl getCurrentBRM() {
+    BundleRevisionMonitorImpl res = null;
+
+    for (Iterator it = monitors.values().iterator(); it.hasNext(); ) {
+      res = (BundleRevisionMonitorImpl) it.next();
+    }
+
+    return res;
+  }
+
+
+  ////////////////////////////////////////////////////////////
+  // BundleRevisionMonitorImpl
+  ////////////////////////////////////////////////////////////
+  class BundleRevisionMonitorImpl implements BundleRevisionMonitor {
+    final BundleClassLoader bcl;
+    final ResourceMonitor resmon;
+
+    BundleRevisionMonitorImpl(final BundleClassLoader bcl) {
+      this.bcl = bcl;
+
+      resmon = new ResourceMonitor(bcl);
+      resmon.enableMemoryMonitoring(memoryLimit);
+      resmon.enableThreadCountMonitoring(threadCountLimit);
+      resmon.enableThreadCpuMonitoring(cpuLimit);
+    }
+
+    public Bundle getBundle() {
+      return bcl.getBundle();
+    }
+
+    public int getBundleGeneration() {
+      return ExtActivator.extCtx.getGeneration(bcl);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //
+    // Memory
+    //
+    ////////////////////////////////////////////////////////////
+
+    public long getMemory() {
+      return resmon.getCurrentMemory();
+    }
+
+    public long getMemoryLimit() {
+      return resmon.getMaxMemory();
+    }
+
+    public void setMemoryLimit(int limit) {
+      resmon.enableMemoryMonitoring(limit);
+    }
+
+
+    ////////////////////////////////////////////////////////////
+    //
+    // Threads
+    //
+    ////////////////////////////////////////////////////////////
+
+    public int getThreadCount() {
+      return resmon.getCurrentThreadCount();
+    }
+
+    public int getThreadCountLimit() {
+      return resmon.getMaxThreadCount();
+    }
+
+    public void setThreadCountLimit(int limit) {
+      resmon.enableThreadCountMonitoring(limit);
+    }
+
+
+    ////////////////////////////////////////////////////////////
+    //
+    // CPU
+    //
+    ////////////////////////////////////////////////////////////
+
+    public int getCPU() {
+      return resmon.getCurrentThreadCpu();
+    }
+
+    public int getCPULimit() {
+      return resmon.getMaxThreadCpu();
+    }
+
+    public void setCPULimit(int limit) {
+      resmon.enableThreadCpuMonitoring(limit);
+    }
+
+
+    ////////////////////////////////////////////////////////////
+    //
+    // Internal methods.
+    //
+    ////////////////////////////////////////////////////////////
+
+    void detach()  {
+      resmon.detach();
+    }
+
+  }
+
 
 }
