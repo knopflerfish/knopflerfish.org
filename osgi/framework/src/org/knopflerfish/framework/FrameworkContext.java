@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -340,8 +340,13 @@ public class FrameworkContext  {
       Constructor cons = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
       storage = (BundleStorage) cons.newInstance(new Object[] { this });
     } catch (Exception e) {
+      Throwable cause = e;
+      if (e instanceof InvocationTargetException) {
+        // Use the nested exception as cause in this case.
+        cause = ((InvocationTargetException)e).getTargetException();
+      }
       throw new RuntimeException("Failed to initialize storage "
-                                 + storageClass, e);
+                                 + storageClass, cause);
     }
     dataStorage = Util.getFileStorage(this, "data");
 
@@ -358,8 +363,9 @@ public class FrameworkContext  {
 
     bundles           = new Bundles(this);
 
-    hooks             = new Hooks(this);    
+    hooks             = new Hooks(this);
     hooks.open();
+
 
     perm.registerService();
 
@@ -700,6 +706,49 @@ public class FrameworkContext  {
     // If bootclassloader, wrap it
     if (parentClassLoader == null) {
       parentClassLoader = new BCLoader();
+    }
+  }
+
+  /**
+   * The list of active {@link ExtensionContext} instances for attached
+   * extensions with an ExtensionActivator.
+   */
+  private final List extCtxs = new ArrayList();
+
+  /**
+   * Create a new {@link ExtensionContext} instances for the specified
+   * extension. This will create an instance of the extension
+   * activator class and call its activate-method of.
+   *
+   * @param extension the extension bundle to activate.
+   */
+  void activateExtension(final BundleGeneration extension) {
+    extCtxs.add( new ExtensionContext(this, extension) );
+  }
+
+  /**
+   * Inform all active extension contexts about a newly created bundle
+   * class loader.
+   *
+   * @param bcl the new bundle class loader to inform about.
+   */
+  void bundleClassLoaderCreated(final BundleClassLoader bcl) {
+    for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
+      final ExtensionContext extCtx = (ExtensionContext) it.next();
+      extCtx.bundleClassLoaderCreated(bcl);
+    }
+  }
+
+  /**
+   * Inform all active extension contexts about a closed down bundle
+   * class loader.
+   *
+   * @param bcl the closed down bundle class loader to inform about.
+   */
+  void bundleClassLoaderClosed(final BundleClassLoader bcl) {
+    for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
+      final ExtensionContext extCtx = (ExtensionContext) it.next();
+      extCtx.bundleClassLoaderClosed(bcl);
     }
   }
 

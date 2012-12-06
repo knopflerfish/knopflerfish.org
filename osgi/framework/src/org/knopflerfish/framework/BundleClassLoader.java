@@ -55,7 +55,7 @@ import org.osgi.framework.BundleReference;
 
 /**
  * Classloader for bundle JAR files.
- * 
+ *
  * @author Jan Stein, Philippe Laporte, Mats-Ola Persson, Gunna Ekolin
  * @author Vilmos Nebehaj (Android applicatin support)
  */
@@ -147,6 +147,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     bpkgs = gen.bpkgs;
     archive = gen.archive;
     classPath = new BundleClassPath(archive, gen.fragments, fwCtx);
+    fwCtx.bundleClassLoaderCreated(this);
     if (debug.classLoader) {
       debug.println(this + " Created new classloader");
     }
@@ -185,7 +186,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   /**
    * Find bundle class to load. First check if this load comes from an imported
    * package. Otherwise load class from our bundle.
-   * 
+   *
    * @see java.lang.ClassLoader#findClass
    */
   protected Class findClass(String name) throws ClassNotFoundException {
@@ -241,7 +242,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
 
   /**
    * Find native library code to load.
-   * 
+   *
    * @see java.lang.ClassLoader#findLibrary
    */
   protected String findLibrary(String name) {
@@ -255,7 +256,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
 
   /**
    * Returns an Enumeration of all the resources with the given name.
-   * 
+   *
    * @see java.lang.ClassLoader#findResources
    */
   protected Enumeration findResources(String name) {
@@ -266,7 +267,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
 
   /**
    * Finds the resource with the given name.
-   * 
+   *
    * @see java.lang.ClassLoader#findResource
    */
   protected URL findResource(String name) {
@@ -306,7 +307,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * Check if the current call is made from a class loaded on the boot class
    * path (or rather, on a class loaded from something else than a bundle class
    * loader)
-   * 
+   *
    * @param name The name of the class to load.
    */
   public boolean isBootClassContext(String name) {
@@ -351,7 +352,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * Find Class and load it. This function is abstract in PJava 1.2 so we define
    * it here to work as closely as it can to Java 2. Should work okey if we
    * don't use the Java 2 stuff.
-   * 
+   *
    * @param name the name of the class
    * @param resolve if <code>true</code> then resolve the class
    * @return the resulting <code>Class</code> object
@@ -416,7 +417,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * Finds the resource with the given name. This is defined a little different
    * in PJava 1.2 versus Java 2. So we first try to use the super() version and
    * if it fails we try to find it in the local bundle.
-   * 
+   *
    * @param name resource name
    * @return an URL to resource, or <code>null</code> if the resource could not
    *         be found or the caller doesn't have adequate privileges to get the
@@ -461,20 +462,20 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * Finds all the resources with the given name. A resource is some data
    * (images, audio, text, etc) that can be accessed by class code in a way that
    * is independent of the location of the code.
-   * 
+   *
    * <p>
    * The name of a resource is a <tt>/</tt>-separated path name that identifies
    * the resource.
-   * 
+   *
    * @param name resource name
    * @return An enumeration of {@link java.net.URL <tt>URL</tt>} objects for the
    *         resource. If no resources could be found, the enumeration will be
    *         empty. Resources that the class loader doesn't have access to will
    *         not be in the enumeration.
-   * 
+   *
    * @see java.lang.ClassLoader#getResources
    * @see org.osgi.framework.Bundle#getResources(String name)
-   * 
+   *
    */
   public Enumeration getResourcesOSGi(String name) throws IOException {
     if (debug.classLoader) {
@@ -500,7 +501,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   /**
    * Finds the resource with the given name and returns the InputStream. The
    * method is overridden to make sure it does the right thing.
-   * 
+   *
    * @param name resource name
    * @return an InputStream to resource, or <code>null</code> if the resource
    *         could not be found or the caller doesn't have adequate privileges
@@ -521,7 +522,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
 
   /**
    * Return a string representing this object
-   * 
+   *
    * @return A message string.
    */
   public String toString() {
@@ -547,6 +548,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    */
   void close() {
     archive = null;
+    fwCtx.bundleClassLoaderClosed(this);
     if (debug.classLoader) {
       debug.println(this + " Cleared archives");
     }
@@ -555,7 +557,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
 
   /**
    * Get all the resources with the given name in this bundle.
-   * 
+   *
    */
   Enumeration getBundleResources(String name, boolean onlyFirst) {
     // Removed this check pending outcome of OSGi bug 1489.
@@ -581,7 +583,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
 
   /**
    * Get bundle package handler.
-   * 
+   *
    */
   BundlePackages getBpkgs() {
     return bpkgs;
@@ -590,9 +592,9 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
 
   /**
    * Attach fragment to classloader.
-   * 
+   *
    * @throws BundleException
-   * 
+   *
    */
   void attachFragment(BundleGeneration gen) throws BundleException {
     if (debug.classLoader) {
@@ -611,13 +613,13 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * order. When lazy activation of bundles are used this method will detect and
    * perform the activation. The actual searching and loading is done in
    * {@link #searchFor0()}
-   * 
+   *
    * @param name Name of class or null if we look for a resource
    * @param pkg Package name for item
    * @param path File path to item searched ("/" seperated)
    * @param action Action to be taken when item is found
    * @param onlyFirst Stop search when first matching item is found.
-   * 
+   *
    * @return Object returned from action class.
    */
   Object searchFor(String name, String pkg, String path, SearchAction action,
@@ -673,50 +675,50 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
 
   /**
    * Search for classloader to use according to OSGi search order.
-   * 
+   *
    * 3 If the class or resource is in a package that is imported using
    * Import-Package or was imported dynamically in a previous load, then the
    * request is delegated to the exporting bundles class loader; otherwise the
    * search continues with the next step. If the request is delegated to an
    * exporting class loader and the class or resource is not found, then the
    * search terminates and the request fails.
-   * 
+   *
    * 4 If the class or resource is in a package that is imported from one or
    * more other bundles using Require-Bundle, the request is delegated to the
    * class loaders of the other bundles, in the order in which they are
    * specified in this bundles manifest. If the class or resource is not found,
    * then the search continues with the next step.
-   * 
+   *
    * 5 The bundles own internal bundle class path is searched. If the class or
    * resource is not found, then the search continues with the next step.
-   * 
+   *
    * 6 Each attached fragment's internal bundle class path is searched. The
    * fragments are searched in ascending bundle ID order. If the class or
    * resource is not found, then the search continues with the next step.
-   * 
+   *
    * 7 If the class or resource is in a package that is exported by the bundle
    * or the package is imported by the bundle (using Import-Package or
    * Require-Bundle), then the search ends and the class or resource is not
    * found.
-   * 
+   *
    * 8 Otherwise, if the class or resource is in a package that is imported
    * using DynamicImport-Package, then a dynamic import of the package is now
    * attempted. An exporter must conform to any implied package constraints. If
    * an appropriate exporter is found, a wire is established so that future
    * loads of the package are handled in Step 3. If a dynamic wire is not
    * established, then the request fails.
-   * 
+   *
    * 9 If the dynamic import of the package is established, the request is
    * delegated to the exporting bundle's class loader. If the request is
    * delegated to an exporting class loader and the class or resource is not
    * found, then the search terminates and the request fails.
-   * 
+   *
    * @param name Name of class or null if we look for a resource
    * @param pkg Package name for item
    * @param path File path to item searched ("/" seperated)
    * @param action Action to be taken when item is found
    * @param onlyFirst Stop search when first matching item is found.
-   * 
+   *
    * @return Object returned from action class.
    */
   Object searchFor0(String name, String pkg, String path, SearchAction action,
@@ -953,7 +955,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * TODO: We should create a specific bundle storage module for
    *       DEX files.
    * <p>
-   * 
+   *
    * To create such a bundle, do
    * <ol>
    * <li><code>dx --dex --output=classes.dex bundle.jar</code>
@@ -1051,7 +1053,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   /**
    * Find native library code to load. This method is called from
    * findLibrary(name) within a doPriviledged-block via the secure object.
-   * 
+   *
    */
   String findLibrary0(final String name) {
     return classPath.getNativeLibrary(name);

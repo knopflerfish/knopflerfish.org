@@ -43,7 +43,7 @@ import org.osgi.framework.*;
 
 /**
  * Bundle generation specific data.
- * 
+ *
  * @see org.osgi.framework.Bundle
  * @author Jan Stein
  */
@@ -114,7 +114,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Time when bundle was last created.
-   * 
+   *
    */
   final long timeStamp;
 
@@ -143,7 +143,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Construct a new BundleGeneration for the System Bundle.
-   * 
+   *
    * @param b BundleImpl this bundle data.
    */
   BundleGeneration(BundleImpl b, String exportStr) {
@@ -168,13 +168,13 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Construct a new BundleGeneration.
-   * 
+   *
    * Construct a new Bundle based on a BundleArchive.
-   * 
+   *
    * @param b BundleImpl this bundle data.
    * @param ba Bundle archive with holding the contents of the bundle.
-   * @param checkContext AccessConrolContext to do permission checks against.
-   * 
+   * @param prev the previous generation of this bundle.
+   *
    * @exception IOException If we fail to read and store our JAR bundle or if
    *              the input data is corrupted.
    * @exception SecurityException If we don't have permission to install
@@ -351,7 +351,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Construct a new BundleGeneration for an uninstalled bundle.
-   * 
+   *
    * @param prev Previous BundleGeneration.
    */
   BundleGeneration(BundleGeneration prev) {
@@ -378,7 +378,7 @@ public class BundleGeneration implements Comparable {
   /**
    * Compares this <code>BundleGeneration</code> object to another object. It
    * compares the bundle identifier value.
-   * 
+   *
    */
   public int compareTo(Object obj) {
     long diff = bundle.id - ((BundleGeneration)obj).bundle.id;
@@ -398,7 +398,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Finnish construction by doing protectDomain creation and permission checks.
-   * 
+   *
    * @return Bundles classloader.
    */
   void checkPermissions(Object checkContext) {
@@ -439,8 +439,9 @@ public class BundleGeneration implements Comparable {
               fragments.add(bg);
             }
           }
-        }
+	}
         classLoader = bundle.secure.newBundleClassLoader(this);
+
         return true;
       }
       if (fragments != null) {
@@ -476,7 +477,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Get class loader for this bundle generation.
-   * 
+   *
    * @return Bundles classloader.
    */
   ClassLoader getClassLoader() {
@@ -486,7 +487,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Get protection domain for this bundle generation.
-   * 
+   *
    * @return ProtectionDomain
    */
   ProtectionDomain getProtectionDomain() {
@@ -555,7 +556,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Detach last fragment from this bundle.
-   * 
+   *
    * @return BundleGeneration for fragment removed, otherwise null.
    */
   private BundleGeneration detachLastFragment() {
@@ -797,7 +798,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Purge classloader resources connected to object.
-   * 
+   *
    */
   void closeClassLoader() {
     if (bundle.fwCtx.debug.classLoader) {
@@ -813,7 +814,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Purge classloader resources connected to object.
-   * 
+   *
    */
   void purge(boolean unregister) {
     if (bundle.fwCtx.debug.classLoader) {
@@ -831,7 +832,7 @@ public class BundleGeneration implements Comparable {
 
 
   /**
-   * 
+   *
    *
    */
   boolean unregisterPackages(boolean force) {
@@ -847,7 +848,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Purge permission resources connected to object.
-   * 
+   *
    */
   void purgeProtectionDomain() {
     bundle.secure.purge(bundle, protectionDomain);
@@ -900,7 +901,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * "Localizes" this bundle's headers
-   * 
+   *
    * @param localization_entries A mapping of localization variables to values.
    * @returns a new localized dictionary.
    */
@@ -930,7 +931,7 @@ public class BundleGeneration implements Comparable {
   /**
    * Reads all localization entries that affects this bundle (including its
    * host/fragments)
-   * 
+   *
    * @param locale locale == "" the bundle.properties will be read o/w it will
    *          read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
@@ -959,7 +960,7 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Find localization files and load.
-   * 
+   *
    */
   private Hashtable getLocalizationEntries(String name) {
     Hashtable res = archive.getLocalizationEntries(name);

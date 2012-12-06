@@ -10,7 +10,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.2.8
+* Framework 5.3.0
+
+  - Added support for framework extensions that needs to register
+    services or keep track of the creation / termination of bundle
+    class loaders.
+
+
+  Framework 5.2.8
 
   - Fixed ServiceReference.isAssignableTo() so that correctly handles
     exported packages from fragments and extensions.
