@@ -720,16 +720,35 @@ public class FrameworkContext  {
    * extension. This will create an instance of the extension
    * activator class and call its activate-method of.
    *
-   * @param extension
+   * @param extension the extension bundle to activate.
    */
   void activateExtension(final BundleGeneration extension) {
     extCtxs.add( new ExtensionContext(this, extension) );
   }
 
+  /**
+   * Inform all active extension contexts about a newly created bundle
+   * class loader.
+   *
+   * @param bcl the new bundle class loader to inform about.
+   */
   void bundleClassLoaderCreated(final BundleClassLoader bcl) {
     for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
       final ExtensionContext extCtx = (ExtensionContext) it.next();
       extCtx.bundleClassLoaderCreated(bcl);
+    }
+  }
+
+  /**
+   * Inform all active extension contexts about a closed down bundle
+   * class loader.
+   *
+   * @param bcl the closed down bundle class loader to inform about.
+   */
+  void bundleClassLoaderClosed(final BundleClassLoader bcl) {
+    for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
+      final ExtensionContext extCtx = (ExtensionContext) it.next();
+      extCtx.bundleClassLoaderClosed(bcl);
     }
   }
 

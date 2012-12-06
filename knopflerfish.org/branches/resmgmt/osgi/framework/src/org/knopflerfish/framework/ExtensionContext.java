@@ -103,11 +103,22 @@ public class ExtensionContext {
     return bi.getClassLoader();
   }
 
+  /**
+   * @return the generation (bundle revision) that a given bundle
+   * class loader belongs to.
+   */
+  public int getGeneration(BundleClassLoader bcl) {
+    return bcl.bpkgs.bg.generation;
+  }
+
+
 
   /**
-   * The list of bundle class loader listeners.
+   * The list of bundle class loader listeners registered for this
+   * extension context.
    */
   private List bclls = new ArrayList();
+
   /**
    * Register a bundle class loader created listener.
    *
@@ -130,6 +141,22 @@ public class ExtensionContext {
       final BundleClassLoaderListener bcll
         = (BundleClassLoaderListener) it.next();
       bcll.bundleClassLoaderCreated(bcl);
+    }
+  }
+
+  /**
+   * Called by the framework context when a bundle class loader has
+   * been closed down. Will notify all registered listeners.
+   *
+   * <p>This is a synchronous call.
+   *
+   * @param bcl the closed down bundle class loader.
+   */
+  void bundleClassLoaderClosed(final BundleClassLoader bcl) {
+    for (Iterator it = bclls.iterator(); it.hasNext(); ) {
+      final BundleClassLoaderListener bcll
+        = (BundleClassLoaderListener) it.next();
+      bcll.bundleClassLoaderClosed(bcl);
     }
   }
 

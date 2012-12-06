@@ -86,10 +86,11 @@ public class ResmanCommandGroup
   // usage
   //
 
-  public final static String USAGE_USAGE = "[<bundle>] ...";
+  public final static String USAGE_USAGE = "[-l] [<bundle>] ...";
 
   public final static String[] HELP_USAGE = new String[] {
     "Display bundle resource consumption.",
+    "-l        Show usage for all bundle revisions of the selected bundles.",
     "<bundle>  Name or id of bundles to show.",
     "          If bundle list is empty, show all bundles."
   };

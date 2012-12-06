@@ -35,17 +35,26 @@
 package org.knopflerfish.framework;
 
 /**
- * Listener interface to notify extension bundles about the creation
- * of new bundle class loaders.
+ * Bundle class loader life cycle listener interface.
+ *
+ * @author Makewave AB, Gunnar Ekolin
  */
 public interface BundleClassLoaderListener {
 
   /**
-   * Synchroneously called when a new bundle class loader has been
+   * Synchronously called when a new bundle class loader has been
    * created.
    *
    * @param bcl the newly created bundle class loader.
    */
   void bundleClassLoaderCreated(BundleClassLoader bcl);
+
+  /**
+   * Synchronously called when a bundle class loader has been
+   * closed.
+   *
+   * @param bcl the closed down bundle class loader.
+   */
+  void bundleClassLoaderClosed(BundleClassLoader bcl);
 
 }
