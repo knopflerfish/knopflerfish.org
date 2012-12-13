@@ -91,6 +91,17 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     stack trace for the thread (Only works on java 1.5 and later).
   - Added possibility to filter which threads to show.
 
+
+* HttpClientConnector 3.1.2
+
+  - Fixed conflicting interpretation of the string form URL; the
+    http client connector expects non-escaped URLs (no %HH encoded
+    characters) but the internal proxy handler expected text URLs that
+    complied to RFC 2396 (all illegal chars %HH encoded). The internal
+    proxy class now also assumes non-escaped URLs when parsing.
+  - The non-proxy hosts was parsed incorrectly.
+
+
 * SCR Commands 1.1.0
 
   - Added "-s" and "-u" flag to the "list" command, so that you

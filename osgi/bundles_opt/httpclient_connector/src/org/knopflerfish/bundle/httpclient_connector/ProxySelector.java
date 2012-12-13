@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ package org.knopflerfish.bundle.httpclient_connector;
 
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URL;
 import java.util.StringTokenizer;
 
 import org.apache.commons.httpclient.HostConfiguration;
@@ -83,7 +84,10 @@ class ProxySelector
    *
    * @param bc bundle context to use to fetch property values.
    * @param client the http-client to configure.
-   * @param urlS the URL to configure connection for.
+   * @param url the URL to configure connection for. The url string
+   *            is assumed to be in non-escaped form, that is not RFC
+   *            2396 compatible. I.e., it should not contain any
+   *            %-encoded chars.
    */
   static void configureProxy(final BundleContext bc,
                              final HttpClient client,
@@ -95,9 +99,20 @@ class ProxySelector
     Object[] proxy = null;
 
     try {
-      uri = new URI(url);
+      // java.net.URI requires proper encoding accoring to RFC 2396,
+      // java.net.URL does not do that. To handle url-strings with
+      // spaces and other non RFC 2396 compatible chars we first
+      // create an URL then build an URI from the parts of the
+      // URL. Note that URL.toURI() requires that the initial URL is
+      // RFC 2396 compliant, but the URI constructor below does not
+      // it encodes characters when required.
+      final URL url1 = new URL(url);
+      uri = new URI(url1.getProtocol(),
+                    url1.getUserInfo(), url1.getHost(), url1.getPort(),
+                    url1.getPath(), url1.getQuery(), url1.getRef());
     } catch (Exception e) {
-      throw new URIException();
+      Activator.log.error("Invalid URL, " +url +", in http connection: " +e, e);
+      throw new URIException(e.toString());
     }
 
     final String proxyServerKF = bc.getProperty(PROXY_SERVER);
@@ -118,7 +133,7 @@ class ProxySelector
         proxy = (Object[]) configureProxyMethod
           .invoke(null, new Object[]{client, url});
       } catch (Throwable t) {
-        // Ignore Exception, fallback to prev Java 5 system properties
+        // Ignore Exception, fallback to pre Java 5 system properties
         final String proxyServer = bc.getProperty("http.proxyHost");
         final String proxyPortStr = bc.getProperty("http.proxyPort");
         final String nonProxyHosts = bc.getProperty("http.nonProxyHosts");
@@ -177,7 +192,7 @@ class ProxySelector
       }
       try {
         final String host = uri.getHost();
-        final StringTokenizer st = new StringTokenizer("|");
+        final StringTokenizer st = new StringTokenizer(nonProxyHosts, "|");
         while (st.hasMoreTokens()) {
           final String regexp = st.nextToken().trim();
           if (matchesSupported) {
