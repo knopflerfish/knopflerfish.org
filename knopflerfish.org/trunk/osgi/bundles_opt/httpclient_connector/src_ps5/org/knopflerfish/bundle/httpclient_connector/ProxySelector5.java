@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
+import java.net.URL;
 import java.util.List;
 
 import org.apache.commons.httpclient.HostConfiguration;
@@ -57,7 +58,10 @@ public class ProxySelector5
    *
    * @param bc bundle context to use to fetch property values.
    * @param client the http-client to configure.
-   * @param urlS the URL to configure connection for.
+   * @param url the URL to configure connection for. The url string
+   *            is assumed to be in non-escaped form, that is not RFC
+   *            2396 compatible. I.e., it should not contain any
+   *            %-encoded chars.
    */
   public static Object[] configureProxy(final HttpClient client,
                                         final String url)
@@ -66,9 +70,18 @@ public class ProxySelector5
     final URI uri;
 
     try {
-      uri = new URI(url);
+      // URI requires proper encoding accoring to RFC 2396, URL does
+      // not do that. To handle url-strings with spaces and other non
+      // 2396 compatible stuff we first create an URL then build an
+      // UIR from the parts of the URL. Note that URL.toURI() requires
+      // that the initial URL is on 2396 format, but the constructor
+      // below does not (it encodes when needed).
+      final URL url1 = new URL(url);
+      uri = new URI(url1.getProtocol(),
+                    url1.getUserInfo(), url1.getHost(), url1.getPort(),
+                    url1.getPath(), url1.getQuery(), url1.getRef());
     } catch (Exception e) {
-      throw new URIException();
+      throw new URIException(e.toString());
     }
 
     final ProxySelector ps = ProxySelector.getDefault();
