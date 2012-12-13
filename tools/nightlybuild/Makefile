@@ -149,6 +149,7 @@ outindex:
 	  for FF in `ls -1ct`; do \
 	    if [ -d $$FF ]; then \
 	      echo "<a href=\"$$FF\">$$FF</a> "  >> ${OUT_DIR}/index.html; \
+	      echo " -  "  >> ${OUT_DIR}/index.html; \
 	      echo "<a href=\"$$FF/maven2\">Maven2 repo</a><br/>"  >> ${OUT_DIR}/index.html; \
 	    fi; \
 	  done)
