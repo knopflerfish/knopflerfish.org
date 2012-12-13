@@ -12,6 +12,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 * Framework 5.3.0
 
+  - Fixed a bug when calculating candidate objectClasses that can
+    match a given ldap-expression.
+  - Fixed possible NullPointerException in ServiceListenerState.
+
+  Framework 5.3.0
+
   - Added support for framework extensions that needs to register
     services or keep track of the creation / termination of bundle
     class loaders.
