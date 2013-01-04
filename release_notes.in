@@ -82,6 +82,10 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     unbind of dynamic optional references before deactivating
     a component.
 
+* User Administration Service 3.0.3
+  - Fixed service listener leak. A new LogRef object is no longer
+    created each time a user admin event is sent.
+
 
 === Misc (KF specific, start scripts, build system etc) ===
 
