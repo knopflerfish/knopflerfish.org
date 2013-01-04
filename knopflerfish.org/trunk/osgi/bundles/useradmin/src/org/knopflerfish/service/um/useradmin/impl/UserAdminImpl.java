@@ -40,8 +40,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import java.security.AccessController;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
@@ -101,7 +99,7 @@ public class UserAdminImpl implements ServiceFactory, UserAdmin,
 
         eventAdminTracker
           = new ServiceTracker(Activator.bc, EventAdmin.class.getName(), null );
-        eventQueue = new EventQueue(Activator.bc);
+        eventQueue = new EventQueue();
     }
 
     /**

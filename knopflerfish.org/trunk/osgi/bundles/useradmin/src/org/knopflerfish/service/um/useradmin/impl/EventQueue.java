@@ -35,8 +35,6 @@
 package org.knopflerfish.service.um.useradmin.impl;
 
 import java.util.Vector;
-import org.knopflerfish.service.log.LogRef;
-import org.osgi.framework.BundleContext;
 
 
 /**
@@ -58,21 +56,10 @@ final class EventQueue implements Runnable {
 
   private final Object threadLock = new Object();
 
-  private LogRef log;
-  
   /**
    * The queue of events to dispatch.
    */
   private Vector queue = new Vector();
-
-
-  /**
-   * Construct an EventQueue.
-   * 
-   */
-  EventQueue( BundleContext bc ) {
-    this.log = new LogRef(bc);
-  }
 
 
   /**
@@ -87,7 +74,7 @@ final class EventQueue implements Runnable {
       try {
         job.run();
       } catch (Throwable t) {
-        log.error("Error while executing event dispatch job ", t);
+        Activator.log.error("Error while executing event dispatch job ", t);
       }
     }
   }
