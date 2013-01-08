@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -458,10 +458,10 @@ public class BundleMvnAntTask extends Task {
         } else {
           // Add one "../" to mvnPath for each level in the groupId
           mvnPath = "../" +mvnPath;
-          int pPos = groupIdPath.indexOf('.');
-          while (-1<pPos) {
+          int sPos = groupIdPath.indexOf('/');
+          while (-1<sPos) {
             mvnPath = "../" +mvnPath;
-            pPos = groupIdPath.indexOf('.', pPos+1);
+            sPos = groupIdPath.indexOf('.', sPos+1);
           }
         }
         final Element url = doc.createElement("url");
@@ -625,7 +625,7 @@ public class BundleMvnAntTask extends Task {
   }
 
   /**
-   * Build the relative path to the bundle represented by the givne
+   * Build the relative path to the bundle represented by the given
    * maven coordinates.
    *
    * @param ela
