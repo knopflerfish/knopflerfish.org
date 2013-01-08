@@ -23,7 +23,7 @@
       <meta http-equiv ="CACHE-CONTROL"
             content    ="NO-CACHE"/>
       
-      <title>Knopflerfish <xsl:value-of select="@version"/> Maven Artifacts</title>
+      <title><xsl:value-of select="@product"/> <xsl:value-of select="@version"/> Maven Artifacts</title>
       <link rel="stylesheet" type="text/css"
 	    href="http://www.knopflerfish.org./css/knopflerfish2.1.css"/>
       <link rel="shortcut icon"
@@ -76,10 +76,10 @@
 	</div>
 
 	<div id="mainblock">
-          <h2>Knopflerfish <xsl:value-of select="@version"/> Maven Artifacts</h2>
+          <h2><xsl:value-of select="@product"/> <xsl:value-of select="@version"/> Maven Artifacts</h2>
 
           This page contains a listing of all bundles (artifacts) in
-          the maven2 repository that belongs to Knopflerfish
+          the maven2 repository that belongs to <xsl:value-of select="@product"/>
           <xsl:value-of select="@version"/>.<p/>
           
           You may copy the Maven <code>&lt;dependy&gt;</code>
