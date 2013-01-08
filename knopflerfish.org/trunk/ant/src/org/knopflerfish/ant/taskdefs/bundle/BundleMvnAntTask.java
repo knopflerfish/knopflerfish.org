@@ -461,7 +461,7 @@ public class BundleMvnAntTask extends Task {
           int sPos = groupIdPath.indexOf('/');
           while (-1<sPos) {
             mvnPath = "../" +mvnPath;
-            sPos = groupIdPath.indexOf('.', sPos+1);
+            sPos = groupIdPath.indexOf('/', sPos+1);
           }
         }
         final Element url = doc.createElement("url");
