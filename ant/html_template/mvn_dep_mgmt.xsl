@@ -31,7 +31,8 @@
     </head>
 
     <body>
-      <div id="main">
+      <!-- Override default width for main (900px), since we need more space... -->
+      <div id="main" style="width:1200px">
         <a name="top"></a>
         <div id="header">
           <div id="header_logo">
@@ -130,11 +131,17 @@
   </xsl:template>
 
   <xsl:template match="bundle">
+    <xsl:variable name="version"><xsl:value-of select="version"/></xsl:variable>
     <tr>
       <td class="fancy"><xsl:value-of select="name"/></td>
       <td class="fancy"><xsl:value-of select="description"/></td>
       <td class="fancy"><xsl:value-of select="groupId"/></td>
-      <td class="fancy"><xsl:value-of select="artifactId"/></td>
+      <td class="fancy">
+	<a>
+          <xsl:attribute name="href"><xsl:value-of select="substring-before(url,$version)"/></xsl:attribute>
+          <xsl:value-of select="artifactId"/>
+        </a>        
+      </td>
       <td class="fancy"><a>
 	  <xsl:attribute name="href"><xsl:value-of select="url"/></xsl:attribute>
 	  <xsl:value-of select="version"/>
