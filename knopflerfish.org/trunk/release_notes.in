@@ -8,6 +8,20 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   last release.
 
 
+========================================================================
+
+
+
+Release Notes Knopflerfish 3.5.0 (OSGi R4 v4.2)
+--------------------------------------------------
+
+  Maintenance release of Knopflerfish available from
+  http://www.knopflerfish.org/releases/3.5.0
+
+  Here follows a breakdown of the most important changes since the
+  last release.
+
+
 === Framework (Core) ===
 
 * Framework 5.3.3
