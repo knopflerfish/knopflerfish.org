@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -203,13 +203,6 @@ public class SessionImpl extends Thread implements Session {
         readT.close();
         abortCommand();
         closed = true;
-        try {
-            readT.join(2000);
-        } catch (InterruptedException ignore) {
-        }
-        if (readT.isAlive()) {
-            // TBD log error, readT.stop();
-        }
         for (Enumeration e = listeners.elements(); e.hasMoreElements();) {
             SessionListener l = (SessionListener) e.nextElement();
             l.sessionEnd(this);

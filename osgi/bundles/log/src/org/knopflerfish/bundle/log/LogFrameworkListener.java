@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,12 +75,13 @@ public class LogFrameworkListener implements FrameworkListener, /*Synchronous*/B
     public void frameworkEvent(FrameworkEvent fe) {
         int level = LogService.LOG_INFO;
         String msg = null;
-        Throwable thr = null;
+        // We always include the Exception even though
+        // the specification says differently
+        Throwable thr = fe.getThrowable();
         switch (fe.getType()) {
         case FrameworkEvent.ERROR:
             msg = "FrameworkEvent ERROR";
             level = LogService.LOG_ERROR;
-            thr = fe.getThrowable();
             break;
         case FrameworkEvent.STARTED:
             msg = "FrameworkEvent STARTED";
