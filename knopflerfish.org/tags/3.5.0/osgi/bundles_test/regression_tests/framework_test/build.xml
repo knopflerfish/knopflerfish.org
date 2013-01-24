@@ -1,0 +1,517 @@
+<?xml version="1.0"?>
+
+<project name="framework_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.framework_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name="bundle.build.all"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.doc"  value="false"/>
+
+  <property name="all.suffix.name"  value=""/>
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+  <property name="bundle.stdimports"   value="javax.microedition.io"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="io_api-N.N.N.jar"/>
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  </path>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="buildres">
+   <jar destfile="${resources.dir}/res1.jar" 
+        basedir="res1"/>
+   <jar destfile="${resources.dir}/res2.jar" 
+        basedir="res2"/>
+  </target>
+
+  <target name="bundle.custom.pre">
+    <mkdir dir="${ttb.outdir}"/>
+    <antcall target="buildres"/>
+    <antcall target="bundleA_test"/>
+    <antcall target="bundleA1_test"/>
+    <antcall target="bundleA2_test"/>
+    <antcall target="bundleB_test"/>
+    <antcall target="bundleC_test"/>
+    <antcall target="bundleD_test"/>
+    <antcall target="bundleD1_test"/>
+    <antcall target="bundleE_test"/>
+    <antcall target="bundleF_test"/>
+    <antcall target="bundleG_test"/>
+    <antcall target="bundleI_test"/>
+    <antcall target="bundleJ_test"/>
+    <antcall target="bundleU_test"/>
+    <antcall target="bundleV_test"/>
+    <antcall target="bundleW_test"/>
+    <antcall target="bundleW1_test"/>
+    <antcall target="bundleH_test"/>
+    <antcall target="bundleP1_test"/>
+    <antcall target="bundleP2_test"/>
+    <antcall target="bundleP3_test"/>
+    <antcall target="bundlePT1_test"/>
+    <antcall target="bundlePT2_test"/>
+    <antcall target="bundlePT3_test"/>
+    <antcall target="bundleQ_test"/>
+    <antcall target="bundleR_test"/>
+    <antcall target="bundleR1_test"/>
+    <antcall target="bundleR2_test"/>
+    <antcall target="bundleR3_test"/>
+    <antcall target="bundleR4_test"/>
+    <antcall target="bundleR5_test"/>
+    <antcall target="bundleR6_test"/>
+    <antcall target="bundleSL1"/>
+    <antcall target="bundleSL2"/>
+    <antcall target="bundleSL3"/>
+    <antcall target="bundleSL4"/>
+    <antcall target="fragment_bundles"/>
+    <antcall target="resexp_test"/>
+    <antcall target="resimp_test"/>
+    <antcall target="require_bundle"/>
+    <antcall target="bundleA_lazy"/>
+    <antcall target="bundleA_lazy2"/>
+    <antcall target="bundleA_lazy3"/>
+    <antcall target="bundleA_lazy4"/>
+    <antcall target="bundleN1_test"/>
+    <antcall target="bundleN2_test"/>
+    <antcall target="bundleN3_test"/>
+  </target>
+
+  <target name="bundleA_test">
+    <ant dir="test_target_bundles/bundleA_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleA1_test">
+    <ant dir="test_target_bundles/bundleA1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA1_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleA2_test">
+    <ant dir="test_target_bundles/bundleA2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA2_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleB_test">
+    <ant dir="test_target_bundles/bundleB_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleB_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleC_test">
+    <ant dir="test_target_bundles/bundleC_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleC_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleD_test">
+    <ant dir="test_target_bundles/bundleD_test" target="all"
+	 inheritAll="false">
+      <property name="jar.out.dir"  location="${resources.dir}"/>
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleD_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleD1_test">
+    <ant dir="test_target_bundles/bundleD1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleD1_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleE_test">
+    <ant dir="test_target_bundles/bundleE_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleE_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleF_test">
+    <ant dir="test_target_bundles/bundleF_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleF_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleG_test">
+    <ant dir="test_target_bundles/bundleG_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleG_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleI_test">
+    <ant dir="test_target_bundles/bundleI_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleI_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleJ_test">
+    <ant dir="test_target_bundles/bundleJ_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleJ_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleU_test">
+    <ant dir="test_target_bundles/bundleU_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleU_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleV_test">
+    <ant dir="test_target_bundles/bundleV_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleV_test"/>
+    </ant>
+  </target>
+  <target name="bundleW_test">
+    <ant dir="test_target_bundles/bundleW_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleW_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleW1_test">
+    <ant dir="test_target_bundles/bundleW1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleW1_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleH_test">
+    <ant dir="test_target_bundles/bundleH_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleH_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleP1_test">
+    <ant dir="test_target_bundles/bundleP1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP1_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleP2_test">
+    <ant dir="test_target_bundles/bundleP2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP2_test"/>
+    </ant>
+  </target>
+  <target name="bundleP3_test">
+    <ant dir="test_target_bundles/bundleP3_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleP3_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundlePT1_test">
+    <ant dir="test_target_bundles/bundlePT1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundlePT1_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundlePT2_test">
+    <ant dir="test_target_bundles/bundlePT2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundlePT2_test"/>
+    </ant>
+  </target>
+  <target name="bundlePT3_test">
+    <ant dir="test_target_bundles/bundlePT3_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundlePT3_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleQ_test">
+    <ant dir="test_target_bundles/bundleQ_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleQ_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleR_test">
+    <ant dir="test_target_bundles/bundleR_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleR_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleR1_test">
+    <ant dir="test_target_bundles/bundleR1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleR1_test"/>
+    </ant>
+  </target>
+  <target name="bundleR2_test">
+    <ant dir="test_target_bundles/bundleR2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleR2_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleR3_test">
+    <ant dir="test_target_bundles/bundleR3_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleR3_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleR4_test">
+    <ant dir="test_target_bundles/bundleR4_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleR4_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleR5_test">
+    <ant dir="test_target_bundles/bundleR5_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleR5_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleR6_test">
+    <ant dir="test_target_bundles/bundleR6_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleR6_test"/>
+    </ant>
+  </target>
+  <target name="bundleSL1">
+    <ant dir="test_target_bundles/bundleSL1" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSL1_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleSL2">
+    <ant dir="test_target_bundles/bundleSL2" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSL2_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleSL3">
+    <ant dir="test_target_bundles/bundleSL3" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSL3_test"/>
+    </ant>
+  </target>
+  <target name="bundleSL4">
+    <ant dir="test_target_bundles/bundleSL4" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleSL4_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="fragment_bundles">
+    <ant dir="test_target_bundles/fb_C" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/fb_C"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/fb_B" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/fb_B"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/fb_A" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/fb_A"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/fb_D" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/fb_D"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/fb_E" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/fb_E"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/fb_F" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/fb_F"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/fb_G" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/fb_G"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="resexp_test">
+    <ant dir="test_target_bundles/resexp_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/resexp_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="resimp_test">
+    <ant dir="test_target_bundles/resimp_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/resimp_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="require_bundle">
+    <ant dir="test_target_bundles/rb_B" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/rb_B"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/rb_A" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/rb_A"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/rb_D" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/rb_D"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+    <ant dir="test_target_bundles/rb_C" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/rb_C"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleA_lazy">
+    <ant dir="test_target_bundles/bundleA_lazy" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleA_lazy2">
+    <ant dir="test_target_bundles/bundleA_lazy2" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy2"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleA_lazy3">
+    <ant dir="test_target_bundles/bundleA_lazy3" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy3"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleA_lazy4">
+    <ant dir="test_target_bundles/bundleA_lazy4" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_lazy4"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleN1_test">
+    <ant dir="test_target_bundles/bundleN1_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleN1_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleN2_test">
+    <ant dir="test_target_bundles/bundleN2_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleN2_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+  <target name="bundleN3_test">
+    <ant dir="test_target_bundles/bundleN3_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleN3_test"/>
+      <property name="bundle_tasks.built" value="true"/> 
+    </ant>
+  </target>
+
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+  <target name="clean">
+    <antcall target="bundlebuild.clean"/>
+    <delete dir="${proj.dir}/resources" includes="*.jar" failonerror="false"/>
+  </target>
+
+</project>

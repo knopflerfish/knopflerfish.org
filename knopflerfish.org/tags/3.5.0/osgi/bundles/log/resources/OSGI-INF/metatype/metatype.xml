@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MetaData xmlns="http://www.osgi.org/xmlns/metatype/v1.1.0">
+
+  <OCD id="1.1.1.1" name="OCD for LogConfig">
+    <AD name="default.level"
+	type="String"
+	id="default.level"
+        description="Set the default log level, when not set for specific bundles."
+	default="info">
+      <Option label="debug"   value="debug"/>
+      <Option label="info"    value="info"/>
+      <Option label="warning" value="warning"/>
+      <Option label="error"   value="error"/>
+    </AD>
+    <AD name="bundle.log.level"
+	type="String"
+        cardinality="-100"
+	id="bundle.log.level" />
+    <AD name="file"
+	type="Boolean"
+	id="file"
+	default="false"/>
+    <AD name="file.dir"
+	type="String"
+	id="file.dir"
+	default="" />
+    <AD name="file.flush"
+	type="Boolean"
+	id="file.flush"
+	default="true"/>
+    <AD name="file.size"
+	type="Integer"
+	id="file.size"
+	default="20000" />
+    <AD name="file.generations"
+	type="Integer"
+	id="file.generations"
+	default="4" />
+    <AD name="timestamp.pattern"
+	type="String"
+	id="timestamp.pattern"
+	default="yyyyMMdd HH:mm:ss" />
+    <AD name="memory.size"
+	type="Integer"
+	id="memory.size"
+	default="250" />
+    <AD name="log.out"
+	type="Boolean"
+	id="log.out"
+	default="false" />
+  </OCD>
+
+  <Designate 
+     pid="org.knopflerfish.bundle.log.LogConfig"
+     bundle="ignored" >
+    <Object ocdref="1.1.1.1" >
+    </Object>
+  </Designate>
+
+</MetaData>

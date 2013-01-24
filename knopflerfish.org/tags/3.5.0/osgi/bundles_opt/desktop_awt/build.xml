@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="desktop_awt" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.desktop_awt}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name="ee.check.foundation"   value="false"/>
+  <property name="javac.target"          value="1.1"/>
+
+  <property name="api.pattern"
+	    value="org/knopflerfish/service/desktop/**,
+		   org/knopflerfish/service/console/**"/> 
+  <property name="impl.pattern"
+	    value="org/knopflerfish/bundle/**"/> 
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <!-- Embedd the KF console API. -->
+  <target name="bundle.custom.pre">
+    <bundle_locator bundleNames="console_api">
+      <fileset dir="${jars.dir}">
+	<include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.console_api}">
+	<patternset><exclude name="META-INF/*"/></patternset>
+      </zipfileset>
+    </copy>      
+  </target>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

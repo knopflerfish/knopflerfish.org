@@ -1,0 +1,126 @@
+<h1>SOAP Remote Framework</h1>
+
+<div class="abstract">
+This bundle exports (server) and imports (client) remote OSGI
+frameworks, using SOAP. This allows a client bundle, as the Swing
+desktop, to remotely control another framework.  </p></div>
+</div>
+
+<p>
+
+The bundle is part of the <a href="../soap/index.html#axis1">The
+Knopflerfish Axis 1</a> package.
+
+</p>
+
+<h2>Description</h2>
+
+<p>
+
+Implementation of a "remote" OSGi framework, using SOAP. This
+implementaiton does currently not support forwarding of log event from
+the server framework to the client. For usage instructions see <a
+href="../remotefw/index.html">Remote Framework</a>, but replace
+references to <tt>ksoap-osgi</tt> with <tt>axis-osgi</tt> and
+<tt>ksoap_remotefw</tt> with <tt>soap_remotefw</tt>. Two xargs-file
+fragments that can be used when starting a <a
+href="server.xargs">server</a> / <a href="client.xargs">client</a>
+framework using the Axis&nbsp;1 baser SOAP Remote Framework are
+provided by the links in this sentence.
+
+</p>
+
+
+<h2>Server - Exporting a framework</h2>
+
+<p>
+
+The soap_remotefw bundle can export the entire OSGi framework as a
+SOAP service, by registering an instance of
+<tt>org.knopflerfish.service.soap.remotefw.RemoteFW</tt>
+into the framework, with the property
+<tt>SOAP.service.name = OSGiFramework</tt>
+
+</p><p>
+
+This will make the axis-osgi bundle pick up the service and export
+all methods. A SOAP client on another host can then access the
+server framework.
+
+</p><p>
+
+Typically, this "raw" SOAP service will be available on
+<pre>
+ http://<it>host</it>:<it>port</it>/axis/service/OSGiFramework
+</pre>
+and can be viewed directly with the soap_desktop browser.
+
+</p><p>
+
+The default behavior of soap_remotefw is to register a RemoteFW 
+instance.
+
+</p>
+
+
+<h2>Client - Importing a framework</h2>
+<p>
+
+The soap_remotefw bundle can also run as a client and import a remote
+framework. In that case, a service of class
+<pre>
+  org.knopflerfish.service.remotefw.RemoteFramework
+</pre>
+will be registered into the framework. Another bundle can then get this
+RemoteFramework service and call its "connect" method. This methods will
+return a BundleContext representing the remote framework. See javadocs
+for RemoteFramework for details.
+
+</p><p>
+
+The default behavior of soap_remotefw is to register a RemoteFramework 
+instance.
+
+</p><p>
+
+The Swing desktop is capable of using the RemoteFramework service. If the
+soap_remotefw is active, the desktop will display a connection dialog
+allowing the user to connect to a named remote framework.
+
+</p>
+
+<h2>Controlling the soap_remotefw behavior</h2>
+
+The behavior of the soap_remotefw bundle can be controlled
+by the following system properties:
+
+<dl>
+  <dt><tt>org.knopflerfish.soap.remotefw.server</tt> (default "true")</dt>
+  <dd>
+      If set to "true", export a SOAP service allowing remote
+      management of the entire platform.
+      </br>
+      If not set to "true", do not export any SOAP service
+  </dd>
+  <dt><tt>org.knopflerfish.soap.remotefw.client</tt> (default "true")</dt>
+  <dd>
+      If set to "true", register an implementation of 
+      org.knopflerfish.service.remotefw.RemoteFramework
+      allowing other bundles to remote manage a framework. This 
+      service can be used by the desktop bundle.
+      <br/>
+      If not set to "true", do not register any RemoteFramework
+      service
+  </dd>
+  <dt><tt>org.knopflerfish.soap.remotefw.client.eventinterval</tt> (default 3000)</dt>
+  <dd>
+      Interval in milliseconds between event notification. The remote
+      bundle context's event notification works by polling the server
+      at regular intervals. This property specifies the interval.
+  </dd>
+</dl>
+
+<h2>See Also</h2>
+<a href="../soap/index.html">SOAP - WebServices</a><br/>
+<a href="../remotefw/index.html">Remote Framework</a><br/>
+

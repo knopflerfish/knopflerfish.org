@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="comm-linux" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.comm-linux}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="bundle.build.api"   value="false"/>
+  <property name="bundle.build.impl"  value="false"/>
+  <property name="bundle.build.lib"   value="false"/>
+  <property name="bundle.build.all"   value="true"/>
+
+  <property name="ee.check.foundation" value="true"/>
+
+  <property name="api.pattern"
+            value="javax/comm/*,
+		   gnu/io/*"/>
+  <property name="impl.pattern"
+            value="info/piayda/bundle/comm/linux/**"/>
+
+  <path id="bundle.compile.path">
+    <pathelement location="log_api-N.N.N.jar"/>
+    <!--   <pathelement location="device_api-N.N.N.jar"/>-->
+    <pathelement location="resources/RXTXcomm.jar"/>
+    <pathelement location="resources/comm.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

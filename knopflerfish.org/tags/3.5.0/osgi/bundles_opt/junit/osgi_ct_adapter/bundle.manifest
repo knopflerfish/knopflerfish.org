@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Version: 1.0.2
+Bundle-SymbolicName: org.knopflerfish.bundle.osgi_ct_adapter
+Bundle-Name: OSGiComplianceTestAdapter
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/junit/osgi_ct_adapter/
+Bundle-Activator: org.knopflerfish.bundle.osgi_ct_adapter.Activator
+Import-Package: org.osgi.framework, junit.framework, org.osgi.util.tracker

@@ -1,0 +1,26 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: SOAP-FW
+Bundle-SymbolicName: org.knopflerfish.bundle.soap_remotefw
+Bundle-Version: 3.0.1
+Bundle-Category: service
+Bundle-Description: SOAP remote framework
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?soap_remotefw
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/soap/soap_remotefw/
+Bundle-Activator: org.knopflerfish.bundle.soap.remotefw.Activator
+Export-Package: org.knopflerfish.service.soap.remotefw
+Import-Package: org.osgi.framework,
+ org.osgi.service.packageadmin,
+ org.osgi.service.startlevel,
+ org.osgi.util.tracker,
+ javax.xml.namespace,
+ javax.xml.rpc,
+ org.apache.axis.client,
+ org.knopflerfish.service.log,
+ org.knopflerfish.service.remotefw,
+ org.knopflerfish.service.soap.remotefw,
+ org.knopflerfish.util,

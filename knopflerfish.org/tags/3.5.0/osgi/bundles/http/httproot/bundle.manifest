@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: HTTP-root
+Bundle-SymbolicName: org.knopflerfish.bundle.httproot
+Bundle-Version: 3.0.1
+Bundle-Category: example
+Bundle-Description: Demo HTTP Service user that publishes on the root
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/http/httproot/
+Bundle-Activator: org.knopflerfish.bundle.httproot.Activator
+Import-Package: javax.servlet,
+ javax.servlet.http,
+ org.knopflerfish.service.log,
+ org.osgi.framework,
+ org.osgi.service.http,
+ org.osgi.util.tracker

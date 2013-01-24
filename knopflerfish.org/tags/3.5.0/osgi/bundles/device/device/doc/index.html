@@ -1,0 +1,50 @@
+
+
+<h1>Device Manager</h1>
+
+<div class="abstract">
+  The Device Manager bundle implements the 
+  <a  target="_top" href="$(JAVADOCLINK)org/osgi/service/device/package-summary.html">
+    OSGi Device Access Model. 
+  </a>
+</div>
+
+<h2>Description</h2>
+<p>
+  The Device Manager matches and attaches drivers to devices. With the
+  help of one or more DriverLocator services it can dynamically
+  install and start drivers on demand. 
+</p>
+<p>
+  These concepts are used in the Device Manager documentation.
+  <dl class="kf">
+    <dt>Device</dt>
+    <dd>A service that mirrors a physical device. </dd>
+    <dt>Idle Device</dt>
+    <dd>A Device that no Driver service is attached to. </dd>
+    <dt>Device Manager</dt>
+    <dd>A framework component that looks for registration and
+      unregistration of devices and finds a driver for a device.  
+    </dd>
+    <dt>Driver</dt>
+    <dd>Is called by the Device Manager to check for matches and carry
+      out attachment. 
+      </dd>
+    <dt>Driver Locator</dt>
+    <dd>A service that downloads suitable drivers. </dd>
+    <dt>Driver Selector</dt>
+    <dd>A service to break ties in case multiple drivers return the same (best) match value. </dd>
+  </dl>
+</p>
+<h2>Device Access Model</h2>
+<p>
+  The device access model is a part of the OSGi service platform
+  specification. It splits responsibilities for device
+  management into several parts. The device manager is the motor in
+  this process and it is supplied with the framework. There must never
+  be more than one device manager installed. 
+</p>
+<p>
+  Knopflerfish includes a basic driver locator bundle,
+  basicdriverlocator. 
+</p>

@@ -1,0 +1,13 @@
+# Initial startup verbosity, 0 is low verbosity
+#-Forg.knopflerfish.framework.main.verbosity=0
+
+# Log
+-Forg.knopflerfish.log.level=info
+
+# Security
+-Forg.osgi.framework.security=osgi
+-Forg.knopflerfish.framework.service.permissionadmin=false
+
+# Various debug flags
+-Forg.knopflerfish.framework.debug.errors=true
+-Forg.knopflerfish.framework.debug.permissions=true

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="regression_tests" default="all">
+
+  <target name="all">
+    <ant dir="framework_test"           target="all"/>
+    <ant dir="filter_test"              target="all"/>
+    <ant dir="constants_test"           target="all"/>
+    <ant dir="servicetracker_test"      target="all"/>
+    <ant dir="http_test"                target="all"/>
+    <ant dir="registryperformance_test" target="all"/>
+    <ant dir="restart_test"             target="all"/>
+    <ant dir="eventadmin_test"          target="all"/>
+    <ant dir="connectorservice_test"    target="all"/>
+    <ant dir="component_test"           target="all"/>
+    <ant dir="endurance_test"		target="all"/>
+    <ant dir="extension_test"		target="all"/>
+    <ant dir="condpermadmin_test"	target="all"/>
+    <ant dir="axis2_soapobject"		target="all"/>
+    <ant dir="axis2_soapclient_adb"	target="all"/>
+    <ant dir="preferences_test"         target="all"/>
+    <ant dir="startlevel_test"          target="all"/>
+  </target>
+
+  <target name="clean">
+    <delete dir="out"/>
+    <delete dir="jars"/>
+    <ant dir="." antfile="build_keystore.xml" target="clean"/>
+    <!-- Remove files not built to out -->
+    <delete includeemptydirs="true" failonerror="false">
+      <fileset dir="framework_test/resources"      includes="*.jar"/>
+      <fileset dir="restart_test"                  includes="*.xargs"/>
+      <fileset dir="restart_test/resources"/>
+      <fileset dir="condpermadmin_test/resources"/>
+      <fileset dir="component_test/resources"/>
+      <fileset dir="endurance_test/resources"      includes="*.jar"/>
+      <fileset dir="servicetracker_test/resources" includes="*.jar"/>
+      <fileset dir="extension_test/resources"      includes="*.jar"/>
+      <fileset dir="axis2_soapclient_adb"          includes="*.xargs"/>
+      <fileset dir="axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/"/>
+      <fileset dir="startlevel_test/resources"     includes="*.jar"/>
+    </delete>
+  </target>
+
+</project>
