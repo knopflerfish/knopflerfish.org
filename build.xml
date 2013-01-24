@@ -38,7 +38,7 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="3.5.0"/>
+  <property name="version"            value="3.5.1.svn-XXXX"/>
 
   <!-- The URL to the root of the SVN-repository -->
   <property name="svn.repo.url"
