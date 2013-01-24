@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    ** Copyright (c) 2004-2011, KNOPFLERFISH project
+    ** Copyright (c) 2004-2013, KNOPFLERFISH project
     ** All rights reserved.
     **
     ** Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="3.4.1.svn-XXXX"/>
+  <property name="version"            value="3.5.0"/>
 
   <!-- The URL to the root of the SVN-repository -->
   <property name="svn.repo.url"

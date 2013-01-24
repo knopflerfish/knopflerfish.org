@@ -1,3 +1,228 @@
+2013-01-24 09:27:05 +0100 (Thu, 24 Jan 2013), revision 3614, jan
+Fixed mutable copies for FrameworkPolicy.getPermissions().
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/FrameworkPolicy.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-01-24 08:41:04 +0100 (Thu, 24 Jan 2013), revision 3613, jan
+Fixed unnecessary delays in framework and console during shutdown. Fixed handling of FrameworkEvent.WARNING in log and event bundle.
+U   knopflerfish.org/trunk/osgi/bundles/console/console/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/console/console/src/org/knopflerfish/bundle/console/SessionImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/event/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/MultiListener.java
+U   knopflerfish.org/trunk/osgi/bundles/log/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/log/src/org/knopflerfish/bundle/log/LogFrameworkListener.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-01-21 13:41:32 +0100 (Mon, 21 Jan 2013), revision 3612, jan
+Fixed NPE in framework when doing multiple uninstall of same bundle.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-01-09 13:05:28 +0100 (Wed, 09 Jan 2013), revision 3611, ekolin
+Make the Maven Release page wider, and link to the directory holding all versions of an artifact.
+U   knopflerfish.org/trunk/ant/html_template/mvn_dep_mgmt.xsl
+
+2013-01-09 10:09:51 +0100 (Wed, 09 Jan 2013), revision 3610, ekolin
+Improve layout (look ok in FireFox but not in Safari).
+U   knopflerfish.org/trunk/ant/html_template/mvn_dep_mgmt.xsl
+
+2013-01-08 16:14:59 +0100 (Tue, 08 Jan 2013), revision 3609, ekolin
+Parametrize the product name in the maven dependency management file. For KF-Pro builds.
+U   knopflerfish.org/trunk/ant/html_template/mvn_dep_mgmt.xsl
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleMvnAntTask.java
+
+2013-01-08 15:29:31 +0100 (Tue, 08 Jan 2013), revision 3608, ekolin
+URLs to bundles with a group id that did not start on
+'org.knopflerfish' was was wrong in the xml file describing
+the release, i.e., maven2/org/knopflerfish/KF-version.xml.
+Missed one '.' that should be changed to a '/'.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleMvnAntTask.java
+
+2013-01-08 15:26:16 +0100 (Tue, 08 Jan 2013), revision 3607, ekolin
+URLs to bundles with a group id that did not start on
+'org.knopflerfish' was was wrong in the xml file describing
+the release, i.e., maven2/org/knopflerfish/KF-version.xml.
+U   knopflerfish.org/trunk/ant/src/org/knopflerfish/ant/taskdefs/bundle/BundleMvnAntTask.java
+
+2013-01-08 11:57:13 +0100 (Tue, 08 Jan 2013), revision 3606, ekolin
+Update download path for the maven ant tasks to one that works.
+U   knopflerfish.org/trunk/ant/ant_templates/mvn_repo.xml
+
+2013-01-04 13:29:08 +0100 (Fri, 04 Jan 2013), revision 3605, joek
+user admin v 3.0.3, fix for leaking service listeners (LogRef:s)
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/EventQueue.java
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/SendUserAdminEventJob.java
+U   knopflerfish.org/trunk/osgi/bundles/useradmin/src/org/knopflerfish/service/um/useradmin/impl/UserAdminImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-12-13 17:07:31 +0100 (Thu, 13 Dec 2012), revision 3604, ekolin
+Fix version for the new framework
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-12-13 16:48:15 +0100 (Thu, 13 Dec 2012), revision 3603, ekolin
+*** empty log message ***
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+
+2012-12-13 16:42:54 +0100 (Thu, 13 Dec 2012), revision 3602, ekolin
+Make the maven2 repo of snapshot builds visible.
+U   knopflerfish.org/trunk/tools/nightlybuild/Makefile
+U   knopflerfish.org/trunk/tools/nightlybuild/readme.txt
+
+2012-12-13 16:28:22 +0100 (Thu, 13 Dec 2012), revision 3601, perg
+framework 5.3.1.
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-12-13 16:23:25 +0100 (Thu, 13 Dec 2012), revision 3600, perg
+Fixed a bug in LDAPExpr and a NullPointerException in ServiceListenerState
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/LDAPExpr.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceListenerState.java
+
+2012-12-13 10:59:06 +0100 (Thu, 13 Dec 2012), revision 3599, ekolin
+httpclient_connection 3.1.2 fixes problem with url parsing for its proxy handling.
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/resources/org/knopflerfish/bundle/httpclient_connector/ProxySelector5.class
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/src/org/knopflerfish/bundle/httpclient_connector/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/src/org/knopflerfish/bundle/httpclient_connector/HttpClientConnection.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/src/org/knopflerfish/bundle/httpclient_connector/ProxySelector.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/httpclient_connector/src_ps5/org/knopflerfish/bundle/httpclient_connector/ProxySelector5.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-12-06 14:30:39 +0100 (Thu, 06 Dec 2012), revision 3598, ekolin
+Framework 5.3.0: Added support for framework extensions that needs to register services or keep track of the creation / termination of bundle class loaders.
+_U  knopflerfish.org/trunk/osgi/framework/
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+_U  knopflerfish.org/trunk/osgi/framework/resources/framework.policy
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+A   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoaderListener.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleGeneration.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+_U  knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+A   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ExtensionContext.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/FrameworkContext.java
+_U  knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+_U  knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-12-05 17:09:07 +0100 (Wed, 05 Dec 2012), revision 3594, jan
+New framework and SCR bundle with new tests. See release_notes.in for information.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentMethod.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/PostponedBind.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/SCR.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/resources/service.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/bundle/componentX_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/bundle/componentX_test/ComponentXImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/bundle/componentX_test/ComponentYImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/bundle/componentX_test/ComponentZImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/service/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/service/componentX_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/service/componentX_test/ComponentX.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/service/componentX_test/ComponentY.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentX_test/src/org/knopflerfish/service/componentX_test/ComponentZ.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+UU  knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Bundles.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ExportPkg.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ImportPkg.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PackageAdminImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/PermissionOps.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SecurePermissionOps.java
+UU  knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceRegistrationImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-11-25 23:06:25 +0100 (Sun, 25 Nov 2012), revision 3589, jan
+SCR fixes, fixed race condition in ComponentFactory.newInstance() and split ComponentFactory and org.apache.felix.scr.Component objects to hinder unwanted access.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+A   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentFactoryImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-11-21 16:47:31 +0100 (Wed, 21 Nov 2012), revision 3588, jan
+Fixed so that BundleURLConnection.getInputStream() throws IOException as it should, instead of returning null.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleURLConnection.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-11-09 16:29:56 +0100 (Fri, 09 Nov 2012), revision 3582, jan
+Fixed race condition NPE when doing ServiceReference.(un)getService() on an unregistering service. In SCR fixed bind/unbind calls on a re-enabled component and fixed NPE when logging to a component bundle.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceRegistrationImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-11-08 14:25:39 +0100 (Thu, 08 Nov 2012), revision 3581, jan
+Added "-s" and "-u" flag to the "scr list" command, so that you can select to only show "satisfied" or "unsatisfied" components. Fixed NPE when doing ServiceReference.isAssignableTo on a unregistered service.
+U   knopflerfish.org/trunk/osgi/bundles/scrcommands/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/org/knopflerfish/bundle/scrcommands/ScrCommandGroup.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceReferenceImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-11-06 20:59:13 +0100 (Tue, 06 Nov 2012), revision 3580, jan
+Bugfixes in SCR. Add stackdump to framework command group threads command.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentMethod.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/frameworkcommands/src/org/knopflerfish/bundle/frameworkcommands/FrameworkCommandGroup.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-11-02 10:22:17 +0100 (Fri, 02 Nov 2012), revision 3579, jan
+Update for 3.4.0 release. New target update_www for live www.knopflerfish.org update.
+U   knopflerfish.org/trunk/tools/mvnrepo/build.xml
+
+2012-11-02 09:39:26 +0100 (Fri, 02 Nov 2012), revision 3578, ekolin
+Desktop 3.2.5; fix link to named components in Service-Component XML-file presentation when the component-element has a XML-namespace prefix.
+U   knopflerfish.org/trunk/osgi/bundles/desktop/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/desktop/src/org/knopflerfish/bundle/desktop/swing/ManifestHTMLDisplayer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-11-01 15:26:57 +0100 (Thu, 01 Nov 2012), revision 3577, jan
+Post 3.4.0 release update.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2012-11-01 14:38:07 +0100 (Thu, 01 Nov 2012), revision 3574, jan
+Update changelog for the 3.4 release.
+U   knopflerfish.org/trunk/changelog.txt
+
 2012-11-01 12:30:04 +0100 (Thu, 01 Nov 2012), revision 3573, cl
 Added info on console cmd group + spellcheck
 U   knopflerfish.org/trunk/osgi/bundles/http/http/doc/index.html
