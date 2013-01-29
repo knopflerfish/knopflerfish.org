@@ -103,7 +103,7 @@ class ReferenceListener implements ServiceListener
       ServiceReference [] srs;
       try {
         ref.comp.bc.addServiceListener(this, filter);
-        srs = ref.comp.bc.getServiceReferences(null, filter);
+        srs = ref.comp.bc.getServiceReferences((String)null, filter);
       } catch (InvalidSyntaxException ise) {
         throw new RuntimeException("Should not occur, Filter already checked");
       }
