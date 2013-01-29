@@ -1742,5 +1742,19 @@ public class BundleImpl implements Bundle {
       throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
   }
+    
+  @Override
+  public <A> A adapt(Class<A> type) {
+    return null;  // TODO: NYI for OSGi R4.3
+  }
 
+  @Override
+  public File getDataFile(String filename) {
+    return bundleContext.getDataFile(filename);
+  }
+
+  @Override
+  public int compareTo(Bundle bundle) {
+    return new Long(getBundleId()).compareTo(new Long(bundle.getBundleId()));
+  }
 }

@@ -35,6 +35,7 @@
 package org.knopflerfish.framework.permissions;
 
 
+import java.io.File;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URL;
@@ -317,10 +318,17 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       return Version.emptyVersion;
     }
 
+    public <A> A adapt(Class<A> type) {
+      return null;
+    }
+
+    public File getDataFile(String filename) {
+      throw new IllegalStateException("Bundle is uninstalled");
+    }
+
     public Enumeration findEntries(String path,
-                                   String filePattern,
-                                   boolean recurse)
-    {
+        String filePattern,
+        boolean recurse) {
       throw new IllegalStateException("Bundle is uninstalled");
     }
 
@@ -342,6 +350,10 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
 
     public Class loadClass(final String name) {
       throw new IllegalStateException("Bundle is uninstalled");
+    }
+
+    public int compareTo(Bundle bundle) {
+      return 0;
     }
   }
 

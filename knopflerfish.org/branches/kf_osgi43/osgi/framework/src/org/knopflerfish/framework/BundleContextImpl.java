@@ -36,6 +36,9 @@ package org.knopflerfish.framework;
 
 import java.io.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.List;
 
@@ -407,6 +410,31 @@ public class BundleContextImpl
     if (!valid) {
       throw new IllegalStateException("This bundle context is no longer valid");
     }
+  }
+  
+  @Override
+  public <S> ServiceRegistration<S> registerService(Class<S> clazz, S service, Dictionary<String, ?> properties) {
+    return (ServiceRegistration<S>)registerService(clazz == null ? null : clazz.getName(), service, properties);
+  }
+
+  @Override
+  public <S> ServiceReference<S> getServiceReference(Class<S> clazz) {
+    return (ServiceReference<S>)getServiceReference(clazz == null ? null : clazz.getName());
+  }
+
+  @Override
+  public <S> Collection<ServiceReference<S>> getServiceReferences(Class<S> clazz, String filter) throws InvalidSyntaxException {
+    ServiceReference<S>[] srs = getServiceReferences(clazz == null ? null : clazz.getName(), filter);
+    ArrayList<ServiceReference<S>> al = new ArrayList<ServiceReference<S>>();
+    if(srs != null) {
+      al.addAll(Arrays.asList(srs));
+    } 
+    return (Collection<ServiceReference<S>>)al;
+  }
+
+  @Override
+  public Bundle getBundle(String location) {
+    return bundle.fwCtx.bundles.getBundle(location);
   }
 
 }

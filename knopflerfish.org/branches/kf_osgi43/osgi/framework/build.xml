@@ -17,17 +17,17 @@
             location="${ant.dir}/html_template/frameworkdoc.html"/>
 
   <property name="fw.impl.version"   value="5.2.2"/>
-  <property name="fw.export-package" value="org.osgi.framework;version=1.5,org.osgi.framework.launch;version=1.0,org.osgi.framework.hooks.service;version=1.0,org.osgi.service.packageadmin;version=1.2,org.osgi.service.permissionadmin;version=1.2,org.osgi.util.tracker;version=1.4,org.osgi.service.startlevel;version=1.1,org.osgi.service.url;version=1.0,org.osgi.service.condpermadmin;version=1.1"/>
+  <property name="fw.export-package" value="org.osgi.framework;version=1.6,org.osgi.framework.launch;version=1.0,org.osgi.framework.hooks.service;version=1.1,org.osgi.framework.hooks.bundle;version=1.0,org.osgi.framework.hooks.weaving;version=1.0,org.osgi.framework.hooks.resolver;version=1.0,org.osgi.framework.startlevel;version=1.0,org.osgi.framework.wiring;version=1.0,org.osgi.service.packageadmin;version=1.2,org.osgi.service.permissionadmin;version=1.2,org.osgi.util.tracker;version=1.5,org.osgi.service.startlevel;version=1.1,org.osgi.service.url;version=1.0,org.osgi.service.condpermadmin;version=1.1"/>
 
   <property name="jarfile"      location="${topdir}/${ant.project.name}.jar"/>
 
   <import file="${ant.dir}/android.xml"/>
 
   <!-- Android dx.jar requires 1.5 target and source -->
-  <condition property="javac.target"  value="1.5" else="1.1">
+  <condition property="javac.target"  value="1.5" else="jsr14">
     <istrue value="${android.exists}"/>
   </condition>
-  <property name="javac.source" value="1.2"/>
+  <property name="javac.source" value="1.5"/>
 
   <property name="src.dir" location="src"/>
 
