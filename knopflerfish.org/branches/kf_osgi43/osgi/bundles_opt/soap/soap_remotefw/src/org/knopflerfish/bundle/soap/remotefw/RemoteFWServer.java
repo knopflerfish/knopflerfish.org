@@ -281,7 +281,7 @@ public class RemoteFWServer implements RemoteFW {
   public Map  getServiceProperties(long sid) {
     try {
       ServiceReference[] srl =
-        Activator.bc.getServiceReferences(null, "(service.id=" + sid + ")");
+        Activator.bc.getServiceReferences((String)null, "(service.id=" + sid + ")");
 
       String[] keys   = srl[0].getPropertyKeys();
 
