@@ -128,15 +128,9 @@ public class LDAPExpr {
         Set r = args[i].getMatchedObjectClasses();
         if (r != null) {
           if (objClasses == null) {
-            objClasses = r;
-          } else {
-            // if AND op and classes in several operands,
-            // then only the intersection is possible.
-            if (objClasses instanceof OneSet) {
-              objClasses = new TreeSet(objClasses);
-            }
-            objClasses.retainAll(r);
+            objClasses = new TreeSet();
           }
+          objClasses.addAll(r);
         }
       }
     } else if (operator == OR) {
