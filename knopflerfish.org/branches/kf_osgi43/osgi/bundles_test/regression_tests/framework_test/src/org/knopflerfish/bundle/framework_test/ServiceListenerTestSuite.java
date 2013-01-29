@@ -1218,7 +1218,7 @@ public class ServiceListenerTestSuite
         try {
           Long sid = (Long)sr.getProperty(Constants.SERVICE_ID);
           String sidFilter = "(" +Constants.SERVICE_ID +"=" +sid +")";
-          ServiceReference[] srs = bc.getServiceReferences(null, sidFilter);
+          ServiceReference[] srs = bc.getServiceReferences((String)null, sidFilter);
           if (null==srs || 0==srs.length) {
             out.println("ServiceReference for UNREGISTERING service is not"
                         +" found in the service registry; ok.");

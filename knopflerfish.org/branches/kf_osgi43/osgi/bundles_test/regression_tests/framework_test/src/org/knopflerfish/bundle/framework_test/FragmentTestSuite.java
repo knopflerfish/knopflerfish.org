@@ -497,7 +497,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       if (where.getReturnType() != String.class) {
         return "Method where doesn't return String";
       }
-      res = (String)where.invoke(fa, null);
+      res = (String)where.invoke(fa, (Object[])null);
     } catch (NoSuchMethodException _) {
       return "Failed to find where method";
     } catch (IllegalAccessException _) {
