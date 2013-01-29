@@ -1400,7 +1400,7 @@ public class FrameworkCommandGroup
           }
           if (filter != null) {
             try {
-              fs = bc.getServiceReferences(null, filter);
+              fs = bc.getServiceReferences((String)null, filter);
               if (null==fs) {
                 out.println("No services matching '"+filter +"'.");
                 return new Integer(0);
@@ -1710,11 +1710,11 @@ public class FrameworkCommandGroup
     try {
       if (pids != null && pids.length > 0) {
         for (int i = 0; i < pids.length; i++) {
-          showstate(out, bc.getServiceReferences(null, "(service.id="
+          showstate(out, bc.getServiceReferences((String)null, "(service.id="
                                                  + pids[i] + ")"));
         }
       } else
-        showstate(out, bc.getServiceReferences(null, "(state=*)"));
+        showstate(out, bc.getServiceReferences((String)null, "(state=*)"));
     } catch (Exception e) {
       out.println("Error: " + e);
     }
