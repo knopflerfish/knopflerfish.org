@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: dmt
+Bundle-SymbolicName: org.knopflerfish.bundle.dmt
+Bundle-Version: 2.0.0
+Bundle-Category: API
+Bundle-Description: DMT
+Bundle-Vendor: OSGi
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundl
+ edoc/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/dmt/
