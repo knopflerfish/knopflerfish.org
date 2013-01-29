@@ -99,7 +99,7 @@ public class OSGiServiceHandler
             BundleContext bContext = org.knopflerfish.bundle.axis.Activator.axisBundle;
             Object serviceObject = null;
             String sfilter = "(" + filter + ")";
-            ServiceReference[] srs = bContext.getServiceReferences(null, 
+            ServiceReference[] srs = bContext.getServiceReferences((String)null, 
                                                                    sfilter);
 
             serviceObject = bContext.getService(srs[0]);
