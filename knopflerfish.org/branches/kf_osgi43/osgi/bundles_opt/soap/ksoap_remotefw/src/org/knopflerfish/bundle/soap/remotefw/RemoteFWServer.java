@@ -244,7 +244,7 @@ public class RemoteFWServer implements RemoteFW {
   public long[] getUsingBundles(long sid) {
     try {
       ServiceReference[] srl
-        = Activator.bc.getServiceReferences(null, "(service.id=" + sid + ")");
+        = Activator.bc.getServiceReferences((String)null, "(service.id=" + sid + ")");
       if (srl.length == 0) {
         return null;
       }
@@ -428,7 +428,7 @@ public class RemoteFWServer implements RemoteFW {
   public Vector  getServiceProperties(long sid) {
     try {
       ServiceReference[] srl =
-        Activator.bc.getServiceReferences(null, "(service.id=" + sid + ")");
+        Activator.bc.getServiceReferences((String)null, "(service.id=" + sid + ")");
 
       String[] keys   = srl[0].getPropertyKeys();
 
@@ -770,7 +770,7 @@ public class RemoteFWServer implements RemoteFW {
     String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
     ArrayList logEvents = new ArrayList();
     try {
-      ServiceReference [] srl = Activator.bc.getServiceReferences(null, filter);
+      ServiceReference [] srl = Activator.bc.getServiceReferences((String)null, filter);
       for(int i = 0; srl != null && i < srl.length; i++) {
         LogReaderService lr = (LogReaderService) Activator.bc.getService(srl[i]);
         for(Enumeration e2 = lr.getLog(); e2.hasMoreElements(); ) {
@@ -943,7 +943,7 @@ public class RemoteFWServer implements RemoteFW {
 
       String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
       try {
-        ServiceReference [] srl = Activator.bc.getServiceReferences(null, filter);
+        ServiceReference [] srl = Activator.bc.getServiceReferences((String)null, filter);
         for(int i = 0; srl != null && i < srl.length; i++) {
           LogReaderService lr = (LogReaderService) Activator.bc.getService(srl[i]);
           lr.addLogListener(new LogListener() {
