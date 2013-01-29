@@ -142,7 +142,7 @@ public class Axis2AdminImpl implements Axis2Admin {
    * Get all registered SOAP services and deploy them in axis servlets
    */
   void handleRegisteredSOAPServices() throws Exception {
-    ServiceReference[] srl = bc.getServiceReferences(null, null);
+    ServiceReference[] srl = bc.getServiceReferences((String)null, (String)null);
     for(int i = 0; srl != null && i < srl.length; i++) {
       soapServiceListener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
     }
@@ -154,7 +154,7 @@ public class Axis2AdminImpl implements Axis2Admin {
     
     Activator.bc.addServiceListener(httpServiceListener, filter);
     
-    ServiceReference[] srl = Activator.bc.getServiceReferences(null, filter);
+    ServiceReference[] srl = Activator.bc.getServiceReferences((String)null, filter);
     for(int i = 0; srl != null && i < srl.length; i++) {
         httpServiceListener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
                                                             srl[i]));
