@@ -413,8 +413,40 @@ public class BundleContextImpl implements BundleContext {
     return false;
   }
 
-public ServiceReference[] getAllServiceReferences(String clazz, String filter) throws InvalidSyntaxException {
-	// TODO Auto-generated method stub
-	return null;
-}
+  public ServiceReference[] getAllServiceReferences(String clazz, String filter) throws InvalidSyntaxException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+  
+  @Override
+  public <S> ServiceRegistration<S> registerService(Class<S> clazz, S service, Dictionary<String, ?> properties) {
+    return registerService(clazz.getName(), service, properties);
+  }
+  
+  @Override
+  public <S> Collection<ServiceReference<S>> getServiceReferences(Class<S> clazz, String filter) throws InvalidSyntaxException {
+    ServiceReference<S>[] srs = getServiceReferences(clazz == null ? null : clazz.getName(), filter);
+    ArrayList<ServiceReference<S>> al = new ArrayList<ServiceReference<S>>();
+    if(srs != null) {
+      al.addAll(Arrays.asList(srs));
+    } 
+    return (Collection<ServiceReference<S>>)al;
+  }
+  
+  @Override
+  public <S> ServiceReference<S> getServiceReference(Class<S> clazz) {
+    return getServiceReference(clazz.getName());
+  }
+  
+  @Override
+  public Bundle getBundle(String location) {
+    Bundle[] bl = getBundles();
+    for(int i = 0; i < bl.length; ++i) {
+      String l = fw.getBundleLocation(bl[i].getBundleId());
+      if(l != null && l.equals(location)) {
+        return bl[i];
+      }
+    }
+    return null;
+  }
 }

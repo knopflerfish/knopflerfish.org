@@ -181,7 +181,21 @@ public class BundleImpl implements Bundle {
   public Map/* <X509Certificate, List<X509Certificate>> */
     getSignerCertificates(int signersType)
   {
-    throw new RuntimeException("NYI");
+    throw new RuntimeException("Not implemented");
   }
 
+  @Override
+  public File getDataFile(String filename) { 
+    throw new RuntimeException("Not implemented");
+  }
+  
+  @Override
+  public <A> A adapt(Class<A> type) {
+    throw new RuntimeException("Not implemented");
+  }
+ 
+  @Override
+  public int compareTo(Bundle bundle) {
+    return new Long(getBundleId()).compareTo(new Long(bundle.getBundleId()));
+  }
 }
