@@ -61,7 +61,7 @@ public class ServiceInfoCommand extends IconCommand {
 
     String filter = "(service.id=" + serviceID + ")";
     try {
-      ServiceReference[] srl = Activator.bc.getServiceReferences(null, filter);
+      ServiceReference[] srl = Activator.bc.getServiceReferences((String)null, filter);
 
       for(int i = 0; srl != null && i < srl.length; i++) {
 	printServiceInfo(sb, srl[i]);
