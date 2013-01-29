@@ -199,7 +199,7 @@ public class OscarShellCommandGroup implements CommandGroup {
     Vector v = new Vector();
     try {
       // Get all services, then filter if necessary.
-      srl = Activator.bc.getServiceReferences(null, filter);
+      srl = Activator.bc.getServiceReferences((String)null, filter);
       if(name != null) {
         for(int i = 0; srl != null && i < srl.length; i++) {
           Command cmd = (Command)Activator.bc.getService(srl[i]);
