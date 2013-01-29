@@ -115,7 +115,7 @@ class Grunt  implements TestListener {
       String       filter = tests.substring(FILTER_PREFIX.length());
       StringBuffer sb     = new StringBuffer();
       try {
-        ServiceReference[] srl = bc.getServiceReferences(null, filter);
+        ServiceReference[] srl = bc.getServiceReferences((String)null, filter);
         for(int i = 0; srl != null && i < srl.length; i++) {
           String id = (String)srl[i].getProperty("service.pid");
           if(id != null) {

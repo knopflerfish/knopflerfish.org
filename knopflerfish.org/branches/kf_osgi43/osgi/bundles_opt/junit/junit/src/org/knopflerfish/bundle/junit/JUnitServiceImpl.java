@@ -187,7 +187,7 @@ public class JUnitServiceImpl implements JUnitService {
 
     try {
       ServiceReference[] srl =
-        Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
+        Activator.bc.getServiceReferences((String)null, "(service.pid=" + id + ")");
 
       if(srl == null || srl.length == 0) {
         obj = new TestCase("No id=" + id) {
