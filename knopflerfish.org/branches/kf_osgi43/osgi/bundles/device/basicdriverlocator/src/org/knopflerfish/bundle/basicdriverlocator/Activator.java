@@ -57,10 +57,8 @@ public class Activator implements BundleActivator {
 
         basicLocator = new BasicDriverLocator(bc);
 
-        Properties props = new Properties();
-
-        sr = bc.registerService(DriverLocator.class.getName(), basicLocator,
-                props);
+        sr = bc.registerService(DriverLocator.class.getName(), (Object)basicLocator,
+                null);
     }
 
     /**

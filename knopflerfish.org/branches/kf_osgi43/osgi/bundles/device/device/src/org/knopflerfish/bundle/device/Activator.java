@@ -186,7 +186,7 @@ public class Activator extends Thread implements BundleActivator,
 
     private void startService(String filter) throws Exception {
         bc.addServiceListener(this, filter);
-        ServiceReference[] sra = bc.getServiceReferences(null, filter);
+        ServiceReference[] sra = bc.getServiceReferences((String)null, filter);
         if (sra != null) {
             for (int i = 0; i < sra.length; i++) {
                 try {
@@ -595,7 +595,7 @@ public class Activator extends Thread implements BundleActivator,
     private void touchAllDevices() {
         boolean added = false;
         try {
-            ServiceReference[] sra = bc.getServiceReferences(null,
+            ServiceReference[] sra = bc.getServiceReferences((String)null,
                     DEVICE_FILTER);
             if (sra != null) {
                 for (int i = 0; i < sra.length; i++) {
