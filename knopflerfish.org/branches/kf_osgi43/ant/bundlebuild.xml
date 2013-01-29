@@ -52,11 +52,11 @@
   <import file="${ant.dir}/android.xml"/>
 
   <!-- Android dx.jar requires 1.5 target -->
-  <condition property="javac.target"  value="1.5" else="1.2">
+  <condition property="javac.target"  value="1.5" else="jsr14">
     <istrue value="${android.exists}"/>
   </condition>
 
-  <property name="javac.source"       value="1.2"/>
+  <property name="javac.source"       value="1.5"/>
 
   <!-- If set to "true" check that the bundle does not use any classes -->
   <!-- outside the specified Execution Environment.                    -->
