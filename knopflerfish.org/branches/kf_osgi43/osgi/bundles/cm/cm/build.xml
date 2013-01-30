@@ -11,6 +11,10 @@
   <property name="impl.pattern"     value="org/knopflerfish/bundle/**"/>
   <property name="impl-api.pattern" value="org/knopflerfish/shared/cm/**"/>
   
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
+
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
   </path>
