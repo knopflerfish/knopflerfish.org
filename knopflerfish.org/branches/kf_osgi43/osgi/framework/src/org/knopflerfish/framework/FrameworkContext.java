@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ public class FrameworkContext  {
   /**
    * Specification version for this framework.
    */
-  static final String SPEC_VERSION = "1.5";
+  static final String SPEC_VERSION = "1.6";
 
   /**
    * Specification version for org.osgi.framework.launch
@@ -69,7 +69,7 @@ public class FrameworkContext  {
   /**
    * Specification version for org.osgi.framework.hooks.service
    */
-  static final String HOOKS_VERSION = "1.0";
+  static final String HOOKS_VERSION = "1.1";
 
   /**
    * Debug handle.

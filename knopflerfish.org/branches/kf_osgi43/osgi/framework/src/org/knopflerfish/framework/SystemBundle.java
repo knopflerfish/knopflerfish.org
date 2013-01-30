@@ -561,7 +561,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     // Set up tracker package
     name = ServiceTracker.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "=" + "1.4");
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "=" + "1.5");
 
     // Set up URL package
     name = org.osgi.service.url.URLStreamHandlerService.class.getName();

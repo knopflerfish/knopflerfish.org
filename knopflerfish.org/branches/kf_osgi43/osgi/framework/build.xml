@@ -167,7 +167,7 @@
       <manifest>
         <attribute name="Main-class"           value="org.knopflerfish.framework.Main"/>
         <attribute name="Specification-Title"    value="OSGi Framework API"/>
-        <attribute name="Specification-Version"  value="1.5"/>
+        <attribute name="Specification-Version"  value="1.6"/>
         <attribute name="Specification-Vendor"   value="Open Service Gateway initiative"/>
         <attribute name="Implementation-Title"   value="Knopflerfish OSGi Framework"/>
         <attribute name="Implementation-Version" value="${fw.impl.version}" />
