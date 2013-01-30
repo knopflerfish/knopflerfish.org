@@ -16,6 +16,10 @@
   <property name  = "impl.pattern"
             value = "org/knopflerfish/**"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
+  <property name="bundle.extraimports"   value="javax.net.ssl"/>
 
   <path id="bundle.compile.path">
    <pathelement location="cm_api-N.N.N.jar"/>
