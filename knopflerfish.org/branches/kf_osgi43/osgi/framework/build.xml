@@ -69,7 +69,6 @@
 
   <!-- targets -->
   <target name="all" depends="jar">
-    <antcall target="list"/>
   </target>
 
   <target name="compile">
