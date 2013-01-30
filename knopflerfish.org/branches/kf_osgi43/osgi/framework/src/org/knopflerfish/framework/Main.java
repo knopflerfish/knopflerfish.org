@@ -1435,11 +1435,13 @@ public class Main
     try {
       final Class splashScreenCls = Class.forName("java.awt.SplashScreen");
       final Method getSplashScreenMethod
-        = splashScreenCls.getMethod("getSplashScreen", null);
-      final Object splashScreen = getSplashScreenMethod.invoke(null,null);
+        = splashScreenCls.getMethod("getSplashScreen", (Class[]) null);
+      final Object splashScreen = getSplashScreenMethod.invoke( (Object) null,
+                                                                (Object[])null);
       if (null!=splashScreen) {
-        final Method closeMethod = splashScreenCls.getMethod("close", null);
-        closeMethod.invoke(splashScreen, null);
+        final Method closeMethod = splashScreenCls.getMethod("close",
+                                                             (Class[]) null);
+        closeMethod.invoke(splashScreen, (Object[]) null);
       }
     } catch (Exception e) {
       // Ignore any error.

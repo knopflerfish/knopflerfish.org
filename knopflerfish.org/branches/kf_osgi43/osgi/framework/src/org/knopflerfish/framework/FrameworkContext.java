@@ -345,6 +345,7 @@ public class FrameworkContext  {
     }
     dataStorage = Util.getFileStorage(this, "data");
 
+    BundleThread.checkWarnStopActionNotSupported(this);
     bundleThreads = new LinkedList();
 
     packages  = new Packages(this);
@@ -358,7 +359,7 @@ public class FrameworkContext  {
 
     bundles           = new Bundles(this);
 
-    hooks             = new Hooks(this);    
+    hooks             = new Hooks(this);
     hooks.open();
 
     perm.registerService();

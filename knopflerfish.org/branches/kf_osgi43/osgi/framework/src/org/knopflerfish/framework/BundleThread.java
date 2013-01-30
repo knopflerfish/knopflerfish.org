@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@
 
 package org.knopflerfish.framework;
 
+import java.lang.reflect.Method;
+
 import org.osgi.framework.*;
 
 class BundleThread extends Thread {
@@ -56,6 +58,26 @@ class BundleThread extends Thread {
   volatile private Object res;
   volatile private boolean doRun;
 
+  // Thread.stop() is not available in all Execution Environments...
+  final static Method stopMethod  = initStopSupported();
+  private static Method initStopSupported()
+  {
+    try {
+      return Thread.class.getMethod("stop", (Class[]) null);
+    } catch (Throwable _t) {
+      return null;
+    }
+  }
+
+  static void checkWarnStopActionNotSupported(FrameworkContext fc)
+  {
+    String s = fc.props.getProperty(FWProps.BUNDLETHREAD_ABORT);
+    if (ABORT_ACTION_STOP.equals(s) && null==stopMethod) {
+      System.err.println("WARNING: Bundle thread abort action stop was "
+                         +"requested but is not supported on this execution "
+                         +"environment; using 'minprio' as abort action.");
+    }
+  }
 
   BundleThread(FrameworkContext fc) {
     super(fc.threadGroup, "BundleThread waiting");
@@ -185,7 +207,17 @@ class BundleThread extends Thread {
 
       // Check what abort action to use
       if (ABORT_ACTION_STOP.equalsIgnoreCase(s)) {
-        stop();
+        if (null!=stopMethod) {
+          try {
+            stopMethod.invoke(this, (Object[]) null);
+          } catch (Throwable t) {
+            fwCtx.debug.println("bundle thread abort action stop failed: "
+                                +t.getMessage());
+            setPriority(Thread.MIN_PRIORITY);
+          }
+        } else {
+          setPriority(Thread.MIN_PRIORITY);
+        }
       } else if (ABORT_ACTION_MINPRIO.equalsIgnoreCase(s)) {
         setPriority(Thread.MIN_PRIORITY);
       }
