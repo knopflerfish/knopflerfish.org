@@ -7,8 +7,6 @@
 
   <property name = "bundle.build.doc"   value = "true"/>
   
-  <property name = "ee.check.foundation"   value = "true"/>
-
   <path id="bundle.compile.path">
     <pathelement location="log_api-N.N.N.jar"/>
   </path>

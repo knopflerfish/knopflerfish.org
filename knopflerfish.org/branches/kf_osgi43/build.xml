@@ -54,8 +54,6 @@
   <!-- Root directory of the current knopflerfish source tree. -->
   <dirname  property="knopflerfish.dir"  file="${ant.file.knopflerfish}"/>
 
-  <property name="ee.check.foundation"   value="true"/>
-
   <!-- The root directory to place distrib build stuff in. -->
   <property name="distrib.out.dir"
             location="out"/>

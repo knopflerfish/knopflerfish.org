@@ -5,7 +5,6 @@
   <dirname  property="proj.dir" file="${ant.file.desktop_awt}"/>
   <property name="topdir"       location="${proj.dir}/../.."/>
 
-  <property name="ee.check.foundation"   value="false"/>
   <property name="javac.target"          value="1.1"/>
 
   <property name="api.pattern"

@@ -15,8 +15,6 @@
 
   <property name="all.suffix.name"  value=""/>
 
-  <property name="ee.check.foundation" value="false"/>
-
   <!-- Must not explicitly import org.knopflerfish.service.foo -->
   <property name="bundle.stdimports" value="org.knopflerfish.service.foo"/>
 

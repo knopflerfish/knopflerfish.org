@@ -51,12 +51,58 @@
 
   <import file="${ant.dir}/android.xml"/>
 
+
+
+  <!-- ************************************************************ -->
+  <!-- Properties configuring javac settings.                       -->  
+  <!-- ************************************************************ -->
+
   <!-- Android dx.jar requires 1.5 target -->
   <condition property="javac.target"  value="1.5" else="jsr14">
     <istrue value="${android.exists}"/>
   </condition>
 
   <property name="javac.source"       value="1.5"/>
+
+  <!-- The bundle Execution Environment to use when compiling.       -->
+  <!-- The value is the id of a path that will be used as boot class -->
+  <!-- path during the compilation.                                  --> 
+  <!-- Predefined values: ee.minimum ee.foundation                   --> 
+  <property name="bundle.compile.EE" value="ee.dummy"/>
+
+  <!-- Set to false to force strict compilation against the EE -->
+  <!-- specified by the property named bundle.bootclasspath.   -->
+  <condition property="javac.includeJavaRuntime"
+	     value="false" else="true">
+    <isreference refid="${bundle.compile.EE}"/>
+  </condition>
+
+  <!-- Internal: The bootclasspath to use during compilation. -->
+  <condition property="bundle.bootclasspath.ref"
+	     value="${bundle.compile.EE}"
+	     else="ee.empty">
+    <isreference refid="${bundle.compile.EE}"/>
+  </condition>
+
+  <!-- Empty path to get a valid refid for the bootclasspath. -->
+  <path id="ee.empty">
+  </path>
+
+  <!-- The OSGi Minimum EE. -->
+  <path id="ee.minimum">
+    <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
+  </path>
+
+  <!-- The OSGi Foundation EE. -->
+  <path id="ee.foundation">
+    <pathelement location="${osgi.dir}/ee/ee.foundation.jar"/>
+  </path>
+
+
+
+  <!-- ************************************************************ -->
+  <!-- Properties configuring bundle contents and manifest.         -->  
+  <!-- ************************************************************ -->
 
   <!-- Shall source code be included into the bundle jar or not. -->
   <property name="include.source"      value="false"/>
@@ -404,10 +450,12 @@
       <javac destdir="${classes.out.dir}"
              debug="on"
              includeAntRuntime="false"
+	     includeJavaRuntime="${javac.includeJavaRuntime}"
              srcdir="${src.dir}"
              target="${javac.target}"
              source="${javac.source}"
              classpathref="bundle.path.Expanded"
+             bootclasspathref="${bundle.bootclasspath.ref}"
              includes="@{includes}"
              >
       </javac>

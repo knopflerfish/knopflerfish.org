@@ -10,8 +10,6 @@
   <property name = "bundle.build.impl" value="false"/>
   <property name = "bundle.build.lib"  value="false"/>
 
-  <property name = "ee.check.foundation"   value = "true"/>
-
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/junit_runner/**"/>
 

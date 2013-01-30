@@ -5,8 +5,6 @@
   <dirname  property="proj.dir" file="${ant.file.soap_desktop}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
-  <property name = "ee.check.foundation"   value = "false"/>
-
   <property name = "bundle.build.api"      value = "false"/>
   <property name = "bundle.build.impl"     value = "true"/>
   <property name = "bundle.build.lib"      value = "false"/>
