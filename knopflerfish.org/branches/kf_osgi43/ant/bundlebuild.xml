@@ -58,10 +58,6 @@
 
   <property name="javac.source"       value="1.5"/>
 
-  <!-- If set to "true" check that the bundle does not use any classes -->
-  <!-- outside the specified Execution Environment.                    -->
-  <property name="ee.check.foundation" value="false"/>
-
   <!-- Shall source code be included into the bundle jar or not. -->
   <property name="include.source"      value="false"/>
 
@@ -580,8 +576,7 @@
                   failOnExports="${bundleinfo.failOnExports}"
                   failOnImports="${bundleinfo.failOnImports}"
                   failOnActivator="${bundleinfo.failOnActivator}"
-                  failOnClassPath="${bundleinfo.failOnClassPath}"
-                  checkFoundationEE="${ee.check.foundation}">
+                  failOnClassPath="${bundleinfo.failOnClassPath}">
         <exports dir="${classes.out.dir}" includes="@{includes-exports}"/>
         <exportsBundleClasspath bundleClasspath="${bmfa.Bundle-Classpath}"
                                 dir="${resources.dir}"
