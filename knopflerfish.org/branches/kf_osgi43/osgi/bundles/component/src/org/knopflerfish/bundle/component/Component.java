@@ -53,15 +53,20 @@ public abstract class Component implements org.apache.felix.scr.Component {
   final private static int STATE_ENABLING = 5;
   final private static int STATE_SATISFIED = 6;
 
+  final static int KF_DEACTIVATION_REASON_BASE = 100;
+  final static int KF_DEACTIVATION_REASON_ACTIVATION_FAILED = KF_DEACTIVATION_REASON_BASE + 1;
+  final static int KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING = KF_DEACTIVATION_REASON_BASE + 2;
+  final static int KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED = KF_DEACTIVATION_REASON_BASE + 3;
+
   final SCR scr;
   final ComponentDescription compDesc;
   final BundleContext bc;
-  final Long id;
   /**
    * UnresolvedConstraints is the number of unsatisfied contraints,
    * a negative value means that we are in the process of enabling
    * and calculating constraints.
    */
+  Long id = new Long(-1);
   private int unresolvedConstraints;
   HashMap /* String -> Dictionary */ cmDicts;
   HashMap /* String -> PropertyDictionary */ servProps = null;
@@ -71,18 +76,17 @@ public abstract class Component implements org.apache.felix.scr.Component {
   ComponentMethod deactivateMethod;
   ComponentMethod modifiedMethod = null;
   private transient int state = 0;
-  private volatile boolean getMethodsDone = false;
+  private volatile Class componentClass = null;
   private Reference [] refs = null;
   private Object lock = new Object();
 
   /**
    *
    */
-  Component(SCR scr, ComponentDescription cd, Long id) {
+  Component(SCR scr, ComponentDescription cd) {
     this.scr = scr;
     this.bc = cd.bundle.getBundleContext();
     this.compDesc = cd;
-    this.id = id;
   }
 
   // Felix Component interface impl.
@@ -120,8 +124,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
         return org.apache.felix.scr.Component.STATE_UNSATISFIED;
       }
     case STATE_SATISFIED:
-      if (this instanceof FactoryComponent &&
-          ((FactoryComponent)this).hasFactoryService()) {
+      if (this instanceof FactoryComponent) {
         return org.apache.felix.scr.Component.STATE_FACTORY;
       } else {
         ComponentConfiguration cc = getFirstComponentConfiguration();
@@ -337,10 +340,11 @@ public abstract class Component implements org.apache.felix.scr.Component {
          reason == ComponentConstants.DEACTIVATION_REASON_BUNDLE_STOPPED;
       if (isEnabled()) {
         state = dispose ? STATE_DISPOSING : STATE_DISABLING;
-        untrackConstraints();
         disposeComponentConfigs(reason);
+        untrackConstraints();
         refs = null;
         cmDicts = null;
+        id = new Long(-1);
         state = dispose ? STATE_DISPOSED : STATE_DISABLED;
       } else if (dispose && state == STATE_DISABLED) {
         state = STATE_DISPOSED;
@@ -379,6 +383,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
     // unresolvedConstraints set to DISABLED_OFFSET, so that we don't satisfy until
     // end of this method
     unresolvedConstraints = DISABLED_OFFSET;
+    id = scr.getNextComponentId();
     state = STATE_ENABLING;
     int policy = compDesc.getConfigPolicy();
     Configuration [] config = null;
@@ -654,10 +659,14 @@ public abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Remove mapping for ComponentConfiguration to this Component.
    */
-  void removeComponentConfiguration(ComponentConfiguration cc) {
+  void removeComponentConfiguration(ComponentConfiguration cc, int reason) {
     compConfigs.remove(cc.getCMPid());
     Activator.logDebug("Component Config removed, check if still satisfied: " + getName() + ", " + state);
-    if (isSatisfied()) {
+    if (isSatisfied() &&
+        (reason == ComponentConstants.DEACTIVATION_REASON_REFERENCE ||
+         reason == ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_MODIFIED ||
+         reason == ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED ||
+         reason == KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED)) {
       // If still satisfied, create missing component configurations
       satisfied();
     }
@@ -684,80 +693,62 @@ public abstract class Component implements org.apache.felix.scr.Component {
   /**
    * Get Implementation class for this component.
    */
-  Class getImplementation() {
-    String impl = compDesc.getImplementation();
-    try {
-      return compDesc.bundle.loadClass(impl);
-    } catch (ClassNotFoundException e) {
-      String msg = "Could not find class " + impl;
-      Activator.logError(bc, msg, e);
-      throw new ComponentException(msg, e);
+  synchronized Class getImplementation() {
+    if (componentClass == null) {
+      String impl = compDesc.getImplementation();
+      try {
+        componentClass = compDesc.bundle.loadClass(impl);
+      } catch (ClassNotFoundException e) {
+        String msg = "Could not find class " + impl;
+        Activator.logError(bc, msg, e);
+        throw new ComponentException(msg, e);
+      }
+      getMethods();
     }
+    return componentClass;
   }
 
 
   /**
-   * Get all activate, deactivate, modify, bind and unbind
-   * methods specified for this component. This is done
-   * the first time this method is called.
+   * Helper method for getMethods. Saves method name to method mapping
+   * during search for methods.
    *
-   * @param clazz Implemenation class to look for methods on.
    */
-  synchronized void getMethods(Class clazz) {
-    if (!getMethodsDone) {
-      getMethodsDone = true;
-      HashMap lookfor = new HashMap();
-      String name = compDesc.getActivateMethod();
-      activateMethod = new ComponentMethod(name, this, false);
-      saveMethod(lookfor, name , activateMethod);
-      name = compDesc.getDeactivateMethod();  
-      deactivateMethod = new ComponentMethod(name, this, true);
-      saveMethod(lookfor, name, deactivateMethod);
-      name = compDesc.getModifiedMethod();
-      if (name != null) {
-        modifiedMethod = new ComponentMethod(name, this, false);
-        saveMethod(lookfor, name, modifiedMethod);
-      }
-      if (refs != null) {
-        for (int i = 0; i < refs.length; i++) {
-          Reference r = refs[i];
-          name = r.refDesc.bind;
-          if (name != null) {
-            r.bindMethod = new ComponentMethod(name, this, r);
-            saveMethod(lookfor, name, r.bindMethod);
-          }
-          name = r.refDesc.unbind;
-          if (name != null) {
-            r.unbindMethod = new ComponentMethod(name, this, r);
-            saveMethod(lookfor, name, r.unbindMethod);
-          }
-        }
-      }
-      boolean isSCR11 = compDesc.isSCR11();
-      do {
-        Method[] methods = clazz.getDeclaredMethods();
-        HashMap nextLookfor = (HashMap)lookfor.clone();
-        for (int i = 0; i < methods.length; i++) {
-          Method m = methods[i];
-          ComponentMethod [] cm = (ComponentMethod [])lookfor.get(m.getName());
-          if (cm != null) {
-            for (int j = 0; j < cm.length; j++) {
-              if (cm[j].updateMethod(isSCR11, m, clazz)) {
-                // Found one candidate, don't look in superclass
-                nextLookfor.remove(m.getName());
-              }
+  void saveMethod(HashMap map, String key, ComponentMethod cm) {
+    ComponentMethod [] o = (ComponentMethod [])map.get(key);
+    int olen = o != null ? o.length : 0;
+    ComponentMethod [] n = new ComponentMethod [olen + 1];
+    n[olen] = cm;
+    if (o != null) {
+      System.arraycopy(o, 0, n, 0, o.length);
+    }
+    map.put(key, n);
+  }
+
+
+  /**
+   * Scan through class stack for methods
+   */
+  void scanForMethods(HashMap lookFor) {
+    boolean isSCR11 = compDesc.isSCR11();
+    Class clazz = componentClass;
+    while (clazz != null && !lookFor.isEmpty()) {
+      Method[] methods = clazz.getDeclaredMethods();
+      HashMap nextLookfor = (HashMap)lookFor.clone();
+      for (int i = 0; i < methods.length; i++) {
+        Method m = methods[i];
+        ComponentMethod [] cm = (ComponentMethod [])lookFor.get(m.getName());
+        if (cm != null) {
+          for (int j = 0; j < cm.length; j++) {
+            if (cm[j].updateMethod(isSCR11, m, clazz)) {
+              // Found one candidate, don't look in superclass
+              nextLookfor.remove(m.getName());
             }
           }
         }
-        clazz = clazz.getSuperclass();
-        lookfor = nextLookfor;
-      } while (clazz != null && !lookfor.isEmpty());
-      if (activateMethod.isMissing(false) && !compDesc.isActivateMethodSet()) {
-        activateMethod = null;
       }
-      if (deactivateMethod.isMissing(false) && !compDesc.isDeactivateMethodSet()) {
-        deactivateMethod = null;
-      }
+      clazz = clazz.getSuperclass();
+      lookFor = nextLookfor;
     }
   }
 
@@ -835,20 +826,46 @@ public abstract class Component implements org.apache.felix.scr.Component {
     return cci.hasNext() ? (ComponentConfiguration)cci.next() : null;
   }
 
-
   /**
-   * Helper method for getMethods. Saves method name to method mapping
-   * during search for methods.
+   * Get all activate, deactivate, modify, bind and unbind
+   * methods specified for this component. This is done
+   * the first time this method is called.
    *
+   * @param clazz Implemenation class to look for methods on.
    */
-  private void saveMethod(HashMap map, String key, ComponentMethod cm) {
-    ComponentMethod [] o = (ComponentMethod [])map.get(key);
-    int olen = o != null ? o.length : 0;
-    ComponentMethod [] n = new ComponentMethod [olen + 1];
-    n[olen] = cm;
-    if (o != null) {
-      System.arraycopy(o, 0, n, 0, o.length);
+  private void getMethods() {
+    HashMap lookFor = new HashMap();
+    String name = compDesc.getActivateMethod();
+    activateMethod = new ComponentMethod(name, this, false);
+    saveMethod(lookFor, name , activateMethod);
+    name = compDesc.getDeactivateMethod();  
+    deactivateMethod = new ComponentMethod(name, this, true);
+    saveMethod(lookFor, name, deactivateMethod);
+    name = compDesc.getModifiedMethod();
+    if (name != null) {
+      modifiedMethod = new ComponentMethod(name, this, false);
+      saveMethod(lookFor, name, modifiedMethod);
     }
-    map.put(key, n);
+    if (refs != null) {
+      for (int i = 0; i < refs.length; i++) {
+        Reference r = refs[i];
+        ComponentMethod method = r.getBindMethod();
+        if (method != null) {
+          saveMethod(lookFor, r.refDesc.bind, method);
+        }
+        method = r.getUnbindMethod();
+        if (method != null) {
+          saveMethod(lookFor, r.refDesc.unbind, method);
+        }
+      }
+    }
+    scanForMethods(lookFor);
+    if (activateMethod.isMissing(false) && !compDesc.isActivateMethodSet()) {
+      activateMethod = null;
+    }
+    if (deactivateMethod.isMissing(false) && !compDesc.isDeactivateMethodSet()) {
+      deactivateMethod = null;
+    }
   }
+
 }

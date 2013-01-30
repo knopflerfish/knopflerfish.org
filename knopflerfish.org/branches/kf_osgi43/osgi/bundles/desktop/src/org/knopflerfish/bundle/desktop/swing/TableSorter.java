@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,18 +36,18 @@ package org.knopflerfish.bundle.desktop.swing;
 
 
 /**
- * A sorter for TableModels. The sorter has a model (conforming to TableModel) 
- * and itself implements TableModel. TableSorter does not store or copy 
- * the data in the TableModel, instead it maintains an array of 
- * integers which it keeps the same size as the number of rows in its 
- * model. When the model changes it notifies the sorter that something 
- * has changed eg. "rowsAdded" so that its internal array of integers 
- * can be reallocated. As requests are made of the sorter (like 
- * getValueAt(row, col) it redirects them to its model via the mapping 
- * array. That way the TableSorter appears to hold another copy of the table 
- * with the rows in a different order. The sorting algorthm used is stable 
- * which means that it does not move around rows when its comparison 
- * function returns 0 to denote that they are equivalent. 
+ * A sorter for TableModels. The sorter has a model (conforming to TableModel)
+ * and itself implements TableModel. TableSorter does not store or copy
+ * the data in the TableModel, instead it maintains an array of
+ * integers which it keeps the same size as the number of rows in its
+ * model. When the model changes it notifies the sorter that something
+ * has changed eg. "rowsAdded" so that its internal array of integers
+ * can be reallocated. As requests are made of the sorter (like
+ * getValueAt(row, col) it redirects them to its model via the mapping
+ * array. That way the TableSorter appears to hold another copy of the table
+ * with the rows in a different order. The sorting algorthm used is stable
+ * which means that it does not move around rows when its comparison
+ * function returns 0 to denote that they are equivalent.
  *
  * @version 1.5 12/17/97
  * @author Philip Milne
@@ -58,7 +58,7 @@ import java.util.*;
 import javax.swing.table.TableModel;
 import javax.swing.event.TableModelEvent;
 
-// Imports for picking up mouse events from the JTable. 
+// Imports for picking up mouse events from the JTable.
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -68,6 +68,8 @@ import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
 public class TableSorter extends TableMap {
+    private static final long serialVersionUID = 1L;
+
     int             indexes[];
     Vector          sortingColumns = new Vector();
     boolean         ascending = true;
@@ -82,8 +84,8 @@ public class TableSorter extends TableMap {
     }
 
     public void setModel(TableModel model) {
-        super.setModel(model); 
-        reallocateIndexes(); 
+        super.setModel(model);
+        reallocateIndexes();
     }
 
     public int compareRowsByColumn(int row1, int row2, int column) {
@@ -93,15 +95,15 @@ public class TableSorter extends TableMap {
         // Check for nulls.
 
         Object o1 = data.getValueAt(row1, column);
-        Object o2 = data.getValueAt(row2, column); 
+        Object o2 = data.getValueAt(row2, column);
 
         // If both values are null, return 0.
         if (o1 == null && o2 == null) {
-            return 0; 
-        } else if (o1 == null) { // Define null less than everything. 
-            return -1; 
-        } else if (o2 == null) { 
-            return 1; 
+            return 0;
+        } else if (o1 == null) { // Define null less than everything.
+            return -1;
+        } else if (o2 == null) {
+            return 1;
         }
 
         /*
@@ -277,7 +279,7 @@ public class TableSorter extends TableMap {
             return;
         }
 
-        // A normal merge. 
+        // A normal merge.
 
         for (int i = low; i < high; i++) {
             if (q >= high || (p < middle && compare(from[p], from[q]) <= 0)) {
@@ -308,8 +310,8 @@ public class TableSorter extends TableMap {
         model.setValueAt(aValue, indexes[aRow], aColumn);
     }
 
-    public boolean isCellEditable(int row, int column) { 
-         return model.isCellEditable( indexes[row], column); 
+    public boolean isCellEditable(int row, int column) {
+         return model.isCellEditable( indexes[row], column);
     }
 
     public void sortByColumn(int column) {
@@ -321,29 +323,29 @@ public class TableSorter extends TableMap {
         sortingColumns.removeAllElements();
         sortingColumns.addElement(new Integer(column));
         sort(this);
-        super.tableChanged(new TableModelEvent(this)); 
+        super.tableChanged(new TableModelEvent(this));
     }
 
-    // There is no-where else to put this. 
-    // Add a mouse listener to the Table to trigger a table sort 
-    // when a column heading is clicked in the JTable. 
-    public void addMouseListenerToHeaderInTable(JTable table) { 
-        final TableSorter sorter = this; 
-        final JTable tableView = table; 
-        tableView.setColumnSelectionAllowed(false); 
+    // There is no-where else to put this.
+    // Add a mouse listener to the Table to trigger a table sort
+    // when a column heading is clicked in the JTable.
+    public void addMouseListenerToHeaderInTable(JTable table) {
+        final TableSorter sorter = this;
+        final JTable tableView = table;
+        tableView.setColumnSelectionAllowed(false);
         MouseAdapter listMouseListener = new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 TableColumnModel columnModel = tableView.getColumnModel();
-                int viewColumn = columnModel.getColumnIndexAtX(e.getX()); 
-                int column = tableView.convertColumnIndexToModel(viewColumn); 
+                int viewColumn = columnModel.getColumnIndexAtX(e.getX());
+                int column = tableView.convertColumnIndexToModel(viewColumn);
                 if (e.getClickCount() == 1 && column != -1) {
-                    int shiftPressed = e.getModifiers()&InputEvent.SHIFT_MASK; 
-                    boolean ascending = (shiftPressed == 0); 
-                    sorter.sortByColumn(column, ascending); 
+                    int shiftPressed = e.getModifiers()&InputEvent.SHIFT_MASK;
+                    boolean ascending = (shiftPressed == 0);
+                    sorter.sortByColumn(column, ascending);
                 }
             }
         };
-        JTableHeader th = tableView.getTableHeader(); 
-        th.addMouseListener(listMouseListener); 
+        JTableHeader th = tableView.getTableHeader();
+        th.addMouseListener(listMouseListener);
     }
 }

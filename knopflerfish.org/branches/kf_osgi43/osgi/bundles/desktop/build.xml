@@ -13,7 +13,8 @@
             value="org/knopflerfish/service/**,
                    org/knopflerfish/util/**,
                    org/knopflerfish/shared/cm/**,
-                   org/osgi/service/**"/> 
+                   org/osgi/service/**,
+                   org/apache/felix/scr/**"/> 
 
   <property name="impl.pattern"
             value="org/knopflerfish/**,
@@ -31,7 +32,8 @@
                                  util,
                                  cm_api,
                                  event_api,
-                                 prefs_api">
+                                 prefs_api,
+                                 component_api">
       <fileset dir="${jars.dir}">
         <include name="**/*.jar"/>
       </fileset>
@@ -80,6 +82,13 @@
       </zipfileset>
 
       <zipfileset src="${bap.prefs_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+
+      <zipfileset src="${bap.component_api}">
         <patternset>
           <exclude name="META-INF/**/*"/>
           <exclude name="**/*.dex"/>

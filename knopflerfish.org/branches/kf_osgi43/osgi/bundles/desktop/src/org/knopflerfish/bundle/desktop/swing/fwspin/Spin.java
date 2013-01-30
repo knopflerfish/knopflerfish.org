@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -76,7 +76,8 @@ import org.osgi.service.packageadmin.PackageAdmin;
  * @author Erik Wistrand
  */
 public class Spin extends JPanel implements Runnable, BundleListener, ServiceListener {
-
+  private static final long serialVersionUID = 1L;
+  
   Thread   runner = null;
   boolean  bRun   = false;
 
@@ -371,7 +372,6 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
   void doSearch() {
     active.clear();
-    int hitCount = 0;
     SpinItem hit = null;
     if(searchString.length() > 0) {
       for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
@@ -381,7 +381,6 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
         if(item.toString().toLowerCase().startsWith(searchString)) {
           active.put(item, item);
           hit = item;
-          hitCount++;
         }
       }
     }
@@ -793,8 +792,6 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
     x += 10;
     y += font.getSize() + 5;
-
-    int x2 = x + font.getSize() * 8;
 
     if(use2D) {
       if(oldComp != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -370,6 +370,7 @@ public class MultiListener implements LogListener,
   private static final String FW_EVT_STARTED = FW_EVT_PREFIX + "STARTED";
   private static final String FW_EVT_ERROR = FW_EVT_PREFIX + "ERROR";
   private static final String FW_EVT_INFO = FW_EVT_PREFIX + "INFO";
+  private static final String FW_EVT_WARNING = FW_EVT_PREFIX + "WARNING";
   private static final String FW_EVT_PACKAGES_REFRESHED = FW_EVT_PREFIX + "PACKAGES_REFRESHED";
   private static final String FW_EVT_STARTLEVEL_CHANGED = FW_EVT_PREFIX + "STARTLEVEL_CHANGED";
   /**
@@ -387,6 +388,9 @@ public class MultiListener implements LogListener,
       break;
     case FrameworkEvent.ERROR:
       topic = FW_EVT_ERROR;
+      break;
+    case FrameworkEvent.WARNING:
+      topic = FW_EVT_WARNING;
       break;
     case FrameworkEvent.INFO:
       topic = FW_EVT_INFO;

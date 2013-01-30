@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,28 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.prefs.Preferences;
+
+import javax.swing.JTextField;
 
 
 public class JValueLong extends JValue {
+  private static final long serialVersionUID = 1L;
+
   JTextField text;
 
   JValueLong(Preferences _node, String _key) {
     super(_node, _key, ExtPreferences.TYPE_LONG);
 
     long val = node.getLong(key, 0);
-    text = new JTextField("" + val, 20) {{
-      addActionListener(new ActionListener() {
+    text = new JTextField("" + val, 20) {
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             try {
               node.putLong(key, Long.parseLong(text.getText()));
@@ -60,8 +65,8 @@ public class JValueLong extends JValue {
             }
           }
         });
-    }};
-    
+      }
+    };
     add(text, BorderLayout.CENTER);
   }
 

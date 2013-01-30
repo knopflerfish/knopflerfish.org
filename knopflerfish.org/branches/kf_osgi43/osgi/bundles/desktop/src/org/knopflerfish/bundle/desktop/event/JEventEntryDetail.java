@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
@@ -54,6 +53,8 @@ import javax.swing.SwingUtilities;
 import org.osgi.service.event.Event;
 
 public class JEventEntryDetail extends JPanel {
+  private static final long serialVersionUID = 1L;
+
   Event entry;
 
   JEventTable table;
@@ -98,41 +99,53 @@ public class JEventEntryDetail extends JPanel {
     cmdPanel = new JToolBar(JToolBar.VERTICAL);
     cmdPanel.setFloatable(false);
 
-    nextButton = new JButton(arrowDownIcon) {	{
-      setToolTipText("Next log entry");
-      addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    showNext(1);
-	  }
-	});
-    }};
+    nextButton = new JButton(arrowDownIcon) {
+      private static final long serialVersionUID = 1L;
+      {
+        setToolTipText("Next log entry");
+        addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            showNext(1);
+          }
+        });
+      }
+    };
     
-    prevButton = new JButton(arrowUpIcon) { {
-      setToolTipText("Previous log entry");
-      addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    showNext(-1);
-	  }
-	});
-    }};
+    prevButton = new JButton(arrowUpIcon) {
+      private static final long serialVersionUID = 1L;
+      {
+        setToolTipText("Previous log entry");
+        addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            showNext(-1);
+          }
+        });
+      }
+    };
 
-    firstButton = new JButton(arrowUp2Icon) {	{
-      setToolTipText("First log entry");
-      addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    showFirst();
-	  }
-	});
-    }};
+    firstButton = new JButton(arrowUp2Icon) {
+      private static final long serialVersionUID = 1L;
+      {
+        setToolTipText("First log entry");
+        addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            showFirst();
+          }
+        });
+      }
+    };
     
-    lastButton = new JButton(arrowDown2Icon) {	{
-      setToolTipText("Last log entry");
-      addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    showLast();
-	  }
-	});
-    }};
+    lastButton = new JButton(arrowDown2Icon) {
+      private static final long serialVersionUID = 1L;
+      {
+        setToolTipText("Last log entry");
+        addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev) {
+            showLast();
+          }
+        });
+      }
+    };
 
     /*
     JButton reloadButton = new JButton(reloadIcon) {	{
@@ -257,6 +270,8 @@ public class JEventEntryDetail extends JPanel {
 }
 
 class JDetail extends JTextPane {
+  private static final long serialVersionUID = 1L;
+
   public JDetail(Event e) {
     super();
     setBackground(Color.white);

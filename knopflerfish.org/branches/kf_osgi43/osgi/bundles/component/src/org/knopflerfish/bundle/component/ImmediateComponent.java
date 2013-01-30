@@ -38,8 +38,8 @@ import org.osgi.service.component.*;
 
 class ImmediateComponent extends Component {
 
-  ImmediateComponent(SCR scr, ComponentDescription cd, Long id) {
-    super(scr, cd, id);
+  ImmediateComponent(SCR scr, ComponentDescription cd) {
+    super(scr, cd);
   }
 
 
@@ -60,11 +60,14 @@ class ImmediateComponent extends Component {
     ComponentConfiguration [] cc = newComponentConfiguration();
     for (int i = 0; i < cc.length; i++) {
       cc[i].registerService();
+      scr.postponeCheckin();
       try {
         cc[i].activate(null, true);
       } catch (ComponentException _ignore) {
         // Error messages are logged by the activate method
-        cc[i].dispose(ComponentConstants.DEACTIVATION_REASON_UNSPECIFIED);
+        cc[i].dispose(KF_DEACTIVATION_REASON_ACTIVATION_FAILED);
+      } finally {
+        scr.postponeCheckout();
       }
     }
   }

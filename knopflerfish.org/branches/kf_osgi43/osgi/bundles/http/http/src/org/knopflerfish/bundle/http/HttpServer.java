@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -161,4 +161,20 @@ public class HttpServer {
         }
     }
 
+   public Registrations getRegistrations() {
+      return registrations;
+   }
+   
+   public TransactionManager getTransactionManager() {
+      return transactionManager;
+   }
+   
+   public boolean isHttpOpen() {
+      return httpSocketListener.isOpen();
+   }
+
+   public boolean isHttpsOpen() {
+      return httpsSocketListener.isOpen();
+   }
+   
 } // HttpServer

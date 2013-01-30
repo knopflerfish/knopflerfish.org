@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,18 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
+import java.awt.BorderLayout;
+import java.util.prefs.Preferences;
+
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 public class JValueInteger extends JValue {
+
+  private static final long serialVersionUID = 1L;
   JTextField text;
   JSpinner spinner;
 

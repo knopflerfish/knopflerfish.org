@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2011, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,8 +48,9 @@ class Reference implements org.apache.felix.scr.Reference
   final ReferenceDescription refDesc;
   final Filter targetFilter;
 
-  ComponentMethod bindMethod = null;
-  ComponentMethod unbindMethod = null;
+  private volatile ComponentMethod bindMethod = null;
+  private volatile ComponentMethod unbindMethod = null;
+  private volatile boolean methodsSet = false;
 
   private ReferenceListener listener = null;
   private TreeMap factoryListeners = null;
@@ -98,7 +99,7 @@ class Reference implements org.apache.felix.scr.Reference
     ReferenceListener l = listener;
     ServiceReference[] res = null;
     if (l != null)  {
-      res = l.getServiceReferences();
+      res = l.getBoundServiceReferences();
       if (res.length == 0) {
         res = null;
       }
@@ -183,6 +184,37 @@ class Reference implements org.apache.felix.scr.Reference
    */
   public String toString() {
     return "Reference " + refDesc.name + " in " + comp;
+  }
+
+
+  //
+  // Package methods
+  //
+
+  private void assertMethods() {
+    if (!methodsSet) {
+      HashMap lookFor = new HashMap();
+      if (refDesc.bind != null) {
+        bindMethod = new ComponentMethod(refDesc.bind, comp, this);
+        comp.saveMethod(lookFor, refDesc.bind, bindMethod);
+      }
+      if (refDesc.unbind != null) {
+        unbindMethod = new ComponentMethod(refDesc.unbind, comp, this);
+        comp.saveMethod(lookFor, refDesc.unbind, unbindMethod);
+      }
+      comp.scanForMethods(lookFor);
+      methodsSet = true;
+    }
+  }
+
+  ComponentMethod getBindMethod() {
+    assertMethods();
+    return bindMethod;
+  }
+
+  ComponentMethod getUnbindMethod() {
+    assertMethods();
+    return unbindMethod;
   }
 
 

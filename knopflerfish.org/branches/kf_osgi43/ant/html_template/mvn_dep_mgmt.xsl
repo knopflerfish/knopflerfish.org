@@ -23,7 +23,7 @@
       <meta http-equiv ="CACHE-CONTROL"
             content    ="NO-CACHE"/>
       
-      <title>Knopflerfish <xsl:value-of select="@version"/> Maven Artifacts</title>
+      <title><xsl:value-of select="@product"/>&#160;<xsl:value-of select="@version"/> Maven Artifacts</title>
       <link rel="stylesheet" type="text/css"
 	    href="http://www.knopflerfish.org./css/knopflerfish2.1.css"/>
       <link rel="shortcut icon"
@@ -31,7 +31,8 @@
     </head>
 
     <body>
-      <div id="main">
+      <!-- Override default width for main (900px), since we need more space... -->
+      <div id="main" style="width:1200px">
         <a name="top"></a>
         <div id="header">
           <div id="header_logo">
@@ -76,10 +77,10 @@
 	</div>
 
 	<div id="mainblock">
-          <h2>Knopflerfish <xsl:value-of select="@version"/> Maven Artifacts</h2>
+          <h2><xsl:value-of select="@product"/>&#160;<xsl:value-of select="@version"/> Maven Artifacts</h2>
 
           This page contains a listing of all bundles (artifacts) in
-          the maven2 repository that belongs to Knopflerfish
+          the maven2 repository that belongs to <xsl:value-of select="@product"/>&#160;
           <xsl:value-of select="@version"/>.<p/>
           
           You may copy the Maven <code>&lt;dependy&gt;</code>
@@ -90,9 +91,16 @@
           version.<p/>
 
           <table class="fancy" cellpadding="12" style="width:100%">
+            <colgroup>
+              <col style="width:15%"/>
+              <col style="width:40%"/>
+              <col style="width:20%"/>
+              <col style="width:15%"/>
+              <col style="width:10%"/>
+            </colgroup>
             <tr class="fancy" >
               <th class="fancy">Bundle</th>
-              <th class="fancy" width="200px">Description</th>
+              <th class="fancy">Description</th>
               <th class="fancy">Group id</th>
               <th class="fancy">Artifact id</th>
               <th class="fancy">Version</th>
@@ -123,11 +131,17 @@
   </xsl:template>
 
   <xsl:template match="bundle">
+    <xsl:variable name="version"><xsl:value-of select="version"/></xsl:variable>
     <tr>
       <td class="fancy"><xsl:value-of select="name"/></td>
-      <td class="fancy" width="200px"><xsl:value-of select="description"/></td>
+      <td class="fancy"><xsl:value-of select="description"/></td>
       <td class="fancy"><xsl:value-of select="groupId"/></td>
-      <td class="fancy"><xsl:value-of select="artifactId"/></td>
+      <td class="fancy">
+	<a>
+          <xsl:attribute name="href"><xsl:value-of select="substring-before(url,$version)"/></xsl:attribute>
+          <xsl:value-of select="artifactId"/>
+        </a>        
+      </td>
       <td class="fancy"><a>
 	  <xsl:attribute name="href"><xsl:value-of select="url"/></xsl:attribute>
 	  <xsl:value-of select="version"/>

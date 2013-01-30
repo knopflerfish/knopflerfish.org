@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@ package org.knopflerfish.framework.permissions;
 
 import java.net.*;
 import java.security.*;
+import java.util.Enumeration;
 
 import org.knopflerfish.framework.BundleURLStreamHandler;
-
 
 
 /**
@@ -99,13 +99,25 @@ class FrameworkPolicy extends Policy {
       try {
         Long id = new Long(BundleURLStreamHandler.getId(u.getHost()));
         //return getPermissions(id);
-        return ph.getPermissionCollection(id);
-      } catch (NumberFormatException ignore) {
-        return null;
-      }
+        PermissionCollection pc = ph.getPermissionCollection(id);
+        if (pc != null) {
+          return copy(pc);
+        }
+      } catch (NumberFormatException ignore) { }
+      return new Permissions();
     } else {
       return defaultPolicy.getPermissions(cs);
     }
+  }
+
+
+  private static PermissionCollection copy(PermissionCollection pc) {
+    // TODO, provide a copy-on-write collection?!
+    Permissions pc2 = new Permissions();
+    for (Enumeration e = pc.elements(); e.hasMoreElements();) {
+      pc2.add((Permission) e.nextElement());
+    }
+    return pc2;
   }
 
 

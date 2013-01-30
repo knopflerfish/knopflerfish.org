@@ -136,9 +136,11 @@ class ServiceListenerState {
           for (Iterator it = l.iterator(); it.hasNext();) {
             Object value = it.next();
             List sles = (List)keymap.get(value);
-            sles.remove(sles.indexOf(sle));
-            if (sles.isEmpty()) {
-              keymap.remove(value);
+            if(sles != null) {
+              sles.remove(sles.indexOf(sle));
+              if (sles.isEmpty()) {
+                keymap.remove(value);
+              }
             }
           }
         }

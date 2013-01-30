@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,19 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.util.prefs.Preferences;
-import javax.swing.event.*;
+
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JSplitPane;
 
 public class SizeSaver extends ComponentAdapter {
   String id;

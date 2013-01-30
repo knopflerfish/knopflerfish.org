@@ -75,7 +75,7 @@ class HttpClientConnection
 
   private final static String DELETE_METHOD = "DELETE";
   private final static String PUT_METHOD = "PUT";
-  
+
   private final static int STATE_SETUP     = 0;
   private final static int STATE_CONNECTED = 1;
   private final static int STATE_CLOSED    = 2;
@@ -478,7 +478,7 @@ class HttpClientConnection
     }else if (method.equals(HttpConnection.HEAD)) {
       resCache = new HeadMethod(uri.getEscapedURI());
     } else if (method.equals(HttpConnection.GET)) {
-      resCache = new GetMethod(uri.getEscapedURI());      
+      resCache = new GetMethod(uri.getEscapedURI());
     } else if (method.equals(DELETE_METHOD)) {
         resCache = new DeleteMethod(uri.getEscapedURI());
     } else {

@@ -1,4 +1,4 @@
-/* Copyright (c) 2003-2010, KNOPFLERFISH project
+/* Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Frame;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -51,6 +50,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class ErrorMessageDialog extends JDialog {
+
+  private static final long serialVersionUID = 1L;
 
   private final JDialog THIS = this;
 
@@ -114,7 +115,7 @@ public class ErrorMessageDialog extends JDialog {
       friendlyMessage = moreInfo;
       moreInfo = null;
     }
-    
+
     friendLabel = new JLabel(friendlyMessage == null ? "Unknown error" : friendlyMessage);
     friendPanel = new JPanel(new BorderLayout());
     friendPanel.add(friendLabel, BorderLayout.CENTER);

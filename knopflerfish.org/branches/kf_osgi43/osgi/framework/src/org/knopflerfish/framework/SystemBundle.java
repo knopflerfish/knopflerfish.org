@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ import org.osgi.framework.launch.Framework;
 
 /**
  * Implementation of the System Bundle object.
- * 
+ *
  * @see org.osgi.framework.Bundle
  * @author Jan Stein
  * @author Philippe Laporte
@@ -94,7 +94,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Construct the System Bundle handle.
-   * 
+   *
    */
   SystemBundle(FrameworkContext fw) {
     super(fw);
@@ -103,7 +103,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Initialize this framework.
-   * 
+   *
    * @see org.osgi.framework.Framework#init
    */
   public void init() throws BundleException {
@@ -129,7 +129,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Start this framework.
-   * 
+   *
    * @see org.osgi.framework.Framework#start
    */
   public void start(int options) throws BundleException {
@@ -226,7 +226,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Stop this framework.
-   * 
+   *
    * @see org.osgi.framework.Framework#stop
    */
   public void stop(int options) throws BundleException {
@@ -237,7 +237,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Restart this framework.
-   * 
+   *
    * @see org.osgi.framework.Framework#update
    */
   public void update(InputStream in) throws BundleException {
@@ -254,7 +254,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Uninstall of framework are not allowed.
-   * 
+   *
    * @see org.osgi.framework.Framework#uninstall
    */
   public void uninstall() throws BundleException {
@@ -266,7 +266,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * The system has all the permissions.
-   * 
+   *
    * @see org.osgi.framework.Bundle#hasPermission
    */
   public boolean hasPermission(Object permission) {
@@ -276,7 +276,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Get header data.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getHeaders
    */
   public Dictionary getHeaders() {
@@ -286,7 +286,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Get header data.
-   * 
+   *
    * @see org.osgi.framework.Bundle#getHeaders
    */
   public Dictionary getHeaders(String locale) {
@@ -295,18 +295,20 @@ public class SystemBundle extends BundleImpl implements Framework {
     headers.put(Constants.BUNDLE_SYMBOLICNAME, getSymbolicName());
     headers.put(Constants.BUNDLE_NAME, location);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
-    headers.put(Constants.BUNDLE_VERSION, Main.readRelease());
+    headers.put(Constants.BUNDLE_VERSION, getVersion().toString());
     headers.put(Constants.BUNDLE_MANIFESTVERSION, "2");
     headers.put(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT,
         fwCtx.props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT));
     headers.put("Bundle-Icon", "icon.png;size=32,icon64.png;size=64");
+    headers.put(Constants.BUNDLE_VENDOR, "Knopflerfish");
+    headers.put(Constants.BUNDLE_DESCRIPTION, "Knopflerfish System Bundle");
     return headers;
   }
 
 
   /**
    * Get bundle data. Get resources from bundle or fragment jars.
-   * 
+   *
    * @see org.osgi.framework.Bundle#findEntries
    */
   public Enumeration findEntries(String path, String filePattern, boolean recurse) {
@@ -340,7 +342,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   /**
    * Get class loader for this bundle.
-   * 
+   *
    * @return System Bundle classloader.
    */
   ClassLoader getClassLoader() {
@@ -387,6 +389,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       try {
         addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
         gen.attachFragment(extension);
+        handleExtensionActivator(extension);
       } catch (Exception e) {
         throw new UnsupportedOperationException(
             "Framework extension could not be dynamicly activated, " + e);
@@ -398,7 +401,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Reads all localization entries that affects this bundle (including its
    * host/fragments)
-   * 
+   *
    * @param locale locale == "" the bundle.properties will be read o/w it will
    *          read the files as described in the spec.
    * @param localization_entries will append the new entries to this dictionary
@@ -570,7 +573,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Read a file with package names and add them to a stringbuffer. The file is
    * searched for in the current working directory, then on the class path.
-   * 
+   *
    * @param sp Buffer to append the exports to. Same format as the
    *          Export-Package manifest header.
    * @param sysPkgFile Name of the file to load packages to be exported from.
@@ -637,7 +640,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * This method start a thread that stop this Framework, stopping all started
    * bundles.
-   * 
+   *
    * <p>
    * If the framework is not started, this method does nothing. If the framework
    * is started, this method will:
@@ -650,7 +653,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    * <li>Disable event handling.</li>
    * </ol>
    * </p>
-   * 
+   *
    */
   void shutdown(final boolean restart) {
     synchronized (lock) {
@@ -691,7 +694,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    * Stop this FrameworkContext, suspending all started contexts. This method
    * suspends all started contexts so that they can be automatically restarted
    * when this FrameworkContext is next launched.
-   * 
+   *
    * <p>
    * If the framework is not started, this method does nothing. If the framework
    * is started, this method will:
@@ -704,7 +707,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    * <li>Disable event handling.</li>
    * </ol>
    * </p>
-   * 
+   *
    */
   private void shutdown0(final boolean restart, final boolean wasActive) {
     try {
@@ -847,6 +850,23 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     m.setAccessible(true);
     m.invoke(cl, new Object[] { url });
+  }
+
+  /**
+   * If the extension has an extension activator header process it.
+   *
+   * @param extension the extension bundle to process.
+   */
+  private void handleExtensionActivator(final BundleGeneration extension) {
+    String extActivatorName =
+      extension.archive.getAttribute("Extension-Activator");
+    extActivatorName = null!=extActivatorName ? extActivatorName.trim() : null;
+
+    if (null!=extActivatorName && extActivatorName.length()>0) {
+      fwCtx.log("Activating extension: " + extension.symbolicName
+                + ":" +extension.version + " using: " +extActivatorName);
+      fwCtx.activateExtension(extension);
+    }
   }
 
 }

@@ -111,11 +111,11 @@ public class LDAPExpr {
 
 
   /**
-   * Get object class set matched by this LDAP expression. This will not work
+   * Get a set of object classes that might match this LDAP expression. This will not work
    * with wildcards and NOT expressions. If a set can not be determined return
-   * null.
+   * null - meaning that all object classes must be considered when looking for matches.
    * 
-   * @return Set of classes matched, otherwise <code>null</code>.
+   * @return A set of classes that might match, otherwise <code>null</code>.
    */
   public Set getMatchedObjectClasses() {
     Set objClasses = null;

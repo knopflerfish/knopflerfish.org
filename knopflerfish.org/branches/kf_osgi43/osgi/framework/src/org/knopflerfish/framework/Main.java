@@ -75,6 +75,9 @@ public class Main
   // Set to true if JRE is started without any arguments
   boolean bZeroArgs;
 
+  // Save beginning start level as long as true
+  boolean saveStartLevel = true;
+
   // will be initialized by main() - up for anyone for grabbing
   public String bootText;
 
@@ -142,12 +145,12 @@ public class Main
 
 
   protected void start(String[] args) {
-    version = readVersion();
+    version = Util.readFrameworkVersion();
 
     bootText =
-      "Knopflerfish OSGi framework, version " + version + "\n" +
-      "Copyright 2003-2012 Knopflerfish. All Rights Reserved.\n\n" +
-      "See http://www.knopflerfish.org for more information.";
+      "Knopflerfish OSGi framework launcher, version " + version + "\n" +
+      "Copyright 2003-2012 Knopflerfish. All Rights Reserved.\n" +
+      "See http://www.knopflerfish.org for more information.\n";
 
     System.out.println(bootText);
 
@@ -292,6 +295,9 @@ public class Main
       println(prefix +key +"=" +value, 1);
       props.put(key,value);
 
+      if (Constants.FRAMEWORK_BEGINNING_STARTLEVEL.equals(key)) {
+        saveStartLevel = false;
+      }
       if (VERBOSITY_PROP.equals(key)) {
         // redo this here since verbosity level may have changed
         try {
@@ -340,6 +346,10 @@ public class Main
         } else if ("-init".equals(args[i])) {
           fwProps.put(Constants.FRAMEWORK_STORAGE_CLEAN,
                       Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
+        } else if ("-launch".equals(args[i])) {
+          saveStartLevel = false;
+        } else if (saveStartLevel && i+1 < args.length && "-startlevel".equals(args[i])) {
+          fwProps.put(Constants.FRAMEWORK_BEGINNING_STARTLEVEL, args[i+1]);
         }
       } catch (Exception e) {
         e.printStackTrace(System.err);
@@ -411,7 +421,9 @@ public class Main
       } catch (BundleException be) {
         error("Failed to initialize the framework: " +be.getMessage(), be);
       }
-      println("Created Framework " + framework.getClass().getName(), 1);
+      println("Framework class " + framework.getClass().getName(), 1);
+      System.out.println("Created Framework: " + framework.getSymbolicName()
+                         + ", version=" + framework.getVersion() + ".");
     }
   }
 
@@ -460,9 +472,9 @@ public class Main
         } else if ("-init".equals(args[i])) {
           // Skip, handled in processProperties(String[])
         } else if ("-version".equals(args[i])) {
-          System.out.println("Knopflerfish version: " +readRelease());
+          System.out.println("Knopflerfish release: " + readRelease());
+          System.out.println("Framework version: " + Util.readFrameworkVersion());
           printResource("/tstamp");
-          printResource("/revision");
           System.exit(0);
         } else if ("-help".equals(args[i])) {
           printResource("/help.txt");
@@ -955,24 +967,8 @@ public class Main
 
 
   // should this be read from the manifest instead?
-  static String readVersion() {
-    return readResource("/version", "<no version found>", "UTF-8");
-  }
-
-
-  // should this be read from the manifest instead?
   static String readRelease() {
-    return readResource("/release", "0.0.0.snapshot", "UTF-8");
-  }
-
-
-  // Read version info from manifest
-  static String readResource(String file, String defaultValue, String encoding) {
-    try {
-      return (new String(Util.readResource(file), encoding)).trim();
-    } catch (Exception e) {
-      return defaultValue;
-    }
+    return Util.readResource("/release", "0.0.0.snapshot", "UTF-8");
   }
 
 
@@ -1128,6 +1124,9 @@ public class Main
         final String name  = (String) systemPropertiesNames.nextElement();
         final String value = systemProperties.getProperty(name);
         sysProps.put(name, value);
+        if (Constants.FRAMEWORK_BEGINNING_STARTLEVEL.equals(name)) {
+          saveStartLevel = false;
+        }
         println("Initial system property: " +name +"=" +value, 3);
       } catch (Exception e) {
         println("Failed to process system property: " +e, 1, e);

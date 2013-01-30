@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 public class ConsoleSwing
   implements org.osgi.util.tracker.ServiceTrackerCustomizer
@@ -66,8 +65,8 @@ public class ConsoleSwing
 
 
   public ConsoleSwing(BundleContext bc)  {
-    this.bc              = bc;
-    this.theConsoleSwing = this;
+    ConsoleSwing.bc = bc;
+    ConsoleSwing.theConsoleSwing = this;
     // Set up service tracker for the console service.
     consoleTracker = new ServiceTracker(bc, consoleServiceName, this);
   }
@@ -117,7 +116,7 @@ public class ConsoleSwing
     log(LogService.LOG_INFO, "Stopping");
     consoleTracker.close();
     close();
-    this.bc           = null;
+    ConsoleSwing.bc = null;
   }
 
 

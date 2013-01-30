@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,8 @@ package org.knopflerfish.bundle.http;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import java.lang.reflect.Constructor;
+
 import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -48,7 +50,7 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
 public class Activator implements BundleActivator {
-
+  
     // public constants
 
     public static final String FACTORY_PID = "org.knopflerfish.bundle.http.factory.HttpServer";
@@ -125,6 +127,8 @@ public class Activator implements BundleActivator {
             if (adminRef != null)
                 bc.ungetService(adminRef);
         }
+	registerCommandGroup();
+
     }
 
     public void stop(BundleContext bc) {
@@ -139,6 +143,18 @@ public class Activator implements BundleActivator {
 
         log.close();
         log = null;
+    }
+
+  
+    private void registerCommandGroup() {
+        // Try to see if we can create the command group object.
+        try {
+            new org.knopflerfish.bundle.http.console.HttpCommandGroup(bc, serverFactory);
+        } catch (Exception ex) {
+            log.error("Failed to create console command group: " + ex, ex);
+        } catch (LinkageError ce) {
+            log.info("There is no KF-console available, command group not created.", ce);
+        }
     }
 
 } // Activator

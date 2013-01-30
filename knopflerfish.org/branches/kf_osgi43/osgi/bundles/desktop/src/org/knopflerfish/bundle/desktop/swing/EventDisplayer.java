@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,25 +35,32 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.awt.BorderLayout;
-import java.util.*;
-
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.JTable;
-import javax.swing.JFrame;
-import javax.swing.JButton;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import javax.swing.*;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
+import javax.swing.DefaultListModel;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
-import org.knopflerfish.bundle.desktop.event.*;
+import org.knopflerfish.bundle.desktop.event.EventReaderDispatcher;
+import org.knopflerfish.bundle.desktop.event.EventTableModel;
+import org.knopflerfish.bundle.desktop.event.JEventEntryDetail;
+import org.knopflerfish.bundle.desktop.event.JEventPanel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
-import org.osgi.service.event.*;
+import org.osgi.service.event.Event;
+import org.osgi.service.event.EventConstants;
+import org.osgi.service.event.EventHandler;
 
 public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
@@ -194,6 +201,8 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
 
   class JEvent extends JPanel {
+    private static final long serialVersionUID = 1L;
+
     JEventPanel           eventPanel;
 
     JEventEntryDetail     eventDetail;
@@ -223,6 +232,8 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
                                     allKeys,
                                     selectedKeys,
                                     eventModel, eventDetail, false) {
+          private static final long serialVersionUID = 1L;
+
           public void setTopic(String topicS) {
             super.setTopic(topicS);
             if(frame != null) {

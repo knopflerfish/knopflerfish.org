@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import java.awt.RenderingHints;
  * Replacement class to strip image.
  */
 public class Strip extends Canvas {
+  private static final long serialVersionUID = 1L;
 
   Color      bg = new Color(255, 206, 0);
 
@@ -64,8 +65,8 @@ public class Strip extends Canvas {
   public void paint(Graphics g) {
     try {
       Graphics2D g2 = (Graphics2D)g;
-      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
-			  RenderingHints.VALUE_ANTIALIAS_ON);    
+      g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+			  RenderingHints.VALUE_ANTIALIAS_ON);
     } catch (Exception e) {
     }
 

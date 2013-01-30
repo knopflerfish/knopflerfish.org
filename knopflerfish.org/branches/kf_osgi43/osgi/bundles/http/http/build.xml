@@ -23,6 +23,7 @@
    <pathelement location="cm_api-N.N.N.jar"/>
    <pathelement location="log_api-N.N.N.jar"/>
    <pathelement location="jsdk_api-N.N.N.jar"/> 
+   <pathelement location="console_api-N.N.N.jar"/>
   </path>
 
   <!-- want to include the log client w/o duplicating code -->

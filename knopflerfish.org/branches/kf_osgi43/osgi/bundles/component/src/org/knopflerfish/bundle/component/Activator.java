@@ -101,13 +101,17 @@ public class Activator implements BundleActivator
    * Log message via specified BundleContext
    */
   static void logBC(BundleContext bc, int level, String msg, Throwable t) {
-    ServiceReference sr = bc.getServiceReference(LogService.class.getName());
-    if (sr != null) {
-      LogService log = (LogService)bc.getService(sr);
-      if (log != null) {
-        log.log(level, msg, t);
-        bc.ungetService(sr);
+    try {
+      ServiceReference sr = bc.getServiceReference(LogService.class.getName());
+      if (sr != null) {
+        LogService log = (LogService)bc.getService(sr);
+        if (log != null) {
+          log.log(level, msg, t);
+          bc.ungetService(sr);
+        }
       }
+    } catch (IllegalStateException ise) {
+      log(level, "Logging message for " + bc.getBundle() + " since it was inactive: " + msg, t);
     }
   }
 

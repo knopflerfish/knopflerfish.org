@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -557,6 +557,7 @@ public class BundleImpl implements Bundle {
   void waitOnOperation(Object lock, final String src, boolean longWait) throws BundleException {
     if (operation != IDLE) {
       long left = longWait ? 20000 : 500;
+      // TODO: Don't use currentTimeMillis
       long waitUntil = System.currentTimeMillis() + left;
       do {
         try {
@@ -807,7 +808,6 @@ public class BundleImpl implements Bundle {
       switch (state) {
       case UNINSTALLED:
         throw new IllegalStateException("Bundle is in UNINSTALLED state");
-
       case STARTING: // Lazy start
       case ACTIVE:
       case STOPPING:
@@ -842,6 +842,10 @@ public class BundleImpl implements Bundle {
             operation = UNINSTALLING;
             fwCtx.listeners.frameworkError(this, be);
           }
+        }
+        if (state == UNINSTALLED) {
+          operation = IDLE;
+          throw new IllegalStateException("Bundle is in UNINSTALLED state");
         }
         if (gen.isFragment()) {
           if (isAttached()) {
@@ -1104,6 +1108,7 @@ public class BundleImpl implements Bundle {
       try {
         // NYI, fix double locking
         synchronized (fwCtx.packages) {
+          waitOnOperation(fwCtx.packages, "Bundle.resolve", true);
           if (state == INSTALLED) {
             // NYI! check EE for fragments
             String ee = gen.archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
@@ -1201,7 +1206,6 @@ public class BundleImpl implements Bundle {
   ClassLoader getClassLoader() {
     return gen.getClassLoader();
   }
-
 
   /**
    * Set state to INSTALLED and throw away our classloader. Reset all package

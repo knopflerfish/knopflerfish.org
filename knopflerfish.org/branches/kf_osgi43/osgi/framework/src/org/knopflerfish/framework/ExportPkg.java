@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,8 +83,8 @@ class ExportPkg {
       this.version = new Version(specVersionStr);
       if (versionStr != null && !this.version.equals(new Version(versionStr))) {
         throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
-                                           "and " + Constants.PACKAGE_SPECIFICATION_VERSION +
-                                           "are specified, and differs");
+                                           " and " + Constants.PACKAGE_SPECIFICATION_VERSION +
+                                           " are specified, and differs");
       }
     } else if (versionStr != null) {
       this.version = new Version(versionStr);

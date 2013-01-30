@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,14 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.util.*;
-import java.util.prefs.*;
-
 import org.knopflerfish.bundle.desktop.swing.Activator;
 import org.knopflerfish.bundle.desktop.swing.Util;
-
-import org.osgi.framework.*;
-import org.osgi.util.tracker.ServiceTracker;
-
 import org.knopflerfish.service.log.LogRef;
-
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.prefs.PreferencesService;
+import org.osgi.util.tracker.ServiceTracker;
 
 
 /**

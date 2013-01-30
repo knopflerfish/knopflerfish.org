@@ -133,6 +133,14 @@ outindex:
                                                         > ${OUT_DIR}/index.html
 	@echo "The current build on ${TAG} is <a href=">> ${OUT_DIR}/index.html
 	@echo "\"${CURRENT_LINK}\">${VERSION}</a>.<p/>">> ${OUT_DIR}/index.html
+	@echo "There is a dedicated maven repository "  >> ${OUT_DIR}/index.html
+	@echo "for each snapshot build. This repository ">> ${OUT_DIR}/index.html
+	@echo "will contain one version of each artifact.">> ${OUT_DIR}/index.html
+	@echo "The repository URL for the current build is ">> ${OUT_DIR}/index.html
+	@echo "<a href=\"http://www.knopflerfish.org/snapshots/current_trunk/maven2/\">http://www.knopflerfish.org/snapshots/current_trunk/maven2/</a>. ">> ${OUT_DIR}/index.html
+	@echo "A more detailed description of the principles for the " >> ${OUT_DIR}/index.html
+	@echo "Knopflerfish maven repository can be found ">> ${OUT_DIR}/index.html
+	@echo "<a href=\"/maven.html\">here</a>.<p/>"  >> ${OUT_DIR}/index.html
 	@echo "<h3>All available snapshot builds</h3>" >> ${OUT_DIR}/index.html
 	@echo "Builds are listed in descending build " >> ${OUT_DIR}/index.html
 	@echo "date order, i.e., most recent first."   >> ${OUT_DIR}/index.html
@@ -140,7 +148,9 @@ outindex:
 	@(cd ${OUT_DIR}; \
 	  for FF in `ls -1ct`; do \
 	    if [ -d $$FF ]; then \
-	      echo "<a href=\"$$FF\">$$FF</a><br/>"  >> ${OUT_DIR}/index.html; \
+	      echo "<a href=\"$$FF\">$$FF</a> "  >> ${OUT_DIR}/index.html; \
+	      echo " -  "  >> ${OUT_DIR}/index.html; \
+	      echo "<a href=\"$$FF/maven2\">Maven2 repo</a><br/>"  >> ${OUT_DIR}/index.html; \
 	    fi; \
 	  done)
 	@${CAT} ${TAGs}/tools/nightlybuild/snap_index.html.post | \

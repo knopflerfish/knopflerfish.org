@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,6 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-import org.knopflerfish.service.desktop.BundleFilter;
-import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.service.remotefw.RemoteFramework;
-import org.knopflerfish.util.Text;
-
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -57,6 +52,11 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.startlevel.StartLevel;
 import org.osgi.util.tracker.ServiceTracker;
+
+import org.knopflerfish.service.desktop.BundleFilter;
+import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.service.remotefw.RemoteFramework;
+import org.knopflerfish.util.Text;
 
 
 public class Activator
@@ -283,11 +283,12 @@ public class Activator
   }
 
   static Vector remoteHosts = new Vector() {
-      {
-        addElement("http://localhost:8080");
-        addElement("http://localhost:8081");
-        addElement("http://localhost:80");
-      }
+    private static final long serialVersionUID = 1L;
+    {
+      addElement("http://localhost:8080");
+      addElement("http://localhost:8081");
+      addElement("http://localhost:80");
+    }
     };
 
   static String remoteHost = "";
@@ -317,6 +318,7 @@ public class Activator
 
 
   static ServiceTracker remoteTracker;
+
 
   Map displayers = new HashMap();
 
@@ -387,6 +389,7 @@ public class Activator
       ClosureHTMLDisplayer.class.getName(),
       ServiceHTMLDisplayer.class.getName(),
       PackageHTMLDisplayer.class.getName(),
+      SCRHTMLDisplayer.class.getName(),
       LogDisplayer.class.getName(),
       EventDisplayer.class.getName(),
       PrefsDisplayer.class.getName(),
@@ -441,7 +444,7 @@ public class Activator
   private void closeDesktop0()
   {
     desktop.stop();
-    desktop.theDesktop = null;
+    Desktop.theDesktop = null;
     desktop = null;
   }
 
@@ -463,7 +466,7 @@ public class Activator
       for(Iterator it = displayers.keySet().iterator(); it.hasNext();) {
         DefaultSwingBundleDisplayer disp
           = (DefaultSwingBundleDisplayer)it.next();
-        ServiceRegistration reg = (ServiceRegistration)displayers.get(disp);
+        //ServiceRegistration reg = (ServiceRegistration)displayers.get(disp);
 
         disp.unregister();
       }

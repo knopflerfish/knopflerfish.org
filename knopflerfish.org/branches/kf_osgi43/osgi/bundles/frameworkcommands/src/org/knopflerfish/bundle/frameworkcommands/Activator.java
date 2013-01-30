@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import org.osgi.framework.BundleContext;
 
 /**
  * * Bundle activator implementation. * *
- * 
+ *
  * @author Jan Stein
  */
 public class Activator implements BundleActivator {
@@ -52,7 +52,7 @@ public class Activator implements BundleActivator {
 
     /**
      * Called by the framework when this bundle is started.
-     * 
+     *
      * @param bc
      *            Bundle context.
      */
@@ -66,7 +66,7 @@ public class Activator implements BundleActivator {
 
     /**
      * Called by the framework when this bundle is stopped.
-     * 
+     *
      * @param bc
      *            Bundle context.
      */

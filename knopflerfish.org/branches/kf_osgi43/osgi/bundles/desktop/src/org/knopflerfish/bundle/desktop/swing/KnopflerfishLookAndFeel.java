@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
 public class KnopflerfishLookAndFeel extends MetalLookAndFeel {
+  private static final long serialVersionUID = 1L;
 
   public static String name = "Knopflerfish";
 
@@ -82,8 +83,8 @@ public class KnopflerfishLookAndFeel extends MetalLookAndFeel {
     super.initComponentDefaults( table );
 
     // I'll have to copy some of the resource definitions here, since the
-    // original code in BasicLookAndFeel (from which we inherit) uses 
-    // getClass() to find its resources. That will fail since my 
+    // original code in BasicLookAndFeel (from which we inherit) uses
+    // getClass() to find its resources. That will fail since my
     // classloader does not have these resources.
     //
     // So, the trick is to replace getClass() with MetalLookAndFeel.class

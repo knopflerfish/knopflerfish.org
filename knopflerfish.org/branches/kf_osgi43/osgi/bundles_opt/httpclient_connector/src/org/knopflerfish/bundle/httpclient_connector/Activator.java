@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2008, KNOPFLERFISH project
+ * Copyright (c) 2006-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
  */
 package org.knopflerfish.bundle.httpclient_connector;
 
+import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.osgi.framework.BundleActivator;
@@ -41,11 +42,18 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.io.ConnectionFactory;
 
-public class Activator implements BundleActivator {
+import org.knopflerfish.service.log.LogRef;
+
+public class Activator implements BundleActivator
+{
+  static LogRef log;
+
   private ServiceRegistration reg;
 
   public void start(BundleContext bc) throws Exception {
-    Hashtable properties = new Hashtable();
+    log = new LogRef(bc);
+
+    final Dictionary properties = new Hashtable();
 
     try {
       Class.forName("javax.net.ssl.HttpsURLConnection");

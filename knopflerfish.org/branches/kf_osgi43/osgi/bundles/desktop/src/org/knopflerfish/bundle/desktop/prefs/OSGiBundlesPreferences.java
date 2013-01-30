@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,12 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.prefs.*;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-
-import javax.swing.*;
-import java.awt.event.*;
-import org.knopflerfish.bundle.desktop.swing.Activator;
 import org.knopflerfish.bundle.desktop.swing.Util;
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
 
 public class OSGiBundlesPreferences 
   extends MountedPreferences

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -315,7 +315,7 @@ public class PackageAdminImpl implements PackageAdmin {
     }
 
     // Restart previously active bundles in normal start order
-    fwCtx.bundles.startBundles(startList);
+    startBundles(startList);
     fwCtx.listeners
         .frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                          fwCtx.systemBundle, null));
@@ -324,6 +324,33 @@ public class PackageAdminImpl implements PackageAdmin {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
   }
+
+
+  /**
+   * Start a list of bundles in order
+   *
+   * @param slist Bundles to start.
+   */
+  private void startBundles(List slist) {
+    // Sort in start order
+    // Resolve first to avoid dead lock
+    for (Iterator i = slist.iterator(); i.hasNext();) {
+      BundleImpl rb = (BundleImpl)i.next();
+      rb.getUpdatedState();
+    }
+    for (Iterator i = slist.iterator(); i.hasNext();) {
+      BundleImpl rb = (BundleImpl)i.next();
+      if (rb.getUpdatedState() == Bundle.RESOLVED) {
+        try {
+          rb.start();
+        } catch (BundleException be) {
+          rb.fwCtx.listeners.frameworkError(rb, be);
+        }
+      }
+    }
+  }
+
+
 
   /**
    *

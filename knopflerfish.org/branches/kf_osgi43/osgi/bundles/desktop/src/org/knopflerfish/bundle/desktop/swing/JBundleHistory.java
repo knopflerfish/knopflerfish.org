@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,30 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
-import java.util.*;
-import javax.swing.*;
-import java.net.URL;
+import java.awt.AlphaComposite;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.AffineTransform;
 
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+
+import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.knopflerfish.service.desktop.*;
 
 public class JBundleHistory extends JPanel {
+
+  private static final long serialVersionUID = 1L;
 
   BundleContext bc;
 
@@ -57,14 +68,14 @@ public class JBundleHistory extends JPanel {
   GridLayout grid;
   JPanel panel;
 
-  public JBundleHistory(BundleContext bc, 
+  public JBundleHistory(BundleContext bc,
                         JComponent eastComponent,
                         BundleSelectionModel bundleSelModel,
                         int nMax,
                         int height) {
     super(new BorderLayout());
 
-    this.bc = bc;    
+    this.bc = bc;
     this.nMax = nMax;
     this.bundleSelModel = bundleSelModel;
 
@@ -79,7 +90,7 @@ public class JBundleHistory extends JPanel {
     setPreferredSize(new Dimension(200, height));
   }
 
-  
+
   Bundle lastBundle;
   public Bundle getLastBundle() {
     return lastBundle;
@@ -107,7 +118,7 @@ public class JBundleHistory extends JPanel {
     Component[] cl = panel.getComponents();
     for(int i = 0; i < cl.length; i++) {
       JBundle jb = (JBundle)cl[i];
-      if(b.equals(jb.b)) {        
+      if(b.equals(jb.b)) {
         panel.remove(cl[i]);
         cl = panel.getComponents();
         if(cl.length > 0) {
@@ -124,9 +135,9 @@ public class JBundleHistory extends JPanel {
 
   public void setBounds(int x, int y, int w, int h) {
     super.setBounds(x, y, w, h);
-    
+
     resizeBundles();
-  }            
+  }
 
   void resizeBundles() {
     Dimension size = getSize();
@@ -141,7 +152,7 @@ public class JBundleHistory extends JPanel {
       }
       grid.setColumns(n);
     }
-    
+
     revalidate();
     repaint();
   }
@@ -152,15 +163,16 @@ public class JBundleHistory extends JPanel {
   void bundleSelected(Bundle b) {
   }
 
-  AlphaComposite alphaLow 
+  AlphaComposite alphaLow
     = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .3f);
 
   AlphaComposite alphaHigh
     = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .7f);
-  
+
 
 
   class JBundle extends JPanel {
+    private static final long serialVersionUID = 1L;
     Icon icon;
     Bundle b;
     AlphaComposite alpha = alphaLow;
@@ -212,11 +224,11 @@ public class JBundleHistory extends JPanel {
       g.fillRect(0, 0, size.width, size.height);
 
       int width  = Math.min(size.width, size.height);
-      int height = width; 
-      
+      int height = width;
+
       double fx = (double)width / icon.getIconWidth();
       double fy = (double)height / icon.getIconHeight();
-      
+
       AffineTransform oldTrans = g.getTransform();
       g.scale(fx, fy);
 
@@ -231,7 +243,7 @@ public class JBundleHistory extends JPanel {
 
       Util.setAntialias(g, true);
       String s = "#" + b.getBundleId();
-      
+
 
       g.setColor(Color.black);
       g.drawString(s, 2, g.getFont().getSize() + 2);
@@ -244,5 +256,3 @@ public class JBundleHistory extends JPanel {
     }
   }
 }
-
-

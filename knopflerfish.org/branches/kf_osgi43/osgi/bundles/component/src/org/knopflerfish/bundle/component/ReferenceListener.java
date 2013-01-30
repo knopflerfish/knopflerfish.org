@@ -46,8 +46,9 @@ import org.osgi.service.component.ComponentConstants;
 class ReferenceListener implements ServiceListener
 {
   final Reference ref;
-  private HashSet serviceRefs = new HashSet();
-  private HashSet unbinding = new HashSet();
+  private HashMap /* ServiceReference -> Object */  bound = new HashMap();
+  private HashSet /* ServiceReference */ serviceRefs = new HashSet();
+  private HashSet /* ServiceReference */ unbinding = new HashSet();
   private ServiceReference selectedServiceRef = null;
   private TreeSet pids = new TreeSet();
   private Filter cmTarget;
@@ -264,10 +265,10 @@ class ReferenceListener implements ServiceListener
   /**
    * Get highest ranked service.
    */
-  Object getService(Bundle usingBundle) {
+  Object getService() {
     ServiceReference sr = getServiceReference();
     if (sr != null) {
-      return getServiceCheckActivate(sr, usingBundle);
+      return getServiceCheckActivate(sr);
     }
     return null;
   }
@@ -276,11 +277,12 @@ class ReferenceListener implements ServiceListener
   /**
    * Get service if it belongs to this reference.
    */
-  Object getService(ServiceReference sr, Bundle usingBundle) {
-    if (serviceRefs.contains(sr)) {
-      return getServiceCheckActivate(sr, usingBundle);
+  Object getService(ServiceReference sr) {
+    boolean c;
+    synchronized (serviceRefs) {
+      c = serviceRefs.contains(sr) || unbinding.contains(sr);
     }
-    return null;
+    return c ? getServiceCheckActivate(sr) : null;
   }
 
 
@@ -291,17 +293,60 @@ class ReferenceListener implements ServiceListener
   }
 
 
+  ServiceReference [] getBoundServiceReferences() {
+    synchronized (bound) {
+      return (ServiceReference [])bound.keySet().toArray(new ServiceReference[bound.size()]);
+    }
+  }
+
+
+  void bound(ServiceReference sr, Object s) {
+    synchronized (bound) {
+      if (bound.get(sr) == null) {
+        bound.put(sr, s);
+      }
+    }
+  }
+
+
+  Object getBound(ServiceReference sr) {
+    synchronized (bound) {
+      return bound.get(sr);
+    }
+  }
+
+
+  boolean doUnbound(ServiceReference sr) {
+    synchronized (bound) {
+      return bound.containsKey(sr);  
+    }
+  }
+
+
+  void unbound(ServiceReference sr) {
+    Object s;
+    synchronized (bound) {
+      s = bound.remove(sr);
+    }
+    if (s != null) {
+      ref.comp.bc.ungetService(sr);
+    }
+  }
+
+
   /**
    * Get all services.
    */
-  Object [] getServices(Bundle usingBundle) {
+  Object [] getServices() {
+
     ServiceReference [] srs = getServiceReferences();
     ArrayList res = new ArrayList(srs.length);
     for (int i = 0; i < srs.length; i++) {
-      res.add(getServiceCheckActivate(srs[i], usingBundle));
+      res.add(getServiceCheckActivate(srs[i]));
     }
     return res.toArray();
   }
+
 
   HashSet getUnbinding() {
     synchronized (serviceRefs) {
@@ -319,69 +364,69 @@ class ReferenceListener implements ServiceListener
    *
    */
   public void serviceChanged(ServiceEvent se) {
-    do {
-      boolean doAdd;
-      int cnt;
-      boolean wasSelected = false;
-      ServiceReference s;
-      synchronized (serviceRefs) {
-        if (sEventQueue.isEmpty()) {
-          if (se == null) {
-            return;
+    ref.comp.scr.postponeCheckin();
+    try {
+      do {
+        boolean doAdd;
+        int cnt;
+        boolean wasSelected = false;
+        ServiceReference s;
+        synchronized (serviceRefs) {
+          if (sEventQueue.isEmpty()) {
+            if (se == null) {
+              return;
+            }
+          } else {
+            if (se != null) {
+              sEventQueue.addLast(se);
+            }
+            se = (ServiceEvent)sEventQueue.removeFirst();
+          }
+          s = se.getServiceReference();
+          switch (se.getType()) {
+          case ServiceEvent.MODIFIED:
+          case ServiceEvent.REGISTERED:
+            if (!serviceRefs.add(s)) {
+              // Service properties just changed,
+              // ignore
+              continue;
+            }
+            cnt = serviceRefs.size();
+            doAdd = true;
+            break;
+          case ServiceEvent.MODIFIED_ENDMATCH:
+          case ServiceEvent.UNREGISTERING:
+            serviceRefs.remove(s);
+            if  (selectedServiceRef == s) {
+              selectedServiceRef = null;
+              wasSelected = true;
+            }
+            cnt = serviceRefs.size();
+            unbinding.add(s);
+            doAdd = false;
+            break;
+          default:
+            // To keep compiler happy
+            throw new RuntimeException("Internal error");
+          }
+        }
+        if (doAdd) {
+          if (cnt != 1 || !ref.refAvailable()) {
+            refUpdated(s, false, false);
           }
         } else {
-          if (se != null) {
-            sEventQueue.addLast(se);
+          if (cnt != 0 || !ref.refUnavailable()) {
+            refUpdated(s, true, wasSelected);
+            synchronized (serviceRefs) {
+              unbinding.remove(s);
+            }
           }
-          se = (ServiceEvent)sEventQueue.removeFirst();
         }
-        s = se.getServiceReference();
-        switch (se.getType()) {
-        case ServiceEvent.MODIFIED:
-        case ServiceEvent.REGISTERED:
-          if (!serviceRefs.add(s)) {
-            // Service properties just changed,
-            // ignore
-            return;
-          }
-          cnt = serviceRefs.size();
-          doAdd = true;
-          break;
-        case ServiceEvent.MODIFIED_ENDMATCH:
-        case ServiceEvent.UNREGISTERING:
-          serviceRefs.remove(s);
-          if  (selectedServiceRef == s) {
-            selectedServiceRef = null;
-            wasSelected = true;
-          }
-          cnt = serviceRefs.size();
-          unbinding.add(s);
-          doAdd = false;
-          break;
-        default:
-          // To keep compiler happy
-          throw new RuntimeException("Internal error");
-        }
-      }
-      if (doAdd) {
-        if (cnt != 1 || !ref.refAvailable()) {
-          refUpdated(s, false, false);
-        }
-      } else {
-        if (cnt != 0 || !ref.refUnavailable()) {
-          refUpdated(s, true, wasSelected);
-          synchronized (serviceRefs) {
-            unbinding.remove(s);
-          }
-        } else {
-          // If we deactivated, we want to keep the service
-          // in unbinding so that it will be unbound during
-          // deactivation.
-        }
-      }
-      se = null;
-    } while (!sEventQueue.isEmpty());
-    ref.comp.scr.checkPostponeBind();
+        se = null;
+      } while (!sEventQueue.isEmpty());
+    } finally {
+      ref.comp.scr.postponeCheckout();
+    }
   }
 
   //
@@ -392,21 +437,31 @@ class ReferenceListener implements ServiceListener
    * Get service, but activate before so that we will
    * get any ComponentExceptions.
    */
-  private Object getServiceCheckActivate(ServiceReference sr, Bundle usingBundle) {
-    Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
-    if (o != null && o instanceof String) {
-      Component [] cs = ref.comp.scr.getComponent((String)o);
-      if (cs != null) {
-        for (int i = 0; i < cs.length; i++) {
-          ComponentConfiguration cc = cs[i].getComponentConfiguration(sr);
-          if (cc != null) {
-            cc.activate(usingBundle, false);
-            break;
+  private Object getServiceCheckActivate(ServiceReference sr) {
+    Object s = getBound(sr);
+    if (s == null) {
+      Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
+      if (o != null && o instanceof String) {
+        Component [] cs = ref.comp.scr.getComponent((String)o);
+        if (cs != null) {
+          ref.comp.scr.postponeCheckin();
+          try {
+            for (int i = 0; i < cs.length; i++) {
+              ComponentConfiguration cc = cs[i].getComponentConfiguration(sr);
+              if (cc != null) {
+                cc.activate(ref.comp.bc.getBundle(), false);
+                break;
+              }
+            }
+          } finally {
+            ref.comp.scr.postponeCheckout();
           }
         }
       }
+      s = ref.comp.bc.getService(sr);
+      bound(sr, s);
     }
-    return ref.comp.bc.getService(sr);
+    return s;
   }
 
 

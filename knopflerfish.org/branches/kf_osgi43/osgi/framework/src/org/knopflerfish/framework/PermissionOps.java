@@ -321,6 +321,10 @@ class PermissionOps {
     b.setStartLevel(startlevel);
   }
 
+  void callSetInitialBundleStartLevel0(final StartLevelController slc,
+                                       final int startlevel) {
+    slc.setInitialBundleStartLevel0(startlevel, true);
+  }
 
   //
   // SystemBundle secure operations

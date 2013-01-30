@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,10 +35,15 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import java.util.*;
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.tree.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.Iterator;
+import java.util.TreeSet;
+
+import javax.swing.JTree;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
 
 public class TreeUtils {
 
@@ -58,7 +63,6 @@ public class TreeUtils {
     if(paths != null) {
       for(Iterator it = paths.iterator(); it.hasNext(); ) {
         TreePath tp = (TreePath)it.next();
-        Object[] path = tp.getPath();
         
         expandPath(tree, tp);
       }

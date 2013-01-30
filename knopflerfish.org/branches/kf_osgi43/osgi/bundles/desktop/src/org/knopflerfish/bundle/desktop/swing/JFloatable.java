@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003,2010, KNOPFLERFISH project
+ * Copyright (c) 2003,2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 
 public class JFloatable extends JPanel {
+  private static final long serialVersionUID = 1L;
 
   JComponent main;
   JComponent buttonFloat;
@@ -73,7 +74,7 @@ public class JFloatable extends JPanel {
     super(new BorderLayout());
     this.main   = main;
     this.title  = title;
-    buttonFloat = new JLabel(Activator.desktop.floatIcon);
+    buttonFloat = new JLabel(Desktop.floatIcon);
     buttonFloat.setToolTipText("Float window");
     //    buttonFloat.setBorder(null);
     buttonFloat.addMouseListener(new MouseAdapter() {
@@ -135,7 +136,7 @@ public class JFloatable extends JPanel {
       });
       buttonFloat.setToolTipText("Unfloat window");
     }
-    
+
     remove(main);
     add(buttonInfo, BorderLayout.SOUTH);
 
@@ -148,7 +149,7 @@ public class JFloatable extends JPanel {
     Dimension size = main.getPreferredSize();
     size = new Dimension(Math.min(200, size.width),
 			 Math.min(200, size.height));
-    
+
     if(frameLocation != null) {
       frame.setLocation(frameLocation);
     }
@@ -163,7 +164,7 @@ public class JFloatable extends JPanel {
     frame.pack();
     frame.setVisible(true);
   }
-  
+
   synchronized public void doUnfloat() {
     if(frame != null) {
       frameLocation = frame.getLocationOnScreen();
@@ -184,13 +185,10 @@ public class JFloatable extends JPanel {
   }
 
   public String toString() {
-    return "JFloatable[" + 
-      "title=" + title + 
-      ", main=" + main + 
-      ", frame=" + frame + 
+    return "JFloatable[" +
+      "title=" + title +
+      ", main=" + main +
+      ", frame=" + frame +
       "]";
   }
 }
-
-
-

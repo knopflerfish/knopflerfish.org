@@ -78,6 +78,16 @@ table.man {
     border-collapse: collapse;
 }
 
+table table.man_inner {
+    border-style: hidden;
+    border-collapse: collapse;
+}
+
+table table.man_inner td {
+    border-style: hidden;
+    padding: 4px;
+}
+
 table.man th {
     font-size:12px;
     border-width: 1px;

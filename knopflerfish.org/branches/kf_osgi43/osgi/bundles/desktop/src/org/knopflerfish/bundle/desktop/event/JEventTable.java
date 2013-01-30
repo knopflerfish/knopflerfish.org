@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,14 @@
 
 package org.knopflerfish.bundle.desktop.event;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.util.Date;
 
-import javax.swing.*;
-import javax.swing.table.*;
-import javax.swing.event.*;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.TableCellRenderer;
 
 import org.osgi.service.event.Event;
 
@@ -49,6 +50,7 @@ import org.osgi.service.event.Event;
  */
 public class JEventTable extends JTable {
 
+  private static final long serialVersionUID = 1L;
   EventTableModel    model;
   JEventEntryDetail logEntryDetail;
 
@@ -61,15 +63,10 @@ public class JEventTable extends JTable {
     this.logEntryDetail = logEntryDetail;
     this.model          = model;
 
-    if(true) {
-      TableSorter sorter = new TableSorter(model);
-      
-      setModel(sorter);
-      sorter.addMouseListenerToHeaderInTable(this);
-    } else {
-      setModel(model);
-    }
+		TableSorter sorter = new TableSorter(model);
 
+		setModel(sorter);
+		sorter.addMouseListenerToHeaderInTable(this);
     
     setDefaultRenderer(Date.class,   new DateCellRenderer("HH:mm:ss, MMM dd"));
     setDefaultRenderer(String.class, new StringCellRenderer());

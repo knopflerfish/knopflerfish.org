@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,17 +38,18 @@ import java.util.Vector;
 
 //  ********************     Queue     ********************
 /**
- ** The <code>Queue</code> class represents a first-in-first-out 
- ** (FIFO) queue of objects. 
+ ** The <code>Queue</code> class represents a first-in-first-out
+ ** (FIFO) queue of objects.
  ** @author Per Lundgren
- ** @version $Revision: 1.2 $
  */
 public class Queue extends Vector {
-/** @serial */
+  private static final long serialVersionUID = 1L;
+
+  /** @serial */
   private int m_nMaxSize = -1;
-/** @serial */
+  /** @serial */
   private boolean queueClosed = false;
-  
+
   //  ====================    Queue      ====================
   /**
    ** Constructs an Queue with the specifies maximum size.
@@ -59,7 +60,7 @@ public class Queue extends Vector {
   {
     m_nMaxSize = size;
   }
- 
+
   //  ====================    insert      ====================
   /**
    ** Inserts an item into the queue. If there are threads blocked on
@@ -71,7 +72,7 @@ public class Queue extends Vector {
   public synchronized void insert(Object item) throws IndexOutOfBoundsException
   {
     // Check if queue is full
-    if (m_nMaxSize > 0 && size() >= m_nMaxSize) 
+    if (m_nMaxSize > 0 && size() >= m_nMaxSize)
       throw new IndexOutOfBoundsException("Queue full");
 
     addElement(item);
@@ -117,13 +118,13 @@ public class Queue extends Vector {
 
     if (queueClosed) {
       return null;
-    }    
-    
+    }
+
     try {
       obj = firstElement();
       removeElementAt(0);
     } catch (Exception e) {}
- 
+
     return obj;
   }
 
@@ -144,13 +145,12 @@ public class Queue extends Vector {
   //  ====================     close     ====================
   /**
    ** Closes the queue, i.e. wakes up all threads blocking on
-   ** a call to remove(). 
+   ** a call to remove().
    */
 
   public synchronized void close() {
     queueClosed = true;
     notifyAll();
   }
-  
-}
 
+}

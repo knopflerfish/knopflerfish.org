@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,27 @@
 
 package org.knopflerfish.bundle.desktop.prefs;
 
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.tree.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.prefs.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.prefs.Preferences;
+
+import javax.swing.JCheckBox;
 
 
 public class JValueBoolean extends JValue {
+  private static final long serialVersionUID = 1L;
+
   JCheckBox cb;
   
   JValueBoolean(Preferences _node, String _key) {
     super(_node, _key, ExtPreferences.TYPE_BOOLEAN);
     
     boolean val = node.getBoolean(key, false);
-    cb = new JCheckBox() {{
-      addActionListener(new ActionListener() {
+    cb = new JCheckBox() {
+      private static final long serialVersionUID = 1L;
+      {
+        addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             node.putBoolean(key, cb.isSelected());
           }

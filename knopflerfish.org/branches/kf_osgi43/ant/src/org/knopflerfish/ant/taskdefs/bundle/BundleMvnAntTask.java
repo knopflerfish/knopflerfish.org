@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -121,6 +121,15 @@ import org.w3c.dom.ProcessingInstruction;
  *  </tr>
  *
  *  <tr>
+ *   <td valign=top>product</td>
+ *   <td valign=top>
+ *     Value to put into the product attribute on the root element of the
+ *     dependency management file.
+ *   </td>
+ *   <td valign=top>No.<br>Knopflerfish</td>
+ *  </tr>
+ *
+ *  <tr>
  *   <td valign=top>repoDir</td>
  *   <td valign=top>
  *     The path to the root of the maven 2 repository to update with
@@ -223,6 +232,11 @@ public class BundleMvnAntTask extends Task {
   private String version = "0.0.0";
   public void setVersion(final String s) {
     this.version = s;
+  }
+
+  private String product = "Knopflerfish";
+  public void setProduct(final String s) {
+    this.product = s;
   }
 
   private File repoDir;
@@ -390,6 +404,7 @@ public class BundleMvnAntTask extends Task {
     doc.insertBefore(pi, root);
 
     root.setAttribute("version", version);
+    root.setAttribute("product", product);
     root.appendChild(doc.createTextNode("\n"));
 
     final Element dm = doc.createElement("dependencyManagement");
@@ -458,10 +473,10 @@ public class BundleMvnAntTask extends Task {
         } else {
           // Add one "../" to mvnPath for each level in the groupId
           mvnPath = "../" +mvnPath;
-          int pPos = groupIdPath.indexOf('.');
-          while (-1<pPos) {
+          int sPos = groupIdPath.indexOf('/');
+          while (-1<sPos) {
             mvnPath = "../" +mvnPath;
-            pPos = groupIdPath.indexOf('.', pPos+1);
+            sPos = groupIdPath.indexOf('/', sPos+1);
           }
         }
         final Element url = doc.createElement("url");
@@ -625,7 +640,7 @@ public class BundleMvnAntTask extends Task {
   }
 
   /**
-   * Build the relative path to the bundle represented by the givne
+   * Build the relative path to the bundle represented by the given
    * maven coordinates.
    *
    * @param ela

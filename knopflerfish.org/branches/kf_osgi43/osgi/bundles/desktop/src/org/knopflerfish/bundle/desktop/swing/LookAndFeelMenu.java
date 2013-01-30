@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,12 +62,12 @@ import javax.swing.UnsupportedLookAndFeelException;
  ** implementing the look and feel.
  **
  ** @author Gunnar Ekolin, Gatespace AB
- ** @version $Revision: 1.2 $
  **/
 public class LookAndFeelMenu
   extends JMenu
   implements ItemListener
 {
+  private static final long serialVersionUID = 1L;
 
   final ButtonGroup lfGroup = new ButtonGroup();
 
@@ -94,7 +94,7 @@ public class LookAndFeelMenu
     Vector classes = new Vector();
     Vector names   = new Vector();
 
-    for(Enumeration e = lfManager.customLF.keys(); e.hasMoreElements(); ) { 
+    for(Enumeration e = lfManager.customLF.keys(); e.hasMoreElements(); ) {
       String className = (String)e.nextElement();
       LookAndFeel lf   = (LookAndFeel)lfManager.customLF.get(className);
       String name      = lf.getName();
@@ -102,24 +102,24 @@ public class LookAndFeelMenu
       // Check if custom LF is included in installed LFs
       boolean bIncluded = false;
       for (int i=0;  i < iLF.length; i++) {
-	if(iLF[i].getClassName().equals(className)) {
-	  bIncluded = true;
-	  break;
-	}
+        if(iLF[i].getClassName().equals(className)) {
+          bIncluded = true;
+          break;
+        }
       }
 
       // If not included, add to my list
       if(!bIncluded) {
-	classes.addElement(className);
-	names.addElement(name);
+        classes.addElement(className);
+        names.addElement(name);
       }
     }
 
     // Add all installed LFs
     for (int i=0;  i<iLF.length; i++) {
       {
-	classes.addElement(iLF[i].getClassName());
-	names.addElement(iLF[i].getName());
+        classes.addElement(iLF[i].getClassName());
+        names.addElement(iLF[i].getName());
       }
     }
 
@@ -128,18 +128,18 @@ public class LookAndFeelMenu
       String className  = (String)classes.elementAt(i);
       String name       = (String)names.elementAt(i);
       JRadioButtonMenuItem rbMenuItem =
-	(JRadioButtonMenuItem) add( new JRadioButtonMenuItem( name ) );
+        (JRadioButtonMenuItem) add( new JRadioButtonMenuItem( name ) );
       rbMenuItem.setActionCommand( className );
 
       /*
       rbMenuItem.setAccelerator
-	( KeyStroke.getKeyStroke( KeyEvent.VK_0+ i, ActionEvent.ALT_MASK ) );
+        ( KeyStroke.getKeyStroke( KeyEvent.VK_0+ i, ActionEvent.ALT_MASK ) );
       */
 
       rbMenuItem.getAccessibleContext().setAccessibleDescription
-	("The look and feel option for '"+name+"'.");
+        ("The look and feel option for '"+name+"'.");
       rbMenuItem.setSelected( name.equals( currentLFName ) );
-      rbMenuItem.addItemListener( this ); 
+      rbMenuItem.addItemListener( this );
 
       lfGroup.add( rbMenuItem );
     }
@@ -188,60 +188,60 @@ public class LookAndFeelMenu
     if(cLF != null) {     // First, check if it any of the custom LFs
       try {
 
-	
-	Activator.log.debug("set custom LF classloader to" + cLF.getClass().getClassLoader());
-	UIManager.getLookAndFeelDefaults().put("ClassLoader", cLF.getClass().getClassLoader());
 
-	Activator.log.debug("set custom LF " + newLFClassName);
-	UIManager.setLookAndFeel(cLF);
-	
-	for(Iterator it = roots.iterator(); it.hasNext();) {
-	  Component root = (Component)it.next();
-	  SwingUtilities.updateComponentTreeUI( root );
-	}
+        Activator.log.debug("set custom LF classloader to" + cLF.getClass().getClassLoader());
+        UIManager.getLookAndFeelDefaults().put("ClassLoader", cLF.getClass().getClassLoader());
+
+        Activator.log.debug("set custom LF " + newLFClassName);
+        UIManager.setLookAndFeel(cLF);
+
+        for(Iterator it = roots.iterator(); it.hasNext();) {
+          Component root = (Component)it.next();
+          SwingUtilities.updateComponentTreeUI( root );
+        }
 
       } catch (Exception ex) {
-	Activator.log.error("Failed to set LF " + newLFClassName, ex);
+        Activator.log.error("Failed to set LF " + newLFClassName, ex);
       }
     } else {  // Otherwise, go for one of the installed LFs
       if (newLFClassName!=null && !newLFClassName.equals(currentLFClassName)) {
-	try {
-	  Activator.log.debug("set installed LF " + newLFClassName);
-	  UIManager.setLookAndFeel(newLFClassName);
-	  try {
-	    for(Iterator it = roots.iterator(); it.hasNext();) {
-	      Component root = (Component)it.next();
-	      SwingUtilities.updateComponentTreeUI( root );
-	    }
+        try {
+          Activator.log.debug("set installed LF " + newLFClassName);
+          UIManager.setLookAndFeel(newLFClassName);
+          try {
+            for(Iterator it = roots.iterator(); it.hasNext();) {
+              Component root = (Component)it.next();
+              SwingUtilities.updateComponentTreeUI( root );
+            }
 
-	  } catch (NullPointerException npe) {
-	    Activator.log.error
-	      ( "Unexpected error while applying new look and feel", npe); 
-	  }
-	} catch (UnsupportedLookAndFeelException exc) {
-	  rb.setEnabled( false );
-	  Activator.log.error( "Unsupported LookAndFeel: " + newLFName
-			       +" ("+newLFClassName+")", exc );
-	  
-	  // Fallback: Set L&F to cross platform L&F
-	  Activator.log.error( "Reverting to the cross platform LookAndFeel." );
-	  final String cpLFcn = UIManager.getCrossPlatformLookAndFeelClassName();
-	  // Find the menu item with the cross platform L&F and select it
-	  for (Enumeration lfBEnum = lfGroup.getElements();
-	       lfBEnum.hasMoreElements(); ) {
-	    final AbstractButton ab =(AbstractButton)lfBEnum.nextElement();
-	    if (cpLFcn.equals( ab.getActionCommand() )) {
-	      SwingUtilities.invokeLater( new Runnable(){
-		  public void run() { ab.setSelected(true); }} );
-	      break;
-	    }
-	  }
-	} catch (Exception exc) {
-	  rb.setEnabled(false);
-	  Activator.log.error("Could not load LookAndFeel: " +rb.getText(), exc);
-	}
+          } catch (NullPointerException npe) {
+            Activator.log.error
+              ( "Unexpected error while applying new look and feel", npe);
+          }
+        } catch (UnsupportedLookAndFeelException exc) {
+          rb.setEnabled( false );
+          Activator.log.error( "Unsupported LookAndFeel: " + newLFName
+                               +" ("+newLFClassName+")", exc );
+
+          // Fallback: Set L&F to cross platform L&F
+          Activator.log.error( "Reverting to the cross platform LookAndFeel." );
+          final String cpLFcn = UIManager.getCrossPlatformLookAndFeelClassName();
+          // Find the menu item with the cross platform L&F and select it
+          for (Enumeration lfBEnum = lfGroup.getElements();
+               lfBEnum.hasMoreElements(); ) {
+            final AbstractButton ab =(AbstractButton)lfBEnum.nextElement();
+            if (cpLFcn.equals( ab.getActionCommand() )) {
+              SwingUtilities.invokeLater( new Runnable(){
+                  public void run() { ab.setSelected(true); }} );
+              break;
+            }
+          }
+        } catch (Exception exc) {
+          rb.setEnabled(false);
+          Activator.log.error("Could not load LookAndFeel: " +rb.getText(), exc);
+        }
       } else {
-	// Selected current LF, noop
+        // Selected current LF, noop
       }
     }
     /*
@@ -252,4 +252,3 @@ public class LookAndFeelMenu
   }
 
 }// class LookAndFeelMenu
-

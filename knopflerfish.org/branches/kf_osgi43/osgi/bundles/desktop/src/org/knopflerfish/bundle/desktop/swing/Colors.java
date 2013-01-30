@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008-2012, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,12 +42,13 @@ import java.awt.Color;
  * color names to set to java colors instances.
  */
 public class Colors extends HashMap {
-  
+  private static final long serialVersionUID = 1L;
+
   /**
    * The color map. Keys are lower case string, values are java.awt.Color
    */
   public static Colors COLORS = new Colors();
-  
+
 
   /**
    * Get a color, either defined by #RRGGBB or an X11 name as "ivory"
@@ -73,22 +74,22 @@ public class Colors extends HashMap {
     }
     if(rgb.length() < 6) {
       throw new IllegalArgumentException("Color string must be a color name or RRGGBB format, found '" + rgb + "'");
-      
+
     }
     int r = Integer.parseInt(rgb.substring(0,2), 16);
     int g = Integer.parseInt(rgb.substring(2,4), 16);
     int b = Integer.parseInt(rgb.substring(4,6), 16);
-    
+
     c = new Color(r, g, b);
     return c;
-  }  
+  }
 
   /**
    * Get color name if it exists in COLORS map, otherwise #RRGGBB
    */
   public static String toString(Color c) {
     StringBuffer sb = new StringBuffer();
-    
+
     for(Iterator it = COLORS.keySet().iterator(); it.hasNext();) {
       String name = (String)it.next();
       Color  col  = (Color)COLORS.get(name);
@@ -121,7 +122,7 @@ public class Colors extends HashMap {
   }
 
   public static Color rgbInterpolate2(Color c1, Color c2, double k) {
-    
+
     if(c1 == null || c2 == null) {
       return Color.gray;
     }
@@ -148,7 +149,7 @@ public class Colors extends HashMap {
   }
 
   public static Color rgbInterpolate(Color c1, Color c2, double k) {
-    
+
     if(c1 == null || c2 == null) {
       return Color.gray;
     }
@@ -842,5 +843,5 @@ public class Colors extends HashMap {
     put("dark magenta", new Color(139, 0, 139));
     put("dark red", new Color(139, 0, 0));
     put("light green", new Color(144, 238, 144));
-    
+
   }};
