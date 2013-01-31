@@ -70,33 +70,39 @@
   <!-- Predefined values: ee.minimum ee.foundation                   --> 
   <property name="bundle.compile.EE" value="ee.dummy"/>
 
-  <!-- Set to false to force strict compilation against the EE -->
-  <!-- specified by the property named bundle.bootclasspath.   -->
-  <condition property="javac.includeJavaRuntime"
-	     value="false" else="true">
-    <isreference refid="${bundle.compile.EE}"/>
-  </condition>
+  <!-- Define the EEs that we know about.                            -->
 
-  <!-- Internal: The bootclasspath to use during compilation. -->
-  <condition property="bundle.bootclasspath.ref"
-	     value="${bundle.compile.EE}"
-	     else="ee.empty">
-    <isreference refid="${bundle.compile.EE}"/>
-  </condition>
-
-  <!-- Empty path to get a valid refid for the bootclasspath. -->
-  <path id="ee.empty">
-  </path>
-
-  <!-- The OSGi Minimum EE. -->
+  <!-- The OSGi Minimum EE.                                          -->
   <path id="ee.minimum">
     <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
   </path>
 
-  <!-- The OSGi Foundation EE. -->
+  <!-- The OSGi Foundation EE.                                       -->
   <path id="ee.foundation">
     <pathelement location="${osgi.dir}/ee/ee.foundation.jar"/>
   </path>
+
+  <!-- If the EE selected by bundle.compile.EE does not exist, i.e., -->
+  <!-- is not a valid reference to a path then tell javac to use the -->
+  <!-- EE from the runtime it is executing on by setting             -->
+  <!-- includeJavaRuntime to true.                                   -->
+  <condition property="javac.includeJavaRuntime"
+             value="false" else="true">
+    <isreference refid="${bundle.compile.EE}" type="path"/>
+  </condition>
+
+  <!-- Empty path to get a valid path refid.                         -->
+  <path id="ee.empty">
+  </path>
+
+  <!-- If the EE selected by bundle.compile.EE does not exist, i.e., -->
+  <!-- is not a valid reference to a path then use a dummy (empty)   -->
+  <!-- path as the value for bundle.bootclasspath.ref                -->
+  <condition property="bundle.bootclasspath.ref"
+             value="${bundle.compile.EE}"
+             else="ee.empty">
+    <isreference refid="${bundle.compile.EE}" type="path"/>
+  </condition>
 
 
 
@@ -450,7 +456,7 @@
       <javac destdir="${classes.out.dir}"
              debug="on"
              includeAntRuntime="false"
-	     includeJavaRuntime="${javac.includeJavaRuntime}"
+             includeJavaRuntime="${javac.includeJavaRuntime}"
              srcdir="${src.dir}"
              target="${javac.target}"
              source="${javac.source}"
