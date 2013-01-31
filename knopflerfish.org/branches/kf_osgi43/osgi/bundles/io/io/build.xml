@@ -10,6 +10,9 @@
   <property name="bundle.build.impl"  value="false"/>
   <property name="bundle.build.all"   value="true"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="api.pattern"
 	    value="org/osgi/service/**,
 		   javax/microedition/io/*"/>
