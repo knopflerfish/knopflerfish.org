@@ -39,6 +39,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.List;
 
@@ -399,11 +400,13 @@ public class BundleContextImpl
     final ServiceReference<S>[] srs
       = getServiceReferences(clazz == null ? null : clazz.getName(), filter);
 
-    ArrayList<ServiceReference<S>> al = new ArrayList<ServiceReference<S>>();
-    if(srs != null) {
+    if(srs == null) {
+      return (Collection<ServiceReference<S>>)Collections.EMPTY_LIST;
+    } else {
+      ArrayList<ServiceReference<S>> al = new ArrayList<ServiceReference<S>>();
       al.addAll(Arrays.asList(srs));
+      return (Collection<ServiceReference<S>>)al;
     }
-    return (Collection<ServiceReference<S>>)al;
   }
 
   public Bundle getBundle(String location) {
