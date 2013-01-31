@@ -5,8 +5,13 @@
   <dirname  property="proj.dir" file="${ant.file.useradmin}"/>
   <property name="topdir"       location="${proj.dir}/../.."/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="api.pattern"  
-            value="org/osgi/service/useradmin/**,org/knopflerfish/service/um/useradmin/*,org/knopflerfish/service/um/ipam/*"/>
+            value="org/osgi/service/useradmin/**,
+		   org/knopflerfish/service/um/useradmin/*,
+		   org/knopflerfish/service/um/ipam/*"/>
   <property name="impl.pattern" 
             value="org/knopflerfish/service/um/useradmin/impl/*"/> 
 
