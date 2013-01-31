@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2011). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,65 +23,75 @@ import org.osgi.framework.ServiceReference;
  * A Configuration Event.
  * 
  * <p>
- * <code>ConfigurationEvent</code> objects are delivered to all registered
- * <code>ConfigurationListener</code> service objects. ConfigurationEvents
- * must be asynchronously delivered in chronological order with respect to each
+ * {@code ConfigurationEvent} objects are delivered to all registered
+ * {@code ConfigurationListener} service objects. ConfigurationEvents must be
+ * asynchronously delivered in chronological order with respect to each
  * listener.
  * 
  * <p>
  * A type code is used to identify the type of event. The following event types
  * are defined:
  * <ul>
- * <li>{@link #CM_UPDATED}
- * <li>{@link #CM_DELETED}
+ * <li>{@link #CM_UPDATED}</li>
+ * <li>{@link #CM_DELETED}</li>
+ * <li>{@link #CM_LOCATION_CHANGED}</li>
  * </ul>
  * Additional event types may be defined in the future.
  * 
  * <p>
- * Security Considerations. <code>ConfigurationEvent</code> objects do not
- * provide <code>Configuration</code> objects, so no sensitive configuration
- * information is available from the event. If the listener wants to locate the
- * <code>Configuration</code> object for the specified pid, it must use
- * <code>ConfigurationAdmin</code>.
+ * Security Considerations. {@code ConfigurationEvent} objects do not provide
+ * {@code Configuration} objects, so no sensitive configuration information is
+ * available from the event. If the listener wants to locate the
+ * {@code Configuration} object for the specified pid, it must use
+ * {@code ConfigurationAdmin}.
  * 
  * @see ConfigurationListener
- * 
- * @version $Revision: 6180 $
+ * @Immutable
+ * @version $Id: 1493c281dfd9387837e6399b9b815cdc8dc43453 $
  * @since 1.2
  */
 public class ConfigurationEvent {
 	/**
-	 * A <code>Configuration</code> has been updated.
+	 * A {@code Configuration} has been updated.
 	 * 
 	 * <p>
-	 * This <code>ConfigurationEvent</code> type that indicates that a
-	 * <code>Configuration</code> object has been updated with new properties.
+	 * This {@code ConfigurationEvent} type that indicates that a
+	 * {@code Configuration} object has been updated with new properties.
 	 * 
 	 * An event is fired when a call to {@link Configuration#update(Dictionary)}
 	 * successfully changes a configuration.
-	 * 
-	 * <p>
-	 * The value of <code>CM_UPDATED</code> is 1.
 	 */
 	public static final int			CM_UPDATED	= 1;
 	/**
-	 * A <code>Configuration</code> has been deleted.
+	 * A {@code Configuration} has been deleted.
 	 * 
 	 * <p>
-	 * This <code>ConfigurationEvent</code> type that indicates that a
-	 * <code>Configuration</code> object has been deleted.
+	 * This {@code ConfigurationEvent} type that indicates that a
+	 * {@code Configuration} object has been deleted.
 	 * 
 	 * An event is fired when a call to {@link Configuration#delete()}
 	 * successfully deletes a configuration.
-	 * 
-	 * <p>
-	 * The value of <code>CM_DELETED</code> is 2.
 	 */
 	public static final int			CM_DELETED	= 2;
+	
+	/**
+	 * The location of a {@code Configuration} has been changed.
+	 * 
+	 * <p>
+	 * This {@code ConfigurationEvent} type that indicates that the location of
+	 * a {@code Configuration} object has been changed.
+	 * 
+	 * An event is fired when a call to
+	 * {@link Configuration#setBundleLocation(String)} successfully changes the
+	 * location.
+	 * 
+	 * @since 1.4
+	 */
+	public static final int			CM_LOCATION_CHANGED	= 3;
 	/**
 	 * Type of this event.
 	 * 
-	 * @see #getType
+	 * @see #getType()
 	 */
 	private final int				type;
 	/**
@@ -95,22 +105,23 @@ public class ConfigurationEvent {
 	/**
 	 * The ConfigurationAdmin service which created this event.
 	 */
-	private final ServiceReference	reference;
+	private final ServiceReference<ConfigurationAdmin>	reference;
 
 	/**
-	 * Constructs a <code>ConfigurationEvent</code> object from the given
-	 * <code>ServiceReference</code> object, event type, and pids.
+	 * Constructs a {@code ConfigurationEvent} object from the given
+	 * {@code ServiceReference} object, event type, and pids.
 	 * 
-	 * @param reference The <code>ServiceReference</code> object of the
-	 *        Configuration Admin service that created this event.
-	 * @param type The event type. See {@link #getType}.
+	 * @param reference The {@code ServiceReference} object of the Configuration
+	 *        Admin service that created this event.
+	 * @param type The event type. See {@link #getType()}.
 	 * @param factoryPid The factory pid of the associated configuration if the
 	 *        target of the configuration is a ManagedServiceFactory. Otherwise
-	 *        <code>null</code> if the target of the configuration is a
+	 *        {@code null} if the target of the configuration is a
 	 *        ManagedService.
 	 * @param pid The pid of the associated configuration.
 	 */
-	public ConfigurationEvent(ServiceReference reference, int type,
+	public ConfigurationEvent(ServiceReference<ConfigurationAdmin> reference,
+			int type,
 			String factoryPid, String pid) {
 		this.reference = reference;
 		this.type = type;
@@ -126,7 +137,7 @@ public class ConfigurationEvent {
 	 * 
 	 * @return Returns the factory pid of the associated configuration if the
 	 *         target of the configuration is a ManagedServiceFactory. Otherwise
-	 *         <code>null</code> if the target of the configuration is a
+	 *         {@code null} if the target of the configuration is a
 	 *         ManagedService.
 	 */
 	public String getFactoryPid() {
@@ -147,8 +158,9 @@ public class ConfigurationEvent {
 	 * <p>
 	 * The type values are:
 	 * <ul>
-	 * <li>{@link #CM_UPDATED}
-	 * <li>{@link #CM_DELETED}
+	 * <li>{@link #CM_UPDATED}</li>
+	 * <li>{@link #CM_DELETED}</li>
+	 * <li>{@link #CM_LOCATION_CHANGED}</li>
 	 * </ul>
 	 * 
 	 * @return The type of this event.
@@ -158,13 +170,13 @@ public class ConfigurationEvent {
 	}
 
 	/**
-	 * Return the <code>ServiceReference</code> object of the Configuration
+	 * Return the {@code ServiceReference} object of the Configuration
 	 * Admin service that created this event.
 	 * 
-	 * @return The <code>ServiceReference</code> object for the Configuration
+	 * @return The {@code ServiceReference} object for the Configuration
 	 *         Admin service that created this event.
 	 */
-	public ServiceReference getReference() {
+	public ServiceReference<ConfigurationAdmin> getReference() {
 		return reference;
 	}
 }
