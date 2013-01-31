@@ -11,6 +11,9 @@
   <property name="bundle.build.lib"  value="false"/>
   <property name="bundle.build.doc"  value="true"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="api.pattern"  value="org/osgi/service/event/**"/>
   <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
 
@@ -22,16 +25,25 @@
   <property name="bmfa.Bundle-Name"           value="Event-Admin"/>
   <property name="bmfa.Bundle-Description"    value="Event Admin"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="3.0.8"/>
+  <property name="bmfa.Bundle-Version"        value="4.0.0"/>
   <property name="bmfa.Bundle-APIVendor"      value="OSGi"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-DocURL"
-	    value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=event/index.html"/>
+            value="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=event/index.html"/>
   <property name="bmfa.Bundle-SubversionURL"
-	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/event/"/>
+            value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles/event/"/>
 
-  <property name="bmfa.Export-Package"
-            value="org.osgi.service.event;version=1.3"/>
+  <property name="bmfa.Require-Capability"
+            value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=OSGi/Minimum)
+                                               (version>=1.2.1))&quot;"/>
+  <property name="bmfa.api-Import-Package"
+            value="org.osgi.framework; version=&quot;[1.6,2)&quot;"/>
+  <property name="bmfa.Import-Package"
+            value="org.osgi.framework; version=&quot;[1.6,2)&quot;,
+                   org.knopflerfish.service.log; version=&quot;[1.2,2)&quot;,
+                   org.osgi.service.cm; version=&quot;[1.4,2)&quot;,
+                   org.osgi.service.log; version=&quot;[1.3,2)&quot;,
+                   org.osgi.util.tracker; version=&quot;[1.5,2)&quot;"/>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
