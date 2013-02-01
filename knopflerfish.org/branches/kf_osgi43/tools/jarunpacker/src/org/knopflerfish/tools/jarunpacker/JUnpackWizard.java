@@ -270,6 +270,7 @@ public class JUnpackWizard extends JWizard {
 
     if(!compSrcCB.isSelected()) {
       if(name.startsWith("osgi/bundles") ||
+         name.startsWith("osgi/ee/") ||
          name.startsWith("osgi/framework/") ||
          name.startsWith("ant/src/") ||
          name.endsWith("build.xml") ||
