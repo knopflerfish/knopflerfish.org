@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Telnet-Console
 Bundle-SymbolicName: org.knopflerfish.bundle.consoletelnet
-Bundle-Version: 3.0.1
+Bundle-Version: 4.0.0
 Bundle-Description: Console Service Server accepting Telnet Connections.
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
@@ -11,12 +11,13 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html?docpage=consoletelnet/index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/console/consoletelnet/
-Bundle-Activator: org.knopflerfish.bundle.consoletelnet.TelnetServer
 Bundle-Category: console
-Import-Package:  org.osgi.framework,
- org.osgi.service.cm,
- org.osgi.service.useradmin,
- org.osgi.util.tracker,
- org.knopflerfish.service.console,
- org.knopflerfish.service.log,
- org.knopflerfish.service.um.useradmin
+Bundle-Activator: org.knopflerfish.bundle.consoletelnet.TelnetServer
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2.1))"
+Import-Package:  org.osgi.framework; version="[1.6,2)",
+ org.osgi.service.cm; version="[1.4,2)",
+ org.osgi.service.useradmin; version="[1.1,2)",
+ org.osgi.util.tracker; version="[1.5,2)",
+ org.knopflerfish.service.console; version="[2.1,3)",
+ org.knopflerfish.service.log; version="[1.2,2)",
+ org.knopflerfish.service.um.useradmin; version="[1.0,2)"
