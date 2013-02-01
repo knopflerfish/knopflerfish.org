@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: kSOAP-commands
 Bundle-SymbolicName: org.knopflerfish.bundle.ksoap_remotefw
-Bundle-Version: 2.0.0
+Bundle-Version: 3.0.0
 Bundle-Category: service
 Bundle-Description: kSOAP Command Group
 Bundle-Vendor: Knopflerfish
@@ -13,15 +13,10 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/soap/ksoap_commandgroup/
 Bundle-Activator: org.knopflerfish.bundle.soap.commandgroup.Activator
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2.1))"
 Import-Package: org.ksoap2,
  org.ksoap2.serialization,
  org.ksoap2.transport,
- org.osgi.framework,
- org.knopflerfish.service.log,
- org.osgi.service.log,
- org.osgi.service.startlevel,
- org.osgi.service.packageadmin,
- org.osgi.util.tracker,
- org.knopflerfish.util,
- org.knopflerfish.service.remotefw,
+ org.osgi.framework; version="[1.6,2)",
+ org.knopflerfish.service.log; version="[1.2,2)",
  org.knopflerfish.service.console
