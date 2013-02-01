@@ -11,6 +11,10 @@
   <property name = "bundle.build.all"      value = "false"/>
   <property name = "bundle.build.doc"      value = "true"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <!-- USes javax.swing -->
+  <property name="bundle.compile.EE" value="ee.J2SE_1.4"/>
+
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
 
