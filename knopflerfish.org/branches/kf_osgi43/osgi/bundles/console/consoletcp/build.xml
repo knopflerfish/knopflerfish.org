@@ -5,7 +5,11 @@
   <dirname  property="proj.dir" file="${ant.file.consoletcp}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
-  <property name="impl.pattern" value="org/knopflerfish/bundle/consoletcp/**"/> 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
+  <property name="impl.pattern"
+	    value="org/knopflerfish/bundle/consoletcp/**"/> 
 
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
