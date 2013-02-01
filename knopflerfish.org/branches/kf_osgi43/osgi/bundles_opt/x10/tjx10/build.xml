@@ -12,6 +12,10 @@
   <property name = "bundle.build.lib"      value = "false"/>
   <property name = "bundle.build.all"      value = "true"/>
 
+  <!-- Build for Java 2 Standard Edition 1.4 Execution Environment. -->
+  <!-- Uses java.awt -->
+  <property name="bundle.compile.EE" value="ee.j2se.1.4"/>
+
   <property name="impl.pattern"
             value="org/knopflerfish/**"/>
 
@@ -29,7 +33,7 @@
   <property name="bmfa.Bundle-Description"
 	    value="X10 serial device driver from The Java X10 Project. This bundle is GPL licensed and must contain full source. Other bundles depending on the tjx10 bundle must also be distributed as GPL"/>
   <property name="bmfa.Bundle-Category"  value="driver"/>
-  <property name="bmfa.Bundle-Version"   value="2.0.0"/>
+  <property name="bmfa.Bundle-Version"   value="3.0.0"/>
   <property name="bmfa.Bundle-Classpath" value="."/>
   <property name="bmfa.Bundle-Vendor"    value="The Java X10 Project/Knopflerfih"/>
 
@@ -38,9 +42,13 @@
   <property name="bmfa.Bundle-SubversionURL"
 	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/"/>
 
+  <property name="bmfa.Require-Capability"
+            value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=J2SE)
+                                               (version>=1.4))&quot;"/>
   <property name="bmfa.Import-Package"   value="org.osgi.framework,org.osgi.service.cm,javax.comm,org.knopflerfish.service.log"/>
 
   <property name="bmfa.Export-Package"   value="x10;version=1.3,x10.net;version=1.3,x10.awt;version=1.3,x10.util;version=1.3"/>
+
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
