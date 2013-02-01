@@ -8,6 +8,10 @@
   <property name = "bundle.build.impl"  value = "false"/>
   <property name="all.suffix.name" value=""/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <!-- Needs java.awt outside of ee.minimum -->
+  <property name="bundle.compile.EE" value="ee.J2SE_1.4"/>
+
   <property name="impl.pattern"
             value="org/knopflerfish/**"/>
 

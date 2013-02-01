@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2010, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,13 +112,14 @@ public class FrameworkTrayIcon {
     try {
       if (systemTray == null) {
         systemTrayClass  = Class.forName("java.awt.SystemTray");
-        Method m = systemTrayClass.getDeclaredMethod("isSupported", null);
-        Boolean is_supported = (Boolean)m.invoke(null, null);
+        Method m = systemTrayClass.getDeclaredMethod("isSupported",
+                                                     (Class[]) null);
+        Boolean is_supported = (Boolean)m.invoke(null, (Object[]) null);
         if (!is_supported.booleanValue())
           throw new UnsupportedOperationException("System Tray not supported");
 
-        m = systemTrayClass.getDeclaredMethod("getSystemTray", null);
-        systemTray = m.invoke(null,null);
+        m = systemTrayClass.getDeclaredMethod("getSystemTray", (Class[]) null);
+        systemTray = m.invoke(null, (Object[]) null);
         frameworkTrayIcon = new FrameworkTrayIcon();
         return frameworkTrayIcon;
       }
