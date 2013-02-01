@@ -5,6 +5,9 @@
   <dirname  property="proj.dir" file="${ant.file.cm_desktop}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.J2SE_1.5"/>
+
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/desktop/**"/>
 
