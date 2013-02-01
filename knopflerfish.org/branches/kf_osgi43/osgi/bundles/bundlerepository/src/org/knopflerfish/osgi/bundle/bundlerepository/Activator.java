@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2010, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -158,8 +158,8 @@ public class Activator implements BundleActivator, Runnable
           BundleContext.class
         });
       Object obj = cons.newInstance(new Object[] { bc });
-      Method m = clazz.getMethod(methodName, null);
-      m.invoke(obj, null);
+      Method m = clazz.getMethod(methodName, (Class[]) null);
+      m.invoke(obj, (Object[]) null);
 
       //      System.out.println("invoked " + m);
     }  catch (Throwable th) {
