@@ -11,6 +11,9 @@
   <property name = "bundle.build.all"      value = "true"/>
   <property name = "bundle.build.doc"      value = "true"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
 
