@@ -4,6 +4,10 @@
   <dirname  property="proj.dir" file="${ant.file.httpclient_connector}"/>
   <property name="topdir"       location="${proj.dir}/../.."/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <!-- Uses String.matches(), Interger.valueOf(String) -->
+  <property name="bundle.compile.EE" value="ee.J2SE_1.4"/>
+
   <property name="api.pattern"
             value="org/apache/commons/httpclient/*,
                    org/apache/commons/httpclient/auth/*,
