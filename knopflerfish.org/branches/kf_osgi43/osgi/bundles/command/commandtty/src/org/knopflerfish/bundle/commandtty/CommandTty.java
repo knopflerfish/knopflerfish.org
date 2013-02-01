@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.bundle.commandtty;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
@@ -49,20 +50,20 @@ import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-public class CommandTty implements 
+public class CommandTty implements
                           BundleActivator,
                           ManagedService,
-                          ServiceTrackerCustomizer {
-  
+                          ServiceTrackerCustomizer<CommandProcessor,CommandProcessor>
+{
   final static private String NONBLOCKING = "nonblocking";
-  
+
   boolean nonblocking = false;
-  
-  private ServiceTracker cmdProcTracker;  
-  private ServiceTracker logTracker;  
+
+  private ServiceTracker<CommandProcessor,CommandProcessor> cmdProcTracker;
+  private ServiceTracker<LogService,LogService> logTracker;
   private CommandSession commandSession = null;
-  
-  private BundleContext bc;  
+
+  private BundleContext bc;
 
   InputStream inStream;
   PrintStream outStream;
@@ -71,37 +72,37 @@ public class CommandTty implements
   ReadThread  readThread;
   public void start(BundleContext bc) throws Exception {
     this.bc = bc;
-    
+
     log(LogService.LOG_INFO, "Starting");
-    
+
     // Get config
-    Hashtable p = new Hashtable();
+    Dictionary<String,String> p = new Hashtable<String,String>();
     p.put(Constants.SERVICE_PID, getClass().getName());
-    bc.registerService(ManagedService.class.getName(), this, p);
-    
+    bc.registerService(ManagedService.class, this, p);
+
     inStream  = new SystemIn(bc);
     outStream = System.out;
     errStream = System.err;
-    
-    cmdProcTracker = new ServiceTracker(bc, CommandProcessor.class.getName(), this);
+
+    cmdProcTracker = new ServiceTracker(bc, CommandProcessor.class, this);
     cmdProcTracker.open();
 
-    logTracker = new ServiceTracker(bc, LogService.class.getName(), null);
+    logTracker = new ServiceTracker(bc, LogService.class, null);
     logTracker.open();
 
   }
-  
+
 
   public synchronized void stop(BundleContext bc) {
     log(LogService.LOG_INFO, "Stopping");
     cmdProcTracker.close();
     closeSession();
   }
-  
+
   /*---------------------------------------------------------------------------*
    *			  ManagedService implementation
    *---------------------------------------------------------------------------*/
-  
+
   public synchronized void updated(Dictionary cfg)
     throws IllegalArgumentException {
     if (cfg != null) {
@@ -113,12 +114,15 @@ public class CommandTty implements
       nonblocking = false;
     }
   }
-  
-  public Object addingService(ServiceReference reference) {
-    CommandProcessor cmdProcessor = (CommandProcessor) bc.getService(reference);
+
+  public CommandProcessor addingService(ServiceReference<CommandProcessor> reference)
+  {
+    final CommandProcessor cmdProcessor = bc.getService(reference);
     try {
       closeSession();
-      commandSession = cmdProcessor.createSession(inStream, outStream, errStream);
+      commandSession = cmdProcessor.createSession(inStream,
+                                                  outStream,
+                                                  errStream);
       readThread = new ReadThread(inStream, commandSession);
       readThread.start();
     } catch (Exception ioe) {
@@ -127,32 +131,35 @@ public class CommandTty implements
     }
     return cmdProcessor;
   }
-  
-  public void modifiedService(ServiceReference reference, Object service) {
+
+  public void modifiedService(ServiceReference<CommandProcessor> reference,
+                              CommandProcessor service)
+  {
   }
-  
-  public void removedService(ServiceReference reference, Object service) {
+
+  public void removedService(ServiceReference<CommandProcessor> reference,
+                             CommandProcessor service) {
     closeSession();
   }
 
   void closeSession() {
     if (commandSession != null) {
       if(readThread != null) {
-        readThread.stop();
+        readThread.close();
         readThread = null;
       }
       commandSession.close();
       commandSession = null;
     }
   }
-  
+
   public void log(int level, String msg) {
     log(level, msg, null);
   }
-  
+
   public void log(int level, String msg, Exception e) {
     if(logTracker != null) {
-      LogService sLog = (LogService)logTracker.getService();
+      final LogService sLog = logTracker.getService();
       if (sLog != null) {
         if (e == null) {
           sLog.log(level, msg);
@@ -167,20 +174,22 @@ public class CommandTty implements
       e.printStackTrace();
     }
   }
-  
+
   /**
-   * Help class for VMs that when blocking in read() om System.in 
+   * Help class for VMs that when blocking in read() om System.in
    * block other threads too.
    */
-  class SystemIn extends InputStream {
-    InputStream in;    
+  class SystemIn extends InputStream
+  {
+    InputStream in;
+
     SystemIn(BundleContext bc) {
       try {
-        ServiceReference[] srl = bc.getServiceReferences(
-                                                         InputStream.class.getName(),
-                                                         "(service.pid=java.lang.System.in)");
-        if (srl != null && srl.length == 1) {
-          in = (InputStream) bc.getService(srl[0]);
+        Collection<ServiceReference<InputStream>> srs =
+          bc.getServiceReferences(InputStream.class,
+                                  "(service.pid=java.lang.System.in)");
+        if (1==srs.size()) {
+          in = bc.getService(srs.iterator().next());
         }
       } catch (Exception e) {
         e.printStackTrace(System.err);
@@ -189,15 +198,15 @@ public class CommandTty implements
         in = System.in;
       }
     }
-    
+
     public void close() throws IOException {
       in.close();
     }
-    
+
     public int available() throws IOException {
       return in.available();
     }
-    
+
     public int read() throws IOException {
       byte[] b = new byte[1];
       if (read(b) == 1) {
@@ -205,11 +214,11 @@ public class CommandTty implements
       }
       return -1;
     }
-    
+
     public int read(byte[] b) throws IOException {
       return read(b, 0, b.length);
     }
-    
+
     public int read(byte[] buf, int off, int len) throws IOException {
       if (nonblocking) {
         int nap = 50;
@@ -223,26 +232,27 @@ public class CommandTty implements
       }
       return in.read(buf, off, len);
     }
-  }  
-  
-  public class ReadThread extends Thread {    
-    CommandSession    session;
-    InputStream       in;
-    BufferedReader    reader;
-    InputStreamReader isReader;
+  }
+
+  public class ReadThread extends Thread {
+    final CommandSession    session;
+    final InputStream       in;
+    final BufferedReader    reader;
+    final InputStreamReader isReader;
     boolean bOpen;
 
     public ReadThread(InputStream in, CommandSession session) {
-      super("Reader thread " + session.getClass().getName() + "@" + session.hashCode());
+      super("Reader thread " + session.getClass().getName() + "@"
+            + session.hashCode());
       this.in      = in;
       this.session = session;
-      
+
       isReader = new InputStreamReader(in);
       reader   = new BufferedReader(isReader);
 
       bOpen = true;
     }
-    
+
     public void run() {
       System.out.println("reading...\n");
       while (bOpen) {
@@ -268,7 +278,7 @@ public class CommandTty implements
         }
       }
     }
-    
+
     public void close() {
       bOpen = false;
       this.interrupt();
