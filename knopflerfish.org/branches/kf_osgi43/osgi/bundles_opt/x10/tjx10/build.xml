@@ -14,7 +14,7 @@
 
   <!-- Build for Java 2 Standard Edition 1.4 Execution Environment. -->
   <!-- Uses java.awt -->
-  <property name="bundle.compile.EE" value="ee.j2se.1.4"/>
+  <property name="bundle.compile.EE" value="ee.J2SE_1.4"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/**"/>
