@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -165,7 +165,9 @@ public class BundleImpl implements Bundle {
     return bid == ((BundleImpl)other).bid;
   }
 
-  public Enumeration findEntries(String path, String filePattern, boolean recurse) {
+  public Enumeration findEntries(String path,
+                                 String filePattern,
+                                 boolean recurse) {
     // TODO Auto-generated method stub
     return null;
   }
@@ -216,17 +218,14 @@ public class BundleImpl implements Bundle {
     throw new RuntimeException("Not implemented");
   }
 
-  @Override
-  public File getDataFile(String filename) { 
+  public File getDataFile(String filename) {
     throw new RuntimeException("Not implemented");
-  }  
-  
-  @Override
+  }
+
   public <A> A adapt(Class<A> type) {
     throw new RuntimeException("Not implemented");
   }
-  
-  @Override
+
   public int compareTo(Bundle bundle) {
     return new Long(getBundleId()).compareTo(new Long(bundle.getBundleId()));
   }
