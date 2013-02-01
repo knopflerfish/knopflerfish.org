@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JUnitRunner
 Bundle-SymbolicName: org.knopflerfish.bundle.junit_runner
-Bundle-Version: 3.0.0
+Bundle-Version: 4.0.0
 Bundle-Category: service
 Bundle-Description: Grunt, the JUnit test runner. Runs JUnit tests reg
  istered in the framework and dumps results to XML files.
@@ -13,6 +13,7 @@ Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/junit/junit_runner/
 Bundle-Activator: org.knopflerfish.bundle.junit_runner.Activator
-Import-Package: org.knopflerfish.service.junit,
- org.osgi.framework,
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2.1))"
+Import-Package: org.osgi.framework,
+ org.knopflerfish.service.junit,
  junit.framework
