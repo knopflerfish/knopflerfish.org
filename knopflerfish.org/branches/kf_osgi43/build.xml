@@ -489,6 +489,7 @@
 
         <include name="osgi/*.xargs.in"/>
         <include name="osgi/kf2"/>
+        <include name="osgi/ee/**"/>
         <include name="osgi/build.xml"/>
 
         <include name="osgi/framework/**"/>
