@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: JUnit
 Bundle-SymbolicName: org.knopflerfish.bundle.junit
-Bundle-Version: 3.0.0
+Bundle-Version: 3.8.1.kf4-001
 Bundle-Category: service
 Bundle-Description: JUnit support
 Bundle-Vendor: JUnit/Knopflerfish
@@ -14,10 +14,11 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/junit/junit/
 Bundle-Activator: org.knopflerfish.bundle.junit.Activator
 Bundle-Classpath: .,junit.jar
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2.1))"
 Export-Package: org.knopflerfish.service.junit; version=1.0.0,
  junit.framework; version=3.8.1
-Import-Package: org.osgi.framework,
- org.osgi.util.tracker,
+Import-Package: org.osgi.framework; version="[1.6,2)",
+ org.osgi.util.tracker; version="[1.5,2)",
  javax.servlet; resolution:=optional,
  javax.servlet.http; resolution:=optional,
  javax.swing; resolution:=optional,
@@ -29,5 +30,5 @@ Import-Package: org.osgi.framework,
  junit.framework; version=3.8.1,
  org.knopflerfish.service.console; resolution:=optional,
  org.knopflerfish.service.junit; version=1.0.0,
- org.osgi.service.http; resolution:=optional,
+ org.osgi.service.http; resolution:=optional; version="[1.2,2)",
  org.w3c.dom; resolution:=optional

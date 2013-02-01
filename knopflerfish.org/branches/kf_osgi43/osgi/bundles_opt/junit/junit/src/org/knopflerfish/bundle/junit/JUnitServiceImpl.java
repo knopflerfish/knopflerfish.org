@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -432,7 +432,7 @@ public class JUnitServiceImpl implements JUnitService {
     try {
       Method m = target.getClass().getMethod(methodName,
                                              new Class[] { });
-      val = (String)m.invoke(target, null);
+      val = (String) m.invoke(target, (Object[]) null);
     } catch (Exception e) {
       return defVal;
     }
