@@ -18,6 +18,9 @@
   <!-- Must not explicitly import org.knopflerfish.service.foo -->
   <property name="bundle.stdimports" value="org.knopflerfish.service.foo"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="api.pattern"
             value="org/knopflerfish/service/**"/>
 

@@ -16,6 +16,9 @@
 
   <property name="all.suffix.name"  value=""/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="api.pattern"
             value="org/knopflerfish/service/**"/>
 
