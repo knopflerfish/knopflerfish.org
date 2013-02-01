@@ -5,6 +5,9 @@
   <dirname  property="proj.dir" file="${ant.file.kf_metatype}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="api.pattern"
             value="org/knopflerfish/util/metatype/**,
 		   net/n3/nanoxml/**"/>
