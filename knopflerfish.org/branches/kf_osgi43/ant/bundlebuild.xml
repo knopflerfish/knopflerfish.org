@@ -68,10 +68,11 @@
   <!-- The value is the id of a path that will be used as boot class -->
   <!-- path during the compilation.                                  --> 
   <!-- Predefined values: ee.minimum ee.foundation                   --> 
-  <property name="bundle.compile.EE" value="ee.dummy"/>
+  <!-- Used but currently undefined EE:s: ee.J2SE_1.4, ee.J2SE_1.5   -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
 
-  <!-- Define the EEs that we know about.                            -->
 
+  <!-- Define the EEs that we have (stub-)jars for.                  -->
   <!-- The OSGi Minimum EE.                                          -->
   <path id="ee.minimum">
     <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
@@ -81,6 +82,7 @@
   <path id="ee.foundation">
     <pathelement location="${osgi.dir}/ee/ee.foundation.jar"/>
   </path>
+
 
   <!-- If the EE selected by bundle.compile.EE does not exist, i.e., -->
   <!-- is not a valid reference to a path then tell javac to use the -->
