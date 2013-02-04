@@ -11,9 +11,12 @@
   <property name="bundle.build.impl" value="false"/>
   <property name="bundle.build.doc"  value="true"/>
 
-  <!-- Axis uses enum as identifier => 1.4 -->
-  <property name="javac.source"       value="1.4"/>
-  <property name="javac.target"       value="1.4"/>
+  <!-- Build for J2SE 1.4 Execution Environment. -->
+  <!-- Uses java.rmi.*                           -->
+  <property name="bundle.compile.EE" value="ee.J2SE_1.4"/>
+  <!-- Uses enum as identifier                   -->
+  <property name="javac.source"      value="1.4"/>
+  <property name="javac.target"      value="1.4"/>
 
   <property name="api.pattern"
             value="org/knopflerfish/service/axis/**,
