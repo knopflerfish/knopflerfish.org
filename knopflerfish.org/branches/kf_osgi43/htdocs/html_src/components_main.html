@@ -1,24 +1,24 @@
-<h1>About Knopflerfish 3 - an OSGi R4 v4.2 distribution</h1>
+<h1>About Knopflerfish 4 - an OSGi R4 v4.3 distribution</h1>
 
-KF3 is the latest major release of Knopflerfish. KF3 is 
+KF4 is the latest major release of Knopflerfish. KF4 is 
 an implementation of the 
 <a href="http://www.osgi.org/osgi_technology/download_specs.asp?section=2">
-  OSGi R4 V4.2 specifications</a>. 
+  OSGi R4 V4.3 specifications</a>. 
 The distribution includes the following components:
 <ul>
   <li> Knopflerfish OSGi framework - 
-    OSGi R4 v 4.2 Core Specification implementation </li>
-  <li> Knopflerfish OSGi bundles - OSGi R4 v 4.2 Service Compendium implementation</li>
+    OSGi R4 v 4.3 Core Specification implementation </li>
+  <li> Knopflerfish OSGi bundles - OSGi R4 v 4.3 Service Compendium implementation</li>
   <li>Knopflerfish components &amp; extras - Knopflerfish bundles and utilities</li>
 </ul>
 
-<h2 class="kf">Knopflerfish 3 OSGi Framework - OSGi R4 v4.2 Core</h2>
+<h2 class="kf">Knopflerfish 4 OSGi Framework - OSGi R4 v4.3 Core</h2>
 <p>
-  The Knopflerfish 3  OSGi framework is implemented in accordance with
-  the OSGi R4 v4.2 specification. 
+  The Knopflerfish 4  OSGi framework is implemented in accordance with
+  the OSGi R4 v4.3 specification. 
   <a href="http://www.makewave.com">Makewave</a> has certified
   <a href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish
-    Pro 3</a> to be OSGi R4 v4.2 compliant.
+    Pro 3</a> to be OSGi R4 v4.3 compliant.
 </p>
 <p>
   The numbering for the OSGi defined components
@@ -29,7 +29,7 @@ The distribution includes the following components:
     <tr>
       <td class="subhead">Section</td>
       <td class="subhead">Status</td>  
-      <td class="subhead">R4V4.2</td>  
+      <td class="subhead">R4V4.3</td>  
       <td class="subhead">Description</td>
     </tr>
     <tr>
@@ -63,61 +63,105 @@ The distribution includes the following components:
       <td> The Service Layer provides a publish, find and bind model trough the service registry.
     </tr>
 
-    <tr> <th colspan="4">Core Specification - Knopflerfish Framework Services</th></tr>
+    <tr> <th colspan="4">Core Specification - Knopflerfish Framework API:s</th></tr>
+
     <tr>
-      <td class="nowrap"> 7. Package Admin </td>
+      <td class="nowrap"> 7. Bundle Wiring API </td>
       <td class="nowrap"> Stable </td>
       <td> Full
       <td> 
-	An interface that provides access to the internal Framework package sharing mechanism.
+	An API that provides access to the internal Framework package
+        sharing mechanism. This API repalces the Package Admin Service
+        from the OSGi R4 v4.2 and earlier.
       </td>
     </tr>
 
     <tr>
-      <td class="nowrap"> 8. Start Level </td>
+      <td class="nowrap"> 8. Start Level API </td>
       <td class="nowrap"> Stable </td>
-      <td> Full </td>
-      <td> A Service to control the relative starting and stopping order of bundles in an OSGi Service Platform.</td>
+      <td> Full
+      <td> 
+        An API to control the relative starting and stopping order of
+        bundles in an OSGi Service Platform. This API replaces the
+        Start Level Service from OSGi R4 v4.2 and earlier.
+      </td>
     </tr>
 
     <tr>
-      <td class="nowrap"> 9. Conditional Permission Admin </td>
+      <td class="nowrap"> 9. Framework API </td>
+      <td class="nowrap"> Stable </td>
+      <td> Full
+      <td> 
+        An for bundles to interact with the OSGi Framework.
+      </td>
+    </tr>
+
+
+    <tr> <th colspan="4">Core Specification - Knopflerfish Framework Services</th></tr>
+
+    <tr>
+      <td class="nowrap"> 50. Conditional Permission Admin </td>
       <td class="nowrap"> Stable </td>
       <td> Full </td> 
-      <td> Essentially a security policy and permission system for OSGi bundles. Supersedes Permission Admin</td>
+      <td> Essentially a security policy and permission system for
+      OSGi bundles. Supersedes Permission Admin</td>
     </tr>
 
     <tr>
-      <td class="nowrap"> 10. Permission Admin </td>
+      <td class="nowrap"> 51. Permission Admin </td>
       <td class="nowrap"> Stable </td>
       <td> Full </td> 
       <td> A permission system for bundles</td>
    </tr>
 
     <tr>
-      <td class="nowrap"> 11. URL Handler </td>
+      <td class="nowrap"> 52. URL Handler </td>
       <td class="nowrap"> Stable </td>
       <td> Full </td>
-      <td> A mechanism to extend the Java run-time with new URL schemes and content handlers through bundles </td>
+      <td> A mechanism to extend the Java run-time with new URL
+      schemes and content handlers through bundles </td>
     </tr>
 
     <tr>
-      <td class="nowrap"> 12. Service Hooks </td>
+      <td class="nowrap"> 53. Resolver Hooks </td>
       <td class="nowrap"> Stable </td>
       <td> Full </td>
-      <td> A set of mechanisms for close interaction with the Service Registry. New feature in v4.2 </td>
+      <td> A set of mechanisms for close interaction with the module
+      layer resolving of bundle requirements and capabilities. New
+      feature in v4.3 </td>
+    </tr>
+    <tr>
+      <td class="nowrap"> 54. Bundle Hooks </td>
+      <td class="nowrap"> Stable </td>
+      <td> Full </td>
+      <td> A set of mechanisms for controlling visibility of bundles
+      for other bundles. New feature in v4.3 </td>
+    </tr>
+    <tr>
+      <td class="nowrap"> 55. Service Hooks </td>
+      <td class="nowrap"> Stable </td>
+      <td> Full </td>
+      <td> A set of mechanisms for close interaction with the Service
+      Registry. </td>
+    </tr>
+    <tr>
+      <td class="nowrap"> 56. Weaving Hooks </td>
+      <td class="nowrap"> Stable </td>
+      <td> Full </td>
+      <td> A set of mechanisms for doing byte code weaving of classes
+      loaded by a Bundle Class Loader. New feature in v4.3 </td>
     </tr>
   </table>
 </p>
 <br>
-<h2 class="kf">Knopflerfish 3 OSGi Bundles - OSGi R4 v4.2 Compendium Services</h2>
+<h2 class="kf">Knopflerfish 4 OSGi Bundles - OSGi R4 v4.3 Compendium Services</h2>
 <p>
-  The Knopflerfish 3  OSGi Compendium Servers are implemented in accordance with
-  the OSGi R4 v4.2 specification. 
+  The Knopflerfish 4  OSGi Compendium Servers are implemented in accordance with
+  the OSGi R4 v4.3 specification. 
   <a href="http://www.makewave.com">Makewave</a> has certified
   <a href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish
-    Pro 3</a>
-  to be be OSGi Release 4, v4.2 compliant. There are OSGi Compendium
+    Pro 4</a>
+  to be be OSGi Release 4, v4.3 compliant. There are OSGi Compendium
   Services only available in KF Pro. They are clearly marked in the
   table below,
 </p>
@@ -134,7 +178,7 @@ The distribution includes the following components:
     <tr>
       <td class="subhead">Specification</td>
       <td class="subhead">Status</td>  
-      <td class="subhead nowrap">R4 v4.2</td>  
+      <td class="subhead nowrap">R4 v4.3</td>  
       <td class="subhead nowrap">Description</td>
     </tr>
 
@@ -150,7 +194,8 @@ The distribution includes the following components:
       <td> Stable </td>
       <td> Full</td>
       <td> 
-	HTTP server for the OSGi Service Platform. Supports both static HTML pages, as well as Servlets serving dynamic content
+	HTTP server for the OSGi Service Platform. Supports both
+        static HTML pages, as well as Servlets serving dynamic content
       </td>
     </tr>
 
@@ -159,8 +204,9 @@ The distribution includes the following components:
       <td> Stable </td>
       <td> Full</td>
       <td> 
-	The Device Access specification supports the coordination of automatic detection and 
-	attachment of existing devices on an OSGi Service Platform.
+	The Device Access specification supports the coordination of
+        automatic detection and attachment of existing devices on an
+        OSGi Service Platform.
       </td>
     </tr>
     
@@ -175,8 +221,8 @@ The distribution includes the following components:
       <td> 105. Meta Type </td>
       <td> Stable</td>
       <td> Full</td>
-      <td> Service that allow bundle developers to describe attribute types
-	in a computer readable form using so-called meta- data.
+      <td> Service that allow bundle developers to describe attribute
+           types in a computer readable form using so-called meta- data.
       </td>
     </tr>
 
@@ -185,9 +231,10 @@ The distribution includes the following components:
       <td> Stable</td>
       <td> Full</td>
       <td> 
-      	Service that provides easy to use persistent storage of bundle data. typically user preference.
-	Knopflerfish Pro includes an enhanced Preferences implementation where Ubicore serves as a remote Backing Store
-	for the Preferences service.
+      	Service that provides easy to use persistent storage of bundle
+	data. typically user preference.  Knopflerfish Pro includes an
+	enhanced Preferences implementation where Ubicore serves as a
+	remote Backing Store for the Preferences service.
       </td>
     </tr>
 
@@ -213,28 +260,34 @@ The distribution includes the following components:
       <td> 109. IO Connector </td>
       <td> Stable </td>
       <td> Full</td>
-      <td> A connector service that adopts the Java 2 ME javax.microedition.io for OSGi</td>
+      <td>
+	A connector service that adopts the Java 2 ME
+        javax.microedition.io for OSGi
+      </td>
     </tr>
 
     <tr>
       <td class="kfpro"> 110. Initial Provisioning </td>
       <td class="kfpro"> Stable KF Pro</td>
       <td class="kfpro"> Full</td>
-      <td class="kfpro"> Defines how to initially install the management agent in an OSGi Service Platform. KF Pro only</td>
+      <td class="kfpro"> Defines how to initially install the
+      management agent in an OSGi Service Platform. KF Pro only</td>
     </tr>
 
     <tr>
       <td class="kfpro"> 111. UPnP Device Service </td>
       <td class="kfpro"> Stable KF Pro</td>
       <td class="kfpro"> Full</td>
-      <td class="kfpro"> Service for interaction with UPnP devices and Control Points. KF Pro only</td>
+      <td class="kfpro"> Service for interaction with UPnP devices and
+      Control Points. KF Pro only</td>
     </tr>
 
     <tr>
       <td> 112. Declarative Services </td>
       <td> Stable </td>
       <td> Full </td>
-      <td> Service that defines a declarative model for publishing, finding and binding to OSGi services </td>
+      <td> Service that defines a declarative model for publishing,
+      finding and binding to OSGi services </td>
     </tr>
 
     <tr>
@@ -249,12 +302,14 @@ The distribution includes the following components:
       <td class="kfpro">114. Deployment Admin</td>
       <td class="kfpro"> Stable KF Pro </td>
       <td class="kfpro"> Full</td>
-      <td class="kfpro">The Deployment Admin and Device Management Tree (DMT) bundle</td>
+      <td class="kfpro">The Deployment Admin and Device Management
+      Tree (DMT) bundle</td>
     <tr>
       <td class="kfpro">115. Auto Configuration</td>
       <td class="kfpro"> Stable KF Pro </td>
       <td class="kfpro"> Full</td>
-      <td class="kfpro">The auto-configuration resource plug-in for the deployment admin service.</td>
+      <td class="kfpro">The auto-configuration resource plug-in for
+      the deployment admin service.</td>
     </tr>
     <tr>
       <td class="kfpro">116. Application Admin</td>
@@ -282,10 +337,10 @@ The distribution includes the following components:
     </tr>
 
     <tr>
-      <td> 701. Service Tracker </td>
+      <td> 701. Tracker Specification</td>
       <td> Stable </td>
       <td> Full</td>
-      <td> Utility for Service tracking</td>
+      <td> Utility for Bundle and Service tracking</td>
     </tr>
 
     <tr>
@@ -313,7 +368,7 @@ The distribution includes the following components:
 </p>
 
 <br>
-<h2 class="kf">Knopflerfish 3 Components - Bundles and Utilities </h2>
+<h2 class="kf">Knopflerfish 4 Components - Bundles and Utilities </h2>
 The Knopflerfish distribution includes a set of Knopflerfish specific
 bundles and Utilities. Some of the components include, or are based on 
 other popular open source components / projects. Knopflerfish has in
@@ -338,7 +393,8 @@ component / project.
       <td> NA</td>
       <td> 
 	The desktop is a graphical tool for managing a running framework. The
-	desktop can be extended using plug-ins. Support added for new OSGi 4.2 features.
+	desktop can be extended using plug-ins. Support added for new
+        OSGi 4.3 features.
       </td>
     </tr>
 
@@ -390,8 +446,7 @@ component / project.
       <td> Stable </td>
       <td> NA</td>
       <td> Commands for handling the core Knopflerfish OSGi
-	framework. New commands for 4.1 and 4.2 features, e.g. lazy
-	activation. 
+	framework. New commands for 4.3 features, e.g. wiring. 
       </td>
     </tr>
     <tr>
