@@ -636,8 +636,10 @@ public class FrameworkCommandGroup
       if (b[i] != null) {
         try {
           boolean found = false;
-          Method m = b[i].getClass().getMethod("getCertificates", null);
-          Certificate [] cs = (Certificate [])m.invoke(b[i], null);
+          Method m = b[i].getClass().getMethod("getCertificates",
+                                               (Class[]) null);
+          Certificate [] cs = (Certificate []) m.invoke(b[i],
+                                                        (Object[]) null);
           out.println("Bundle: " + showBundle(b[i]));
           if (cs != null) {
             for (int j = 0; j < cs.length; j++) {
@@ -1665,10 +1667,11 @@ public class FrameworkCommandGroup
 
   private String printStackTrace(Thread t) {
     try {
-      Method m = t.getClass().getMethod("getStackTrace", null);
+      final Method m = t.getClass().getMethod("getStackTrace", (Class[]) null);
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
-      StackTraceElement [] st = (StackTraceElement [])m.invoke(t, null);
+      StackTraceElement [] st = (StackTraceElement [])
+        m.invoke(t, (Object[]) null);
       for (int i = 0; i < st.length; i++) {
         pw.println(" >  " + st[i]);
       }

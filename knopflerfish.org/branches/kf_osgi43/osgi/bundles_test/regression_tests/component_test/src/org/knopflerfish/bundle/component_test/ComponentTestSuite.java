@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -477,7 +477,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          assertNotNull("Could not get service object for E1", e1);
 
          // Check that no E2 instance have been injected into e1 yet.
-         Method getE2Method = e1.getClass().getMethod("getE2", null);
+         Method getE2Method = e1.getClass().getMethod("getE2", (Class[]) null);
          assertNull("No E2 service yet",
                     getE2Method.invoke(e1, new Object[]{}));
          System.out.println("Initially no E2 service bound to E1.");
@@ -601,8 +601,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
            assertNotNull("Could not get service object "+i, s);
 
            // Call the service method to double check.
-           final Method getMethod = s.getClass().getMethod("get", null);
-
+           final Method getMethod = s.getClass().getMethod("get",
+                                                           (Class[]) null);
            final String v = (String) getMethod.invoke(s, new Object[]{});
            assertEquals("s.get(" +i +")", "C"+(i+1), v);
          }
