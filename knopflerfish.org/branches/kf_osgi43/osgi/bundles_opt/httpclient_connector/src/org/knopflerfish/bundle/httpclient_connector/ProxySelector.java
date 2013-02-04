@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -168,7 +168,7 @@ class ProxySelector
           int proxyPort = null!=proxyPortStr && 0<proxyPortStr.length()
             ? Integer.parseInt(proxyPortStr) : 80;
           conf.setProxy(proxyServer, proxyPort);
-          return new Object[]{proxyServer, Integer.valueOf(proxyPort)};
+          return new Object[]{proxyServer, new Integer(proxyPort)};
         } catch (NumberFormatException e) {
           throw new RuntimeException("Invalid proxy: " +proxyServer +":"
                                      +proxyPortStr);
@@ -181,11 +181,11 @@ class ProxySelector
   private static final boolean isNonProxyHost(final String nonProxyHosts,
                                               final URI uri)
   {
+    Method matches = null;
+
     if (null!=nonProxyHosts && 0<nonProxyHosts.length()) {
-      boolean matchesSupported = false;
       try {
-        String.class.getMethod("matches", new Class[]{String.class});
-        matchesSupported = true;
+        matches = String.class.getMethod("matches", new Class[]{String.class});
       } catch (Exception nsme) {
         // NoSuchMethodException => no mathces(String) method => false
         // Any other exception => underminable => false
@@ -195,9 +195,17 @@ class ProxySelector
         final StringTokenizer st = new StringTokenizer(nonProxyHosts, "|");
         while (st.hasMoreTokens()) {
           final String regexp = st.nextToken().trim();
-          if (matchesSupported) {
-            if (host.matches(regexp)) {
-              return true;
+          if (matches!=null) {
+            try {
+              Boolean b = (Boolean) matches.invoke(host, new Object[]{regexp});
+              if (b.booleanValue()) {
+                return true;
+              }
+            } catch (Exception e) {
+              // Failed to invoke matches method; fallback to equals
+              if (host.equals(regexp)) {
+                return true;
+              }
             }
           } else {
             if (host.equals(regexp)) {

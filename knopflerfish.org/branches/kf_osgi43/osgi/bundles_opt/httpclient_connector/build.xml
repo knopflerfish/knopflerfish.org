@@ -6,7 +6,7 @@
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <!-- Uses String.matches(), Interger.valueOf(String) -->
-  <property name="bundle.compile.EE" value="ee.J2SE_1.4"/>
+  <property name="bundle.compile.EE" value="ee.minimum"/>
 
   <property name="api.pattern"
             value="org/apache/commons/httpclient/*,
