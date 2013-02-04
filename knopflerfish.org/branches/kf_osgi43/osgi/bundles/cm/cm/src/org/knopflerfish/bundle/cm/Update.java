@@ -68,6 +68,9 @@ final class Update {
         }
         processedConfiguration = pm
                 .callPluginsAndCreateACopy(sr, configuration);
+        if(processedConfiguration != null) {
+          processedConfiguration.removeLocation();
+        }
         if (factoryPid == null) {
             update((ManagedService) targetService);
         } else {
@@ -93,7 +96,7 @@ final class Update {
         } else if (processedConfiguration == null) {
             targetService.deleted(pid);
         } else {
-            targetService.updated(pid, configuration);
+            targetService.updated(pid, processedConfiguration);
         }
     }
 

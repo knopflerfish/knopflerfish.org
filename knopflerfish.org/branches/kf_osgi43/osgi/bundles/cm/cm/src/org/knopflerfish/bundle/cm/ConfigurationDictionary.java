@@ -251,8 +251,7 @@ final class ConfigurationDictionary extends Dictionary {
 
     ConfigurationDictionary createCopyAndRemoveLocation() {
         ConfigurationDictionary cd = createCopy();
-        cd.remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
-        cd.remove(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION);
+        cd.removeLocation();
         return cd;
     }
 
@@ -446,5 +445,10 @@ final class ConfigurationDictionary extends Dictionary {
       while(i.hasNext()) {
         validateValue(i.next());
       }
+    }
+
+    public void removeLocation() {
+      remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+      remove(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION);
     }
 }

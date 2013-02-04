@@ -136,7 +136,7 @@ final class ConfigurationDispatcher {
             String factoryPid, ConfigurationDictionary cd) {
         UpdateQueue uq = getQueueFor(sr);
         if (uq == null) {
-            Activator.log.error("Missing UpdateQueue for " + factoryPid);
+            Activator.log.error("Missing UpdateQueue for " + pid + "/" + factoryPid);
             return;
         }
         Update u = new Update(sr, pid, factoryPid, cd);
