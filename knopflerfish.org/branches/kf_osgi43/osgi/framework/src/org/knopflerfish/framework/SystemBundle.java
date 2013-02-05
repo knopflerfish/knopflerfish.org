@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,37 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
+import java.io.Reader;
 import java.lang.reflect.Method;
-import java.net.*;
-import java.util.*;
+import java.net.URL;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 
-import org.knopflerfish.framework.permissions.PermissionAdminImpl;
 import org.knopflerfish.framework.permissions.ConditionalPermissionAdminImpl;
-import org.osgi.framework.*;
+import org.knopflerfish.framework.permissions.PermissionAdminImpl;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.launch.Framework;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
-import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
-
-import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.service.startlevel.StartLevel;
-import org.osgi.framework.launch.Framework;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * Implementation of the System Bundle object.
@@ -335,6 +351,19 @@ public class SystemBundle extends BundleImpl implements Framework {
     return null;
   }
 
+  // Don't delegate to BundleImp since Bundle adaptations may not
+  // apply to the SystemBundle.
+  public <A> A adapt(Class<A> type)
+  {
+    secure.checkAdaptPerm(this, type);
+
+    A res = null;
+    if (FrameworkStartLevel.class.equals(type)) {
+      res = (A) fwCtx.startLevelController.frameworkStartLevel(this);
+    }
+    return res; // TODO: More types to be handled.
+  }
+
 
   //
   // Package method
@@ -552,11 +581,17 @@ public class SystemBundle extends BundleImpl implements Framework {
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
         + ConditionalPermissionAdminImpl.SPEC_VERSION);
 
-    // Set up startlevel package
+    // Set up startlevel service package
     name = StartLevel.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
         + StartLevelController.SPEC_VERSION);
+
+    // Set up startlevel API package
+    name = FrameworkStartLevel.class.getName();
+    name = name.substring(0, name.lastIndexOf('.'));
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
+        + StartLevelController.API_SPEC_VERSION);
 
     // Set up tracker package
     name = ServiceTracker.class.getName();
@@ -868,5 +903,6 @@ public class SystemBundle extends BundleImpl implements Framework {
       fwCtx.activateExtension(extension);
     }
   }
+
 
 }

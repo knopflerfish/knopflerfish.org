@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,28 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Set;
 
-import org.osgi.framework.*;
+import org.osgi.framework.AllServiceListener;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServicePermission;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.SynchronousBundleListener;
 
 /**
  * Here we handle all listeners that bundles have registered.
@@ -175,7 +194,7 @@ class Listeners {
   /**
    * Add a bundle listener to current framework.
    *
-   * @param bundle Who wants to add listener.
+   * @param bc Who wants to add listener.
    * @param listener Object to add.
    */
   void addFrameworkListener(BundleContextImpl bc, FrameworkListener listener) {
@@ -191,7 +210,7 @@ class Listeners {
    * if listener doesn't exist. If listener is registered more than
    * once remove all instances.
    *
-   * @param bundle Who wants to remove listener.
+   * @param bc Who wants to remove listener.
    * @param listener Object to remove.
    */
   void removeFrameworkListener(BundleContextImpl bc, FrameworkListener listener) {
@@ -231,7 +250,7 @@ class Listeners {
   /**
    * Remove all listener registered by a bundle in the current framework.
    *
-   * @param b Bundle which listeners we want to remove.
+   * @param bi Bundle which listeners we want to remove.
    */
   void removeAllListeners(BundleContextImpl bc) {    
     removeAllListeners(syncBundleListeners, bc);
@@ -433,7 +452,7 @@ class Listeners {
    * the current framework. Silently ignore if listener doesn't exist.
    *
    * @param s Which set to remove from bundle, framework or service.
-   * @param b Bundle which listeners we want to remove.
+   * @param bc Bundle which listeners we want to remove.
    */
   private void removeAllListeners(Set s, BundleContext bc) {
     synchronized (s) {

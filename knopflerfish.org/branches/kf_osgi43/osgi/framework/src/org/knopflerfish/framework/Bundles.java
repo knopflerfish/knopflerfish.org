@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,21 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Version;
 
 /**
  * Here we handle all the bundles that are installed in the framework.
@@ -53,7 +63,7 @@ public class Bundles {
    * Table of all installed bundles in this framework.
    * Key is bundle location.
    */
-  final private Hashtable /* location String -> BundleImpl */ bundles = new Hashtable();
+  final private Hashtable<String, BundleImpl> bundles = new Hashtable<String, BundleImpl>();
 
   /**
    * Link to framework object.
@@ -227,8 +237,8 @@ public class Bundles {
    *
    * @return A Bundle array with bundles.
    */
-  List getBundles() {
-    ArrayList res = new ArrayList(bundles.size());
+  List<BundleImpl> getBundles() {
+    ArrayList<BundleImpl> res = new ArrayList<BundleImpl>(bundles.size());
     synchronized (bundles) {
       res.addAll(bundles.values());
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,20 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
-import java.security.ProtectionDomain;
-import java.util.*;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.ProtectionDomain;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceReference;
 
 /**
  * This is a wrapper class for operations that requires some kind of security
@@ -188,6 +196,12 @@ class PermissionOps {
 
 
   //
+  // AdaptPermission checks
+  //
+  <A> void checkAdaptPerm(BundleImpl b, Class<A> type) {
+  }
+
+  //
   // BundleArchive secure operations
   //
 
@@ -263,6 +277,8 @@ class PermissionOps {
   BundleClassLoader newBundleClassLoader(final BundleGeneration bg) throws BundleException {
     return new BundleClassLoader(bg);
   }
+  
+  
 
 
   //

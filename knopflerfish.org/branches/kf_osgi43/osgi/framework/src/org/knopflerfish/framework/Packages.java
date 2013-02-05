@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,20 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 
 /**
  * Here we handle all the java packages that are imported and exported within
@@ -521,7 +532,7 @@ class Packages {
   /**
    * Get packages provide by specified BundlePackages.
    * 
-   * @param b BundlePackages exporting packages.
+   * @param bpkgs BundlePackages exporting packages.
    * @return List of packages exported by BundlePackages.
    */
   private Collection getPackagesProvidedBy(BundlePackages bpkgs) {

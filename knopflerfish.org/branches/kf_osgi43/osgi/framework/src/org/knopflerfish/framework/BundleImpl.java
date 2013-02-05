@@ -34,12 +34,34 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.net.*;
-import java.security.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.Version;
+import org.osgi.framework.startlevel.BundleStartLevel;
 
 /**
  * Implementation of the Bundle object.
@@ -1749,7 +1771,13 @@ public class BundleImpl implements Bundle {
 
 
   public <A> A adapt(Class<A> type) {
-    return null;  // TODO: NYI for OSGi R4.3
+    secure.checkAdaptPerm(this, type);
+
+    A res = null;
+    if (BundleStartLevel.class.equals(type)) {
+      res = (A) fwCtx.startLevelController.bundleStartLevel(this);
+    } 
+    return res;  // TODO: More types to be handled.
   }
 
   public File getDataFile(String filename) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,17 +35,43 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
-import java.net.*;
-import java.security.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLStreamHandler;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.AllPermission;
+import java.security.CodeSource;
+import java.security.PermissionCollection;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.security.ProtectionDomain;
 import java.security.cert.Certificate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import org.osgi.framework.*;
-import org.osgi.service.permissionadmin.PermissionAdmin;
-import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
-
-import org.knopflerfish.framework.PermissionOps;
 import org.knopflerfish.framework.permissions.PermissionsHandle;
+import org.osgi.framework.AdaptPermission;
+import org.osgi.framework.AdminPermission;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.BundlePermission;
+import org.osgi.framework.Constants;
+import org.osgi.framework.PackagePermission;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServicePermission;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
+import org.osgi.service.permissionadmin.PermissionAdmin;
 
 class SecurePermissionOps extends PermissionOps {
 
@@ -347,6 +373,16 @@ class SecurePermissionOps extends PermissionOps {
       if (!okGetServicePerms(sr.getReference())) {
         i.remove();
       }
+    }
+  }
+
+  //
+  // AdaptPermission checks
+  //
+  <A> void checkAdaptPerm(BundleImpl b, Class<A> type) {
+    SecurityManager sm = System.getSecurityManager();
+    if (null != sm) {
+      sm.checkPermission(new AdaptPermission(type.getName(), b, AdaptPermission.ADAPT));
     }
   }
 
