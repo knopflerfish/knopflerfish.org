@@ -566,7 +566,9 @@ class Listeners {
             activeListeners.put(ae.le, Thread.currentThread());
           }
         }
-        if (ae.le.bc.isValid()) {
+        // Either an unregistered one-time listener or the bundle
+        // owning the listener must be valid.
+        if (ae.le.bc==null || ae.le.bc.isValid()) {
           if (ae.evt instanceof BundleEvent) {
             bundleChanged(ae.le, (BundleEvent)ae.evt);
           } else {
