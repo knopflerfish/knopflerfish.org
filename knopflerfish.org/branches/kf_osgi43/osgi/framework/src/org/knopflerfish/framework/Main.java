@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,10 +61,9 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
-import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
-import org.osgi.service.startlevel.StartLevel;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 
 /**
  * This is the main startup code for the framework and enables
@@ -96,11 +95,11 @@ public class Main
   // will be initialized by main() - up for anyone for grabbing
   public String bootText;
 
-  // Framwork properties, i.e., configuration properties from -Fkey=value
-  Map<String, String> fwProps/* <String, String> */ = new HashMap/*<String, String>*/<String, String>();
+  // Framework properties, i.e., configuration properties from -Fkey=value
+  Map<String, String> fwProps = new HashMap<String, String>();
 
   // System properties, i.e., configuration properties from -Dkey=value
-  Map<String, String> sysProps/* <String, String> */ = new HashMap/*<String, String>*/<String, String>();
+  Map<String, String> sysProps = new HashMap<String, String>();
 
   static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
   static public final String JARDIR_DEFAULT = "file:";
@@ -259,9 +258,9 @@ public class Main
   public FrameworkFactory getFrameworkFactory(String factoryClassName) {
     try {
       println("getFrameworkFactory(" + factoryClassName + ")", 2);
-      Class<FrameworkFactory> clazz = (Class<FrameworkFactory>) Class.forName(factoryClassName);
-      Constructor<FrameworkFactory> cons  = clazz.getConstructor(new Class[] { });
-      FrameworkFactory ff = cons.newInstance(new Object[] { });
+      Class<?> clazz = Class.forName(factoryClassName);
+      Constructor<?> cons  = clazz.getConstructor(new Class[] { });
+      FrameworkFactory ff = (FrameworkFactory) cons.newInstance(new Object[] { });
       return ff;
     } catch (Exception e) {
       error("failed to create " + factoryClassName, e);
@@ -395,8 +394,8 @@ public class Main
       pr = new PrintWriter(new BufferedWriter(new FileWriter(propsFile)));
       for (Iterator<Entry<String, String>> it = props.entrySet().iterator(); it.hasNext();) {
         final Entry<String, String> entry = it.next();
-        final String key   = (String) entry.getKey();
-        final String value = (String) entry.getValue();
+        final String key   = entry.getKey();
+        final String value = entry.getValue();
         
         // Don't save clean onFirstInit
         if (!Constants.FRAMEWORK_STORAGE_CLEAN.equals(key) ||
@@ -639,19 +638,8 @@ public class Main
           assertFramework();
           if (i+1 < args.length) {
             final int n = Integer.parseInt(args[i+1]);
-            final ServiceReference sr = framework.getBundleContext()
-              .getServiceReference(StartLevel.class.getName());
-
-            if(sr != null) {
-              final StartLevel ss = (StartLevel) framework.getBundleContext()
-                .getService(sr);
-
-              ss.setInitialBundleStartLevel(n);
-              framework.getBundleContext().ungetService(sr);
-            } else {
-              println("No start level service - ignoring init bundle level "
-                      + n, 0);
-            }
+            final FrameworkStartLevel fsl = framework.adapt(FrameworkStartLevel.class);
+            fsl.setInitialBundleStartLevel(n);
             i++;
           } else {
             error("No integer level for initlevel command");
@@ -660,18 +648,8 @@ public class Main
           assertFramework();
           if (i+1 < args.length) {
             final int n = Integer.parseInt(args[i+1]);
-            final ServiceReference sr = framework.getBundleContext()
-              .getServiceReference(StartLevel.class.getName());
-
-            if(sr != null) {
-              final StartLevel ss = (StartLevel) framework.getBundleContext()
-                .getService(sr);
-
-              ss.setStartLevel(n);
-              framework.getBundleContext().ungetService(sr);
-            } else {
-              println("No start level service - ignoring start level " + n, 0);
-            }
+            final FrameworkStartLevel fsl = framework.adapt(FrameworkStartLevel.class);
+            fsl.setStartLevel(n);
             i++;
           } else {
             error("No integer level for startlevel command");
@@ -946,8 +924,8 @@ public class Main
     try {
       Properties props = System.getProperties();
       System.out.println("--- System properties ---");
-      for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-        String key = (String)e.nextElement();
+      for(Enumeration<?> e = props.keys(); e.hasMoreElements(); ) {
+        String key = (String) e.nextElement();
         System.out.println(key + ": " + props.get(key));
       }
 
@@ -1052,11 +1030,11 @@ public class Main
    * @see defaultSysProps
    */
   protected void addDefaultProps() {
-    for(Iterator it = defaultFwProps.entrySet().iterator(); it.hasNext();) {
-      final Map.Entry entry = (Map.Entry) it.next();
-      final String key = (String) entry.getKey();
+    for(Iterator<Entry<String, String>> it = defaultFwProps.entrySet().iterator(); it.hasNext();) {
+      final Entry<String, String> entry = it.next();
+      final String key = entry.getKey();
       if(!fwProps.containsKey(key)) {
-        final String val = (String) entry.getValue();
+        final String val = entry.getValue();
         println("Using default " + key + "=" + val, 1);
         fwProps.put(key, val);
       } else {
@@ -1118,7 +1096,7 @@ public class Main
    */
   void populateSysProps() {
     final Properties systemProperties = System.getProperties();
-    final Enumeration systemPropertiesNames = systemProperties.propertyNames();
+    final Enumeration<?> systemPropertiesNames = systemProperties.propertyNames();
     while (systemPropertiesNames.hasMoreElements()) {
       try {
         final String name  = (String) systemPropertiesNames.nextElement();
@@ -1345,10 +1323,8 @@ public class Main
       StringBuffer contLine = new StringBuffer();
       String       line     = null;
       String       tmpline  = null;
-      int          lineno   = 0;
       for(tmpline = in.readLine(); tmpline != null;
           tmpline = in.readLine()) {
-        lineno++;
         tmpline = tmpline.trim();
 
         // check for line continuation char and
@@ -1432,7 +1408,7 @@ public class Main
     // User reflection, and ignore errors since this is only supported
     // in Java SE 6.
     try {
-      final Class splashScreenCls = Class.forName("java.awt.SplashScreen");
+      final Class<?> splashScreenCls = Class.forName("java.awt.SplashScreen");
       final Method getSplashScreenMethod
         = splashScreenCls.getMethod("getSplashScreen", (Class[]) null);
       final Object splashScreen = getSplashScreenMethod.invoke( (Object) null,
