@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import java.util.*;
 import org.osgi.service.url.*;
 import org.osgi.framework.*;
 
-import org.osgi.framework.Constants;
 
 /**
  * Wrapper which delegates an URL protocol to 
@@ -133,8 +132,9 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
-  void removeFramework(FrameworkContext fw) {
+  boolean removeFramework(FrameworkContext fw) {
     framework.remove(fw);
+    return framework.isEmpty();
   }
 
 
