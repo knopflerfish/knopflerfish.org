@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -48,7 +48,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
-import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
@@ -66,20 +65,20 @@ import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.knopflerfish.service.console.CommandGroupAdapter;
+import org.knopflerfish.service.console.Session;
+import org.knopflerfish.service.console.Util;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
-import org.osgi.service.startlevel.StartLevel;
-
-import org.knopflerfish.service.console.CommandGroupAdapter;
-import org.knopflerfish.service.console.Session;
-import org.knopflerfish.service.console.Util;
 
 
 /**
@@ -96,7 +95,6 @@ public class FrameworkCommandGroup
 
   private final PackageAdmin packageAdmin;
   private final PermissionAdminHelper permissionAdminHelper;
-  private final StartLevel startLevel;
 
   /**
    * The default directories for bundle jar files.
@@ -109,7 +107,7 @@ public class FrameworkCommandGroup
    *
    * </p>
    */
-  private List/*<URL>*/ baseURLs = new ArrayList();
+  private List<URL> baseURLs = new ArrayList<URL>();
 
 
   FrameworkCommandGroup(BundleContext bc) {
@@ -119,14 +117,11 @@ public class FrameworkCommandGroup
     // all of these services are framework singleton internal services
     // thus, we take a shortcut and skip the service tracking
 
-    ServiceReference sr = bc.getServiceReference(PackageAdmin.class
+    ServiceReference<?> sr = bc.getServiceReference(PackageAdmin.class
                                                  .getName());
     packageAdmin = null==sr ? null : (PackageAdmin) bc.getService(sr);
 
     permissionAdminHelper = initPermissionAdminHelper();
-
-    sr = bc.getServiceReference(StartLevel.class.getName());
-    startLevel = null==sr ? null : (StartLevel) bc.getService(sr);
 
     try {
       setupJars();
@@ -196,8 +191,8 @@ public class FrameworkCommandGroup
     final int ic = location.indexOf(":");
     if (ic < 2 || ic > location.indexOf("/")) {
       // URL wihtout protocol complete it.
-      for (Iterator it=baseURLs.iterator(); it.hasNext(); ) {
-        final URL baseURL = (URL) it.next();
+      for (Iterator<URL> it=baseURLs.iterator(); it.hasNext(); ) {
+        final URL baseURL = it.next();
 
         try {
           final URL url = new URL(baseURL, location);
@@ -249,7 +244,7 @@ public class FrameworkCommandGroup
     "<type>        Permission type", "<name>        Permission name",
     "<actions>     Permission actions" };
 
-  public int cmdAddpermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdAddpermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                               Session session) {
     if (permissionAdminHelper == null) {
       out.println("Permission Admin service is not available");
@@ -276,7 +271,7 @@ public class FrameworkCommandGroup
     "<bundle> Name or id of bundle"
   };
 
-  public int cmdBundles(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdBundles(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
     Bundle[] b = getBundles((String[]) opts.get("bundle"),
                             opts.get("-i") != null,
@@ -285,7 +280,7 @@ public class FrameworkCommandGroup
     boolean verbose = (opts.get("-l") != null);
     boolean oneColumn = (opts.get("-1") != null);
 
-    Vector tmp = new Vector();
+    Vector<Bundle> tmp = new Vector<Bundle>();
     for (int i = 0; i < b.length; i++) {
       if (b[i] != null) {
         tmp.add(b[i]);
@@ -296,7 +291,7 @@ public class FrameworkCommandGroup
       out.println("ERROR! No matching bundle");
       return 1;
     } else {
-      printBundles(out, (Bundle[])tmp.toArray(new Bundle[tmp.size()]), verbose, oneColumn);
+      printBundles(out, tmp.toArray(new Bundle[tmp.size()]), verbose, oneColumn);
       return 0;
     }
   }
@@ -329,7 +324,7 @@ public class FrameworkCommandGroup
     for (int i = 0; i < b.length; i++) {
       String level = null;
       try {
-        level = "" + startLevel.getBundleStartLevel(b[i]);
+        level = String.valueOf(b[i].adapt(BundleStartLevel.class).getStartLevel());
         if (level.length() < 2) {
           level = " " + level;
         }
@@ -411,7 +406,7 @@ public class FrameworkCommandGroup
     "            will be attempted to created as the",
     "            specified type", };
 
-  public int cmdCall(final Dictionary opts,
+  public int cmdCall(final Dictionary<String,?> opts,
                      final Reader in,
                      final PrintWriter out,
                      final Session session)
@@ -422,10 +417,10 @@ public class FrameworkCommandGroup
     final String filter = null==filterArg
       ? null
       : "(&(objectClass=" +si +")" +filterArg +")";
-    final ServiceReference sr = (ServiceReference) AccessController
-      .doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            ServiceReference res = null;
+    final ServiceReference<?> sr = AccessController
+      .doPrivileged(new PrivilegedAction<ServiceReference<?>>() {
+          public ServiceReference<?> run() {
+            ServiceReference<?> res = null;
             if (null==filter) {
               res = bc.getServiceReference(si);
               if (null==res) {
@@ -433,7 +428,7 @@ public class FrameworkCommandGroup
               }
             } else {
               try {
-                ServiceReference[] srs = bc.getServiceReferences(si,filter);
+                ServiceReference<?>[] srs = bc.getServiceReferences(si,filter);
                 if (null==srs) {
                   out.println("No service that matches the filter '"
                               +filter +"'.");
@@ -454,7 +449,7 @@ public class FrameworkCommandGroup
     if (sr == null) {
       return 1;
     }
-    Object s = AccessController.doPrivileged(new PrivilegedAction() {
+    Object s = AccessController.doPrivileged(new PrivilegedAction<Object>() {
         public Object run() {
           return bc.getService(sr);
         }
@@ -465,7 +460,7 @@ public class FrameworkCommandGroup
     }
 
     String method = (String) opts.get("method");
-    Class[] parameterTypes = null;
+    Class<?>[] parameterTypes = null;
     Object[] methodArgs = null;
     String[] args = (String[]) opts.get("args");
     if (args == null) {
@@ -522,7 +517,7 @@ public class FrameworkCommandGroup
     return res;
   }
 
-  Class getClass(String className) {
+  Class<?> getClass(String className) {
     try {
       if ("int".equals(className)) {
         return Integer.TYPE;
@@ -551,11 +546,11 @@ public class FrameworkCommandGroup
    * @param clazz The class to investigate.
    * @return class object for the specified type.
    */
-  Class findClass(final String type, final Class clazz)
+  Class<?> findClass(final String type, final Class<?> clazz)
   {
     if (type.equals(clazz.getName())) return clazz;
 
-    Class[] clazzes = clazz.getInterfaces();
+    Class<?>[] clazzes = clazz.getInterfaces();
     for (int i=0; i<clazzes.length; i++) {
       if (type.equals(clazzes[i].getName())) return clazzes[i];
     }
@@ -563,16 +558,16 @@ public class FrameworkCommandGroup
   }
 
   Method findMethod(final String si,
-                    final Class clazz,
+                    final Class<?> clazz,
                     final String name,
                     final int nArgs)
   {
-    Class ifClass = findClass(si, clazz);
+    Class<?> ifClass = findClass(si, clazz);
     // Fallback to use the original class if the one given by si was not found.
     if (null==ifClass) ifClass = clazz;
 
     Method[] methods = ifClass.getMethods();
-    Vector v = new Vector();
+    Vector<Method> v = new Vector<Method>();
     for (int i = 0; i < methods.length; i++) {
       if (methods[i].getName().equals(name)
           && methods[i].getParameterTypes().length == nArgs) {
@@ -580,14 +575,14 @@ public class FrameworkCommandGroup
       }
     }
     if (v.size() == 1) {
-      return (Method) v.elementAt(0);
+      return v.elementAt(0);
     }
     return null;
   }
 
   Object makeObject(String val, String className) {
     try {
-      Class clazz = getClass(className);
+      Class<?> clazz = getClass(className);
 
       if (clazz == Integer.TYPE) {
         return new Integer(val);
@@ -605,7 +600,7 @@ public class FrameworkCommandGroup
         return val;
       }
 
-      Constructor cons = clazz
+      Constructor<?> cons = clazz
         .getConstructor(new Class[] { String.class });
       Object r = cons.newInstance(new Object[] { val });
       return r;
@@ -627,7 +622,7 @@ public class FrameworkCommandGroup
     "-i           Sort on bundle id",
     "<bundle>     Name or id of bundle" };
 
-  public int cmdCertificates(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdCertificates(Dictionary<String,?> opts, Reader in, PrintWriter out,
                               Session session) {
     Bundle[] b = getBundles((String[]) opts.get("bundle"),
                             opts.get("-i") != null);
@@ -676,7 +671,7 @@ public class FrameworkCommandGroup
     "Display the closure for a bundle",
     "<bundle> - Name or id of bundle" };
 
-  public int cmdClosure(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdClosure(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
 
     if (packageAdmin == null) {
@@ -696,7 +691,7 @@ public class FrameworkCommandGroup
 
     // Package
 
-    Vector pkgClosure = new Vector();
+    Vector<Bundle> pkgClosure = new Vector<Bundle>();
     // This is O(n2) at least, possibly O(n3). Should be improved
     for(int b = 0; b < bl.length; b++) {
       ExportedPackage[] pkgs = packageAdmin.getExportedPackages(bl[b]);
@@ -716,14 +711,14 @@ public class FrameworkCommandGroup
       out.println("No package dependencies");
     } else {
       out.println("Static dependencies via packages:");
-      Bundle[] bundles = (Bundle[]) pkgClosure.toArray(new Bundle[pkgClosure.size()]);
+      Bundle[] bundles = pkgClosure.toArray(new Bundle[pkgClosure.size()]);
       printBundles(out, bundles, false, true);
     }
 
     // Service
 
-    Vector serviceClosure = new Vector();
-    ServiceReference[] srl = bundle.getServicesInUse();
+    Vector<Bundle> serviceClosure = new Vector<Bundle>();
+    ServiceReference<?>[] srl = bundle.getServicesInUse();
     for (int i = 0; srl != null && i < srl.length; i++) {
       if (!serviceClosure.contains(srl[i].getBundle())) {
         serviceClosure.add(srl[i].getBundle());
@@ -734,7 +729,7 @@ public class FrameworkCommandGroup
       out.println("No service dependencies");
     } else {
       out.println("Runtime dependencies via services:");
-      Bundle[] bundles = (Bundle[]) serviceClosure.toArray(new Bundle[serviceClosure.size()]);
+      Bundle[] bundles = serviceClosure.toArray(new Bundle[serviceClosure.size()]);
       printBundles(out, bundles, false, true);
     }
 
@@ -760,8 +755,8 @@ public class FrameworkCommandGroup
 
     // Required
 
-    Vector required = new Vector();
-    Vector requiredBy = new Vector();
+    Vector<Bundle> required = new Vector<Bundle>();
+    Vector<Bundle> requiredBy = new Vector<Bundle>();
 
     try { // untested code
       RequiredBundle[] requiredBundles = packageAdmin.getRequiredBundles(null);
@@ -787,14 +782,14 @@ public class FrameworkCommandGroup
       out.println("No required bundles");
     } else {
       out.println("Required bundles:");
-      Bundle[] bundles = (Bundle[]) required.toArray(new Bundle[required.size()]);
+      Bundle[] bundles = required.toArray(new Bundle[required.size()]);
       printBundles(out, bundles, false, true);
     }
     if (requiredBy.size() == 0) {
       out.println("No requiring bundles");
     } else {
       out.println("Requiring bundles:");
-      Bundle[] bundles = (Bundle[]) requiredBy.toArray(new Bundle[requiredBy.size()]);
+      Bundle[] bundles = requiredBy.toArray(new Bundle[requiredBy.size()]);
       printBundles(out, bundles, false, true);
     }
 
@@ -813,7 +808,7 @@ public class FrameworkCommandGroup
     "Get conditional permissions",
     "<name>               Name of conditional permission" };
 
-  public int cmdCondpermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdCondpermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                                Session session) {
     if (permissionAdminHelper == null) {
       out.println("Conditional Permission Admin service is not available");
@@ -841,7 +836,7 @@ public class FrameworkCommandGroup
     "<name>        Permission name (*, match all)",
     "<actions>     Permission actions (*, match all)" };
 
-  public int cmdDeletepermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdDeletepermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                                  Session session) {
     if (permissionAdminHelper == null) {
       out.println("Permission Admin service is not available");
@@ -861,7 +856,7 @@ public class FrameworkCommandGroup
     "Find bundles with a given symbolic name",
     "<symbolic name>  Symbolic name" };
 
-  public int cmdFindbundles(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdFindbundles(Dictionary<String,?> opts, Reader in, PrintWriter out,
                             Session session) {
     if (packageAdmin == null) {
       out.println("Package Admin service is not available");
@@ -889,8 +884,11 @@ public class FrameworkCommandGroup
     "-l #locale#  Get localized headers for a given locale",
     "<bundle>     Name or id of bundle" };
 
-  public int cmdHeaders(Dictionary opts, Reader in, PrintWriter out,
-                        Session session) {
+  public int cmdHeaders(Dictionary<String, ?> opts,
+                        Reader in,
+                        PrintWriter out,
+                        Session session)
+  {
     Bundle[] b = getBundles((String[]) opts.get("bundle"),
                             opts.get("-i") != null);
     String locale = (String) opts.get("-l");
@@ -898,12 +896,11 @@ public class FrameworkCommandGroup
     for (int i = 0; i < b.length; i++) {
       if (b[i] != null) {
         out.println("Bundle: " + showBundle(b[i]));
-        Dictionary d = (locale == null ? b[i].getHeaders()
-                        : b[i].getHeaders(locale));
-        for (Enumeration e = d.keys(); e.hasMoreElements();) {
-          String key = (String) e.nextElement();
-          out.println("  " + key + " = "
-                      + Util.showObject(d.get(key)));
+        Dictionary<String, String> d = (locale == null ? b[i].getHeaders()
+            : b[i].getHeaders(locale));
+        for (Enumeration<String> e = d.keys(); e.hasMoreElements();) {
+          String key = e.nextElement();
+          out.println("  " + key + " = " + Util.showObject(d.get(key)));
         }
         found = true;
       }
@@ -927,9 +924,9 @@ public class FrameworkCommandGroup
     "Note: The base URLs used to complete partial URLs may be set using the cd command"
   };
 
-  public int cmdInstall(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdInstall(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
-    String[] loc = (String[]) opts.get("location");
+    final String[] loc = (String[]) opts.get("location");
     String url = null;
     try {
       for (int i = 0; i < loc.length; i++) {
@@ -971,7 +968,7 @@ public class FrameworkCommandGroup
     "-b   Display using bytes",
     "-m   Display using megabytes" };
 
-  public int cmdMeminfo(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdMeminfo(Dictionary<String,?> opts, Reader in, PrintWriter out,
                          Session session) {
     if (opts.get("-gc") != null) {
       System.gc();
@@ -1008,7 +1005,7 @@ public class FrameworkCommandGroup
     "-p         Only look at selected packages",
     "<selection>  Package or bundle" };
 
-  public int cmdPackage(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdPackage(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
     if (packageAdmin == null) {
       out.println("Package Admin service is not available");
@@ -1101,7 +1098,7 @@ public class FrameworkCommandGroup
     "-d           Show default permissions",
     "<selection>  Name or id of bundle or an unknown location" };
 
-  public int cmdPermissions(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdPermissions(Dictionary<String,?> opts, Reader in, PrintWriter out,
                             Session session) {
     if (permissionAdminHelper == null) {
       out.println("Permission Admin service is not available");
@@ -1122,7 +1119,7 @@ public class FrameworkCommandGroup
     "If no bundle is specified refresh all bundles",
     "<bundle> Name or id of bundle" };
 
-  public int cmdRefresh(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdRefresh(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
     if (packageAdmin == null) {
       out.println("Package Admin service is not available");
@@ -1161,7 +1158,7 @@ public class FrameworkCommandGroup
     "If no bundle is specified resolve all bundles",
     "<bundle> Name or id of bundle" };
 
-  public int cmdResolve(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdResolve(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
     if (packageAdmin == null) {
       out.println("Package Admin service is not available");
@@ -1205,16 +1202,16 @@ public class FrameworkCommandGroup
     "-f #filter# Show all services that matches the specified filter.",
     "<bundle>    Name or id of bundle" };
 
-  public int cmdServices(final Dictionary opts, Reader in,
+  public int cmdServices(final Dictionary<String,?> opts, Reader in,
                          final PrintWriter out, Session session) {
     final Bundle[] b = getBundles((String[]) opts.get("bundle"), opts
                                   .get("-i") != null);
-    Integer res = (Integer) AccessController.doPrivileged(new PrivilegedAction()
+    Integer res = (Integer) AccessController.doPrivileged(new PrivilegedAction<Integer>()
       {
-        public Object run() {
+        public Integer run() {
           boolean useDefaultOper = opts.get("-r") == null
             && opts.get("-u") == null;
-          ServiceReference[] fs = null;
+          ServiceReference<?>[] fs = null;
           String filter = null;
           if (opts.get("-f") != null) {
             filter = (String) opts.get("-f");
@@ -1273,8 +1270,8 @@ public class FrameworkCommandGroup
     return res.intValue();
   }
 
-  ServiceReference[] getServicesRegisteredBy(Bundle b,
-                                             ServiceReference[] services)
+  ServiceReference<?>[] getServicesRegisteredBy(Bundle b,
+                                             ServiceReference<?>[] services)
   {
     if (services==null) {
       return b.getRegisteredServices();
@@ -1288,7 +1285,7 @@ public class FrameworkCommandGroup
       }
     }
     if (0==count) return null;
-    ServiceReference[] res = new ServiceReference[count];
+    ServiceReference<?>[] res = new ServiceReference<?>[count];
     int ix = 0;
     for (int j = 0; j<services.length; j++) {
       if (bid==services[j].getBundle().getBundleId()) {
@@ -1298,8 +1295,8 @@ public class FrameworkCommandGroup
     return res;
   }
 
-  ServiceReference[] getServicesUsedBy(Bundle b,
-                                       ServiceReference[] services)
+  ServiceReference<?>[] getServicesUsedBy(Bundle b,
+                                       ServiceReference<?>[] services)
   {
     if (null==services) {
       return b.getServicesInUse();
@@ -1317,7 +1314,7 @@ public class FrameworkCommandGroup
       }
     }
     if (0==count) return null;
-    ServiceReference[] res = new ServiceReference[count];
+    ServiceReference<?>[] res = new ServiceReference<?>[count];
     int ix = 0;
     for (int j = 0; j<services.length; j++) {
       Bundle[] usingBundles = services[j].getUsingBundles();
@@ -1331,7 +1328,7 @@ public class FrameworkCommandGroup
     return res;
   }
 
-  boolean showServices(final ServiceReference[] services,
+  boolean showServices(final ServiceReference<?>[] services,
                        final PrintWriter out,
                        final String heading,
                        final boolean headinPrinted,
@@ -1359,7 +1356,7 @@ public class FrameworkCommandGroup
     return false;
   }
 
-  void showLongService(ServiceReference s, String pad, PrintWriter out) {
+  void showLongService(ServiceReference<?> s, String pad, PrintWriter out) {
     out.print(Util.showServiceClasses(s));
     String[] k = s.getPropertyKeys();
     for (int i = 0; i < k.length; i++) {
@@ -1384,7 +1381,7 @@ public class FrameworkCommandGroup
     "Example that grants all bundles installed with a file-url all permissions:",
     "> setcondpermission '[org.osgi.service.condpermadmin.BundleLocationCondition \"file:*\"]' (java.security.AllPermission)" };
 
-  public int cmdSetcondpermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdSetcondpermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                                   Session session) {
     if (permissionAdminHelper == null) {
       out.println("Conditional Permission Admin service is not available");
@@ -1407,7 +1404,7 @@ public class FrameworkCommandGroup
     "<bundle> Name or id of bundle"
   };
 
-  public int cmdStart(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdStart(Dictionary<String,?> opts, Reader in, PrintWriter out,
                       Session session) {
     int startOptions = 0;
     if (opts.get("-t") != null) {
@@ -1453,7 +1450,7 @@ public class FrameworkCommandGroup
     "<bundle> Name or id of bundle"
   };
 
-  public int cmdStop(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdStop(Dictionary<String,?> opts, Reader in, PrintWriter out,
                      Session session) {
     int stopOptions = 0;
     if (opts.get("-t") != null) {
@@ -1495,7 +1492,7 @@ public class FrameworkCommandGroup
     "Show the state of a service, if the service provides state information",
     "<pid>     The service pid(s) of interest" };
 
-  public int cmdShowstate(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdShowstate(Dictionary<String,?> opts, Reader in, PrintWriter out,
                           Session session) {
     String[] pids = (String[]) opts.get("pid");
     try {
@@ -1521,7 +1518,7 @@ public class FrameworkCommandGroup
   public final static String[] HELP_SHUTDOWN = new String[] {
     "Shutdown framework", "-r Restart framework" };
 
-  public int cmdShutdown(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdShutdown(Dictionary<String,?> opts, Reader in, PrintWriter out,
                          Session session) {
 
     boolean restart = opts.get("-r") != null;
@@ -1562,7 +1559,7 @@ public class FrameworkCommandGroup
     "-s     Display stack trace for thread",
     "<name> Names of specific threads, can be a wildcard * at the end" };
 
-  public int cmdThreads(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdThreads(Dictionary<String,?> opts, Reader in, PrintWriter out,
                          Session session) {
     final String [] threadNames = (String [])opts.get("name");
     final boolean showAll = opts.get("-a") != null;
@@ -1695,7 +1692,7 @@ public class FrameworkCommandGroup
   public final static String[] HELP_UNINSTALL = new String[] {
     "Uninstall one or more bundles", "<bundle> Name or id of bundle" };
 
-  public int cmdUninstall(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdUninstall(Dictionary<String,?> opts, Reader in, PrintWriter out,
                           Session session) {
     Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
@@ -1734,7 +1731,7 @@ public class FrameworkCommandGroup
     "Note: Use refresh command to force the framework to do a package update",
     "of exported packages used by running bundles." };
 
-  public int cmdUpdate(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdUpdate(Dictionary<String,?> opts, Reader in, PrintWriter out,
                        Session session) {
     Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
@@ -1774,7 +1771,7 @@ public class FrameworkCommandGroup
     "Note 2: The base URLs used to complete partial URLs may be set using the cd command"
   };
 
-  public int cmdFromupdate(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdFromupdate(Dictionary<String,?> opts, Reader in, PrintWriter out,
                            Session session) {
     String bname = (String) opts.get("bundle");
     Bundle[] bl = getBundles(new String[] { bname }, true);
@@ -1818,7 +1815,7 @@ public class FrameworkCommandGroup
     "Note: The base URLs used to complete partial URLs may be set using the cd command"
   };
 
-  public int cmdFrominstall(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdFrominstall(Dictionary<String,?> opts, Reader in, PrintWriter out,
                             Session session) {
     final String fromURL = completeLocation( (String) opts.get("url"));
     String loc = (String) opts.get("location");
@@ -1852,7 +1849,7 @@ public class FrameworkCommandGroup
   // Private methods
   //
 
-  private void showstate(PrintWriter out, ServiceReference[] srs) {
+  private void showstate(PrintWriter out, ServiceReference<?>[] srs) {
     if (srs != null) {
       for (int i = 0; i < srs.length; i++) {
         Object state = srs[i].getProperty("state");
@@ -1909,16 +1906,10 @@ public class FrameworkCommandGroup
     for (int l = x; x > 0;) {
       x = 0;
       int p = Integer.MAX_VALUE;
-      try {
-        p = startLevel.getBundleStartLevel(b[0]);
-      } catch (Exception ignored) {
-      }
+      p = b[0].adapt(BundleStartLevel.class).getStartLevel();
       for (int i = 1; i < l; i++) {
         int n = Integer.MAX_VALUE;
-        try {
-          n = startLevel.getBundleStartLevel(b[i]);
-        } catch (Exception ignored) {
-        }
+        n = b[i].adapt(BundleStartLevel.class).getStartLevel();
         if (p > n) {
           x = i - 1;
           Bundle t = b[x];
@@ -1936,7 +1927,7 @@ public class FrameworkCommandGroup
 
     try {
       StringBuffer s = new StringBuffer
-        (Integer.toString(startLevel.getBundleStartLevel(bundle)));
+        (String.valueOf(bundle.adapt(BundleStartLevel.class).getStartLevel()));
       while (s.length() < 2) {
         s.insert(0, " ");
       }
@@ -1990,20 +1981,23 @@ public class FrameworkCommandGroup
     "Shows or sets the global startlevel", "[<level>] new start level",
     "          if no <level> is provided, show current level", };
 
-  public int cmdStartlevel(Dictionary opts, Reader in, PrintWriter out,
-                           Session session) {
-
-    String levelStr = (String) opts.get("level");
+  public int cmdStartlevel(Dictionary<String, ?> opts,
+                           Reader in,
+                           PrintWriter out,
+                           Session session)
+  {
+    final FrameworkStartLevel fsl = bc.getBundle(0)
+        .adapt(FrameworkStartLevel.class);
+    final String levelStr = (String) opts.get("level");
 
     try {
       if (levelStr != null) {
         int level = Integer.parseInt(levelStr);
-        startLevel.setStartLevel(level);
+        fsl.setStartLevel(level);
       } else {
-        out.println("current start level:        "
-                    + startLevel.getStartLevel());
+        out.println("current start level:        " + fsl.getStartLevel());
         out.println("initial bundle start level: "
-                    + startLevel.getInitialBundleStartLevel());
+                    + fsl.getInitialBundleStartLevel());
       }
       return 0;
     } catch (Exception e) {
@@ -2025,7 +2019,7 @@ public class FrameworkCommandGroup
     "[-a]           append given base URLs to the current list.",
     "[<base URL>] ... new list of base URLs to be used.", };
 
-  public int cmdCd(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdCd(Dictionary<String,?> opts, Reader in, PrintWriter out,
                    Session session) {
 
     final String[] baseURLsArg = (String[]) opts.get("base URL");
@@ -2036,7 +2030,7 @@ public class FrameworkCommandGroup
         setupJars();
       }
       if (baseURLsArg == null) {
-        for (Iterator it = baseURLs.iterator(); it.hasNext(); ) {
+        for (Iterator<URL> it = baseURLs.iterator(); it.hasNext(); ) {
           out.println(" " + it.next());
         }
       } else {
@@ -2061,8 +2055,14 @@ public class FrameworkCommandGroup
     "          If bundle list is empty, set initial",
     "          start level for new bundles", };
 
-  public int cmdBundlelevel(Dictionary opts, Reader in, PrintWriter out,
-                            Session session) {
+  public int cmdBundlelevel(Dictionary<String, ?> opts,
+                            Reader in,
+                            PrintWriter out,
+                            Session session)
+  {
+    final FrameworkStartLevel fsl = bc.getBundle(0)
+        .adapt(FrameworkStartLevel.class);
+
     int level = -1;
     try {
       level = Integer.parseInt((String) opts.get("level"));
@@ -2070,14 +2070,13 @@ public class FrameworkCommandGroup
       Bundle[] bl = getBundles(bls, false, false);
 
       if (bls == null || bls.length == 0) {
-        startLevel.setInitialBundleStartLevel(level);
+        fsl.setInitialBundleStartLevel(level);
         out.println("initial bundle start level set to " + level);
       } else {
         for (int i = 0; i < bl.length; i++) {
           if (bl[i] != null) {
-            System.out.println("set " + i + " " + bl[i] + " "
-                               + level);
-            startLevel.setBundleStartLevel(bl[i], level);
+            System.out.println("set " + i + " " + bl[i] + " " + level);
+            bl[i].adapt(BundleStartLevel.class).setStartLevel(level);
           }
         }
       }
@@ -2105,7 +2104,7 @@ public class FrameworkCommandGroup
     "                 BundleContext.getProperty().",
     "[<property>] ... Property keys to include in the list.", };
 
-  public int cmdProperty(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdProperty(Dictionary<String,?> opts, Reader in, PrintWriter out,
                          Session session)
   {
     final boolean sysProps = opts.get("-s") != null;
@@ -2113,7 +2112,7 @@ public class FrameworkCommandGroup
     final String[] propNamesA = (String[]) opts.get("property");
 
     try {
-      final Set propNames = new TreeSet();
+      final Set<String> propNames = new TreeSet<String>();
       if (includeFwPros) {
         // -f
         propNames.addAll(getAllFrameworkPropKeys());
@@ -2126,8 +2125,8 @@ public class FrameworkCommandGroup
         propNames.addAll(getAllSystemPropKeys());
       }
 
-      for(Iterator it = propNames.iterator(); it.hasNext();) {
-        final String key = (String) it.next();
+      for(Iterator<String> it = propNames.iterator(); it.hasNext();) {
+        final String key = it.next();
         final String val = sysProps
           ? (String) System.getProperty(key)
           : (String) bc.getProperty(key);
@@ -2147,7 +2146,9 @@ public class FrameworkCommandGroup
   // of all framework property keys.
   public static final String fwPropKeysKey
     = "org.knopflerfish.framework.bundleprops.keys";
-  public static final Set FW_PROP_NAMES = new HashSet() {{
+  public static final Set<String> FW_PROP_NAMES = new HashSet<String>() {
+    private static final long serialVersionUID = 1L;
+  {
     add(Constants.FRAMEWORK_VENDOR);
     add(Constants.FRAMEWORK_VERSION);
     add(Constants.FRAMEWORK_LANGUAGE);
@@ -2170,15 +2171,15 @@ public class FrameworkCommandGroup
     add(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE);
   }};
   // The set of keys for all Framework properties
-  private Set getAllFrameworkPropKeys()
+  private Set<String> getAllFrameworkPropKeys()
   {
-    final HashSet res = new HashSet();
+    final HashSet<String> res = new HashSet<String>();
 
-    // Keys of properites mentioned in the OSGi specification.
+    // Keys of properties mentioned in the OSGi specification.
     res.addAll(FW_PROP_NAMES);
 
-    // All available keys from a property mainained by the
-    // Knopflerfish Framewwork implementation for this purpose.
+    // All available keys from a property maintained by the
+    // Knopflerfish Framework implementation for this purpose.
     final String fwPropKeys = bc.getProperty(fwPropKeysKey);
     if (null!=fwPropKeys) {
       final StringTokenizer st = new StringTokenizer(fwPropKeys,",");
@@ -2190,12 +2191,12 @@ public class FrameworkCommandGroup
     return res;
   }
   // The set of keys for all System properties
-  private Set getAllSystemPropKeys()
+  private Set<String> getAllSystemPropKeys()
   {
-    final HashSet res = new HashSet();
+    final HashSet<String> res = new HashSet<String>();
 
     final Properties properties = System.getProperties();
-    for (Enumeration pke = properties.propertyNames(); pke.hasMoreElements();){
+    for (Enumeration<?> pke = properties.propertyNames(); pke.hasMoreElements();){
       final String key = (String) pke.nextElement();
       res.add(key);
     }

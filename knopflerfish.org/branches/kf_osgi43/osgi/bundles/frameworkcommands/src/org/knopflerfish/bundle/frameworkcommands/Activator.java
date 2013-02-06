@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.frameworkcommands;
 
+import java.util.Dictionary;
 import java.util.Hashtable;
 
 import org.knopflerfish.service.console.CommandGroup;
@@ -41,36 +42,39 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
 /**
- * * Bundle activator implementation. * *
+ * Bundle activator implementation.
  *
  * @author Jan Stein
  */
-public class Activator implements BundleActivator {
+public class Activator
+  implements BundleActivator
+{
 
-    final static String COMMAND_GROUP = org.knopflerfish.service.console.CommandGroup.class
-            .getName();
+  final static String COMMAND_GROUP = CommandGroup.class.getName();
 
-    /**
-     * Called by the framework when this bundle is started.
-     *
-     * @param bc
-     *            Bundle context.
-     */
-    public void start(BundleContext bc) {
-        // Register framework commands
-        CommandGroup cg = new FrameworkCommandGroup(bc);
-        Hashtable props = new Hashtable();
-        props.put("groupName", cg.getGroupName());
-        bc.registerService(COMMAND_GROUP, cg, props);
-    }
+  /**
+   * Called by the framework when this bundle is started.
+   * 
+   * @param bc
+   *          Bundle context.
+   */
+  public void start(BundleContext bc)
+  {
+    // Register framework commands
+    CommandGroup cg = new FrameworkCommandGroup(bc);
+    Dictionary<String, String> props = new Hashtable<String, String>();
+    props.put("groupName", cg.getGroupName());
+    bc.registerService(COMMAND_GROUP, cg, props);
+  }
 
-    /**
-     * Called by the framework when this bundle is stopped.
-     *
-     * @param bc
-     *            Bundle context.
-     */
-    public void stop(BundleContext bc) {
-    }
+  /**
+   * Called by the framework when this bundle is stopped.
+   * 
+   * @param bc
+   *          Bundle context.
+   */
+  public void stop(BundleContext bc)
+  {
+  }
 
 }
