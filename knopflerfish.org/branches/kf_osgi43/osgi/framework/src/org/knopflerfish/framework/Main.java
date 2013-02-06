@@ -34,22 +34,37 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.util.Properties;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Enumeration;
-import java.net.URL;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import org.osgi.framework.*;
-import org.osgi.framework.launch.*;
-import org.osgi.service.startlevel.StartLevel;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.launch.Framework;
+import org.osgi.framework.launch.FrameworkFactory;
+import org.osgi.service.startlevel.StartLevel;
 
 /**
  * This is the main startup code for the framework and enables
@@ -82,10 +97,10 @@ public class Main
   public String bootText;
 
   // Framwork properties, i.e., configuration properties from -Fkey=value
-  Map fwProps/* <String, String> */ = new HashMap/*<String, String>*/();
+  Map<String, String> fwProps/* <String, String> */ = new HashMap/*<String, String>*/<String, String>();
 
   // System properties, i.e., configuration properties from -Dkey=value
-  Map sysProps/* <String, String> */ = new HashMap/*<String, String>*/();
+  Map<String, String> sysProps/* <String, String> */ = new HashMap/*<String, String>*/<String, String>();
 
   static public final String JARDIR_PROP    = "org.knopflerfish.gosg.jars";
   static public final String JARDIR_DEFAULT = "file:";
@@ -117,7 +132,9 @@ public class Main
   /**
    * Default values for some framework properties.
    */
-  Map defaultFwProps = new HashMap() {{
+  Map<String, String> defaultFwProps = new HashMap<String,String>() {
+    private static final long serialVersionUID = 1L;
+  {
     put(CMDIR_PROP,    CMDIR_DEFAULT);
   }};
 
@@ -242,9 +259,9 @@ public class Main
   public FrameworkFactory getFrameworkFactory(String factoryClassName) {
     try {
       println("getFrameworkFactory(" + factoryClassName + ")", 2);
-      Class            clazz = Class.forName(factoryClassName);
-      Constructor      cons  = clazz.getConstructor(new Class[] { });
-      FrameworkFactory ff    = (FrameworkFactory)cons.newInstance(new Object[] { });
+      Class<FrameworkFactory> clazz = (Class<FrameworkFactory>) Class.forName(factoryClassName);
+      Constructor<FrameworkFactory> cons  = clazz.getConstructor(new Class[] { });
+      FrameworkFactory ff = cons.newInstance(new Object[] { });
       return ff;
     } catch (Exception e) {
       error("failed to create " + factoryClassName, e);
@@ -286,7 +303,7 @@ public class Main
    * @param arg    The command line argument to process.
    * @param props  The properties object to add the property to.
    */
-  void setProperty(String prefix, String arg, Map props) {
+  void setProperty(String prefix, String arg, Map<String, String> props) {
     final int ix = arg.indexOf("=");
     if(ix != -1) {
       final String key = arg.substring(2, ix);
@@ -363,7 +380,7 @@ public class Main
    * Save all framework properties as an xargs-file in the framework
    * directory for restarts.
    */
-  private void save_restart_props(Map props) {
+  private void save_restart_props(Map<String, String> props) {
     final String xrwp = framework.getBundleContext().getProperty(WRITE_FWPROPS_XARGS_PROP);
     if ("false".equalsIgnoreCase(xrwp)) {
       return;
@@ -376,8 +393,8 @@ public class Main
 
       final File propsFile = new File(fwDir, Main.FWPROPS_XARGS);
       pr = new PrintWriter(new BufferedWriter(new FileWriter(propsFile)));
-      for (Iterator it = props.entrySet().iterator(); it.hasNext();) {
-        final Map.Entry entry = (Map.Entry) it.next();
+      for (Iterator<Entry<String, String>> it = props.entrySet().iterator(); it.hasNext();) {
+        final Entry<String, String> entry = it.next();
         final String key   = (String) entry.getKey();
         final String value = (String) entry.getValue();
         
@@ -438,7 +455,7 @@ public class Main
 
     // If not init, check if we have saved framework properties
     if (!Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
-        .equals((String) fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN))) {
+        .equals(fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN))) {
       final File propsFile = new File(Util.getFrameworkDir(fwProps), Main.FWPROPS_XARGS);
       if (propsFile.exists()) {
         final String[] newArgs = new String[args.length +2];
@@ -520,15 +537,7 @@ public class Main
             error("No URL for install command");
           }
         } else if ("-launch".equals(args[i])) {
-          if (null!=framework && (Bundle.ACTIVE&framework.getState())!=0) {
-            throw new IllegalArgumentException
-              ("a framework instance is already active.");
-          }
-          assertFramework();
-          framework.start();
-          bLaunched = true;
-          closeSplash();
-          println("Framework launched", 0);
+          bLaunched = doLaunch();
         } else if ("-shutdown".equals(args[i])) {
           if (i+1 < args.length) {
             i++;
@@ -585,79 +594,18 @@ public class Main
             error("No time for sleep command");
           }
         } else if ("-start".equals(args[i])) {
-          assertFramework();
-          if (i+1 < args.length) {
-            final long id = getBundleID(framework, args[i+1]);
-            final Bundle b = framework.getBundleContext().getBundle(id);
-            b.start(Bundle.START_ACTIVATION_POLICY);
-            println("Started (policy): ", b);
-            i++;
-          } else {
-            error("No ID for start command");
-          }
+          i = doStartBundle(args, i, Bundle.START_ACTIVATION_POLICY, "Started (policy): ");
         } else if ("-start_e".equals(args[i])) {
-          assertFramework();
-          if (i+1 < args.length) {
-            final long id = getBundleID(framework, args[i+1]);
-            final Bundle b = framework.getBundleContext().getBundle(id);
-            b.start(0); // Eager start
-            println("Started (eager): ", b);
-            i++;
-          } else {
-            error("No ID for start_e command");
-          }
+          i = doStartBundle(args, i, 0, "Started (eager): ");
         } else if ("-start_et".equals(args[i])) {
-          assertFramework();
-          if (i+1 < args.length) {
-            final long id = getBundleID(framework, args[i+1]);
-            final Bundle b = framework.getBundleContext().getBundle(id);
-            b.start(Bundle.START_TRANSIENT);
-            println("Started (eager,transient): ", b);
-            i++;
-          } else {
-            error("No ID for start_et command");
-          }
+          i = doStartBundle(args, i, Bundle.START_TRANSIENT, "Started (eager,transient): ");
         } else if ("-start_pt".equals(args[i])) {
-          assertFramework();
-          if (i+1 < args.length) {
-            final long id = getBundleID(framework, args[i+1]);
-            final Bundle b = framework.getBundleContext().getBundle(id);
-            b.start(Bundle.START_TRANSIENT | Bundle.START_ACTIVATION_POLICY);
-            println("Start (policy,transient): ", b);
-            i++;
-          } else {
-            error("No ID for start_pt command");
-          }
+          i = doStartBundle(args, i, Bundle.START_TRANSIENT | Bundle.START_ACTIVATION_POLICY,
+                            "Start (policy,transient): ");
         } else if ("-stop".equals(args[i])) {
-          assertFramework();
-          if (i+1 < args.length) {
-            final long id = getBundleID(framework, args[i+1]);
-            final Bundle b = framework.getBundleContext().getBundle(id);
-            try {
-              b.stop(0);
-              println("Stopped: ", b);
-            } catch (Exception e) {
-              error("Failed to stop", e);
-            }
-            i++;
-          } else {
-            error("No ID for stop command");
-          }
+          i = doStopBundle(args, i, 0);
         } else if ("-stop_t".equals(args[i])) {
-          assertFramework();
-          if (i+1 < args.length) {
-            final long id = getBundleID(framework, args[i+1]);
-            final Bundle b = framework.getBundleContext().getBundle(id);
-            try {
-              b.stop(Bundle.STOP_TRANSIENT);
-              println("Stopped (transient): ", b);
-            } catch (Exception e) {
-              error("Failed to stop", e);
-            }
-            i++;
-          } else {
-            error("No ID for stop_t command");
-          }
+          i = doStopBundle(args, i, Bundle.STOP_TRANSIENT);
         } else if ("-uninstall".equals(args[i])) {
           assertFramework();
           if (i+1 < args.length) {
@@ -757,9 +705,7 @@ public class Main
     assertFramework();
     if(!bLaunched) {
       try {
-        framework.start();
-        closeSplash();
-        println("Framework launched", 0);
+        bLaunched = doLaunch();
       } catch (Throwable t) {
         if (t instanceof BundleException) {
           BundleException be = (BundleException) t;
@@ -797,6 +743,60 @@ public class Main
         }
       } catch (InterruptedException ie) { }
     }
+  }
+
+
+  private int doStopBundle(final String[] args, int i, final int options)
+  {
+    assertFramework();
+    if (i+1 < args.length) {
+      final long id = getBundleID(framework, args[i+1]);
+      final Bundle b = framework.getBundleContext().getBundle(id);
+      try {
+        b.stop(options);
+        println("Stopped: ", b);
+      } catch (Exception e) {
+        error("Failed to stop", e);
+      }
+      i++;
+    } else {
+      error("No ID for stop command");
+    }
+    return i;
+  }
+
+
+  private boolean doLaunch()
+      throws BundleException
+  {
+    boolean bLaunched;
+    if (null!=framework && (Bundle.ACTIVE&framework.getState())!=0) {
+      throw new IllegalArgumentException
+        ("a framework instance is already active.");
+    }
+    assertFramework();
+    framework.start();
+    bLaunched = true;
+    closeSplash();
+    println("Framework launched", 0);
+    return bLaunched;
+  }
+
+
+  private int doStartBundle(final String[] args, int i, final int options, final String logMsg)
+      throws BundleException
+  {
+    assertFramework();
+    if (i+1 < args.length) {
+      final long id = getBundleID(framework, args[i+1]);
+      final Bundle b = framework.getBundleContext().getBundle(id);
+      b.start(options);
+      println(logMsg, b);
+      i++;
+    } else {
+      error("No ID for start command");
+    }
+    return i;
   }
 
 
@@ -880,7 +880,7 @@ public class Main
 
 
   /**
-   * Expand all occurance of <tt>-xarg &lt;URL&gt;</tt> and <tt>--xarg
+   * Expand all occurrence of <tt>-xarg &lt;URL&gt;</tt> and <tt>--xarg
    * &lt;URL&gt;</tt> into a new array without any <tt>-xargs</tt>,
    * <tt>--xargs</tt>.
    *
@@ -890,7 +890,7 @@ public class Main
    *         options have been expanded.
    */
   String[] expandArgs(String[] argv) {
-    List v = new ArrayList();
+    List<String> v = new ArrayList<String>();
     int i = 0;
     while(i < argv.length) {
       if ("-xargs".equals(argv[i]) || "--xargs".equals(argv[i])) {
@@ -979,7 +979,7 @@ public class Main
    */
   String getDefaultXArgs() {
     boolean bInit = Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
-      .equals((String) fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN));
+      .equals(fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN));
 
     String fwDirStr = Util.getFrameworkDir(fwProps);
     // avoid getAbsoluteFile since some profiles don't have this
@@ -1072,9 +1072,9 @@ public class Main
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs
-    String jars = (String) fwProps.get(JARDIR_PROP);
+    String jars = fwProps.get(JARDIR_PROP);
     if (jars == null) {
-      jars = (String) sysProps.get(JARDIR_PROP);
+      jars = sysProps.get(JARDIR_PROP);
     }
 
     if(!(jars == null || "".equals(jars))) {
@@ -1089,7 +1089,7 @@ public class Main
 
         // avoid FileNameFilter since some profiles don't have it
         String [] names = jarDir.list();
-        List v = new ArrayList();
+        List<String> v = new ArrayList<String>();
         for(int i = 0; i < names.length; i++) {
           File f = new File(jarDir, names[i]);
           if(f.isDirectory()) {
@@ -1141,7 +1141,7 @@ public class Main
    * @param props The map with name value pairs to add to the system
    *              properties.
    */
-  void mergeSystemProperties(Map props) {
+  void mergeSystemProperties(Map<String, String> props) {
     final Properties p = System.getProperties();
     p.putAll(props);
     System.setProperties(p);
@@ -1185,26 +1185,26 @@ public class Main
    * @param fallback Optional map to get expansion values from if not
    *                 found in the map to be expanded.
    */
-  void expandPropValues(Map toExpand, Map fallback)
+  void expandPropValues(Map<String, String> toExpand, Map<String, String> fallback)
   {
-    Map all = null;
+    Map<String, String> all = null;
 
-    for (Iterator eit = toExpand.entrySet().iterator(); eit.hasNext();) {
-      final Map.Entry entry = (Map.Entry) eit.next();
-      String value = (String) entry.getValue();
+    for (Iterator<Entry<String, String>> eit = toExpand.entrySet().iterator(); eit.hasNext();) {
+      final Entry<String, String> entry = eit.next();
+      String value = entry.getValue();
 
       if(-1 != value.indexOf("${")) {
         if (null==all) {
-          all = new HashMap();
+          all = new HashMap<String, String>();
           if (null!=fallback) {
             all.putAll(fallback);
           }
           all.putAll(toExpand);
         }
-        for(Iterator it = all.entrySet().iterator(); it.hasNext();) {
-          final Map.Entry allEntry = (Map.Entry) it.next();
-          final String rk = "${" + ((String) allEntry.getKey()) + "}";
-          final String rv = (String) allEntry.getValue();
+        for(Iterator<Entry<String, String>> it = all.entrySet().iterator(); it.hasNext();) {
+          final Entry<String, String> allEntry = it.next();
+          final String rk = "${" + allEntry.getKey() + "}";
+          final String rv = allEntry.getValue();
           value = Util.replace(value, rk, rv);
         }
         entry.setValue(value);
@@ -1225,11 +1225,11 @@ public class Main
    * @param args The list to add elements to.
    * @param arg  The element to add.
    */
-  private void addArg(List args, String arg) {
+  private void addArg(List<String> args, String arg) {
     if (0==args.size()) {
       args.add(arg);
     } else {
-      String lastArg = (String) args.get(args.size()-1);
+      String lastArg = args.get(args.size()-1);
       if ("-xargs".equals(lastArg) || "--xargs".equals(lastArg)) {
         String[] exArgs = expandArgs( new String[]{ lastArg, arg } );
         args.remove(args.size()-1);
@@ -1287,7 +1287,7 @@ public class Main
     }
 
     // out result
-    final List v = new ArrayList();
+    final List<String> v = new ArrayList<String>();
 
     BufferedReader in = null;
     try {

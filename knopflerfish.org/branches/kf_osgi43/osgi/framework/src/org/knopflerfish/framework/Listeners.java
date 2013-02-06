@@ -67,13 +67,13 @@ class Listeners {
   /**
    * All bundle event listeners.
    */
-  private HashSet bundleListeners = new HashSet();
-  private HashSet syncBundleListeners = new HashSet();
+  private HashSet<ListenerEntry> bundleListeners = new HashSet<ListenerEntry>();
+  private HashSet<ListenerEntry> syncBundleListeners = new HashSet<ListenerEntry>();
 
   /**
    * All framework event listeners.
    */
-  private HashSet frameworkListeners = new HashSet();
+  private HashSet<ListenerEntry> frameworkListeners = new HashSet<ListenerEntry>();
 
   /**
    * All service event listeners.
@@ -83,7 +83,7 @@ class Listeners {
   /**
    * Queue of async events to deliver
    */
-  private LinkedList asyncEventQueue = null;
+  private LinkedList<AsyncEvent> asyncEventQueue = null;
 
   /**
    * All threads for delivering async events
@@ -93,7 +93,7 @@ class Listeners {
   /**
    * Map of active listeners to thread.
    */
-  private HashMap activeListeners = null;
+  private HashMap<ListenerEntry, Thread> activeListeners = null;
 
   /**
    * Handle to secure call class.
@@ -122,14 +122,14 @@ class Listeners {
       }
     }
     if (n_threads > 0) {
-      asyncEventQueue = new LinkedList();
+      asyncEventQueue = new LinkedList<AsyncEvent>();
       threads = new AsyncEventThread[n_threads];
       for (int i = 0; i < n_threads; i++) {
         threads[i] = new AsyncEventThread(i);
         threads[i].start();
       }
       if (n_threads > 1) {
-        activeListeners = new HashMap();
+        activeListeners = new HashMap<ListenerEntry, Thread>();
       }
     }
   }
@@ -351,6 +351,10 @@ class Listeners {
    * @see org.osgi.framework.FrameworkListener#frameworkEvent
    */
   void frameworkEvent(final FrameworkEvent evt) {
+    frameworkEvent(evt, (FrameworkListener[]) null);
+  }
+  
+  void frameworkEvent(final FrameworkEvent evt, FrameworkListener... oneTimeListeners) {
     if (framework.debug.errors) {
       if (evt.getType() == FrameworkEvent.ERROR) {
         framework.debug.println("errors - FrameworkErrorEvent bundle #" +
@@ -367,16 +371,35 @@ class Listeners {
                                         evt.getThrowable());
       }
     }
+    if (framework.debug.startlevel) {
+      if (evt.getType() == FrameworkEvent.STARTLEVEL_CHANGED) {
+        framework.debug
+            .println("startlevel: FrameworkEvent Startlevel Changed");
+      } else if (evt.getType() == FrameworkEvent.STARTED) {
+        framework.debug.println("startlevel: FrameworkEvent Started");
+      }
+    }
+
     if (asyncEventQueue != null) {
       synchronized (asyncEventQueue) {
-        synchronized (frameworkListeners) {
-          for (Iterator i = frameworkListeners.iterator(); i.hasNext(); ) {
-            asyncEventQueue.addLast(new AsyncEvent((ListenerEntry)i.next(), evt));
+        if (oneTimeListeners!=null) {
+          for (FrameworkListener fl : oneTimeListeners) {
+            asyncEventQueue.addLast(new AsyncEvent(new ListenerEntry(null, fl), evt));
           }
-          asyncEventQueue.notify();
         }
+        synchronized (frameworkListeners) {
+          for (Iterator<ListenerEntry> i = frameworkListeners.iterator(); i.hasNext(); ) {
+            asyncEventQueue.addLast(new AsyncEvent(i.next(), evt));
+          }
+        }
+        asyncEventQueue.notify();
       }
     } else {
+      if (oneTimeListeners != null) {
+        for (FrameworkListener ofl : oneTimeListeners) {
+          frameworkEvent(new ListenerEntry(null, ofl), evt);
+        }
+      }
       ListenerEntry [] fl;
       synchronized (frameworkListeners) {
         fl = new ListenerEntry[frameworkListeners.size()];
@@ -439,7 +462,7 @@ class Listeners {
    *
    *
    */
-  Set getMatchingServiceListeners(final ServiceReference sr) {
+  Set<ServiceListener> getMatchingServiceListeners(final ServiceReference<?> sr) {
     return serviceListeners.getMatchingListeners((ServiceReferenceImpl)sr);
   }
 
@@ -454,10 +477,10 @@ class Listeners {
    * @param s Which set to remove from bundle, framework or service.
    * @param bc Bundle which listeners we want to remove.
    */
-  private void removeAllListeners(Set s, BundleContext bc) {
+  private void removeAllListeners(Set<ListenerEntry> s, BundleContext bc) {
     synchronized (s) {
-      for (Iterator i = s.iterator(); i.hasNext();) {
-        if (((ListenerEntry)i.next()).bc == bc) {
+      for (Iterator<ListenerEntry> i = s.iterator(); i.hasNext();) {
+        if (i.next().bc == bc) {
           i.remove();
         }
       }
@@ -529,7 +552,7 @@ class Listeners {
           if (quit) {
             break;
           }
-          ae = (AsyncEvent) asyncEventQueue.removeFirst();
+          ae = asyncEventQueue.removeFirst();
         }
 
         if (activeListeners != null) {

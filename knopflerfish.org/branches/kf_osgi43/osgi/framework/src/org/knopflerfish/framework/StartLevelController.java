@@ -108,7 +108,6 @@ public class StartLevelController
       wc.start();
       if (!acceptChanges) {
         acceptChanges = true;
-        restoreState();
       }
       // Wait for the last of the jobs scheduled before starting the
       // framework to complete before return
@@ -240,7 +239,8 @@ public class StartLevelController
                                          + startLevel);
     }
     if (acceptChanges) {
-      setStartLevel0(startLevel, true, false, true, listeners);
+      // No start-level changed events if called before open() or after close().
+      setStartLevel0(startLevel, bRun, false, true, listeners);
     }
   }
 
@@ -282,13 +282,7 @@ public class StartLevelController
             = new FrameworkEvent(FrameworkEvent.STARTLEVEL_CHANGED,
                                  fwCtx.systemBundle, null);
           // Send event to all registered framework listeners
-          fwCtx.listeners.frameworkEvent(event);
-          // Send event to one-time listeners for this particular operation.
-          if (null!=listeners) {
-            for (FrameworkListener listener : listeners) {
-              listener.frameworkEvent(event);
-            }
-          }
+          fwCtx.listeners.frameworkEvent(event, listeners);
         }
         if (notifyWC && wc != null) {
           synchronized (wc) {
