@@ -8,6 +8,18 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
   last release.
 
 
+=== Framework (Core) ===
+
+* Framework 5.3.4
+
+  - Create data storage are for system bundle. Can be accessed via
+    getDataFile() for the system bundle.
+  - Split and narrow synchronization for URLStreamHandler
+    adminstration.
+  - Fixed bug when cleaning in URLStreamHandler adminstration during
+    framework uninitialization.
+
+
 ========================================================================
 
 

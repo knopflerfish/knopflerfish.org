@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,13 +48,13 @@ import org.osgi.service.url.*;
 public class ServiceURLStreamHandlerFactory
   implements URLStreamHandlerFactory
 {
-  ArrayList /* FrameworkId -> FrameworkContext */ framework = new ArrayList(2);
+  Vector /* FrameworkId -> FrameworkContext */ framework = new Vector(2);
 
   //
   // Special framework handlers
   //
   // String protocol -> URLStreamHandler
-  Map handlers = new HashMap();
+  Hashtable handlers = new Hashtable();
 
   // JVM classpath handlers. Initialized once at startup
   String[] jvmPkgs = null;
@@ -65,7 +65,7 @@ public class ServiceURLStreamHandlerFactory
   // caches handlers anyway, but it just seems nice to have.
   //
   // String (protocol) -> URLStreamHandlerWrapper
-  Map wrapMap   = new HashMap();
+  HashMap wrapMap   = new HashMap();
 
   //
   BundleURLStreamHandler bundleHandler;
@@ -102,43 +102,40 @@ public class ServiceURLStreamHandlerFactory
       debug.println("createURLStreamHandler protocol=" + protocol);
     }
 
-    synchronized(handlers) {
+    // Check for
+    // 1. JVM classpath handlers
+    // 2. Framework built-in handlers
+    // 2. OSGi-based handlers
+    // 3. system handlers
 
-      // Check for
-      // 1. JVM classpath handlers
-      // 2. Framework built-in handlers
-      // 2. OSGi-based handlers
-      // 3. system handlers
-
-      URLStreamHandler handler = getJVMClassPathHandler(protocol);
-      if(handler != null) {
-        if(debug.url) {
-          debug.println("using JVMClassPath handler for " + protocol);
-        }
-        return handler;
+    URLStreamHandler handler = getJVMClassPathHandler(protocol);
+    if(handler != null) {
+      if(debug.url) {
+        debug.println("using JVMClassPath handler for " + protocol);
       }
-
-      handler = (URLStreamHandler)handlers.get(protocol);
-      if (handler != null) {
-        if (debug.url) {
-          debug.println("using predefined handler for " + protocol);
-        }
-        return handler;
-      }
-
-      handler = getServiceHandler(protocol);
-      if (handler != null) {
-        if (debug.url) {
-          debug.println("Using service URLHandler for " + protocol);
-        }
-        return handler;
-      }
-
-      if (debug.url) {
-        debug.println("Using default URLHandler for " + protocol);
-      }
-      return null;
+      return handler;
     }
+
+    handler = (URLStreamHandler)handlers.get(protocol);
+    if (handler != null) {
+      if (debug.url) {
+        debug.println("using predefined handler for " + protocol);
+      }
+      return handler;
+    }
+
+    handler = getServiceHandler(protocol);
+    if (handler != null) {
+      if (debug.url) {
+        debug.println("Using service URLHandler for " + protocol);
+      }
+      return handler;
+    }
+
+    if (debug.url) {
+      debug.println("Using default URLHandler for " + protocol);
+    }
+    return null;
   }
 
 
@@ -164,8 +161,8 @@ public class ServiceURLStreamHandlerFactory
    */
   void addFramework(FrameworkContext fw) {
     // TBD, should we check that property "java.protocol.handler.pkgs" is equal?
-    framework.add(fw);
     bundleHandler.addFramework(fw);
+    framework.add(fw);
   }
 
 
@@ -177,8 +174,13 @@ public class ServiceURLStreamHandlerFactory
   void removeFramework(FrameworkContext fw) {
     framework.remove(fw);
     bundleHandler.removeFramework(fw);
-    for (Iterator i = wrapMap.values().iterator(); i.hasNext(); ) {
-      ((URLStreamHandlerWrapper)i.next()).removeFramework(fw);
+    synchronized (wrapMap) {
+      for (Iterator i = wrapMap.entrySet().iterator(); i.hasNext(); ) {
+        Map.Entry e = (Map.Entry)i.next();
+        if (((URLStreamHandlerWrapper)e.getValue()).removeFramework(fw)) {
+          i.remove();
+        }
+      }
     }
   }
 
@@ -189,29 +191,31 @@ public class ServiceURLStreamHandlerFactory
   private URLStreamHandler getServiceHandler(final String protocol)
   {
     try {
-      String filter =
+      final String filter =
         "(" +
         URLConstants.URL_HANDLER_PROTOCOL +
         "=" + protocol +
         ")";
 //    TODO true or false?
-      for (Iterator i = framework.iterator(); i.hasNext(); ) {
+      for (Iterator i = ((Vector)framework.clone()).iterator(); i.hasNext(); ) {
         FrameworkContext sfw = (FrameworkContext)i.next();
 
         ServiceReference[] srl = sfw.services
           .get(URLStreamHandlerService.class.getName(), filter, null);
 
         if (srl != null && srl.length > 0) {
-          URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)
-            wrapMap.get(protocol);
+          synchronized (wrapMap) {
+            URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)
+              wrapMap.get(protocol);
 
-          if (wrapper == null) {
-            wrapper = new URLStreamHandlerWrapper(sfw, protocol);
-            wrapMap.put(protocol, wrapper);
-          } else {
-            wrapper.addFramework(sfw);
+            if (wrapper == null) {
+              wrapper = new URLStreamHandlerWrapper(sfw, protocol);
+              wrapMap.put(protocol, wrapper);
+            } else {
+              wrapper.addFramework(sfw);
+            }
+            return wrapper;
           }
-          return wrapper;
         }
       }
     } catch (InvalidSyntaxException e) {

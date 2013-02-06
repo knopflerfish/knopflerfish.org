@@ -149,6 +149,7 @@ public class BundleImpl implements Bundle {
     id = 0;
     location = Constants.SYSTEM_BUNDLE_LOCATION;
     state = INSTALLED;
+    bundleDir = fwCtx.getDataStorage(id);
   }
 
 
