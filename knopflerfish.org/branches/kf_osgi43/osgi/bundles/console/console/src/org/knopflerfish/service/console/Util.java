@@ -101,7 +101,7 @@ public class Util {
    *            bundle will be added to this set.
    */
   public static void selectBundles(Bundle[] bundles, String[] selection,
-                                   Set selectionMatches) {
+                                   Set<String> selectionMatches) {
     if (selection != null) {
       for (int i = 0; i < bundles.length; i++) {
         int j = 0;
@@ -290,7 +290,7 @@ public class Util {
       return null;
     }
 
-    final Dictionary d = bundle.getHeaders("");
+    final Dictionary<String, String> d = bundle.getHeaders("");
     String bsn = (String) d.get("Bundle-SymbolicName");
     if (bsn != null && bsn.length() >0) {
       // Remove parameters and directives from the value
@@ -348,7 +348,7 @@ public class Util {
    *            The service
    * @return The bundles identifier
    */
-  public static String showServiceClasses(ServiceReference sr) {
+  public static String showServiceClasses(ServiceReference<?> sr) {
     StringBuffer sb = new StringBuffer();
     String[] c = (String[]) sr.getProperty("objectClass");
     if (c.length >= 2) {
@@ -368,7 +368,7 @@ public class Util {
 
   /**
    * Get string representation of an object. If it is an array or Enumeration,
-   * do toString on each element. All other objects are shown with toString.
+   * do toString() on each element. All other objects are shown with toString.
    *
    * @param o
    *            the object to show
@@ -392,7 +392,7 @@ public class Util {
       o = sb;
     } else if (o instanceof Vector) {
       StringBuffer sb = new StringBuffer();
-      Enumeration e = ((Vector) o).elements();
+      Enumeration<?> e = ((Vector<?>) o).elements();
       sb.append("[");
       if (e.hasMoreElements()) {
         sb.append(showObject(e.nextElement()));

@@ -43,7 +43,6 @@ import java.io.Writer;
  * Pipe between Command Input and Output.
  * 
  * @author Jan Stein
- * @version $Revision: 1.1.1.1 $
  */
 class Pipe extends PrintWriter {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,9 +44,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
-import java.util.Iterator;
+import java.util.TreeSet;
 
 import org.knopflerfish.service.console.CommandGroup;
 import org.knopflerfish.service.console.Session;
@@ -60,7 +60,6 @@ import org.osgi.service.log.LogService;
  * * Interface for commands to be handled by the console. * *
  * 
  * @author Gatespace AB *
- * @version $Revision: 1.1.1.1 $
  */
 
 public class SessionCommandGroup implements CommandGroup {
@@ -106,10 +105,10 @@ public class SessionCommandGroup implements CommandGroup {
      *            throwable
      */
     void log(int level, String msg, Throwable t) {
-        ServiceReference srLog = bc
-                .getServiceReference("org.osgi.service.log.LogService");
+        ServiceReference<LogService> srLog = bc
+                .getServiceReference(LogService.class);
         if (srLog != null) {
-            LogService sLog = (LogService) bc.getService(srLog);
+            LogService sLog = bc.getService(srLog);
             if (sLog != null) {
                 sLog.log(level, msg, t);
             }
@@ -190,8 +189,8 @@ public class SessionCommandGroup implements CommandGroup {
                     return 1;
                 }
                 if (args.length == 1) {
-                    for (Enumeration e = si.aliases.keys(); e.hasMoreElements();) {
-                        String a = (String) e.nextElement();
+                    for (Enumeration<String> e = si.aliases.keys(); e.hasMoreElements();) {
+                        String a = e.nextElement();
                         out.println(a + " = " + si.aliases.getString(a));
                     }
                 } else if (args.length == 2) {
@@ -213,8 +212,8 @@ public class SessionCommandGroup implements CommandGroup {
             } else if ("enter".startsWith(args[0])) {
                 if (args.length == 2) {
                     try {
-                        ServiceReference ref = Command.matchCommandGroup(bc,
-                                args[1]);
+                        ServiceReference<CommandGroup> ref
+                          = Command.matchCommandGroup(bc, args[1]);
                         if (ref != null) {
                             si.currentGroup = (String) ref
                                     .getProperty("groupName");
@@ -376,82 +375,73 @@ public class SessionCommandGroup implements CommandGroup {
         return -1;
     }
 
-    /**
-     * Help about available command groups.
-     * 
-     * @param out
-     *            output device to print result
-     */
-    int help(PrintWriter out, SessionImpl si) {
-        ArrayList cg = new ArrayList();
-        cg.add(this);
-        ServiceReference[] refs = null;
-        try {
-            refs = bc.getServiceReferences(Command.COMMAND_GROUP, null);
-        } catch (InvalidSyntaxException ignore) {
-        }
-        if (refs != null) {
-            for (int i = 0; i < refs.length; i++) {
-                CommandGroup c = (CommandGroup) bc.getService(refs[i]);
-                if (c != null) {
-                    String n = c.getGroupName();
-                    int j;
-                    for (j = 0; j < cg.size(); j++) {
-                        if (n.compareTo(((CommandGroup) cg.get(j))
-                                .getGroupName()) > 0) {
-                            break;
-                        }
-                    }
-                    cg.add(j, c);
-                }
-            }
-        }
-        out
-                .println("Available command groups (type 'enter' to enter a group):");
-        for (Iterator e = cg.iterator(); e.hasNext();) {
-            CommandGroup c = (CommandGroup) e.next();
-            out.println(c.getGroupName() + " - " + c.getShortHelp());
-        }
-        if (refs != null) {
-            for (int i = 0; i < refs.length; i++) {
-                bc.ungetService(refs[i]);
-            }
-        }
+  /**
+   * Help about available command groups.
+   * 
+   * @param out
+   *          output device to print result
+   */
+  int help(PrintWriter out, SessionImpl si)
+  {
+    final TreeSet<String> cgInfos = new TreeSet<String>();
+    cgInfos.add(helpLine(this));
 
-        /*
-         * out.println(""); out.println("Available aliases:"); for (Enumeration
-         * e = si.aliases.keys(); e.hasMoreElements();) { String a = (String)
-         * e.nextElement(); out.println(a + " = " + si.aliases.getString(a)); }
-         */
+    try {
+      final Collection<ServiceReference<CommandGroup>> refs = bc
+          .getServiceReferences(CommandGroup.class, null);
+
+      for (ServiceReference<CommandGroup> srcg : refs) {
+        final CommandGroup c = bc.getService(srcg);
+        if (c != null) {
+          cgInfos.add(helpLine(c));
+          bc.ungetService(srcg);
+        }
+      }
+
+      out.println("Available command groups (type 'enter' to enter a group):");
+      for (String cgLine : cgInfos) {
+        out.println(cgLine);
+      }
+      cgInfos.clear();
+    } catch (InvalidSyntaxException ignore) {
+    }
+
+    return 0;
+  }
+
+  private String helpLine(final CommandGroup commandGroup)
+  {
+    return commandGroup.getGroupName() + " - " + commandGroup.getShortHelp();
+  }
+
+  /**
+   * Help about a command group.
+   * 
+   * @param out
+   *          output device to print result
+   */
+  int helpAbout(String group, PrintWriter out, SessionImpl si)
+  {
+    try {
+      ServiceReference<CommandGroup> ref = Command.matchCommandGroup(bc, group);
+      if (ref != null) {
+        CommandGroup c = (CommandGroup) bc.getService(ref);
+        if (c != null) {
+          out.print(c.getLongHelp());
+          bc.ungetService(ref);
+          return 0;
+        }
+      } else {
+        // Null means session command group
+        out.print(getLongHelp());
         return 0;
+      }
+    } catch (IOException e) {
+      out.println(e.getMessage());
+      return 1;
     }
+    out.println("No such command group: " + group);
+    return 1;
+  }
 
-    /**
-     * Help about a command group.
-     * 
-     * @param out
-     *            output device to print result
-     */
-    int helpAbout(String group, PrintWriter out, SessionImpl si) {
-        try {
-            ServiceReference ref = Command.matchCommandGroup(bc, group);
-            if (ref != null) {
-                CommandGroup c = (CommandGroup) bc.getService(ref);
-                if (c != null) {
-                    out.print(c.getLongHelp());
-                    bc.ungetService(ref);
-                    return 0;
-                }
-            } else {
-                // Null means session command group
-                out.print(getLongHelp());
-                return 0;
-            }
-        } catch (IOException e) {
-            out.println(e.getMessage());
-            return 1;
-        }
-        out.println("No such command group: " + group);
-        return 1;
-    }
 }

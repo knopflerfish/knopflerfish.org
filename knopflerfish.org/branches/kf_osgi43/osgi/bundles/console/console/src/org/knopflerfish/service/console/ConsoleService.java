@@ -69,7 +69,7 @@ public interface ConsoleService {
 
     /**
      * Run a command string. Here we can only execute a single command. There is
-     * no possiblity to supply any input data other than command line options
+     * no possibility to supply any input data other than command line options
      * and the output from the command is returned as a string. The return value
      * from the command is discarded.
      * 

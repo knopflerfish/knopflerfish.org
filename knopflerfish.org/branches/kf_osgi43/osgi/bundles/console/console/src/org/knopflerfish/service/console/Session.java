@@ -156,5 +156,5 @@ public interface Session {
      * 
      * @return Properties associated with this Session.
      */
-    Dictionary getProperties();
+    Dictionary<String, Object> getProperties();
 }
