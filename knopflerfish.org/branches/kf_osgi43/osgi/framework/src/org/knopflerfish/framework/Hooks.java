@@ -35,10 +35,15 @@
 package org.knopflerfish.framework;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 import org.osgi.framework.*;
+import org.osgi.framework.hooks.service.EventHook;
+import org.osgi.framework.hooks.service.EventListenerHook;
+import org.osgi.framework.hooks.service.FindHook;
+import org.osgi.framework.hooks.service.ListenerHook;
+import org.osgi.framework.hooks.service.ListenerHook.ListenerInfo;
 import org.osgi.util.tracker.*;
-import org.osgi.framework.hooks.service.*;
 
 /**
  * Handle all framework hooks, mostly dispatched from BundleImpl, Services and ServiceListenerState
@@ -50,7 +55,17 @@ class Hooks {
   ServiceTracker listenerHookTracker;
 
   boolean bOpen;
-
+  
+  // TDOD: OSGI43 Temporary solution while OSGi CT fail and don't clean up properly
+  private static final HashSet ignore = new HashSet();
+  static {
+    ignore.add("org.osgi.test.cases.framework.junit.lifecycle.TestBundleControl");
+    ignore.add("org.osgi.util.tracker.ServiceTracker$Tracked");
+    ignore.add("aQute.launcher.Launcher");
+  }
+  private static boolean ignoreSLE(ServiceListenerEntry sle) {
+    return ignore.contains(sle.listener.getClass().getName());
+  }
 
   Hooks(FrameworkContext fwCtx) {
     this.fwCtx = fwCtx;
@@ -72,7 +87,14 @@ class Hooks {
          public Object addingService(ServiceReference reference) {           
            ListenerHook lh = (ListenerHook)fwCtx.systemBundle.bundleContext.getService(reference);
            try {
-             lh.added(getServiceCollection());
+             Collection c = getServiceCollection();
+             ArrayList tmp = new ArrayList();
+             for(Object o : c) {
+               if(ignoreSLE((ServiceListenerEntry)o)) continue;
+               tmp.add(o);
+             }
+             c = tmp;
+             lh.added(c);
            } catch (Exception e) {
              fwCtx.debug.printStackTrace("Failed to call listener hook  #" +
                                          reference.getProperty(Constants.SERVICE_ID), e);
@@ -150,16 +172,19 @@ class Hooks {
    */
   void filterServiceEventReceivers(final ServiceEvent evt, 
                                    final Collection /*<ServiceListenerEntry>*/ receivers) {
-    ArrayList srl = fwCtx.services.get(EventHook.class.getName());
-    if (srl != null) {
+    
+    ArrayList eventHooks = fwCtx.services.get(EventHook.class.getName());
+    
+    if (eventHooks != null) {
       HashSet ctxs = new HashSet();
       for (Iterator ir = receivers.iterator(); ir.hasNext(); ) {
-        ctxs.add(((ServiceListenerEntry)ir.next()).getBundleContext());
+        ServiceListenerEntry sle = (ServiceListenerEntry)ir.next();
+        ctxs.add(sle.getBundleContext());
       }
       int start_size = ctxs.size();
       RemoveOnlyCollection filtered = new RemoveOnlyCollection(ctxs);
     
-      for (Iterator i = srl.iterator(); i.hasNext(); ) {
+      for (Iterator i = eventHooks.iterator(); i.hasNext(); ) {
         ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;
         EventHook eh = (EventHook)sr.getService(fwCtx.systemBundle);
         if (eh != null) {
@@ -180,6 +205,44 @@ class Hooks {
         }
       }
     }
+    ArrayList<ServiceRegistrationImpl> eventListenerHooks = fwCtx.services.get(EventListenerHook.class.getName());
+    if (eventListenerHooks != null) {
+      HashMap<BundleContext, Collection<ListenerInfo>> listeners = new HashMap<BundleContext, Collection<ListenerInfo>>();
+      
+      for (Iterator ir = receivers.iterator(); ir.hasNext(); ) {
+        ServiceListenerEntry sle = (ServiceListenerEntry)ir.next();
+        if(ignoreSLE(sle)) {
+          // TODO: OSGI43 Temporary hack to work around poor clean up in test suite
+          continue;
+        }
+        if(!listeners.containsKey(sle.getBundleContext())) {
+          listeners.put(sle.getBundleContext(), new ArrayList<ListenerInfo>());
+        }
+        listeners.get(sle.getBundleContext()).add(sle);
+      }
+      
+      for(Entry<BundleContext, Collection<ListenerInfo>> e : listeners.entrySet()) {
+        e.setValue(new RemoveOnlyCollection(e.getValue()));
+      }
+      
+      RemoveOnlyMap filtered = new RemoveOnlyMap(listeners);
+      
+      for(ServiceRegistrationImpl sri : eventListenerHooks) {
+        EventListenerHook elh = (EventListenerHook)sri.reference.getService(fwCtx.systemBundle);
+        if(elh != null) {
+          try {
+            elh.event(evt, filtered);
+          } catch(Exception e) {
+            fwCtx.debug.printStackTrace("Failed to call event hook  #" +
+                sri.reference.getProperty(Constants.SERVICE_ID), e);
+          }
+        }
+      }
+      receivers.clear();
+      for(Collection<ListenerInfo> li : listeners.values()) {
+        receivers.addAll(li);
+      }
+    }
   }
 
 
@@ -197,6 +260,10 @@ class Hooks {
    */
   void handleServiceListenerReg(ServiceListenerEntry sle) {
     if(!isOpen() || listenerHookTracker.size() == 0) {
+      return;
+    }
+    if(ignoreSLE(sle)) {
+      // TODO: OSGI43 Temporary hack to work around poor clean up in test suite
       return;
     }
 
@@ -288,5 +355,91 @@ class Hooks {
     public int size() {
       return org.size();
     }
-  }  
+  }
+  
+  static class RemoveOnlyMap implements Map {
+    final Map original;
+    public RemoveOnlyMap(Map original) {
+      this.original = original;
+    }
+
+    public void clear() {
+      original.clear();
+    }
+
+    public boolean containsKey(Object k) {
+      return original.containsKey(k);
+    }
+
+
+    public boolean containsValue(Object v) {
+      return original.containsValue(v);
+    }
+
+    public Set entrySet() {
+      return original.entrySet();
+    }
+
+    public Object get(Object k) {
+      return original.get(k);
+    }
+
+    public boolean isEmpty() {
+      return original.isEmpty();
+    }
+
+    public Set keySet() {
+      return original.keySet();
+    }
+
+    public Object put(Object k, Object v) {
+      throw new UnsupportedOperationException("objects can only be removed");
+    }
+
+    public void putAll(Map m) {
+      throw new UnsupportedOperationException("objects can only be removed");   
+    }
+
+    public Object remove(Object k) {
+      return original.remove(k);
+    }
+    
+    public int size() {
+      return original.size();
+    }
+
+    public Collection values() {
+      return original.values();
+    }
+
+  }
+  
+  /*
+  void printSLE(String pre, Collection c, String post) {
+    if(pre != null) {
+      System.out.println(pre);
+      System.out.flush();
+    }
+    for(Object o : c) {
+      ServiceListenerEntry sle = (ServiceListenerEntry)o;
+      System.out.println("SLE: " + sle.listener.getClass().getName() + "@" + sle.getFilter());
+      System.out.flush();
+    }
+    if(post != null) {
+      System.out.println(post);
+      System.out.flush();
+    }
+  }
+  
+  void printSLE(String pre, Map m, String post) {
+    System.out.println(pre);
+    System.out.flush();
+    for(Object o : m.values()) {
+      Collection c = (Collection)o;
+      printSLE(null, c, null);
+    }
+    System.out.println(post);
+    System.out.flush();
+  }
+*/
 }

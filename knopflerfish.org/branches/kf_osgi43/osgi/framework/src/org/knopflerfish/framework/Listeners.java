@@ -424,13 +424,23 @@ class Listeners {
     String[] classes = (String[])sr.getProperty(Constants.OBJECTCLASS);
     int n = 0;
     
-    framework.hooks.filterServiceEventReceivers(evt, receivers);
-
+    // TODO: OSGi43 the interplay between ldap filters, hooks and MODIFIED_ENDMATCH should be revised
     for (Iterator it = receivers.iterator(); it.hasNext(); n++) {
       final ServiceListenerEntry l = (ServiceListenerEntry)it.next();
       if (matchBefore != null) {
         matchBefore.remove(l);
       }
+    }
+    
+    framework.hooks.filterServiceEventReceivers(evt, receivers);
+
+    for (Iterator it = receivers.iterator(); it.hasNext(); n++) {
+      final ServiceListenerEntry l = (ServiceListenerEntry)it.next();
+      /* Had to move this check to before hooks, since MODIFIED_ENDMATCH should only be generated when filter is the cause 
+      if (matchBefore != null) {
+        matchBefore.remove(l);
+      }
+      */
       try {
         if (!l.isRemoved()
             && (!secure.checkPermissions() ||
