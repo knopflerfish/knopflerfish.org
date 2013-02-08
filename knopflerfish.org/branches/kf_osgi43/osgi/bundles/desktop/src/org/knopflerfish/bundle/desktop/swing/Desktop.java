@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,8 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -71,6 +73,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -125,11 +128,6 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
-import org.knopflerfish.service.desktop.BundleSelectionListener;
-import org.knopflerfish.service.desktop.BundleSelectionModel;
-import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
-import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -141,12 +139,19 @@ import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
+import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.startlevel.StartLevel;
 import org.osgi.util.tracker.ServiceTracker;
 
+import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SwingBundleDisplayer;
+
 /**
- * The big one. This class displays the main desktop frame, menues, console and
+ * The big one. This class displays the main desktop frame, menus, console and
  * listens for all registered <tt>SwingBundleDisplayer</tt> services. These are
  * used to create JComponents, which are attached to the main panels.
  */
@@ -250,15 +255,14 @@ public class Desktop implements BundleListener, FrameworkListener,
   LFManager lfManager;
   LookAndFeelMenu lfMenu;
 
-  ServiceTracker dispTracker;
-  ServiceTracker slTracker;
-  ServiceTracker pkgTracker;
+  ServiceTracker<SwingBundleDisplayer,SwingBundleDisplayer> dispTracker;
+  ServiceTracker<PackageAdmin,PackageAdmin> pkgTracker;
 
   JButton viewSelection;
 
   static Desktop theDesktop;
 
-  Set sizesavers = new HashSet();
+  Set<SizeSaver> sizesavers = new HashSet<SizeSaver>();
 
   // Check that we are on Mac OS X. This is crucial to loading and
   // using the OSXAdapter class.
@@ -273,31 +277,29 @@ public class Desktop implements BundleListener, FrameworkListener,
    * displays is constant. O/w we would end up with a UI where menu item changes
    * place from time to time.
    */
-  private Comparator referenceComparator = new Comparator() {
-    public int compare(Object obj1, Object obj2) {
-      ServiceReference ref1 = (ServiceReference) obj1;
-      ServiceReference ref2 = (ServiceReference) obj2;
+  private Comparator<ServiceReference<?>> referenceComparator
+    = new Comparator<ServiceReference<?>>() {
+    public int compare(ServiceReference<?> ref1, ServiceReference<?> ref2) {
       Long l1 = (Long) ref1.getProperty(Constants.SERVICE_ID);
       Long l2 = (Long) ref2.getProperty(Constants.SERVICE_ID);
       return l1.compareTo(l2);
     }
   };
 
-  Map displayMap = new TreeMap(referenceComparator);
-  Map menuMap = new HashMap();
-  Map detailMap = new HashMap();
+  Map<ServiceReference<?>, SwingBundleDisplayer> displayMap
+    = new TreeMap<ServiceReference<?>, SwingBundleDisplayer>(referenceComparator);
+  Map<ServiceReference<?>, JMenuItem> menuMap
+    = new HashMap<ServiceReference<?>, JMenuItem>();
+  Map<ServiceReference<?>, SwingBundleDisplayer> detailMap
+    = new HashMap<ServiceReference<?>, SwingBundleDisplayer>();
 
   public void start() {
     if (Activator.isStopped()) {
       return;
     }
 
-    slTracker = new ServiceTracker(Activator.getTargetBC(),
-        StartLevel.class.getName(), null);
-    slTracker.open();
-
-    pkgTracker = new ServiceTracker(Activator.getTargetBC(),
-        PackageAdmin.class.getName(), null);
+    pkgTracker = new ServiceTracker<PackageAdmin, PackageAdmin>(Activator.getTargetBC(),
+        PackageAdmin.class, null);
     pkgTracker.open();
 
     lfManager = new LFManager();
@@ -367,8 +369,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     detailPanel.addChangeListener(new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
-        for (Iterator it = detailMap.keySet().iterator(); it.hasNext();) {
-          ServiceReference sr = (ServiceReference) it.next();
+        for (Iterator<ServiceReference<?>> it = detailMap.keySet().iterator(); it.hasNext();) {
+          ServiceReference<?> sr = it.next();
           Object obj = detailMap.get(sr);
 
           if (obj instanceof DefaultSwingBundleDisplayer) {
@@ -449,11 +451,11 @@ public class Desktop implements BundleListener, FrameworkListener,
         + SwingBundleDisplayer.class.getName() + ")";
 
     try {
-      dispTracker = new ServiceTracker(Activator.getBC(), Activator.getBC()
+      dispTracker = new ServiceTracker<SwingBundleDisplayer,SwingBundleDisplayer>(Activator.getBC(), Activator.getBC()
           .createFilter(dispFilter), null) {
-        public Object addingService(final ServiceReference sr) {
-          final SwingBundleDisplayer disp = (SwingBundleDisplayer) super
-              .addingService(sr);
+        public SwingBundleDisplayer addingService(final ServiceReference<SwingBundleDisplayer> sr)
+        {
+          final SwingBundleDisplayer disp = super.addingService(sr);
 
           SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -500,9 +502,8 @@ public class Desktop implements BundleListener, FrameworkListener,
           return disp;
         }
 
-        public void removedService(final ServiceReference sr,
-            final Object service) {
-          final SwingBundleDisplayer disp = (SwingBundleDisplayer) service;
+        public void removedService(final ServiceReference<SwingBundleDisplayer> sr,
+                                   final SwingBundleDisplayer disp) {
           SwingUtilities.invokeLater(new Runnable() {
             public void run() {
               String name = Util.getStringProp(sr,
@@ -547,7 +548,7 @@ public class Desktop implements BundleListener, FrameworkListener,
               }
             }
           });
-          super.removedService(sr, service);
+          super.removedService(sr, disp);
         }
       };
       dispTracker.open();
@@ -754,9 +755,10 @@ public class Desktop implements BundleListener, FrameworkListener,
 
         add(viewSelection = makeViewSelectionButton());
 
-        StartLevel sls = (StartLevel) slTracker.getService();
+        final FrameworkStartLevel fsl
+        = Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
 
-        if (null == sls) {
+        if (null == fsl) {
           add(new JLabel(Strings.get("nostartlevel.label")));
         } else {
           add(makeStartLevelSelector());
@@ -768,7 +770,8 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   JComponent makeStartLevelSelector() {
-    StartLevel sls = (StartLevel) slTracker.getService();
+    final FrameworkStartLevel fsl
+      = Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
 
     Activator.log.debug("has start level service");
 
@@ -780,7 +783,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     updateLevelItems();
 
-    levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
+    levelBox.setSelectedIndex(fsl.getStartLevel() - levelMin);
 
     levelBox.addActionListener(new ActionListener() {
 
@@ -810,6 +813,20 @@ public class Desktop implements BundleListener, FrameworkListener,
       }
     });
 
+    // To ensure that the level box contents is correct we must rebuild it when
+    // it gains focus since there are no events that tells when a bundles start
+    // level has been changed.
+    levelBox.addFocusListener(new FocusListener() {
+      
+      public void focusLost(FocusEvent e)
+      {
+      }
+      
+      public void focusGained(FocusEvent e)
+      {
+        updateStartLevel();
+      }
+    });
     panel.add(levelBox);
 
     return panel;
@@ -819,17 +836,19 @@ public class Desktop implements BundleListener, FrameworkListener,
   void setFWStartLevel() {
     int level = levelBox.getSelectedIndex() + levelMin;
 
-    StartLevel sls = (StartLevel) slTracker.getService();
+    final FrameworkStartLevel fsl
+    = Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
 
-    if (sls != null) {
-      if (sls.getStartLevel() == level) {
+    if (fsl != null) {
+      if (fsl.getStartLevel() == level) {
         return;
       }
     }
 
     int myLevel = level;
     try {
-      myLevel = sls.getBundleStartLevel(Activator.getTargetBC().getBundle());
+      myLevel = Activator.getTargetBC().getBundle()
+          .adapt(BundleStartLevel.class).getStartLevel();
     } catch (IllegalArgumentException ignored) {
     }
 
@@ -849,8 +868,8 @@ public class Desktop implements BundleListener, FrameworkListener,
     if (bOK) {
       setStartLevel(level);
     } else {
-      if (sls != null) {
-        levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
+      if (fsl != null) {
+        levelBox.setSelectedIndex(fsl.getStartLevel() - levelMin);
       }
     }
   }
@@ -890,8 +909,8 @@ public class Desktop implements BundleListener, FrameworkListener,
     viewPopupMenu = new JPopupMenu();
     menuMap.clear();
 
-    for (Iterator it = displayMap.keySet().iterator(); it.hasNext();) {
-      final ServiceReference sr = (ServiceReference) it.next();
+    for (Iterator<ServiceReference<?>> it = displayMap.keySet().iterator(); it.hasNext();) {
+      final ServiceReference<?> sr = it.next();
       final String key = (String) sr
           .getProperty(SwingBundleDisplayer.PROP_NAME);
 
@@ -906,7 +925,7 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   void bundlePanelShowTab(String name) {
-    ServiceReference[] sr;
+    ServiceReference<?>[] sr;
     try {
       sr = Activator.getBC().getServiceReferences(
           SwingBundleDisplayer.class.getName(),
@@ -919,7 +938,7 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
   }
 
-  void bundlePanelShowTab(ServiceReference sr) {
+  void bundlePanelShowTab(ServiceReference<?> sr) {
     final String key = (String) sr.getProperty(SwingBundleDisplayer.PROP_NAME);
     bundlePanel.showTab(key);
     final JRadioButtonMenuItem item = (JRadioButtonMenuItem) menuMap.get(sr);
@@ -929,27 +948,27 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   void updateLevelItems() {
-    StartLevel sls = (StartLevel) slTracker.getService();
+    final FrameworkStartLevel fsl
+    = Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
 
-    if (sls != null) {
-      levelMax = Math.max(levelMax, sls.getStartLevel());
+    if (fsl != null) {
+      levelMax = Math.max(levelMax, fsl.getStartLevel());
     }
     levelItems = new String[levelMax - levelMin + 1];
 
     Bundle[] bundles = Activator.getTargetBC().getBundles();
 
     for (int i = levelMin; i <= levelMax; i++) {
-      StringBuffer sb = new StringBuffer();
+      final StringBuffer sb = new StringBuffer();
       int level = i;
       for (int j = 0; j < bundles.length; j++) {
+        final BundleStartLevel bsl =bundles[j].adapt(BundleStartLevel.class);
         try {
-          if (sls != null && sls.getBundleStartLevel(bundles[j]) == level) {
+          if (bsl != null && bsl.getStartLevel() == level) {
             if (sb.length() > 0) {
               sb.append(", ");
             }
-            String name = Util.getBundleName(bundles[j]);
-            // Text.replace(Util.shortLocation(bundles[j].getLocation()),
-            // ".jar", "");
+            final String name = Util.getBundleName(bundles[j]);
             sb.append(name);
           }
         } catch (IllegalArgumentException e) {
@@ -973,10 +992,11 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     Thread t = new Thread() {
       public void run() {
-        StartLevel sls = (StartLevel) slTracker.getService();
+        final FrameworkStartLevel fsl
+        = Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
 
-        if (null != sls) {
-          sls.setStartLevel(level);
+        if (null != fsl) {
+          fsl.setStartLevel(level);
         }
       }
     };
@@ -984,19 +1004,16 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   void updateStartLevel() {
-    if (slTracker == null) {
-      return;
-    }
+    final FrameworkStartLevel fsl
+    = Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
 
-    StartLevel sls = (StartLevel) slTracker.getService();
-
-    if (sls == null) {
+    if (fsl == null) {
       return;
     }
 
     updateLevelItems();
     if (levelBox != null) {
-      levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
+      levelBox.setSelectedIndex(fsl.getStartLevel() - levelMin);
     }
     updateBundleViewSelections();
   }
@@ -1045,8 +1062,6 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     Bundle[] bl = getSelectedBundles();
 
-    // displayHTML.selectionUpdated(bl);
-
     boolean bEnabled = bl.length > 0;
 
     actionStartBundles.setEnabled(bEnabled);
@@ -1066,26 +1081,25 @@ public class Desktop implements BundleListener, FrameworkListener,
       noStartLevelSelected.setSelected(true);
     }
 
-    final StartLevel sls = (StartLevel) slTracker.getService();
-    if (null != sls) {
-      final Set levels = new HashSet();
-      final Set bids = new HashSet();
-      for (int i = 0; i < bl.length; i++) {
+    final Set<Integer> levels = new HashSet<Integer>();
+    final Set<Long> bids = new HashSet<Long>();
+    for (int i = 0; i < bl.length; i++) {
+      final BundleStartLevel bsl = bl[i].adapt(BundleStartLevel.class);
+      if (bsl != null) {
         try {
-          // levels.add(new Integer(sls.getBundleStartLevel(bl[i])));
-          final Integer lvl = new Integer(sls.getBundleStartLevel(bl[i]));
+          final Integer lvl = new Integer(bsl.getStartLevel());
           levels.add(lvl);
           bids.add(new Long(bl[i].getBundleId()));
         } catch (Exception e) {
         }
       }
-      levelMenuLabel.setText("Bundle " + bids);
-      if (1 == levels.size()) {
-        final Integer level = (Integer) levels.iterator().next();
-        final AbstractButton jrb = (AbstractButton) levelCheckBoxes.get(level);
-        if (null != jrb)
-          jrb.setSelected(true);
-      }
+    }
+    levelMenuLabel.setText("Bundle " + bids);
+    if (1 == levels.size()) {
+      final Integer level = levels.iterator().next();
+      final AbstractButton jrb = levelCheckBoxes.get(level);
+      if (null != jrb)
+        jrb.setSelected(true);
     }
   }
 
@@ -1220,16 +1234,17 @@ public class Desktop implements BundleListener, FrameworkListener,
         add(itemResolveBundles = new JMenuItem(actionResolveBundles));
         add(itemRefreshBundles = new JMenuItem(actionRefreshBundles));
 
-        StartLevel sls = (StartLevel) slTracker.getService();
-        if (sls != null) {
+        FrameworkStartLevel fsl = Activator.getTargetBC().getBundle(0)
+            .adapt(FrameworkStartLevel.class);
+        if (fsl != null) {
           add(startLevelMenu = makeStartLevelMenu());
         }
       }
     };
   }
 
-  // Integer -> AbstractButton
-  Map levelCheckBoxes = new HashMap();
+  Map<Integer,AbstractButton> levelCheckBoxes
+    = new HashMap<Integer,AbstractButton>();
   // Use a menu item here even though a label should suffice, but the
   // MacOSX mapping to native (AWT) menu items requires a menu item to
   // work.
@@ -1256,15 +1271,15 @@ public class Desktop implements BundleListener, FrameworkListener,
           group.add(jrb);
           add(jrb);
           jrb.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              final StartLevel sls = (StartLevel) slTracker.getService();
-
+            public void actionPerformed(ActionEvent ev)
+            {
               final Bundle[] bl = getSelectedBundles();
-
-              if (null != sls) {
-                final int level = Integer.parseInt(jrb.getText());
-                for (int i = 0; i < bl.length; i++) {
-                  sls.setBundleStartLevel(bl[i], level);
+              final int level = Integer.parseInt(jrb.getText());
+              for (int i = 0; i < bl.length; i++) {
+                final BundleStartLevel bsl = bl[i]
+                    .adapt(BundleStartLevel.class);
+                if (null != bsl) {
+                  bsl.setStartLevel(level);
                 }
                 updateBundleViewSelections();
               }
@@ -1466,8 +1481,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     int count = 0;
     menuMap.clear();
-    for (Iterator it = displayMap.keySet().iterator(); it.hasNext();) {
-      final ServiceReference sr = (ServiceReference) it.next();
+    for (Iterator<ServiceReference<?>> it = displayMap.keySet().iterator(); it.hasNext();) {
+      final ServiceReference<?> sr = it.next();
       final String name = (String) sr
           .getProperty(SwingBundleDisplayer.PROP_NAME);
       final int c2 = count++;
@@ -1643,41 +1658,41 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  Map makeBundleBuckets() {
-    Map buckets;
+  Map<String, Collection<Bundle>> makeBundleBuckets() {
+    Map<String, Collection<Bundle>> buckets;
 
-    Bundle[] bl = Activator.getBundles();
-    Map bundles = new HashMap();
+    final Bundle[] bl = Activator.getBundles();
+    final Map<Long, Bundle> bundles = new HashMap<Long, Bundle>();
     for (int i = 0; bl != null && i < bl.length; i++) {
-      Object key = new Long(bl[i].getBundleId());
+      Long key = new Long(bl[i].getBundleId());
       bundles.put(key, bl[i]);
     }
 
     if (bundles.size() > 12) {
       // make alphabetical submenu grouping
       // if number of bundles is large
-      buckets = new TreeMap();
-      for (Iterator it = bundles.keySet().iterator(); it.hasNext();) {
-        Object key = it.next();
-        Bundle bundle = (Bundle) bundles.get(key);
-        String s = Util.getBundleName(bundle);
-        String f = s.length() > 0 ? s.substring(0, 1).toUpperCase() : "--";
-        Collection bucket = (Collection) buckets.get(f);
+      buckets = new TreeMap<String, Collection<Bundle>>();
+      for (Iterator<Long> it = bundles.keySet().iterator(); it.hasNext();) {
+        final Long key = it.next();
+        final Bundle bundle = bundles.get(key);
+        final String s = Util.getBundleName(bundle);
+        final String f = s.length() > 0 ? s.substring(0, 1).toUpperCase() : "--";
+        Collection<Bundle> bucket = (Collection<Bundle>) buckets.get(f);
         if (bucket == null) {
-          bucket = new ArrayList();
+          bucket = new ArrayList<Bundle>();
           buckets.put(f, bucket);
         }
         bucket.add(bundle);
       }
     } else {
-      buckets = new LinkedHashMap();
-      for (Iterator it = bundles.keySet().iterator(); it.hasNext();) {
-        Object key = it.next();
-        Bundle bundle = (Bundle) bundles.get(key);
+      buckets = new LinkedHashMap<String, Collection<Bundle>>();
+      for (Iterator<Long> it = bundles.keySet().iterator(); it.hasNext();) {
+        final Long key = it.next();
+        final Bundle bundle = bundles.get(key);
 
-        String f = "#" + bundle.getBundleId() + " "
+        final String f = "#" + bundle.getBundleId() + " "
             + Util.getBundleName(bundle);
-        buckets.put(f, bundle);
+        buckets.put(f, Collections.singleton(bundle));
       }
     }
     return buckets;
@@ -1719,26 +1734,23 @@ public class Desktop implements BundleListener, FrameworkListener,
     JMenu selectMenu = new JMenu("Select bundle");
     editMenu.add(selectMenu);
 
-    Map buckets = makeBundleBuckets();
+    Map<String, Collection<Bundle>> buckets = makeBundleBuckets();
 
-    for (Iterator it = buckets.keySet().iterator(); it.hasNext();) {
-      Object key = it.next();
-      Object val = buckets.get(key);
-      if (val instanceof Collection) {
-        Collection bucket = (Collection) val;
+    for (Iterator<String> it = buckets.keySet().iterator(); it.hasNext();) {
+      String key = it.next();
+      Collection<Bundle> bucket = buckets.get(key);
+      if (bucket.size()>1) {
         JMenu subMenu = new JMenu(key.toString());
-        for (Iterator it2 = bucket.iterator(); it2.hasNext();) {
-          Bundle bundle = (Bundle) it2.next();
-          JMenuItem item = makeSelectBundleItem(bundle);
+        for (Iterator<Bundle> it2 = bucket.iterator(); it2.hasNext();) {
+          final Bundle bundle = it2.next();
+          final JMenuItem item = makeSelectBundleItem(bundle);
           subMenu.add(item);
         }
         selectMenu.add(subMenu);
-      } else if (val instanceof Bundle) {
-        Bundle bundle = (Bundle) val;
-        JMenuItem item = makeSelectBundleItem(bundle);
+      } else if (bucket.size()==1) {
+        final Bundle bundle = bucket.iterator().next();
+        final JMenuItem item = makeSelectBundleItem(bundle);
         selectMenu.add(item);
-      } else {
-        throw new RuntimeException("Unknown object=" + val);
       }
     }
   }
@@ -2012,19 +2024,19 @@ public class Desktop implements BundleListener, FrameworkListener,
       return;
     }
 
-    Set pkgClosure = new TreeSet(Util.bundleIdComparator);
+    TreeSet<Bundle> pkgClosure = new TreeSet<Bundle>(Util.bundleIdComparator);
 
     for (int i = 0; i < targets.length; i++) {
       pkgClosure.addAll(Util.getPackageClosure(pm, targets[i], null));
     }
 
-    Set serviceClosure = new TreeSet(Util.bundleIdComparator);
+    TreeSet<Bundle> serviceClosure = new TreeSet<Bundle>(Util.bundleIdComparator);
 
     for (int i = 0; i < targets.length; i++) {
       serviceClosure.addAll(Util.getServiceClosure(targets[i], null));
     }
 
-    Set all = new TreeSet(Util.bundleIdComparator);
+    Set<Bundle> all = new TreeSet<Bundle>(Util.bundleIdComparator);
     all.addAll(pkgClosure);
     all.addAll(serviceClosure);
 
@@ -2036,8 +2048,6 @@ public class Desktop implements BundleListener, FrameworkListener,
     all.remove(Activator.getTargetBC().getBundle(0));
 
     ZipOutputStream out = null;
-
-    StartLevel sl = (StartLevel) slTracker.getService();
 
     File jarunpackerFile = new File(
         "../tools/jarunpacker/out/jarunpacker/jarunpacker.jar");
@@ -2089,8 +2099,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
       int bid = 0;
       int lastLevel = -1;
-      for (Iterator it = all.iterator(); it.hasNext();) {
-        Bundle b = (Bundle) it.next();
+      for (Iterator<Bundle> it = all.iterator(); it.hasNext();) {
+        Bundle b = it.next();
         String loc = b.getLocation();
 
         bid++;
@@ -2103,9 +2113,9 @@ public class Desktop implements BundleListener, FrameworkListener,
 
         int level = -1;
 
-        try {
-          level = sl.getBundleStartLevel(b);
-        } catch (Exception ignored) {
+        final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
+        if (null!=bsl) {
+          level = bsl.getStartLevel();
         }
 
         levelMax = Math.max(level, levelMax);
@@ -2135,8 +2145,8 @@ public class Desktop implements BundleListener, FrameworkListener,
       }
 
       bid = 0;
-      for (Iterator it = all.iterator(); it.hasNext();) {
-        Bundle b = (Bundle) it.next();
+      for (Iterator<Bundle> it = all.iterator(); it.hasNext();) {
+        Bundle b = it.next();
         bid++;
 
         if (b.getState() == Bundle.ACTIVE) {
@@ -2231,7 +2241,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   public Bundle[] getSelectedBundles() {
     int cnt = null != bundleCache ? bundleCache.length : 0;
-    final ArrayList res = new ArrayList(cnt);
+    final ArrayList<Bundle> res = new ArrayList<Bundle>(cnt);
 
     for (int i = 0; i < cnt; i++) {
       final Bundle b = bundleCache[i];
@@ -2239,7 +2249,7 @@ public class Desktop implements BundleListener, FrameworkListener,
         res.add(b);
       }
     }
-    return (Bundle[]) res.toArray(new Bundle[res.size()]);
+    return res.toArray(new Bundle[res.size()]);
   }
 
   void startBundle(final Bundle b) {
@@ -2316,8 +2326,8 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   void refreshBundle(final Bundle[] b) {
-    final ServiceReference sr = Activator
-        .getTargetBC_getServiceReference(PackageAdmin.class.getName());
+    final ServiceReference<PackageAdmin> sr = Activator
+        .getTargetBC_getServiceReference(PackageAdmin.class);
 
     if (sr != null) {
       final PackageAdmin packageAdmin = (PackageAdmin) Activator
@@ -2358,8 +2368,8 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   void resolveBundles(final Bundle[] b) {
-    final ServiceReference sr = Activator.getTargetBC().getServiceReference(
-        PackageAdmin.class.getName());
+    final ServiceReference<PackageAdmin> sr 
+      = Activator.getTargetBC().getServiceReference(PackageAdmin.class);
 
     if (sr != null) {
       final PackageAdmin packageAdmin = (PackageAdmin) Activator.getTargetBC()
@@ -2469,9 +2479,9 @@ public class Desktop implements BundleListener, FrameworkListener,
 
       if (e.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
         e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-        java.util.List files = (java.util.List) tr
+        java.util.List<?> files = (java.util.List<?>) tr
             .getTransferData(DataFlavor.javaFileListFlavor);
-        for (Iterator it = files.iterator(); it.hasNext();) {
+        for (Iterator<?> it = files.iterator(); it.hasNext();) {
           File file = (File) it.next();
           addFile(file);
         }
@@ -2539,8 +2549,8 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   public void stop() {
-    for (Iterator it = sizesavers.iterator(); it.hasNext();) {
-      SizeSaver ss = (SizeSaver) it.next();
+    for (Iterator<SizeSaver> it = sizesavers.iterator(); it.hasNext();) {
+      SizeSaver ss = it.next();
       ss.detach();
     }
     sizesavers.clear();
@@ -2551,11 +2561,6 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
 
     alive = false;
-
-    if (null != slTracker) {
-      slTracker.close();
-      slTracker = null;
-    }
 
     if (null != dispTracker) {
       dispTracker.close();

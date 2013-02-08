@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -46,10 +47,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
-import org.knopflerfish.service.desktop.BundleSelectionListener;
-import org.knopflerfish.service.desktop.BundleSelectionModel;
-import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
-import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -58,6 +55,11 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
+
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 
 public abstract class DefaultSwingBundleDisplayer
   implements
@@ -75,7 +77,7 @@ public abstract class DefaultSwingBundleDisplayer
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
   private Bundle[]     bundles;
 
-  ServiceRegistration  reg  = null;
+  ServiceRegistration<SwingBundleDisplayer>  reg  = null;
 
   boolean bUseListeners           = true;
   boolean bUpdateOnBundleChange   = false;
@@ -103,14 +105,14 @@ public abstract class DefaultSwingBundleDisplayer
     return bundles;
   }
 
-  public ServiceRegistration register() {
+  public ServiceRegistration<SwingBundleDisplayer> register() {
     if(reg != null) {
       return reg;
     }
 
     open();
 
-    Hashtable props = new Hashtable();
+    Dictionary<String, Object> props = new Hashtable<String,Object>();
     props.put(SwingBundleDisplayer.PROP_NAME,        getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
     props.put(SwingBundleDisplayer.PROP_ISDETAIL,
@@ -119,7 +121,7 @@ public abstract class DefaultSwingBundleDisplayer
               : Boolean.FALSE);
 
     reg = Activator.getBC()
-      .registerService(SwingBundleDisplayer.class.getName(),
+      .registerService(SwingBundleDisplayer.class,
                        this,
                        props);
 
@@ -170,7 +172,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   void getAllServices() {
     try {
-      ServiceReference[] srl = Activator.getTargetBC_getServiceReferences();
+      ServiceReference<?>[] srl = Activator.getTargetBC_getServiceReferences();
       for(int i = 0; srl != null && i < srl.length; i++) {
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
@@ -215,8 +217,8 @@ public abstract class DefaultSwingBundleDisplayer
     Activator.getTargetBC().removeBundleListener(this);
     Activator.getTargetBC().removeServiceListener(this);
 
-    for(Iterator it = components.iterator(); it.hasNext();) {
-      JComponent comp = (JComponent)it.next();
+    for(Iterator<JComponent> it = components.iterator(); it.hasNext();) {
+      JComponent comp = it.next();
       disposeJComponent(comp);
     }
     components.clear();
@@ -231,8 +233,8 @@ public abstract class DefaultSwingBundleDisplayer
   long lastBID = -1;
   public void valueChanged(long bid) {
     boolean bHasVisible = false;
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
+    for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+      JComponent comp = it.next();
       if(comp.isShowing()) {
         bHasVisible = true;
         break;
@@ -280,8 +282,8 @@ public abstract class DefaultSwingBundleDisplayer
   void updateComponents(final Bundle[] bl) {
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          for(Iterator it = components.iterator(); it.hasNext(); ) {
-            JComponent comp = (JComponent)it.next();
+          for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+            JComponent comp = it.next();
             if(comp.isShowing()) {
               if(comp instanceof JHTMLBundle) {
                 JHTMLBundle jhtml = (JHTMLBundle)comp;
@@ -295,7 +297,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   protected Bundle[] getAndSortBundles() {
     Bundle[] bl = Activator.getBundles();
-    SortedSet set = new TreeSet(Util.bundleIdComparator);
+    SortedSet<Bundle> set = new TreeSet<Bundle>(Util.bundleIdComparator);
     for(int i = 0; i < bl.length; i++) {
       set.add(bl[i]);
     }
@@ -321,7 +323,7 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
 
-  Set components = new HashSet();
+  Set<JComponent> components = new HashSet<JComponent>();
 
   public JComponent createJComponent() {
     JComponent comp = newJComponent();
@@ -337,8 +339,8 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   void repaintComponents() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
+    for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+      JComponent comp = it.next();
       comp.invalidate();
       comp.repaint();
     }

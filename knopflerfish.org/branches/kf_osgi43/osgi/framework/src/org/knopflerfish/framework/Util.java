@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,22 +34,41 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Vector;
 
 import org.osgi.framework.Constants;
 
 public class Util {
 
   /**
-   * Pre OSGi 4.2 propetry used by KF, replaced by Constants.FRAMEWORK_STORAGE
+   * Pre OSGi 4.2 property used by KF, replaced by Constants.FRAMEWORK_STORAGE
    * as of OSGi R4 v4.2.
    */
   static public final String FWDIR_PROP = "org.osgi.framework.dir";
   static public final String FWDIR_DEFAULT = "fwdir";
 
 
-  public static String getFrameworkDir(Map props) {
+  public static String getFrameworkDir(Map<String,String> props) {
     String s = (String)props.get(Constants.FRAMEWORK_STORAGE);
     if (s == null || s.length() == 0) {
       s = (String)props.get(FWDIR_PROP);
@@ -162,8 +181,8 @@ public class Util {
    * @return A HashSet with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static HashSet parseEnumeration(String d, String s) {
-    HashSet result = new HashSet();
+  public static HashSet<String> parseEnumeration(String d, String s) {
+    HashSet<String> result = new HashSet<String>();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
@@ -199,23 +218,28 @@ public class Util {
    * @return Iterator(Map(param -> value)) or null if input string is null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static Iterator parseEntries(String a, String s, boolean single, boolean unique,
-                                      boolean single_entry) {
-    ArrayList result = new ArrayList();
+  public static Iterator<Map<String, Object>> parseEntries(String a,
+                                                           String s,
+                                                           boolean single,
+                                                           boolean unique,
+                                                           boolean single_entry)
+  {
+    ArrayList<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        ArrayList keys = new ArrayList();
-        HashMap params = new HashMap();
-        Set directives = new TreeSet();
+        ArrayList<String> keys = new ArrayList<String>();
+        HashMap<String,Object> params = new HashMap<String,Object>();
+        Set<String> directives = new TreeSet<String>();
         params.put("$directives", directives); // $ is not allowed in
                                                // param names...
         String key = at.getKey();
         if (key == null) {
-          throw new IllegalArgumentException("Definition, " + a + ", expected key at: "
-              + at.getRest()
-              + ". Key values are terminated by a ';' or a ',' and may not "
-              + "contain ':', '='.");
+          final String msg = "Definition, " + a + ", expected key at: "
+                             + at.getRest() + ". Key values are terminated "
+                             +"by a ';' or a ',' and may not "
+                             + "contain ':', '='.";
+          throw new IllegalArgumentException(msg);
         }
         if (!single) {
           keys.add(key);
@@ -225,17 +249,19 @@ public class Util {
         }
         String param;
         while ((param = at.getParam()) != null) {
-          List old = (List)params.get(param);
+          List<String> old = (List<String>) params.get(param);
           boolean is_directive = at.isDirective();
           if (old != null && unique) {
-            throw new IllegalArgumentException("Definition, " + a + ", duplicate " +
-                                               (is_directive ? "directive" : "attribute") +
-                                               ": " + param);
+            final String msg = "Definition, " + a + ", duplicate "
+                               + (is_directive ? "directive" : "attribute")
+                               + ": " + param;
+            throw new IllegalArgumentException(msg);
           }
           String value = at.getValue();
           if (value == null) {
-            throw new IllegalArgumentException("Definition, " + a + ", expected value at: "
-                + at.getRest());
+            final String msg = "Definition, " + a + ", expected value at: "
+                               + at.getRest();
+            throw new IllegalArgumentException(msg);
           }
           if (is_directive) {
             // NYI Handle directives and check them
@@ -246,7 +272,7 @@ public class Util {
             params.put(param, value);
           } else {
             if (old == null) {
-              old = new ArrayList();
+              old = new ArrayList<String>();
               params.put(param, old);
             }
             old.add(value);
@@ -376,7 +402,7 @@ public class Util {
                                      String whiteSpace,
                                      char citChar) {
     boolean bCit = false; // true when inside citation chars.
-    Vector v = new Vector(); // (String) individual words after splitting
+    Vector<String> v = new Vector<String>(); // (String) individual words after splitting
     StringBuffer buf = new StringBuffer();
     int i = 0;
 
@@ -541,18 +567,18 @@ public class Util {
     }
   }
 
-  public interface Comparator {
-    public int compare(Object a, Object b);
+  public interface Comparator<A> {
+    public int compare(A a, A b);
   }
 
 
   /**
-   * Sort a vector with objects compareble using a comparison function.
+   * Sort a vector with objects comparable using a comparison function.
    * 
    * @param a Vector to sort
    * @param cf comparison function
    */
-  static public void sort(List a, Comparator cf, boolean bReverse) {
+  static public <A> void sort(List<A> a, Comparator<A> cf, boolean bReverse) {
     sort(a, 0, a.size() - 1, cf, bReverse ? -1 : 1);
   }
 
@@ -560,10 +586,10 @@ public class Util {
   /**
    * Vector QSort implementation.
    */
-  static void sort(List a, int lo0, int hi0, Comparator cf, int k) {
+  static <A> void sort(List<A> a, int lo0, int hi0, Comparator<A> cf, int k) {
     int lo = lo0;
     int hi = hi0;
-    Object mid;
+    A mid;
 
     if (hi0 > lo0) {
 
@@ -596,8 +622,8 @@ public class Util {
   }
 
 
-  private static void swap(List a, int i, int j) {
-    Object tmp = a.get(i);
+  private static <A> void swap(List<A> a, int i, int j) {
+    A tmp = a.get(i);
     a.set(i, a.get(j));
     a.set(j, tmp);
   }
@@ -614,7 +640,7 @@ public class Util {
    *         defined as the point at which the key would be inserted into the
    *         list.
    */
-  public static int binarySearch(List pl, Comparator c, Object p) {
+  public static <A> int binarySearch(List<A> pl, Comparator<A> c, A p) {
     int l = 0;
     int u = pl.size() - 1;
 
@@ -735,12 +761,12 @@ public class Util {
 
 
   /**
-   * Merges target with the entires in extra. After this method has returned
-   * target will contain all entires in extra that did not exist in target.
+   * Merges target with the entries in extra. After this method has returned
+   * target will contain all entries in extra that did not exist in target.
    */
-  static void mergeDictionaries(Dictionary target, Dictionary extra) {
-    for (Enumeration e = extra.keys(); e.hasMoreElements();) {
-      Object key = e.nextElement();
+  static <A, B> void mergeDictionaries(Dictionary<A, B> target, Dictionary<A,B> extra) {
+    for (Enumeration<A> e = extra.keys(); e.hasMoreElements();) {
+      A key = e.nextElement();
       if (target.get(key) == null) {
         target.put(key, extra.get(key));
       }

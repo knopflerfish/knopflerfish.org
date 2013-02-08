@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,6 +60,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
@@ -74,8 +75,8 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.service.packageadmin.ExportedPackage;
-import org.osgi.service.startlevel.StartLevel;
 
 import org.knopflerfish.util.Text;
 
@@ -128,8 +129,8 @@ public class Util {
     return Long.parseLong(url.toString().substring(URL_BUNDLE_PREFIX.length()));
   }
 
-  public static Map paramsFromURL(final URL url) {
-    final Map/* <String,String> */res = new HashMap();
+  public static Map<String,String> paramsFromURL(final URL url) {
+    final Map<String,String> res = new HashMap<String, String>();
     final String query = url.getQuery();
     if (null != query) {
       final StringTokenizer st = new StringTokenizer(query, "&");
@@ -146,15 +147,15 @@ public class Util {
   }
 
   public static void appendParams(final StringBuffer sb,
-                                  final Map params) {
+                                  final Map<?, ?> params) {
     if (!params.isEmpty()) {
       char sep = '?';
-      for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
+      for (Iterator<?> it = params.entrySet().iterator(); it.hasNext();) {
         sb.append(sep);
         if ('?'==sep) {
           sep = '&';
         }
-        final Map.Entry entry = (Map.Entry) it.next();
+        final Entry<?,?> entry = (Entry<?, ?>) it.next();
         sb.append(entry.getKey());
         sb.append('=');
         sb.append(entry.getValue());
@@ -187,20 +188,20 @@ public class Util {
     }
   }
 
-  public static Object getProp(ServiceReference sr,
+  public static Object getProp(ServiceReference<?> sr,
                                String key,
                                Object def) {
     Object obj = sr.getProperty(key);
     return obj != null ? obj : def;
   }
 
-  public static String getStringProp(ServiceReference sr,
+  public static String getStringProp(ServiceReference<?> sr,
                                      String key,
                                      String def) {
     return (String)getProp(sr, key, def);
   }
 
-  public static boolean getBooleanProp(ServiceReference sr,
+  public static boolean getBooleanProp(ServiceReference<?> sr,
                                        String key,
                                        boolean def) {
     return ((Boolean)getProp(sr, key, def ? Boolean.TRUE : Boolean.FALSE))
@@ -304,11 +305,11 @@ public class Util {
     sb.append(" Name: "     + Util.getBundleName(b) + "<br>");
     sb.append(" State: "    + Util.stateName(b.getState()) + "<br>");
 
-    final StartLevel sls = (StartLevel) Activator.getStartLevelService();
-    if(sls != null) {
+    final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
+    if (bsl != null) {
       sb.append(" Start level: ");
       try {
-        sb.append(sls.getBundleStartLevel(b));
+        sb.append(bsl.getStartLevel());
       } catch (IllegalArgumentException e) {
         sb.append("not managed");
       }
@@ -320,7 +321,7 @@ public class Util {
   }
 
   // Bundle -> Icon
-  static Map iconMap = new HashMap();
+  static Map<Bundle, Icon> iconMap = new HashMap<Bundle, Icon>();
 
   // This constant should be in org.osgi.framework.Contants but is not...
   final static String BUNDLE_ICON = "Bundle-Icon";
@@ -336,8 +337,8 @@ public class Util {
   // Get the bundle icon for a bundle. Icons are cached.
   public static Icon getBundleIcon(Bundle b) {
     synchronized(iconMap) {
-      Class clazz = Util.class;
-      Icon icon = (Icon)iconMap.get(b);
+      Class<Util> clazz = Util.class;
+      Icon icon = iconMap.get(b);
       if(icon != null) {
         return icon;
       }
@@ -380,21 +381,21 @@ public class Util {
     if (null!=bih && 0<bih.length()) {
       // Re-uses the manifest entry parser from the KF-framework
       try {
-        final Iterator it = org.knopflerfish.framework.Util
+        final Iterator<Map<String, Object>> it = org.knopflerfish.framework.Util
           .parseEntries(BUNDLE_ICON, bih, false, true, false);
         String iconName = null;
         int iconSize = -1;
         // We prefer a 32x32 size icon.
         while (it.hasNext()) {
-          final Map entry = (Map) it.next();
-          final List icns = (List) entry.get("$keys");
+          final Map<String, Object> entry = it.next();
+          final List<String> icns = (List<String>) entry.get("$keys");
           final String sizeS = (String) entry.get("size");
 
           if (null==sizeS) {
             // Icon with unspecifeid size; use it if no other icon
             // has been found.
             if (null==iconName) {
-              iconName= (String) icns.get(0);
+              iconName= icns.get(0);
             }
           } else {
             int size = -1;
@@ -405,11 +406,11 @@ public class Util {
             if (-1<size) {
               if (-1==iconSize) {
                 // First icon with a valid size; start with it.
-                iconName= (String) icns.get(0);
+                iconName= icns.get(0);
                 iconSize = size;
               } else if (Math.abs(size-32) < Math.abs(iconSize-32)) {
                 // Icon is closer in size 32 than old icon; use it
-                iconName= (String) icns.get(0);
+                iconName= icns.get(0);
                 iconSize = size;
               }
             }
@@ -476,13 +477,10 @@ public class Util {
   }
 
 
-  public static Comparator bundleIdComparator = new BundleIdComparator();
+  public static Comparator<Bundle> bundleIdComparator = new BundleIdComparator();
 
-  public static class BundleIdComparator implements Comparator {
-    public int compare(Object o1, Object o2) {
-      Bundle b1 = (Bundle)o1;
-      Bundle b2 = (Bundle)o2;
-
+  public static class BundleIdComparator implements Comparator<Bundle> {
+    public int compare(Bundle b1, Bundle b2) {
       return (int)(b1.getBundleId() - b2.getBundleId());
     }
 
@@ -493,7 +491,7 @@ public class Util {
 
 
 // StringBuffer (red.green.blue) -> Color
-  static Hashtable colors = new Hashtable();
+  static Hashtable<Integer, Color> colors = new Hashtable<Integer, Color>();
 
   static int maxK = 256;
 
@@ -520,7 +518,7 @@ public class Util {
 
     Integer key = new Integer((r << 16) | (g << 8) | g);
 
-    Color c = (Color)colors.get(key);
+    Color c = colors.get(key);
     if(c == null) {
       c = new Color(r, g, b);
       colors.put(key, c);
@@ -572,26 +570,26 @@ public class Util {
      * Get transitive closure of a target bundle
      * by searching for all exporters to the target.
      *
-     * @param pm      Package mananger
+     * @param pm      Package manager
      * @param target  Target bundle to calculate closure for
      * @param handled Set of already scanned bundles. Should be
      *                null or empty set on top level call
      * @return        Set of <tt>Bundle</tt>
      */
-    static public Set getPackageClosure(PackageManager pm,
-                                        Bundle       target,
-                                        Set          handled)
-    {
+  static public Set<Bundle> getPackageClosure(PackageManager pm,
+                                              Bundle target,
+                                              Set<Bundle> handled)
+  {
       if(handled == null) {
-        handled = new HashSet();
+        handled = new HashSet<Bundle>();
       }
 
-      Set closure = new TreeSet(Util.bundleIdComparator);
+      Set<Bundle> closure = new TreeSet<Bundle>(Util.bundleIdComparator);
 
-      Collection importedPkgs = pm.getImportedPackages(target);
+      Collection<ExportedPackage> importedPkgs = pm.getImportedPackages(target);
 
-      for(Iterator it = importedPkgs.iterator(); it.hasNext();) {
-        ExportedPackage pkg = (ExportedPackage)it.next();
+      for(Iterator<ExportedPackage> it = importedPkgs.iterator(); it.hasNext();) {
+        ExportedPackage pkg = it.next();
 
         Bundle exporter = pkg.getExportingBundle();
         if (null==exporter) continue;
@@ -603,8 +601,8 @@ public class Util {
         if(!handled.contains(exporter)) {
           handled.add(exporter);
 
-          // call recursivly with exporter as target
-          Set trans = getPackageClosure(pm, exporter, handled);
+          // call recursively with exporter as target
+          Set<Bundle> trans = getPackageClosure(pm, exporter, handled);
           closure.addAll(trans);
         }
       }
@@ -649,16 +647,15 @@ public class Util {
      *                empty set on top level call.
      * @return        Set of <tt>Bundle</tt>
      */
-    static public Set getServiceClosure(Bundle       target,
-                                        Set          handled) {
-
+  static public Set<Bundle> getServiceClosure(Bundle target, Set<Bundle> handled)
+  {
       if(handled == null) {
-        handled = new HashSet();
+        handled = new HashSet<Bundle>();
       }
 
-      Set closure = new TreeSet(Util.bundleIdComparator);
+      Set<Bundle> closure = new TreeSet<Bundle>(Util.bundleIdComparator);
 
-      ServiceReference[] srl = target.getServicesInUse();
+      ServiceReference<?>[] srl = target.getServicesInUse();
 
       for(int i = 0; srl != null && i < srl.length; i++) {
         Bundle b = srl[i].getBundle();
@@ -669,7 +666,7 @@ public class Util {
         if(!handled.contains(b)) {
           handled.add(b);
 
-          Set trans = getServiceClosure(b, handled);
+          Set<Bundle> trans = getServiceClosure(b, handled);
           closure.addAll(trans);
         }
       }
@@ -693,14 +690,14 @@ public class Util {
   };
 
   public static StringBuffer getXARGS(Bundle target,
-                                      Set pkgClosure,
-                                      Set serviceClosure) {
+                                      Set<Bundle> pkgClosure,
+                                      Set<Bundle> serviceClosure) {
 
     StringBuffer sb = new StringBuffer();
 
     String jarBase = Util.getProperty("org.knopflerfish.gosg.jars", "");
 
-    Set all = new TreeSet(Util.bundleIdComparator);
+    Set<Bundle> all = new TreeSet<Bundle>(Util.bundleIdComparator);
     all.addAll(pkgClosure);
     all.addAll(serviceClosure);
 
@@ -721,18 +718,16 @@ public class Util {
       }
     }
 
-    StartLevel sl = (StartLevel)Activator.desktop.slTracker.getService();
-
     int levelMax = -1;
 
     int n = 0;
     int lastLevel = -1;
-    for(Iterator it = all.iterator(); it.hasNext(); ) {
-      Bundle b = (Bundle)it.next();
+    for(Iterator<Bundle> it = all.iterator(); it.hasNext(); ) {
+      Bundle b = it.next();
+      final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
       int level = -1;
-      try {
-        level = sl.getBundleStartLevel(b);
-      } catch (Exception ignored) {
+      if (bsl!=null) {
+        level = bsl.getStartLevel();
       }
 
       levelMax = Math.max(level, levelMax);
@@ -751,8 +746,8 @@ public class Util {
     sb.append("-launch\n");
 
     n = 0;
-    for(Iterator it = all.iterator(); it.hasNext(); ) {
-      Bundle b = (Bundle)it.next();
+    for(Iterator<Bundle> it = all.iterator(); it.hasNext(); ) {
+      Bundle b = it.next();
       n++;
       if(b.getState() == Bundle.ACTIVE) {
         sb.append("-start " + n + "\n");
@@ -793,7 +788,8 @@ public class Util {
     final StringBuffer sb = new StringBuffer();
 
     try {
-      final Map props = new TreeMap(Activator.getSystemProperties());
+      final TreeMap<String, String> props
+        = new TreeMap<String, String>(Activator.getSystemProperties());
 
       sb.append("<table>\n");
 
@@ -827,9 +823,9 @@ public class Util {
       sb.append("</tr>\n");
 
 
-      for(Iterator it = props.keySet().iterator(); it.hasNext();) {
-        String key = (String)it.next();
-        String val = (String)props.get(key);
+      for(Iterator<String> it = props.keySet().iterator(); it.hasNext();) {
+        String key = it.next();
+        String val = props.get(key);
         sb.append(" <tr>\n");
         sb.append("  <td valign=\"top\">");
         sb.append(fontify(key));
@@ -868,24 +864,24 @@ public class Util {
     } else if(val.getClass().isArray()) {
       printArray(out, val);
     } else if(val instanceof Vector) {
-      printVector(out, (Vector)val);
+      printVector(out, (Vector<?>)val);
     } else if(val instanceof Map) {
-      printMap(out, (Map)val);
+      printMap(out, (Map<?, ?>)val);
     } else if(val instanceof Set) {
-      printSet(out, (Set)val);
+      printSet(out, (Set<?>)val);
     } else if(val instanceof Dictionary) {
-      printDictionary(out, (Dictionary)val);
+      printDictionary(out, (Dictionary<?, ?>)val);
     } else {
       out.print(Util.fontify(val));
       //      out.print(" (" + val.getClass().getName() + ")");
     }
   }
 
-  static public void printDictionary(PrintWriter out, Dictionary d)
+  static public void printDictionary(PrintWriter out, Dictionary<?, ?> d)
     throws IOException
   {
     out.println("<table border=0>");
-    for(Enumeration e = d.keys(); e.hasMoreElements();) {
+    for(Enumeration<?> e = d.keys(); e.hasMoreElements();) {
       Object key = e.nextElement();
       Object val = d.get(key);
       out.println("<tr>");
@@ -903,10 +899,10 @@ public class Util {
     out.println("</table>");
   }
 
-  static public void printMap(PrintWriter out, Map m) throws IOException {
+  static public void printMap(PrintWriter out, Map<?, ?> m) throws IOException {
 
     out.println("<table border=0>");
-    for(Iterator it = m.keySet().iterator(); it.hasNext();) {
+    for(Iterator<?> it = m.keySet().iterator(); it.hasNext();) {
       Object key = it.next();
       Object val = m.get(key);
 
@@ -935,8 +931,8 @@ public class Util {
     }
   }
 
-  static public void printSet(PrintWriter out, Set a) throws IOException {
-    for(Iterator it = a.iterator(); it.hasNext();) {
+  static public void printSet(PrintWriter out, Set<?> a) throws IOException {
+    for(Iterator<?> it = a.iterator(); it.hasNext();) {
       printObject(out, it.next());
       if(it.hasNext()) {
         out.println("<br>");
@@ -944,7 +940,7 @@ public class Util {
     }
   }
 
-  static public void printVector(PrintWriter out, Vector a) throws IOException {
+  static public void printVector(PrintWriter out, Vector<?> a) throws IOException {
     for(int i = 0; i < a.size(); i++) {
       printObject(out, a.elementAt(i));
       if(i < a.size() - 1) {
@@ -1051,7 +1047,7 @@ public class Util {
    * various known backdoors (we don't really rely on R4.1 yet)
    */
   public static BundleContext getBundleContext(Bundle b) {
-    Class clazz = b.getClass();
+    Class<? extends Bundle> clazz = b.getClass();
     try {
       // getBundleContext() is an R4.1 method, but try to grab it
       // using reflection and punch a hole in the method modifiers.
@@ -1086,7 +1082,7 @@ public class Util {
     return null;
   }
 
-  public static String getServiceInfo(ServiceReference sr) {
+  public static String getServiceInfo(ServiceReference<?> sr) {
     StringBuffer sb = new StringBuffer();
 
     sb.append(sr.getProperty("service.id") + ": " + getClassNames(sr));
@@ -1111,11 +1107,11 @@ public class Util {
   }
 
 
-  public static String getClassNames(ServiceReference sr) {
+  public static String getClassNames(ServiceReference<?> sr) {
     return getClassNames(sr, "\n");
   }
 
-  public static String getClassNames(ServiceReference sr, String sep) {
+  public static String getClassNames(ServiceReference<?> sr, String sep) {
 
     StringBuffer sb = new StringBuffer();
     String sa[] = (String[])sr.getProperty("objectClass");

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,8 +62,8 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
   public void valueChanged(long bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JHTML comp = (JHTML)it.next();
+    for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+      JHTML comp = (JHTML) it.next();
       comp.valueChanged(bl);
     }
   }
@@ -135,15 +135,14 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
       StringBuffer sb = new StringBuffer();
 
       startFont(sb);
-      ServiceReference sr = Activator
-        .getTargetBC_getServiceReference(PackageAdmin.class.getName());
-      PackageAdmin pkgAdmin
-        = (PackageAdmin) Activator.getTargetBC_getService(sr);
+      ServiceReference<PackageAdmin> sr = Activator
+        .getTargetBC_getServiceReference(PackageAdmin.class);
+      PackageAdmin pkgAdmin = Activator.getTargetBC_getService(sr);
       if(pkgAdmin == null) {
         sb.append("No PackageAdmin service found");
       } else {
 
-        Set pkgClosure = new TreeSet(Util.bundleIdComparator);
+        Set<Bundle> pkgClosure = new TreeSet<Bundle>(Util.bundleIdComparator);
 
         for(int i = 0; i < targets.length; i++) {
           pkgClosure.addAll(Util.getPackageClosure(Activator.desktop.pm,
@@ -159,8 +158,8 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         } else {
 
           sb.append("<b>Static dependencies via packages</b><br>");
-          for(Iterator it = pkgClosure.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
+          for(Iterator<Bundle> it = pkgClosure.iterator(); it.hasNext();) {
+            Bundle depB = it.next();
 
             sb.append("&nbsp;&nbsp;");
             Util.bundleLink(sb, depB);
@@ -170,7 +169,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
         sb.append("<br>");
 
-        Set serviceClosure = new TreeSet(Util.bundleIdComparator);
+        Set<Bundle> serviceClosure = new TreeSet<Bundle>(Util.bundleIdComparator);
 
         for(int i = 0; i < targets.length; i++) {
           serviceClosure.addAll(Util.getServiceClosure(targets[i], null));
@@ -184,8 +183,8 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         } else {
           sb.append("<b>Runtime dependencies via services</b><br>");
 
-          for(Iterator it = serviceClosure.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
+          for(Iterator<Bundle> it = serviceClosure.iterator(); it.hasNext();) {
+            Bundle depB = it.next();
 
             sb.append("&nbsp;&nbsp;");
             Util.bundleLink(sb, depB);
@@ -195,7 +194,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
         sb.append("<br>");
 
-        Set fragments = new TreeSet(Util.bundleIdComparator);
+        Set<Bundle> fragments = new TreeSet<Bundle>(Util.bundleIdComparator);
         for(int i = 0; i < targets.length; i++) {
           Bundle[] fragmentBundles = pkgAdmin.getFragments(targets[i]);
           if (fragmentBundles != null) {
@@ -208,8 +207,8 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
           sb.append("No fragments");
         } else {
           sb.append("<b>Fragments</b><br>");
-          for(Iterator it = fragments.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
+          for(Iterator<Bundle> it = fragments.iterator(); it.hasNext();) {
+            Bundle depB = it.next();
             sb.append("&nbsp;&nbsp;");
             Util.bundleLink(sb, depB);
             sb.append("<br>");
@@ -218,7 +217,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
         sb.append("<br>");
 
-        Set hosts = new TreeSet(Util.bundleIdComparator);
+        Set<Bundle> hosts = new TreeSet<Bundle>(Util.bundleIdComparator);
         for(int i = 0; i < targets.length; i++) {
           Bundle[] hostBundles = pkgAdmin.getHosts(targets[i]);
           if (hostBundles != null) {
@@ -231,8 +230,8 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
           sb.append("No host");
         } else {
           sb.append("<b>Host</b><br>");
-          for(Iterator it = hosts.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
+          for(Iterator<Bundle> it = hosts.iterator(); it.hasNext();) {
+            Bundle depB = it.next();
             sb.append("&nbsp;&nbsp;");
             Util.bundleLink(sb, depB);
             sb.append("<br>");
@@ -241,8 +240,8 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
         sb.append("<br>");
 
-        Set required = new TreeSet(Util.bundleIdComparator);
-        Set requiredBy = new TreeSet(Util.bundleIdComparator);
+        Set<Bundle> required = new TreeSet<Bundle>(Util.bundleIdComparator);
+        Set<Bundle> requiredBy = new TreeSet<Bundle>(Util.bundleIdComparator);
 
 try { // untested code
         RequiredBundle[] requiredBundles = pkgAdmin.getRequiredBundles(null);
@@ -274,8 +273,8 @@ try { // untested code
           sb.append("No required bundles");
         } else {
           sb.append("<b>Required bundles</b><br>");
-          for(Iterator it = required.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
+          for(Iterator<Bundle> it = required.iterator(); it.hasNext();) {
+            Bundle depB = it.next();
             sb.append("&nbsp;&nbsp;");
             Util.bundleLink(sb, depB);
             sb.append("<br>");
@@ -286,8 +285,8 @@ try { // untested code
           sb.append("No requiring bundles");
         } else {
           sb.append("<b>Requiring bundles</b><br>");
-          for(Iterator it = requiredBy.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
+          for(Iterator<Bundle> it = requiredBy.iterator(); it.hasNext();) {
+            Bundle depB = it.next();
             sb.append("&nbsp;&nbsp;");
             Util.bundleLink(sb, depB);
             sb.append("<br>");

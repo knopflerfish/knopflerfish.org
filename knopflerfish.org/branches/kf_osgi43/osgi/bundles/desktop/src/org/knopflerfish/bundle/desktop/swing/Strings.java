@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ import java.util.List;
  * <pre>
  * button_xx      String for xx to be placed on a graphical button
  * menu_xx        String for xx to be placed in a window menu
- * tooltip_xx     String for tooltip xx text
+ * tooltip_xx     String for tool-tip xx text
  * str_xx         Generic string for xx
  * </pre>
  */
@@ -54,13 +54,13 @@ public class Strings {
   /**
    * Lookup table for strings.
    */
-  private static Hashtable strings;
+  private static Hashtable<String, String> strings;
 
   /**
    * Initialize strings hashtable.
    */
   static {
-    strings = new Hashtable() {
+    strings = new Hashtable<String, String>() {
         private static final long serialVersionUID = 1L;
         {
           put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
@@ -348,7 +348,7 @@ public class Strings {
 
       if (bCit || separators.indexOf(c) == -1) {
         // Build up word until we breaks on either a citation char or
-        // spearator
+        // separator
         if (c == citChar) {
           bCit = !bCit;
           buf.append(c);
@@ -388,11 +388,11 @@ public class Strings {
    *            Citation character used for grouping words with embedded
    *            separators. Typically '"'.
    */
-  public static List/*<String>*/ splitWordSep(final String s,
-                                              final String separators,
-                                              final char citChar)
+  public static List<String> splitWordSep(final String s,
+                                          final String separators,
+                                          final char citChar)
   {
-    final ArrayList res = new ArrayList();
+    final ArrayList<String> res = new ArrayList<String>();
     final StringBuffer buf = new StringBuffer(s.length());
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.

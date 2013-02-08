@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ import javax.swing.table.TableModel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
-import org.osgi.service.startlevel.StartLevel;
+import org.osgi.framework.startlevel.BundleStartLevel;
 
 
 public class TableDisplayer extends DefaultSwingBundleDisplayer {
@@ -262,7 +262,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       return COL_COUNT;
     }
 
-    public Class getColumnClass(int columnIndex) {
+    public Class<?> getColumnClass(int columnIndex) {
       Object obj = getValueAt(0, columnIndex);
       if (obj == null) {
         return Object.class;
@@ -331,11 +331,11 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
         return Util.stateName(b.getState());
       case COL_STARTLEVEL:
         {
-          StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
+          final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
 
-          if(null != sls) {
+          if(null != bsl) {
             try {
-              int n = sls.getBundleStartLevel(b);
+              int n = bsl.getStartLevel();
               return Integer.toString(n);
             } catch (Exception e) {
               return "not managed";
@@ -371,7 +371,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     public void addSelectionInterval(int index0, int index1)
     {
       if(!bInValueChanged) {
-        final List selectedBundleIds = new ArrayList();
+        final List<Long> selectedBundleIds = new ArrayList<Long>();
         for (int row=index0; row<=index1; row++) {
           final long rowBid = model.getBundle(row).getBundleId();
           selectedBundleIds.add(new Long(rowBid));
@@ -385,7 +385,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     public void removeSelectionInterval(int index0, int index1)
     {
       if(!bInValueChanged) {
-        final List selectedBundleIds = new ArrayList();
+        final List<Long> selectedBundleIds = new ArrayList<Long>();
         for (int row=index0; row<=index1; row++) {
           final long rowBid = model.getBundle(row).getBundleId();
           selectedBundleIds.add(new Long(rowBid));
@@ -400,7 +400,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     {
       if(!bInValueChanged) {
         bundleSelModel.clearSelection();
-        final List selectedBundleIds = new ArrayList();
+        final List<Long> selectedBundleIds = new ArrayList<Long>();
         final int startIx = index0<=index1 ? index0 : index1;
         final int endIx   = index0<=index1 ? index1 : index0;
         for (int row=startIx; row<=endIx; row++) {

@@ -393,19 +393,17 @@ public class StartLevelController
   }
 
 
-  static final Util.Comparator BSComparator = new Util.Comparator() {
-    public int compare(Object o1, Object o2) {
-      BundleImpl b1 = (BundleImpl)o1;
-      BundleImpl b2 = (BundleImpl)o2;
-
+  static final Util.Comparator<BundleImpl>
+    BSComparator = new Util.Comparator<BundleImpl>() {
+    public int compare(BundleImpl b1, BundleImpl b2)
+    {
       int res = b1.getStartLevel() - b2.getStartLevel();
       if (res == 0) {
-        res = (int)(b1.getBundleId() - b2.getBundleId());
+        res = (int) (b1.getBundleId() - b2.getBundleId());
       }
       return res;
     }
   };
-
 
   int getBundleStartLevel(BundleImpl bundle) {
     if (bundle.getBundleId() == 0) {

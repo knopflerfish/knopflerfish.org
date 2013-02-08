@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,7 +83,7 @@ import javax.swing.SwingUtilities;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
-import org.osgi.service.startlevel.StartLevel;
+import org.osgi.framework.startlevel.BundleStartLevel;
 
 
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
@@ -102,8 +102,8 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          for(Iterator it = components.iterator(); it.hasNext(); ) {
-            JLargeIcons comp = (JLargeIcons)it.next();
+          for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+            JLargeIcons comp = (JLargeIcons) it.next();
             switch(ev.getType()) {
             case BundleEvent.INSTALLED:
               comp.addBundle(ev.getBundle());
@@ -128,7 +128,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     // job posted to the EDT.
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          for(Iterator it = components.iterator(); it.hasNext(); ) {
+          for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
             final JLargeIcons comp = (JLargeIcons)it.next();
             comp.showBundle(b);
           }
@@ -145,7 +145,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
   class JLargeIcons extends JPanel {
     private static final long serialVersionUID = 1L;
 
-    Map         bundleMap = new TreeMap();
+    Map<Long, JLabel>         bundleMap = new TreeMap<Long, JLabel>();
     GridLayout  grid;
     ImageIcon   bundleIcon;
     JPanel      panel;
@@ -222,7 +222,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       public void actionPerformed(ActionEvent e)
       {
-        final List selectedBundleIds = new ArrayList();
+        final List<Long> selectedBundleIds = new ArrayList<Long>();
         final Component[] comps = panel.getComponents();
         final String bidKey = LargeIconsDisplayer.class.getName() +".bid";
         for (int i=0; i<comps.length; i++) {
@@ -505,7 +505,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     }
 
 
-    Comparator iconComparator = null;
+    Comparator<Long> iconComparator = null;
 
     void rebuildPanel() {
       if(SwingUtilities.isEventDispatchThread()) {
@@ -523,14 +523,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       panel.removeAll();
 
-      Set set = new TreeSet(iconComparator);
+      Set<Long> set = new TreeSet<Long>(iconComparator);
       set.addAll(bundleMap.keySet());
 
       int w = 0; // Width of widest icon
       int h = 0; // Height of higest icon
-      for(Iterator it = set.iterator(); it.hasNext(); ) {
-        Long      bid = (Long)it.next();
-        JComponent c   = (JComponent)bundleMap.get(bid);
+      for(Iterator<Long> it = set.iterator(); it.hasNext(); ) {
+        Long      bid = it.next();
+        JComponent c   = bundleMap.get(bid);
         Dimension size = c.getPreferredSize();
         w = Math.max(w, size.width);
         h = Math.max(h, size.height);
@@ -560,9 +560,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         grid.setRows(0);
       }
 
-      for(Iterator it = set.iterator(); it.hasNext(); ) {
-        final Long bid = (Long)it.next();
-        final Component c = (Component)bundleMap.get(bid);
+      for(Iterator<Long> it = set.iterator(); it.hasNext(); ) {
+        final Long bid = it.next();
+        final Component c = bundleMap.get(bid);
         panel.add(c);
       }
 
@@ -590,15 +590,15 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     JComponent getBundleComponent(long bid) {
-      return (JComponent) bundleMap.get(new Long(bid));
+      return bundleMap.get(new Long(bid));
     }
 
     JComponent getBundleComponent(Bundle b) {
-      return (JComponent)bundleMap.get(new Long(b.getBundleId()));
+      return bundleMap.get(new Long(b.getBundleId()));
     }
 
     // Bundle -> BundleImageIcon
-    Map icons = new HashMap();
+    Map<Bundle, BundleImageIcon> icons = new HashMap<Bundle, BundleImageIcon>();
 
     public void updateBundleComp(Bundle b) {
       JLabel c = (JLabel)getBundleComponent(b);
@@ -681,12 +681,12 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
   }
 
 
-  static Comparator nameComparator = new Comparator() {
-      public int compare(Object o1, Object o2) {
+  static Comparator<Long> nameComparator = new Comparator<Long>() {
+      public int compare(Long l1, Long l2) {
         Bundle b1 =
-          Activator.getTargetBC_getBundle(((Long)o1).longValue());
+          Activator.getTargetBC_getBundle(l1.longValue());
         Bundle b2 =
-          Activator.getTargetBC_getBundle(((Long)o2).longValue());
+          Activator.getTargetBC_getBundle(l2.longValue());
 
         if(b1 == b2) {
           return 0;
@@ -703,35 +703,32 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       }
     };
 
-  static Comparator startLevelComparator = new Comparator() {
-      public int compare(Object o1, Object o2) {
-        Bundle b1 =
-          Activator.getTargetBC_getBundle(((Long)o1).longValue());
-        Bundle b2 =
-          Activator.getTargetBC_getBundle(((Long)o2).longValue());
+  static Comparator<Long> startLevelComparator = new Comparator<Long>() {
+    public int compare(Long l1, Long l2)
+    {
+      final Bundle b1 = Activator.getTargetBC_getBundle(l1.longValue());
+      final Bundle b2 = Activator.getTargetBC_getBundle(l2.longValue());
 
-        if(b1 == b2) {
-          return 0;
-        }
-        if(b1 == null) {
-          return -1;
-        }
-        if(b2 == null) {
-          return 1;
-        }
-        long bidDiff = b1.getBundleId() - b2.getBundleId();
-        int  bidRes = bidDiff < 0 ? -1 : (bidDiff==0 ? 0 : 1);
-
-        StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
-        if(sls != null) {
-          try {
-            int sl1 = sls.getBundleStartLevel(b1);
-            int sl2 = sls.getBundleStartLevel(b2);
-            return sl1==sl2 ? bidRes : sl1 - sl2;
-          } catch (IllegalArgumentException _e) {
-          }
-        }
-        return bidRes;
+      if (b1 == b2) {
+        return 0;
       }
-    };
+      if (b1 == null) {
+        return -1;
+      }
+      if (b2 == null) {
+        return 1;
+      }
+      long bidDiff = b1.getBundleId() - b2.getBundleId();
+      int bidRes = bidDiff < 0 ? -1 : (bidDiff == 0 ? 0 : 1);
+
+      final BundleStartLevel bsl1 = b1.adapt(BundleStartLevel.class);
+      final BundleStartLevel bsl2 = b2.adapt(BundleStartLevel.class);
+      if (bsl1 != null && bsl2 != null) {
+        int sl1 = bsl1.getStartLevel();
+        int sl2 = bsl2.getStartLevel();
+        return sl1 == sl2 ? bidRes : sl1 - sl2;
+      }
+      return bidRes;
+    }
+  };
 }

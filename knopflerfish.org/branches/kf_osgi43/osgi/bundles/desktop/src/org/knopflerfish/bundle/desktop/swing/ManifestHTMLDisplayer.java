@@ -54,7 +54,7 @@ import javax.swing.JComponent;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.startlevel.StartLevel;
+import org.osgi.framework.startlevel.BundleStartLevel;
 
 public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
                                    implements JHTMLBundleLinkHandler {
@@ -115,13 +115,13 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
       }
       this.path = url.getPath().substring(URL_RESOURCE_PREFIX_PATH.length());
 
-      final Map params = Util.paramsFromURL(url);
+      final Map<String, String> params = Util.paramsFromURL(url);
       if (!params.containsKey(URL_RESOURCE_KEY_BID)) {
         throw new RuntimeException("Invalid bundle resource URL '" + url
             + "' bundle id is missing " + url.toString());
       }
-      this.bid = Long.parseLong((String) params.get(URL_RESOURCE_KEY_BID));
-      this.isScr = "true".equals((String) params.get(URL_RESOURCE_KEY_SCR));
+      this.bid = Long.parseLong(params.get(URL_RESOURCE_KEY_BID));
+      this.isScr = "true".equals(params.get(URL_RESOURCE_KEY_SCR));
     }
 
     public ResourceUrl(final Bundle bundle,
@@ -171,8 +171,8 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
       sb.append(path);
     }
 
-    private Map getParams() {
-      final Map params = new HashMap();
+    private Map<String, String> getParams() {
+      final HashMap<String, String> params = new HashMap<String,String>();
       params.put(URL_RESOURCE_KEY_BID, String.valueOf(bid));
       params.put(URL_RESOURCE_KEY_SCR, String.valueOf(isScr));
       return params;
@@ -202,8 +202,8 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
   public void valueChanged(long  bid) {
     final Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      final JHTML comp = (JHTML)it.next();
+    for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+      final JHTML comp = (JHTML) it.next();
       comp.valueChanged(bl);
     }
   }
@@ -218,7 +218,7 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
     public StringBuffer  bundleInfo(Bundle b) {
       StringBuffer sb = new StringBuffer();
 
-      Dictionary headers = b.getHeaders();
+      Dictionary<String, String> headers = b.getHeaders();
 
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
       appendRow(sb, "Location", "" + b.getLocation());
@@ -229,11 +229,11 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
       appendRow(sb, "Last modified",
                 "" + new SimpleDateFormat().format(new Date(b.getLastModified())));
 
-      StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
-      if(sls != null) {
+      final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
+      if(bsl != null) {
         String level = "";
         try {
-          level = Integer.toString(sls.getBundleStartLevel(b));
+          level = Integer.toString(bsl.getStartLevel());
         } catch (IllegalArgumentException e) {
           level = "not managed";
         }
@@ -243,14 +243,14 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
       // Spacer for better layout (and separation of non-manifest data):
       appendRow(sb, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", "");
 
-      List headerKeys = new ArrayList(headers.size());
-      for(Enumeration e = headers.keys(); e.hasMoreElements(); ) {
+      ArrayList<String> headerKeys = new ArrayList<String>(headers.size());
+      for(Enumeration<String> e = headers.keys(); e.hasMoreElements(); ) {
         headerKeys.add(e.nextElement());
       }
       Collections.sort(headerKeys);
-      for(Iterator it = headerKeys.iterator(); it.hasNext(); ) {
-        String  key   = (String)it.next();
-        String  value = (String)headers.get(key);
+      for(Iterator<String> it = headerKeys.iterator(); it.hasNext(); ) {
+        String  key   = it.next();
+        String  value = headers.get(key);
         if(value != null && !"".equals(value)) {
           value = Strings.replace(value, "<", "&lt;");
           value = Strings.replace(value, ">", "&gt;");
@@ -263,9 +263,9 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
             value = Strings.replaceWordSep(value,",", "<br>", '"');
           } else if("Service-Component".equals(key)) {
             final StringBuffer sb2 = new StringBuffer(30);
-            final List/*<String>*/ patterns = Strings.splitWordSep(value, ",", '"');
-            for (Iterator pit = patterns.iterator(); pit.hasNext();) {
-              final String pattern = ((String) pit.next()).trim();
+            final List<String> patterns = Strings.splitWordSep(value, ",", '"');
+            for (Iterator<String> pit = patterns.iterator(); pit.hasNext();) {
+              final String pattern = pit.next().trim();
               new ResourceUrl(b, pattern, true).resourceLink(sb2);
               if (pit.hasNext()) {
                 sb2.append(", ");
@@ -304,11 +304,10 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
     sb.append("<html>");
     sb.append("<table border=0 width=\"100%\">");
 
-    final Enumeration resEnum = bundle.findEntries(resUrl.getPath(),
-                                                   resUrl.getFilenamePattern(),
-                                                   true);
+    final Enumeration<URL> resEnum 
+      = bundle.findEntries(resUrl.getPath(), resUrl.getFilenamePattern(), true);
     while (resEnum.hasMoreElements()) {
-      final URL url = (URL) resEnum.nextElement();
+      final URL url = resEnum.nextElement();
 
       sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
       JHTMLBundle.startFont(sb, "-1");

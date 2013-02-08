@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project All rights reserved.
+ * Copyright (c) 2003-2013, KNOPFLERFISH project All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following
@@ -57,15 +57,15 @@ public class PackageManager  {
     refresh();
   }
 
-  final Map bundleExports = new HashMap();
-  final Map bundleImports = new HashMap();
-  final Map bundleReqs    = new HashMap();
-  final Map manifestImports = new HashMap();
-  final Map missingImports = new HashMap();
+  final Map<Bundle, Collection> bundleExports = new HashMap<Bundle, Collection>();
+  final Map<Bundle, Set<ExportedPackage>> bundleImports = new HashMap<Bundle, Set<ExportedPackage>>();
+  final Map<Bundle, Set> bundleReqs    = new HashMap<Bundle, Set>();
+  final Map<Bundle, Collection> manifestImports = new HashMap<Bundle, Collection>();
+  final Map<Bundle, Collection> missingImports = new HashMap<Bundle, Collection>();
 
 
   // Bundle -> RequiredBundle
-  final Map requiredBundleMap = new HashMap();
+  final Map<Bundle, RequiredBundle> requiredBundleMap = new HashMap<Bundle, RequiredBundle>();
 
   // RequiredBundle -> Boolean
   final Map isRequiringMap = new HashMap();
@@ -100,16 +100,16 @@ public class PackageManager  {
     return bl != null ? bl : EMPTY_BUNDLES;
   }
 
-  public Collection getImportedPackages(final Bundle b) {
+  public Collection<ExportedPackage> getImportedPackages(final Bundle b) {
     synchronized(lock) {
-      final Collection s = (Collection) bundleImports.get(b);
+      final Collection s = bundleImports.get(b);
       return s != null ? s : Collections.EMPTY_SET;
     }
   }
 
-  public Collection getRequiredPackages(final Bundle b) {
+  public Collection<ExportedPackage> getRequiredPackages(final Bundle b) {
     synchronized(lock) {
-      final Collection s = (Collection) bundleReqs.get(b);
+      final Collection s = bundleReqs.get(b);
       return s != null ? s : Collections.EMPTY_SET;
     }
   }
@@ -117,7 +117,7 @@ public class PackageManager  {
 
   public Collection getManifestImports(final Bundle b) {
     synchronized(lock) {
-      Collection c = (Collection) manifestImports.get(b);
+      Collection c = manifestImports.get(b);
       if(c == null) {
         c = getPackageNames(b, "Import-Package");
         manifestImports.put(b, c);
@@ -129,16 +129,16 @@ public class PackageManager  {
 
   public Collection getMissingImports(final Bundle b) {
     synchronized(lock) {
-      Collection missing = (Collection) missingImports.get(b);
+      Collection missing = missingImports.get(b);
       if(missing == null) {
         missing = new TreeSet();
         missing.addAll(getManifestImports(b));
 
-        Collection okSet  = getImportedPackages(b);
+        Collection<ExportedPackage> okSet  = getImportedPackages(b);
 
         // Remove wired imports
-        for(Iterator it = okSet.iterator(); it.hasNext(); ) {
-          final ExportedPackage pkg = (ExportedPackage) it.next();
+        for(Iterator<ExportedPackage> it = okSet.iterator(); it.hasNext(); ) {
+          final ExportedPackage pkg = it.next();
           missing.remove(pkg.getName());
         }
 
@@ -146,8 +146,8 @@ public class PackageManager  {
         // imports from the current classloader will not have any
         // wires)
         okSet = getExportedPackages(b);
-        for(Iterator it = okSet.iterator(); it.hasNext(); ) {
-          final ExportedPackage pkg = (ExportedPackage) it.next();
+        for(Iterator<ExportedPackage> it = okSet.iterator(); it.hasNext(); ) {
+          final ExportedPackage pkg = it.next();
           missing.remove(pkg.getName());
         }
 
@@ -187,11 +187,11 @@ public class PackageManager  {
   }
 
 
-  public Collection getExportedPackages(final Bundle b) {
+  public Collection<ExportedPackage> getExportedPackages(final Bundle b) {
     synchronized(lock) {
-      Collection r = (Collection) bundleExports.get(b);
+      Collection<ExportedPackage> r = bundleExports.get(b);
       if(r == null) {
-        r = new TreeSet(pkgComparator);
+        r = new TreeSet<ExportedPackage>(pkgComparator);
         final PackageAdmin pkgAdmin = getPackageAdmin();
         ExportedPackage[] pkgs = null!=pkgAdmin
           ? pkgAdmin.getExportedPackages(b) : null;
@@ -208,9 +208,9 @@ public class PackageManager  {
 
   public boolean isWired(final String pkgName, final Bundle b)
   {
-    final Collection pkgs = getImportedPackages(b);
-    for (Iterator it = pkgs.iterator(); it.hasNext(); ) {
-      final ExportedPackage epkg = (ExportedPackage) it.next();
+    final Collection<ExportedPackage> pkgs = getImportedPackages(b);
+    for (Iterator<ExportedPackage> it = pkgs.iterator(); it.hasNext(); ) {
+      final ExportedPackage epkg = it.next();
       if (pkgName.equals(epkg.getName())) {
         return true;
       }
@@ -291,9 +291,9 @@ public class PackageManager  {
             Bundle   fromB = pkgs[i].getExportingBundle();
             if (null==fromB) continue; // Ignore STALE epkgs
 
-            Collection r = (Collection)bundleExports.get(fromB);
+            Collection<ExportedPackage> r = bundleExports.get(fromB);
             if(r == null) {
-              r = new TreeSet(pkgComparator);
+              r = new TreeSet<ExportedPackage>(pkgComparator);
               bundleExports.put(fromB, r);
             }
             if(accept(pkgs[i])) {
@@ -303,17 +303,17 @@ public class PackageManager  {
             Bundle[] bl    = pkgs[i].getImportingBundles();
             for(int j = 0; bl != null && j < bl.length; j++) {
               if (isBundleRequiredBy(rbl, fromB, bl[j])) {
-                Set reqs = (Set)bundleReqs.get(bl[j]);
+                Set<ExportedPackage> reqs = bundleReqs.get(bl[j]);
                 if(reqs == null) {
-                  reqs = new TreeSet(pkgComparator);
+                  reqs = new TreeSet<ExportedPackage>(pkgComparator);
                   bundleReqs.put(bl[j], reqs);
                 }
 
                 reqs.add(pkgs[i]);
               } else {
-                Set imports = (Set)bundleImports.get(bl[j]);
+                Set<ExportedPackage> imports = bundleImports.get(bl[j]);
                 if(imports == null) {
-                  imports = new TreeSet(pkgComparator);
+                  imports = new TreeSet<ExportedPackage>(pkgComparator);
                   bundleImports.put(bl[j], imports);
                 }
                 imports.add(pkgs[i]);
@@ -364,7 +364,7 @@ public class PackageManager  {
    */
   public RequiredBundle getRequiredBundle(final RequiredBundle[] rbl,
                                           final Bundle b)  {
-    final RequiredBundle rb = (RequiredBundle) requiredBundleMap.get(b);
+    final RequiredBundle rb = requiredBundleMap.get(b);
     if(rb != null) {
       return rb;
     }
