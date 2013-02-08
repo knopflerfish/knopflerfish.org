@@ -67,8 +67,8 @@ class Listeners {
   /**
    * All bundle event listeners.
    */
-  private HashSet<ListenerEntry> bundleListeners = new HashSet<ListenerEntry>();
-  private HashSet<ListenerEntry> syncBundleListeners = new HashSet<ListenerEntry>();
+  HashSet<ListenerEntry> bundleListeners = new HashSet<ListenerEntry>();
+  HashSet<ListenerEntry> syncBundleListeners = new HashSet<ListenerEntry>();
 
   /**
    * All framework event listeners.
@@ -311,34 +311,37 @@ class Listeners {
    * @see org.osgi.framework.BundleListener#bundleChanged
    */
   void bundleChanged(final BundleEvent evt) {
-    ListenerEntry [] sbl, bl = null;
+    HashSet<ListenerEntry> filteredSyncBundleListeners = new HashSet<ListenerEntry>();
+    HashSet<ListenerEntry> filteredBundleListeners = null;
+    
+    
     int type = evt.getType();
-    synchronized (syncBundleListeners) {
-      sbl = new ListenerEntry[syncBundleListeners.size()];
-      syncBundleListeners.toArray(sbl);
-    }
+
     if (type != BundleEvent.LAZY_ACTIVATION &&
         type != BundleEvent.STARTING &&
         type != BundleEvent.STOPPING) {
-      synchronized (bundleListeners) {
-        bl = new ListenerEntry[bundleListeners.size()];
-        bundleListeners.toArray(bl);
-      }
+      filteredBundleListeners = new HashSet<ListenerEntry>();
     }
-    for (int i = 0; i < sbl.length; i++) {
-      bundleChanged(sbl[i], evt);
+    
+    framework.bundleHooks.filterBundleEventReceivers(
+        evt, 
+        filteredSyncBundleListeners,
+        filteredBundleListeners);
+    
+    for(ListenerEntry le : filteredSyncBundleListeners) {
+      bundleChanged(le, evt);
     }
-    if (bl != null) {
+    if (filteredBundleListeners != null) {
       if (asyncEventQueue != null) {
         synchronized (asyncEventQueue) {
-          for (int i = 0; i < bl.length; i++) {
-            asyncEventQueue.addLast(new AsyncEvent(bl[i], evt));
+          for(ListenerEntry le : filteredBundleListeners) {
+            asyncEventQueue.addLast(new AsyncEvent(le, evt));
           }
           asyncEventQueue.notify();
         }
       } else {
-        for (int i = 0; i < bl.length; i++) {
-          bundleChanged(bl[i], evt);
+        for(ListenerEntry le : filteredBundleListeners) {
+          bundleChanged(le, evt);
         }
       }
     }

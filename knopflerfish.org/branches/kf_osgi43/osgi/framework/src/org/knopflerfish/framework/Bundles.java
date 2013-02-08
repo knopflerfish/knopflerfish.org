@@ -100,7 +100,12 @@ public class Bundles {
     synchronized (this) {
       b = (BundleImpl)bundles.get(location);
       if (b != null) {
-        return b;
+        b = (BundleImpl)b.fwCtx.bundleHooks.filterBundle(b.bundleContext, b);
+        if(b == null) {
+          throw new BundleException("Rejected by Hook", BundleException.REJECTED_BY_HOOK);
+        } else {
+          return b;
+        }
       }
       b = fwCtx.perm.callInstall0(this, location, in);
     }

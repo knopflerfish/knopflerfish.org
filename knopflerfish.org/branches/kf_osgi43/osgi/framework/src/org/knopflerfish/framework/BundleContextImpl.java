@@ -139,7 +139,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundle
    */
   public Bundle getBundle(long id) {
-    return bundle.fwCtx.bundles.getBundle(id);
+    return bundle.fwCtx.bundleHooks.filterBundle(this, bundle.fwCtx.bundles.getBundle(id));
   }
 
 
@@ -150,6 +150,7 @@ public class BundleContextImpl
    */
   public Bundle[] getBundles() {
     List bl = bundle.fwCtx.bundles.getBundles();
+    bundle.fwCtx.bundleHooks.filterBundles(this, bl);
     return (Bundle[])bl.toArray(new Bundle [bl.size()]);
   }
 

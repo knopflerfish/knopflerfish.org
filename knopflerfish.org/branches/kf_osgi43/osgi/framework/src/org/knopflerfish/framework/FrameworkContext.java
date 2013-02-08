@@ -90,6 +90,11 @@ public class FrameworkContext  {
    * All service hooks.
    */
   Hooks hooks;
+  
+  /**
+   * All bundle hooks.
+   */
+  BundleHooks bundleHooks;
 
   /**
    * All exported and imported packages in this framework.
@@ -366,7 +371,8 @@ public class FrameworkContext  {
 
     hooks             = new Hooks(this);
     hooks.open();
-
+    
+    bundleHooks = new BundleHooks(this);
 
     perm.registerService();
 
