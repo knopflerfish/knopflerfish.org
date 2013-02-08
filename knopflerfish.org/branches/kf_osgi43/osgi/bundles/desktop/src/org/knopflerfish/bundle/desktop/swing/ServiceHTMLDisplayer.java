@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.JComponent;
@@ -91,7 +90,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
                                    + URL_SERVICE_PREFIX_PATH);
       }
 
-      final Map params = Util.paramsFromURL(url);
+      final Map<String, String> params = Util.paramsFromURL(url);
       if (!params.containsKey(URL_SERVICE_KEY_SID)) {
         throw new RuntimeException("Invalid bundle service URL '" + url
                                    + "' service id is missing.");
@@ -99,7 +98,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
       this.sid = Long.parseLong((String) params.get(URL_SERVICE_KEY_SID));
     }
 
-    public ServiceUrl(final ServiceReference sr) {
+    public ServiceUrl(final ServiceReference<?> sr) {
       this.sid = ((Long) sr.getProperty(Constants.SERVICE_ID)).longValue();
     }
 
@@ -117,8 +116,8 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
       sb.append(URL_SERVICE_PREFIX_PATH);
     }
 
-    private Map getParams() {
-      final Map params = new HashMap();
+    private Map<String, String> getParams() {
+      final Map<String, String> params = new HashMap<String, String>();
       params.put(URL_SERVICE_KEY_SID, String.valueOf(sid));
       return params;
     }
@@ -141,8 +140,8 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
   public void valueChanged(long bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JHTML comp = (JHTML)it.next();
+    for(JComponent jcomp : components) {
+      JHTML comp = (JHTML) jcomp;
       comp.valueChanged(bl);
     }
   }
@@ -157,7 +156,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
   void appendServiceHTML(final StringBuffer sb, final long sid) {
     try {
       final String filter = "(" + Constants.SERVICE_ID + "=" + sid + ")";
-      final ServiceReference[] srl =
+      final ServiceReference<?>[] srl =
         Activator.getTargetBC_getServiceReferences(null, filter);
       if(srl != null && srl.length == 1) {
         sb.append("<html>");
@@ -219,7 +218,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
   }
 
 
-  void formatServiceObject(final StringBuffer sb, final ServiceReference sr) {
+  void formatServiceObject(final StringBuffer sb, final ServiceReference<?> sr) {
     final String[] names = (String[]) sr.getProperty(Constants.OBJECTCLASS);
 
     JHTMLBundle.startFont(sb);
@@ -240,7 +239,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
     sb.append("<table>");
     for (int i=0; i<names.length; i++) {
       try {
-        Class clazz = sr.getBundle().loadClass(names[i]);
+        Class<?> clazz = sr.getBundle().loadClass(names[i]);
         if (null==clazz) {
           sb.append("<tr><td colspan=\"3\" valign=\"top\" bgcolor=\"#eeeeee\">");
           JHTMLBundle.startFont(sb);
@@ -261,7 +260,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
     sb.append("</table>");
   }
 
-  void formatClass(final StringBuffer sb, final Class clazz) {
+  void formatClass(final StringBuffer sb, final Class<?> clazz) {
     Method[] methods = clazz.getDeclaredMethods();
 
     sb.append("<tr>");
@@ -275,7 +274,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
       if(!Modifier.isPublic(methods[i].getModifiers())) {
         continue;
       }
-      Class[] params = methods[i].getParameterTypes();
+      Class<?>[] params = methods[i].getParameterTypes();
       sb.append("<tr>");
 
       sb.append("<td valign=\"top\" colspan=\"3\">");
@@ -323,7 +322,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
       StringBuffer sb = new StringBuffer();
 
       try {
-        final ServiceReference[] srl
+        final ServiceReference<?>[] srl
           = Activator.getTargetBC_getServiceReferences();
         int nExport = 0;
         int nImport = 0;

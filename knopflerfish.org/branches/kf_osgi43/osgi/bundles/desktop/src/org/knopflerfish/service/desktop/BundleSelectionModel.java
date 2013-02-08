@@ -90,7 +90,7 @@ public interface BundleSelectionModel {
    * @param bids List of bundle ids to set selection status for.
    * @param bSelected new selection status of the bundles in the list.
    */
-  public void    setSelected(List bids, boolean bSelected);
+  public void    setSelected(List<Long> bids, boolean bSelected);
 
   /**
    * Add a <tt>BundleSelectionListener</tt> to the set of listeners

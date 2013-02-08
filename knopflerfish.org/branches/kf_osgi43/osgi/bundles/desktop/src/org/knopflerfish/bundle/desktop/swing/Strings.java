@@ -35,8 +35,9 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility class for string localization.
@@ -54,13 +55,13 @@ public class Strings {
   /**
    * Lookup table for strings.
    */
-  private static Hashtable<String, String> strings;
+  private static Map<String, String> strings;
 
   /**
-   * Initialize strings hashtable.
+   * Initialize strings map.
    */
   static {
-    strings = new Hashtable<String, String>() {
+    strings = new HashMap<String, String>() {
         private static final long serialVersionUID = 1L;
         {
           put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
@@ -148,10 +149,10 @@ public class Strings {
               +"if no bundle selected refresh all packages that are "
               +"pending removal.");
 
-          put("menu_resolvebundles", "Resolve Selected Bundles");
+          put("menu_resolvebundles", "Resolve bundles");
           put("menu_resolvebundles.descr",
-              "Resolves the selected bundles. If called with no selection, "
-              +"try to resolve all un-resolved bundles.");
+              "Resolves un-resolved selected bundles. If called with no "
+              +"selection, try to resolve all un-resolved bundles.");
 
           put("str_fwinfo", "Framework info");
           put("str_about", "About");
@@ -280,14 +281,14 @@ public class Strings {
     int v1Len    = v1.length();
     int n        = 0;
 
-    // count number of occurances to be able to correctly size
+    // count number of occurrences to be able to correctly size
     // the resulting output char array
     while(-1 != (ix = s.indexOf(v1, ix))) {
       n++;
       ix += v1Len;
     }
 
-    // No occurances at all, just return source string
+    // No occurrences at all, just return source string
     if(n == 0) {
       return s;
     }
@@ -298,7 +299,7 @@ public class Strings {
     char[]  r      = new char[s.length() + n * (v2Len - v1Len)];
     int     rPos   = 0;
 
-    // for each occurance, copy v2 where v1 used to be
+    // for each occurrence, copy v2 where v1 used to be
     while(-1 != (ix = s.indexOf(v1, start))) {
       while(start < ix) r[rPos++] = s.charAt(start++);
       for(int j = 0; j < v2Len; j++) {

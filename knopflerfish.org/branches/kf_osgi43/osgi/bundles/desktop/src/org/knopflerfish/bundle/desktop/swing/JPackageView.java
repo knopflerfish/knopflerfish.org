@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,19 +33,20 @@
  */
 package org.knopflerfish.bundle.desktop.swing;
 
-import org.knopflerfish.bundle.desktop.swing.graph.EmptyNode;
-import org.knopflerfish.bundle.desktop.swing.graph.Node;
-import org.knopflerfish.bundle.desktop.swing.graph.PackageNode;
-import org.knopflerfish.service.desktop.BundleSelectionModel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.util.tracker.ServiceTracker;
 
+import org.knopflerfish.bundle.desktop.swing.graph.EmptyNode;
+import org.knopflerfish.bundle.desktop.swing.graph.Node;
+import org.knopflerfish.bundle.desktop.swing.graph.PackageNode;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+
 public class JPackageView extends JSoftGraphBundle {
 
   private static final long serialVersionUID = 1L;
-  ServiceTracker pkgTracker;
+  ServiceTracker<PackageAdmin,PackageAdmin> pkgTracker;
 
   public JPackageView(GraphDisplayer.JMainBundles jmb,
                       BundleContext bc,
@@ -53,7 +54,7 @@ public class JPackageView extends JSoftGraphBundle {
                       BundleSelectionModel bundleSelModel) {
     super(jmb, bc, b, bundleSelModel);
 
-    pkgTracker = new ServiceTracker(bc, PackageAdmin.class.getName(), null);
+    pkgTracker = new ServiceTracker<PackageAdmin, PackageAdmin>(bc, PackageAdmin.class, null);
     pkgTracker.open();
 
     setMaxDepth(8);

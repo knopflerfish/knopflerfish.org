@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ import org.osgi.framework.Bundle;
  * <p> Intended to be used as base class.  Subclasses creates
  * presentation data for an individual bundle by overriding the method
  * {@link #bundleInfo(Bundle)}.  Subclasses that does not want the per
- * bundle presentation when multuple bundles are selected should
+ * bundle presentation when multiple bundles are selected should
  * override {@link #updateView(Bundle[])}.</p>
  *
  * <p>
@@ -86,17 +86,17 @@ public abstract class JHTMLBundle extends JPanel
 
   DefaultSwingBundleDisplayer displayer;
 
-  ArrayList historyBack    = new ArrayList();
-  URL       historyCurrent = null;
-  ArrayList historyFwd     = new ArrayList();
+  ArrayList<URL> historyBack    = new ArrayList<URL>();
+  URL            historyCurrent = null;
+  ArrayList<URL> historyFwd     = new ArrayList<URL>();
 
   JButton backButton = null;
   JButton fwdButton = null;
 
   private long currentBid = -1;
 
-  private static final List /* JHTMLBundleLinkHandler */ linkHandlers
-    = new ArrayList();
+  private static final List<JHTMLBundleLinkHandler> linkHandlers
+    = new ArrayList<JHTMLBundleLinkHandler>();
 
   JHTMLBundle(DefaultSwingBundleDisplayer _displayer) {
 
@@ -104,7 +104,7 @@ public abstract class JHTMLBundle extends JPanel
 
     this.displayer = _displayer;
     if (displayer instanceof JHTMLBundleLinkHandler) {
-      linkHandlers.add(displayer);
+      linkHandlers.add((JHTMLBundleLinkHandler) displayer);
     }
 
     html = new JTextPane();
@@ -160,7 +160,7 @@ public abstract class JHTMLBundle extends JPanel
               public void actionPerformed(ActionEvent ev) {
                 if (!historyBack.isEmpty()) {
                   final URL url
-                    = (URL) historyBack.remove(historyBack.size() - 1);
+                    = historyBack.remove(historyBack.size() - 1);
                   historyFwd.add(historyCurrent);
                   historyCurrent = url;
                   openURL(url);
@@ -179,7 +179,7 @@ public abstract class JHTMLBundle extends JPanel
               public void actionPerformed(ActionEvent ev) {
                 if (historyFwd.size() > 0) {
                   final URL url
-                    = (URL) historyFwd.remove(historyFwd.size() - 1);
+                    = historyFwd.remove(historyFwd.size() - 1);
                   historyBack.add(historyCurrent);
                   historyCurrent = url;
                   openURL(url);
@@ -253,9 +253,8 @@ public abstract class JHTMLBundle extends JPanel
       gotoBid(bid);
     } else {
       boolean handled = false;
-      for (Iterator it = linkHandlers.iterator(); it.hasNext() && !handled;) {
-        final JHTMLBundleLinkHandler handler
-          = (JHTMLBundleLinkHandler) it.next();
+      for (Iterator<JHTMLBundleLinkHandler> it = linkHandlers.iterator(); it.hasNext() && !handled;) {
+        final JHTMLBundleLinkHandler handler = it.next();
         if (handler.canRenderUrl(url)) {
           final StringBuffer sb = new StringBuffer(600);
           addToHistory = handler.renderUrl(url, sb);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import javax.swing.JPanel;
 public class JCardPane extends JPanel {
   private static final long serialVersionUID = 1L;
 
-  Map tabs = new HashMap();
+  Map<String, Component> tabs = new HashMap<String, Component>();
   CardLayout card;
 
   public JCardPane() {
@@ -87,6 +87,6 @@ public class JCardPane extends JPanel {
   }
 
   public Component getTab(String name) {
-    return (Component)tabs.get(name);
+    return tabs.get(name);
   }
 }

@@ -47,9 +47,9 @@ import java.util.List;
 public class OSXAdapter implements InvocationHandler {
 
   // The set of handlers registered by this OSXAdapter, they will all
-  // be unreigsted by clearApplicationListeners() and removed form the set.
-  static private final List/*<com.apple.eawt.ApplicationListener>*/
-    registeredApplicationListeners = new ArrayList();
+  // be unregistered by clearApplicationListeners() and removed form the set.
+  static private final List/*<com.apple.eawt.ApplicationListener>*/<Object>
+    registeredApplicationListeners = new ArrayList<Object>();
 
   protected Object targetObject;
   protected Method targetMethod;
@@ -154,13 +154,13 @@ public class OSXAdapter implements InvocationHandler {
   public static void setHandler(final OSXAdapter adapter)
   {
     try {
-      final Class applicationClass
+      final Class<?> applicationClass
         = Class.forName("com.apple.eawt.Application");
       if (macOSXApplication == null) {
         macOSXApplication = applicationClass
           .getConstructor((Class[])null).newInstance((Object[])null);
       }
-      final Class applicationListenerClass
+      final Class<?> applicationListenerClass
         = Class.forName("com.apple.eawt.ApplicationListener");
       final Method addListenerMethod = applicationClass
         .getDeclaredMethod("addApplicationListener",
@@ -192,13 +192,13 @@ public class OSXAdapter implements InvocationHandler {
   public static void clearApplicationListeners()
   {
     try {
-      final Class applicationClass
+      final Class<?> applicationClass
         = Class.forName("com.apple.eawt.Application");
       if (macOSXApplication == null) {
         macOSXApplication = applicationClass
           .getConstructor((Class[])null).newInstance((Object[])null);
       }
-      final Class applicationListenerClass
+      final Class<?> applicationListenerClass
         = Class.forName("com.apple.eawt.ApplicationListener");
       final Method removeListenerMethod = applicationClass
         .getDeclaredMethod("removeApplicationListener",
@@ -233,7 +233,7 @@ public class OSXAdapter implements InvocationHandler {
 
     // Set the dock icon image reflectively via com.apple.eawt.Application
     try {
-      final Class applicationClass
+      final Class<?> applicationClass
         = Class.forName("com.apple.eawt.Application");
       if (macOSXApplication == null) {
         macOSXApplication = applicationClass

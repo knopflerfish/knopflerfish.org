@@ -1,3 +1,36 @@
+/*
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above
+ *   copyright notice, this list of conditions and the following
+ *   disclaimer in the documentation and/or other materials
+ *   provided with the distribution.
+ *
+ * - Neither the name of the KNOPFLERFISH project nor the names of its
+ *   contributors may be used to endorse or promote products derived
+ *   from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.knopflerfish.bundle.desktop.swing;
 
 
@@ -29,7 +62,6 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -57,7 +89,7 @@ public abstract class JSoftGraph extends JPanel {
 
   Node currentNode;
 
-  Map currentLinkMap = new LinkedHashMap();
+  final Map<Link, Link> currentLinkMap = new LinkedHashMap<Link, Link>();
 
   Color linkColor = Color.black;
   Color textColor = Color.black;
@@ -65,7 +97,6 @@ public abstract class JSoftGraph extends JPanel {
   Color fillColor2 = new Color(255, 255, 200);
   Color lineColor  = new Color(150, 150, 255);
 
-  Set selectedNodes = new HashSet();
   Node hoverNode = null;
 
   Color topColor    =  getBackground();
@@ -290,13 +321,11 @@ public abstract class JSoftGraph extends JPanel {
 
     // Map linkMap = new HashMap();
     // layoutNode(currentNode, linkMap);
-    Map linkMap = currentLinkMap != null
-      ? currentLinkMap
-      : Collections.EMPTY_MAP;
+    Map<Link, Link> linkMap = currentLinkMap;
 
     Node minNode = null;
-    for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
-      Link link = (Link)it.next();
+    for(Iterator<Link> it = linkMap.keySet().iterator(); it.hasNext(); ) {
+      Link link = it.next();
       Node n1 = link.getFrom();
       Node n2 = link.getTo();
 
@@ -365,16 +394,13 @@ public abstract class JSoftGraph extends JPanel {
     Color.blue,
     Color.black,
   };
-  Map allLinkMap = new LinkedHashMap();
+  Map<Link, Link> allLinkMap = new LinkedHashMap<Link, Link>();
 
-  Map nodeOldMap  = new HashMap();
-  Map nodeNewMap  = new HashMap();
-  Map nodeCurrMap = new HashMap();
+  Map<Node, Point2D> nodeOldMap  = new HashMap<Node, Point2D>();
+  Map<Node, Point2D> nodeNewMap  = new HashMap<Node, Point2D>();
 
   Node newNode;
-  Map  newLinkMap;
-  Node oldNode;
-  Map  oldLinkMap;
+  Map<Link, Link>  newLinkMap;
 
   Point2D center;
 
@@ -390,7 +416,8 @@ public abstract class JSoftGraph extends JPanel {
 
           fadestate          = STATE_FADE;
           fadeK          = 0.0;
-          currentLinkMap = allLinkMap;
+          currentLinkMap.clear();
+          currentLinkMap.putAll(allLinkMap);
           linkColor      = Color.black;
 
           updateFade(currentLinkMap, nodeOldMap, nodeNewMap, fadeK);
@@ -432,17 +459,17 @@ public abstract class JSoftGraph extends JPanel {
     nodeNewMap.clear();
 
     newNode    = makeRootNode();
-    newLinkMap = new TreeMap();
+    newLinkMap = new TreeMap<Link, Link>();
 
     layoutNode(newNode, newLinkMap);
 
     allLinkMap.clear();
 
-    Map currNodePos = new HashMap();
-    Map newNodePos  = new HashMap();
+    Map<Node, Point2D> currNodePos = new HashMap<Node, Point2D>();
+    Map<Node, Point2D> newNodePos  = new HashMap<Node, Point2D>();
 
-    for(Iterator it = currentLinkMap.keySet().iterator(); it.hasNext(); ) {
-      Link link = (Link)it.next();
+    for(Iterator<Link> it = currentLinkMap.keySet().iterator(); it.hasNext(); ) {
+      Link link = it.next();
       Node n1 = link.getFrom();
       Node n2 = link.getTo();
       currNodePos.put(n1, n1.getPoint());
@@ -452,8 +479,8 @@ public abstract class JSoftGraph extends JPanel {
       }
     }
 
-    for(Iterator it = newLinkMap.keySet().iterator(); it.hasNext(); ) {
-      Link link = (Link)it.next();
+    for(Iterator<Link> it = newLinkMap.keySet().iterator(); it.hasNext(); ) {
+      Link link = it.next();
       Node n1 = link.getFrom();
       Node n2 = link.getTo();
       newNodePos.put(n1, n1.getPoint());
@@ -464,29 +491,29 @@ public abstract class JSoftGraph extends JPanel {
     }
 
 
-    for(Iterator it = allLinkMap.keySet().iterator(); it.hasNext(); ) {
-      Link link = (Link)it.next();
+    for(Iterator<Link> it = allLinkMap.keySet().iterator(); it.hasNext(); ) {
+      Link link = it.next();
       Node n1 = link.getFrom();
       Node n2 = link.getTo();
 
       if(currNodePos.containsKey(n1)) {
-        nodeOldMap.put(n1, (Point2D)currNodePos.get(n1));
+        nodeOldMap.put(n1, currNodePos.get(n1));
       } else {
         nodeOldMap.put(n1, center);
       }
       if(currNodePos.containsKey(n2)) {
-        nodeOldMap.put(n2, (Point2D)currNodePos.get(n2));
+        nodeOldMap.put(n2, currNodePos.get(n2));
       } else {
         nodeOldMap.put(n2, center);
       }
 
       if(newNodePos.containsKey(n1)) {
-        nodeNewMap.put(n1, (Point2D)newNodePos.get(n1));
+        nodeNewMap.put(n1, newNodePos.get(n1));
       } else {
         nodeNewMap.put(n1, center);
       }
       if(newNodePos.containsKey(n2)) {
-        nodeNewMap.put(n2, (Point2D)newNodePos.get(n2));
+        nodeNewMap.put(n2, newNodePos.get(n2));
       } else {
         nodeNewMap.put(n2, center);
       }
@@ -502,29 +529,30 @@ public abstract class JSoftGraph extends JPanel {
       : "null";
   }
 
-  void updateFade(Map linkMap, Map oldPos, Map newPos, double k) {
+  void updateFade(Map<Link, Link> linkMap, Map<Node, Point2D> oldPos, Map<Node, Point2D> newPos, double k) {
 
-    for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
-      Link link = (Link)it.next();
+    for(Iterator<Link> it = linkMap.keySet().iterator(); it.hasNext(); ) {
+      Link link = it.next();
       Node node;
       Point2D p1;
       Point2D p2;
 
       node = link.getFrom();
-      p1 = (Point2D)oldPos.get(node);
-      p2 = (Point2D)newPos.get(node);
+      p1 = oldPos.get(node);
+      p2 = newPos.get(node);
       node.setPoint(fade(k, p1, p2, center));
 
       node = link.getTo();
-      p1 = (Point2D)oldPos.get(node);
-      p2 = (Point2D)newPos.get(node);
+      p1 = oldPos.get(node);
+      p2 = newPos.get(node);
       node.setPoint(fade(k, p1, p2, center));
     }
   }
 
   void stopFade() {
     currentNode    = newNode;
-    currentLinkMap = newLinkMap;
+    currentLinkMap.clear();
+    currentLinkMap.putAll(newLinkMap);
   }
 
   Point2D fade(double k, Point2D p1, Point2D p2, Point2D def) {
@@ -620,10 +648,10 @@ public abstract class JSoftGraph extends JPanel {
   }
 
 
-  Map darkColors = new HashMap();
-  Set paintedNodes = new HashSet();
+  Map<Color, Color> darkColors = new HashMap<Color, Color>();
+  Set<Node> paintedNodes = new HashSet<Node>();
 
-  void paintLinkMap(Graphics2D g, Map linkMap) {
+  void paintLinkMap(Graphics2D g, Map<Link, Link> linkMap) {
     paintedNodes.clear();
     Point2D center = getCenter();
     if(linkMap == null) {
@@ -634,14 +662,14 @@ public abstract class JSoftGraph extends JPanel {
     Util.setAntialias(g, true);
 
     // paint links
-    for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
-      Link link = (Link)it.next();
+    for(Iterator<Link> it = linkMap.keySet().iterator(); it.hasNext(); ) {
+      Link link = it.next();
       Color c1 = fillColor;
       Color c2 = lineColor;
       if(link instanceof DefaultLink) {
         DefaultLink dl = (DefaultLink)link;
         c1 = dl.getColor();
-        c2 = (Color)darkColors.get(c1);
+        c2 = darkColors.get(c1);
         if(c2 == null) {
           c2 = Util.rgbInterpolate(c1, Color.black, .5);
           darkColors.put(c1, c2);
@@ -664,8 +692,8 @@ public abstract class JSoftGraph extends JPanel {
       g.shear(-0.5, 0);
       g.setComposite(alphaSome);
       Color c1 = Util.rgbInterpolate(bottomColor, Color.black, .1);
-      for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
-        Link link = (Link)it.next();
+      for(Iterator<Link> it = linkMap.keySet().iterator(); it.hasNext(); ) {
+        Link link = it.next();
 
         if(link.getType() >= 0) {
           paintLink(g, link, c1, null, false);
@@ -685,8 +713,8 @@ public abstract class JSoftGraph extends JPanel {
 
     // paint nodes
 
-    for(Iterator it = linkMap.keySet().iterator(); it.hasNext(); ) {
-      Link link = (Link)it.next();
+    for(Iterator<Link> it = linkMap.keySet().iterator(); it.hasNext(); ) {
+      Link link = it.next();
       if(!paintedNodes.contains(link.getFrom())) {
         paintedNodes.add(link.getFrom());
         paintNode(g, link.getFrom());
@@ -1006,7 +1034,7 @@ public abstract class JSoftGraph extends JPanel {
   }
 
   public void layoutNode(Node node,
-                         Map linkMap) {
+                         Map<Link, Link> linkMap) {
     Dimension size = getSize();
 
     double r  = Math.min(size.width, size.height) * .37;
@@ -1028,7 +1056,7 @@ public abstract class JSoftGraph extends JPanel {
   int maxLinks = 20;
 
   public void layoutNode(Node   node,
-                         Map    linkMap,
+                         Map<Link, Link>    linkMap,
                          double r,
                          Point2D center,
                          int    detail,
@@ -1039,7 +1067,7 @@ public abstract class JSoftGraph extends JPanel {
 //      double ry = rx;
 
       if(detail > maxDepth) {
-        Collection outLinks = node.getOutLinks();
+        Collection<Link> outLinks = node.getOutLinks();
 
         if(node.getOutMax() == 0) {
           node.setOutMax(Math.min(maxLinks, outLinks.size()));
@@ -1058,8 +1086,8 @@ public abstract class JSoftGraph extends JPanel {
         double frac = node.getOutMin() - Math.floor(node.getOutMin());
         a0 = -Math.PI * frac / range;
 
-        for(Iterator it = outLinks.iterator(); it.hasNext(); ) {
-          Link link = (Link)it.next();
+        for(Iterator<Link> it = outLinks.iterator(); it.hasNext(); ) {
+          final Link link = it.next();
           if(_n >= Math.floor(node.getOutMin()) &&
              _n <= Math.floor(node.getOutMax())) {
             double a = a0 + Math.PI + Math.PI * n / range + Math.PI / nMax/2;
@@ -1086,7 +1114,7 @@ public abstract class JSoftGraph extends JPanel {
 
 
       if(detail > 9) {
-        Collection inLinks = node.getInLinks();
+        Collection<Link> inLinks = node.getInLinks();
 
         if(node.getInMax() == 0) {
           node.setInMax(Math.min(maxLinks, inLinks.size()));
@@ -1109,8 +1137,8 @@ public abstract class JSoftGraph extends JPanel {
         double frac = node.getInMin() - Math.floor(node.getInMin());
         a0 = -Math.PI * frac / range;
 
-        for(Iterator it = inLinks.iterator(); it.hasNext(); ) {
-          Link link = (Link)it.next();
+        for(Iterator<Link> it = inLinks.iterator(); it.hasNext(); ) {
+          Link link = it.next();
           if(_n >= Math.floor(node.getInMin()) &&
              _n <= Math.floor(node.getInMax())) {
             double a = a0 + 2*Math.PI + Math.PI * n / range + Math.PI / range/2;
@@ -1193,10 +1221,10 @@ public abstract class JSoftGraph extends JPanel {
   }
 
 
-  Map strokeMap = new HashMap();
+  Map<Integer, Stroke> strokeMap = new HashMap<Integer, Stroke>();
   Stroke getStroke(int depth) {
     Integer i = new Integer(depth);
-    Stroke s = (Stroke)strokeMap.get(i);
+    Stroke s = strokeMap.get(i);
     if(s == null) {
       s = new BasicStroke((float)(5.0 / (depth + 1)));
       strokeMap.put(i, s);

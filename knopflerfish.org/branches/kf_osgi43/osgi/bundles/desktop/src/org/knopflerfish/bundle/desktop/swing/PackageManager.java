@@ -50,37 +50,31 @@ import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.util.tracker.ServiceTracker;
 
 public class PackageManager  {
-  final ServiceTracker pkgTracker;
+  final ServiceTracker<PackageAdmin,PackageAdmin> pkgTracker;
 
-  public PackageManager(ServiceTracker pkgTracker) {
+  public PackageManager(ServiceTracker<PackageAdmin, PackageAdmin> pkgTracker)
+  {
     this.pkgTracker = pkgTracker;
     refresh();
   }
 
-  final Map<Bundle, Collection> bundleExports = new HashMap<Bundle, Collection>();
-  final Map<Bundle, Set<ExportedPackage>> bundleImports = new HashMap<Bundle, Set<ExportedPackage>>();
-  final Map<Bundle, Set> bundleReqs    = new HashMap<Bundle, Set>();
-  final Map<Bundle, Collection> manifestImports = new HashMap<Bundle, Collection>();
-  final Map<Bundle, Collection> missingImports = new HashMap<Bundle, Collection>();
+  final Map<Bundle, Collection<ExportedPackage>> bundleExports
+    = new HashMap<Bundle, Collection<ExportedPackage>>();
+  final Map<Bundle, Set<ExportedPackage>> bundleImports
+    = new HashMap<Bundle, Set<ExportedPackage>>();
+  final Map<Bundle, Set<ExportedPackage>> bundleReqs
+    = new HashMap<Bundle, Set<ExportedPackage>>();
+  final Map<Bundle, Collection<String>> manifestImports
+    = new HashMap<Bundle, Collection<String>>();
+  final Map<Bundle, Collection<String>> missingImports
+    = new HashMap<Bundle, Collection<String>>();
 
-
-  // Bundle -> RequiredBundle
-  final Map<Bundle, RequiredBundle> requiredBundleMap = new HashMap<Bundle, RequiredBundle>();
-
-  // RequiredBundle -> Boolean
-  final Map isRequiringMap = new HashMap();
-
-  // int maxSize = 0;
+  final Map<Bundle, RequiredBundle> requiredBundleMap
+    = new HashMap<Bundle, RequiredBundle>();
+  final Map<RequiredBundle,Boolean> isRequiringMap
+  = new HashMap<RequiredBundle,Boolean>();
 
   final Object lock = new Object();
-
-  /*
-  public int getMaxSize() {
-    synchronized(lock) {
-      return maxSize;
-    }
-  }
-  */
 
   public PackageAdmin getPackageAdmin() {
     return (PackageAdmin) pkgTracker.getService();
@@ -102,22 +96,28 @@ public class PackageManager  {
 
   public Collection<ExportedPackage> getImportedPackages(final Bundle b) {
     synchronized(lock) {
-      final Collection s = bundleImports.get(b);
-      return s != null ? s : Collections.EMPTY_SET;
+      final Set<ExportedPackage> s = bundleImports.get(b);
+      if (s!=null) {
+        return s;
+      }
     }
+    return Collections.emptySet();
   }
 
   public Collection<ExportedPackage> getRequiredPackages(final Bundle b) {
     synchronized(lock) {
-      final Collection s = bundleReqs.get(b);
-      return s != null ? s : Collections.EMPTY_SET;
+      final Set<ExportedPackage> s = bundleReqs.get(b);
+      if (s!=null) {
+        return s;
+      }
+      return Collections.emptySet();
     }
   }
 
 
-  public Collection getManifestImports(final Bundle b) {
+  public Collection<String> getManifestImports(final Bundle b) {
     synchronized(lock) {
-      Collection c = manifestImports.get(b);
+      Collection<String> c = manifestImports.get(b);
       if(c == null) {
         c = getPackageNames(b, "Import-Package");
         manifestImports.put(b, c);
@@ -127,11 +127,11 @@ public class PackageManager  {
     }
   }
 
-  public Collection getMissingImports(final Bundle b) {
+  public Collection<String> getMissingImports(final Bundle b) {
     synchronized(lock) {
-      Collection missing = missingImports.get(b);
+      Collection<String> missing = missingImports.get(b);
       if(missing == null) {
-        missing = new TreeSet();
+        missing = new TreeSet<String>();
         missing.addAll(getManifestImports(b));
 
         Collection<ExportedPackage> okSet  = getImportedPackages(b);
@@ -164,20 +164,20 @@ public class PackageManager  {
    *
    * @return a collection of strings
    */
-  protected Collection getPackageNames(final Bundle b,
-                                       final String headerName)
+  protected Collection<String> getPackageNames(final Bundle b,
+                                               final String headerName)
   {
-    final Set res = new TreeSet();
-    final String v = (String) b.getHeaders().get(headerName);
+    final Set<String> res = new TreeSet<String>();
+    final String v = b.getHeaders().get(headerName);
 
     if(v != null && v.length() > 0) {
       // Uses the manifest entry parser from the KF-framework
       try {
-        final Iterator it = org.knopflerfish.framework.Util
+        final Iterator<Map<String, Object>> it = org.knopflerfish.framework.Util
           .parseEntries(headerName, v, false, false, false);
         while (it.hasNext()) {
-          final Map entry = (Map) it.next();
-          final List pkgs = (List) entry.get("$keys");
+          final Map<String, Object> entry = it.next();
+          final List<String> pkgs = (List<String>) entry.get("$keys");
           res.addAll(pkgs);
         }
       } catch (IllegalArgumentException iae) {
@@ -379,15 +379,13 @@ public class PackageManager  {
     return null;
   }
 
-  static public Comparator pkgComparator = new ExportedPackageComparator();
+  static public Comparator<ExportedPackage> pkgComparator
+    = new ExportedPackageComparator();
 
-  static class ExportedPackageComparator implements Comparator
+  static class ExportedPackageComparator implements Comparator<ExportedPackage>
   {
-    public int compare(Object o1, Object o2)
+    public int compare(ExportedPackage ep1, ExportedPackage ep2)
     {
-      ExportedPackage ep1 = (ExportedPackage) o1;
-      ExportedPackage ep2 = (ExportedPackage) o2;
-
       // First package name
       int res = ep1.getName().compareTo(ep2.getName());
       if (0!=res) return res;

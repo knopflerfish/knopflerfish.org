@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,13 @@ package org.knopflerfish.bundle.desktop.swing;
 import java.awt.Component;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -91,18 +93,18 @@ public class LookAndFeelMenu
     final UIManager.LookAndFeelInfo[] iLF
       = UIManager.getInstalledLookAndFeels();
 
-    Vector classes = new Vector();
-    Vector names   = new Vector();
+    List<String> classes = new ArrayList<String>();
+    List<String> names   = new ArrayList<String>();
 
-    for(Enumeration e = lfManager.customLF.keys(); e.hasMoreElements(); ) {
-      String className = (String)e.nextElement();
-      LookAndFeel lf   = (LookAndFeel)lfManager.customLF.get(className);
-      String name      = lf.getName();
+    for(Entry<String,LookAndFeel> entry : lfManager.customLF.entrySet()) {
+      final String className = entry.getKey();
+      final LookAndFeel lf   = entry.getValue();
+      final String name      = lf.getName();
 
       // Check if custom LF is included in installed LFs
       boolean bIncluded = false;
-      for (int i=0;  i < iLF.length; i++) {
-        if(iLF[i].getClassName().equals(className)) {
+      for (UIManager.LookAndFeelInfo ilf : iLF) {
+        if(ilf.getClassName().equals(className)) {
           bIncluded = true;
           break;
         }
@@ -110,23 +112,21 @@ public class LookAndFeelMenu
 
       // If not included, add to my list
       if(!bIncluded) {
-        classes.addElement(className);
-        names.addElement(name);
+        classes.add(className);
+        names.add(name);
       }
     }
 
     // Add all installed LFs
-    for (int i=0;  i<iLF.length; i++) {
-      {
-        classes.addElement(iLF[i].getClassName());
-        names.addElement(iLF[i].getName());
-      }
+    for (UIManager.LookAndFeelInfo ilf : iLF) {
+        classes.add(ilf.getClassName());
+        names.add(ilf.getName());
     }
 
     // Create menu
     for (int i=0;  i<classes.size(); i++) {
-      String className  = (String)classes.elementAt(i);
-      String name       = (String)names.elementAt(i);
+      final String className  = classes.get(i);
+      final String name = names.get(i);
       JRadioButtonMenuItem rbMenuItem =
         (JRadioButtonMenuItem) add( new JRadioButtonMenuItem( name ) );
       rbMenuItem.setActionCommand( className );
@@ -146,7 +146,7 @@ public class LookAndFeelMenu
 
   }//LookAndFeelMenu
 
-  Set roots = new HashSet();
+  Set<Component> roots = new HashSet<Component>();
 
   void addRoot(Component root) {
     roots.add(root);
@@ -195,8 +195,8 @@ public class LookAndFeelMenu
         Activator.log.debug("set custom LF " + newLFClassName);
         UIManager.setLookAndFeel(cLF);
 
-        for(Iterator it = roots.iterator(); it.hasNext();) {
-          Component root = (Component)it.next();
+        for(Iterator<Component> it = roots.iterator(); it.hasNext();) {
+          Component root = it.next();
           SwingUtilities.updateComponentTreeUI( root );
         }
 
@@ -209,8 +209,8 @@ public class LookAndFeelMenu
           Activator.log.debug("set installed LF " + newLFClassName);
           UIManager.setLookAndFeel(newLFClassName);
           try {
-            for(Iterator it = roots.iterator(); it.hasNext();) {
-              Component root = (Component)it.next();
+            for(Iterator<Component> it = roots.iterator(); it.hasNext();) {
+              Component root = it.next();
               SwingUtilities.updateComponentTreeUI( root );
             }
 
@@ -227,7 +227,7 @@ public class LookAndFeelMenu
           Activator.log.error( "Reverting to the cross platform LookAndFeel." );
           final String cpLFcn = UIManager.getCrossPlatformLookAndFeelClassName();
           // Find the menu item with the cross platform L&F and select it
-          for (Enumeration lfBEnum = lfGroup.getElements();
+          for (Enumeration<AbstractButton> lfBEnum = lfGroup.getElements();
                lfBEnum.hasMoreElements(); ) {
             final AbstractButton ab =(AbstractButton)lfBEnum.nextElement();
             if (cpLFcn.equals( ab.getActionCommand() )) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,7 @@ public class TableMap extends AbstractTableModel
         return model.getColumnName(aColumn);
     }
 
-    public Class getColumnClass(int aColumn) {
+    public Class<?> getColumnClass(int aColumn) {
         return model.getColumnClass(aColumn);
     }
 

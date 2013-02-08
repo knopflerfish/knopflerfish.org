@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project All rights reserved.
+ * Copyright (c) 2003-2013, KNOPFLERFISH project All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following
@@ -66,8 +66,8 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
   public void valueChanged(long bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JHTML comp = (JHTML)it.next();
+    for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+      JHTML comp = (JHTML) it.next();
       comp.valueChanged(bl);
     }
   }
@@ -176,15 +176,15 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     void appendExportedPackages(StringBuffer sb, Bundle b,
                                 boolean useParagraph) {
       PackageManager pm = Activator.desktop.pm;
-      Collection pkgs = pm.getExportedPackages(b);
+      Collection<ExportedPackage> pkgs = pm.getExportedPackages(b);
       if (useParagraph) {
         sb.append("<p>");
       }
       if(pkgs.size() > 0) {
         sb.append("<b>Exported packages</b>");
-        List exportDescr  = new ArrayList();
-        for (Iterator it = pkgs.iterator(); it.hasNext(); ) {
-          ExportedPackage pkg = (ExportedPackage)it.next();
+        List<String> exportDescr  = new ArrayList<String>();
+        for (Iterator<ExportedPackage> it = pkgs.iterator(); it.hasNext(); ) {
+          ExportedPackage pkg = it.next();
           StringBuffer   sb1  = new StringBuffer();
 
           sb1.append(formatPackage(pkg, false));
@@ -213,7 +213,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
           exportDescr.add(sb1.toString());
         }
         Collections.sort(exportDescr);
-        for (Iterator it = exportDescr.iterator(); it.hasNext(); ) {
+        for (Iterator<String> it = exportDescr.iterator(); it.hasNext(); ) {
           sb.append(it.next());
         }
       } else {
@@ -227,15 +227,14 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     void appendImportedPackages(StringBuffer sb, Bundle b,
                                 boolean useParagraph) {
       final PackageManager pm = Activator.desktop.pm;
-      final Collection importedPkgs = pm.getImportedPackages(b);
+      final Collection<ExportedPackage> importedPkgs = pm.getImportedPackages(b);
 
       if (useParagraph) {
         sb.append("<p>");
       }
       if(importedPkgs.size() > 0) {
         sb.append("<b>Imported packages</b>");
-        for (Iterator it = importedPkgs.iterator(); it.hasNext(); ) {
-          final ExportedPackage epkg = (ExportedPackage) it.next();
+        for (ExportedPackage epkg : importedPkgs) {
           sb.append(formatPackage( epkg, false ));
           sb.append("<br>");
           sb.append("&nbsp;&nbsp;");
@@ -256,13 +255,13 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     void appendMissingImports(StringBuffer sb, Bundle b) {
       PackageManager pm = Activator.desktop.pm;
-      Collection missingImports = pm.getMissingImports(b);
+      Collection<String> missingImports = pm.getMissingImports(b);
       if(missingImports.size() > 0) {
         sb.append("<p>");
         sb.append("<b>Missing packages</b>");
-        for (Iterator it = missingImports.iterator(); it.hasNext(); ) {
+        for (String missingImport : missingImports) {
           sb.append("<br>\n");
-          sb.append(formatPackage( (String) it.next()));
+          sb.append(formatPackage(missingImport));
           sb.append("</p>");
         }
       }
@@ -271,14 +270,13 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     void appendRequiredPackages(StringBuffer sb, Bundle b,
                                 boolean useParagraph) {
       PackageManager pm = Activator.desktop.pm;
-      Collection requiredPkgs = pm.getRequiredPackages(b);
-      Collection importedPkgs = pm.getImportedPackages(b);
+      Collection<ExportedPackage> requiredPkgs = pm.getRequiredPackages(b);
+      Collection<ExportedPackage> importedPkgs = pm.getImportedPackages(b);
 
       if(requiredPkgs.size() > 0) {
         if (useParagraph) sb.append("<p>");
         sb.append("<b>Packages available from required bundles</b>");
-        for (Iterator it = requiredPkgs.iterator(); it.hasNext(); ) {
-          ExportedPackage epkg = (ExportedPackage) it.next();
+        for (ExportedPackage epkg : requiredPkgs) {
           sb.append(formatPackage( epkg, isPkgInList(epkg, importedPkgs)));
         }
         if (useParagraph) sb.append("</p>");
@@ -290,11 +288,12 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
      * Check if a package given by epkg.getName() is present in the list
      * of ExportedPackage objects named importPkgs.
      */
-    private boolean isPkgInList(ExportedPackage epkg, Collection importedPkgs)
+    private boolean isPkgInList(ExportedPackage epkg,
+                                Collection<ExportedPackage> importedPkgs)
     {
-      for (Iterator it = importedPkgs.iterator(); it.hasNext(); ) {
-        ExportedPackage ipkg = (ExportedPackage) it.next();
-        if (epkg.getName().equals(ipkg.getName())) return true;
+      for (ExportedPackage ipkg : importedPkgs) {
+        if (epkg.getName().equals(ipkg.getName()))
+          return true;
       }
       return false;
     }

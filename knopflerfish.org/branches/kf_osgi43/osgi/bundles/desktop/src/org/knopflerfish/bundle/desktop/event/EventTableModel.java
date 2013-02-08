@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ package org.knopflerfish.bundle.desktop.event;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.table.DefaultTableModel;
 
@@ -59,7 +59,7 @@ public class EventTableModel extends DefaultTableModel {
 
   private int capacity = 342;
 
-  private ArrayList/*<org.osgi.service.event.Event>*/ entries = new ArrayList();
+  private ArrayList<Event> entries = new ArrayList<Event>();
 
   EventReaderDispatcher dispatcher;
 
@@ -118,28 +118,27 @@ public class EventTableModel extends DefaultTableModel {
     return false;
   }
 
-  public void setColumns(java.util.List names) {
-
-
+  public void setColumns(List<String> names)
+  {
     String[] h2 = new String[names.size()];
     {
       int i = 0;
-      for(Iterator it = names.iterator(); it.hasNext(); ) {
-        h2[i++] = it.next().toString();
+      for (String name : names) {
+        h2[i++] = name;
       }
 
     }
     boolean bChanged = false;
-    if(h2.length == headers.length) {
-      for(int i = 0; i < headers.length; i++) {
-        if(!h2[i].equals(headers[i])) {
+    if (h2.length == headers.length) {
+      for (int i = 0; i < headers.length; i++) {
+        if (!h2[i].equals(headers[i])) {
           bChanged = true;
         }
       }
     } else {
       bChanged = true;
     }
-    if(bChanged) {
+    if (bChanged) {
       headers = h2;
       fireTableStructureChanged();
     } else {
@@ -154,7 +153,7 @@ public class EventTableModel extends DefaultTableModel {
     return headers[i];
   }
 
-  public java.util.List getEntries() {
+  public List<Event> getEntries() {
     return entries;
   }
 

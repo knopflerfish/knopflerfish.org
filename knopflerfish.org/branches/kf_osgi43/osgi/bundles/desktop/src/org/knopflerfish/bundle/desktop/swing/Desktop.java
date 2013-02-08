@@ -1679,7 +1679,7 @@ public class Desktop implements BundleListener, FrameworkListener,
         final String f = s.length() > 0 ? s.substring(0, 1).toUpperCase() : "--";
         Collection<Bundle> bucket = (Collection<Bundle>) buckets.get(f);
         if (bucket == null) {
-          bucket = new ArrayList<Bundle>();
+          bucket = new TreeSet<Bundle>(Util.bundleIdComparator);
           buckets.put(f, bucket);
         }
         bucket.add(bundle);
@@ -1749,15 +1749,24 @@ public class Desktop implements BundleListener, FrameworkListener,
         selectMenu.add(subMenu);
       } else if (bucket.size()==1) {
         final Bundle bundle = bucket.iterator().next();
-        final JMenuItem item = makeSelectBundleItem(bundle);
+        final String text = key + " - " + makeSelectBundleItemText(bundle);
+        final JMenuItem item = makeSelectBundleItem(bundle, text);
         selectMenu.add(item);
       }
     }
   }
 
+  String makeSelectBundleItemText(final Bundle bundle)
+  {
+    return Util.getBundleName(bundle) + " #" +bundle.getBundleId();
+  }
+
   JMenuItem makeSelectBundleItem(final Bundle bundle) {
-    JMenuItem item = new JMenuItem(bundle.getBundleId() + " "
-        + Util.getBundleName(bundle));
+    return makeSelectBundleItem(bundle, makeSelectBundleItemText(bundle));
+  }
+
+  JMenuItem makeSelectBundleItem(final Bundle bundle, final String txt) {
+    JMenuItem item = new JMenuItem(txt);
 
     item.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent ev) {

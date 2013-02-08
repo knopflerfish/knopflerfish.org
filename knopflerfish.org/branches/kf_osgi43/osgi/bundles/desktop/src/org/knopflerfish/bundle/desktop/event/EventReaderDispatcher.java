@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.bundle.desktop.event;
 
+import java.util.Dictionary;
 import java.util.Hashtable;
 
 import javax.swing.SwingUtilities;
@@ -54,7 +55,7 @@ public class EventReaderDispatcher implements EventHandler
 
   final BundleContext bc;
   final EventTableModel model;
-  ServiceRegistration reg = null;
+  ServiceRegistration<EventHandler> reg = null;
   String topic  = "*";
   String filter = "";
 
@@ -67,12 +68,12 @@ public class EventReaderDispatcher implements EventHandler
 
   public void open() {
     if(reg == null) {
-      Hashtable props = new Hashtable();
+      Dictionary<String, Object> props = new Hashtable<String, Object>();
       props.put(EventConstants.EVENT_TOPIC,  new String[] { topic });
       if(filter != null && !"".equals(filter)) {
         props.put(EventConstants.EVENT_FILTER, filter);
       }
-      reg = bc.registerService(EventHandler.class.getName(), this, props);
+      reg = bc.registerService(EventHandler.class, this, props);
     }
   }
 
