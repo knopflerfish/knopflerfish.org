@@ -55,11 +55,15 @@
 	    value="org/knopflerfish/framework/validator/JKSValidator.java"/>
 
   <path id="ee.minimum.path">
-    <pathelement location="../ee/ee.minimum.jar"/>
+    <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
+    <!-- Outside EE, but usefull when compling -->
+    <pathelement location="${osgi.dir}/ee/src_annotations.jar"/>
   </path>
 
   <path id="ee.foundation.path">
-    <pathelement location="../ee/ee.foundation.jar"/>
+    <pathelement location="${osgi.dir}/ee/ee.foundation.jar"/>
+    <!-- Outside EE, but usefull when compling -->
+    <pathelement location="${osgi.dir}/ee/src_annotations.jar"/>
   </path>
 
   <path id="compile.path">

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.framework;
 
+import java.security.cert.X509Certificate;
 import java.util.List;
 
 /**
@@ -48,6 +49,6 @@ public interface Validator {
    *
    * @return true, if validator trusts certificate chain, otherwise false.
    */
-   boolean validateCertificateChain(List /* X509Certificate */ certs);
+   boolean validateCertificateChain(List<X509Certificate> certs);
 
 }

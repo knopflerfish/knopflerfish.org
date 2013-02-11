@@ -249,6 +249,7 @@ public class Util {
         }
         String param;
         while ((param = at.getParam()) != null) {
+          @SuppressWarnings({ "unchecked" })
           List<String> old = (List<String>) params.get(param);
           boolean is_directive = at.isDirective();
           if (old != null && unique) {

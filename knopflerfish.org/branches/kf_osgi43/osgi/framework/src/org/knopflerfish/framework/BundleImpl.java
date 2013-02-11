@@ -1770,6 +1770,7 @@ public class BundleImpl implements Bundle {
   }
 
 
+  @SuppressWarnings("unchecked")
   public <A> A adapt(Class<A> type) {
     secure.checkAdaptPerm(this, type);
 

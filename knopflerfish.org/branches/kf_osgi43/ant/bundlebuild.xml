@@ -76,11 +76,14 @@
   <!-- The OSGi Minimum EE.                                          -->
   <path id="ee.minimum">
     <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
+    <!-- Outside EE, but usefull when compling -->
+    <pathelement location="${osgi.dir}/ee/src_annotations.jar"/>
   </path>
 
   <!-- The OSGi Foundation EE.                                       -->
   <path id="ee.foundation">
     <pathelement location="${osgi.dir}/ee/ee.foundation.jar"/>
+    <pathelement location="${osgi.dir}/ee/src_annotations.jar"/>
   </path>
 
 
