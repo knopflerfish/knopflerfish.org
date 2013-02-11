@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ public class LogReaderServiceImpl implements LogReaderService {
   /**
    * A Vector with LogListener objects.
    */
-  Vector listeners = new Vector(2);
+  Vector<LogListener> listeners = new Vector<LogListener>(2);
 
   /**
    * The constructor saves the LogReaderServiceFactory.
@@ -99,7 +99,7 @@ public class LogReaderServiceImpl implements LogReaderService {
   /**
    * * Bridge to LogReaderServiceFactory for fetching the log.
    */
-  public Enumeration getLog() {
+  public Enumeration<LogEntry> getLog() {
     return lrsf.getLog();
   }
 
@@ -107,7 +107,7 @@ public class LogReaderServiceImpl implements LogReaderService {
    * Used by {@link LogReaderServiceFactory} for every new log
    * entry. Note that the callback operation is not disturbed by
    * changes in the listener set since such changes will result in
-   * that <code>listerners</code> refers to a new object, but the
+   * that <code>listeners</code> refers to a new object, but the
    * callback operation will continue its enumeration of the old
    * listeners object.
    *
@@ -115,11 +115,11 @@ public class LogReaderServiceImpl implements LogReaderService {
    *            A log entry to send to all listeners.
    */
   public void callback(LogEntry le) {
-    Enumeration i = listeners.elements();
+    Enumeration<LogListener> i = listeners.elements();
 
     while (i.hasMoreElements()) {
       try {
-        ((LogListener) i.nextElement()).logged(le);
+        i.nextElement().logged(le);
       } catch (Exception exc) {
       }
     }

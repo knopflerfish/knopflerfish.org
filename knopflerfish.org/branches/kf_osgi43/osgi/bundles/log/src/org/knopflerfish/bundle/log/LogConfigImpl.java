@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ import org.osgi.service.cm.ManagedService;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -129,17 +130,19 @@ class LogConfigImpl
   /** The directory that the file log is written to. */
   private File dir;
 
-  private final Hashtable configCollection = new Hashtable();
+  private final Hashtable<String,Object> configCollection
+    = new Hashtable<String, Object>();
 
   // Mapping from bundle pattern
   // (location/BundleSymbolicName/BundleName) to log level (Integer),
   // each entry in this map corresponds to an entry in the
   // actual configuration.
-  private final HashMap blFilters = new HashMap();
+  private final HashMap<String, Integer> blFilters
+    = new HashMap<String, Integer>();
 
   // Mapping from bundle id to log level. This is a cache computed
   // by evaluate all installed bundles against the current blFilters
-  private final Map bidFilters = new HashMap();
+  private final Map<Long, Integer> bidFilters = new HashMap<Long, Integer>();
 
   private LogReaderServiceFactory logReaderCallback;
 
@@ -273,7 +276,7 @@ class LogConfigImpl
   public synchronized void setFilter(String bundleLocation, int filter) {
     bundleLocation = bundleLocation.trim();
 
-    Integer f = (Integer) blFilters.get(bundleLocation);
+    Integer f = blFilters.get(bundleLocation);
     if (filter == 0 && f != null) {
       blFilters.remove(bundleLocation);
       setCollection(true, bundleLocation, filter);
@@ -290,8 +293,8 @@ class LogConfigImpl
    * @see org.knopflerfish.service.log.LogConfig#getFilters()
    */
 
-  public synchronized HashMap getFilters() {
-    return (HashMap) blFilters.clone();
+  public synchronized HashMap<String, Integer> getFilters() {
+    return new HashMap<String, Integer>(blFilters);
   }
 
   /*
@@ -470,7 +473,7 @@ class LogConfigImpl
     final Long key = new Long(bundle.getBundleId());
     Integer level = null;
     synchronized (bidFilters) {
-      level = (Integer) bidFilters.get(key);
+      level = bidFilters.get(key);
     }
 
     // final PrintStream out = (null!=origOut) ? origOut : System.out;
@@ -479,8 +482,7 @@ class LogConfigImpl
     return (level != null) ? level.intValue() : getFilter();
   }
 
-  static String[] getBL(final Object obj) {
-    String bundleStr = (String) obj;
+  static String[] getBL(final String bundleStr) {
     String[] bundle = new String[]{null, null};
     int ix = bundleStr.indexOf(";");
     try {
@@ -514,7 +516,7 @@ class LogConfigImpl
    * @param bundle The bundle to update the cached log level for.
    */
   private void computeBidFilter(final Bundle bundle) {
-    Integer level = (Integer) blFilters.get(bundle.getLocation());
+    Integer level = blFilters.get(bundle.getLocation());
     if (null == level) {
       String l = getSymbolicName(bundle);
       if (null==l || 0 == l.length()) {
@@ -522,7 +524,7 @@ class LogConfigImpl
       }
 
       if (null != l) {
-        level = (Integer) blFilters.get(l);
+        level = blFilters.get(l);
       }
     }
     if (null != level) {
@@ -545,7 +547,7 @@ class LogConfigImpl
       return null;
     }
 
-    final Dictionary d = bundle.getHeaders("");
+    final Dictionary<String, String> d = bundle.getHeaders("");
     String bsn = (String) d.get("Bundle-SymbolicName");
     if (bsn != null && bsn.length() >0) {
       // Remove parameters and directives from the value
@@ -580,7 +582,8 @@ class LogConfigImpl
 
   private void setCollection(boolean remove, String bundleLocation, int filter) {
     synchronized (configCollection) {
-      Vector v = (Vector) configCollection.get(BL_FILTERS);
+      @SuppressWarnings("unchecked")
+      Vector<String> v = (Vector<String>) configCollection.get(BL_FILTERS);
       String[] bundF;
       boolean notFound = true;
       if (v != null && v.size() > 0) {
@@ -626,10 +629,10 @@ class LogConfigImpl
 
   private void updateConfig() {
     try {
-      ServiceReference sr = bc
-          .getServiceReference(ConfigurationAdmin.class.getName());
+      ServiceReference<ConfigurationAdmin> sr = bc
+          .getServiceReference(ConfigurationAdmin.class);
       if (sr != null) {
-        ConfigurationAdmin ca = (ConfigurationAdmin) bc.getService(sr);
+        ConfigurationAdmin ca = bc.getService(sr);
         if (ca != null) {
           Configuration conf = ca.getConfiguration(pid);
           if (conf != null) {
@@ -648,9 +651,9 @@ class LogConfigImpl
   /* Initializes configuration */
   /* ======================================================================== */
 
-  private Hashtable getDefault() {
-    final Hashtable ht = new Hashtable();
-    final Vector bundleLogFilters = new Vector();
+  private Hashtable<String, Serializable> getDefault() {
+    final Hashtable<String, Serializable> ht = new Hashtable<String, Serializable>();
+    final Vector<String> bundleLogFilters = new Vector<String>();
     final String o = getProperty(PROP_LOG_OUT, "false");
 
     final String levelStr = getProperty(PROP_LOG_LEVEL,
@@ -667,7 +670,7 @@ class LogConfigImpl
     ht.put(GEN, new Integer(4));
     ht.put(FLUSH, Boolean.TRUE);
     ht.put(BL_FILTERS, bundleLogFilters);
-    ht.put(PID, this.pid);
+    ht.put(PID, LogConfigImpl.pid);
 
     final String timestampPattern = getProperty(PROP_LOG_TIMESTAMP_PATTERN,
                                                 DEFAULT_TIMESTAMP_PATTERN);
@@ -719,7 +722,7 @@ class LogConfigImpl
   /* ManagedService is updated. */
   /* ======================================================================== */
 
-  public synchronized void updated(Dictionary cfg)
+  public synchronized void updated(Dictionary<String, ?> cfg)
       throws ConfigurationException, IllegalArgumentException {
     if (cfg == null) {
       isDefaultConfig = true;
@@ -828,13 +831,15 @@ class LogConfigImpl
    *
    * @param cfg new configuration to validate and apply.
    */
-  private void checkApplyConfig(Dictionary cfg)
+  @SuppressWarnings("unchecked")
+  private void checkApplyConfig(Dictionary<String, ?> cfg)
       throws ConfigurationException, IllegalArgumentException
   {
     boolean valid = false;
-    final Hashtable rollBack = (Hashtable) configCollection.clone();
+    final Hashtable<String,Object> rollBack
+      = new Hashtable<String, Object>(configCollection);
     try {
-      checkLogLevel(cfg);
+      checkLogLevel((Dictionary<String, Object>) cfg);
       checkBundleLogLevel(cfg);
       checkTimestampPattern(cfg);
       valid = true;
@@ -854,8 +859,8 @@ class LogConfigImpl
           if (!valid) {
             // Rollback. E.g., configCollection = rollBack;
             synchronized (configCollection) {
-              for (Enumeration keys = rollBack.keys(); keys.hasMoreElements();) {
-                final Object key = keys.nextElement();
+              for (Enumeration<String> keys = rollBack.keys(); keys.hasMoreElements();) {
+                final String key = keys.nextElement();
                 final Object value = rollBack.remove(key);
                 configCollection.put(key, value);
               }
@@ -868,7 +873,7 @@ class LogConfigImpl
 
   /* Check log level property for faults. */
 
-  private void checkLogLevel(Dictionary cfg)
+  private void checkLogLevel(Dictionary<String, Object> cfg)
       throws ConfigurationException, IllegalArgumentException {
     String filter = null;
     Object obj = cfg.get(L_FILTER);
@@ -895,11 +900,13 @@ class LogConfigImpl
   }
 
   /* Check bundle log level property for faults. */
-  private void checkBundleLogLevel(Dictionary cfg)
+  private void checkBundleLogLevel(Dictionary<String, ?> cfg)
       throws ConfigurationException, IllegalArgumentException {
-    Vector v = null;
+    Vector<String> v = null;
     try {
-      v = (Vector) cfg.get(BL_FILTERS);
+      @SuppressWarnings("unchecked")
+      Vector<String> v1 = (Vector<String>) cfg.get(BL_FILTERS);
+      v = v1;
     } catch (ClassCastException cce) {
       throw new IllegalArgumentException
           ("Wrong type supplied when attempting to set log level for "
@@ -956,7 +963,7 @@ class LogConfigImpl
 
 
   // Valide the new timestamp pattern
-  private void checkTimestampPattern(final Dictionary cfg)
+  private void checkTimestampPattern(final Dictionary<String, ?> cfg)
       throws ConfigurationException, IllegalArgumentException {
     final Object obj = cfg.get(TIMESTAMP_PATTERN);
     try {
@@ -986,8 +993,11 @@ class LogConfigImpl
    *
    * @param cfg The new, validated configuration to apply.
    */
-  private void applyConfig(final Dictionary cfg) {
-    setFilterCfg((Vector) cfg.get(BL_FILTERS));
+  private void applyConfig(final Dictionary<String, ?> cfg) {
+    @SuppressWarnings("unchecked")
+    Vector<String> bls = (Vector<String>) cfg.get(BL_FILTERS);
+    setFilterCfg(bls);
+    
     Object newV = null;
     if ((newV = diff(L_FILTER, cfg)) != null) {
       set(L_FILTER, newV);
@@ -1047,12 +1057,11 @@ class LogConfigImpl
    * internal representation of bundle log levels.
    */
 
-  private void setFilterCfg(Vector newV) {
+  private void setFilterCfg(Vector<String> newV) {
     if (newV != null) {
       String[] bundle = null;
       int newFilter = -1;
-      Set newKeys = new HashSet();
-      HashMap tmpFilters = new HashMap();
+      Set<String> newKeys = new HashSet<String>();
       for (int i = 0; (i < newV.size()); i++) {
         bundle = getBL(newV.elementAt(i));
         newFilter = LogUtil.toLevel((bundle[FILTER_POS].trim()), LOG_WARNING);
@@ -1060,9 +1069,9 @@ class LogConfigImpl
         newKeys.add(bundle[LOCATION_POS]);
       }
       // Remove obsolete bl filter mappings.
-      Set obsoleteKeys = new HashSet(blFilters.keySet());
+      Set<String> obsoleteKeys = new HashSet<String>(blFilters.keySet());
       obsoleteKeys.removeAll(newKeys);
-      for (Iterator okit = obsoleteKeys.iterator(); okit.hasNext();) {
+      for (Iterator<String> okit = obsoleteKeys.iterator(); okit.hasNext();) {
         blFilters.remove(okit.next());
       }
       set(BL_FILTERS, newV);
@@ -1070,13 +1079,13 @@ class LogConfigImpl
     }
   }
 
-  private Object diff(String key, Dictionary cfg) {
+  private Object diff(String key, Dictionary<String, ?> cfg) {
     Object newV = null;
     return ((newV = cfg.get(key)) != null
         && !newV.equals(configCollection.get(key))) ? newV : null;
   }
 
-  private Object diff(String key, Object defV, Dictionary cfg) {
+  private Object diff(String key, Object defV, Dictionary<String, ?> cfg) {
     Object newV = cfg.get(key);
     if (null==newV) {
       newV = defV;
@@ -1105,9 +1114,4 @@ class LogConfigImpl
     }
   }
 
-  private void log(String msg) {
-    if (logReaderCallback != null) {
-      logReaderCallback.log(new LogEntryImpl(bc.getBundle(), LOG_INFO, msg));
-    }
-  }
 }

@@ -112,8 +112,8 @@ public class LogFrameworkListener implements FrameworkListener, /*Synchronous*/B
     }
 
     /**
-     * * The bundle event callback method inserts all bundle events * into the
-     * log. * * Events are all assinged the log level info, *
+     * The bundle event callback method inserts all bundle events into the
+     * log. Events are all assigned the log level info.
      * 
      * @param be
      *            the bundle event that has occured.
@@ -154,15 +154,19 @@ public class LogFrameworkListener implements FrameworkListener, /*Synchronous*/B
     }
 
     /**
-     * * The service event callback method inserts all service events * into the
-     * log. * * Event of types REGISTERED, UNREGISTERED are assinged the log
-     * level info. Events of type MODIFIED are assigned the log level DEBUG. *
+     * The service event callback method inserts all service events into the
+     * log.
+     * 
+     * Event of types REGISTERED, UNREGISTERED are assigned the log
+     * level info.
+     * 
+     * Events of type MODIFIED are assigned the log level DEBUG.
      * 
      * @param se
-     *            the service event that has occured.
+     *            the service event that has occurred.
      */
     public void serviceChanged(ServiceEvent se) {
-        ServiceReference sr = se.getServiceReference();
+        ServiceReference<?> sr = se.getServiceReference();
         Bundle bundle = sr.getBundle();
         String msg = null;
         int level = LogService.LOG_INFO;
