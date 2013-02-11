@@ -89,7 +89,7 @@ public class FrameworkContext  {
   /**
    * All service hooks.
    */
-  Hooks hooks;
+  ServiceHooks hooks;
   
   /**
    * All bundle hooks.
@@ -374,7 +374,7 @@ public class FrameworkContext  {
 
     bundles           = new Bundles(this);
 
-    hooks             = new Hooks(this);
+    hooks             = new ServiceHooks(this);
     hooks.open();
     
     bundleHooks = new BundleHooks(this);

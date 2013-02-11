@@ -68,7 +68,7 @@ class BundleHooks {
                      Collection<Bundle> bundles) {
     ArrayList srl = fwCtx.services.get(FindHook.class.getName());
     if (srl != null) {
-      Hooks.RemoveOnlyCollection filtered = new Hooks.RemoveOnlyCollection(bundles);
+      ServiceHooks.RemoveOnlyCollection filtered = new ServiceHooks.RemoveOnlyCollection(bundles);
 
       for (Iterator i = srl.iterator(); i.hasNext(); ) {
         ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;
@@ -114,7 +114,7 @@ class BundleHooks {
       }
       
       int unfilteredSize = bundleContexts.size();
-      Hooks.RemoveOnlyCollection filtered = new Hooks.RemoveOnlyCollection(bundleContexts);
+      ServiceHooks.RemoveOnlyCollection filtered = new ServiceHooks.RemoveOnlyCollection(bundleContexts);
     
       for (Iterator i = eventHooks.iterator(); i.hasNext(); ) {
         ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;

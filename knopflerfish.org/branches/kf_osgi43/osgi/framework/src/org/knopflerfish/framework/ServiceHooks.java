@@ -49,7 +49,7 @@ import org.osgi.util.tracker.*;
  * Handle all framework hooks, mostly dispatched from BundleImpl, Services and ServiceListenerState
  *
  */
-class Hooks {
+class ServiceHooks {
 
   final private FrameworkContext fwCtx;
   ServiceTracker listenerHookTracker;
@@ -67,7 +67,7 @@ class Hooks {
     return ignore.contains(sle.listener.getClass().getName());
   }
 
-  Hooks(FrameworkContext fwCtx) {
+  ServiceHooks(FrameworkContext fwCtx) {
     this.fwCtx = fwCtx;
   }
 
