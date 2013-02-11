@@ -826,9 +826,11 @@ public class ServiceTracker<S, T> implements ServiceTrackerCustomizer<S, T> {
 		synchronized (t) {
 			//return t.copyEntries(map);
 		  t.copyEntries(map);
-		  System.out.println("FIRST: " + map.firstKey());
-      System.out.println("LAST: " + map.lastKey());
-      System.out.println("SIZE: " + map.size());
+		  if(DEBUG) {
+		    System.out.println("FIRST: " + (map.isEmpty() ? "none" : map.firstKey()));
+		    System.out.println("LAST: " + (map.isEmpty() ? "none" : map.lastKey()));
+		    System.out.println("SIZE: " + map.size());
+		  }
 		  return map;
 		}
 	}
