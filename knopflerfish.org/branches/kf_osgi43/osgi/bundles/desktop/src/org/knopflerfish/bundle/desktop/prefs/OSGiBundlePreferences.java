@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public class OSGiBundlePreferences extends MountedPreferences
   protected BundleContext bc;
   OSGiPreferences         sysNode;
   OSGiUsersPreferences    usersNode;
-  ServiceTracker          psTracker;
+  ServiceTracker<PreferencesService,PreferencesService> psTracker;
   PreferencesService      ps;
 
   String SYS_NAME   = "sys";
@@ -72,21 +72,21 @@ public class OSGiBundlePreferences extends MountedPreferences
     if(bc == null) {
       log.debug("No BC for " + Util.getBundleName(bundle));
     } else {
-      psTracker = new ServiceTracker(bc,
-                                     PreferencesService.class.getName(),
+      psTracker = new ServiceTracker<PreferencesService,PreferencesService>(bc,
+                                     PreferencesService.class,
                                      null) {
-          public Object addingService(ServiceReference sr) {
-            Object obj = super.addingService(sr);
-            ps = (PreferencesService)obj;
+          public PreferencesService addingService(ServiceReference<PreferencesService> sr) {
+            OSGiBundlePreferences.this.ps = super.addingService(sr);
 
             mountService();
 
-            return obj;
+            return OSGiBundlePreferences.this.ps;
           }
-          public void removedService(ServiceReference sr, Object service) {
-            ps = null;
+          public void removedService(ServiceReference<PreferencesService> sr,
+                                     PreferencesService ps) {
+            OSGiBundlePreferences.this.ps = null;
             unmountService();
-            super.removedService(sr, service);
+            super.removedService(sr, ps);
           }
         };
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, KNOPFLERFISH project
+ * Copyright (c) 2008,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,11 +74,12 @@ public class OSGiPreferences
 
   // AbstractPreferences implementation
 
-  Map children = new HashMap();
+  Map<String, OSGiPreferences> children
+    = new HashMap<String, OSGiPreferences>();
 
   protected AbstractPreferences  childSpi(String name) {
     synchronized(children) {
-      OSGiPreferences child = (OSGiPreferences)children.get(name);
+      OSGiPreferences child = children.get(name);
       if(child == null) {
         child = new OSGiPreferences(this, target.node(name));
         children.put(name, child);

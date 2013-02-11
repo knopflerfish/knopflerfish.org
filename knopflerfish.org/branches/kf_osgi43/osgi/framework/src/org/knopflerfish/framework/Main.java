@@ -115,7 +115,7 @@ public class Main
   static public final String VERBOSITY_DEFAULT = "0";
 
    /**
-   * Name of framework property controlling wheather to write an
+   * Name of framework property controlling whether to write an
    * FWPROPS_XARGS file or not at startup.
    */
   static public final String WRITE_FWPROPS_XARGS_PROP =
@@ -127,6 +127,9 @@ public class Main
   static public final String XARGS_DEFAULT     = "default";
 
   static public final String PRODVERSION_PROP     = "org.knopflerfish.prodver";
+
+  static public final String BOOT_TEXT_PROP
+    = "org.knopflerfish.framework.main.bootText";
 
   /**
    * Default values for some framework properties.
@@ -1046,6 +1049,9 @@ public class Main
     if(null == fwProps.get(PRODVERSION_PROP)) {
       fwProps.put(PRODVERSION_PROP, version);
     }
+    
+    // Make the boot text available to any bundle (e.g., desktop).
+    fwProps.put(BOOT_TEXT_PROP, bootText);
 
 
     // If jar dir is not specified, default to "file:jars/" and its

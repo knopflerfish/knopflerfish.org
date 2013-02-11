@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ public class JPrefsPanel extends JPanel
   private static final long serialVersionUID = 1L;
 
   Preferences  node;
-  Map          nodeMap = new HashMap();
+  Map<String, JValue> nodeMap = new HashMap<String, JValue>();
   JPanel       valuePanel;
   boolean      bEditable = true;
   JButton      addButton;
@@ -134,9 +134,9 @@ public class JPrefsPanel extends JPanel
     
     addButton.setEnabled(b);
     synchronized(nodeMap) {
-      for(Iterator it = nodeMap.keySet().iterator(); it.hasNext(); ) {
-        String   key  = (String)it.next();
-        JValue   jv   = (JValue)nodeMap.get(key);
+      for(Iterator<String> it = nodeMap.keySet().iterator(); it.hasNext(); ) {
+        String   key  = it.next();
+        JValue   jv   = nodeMap.get(key);
         jv.setEditable(bEditable);
       }
     }
@@ -182,21 +182,21 @@ public class JPrefsPanel extends JPanel
           boolean bNeedUpdate = false;
           
           synchronized(nodeMap) {
-            HashSet removeSet = new HashSet();
+            HashSet<String> removeSet = new HashSet<String>();
             
-            for(Iterator it = nodeMap.keySet().iterator(); it.hasNext(); ) {
-              String   key  = (String)it.next();
+            for(Iterator<String> it = nodeMap.keySet().iterator(); it.hasNext(); ) {
+              String   key  = it.next();
               if(null == node.get(key, null)) {
                 removeSet.add(key);
               } else {
-                JValue   jv   = (JValue)nodeMap.get(key);
+                JValue   jv   = nodeMap.get(key);
                 jv.update();
               }
             }
             
-            for(Iterator it = removeSet.iterator(); it.hasNext(); ) {
-              String   key  = (String)it.next();
-              JValue   jv   = (JValue)nodeMap.get(key);
+            for(Iterator<String> it = removeSet.iterator(); it.hasNext(); ) {
+              String   key  = it.next();
+              JValue   jv   = nodeMap.get(key);
               nodeMap.remove(key);
               valuePanel.remove(jv);
               bNeedUpdate = true;
@@ -208,7 +208,7 @@ public class JPrefsPanel extends JPanel
                 if(!nodeMap.containsKey(keys[i])) {
                   bNeedUpdate = true;
                 } else {
-                  JValue   jv   = (JValue)nodeMap.get(keys[i]);
+                  JValue   jv   = nodeMap.get(keys[i]);
                   bNeedUpdate |= jv.getNeedUpdate();
                   jv.setNeedUpdate(false);
                 }
@@ -228,7 +228,7 @@ public class JPrefsPanel extends JPanel
   }
 
   static private String[] getKeys(Preferences node) {
-    ArrayList a = new ArrayList();
+    ArrayList<String> a = new ArrayList<String>();
     try {
       String[] keys = node.keys();
       for(int i = 0; i < keys.length; i++) {
@@ -271,9 +271,9 @@ public class JPrefsPanel extends JPanel
     header.setText(node.absolutePath());
     
     synchronized(nodeMap) {
-      for(Iterator it = nodeMap.keySet().iterator(); it.hasNext(); ) {
-        String   key  = (String)it.next();
-        JValue   jv   = (JValue)nodeMap.get(key);
+      for(Iterator<String> it = nodeMap.keySet().iterator(); it.hasNext(); ) {
+        String   key  = it.next();
+        JValue   jv   = nodeMap.get(key);
         jv.cleanup();
         valuePanel.remove(jv);
       }

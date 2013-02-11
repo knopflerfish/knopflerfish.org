@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,10 +64,9 @@ public class MountedPreferences
   static final String[]              EMPTY_STRINGS = new String[0];
   Preferences target;
 
-  // Set pclSet = new LinkedHashSet();
-  Set nclSet = new LinkedHashSet();
+  Set<NodeChangeListener> nclSet = new LinkedHashSet<NodeChangeListener>();
 
-  Map mounts = new LinkedHashMap();
+  Map<String, Preferences> mounts = new LinkedHashMap<String, Preferences>();
 
   public MountedPreferences() {
     super(null, "");
@@ -119,8 +118,8 @@ public class MountedPreferences
   protected void notifyNCL(NodeChangeEvent evt, boolean bAdded) {
     synchronized(nclSet) {
       
-      for(Iterator it = nclSet.iterator(); it.hasNext(); ) {
-        NodeChangeListener ncl = (NodeChangeListener)it.next();
+      for(Iterator<NodeChangeListener> it = nclSet.iterator(); it.hasNext(); ) {
+        NodeChangeListener ncl = it.next();
         try {
           if(bAdded) {
             ncl.childAdded(evt);
@@ -167,7 +166,7 @@ public class MountedPreferences
    */
   public void unmount(String name) {
     synchronized(mounts) {
-      Preferences prefs = (Preferences)mounts.get(name);
+      Preferences prefs = mounts.get(name);
       mounts.remove(name);
       if(prefs != null) {
         NodeChangeEvent evt = new NodeChangeEvent(this, prefs);
@@ -188,7 +187,7 @@ public class MountedPreferences
 
   // AbstractPreferences implementation
   protected String[] childrenNamesSpi() throws BackingStoreException {
-    Collection set = new LinkedHashSet();
+    Collection<String> set = new LinkedHashSet<String>();
 
     if(target != null) {
       String[] names = target.childrenNames();
@@ -206,7 +205,7 @@ public class MountedPreferences
   // AbstractPreferences implementation
   protected AbstractPreferences  childSpi(String name) {
     synchronized(mounts) {
-      Preferences mount = (Preferences)mounts.get(name);
+      Preferences mount = mounts.get(name);
       if(mount != null) {
         return new MountedPreferences(this, mount, name);
       }
