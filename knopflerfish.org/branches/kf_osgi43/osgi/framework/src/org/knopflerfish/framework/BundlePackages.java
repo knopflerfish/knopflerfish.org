@@ -130,40 +130,9 @@ class BundlePackages {
         }
       }
     }
+    
+    parseDynamicImports(ba.getAttribute(Constants.DYNAMICIMPORT_PACKAGE));
 
-    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE,
-                          ba.getAttribute(Constants.DYNAMICIMPORT_PACKAGE),
-                          false, true, false);
-    while (i.hasNext()) {
-      Map e = (Map)i.next();
-      if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
-        throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-                                           " entry illegal contains a " +
-                                           Constants.RESOLUTION_DIRECTIVE +
-                                           " directive.");
-      }
-      ImportPkg tmpl = null;
-      for (Iterator pi = ((List)e.remove("$keys")).iterator(); pi.hasNext();) {
-        String key = (String)pi.next();
-        if (key.equals("*")) {
-          key = EMPTY_STRING;
-        } else if (key.endsWith(".*")) {
-          key = key.substring(0, key.length() - 1);
-        } else if (key.endsWith(".")) {
-          throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-                                             " entry ends with '.': " + key);
-        } else if (key.indexOf("*") != -1) {
-          throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
-                                           " entry contains a '*': " + key);
-        }
-        if (tmpl != null) {
-          dImportPatterns.add(new ImportPkg(tmpl, key));
-        } else {
-          tmpl = new ImportPkg(key, e, this);
-          dImportPatterns.add(tmpl);
-        }
-      }
-    }
     i = Util.parseEntries(Constants.REQUIRE_BUNDLE,
                           ba.getAttribute(Constants.REQUIRE_BUNDLE),
                           true, true, false);
@@ -831,6 +800,47 @@ class BundlePackages {
           fbpkgs.unregisterPackages(true);
         } else {
           fbpkgs.unregister();
+        }
+      }
+    }
+  }
+  
+  /**
+   * Parse the dynamic import attribute
+   */
+  
+  void parseDynamicImports(final String s) {
+    Iterator i;
+    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE,
+                          s,
+                          false, true, false);
+    while (i.hasNext()) {
+      Map e = (Map)i.next();
+      if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
+        throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+                                           " entry illegal contains a " +
+                                           Constants.RESOLUTION_DIRECTIVE +
+                                           " directive.");
+      }
+      ImportPkg tmpl = null;
+      for (Iterator pi = ((List)e.remove("$keys")).iterator(); pi.hasNext();) {
+        String key = (String)pi.next();
+        if (key.equals("*")) {
+          key = EMPTY_STRING;
+        } else if (key.endsWith(".*")) {
+          key = key.substring(0, key.length() - 1);
+        } else if (key.endsWith(".")) {
+          throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+                                             " entry ends with '.': " + key);
+        } else if (key.indexOf("*") != -1) {
+          throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
+                                           " entry contains a '*': " + key);
+        }
+        if (tmpl != null) {
+          dImportPatterns.add(new ImportPkg(tmpl, key));
+        } else {
+          tmpl = new ImportPkg(key, e, this);
+          dImportPatterns.add(tmpl);
         }
       }
     }

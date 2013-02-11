@@ -95,6 +95,11 @@ public class FrameworkContext  {
    * All bundle hooks.
    */
   BundleHooks bundleHooks;
+  
+  /**
+   * All weaving hooks.
+   */
+  WeavingHooks weavingHooks;
 
   /**
    * All exported and imported packages in this framework.
@@ -373,6 +378,9 @@ public class FrameworkContext  {
     hooks.open();
     
     bundleHooks = new BundleHooks(this);
+    
+    weavingHooks = new WeavingHooks(this);
+    weavingHooks.open();
 
     perm.registerService();
 

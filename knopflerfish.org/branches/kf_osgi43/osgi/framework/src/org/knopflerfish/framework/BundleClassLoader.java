@@ -823,6 +823,9 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     if (av != null) {
       try {
         return action.get(av, path, name, pkg, this);
+      } catch (ClassFormatError cfe) {
+        // TODO: OSGI43 WeavingHook CT has some specific demands that ClassFormatErrors are thrown that doesn't seem to be in the spec
+        throw cfe;
       } catch (IOException ioe) {
         fwCtx.listeners.frameworkError(bpkgs.bg.bundle, ioe);
         return null;
@@ -910,11 +913,33 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
             }
 
             if (c == null) {
+              
+              WeavingHooks.WovenClassImpl wc = null;
+              if(cl != null && cl.bpkgs != null && cl.bpkgs.bg != null && cl.bpkgs.bg.bundle != null) {
+                wc = new WeavingHooks.WovenClassImpl(cl.bpkgs.bg.bundle, name, bytes);
+                try {
+                  cl.fwCtx.weavingHooks.callHooks(wc);
+                  if(wc.hasAdditionalDynamicImports()) {
+                    cl.bpkgs.parseDynamicImports(wc.getDynamicImportsAsString());
+                  }
+                  bytes = wc.getBytes();
+                } catch (ClassFormatError cfe) {
+                  throw cfe;
+                } catch (Throwable t) {
+                  ClassFormatError cfe = new ClassFormatError("Failed to call WeavingHooks for " + name);
+                  cfe.initCause(t);
+                  throw cfe;
+                }
+              }
               if (cl.protectionDomain == null) {
                 // Kaffe can't handle null protectiondomain
                 c = cl.defineClass(name, bytes, 0, bytes.length);
               } else {
                 c = cl.defineClass(name, bytes, 0, bytes.length, cl.protectionDomain);
+              }
+             
+              if(wc != null) {
+                wc.setDefinedClass(c);
               }
             }
           }
