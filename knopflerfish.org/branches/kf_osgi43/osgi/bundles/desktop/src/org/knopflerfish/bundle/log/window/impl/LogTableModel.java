@@ -36,6 +36,7 @@ package org.knopflerfish.bundle.log.window.impl;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -58,7 +59,7 @@ public class LogTableModel extends AbstractTableModel {
 
   private int capacity = 342;
 
-  private final ArrayList entries = new ArrayList();
+  private final ArrayList<ExtLogEntry> entries = new ArrayList<ExtLogEntry>();
 
   static final int COL_ID        = 0;
   static final int COL_BID       = 1;
@@ -82,7 +83,7 @@ public class LogTableModel extends AbstractTableModel {
   /**
    * Column classes.
    */
-  final Class [] clazzes = {
+  final Class<?>[] clazzes = {
     Long.class, // ID
     Long.class, // BID
     Date.class,   // TIME
@@ -107,7 +108,7 @@ public class LogTableModel extends AbstractTableModel {
     }
   }
 
-  public Class getColumnClass(int c) {
+  public Class<?> getColumnClass(int c) {
     return clazzes[c];
   }
 
@@ -124,7 +125,7 @@ public class LogTableModel extends AbstractTableModel {
     return headers[i];
   }
 
-  public java.util.List getEntries() {
+  public List<ExtLogEntry> getEntries() {
     return entries;
   }
 

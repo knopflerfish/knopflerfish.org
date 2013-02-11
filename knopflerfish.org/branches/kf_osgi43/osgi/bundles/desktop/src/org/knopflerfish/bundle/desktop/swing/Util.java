@@ -388,6 +388,7 @@ public class Util {
         // We prefer a 32x32 size icon.
         while (it.hasNext()) {
           final Map<String, Object> entry = it.next();
+          @SuppressWarnings("unchecked")
           final List<String> icns = (List<String>) entry.get("$keys");
           final String sizeS = (String) entry.get("size");
 

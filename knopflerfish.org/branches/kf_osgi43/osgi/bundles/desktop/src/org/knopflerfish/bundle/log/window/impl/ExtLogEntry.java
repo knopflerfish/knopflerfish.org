@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2004,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ public class ExtLogEntry implements LogEntry {
     return entry.getBundle();
   }
 
-  public ServiceReference getServiceReference() {
+  public ServiceReference<?> getServiceReference() {
     return entry.getServiceReference();
   }
 

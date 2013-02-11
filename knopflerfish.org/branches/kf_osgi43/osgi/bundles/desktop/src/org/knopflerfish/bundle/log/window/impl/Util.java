@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -133,7 +133,7 @@ public class Util {
     sb.append("</td>");
     sb.append("</tr>");
 
-    ServiceReference sr = e.getServiceReference();
+    ServiceReference<?> sr = e.getServiceReference();
     if (null!=sr) {
       sb.append("<tr bgcolor=\"#eeeeee\">");
       sb.append("<td width=\"100%\" colspan=\"3\">");

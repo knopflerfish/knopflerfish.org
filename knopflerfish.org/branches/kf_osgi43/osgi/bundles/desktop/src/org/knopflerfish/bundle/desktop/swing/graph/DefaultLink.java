@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -128,11 +128,13 @@ public class DefaultLink implements Link {
     return name;
   }
 
-  public int compareTo(Object obj) {
-    DefaultLink link = (DefaultLink)obj;
-    int r = z - link.z;
+  public int compareTo(Link link) {
+    int r = 0;
+    if (link instanceof DefaultLink) {
+      r = z - ((DefaultLink)link).z;
+    }
     if(r == 0) {
-      r = id.compareTo(link.id);
+      r = id.compareTo(link.getId());
     }
     return r;
   }

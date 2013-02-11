@@ -177,6 +177,7 @@ public class PackageManager  {
           .parseEntries(headerName, v, false, false, false);
         while (it.hasNext()) {
           final Map<String, Object> entry = it.next();
+          @SuppressWarnings("unchecked")
           final List<String> pkgs = (List<String>) entry.get("$keys");
           res.addAll(pkgs);
         }

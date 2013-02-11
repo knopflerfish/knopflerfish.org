@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 
 public class BundleServiceNode extends BundleNode  {
-  Collection inLinks;
-  Collection outLinks;
+  Collection<DefaultLink> inLinks;
+  Collection<DefaultLink> outLinks;
 
   public BundleServiceNode(Bundle b, int depth) {
     this(b, depth, "#" + b.getBundleId() + "." + depth);
@@ -66,11 +66,11 @@ public class BundleServiceNode extends BundleNode  {
   Color baseColor = new Color(255, 220, 255);
   Color burnColor = new Color(255, 255, 50);
 
-  public Collection getOutLinks() {
+  public Collection<DefaultLink> getOutLinks() {
     if(outLinks == null) {
       try {
-        outLinks = new ArrayList();
-        ServiceReference[] srl = b.getRegisteredServices();
+        outLinks = new ArrayList<DefaultLink>();
+        ServiceReference<?>[] srl = b.getRegisteredServices();
 
         Color col = Util.rgbInterpolate(baseColor, burnColor, (double)depth/5);
 
@@ -131,12 +131,12 @@ public class BundleServiceNode extends BundleNode  {
 
 
 
-  public Collection getInLinks() {
+  public Collection<DefaultLink> getInLinks() {
     if(inLinks == null) {
       try {
-        inLinks = new ArrayList();
+        inLinks = new ArrayList<DefaultLink>();
 
-        ServiceReference[] srl = Activator.getTargetBC_getServiceReferences();
+        ServiceReference<?>[] srl = Activator.getTargetBC_getServiceReferences();
         for(int i = 0; srl != null && i < srl.length; i++) {
           Bundle[] bl = srl[i].getUsingBundles();
           Color col = Util.rgbInterpolate(baseColor, burnColor, (double)depth/3);

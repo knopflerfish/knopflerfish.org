@@ -1067,7 +1067,7 @@ public abstract class JSoftGraph extends JPanel {
 //      double ry = rx;
 
       if(detail > maxDepth) {
-        Collection<Link> outLinks = node.getOutLinks();
+        Collection<? extends Link> outLinks = node.getOutLinks();
 
         if(node.getOutMax() == 0) {
           node.setOutMax(Math.min(maxLinks, outLinks.size()));
@@ -1086,8 +1086,7 @@ public abstract class JSoftGraph extends JPanel {
         double frac = node.getOutMin() - Math.floor(node.getOutMin());
         a0 = -Math.PI * frac / range;
 
-        for(Iterator<Link> it = outLinks.iterator(); it.hasNext(); ) {
-          final Link link = it.next();
+        for(Link link : outLinks) {
           if(_n >= Math.floor(node.getOutMin()) &&
              _n <= Math.floor(node.getOutMax())) {
             double a = a0 + Math.PI + Math.PI * n / range + Math.PI / nMax/2;
@@ -1114,7 +1113,7 @@ public abstract class JSoftGraph extends JPanel {
 
 
       if(detail > 9) {
-        Collection<Link> inLinks = node.getInLinks();
+        Collection<? extends Link> inLinks = node.getInLinks();
 
         if(node.getInMax() == 0) {
           node.setInMax(Math.min(maxLinks, inLinks.size()));
@@ -1137,8 +1136,7 @@ public abstract class JSoftGraph extends JPanel {
         double frac = node.getInMin() - Math.floor(node.getInMin());
         a0 = -Math.PI * frac / range;
 
-        for(Iterator<Link> it = inLinks.iterator(); it.hasNext(); ) {
-          Link link = it.next();
+        for(Link link : inLinks) {
           if(_n >= Math.floor(node.getInMin()) &&
              _n <= Math.floor(node.getInMax())) {
             double a = a0 + 2*Math.PI + Math.PI * n / range + Math.PI / range/2;

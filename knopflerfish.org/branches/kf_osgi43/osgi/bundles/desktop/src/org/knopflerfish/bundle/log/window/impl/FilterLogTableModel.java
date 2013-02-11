@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ package org.knopflerfish.bundle.log.window.impl;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.swing.event.TableModelEvent;
@@ -59,8 +58,8 @@ public class FilterLogTableModel
   Object lock = new Object();
 
   LogTableModel model;
-  Set           bundles         = new HashSet();
-  ArrayList     filteredEntries = new ArrayList();
+  Set<Bundle> bundles = new HashSet<Bundle>();
+  ArrayList<ExtLogEntry> filteredEntries = new ArrayList<ExtLogEntry>();
 
   public FilterLogTableModel(BundleContext bc,
                              LogTableModel model)
@@ -80,7 +79,7 @@ public class FilterLogTableModel
     fireTableDataChanged();
   }
 
-  public Class getColumnClass(int c) {
+  public Class<?> getColumnClass(int c) {
     return model.getColumnClass(c);
   }
 
@@ -108,8 +107,7 @@ public class FilterLogTableModel
         return true;
       }
 
-      for(Iterator it = bundles.iterator(); it.hasNext();) {
-        Bundle b = (Bundle)it.next();
+      for(Bundle b : bundles) {
         if((e.getBundle() != null) &&
            (b.getBundleId() == e.getBundle().getBundleId())) {
           return true;
@@ -126,7 +124,7 @@ public class FilterLogTableModel
     }
   }
 
-  public java.util.List getEntries() {
+  public java.util.List<ExtLogEntry> getEntries() {
     synchronized(lock) {
       return filteredEntries;
     }
@@ -149,7 +147,7 @@ public class FilterLogTableModel
 
   public ExtLogEntry getEntry(int row) {
     synchronized(lock) {
-      ExtLogEntry e = (ExtLogEntry)filteredEntries.get(row);
+      ExtLogEntry e = filteredEntries.get(row);
 
       return e;
     }
@@ -161,8 +159,7 @@ public class FilterLogTableModel
       synchronized(lock) {
         filteredEntries.clear();
 
-        for(Iterator it = model.getEntries().iterator(); it.hasNext(); ) {
-          ExtLogEntry e = (ExtLogEntry)it.next();
+        for(ExtLogEntry e : model.getEntries()) {
           if(isValidEntry(e)) {
             filteredEntries.add(e);
           }

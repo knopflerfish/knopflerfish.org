@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ public class LogReaderDispatcher
     String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
 
     try {
-      ServiceReference [] srl = bc.getServiceReferences((String) null, filter);
+      ServiceReference<?> [] srl = bc.getServiceReferences((String) null, filter);
       for(int i = 0; srl != null && i < srl.length; i++) {
 
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
@@ -81,19 +81,17 @@ public class LogReaderDispatcher
     }
   }
 
-  Hashtable logReaders = new Hashtable();
+  Hashtable<ServiceReference<LogReaderService>, LogReaderService> logReaders
+    = new Hashtable<ServiceReference<LogReaderService>, LogReaderService>();
 
   public void clearAll() {
     model.clear();
   }
 
   public void getAll() {
-    for(Enumeration e = logReaders.keys(); e.hasMoreElements(); ) {
-      ServiceReference sr = (ServiceReference)e.nextElement();
-      LogReaderService lr = (LogReaderService)logReaders.get(sr);
-
-      for(Enumeration e2 = lr.getLog(); e2.hasMoreElements(); ) {
-        LogEntry entry = (LogEntry)e2.nextElement();
+    for(LogReaderService lr : logReaders.values()) {
+      for(Enumeration<?> e = lr.getLog(); e.hasMoreElements(); ) {
+        LogEntry entry = (LogEntry) e.nextElement();
         logged(entry);
       }
     }
@@ -102,20 +100,21 @@ public class LogReaderDispatcher
   public void close() {
     bc.removeServiceListener(this);
 
-    for(Enumeration e = logReaders.keys(); e.hasMoreElements(); ) {
-      ServiceReference sr = (ServiceReference)e.nextElement();
+    for(ServiceReference<LogReaderService> sr : logReaders.keySet()) {
       serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, sr));
     }
     logReaders.clear();
   }
 
-  public void serviceChanged(ServiceEvent ev) {
-    ServiceReference sr = ev.getServiceReference();
 
+  public void serviceChanged(ServiceEvent ev) {
+    @SuppressWarnings("unchecked")
+    ServiceReference<LogReaderService> sr
+      = (ServiceReference<LogReaderService>) ev.getServiceReference();
 
     LogReaderService lr =
       logReaders.containsKey(sr)
-      ? (LogReaderService)logReaders.get(sr)
+      ? logReaders.get(sr)
       : (LogReaderService)bc.getService(sr);
 
     if (null!=lr) {
