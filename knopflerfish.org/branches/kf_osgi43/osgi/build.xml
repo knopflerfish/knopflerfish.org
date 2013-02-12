@@ -279,6 +279,9 @@
       <tag name="ThreadSafe"    scope="all" description="ThreadSafe"/>
       <tag name="NotThreadSafe" scope="all" description="NotThreadSafe"/>
       <tag name="Immutable"     scope="all" description="Immutable"/>
+      <tag name="security"      scope="all" description="Required Permissions"/>
+      <tag name="noimplement"   scope="all"
+	   description="Consumers of this API must not implement this interface"/>
       <classpath>
 	<fileset dir="${ant.home}/lib/">
 	  <include name="**/*.jar"/>
