@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2006, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import org.osgi.framework.Version;
  *
  * @author Jan Stein
  */
-public class VersionRange implements Comparable
+public class VersionRange implements Comparable<VersionRange>
 {
   final private Version low;
   final private Version high;
@@ -160,11 +160,10 @@ public class VersionRange implements Comparable
    *         and positive if this object is larger then obj.
    * @exception ClassCastException if object is not a VersionRange object.
    */
-  public int compareTo(Object obj) throws ClassCastException {
-    VersionRange o = (VersionRange)obj;
+  public int compareTo(VersionRange o)
+  {
     return low.compareTo(o.low);
   }
-
 
   /**
    * String with version number. If version is not specified return

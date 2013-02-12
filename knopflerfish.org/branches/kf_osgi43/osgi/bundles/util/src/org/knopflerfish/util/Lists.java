@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,11 +39,11 @@ import java.util.List;
 
 public class Lists {
 
-    public static List asList(Object[] a) {
+    public static List<?> asList(Object[] a) {
         return new ArrayList(a);
     }
 
-    private static class ArrayList extends AbstractList implements
+    private static class ArrayList extends AbstractList<Object> implements
             java.io.Serializable {
         private static final long serialVersionUID = 1L;
 

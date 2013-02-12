@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ package org.knopflerfish.util;
  * 
  * @see CacheMap
  */
-public class CachedObject {
+public class CachedObject<V> {
 
     /**
      * Default timeout period in milliseconds. Value is 60 seconds.
@@ -59,7 +59,7 @@ public class CachedObject {
     private long creationTime;
 
     // Actual object stored in cache
-    private Object object;
+    private V object;
 
     /**
      * Equivalent to <code>CachedObject(null)</code>.
@@ -76,7 +76,7 @@ public class CachedObject {
      * 
      * @see #DEFAULT_TIMEOUT
      */
-    public CachedObject(Object object) {
+    public CachedObject(V object) {
         this(object, DEFAULT_TIMEOUT);
     }
 
@@ -89,7 +89,7 @@ public class CachedObject {
      *            period in milliseconds.
      * @see #DEFAULT_TIMEOUT
      */
-    public CachedObject(Object object, long timeout) {
+    public CachedObject(V object, long timeout) {
         this.timeout = timeout;
         set(object);
     }
@@ -100,7 +100,7 @@ public class CachedObject {
      * @param object
      *            Object to cache
      */
-    public void set(Object object) {
+    public void set(V object) {
         this.object = object;
         creationTime = System.currentTimeMillis();
     }
@@ -111,7 +111,7 @@ public class CachedObject {
      * @return The cached object before its timeout period, <code>null</code>
      *         afterwards.
      */
-    public Object get() {
+    public V get() {
 
         long now = System.currentTimeMillis();
         if (now - creationTime > timeout) {

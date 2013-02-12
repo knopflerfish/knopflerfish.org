@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
@@ -50,7 +51,7 @@ public class Text {
     /**
      * Retrieves a parameter value from a parameter string. If the parameter is
      * not found the default value is returned.
-     * 
+     *
      * @param s
      *            Parameter string, format
      *            &apos;&lt;param1&gt;=data1::&lt;param2&gt;=data2&apos;
@@ -83,20 +84,20 @@ public class Text {
 
     /**
      * Replace all occurances of a substring with another string.
-     * 
+     *
      * <p>
      * The returned string will shrink or grow as necessary, depending on the
      * lengths of <tt>v1</tt> and <tt>v2</tt>.
      * </p>
-     * 
+     *
      * <p>
      * Implementation note: This method avoids using the standard String
      * manipulation methods to increase execution speed. Using the
      * <tt>replace</tt> method does however include two <tt>new</tt>
      * operations in the case when matches are found.
      * </p>
-     * 
-     * 
+     *
+     *
      * @param s
      *            Source string.
      * @param v1
@@ -161,7 +162,7 @@ public class Text {
 
     /**
      * Utility method for replacing substrings with an integer.
-     * 
+     *
      * <p>
      * Equivalent to <tt>replace(s, v1, Integer.toString(v2))</tt>
      * </p>
@@ -172,7 +173,7 @@ public class Text {
 
     /**
      * Utility method for replacing substrings with a boolean.
-     * 
+     *
      * <p>
      * Equivalent to <tt>replace(s, v1, v2 ? "true" : "false")</tt>
      * </p>
@@ -184,7 +185,7 @@ public class Text {
     /**
      * Expand all tabs in a string. Tab stop positions are placed at the columns
      * which are multiples of <code>tabSize</code>.
-     * 
+     *
      * @param s
      *            String to untabify.
      * @param tabSize
@@ -213,7 +214,7 @@ public class Text {
 
     /**
      * Format a java type in human readable way.
-     * 
+     *
      * @param s
      *            Type string to format.
      * @param prefixIgnore
@@ -237,7 +238,7 @@ public class Text {
 
     /**
      * Make first (and only) character in string upper case.
-     * 
+     *
      * @param s
      *            String to capitalize.
      * @return Capitalized string. If <tt>s</tt> is <tt>null</tt> or equals
@@ -261,7 +262,7 @@ public class Text {
 
     /**
      * Utility method to split a string into words separated by whitespace.
-     * 
+     *
      * <p>
      * Equivalent to <tt>splitwords(s, Text.WHITESPACE)</tt>
      * </p>
@@ -272,7 +273,7 @@ public class Text {
 
     /**
      * Utility method to split a string into words separated by whitespace.
-     * 
+     *
      * <p>
      * Equivalent to <tt>splitwords(s, Text.WHITESPACE, Text.CITCHAR)</tt>
      * </p>
@@ -286,7 +287,7 @@ public class Text {
      * <p>
      * Citation chars may be used to group words with embedded whitespace.
      * </p>
-     * 
+     *
      * @param s
      *            String to split.
      * @param whiteSpace
@@ -300,7 +301,7 @@ public class Text {
      */
     public static String[] splitwords(String s, String whiteSpace, char citChar) {
         boolean bCit = false; // true when inside citation chars.
-        Vector v = new Vector(); // (String) individual words after splitting
+        Vector<String> v = new Vector<String>(); //individual words after splitting
         StringBuffer buf = null;
         int i = 0;
 
@@ -379,7 +380,7 @@ public class Text {
         return buf.toString();
     }
 
-    public static Object[] toArray(Vector v) {
+    public static Object[] toArray(Vector<Object> v) {
         int size = v.size();
         Object[] o = new Object[size];
 
@@ -395,17 +396,17 @@ public class Text {
      * // Testing purposes static public void main(String[] argv) { String[] s =
      * splitwords(argv[0], " ,"); for(int i = 0; i < s.length; i++) {
      * System.out.println(s[i]); }
-     * 
+     *
      * int n = 100000; { Hashtable h = new Hashtable(); long start =
      * System.currentTimeMillis(); for(int i = 0; i < n; i++) { String ss =
      * replace(argv[0], argv[1], argv[2]); h.put(ss, ss); } long stop =
      * System.currentTimeMillis(); double delta = ((double)stop - start) / 1000;
-     * 
+     *
      * System.out.println("total = " + delta + ", replace/sec=" + (n / delta)); } }
      */
 
 
-  static final Comparator strComp = new Comparator() {
+  static final Comparator<String> strComp = new Comparator<String>() {
       /**
        * String compare
        *
@@ -415,10 +416,9 @@ public class Text {
        *         object and positive if first object is larger then second object.
        * @exception ClassCastException if objects are not a String objects.
        */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-	String a = (String)oa;
-	String b = (String)ob;
-	return a.compareTo(b);
+      public int compare(String a, String b)
+      {
+        return a.compareTo(b);
       }
     };
 
@@ -432,22 +432,24 @@ public class Text {
    * @return A sorted ArrayList with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static ArrayList parseEnumeration(String d, String s) {
-    ArrayList result = new ArrayList();
+  public static ArrayList<String> parseEnumeration(String d, String s) {
+    ArrayList<String> result = new ArrayList<String>();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-	String key = at.getKey();
-	if (key == null) {
-	  throw new IllegalArgumentException("Directive " + d + ", unexpected character at: "
-					     + at.getRest());
-	}
-	if (!at.getEntryEnd()) {
-	  throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
-					     + at.getRest());
-	}
-	int i = Math.abs(binarySearch(result, strComp, key) + 1);
-	result.add(i, key);
+        String key = at.getKey();
+        if (key == null) {
+          throw new IllegalArgumentException("Directive " + d
+                                             + ", unexpected character at: "
+                                             + at.getRest());
+        }
+        if (!at.getEntryEnd()) {
+          throw new IllegalArgumentException("Directive " + d
+                                             + ", expected end of entry at: "
+                                             + at.getRest());
+        }
+        int i = Math.abs(binarySearch(result, strComp, key) + 1);
+        result.add(i, key);
       } while (!at.getEnd());
       return result;
     } else {
@@ -460,13 +462,14 @@ public class Text {
    * version number add the specifies package entry.
    *
    * @param pl Sorted list of package entries to search.
+   * @param c Comparator.
    * @param p Package entry to search for.
    * @return index of the found entry. If no entry is found, return
    *         <tt>(-(<i>insertion point</i>) - 1)</tt>.  The insertion
    *         point</i> is defined as the point at which the
    *         key would be inserted into the list.
    */
-  public static int binarySearch(List pl, Comparator c, Object p) {
+  public static <E> int binarySearch(List<E> pl, Comparator<E> c, E p) {
     int l = 0;
     int u = pl.size()-1;
 
@@ -502,63 +505,78 @@ public class Text {
    * @return Iterator(Map(param -> value)) or null if input string is null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static Iterator parseEntries(String a, String s, boolean single, boolean unique, boolean single_entry) {
-    ArrayList result = new ArrayList();
+  public static Iterator<Map<String, Object>> parseEntries(String a,
+                                                           String s,
+                                                           boolean single,
+                                                           boolean unique,
+                                                           boolean single_entry)
+  {
+    ArrayList<Map<String,Object>> result = new ArrayList<Map<String, Object>>();
     if (s != null) {
       AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-	ArrayList keys = new ArrayList();
-	HashMap params = new HashMap();
-	String key = at.getKey();
-	if (key == null) {
-	  throw new IllegalArgumentException("Definition, " + a + ", expected key at: " + at.getRest());
-	}
-	if (!single) {
-	  keys.add(key);
-	  while ((key = at.getKey()) != null) {
-	    keys.add(key);
-	  }
-	}
-	String param;
-	while ((param = at.getParam()) != null) {
-	  List old = (List)params.get(param);
-	  boolean is_directive = at.isDirective();
-	  if (old != null && unique) {
-	    throw new IllegalArgumentException("Definition, " + a + ", duplicate " +
-					       (is_directive ? "directive" : "attribute") +
-					       ": " + param);
-	  }
-	  String value = at.getValue();
-	  if (value == null) {
-	    throw new IllegalArgumentException("Definition, " + a + ", expected value at: " + at.getRest());
-	  }
-	  if (is_directive) {
-	    // NYI Handle directives and check them
-	    // This method has become very ugly, please rewrite.
-	  }
-	  if (unique) {
-	    params.put(param, value);
-	  } else {
-	    if (old == null) {
-	      old = new ArrayList();
-	      params.put(param, old);
-	    }
-	    old.add(value);
-	  }
-	}
-	if (at.getEntryEnd()) {
-	  if (single) {
-	    params.put("key", key);
-	  } else {
-	    params.put("keys", keys);
-	  }
-	  result.add(params);
-	} else {
-	  throw new IllegalArgumentException("Definition, " + a + ", expected end of entry at: " + at.getRest());
-	}
+        ArrayList<String> keys = new ArrayList<String>();
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        String key = at.getKey();
+        if (key == null) {
+          throw new IllegalArgumentException("Definition, " + a 
+                                             + ", expected key at: " 
+                                             + at.getRest());
+        }
+        if (!single) {
+          keys.add(key);
+          while ((key = at.getKey()) != null) {
+            keys.add(key);
+          }
+        }
+        String param;
+        while ((param = at.getParam()) != null) {
+          @SuppressWarnings("unchecked")
+          List<String> old = (List<String>)params.get(param);
+          boolean is_directive = at.isDirective();
+          if (old != null && unique) {
+            throw new IllegalArgumentException("Definition, " + a 
+                                               + ", duplicate " +
+                (is_directive ? "directive" : "attribute") +
+                ": " + param);
+          }
+          String value = at.getValue();
+          if (value == null) {
+            throw new IllegalArgumentException("Definition, " + a 
+                                               + ", expected value at: " 
+                + at.getRest());
+          }
+          if (is_directive) {
+            // NYI Handle directives and check them
+            // This method has become very ugly, please rewrite.
+          }
+          if (unique) {
+            params.put(param, value);
+          } else {
+            if (old == null) {
+              old = new ArrayList<String>();
+              params.put(param, old);
+            }
+            old.add(value);
+          }
+        }
+        if (at.getEntryEnd()) {
+          if (single) {
+            params.put("key", key);
+          } else {
+            params.put("keys", keys);
+          }
+          result.add(params);
+        } else {
+          throw new IllegalArgumentException("Definition, " + a 
+                                             + ", expected end of entry at: " 
+                                             + at.getRest());
+        }
         if (single_entry && !at.getEnd()) {
-	  throw new IllegalArgumentException("Definition, " + a + ", expected end of single entry at: " + at.getRest());
-	}
+          throw new IllegalArgumentException("Definition, " + a 
+                                             + ", expected end of single entry at: " 
+                                             + at.getRest());
+        }
       } while (!at.getEnd());
     }
     return result.iterator();
@@ -567,11 +585,11 @@ public class Text {
   /**
    * Check if a string exists in a list. Ignore case when comparing.
    */
-  public static boolean containsIgnoreCase(List l, List l2) {
-    for (Iterator i = l.iterator(); i.hasNext(); ) {
-      String s = (String)i.next();
-      for (Iterator j = l2.iterator(); j.hasNext(); ) {
-        if (s.equalsIgnoreCase((String)j.next())) {
+  public static boolean containsIgnoreCase(List<String> l, List<String> l2)
+  {
+    for (String s : l) {
+      for (String s2 : l2) {
+        if (s.equalsIgnoreCase(s2)) {
           return true;
         }
       }
@@ -587,12 +605,12 @@ public class Text {
     String s;
     int length;
     int pos = 0;
-    
+
     AttributeTokenizer(String input) {
       s = input;
       length = s.length();
     }
-    
+
     String getWord() {
       skipWhite();
       boolean backslash = false;
@@ -635,7 +653,7 @@ public class Text {
       val.getChars(0, end, res, 0);
       return new String(res);
     }
-    
+
     String getKey() {
       if (pos >= length) {
         return null;
@@ -657,7 +675,7 @@ public class Text {
       pos = save;
       return null;
     }
-    
+
     String getParam() {
       if (pos == length || s.charAt(pos) != ';') {
         return null;
@@ -674,7 +692,7 @@ public class Text {
       pos = save;
       return null;
     }
-    
+
     boolean isDirective() {
       if (pos + 1 < length && s.charAt(pos) == ':') {
         pos++;
@@ -683,7 +701,7 @@ public class Text {
         return false;
       }
     }
-    
+
     String getValue() {
       if (s.charAt(pos) != '=') {
         return null;
@@ -697,7 +715,7 @@ public class Text {
       }
       return val;
     }
-    
+
     boolean getEntryEnd() {
       int save = pos;
       skipWhite();
@@ -711,7 +729,7 @@ public class Text {
         return false;
       }
     }
-    
+
     boolean getEnd() {
       int save = pos;
       skipWhite();
@@ -722,12 +740,12 @@ public class Text {
         return false;
       }
     }
-    
+
     String getRest() {
       String res = s.substring(pos).trim();
       return res.length() == 0 ? "<END OF LINE>" : res;
     }
-    
+
     private void skipWhite() {
       for (; pos < length; pos++) {
         if (!Character.isWhitespace(s.charAt(pos))) {
@@ -735,5 +753,5 @@ public class Text {
         }
       }
     }
-  }  
+  }
 }
