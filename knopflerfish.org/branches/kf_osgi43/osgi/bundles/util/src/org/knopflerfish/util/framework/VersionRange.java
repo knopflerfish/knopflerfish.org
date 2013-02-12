@@ -155,7 +155,7 @@ public class VersionRange implements Comparable<VersionRange>
    * Compare object to another VersionRange. VersionRanges are compared on the
    * lower bound.
    *
-   * @param obj VersionRange to compare to.
+   * @param o VersionRange to compare to.
    * @return Return 0 if equals, negative if this object is less than obj
    *         and positive if this object is larger then obj.
    * @exception ClassCastException if object is not a VersionRange object.
