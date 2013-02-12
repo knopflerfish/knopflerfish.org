@@ -34,8 +34,12 @@
 
 package org.knopflerfish.bundle.event;
 
-import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.service.log.LogService;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
@@ -53,24 +57,24 @@ import org.osgi.service.log.LogReaderService;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Map;
+import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.service.log.LogService;
 
 /**
  * Listen for LogEntries, ServiceEvents, FrameworkEvents, BundleEvents
  *
  * @author Magnus Klack, Martin Berg (refactoring by Bj\u00f6rn Andersson)
  */
-public class MultiListener implements LogListener,
-                                      ServiceListener,
-                                      FrameworkListener,
-                                      BundleListener {
+public class MultiListener
+  implements LogListener, ServiceListener, FrameworkListener, BundleListener
+{
   private long ourBundleId;
-  ServiceTracker logReaderTracker = new ServiceTracker(Activator.bc,LogReaderService.class.getName(), new ServiceTrackerCustomizer(){
+  ServiceTracker<LogReaderService,LogReaderService> logReaderTracker
+    = new ServiceTracker<LogReaderService,LogReaderService>(Activator.bc,
+        LogReaderService.class,
+        new ServiceTrackerCustomizer<LogReaderService,LogReaderService>() {
 
-    public Object addingService(ServiceReference sr) {
+    public LogReaderService addingService(ServiceReference<LogReaderService> sr) {
       LogReaderService logReader = (LogReaderService) Activator.bc.getService(sr);
       if (logReader != null) {
         logReader.addLogListener(MultiListener.this);
@@ -78,16 +82,17 @@ public class MultiListener implements LogListener,
       return logReader;
     }
 
-    public void modifiedService(ServiceReference sr, Object o) {
+    public void modifiedService(ServiceReference<LogReaderService> sr, LogReaderService o) {
     }
 
-    public void removedService(ServiceReference sr, Object o) {
-      ((LogReaderService)o).removeLogListener(MultiListener.this);
+    public void removedService(ServiceReference<LogReaderService> sr, LogReaderService o) {
+      o.removeLogListener(MultiListener.this);
     }
   });
 
 
-  void start() {
+  void start()
+  {
     ourBundleId = Activator.bc.getBundle().getBundleId();
     Activator.bc.addBundleListener(this);
     Activator.bc.addServiceListener(this);
@@ -158,7 +163,7 @@ public class MultiListener implements LogListener,
       if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
         return;
       }
-      Dictionary props = new Hashtable();
+      Map<String,Object> props = new HashMap<String,Object>();
       Bundle bundle = bundleEvent.getBundle();
       putProp(props, EventConstants.EVENT, bundleEvent);
       putProp(props, "bundle.id", new Long(bundle.getBundleId()));
@@ -190,7 +195,8 @@ public class MultiListener implements LogListener,
    * @param logEntry the entry of the log
    * @author Johnny Baveras
    */
-  private Hashtable thrownByPostEvent = new Hashtable();
+  private Hashtable<Throwable,Long> thrownByPostEvent
+    = new Hashtable<Throwable,Long>();
   public void logged(LogEntry logEntry) {
     // In order to prevent endless loops we ignore errors logged by this method
     if(logEntry.getBundle().getBundleId() ==  ourBundleId &&
@@ -205,10 +211,11 @@ public class MultiListener implements LogListener,
     // tracking the throwables
     final long timeout = 60 * 1000;
     if(!thrownByPostEvent.isEmpty()) {
-      Iterator entries = thrownByPostEvent.entrySet().iterator();
+      Iterator<Entry<Throwable, Long>> entries
+        = thrownByPostEvent.entrySet().iterator();
       while(entries.hasNext()) {
-        Map.Entry timestampedThrowable = (Map.Entry)entries.next();
-        long timestamp = ((Long)timestampedThrowable.getValue()).longValue();
+        Entry<Throwable, Long> timestampedThrowable = entries.next();
+        long timestamp = timestampedThrowable.getValue().longValue();
         if(System.currentTimeMillis() > (timestamp + timeout)) {
           entries.remove();
         }
@@ -242,7 +249,7 @@ public class MultiListener implements LogListener,
 
 
     Bundle bundle = logEntry.getBundle();
-    Dictionary props = new Hashtable();
+    Map<String,Object> props = new HashMap<String,Object>();
 
     /* Stores the properties of the event in the dictionary */
     if (bundle != null) {
@@ -346,7 +353,7 @@ public class MultiListener implements LogListener,
       if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
         return;
       }
-      Dictionary props = new Hashtable();
+      Map<String,Object> props = new HashMap<String,Object>();
       putProp(props, EventConstants.EVENT, serviceEvent);
       putProp(props, EventConstants.SERVICE, serviceEvent.getServiceReference());
       putProp(props, EventConstants.SERVICE_PID, serviceEvent.getServiceReference().getProperty(Constants.SERVICE_PID));
@@ -411,7 +418,7 @@ public class MultiListener implements LogListener,
       if(!Activator.handlerTracker.anyHandlersMatching(topic)) {
         return;
       }
-      Dictionary props = new Hashtable();
+      Map<String,Object> props = new HashMap<String,Object>();
       Bundle bundle = frameworkEvent.getBundle();
       putProp(props, "event", frameworkEvent);
       /* If the event contains a bundle, further properties shall be set */
@@ -445,7 +452,7 @@ public class MultiListener implements LogListener,
     }
   }
 
-  private void putProp(Dictionary props, Object key, Object value) {
+  private void putProp(Map<String,Object> props, String key, Object value) {
     if (value != null) {
       props.put(key, value);
     }

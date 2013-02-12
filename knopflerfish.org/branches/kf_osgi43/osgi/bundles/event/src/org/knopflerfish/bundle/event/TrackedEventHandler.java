@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.bundle.event;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.osgi.framework.Filter;
@@ -49,12 +48,13 @@ import org.osgi.service.event.EventHandler;
 
 public class TrackedEventHandler {
   private final EventHandlerTracker tracker;
-  private ServiceReference sr = null;
+  private ServiceReference<EventHandler> sr = null;
   private final EventHandler tracked;
   private Filter filter = null;
   private boolean destroyed = false;
   private boolean blacklisted = false;
-  private HashSet referencingSets = new HashSet();
+  private HashSet<Set<TrackedEventHandler>> referencingSets
+    = new HashSet<Set<TrackedEventHandler>>();
 
   private TrackedEventHandler(EventHandlerTracker tracker, EventHandler tracked)
   {
@@ -86,7 +86,7 @@ public class TrackedEventHandler {
   }
 
   public static TrackedEventHandler create(EventHandlerTracker eht,
-                                           ServiceReference sr,
+                                           ServiceReference<EventHandler> sr,
                                            EventHandler eh)
   {
     TrackedEventHandler teh = new TrackedEventHandler(eht, eh);
@@ -94,7 +94,7 @@ public class TrackedEventHandler {
     return teh;
   }
 
-  public void update(ServiceReference sr)
+  public void update(ServiceReference<EventHandler> sr)
   {
     this.sr = sr;
     // removeAllReferences();
@@ -102,7 +102,7 @@ public class TrackedEventHandler {
     updateTopicsAndWildcards();
   }
 
-  public ServiceReference getServiceReference()
+  public ServiceReference<EventHandler> getServiceReference()
   {
     return sr;
   }
@@ -154,9 +154,9 @@ public class TrackedEventHandler {
       topics = new String[] {(String) o};
     } else if(o instanceof String[]) {
       topics = (String[]) o;
-    } else if(o instanceof Collection ) { 
-        Collection c = (Collection)o;
-        topics = (String[])c.toArray(new String[c.size()]);
+    } else if(o instanceof Collection ) {
+        Collection<?> c = (Collection<?>)o;
+        topics = c.toArray(new String[c.size()]);
     } else {
       setBlacklist(true);
       return;
@@ -181,19 +181,17 @@ public class TrackedEventHandler {
     }
   }
 
-  void referencedIn(Set s)
+  void referencedIn(Set<TrackedEventHandler> s)
   {
     referencingSets.add(s);
   }
 
   void removeAllReferences()
   {
-    Iterator i = referencingSets.iterator();
-    while (i.hasNext()) {
-      Set s = (Set) i.next();
+    for (Set<TrackedEventHandler> s : referencingSets)
       synchronized (s) {
         s.remove(this);
       }
-    }
   }
+
 }

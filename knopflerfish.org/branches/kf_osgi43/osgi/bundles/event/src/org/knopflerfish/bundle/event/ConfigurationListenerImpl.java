@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,15 @@
 
 package org.knopflerfish.bundle.event;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationEvent;
 import org.osgi.service.cm.ConfigurationListener;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
-
-import java.util.Dictionary;
-import java.util.Hashtable;
 
 /**
  * Listen for ConfigurationEvent
@@ -53,10 +53,10 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
   private final static String PREFIX = "org/osgi/service/cm/ConfigurationEvent/";
   private final static String CM_UPDATED_TOPIC = PREFIX + "CM_UPDATED";
   private final static String CM_DELETED_TOPIC = PREFIX + "CM_DELETED";
-  ServiceRegistration r = null;
+  ServiceRegistration<ConfigurationListener> r = null;
 
   void start() {
-    r = Activator.bc.registerService(ConfigurationListener.class.getName(), this, null);
+    r = Activator.bc.registerService(ConfigurationListener.class, this, null);
   }
 
   void stop() {
@@ -67,7 +67,7 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
   }
 
   public void configurationEvent(ConfigurationEvent event) {
-    Dictionary props = new Hashtable();
+    Map<String,Object> props = new HashMap<String,Object>();
     String topic = null;
     boolean knownMessageType = true;
     switch (event.getType()) {
@@ -106,7 +106,7 @@ public class ConfigurationListenerImpl implements ConfigurationListener {
     }
   }
 
-  private void putProp(Dictionary props, Object key, Object value) {
+  private void putProp(Map<String, Object> props, String key, Object value) {
     if (value != null) {
       props.put(key, value);
     }
