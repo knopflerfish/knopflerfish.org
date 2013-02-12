@@ -45,7 +45,7 @@ public class KXmlParser implements XmlPullParser {
 
     private boolean processNsp;
     private boolean relaxed;
-    private Hashtable entityMap;
+    private Hashtable<String, String> entityMap;
     private int depth;
     private String[] elementStack = new String[16];
     private String[] nspStack = new String[8];
@@ -766,7 +766,7 @@ public class KXmlParser implements XmlPullParser {
             return;
         }
 
-        String result = (String) entityMap.get(code);
+        String result = entityMap.get(code);
 
         unresolved = result == null;
 
@@ -962,7 +962,7 @@ public class KXmlParser implements XmlPullParser {
         peekCount = 0;
         depth = 0;
 
-        entityMap = new Hashtable();
+        entityMap = new Hashtable<String, String>();
         entityMap.put("amp", "&");
         entityMap.put("apos", "'");
         entityMap.put("gt", ">");
