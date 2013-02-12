@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,26 +34,32 @@
 
 package org.knopflerfish.bundle.prefs;
 
-import org.osgi.framework.*;
-import org.osgi.service.prefs.*;
-import org.knopflerfish.service.log.LogRef;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.prefs.PreferencesService;
 
 
 public class PreferencesServiceFactory
-  implements ServiceFactory, BundleListener
+  implements ServiceFactory<PreferencesService>, BundleListener
 {
-  ServiceRegistration reg = null;
+  ServiceRegistration<PreferencesService> reg = null;
 
-  // Bundle -> PreferencesServiceImpl
-  Map prefsMap = new HashMap();
+  Map<Bundle, PreferencesServiceImpl> prefsMap
+    = new HashMap<Bundle,PreferencesServiceImpl>();
 
   PreferencesServiceFactory() {
   }
 
-  public Object getService(Bundle bundle,
-                           ServiceRegistration reg) {
-    synchronized(prefsMap) {
+  public PreferencesService getService(Bundle bundle,
+                                       ServiceRegistration<PreferencesService> reg)
+  {
+    synchronized (prefsMap) {
       PreferencesServiceImpl prefs
         = (PreferencesServiceImpl)prefsMap.get(bundle);
 
@@ -66,8 +72,8 @@ public class PreferencesServiceFactory
   }
 
   public void ungetService(Bundle bundle,
-                           ServiceRegistration registration,
-                           Object service) {
+                           ServiceRegistration<PreferencesService> registration,
+                           PreferencesService service) {
     synchronized(prefsMap) {
       PreferencesServiceImpl prefs
         = (PreferencesServiceImpl)prefsMap.get(bundle);
@@ -100,10 +106,12 @@ public class PreferencesServiceFactory
     if(reg == null) {
       Activator.bc.addBundleListener(this);
 
-      Hashtable props = new Hashtable();
-      reg = Activator.bc.registerService(PreferencesService.class.getName(),
-                                         this,
-                                         props);
+      @SuppressWarnings("unchecked")
+      final ServiceRegistration<PreferencesService> psReg =
+          (ServiceRegistration<PreferencesService>)
+            Activator.bc.registerService(PreferencesService.class.getName(),
+                                         this, null);
+      reg = psReg;
     }
   }
 

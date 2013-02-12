@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,29 @@
 
 package org.knopflerfish.bundle.prefs;
 
-import org.osgi.framework.*;
-import org.osgi.service.prefs.*;
-import org.knopflerfish.service.log.LogRef;
-import org.knopflerfish.util.Text;
-import java.util.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+import java.util.Vector;
 
-import java.io.*;
+import org.osgi.framework.Bundle;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
+
+import org.knopflerfish.util.Text;
 
 
 /**
@@ -191,9 +207,9 @@ public class  PrefsStorageFile implements PrefsStorage {
   }
 
 
-  Dictionary loadProps(final String path) throws IOException {
+  Dictionary<String, String> loadProps(final String path) throws IOException {
     synchronized(lock) {
-      final Dictionary dict = (Dictionary)propsMap.get(path);
+      final Dictionary<String, String> dict = propsMap.get(path);
       if(dict != null) {
         return dict;
       }
@@ -206,11 +222,11 @@ public class  PrefsStorageFile implements PrefsStorage {
           props.load(in);
 
           // We might need to decode some keys
-          final Properties p2 = new Properties();
-          for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-            final String key        = (String)e.nextElement();
+          final Dictionary<String,String> p2 = new Hashtable<String, String>();
+          for(Enumeration<Object> e = props.keys(); e.hasMoreElements(); ) {
+            final String key        = (String) e.nextElement();
             final String decodedKey = decode(key);
-            final String val        = (String)props.get(key);
+            final String val        = (String) props.get(key);
             p2.put(decodedKey, val);
           }
 
@@ -226,12 +242,12 @@ public class  PrefsStorageFile implements PrefsStorage {
     }
   }
 
-  void saveProps(final String path, final Dictionary p) throws IOException {
+  void saveProps(final String path, final Dictionary<String, String> p) throws IOException {
     synchronized(lock) {
 
       final Properties props = new Properties();
-      for(Enumeration e = p.keys(); e.hasMoreElements(); ) {
-        final String key = (String) e.nextElement();
+      for(Enumeration<String> e = p.keys(); e.hasMoreElements(); ) {
+        final String key = e.nextElement();
         final Object val = p.get(key);
         props.put(encode(key), val);
       }
@@ -254,7 +270,7 @@ public class  PrefsStorageFile implements PrefsStorage {
   public void put(final String path, final String key, final String val) {
     try {
       dirtySet.add(path);
-      final Dictionary p = loadProps(path);
+      final Dictionary<String, String> p = loadProps(path);
 
       p.put(key, val);
 
@@ -273,7 +289,7 @@ public class  PrefsStorageFile implements PrefsStorage {
       try {
         final File dir = getNodeDir(path, false);
         final String[] f = dir.list();
-        final Vector v = new Vector();
+        final Vector<String> v = new Vector<String>();
         for(int i = 0; i < f.length; i++) {
           if(!f[i].startsWith(".")) {
             // Use decodeUser() here since it may be user names and
@@ -294,12 +310,12 @@ public class  PrefsStorageFile implements PrefsStorage {
 
   public String[] getKeys(final String path) {
     try {
-      final Dictionary props = loadProps(path);
+      final Dictionary<String, String> props = loadProps(path);
       final String[]   keys  = new String[props.size()];
 
       int i = 0;
-      for(Enumeration e = props.keys(); e.hasMoreElements(); ) {
-        keys[i++] = (String) e.nextElement();
+      for(Enumeration<String> e = props.keys(); e.hasMoreElements(); ) {
+        keys[i++] = e.nextElement();
       }
       return keys;
     } catch (Exception e) {
@@ -310,8 +326,8 @@ public class  PrefsStorageFile implements PrefsStorage {
   public String get(final String path, final String key, final String def) {
     synchronized(lock) {
       try {
-        final Dictionary props = loadProps(path);
-        final String val = (String) props.get(key);
+        final Dictionary<String, String> props = loadProps(path);
+        final String val = props.get(key);
 
         return val != null ? val : def;
 
@@ -326,7 +342,7 @@ public class  PrefsStorageFile implements PrefsStorage {
   public void removeAllKeys(final String path) {
     synchronized(lock) {
       try {
-        final Dictionary props = new Hashtable();
+        final Dictionary<String, String> props = new Hashtable<String, String>();
         propsMap.put(path, props);
         dirtySet.add(path);
         //        saveProps(path, props);
@@ -339,7 +355,7 @@ public class  PrefsStorageFile implements PrefsStorage {
   public void removeKey(final String path, final String key) {
     synchronized(lock) {
       try {
-        final Dictionary props = loadProps(path);
+        final Dictionary<String, String> props = loadProps(path);
         props.remove(key);
         propsMap.put(path, props);
         dirtySet.add(path);
@@ -357,10 +373,12 @@ public class  PrefsStorageFile implements PrefsStorage {
           bStale = true;
         }
 
-        for(Iterator it = prefs.entrySet().iterator(); it.hasNext(); ) {
-          final Map.Entry entry = (Map.Entry) it.next();
-          final String p = (String) entry.getKey();
-          final PreferencesImpl pi = (PreferencesImpl) entry.getValue();
+        final Iterator<Entry<String,PreferencesImpl>>
+          it = prefs.entrySet().iterator();
+        while (it.hasNext()) {
+          final Entry<String,PreferencesImpl> entry = it.next();
+          final String p = entry.getKey();
+          final PreferencesImpl pi = entry.getValue();
 
           if(bStale || p.equals(path) || p.startsWith(path + "/")) {
             pi.bStale = true;
@@ -378,22 +396,23 @@ public class  PrefsStorageFile implements PrefsStorage {
   }
 
   // String (path) -> PreferencesImpl
-  final Map prefs = new HashMap();
-  final Set dirtySet = new HashSet();
-  final Map propsMap = new HashMap();
+  final Map<String, PreferencesImpl> prefs = new HashMap<String, PreferencesImpl>();
+  final Set<String> dirtySet = new HashSet<String>();
+  final Map<String, Dictionary<String,String>> propsMap
+    = new HashMap<String, Dictionary<String,String>>();
 
   public Preferences getNode(final String path, boolean bCreate) {
     try {
-      PreferencesImpl pi = (PreferencesImpl)prefs.get(path);
+      PreferencesImpl pi = prefs.get(path);
       if(pi != null) {
         return pi;
       }
 
-      final File nodeDir = getNodeDir(path, bCreate);
+      getNodeDir(path, bCreate);
       final File keyFile = getKeyFile(path);
 
       if(!keyFile.exists()) {
-        final Dictionary props = new Hashtable();
+        final Dictionary<String, String> props = new Hashtable<String, String>();
         propsMap.put(path, props);
         saveProps(path, props);
       }
@@ -441,9 +460,9 @@ public class  PrefsStorageFile implements PrefsStorage {
       // allways save all dirty nodes to the storage
       synchronized(dirtySet) {
         // System.out.println("flushing " + dirtySet.size() + " items");
-        for(Iterator it = dirtySet.iterator(); it.hasNext();) {
-          final String p = (String)it.next();
-          final Dictionary props = (Dictionary)propsMap.get(p);
+        for(Iterator<String> it = dirtySet.iterator(); it.hasNext();) {
+          final String p = it.next();
+          final Dictionary<String, String> props = propsMap.get(p);
           if(props != null) {
             //              System.out.println("flush '" + p + "'");
             try {

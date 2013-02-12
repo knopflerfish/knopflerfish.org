@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,14 @@
 
 package org.knopflerfish.bundle.prefs;
 
-import org.osgi.framework.*;
-import org.osgi.service.prefs.*;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.osgi.framework.Bundle;
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
+import org.osgi.service.prefs.PreferencesService;
 
 
 public class PreferencesServiceImpl implements PreferencesService {
@@ -83,8 +88,7 @@ public class PreferencesServiceImpl implements PreferencesService {
 
   PrefsStorage systemStorage;
 
-  // String -> PrefsStorage
-  Map userStorage = new HashMap();
+  Map<String, PrefsStorage> userStorage = new HashMap<String, PrefsStorage>();
 
   protected PreferencesServiceImpl() {
     bundle = null;
@@ -103,7 +107,7 @@ public class PreferencesServiceImpl implements PreferencesService {
 
   public Preferences getUserPreferences(String name) {
     synchronized(userStorage) {
-      PrefsStorage storage = (PrefsStorage) userStorage.get(name);
+      PrefsStorage storage = userStorage.get(name);
       if(storage == null || storage.isStale()) {
         storage   = createPrefsStorageUser(name);
         userStorage.put(name, storage);
@@ -126,8 +130,8 @@ public class PreferencesServiceImpl implements PreferencesService {
         // Ignore, is logged by the actual storage impl.
       }
     }
-    for (Iterator it = userStorage.values().iterator(); it.hasNext(); ) {
-      PrefsStorage storage = (PrefsStorage) it.next();
+    for (Iterator<PrefsStorage> it = userStorage.values().iterator(); it.hasNext(); ) {
+      PrefsStorage storage = it.next();
       try {
         storage.flush(null);
       } catch (BackingStoreException bse) {
