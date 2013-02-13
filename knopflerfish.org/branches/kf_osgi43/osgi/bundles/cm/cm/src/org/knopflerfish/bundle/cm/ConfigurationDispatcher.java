@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import org.osgi.framework.ServiceReference;
  * * This class is responsible for dispatching configurations * to
  * ManagedService(Factories). * * It is also responsible for calling
  * <code>ConfigurationPlugins</code>. * *
- * 
+ *
  * @author Per Gustafson *
  * @version 1.0
  */
@@ -53,7 +53,7 @@ final class ConfigurationDispatcher {
      */
 
     private PluginManager pm;
-  
+
   private boolean useSharedQueue = true;
   private UpdateQueue sharedQueue;
 
@@ -61,14 +61,16 @@ final class ConfigurationDispatcher {
      * * One queue per target service.
      */
 
-    private Hashtable serviceReferenceToTargetService = new Hashtable();
+    private Hashtable<ServiceReference<?>, Object> serviceReferenceToTargetService
+      = new Hashtable<ServiceReference<?>, Object>();
 
-    private Hashtable targetServiceToQueue = new Hashtable();
+    private Hashtable<Object, UpdateQueue> targetServiceToQueue
+      = new Hashtable<Object, UpdateQueue>();
 
     /**
      * * Construct a ConfigurationDispatcher given a *
      * ConfigurationServicesTracker. * *
-     * 
+     *
      * @param tracker
      *            The ConfigurationServicesTracker to use.
      */
@@ -78,7 +80,7 @@ final class ConfigurationDispatcher {
       this.sharedQueue = useSharedQueue ? new UpdateQueue(pm) : null;
     }
 
-    private UpdateQueue getQueueFor(ServiceReference sr) {
+    private UpdateQueue getQueueFor(ServiceReference<?> sr) {
       if(useSharedQueue) {
         return sharedQueue;
       }
@@ -87,11 +89,11 @@ final class ConfigurationDispatcher {
             if (targetService == null) {
                 return null;
             }
-            return (UpdateQueue) targetServiceToQueue.get(targetService);
+            return targetServiceToQueue.get(targetService);
         }
     }
 
-    public void addQueueFor(ServiceReference sr) {
+    public void addQueueFor(ServiceReference<?> sr) {
       if(useSharedQueue) {
         return;
       }
@@ -112,7 +114,7 @@ final class ConfigurationDispatcher {
         }
     }
 
-    public void removeQueueFor(ServiceReference sr) {
+    public void removeQueueFor(ServiceReference<?> sr) {
       if(useSharedQueue) {
         return;
       }
@@ -122,7 +124,7 @@ final class ConfigurationDispatcher {
                 Activator.log
                         .error("Missing target service for a ServiceReference in removeQueueFor(ServiceReference)");
             } else if (!serviceReferenceToTargetService.contains(targetService)) {
-                UpdateQueue uq = (UpdateQueue) targetServiceToQueue
+                UpdateQueue uq = targetServiceToQueue
                         .remove(targetService);
                 if (uq == null) {
                     Activator.log
@@ -132,7 +134,7 @@ final class ConfigurationDispatcher {
         }
     }
 
-    public void dispatchUpdateFor(ServiceReference sr, String pid,
+    public void dispatchUpdateFor(ServiceReference<?> sr, String pid,
             String factoryPid, ConfigurationDictionary cd) {
         UpdateQueue uq = getQueueFor(sr);
         if (uq == null) {
