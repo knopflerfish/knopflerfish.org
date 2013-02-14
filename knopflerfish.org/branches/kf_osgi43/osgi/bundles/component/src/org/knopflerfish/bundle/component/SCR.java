@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,16 +33,40 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.SynchronousBundleListener;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ConfigurationEvent;
+import org.osgi.service.cm.ConfigurationListener;
 import org.osgi.service.component.ComponentConstants;
-import org.osgi.util.tracker.*;
-
-import org.xmlpull.v1.*;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  *
@@ -51,23 +75,23 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
 {
   final private BundleContext bc;
 
-  private Set /* Bundle */ lazy = Collections.synchronizedSet(new HashSet());
-  private Hashtable /* Bundle -> Component[] */ bundleComponents = new Hashtable();
-  private Hashtable /* String -> Component[] */ components = new Hashtable();
-  private Hashtable /* String -> Component[] */ serviceComponents = new Hashtable();
-  private Hashtable /* String -> Component[] */ configSubscriber = new Hashtable();
-  private ServiceRegistration cmListener = null;
-  private ServiceTracker cmAdminTracker;
+  private final Set<Bundle> lazy = Collections.synchronizedSet(new HashSet<Bundle>());
+  private final Hashtable<Bundle, Component[]> bundleComponents = new Hashtable<Bundle, Component[]>();
+  private final Hashtable<String, Component[]> components = new Hashtable<String, Component[]>();
+  private final Hashtable<String, Component[]> serviceComponents = new Hashtable<String, Component[]>();
+  private final Hashtable<String, Component[]> configSubscriber = new Hashtable<String, Component[]>();
+  private ServiceRegistration<ConfigurationListener> cmListener = null;
+  private final ServiceTracker<ConfigurationAdmin,ConfigurationAdmin> cmAdminTracker;
   private long nextId = 0;
-  private HashMap /* Thread -> List */ postponedBind = new HashMap();
-  private HashMap /* Thread -> Integer */ ppRef = new HashMap();
+  private final HashMap<Thread, List<PostponedBind>> postponedBind = new HashMap<Thread, List<PostponedBind>>();
+  private final HashMap<Thread, Integer> ppRef = new HashMap<Thread, Integer>();
 
   /**
    *
    */
   SCR(BundleContext bc) {
     this.bc = bc;
-    cmAdminTracker = new ServiceTracker(bc, ConfigurationAdmin.class.getName(), null);
+    cmAdminTracker = new ServiceTracker<ConfigurationAdmin,ConfigurationAdmin>(bc, ConfigurationAdmin.class, null);
   }
 
 
@@ -77,14 +101,14 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void start() {
     cmAdminTracker.open();
-    cmListener = bc.registerService(ConfigurationListener.class.getName(), this, null);
+    cmListener = bc.registerService(ConfigurationListener.class, this, null);
     bc.addBundleListener(this);
     postponeCheckin();
     try {
       final Bundle [] bundles = bc.getBundles();
-      for (int i = 0; i < bundles.length; i++)  {
-        if ((bundles[i].getState() & (Bundle.ACTIVE | Bundle.STARTING)) != 0) {
-          processBundle(bundles[i]);
+      for (final Bundle bundle : bundles) {
+        if ((bundle.getState() & (Bundle.ACTIVE | Bundle.STARTING)) != 0) {
+          processBundle(bundle);
         }
       }
     } finally {
@@ -106,9 +130,9 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
       cmListener = null;
     }
     cmAdminTracker.close();
-    Bundle [] b = (Bundle [])bundleComponents.keySet().toArray(new Bundle[bundleComponents.size()]);
-    for (int i = 0; i < b.length; i++) {
-      removeBundle(b[i], ComponentConstants.DEACTIVATION_REASON_DISPOSED);
+    final Bundle [] b = bundleComponents.keySet().toArray(new Bundle[bundleComponents.size()]);
+    for (final Bundle element : b) {
+      removeBundle(element, ComponentConstants.DEACTIVATION_REASON_DISPOSED);
     }
   }
 
@@ -123,7 +147,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   public void bundleChanged(BundleEvent event) {
     postponeCheckin();
     try {
-      Bundle bundle = event.getBundle();
+      final Bundle bundle = event.getBundle();
 
       switch (event.getType()) {
       case BundleEvent.LAZY_ACTIVATION:
@@ -156,25 +180,25 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
     postponeCheckin();
     try {
       String name = evt.getFactoryPid();
-      String pid = evt.getPid();
+      final String pid = evt.getPid();
       if (name == null) {
         name = pid;
       }
-      Component [] comp = (Component [])configSubscriber.get(name);
-      if (comp != null) {
+      final Component [] comps = configSubscriber.get(name);
+      if (comps != null) {
         switch (evt.getType()) {
         case ConfigurationEvent.CM_DELETED:
           Activator.logDebug("ConfigurationEvent deleted, pid=" + pid);
-          for (int i = 0; i < comp.length; i++) {
-            comp[i].cmConfigDeleted(pid);
+          for (final Component comp : comps) {
+            comp.cmConfigDeleted(pid);
           }
           break;
         case ConfigurationEvent.CM_UPDATED:
-          Configuration c = getConfiguration(pid);
+          final Configuration c = getConfiguration(pid);
           if (c != null) {
             Activator.logDebug("ConfigurationEvent updated, pid=" + pid);
-            for (int i = 0; i < comp.length; i++) {
-              comp[i].cmConfigUpdated(pid, getConfiguration(pid));
+            for (final Component comp : comps) {
+              comp.cmConfigUpdated(pid, getConfiguration(pid));
             }
           } else {
             Activator.logWarning("ConfigurationEvent updated, failed to get configuration, pid=" + pid);
@@ -209,37 +233,36 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param b Bundle to check
    */
   void processBundle(Bundle b) {
-    String sc = (String)b.getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
+    final String sc = b.getHeaders().get(ComponentConstants.SERVICE_COMPONENT);
     Activator.logDebug("Process header " + ComponentConstants.SERVICE_COMPONENT +
                        " for bundle#" + b.getBundleId() + ": " + sc);
     if (sc != null) {
-      ArrayList entries = splitwords(sc);
+      final ArrayList<String> entries = splitwords(sc);
       if (entries.size() == 0) {
         Activator.logError(b, "Header " + ComponentConstants.SERVICE_COMPONENT + " empty.", null);
         return;
       }
       XmlPullParser p;
       try {
-        XmlPullParserFactory f = XmlPullParserFactory.newInstance();
+        final XmlPullParserFactory f = XmlPullParserFactory.newInstance();
         f.setNamespaceAware(true);
         p = f.newPullParser();
-      } catch (XmlPullParserException xppe) {
+      } catch (final XmlPullParserException xppe) {
         Activator.logError("Could not fina a XML parser", xppe);
         return;
       }
-      ArrayList cds = new ArrayList();
-      for (Iterator i = entries.iterator(); i.hasNext(); ) {
-        String me = (String)i.next();
-        int pos = me.lastIndexOf('/');
-        String path = pos > 0 ? me.substring(0, pos) : "/";
-        Enumeration e = b.findEntries(path, me.substring(pos+1), false);
+      final ArrayList<ComponentDescription> cds = new ArrayList<ComponentDescription>();
+      for (String me : entries) {
+        final int pos = me.lastIndexOf('/');
+        final String path = pos > 0 ? me.substring(0, pos) : "/";
+        final Enumeration<URL> e = b.findEntries(path, me.substring(pos+1), false);
         if (null != e) {
           while (e.hasMoreElements()) {
-            URL u = (URL)e.nextElement();
+            final URL u = e.nextElement();
             InputStream is = null;
             try {
               is = u.openStream();
-            } catch (IOException ioe) {
+            } catch (final IOException ioe) {
               Activator.logError(b, "Failed to open: " + u, ioe);
               return;
             }
@@ -248,24 +271,24 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
               Activator.logDebug("Parse component description: " + u);
               while (true) {
                 try {
-                  ComponentDescription cd = ComponentDescription.parseComponent(b, p);
+                  final ComponentDescription cd = ComponentDescription.parseComponent(b, p);
                   Activator.logDebug("Got component description: " + cd);
                   if (cd != null) {
                     cds.add(cd);
                   } else {
                     break;
                   }
-                } catch (XmlPullParserException pe) {
+                } catch (final XmlPullParserException pe) {
                   Activator.logError(b, "Componenent description in '" + u +"'. " +
                                      "Got " + pe, pe);
                 }
               }
-            } catch (Exception exc) {
+            } catch (final Exception exc) {
               Activator.logError(b, "Failed to read componenent description '" + u +"'.", exc);
             } finally {
               try {
                 is.close();
-              } catch (IOException ioe) {
+              } catch (final IOException ioe) {
                 Activator.logError(b, "Failed to close: " + u, ioe);
               }
             }
@@ -275,9 +298,9 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         }
       }
       if (cds.size() > 0) {
-        Component [] carray = new Component [cds.size()];
+        final Component [] carray = new Component [cds.size()];
         for (int i = 0; i < carray.length; i++) {
-          ComponentDescription cd = (ComponentDescription)cds.get(i);
+          final ComponentDescription cd = cds.get(i);
           Component c;
           if (cd.isImmediate()) {
             c = new ImmediateComponent(this, cd);
@@ -288,17 +311,17 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
           }
           carray[i] = c;
           addComponentArray(components, cd.getName(), c);
-          String [] s = cd.getServices();
+          final String [] s = cd.getServices();
           if (s != null) {
-            for (int si = 0; si < s.length; si++) {
-              addComponentArray(serviceComponents, s[si], c);
+            for (final String element : s) {
+              addComponentArray(serviceComponents, element, c);
             }
           }
         }
         bundleComponents.put(b, carray);
-        for (int i = 0; i < carray.length; i++) {
-          if (carray[i].compDesc.isEnabled()) {
-            carray[i].enable();
+        for (final Component element : carray) {
+          if (element.compDesc.isEnabled()) {
+            element.enable();
           }
         }
       }
@@ -313,16 +336,16 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void removeBundle(Bundle b, int reason) {
     Activator.logDebug("Remove " + b +" from SCR");
-    Component [] ca = (Component [])bundleComponents.remove(b);
+    final Component [] ca = bundleComponents.remove(b);
     if (ca != null) {
-      for (int i = 0; i < ca.length; i++) {
-        ca[i].disable(reason);
-        ComponentDescription cd = ca[i].compDesc;
-        removeComponentArray(components, cd.getName(), ca[i]);
-        String [] s = cd.getServices();
-        if (s != null) {
-          for (int si = 0; si < s.length; si++) {
-            removeComponentArray(serviceComponents, s[si], ca[i]);
+      for (final Component component : ca) {
+        component.disable(reason);
+        final ComponentDescription cd = component.compDesc;
+        removeComponentArray(components, cd.getName(), component);
+        final String [] services = cd.getServices();
+        if (services != null) {
+          for (final String service : services) {
+            removeComponentArray(serviceComponents, service, component);
           }
         }
       }
@@ -338,11 +361,11 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param b Bundle owning component
    */
   void disableComponent(String name, Bundle b) {
-    Component [] ca = (Component [])bundleComponents.get(b);
+    final Component [] ca = bundleComponents.get(b);
     if (ca != null) {
-      for (int i = 0; i < ca.length; i++) {
-        if (name == null || name.equals(ca[i].compDesc.getName())) {
-          ca[i].disable(ComponentConstants.DEACTIVATION_REASON_DISABLED);
+      for (final Component element : ca) {
+        if (name == null || name.equals(element.compDesc.getName())) {
+          element.disable(ComponentConstants.DEACTIVATION_REASON_DISABLED);
         }
       }
     }
@@ -357,11 +380,11 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param b Bundle owning component
    */
   void enableComponent(String name, Bundle b) {
-    Component [] ca = (Component [])bundleComponents.get(b);
+    final Component [] ca = bundleComponents.get(b);
     if (ca != null) {
-      for (int i = 0; i < ca.length; i++) {
-        if (name == null || name.equals(ca[i].compDesc.getName())) {
-          ca[i].enable();
+      for (final Component element : ca) {
+        if (name == null || name.equals(element.compDesc.getName())) {
+          element.enable();
         }
       }
     }
@@ -371,18 +394,17 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   /**
    * Get all components.
    */
-  List /* Component */ getAllComponents() {
-    ArrayList res = new ArrayList();
+  List<Component> getAllComponents() {
+    final ArrayList<Component> res = new ArrayList<Component>();
     while (true) {
       try {
-        for (Iterator i = components.values().iterator(); i.hasNext(); ) {
-          Component [] e = (Component [])i.next();
-          for (int j = 0; j < e.length; j++) {
-            res.add(e[j]);
+        for (Component[] e : components.values()) {
+          for (final Component element : e) {
+            res.add(element);
           }
         }
         return res;
-      } catch (ConcurrentModificationException ignore) { }
+      } catch (final ConcurrentModificationException ignore) { }
       res.clear();
     }
   }
@@ -392,7 +414,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * Get components with specified name.
    */
   Component [] getComponent(String name) {
-    return (Component [])components.get(name);
+    return components.get(name);
   }
 
 
@@ -406,37 +428,37 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   String checkCircularReferences(Component component,
                                  String pid,
-                                 ArrayList path) {
-    int len = path.size();
+                                 ArrayList<Component> path) {
+    final int len = path.size();
     if (len > 0 && path.get(0) == component) {
-      StringBuffer sb = new StringBuffer("Found circular component chain: ");
-      for (Iterator pi = path.iterator(); pi.hasNext(); ) {
-        sb.append(((Component)pi.next()).compDesc.getName());
+      final StringBuffer sb = new StringBuffer("Found circular component chain: ");
+      for (final Component element : path) {
+        sb.append((element).compDesc.getName());
         sb.append("->");
       }
       sb.append(component.compDesc.getName());
       return sb.toString();
     } else if (!component.isSatisfied() && !path.contains(component)) {
       // We have not checked component before and it is inactive
-      Reference [] rs = component.getRawReferences();
+      final Reference [] rs = component.getRawReferences();
       if (rs != null) {
         path.add(component);
         for (int i = 0; i < rs.length; i++) {
           // Loop through all mandatory references
           if (!rs[i].isOptional()) {
-            Component [] cs = (Component [])serviceComponents.get(rs[i].refDesc.interfaceName);
+            final Component [] cs = serviceComponents.get(rs[i].refDesc.interfaceName);
             if (cs != null) {
               // Components for service found
               // Get target filter to
               // NYI! optimize when several pids has same filter
-              Filter f = rs[i].getListener(pid).getTargetFilter();
+              final Filter f = rs[i].getListener(pid).getTargetFilter();
               // Loop through all found components
-              for (int cx = 0; cx < cs.length; cx++) {
-                String [] pids = cs[cx].getAllServicePids();
+              for (final Component element : cs) {
+                final String [] pids = element.getAllServicePids();
                 // Loop through service property configurations
-                for (int px = 0; px < pids.length; px++) {
-                  if (f == null || f.match(cs[cx].getServiceProperties(pids[px]))) {
-                    String res = checkCircularReferences(cs[cx], pids[px], path);
+                for (final String pid2 : pids) {
+                  if (f == null || f.match(element.getServiceProperties(pid2))) {
+                    final String res = checkCircularReferences(element, pid2, path);
                     if (res != null) {
                       return res;
                     }
@@ -456,13 +478,13 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   /**
    * Save binds that where circular binds.
    */
-  void postponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
+  void postponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference<?> sr) {
     if (rl.isDynamic() && rl.isOptional()) {
       final Thread ct = Thread.currentThread();
       synchronized (ppRef) {
-        List ppBinds = (List)postponedBind.get(ct);
+        List<PostponedBind> ppBinds = postponedBind.get(ct);
         if (ppBinds == null) {
-          ppBinds = new ArrayList();
+          ppBinds = new ArrayList<PostponedBind>();
           postponedBind.put(ct, ppBinds);
         }
         ppBinds.add(new PostponedBind(cci, rl, sr));
@@ -477,12 +499,12 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   /**
    * Save binds that where circular binds.
    */
-  void clearPostponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
+  void clearPostponeBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference<?> sr) {
     if (rl.isDynamic() && rl.isOptional()) {
       synchronized (ppRef) {
-        for (Iterator i = postponedBind.values().iterator(); i.hasNext(); ) {
-          for (Iterator j = ((List)i.next()).iterator(); j.hasNext(); ) {
-            PostponedBind pb = (PostponedBind)j.next();
+        for (final List<PostponedBind> list : postponedBind.values()) {
+          for (final Iterator<PostponedBind> j = list.iterator(); j.hasNext(); ) {
+            final PostponedBind pb = j.next();
             if (pb.cci == cci && pb.rl == rl && pb.sr == sr) {
               j.remove();
               Activator.logDebug("Cleared postponed bind " + Activator.srInfo(sr)
@@ -501,7 +523,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
   void postponeCheckin() {
     synchronized (ppRef) {
       final Thread ct = Thread.currentThread();
-      Integer refCount = (Integer)ppRef.get(ct);
+      Integer refCount = ppRef.get(ct);
       if (refCount != null) {
         refCount = new Integer(refCount.intValue() + 1);
       } else {
@@ -517,11 +539,11 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    */
   void postponeCheckout() {
     final Thread ct = Thread.currentThread();
-    List ppBinds;
+    List<PostponedBind> ppBinds;
     synchronized (ppRef) {
-      Integer refCount = (Integer)ppRef.get(ct);
+      final Integer refCount = ppRef.get(ct);
       if (refCount != null) {
-        int i = refCount.intValue() - 1;
+        final int i = refCount.intValue() - 1;
         if (i > 0) {
           ppRef.put(ct, new Integer(i));
           return;
@@ -530,22 +552,22 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
         Activator.logError("Ref. count for postpone failed",
                            new Throwable());
       }
-      ppBinds = (List)postponedBind.remove(ct);
+      ppBinds = postponedBind.remove(ct);
     }
     if (ppBinds != null) {
-      for (Iterator i = ppBinds.iterator(); i.hasNext(); ) {
-        ((PostponedBind)i.next()).retry();
+      for (final PostponedBind postponedBind2 : ppBinds) {
+        postponedBind2.retry();
       }
     }
     synchronized (ppRef) {
-      ppBinds = (List)postponedBind.remove(ct);
+      ppBinds = postponedBind.remove(ct);
       ppRef.remove(ct);
     }
     // We don't retry failed rebinds again
     if (ppBinds != null) {
-      for (Iterator i = ppBinds.iterator(); i.hasNext(); ) {
+      for (final PostponedBind postponedBind2 : ppBinds) {
         Activator.logInfo("Skip, retried postponed bind: " +
-                          ((PostponedBind)i.next()).toString());
+                          postponedBind2.toString());
       }
     }
   }
@@ -558,10 +580,10 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param comp Component which config needs to be tracked
    */
   Configuration [] subscribeCMConfig(Component comp) {
-    String name = comp.compDesc.getName();
-    Component [] old = (Component [])configSubscriber.get(name);
+    final String name = comp.compDesc.getName();
+    final Component [] old = configSubscriber.get(name);
     if (old != null) {
-      Component [] n = new Component[old.length + 1];
+      final Component [] n = new Component[old.length + 1];
       System.arraycopy(old, 0, n, 0, old.length);
       n[old.length] = comp;
       configSubscriber.put(name, n);
@@ -583,15 +605,15 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param comp Component which config doesn't need to be tracked
    */
   void unsubscribeCMConfig(Component comp) {
-    String name = comp.compDesc.getName();
-    Component [] old = (Component [])configSubscriber.remove(name);
+    final String name = comp.compDesc.getName();
+    final Component [] old = configSubscriber.remove(name);
     if (old != null) {
       if (old.length != 1) {
-        Component [] n = new Component[old.length - 1];
+        final Component [] n = new Component[old.length - 1];
         int j = 0;
-        for (int i = 0; i < old.length; i++) {
-          if (old[i] != comp) {
-            n[j++] = old[i];
+        for (final Component element : old) {
+          if (element != comp) {
+            n[j++] = element;
           }
         }
         configSubscriber.put(name, n);
@@ -606,7 +628,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * Get all components for a bundle
    */
   Component [] getComponents(Bundle b) {
-    return (Component [])bundleComponents.get(b);
+    return bundleComponents.get(b);
   }
 
   //
@@ -617,13 +639,13 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * Get all CM configurations for specified CM pid or factory pid.
    */
   private Configuration[] listConfigurations(String key, String pid) {
-    ConfigurationAdmin cm = (ConfigurationAdmin)cmAdminTracker.getService();
+    final ConfigurationAdmin cm = cmAdminTracker.getService();
     if (cm != null) {
       try {
         return cm.listConfigurations("(" + key + "=" + pid + ")");
-      } catch (InvalidSyntaxException e) {
+      } catch (final InvalidSyntaxException e) {
         Activator.logError("Strange CM PID: " + pid, e);
-      } catch (IOException e) {
+      } catch (final IOException e) {
         Activator.logError("SCR could not retrieve the configuration for pid: " +
                            pid + ". Got IOException.", e);
       }
@@ -636,7 +658,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    *
    */
   private Configuration getConfiguration(String pid) {
-    Configuration[] conf = listConfigurations(Constants.SERVICE_PID, pid);
+    final Configuration[] conf = listConfigurations(Constants.SERVICE_PID, pid);
     if (conf != null) {
       return conf[0];
     }
@@ -648,12 +670,12 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * Add component inside an array in a map.
    *
    */
-  private static void addComponentArray(Map map, String key, Component c) {
-    Component [] a = (Component [])map.get(key);
+  private static void addComponentArray(Map<String, Component[]> map, String key, Component c) {
+    final Component [] a = map.get(key);
     if (a == null) {
       map.put(key, new Component [] {c});
     } else {
-      Component [] n = new Component[a.length + 1];
+      final Component [] n = new Component[a.length + 1];
       System.arraycopy(a, 0, n, 0, a.length);
       n[a.length] = c;
       map.put(key, n);
@@ -665,15 +687,15 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * Remove component inside an array in a map. Remove array if empty.
    *
    */
-  private static void removeComponentArray(Map map, String key, Component c) {
-    Component [] a = (Component [])map.get(key);
+  private static void removeComponentArray(Map<String, Component[]> map, String key, Component c) {
+    final Component [] a = map.get(key);
     if (a != null) {
       if (a.length == 1) {
         if (a[0] == c) {
           map.remove(key);
         }
       } else {
-        Component [] n = new Component[a.length - 1];
+        final Component [] n = new Component[a.length - 1];
         int offset = 0;
         for (int i = 0; i < n.length; i++) {
           if (a[i + offset] == c) {
@@ -704,14 +726,14 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    *                   from the result. If no words are found, return an
    *                   array of length zero.
    */
-  private static ArrayList splitwords(String s) {
+  private static ArrayList<String> splitwords(String s) {
     boolean bCit = false;            // true when inside citation chars.
-    ArrayList res = new ArrayList();
+    final ArrayList<String> res = new ArrayList<String>();
     int first = -1;
     int last = -1;
 
     for (int i = 0; i < s.length(); i++) {
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
       if (bCit || c != ',') {
         if (first >= 0) {
           if (c == '"') {

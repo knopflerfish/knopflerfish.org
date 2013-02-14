@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,11 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
@@ -42,8 +46,7 @@ public class Activator implements BundleActivator
 {
   static boolean TCK_BUG_COMPLIANT = true;
 
-  private static BundleContext bc;
-  private static ServiceTracker logTracker;
+  private static ServiceTracker<LogService,LogService> logTracker;
 
   private SCR scr;
 
@@ -52,8 +55,10 @@ public class Activator implements BundleActivator
    * Initialize log and start SCR.
    */
   public void start(BundleContext bc) throws Exception {
-    Activator.bc = bc;
-    logTracker = new ServiceTracker(bc, LogService.class.getName(), null);
+    logTracker = new ServiceTracker<LogService, LogService>(bc,
+                                                            LogService.class
+                                                                .getName(),
+                                                            null);
     logTracker.open();
     scr = new SCR(bc);
     scr.start();
@@ -102,16 +107,17 @@ public class Activator implements BundleActivator
    */
   static void logBC(BundleContext bc, int level, String msg, Throwable t) {
     try {
-      ServiceReference sr = bc.getServiceReference(LogService.class.getName());
+      ServiceReference<LogService> sr = bc.getServiceReference(LogService.class);
       if (sr != null) {
-        LogService log = (LogService)bc.getService(sr);
+        LogService log = bc.getService(sr);
         if (log != null) {
           log.log(level, msg, t);
           bc.ungetService(sr);
         }
       }
     } catch (IllegalStateException ise) {
-      log(level, "Logging message for " + bc.getBundle() + " since it was inactive: " + msg, t);
+      log(level, "Logging message for " + bc.getBundle() 
+          + " since it was inactive: " + msg, t);
     }
   }
 
@@ -142,7 +148,7 @@ public class Activator implements BundleActivator
   public static void log(int level, String message, Throwable t) {
     if (logTracker == null)
       return;
-    LogService log = (LogService) logTracker.getService();
+    LogService log = logTracker.getService();
     if (log == null)
       return;
     if (t == null) {
@@ -155,7 +161,7 @@ public class Activator implements BundleActivator
   /**
    * Return info about ServiceReference
    */
-  public static String srInfo(ServiceReference sr) {
+  public static String srInfo(ServiceReference<?> sr) {
     StringBuffer sb = new StringBuffer();
     sb.append("ServiceReference(id=");
     sb.append(sr.getProperty(Constants.SERVICE_ID));

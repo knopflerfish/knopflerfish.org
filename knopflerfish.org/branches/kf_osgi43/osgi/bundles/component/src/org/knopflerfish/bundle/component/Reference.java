@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,17 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.TreeMap;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.cm.Configuration;
 
 
 /**
@@ -53,7 +60,7 @@ class Reference implements org.apache.felix.scr.Reference
   private volatile boolean methodsSet = false;
 
   private ReferenceListener listener = null;
-  private TreeMap factoryListeners = null;
+  private TreeMap<String, ReferenceListener> factoryListeners = null;
   private int numListeners;
   private int available;
 
@@ -95,9 +102,9 @@ class Reference implements org.apache.felix.scr.Reference
   /**
    * @see org.apache.felix.scr.Reference.getServiceReferences
    */
-  public ServiceReference[] getServiceReferences() {
-    ReferenceListener l = listener;
-    ServiceReference[] res = null;
+  public ServiceReference<?>[] getServiceReferences() {
+    final ReferenceListener l = listener;
+    ServiceReference<?>[] res = null;
     if (l != null)  {
       res = l.getBoundServiceReferences();
       if (res.length == 0) {
@@ -145,7 +152,7 @@ class Reference implements org.apache.felix.scr.Reference
    */
   public String getTarget() {
     Filter target;
-    ReferenceListener l = listener;
+    final ReferenceListener l = listener;
     if (l != null)  {
       target = l.getTargetFilter();
     } else {
@@ -182,6 +189,7 @@ class Reference implements org.apache.felix.scr.Reference
   /**
    * String with info about reference.
    */
+  @Override
   public String toString() {
     return "Reference " + refDesc.name + " in " + comp;
   }
@@ -193,7 +201,7 @@ class Reference implements org.apache.felix.scr.Reference
 
   private void assertMethods() {
     if (!methodsSet) {
-      HashMap lookFor = new HashMap();
+      final HashMap<String, ComponentMethod[]> lookFor = new HashMap<String, ComponentMethod[]>();
       if (refDesc.bind != null) {
         bindMethod = new ComponentMethod(refDesc.bind, comp, this);
         comp.saveMethod(lookFor, refDesc.bind, bindMethod);
@@ -245,19 +253,21 @@ class Reference implements org.apache.felix.scr.Reference
       listener.stop();
       listener = null;
     } else {
-      for (Iterator i = (new HashSet(factoryListeners.values())).iterator(); i.hasNext(); ) {
-        ((ReferenceListener)i.next()).stop();
-      }
+      for (final ReferenceListener referenceListener : (new HashSet<ReferenceListener>(
+                                                                                       factoryListeners
+                                                                                           .values()))) {
+                                                                                            referenceListener.stop();
+                                                                                          }
       factoryListeners = null;
     }
   }
 
 
   /**
-   * 
+   *
    */
   void update(Configuration c, boolean useNoPid) {
-    String pid = c.getPid();
+    final String pid = c.getPid();
     if (listener != null) {
       // We only have one listener, check if it still is true;
       if (listener.checkTargetChanged(c)) {
@@ -266,8 +276,8 @@ class Reference implements org.apache.felix.scr.Reference
           listener.setTarget(c);
         } else {
           // We have multiple listener we need multiple listeners
-          factoryListeners = new TreeMap();
-          for (Iterator i = listener.getPids(); i.hasNext(); ) {
+          factoryListeners = new TreeMap<String, ReferenceListener>();
+          for (final Iterator<String> i = listener.getPids(); i.hasNext(); ) {
             factoryListeners.put(i.next(), listener);
           }
           listener = null;
@@ -277,9 +287,9 @@ class Reference implements org.apache.felix.scr.Reference
         // No change, just make sure that pid is registered
         listener.addPid(pid, true);
       }
-    } 
+    }
     if (factoryListeners != null) {
-      ReferenceListener rl = (ReferenceListener)factoryListeners.get(pid);
+      ReferenceListener rl = factoryListeners.get(pid);
       if (rl != null) {
         // Listener found, check if we need to change it
         if (rl.checkTargetChanged(c)) {
@@ -296,8 +306,8 @@ class Reference implements org.apache.felix.scr.Reference
         }
       } else {
         // Pid is new, check if we already have a matching listener
-        for (Iterator i = new HashSet(factoryListeners.values()).iterator(); i.hasNext(); ) {
-          rl = (ReferenceListener)i.next();
+        for (final Iterator<ReferenceListener> i = new HashSet<ReferenceListener>(factoryListeners.values()).iterator(); i.hasNext(); ) {
+          rl = i.next();
           if (!rl.checkTargetChanged(c)) {
             rl.addPid(pid, false);
             factoryListeners.put(pid, rl);
@@ -332,12 +342,12 @@ class Reference implements org.apache.felix.scr.Reference
         listener.addPid(Component.NO_PID, false);
       }
     } else {
-      ReferenceListener rl = (ReferenceListener)factoryListeners.remove(pid);
+      final ReferenceListener rl = factoryListeners.remove(pid);
       rl.removePid(pid);
       if (rl.noPids()) {
         rl.stop();
         if (--numListeners == 1) {
-          listener = (ReferenceListener)factoryListeners.get(factoryListeners.lastKey());
+          listener = factoryListeners.get(factoryListeners.lastKey());
           factoryListeners = null;
         }
       }
@@ -352,7 +362,7 @@ class Reference implements org.apache.felix.scr.Reference
     if (listener != null) {
       return listener;
     } else {
-      return (ReferenceListener)factoryListeners.get(pid);
+      return factoryListeners.get(pid);
     }
   }
 
@@ -361,18 +371,20 @@ class Reference implements org.apache.felix.scr.Reference
    * Get target value for reference, if target is missing or the target
    * string is malformed return null.
    */
-  Filter getTarget(Dictionary d, String src) {
-    String res = (String)d.get(refDesc.name + ".target");
+  Filter getTarget(Dictionary<?, Object> d, String src)
+  {
+    final String res = (String) d.get(refDesc.name + ".target");
     if (res != null) {
       try {
         return FrameworkUtil.createFilter(res);
-      } catch (InvalidSyntaxException ise) {
-        Activator.logError(comp.bc, "Failed to parse target property. Source is " + src, ise);
+      } catch (final InvalidSyntaxException ise) {
+        Activator.logError(comp.bc,
+                           "Failed to parse target property. Source is " + src,
+                           ise);
       }
     }
     return null;
   }
-    
 
   /**
    * Notify component if reference became available.

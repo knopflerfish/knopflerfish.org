@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,6 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
-
-import org.osgi.framework.*;
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.component.ComponentConstants;
 
 
 class DelayedComponent extends Component {
@@ -47,6 +42,7 @@ class DelayedComponent extends Component {
   }
 
 
+  @Override
   public String toString() {
     return "Delayed component: " + compDesc.getName();
   }
@@ -59,13 +55,13 @@ class DelayedComponent extends Component {
    * there is one for each component configuration.
    *
    */
+  @Override
   void subclassSatisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
-    ComponentConfiguration [] cc = newComponentConfiguration();
-    for (int i = 0; i < cc.length; i++) {
-      cc[i].registerService();
+    final ComponentConfiguration [] ccs = newComponentConfiguration();
+    for (final ComponentConfiguration cc : ccs) {
+      cc.registerService();
     }
   }
 
 }
-                                

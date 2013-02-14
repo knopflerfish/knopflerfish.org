@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,16 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
+import java.util.Dictionary;
+import java.util.HashMap;
 
-import org.osgi.framework.*;
-import org.osgi.service.component.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentConstants;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentException;
+import org.osgi.service.component.ComponentInstance;
 
 
 class ComponentContextImpl implements ComponentContext
@@ -51,7 +57,8 @@ class ComponentContextImpl implements ComponentContext
   final private Thread activatorThread;
   private volatile ComponentInstanceImpl componentInstance = null;
   private volatile int state = ACTIVATING;
-  final private HashMap /* String -> ReferenceListener */ boundReferences = new HashMap();
+  final private HashMap<String, ReferenceListener> boundReferences
+    = new HashMap<String, ReferenceListener>();
 
 
   /**
@@ -67,6 +74,7 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
+  @Override
   public String toString() {
     return "[ComponentContext to " + cc + "]";
   }
@@ -75,7 +83,7 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
-  public Dictionary getProperties() {
+  public Dictionary<String, Object> getProperties() {
     // TBD, remove this when TCK is correct
     if (Activator.TCK_BUG_COMPLIANT) {
       return cc.getProperties().writeableCopy();
@@ -89,7 +97,7 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   public Object locateService(String name) {
-    ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
+    final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
       return rl.getService();
     }
@@ -100,20 +108,21 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
-  public Object locateService(String name, ServiceReference sRef) {
-    ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
+  public Object locateService(String name,
+                              @SuppressWarnings("rawtypes") ServiceReference sRef)
+  {
+    final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
       return rl.getService(sRef);
     }
     return null;
   }
 
-
   /**
    *
    */
   public Object[] locateServices(String name) {
-    ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
+    final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
       return rl.getServices();
     }
@@ -164,7 +173,7 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
-  public ServiceReference getServiceReference() {
+  public ServiceReference<?> getServiceReference() {
     return cc.getServiceReference();
   }
 
@@ -182,7 +191,7 @@ class ComponentContextImpl implements ComponentContext
 
 
   /**
-   * 
+   *
    */
   void dispose() {
     cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true);
@@ -190,14 +199,14 @@ class ComponentContextImpl implements ComponentContext
 
 
   /**
-   * 
+   *
    */
   boolean bind(ReferenceListener rl) {
     if (rl.isMultiple()) {
       int cnt = 0;
-      ServiceReference [] sr = rl.getServiceReferences();
-      for (int i = 0; i < sr.length; i++) {
-        if (bind(rl, sr[i])) {
+      final ServiceReference<?> [] sr = rl.getServiceReferences();
+      for (final ServiceReference<?> element : sr) {
+        if (bind(rl, element)) {
           cnt++;
         }
       }
@@ -211,12 +220,11 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
-  boolean bind(ReferenceListener rl, ServiceReference s) {
+  boolean bind(ReferenceListener rl, ServiceReference<?> s) {
     Activator.logDebug("Bind service " + Activator.srInfo(s) + " to " + cc);
     try {
       ComponentException ce = null;
-      boolean res;
-      ComponentMethod m = rl.ref.getBindMethod();
+      final ComponentMethod m = rl.ref.getBindMethod();
       if (m != null) {
         if (m.isMissing(true)) {
           // Should we fail when method is missing?
@@ -224,7 +232,7 @@ class ComponentContextImpl implements ComponentContext
           // CT requires it.
           return false;
         }
-        ComponentMethod.Operation bindOp = m.prepare(this, s, rl);
+        final ComponentMethod.Operation bindOp = m.prepare(this, s, rl);
         // Mark service as bound even if isn't fetched in bind method.
         rl.bound(s, null);
         boundReferences.put(rl.getName(), rl);
@@ -243,23 +251,23 @@ class ComponentContextImpl implements ComponentContext
         return false;
       }
       cc.component.scr.clearPostponeBind(this, rl, s);
-      String msg = "CCI.bind, bound " + Activator.srInfo(s) + " to " + cc + ". ";
+      final String msg = "CCI.bind, bound " + Activator.srInfo(s) + " to " + cc + ". ";
       if (ce == null) {
         Activator.logDebug(msg + "OK");
       } else {
         Activator.logDebug(msg + "But bind method failed: " + ce);
       }
       return true;
-    } catch (ComponentException ce) {
+    } catch (final ComponentException ce) {
       // Possible circular chain detected in prepare method
       // TODO, improve this since it is Framework dependent
       cc.component.scr.postponeBind(this, rl, s);
-    } catch (IllegalStateException ise) {
+    } catch (final IllegalStateException ise) {
       // Possible circular chain detected in getService method
       // or it returned null.
       // TODO, improve this since it is Framework dependent
       cc.component.scr.postponeBind(this, rl, s);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.logDebug("Failed to bind service " + Activator.srInfo(s) + " to " + cc + ", " + e);
     }
     rl.unbound(s);
@@ -268,17 +276,17 @@ class ComponentContextImpl implements ComponentContext
 
 
   /**
-   * 
+   *
    */
   void unbind(String name) {
     Activator.logDebug("Unbind " + name + " for " + cc);
-    ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
+    final ReferenceListener rl = boundReferences.get(name);
     if (rl == null) {
       return;
     }
-    ServiceReference [] sr = rl.getBoundServiceReferences();
-    for (int i = 0; i < sr.length; i++) {
-      unbind(rl, sr[i]);
+    final ServiceReference<?> [] sr = rl.getBoundServiceReferences();
+    for (final ServiceReference<?> element : sr) {
+      unbind(rl, element);
     }
   }
 
@@ -286,15 +294,15 @@ class ComponentContextImpl implements ComponentContext
   /**
    *
    */
-  void unbind(ReferenceListener rl, ServiceReference sr) {
+  void unbind(ReferenceListener rl, ServiceReference<?> sr) {
     Activator.logDebug("Check unbind service " + Activator.srInfo(sr) + " from " + cc);
     if (rl.doUnbound(sr)) {
       try {
-        ComponentMethod m = rl.ref.getUnbindMethod();
+        final ComponentMethod m = rl.ref.getUnbindMethod();
         if (m != null && !m.isMissing(true)) {
           try {
             m.prepare(this, sr, rl).invoke();
-          } catch (ComponentException _ignore) {
+          } catch (final ComponentException _ignore) {
           }
         }
       } finally {
@@ -360,7 +368,7 @@ class ComponentContextImpl implements ComponentContext
         }
         try {
           cc.wait();
-        } catch (InterruptedException _ignore) { }
+        } catch (final InterruptedException _ignore) { }
       }
       return isActive();
     }

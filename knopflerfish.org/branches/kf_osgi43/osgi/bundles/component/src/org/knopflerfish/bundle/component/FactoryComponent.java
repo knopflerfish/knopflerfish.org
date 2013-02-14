@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,20 @@
 
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
-import org.osgi.framework.*;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
-import org.osgi.service.cm.*;
-import org.osgi.service.component.*;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.component.ComponentConstants;
+import org.osgi.service.component.ComponentException;
+import org.osgi.service.component.ComponentFactory;
+import org.osgi.service.component.ComponentInstance;
 
 
 class FactoryComponent extends Component
 {
-  private ServiceRegistration factoryService;
+  private ServiceRegistration<?> factoryService;
   private ComponentFactoryImpl componentFactory;
 
 
@@ -52,6 +56,7 @@ class FactoryComponent extends Component
   }
 
 
+  @Override
   public String toString() {
     return "Factory component: " + compDesc.getName();
   }
@@ -61,10 +66,11 @@ class FactoryComponent extends Component
    * Factory component satisfied, register component factory service.
    *
    */
+  @Override
   void subclassSatisfied() {
     Activator.logInfo(bc, "Satisfied: " + toString());
     componentFactory = new ComponentFactoryImpl(this);
-    Hashtable p = new Hashtable();
+    final Hashtable<String, String> p = new Hashtable<String, String>();
     p.put(ComponentConstants.COMPONENT_NAME, compDesc.getName());
     p.put(ComponentConstants.COMPONENT_FACTORY, compDesc.getFactory());
     factoryService = bc.registerService(ComponentFactory.class.getName(), componentFactory, p);
@@ -75,6 +81,7 @@ class FactoryComponent extends Component
    * Factory component unsatisfied, unregister component factory service.
    *
    */
+  @Override
   void unsatisfied(int reason) {
     Activator.logInfo(bc, "Unsatisfied: " + toString());
     factoryService.unregister();
@@ -87,11 +94,11 @@ class FactoryComponent extends Component
   /**
    *
    */
-  ComponentInstance newInstance(Dictionary instanceProps) {
+  ComponentInstance newInstance(Dictionary<String,Object> instanceProps) {
     if (!isSatisfied()) {
       throw new ComponentException("Factory is not satisfied");
     }
-    ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
+    final ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
     scr.postponeCheckin();
     ComponentContextImpl cci;
     try {
@@ -113,22 +120,22 @@ class FactoryComponent extends Component
   /**
    *
    */
+  @Override
   void cmConfigUpdated(String pid, Configuration c) {
     if (c.getFactoryPid() != null) {
       Activator.logError(bc, "FactoryComponent can not have factory config, ignored", null);
       return;
     }
-    boolean isEmpty = cmDicts.isEmpty();
+    final boolean isEmpty = cmDicts.isEmpty();
     Activator.logDebug("Factory cmConfigUpdate for pid = " + pid + " is empty = " + isEmpty);
-    Dictionary d = c.getProperties();
+    final Dictionary<String, Object> d = c.getProperties();
     cmDicts.put(pid, d);
     if (isEmpty && !cmConfigOptional) {
       // First mandatory config, remove constraint
       resolvedConstraint();
     } else {
-      for (Iterator i = compConfigs.values().iterator(); i.hasNext(); ) {
-        ComponentConfiguration cc = (ComponentConfiguration)i.next();
-        cc.cmConfigUpdated(pid, d);
+      for (final ComponentConfiguration componentConfiguration : compConfigs.values()) {
+        componentConfiguration.cmConfigUpdated(pid, d);
       }
     }
   }
@@ -137,12 +144,12 @@ class FactoryComponent extends Component
   /**
    *
    */
+  @Override
   void cmConfigDeleted(String pid) {
     cmDicts.remove(pid);
     Activator.logDebug("cmConfigDeleted for pid = " + pid);
-    for (Iterator i = compConfigs.values().iterator(); i.hasNext(); ) {
-      ComponentConfiguration cc = (ComponentConfiguration)i.next();
-      cc.cmConfigUpdated(pid, null);
+    for (final ComponentConfiguration componentConfiguration : compConfigs.values()) {
+      componentConfiguration.cmConfigUpdated(pid, null);
     }
     if (!cmConfigOptional) {
       unresolvedConstraint(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
@@ -150,4 +157,4 @@ class FactoryComponent extends Component
   }
 
 }
-  
+

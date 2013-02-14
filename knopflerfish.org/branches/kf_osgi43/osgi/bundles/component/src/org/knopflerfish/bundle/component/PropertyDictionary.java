@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,10 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Properties;
 
 import org.osgi.service.component.ComponentConstants;
 
@@ -42,20 +45,20 @@ import org.osgi.service.component.ComponentConstants;
  * This class needs to be a Dictionary and a Map.
  * TBD, check that this class is immutable
  */
-class PropertyDictionary extends Dictionary
+class PropertyDictionary extends Dictionary<String,Object>
 {
 
-  final private Hashtable props;
+  final private Hashtable<String,Object> props;
 
   /**
    *
    */
   PropertyDictionary(Component comp,
-                     Dictionary cm,
-                     Dictionary instance,
+                     Dictionary<String,Object> cm,
+                     Dictionary<String,Object> instance,
                      boolean service) {
-    props = new Hashtable();
-    ComponentDescription cd = comp.compDesc;
+    props = new Hashtable<String,Object>();
+    final ComponentDescription cd = comp.compDesc;
     addDict(cd.getProperties(), service);
     if (cm != null) {
       addDict(cm, service);
@@ -71,7 +74,7 @@ class PropertyDictionary extends Dictionary
   /**
    *
    */
-  PropertyDictionary(Hashtable props) {
+  PropertyDictionary(Hashtable<String,Object> props) {
     this.props = props;
   }
 
@@ -79,7 +82,8 @@ class PropertyDictionary extends Dictionary
   /**
    *
    */
-  public Enumeration elements() { 
+  @Override
+  public Enumeration<Object> elements() {
     return props.elements();
   }
 
@@ -87,7 +91,8 @@ class PropertyDictionary extends Dictionary
   /**
    *
    */
-  public Object get(Object key) { 
+  @Override
+  public Object get(Object key) {
     return props.get(key);
   }
 
@@ -95,7 +100,8 @@ class PropertyDictionary extends Dictionary
   /**
    *
    */
-  public boolean isEmpty() { 
+  @Override
+  public boolean isEmpty() {
     return props.isEmpty();
   }
 
@@ -103,7 +109,8 @@ class PropertyDictionary extends Dictionary
   /**
    *
    */
-  public Enumeration keys() { 
+  @Override
+  public Enumeration<String> keys() {
     return props.keys();
   }
 
@@ -111,15 +118,8 @@ class PropertyDictionary extends Dictionary
   /**
    *
    */
-  public Object put(Object key, Object value) { 
-    throw new RuntimeException("Operation not supported."); 
-  }
-
-
-  /**
-   *
-   */
-  public Object remove(Object key) { 
+  @Override
+  public Object put(String key, Object value) {
     throw new RuntimeException("Operation not supported.");
   }
 
@@ -127,7 +127,17 @@ class PropertyDictionary extends Dictionary
   /**
    *
    */
-  public int size() { 
+  @Override
+  public Object remove(Object key) {
+    throw new RuntimeException("Operation not supported.");
+  }
+
+
+  /**
+   *
+   */
+  @Override
+  public int size() {
     return props.size();
   }
 
@@ -138,8 +148,8 @@ class PropertyDictionary extends Dictionary
   /**
    *
    */
-  Dictionary writeableCopy() { 
-    return (Hashtable)props.clone();
+  Dictionary<String,Object> writeableCopy() {
+    return new Hashtable<String, Object>(props);
   }
 
   //
@@ -147,14 +157,42 @@ class PropertyDictionary extends Dictionary
   //
 
   /**
+   * Add all properties in the given properties object to the props dictionary.
    *
+   * @param properties The properties object to insert the contents of.
+   * @param service If the component is a service skip non-public properties.
+   *                I.e., those with a key starting with '.'.
    */
-  private void addDict(Dictionary d, boolean service) {
-    for (Enumeration e = d.keys(); e.hasMoreElements(); ) {
-      String key = (String)e.nextElement();
-      if (!service || !key.startsWith(".")) {
-        props.put(key, d.get(key));
-      }
+  private void addDict(Properties properties, boolean service) {
+    for (final Enumeration<Object> e = properties.keys(); e.hasMoreElements(); ) {
+      final String key = (String) e.nextElement();
+      addDict(key, properties.get(key), service);
+    }
+  }
+  /**
+   * Add all properties in the given dictionary to the props dictionary.
+   *
+   * @param properties The dictionary to insert the contents of.
+   * @param service If the component is a service skip non-public properties.
+   *                I.e., those with a key starting with '.'.
+   */
+  private void addDict(Dictionary<String,Object> d, boolean service) {
+    for (final Enumeration<String> e = d.keys(); e.hasMoreElements(); ) {
+      final String key = e.nextElement();
+      addDict(key, d.get(key), service);
+    }
+  }
+  /**
+   * Add a property in the given dictionary to the props dictionary.
+   *
+   * @param key     The key of the property to insert.
+   * @param value   The value of the property to insert.
+   * @param service If the component is a service skip non-public properties.
+   *                I.e., those with a key starting with '.'.
+   */
+  private void addDict(String key, Object value, boolean service) {
+    if (!service || !key.startsWith(".")) {
+      props.put(key, value);
     }
   }
 }

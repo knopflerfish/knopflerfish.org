@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,16 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.osgi.framework.*;
-
-import org.xmlpull.v1.*;
-
-import java.io.*;
+import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Properties;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.InvalidSyntaxException;
 
 
 /* Immutable Java representation of component description found in xml */
@@ -72,7 +75,7 @@ public class ComponentDescription {
   private int confPolicy = POLICY_OPTIONAL;
   private Properties properties = new Properties();
   private String [] services = null;
-  private ArrayList references = null;
+  private ArrayList<ReferenceDescription> references = null;
   private boolean isSCR11 = false;
 
 
@@ -197,7 +200,7 @@ public class ComponentDescription {
     return properties;
   }
 
-  ArrayList getReferences() {
+  ArrayList<ReferenceDescription> getReferences() {
     return references;
   }
 
@@ -351,7 +354,7 @@ public class ComponentDescription {
     String name = null;
     Object val = null;
     boolean isArray = true; // If the property values is an array or not
-    ArrayList /* String */ values = new ArrayList();
+    ArrayList<String> values = new ArrayList<String>();
 
     for (int i = 0; i < p.getAttributeCount(); i++) {
       if (p.getAttributeName(i).equals("name")) {
@@ -410,55 +413,55 @@ public class ComponentDescription {
       val = isArray ?  values.toArray(new String[len]) : values.get(0);
     } else if ("Boolean".equals(type)) {
       if (!isArray) {
-        val = Boolean.valueOf((String)values.get(0));
+        val = Boolean.valueOf(values.get(0));
       } else {
         boolean[] array = new boolean[len];
         for (int i=0; i<len; i++) {
-          array[i] = Boolean.valueOf((String)values.get(i)).booleanValue();
+          array[i] = Boolean.valueOf(values.get(i)).booleanValue();
         }
         val = array;
       }
     } else if ("Byte".equals(type)) {
       byte[] array = new byte[len];
       for (int i=0; i<len; i++) {
-        array[i] = Byte.parseByte((String)values.get(i));
+        array[i] = Byte.parseByte(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Byte(array[0]);
     } else if ("Character".equals(type)) {
       char[] array = new char[len];
       for (int i=0; i<len; i++) {
-        array[i] = ((String)values.get(i)).charAt(0);
+        array[i] = values.get(i).charAt(0);
         // Should we complain when more than one character
       }
       val = isArray ? (Object) array : (Object) new Character(array[0]);
     } else if ("Double".equals(type)) {
       double[] array = new double[len];
       for (int i=0; i<len; i++) {
-        array[i] = Double.parseDouble((String)values.get(i));
+        array[i] = Double.parseDouble(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Double(array[0]);
     } else if ("Float".equals(type)) {
       float[] array = new float[len];
       for (int i=0; i<len; i++) {
-        array[i] = Float.parseFloat((String)values.get(i));
+        array[i] = Float.parseFloat(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Float(array[0]);
     } else if ("Integer".equals(type)) {
       int[] array = new int[len];
       for (int i=0; i<len; i++) {
-        array[i] = Integer.parseInt((String)values.get(i));
+        array[i] = Integer.parseInt(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Integer(array[0]);
     } else if ("Long".equals(type)) {
       long[] array = new long[len];
       for (int i=0; i<len; i++) {
-        array[i] = Long.parseLong((String)values.get(i));
+        array[i] = Long.parseLong(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Long(array[0]);
     } else if ("Short".equals(type)) {
       short[] array = new short[len];
       for (int i=0; i<len; i++) {
-        array[i] = Short.parseShort((String)values.get(i));
+        array[i] = Short.parseShort(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Short(array[0]);
     } else {
@@ -557,7 +560,7 @@ public class ComponentDescription {
                                     name + "\"", p, e);
     }
     if (references == null) {
-      references = new ArrayList();
+      references = new ArrayList<ReferenceDescription>();
     }
     references.add(ref);
   }
@@ -571,13 +574,14 @@ public class ComponentDescription {
              </service>
    */
   private void parseService(XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+      throws IOException, IllegalXMLException, XmlPullParserException
   {
     if (services != null) {
-      throw new IllegalXMLException("More than one service-tag in component: \"" +
-                                    componentName + "\"", p);
+      throw new IllegalXMLException(
+                                    "More than one service-tag in component: \""
+                                        + componentName + "\"", p);
     }
-    ArrayList sl = new ArrayList();
+    ArrayList<String> sl = new ArrayList<String>();
     if (!immediateSet) {
       immediate = false;
     }
@@ -585,20 +589,22 @@ public class ComponentDescription {
     for (int i = 0; i < p.getAttributeCount(); i++) {
       if (p.getAttributeName(i).equals("servicefactory")) {
         isServiceFactory = parseBoolean(p, i);
-	if (isServiceFactory) {
-	  if (factory != null) {
-            throw new IllegalXMLException("Attribute servicefactory in service-tag "+
-                                          "cannot be set to \"true\" when component "+
-                                          "is a factory component.", p);
+        if (isServiceFactory) {
+          if (factory != null) {
+            throw new IllegalXMLException(
+                                          "Attribute servicefactory in service-tag "
+                                              + "cannot be set to \"true\" when component "
+                                              + "is a factory component.", p);
           }
           if (immediate) {
-            throw new IllegalXMLException("Attribute servicefactory in service-tag "+
-                                          "cannot be set to \"true\" when component "+
-                                          "is an immediate component.", p);
-	  }
-	}
+            throw new IllegalXMLException(
+                                          "Attribute servicefactory in service-tag "
+                                              + "cannot be set to \"true\" when component "
+                                              + "is an immediate component.", p);
+          }
+        }
       } else {
-	unrecognizedAttr(p, i);
+        unrecognizedAttr(p, i);
       }
     }
     int event = p.next();
@@ -613,9 +619,9 @@ public class ComponentDescription {
           if (p.getAttributeName(i).equals("interface")) {
             interfaceName = p.getAttributeValue(i);
           } else {
-            throw new IllegalXMLException("Unrecognized attribute \"" +
-                                          p.getAttributeName(i) +
-                                          "\" in provide-tag", p);
+            throw new IllegalXMLException("Unrecognized attribute \""
+                                          + p.getAttributeName(i)
+                                          + "\" in provide-tag", p);
           }
         }
         if (interfaceName == null) {
@@ -629,11 +635,12 @@ public class ComponentDescription {
     p.next();
     /* check if required attributes has been set */
     if (sl.isEmpty()) {
-      throw new IllegalXMLException("Service-tag did not contain a proper provide-tag.", p);
+      throw new IllegalXMLException(
+                                    "Service-tag did not contain a proper provide-tag.",
+                                    p);
     }
-    services = (String [])sl.toArray(new String [sl.size()]);
+    services = sl.toArray(new String[sl.size()]);
   }
-
 
   /**
    *

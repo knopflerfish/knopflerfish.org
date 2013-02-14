@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,20 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.TreeSet;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.cm.Configuration;
 import org.osgi.service.component.ComponentConstants;
 
 
@@ -46,13 +56,13 @@ import org.osgi.service.component.ComponentConstants;
 class ReferenceListener implements ServiceListener
 {
   final Reference ref;
-  private HashMap /* ServiceReference -> Object */  bound = new HashMap();
-  private HashSet /* ServiceReference */ serviceRefs = new HashSet();
-  private HashSet /* ServiceReference */ unbinding = new HashSet();
-  private ServiceReference selectedServiceRef = null;
-  private TreeSet pids = new TreeSet();
+  private final HashMap<ServiceReference<?>, Object>  bound = new HashMap<ServiceReference<?>, Object>();
+  private final HashSet<ServiceReference<?>> serviceRefs = new HashSet<ServiceReference<?>>();
+  private HashSet<ServiceReference<?>> unbinding = new HashSet<ServiceReference<?>>();
+  private ServiceReference<?> selectedServiceRef = null;
+  private final TreeSet<String> pids = new TreeSet<String>();
   private Filter cmTarget;
-  private LinkedList sEventQueue = new LinkedList();
+  private final LinkedList<ServiceEvent> sEventQueue = new LinkedList<ServiceEvent>();
 
 
   /**
@@ -69,6 +79,7 @@ class ReferenceListener implements ServiceListener
   /**
    *
    */
+  @Override
   public String toString() {
     return "ReferenceListener(" + ref + ", target=" + cmTarget + ")";
   }
@@ -95,28 +106,29 @@ class ReferenceListener implements ServiceListener
     } else {
       cmTarget = null;
     }
-    String filter = getFilter();
+    final String filter = getFilter();
     Activator.logDebug("Start listening, ref=" + getName() + " with filter=" + filter);
     ref.comp.bc.removeServiceListener(this);
     synchronized (serviceRefs) {
-      HashSet oldServiceRefs = (HashSet)serviceRefs.clone();
+      final HashSet<ServiceReference<?>> oldServiceRefs
+        = new HashSet<ServiceReference<?>>(serviceRefs);
       serviceRefs.clear();
-      ServiceReference [] srs;
+      ServiceReference<?> [] srs;
       try {
         ref.comp.bc.addServiceListener(this, filter);
         srs = ref.comp.bc.getServiceReferences((String)null, filter);
-      } catch (InvalidSyntaxException ise) {
+      } catch (final InvalidSyntaxException ise) {
         throw new RuntimeException("Should not occur, Filter already checked");
       }
       if (srs != null) {
-        ServiceReference best = null;
-        for (int i = 0; i < srs.length; i++) {
-          if (oldServiceRefs.remove(srs[i])) {
-            serviceRefs.add(srs[i]);
+        ServiceReference<?> best = null;
+        for (final ServiceReference<?> sr : srs) {
+          if (oldServiceRefs.remove(sr)) {
+            serviceRefs.add(sr);
           } else {
-            ServiceEvent e = new ServiceEvent(ServiceEvent.REGISTERED, srs[i]);
-            if (best == null || best.compareTo(srs[i]) < 0) {
-              best = srs[i];
+            final ServiceEvent e = new ServiceEvent(ServiceEvent.REGISTERED, sr);
+            if (best == null || best.compareTo(sr) < 0) {
+              best = sr;
               sEventQueue.addFirst(e);
             } else {
               sEventQueue.addLast(e);
@@ -125,9 +137,9 @@ class ReferenceListener implements ServiceListener
         }
       }
       addPid(config != null ? config.getPid() : Component.NO_PID, true);
-      for (Iterator sri = oldServiceRefs.iterator(); sri.hasNext(); ) {
+      for (final ServiceReference<?> oldSR : oldServiceRefs) {
         sEventQueue.addLast(new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH,
-                                             (ServiceReference)sri.next()));
+                                             oldSR));
       }
     }
     serviceChanged(null);
@@ -138,7 +150,7 @@ class ReferenceListener implements ServiceListener
    *
    */
   boolean checkTargetChanged(Configuration config) {
-    Filter f = ref.getTarget(config.getProperties(), "CM pid = " + config.getPid());
+    final Filter f = ref.getTarget(config.getProperties(), "CM pid = " + config.getPid());
     if (f != null) {
       return !f.equals(cmTarget);
     } else {
@@ -180,7 +192,7 @@ class ReferenceListener implements ServiceListener
   /**
    *
    */
-  Iterator getPids() {
+  Iterator<String> getPids() {
     return pids != null ? pids.iterator() : null;
   }
 
@@ -244,14 +256,14 @@ class ReferenceListener implements ServiceListener
   /**
    * Get highest ranked service reference.
    */
-  ServiceReference getServiceReference() {
+  ServiceReference<?> getServiceReference() {
     synchronized (serviceRefs) {
       if (selectedServiceRef == null &&
           !serviceRefs.isEmpty()) {
-        Iterator i = serviceRefs.iterator();
-        selectedServiceRef = (ServiceReference)i.next();
+        final Iterator<ServiceReference<?>> i = serviceRefs.iterator();
+        selectedServiceRef = i.next();
         while (i.hasNext()) {
-          ServiceReference tst = (ServiceReference)i.next();
+          final ServiceReference<?> tst = i.next();
           if (selectedServiceRef.compareTo(tst) < 0) {
             selectedServiceRef = tst;
           }
@@ -266,7 +278,7 @@ class ReferenceListener implements ServiceListener
    * Get highest ranked service.
    */
   Object getService() {
-    ServiceReference sr = getServiceReference();
+    final ServiceReference<?> sr = getServiceReference();
     if (sr != null) {
       return getServiceCheckActivate(sr);
     }
@@ -277,7 +289,7 @@ class ReferenceListener implements ServiceListener
   /**
    * Get service if it belongs to this reference.
    */
-  Object getService(ServiceReference sr) {
+  Object getService(ServiceReference<?> sr) {
     boolean c;
     synchronized (serviceRefs) {
       c = serviceRefs.contains(sr) || unbinding.contains(sr);
@@ -286,21 +298,21 @@ class ReferenceListener implements ServiceListener
   }
 
 
-  ServiceReference [] getServiceReferences() {
+  ServiceReference<?> [] getServiceReferences() {
     synchronized (serviceRefs) {
-      return (ServiceReference [])serviceRefs.toArray(new ServiceReference[serviceRefs.size()]);
+      return serviceRefs.toArray(new ServiceReference[serviceRefs.size()]);
     }
   }
 
 
-  ServiceReference [] getBoundServiceReferences() {
+  ServiceReference<?> [] getBoundServiceReferences() {
     synchronized (bound) {
-      return (ServiceReference [])bound.keySet().toArray(new ServiceReference[bound.size()]);
+      return bound.keySet().toArray(new ServiceReference[bound.size()]);
     }
   }
 
 
-  void bound(ServiceReference sr, Object s) {
+  void bound(ServiceReference<?> sr, Object s) {
     synchronized (bound) {
       if (bound.get(sr) == null) {
         bound.put(sr, s);
@@ -309,21 +321,21 @@ class ReferenceListener implements ServiceListener
   }
 
 
-  Object getBound(ServiceReference sr) {
+  Object getBound(ServiceReference<?> sr) {
     synchronized (bound) {
       return bound.get(sr);
     }
   }
 
 
-  boolean doUnbound(ServiceReference sr) {
+  boolean doUnbound(ServiceReference<?> sr) {
     synchronized (bound) {
-      return bound.containsKey(sr);  
+      return bound.containsKey(sr);
     }
   }
 
 
-  void unbound(ServiceReference sr) {
+  void unbound(ServiceReference<?> sr) {
     Object s;
     synchronized (bound) {
       s = bound.remove(sr);
@@ -337,21 +349,20 @@ class ReferenceListener implements ServiceListener
   /**
    * Get all services.
    */
-  Object [] getServices() {
-
-    ServiceReference [] srs = getServiceReferences();
-    ArrayList res = new ArrayList(srs.length);
-    for (int i = 0; i < srs.length; i++) {
-      res.add(getServiceCheckActivate(srs[i]));
+  Object[] getServices()
+  {
+    final ServiceReference<?>[] srs = getServiceReferences();
+    final ArrayList<Object> res = new ArrayList<Object>(srs.length);
+    for (final ServiceReference<?> sr : srs) {
+      res.add(getServiceCheckActivate(sr));
     }
     return res.toArray();
   }
 
-
-  HashSet getUnbinding() {
+  HashSet<ServiceReference<?>> getUnbinding() {
     synchronized (serviceRefs) {
-      HashSet res = unbinding;
-      unbinding = new HashSet();
+      final HashSet<ServiceReference<?>> res = unbinding;
+      unbinding = new HashSet<ServiceReference<?>>();
       return res;
     }
   }
@@ -370,7 +381,7 @@ class ReferenceListener implements ServiceListener
         boolean doAdd;
         int cnt;
         boolean wasSelected = false;
-        ServiceReference s;
+        ServiceReference<?> s;
         synchronized (serviceRefs) {
           if (sEventQueue.isEmpty()) {
             if (se == null) {
@@ -380,7 +391,7 @@ class ReferenceListener implements ServiceListener
             if (se != null) {
               sEventQueue.addLast(se);
             }
-            se = (ServiceEvent)sEventQueue.removeFirst();
+            se = sEventQueue.removeFirst();
           }
           s = se.getServiceReference();
           switch (se.getType()) {
@@ -437,17 +448,17 @@ class ReferenceListener implements ServiceListener
    * Get service, but activate before so that we will
    * get any ComponentExceptions.
    */
-  private Object getServiceCheckActivate(ServiceReference sr) {
+  private Object getServiceCheckActivate(ServiceReference<?> sr) {
     Object s = getBound(sr);
     if (s == null) {
-      Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
+      final Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
       if (o != null && o instanceof String) {
-        Component [] cs = ref.comp.scr.getComponent((String)o);
+        final Component [] cs = ref.comp.scr.getComponent((String)o);
         if (cs != null) {
           ref.comp.scr.postponeCheckin();
           try {
-            for (int i = 0; i < cs.length; i++) {
-              ComponentConfiguration cc = cs[i].getComponentConfiguration(sr);
+            for (final Component element : cs) {
+              final ComponentConfiguration cc = element.getComponentConfiguration(sr);
               if (cc != null) {
                 cc.activate(ref.comp.bc.getBundle(), false);
                 break;
@@ -469,7 +480,7 @@ class ReferenceListener implements ServiceListener
    * Get filter string for finding this reference.
    */
   private String getFilter() {
-    Filter target = getTargetFilter();
+    final Filter target = getTargetFilter();
     if (target != null) {
       return "(&(" + Constants.OBJECTCLASS + "=" +
         ref.refDesc.interfaceName +")" + target.toString() + ")";
@@ -482,11 +493,11 @@ class ReferenceListener implements ServiceListener
   /**
    * Call refUpdated for component configurations that has bound this reference.
    */
-  private void refUpdated(ServiceReference s, boolean deleted, boolean wasSelected) {
-    Iterator i = getPids();
+  private void refUpdated(ServiceReference<?> s, boolean deleted, boolean wasSelected) {
+    final Iterator<String> i = getPids();
     if (i != null) {
       while (i.hasNext()) {
-        ComponentConfiguration cc = (ComponentConfiguration)ref.comp.compConfigs.get(i.next());
+        final ComponentConfiguration cc = ref.comp.compConfigs.get(i.next());
         if (cc != null) {
           cc.refUpdated(this, s, deleted, wasSelected);
         }

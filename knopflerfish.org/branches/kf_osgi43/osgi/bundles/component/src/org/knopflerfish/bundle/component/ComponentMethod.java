@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,17 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
-import org.osgi.service.component.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.ComponentConstants;
+import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.ComponentException;
 
 
 class ComponentMethod
@@ -49,7 +54,7 @@ class ComponentMethod
   final Reference ref;
   private Method method = null;
   private int prio = 0;
-  private Class [] params;
+  private Class<?> [] params;
 
 
   ComponentMethod(String name, Component comp, boolean allowInt) {
@@ -80,7 +85,7 @@ class ComponentMethod
     }
     try {
       return prepare(cci.getComponentInstance().getInstance(), cci, 0, null, null).invoke();
-    } catch (ComponentException ce) {
+    } catch (final ComponentException ce) {
       return ce;
     }
   }
@@ -95,7 +100,7 @@ class ComponentMethod
     }
     try {
       return prepare(cci.getComponentInstance().getInstance(), cci, reason, null, null).invoke();
-    } catch (ComponentException ce) {
+    } catch (final ComponentException ce) {
       return ce;
     }
   }
@@ -104,7 +109,7 @@ class ComponentMethod
   /**
    *
    */
-  Operation prepare(ComponentContextImpl cci, ServiceReference s, ReferenceListener rl) {
+  Operation prepare(ComponentContextImpl cci, ServiceReference<?> s, ReferenceListener rl) {
     return prepare(cci.getComponentInstance().getInstance(), cci, 0, s, rl);
   }
 
@@ -126,12 +131,12 @@ class ComponentMethod
   /**
    *
    */
-  boolean updateMethod(boolean isSCR11, Method m, Class clazz) {
-    Class [] p = m.getParameterTypes();
-    int cPrio = ref != null ? checkReferenceParams(p, isSCR11, ref)
+  boolean updateMethod(boolean isSCR11, Method m, Class<?> clazz) {
+    final Class<?> [] p = m.getParameterTypes();
+    final int cPrio = ref != null ? checkReferenceParams(p, isSCR11, ref)
                             : checkComponentParams(p, allowInt);
     if (prio < cPrio) {
-      int modifiers = m.getModifiers();
+      final int modifiers = m.getModifiers();
       if (checkMethodAccess(modifiers, isSCR11, clazz, clazz)) {
         method = m;
         prio = cPrio;
@@ -149,7 +154,7 @@ class ComponentMethod
   /**
    *
    */
-  private int checkComponentParams(Class [] p, boolean allowInt) {
+  private int checkComponentParams(Class<?> [] p, boolean allowInt) {
     int cPrio = 1;
     for (int i = 0; i < p.length; i++) {
       if (p[i] == ComponentContext.class) {
@@ -164,7 +169,7 @@ class ComponentMethod
         cPrio = 3;
       } else {
         return -1;
-      } 
+      }
       if (i > 0) {
         cPrio = 2;
       }
@@ -176,7 +181,7 @@ class ComponentMethod
   /**
    *
    */
-  private int checkReferenceParams(Class [] p, boolean isSCR11, Reference ref) {
+  private int checkReferenceParams(Class<?> [] p, boolean isSCR11, Reference ref) {
     int cPrio;
     if (p.length == 1) {
       if (p[0] == ServiceReference.class) {
@@ -188,7 +193,7 @@ class ComponentMethod
     } else {
       return -1;
     }
-    Class clazz = null;
+    Class<?> clazz = null;
     try {
       clazz = comp.compDesc.bundle.loadClass(ref.refDesc.interfaceName);
       if (p[0] != clazz) {
@@ -197,7 +202,7 @@ class ComponentMethod
           cPrio = -1;
         }
       }
-    } catch (ClassNotFoundException _) {
+    } catch (final ClassNotFoundException _) {
       // If we can not load the service class then it can only
       // be assignable to the Object class.
       cPrio = (p[0] == Object.class) ? cPrio - 1 : -1;
@@ -209,7 +214,11 @@ class ComponentMethod
   /**
    *
    */
-  private boolean checkMethodAccess(int modifiers, boolean isSCR11, Class clazz, Class impl) {
+  private boolean checkMethodAccess(int modifiers,
+                                    boolean isSCR11,
+                                    Class<?> clazz,
+                                    Class<?> impl)
+  {
     if (Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers)) {
       return true;
     }
@@ -241,11 +250,10 @@ class ComponentMethod
   private Operation prepare(Object instance,
                             ComponentContextImpl cci,
                             int reason,
-                            ServiceReference s,
+                            ServiceReference<?> s,
                             ReferenceListener rl) {
-    Object service = null;
     method.setAccessible(true);
-    Object [] args = new Object[params.length];
+    final Object [] args = new Object[params.length];
     for (int i = 0; i < params.length; i++) {
       if (params[i] == ComponentContext.class) {
         args[i] = cci;
@@ -253,10 +261,10 @@ class ComponentMethod
         args[i] = comp.bc;
       } else if (params[i] == Map.class) {
         if (ref != null) {
-          HashMap sProps = new HashMap();
-          String[] keys = s.getPropertyKeys();
-          for (int j = 0; j < keys.length; j++) {
-            sProps.put(keys[j], s.getProperty(keys[j]));
+          final HashMap<String, Object> sProps = new HashMap<String, Object>();
+          final String[] keys = s.getPropertyKeys();
+          for (final String key : keys) {
+            sProps.put(key, s.getProperty(key));
           }
           args[i] = sProps;
         } else {
@@ -271,7 +279,7 @@ class ComponentMethod
       } else {
         try {
           // TODO think about exceptions and circular activations
-          service = args[i] = rl.getService(s);
+          args[i] = rl.getService(s);
           if (args[i] == null) {
             Activator.logDebug("Got null service argument for " + method +
                                " in " + instance.getClass() +  " for component " +
@@ -279,7 +287,7 @@ class ComponentMethod
                                comp.compDesc.bundle);
             throw new ComponentException("Got null service, " + Activator.srInfo(s));
           }
-        } catch (Exception e) {
+        } catch (final Exception e) {
           Activator.logDebug("Got " + e + " when getting service argument for " + method +
                              " in " + instance.getClass() +  " for component " +
                              comp.compDesc.getName() + " registered for " +
@@ -312,13 +320,13 @@ class ComponentMethod
                            +  " for component " + comp.compDesc.getName() +
                            " registered for " + comp.compDesc.bundle);
         method.invoke(instance, args);
-      } catch (IllegalAccessException e) {
-        String msg = "Could not invoke \"" + method + "\" in: " + instance.getClass();
+      } catch (final IllegalAccessException e) {
+        final String msg = "Could not invoke \"" + method + "\" in: " + instance.getClass();
         Activator.logError(comp.bc, msg, e);
         return new ComponentException(msg, e);
-      } catch (InvocationTargetException e) {
+      } catch (final InvocationTargetException e) {
         String msg = "exception";
-        Throwable cause = e.getTargetException();
+        final Throwable cause = e.getTargetException();
         if (cause != null) {
           msg = cause.toString();
         }
