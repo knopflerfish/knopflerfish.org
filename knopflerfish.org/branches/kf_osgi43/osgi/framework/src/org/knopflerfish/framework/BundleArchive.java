@@ -43,7 +43,7 @@ import java.util.List;
 
 /**
  * Interface for managing bundle data.
- * 
+ *
  * @author Jan Stein
  * @author Philippe Laporte
  * @author Mats-Ola Persson
@@ -53,21 +53,21 @@ public interface BundleArchive {
 
   /**
    * Autostart setting stopped.
-   * 
+   *
    * @see BundleArchive#setAutostartSetting(String)
    */
   public String AUTOSTART_SETTING_STOPPED = "stopped";
 
   /**
    * Autostart setting eager.
-   * 
+   *
    * @see BundleArchive#setAutostartSetting(String)
    */
   public String AUTOSTART_SETTING_EAGER = "eager";
 
   /**
    * Autostart setting declared activation policy.
-   * 
+   *
    * @see BundleArchive#setAutostartSetting(String)
    */
   public String AUTOSTART_SETTING_ACTIVATION_POLICY = "activation_policy";
@@ -75,9 +75,9 @@ public interface BundleArchive {
 
   /**
    * Get an attribute from the manifest of a bundle.
-   * 
+   *
    * Not localized
-   * 
+   *
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
    */
@@ -87,7 +87,7 @@ public interface BundleArchive {
   /**
    * Get a FileArchive handle to a named Jar file or directory within this
    * archive.
-   * 
+   *
    * @param path Name of Jar file or directory to get.
    * @return A FileArchive object representing new archive, null if not found.
    */
@@ -97,7 +97,7 @@ public interface BundleArchive {
   /**
    * Gets all localization entries from this bundle. Will typically read the
    * file OSGI-INF/bundle_&lt;locale&gt;.properties.
-   * 
+   *
    * @param localeFile Filename within archive for localization properties.
    * @return null or a mapping of the entries.
    */
@@ -112,7 +112,7 @@ public interface BundleArchive {
 
   /**
    * Get bundle generation associated with this bundle archive.
-   * 
+   *
    * @return BundleGeneration object.
    */
   BundleGeneration getBundleGeneration();
@@ -120,7 +120,7 @@ public interface BundleArchive {
 
   /**
    * Set bundle generation associated with this bundle archive.
-   * 
+   *
    * @param BundleGeneration object.
    */
   void setBundleGeneration(BundleGeneration bg);
@@ -128,7 +128,7 @@ public interface BundleArchive {
 
   /**
    * Get bundle identifier for this bundle archive.
-   * 
+   *
    * @return Bundle identifier.
    */
   long getBundleId();
@@ -136,7 +136,7 @@ public interface BundleArchive {
 
   /**
    * Get bundle location for this bundle archive.
-   * 
+   *
    * @return Bundle location.
    */
   String getBundleLocation();
@@ -145,7 +145,7 @@ public interface BundleArchive {
   /**
    * Get a BundleResourceStream to named entry inside a bundle. Leading '/' is
    * stripped.
-   * 
+   *
    * @param component Entry to get reference to.
    * @param ix index of sub archives. A postive number is the classpath entry
    *          index. 0 means look in the main bundle.
@@ -158,7 +158,7 @@ public interface BundleArchive {
    * Returns an Enumeration of all the paths (<code>String</code> objects) to
    * entries within the bundle whose longest sub-path matches the supplied path
    * argument.
-   * 
+   *
    * @param name
    * @return
    */
@@ -191,7 +191,7 @@ public interface BundleArchive {
 
   /**
    * Get auto-start setting.
-   * 
+   *
    * @return the autostart setting. "-1" if bundle not started.
    */
   int getAutostartSetting();
@@ -199,7 +199,7 @@ public interface BundleArchive {
 
   /**
    * Set the auto-start setting.
-   * 
+   *
    * @param setting the autostart setting to use.
    */
   void setAutostartSetting(int setting) throws IOException;
@@ -213,16 +213,16 @@ public interface BundleArchive {
 
   /**
    * Get certificate chains associated with with bundle archive.
-   * 
+   *
    * @param onlyTrusted Only return trusted certificates.
    * @return All certificates or null if bundle is unsigned.
    */
-  ArrayList<ArrayList<X509Certificate>> getCertificateChains(boolean onlyTrusted);
+  ArrayList<List<X509Certificate>> getCertificateChains(boolean onlyTrusted);
 
 
   /**
    * Mark certificate associated with with bundle archive as trusted.
-   * 
+   *
    */
   void trustCertificateChain(List<X509Certificate> trustedChain);
 

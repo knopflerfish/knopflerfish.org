@@ -98,7 +98,7 @@ public class Bundles {
     checkIllegalState();
     BundleImpl b;
     synchronized (this) {
-      b = (BundleImpl)bundles.get(location);
+      b = bundles.get(location);
       if (b != null) {
         b = (BundleImpl)b.fwCtx.bundleHooks.filterBundle(b.bundleContext, b);
         if(b == null) {
@@ -121,27 +121,27 @@ public class Bundles {
       if (in == null) {
         // Do it the manual way to have a chance to
         // set request properties
-        URL url  = new URL(location);
-        URLConnection conn = url.openConnection();
+        final URL url  = new URL(location);
+        final URLConnection conn = url.openConnection();
 
         // Support for http proxy authentication
         //TODO put in update as well
-        String auth = fwCtx.props.getProperty("http.proxyAuth");
+        final String auth = fwCtx.props.getProperty("http.proxyAuth");
         if (auth != null && !"".equals(auth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
-            String base64 = Util.base64Encode(auth);
+            final String base64 = Util.base64Encode(auth);
             conn.setRequestProperty("Proxy-Authorization",
                                     "Basic " + base64);
           }
         }
         // Support for http basic authentication
-        String basicAuth = fwCtx.props.getProperty("http.basicAuth");
+        final String basicAuth = fwCtx.props.getProperty("http.basicAuth");
         if (basicAuth != null && !"".equals(basicAuth)) {
           if ("http".equals(url.getProtocol()) ||
               "https".equals(url.getProtocol())) {
-            String base64 = Util.base64Encode(basicAuth);
-            conn.setRequestProperty("Authorization", 
+            final String base64 = Util.base64Encode(basicAuth);
+            conn.setRequestProperty("Authorization",
                                     "Basic " +base64);
           }
         }
@@ -154,11 +154,11 @@ public class Bundles {
       } finally {
         bin.close();
       }
-      BundleImpl res = new BundleImpl(fwCtx, ba, checkContext);
+      final BundleImpl res = new BundleImpl(fwCtx, ba, checkContext);
       bundles.put(location, res);
       fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, res));
       return res;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (ba != null) {
         ba.purge();
       }
@@ -192,8 +192,8 @@ public class Bundles {
   public Bundle getBundle(long id) {
     checkIllegalState();
     synchronized (bundles) {
-      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-        BundleImpl b = (BundleImpl)e.nextElement();
+      for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
+        final BundleImpl b = e.nextElement();
         if (b.id == id) {
           return b;
         }
@@ -212,7 +212,7 @@ public class Bundles {
    */
   public Bundle getBundle(String location) {
     checkIllegalState();
-    return (Bundle) bundles.get(location);
+    return bundles.get(location);
   }
 
 
@@ -226,8 +226,8 @@ public class Bundles {
   BundleImpl getBundle(String name, Version version) {
     checkIllegalState();
     synchronized (bundles) {
-      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-        BundleImpl b = (BundleImpl)e.nextElement();
+      for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
+        final BundleImpl b = e.nextElement();
         if (name.equals(b.gen.symbolicName) && version.equals(b.gen.version)) {
           return b;
         }
@@ -243,7 +243,7 @@ public class Bundles {
    * @return A Bundle array with bundles.
    */
   List<BundleImpl> getBundles() {
-    ArrayList<BundleImpl> res = new ArrayList<BundleImpl>(bundles.size());
+    final ArrayList<BundleImpl> res = new ArrayList<BundleImpl>(bundles.size());
     synchronized (bundles) {
       res.addAll(bundles.values());
     }
@@ -257,11 +257,11 @@ public class Bundles {
    * @param name The symbolic name of bundles to get.
    * @return A List of BundleImpl.
    */
-  List getBundles(String name) {
-    ArrayList res = new ArrayList();
+  List<BundleImpl> getBundles(String name) {
+    final ArrayList<BundleImpl> res = new ArrayList<BundleImpl>();
     synchronized (bundles) {
-      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-        BundleImpl b = (BundleImpl)e.nextElement();
+      for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
+        final BundleImpl b = e.nextElement();
         if (name.equals(b.gen.symbolicName)) {
           res.add(b);
         }
@@ -281,13 +281,13 @@ public class Bundles {
    */
   List<BundleImpl> getBundles(String name, VersionRange range) {
     checkIllegalState();
-    List<BundleImpl> res = getBundles(name);
+    final List<BundleImpl> res = getBundles(name);
     for (int i = 0; i < res.size(); ) {
-      BundleImpl b = (BundleImpl)res.remove(i);
+      final BundleImpl b = res.remove(i);
       if (range.withinRange(b.gen.version)) {
         int j = i;
         while (--j >= 0) {
-          if (b.gen.version.compareTo(((BundleImpl)res.get(j)).gen.version) <= 0) {
+          if (b.gen.version.compareTo(res.get(j).gen.version) <= 0) {
             break;
           }
         }
@@ -304,13 +304,13 @@ public class Bundles {
    *
    * @return A List of BundleImpl.
    */
-  List getActiveBundles() {
+  List<BundleImpl> getActiveBundles() {
     checkIllegalState();
-    ArrayList slist = new ArrayList();
+    final ArrayList<BundleImpl> slist = new ArrayList<BundleImpl>();
     synchronized (bundles) {
-      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-        BundleImpl b = (BundleImpl)e.nextElement();
-        int s = b.getState();
+      for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
+        final BundleImpl b = e.nextElement();
+        final int s = b.getState();
         if (s == Bundle.ACTIVE || s == Bundle.STARTING) {
           slist.add(b);
         }
@@ -328,20 +328,20 @@ public class Bundles {
    *
    */
   synchronized void load() {
-    BundleArchive [] bas = fwCtx.storage.getAllBundleArchives();
-    for (int i = 0; i < bas.length; i++) {
+    final BundleArchive [] bas = fwCtx.storage.getAllBundleArchives();
+    for (final BundleArchive ba : bas) {
       try {
-        BundleImpl b = new BundleImpl(fwCtx, bas[i], null);
+        final BundleImpl b = new BundleImpl(fwCtx, ba, null);
         bundles.put(b.location, b);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         try {
-          bas[i].setAutostartSetting(-1); // Do not start on launch
-          bas[i].setStartLevel(-2); // Mark as uninstalled
-        } catch (IOException _ioe) {
+          ba.setAutostartSetting(-1); // Do not start on launch
+          ba.setStartLevel(-2); // Mark as uninstalled
+        } catch (final IOException _ioe) {
         }
         System.err.println("Error: Failed to load bundle "
-                           +bas[i].getBundleId()
-                           +" (" +bas[i].getBundleLocation() +")"
+                           +ba.getBundleId()
+                           +" (" +ba.getBundleLocation() +")"
                            +" uninstalled it!" );
         e.printStackTrace();
       }
@@ -353,19 +353,19 @@ public class Bundles {
    * Returns all fragment bundles that is
    * already attached and targets given bundle.
    *
-   * @param target the targetted bundle
+   * @param target the targeted bundle
    * @return a list of all matching fragment bundle generations.
    */
-  Collection /* BundleGeneration */ getFragmentBundles(BundleImpl target) {
-    HashMap res = new HashMap();
-    for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-      BundleImpl b = (BundleImpl)e.nextElement();
-      BundleGeneration bg = b.gen;
+  Collection<BundleGeneration> getFragmentBundles(BundleImpl target) {
+    final HashMap<String, BundleGeneration> res = new HashMap<String, BundleGeneration>();
+    for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
+      final BundleImpl b = e.nextElement();
+      final BundleGeneration bg = b.gen;
       if (bg.isFragment() &&
           b.state != Bundle.UNINSTALLED &&
           bg.fragment.isTarget(target)) {
-        String sym = bg.symbolicName;
-        BundleGeneration old = (BundleGeneration)res.get(sym);
+        final String sym = bg.symbolicName;
+        final BundleGeneration old = res.get(sym);
         if (old != null && old.symbolicName.equals(sym)) {
           if (old.version.compareTo(bg.version) > 0) {
             continue;
@@ -377,7 +377,7 @@ public class Bundles {
     return res.values();
   }
 
-  
+
   /**
    * Check if this bundles object have been closed!
    */

@@ -129,7 +129,7 @@ public class FrameworkContext  {
   /**
    * Bundle Validator
    */
-  List /* Validator */ validator = null;
+  List<Validator> validator = null;
 
   /**
    * Private Bundle Data Storage
@@ -154,7 +154,7 @@ public class FrameworkContext  {
   /**
    * Patterns from the boot delegation property.
    */
-  ArrayList /* String */ bootDelegationPatterns;
+  ArrayList<String> bootDelegationPatterns;
   boolean bootDelegationUsed /*= false*/;
 
   /**
@@ -172,7 +172,7 @@ public class FrameworkContext  {
    * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
    * Used and updated by isValidEE()
    */
-  private Set    eeCacheSet = new HashSet();
+  private Set<String>    eeCacheSet = new HashSet<String>();
   private String eeCache = null;
 
   /**
@@ -290,7 +290,7 @@ public class FrameworkContext  {
 
     String v = props.getProperty(FWProps.VALIDATOR_PROP);
     if (!v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
-      validator = new ArrayList();
+      validator = new ArrayList<Validator>();
       for (int start = 0; start < v.length(); ) {
         int end = v.indexOf(',', start);
         if (end == -1) {
@@ -624,7 +624,7 @@ public class FrameworkContext  {
       = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
 
     bootDelegationUsed = bootDelegationString.length() > 0;
-    bootDelegationPatterns = new ArrayList(1);
+    bootDelegationPatterns = new ArrayList<String>(1);
 
     if (bootDelegationUsed) {
       try {
@@ -693,8 +693,8 @@ public class FrameworkContext  {
     final int pos = className.lastIndexOf('.');
     if (pos != -1) {
       final String classPackage = className.substring(0, pos);
-      for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
-        String ps = (String)i.next();
+      for (Iterator<String> i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
+        String ps = i.next();
         if ((ps.endsWith(".") &&
              classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
             classPackage.equals(ps)) {
@@ -734,7 +734,7 @@ public class FrameworkContext  {
    * The list of active {@link ExtensionContext} instances for attached
    * extensions with an ExtensionActivator.
    */
-  private final List extCtxs = new ArrayList();
+  private final List<ExtensionContext> extCtxs = new ArrayList<ExtensionContext>();
 
   /**
    * Create a new {@link ExtensionContext} instances for the specified
@@ -754,8 +754,8 @@ public class FrameworkContext  {
    * @param bcl the new bundle class loader to inform about.
    */
   void bundleClassLoaderCreated(final BundleClassLoader bcl) {
-    for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
-      final ExtensionContext extCtx = (ExtensionContext) it.next();
+    for (Iterator<ExtensionContext> it = extCtxs.iterator(); it.hasNext(); ) {
+      final ExtensionContext extCtx = it.next();
       extCtx.bundleClassLoaderCreated(bcl);
     }
   }
@@ -767,8 +767,8 @@ public class FrameworkContext  {
    * @param bcl the closed down bundle class loader to inform about.
    */
   void bundleClassLoaderClosed(final BundleClassLoader bcl) {
-    for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
-      final ExtensionContext extCtx = (ExtensionContext) it.next();
+    for (Iterator<ExtensionContext> it = extCtxs.iterator(); it.hasNext(); ) {
+      final ExtensionContext extCtx = it.next();
       extCtx.bundleClassLoaderClosed(bcl);
     }
   }

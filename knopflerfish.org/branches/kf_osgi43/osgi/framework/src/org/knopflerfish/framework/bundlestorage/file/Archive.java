@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,52 @@
 
 package org.knopflerfish.framework.bundlestorage.file;
 
-import org.knopflerfish.framework.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.URL;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.Vector;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
 import org.osgi.framework.Constants;
-import java.io.*;
-import java.net.*;
-import java.security.cert.*;
-import java.util.*;
-import java.util.jar.*;
-import java.util.zip.*;
+
+import org.knopflerfish.framework.AutoManifest;
+import org.knopflerfish.framework.BundleGeneration;
+import org.knopflerfish.framework.BundleResourceStream;
+import org.knopflerfish.framework.FileArchive;
+import org.knopflerfish.framework.FileTree;
+import org.knopflerfish.framework.Util;
 
 /**
  * JAR file handling.
- * 
+ *
  * @author Jan Stein
  * @author Philippe Laporte
  * @author Mats-Ola Persson
@@ -120,12 +154,12 @@ public class Archive implements FileArchive {
   /**
    *
    */
-  private Map nativeLibs;
+  private Map<String, String> nativeLibs;
 
   /**
    *
    */
-  private Map renameLibs;
+  private Map<String, String> renameLibs;
 
   /**
    *
@@ -141,7 +175,7 @@ public class Archive implements FileArchive {
   /**
    * Create an Archive based on contents of an InputStream, the archive is saved
    * as local copy in the specified directory.
-   * 
+   *
    * @param ba BundleArchiveImpl for this archive.
    * @param dir Directory to save data in.
    * @param rev Revision of bundle content (used for updates).
@@ -170,9 +204,9 @@ public class Archive implements FileArchive {
     if (sourceFile != null) {
       isDirectory = sourceFile.isDirectory();
       if (isDirectory) {
-        File mfd = new File(sourceFile.getAbsolutePath(), META_INF_DIR);
-        File mf = new File(mfd, "MANIFEST.MF");
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream(mf));
+        final File mfd = new File(sourceFile.getAbsolutePath(), META_INF_DIR);
+        final File mf = new File(mfd, "MANIFEST.MF");
+        final BufferedInputStream bis = new BufferedInputStream(new FileInputStream(mf));
         try {
           manifest = new Manifest(bis);
         } finally {
@@ -217,10 +251,10 @@ public class Archive implements FileArchive {
             throw new IOException("MANIFEST.MF must be first in archive when using signatures.");
           }
         } else {
-          File f = new File(file, META_INF_DIR);
+          final File f = new File(file, META_INF_DIR);
           f.mkdir();
-          FileOutputStream fo = new FileOutputStream(new File(f, "MANIFEST.MF"));
-          BufferedOutputStream o = new BufferedOutputStream(fo);
+          final FileOutputStream fo = new FileOutputStream(new File(f, "MANIFEST.MF"));
+          final BufferedOutputStream o = new BufferedOutputStream(fo);
           try {
             manifest.write(o);
           } finally {
@@ -287,7 +321,7 @@ public class Archive implements FileArchive {
    * reference:file: URL
    */
   String getFile(URL source) {
-    String sfile = source.getFile();
+    final String sfile = source.getFile();
     if (sfile.startsWith("file:")) {
       return sfile.substring(5);
     } else {
@@ -314,59 +348,59 @@ public class Archive implements FileArchive {
   /**
    * Create an Archive based on contents of a saved archive in the specified
    * directory. Take lowest versioned archive and remove rest.
-   * 
+   *
    */
   Archive(BundleArchiveImpl ba, File dir, int rev, String location) throws IOException {
     this.location = location;
     this.ba = ba;
     subId = 0;
-    String[] f = dir.list();
+    final String[] f = dir.list();
     file = null;
     if (rev != -1) {
       file = new FileTree(dir, ARCHIVE + rev);
     } else {
       rev = Integer.MAX_VALUE;
-      for (int i = 0; i < f.length; i++) {
-        if (f[i].startsWith(ARCHIVE)) {
+      for (final String element : f) {
+        if (element.startsWith(ARCHIVE)) {
           try {
-            int c = Integer.parseInt(f[i].substring(ARCHIVE.length()));
+            final int c = Integer.parseInt(element.substring(ARCHIVE.length()));
             if (c < rev) {
               rev = c;
-              file = new FileTree(dir, f[i]);
+              file = new FileTree(dir, element);
             }
-          } catch (NumberFormatException ignore) {
+          } catch (final NumberFormatException ignore) {
           }
         }
       }
     }
-    for (int i = 0; i < f.length; i++) {
-      if (f[i].startsWith(ARCHIVE)) {
+    for (final String element : f) {
+      if (element.startsWith(ARCHIVE)) {
         try {
-          int c = Integer.parseInt(f[i].substring(ARCHIVE.length()));
+          final int c = Integer.parseInt(element.substring(ARCHIVE.length()));
           if (c != rev) {
-            (new FileTree(dir, f[i])).delete();
+            (new FileTree(dir, element)).delete();
           }
-        } catch (NumberFormatException ignore) {
+        } catch (final NumberFormatException ignore) {
         }
       }
-      if (f[i].startsWith(SUBDIR)) {
+      if (element.startsWith(SUBDIR)) {
         try {
-          int c = Integer.parseInt(f[i].substring(SUBDIR.length()));
+          final int c = Integer.parseInt(element.substring(SUBDIR.length()));
           if (c != rev) {
-            (new FileTree(dir, f[i])).delete();
+            (new FileTree(dir, element)).delete();
           }
-        } catch (NumberFormatException ignore) {
+        } catch (final NumberFormatException ignore) {
         }
       }
     }
     if (file == null) {
       if (location != null) {
         try {
-          URL url = new URL(location);
+          final URL url = new URL(location);
           if (isReference(url)) {
             file = new FileTree(getFile(url));
           }
-        } catch (Exception e) {
+        } catch (final Exception e) {
           throw new IOException("Bad file URL stored in referenced jar in: "
               + dir.getAbsolutePath() + ", location=" + location + ", e=" + e);
         }
@@ -397,7 +431,7 @@ public class Archive implements FileArchive {
    * Create a Sub-Archive based on a path to in an already existing Archive. The
    * new archive is saved in a subdirectory below local copy of the existing
    * Archive.
-   * 
+   *
    * @param a Parent Archive.
    * @param path Path of new Archive inside old Archive.
    * @exception FileNotFoundException if no such Jar file in archive.
@@ -434,9 +468,10 @@ public class Archive implements FileArchive {
 
   /**
    * Show file name for archive, if zip show if it is sub archive.
-   * 
+   *
    * @return A string with result.
    */
+  @Override
   public String toString() {
     if (subJar != null) {
       return file.getAbsolutePath() + "(" + subJar.getName() + ")";
@@ -448,13 +483,13 @@ public class Archive implements FileArchive {
 
   /**
    * Get revision number this archive.
-   * 
+   *
    * @return Archive revision number
    */
   int getRevision() {
     try {
       return Integer.parseInt(file.getName().substring(ARCHIVE.length()));
-    } catch (NumberFormatException ignore) {
+    } catch (final NumberFormatException ignore) {
       // assert?
       return -1;
     }
@@ -479,12 +514,12 @@ public class Archive implements FileArchive {
 
   /**
    * Get an attribute from the manifest of the archive.
-   * 
+   *
    * @param key Name of attribute to get.
    * @return A string with result or null if the entry doesn't exists.
    */
   String getAttribute(String key) {
-    Attributes a = manifest.getMainAttributes();
+    final Attributes a = manifest.getMainAttributes();
     if (a != null) {
       return a.getValue(key);
     }
@@ -495,7 +530,7 @@ public class Archive implements FileArchive {
   /**
    * Get a byte array containg the contents of named class file from the
    * archive.
-   * 
+   *
    * @param Class File to get.
    * @return Byte array with contents of class file or null if file doesn't
    *         exist.
@@ -505,26 +540,26 @@ public class Archive implements FileArchive {
     if (bClosed) {
       return null;
     }
-    BundleResourceStream cif = getBundleResourceStream(classFile);
+    final BundleResourceStream cif = getBundleResourceStream(classFile);
     if (cif != null) {
       byte[] bytes;
-      long ilen = cif.getContentLength();
+      final long ilen = cif.getContentLength();
       if (ilen >= 0) {
         bytes = new byte[(int)ilen];
-        DataInputStream dis = new DataInputStream(cif);
+        final DataInputStream dis = new DataInputStream(cif);
         dis.readFully(bytes);
       } else {
         bytes = new byte[0];
-        byte[] tmp = new byte[8192];
+        final byte[] tmp = new byte[8192];
         try {
           int len;
           while ((len = cif.read(tmp)) > 0) {
-            byte[] oldbytes = bytes;
+            final byte[] oldbytes = bytes;
             bytes = new byte[oldbytes.length + len];
             System.arraycopy(oldbytes, 0, bytes, 0, oldbytes.length);
             System.arraycopy(tmp, 0, bytes, oldbytes.length, len);
           }
-        } catch (EOFException ignore) {
+        } catch (final EOFException ignore) {
           // On Pjava we somtimes get a mysterious EOF excpetion,
           // but everything seems okey. (SUN Bug 4040920)
         }
@@ -539,10 +574,11 @@ public class Archive implements FileArchive {
 
   /**
    * Get a BundleResourceStream to named entry inside an Archive.
-   * 
+   *
    * @param component Entry to get reference to.
    * @return BundleResourceStream to entry or null if it doesn't exist.
    */
+  @SuppressWarnings("resource")
   public BundleResourceStream getBundleResourceStream(String component) {
     if (bClosed) {
       return null;
@@ -564,7 +600,7 @@ public class Archive implements FileArchive {
                 // Workaround for directories given without trailing
                 // "/"; they will not yield an input-stream.
                 if (!component.endsWith("/")) {
-                  ZipEntry ze2 = jar.getEntry(subJar.getName() + component + "/");
+                  final ZipEntry ze2 = jar.getEntry(subJar.getName() + component + "/");
                   is = jar.getInputStream(ze2);
                 }
                 return new BundleResourceStream(is, ze.getSize());
@@ -575,7 +611,7 @@ public class Archive implements FileArchive {
               // Return a stream to the entire Jar.
               return new BundleResourceStream(jar.getInputStream(subJar), subJar.getSize());
             } else {
-              JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+              final JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
               do {
                 ze = ji.getNextJarEntry();
                 if (ze == null) {
@@ -583,13 +619,13 @@ public class Archive implements FileArchive {
                   return null;
                 }
               } while (!component.equals(ze.getName()));
-              return new BundleResourceStream((InputStream)ji, ze.getSize());
+              return new BundleResourceStream(ji, ze.getSize());
             }
           }
         } else {
           if (component.equals("")) {
             // Return a stream to the entire Jar.
-            File f = new File(jar.getName());
+            final File f = new File(jar.getName());
             return new BundleResourceStream(new FileInputStream(f), f.length());
           } else {
             ze = jar.getEntry(component);
@@ -601,7 +637,7 @@ public class Archive implements FileArchive {
                 // Workaround for directories given without trailing
                 // "/"; they will not yield an input-stream.
                 if (!component.endsWith("/")) {
-                  ZipEntry ze2 = jar.getEntry(component + "/");
+                  final ZipEntry ze2 = jar.getEntry(component + "/");
                   is = jar.getInputStream(ze2);
                 }
                 return new BundleResourceStream(is, ze.getSize());
@@ -610,18 +646,18 @@ public class Archive implements FileArchive {
           }
         }
       } else {
-        File f = findFile(file, component);
+        final File f = findFile(file, component);
         return f.exists() ? new BundleResourceStream(new FileInputStream(f), f.length()) : null;
       }
-    } catch (IOException ignore) {
+    } catch (final IOException ignore) {
     }
     return null;
   }
 
 
   // TODO not extensively tested
-  public Enumeration findResourcesPath(String path) {
-    Vector answer = new Vector();
+  public Enumeration<String> findResourcesPath(String path) {
+    final Vector<String> answer = new Vector<String>();
     if (jar != null) {
       ZipEntry entry;
       // "normalize" + erroneous path check: be generous
@@ -635,10 +671,10 @@ public class Archive implements FileArchive {
         }
       }
 
-      Enumeration entries = jar.entries();
+      final Enumeration<? extends ZipEntry> entries = jar.entries();
       while (entries.hasMoreElements()) {
-        entry = (ZipEntry)entries.nextElement();
-        String name = entry.getName();
+        entry = entries.nextElement();
+        final String name = entry.getName();
         if (name.startsWith(path)) {
           int idx = name.lastIndexOf('/');
           if (entry.isDirectory()) {
@@ -654,15 +690,15 @@ public class Archive implements FileArchive {
         }
       }
     } else {
-      File f = findFile(file, path);
+      final File f = findFile(file, path);
       if (!f.exists()) {
         return null;
       }
       if (!f.isDirectory()) {
         return null;
       }
-      File[] files = f.listFiles();
-      int length = files.length;
+      final File[] files = f.listFiles();
+      final int length = files.length;
       for (int i = 0; i < length; i++) {
         String filePath = files[i].getPath();
         filePath = filePath.substring(file.getPath().length() + 1);
@@ -683,7 +719,7 @@ public class Archive implements FileArchive {
 
   /**
    * Check for native library in archive.
-   * 
+   *
    * @param path Name of native code file to get.
    * @return If native library exist return libname, otherwise null.
    */
@@ -699,18 +735,18 @@ public class Archive implements FileArchive {
       lib = getSubFile(this, path);
       if (!lib.exists()) {
         (new File(lib.getParent())).mkdirs();
-        ZipEntry ze = jar.getEntry(path);
+        final ZipEntry ze = jar.getEntry(path);
         if (ze != null) {
           InputStream is = null;
           try {
             is = jar.getInputStream(ze);
             loadFile(lib, is);
-          } catch (IOException _ignore) {
+          } catch (final IOException _ignore) {
             // TBD log this
             if (is != null) {
               try {
                 is.close();
-              } catch (IOException _ignore2) {
+              } catch (final IOException _ignore2) {
               }
             }
             return null;
@@ -724,9 +760,9 @@ public class Archive implements FileArchive {
       if (!lib.exists()) {
         if (lib.getParent() != null) {
           final String libname = lib.getName();
-          File[] list = lib.getParentFile().listFiles(new FilenameFilter() {
+          final File[] list = lib.getParentFile().listFiles(new FilenameFilter() {
             public boolean accept(File dir, String name) {
-              int pos = name.lastIndexOf(libname);
+              final int pos = name.lastIndexOf(libname);
               return ((pos > 1) && (name.charAt(pos - 1) == '_'));
             }
           });
@@ -741,12 +777,12 @@ public class Archive implements FileArchive {
       }
     }
     setPerm(lib);
-    String libstr = lib.getAbsolutePath();
-    int sp = libstr.lastIndexOf(File.separatorChar);
-    String key = (sp != -1) ? libstr.substring(sp + 1) : libstr;
+    final String libstr = lib.getAbsolutePath();
+    final int sp = libstr.lastIndexOf(File.separatorChar);
+    final String key = (sp != -1) ? libstr.substring(sp + 1) : libstr;
     if (nativeLibs == null) {
-      nativeLibs = new HashMap();
-      renameLibs = new HashMap();
+      nativeLibs = new HashMap<String, String>();
+      renameLibs = new HashMap<String, String>();
     }
     // TBD, What to do if entry already exists?
     nativeLibs.put(key, libstr);
@@ -756,14 +792,14 @@ public class Archive implements FileArchive {
 
   /**
    * Get native code library filename.
-   * 
+   *
    * @param libNameKey Key for native lib to get.
    * @return A string with the path to the native library.
    */
   public String getNativeLibrary(String libNameKey) {
-    String file = (String)nativeLibs.get(libNameKey);
+    final String file = nativeLibs.get(libNameKey);
     if (file != null) {
-      File f = new File(file);
+      final File f = new File(file);
       if (f.isFile()) {
         return doRename(libNameKey, new File(file));
       }
@@ -779,7 +815,7 @@ public class Archive implements FileArchive {
   private String doRename(String key, File file1) {
     String val = file1.getAbsolutePath();
     if (renameLibs.containsKey(key)) {
-      final File file2 = new File((String)renameLibs.get(key));
+      final File file2 = new File(renameLibs.get(key));
       if (file1.renameTo(file2)) {
         val = file2.getAbsolutePath();
         nativeLibs.put(key, val);
@@ -790,9 +826,9 @@ public class Archive implements FileArchive {
     final int index1 = val.indexOf("_", index0);
     if ((index1 > index0) && (index1 == val.length() - key.length() - 1)) {
       try {
-        int prefix = Integer.parseInt(val.substring(index0, index1));
+        final int prefix = Integer.parseInt(val.substring(index0, index1));
         rename.replace(index0, index1, Integer.toString(prefix + 1));
-      } catch (Throwable t) {
+      } catch (final Throwable t) {
         rename.insert(index0, "0_");
       }
     } else {
@@ -839,7 +875,7 @@ public class Archive implements FileArchive {
         try {
           p.waitFor();
           break;
-        } catch (InterruptedException _ie) {
+        } catch (final InterruptedException _ie) {
           _ie.printStackTrace();
         }
       }
@@ -847,7 +883,7 @@ public class Archive implements FileArchive {
         try {
           ti.join();
           break;
-        } catch (InterruptedException _ie) {
+        } catch (final InterruptedException _ie) {
           _ie.printStackTrace();
         }
       }
@@ -855,11 +891,11 @@ public class Archive implements FileArchive {
         try {
           te.join();
           break;
-        } catch (InterruptedException _ie) {
+        } catch (final InterruptedException _ie) {
           _ie.printStackTrace();
         }
       }
-    } catch (IOException _ioe) {
+    } catch (final IOException _ioe) {
       _ioe.printStackTrace();
     }
   }
@@ -879,17 +915,18 @@ public class Archive implements FileArchive {
     }
 
 
+    @Override
     public void run() {
-      BufferedReader br = new BufferedReader(new InputStreamReader(in));
+      final BufferedReader br = new BufferedReader(new InputStreamReader(in));
       try {
         String line = br.readLine();
         while (null != line) {
           if (null != cmd) {
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < cmd.length; i++) {
+            final StringBuffer sb = new StringBuffer();
+            for (final String element : cmd) {
               if (sb.length() > 0)
                 sb.append(" ");
-              sb.append(cmd[i]);
+              sb.append(element);
             }
             // NYI! Log error
             System.err.println("Failed to execute: '" + sb.toString() + "':");
@@ -899,7 +936,7 @@ public class Archive implements FileArchive {
             System.out.println(line);
           line = br.readLine();
         }
-      } catch (IOException _ioe) {
+      } catch (final IOException _ioe) {
         _ioe.printStackTrace();
       }
     }
@@ -933,7 +970,7 @@ public class Archive implements FileArchive {
     if (subJar == null && jar != null) {
       try {
         jar.close();
-      } catch (IOException ignore) {
+      } catch (final IOException ignore) {
       }
     }
   }
@@ -949,7 +986,7 @@ public class Archive implements FileArchive {
 
   /**
    * Return certificates for signed bundle, otherwise null.
-   * 
+   *
    * @return An array of certificates or null.
    */
   Certificate[] getCertificates() {
@@ -963,11 +1000,11 @@ public class Archive implements FileArchive {
 
   /**
    * Check that we have a valid manifest.
-   * 
+   *
    * @exception IllegalArgumentException if we have a broken manifest.
    */
   private void checkManifest() {
-    Attributes a = manifest.getMainAttributes();
+    final Attributes a = manifest.getMainAttributes();
     Util.parseEntries(Constants.EXPORT_PACKAGE, a.getValue(Constants.EXPORT_PACKAGE), false,
         true, false);
     Util.parseEntries(Constants.IMPORT_PACKAGE, a.getValue(Constants.IMPORT_PACKAGE), false,
@@ -979,14 +1016,14 @@ public class Archive implements FileArchive {
   /**
    * Check if we should unpack bundle, i.e has native code file or subjars. This
    * decision is based on minimizing the expected size.
-   * 
+   *
    * @return true if bundle needs to be unpacked.
    * @exception IllegalArgumentException if we have a broken manifest.
    */
   private boolean needUnpack(Attributes a) {
-    Iterator nc = Util.parseEntries(Constants.BUNDLE_NATIVECODE,
+    final Iterator<Map<String, Object>> nc = Util.parseEntries(Constants.BUNDLE_NATIVECODE,
         a.getValue(Constants.BUNDLE_NATIVECODE), false, false, false);
-    String bc = a.getValue(Constants.BUNDLE_CLASSPATH);
+    final String bc = a.getValue(Constants.BUNDLE_CLASSPATH);
     return (bc != null && !bc.trim().equals(".")) || nc.hasNext();
   }
 
@@ -997,7 +1034,7 @@ public class Archive implements FileArchive {
   private void handleAutoManifest() throws IOException {
     // TBD Should we check this, should it not always be true!
     if (manifest instanceof AutoManifest) {
-      AutoManifest mf = (AutoManifest)manifest;
+      final AutoManifest mf = (AutoManifest)manifest;
       if (mf.isAuto()) {
         if (jar != null) {
           mf.addZipFile(jar);
@@ -1012,7 +1049,7 @@ public class Archive implements FileArchive {
   /**
    * Get file handle for file inside a directory structure. The path for the
    * file is always specified with a '/' separated path.
-   * 
+   *
    * @param root Directory structure to search.
    * @param path Path to file to find.
    * @return The File object for file <code>path</code>.
@@ -1024,12 +1061,12 @@ public class Archive implements FileArchive {
 
   /**
    * Get the manifest for this archive.
-   * 
+   *
    * @return The manifest for this Archive
    */
   private AutoManifest getManifest() throws IOException {
     // TBD: Should recognize entry with lower case?
-    BundleResourceStream mi = getBundleResourceStream("META-INF/MANIFEST.MF");
+    final BundleResourceStream mi = getBundleResourceStream("META-INF/MANIFEST.MF");
     if (mi != null) {
       return new AutoManifest(ba.storage.framework, new Manifest(mi), location);
     } else {
@@ -1040,7 +1077,7 @@ public class Archive implements FileArchive {
 
   /**
    * Get dir for unpacked components.
-   * 
+   *
    * @param archive Archive which contains the components.
    * @return FileTree for archives component cache directory.
    */
@@ -1052,7 +1089,7 @@ public class Archive implements FileArchive {
 
   /**
    * Get file for an unpacked component.
-   * 
+   *
    * @param archive Archive which contains the component.
    * @param path Name of the component to get.
    * @return File for components cache file.
@@ -1064,7 +1101,7 @@ public class Archive implements FileArchive {
 
   /**
    * Loads a file from an InputStream and stores it in a file.
-   * 
+   *
    * @param output File to save data in, if <code>null</code>, discard output.
    * @param is InputStream to read from.
    */
@@ -1074,7 +1111,7 @@ public class Archive implements FileArchive {
       if (output != null) {
         os = new FileOutputStream(output);
       }
-      byte[] buf = new byte[8192];
+      final byte[] buf = new byte[8192];
       int n;
       try {
         while ((n = is.read(buf)) >= 0) {
@@ -1082,11 +1119,11 @@ public class Archive implements FileArchive {
             os.write(buf, 0, n);
           }
         }
-      } catch (EOFException ignore) {
+      } catch (final EOFException ignore) {
         // On Pjava we sometimes get a mysterious EOF exception,
         // but everything seems okey. (SUN Bug 4040920)
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       if (os != null) {
         output.delete();
       }
@@ -1108,7 +1145,7 @@ public class Archive implements FileArchive {
 
 
   /**
-   * 
+   *
    */
   private boolean processNextJarEntry(JarInputStream ji, boolean verify, File saveDir)
       throws IOException {
@@ -1117,9 +1154,9 @@ public class Archive implements FileArchive {
       if (je.isDirectory()) {
         continue;
       }
-      String name = je.getName();
+      final String name = je.getName();
       if (saveDir != null && !name.startsWith(OSGI_OPT_DIR)) {
-        StringTokenizer st = new StringTokenizer(name, "/");
+        final StringTokenizer st = new StringTokenizer(name, "/");
         File f = new File(saveDir, st.nextToken());
         while (st.hasMoreTokens()) {
           f.mkdir();
@@ -1135,7 +1172,7 @@ public class Archive implements FileArchive {
         continue;
       }
       if (verify) {
-        Certificate[] c = je.getCertificates();
+        final Certificate[] c = je.getCertificates();
         if (c != null) {
           if (certs != null) {
             // TBD, perhaps we should allow permuted chains.
@@ -1159,10 +1196,10 @@ public class Archive implements FileArchive {
    * Go through jar file and check signatures.
    */
   private void processSignedJar(File file) throws IOException {
-    FileInputStream fis = new FileInputStream(file);
+    final FileInputStream fis = new FileInputStream(file);
     JarInputStream ji = null;
     try {
-      BufferedInputStream bis = new BufferedInputStream(fis);
+      final BufferedInputStream bis = new BufferedInputStream(fis);
       ji = new JarInputStream(bis);
       int count = 0;
 
@@ -1188,7 +1225,7 @@ public class Archive implements FileArchive {
 
   /**
    * Check that all entries in the bundle is signed.
-   * 
+   *
    */
   private void checkCertificates(int filesVerified, boolean complete) {
     // TBD! Does manifest.getEntries contain more than signers?
@@ -1198,8 +1235,8 @@ public class Archive implements FileArchive {
         mentries = manifest.getEntries().size();
       } else {
         mentries = 0;
-        for (Iterator i = manifest.getEntries().keySet().iterator(); i.hasNext();) {
-          String name = (String)i.next();
+        for (final String string : manifest.getEntries().keySet()) {
+          final String name = string;
           if (!name.startsWith(OSGI_OPT_DIR)) {
             mentries++;
           }
@@ -1219,15 +1256,15 @@ public class Archive implements FileArchive {
    *
    */
   public void saveCertificates() throws IOException {
-    File f = new File(getPath() + CERTS_SUFFIX);
+    final File f = new File(getPath() + CERTS_SUFFIX);
     if (certs != null) {
       try {
-        FileOutputStream fos = new FileOutputStream(f);
-        for (int i = 0; i < certs.length; i++) {
-          fos.write(certs[i].getEncoded());
+        final FileOutputStream fos = new FileOutputStream(f);
+        for (final Certificate cert : certs) {
+          fos.write(cert.getEncoded());
         }
         fos.close();
-      } catch (CertificateEncodingException e) {
+      } catch (final CertificateEncodingException e) {
         // NYI! Log or fail
       }
     }
@@ -1238,18 +1275,18 @@ public class Archive implements FileArchive {
    * TBD improve this.
    */
   private void loadCertificates() throws IOException {
-    File f = new File(getPath() + CERTS_SUFFIX);
+    final File f = new File(getPath() + CERTS_SUFFIX);
     if (f.canRead()) {
       try {
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        FileInputStream fis = new FileInputStream(f);
-        Collection c = cf.generateCertificates(fis);
+        final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        final FileInputStream fis = new FileInputStream(f);
+        final Collection<? extends Certificate> c = cf.generateCertificates(fis);
         // TBD, check if order is preserved
         if (c.size() > 0) {
           certs = new Certificate[c.size()];
-          certs = (Certificate[])c.toArray(certs);
+          certs = c.toArray(certs);
         }
-      } catch (CertificateException ioe) {
+      } catch (final CertificateException ioe) {
         // NYI! Log or fail
       }
     }
@@ -1261,7 +1298,7 @@ public class Archive implements FileArchive {
    *
    */
   public void removeCertificates() {
-    File f = new File(getPath() + CERTS_SUFFIX);
+    final File f = new File(getPath() + CERTS_SUFFIX);
     f.delete();
   }
 

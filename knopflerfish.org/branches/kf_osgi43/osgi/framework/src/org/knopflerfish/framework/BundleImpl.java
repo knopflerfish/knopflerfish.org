@@ -1099,12 +1099,13 @@ public class BundleImpl implements Bundle {
     }
     BundleArchive fix = gen.archive;
     if (fix != null) {
-      List<ArrayList<X509Certificate>> cs = fix.getCertificateChains(onlyTrusted);
+      List<List<X509Certificate>> cs = fix.getCertificateChains(onlyTrusted);
       if (cs != null) {
         Map<X509Certificate, List<X509Certificate>> res = new HashMap<X509Certificate, List<X509Certificate>>();
-        for (Iterator<ArrayList<X509Certificate>> i = cs.iterator(); i.hasNext();) {
-          ArrayList<X509Certificate> chain = i.next();
-          res.put(chain.get(0), (ArrayList<X509Certificate>) chain.clone());
+        for (Iterator<List<X509Certificate>> i = cs.iterator(); i.hasNext();) {
+          final List<X509Certificate> chain = i.next();
+          final List<X509Certificate> copy = new ArrayList<X509Certificate>(chain);
+          res.put(chain.get(0), copy);
         }
         return res;
       }
