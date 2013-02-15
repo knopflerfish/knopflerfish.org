@@ -468,6 +468,7 @@
              classpathref="bundle.path.Expanded"
              bootclasspathref="${bundle.bootclasspath.ref}"
              includes="@{includes}"
+             excludes="**/package-info.java"
              >
       </javac>
       <!-- Copy resources from the src-tree to the classes-tree. -->
