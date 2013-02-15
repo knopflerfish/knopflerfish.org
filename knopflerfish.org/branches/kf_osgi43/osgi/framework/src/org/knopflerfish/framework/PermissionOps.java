@@ -46,6 +46,7 @@ import java.util.Set;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
@@ -310,8 +311,8 @@ class PermissionOps {
   // PackageAdmin secure operations
   //
 
-  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle[] bundles) {
-    pa.refreshPackages0(bundles);
+  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle[] bundles, final FrameworkListener[] fl) {
+    pa.refreshPackages0(bundles, fl);
   }
 
 

@@ -390,10 +390,10 @@ class Services {
    * @param b The bundle
    * @return A set of {@link ServiceRegistration} objects
    */
-  synchronized Set getRegisteredByBundle(Bundle b) {
-    HashSet res = new HashSet();
-    for (Iterator e = services.keySet().iterator(); e.hasNext();) {
-      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
+  synchronized Set<ServiceRegistrationImpl<?>> getRegisteredByBundle(Bundle b) {
+    HashSet<ServiceRegistrationImpl<?>> res = new HashSet<ServiceRegistrationImpl<?>>();
+    for (Iterator<ServiceRegistrationImpl<?>> e = services.keySet().iterator(); e.hasNext();) {
+      ServiceRegistrationImpl<?> sr = e.next();
       if (sr.bundle == b) {
         res.add(sr);
       }

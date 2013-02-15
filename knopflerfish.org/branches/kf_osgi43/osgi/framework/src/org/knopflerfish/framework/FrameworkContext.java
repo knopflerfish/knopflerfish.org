@@ -137,7 +137,7 @@ public class FrameworkContext  {
   FileTree dataStorage /*= null*/;
 
   /**
-   * The start level controler.
+   * The start level controller.
    */
   StartLevelController startLevelController;
 
@@ -194,6 +194,11 @@ public class FrameworkContext  {
    * Threads for running listeners and activators
    */
   LinkedList bundleThreads;
+
+  /**
+   * Package admin handle
+   */
+  PackageAdminImpl packageAdmin = null;
 
   /**
    * Factory for handling service-based URLs
@@ -384,10 +389,11 @@ public class FrameworkContext  {
 
     perm.registerService();
 
+    packageAdmin = new PackageAdminImpl(this);
     String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,
                       classes,
-                      new PackageAdminImpl(this),
+                      packageAdmin,
                       null);
 
     registerStartLevel();

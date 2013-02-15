@@ -181,6 +181,10 @@ public class PackageAdminImpl implements PackageAdmin {
    * @see org.osgi.service.packageadmin.PackageAdmin#refreshPackages
    */
   public void refreshPackages(final Bundle[] bundles) {
+    refreshPackages(bundles, null);
+  }
+  
+  void refreshPackages(final Bundle[] bundles, final FrameworkListener[] fl) {
     fwCtx.perm.checkResolveAdminPerm();
 
     boolean restart = false;
@@ -217,7 +221,7 @@ public class PackageAdminImpl implements PackageAdmin {
     synchronized (refreshSync) {
       Thread t = new Thread(fwCtx.threadGroup, "RefreshPackages") {
         public void run() {
-          fwCtx.perm.callRefreshPackages0(thisClass, bundles);
+          fwCtx.perm.callRefreshPackages0(thisClass, bundles, fl);
         }
       };
       t.setDaemon(false);
@@ -234,11 +238,12 @@ public class PackageAdminImpl implements PackageAdmin {
   /**
    *
    */
-  void refreshPackages0(final Bundle[] bundles) {
+  void refreshPackages0(final Bundle[] bundles, final FrameworkListener...fl) {
     if (fwCtx.debug.packages) {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
-
+    // TODO send framework error events to fl
+    
     ArrayList startList = new ArrayList();
 
     synchronized (fwCtx.packages) {
@@ -257,7 +262,7 @@ public class PackageAdminImpl implements PackageAdmin {
             bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", false);
             Exception be = bi[bx].stop0();
             if (be != null) {
-              fwCtx.listeners.frameworkError(bi[bx], be);
+              fwCtx.listeners.frameworkError(bi[bx], be, fl);
             }
           } catch (BundleException ignore) {
             // Wait failed, we will try again
@@ -284,12 +289,12 @@ public class PackageAdminImpl implements PackageAdmin {
                 fwCtx.debug
                     .println("PackageAdminImpl.refreshPackages() timeout on bundle stop, retry...");
               }
-              fwCtx.listeners.frameworkWarning(bi[bx], we);
+              fwCtx.listeners.frameworkWarning(bi[bx], we, fl);
             }
           }
           be = bi[bx].stop0();
           if (be != null) {
-            fwCtx.listeners.frameworkError(bi[bx], be);
+            fwCtx.listeners.frameworkError(bi[bx], be, fl);
           }
           if (nextStart != bi[bx]) {
             startList.add(startPos + 1, bi[bx]);
@@ -316,9 +321,9 @@ public class PackageAdminImpl implements PackageAdmin {
 
     // Restart previously active bundles in normal start order
     startBundles(startList);
-    fwCtx.listeners
-        .frameworkEvent(new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
-                                         fwCtx.systemBundle, null));
+    FrameworkEvent fe = new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
+                                           fwCtx.systemBundle, null);
+    fwCtx.listeners.frameworkEvent(fe, fl);
     refreshSync.remove(Thread.currentThread());
     if (fwCtx.debug.packages) {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() done.");
@@ -331,7 +336,7 @@ public class PackageAdminImpl implements PackageAdmin {
    *
    * @param slist Bundles to start.
    */
-  private void startBundles(List slist) {
+  private void startBundles(List slist, FrameworkListener...fl) {
     // Sort in start order
     // Resolve first to avoid dead lock
     for (Iterator i = slist.iterator(); i.hasNext();) {
@@ -344,7 +349,7 @@ public class PackageAdminImpl implements PackageAdmin {
         try {
           rb.start();
         } catch (BundleException be) {
-          rb.fwCtx.listeners.frameworkError(rb, be);
+          rb.fwCtx.listeners.frameworkError(rb, be, fl);
         }
       }
     }

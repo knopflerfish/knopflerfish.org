@@ -34,11 +34,11 @@
 
 package org.knopflerfish.framework;
 
-import java.util.Map;
 import java.util.Iterator;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Map.Entry;
 
 import java.util.jar.*;
 
@@ -47,18 +47,18 @@ import java.util.jar.*;
  *
  * @author Jan Stein
  */
-public class HeaderDictionary extends Dictionary implements Cloneable
+public class HeaderDictionary extends Dictionary<String, String> implements Cloneable
 {
-  private Hashtable headers;
+  private Hashtable<Attributes.Name, String> headers;
 
   /**
    * Create a dictionary from manifest attributes.
    */
   public HeaderDictionary(Attributes in) {
-    headers = new Hashtable();
-    for (Iterator i = in.entrySet().iterator(); i.hasNext();) {
-      Map.Entry e = (Map.Entry)i.next();
-      headers.put(e.getKey(), e.getValue());
+    headers = new Hashtable<Attributes.Name, String>();
+    for (Iterator<Entry<Object, Object>> i = in.entrySet().iterator(); i.hasNext();) {
+      Entry<Object, Object> e = i.next();
+      headers.put((Attributes.Name)e.getKey(), (String)e.getValue());
     }
   }
 
@@ -66,7 +66,7 @@ public class HeaderDictionary extends Dictionary implements Cloneable
   /**
    * Create a dictionary of an existing Hashtable.
    */
-  public HeaderDictionary(Hashtable t) {
+  private HeaderDictionary(Hashtable<Attributes.Name, String> t) {
     headers = t;
   }
 
@@ -74,7 +74,7 @@ public class HeaderDictionary extends Dictionary implements Cloneable
   /**
    * Returns an enumeration of the values in this dictionary.
    */
-  public Enumeration elements() {
+  public Enumeration<String> elements() {
     return headers.elements();
   }
 
@@ -82,7 +82,7 @@ public class HeaderDictionary extends Dictionary implements Cloneable
   /**
    * Returns the value to which the key is mapped in this dictionary.
    */
-  public Object get(Object key) {
+  public String get(Object key) {
     return headers.get(new Attributes.Name((String)key));
   }
 
@@ -98,14 +98,14 @@ public class HeaderDictionary extends Dictionary implements Cloneable
   /**
    *  Returns an enumeration of the keys in this dictionary.
    */
-  public Enumeration keys() {
-    final Enumeration keys = headers.keys();
-    return new Enumeration() {
+  public Enumeration<String> keys() {
+    final Enumeration<Attributes.Name> keys = headers.keys();
+    return new Enumeration<String>() {
       public boolean hasMoreElements() {
-	return keys.hasMoreElements();
-      }
-      public Object nextElement() {
-	return keys.nextElement().toString();
+        return keys.hasMoreElements();
+   	  }
+      public String nextElement() {
+        return keys.nextElement().toString();
       }
     };
   }
@@ -114,15 +114,15 @@ public class HeaderDictionary extends Dictionary implements Cloneable
   /**
    * Maps the specified key to the specified value in this dictionary.
    */
-  public Object put(Object key, Object value) {
-    return headers.put(new Attributes.Name((String)key), value);
+  public String put(String key, String value) {
+    return headers.put(new Attributes.Name(key), value);
   }
 
 
   /**
    * Removes the key (and its corresponding value) from this dictionary.
    */
-  public Object remove(Object key) {
+  public String remove(Object key) {
     return headers.remove(new Attributes.Name((String)key));
   }
 
@@ -138,7 +138,7 @@ public class HeaderDictionary extends Dictionary implements Cloneable
    * Clone
    */
   public Object clone() {
-    return new HeaderDictionary((Hashtable)headers.clone());
+    return new HeaderDictionary((Hashtable<Attributes.Name, String>)headers.clone());
   }
 
 

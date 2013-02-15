@@ -65,6 +65,7 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundlePermission;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.PackagePermission;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
@@ -578,10 +579,10 @@ class SecurePermissionOps extends PermissionOps {
   // PackageAdmin secure operations
   //
 
-  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle[] bundles) {
+  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle[] bundles, final FrameworkListener[] fl) {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        pa.refreshPackages0(bundles);
+        pa.refreshPackages0(bundles, fl);
         return null;
       }
     });

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2013-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,79 +31,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.framework;
 
-import java.util.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleReference;
 
-import org.osgi.framework.*;
+public class BundleReferenceImpl implements BundleReference {
 
-/**
- * Fragment information
- */
-class Fragment {
-  final String hostName;
-  final String extension;
-  final VersionRange versionRange;
-  private Vector<BundleGeneration> hosts = new Vector<BundleGeneration>(2);
+	final private Bundle bundle;
 
+  BundleReferenceImpl(Bundle bundle) {
+	  this.bundle = bundle;
+	}
 
-  Fragment(String hostName, String extension, String range) {
-    this.hostName = hostName;
-    this.extension = extension;
-    this.versionRange = range == null ? VersionRange.defaultVersionRange
-        : new VersionRange(range);
-  }
-
-
-  void addHost(BundleGeneration host) {
-    hosts.add(host);
-  }
-
-
-  void removeHost(BundleGeneration host) {
-    if (host == null) {
-      hosts.clear();
-    } else {
-      hosts.remove(host);
-    }
-  }
-
-
-  boolean isHost(BundleGeneration host) {
-    return hosts.contains(host);
-  }
-
-
-  Vector<BundleGeneration> getHosts() {
-    return hosts.isEmpty() ? null : (Vector<BundleGeneration>)hosts.clone();
-  }
-
-
-  boolean hasHosts() {
-    return !hosts.isEmpty();
-  }
-
-
-  boolean isTarget(BundleImpl b) {
-    return hostName.equals(b.gen.symbolicName) && versionRange.withinRange(b.gen.version);
-  }
-
-
-  List<BundleImpl> targets(final FrameworkContext fwCtx) {
-    List<BundleImpl> bundles = fwCtx.bundles.getBundles(hostName, versionRange);
-    for (Iterator<BundleImpl> iter = bundles.iterator(); iter.hasNext();) {
-      BundleImpl t = iter.next();
-
-      if (t.gen.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
-        iter.remove();
-      }
-    }
-
-    if (bundles.isEmpty()) {
-      return null;
-    }
-    return bundles;
-  }
+  public Bundle getBundle() {
+		return bundle;
+	}
 
 }

@@ -279,9 +279,9 @@ public class Bundles {
    * @param range Version range of bundles to get.
    * @return A List of BundleImpl.
    */
-  List getBundles(String name, VersionRange range) {
+  List<BundleImpl> getBundles(String name, VersionRange range) {
     checkIllegalState();
-    List res = getBundles(name);
+    List<BundleImpl> res = getBundles(name);
     for (int i = 0; i < res.size(); ) {
       BundleImpl b = (BundleImpl)res.remove(i);
       if (range.withinRange(b.gen.version)) {

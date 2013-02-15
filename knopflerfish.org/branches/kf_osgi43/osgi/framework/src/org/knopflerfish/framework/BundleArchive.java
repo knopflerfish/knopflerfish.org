@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,11 @@
 package org.knopflerfish.framework;
 
 import java.io.IOException;
-import java.util.*;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.List;
 
 /**
  * Interface for managing bundle data.
@@ -97,7 +101,7 @@ public interface BundleArchive {
    * @param localeFile Filename within archive for localization properties.
    * @return null or a mapping of the entries.
    */
-  Hashtable getLocalizationEntries(String localeFile);
+  Hashtable<String, String> getLocalizationEntries(String localeFile);
 
 
   /**
@@ -158,7 +162,7 @@ public interface BundleArchive {
    * @param name
    * @return
    */
-  Enumeration findResourcesPath(String path);
+  Enumeration<String> findResourcesPath(String path);
 
 
   /**
@@ -213,14 +217,14 @@ public interface BundleArchive {
    * @param onlyTrusted Only return trusted certificates.
    * @return All certificates or null if bundle is unsigned.
    */
-  ArrayList getCertificateChains(boolean onlyTrusted);
+  ArrayList<ArrayList<X509Certificate>> getCertificateChains(boolean onlyTrusted);
 
 
   /**
    * Mark certificate associated with with bundle archive as trusted.
    * 
    */
-  void trustCertificateChain(List trustedChain);
+  void trustCertificateChain(List<X509Certificate> trustedChain);
 
 
   /**

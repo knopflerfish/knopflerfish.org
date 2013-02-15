@@ -598,7 +598,7 @@ public class BundleGeneration implements Comparable {
   /**
    * Checks if this bundle is a fragment
    */
-  Vector getHosts() {
+  Vector<BundleGeneration> getHosts() {
     return fragment != null ? fragment.getHosts() : null;
   }
 

@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.security.Permission;
 import java.security.PermissionCollection;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Dictionary;
@@ -62,6 +63,9 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.Version;
 import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleRevisions;
+import org.osgi.framework.wiring.BundleWiring;
 
 /**
  * Implementation of the Bundle object.
@@ -109,14 +113,14 @@ public class BundleImpl implements Bundle {
   volatile int state;
 
   /**
-   * Bundle generaion data.
+   * Bundle generation data.
    */
   volatile BundleGeneration gen;
 
   /**
    * Zombie packages for bundle.
    */
-  private volatile Vector /* BundleGeneration */oldGenerations = null;
+  private volatile Vector<BundleGeneration> oldGenerations = null;
 
   /**
    * Directory for bundle data.
@@ -154,7 +158,7 @@ public class BundleImpl implements Bundle {
   /** Saved exception of resolve failure. */
   private BundleException resolveFailException;
 
-  /** Rember if bundle was started */
+  /** Remember if bundle was started */
   private boolean wasStarted;
 
 
@@ -242,7 +246,7 @@ public class BundleImpl implements Bundle {
         throw new IllegalStateException("Bundle is uninstalled");
       }
 
-      // The value -1 is used by this implemtation to indicate a bundle
+      // The value -1 is used by this implementation to indicate a bundle
       // that has not been started, thus ensure that options is != -1.
       options &= 0xFF;
 
@@ -371,9 +375,11 @@ public class BundleImpl implements Bundle {
     int error_type = BundleException.MANIFEST_ERROR;
     try {
       if (ba != null) {
-        Class c = getClassLoader().loadClass(ba.trim());
+        @SuppressWarnings("unchecked")
+		Class<BundleActivator> c = 
+            (Class<BundleActivator>) getClassLoader().loadClass(ba.trim());
         error_type = BundleException.ACTIVATOR_ERROR;
-        bactivator = (BundleActivator)c.newInstance();
+        bactivator = c.newInstance();
 
         bactivator.start(bundleContext);
         bStarted = true;
@@ -390,7 +396,7 @@ public class BundleImpl implements Bundle {
                   fwCtx.debug.println("starting main class " + mc);
                 }
                 error_type = BundleException.ACTIVATOR_ERROR;
-                Class mainClass = getClassLoader().loadClass(mc.trim());
+                Class<?> mainClass = getClassLoader().loadClass(mc.trim());
                 bactivator = new MainClassBundleActivator(mainClass);
                 bactivator.start(bundleContext);
                 bStarted = true;
@@ -753,8 +759,8 @@ public class BundleImpl implements Bundle {
             fwCtx.systemBundle.bootClassPathHasChanged = true;
           }
         } else {
-          for (Iterator i = oldFragment.getHosts().iterator(); i.hasNext();) {
-            ((BundleGeneration)i.next()).bpkgs.fragmentIsZombie(this);
+          for (Iterator<BundleGeneration> i = oldFragment.getHosts().iterator(); i.hasNext();) {
+            i.next().bpkgs.fragmentIsZombie(this);
           }
         }
         oldFragment.removeHost(null);
@@ -876,8 +882,8 @@ public class BundleImpl implements Bundle {
                 fwCtx.systemBundle.bootClassPathHasChanged = true;
               }
             } else {
-              for (Iterator i = gen.getHosts().iterator(); i.hasNext();) {
-                BundleGeneration hbg = (BundleGeneration)i.next();
+              for (Iterator<BundleGeneration> i = gen.getHosts().iterator(); i.hasNext();) {
+                BundleGeneration hbg = i.next();
                 if (hbg.bpkgs != null) {
                   hbg.bpkgs.fragmentIsZombie(this);
                 }
@@ -939,7 +945,7 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#getHeaders
    */
-  public Dictionary getHeaders() {
+  public Dictionary<String, String> getHeaders() {
     return getHeaders(null);
   }
 
@@ -970,15 +976,15 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#getRegisteredServices
    */
-  public ServiceReference[] getRegisteredServices() {
+  public ServiceReference<?>[] getRegisteredServices() {
     checkUninstalled();
-    Set sr = fwCtx.services.getRegisteredByBundle(this);
+    Set<ServiceRegistrationImpl<?>> sr = fwCtx.services.getRegisteredByBundle(this);
     secure.filterGetServicePermission(sr);
     if (sr.size() > 0) {
-      ServiceReference[] res = new ServiceReference[sr.size()];
+      ServiceReference<?>[] res = new ServiceReference[sr.size()];
       int pos = 0;
-      for (Iterator i = sr.iterator(); i.hasNext();) {
-        res[pos++] = ((ServiceRegistration)i.next()).getReference();
+      for (Iterator<ServiceRegistrationImpl<?>> i = sr.iterator(); i.hasNext();) {
+        res[pos++] = i.next().getReference();
       }
       return res;
     }
@@ -991,15 +997,15 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#getServicesInUse
    */
-  public ServiceReference[] getServicesInUse() {
+  public ServiceReference<?>[] getServicesInUse() {
     checkUninstalled();
-    Set sr = fwCtx.services.getUsedByBundle(this);
+    Set<ServiceRegistrationImpl<?>> sr = fwCtx.services.getUsedByBundle(this);
     secure.filterGetServicePermission(sr);
     if (sr.size() > 0) {
-      ServiceReference[] res = new ServiceReference[sr.size()];
+      ServiceReference<?>[] res = new ServiceReference<?>[sr.size()];
       int pos = 0;
-      for (Iterator i = sr.iterator(); i.hasNext();) {
-        res[pos++] = ((ServiceRegistration)i.next()).getReference();
+      for (Iterator<ServiceRegistrationImpl<?>> i = sr.iterator(); i.hasNext();) {
+        res[pos++] = i.next().getReference();
       }
       return res;
     }
@@ -1081,7 +1087,8 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#getSignerCertificates()
    */
-  public Map/* X509Certificate -> List(X509Certificate) */getSignerCertificates(int signersType) {
+  @SuppressWarnings("unchecked")
+  public Map<X509Certificate, List<X509Certificate>> getSignerCertificates(int signersType) {
     boolean onlyTrusted;
     if (signersType == SIGNERS_ALL) {
       onlyTrusted = false;
@@ -1092,12 +1099,12 @@ public class BundleImpl implements Bundle {
     }
     BundleArchive fix = gen.archive;
     if (fix != null) {
-      List cs = fix.getCertificateChains(onlyTrusted);
+      List<ArrayList<X509Certificate>> cs = fix.getCertificateChains(onlyTrusted);
       if (cs != null) {
-        Map res = new HashMap();
-        for (Iterator i = cs.iterator(); i.hasNext();) {
-          ArrayList chain = (ArrayList)i.next();
-          res.put(chain.get(0), chain.clone());
+        Map<X509Certificate, List<X509Certificate>> res = new HashMap<X509Certificate, List<X509Certificate>>();
+        for (Iterator<ArrayList<X509Certificate>> i = cs.iterator(); i.hasNext();) {
+          ArrayList<X509Certificate> chain = i.next();
+          res.put(chain.get(0), (ArrayList<X509Certificate>) chain.clone());
         }
         return res;
       }
@@ -1114,6 +1121,21 @@ public class BundleImpl implements Bundle {
     return gen.version;
   }
 
+
+  public <A> A adapt(Class<A> type) {
+    secure.checkAdaptPerm(this, type);
+    return adaptSecure(type);
+  }
+
+
+  public File getDataFile(String filename) {
+    return bundleContext.getDataFile(filename);
+  }
+
+
+  public int compareTo(Bundle bundle) {
+    return new Long(getBundleId()).compareTo(new Long(bundle.getBundleId()));
+  }
 
   //
   // Package methods
@@ -1230,6 +1252,14 @@ public class BundleImpl implements Bundle {
   }
 
   /**
+   * Has this bundle several bundle generations active.
+   * 
+   */
+  boolean hasZombiePackages() {
+    return oldGenerations != null;
+  }
+
+  /**
    * Set state to INSTALLED and throw away our classloader. Reset all package
    * registration. We assume that the bundle is resolved when entering this
    * method.
@@ -1265,11 +1295,11 @@ public class BundleImpl implements Bundle {
     if (state == UNINSTALLED) {
       fwCtx.bundles.remove(location);
     }
-    Vector fix = oldGenerations;
+    Vector<BundleGeneration> fix = oldGenerations;
     if (fix != null) {
       oldGenerations = null;
-      for (Iterator i = fix.iterator(); i.hasNext();) {
-        ((BundleGeneration)i.next()).purge(true);
+      for (Iterator<BundleGeneration> i = fix.iterator(); i.hasNext();) {
+        i.next().purge(true);
       }
     }
   }
@@ -1285,10 +1315,10 @@ public class BundleImpl implements Bundle {
     if (bg.generation == generation) {
       return bg.archive;
     }
-    Vector fix = oldGenerations;
+    Vector<BundleGeneration> fix = oldGenerations;
     if (fix != null) {
       for (int i = fix.size() - 1; i >= 0; i--) {
-        bg = (BundleGeneration)fix.get(i);
+        bg = fix.get(i);
         if (bg.generation == generation) {
           return bg.archive;
         }
@@ -1305,11 +1335,11 @@ public class BundleImpl implements Bundle {
    */
   Iterator getExports() {
     BundlePackages bp = gen.bpkgs;
-    Vector fix = oldGenerations;
+    Vector<BundleGeneration> fix = oldGenerations;
     if (fix != null) {
       HashSet res = new HashSet();
       for (int i = fix.size() - 1; i >= 0; i--) {
-        BundleGeneration bg = (BundleGeneration)fix.get(i);
+        BundleGeneration bg = fix.get(i);
         // NYI Check that we export the right version or should we export all?
         for (Iterator j = bg.bpkgs.getExports(); j.hasNext();) {
           res.add(j.next());
@@ -1337,10 +1367,10 @@ public class BundleImpl implements Bundle {
   Vector getHosts(final boolean zombieHosts) {
     Vector res = gen.getHosts();
     if (zombieHosts) {
-      Vector fix = oldGenerations;
+      Vector<BundleGeneration> fix = oldGenerations;
       if (fix != null) {
-        for (Iterator i = fix.iterator(); i.hasNext();) {
-          Vector h = ((BundleGeneration)i.next()).getHosts();
+        for (Iterator<BundleGeneration> i = fix.iterator(); i.hasNext();) {
+          Vector h = i.next().getHosts();
           if (h != null) {
             if (res != null) {
               res.addAll(h);
@@ -1363,11 +1393,11 @@ public class BundleImpl implements Bundle {
    */
   List getRequiredBy() {
     BundlePackages bp = gen.bpkgs;
-    Vector fix = oldGenerations;
+    Vector<BundleGeneration> fix = oldGenerations;
     if (fix != null) {
       ArrayList res = new ArrayList();
       for (int i = fix.size() - 1; i >= 0; i--) {
-        BundleGeneration bg = (BundleGeneration)fix.get(i);
+        BundleGeneration bg = fix.get(i);
         res.addAll(bg.bpkgs.getRequiredBy());
       }
       if (bp != null) {
@@ -1507,7 +1537,7 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#findEntries
    */
-  public Enumeration findEntries(String path, String filePattern, boolean recurse) {
+  public Enumeration<URL> findEntries(String path, String filePattern, boolean recurse) {
     if (secure.okResourceAdminPerm(this)) {
       if (state == INSTALLED) {
         // We need to resolve if there are fragments involved
@@ -1548,7 +1578,7 @@ public class BundleImpl implements Bundle {
   /**
    *
    */
-  public Enumeration getEntryPaths(String path) {
+  public Enumeration<String> getEntryPaths(String path) {
     if (secure.okResourceAdminPerm(this)) {
       checkUninstalled();
       return secure.callFindResourcesPath(gen.archive, path);
@@ -1561,11 +1591,11 @@ public class BundleImpl implements Bundle {
   /**
    * @see org.osgi.framework.Bundle#getHeaders(String locale)
    */
-  public Dictionary getHeaders(String locale) {
+  public Dictionary<String, String> getHeaders(String locale) {
     secure.checkMetadataAdminPerm(this);
-    Dictionary res = secure.callGetHeaders0(gen, locale);
+    Dictionary<String, String> res = secure.callGetHeaders0(gen, locale);
     if (res == null && cachedHeaders != null) {
-      res = (Dictionary)cachedHeaders.clone();
+      res = (Dictionary<String, String>)cachedHeaders.clone();
       // If we went to uninstalled, then use saved value.
       // Otherwise try again, NYI make sure we don't inf-loop.
       if (cachedHeaders == null) {
@@ -1580,11 +1610,11 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#getResources(String name)
    */
-  public Enumeration getResources(String name) throws IOException {
+  public Enumeration<URL> getResources(String name) throws IOException {
     checkUninstalled();
     // NYI! Fix BundleGeneration
     if (secure.okResourceAdminPerm(this) && !gen.isFragment()) {
-      Enumeration e = null;
+      Enumeration<URL> e = null;
       if (getUpdatedState() != INSTALLED) {
         if (this instanceof SystemBundle) {
           e = getClassLoader().getResources(name);
@@ -1608,7 +1638,7 @@ public class BundleImpl implements Bundle {
    *
    * @see org.osgi.framework.Bundle#loadClass()
    */
-  public Class loadClass(final String name) throws ClassNotFoundException {
+  public Class<?> loadClass(final String name) throws ClassNotFoundException {
     if (secure.okClassAdminPerm(this)) {
       checkUninstalled();
       if (gen.isFragment()) {
@@ -1702,6 +1732,28 @@ public class BundleImpl implements Bundle {
     }
   }
 
+  
+  <A> A adaptSecure(Class<A> type) {
+    Object res = null;
+    if (BundleRevision.class.equals(type)) {
+      BundleGeneration fix = gen;
+      if (fix.bpkgs != null) {
+        // Bundle isn't uninstalled
+        res = new BundleRevisionImpl(fix);
+      }
+    } else if (BundleRevisions.class.equals(type)) {
+      // TODO NYI
+      res = null;
+    } else if (BundleWiring.class.equals(type)) {
+      // TODO NYI
+      res = null;
+    } else if (fwCtx.startLevelController != null &&
+	           BundleStartLevel.class.equals(type)) {
+      res = fwCtx.startLevelController.bundleStartLevel(this);
+    } 
+    return (A) res;  // TODO: More types to be handled.
+  }
+
 
   //
   // Private methods
@@ -1736,9 +1788,9 @@ public class BundleImpl implements Bundle {
         // an illegal state so we catch it.
       }
     }
-    Set s = fwCtx.services.getUsedByBundle(this);
-    for (Iterator i = s.iterator(); i.hasNext();) {
-      ServiceRegistrationImpl sri = (ServiceRegistrationImpl)i.next();
+    Set<ServiceRegistrationImpl<?>> s = fwCtx.services.getUsedByBundle(this);
+    for (Iterator<ServiceRegistrationImpl<?>> i = s.iterator(); i.hasNext();) {
+      ServiceRegistrationImpl sri = i.next();
       sri.ungetService(this, false);
     }
   }
@@ -1754,7 +1806,7 @@ public class BundleImpl implements Bundle {
       fwCtx.debug.println("Save old BundleGeneration, " + gen);
     }
     if (oldGenerations == null) {
-      oldGenerations = new Vector(1);
+      oldGenerations = new Vector<BundleGeneration>(1);
     }
     oldGenerations.add(gen);
   }
@@ -1769,24 +1821,4 @@ public class BundleImpl implements Bundle {
     }
   }
 
-
-  @SuppressWarnings("unchecked")
-  public <A> A adapt(Class<A> type) {
-    secure.checkAdaptPerm(this, type);
-
-    A res = null;
-    if (BundleStartLevel.class.equals(type)) {
-      res = (A) fwCtx.startLevelController.bundleStartLevel(this);
-    } 
-    return res;  // TODO: More types to be handled.
-  }
-
-  public File getDataFile(String filename) {
-    return bundleContext.getDataFile(filename);
-  }
-
-
-  public int compareTo(Bundle bundle) {
-    return new Long(getBundleId()).compareTo(new Long(bundle.getBundleId()));
-  }
 }

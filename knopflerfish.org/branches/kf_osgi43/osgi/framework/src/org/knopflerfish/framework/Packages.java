@@ -43,6 +43,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
@@ -382,7 +383,7 @@ class Packages {
    * @param bundles Initial bundle set.
    * @return List of bundles affected.
    */
-  synchronized TreeSet getZombieAffected(Bundle[] bundles) {
+  synchronized TreeSet<Bundle> getZombieAffected(Bundle[] bundles) {
     // set of affected bundles will be in start-level/bundle-id order
     TreeSet affected = new TreeSet(new Comparator() {
       public int compare(Object o1, Object o2) {
@@ -404,19 +405,7 @@ class Packages {
       if (framework.debug.packages) {
         framework.debug.println("getZombieAffected: check - null");
       }
-      for (Iterator i = packages.values().iterator(); i.hasNext();) {
-        Pkg p = (Pkg)i.next();
-        // Search all exporters to catch both provided and required pkgs
-        for (Iterator ps = p.exporters.iterator(); ps.hasNext();) {
-          ExportPkg ep = (ExportPkg)ps.next();
-          if (ep.zombie) {
-            if (framework.debug.packages) {
-              framework.debug.println("getZombieAffected: found zombie - " + ep);
-            }
-            affected.add(ep.bpkgs.bg.bundle);
-          }
-        }
-      }
+      findAllZombies(affected);
     } else {
       for (int i = 0; i < bundles.length; i++) {
         BundleImpl tmp = (BundleImpl)bundles[i];
@@ -434,39 +423,61 @@ class Packages {
         }
       }
     }
-    ArrayList moreBundles = new ArrayList(affected);
+    packageClosure(affected);
+    return affected;
+  }
+
+
+  synchronized void packageClosure(Set<Bundle> bundles) {
+    ArrayList<Bundle> moreBundles = new ArrayList<Bundle>(bundles);
     for (int i = 0; i < moreBundles.size(); i++) {
       BundleImpl b = (BundleImpl)moreBundles.get(i);
-      for (Iterator j = b.getExports(); j.hasNext();) {
-        ExportPkg ep = (ExportPkg)j.next();
+      for (Iterator<ExportPkg> j = b.getExports(); j.hasNext();) {
+        ExportPkg ep = j.next();
         if (ep.pkg != null && ep.pkg.providers.contains(ep)) {
           for (Iterator k = ep.getPackageImporters().iterator(); k.hasNext();) {
             Bundle ib = (Bundle)k.next();
-            if (!affected.contains(ib)) {
+            if (!bundles.contains(ib)) {
               moreBundles.add(ib);
               if (framework.debug.packages) {
                 framework.debug.println("getZombieAffected: added importing bundle - "
                                         + ib);
               }
-              affected.add(ib);
+              bundles.add(ib);
             }
           }
         }
         for (Iterator rbi = ep.bpkgs.getRequiredBy().iterator(); rbi.hasNext();) {
           BundlePackages rbpkgs = (BundlePackages)rbi.next();
           Bundle rb = rbpkgs.bg.bundle;
-          if (!affected.contains(rb)) {
+          if (!bundles.contains(rb)) {
             moreBundles.add(rb);
             if (framework.debug.packages) {
               framework.debug.println("getZombieAffected: added requiring bundle - "
                                       + rb);
             }
-            affected.add(rb);
+            bundles.add(rb);
           }
         }
       }
     }
-    return affected;
+  }
+
+
+  synchronized void findAllZombies(Set<Bundle> affected) {
+    for (Iterator<Pkg> i = packages.values().iterator(); i.hasNext();) {
+      Pkg p = i.next();
+      // Search all exporters to catch both provided and required pkgs
+      for (Iterator<ExportPkg> ps = p.exporters.iterator(); ps.hasNext();) {
+        ExportPkg ep = ps.next();
+        if (ep.zombie) {
+          if (framework.debug.packages) {
+            framework.debug.println("getZombieAffected: found zombie - " + ep);
+          }
+          affected.add(ep.bpkgs.bg.bundle);
+        }
+      }
+    }
   }
 
 

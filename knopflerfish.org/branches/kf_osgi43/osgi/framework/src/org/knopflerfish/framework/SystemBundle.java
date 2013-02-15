@@ -60,6 +60,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
@@ -106,6 +107,8 @@ public class SystemBundle extends BundleImpl implements Framework {
    * Marker that we need to restart JVM.
    */
   boolean bootClassPathHasChanged;
+
+  private FrameworkWiringImpl fwWiring;
 
 
   /**
@@ -353,15 +356,22 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   // Don't delegate to BundleImp since Bundle adaptations may not
   // apply to the SystemBundle.
+  @SuppressWarnings("unchecked")
   public <A> A adapt(Class<A> type)
   {
     secure.checkAdaptPerm(this, type);
-
-    A res = null;
-    if (FrameworkStartLevel.class.equals(type)) {
-      res = (A) fwCtx.startLevelController.frameworkStartLevel(this);
+    Object res = null;
+    if (FrameworkWiring.class.equals(type)) {
+      res = fwWiring;
+    } else if (FrameworkStartLevel.class.equals(type)) {
+      if (fwCtx.startLevelController != null) {
+        res = fwCtx.startLevelController.frameworkStartLevel(this);
+      }
+    } else {
+      // TODO filter which adaptation we can do?!
+      res = adaptSecure(type);
     }
-    return res; // TODO: More types to be handled.
+    return (A) res;
   }
 
 
@@ -511,6 +521,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     gen = new BundleGeneration(this, exportPackageString);
     gen.bpkgs.registerPackages();
     gen.bpkgs.resolvePackages();
+    fwWiring = new FrameworkWiringImpl(fwCtx);
   }
 
 

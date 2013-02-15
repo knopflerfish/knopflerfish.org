@@ -45,7 +45,7 @@ import org.osgi.framework.*;
  * @see org.osgi.framework.ServiceRegistration
  * @author Jan Stein
  */
-public class ServiceRegistrationImpl implements ServiceRegistration
+public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
 {
   /**
    * Bundle registering this service.

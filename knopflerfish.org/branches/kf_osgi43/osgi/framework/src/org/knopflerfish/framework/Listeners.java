@@ -266,8 +266,8 @@ class Listeners {
    * @param b Bundle which caused the error.
    * @param t Throwable generated.
    */
-  void frameworkError(Bundle b, Throwable t) {
-    frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, t));
+  void frameworkError(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, t), oneTimeListeners);
   }
 
 
@@ -277,8 +277,8 @@ class Listeners {
    * @param bc BundleContext for bundle which caused the error.
    * @param t Throwable generated.
    */
-  void frameworkError(BundleContextImpl bc, Throwable t) {
-    frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bc.bundle, t));
+  void frameworkError(BundleContextImpl bc, Throwable t, FrameworkListener... oneTimeListeners) {
+    frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bc.bundle, t), oneTimeListeners);
   }
 
 
@@ -288,8 +288,8 @@ class Listeners {
    * @param b Bundle which caused the throwable.
    * @param t Throwable generated.
    */
-  void frameworkInfo(Bundle b, Throwable t) {
-    frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t));
+  void frameworkInfo(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t), oneTimeListeners);
   }
 
 
@@ -299,8 +299,8 @@ class Listeners {
    * @param b Bundle which caused the throwable.
    * @param t Throwable generated.
    */
-  void frameworkWarning(Bundle b, Throwable t) {
-    frameworkEvent(new FrameworkEvent(FrameworkEvent.WARNING, b, t));
+  void frameworkWarning(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    frameworkEvent(new FrameworkEvent(FrameworkEvent.WARNING, b, t), oneTimeListeners);
   }
 
 
@@ -353,10 +353,6 @@ class Listeners {
    *
    * @see org.osgi.framework.FrameworkListener#frameworkEvent
    */
-  void frameworkEvent(final FrameworkEvent evt) {
-    frameworkEvent(evt, (FrameworkListener[]) null);
-  }
-  
   void frameworkEvent(final FrameworkEvent evt, FrameworkListener... oneTimeListeners) {
     if (framework.debug.errors) {
       if (evt.getType() == FrameworkEvent.ERROR) {
