@@ -106,9 +106,19 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
     ComponentContextImpl res;
     Class<?> cclass = null;
     synchronized (this) {
+      // Components that use both factory service and CM managed service factory
+      // may run into problem with concurrent activation and de-activation of
+      // the component configurations. Thus if state is deactivating then we must
+      // not wait for ever here.
+      final long startTime = System.currentTimeMillis();
       while (state == STATE_DEACTIVATING) {
+        if (System.currentTimeMillis() - startTime > 10000) {
+          throw new ComponentException("Waited to long for component "
+                                       +"de-activation during activate: "
+                                       + this);
+        }
         try {
-          wait();
+          wait(1000L);
         } catch (final InterruptedException _ignore) {
         }
       }
@@ -264,8 +274,6 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
     Activator.logDebug("CC.dispose this=" + this + ", reason=" + reason);
     ComponentContextImpl [] ccis;
     synchronized (this) {
-      // TODO: If there is on ongoing activation we should sometimes wait for
-      // it to finish before proceeding to avoid starvation between threads.
       state = STATE_DEACTIVATING;
       ccis = getAllContexts();
       // Mark all as deactivated?
