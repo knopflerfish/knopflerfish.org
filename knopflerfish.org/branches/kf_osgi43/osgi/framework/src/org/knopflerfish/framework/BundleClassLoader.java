@@ -228,7 +228,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *
    * @see java.lang.ClassLoader#findResources
    */
-  protected Enumeration findResources(String name) {
+  protected Enumeration<URL> findResources(String name) {
     // Step 1 and 2 are done by getResources
     return getBundleResources(name, false);
   }
@@ -446,7 +446,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * @see org.osgi.framework.Bundle#getResources(String name)
    *
    */
-  public Enumeration getResourcesOSGi(String name) throws IOException {
+  public Enumeration<URL> getResourcesOSGi(String name) throws IOException {
     if (debug.classLoader) {
       debug.println(this + " getResources: " + name);
     }
@@ -455,7 +455,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
       return fwCtx.parentClassLoader.getResources(name);
     }
 
-    Enumeration res = null;
+    Enumeration<URL> res = null;
     if (fwCtx.isBootDelegatedResource(name)) {
       res = fwCtx.parentClassLoader.getResources(name);
     }
@@ -528,7 +528,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * Get all the resources with the given name in this bundle.
    *
    */
-  Enumeration getBundleResources(String name, boolean onlyFirst) {
+  Enumeration<URL> getBundleResources(String name, boolean onlyFirst) {
     // Removed this check pending outcome of OSGi bug 1489.
     // if (secure.okResourceAdminPerm(bpkgs.bundle)) {
     if (debug.classLoader) {

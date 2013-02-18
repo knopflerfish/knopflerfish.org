@@ -38,13 +38,16 @@ import java.util.*;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRequirement;
+import org.osgi.framework.wiring.BundleRevision;
 
 /**
  * Data structure for import package definitions.
  * 
  * @author Jan Stein
  */
-class ImportPkg {
+class ImportPkg implements BundleRequirement {
   final String name;
   final BundlePackages bpkgs;
   final String resolution;
@@ -329,6 +332,35 @@ class ImportPkg {
       }
     }
     return true;
+  }
+
+
+  public String getNamespace() {
+    return BundleRevision.PACKAGE_NAMESPACE;
+  }
+
+
+  public Map<String, String> getDirectives() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+  public Map<String, Object> getAttributes() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+  public BundleRevision getRevision() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+  public boolean matches(BundleCapability capability) {
+    // TODO Auto-generated method stub
+    return false;
   }
 
 }

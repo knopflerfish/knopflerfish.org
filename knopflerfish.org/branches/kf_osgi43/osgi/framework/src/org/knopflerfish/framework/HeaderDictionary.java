@@ -141,6 +141,10 @@ public class HeaderDictionary extends Dictionary<String, String> implements Clon
     return new HeaderDictionary((Hashtable<Attributes.Name, String>)headers.clone());
   }
 
+  HeaderDictionary cloneHD() {
+    return new HeaderDictionary((Hashtable<Attributes.Name, String>)headers.clone());
+  }
+
 
   public String toString() {
     return headers.toString();

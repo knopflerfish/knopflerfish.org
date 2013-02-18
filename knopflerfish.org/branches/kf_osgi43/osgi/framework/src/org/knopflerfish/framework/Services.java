@@ -60,7 +60,7 @@ class Services {
    * Mapping of registered service to class names under which service
    * is registerd.
    */
-  HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
+  HashMap<ServiceRegistrationImpl<?>, String[]> services = new HashMap();
 
   /**
    * Mapping of classname to registered service.
@@ -142,7 +142,7 @@ class Services {
       }
     }
 
-    ServiceRegistration res =
+    ServiceRegistrationImpl<?> res =
       new ServiceRegistrationImpl(bundle, service,
                                   new PropertiesDictionary(properties, classes, null));
     synchronized (this) {
@@ -408,10 +408,10 @@ class Services {
    * @param b The bundle
    * @return A set of {@link ServiceRegistration} objects
    */
-  synchronized Set getUsedByBundle(Bundle b) {
-    HashSet res = new HashSet();
-    for (Iterator e = services.keySet().iterator(); e.hasNext();) {
-      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
+  synchronized Set<ServiceRegistrationImpl<?>> getUsedByBundle(Bundle b) {
+    HashSet<ServiceRegistrationImpl<?>> res = new HashSet<ServiceRegistrationImpl<?>>();
+    for (Iterator<ServiceRegistrationImpl<?>> e = services.keySet().iterator(); e.hasNext();) {
+      ServiceRegistrationImpl<?> sr = e.next();
       if (sr.isUsedByBundle(b)) {
         res.add(sr);
       }

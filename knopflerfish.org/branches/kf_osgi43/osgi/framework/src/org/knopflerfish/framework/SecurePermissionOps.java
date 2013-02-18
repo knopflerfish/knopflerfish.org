@@ -403,8 +403,8 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  Enumeration callFindResourcesPath(final BundleArchive archive, final String path) {
-    return (Enumeration)AccessController.doPrivileged(new PrivilegedAction() {
+  Enumeration<String> callFindResourcesPath(final BundleArchive archive, final String path) {
+    return (Enumeration<String>)AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
         return archive.findResourcesPath(path);
       }

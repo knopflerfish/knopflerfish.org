@@ -213,7 +213,7 @@ class PermissionOps {
   }
 
 
-  Enumeration callFindResourcesPath(final BundleArchive archive, final String path) {
+  Enumeration<String> callFindResourcesPath(final BundleArchive archive, final String path) {
     return archive.findResourcesPath(path);
   }
 

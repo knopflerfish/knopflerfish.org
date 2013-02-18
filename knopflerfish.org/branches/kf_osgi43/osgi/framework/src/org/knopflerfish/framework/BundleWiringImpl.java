@@ -34,6 +34,7 @@
 package org.knopflerfish.framework;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -82,25 +83,22 @@ public class BundleWiringImpl implements BundleWiring {
   }
 
   public List<BundleWire> getProvidedWires(String namespace) {
-    int ns;
-    if (namespace == null) {
-      ns = NS_BUNDLE|NS_HOST|NS_PACKAGE|NS_OTHER;
-    } else if (BundleRevision.BUNDLE_NAMESPACE.equals(namespace)) {
-      ns = NS_BUNDLE;
-    } else if (BundleRevision.HOST_NAMESPACE.equals(namespace)) {
-      ns = NS_HOST;
-    } else if (BundleRevision.PACKAGE_NAMESPACE.equals(namespace)) {
-      ns = NS_PACKAGE;
-    } else {
-      ns = NS_OTHER;
+    int ns = whichNameSpaces(namespace);
+    ArrayList<BundleWire> res = new ArrayList<BundleWire>();
+    // TODO Manifest order
+    if ((ns & NS_PACKAGE) != 0) {
     }
-    // TODO Auto-generated method stub
-    return null;
+    return res;
   }
 
   public List<BundleWire> getRequiredWires(String namespace) {
-    // TODO Auto-generated method stub
-    return null;
+    int ns = whichNameSpaces(namespace);
+    ArrayList<BundleWire> res = new ArrayList<BundleWire>();
+    // TODO Manifest order
+    if ((ns & NS_PACKAGE) != 0) {
+      
+    }
+    return res;
   }
 
   public BundleRevision getRevision() {
@@ -118,6 +116,22 @@ public class BundleWiringImpl implements BundleWiring {
   public Collection<String> listResources(String path, String filePattern, int options) {
     // TODO Auto-generated method stub
     return null;
+  }
+
+  private int whichNameSpaces(String namespace) {
+    int ns;
+    if (namespace == null) {
+      ns = NS_BUNDLE|NS_HOST|NS_PACKAGE|NS_OTHER;
+    } else if (BundleRevision.BUNDLE_NAMESPACE.equals(namespace)) {
+      ns = NS_BUNDLE;
+    } else if (BundleRevision.HOST_NAMESPACE.equals(namespace)) {
+      ns = NS_HOST;
+    } else if (BundleRevision.PACKAGE_NAMESPACE.equals(namespace)) {
+      ns = NS_PACKAGE;
+    } else {
+      ns = NS_OTHER;
+    }
+    return ns;
   }
 
 }

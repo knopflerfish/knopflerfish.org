@@ -60,7 +60,6 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.Version;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.wiring.BundleRevision;
@@ -1163,6 +1162,7 @@ public class BundleImpl implements Bundle {
           waitOnOperation(fwCtx.packages, "Bundle.resolve", true);
           if (state == INSTALLED) {
             // NYI! check EE for fragments
+            @SuppressWarnings("deprecation")
             String ee = current().archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
             if (ee != null) {
               if (fwCtx.debug.packages) {
@@ -1388,6 +1388,7 @@ public class BundleImpl implements Bundle {
    *
    * @return List of all requiring bundles as BundlePackages.
    */
+  @SuppressWarnings("unchecked")
   List<BundlePackages> getRequiredBy() {
     List<BundlePackages> res = null;
     synchronized (generations) {
@@ -1592,7 +1593,7 @@ public class BundleImpl implements Bundle {
     secure.checkMetadataAdminPerm(this);
     Dictionary<String, String> res = secure.callGetHeaders0(current(), locale);
     if (res == null && cachedHeaders != null) {
-      res = (Dictionary<String, String>)cachedHeaders.clone();
+      res = cachedHeaders.cloneHD();
       // If we went to uninstalled, then use saved value.
       // Otherwise try again, NYI make sure we don't inf-loop.
       if (cachedHeaders == null) {
@@ -1781,10 +1782,10 @@ public class BundleImpl implements Bundle {
    */
   private void removeBundleResources() {
     fwCtx.listeners.removeAllListeners(bundleContext);
-    Set srs = fwCtx.services.getRegisteredByBundle(this);
-    for (Iterator i = srs.iterator(); i.hasNext();) {
+    Set<ServiceRegistrationImpl<?>> srs = fwCtx.services.getRegisteredByBundle(this);
+    for (Iterator<ServiceRegistrationImpl<?>> i = srs.iterator(); i.hasNext();) {
       try {
-        ((ServiceRegistration)i.next()).unregister();
+        i.next().unregister();
       } catch (IllegalStateException ignore) {
         // Someone has unregistered the service after stop completed.
         // This should not occur, but we don't want get stuck in
@@ -1793,7 +1794,7 @@ public class BundleImpl implements Bundle {
     }
     Set<ServiceRegistrationImpl<?>> s = fwCtx.services.getUsedByBundle(this);
     for (Iterator<ServiceRegistrationImpl<?>> i = s.iterator(); i.hasNext();) {
-      ServiceRegistrationImpl sri = i.next();
+      ServiceRegistrationImpl<?> sri = i.next();
       sri.ungetService(this, false);
     }
   }
