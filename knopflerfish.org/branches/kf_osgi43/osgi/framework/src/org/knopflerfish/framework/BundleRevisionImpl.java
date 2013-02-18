@@ -74,8 +74,7 @@ public class BundleRevisionImpl extends BundleReferenceImpl implements
 	}
 
 	public BundleWiring getWiring() {
-		// TODO Auto-generated method stub
-		return null;
+		return gen.getBundleWiring();
 	}
 
 }

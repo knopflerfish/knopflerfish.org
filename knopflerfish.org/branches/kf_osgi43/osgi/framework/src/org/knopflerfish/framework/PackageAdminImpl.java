@@ -397,8 +397,8 @@ public class PackageAdminImpl implements PackageAdmin {
       if (((b.state & BundleImpl.RESOLVED_FLAGS) != 0
            || b.getRequiredBy().size() > 0)// Required, updated but not
                                            // re-resolved
-          && !b.gen.isFragment()) {
-        res.add(new RequiredBundleImpl(b.gen.bpkgs));
+          && !b.current().isFragment()) {
+        res.add(new RequiredBundleImpl(b.current().bpkgs));
       }
     }
     int s = res.size();
@@ -431,7 +431,7 @@ public class PackageAdminImpl implements PackageAdmin {
       return null;
     }
 
-    BundleGeneration bg = ((BundleImpl)bundle).gen;
+    BundleGeneration bg = ((BundleImpl)bundle).current();
 
     if (bg.isFragment()) {
       return null;
@@ -477,7 +477,7 @@ public class PackageAdminImpl implements PackageAdmin {
   public int getBundleType(Bundle bundle) {
     BundleImpl b = (BundleImpl)bundle;
 
-    if (b.gen.isFragment() && !b.gen.isExtension()) {
+    if (b.current().isFragment() && !b.current().isExtension()) {
       return BUNDLE_TYPE_FRAGMENT;
     }
 

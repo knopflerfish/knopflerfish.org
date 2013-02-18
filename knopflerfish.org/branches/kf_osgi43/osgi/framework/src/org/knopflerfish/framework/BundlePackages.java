@@ -449,13 +449,13 @@ class BundlePackages {
    *
    * @return List of required BundlePackages
    */
-  List getRequiredBy() {
+  List<BundlePackages> getRequiredBy() {
+    List<BundlePackages> res = new ArrayList();
     if (requiredBy != null) {
+      synchronized (requiredBy) {
+        res.addAll(requiredBy);
+      }
       if (fragments != null) {
-        ArrayList res = new ArrayList();
-        synchronized (requiredBy) {
-          res.addAll(requiredBy);
-        }
         synchronized (fragments) {
           for (Iterator i = fragments.values().iterator(); i.hasNext();) {
             List fl = ((BundlePackages)i.next()).getRequiredBy();
@@ -464,14 +464,9 @@ class BundlePackages {
             }
           }
         }
-        return res;
-      } else {
-        synchronized (requiredBy) {
-          return (List)requiredBy.clone();
-        }
       }
     }
-    return Collections.EMPTY_LIST;
+    return res;
   }
 
 
@@ -513,7 +508,7 @@ class BundlePackages {
    *
    * @return An Iterator over ExportPkg.
    */
-  Iterator getExports() {
+  Iterator<ExportPkg> getExports() {
     if (fragments != null) {
       synchronized (fragments) {
         ArrayList iters = new ArrayList(fragments.size() + 1);
@@ -727,6 +722,10 @@ class BundlePackages {
     return "BundlePackages(id=" + bg.bundle.id + ",gen=" + bg.generation + ")";
   }
 
+
+  boolean isActive() {
+    return okImports != null;
+  }
 
   //
   // Private methods

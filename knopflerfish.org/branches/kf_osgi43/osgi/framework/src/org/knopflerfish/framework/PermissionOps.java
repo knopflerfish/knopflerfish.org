@@ -42,6 +42,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Vector;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -269,7 +270,7 @@ class PermissionOps {
   }
 
 
-  Enumeration callFindEntries(final BundleGeneration bg, final String path,
+  Vector<URL> callFindEntries(final BundleGeneration bg, final String path,
                               final String filePattern, final boolean recurse) {
     return bg.findEntries(path, filePattern, recurse);
   }

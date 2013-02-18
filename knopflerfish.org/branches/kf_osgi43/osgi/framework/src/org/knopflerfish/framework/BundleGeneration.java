@@ -56,6 +56,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleWiring;
 
 /**
  * Bundle generation specific data.
@@ -155,6 +157,10 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * class.
    */
   private ProtectionDomain protectionDomain;
+
+  private BundleWiring bundleWiring = null;
+
+  private BundleRevision bundleRevision = null;
 
 
   /**
@@ -587,7 +593,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       if (fbg.bundle.state != Bundle.UNINSTALLED) {
         fbg.fragment.removeHost(this);
         if (!fbg.fragment.hasHosts()) {
-          if (fbg == fbg.bundle.gen) {
+          if (fbg == fbg.bundle.current()) {
             fbg.bundle.setStateInstalled(true);
           } else {
             // ... NYI zombie detach
@@ -683,7 +689,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         } catch (final ConcurrentModificationException ignore) {
         }
       }
-      if (best == bundle.fwCtx.systemBundle.gen) {
+      if (best == bundle.fwCtx.systemBundle.current()) {
         bundle.fwCtx.systemBundle.readLocalization("", localization_entries, baseName);
         bundle.fwCtx.systemBundle.readLocalization(defaultLocale, localization_entries,
             baseName);
@@ -770,15 +776,15 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   /**
    *
    */
-  Enumeration<URL> findEntries(String path, String filePattern, boolean recurse) {
-    final Vector<URL> res = new Vector<URL>();
+  Vector<URL> findEntries(String path, String filePattern, boolean recurse) {
+    Vector<URL> res = new Vector<URL>();
     addResourceEntries(res, path, filePattern, recurse);
     if (isFragmentHost()) {
       for (BundleGeneration fbg : fragments) {
         fbg.addResourceEntries(res, path, filePattern, recurse);
       }
     }
-    return res.size() != 0 ? res.elements() : null;
+    return res;
   }
 
 
@@ -990,6 +996,31 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       }
     }
     return res;
+  }
+
+
+  BundleWiring getBundleWiring() {
+    if (bundleWiring == null) {
+      if (bpkgs != null && fragment == null && bpkgs.isActive()) {
+        bundleWiring = new BundleWiringImpl(this);
+      }
+    } else if (!bpkgs.isActive()) {
+      bundleWiring = null;
+    }
+    return bundleWiring;
+  }
+
+
+  BundleRevision getRevision() {
+    if (bundleRevision == null) {
+      bundleRevision = new BundleRevisionImpl(this);
+    }
+    return bundleRevision;
+  }
+
+
+  boolean isUninstalled() {
+    return bpkgs == null;
   }
 
 }

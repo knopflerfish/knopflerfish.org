@@ -184,7 +184,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       while (i.hasNext()) {
         final BundleImpl b = (BundleImpl)fwCtx.bundles.getBundle((String)i.next());
         try {
-          final int autostartSetting = b.gen.archive.getAutostartSetting();
+          final int autostartSetting = b.current().archive.getAutostartSetting();
           // Launch must not change the autostart setting of a bundle
           int option = Bundle.START_TRANSIENT;
           if (Bundle.START_ACTIVATION_POLICY == autostartSetting) {
@@ -419,7 +419,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     if (extension.isBootClassPathExtension()) {
       // if we attach during startup, we assume that bundle is in BCP.
       if (getClassLoader() == null) {
-        gen.attachFragment(extension);
+        current().attachFragment(extension);
       } else {
         throw new UnsupportedOperationException(
             "Bootclasspath extension can not be dynamicly activated");
@@ -427,7 +427,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     } else {
       try {
         addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
-        gen.attachFragment(extension);
+        current().attachFragment(extension);
         handleExtensionActivator(extension);
       } catch (Exception e) {
         throw new UnsupportedOperationException(
@@ -448,7 +448,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    *          will choose OSGi default
    */
   void readLocalization(String locale, Hashtable localization_entries, String baseName) {
-    if (gen.fragments == null) {
+    if (current().fragments == null) {
       // NYI! read localization from framework.
       // There is no need for this now since it isn't used.
       return;
@@ -461,8 +461,8 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     while (true) {
       String l = baseName + locale + ".properties";
-      for (int i = gen.fragments.size() - 1; i >= 0; i--) {
-        BundleGeneration bg = (BundleGeneration)gen.fragments.get(i);
+      for (int i = current().fragments.size() - 1; i >= 0; i--) {
+        BundleGeneration bg = (BundleGeneration)current().fragments.get(i);
         Hashtable tmp = bg.archive.getLocalizationEntries(l);
         if (tmp != null) {
           localization_entries.putAll(tmp);
@@ -518,7 +518,8 @@ public class SystemBundle extends BundleImpl implements Framework {
       sp.append(",").append(extraPkgs);
     }
     exportPackageString = sp.toString();
-    gen = new BundleGeneration(this, exportPackageString);
+    BundleGeneration gen = new BundleGeneration(this, exportPackageString);
+    generations.add(gen);
     gen.bpkgs.registerPackages();
     gen.bpkgs.resolvePackages();
     fwWiring = new FrameworkWiringImpl(fwCtx);

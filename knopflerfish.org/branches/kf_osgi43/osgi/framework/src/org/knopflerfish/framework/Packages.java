@@ -762,7 +762,7 @@ class Packages {
       }
       tempResolved.add(b);
       if (checkRequireBundle(b) == null) {
-        List r = resolvePackages(b.gen.bpkgs.getImports());
+        List r = resolvePackages(b.current().bpkgs.getImports());
         if (r.size() == 0) {
           return true;
         }
@@ -848,15 +848,15 @@ class Packages {
    */
   private BundleImpl checkBundleSingleton(BundleImpl b) {
     // NYI! More speed?
-    if (b.gen.symbolicName != null && b.gen.singleton) {
+    if (b.getSymbolicName() != null && b.current().singleton) {
       if (framework.debug.packages) {
         framework.debug.println("checkBundleSingleton: check singleton bundle " + b);
       }
-      List bl = framework.bundles.getBundles(b.gen.symbolicName);
+      List bl = framework.bundles.getBundles(b.getSymbolicName());
       if (bl.size() > 1) {
         for (Iterator i = bl.iterator(); i.hasNext();) {
           BundleImpl b2 = (BundleImpl)i.next();
-          if (b2.gen.singleton && ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0 ||
+          if (b2.current().singleton && ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0 ||
                                tempResolved.contains(b2))) {
             if (framework.debug.packages) {
               framework.debug.println("checkBundleSingleton: Reject because of bundle: " + b2);
@@ -879,13 +879,13 @@ class Packages {
    */
   private String checkRequireBundle(BundleImpl b) {
     // NYI! More speed?
-    Iterator i = b.gen.bpkgs.getRequire();
+    Iterator i = b.current().bpkgs.getRequire();
     if (i != null) {
       if (framework.debug.packages) {
         framework.debug.println("checkRequireBundle: check requiring bundle " + b);
       }
       if (!framework.perm.okRequireBundlePerm(b)) {
-        return b.gen.symbolicName;
+        return b.getSymbolicName();
       }
       HashMap res = new HashMap();
       do {
@@ -899,7 +899,7 @@ class Packages {
           } else if ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0) {
             HashMap oldTempProvider = (HashMap)tempProvider.clone();
             ok = b2;
-            for (Iterator epi = b2.gen.bpkgs.getExports(); epi.hasNext();) {
+            for (Iterator epi = b2.current().bpkgs.getExports(); epi.hasNext();) {
               ExportPkg ep = (ExportPkg)epi.next();
               if (!checkUses(ep)) {
                 tempProvider = oldTempProvider;
@@ -917,7 +917,7 @@ class Packages {
           if (framework.debug.packages) {
             framework.debug.println("checkRequireBundle: added required bundle " + ok);
           }
-          res.put(br, ok.gen.bpkgs);
+          res.put(br, ok.current().bpkgs);
         } else if (br.resolution == Constants.RESOLUTION_MANDATORY) {
           if (framework.debug.packages) {
             framework.debug.println("checkRequireBundle: failed to satisfy: " + br.name);
@@ -968,7 +968,7 @@ class Packages {
     for (Iterator i = tempResolved.iterator(); i.hasNext();) {
       BundleImpl bs = (BundleImpl)i.next();
       if (bs.getState() == Bundle.INSTALLED) {
-        for (Iterator bi = bs.gen.bpkgs.getImports(); bi.hasNext();) {
+        for (Iterator bi = bs.current().bpkgs.getImports(); bi.hasNext();) {
           ImportPkg ip = (ImportPkg)bi.next();
           ExportPkg ep = (ExportPkg)tempProvider.get(ip.name);
           if (ep == null) {

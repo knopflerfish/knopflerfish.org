@@ -56,6 +56,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import org.knopflerfish.framework.permissions.PermissionsHandle;
 import org.osgi.framework.AdaptPermission;
@@ -275,25 +276,25 @@ class SecurePermissionOps extends PermissionOps {
 
   boolean okFragmentBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.FRAGMENT));
+    return pc.implies(new BundlePermission(b.getSymbolicName(), BundlePermission.FRAGMENT));
   }
 
 
   boolean okHostBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.HOST));
+    return pc.implies(new BundlePermission(b.getSymbolicName(), BundlePermission.HOST));
   }
 
 
   boolean okProvideBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.PROVIDE));
+    return pc.implies(new BundlePermission(b.getSymbolicName(), BundlePermission.PROVIDE));
   }
 
 
   boolean okRequireBundlePerm(BundleImpl b) {
     PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
-    return pc.implies(new BundlePermission(b.gen.symbolicName, BundlePermission.REQUIRE));
+    return pc.implies(new BundlePermission(b.getSymbolicName(), BundlePermission.REQUIRE));
   }
 
 
@@ -508,9 +509,9 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
-  Enumeration callFindEntries(final BundleGeneration bg, final String path,
+  Vector<URL> callFindEntries(final BundleGeneration bg, final String path,
                               final String filePattern, final boolean recurse) {
-    return (Enumeration)AccessController.doPrivileged(new PrivilegedAction() {
+    return (Vector<URL>)AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
         return bg.findEntries(path, filePattern, recurse);
       }

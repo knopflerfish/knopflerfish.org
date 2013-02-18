@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -129,7 +129,7 @@ public class RequiredBundleImpl implements RequiredBundle
    *         become stale; <code>false</code> otherwise.
    */
   public boolean isRemovalPending() {
-    return bpkgs.bg.bundle.gen != bpkgs.bg;
+    return bpkgs.bg.bundle.current() != bpkgs.bg;
   }
 
 }

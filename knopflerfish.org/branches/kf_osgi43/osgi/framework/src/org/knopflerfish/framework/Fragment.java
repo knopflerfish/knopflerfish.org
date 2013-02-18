@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,6 +75,7 @@ class Fragment {
   }
 
 
+  @SuppressWarnings("unchecked")
   Vector<BundleGeneration> getHosts() {
     return hosts.isEmpty() ? null : (Vector<BundleGeneration>)hosts.clone();
   }
@@ -86,7 +87,7 @@ class Fragment {
 
 
   boolean isTarget(BundleImpl b) {
-    return hostName.equals(b.gen.symbolicName) && versionRange.withinRange(b.gen.version);
+    return hostName.equals(b.getSymbolicName()) && versionRange.withinRange(b.getVersion());
   }
 
 
@@ -95,7 +96,7 @@ class Fragment {
     for (Iterator<BundleImpl> iter = bundles.iterator(); iter.hasNext();) {
       BundleImpl t = iter.next();
 
-      if (t.gen.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
+      if (t.current().attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
         iter.remove();
       }
     }

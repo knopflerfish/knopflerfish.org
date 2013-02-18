@@ -228,7 +228,7 @@ public class Bundles {
     synchronized (bundles) {
       for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
         final BundleImpl b = e.nextElement();
-        if (name.equals(b.gen.symbolicName) && version.equals(b.gen.version)) {
+        if (name.equals(b.getSymbolicName()) && version.equals(b.getVersion())) {
           return b;
         }
       }
@@ -262,7 +262,7 @@ public class Bundles {
     synchronized (bundles) {
       for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
         final BundleImpl b = e.nextElement();
-        if (name.equals(b.gen.symbolicName)) {
+        if (name.equals(b.getSymbolicName())) {
           res.add(b);
         }
       }
@@ -284,10 +284,10 @@ public class Bundles {
     final List<BundleImpl> res = getBundles(name);
     for (int i = 0; i < res.size(); ) {
       final BundleImpl b = res.remove(i);
-      if (range.withinRange(b.gen.version)) {
+      if (range.withinRange(b.getVersion())) {
         int j = i;
         while (--j >= 0) {
-          if (b.gen.version.compareTo(res.get(j).gen.version) <= 0) {
+          if (b.getVersion().compareTo(res.get(j).getVersion()) <= 0) {
             break;
           }
         }
@@ -360,7 +360,7 @@ public class Bundles {
     final HashMap<String, BundleGeneration> res = new HashMap<String, BundleGeneration>();
     for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
       final BundleImpl b = e.nextElement();
-      final BundleGeneration bg = b.gen;
+      final BundleGeneration bg = b.current();
       if (bg.isFragment() &&
           b.state != Bundle.UNINSTALLED &&
           bg.fragment.isTarget(target)) {
