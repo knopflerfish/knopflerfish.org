@@ -37,7 +37,6 @@ package org.knopflerfish.framework;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URL;
@@ -152,36 +151,6 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
       debug.println(this + " Created new classloader");
     }
   }
-
-  //
-  // ClassLoader classes
-  //
-
-  static boolean bHasASM = false;
-  static boolean bHasCheckedASM = false;
-
-
-  /**
-   * Check if this bundle is to be byte code patched
-   */
-  boolean isBundlePatch() {
-    if (!bHasCheckedASM) {
-      try {
-        Class.forName("org.objectweb.asm.ClassReader");
-        bHasASM = true;
-      } catch (Exception no_asm_class) {
-        bHasASM = false;
-      }
-      bHasCheckedASM = true;
-
-      if (debug.patch) {
-        debug.println("ASM library: " + bHasASM);
-      }
-    }
-
-    return bHasASM && fwCtx.props.getBooleanProperty(FWProps.PATCH_PROP);
-  }
-
 
   /**
    * Find bundle class to load. First check if this load comes from an imported
@@ -887,9 +856,6 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         throws IOException {
       byte[] bytes = ((FileArchive)items.get(0)).getClassBytes(path);
       if (bytes != null) {
-        if (cl.isBundlePatch()) {
-          bytes = ClassPatcher.getInstance(cl).patch(name, bytes);
-        }
         if (cl.debug.classLoader) {
           cl.debug.println("classLoader(#" + cl.bpkgs.bg.bundle.id + ") - load class: " + name);
         }

@@ -32,7 +32,13 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.framework;
+package org.knopflerfish.framework.classpatcher;
+
+import org.knopflerfish.framework.BundleClassLoader;
+import org.knopflerfish.framework.BundleImpl;
+import org.knopflerfish.framework.Main;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.wiring.BundleWiring;
 
 /**
  * Class containing static wrapper methods used by ClassPatcher. These methods
@@ -50,23 +56,16 @@ package org.knopflerfish.framework;
  */
 public class ClassPatcherWrappers {
 
-  protected static BundleClassLoader getBundleClassLoader(long bid) {
-    // NYI, we only handle framwork start via Main.
-    BundleImpl b = (BundleImpl) Main.main.framework;
-    b = (BundleImpl) b.bundleContext.getBundle(bid);
-    if (b != null) {
-      return (BundleClassLoader) b.getClassLoader();
-    }
-    return null;
+  protected static Bundle getBundle(long bid) {
+    return ClassPatcherActivator.bc.getBundle(bid);
   }
 
   public static void systemExitWrapper(int code, long bid, Object context) {
-    System.out.println("CP.systemExit code=" + code + ", bid=" + bid + ", context=" + context);
+    ClassPatcherActivator.println("CP.systemExit code=" + code + ", bid=" + bid + ", context=" + context);
     try {
       // NYI, we only handle framwork start via Main.
-      BundleImpl b = (BundleImpl) Main.main.framework;
-      b = (BundleImpl) b.bundleContext.getBundle(bid);
-      System.out.println("stopping " + b);
+      Bundle b = getBundle(bid);
+      ClassPatcherActivator.println("stopping " + b);
       b.stop();
     } catch (Exception e) {
       e.printStackTrace();
@@ -77,11 +76,15 @@ public class ClassPatcherWrappers {
    * Get bundle class loader at Class.getSystemClassLoader() calls.
    */
   public static ClassLoader getSystemClassLoaderWrapper(long bid, Object context) {
-    ClassLoader bcl = getBundleClassLoader(bid);
-    if (bcl == null) {
+    Bundle b = getBundle(bid);
+    if (b == null) {
       throw new IllegalStateException("Undefined bid=" + bid);
     }
-    return bcl;
+    BundleWiring bw = b.adapt(BundleWiring.class);
+    if (b == null) {
+      throw new IllegalStateException("Undefined bid=" + bid);
+    }
+    return bw.getClassLoader();
   }
 
   /**
@@ -104,12 +107,12 @@ public class ClassPatcherWrappers {
       } catch (ClassNotFoundException keeptrying) {
         // noop
       }
-      BundleClassLoader bcl = (BundleClassLoader) getBundleClassLoader(bid);
-      if (bcl == null) {
+      Bundle b = getBundle(bid);
+      if (b == null) {
         throw new ClassNotFoundException("Undefined class '" + name + "' since bid=" + bid
             + " is undefined");
       }
-      return bcl.loadClass(name, true);
+      return b.loadClass(name);
     }
   }
 
@@ -135,12 +138,12 @@ public class ClassPatcherWrappers {
       } catch (ClassNotFoundException keeptrying) {
         // keep trying with the bundle class loader
       }
-      BundleClassLoader bcl = getBundleClassLoader(bid);
-      if (bcl == null) {
+      Bundle b = getBundle(bid);
+      if (b == null) {
         throw new ClassNotFoundException("Undefined class '" + name + "' since bid=" + bid
             + " is undefined");
       }
-      return bcl.loadClass(name, true);
+      return b.loadClass(name);
     }
   }
 }

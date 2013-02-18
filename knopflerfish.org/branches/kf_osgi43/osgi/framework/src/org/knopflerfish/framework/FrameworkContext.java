@@ -42,6 +42,7 @@ import org.osgi.framework.*;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 
+import org.knopflerfish.framework.classpatcher.ClassPatcherActivator;
 // NYI, make these imports dynamic!
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
@@ -100,6 +101,12 @@ public class FrameworkContext  {
    * All weaving hooks.
    */
   WeavingHooks weavingHooks;
+  
+  /**
+   * Class Patching Feature
+   */
+  
+  ClassPatcherActivator classPatcher;
 
   /**
    * All exported and imported packages in this framework.
@@ -386,6 +393,13 @@ public class FrameworkContext  {
     
     weavingHooks = new WeavingHooks(this);
     weavingHooks.open();
+    
+    classPatcher = new ClassPatcherActivator(this);
+    try {
+      // classPatcher.start(this.systemBundle.getBundleContext());
+    } catch (Exception e) {
+      log("Failed to start ClassPatcher", e);
+    }
 
     perm.registerService();
 

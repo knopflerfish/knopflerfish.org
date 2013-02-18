@@ -32,7 +32,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.framework;
+package org.knopflerfish.framework.classpatcher;
 
 
 import java.util.Map;
@@ -51,6 +51,10 @@ import java.io.OutputStream;
 
 import java.net.URL;
 
+import org.knopflerfish.framework.BundleClassLoader;
+import org.knopflerfish.framework.FWProps;
+import org.knopflerfish.framework.FrameworkContext;
+import org.knopflerfish.framework.LDAPExpr;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
@@ -58,6 +62,8 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.wiring.BundleWiring;
 
 /**
  * This class contains byte code-manipulation functions for
@@ -80,7 +86,8 @@ public class ClassPatcher {
   // Map<BundleClassLoader,ClassPatcher>
   static protected Map               patchers = new HashMap();
 
-  protected        BundleClassLoader classLoader;
+  protected        Bundle patchedBundle;
+  private Dictionary<String, String> manifestHeaders;
 
   // Dictionary used for LDAP matching on which patches to apply
   // This dictionary will contain all manifest headers, plus
@@ -103,31 +110,34 @@ public class ClassPatcher {
   // to be applied.
   protected Map      wrappers      = new HashMap();
 
-  FrameworkContext framework;
-  protected ClassPatcher(BundleClassLoader classLoader) {
-    this.classLoader = classLoader;
-    this.framework = classLoader.bpkgs.bg.bundle.fwCtx;
+  protected ClassPatcher(Bundle b) {
+    this.patchedBundle = b;
     init();
   }
 
-  static public ClassPatcher getInstance(BundleClassLoader classLoader) {
+  static public ClassPatcher getInstance(Bundle b) {
     synchronized(patchers) {
-      ClassPatcher cp = (ClassPatcher)patchers.get(classLoader);
+      ClassPatcher cp = (ClassPatcher)patchers.get(b);
       if(cp == null) {
-        cp = new ClassPatcher(classLoader);
-        patchers.put(classLoader, cp);
+        cp = new ClassPatcher(b);
+        patchers.put(b, cp);
       }
       return cp;
     }
   }
 
-
+  private String getAttribute(String s) {
+    if(manifestHeaders == null) {
+      manifestHeaders = patchedBundle.getHeaders();
+    }
+    return manifestHeaders.get(s);
+  }
   protected void init() {
-    bDumpClasses = framework.props.getBooleanProperty(FWProps.PATCH_DUMPCLASSES_PROP);
-    String urlS = classLoader.archive.getAttribute("Bundle-ClassPatcher-Config");
+    bDumpClasses = ClassPatcherActivator.fc.props.getBooleanProperty(FWProps.PATCH_DUMPCLASSES_PROP);
+    String urlS = getAttribute("Bundle-ClassPatcher-Config");
 
     if(urlS == null || "".equals(urlS)) {
-      urlS = framework.props.getProperty(FWProps.PATCH_CONFIGURL_PROP);
+      urlS = ClassPatcherActivator.fc.props.getProperty(FWProps.PATCH_CONFIGURL_PROP);
     } else if("none".equals(urlS)) {
       urlS = null;
     }
@@ -157,11 +167,11 @@ public class ClassPatcher {
     try {
       ClassReader  cr    = new ClassReader(classBytes);
       ClassWriter  cw    = new BundleClassWriter(ClassWriter.COMPUTE_MAXS,
-                                                 classLoader);
+                                                 patchedBundle.adapt(BundleWiring.class).getClassLoader());
       ClassAdapter trans = new ClassAdapterPatcher(cw,
                                                    className.replace('.', '/'),
-                                                   classLoader,
-                                                   classLoader.archive.getBundleId(),
+                                                   patchedBundle.adapt(BundleWiring.class).getClassLoader(),
+                                                   patchedBundle.getBundleId(),
                                                    this);
 
       cr.accept(trans, 0);
@@ -174,7 +184,7 @@ public class ClassPatcher {
       classBytes = newBytes;
     } catch (Exception e) {
       throw new RuntimeException("Failed to patch " + className + "/"
-                                 + classLoader +": " +e);
+                                 + patchedBundle.adapt(BundleWiring.class).getClassLoader() +": " +e);
     }
     return classBytes;
   }
@@ -190,14 +200,14 @@ public class ClassPatcher {
       if(urlS.startsWith("!!")) {
         url = ClassPatcher.class.getResource(urlS.substring(2));
       } else if(urlS.startsWith("!")) {
-        url = classLoader.getResource(urlS.substring(1));
+        url = patchedBundle.adapt(BundleWiring.class).getClassLoader().getResource(urlS.substring(1));
       } else {
         url = new URL(urlS);
       }
       is = url.openStream();
       loadWrappersFromInputStream(is);
     } catch (Exception e) {
-      framework.debug.printStackTrace("Failed to load patches conf from " + url, e);
+      ClassPatcherActivator.fc.debug.printStackTrace("Failed to load patches conf from " + url, e);
     } finally {
       try { is.close(); } catch (Exception ignored) { }
     }
@@ -212,7 +222,7 @@ public class ClassPatcher {
       try {
         patchesFilter = new LDAPExpr(f);
       } catch (Exception e) {
-        framework.debug.printStackTrace("Failed to set patches filter", e);
+        ClassPatcherActivator.fc.debug.printStackTrace("Failed to set patches filter", e);
       }
     }
 
@@ -226,8 +236,8 @@ public class ClassPatcher {
           String to   = (String)props.get(PRE + id + ".to");
 
           if(to == null) {
-            if(framework.debug.patch) {
-              framework.debug.println("No key=" + (PRE + id + ".to"));
+            if(ClassPatcherActivator.fc.debug.patch) {
+              ClassPatcherActivator.fc.debug.println("No key=" + (PRE + id + ".to"));
             }
             continue;
           }
@@ -278,10 +288,10 @@ public class ClassPatcher {
     String targetOwner = r[0];
     String targetName = r[1];
 
-    if (!classLoader.isBundlePatch()) {
+    if (!ClassPatcherActivator.isBundlePatch()) {
       return;
     }
-    String kpt = framework.props.getProperty("kf.patch." + targetName);
+    String kpt = ClassPatcherActivator.fc.props.getProperty("kf.patch." + targetName);
     if (kpt != null ? "false".equalsIgnoreCase(kpt) : !defActive) {
       return;
     }
@@ -291,7 +301,7 @@ public class ClassPatcher {
       try {
         mi.filter = new LDAPExpr(filter);
       } catch (Exception e) {
-        framework.debug.printStackTrace("Bad filter for " + mi, e);
+        ClassPatcherActivator.fc.debug.printStackTrace("Bad filter for " + mi, e);
       }
     }
     int    ix0        = desc.lastIndexOf("(");
@@ -322,10 +332,10 @@ public class ClassPatcher {
       MethodInfo mi   = (MethodInfo)wrappers.get(from);
       if(mi.nPatches > 0) {
         if(bFirst) {
-          framework.debug.println("Patches in " + mi.className);
+          ClassPatcherActivator.fc.debug.println("Patches in " + mi.className);
           bFirst = false;
         }
-        framework.debug.println(" " + mi.nPatches + " " +
+        ClassPatcherActivator.fc.debug.println(" " + mi.nPatches + " " +
                                 (mi.nPatches == 1 ? "occurance " : "occurances") +
                                 " of " + from.owner + "." + from.name);
       }
@@ -344,7 +354,7 @@ public class ClassPatcher {
   // bundle location and id
   protected void makeMatchProps() {
     matchProps = new Hashtable();
-    Dictionary d = classLoader.bpkgs.bg.bundle.getHeaders();
+    Dictionary<String, String> d = patchedBundle.getHeaders();
 
     for(Enumeration e = d.keys(); e.hasMoreElements(); ) {
       Object key = e.nextElement();
@@ -352,8 +362,8 @@ public class ClassPatcher {
       matchProps.put(key, val);
     }
 
-    matchProps.put(PROP_LOCATION,  classLoader.archive.getBundleLocation());
-    matchProps.put(PROP_BID,       new Long(classLoader.archive.getBundleId()));
+    matchProps.put(PROP_LOCATION,  patchedBundle.getLocation());
+    matchProps.put(PROP_BID,       new Long(patchedBundle.getBundleId()));
   }
 
 
@@ -363,7 +373,7 @@ public class ClassPatcher {
   protected void dumpClassBytes(String className, byte[] classBytes) {
     OutputStream os = null;
     try {
-      String dirName = framework.props.getProperty(FWProps.PATCH_DUMPCLASSES_DIR_PROP);
+      String dirName = ClassPatcherActivator.fc.props.getProperty(FWProps.PATCH_DUMPCLASSES_DIR_PROP);
       File dir = new File(dirName);
 
       String classFileName = className.replace('.', '/');
@@ -376,14 +386,14 @@ public class ClassPatcher {
       }
       dir.mkdirs();
       file = new File(dir, classFileName);
-      if(framework.debug.patch) {
-        framework.debug.println("dump " + className + " to " + file.getAbsolutePath());
+      if(ClassPatcherActivator.fc.debug.patch) {
+        ClassPatcherActivator.fc.debug.println("dump " + className + " to " + file.getAbsolutePath());
       }
       os = new FileOutputStream(file);
       os.write(classBytes);
       os.flush();
     } catch (Exception e) {
-      framework.debug.printStackTrace("Failed to dump class=" + className, e);
+      ClassPatcherActivator.fc.debug.printStackTrace("Failed to dump class=" + className, e);
     } finally {
       try { os.close(); } catch (Exception ignored) { }
     }
@@ -392,7 +402,7 @@ public class ClassPatcher {
 
 
 class ClassAdapterPatcher extends ClassAdapter {
-  BundleClassLoader bcl;
+  ClassLoader       cl;
   long              bid;
   String            className;
   String            currentMethodName;
@@ -412,15 +422,15 @@ class ClassAdapterPatcher extends ClassAdapter {
 
   ClassAdapterPatcher(ClassVisitor      cv,
                       String            className,
-                      BundleClassLoader bcl,
+                      ClassLoader cl,
                       long              bid,
                       ClassPatcher      cp) {
     super(cv);
     this.className = className;
-    this.bcl       = bcl;
+    this.cl       = cl;
     this.bid       = bid;
     this.cp        = cp;
-    this.framework = bcl.bpkgs.bg.bundle.fwCtx;
+    this.framework = ClassPatcherActivator.fc;
   }
 
   public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -446,7 +456,7 @@ class ClassAdapterPatcher extends ClassAdapter {
 
     super.visitEnd();
 
-    if(bcl.bpkgs.bg.bundle.fwCtx.debug.patch) {
+    if(ClassPatcherActivator.fc.debug.patch) {
       cp.dumpInfo();
     }
   }

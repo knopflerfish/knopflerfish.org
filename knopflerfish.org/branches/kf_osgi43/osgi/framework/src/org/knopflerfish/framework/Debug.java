@@ -118,7 +118,7 @@ public class Debug {
    * Report Class patching handling
    */
   public static String PATCH_PROP = "org.knopflerfish.framework.debug.patch";
-  boolean patch;
+  public boolean patch;
 
   /**
    * Report permission handling
