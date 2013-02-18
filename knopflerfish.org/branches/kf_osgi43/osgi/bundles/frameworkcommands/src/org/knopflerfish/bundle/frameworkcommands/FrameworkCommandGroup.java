@@ -76,6 +76,9 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRequirement;
+import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
@@ -1082,6 +1085,56 @@ public class FrameworkCommandGroup
           out.println();
         }
       }
+    }
+    return 0;
+  }
+
+  //
+  // Package command
+  //
+
+  public final static String USAGE_CAPABILITY = "[-i] [-r] [-p] [<bundle>] ...";
+
+  public final static String[] HELP_CAPABILITY = new String[] {
+    "Show capability information for a bundle",
+    "-i         Sort on bundle id",
+    "-r         Only show required capabilites",
+    "-p         Only provided capabilites",
+    "<bundle>   The selected bundle" };
+
+  public int cmdCapability(Dictionary<String, ?> opts,
+                           Reader in,
+                           PrintWriter out,
+                           Session session)
+  {
+    Bundle[] b = getBundles((String[]) opts.get("bundle"),
+                            opts.get("-i") != null);
+    boolean doRequirements = opts.get("-r")!=null;
+    boolean doProvides = opts.get("-p")!=null;
+    boolean doAll = !(doRequirements && doProvides);
+    
+    boolean found = false;
+    for (int i = 0; i < b.length; i++) {
+      if (b[i] != null) {
+        out.println("Bundle: " + showBundle(b[i]));
+        BundleRevision rev = b[i].adapt(BundleRevision.class);
+        if (doRequirements || doAll) {
+          for (BundleRequirement br : rev.getDeclaredRequirements(null)) {
+            out.println(br);
+          }
+        }
+        
+        if (doProvides || doAll) {
+          for (BundleCapability bc : rev.getDeclaredCapabilities(null)) {
+            out.println(bc);
+          }
+        }
+        found = true;
+      }
+    }
+    if (!found) {
+      out.println("ERROR! No matching bundle");
+      return 1;
     }
     return 0;
   }

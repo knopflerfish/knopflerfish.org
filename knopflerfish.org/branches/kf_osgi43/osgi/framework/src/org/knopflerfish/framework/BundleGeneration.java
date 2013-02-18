@@ -458,19 +458,22 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     final Map<String, List<BundleRequirement>> res
       = new HashMap<String, List<BundleRequirement>>();
 
-    Iterator<Map<String, Object>> i 
-      = Util.parseEntries(Constants.REQUIRE_CAPABILITY,
-                          archive.getAttribute(Constants.REQUIRE_CAPABILITY),
-                          true, true, false);
-    while (i.hasNext()) {
-      final Map<String,Object> e = (Map<String,Object>) i.next();
-      final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
-      List<BundleRequirement> nsReqs = res.get(bri.getNamespace());
-      if (null==nsReqs) {
-        nsReqs = new ArrayList<BundleRequirement>();
-        res.put(bri.getNamespace(), nsReqs);
+    // The system bundle has no requirements.
+    if (bundle.getBundleId()!=0) {
+      Iterator<Map<String, Object>> i = Util
+          .parseEntries(Constants.REQUIRE_CAPABILITY,
+                        archive.getAttribute(Constants.REQUIRE_CAPABILITY),
+                        true, true, false);
+      while (i.hasNext()) {
+        final Map<String, Object> e = (Map<String, Object>) i.next();
+        final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
+        List<BundleRequirement> nsReqs = res.get(bri.getNamespace());
+        if (null == nsReqs) {
+          nsReqs = new ArrayList<BundleRequirement>();
+          res.put(bri.getNamespace(), nsReqs);
+        }
+        nsReqs.add(bri);
       }
-      nsReqs.add(bri);
     }
     return res;
   }

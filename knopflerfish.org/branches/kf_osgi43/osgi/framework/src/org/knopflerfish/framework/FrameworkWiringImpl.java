@@ -43,6 +43,8 @@ import org.osgi.framework.wiring.FrameworkWiring;
 public class FrameworkWiringImpl implements FrameworkWiring {
 
   private FrameworkContext fwCtx;
+  
+  static final String SPEC_VERSION = "1.0";
 
   FrameworkWiringImpl(FrameworkContext fwCtx) {
     this.fwCtx = fwCtx;

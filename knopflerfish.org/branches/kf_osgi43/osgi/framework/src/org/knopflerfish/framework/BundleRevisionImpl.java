@@ -33,6 +33,8 @@
  */
 package org.knopflerfish.framework;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.osgi.framework.Version;
@@ -41,40 +43,61 @@ import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
 
-public class BundleRevisionImpl extends BundleReferenceImpl implements
-		BundleRevision {
+public class BundleRevisionImpl
+  extends BundleReferenceImpl
+  implements BundleRevision
+{
 
   final BundleGeneration gen;
 
-	BundleRevisionImpl(BundleGeneration gen) {
-	  super(gen.bundle);
-	  this.gen = gen;
-	}
+  BundleRevisionImpl(BundleGeneration gen)
+  {
+    super(gen.bundle);
+    this.gen = gen;
+  }
 
-	public String getSymbolicName() {
-		return gen.symbolicName;
-	}
+  public String getSymbolicName()
+  {
+    return gen.symbolicName;
+  }
 
-	public Version getVersion() {
-		return gen.version;
-	}
+  public Version getVersion()
+  {
+    return gen.version;
+  }
 
-	public List<BundleCapability> getDeclaredCapabilities(String namespace) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  public List<BundleCapability> getDeclaredCapabilities(String namespace)
+  {
+    // TODO Auto-generated method stub
+    return Collections.EMPTY_LIST;
+  }
 
-	public List<BundleRequirement> getDeclaredRequirements(String namespace) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+  public List<BundleRequirement> getDeclaredRequirements(String namespace)
+  {
+    ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
+    if (namespace == null) {
+      for (List<BundleRequirement> brs : gen.getAllDefinedRequirements()
+          .values()) {
+        res.addAll(brs);
+      }
+    } else {
+      List<BundleRequirement> nsRes = gen.getAllDefinedRequirements()
+          .get(namespace);
+      if (null != res) {
+        res.addAll(nsRes);
+      }
+    }
+    return res;
+  }
 
-	public int getTypes() {
-		return gen.isFragment() ? TYPE_FRAGMENT : 0;
-	}
+  public int getTypes()
+  {
+    return gen.isFragment() ? TYPE_FRAGMENT : 0;
+  }
 
-	public BundleWiring getWiring() {
-		return gen.getBundleWiring();
-	}
+  public BundleWiring getWiring()
+  {
+    return gen.getBundleWiring();
+  }
 
 }
