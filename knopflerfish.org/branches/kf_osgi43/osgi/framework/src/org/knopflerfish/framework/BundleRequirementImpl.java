@@ -89,8 +89,7 @@ public class BundleRequirementImpl
 
   public BundleRevision getRevision()
   {
-    // TODO use gen to get a bundle revision.
-    return null;
+    return gen.getRevision();
   }
 
   public boolean matches(BundleCapability capability)
