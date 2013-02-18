@@ -1174,10 +1174,9 @@ public class BundleImpl implements Bundle {
               }
             }
             if (current().isFragment()) {
-              List /* BundleImpl */hosts = current().fragment.targets(fwCtx);
+              List<BundleImpl> hosts = current().fragment.targets(fwCtx);
               if (hosts != null) {
-                for (Iterator i = hosts.iterator(); i.hasNext();) {
-                  BundleImpl host = (BundleImpl)i.next();
+                for (BundleImpl host : hosts) {
                   if (host.state == INSTALLED) {
                     // Try resolve our host
                     // NYI! Detect circular attach

@@ -41,9 +41,11 @@ import java.security.ProtectionDomain;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -56,6 +58,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -442,6 +445,91 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         bundle.fwCtx.listeners.frameworkError(bundle, ioe);
       }
     }
+  }
+
+
+  /**
+   * Get the requirements specified by the Bundle-Requirement header of this 
+   * bundle generation.
+   * The key in the map is the {@code name-space} of the bundle requirement.
+   */
+  Map<String, List<BundleRequirement>> getDefinedRequirements()
+  {
+    final Map<String, List<BundleRequirement>> res
+      = new HashMap<String, List<BundleRequirement>>();
+
+    Iterator<Map<String, Object>> i 
+      = Util.parseEntries(Constants.REQUIRE_CAPABILITY,
+                          archive.getAttribute(Constants.REQUIRE_CAPABILITY),
+                          true, true, false);
+    while (i.hasNext()) {
+      final Map<String,Object> e = (Map<String,Object>) i.next();
+      final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
+      List<BundleRequirement> nsReqs = res.get(bri.getNamespace());
+      if (null==nsReqs) {
+        nsReqs = new ArrayList<BundleRequirement>();
+        res.put(bri.getNamespace(), nsReqs);
+      }
+      nsReqs.add(bri);
+    }
+    return res;
+  }
+
+
+  private List<BundleRequirement> getDefinedImportPackageRequirements()
+  {
+    // TODO Auto-generated method stub
+    return Collections.EMPTY_LIST;
+  }
+
+
+  private List<BundleRequirement> getDefinedFragmentHostRequirements()
+  {
+    // TODO Auto-generated method stub
+    return Collections.EMPTY_LIST;
+  }
+
+
+  private List<BundleRequirement> getDefinedRequireBundleRequirements()
+  {
+    // TODO Auto-generated method stub
+    return Collections.EMPTY_LIST;
+  }
+
+
+  /**
+   * Get all requirements specified by this bundle generation.
+   * 
+   * Returns requirements specified in the Bundle-Requirement header together
+   * with those derived from the Import-Package, Fragment-Host and 
+   * Require-Bundle headers.
+   * <p/>
+   * The key in the map is the {@code name-space} of the bundle requirement.
+   */
+  Map<String, List<BundleRequirement>> getAllDefinedRequirements()
+  {
+    final Map<String, List<BundleRequirement>> res
+      = getDefinedRequirements();
+
+    // Add Import-package
+    List<BundleRequirement> packageReqs = getDefinedImportPackageRequirements();
+    if (packageReqs.size()>0) {
+      res.put(BundleRevision.PACKAGE_NAMESPACE, packageReqs);
+    }
+    
+    // add Fragment-host
+    List<BundleRequirement> hostReqs = getDefinedFragmentHostRequirements();
+    if (hostReqs.size()>0) {
+      res.put(BundleRevision.HOST_NAMESPACE, hostReqs);
+    }
+    
+    // add Require-bundle
+    List<BundleRequirement> bundleReqs = getDefinedRequireBundleRequirements();
+    if (bundleReqs.size()>0) {
+      res.put(BundleRevision.BUNDLE_NAMESPACE, bundleReqs);
+    }
+
+    return res;
   }
 
 
