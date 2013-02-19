@@ -12,7 +12,7 @@ Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/metatype/cm_desktop/
 Bundle-Activator: org.knopflerfish.bundle.desktop.cm.Activator
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=J2SE)(version>=1.5))"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.5))"
 Import-Package: org.osgi.service.cm; version="[1.4,2)",
  org.knopflerfish.service.desktop,
  org.knopflerfish.util.metatype,

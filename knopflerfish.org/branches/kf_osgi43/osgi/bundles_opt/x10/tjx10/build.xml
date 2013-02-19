@@ -14,7 +14,7 @@
 
   <!-- Build for Java 2 Standard Edition 1.4 Execution Environment. -->
   <!-- Uses java.awt -->
-  <property name="bundle.compile.EE" value="ee.J2SE_1.4"/>
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/**"/>
@@ -43,7 +43,7 @@
 	    value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/x10/tjx10/"/>
 
   <property name="bmfa.Require-Capability"
-            value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=J2SE)
+            value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=JavaSE)
                                                (version>=1.4))&quot;"/>
   <property name="bmfa.Import-Package"   value="org.osgi.framework,org.osgi.service.cm,javax.comm,org.knopflerfish.service.log"/>
 

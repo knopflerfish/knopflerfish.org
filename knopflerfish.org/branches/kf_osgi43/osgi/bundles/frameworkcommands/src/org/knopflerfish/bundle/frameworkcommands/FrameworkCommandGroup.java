@@ -65,9 +65,6 @@ import java.util.StringTokenizer;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import org.knopflerfish.service.console.CommandGroupAdapter;
-import org.knopflerfish.service.console.Session;
-import org.knopflerfish.service.console.Util;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -82,6 +79,10 @@ import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
+
+import org.knopflerfish.service.console.CommandGroupAdapter;
+import org.knopflerfish.service.console.Session;
+import org.knopflerfish.service.console.Util;
 
 
 /**
@@ -1093,7 +1094,7 @@ public class FrameworkCommandGroup
   // Package command
   //
 
-  public final static String USAGE_CAPABILITY = "[-i] [-r] [-p] [<bundle>] ...";
+  public final static String USAGE_CAPABILITY = "[-i] [-l] [-r] [-p] [<bundle>] ...";
 
   public final static String[] HELP_CAPABILITY = new String[] {
     "Show capability information for a bundle",
@@ -1112,6 +1113,7 @@ public class FrameworkCommandGroup
     boolean doRequirements = opts.get("-r")!=null;
     boolean doProvides = opts.get("-p")!=null;
     boolean doAll = !(doRequirements && doProvides);
+    boolean doDetailed = opts.get("-l")!=null;
     
     boolean found = false;
     for (int i = 0; i < b.length; i++) {
@@ -1119,14 +1121,27 @@ public class FrameworkCommandGroup
         out.println("Bundle: " + showBundle(b[i]));
         BundleRevision rev = b[i].adapt(BundleRevision.class);
         if (doRequirements || doAll) {
+          out.println("  Requirements: ");
           for (BundleRequirement br : rev.getDeclaredRequirements(null)) {
-            out.println(br);
+            out.print("    " +br.getNamespace());
+            if (!doDetailed) {
+              String f = br.getDirectives().get("filter");
+              out.println("  " + (f!=null ? f : "NO FILTER"));
+            } else {
+              out.println("  " +br.getDirectives());
+            }
           }
         }
         
         if (doProvides || doAll) {
+          out.println("  Capabilites: ");
           for (BundleCapability bc : rev.getDeclaredCapabilities(null)) {
-            out.println(bc);
+            out.print("    " + bc.getNamespace());
+            if (!doDetailed) {
+              out.println("  " + bc.getAttributes());
+            } else {
+              out.println("  " + bc.getAttributes() + " " +bc.getDirectives());
+            }
           }
         }
         found = true;

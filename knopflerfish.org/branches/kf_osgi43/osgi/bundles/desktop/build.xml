@@ -13,7 +13,7 @@
 
   <!-- Build for Java 2 Standard Edition 1.5 Execution Environment. -->
   <!-- Uses java.awt, javax.swing, ... -->
-  <property name="bundle.compile.EE" value="ee.J2SE_1.5"/>
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
 
   <property name="api.pattern"
             value="org/knopflerfish/service/**,

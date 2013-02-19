@@ -15,7 +15,7 @@
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <!-- Needs javax.net.ssl outside of ee.minimum -->
-  <property name="bundle.compile.EE" value="ee.J2SE_1.4"/>
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
 
   <property name="impl.pattern"            value="org/knopflerfish/**/*"/>
   <property name="resources.dir"           value="resources"/>

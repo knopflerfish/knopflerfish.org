@@ -12,7 +12,7 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/soap/soap_desktop/
 Bundle-Activator: org.knopflerfish.bundle.soap.desktop.Activator
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=J2SE)(version>=1.4))"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=1.4))"
 Import-Package: org.osgi.framework; version="[1.6,2)",
  javax.swing,
  javax.swing.border,
