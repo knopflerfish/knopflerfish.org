@@ -68,7 +68,7 @@
   <!-- The value is the id of a path that will be used as boot class -->
   <!-- path during the compilation.                                  --> 
   <!-- Predefined values: ee.minimum ee.foundation                   --> 
-  <!-- Used but currently undefined EE:s: ee.J2SE_1.4, ee.J2SE_1.5   -->
+  <!-- Used but currently undefined EE:s: ee.JavaSE_1.4, ee.JavaSE_1.5   -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
 
 

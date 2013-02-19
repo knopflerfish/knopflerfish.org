@@ -76,12 +76,12 @@ public class BundleRevisionImpl
   {
     ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
     if (namespace == null) {
-      for (List<BundleRequirement> brs : gen.getAllDefinedRequirements()
+      for (List<BundleRequirement> brs : gen.getAllDeclaredRequirements()
           .values()) {
         res.addAll(brs);
       }
     } else {
-      List<BundleRequirement> nsRes = gen.getAllDefinedRequirements()
+      List<BundleRequirement> nsRes = gen.getAllDeclaredRequirements()
           .get(namespace);
       if (null != res) {
         res.addAll(nsRes);

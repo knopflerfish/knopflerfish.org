@@ -479,21 +479,20 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  private List<BundleRequirement> getDefinedImportPackageRequirements()
+  private List<BundleRequirement> getDeclaredImportPackageRequirements()
+  {
+    return bpkgs.getDeclaredRequirements();
+  }
+
+
+  private List<BundleRequirement> getDeclaredFragmentHostRequirements()
   {
     // TODO Auto-generated method stub
     return Collections.EMPTY_LIST;
   }
 
 
-  private List<BundleRequirement> getDefinedFragmentHostRequirements()
-  {
-    // TODO Auto-generated method stub
-    return Collections.EMPTY_LIST;
-  }
-
-
-  private List<BundleRequirement> getDefinedRequireBundleRequirements()
+  private List<BundleRequirement> getDeclaredRequireBundleRequirements()
   {
     // TODO Auto-generated method stub
     return Collections.EMPTY_LIST;
@@ -503,31 +502,29 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   /**
    * Get all requirements specified by this bundle generation.
    * 
-   * Returns requirements specified in the Bundle-Requirement header together
-   * with those derived from the Import-Package, Fragment-Host and 
-   * Require-Bundle headers.
+   * Returns all requirements declared in the manifest.
    * <p/>
    * The key in the map is the {@code name-space} of the bundle requirement.
    */
-  Map<String, List<BundleRequirement>> getAllDefinedRequirements()
+  Map<String, List<BundleRequirement>> getAllDeclaredRequirements()
   {
     final Map<String, List<BundleRequirement>> res
       = getDefinedRequirements();
 
     // Add Import-package
-    List<BundleRequirement> packageReqs = getDefinedImportPackageRequirements();
+    List<BundleRequirement> packageReqs = getDeclaredImportPackageRequirements();
     if (packageReqs.size()>0) {
       res.put(BundleRevision.PACKAGE_NAMESPACE, packageReqs);
     }
     
     // add Fragment-host
-    List<BundleRequirement> hostReqs = getDefinedFragmentHostRequirements();
+    List<BundleRequirement> hostReqs = getDeclaredFragmentHostRequirements();
     if (hostReqs.size()>0) {
       res.put(BundleRevision.HOST_NAMESPACE, hostReqs);
     }
     
     // add Require-bundle
-    List<BundleRequirement> bundleReqs = getDefinedRequireBundleRequirements();
+    List<BundleRequirement> bundleReqs = getDeclaredRequireBundleRequirements();
     if (bundleReqs.size()>0) {
       res.put(BundleRevision.BUNDLE_NAMESPACE, bundleReqs);
     }

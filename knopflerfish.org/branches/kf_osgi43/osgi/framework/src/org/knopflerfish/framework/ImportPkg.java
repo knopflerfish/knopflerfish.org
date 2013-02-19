@@ -35,8 +35,12 @@
 package org.knopflerfish.framework;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
@@ -47,14 +51,18 @@ import org.osgi.framework.wiring.BundleRevision;
  * 
  * @author Jan Stein
  */
-class ImportPkg implements BundleRequirement {
+class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
+  // To maintain the creation order in the osgi.wiring.package name space.
+  static private int importPkgCount = 0; 
+  final int orderal = ++importPkgCount;
+
   final String name;
   final BundlePackages bpkgs;
   final String resolution;
   final String bundleSymbolicName;
   final VersionRange packageRange;
   final VersionRange bundleRange;
-  final Map attributes;
+  final Map<String,Object> attributes;
 
   // Link to pkg entry
   Pkg pkg = null;
@@ -68,7 +76,7 @@ class ImportPkg implements BundleRequirement {
   /**
    * Create an import package entry.
    */
-  ImportPkg(String name, Map tokens, BundlePackages b) {
+  ImportPkg(String name, Map<String,Object> tokens, BundlePackages b) {
     this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.")) {
@@ -109,11 +117,10 @@ class ImportPkg implements BundleRequirement {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
     // Remove all meta-data and all directives from the set of tokens.
-    Set directiveNames = (Set)tokens.remove("$directives");
+    @SuppressWarnings("unchecked")
+    Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
     if (null != directiveNames) {
-      for (Iterator dit = directiveNames.iterator(); dit.hasNext();) {
-        tokens.remove((String)dit.next());
-      }
+      tokens.keySet().removeAll(directiveNames);
     }
     tokens.remove("$key");
     tokens.remove("$keys");
@@ -185,7 +192,7 @@ class ImportPkg implements BundleRequirement {
 
 
   /**
-   * Check if version fullfills import package constraints.
+   * Check if version fulfills import package constraints.
    * 
    * @param ver Version to compare to.
    * @return Return 0 if equals, negative if this object is less than obj and
@@ -215,10 +222,9 @@ class ImportPkg implements BundleRequirement {
       return false;
     }
     /* Other attributes */
-    for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
-      Map.Entry e = (Map.Entry)i.next();
-      String a = (String)ep.attributes.get(e.getKey());
-      if (a == null || !a.equals(e.getValue())) {
+    for (Entry<String,Object> entry : attributes.entrySet()) {
+      String a = (String) ep.attributes.get(entry.getKey());
+      if (a == null || !a.equals(entry.getValue())) {
         return false;
       }
     }
@@ -248,7 +254,7 @@ class ImportPkg implements BundleRequirement {
 
 
   /**
-   * Check that we intersect specifed ImportPkg.
+   * Check that we intersect specified ImportPkg.
    * 
    * @param ip ImportPkg to check.
    * @return True if we overlap, otherwise false.
@@ -260,10 +266,9 @@ class ImportPkg implements BundleRequirement {
     }
 
     // Check that no other attributes conflict
-    for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
-      Map.Entry e = (Map.Entry)i.next();
-      String a = (String)ip.attributes.get(e.getKey());
-      if (a != null && !a.equals(e.getValue())) {
+    for (Entry<String,Object> entry : attributes.entrySet()) {
+      String a = (String) ip.attributes.get(entry.getKey());
+      if (a != null && !a.equals(entry.getValue())) {
         return false;
       }
     }
@@ -310,10 +315,9 @@ class ImportPkg implements BundleRequirement {
    * @param mandatory Collection of mandatory attribute.
    * @return Return true if we have all mandatory attributes, otherwise false.
    */
-  private boolean checkMandatory(Collection mandatory) {
+  private boolean checkMandatory(final Collection<String> mandatory) {
     if (mandatory != null) {
-      for (Iterator i = mandatory.iterator(); i.hasNext();) {
-        String a = (String)i.next();
+      for (final String a : mandatory) {
         if (Constants.VERSION_ATTRIBUTE.equals(a)) {
           if (!packageRange.isSpecified()) {
             return false;
@@ -335,32 +339,104 @@ class ImportPkg implements BundleRequirement {
   }
 
 
+  // BundleRequirement method
   public String getNamespace() {
     return BundleRevision.PACKAGE_NAMESPACE;
   }
 
 
+  // BundleRequirement method
   public Map<String, String> getDirectives() {
-    // TODO Auto-generated method stub
-    return null;
+    final Map<String,String> res = new HashMap<String, String>(4);
+    
+    res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
+    res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      res.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    return res;
   }
 
 
+  private Filter toFilter()
+  {
+    final StringBuffer sb = new StringBuffer(80);
+    boolean multipleConditions = false;
+
+    sb.append('(');
+    sb.append(BundleRevision.PACKAGE_NAMESPACE);
+    sb.append('=');
+    sb.append(name);
+    sb.append(')');
+
+    if (packageRange != null) {
+      multipleConditions |= packageRange
+          .appendFilterString(sb, Constants.VERSION_ATTRIBUTE);
+    }
+
+    if (bundleSymbolicName != null) {
+      sb.append('(');
+      sb.append(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
+      sb.append('=');
+      sb.append(bundleSymbolicName);
+      sb.append(')');
+      multipleConditions |= true;
+    }
+
+    if (bundleRange != null) {
+      multipleConditions |= bundleRange
+          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
+    }
+
+    for (Entry<String,Object> entry : attributes.entrySet()) {
+      sb.append('(');
+      sb.append(entry.getKey());
+      sb.append('=');
+      sb.append(entry.getValue().toString());
+      sb.append(')');
+      multipleConditions |= true;
+    }
+
+    if (multipleConditions) {
+      sb.insert(0, "(&");
+      sb.append(')');
+    }
+    try {
+      return FrameworkUtil.createFilter(sb.toString());
+    } catch (InvalidSyntaxException _ise) {
+      // Should not happen...
+      System.err.println("createFilter: '" +sb.toString() +"': " +_ise.getMessage());
+      return null;
+    }
+  }
+
+  // BundleRequirement method
   public Map<String, Object> getAttributes() {
-    // TODO Auto-generated method stub
-    return null;
+    return Collections.unmodifiableMap(attributes);
   }
 
 
+  // BundleRequirement method
   public BundleRevision getRevision() {
-    // TODO Auto-generated method stub
-    return null;
+    return bpkgs.bg.getRevision();
   }
 
 
+  // BundleRequirement method
   public boolean matches(BundleCapability capability) {
     // TODO Auto-generated method stub
     return false;
+  }
+
+
+  /**
+   * Comparator that orders the import package objects in their creation order.
+   * @param o the other object.
+   */
+  public int compareTo(ImportPkg o)
+  {
+    return this.orderal - o.orderal;
   }
 
 }

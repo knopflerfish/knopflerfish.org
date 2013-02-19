@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.util.*;
 
 import org.osgi.framework.*;
+import org.osgi.framework.wiring.BundleRequirement;
 
 /**
  * Class representing all packages imported and exported.
@@ -84,13 +85,15 @@ class BundlePackages {
     this.bg = bg;
     final BundleArchive ba = bg.archive;
 
-    Iterator i = Util.parseEntries(Constants.IMPORT_PACKAGE,
-                                   ba.getAttribute(Constants.IMPORT_PACKAGE),
-                                   false, true, false);
+    Iterator<Map<String, Object>> i = Util
+        .parseEntries(Constants.IMPORT_PACKAGE,
+                      ba.getAttribute(Constants.IMPORT_PACKAGE), false, true,
+                      false);
     while (i.hasNext()) {
-      Map e = (Map)i.next();
-      Iterator pi = ((List)e.remove("$keys")).iterator();
-      ImportPkg ip = new ImportPkg((String)pi.next(), e, this);
+      Map<String, Object> e = (Map<String, Object>)i.next();
+      @SuppressWarnings("unchecked")
+      Iterator<String> pi = ((List<String>) e.remove("$keys")).iterator();
+      ImportPkg ip = new ImportPkg(pi.next(), e, this);
       for (;;) {
         int ii = Util.binarySearch(imports, ipComp, ip);
         if (ii < 0) {
@@ -606,6 +609,18 @@ class BundlePackages {
   }
 
 
+  /**
+   * Get the list package requirements derived from the Import-Package header.
+   * The bundle requirement objects for imported packages in the list has the
+   * same order as the packages in the Import-Package header.
+   *
+   * @return all defined import package requirements for this bundle revision.
+   */
+  List<BundleRequirement> getDeclaredRequirements() {
+    final TreeSet<ImportPkg> ipCreationOrder = new TreeSet<ImportPkg>(imports);
+    return new ArrayList<BundleRequirement>(ipCreationOrder);
+  }
+  
   /**
    * Get class loader for these packages.
    *

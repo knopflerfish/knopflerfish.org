@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,12 @@ import org.osgi.framework.Version;
 class ExportPkg {
   final String name;
   final BundlePackages bpkgs;
-  final HashSet /* String */ uses;
-  final HashSet /* String */ mandatory;
-  final HashSet /* String */ include;
-  final HashSet /* String */ exclude;
+  final HashSet<String> uses;
+  final HashSet<String> mandatory;
+  final HashSet <String> include;
+  final HashSet<String> exclude;
   final Version version;
-  final Map attributes;
+  final Map<String,Object> attributes;
   boolean zombie = false;
   boolean hasPermission = true;
 
@@ -63,7 +63,7 @@ class ExportPkg {
   /**
    * Create an export package entry.
    */
-  ExportPkg(String name, Map tokens, BundlePackages b) {
+  ExportPkg(String name, Map<String, Object> tokens, BundlePackages b) {
     this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.")) {
@@ -242,9 +242,9 @@ class ExportPkg {
    * @param pkg Package.
    * @return List of bundles importering, null export is not active.
    */
-  synchronized Collection getPackageImporters() {
+  synchronized Collection<BundleImpl> getPackageImporters() {
     if (pkg != null) {
-      Set res = new HashSet();
+      Set<BundleImpl> res = new HashSet<BundleImpl>();
       synchronized (pkg) {
         for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
           ImportPkg ip = (ImportPkg)i.next();
