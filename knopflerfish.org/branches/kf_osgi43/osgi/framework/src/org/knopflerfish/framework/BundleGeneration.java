@@ -41,7 +41,6 @@ import java.security.ProtectionDomain;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -261,56 +260,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     i = Util.parseEntries(Constants.FRAGMENT_HOST,
         archive.getAttribute(Constants.FRAGMENT_HOST), true, true, true);
     if (i.hasNext()) {
-      if (archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
-        throw new IllegalArgumentException("A fragment bundle can not have a Bundle-Activator.");
-      }
-
-      e = i.next();
-      final String extension = (String)e.get(Constants.EXTENSION_DIRECTIVE);
-      final String key = (String)e.get("$key");
-
-      if (Constants.EXTENSION_FRAMEWORK.equals(extension)
-          || Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
-        // an extension bundle must target the system bundle.
-        if (!Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(key)
-            && !KNOPFLERFISH_SYMBOLICNAME.equals(key)) {
-          throw new IllegalArgumentException("An extension bundle must target "
-              + "the system bundle(" + Constants.SYSTEM_BUNDLE_SYMBOLICNAME + " or "
-              + KNOPFLERFISH_SYMBOLICNAME + ")");
-        }
-
-        if (archive.getAttribute(Constants.IMPORT_PACKAGE) != null
-            || archive.getAttribute(Constants.REQUIRE_BUNDLE) != null
-            || archive.getAttribute(Constants.BUNDLE_NATIVECODE) != null
-            || archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE) != null
-            || archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
-          throw new IllegalArgumentException("An extension bundle cannot specify: "
-              + Constants.IMPORT_PACKAGE + ", " + Constants.REQUIRE_BUNDLE + ", "
-              + Constants.BUNDLE_NATIVECODE + ", " + Constants.DYNAMICIMPORT_PACKAGE + " or "
-              + Constants.BUNDLE_ACTIVATOR);
-        }
-
-        if (!bundle.fwCtx.props.getBooleanProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION)
-            && Constants.EXTENSION_FRAMEWORK.equals(extension)) {
-          throw new UnsupportedOperationException(
-              "Framework extension bundles are not supported "
-                  + "by this framework. Consult the documentation");
-        }
-        if (!bundle.fwCtx.props.getBooleanProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION)
-            && Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
-          throw new UnsupportedOperationException(
-              "Bootclasspath extension bundles are not supported "
-                  + "by this framework. Consult the documentation");
-        }
-      } else {
-        if (extension != null) {
-          throw new IllegalArgumentException("Did not recognize directive "
-              + Constants.EXTENSION_DIRECTIVE + ":=" + extension + ".");
-        }
-      }
-
-      fragment = new Fragment(key, extension,
-          (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
+      fragment = new Fragment(this, i.next());
     } else {
       fragment = null;
     }
@@ -332,7 +282,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
               (String)e.get(Constants.EXCLUDE_DIRECTIVE));
 
           if (lazyIncludes != null) {
-            for (String entry : lazyExcludes) {
+            for (final String entry : lazyExcludes) {
               if (lazyIncludes.contains(entry)) {
                 throw new IllegalArgumentException("Conflicting " + Constants.INCLUDE_DIRECTIVE
                     + "/" + Constants.EXCLUDE_DIRECTIVE + " entries in "
@@ -450,23 +400,23 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
 
   /**
-   * Get the requirements specified by the Bundle-Requirement header of this 
+   * Get the requirements specified by the Bundle-Requirement header of this
    * bundle generation.
    * The key in the map is the {@code name-space} of the bundle requirement.
    */
-  Map<String, List<BundleRequirement>> getDefinedRequirements()
+  Map<String, List<BundleRequirement>> getDeclaredRequirements()
   {
     final Map<String, List<BundleRequirement>> res
       = new HashMap<String, List<BundleRequirement>>();
 
     // The system bundle has no requirements.
     if (bundle.getBundleId()!=0) {
-      Iterator<Map<String, Object>> i = Util
+      final Iterator<Map<String, Object>> i = Util
           .parseEntries(Constants.REQUIRE_CAPABILITY,
                         archive.getAttribute(Constants.REQUIRE_CAPABILITY),
                         true, true, false);
       while (i.hasNext()) {
-        final Map<String, Object> e = (Map<String, Object>) i.next();
+        final Map<String, Object> e = i.next();
         final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
         List<BundleRequirement> nsReqs = res.get(bri.getNamespace());
         if (null == nsReqs) {
@@ -480,16 +430,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  private List<BundleRequirement> getDeclaredFragmentHostRequirements()
-  {
-    // TODO Auto-generated method stub
-    return Collections.EMPTY_LIST;
-  }
-
-
   /**
    * Get all requirements specified by this bundle generation.
-   * 
+   *
    * Returns all requirements declared in the manifest.
    * <p/>
    * The key in the map is the {@code name-space} of the bundle requirement.
@@ -497,20 +440,20 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   Map<String, List<BundleRequirement>> getAllDeclaredRequirements()
   {
     final Map<String, List<BundleRequirement>> res
-      = getDefinedRequirements();
+      = getDeclaredRequirements();
 
-    List<BundleRequirement> packageReqs = bpkgs.getDeclaredPackageRequirements();
+    final List<BundleRequirement> packageReqs = bpkgs.getDeclaredPackageRequirements();
     if (packageReqs.size()>0) {
       res.put(BundleRevision.PACKAGE_NAMESPACE, packageReqs);
     }
-    
-    // add Fragment-host
-    List<BundleRequirement> hostReqs = getDeclaredFragmentHostRequirements();
-    if (hostReqs.size()>0) {
+
+    if (fragment!=null) {
+      final List<BundleRequirement> hostReqs = new ArrayList<BundleRequirement>(1);
+      hostReqs.add(fragment);
       res.put(BundleRevision.HOST_NAMESPACE, hostReqs);
     }
-    
-    List<BundleRequirement> bundleReqs = bpkgs.getDeclaredBundleRequirements();
+
+    final List<BundleRequirement> bundleReqs = bpkgs.getDeclaredBundleRequirements();
     if (bundleReqs.size()>0) {
       res.put(BundleRevision.BUNDLE_NAMESPACE, bundleReqs);
     }
@@ -599,7 +542,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       final Collection<BundleGeneration> hosting = bundle.fwCtx.bundles.getFragmentBundles(bundle);
       if (hosting.size() > 0 && bundle.secure.okHostBundlePerm(bundle)) {
         // retrieve all fragments this bundle host
-        for (BundleGeneration fbg : hosting) {
+        for (final BundleGeneration fbg : hosting) {
           fbg.bundle.attachToFragmentHost(this);
         }
       }
@@ -851,10 +794,10 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    *
    */
   Vector<URL> findEntries(String path, String filePattern, boolean recurse) {
-    Vector<URL> res = new Vector<URL>();
+    final Vector<URL> res = new Vector<URL>();
     addResourceEntries(res, path, filePattern, recurse);
     if (isFragmentHost()) {
-      for (BundleGeneration fbg : fragments) {
+      for (final BundleGeneration fbg : fragments) {
         fbg.addResourceEntries(res, path, filePattern, recurse);
       }
     }
@@ -1060,7 +1003,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     Hashtable<String, String> res = archive.getLocalizationEntries(name);
     if (res == null && fragments != null) {
       final Vector<BundleGeneration> fix = new Vector<BundleGeneration>(fragments);
-      for (BundleGeneration bg : fix) {
+      for (final BundleGeneration bg : fix) {
         if (bg.archive != null) {
           res = bg.archive.getLocalizationEntries(name);
           if (res != null) {
@@ -1109,7 +1052,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     return null;
   }
 
-  
+
   BundleCapability getRequireHostCapability() {
     if (v2Manifest) {
       return new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);

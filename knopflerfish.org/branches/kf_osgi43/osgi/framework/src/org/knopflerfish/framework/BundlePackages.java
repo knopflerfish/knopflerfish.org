@@ -638,10 +638,14 @@ class BundlePackages {
    * @return all defined require bundle requirements for this bundle revision.
    */
   List<BundleRequirement> getDeclaredBundleRequirements() {
-    final TreeSet<RequireBundle> rbCreationOrder
-      = new TreeSet<RequireBundle>(require);
+    final List<BundleRequirement> res = new ArrayList<BundleRequirement>();
 
-    return new ArrayList<BundleRequirement>(rbCreationOrder);
+    if (require!=null) {
+      final TreeSet<RequireBundle> rbCreationOrder
+        = new TreeSet<RequireBundle>(require);
+      res.addAll(rbCreationOrder);
+    }
+    return res;
   }
 
   /**

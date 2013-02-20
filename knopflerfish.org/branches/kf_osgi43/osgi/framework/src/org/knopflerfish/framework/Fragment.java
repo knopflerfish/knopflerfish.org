@@ -34,9 +34,19 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -44,18 +54,82 @@ import org.osgi.framework.wiring.BundleRevision;
 /**
  * Fragment information
  */
-class Fragment implements BundleRequirement {
+class Fragment
+  implements BundleRequirement
+{
+  final BundleGeneration gen;
   final String hostName;
   final String extension;
   final VersionRange versionRange;
-  private Vector<BundleGeneration> hosts = new Vector<BundleGeneration>(2);
+  final Map<String,Object> attributes;
+
+  private final Vector<BundleGeneration> hosts = new Vector<BundleGeneration>(2);
 
 
-  Fragment(String hostName, String extension, String range) {
-    this.hostName = hostName;
+  Fragment(BundleGeneration gen, Map<String, Object> tokens) {
+    this.gen = gen;
+    this.hostName = (String) tokens.remove("$key");
+
+    if (gen.archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
+      throw new IllegalArgumentException("A fragment bundle can not have a Bundle-Activator.");
+    }
+
+    final String extension = (String) tokens.remove(Constants.EXTENSION_DIRECTIVE);
+    if (Constants.EXTENSION_FRAMEWORK.equals(extension)
+        || Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
+      // an extension bundle must target the system bundle.
+      if (!Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(hostName)
+          && !BundleGeneration.KNOPFLERFISH_SYMBOLICNAME.equals(hostName)) {
+        throw new IllegalArgumentException("An extension bundle must target "
+            + "the system bundle(" + Constants.SYSTEM_BUNDLE_SYMBOLICNAME + " or "
+            + BundleGeneration.KNOPFLERFISH_SYMBOLICNAME + ")");
+      }
+
+      if (gen.archive.getAttribute(Constants.IMPORT_PACKAGE) != null
+          || gen.archive.getAttribute(Constants.REQUIRE_BUNDLE) != null
+          || gen.archive.getAttribute(Constants.BUNDLE_NATIVECODE) != null
+          || gen.archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE) != null
+          || gen.archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
+        throw new IllegalArgumentException("An extension bundle cannot specify: "
+            + Constants.IMPORT_PACKAGE + ", " + Constants.REQUIRE_BUNDLE + ", "
+            + Constants.BUNDLE_NATIVECODE + ", " + Constants.DYNAMICIMPORT_PACKAGE + " or "
+            + Constants.BUNDLE_ACTIVATOR);
+      }
+
+      if (!gen.bundle.fwCtx.props.getBooleanProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION)
+          && Constants.EXTENSION_FRAMEWORK.equals(extension)) {
+        throw new UnsupportedOperationException(
+            "Framework extension bundles are not supported "
+                + "by this framework. Consult the documentation");
+      }
+      if (!gen.bundle.fwCtx.props.getBooleanProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION)
+          && Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
+        throw new UnsupportedOperationException(
+            "Bootclasspath extension bundles are not supported "
+                + "by this framework. Consult the documentation");
+      }
+    } else {
+      if (extension != null) {
+        throw new IllegalArgumentException("Did not recognize directive "
+            + Constants.EXTENSION_DIRECTIVE + ":=" + extension + ".");
+      }
+    }
     this.extension = extension;
+
+    final String range = (String) tokens
+        .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     this.versionRange = range == null ? VersionRange.defaultVersionRange
         : new VersionRange(range);
+
+    // Remove all meta-data and all unknown directives from the set of tokens.
+    @SuppressWarnings("unchecked")
+    final
+    Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
+    if (null != directiveNames) {
+      tokens.keySet().removeAll(directiveNames);
+    }
+    tokens.remove("$keys");
+    this.attributes = tokens;
   }
 
 
@@ -84,20 +158,23 @@ class Fragment implements BundleRequirement {
   }
 
 
-  boolean hasHosts() {
+  boolean hasHosts()
+  {
     return !hosts.isEmpty();
   }
 
-
-  boolean isTarget(BundleImpl b) {
-    return hostName.equals(b.getSymbolicName()) && versionRange.withinRange(b.getVersion());
+  boolean isTarget(BundleImpl b)
+  {
+    return hostName.equals(b.getSymbolicName())
+           && versionRange.withinRange(b.getVersion());
   }
 
-
-  List<BundleImpl> targets(final FrameworkContext fwCtx) {
-    List<BundleImpl> bundles = fwCtx.bundles.getBundles(hostName, versionRange);
-    for (Iterator<BundleImpl> iter = bundles.iterator(); iter.hasNext();) {
-      BundleImpl t = iter.next();
+  List<BundleImpl> targets(final FrameworkContext fwCtx)
+  {
+    final List<BundleImpl> bundles = fwCtx.bundles.getBundles(hostName,
+                                                              versionRange);
+    for (final Iterator<BundleImpl> iter = bundles.iterator(); iter.hasNext();) {
+      final BundleImpl t = iter.next();
 
       if (t.current().attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
         iter.remove();
@@ -110,27 +187,83 @@ class Fragment implements BundleRequirement {
     return bundles;
   }
 
-
   public String getNamespace() {
     return BundleRevision.HOST_NAMESPACE;
   }
 
 
   public Map<String, String> getDirectives() {
-    // TODO Auto-generated method stub
-    return null;
+    final Map<String,String> res = new HashMap<String, String>(4);
+
+    if (extension!=null) {
+      res.put(Constants.EXTENSION_DIRECTIVE, extension);
+    }
+
+    // For HOST_NAMESPACE effective defaults to resolve and no other value
+    // is allowed so leave it out.
+    // res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      res.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    return res;
+  }
+
+
+  private Filter toFilter()
+  {
+    final StringBuffer sb = new StringBuffer(80);
+    boolean multipleConditions = false;
+
+    sb.append('(');
+    sb.append(BundleRevision.HOST_NAMESPACE);
+    sb.append('=');
+    if (Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(hostName)) {
+      sb.append(BundleGeneration.KNOPFLERFISH_SYMBOLICNAME);
+    } else {
+      sb.append(hostName);
+    }
+    sb.append(')');
+
+    if (versionRange != null) {
+      multipleConditions |= versionRange
+          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
+    }
+
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
+      sb.append('(');
+      sb.append(entry.getKey());
+      sb.append('=');
+      sb.append(entry.getValue().toString());
+      sb.append(')');
+      multipleConditions |= true;
+    }
+
+    if (multipleConditions) {
+      sb.insert(0, "(&");
+      sb.append(')');
+    }
+    try {
+      return FrameworkUtil.createFilter(sb.toString());
+    } catch (final InvalidSyntaxException _ise) {
+      // Should not happen...
+      System.err.println("createFilter: '" +sb.toString() +"': " +_ise.getMessage());
+      return null;
+    }
   }
 
 
   public Map<String, Object> getAttributes() {
-    // TODO Auto-generated method stub
-    return null;
+    @SuppressWarnings("unchecked")
+    final
+    Map<String, Object> res = Collections.EMPTY_MAP;
+    return res;
   }
 
 
   public BundleRevision getRevision() {
-    // TODO Auto-generated method stub
-    return null;
+    return gen.getRevision();
   }
 
 
