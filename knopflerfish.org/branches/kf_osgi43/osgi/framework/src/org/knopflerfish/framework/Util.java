@@ -568,8 +568,14 @@ public class Util {
     }
   }
 
-  public interface Comparator<A> {
-    public int compare(A a, A b);
+  /**
+   * Compare two object. Normally both types are the same, but sometimes its
+   * convenient to avoid creating a template object when using the comparator
+   * for lookup. In the latter case {@code B} would be the type of the key used
+   * in a {@code Comparator<A,A>}.
+   */
+  public interface Comparator<A,B> {
+    public int compare(A a, B b);
   }
 
 
@@ -579,7 +585,7 @@ public class Util {
    * @param a Vector to sort
    * @param cf comparison function
    */
-  static public <A> void sort(List<A> a, Comparator<A> cf, boolean bReverse) {
+  static public <A> void sort(List<A> a, Comparator<A,A> cf, boolean bReverse) {
     sort(a, 0, a.size() - 1, cf, bReverse ? -1 : 1);
   }
 
@@ -587,7 +593,7 @@ public class Util {
   /**
    * Vector QSort implementation.
    */
-  static <A> void sort(List<A> a, int lo0, int hi0, Comparator<A> cf, int k) {
+  static <A> void sort(List<A> a, int lo0, int hi0, Comparator<A,A> cf, int k) {
     int lo = lo0;
     int hi = hi0;
     A mid;
@@ -635,19 +641,20 @@ public class Util {
    * number add the specifies package entry.
    * 
    * @param pl Sorted list of package entries to search.
-   * @param p Package entry to search for.
+   * @param c comparator determining the ordering.
+   * @param k The key of the Package entry to search for.
    * @return index of the found entry. If no entry is found, return
-   *         <tt>(-(<i>insertion point</i>) - 1)</tt>. The insertion point is
+   *         {@code (-(<i>insertion point</i>) - 1)}. The insertion point is
    *         defined as the point at which the key would be inserted into the
    *         list.
    */
-  public static <A> int binarySearch(List<A> pl, Comparator<A> c, A p) {
+  public static <A,B> int binarySearch(List<A> pl, Comparator<A,B> c, B k) {
     int l = 0;
     int u = pl.size() - 1;
 
     while (l <= u) {
       int m = (l + u) / 2;
-      int v = c.compare(pl.get(m), p);
+      int v = c.compare(pl.get(m), k);
       if (v > 0) {
         l = m + 1;
       } else if (v < 0) {

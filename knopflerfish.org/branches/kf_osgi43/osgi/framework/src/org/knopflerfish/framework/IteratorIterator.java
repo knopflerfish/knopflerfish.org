@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,16 +41,23 @@ import java.util.*;
  *
  * @author Jan Stein
  */
-public class IteratorIterator implements Iterator
+public class IteratorIterator<A> implements Iterator<A>
 {
 
-  final private Iterator iter;
+  final private Iterator<Iterator<A>> iter;
   /* The current iterator */
-  private Iterator current = null;
+  private Iterator<A> current = null;
 
-  public  IteratorIterator(List ilist) {
+  public  IteratorIterator(List<Iterator<A>> ilist) {
     iter = ilist.iterator();
-    current = iter.hasNext() ? (Iterator)iter.next() : iter;
+    if (iter.hasNext()) {
+      current = iter.next();
+    } else {
+      // We need an empty iterator as current, reuse iter.
+      @SuppressWarnings("unchecked")
+      Iterator<A> empty = (Iterator<A>) iter;
+      current = empty;
+    }
   }
 
 
@@ -59,17 +66,17 @@ public class IteratorIterator implements Iterator
   }
 
   public void remove() {
-    getIterator().remove();
+    current.remove();
   }
 
-  public Object next() {
+  public A next() {
     return getIterator().next();
   }
 
 
-  private Iterator getIterator() {
+  private Iterator<A> getIterator() {
     while (!current.hasNext() && iter.hasNext()) {
-      current = (Iterator)iter.next();
+      current = iter.next();
     }
     return current;
   }

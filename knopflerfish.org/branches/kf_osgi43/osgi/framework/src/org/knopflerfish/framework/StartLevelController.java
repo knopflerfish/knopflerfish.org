@@ -394,8 +394,8 @@ public class StartLevelController
   }
 
 
-  static final Util.Comparator<BundleImpl>
-    BSComparator = new Util.Comparator<BundleImpl>() {
+  static final Util.Comparator<BundleImpl,BundleImpl>
+    BSComparator = new Util.Comparator<BundleImpl,BundleImpl>() {
     public int compare(BundleImpl b1, BundleImpl b2)
     {
       int res = b1.getStartLevel() - b2.getStartLevel();

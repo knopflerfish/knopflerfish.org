@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,9 +49,15 @@ import org.osgi.framework.wiring.BundleRevision;
 /**
  * Data structure for import package definitions.
  * 
- * @author Jan Stein
+ * @author Jan Stein, Gunnar Ekolin
  */
 class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
+  
+  /**
+   * The value of the resolution directive for dynamically imported packages.
+   */
+  static final String RESOLUTION_DYNAMIC = "dynamic";
+  
   // To maintain the creation order in the osgi.wiring.package name space.
   static private int importPkgCount = 0; 
   final int orderal = ++importPkgCount;
@@ -74,26 +80,43 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
 
   /**
-   * Create an import package entry.
+   * Create an import package entry from manifest parser data.
+   * 
+   * @param name the name of the package to be imported.
+   * @param tokens the parsed import package statement.
+   * @param b back link to the bundle revision owning this import declaration.
+   * @param dynamic Set to true if this is a dynamic import package declaration.
    */
-  ImportPkg(String name, Map<String,Object> tokens, BundlePackages b) {
+  ImportPkg(String name, Map<String, Object> tokens, BundlePackages b,
+            boolean dynamic)
+  {
     this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not import a java.* package");
     }
     String res = (String)tokens.remove(Constants.RESOLUTION_DIRECTIVE);
-    if (res != null) {
-      if (Constants.RESOLUTION_OPTIONAL.equals(res)) {
-        this.resolution = Constants.RESOLUTION_OPTIONAL;
-      } else if (Constants.RESOLUTION_MANDATORY.equals(res)) {
-        this.resolution = Constants.RESOLUTION_MANDATORY;
-      } else {
-        throw new IllegalArgumentException("Directive " + Constants.RESOLUTION_DIRECTIVE +
-                                           ", unexpected value: " + res);
+    if (dynamic) {
+      if (res != null) {
+        throw new IllegalArgumentException("Directives not supported for "
+                                           + "Dynamic-Import, found "
+                                           + Constants.RESOLUTION_DIRECTIVE
+                                           + ":=" +res);
       }
+      this.resolution = RESOLUTION_DYNAMIC;
     } else {
-      this.resolution = Constants.RESOLUTION_MANDATORY;
+      if (res != null) {
+        if (Constants.RESOLUTION_OPTIONAL.equals(res)) {
+          this.resolution = Constants.RESOLUTION_OPTIONAL;
+        } else if (Constants.RESOLUTION_MANDATORY.equals(res)) {
+          this.resolution = Constants.RESOLUTION_MANDATORY;
+        } else {
+          throw new IllegalArgumentException("Directive " + Constants.RESOLUTION_DIRECTIVE +
+                                             ", unexpected value: " + res);
+        }
+      } else {
+        this.resolution = Constants.RESOLUTION_MANDATORY;
+      }
     }
     this.bundleSymbolicName = (String)tokens.remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
     String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
@@ -350,7 +373,11 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     final Map<String,String> res = new HashMap<String, String>(4);
     
     res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
-    res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+
+    // For PACKAGE_NAMESPACE effective defaults to resolve and no other value
+    // is allowed so leave it out.
+    // res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+
     final Filter filter = toFilter();
     if (null!=filter) {
       res.put(Constants.FILTER_DIRECTIVE, filter.toString());
@@ -368,6 +395,10 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     sb.append(BundleRevision.PACKAGE_NAMESPACE);
     sb.append('=');
     sb.append(name);
+    if (name.length()==0 || name.endsWith(".")) {
+      // Dynamic import with wild-card.
+      sb.append('*');
+    }
     sb.append(')');
 
     if (packageRange != null) {
