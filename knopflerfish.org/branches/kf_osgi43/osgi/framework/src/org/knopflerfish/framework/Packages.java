@@ -435,8 +435,8 @@ class Packages {
       for (Iterator<ExportPkg> j = b.getExports(); j.hasNext();) {
         ExportPkg ep = j.next();
         if (ep.pkg != null && ep.pkg.providers.contains(ep)) {
-          for (Iterator k = ep.getPackageImporters().iterator(); k.hasNext();) {
-            Bundle ib = (Bundle)k.next();
+          for (ImportPkg ip : ep.getPackageImporters()) {
+            Bundle ib = ip.bpkgs.bg.bundle;
             if (!bundles.contains(ib)) {
               moreBundles.add(ib);
               if (framework.debug.packages) {

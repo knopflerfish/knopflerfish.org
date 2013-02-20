@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,112 +31,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.Map;
 
-import org.osgi.framework.*;
 import org.osgi.framework.wiring.BundleCapability;
-import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 
-/**
- * Fragment information
- */
-class Fragment implements BundleRequirement {
-  final String hostName;
-  final String extension;
-  final VersionRange versionRange;
-  private Vector<BundleGeneration> hosts = new Vector<BundleGeneration>(2);
+public class BundleNameVersionCapability implements BundleCapability {
 
+  private final BundleGeneration gen;
+  private final String namespace;
 
-  Fragment(String hostName, String extension, String range) {
-    this.hostName = hostName;
-    this.extension = extension;
-    this.versionRange = range == null ? VersionRange.defaultVersionRange
-        : new VersionRange(range);
+  BundleNameVersionCapability(BundleGeneration bundleGeneration, String namespace) {
+    gen = bundleGeneration;
+    this.namespace = namespace;
   }
-
-
-  void addHost(BundleGeneration host) {
-    hosts.add(host);
-  }
-
-
-  void removeHost(BundleGeneration host) {
-    if (host == null) {
-      hosts.clear();
-    } else {
-      hosts.remove(host);
-    }
-  }
-
-
-  boolean isHost(BundleGeneration host) {
-    return hosts.contains(host);
-  }
-
-
-  @SuppressWarnings("unchecked")
-  Vector<BundleGeneration> getHosts() {
-    return hosts.isEmpty() ? null : (Vector<BundleGeneration>)hosts.clone();
-  }
-
-
-  boolean hasHosts() {
-    return !hosts.isEmpty();
-  }
-
-
-  boolean isTarget(BundleImpl b) {
-    return hostName.equals(b.getSymbolicName()) && versionRange.withinRange(b.getVersion());
-  }
-
-
-  List<BundleImpl> targets(final FrameworkContext fwCtx) {
-    List<BundleImpl> bundles = fwCtx.bundles.getBundles(hostName, versionRange);
-    for (Iterator<BundleImpl> iter = bundles.iterator(); iter.hasNext();) {
-      BundleImpl t = iter.next();
-
-      if (t.current().attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
-        iter.remove();
-      }
-    }
-
-    if (bundles.isEmpty()) {
-      return null;
-    }
-    return bundles;
-  }
-
 
   public String getNamespace() {
-    return BundleRevision.HOST_NAMESPACE;
+    return namespace;
   }
-
 
   public Map<String, String> getDirectives() {
     // TODO Auto-generated method stub
     return null;
   }
 
-
   public Map<String, Object> getAttributes() {
     // TODO Auto-generated method stub
     return null;
   }
 
-
   public BundleRevision getRevision() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-
-  public boolean matches(BundleCapability capability) {
-    // TODO Auto-generated method stub
-    return false;
+    return gen.getRevision();
   }
 
 }

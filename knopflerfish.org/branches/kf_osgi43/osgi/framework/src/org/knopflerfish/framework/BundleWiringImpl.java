@@ -37,7 +37,9 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Vector;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.CapabilityPermission;
@@ -85,8 +87,28 @@ public class BundleWiringImpl implements BundleWiring {
   public List<BundleWire> getProvidedWires(String namespace) {
     int ns = whichNameSpaces(namespace);
     ArrayList<BundleWire> res = new ArrayList<BundleWire>();
+    if ((ns & NS_HOST) != 0) {
+      Vector<BundleGeneration> frags = gen.fragments;
+      if (frags != null) {
+        synchronized (frags) {
+          for (BundleGeneration fbg : frags) {
+            res.add(new BundleWireImpl(gen.getFragmentHostCapability(), gen, fbg.fragment, fbg));            
+          }
+        }
+      }
+    }
     // TODO Manifest order
     if ((ns & NS_PACKAGE) != 0) {
+      // TODO, do we need to synchronize
+      for (Iterator<ExportPkg> i = gen.bpkgs.getExports(); i.hasNext(); ) {
+        ExportPkg ep = i.next();
+        List<ImportPkg> ips = ep.getPackageImporters();
+        if (ips != null) {
+          for (ImportPkg ip : ips) {
+            res.add(new BundleWireImpl(ep, gen, ip, ip.bpkgs.bg));
+          }
+        }
+      }
     }
     return res;
   }
@@ -94,9 +116,23 @@ public class BundleWiringImpl implements BundleWiring {
   public List<BundleWire> getRequiredWires(String namespace) {
     int ns = whichNameSpaces(namespace);
     ArrayList<BundleWire> res = new ArrayList<BundleWire>();
+    if ((ns & NS_HOST) != 0) {
+      if (gen.fragment != null) {
+        for (BundleGeneration hbg : gen.fragment.getHosts()) {
+          res.add(new BundleWireImpl(hbg.getFragmentHostCapability(), hbg, gen.fragment, gen));
+        }
+      }
+    }
     // TODO Manifest order
     if ((ns & NS_PACKAGE) != 0) {
-      
+      for (Iterator<ImportPkg> i = gen.bpkgs.getImports(); i.hasNext(); ) {
+        ImportPkg ip = i.next();
+        ExportPkg ep = ip.provider;
+        if (ep != null) {
+          res.add(new BundleWireImpl(ep, ep.bpkgs.bg, ip, gen));
+        }
+      }
+
     }
     return res;
   }

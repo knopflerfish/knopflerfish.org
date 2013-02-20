@@ -38,6 +38,10 @@ import java.util.*;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleWire;
+import org.osgi.framework.wiring.BundleWiring;
 
 
 /**
@@ -45,7 +49,7 @@ import org.osgi.framework.Version;
  *
  * @author Jan Stein
  */
-class ExportPkg {
+class ExportPkg implements BundleCapability {
   final String name;
   final BundlePackages bpkgs;
   final HashSet<String> uses;
@@ -240,16 +244,16 @@ class ExportPkg {
    * Get active importers of a package.
    *
    * @param pkg Package.
-   * @return List of bundles importering, null export is not active.
+   * @return List of bundles importing, null export is not active.
    */
-  synchronized Collection<BundleImpl> getPackageImporters() {
+  synchronized List<ImportPkg> getPackageImporters() {
     if (pkg != null) {
-      Set<BundleImpl> res = new HashSet<BundleImpl>();
+      List<ImportPkg> res = new ArrayList<ImportPkg>();
       synchronized (pkg) {
         for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
           ImportPkg ip = (ImportPkg)i.next();
           if (ip.provider == this && ip.bpkgs != bpkgs) {
-            res.add(ip.bpkgs.bg.bundle);
+            res.add(ip);
           }
         }
       }
@@ -324,6 +328,34 @@ class ExportPkg {
     sb.append(bpkgs.toString());
     sb.append(')');
     return sb.toString();
+  }
+
+
+  public String getNamespace() {
+    return BundleRevision.PACKAGE_NAMESPACE;
+  }
+
+
+  public Map<String, String> getDirectives() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+  public Map<String, Object> getAttributes() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+  public BundleRevision getRevision() {
+    return bpkgs.bg.getRevision();
+  }
+
+
+  Collection<? extends BundleWire> getBundleWires() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

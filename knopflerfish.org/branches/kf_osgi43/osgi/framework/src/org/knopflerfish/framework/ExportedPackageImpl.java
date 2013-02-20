@@ -35,6 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -101,17 +102,17 @@ public class ExportedPackageImpl implements ExportedPackage {
    * has become stale.
    */
   public Bundle[] getImportingBundles() {
-    Collection imps = pkg.getPackageImporters();
+    List<ImportPkg> imps = pkg.getPackageImporters();
     if (imps != null) {
-      int size = imps.size();
-      List rl = pkg.bpkgs.getRequiredBy();
-      int rsize = rl.size() ;
-      Bundle[] res = new Bundle[size + rsize];
-      imps.toArray(res);
-      for (int i = 0; i < rsize; i++) {
-        res[size + i] = ((BundlePackages)rl.get(i)).bg.bundle;
+      HashSet<Bundle> bs = new HashSet();
+      for (ImportPkg ip : imps) {
+        bs.add(ip.bpkgs.bg.bundle);
       }
-      return res;
+      List<BundlePackages> rl = pkg.bpkgs.getRequiredBy();
+      for (BundlePackages bp : rl) {
+        bs.add(bp.bg.bundle);
+      }
+      return bs.toArray(new Bundle[bs.size()]);
     } else {
       return null;
     }

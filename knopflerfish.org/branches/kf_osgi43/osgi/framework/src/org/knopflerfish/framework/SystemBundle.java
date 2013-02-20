@@ -587,6 +587,12 @@ public class SystemBundle extends BundleImpl implements Framework {
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
         + FrameworkWiringImpl.SPEC_VERSION);
 
+    // Set up permissionadmin package
+    name = PermissionAdmin.class.getName();
+    name = name.substring(0, name.lastIndexOf('.'));
+    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
+        + PermissionAdminImpl.SPEC_VERSION);
+
     // Set up conditionalpermissionadmin package
     name = ConditionalPermissionAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));

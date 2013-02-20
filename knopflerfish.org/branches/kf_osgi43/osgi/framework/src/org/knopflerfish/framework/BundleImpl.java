@@ -62,6 +62,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleRevisions;
 import org.osgi.framework.wiring.BundleWiring;
@@ -1542,7 +1543,7 @@ public class BundleImpl implements Bundle {
         }
       }
       Vector<URL> res = secure.callFindEntries(current(), path, filePattern, recurse);
-      if (res != null) {
+      if (!res.isEmpty()) {
         return res.elements();
       }
     }

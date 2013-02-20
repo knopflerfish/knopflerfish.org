@@ -39,25 +39,34 @@ import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 
 public class BundleWireImpl implements BundleWire {
+  
+  private final BundleCapability capability;
+  private final BundleRequirement requirement;
+  private final BundleGeneration providerGen;
+  private final BundleGeneration requirerGen;
+
+  BundleWireImpl(BundleCapability capability, BundleGeneration provider,
+                 BundleRequirement requirement, BundleGeneration requirer) {
+    this.capability = capability;
+    this.providerGen = provider;
+    this.requirement = requirement;
+    this.requirerGen = requirer;
+  }
 
   public BundleCapability getCapability() {
-    // TODO Auto-generated method stub
-    return null;
+    return capability;
   }
 
   public BundleRequirement getRequirement() {
-    // TODO Auto-generated method stub
-    return null;
+    return requirement;
   }
 
   public BundleWiring getProviderWiring() {
-    // TODO Auto-generated method stub
-    return null;
+    return providerGen.getBundleWiring();
   }
 
   public BundleWiring getRequirerWiring() {
-    // TODO Auto-generated method stub
-    return null;
+    return requirerGen.getBundleWiring();
   }
 
 }

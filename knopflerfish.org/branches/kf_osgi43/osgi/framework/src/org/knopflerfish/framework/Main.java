@@ -437,6 +437,11 @@ public class Main
       try {
         framework.init();
         save_restart_props(fwProps);
+
+        // Make the boot text available to any bundle (e.g., desktop).
+        // Added it here since we can not save multiline properties.
+        fwProps.put(BOOT_TEXT_PROP, bootText);
+
       } catch (BundleException be) {
         error("Failed to initialize the framework: " +be.getMessage(), be);
       }
@@ -1049,10 +1054,6 @@ public class Main
     if(null == fwProps.get(PRODVERSION_PROP)) {
       fwProps.put(PRODVERSION_PROP, version);
     }
-    
-    // Make the boot text available to any bundle (e.g., desktop).
-    fwProps.put(BOOT_TEXT_PROP, bootText);
-
 
     // If jar dir is not specified, default to "file:jars/" and its
     // subdirs

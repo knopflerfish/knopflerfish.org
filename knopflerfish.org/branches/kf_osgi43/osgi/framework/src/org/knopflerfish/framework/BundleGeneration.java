@@ -58,6 +58,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
@@ -1088,12 +1089,16 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
 
   BundleWiring getBundleWiring() {
+    if (bpkgs == null) {
+      // Is uninstalled
+      return null;
+    }
+    if (fragment == null ? !bpkgs.isActive() : !fragment.hasHosts()) {
+      // Isn't resolved
+      return null;
+    }
     if (bundleWiring == null) {
-      if (bpkgs != null && fragment == null && bpkgs.isActive()) {
-        bundleWiring = new BundleWiringImpl(this);
-      }
-    } else if (!bpkgs.isActive()) {
-      bundleWiring = null;
+      bundleWiring = new BundleWiringImpl(this);
     }
     return bundleWiring;
   }
@@ -1109,6 +1114,22 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   boolean isUninstalled() {
     return bpkgs == null;
+  }
+
+
+  BundleCapability getFragmentHostCapability() {
+    if (v2Manifest && !attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
+      return new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE);
+    }
+    return null;
+  }
+
+  
+  BundleCapability getRequireHostCapability() {
+    if (v2Manifest) {
+      return new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
+    }
+    return null;
   }
 
 }
