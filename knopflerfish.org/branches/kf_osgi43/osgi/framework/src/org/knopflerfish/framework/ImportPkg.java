@@ -444,7 +444,9 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   // BundleRequirement method
   public Map<String, Object> getAttributes() {
-    return Collections.unmodifiableMap(attributes);
+    @SuppressWarnings("unchecked")
+    Map<String, Object> res = Collections.EMPTY_MAP;
+    return res;
   }
 
 
