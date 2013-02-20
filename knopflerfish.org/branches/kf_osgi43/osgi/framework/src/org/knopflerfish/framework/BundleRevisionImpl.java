@@ -34,7 +34,6 @@
 package org.knopflerfish.framework;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.osgi.framework.Version;
@@ -68,20 +67,27 @@ public class BundleRevisionImpl
 
   public List<BundleCapability> getDeclaredCapabilities(String namespace)
   {
-    // TODO Auto-generated method stub
-    return Collections.EMPTY_LIST;
+    final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
+
+    BundleCapability bc = gen.getFragmentHostCapability();
+    if (bc!=null)  res.add(bc);
+
+    bc = gen.getRequireHostCapability();
+    if (bc!=null)  res.add(bc);
+
+    return res;
   }
 
   public List<BundleRequirement> getDeclaredRequirements(String namespace)
   {
-    ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
+    final ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
     if (namespace == null) {
-      for (List<BundleRequirement> brs : gen.getAllDeclaredRequirements()
+      for (final List<BundleRequirement> brs : gen.getAllDeclaredRequirements()
           .values()) {
         res.addAll(brs);
       }
     } else {
-      List<BundleRequirement> nsRes = gen.getAllDeclaredRequirements()
+      final List<BundleRequirement> nsRes = gen.getAllDeclaredRequirements()
           .get(namespace);
       if (null != res) {
         res.addAll(nsRes);

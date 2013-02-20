@@ -33,8 +33,10 @@
  */
 package org.knopflerfish.framework;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import org.osgi.framework.Constants;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 
@@ -53,13 +55,24 @@ public class BundleNameVersionCapability implements BundleCapability {
   }
 
   public Map<String, String> getDirectives() {
-    // TODO Auto-generated method stub
-    return null;
+    final Map<String,String> res = new HashMap<String, String>(1);
+
+    if (BundleRevision.HOST_NAMESPACE.equals(namespace)) {
+      res.put(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE, gen.attachPolicy);
+    } else if (BundleRevision.BUNDLE_NAMESPACE.equals(namespace)) {
+      res.put(Constants.SINGLETON_DIRECTIVE, String.valueOf(gen.singleton));
+    }
+
+    return res;
   }
 
   public Map<String, Object> getAttributes() {
-    // TODO Auto-generated method stub
-    return null;
+    final Map<String,Object> res = new HashMap<String, Object>(2);
+
+    res.put(namespace, gen.symbolicName);
+    res.put(Constants.BUNDLE_VERSION_ATTRIBUTE, gen.version);
+
+    return res;
   }
 
   public BundleRevision getRevision() {

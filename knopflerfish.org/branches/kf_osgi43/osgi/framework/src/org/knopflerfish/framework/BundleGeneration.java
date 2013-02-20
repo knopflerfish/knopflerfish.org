@@ -1045,16 +1045,18 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  BundleCapability getFragmentHostCapability() {
-    if (v2Manifest && !attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
-      return new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE);
+  BundleCapability getFragmentHostCapability()
+  {
+    if (v2Manifest
+        && !attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER) && fragment == null) {
+      return new BundleNameVersionCapability(this,
+                                             BundleRevision.HOST_NAMESPACE);
     }
     return null;
   }
 
-
   BundleCapability getRequireHostCapability() {
-    if (v2Manifest) {
+    if (v2Manifest && fragment==null) {
       return new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
     }
     return null;
