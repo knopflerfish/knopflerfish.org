@@ -86,7 +86,7 @@ class RequireBundle
                 Map<String, Object> tokens)
   {
     this.requestor = requestor;
-    this.name = (String) tokens.get("$key");
+    this.name = (String) tokens.remove("$key");
 
     final String visibility = (String) tokens.remove(Constants.VISIBILITY_DIRECTIVE);
     if (visibility != null) {
