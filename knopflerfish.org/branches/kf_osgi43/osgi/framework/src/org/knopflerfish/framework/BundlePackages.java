@@ -154,12 +154,7 @@ class BundlePackages {
       require = new ArrayList<RequireBundle>();
       do {
         final Map<String, Object> e = i.next();
-        require.add(new RequireBundle(this,
-                                      (String)e.get("$key"),
-                                      (String)e.get(Constants.VISIBILITY_DIRECTIVE),
-                                      (String)e.get(Constants.RESOLUTION_DIRECTIVE),
-                                      (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE)));
-        // NYI warn about unknown directives?
+        require.add(new RequireBundle(this, e));
       } while (i.hasNext());
     } else {
       require = null;
@@ -628,11 +623,25 @@ class BundlePackages {
    *
    * @return all defined import package requirements for this bundle revision.
    */
-  List<BundleRequirement> getDeclaredRequirements() {
+  List<BundleRequirement> getDeclaredPackageRequirements() {
     final TreeSet<ImportPkg> ipCreationOrder = new TreeSet<ImportPkg>(imports);
     ipCreationOrder.addAll(dImportPatterns);
 
     return new ArrayList<BundleRequirement>(ipCreationOrder);
+  }
+
+  /**
+   * Get the list bundle requirements derived from the Require-Bundle header.
+   * The bundle requirement objects for required bundles in the list has the
+   * same order as the bundles in the Require-Bundle header.
+   *
+   * @return all defined require bundle requirements for this bundle revision.
+   */
+  List<BundleRequirement> getDeclaredBundleRequirements() {
+    final TreeSet<RequireBundle> rbCreationOrder
+      = new TreeSet<RequireBundle>(require);
+
+    return new ArrayList<BundleRequirement>(rbCreationOrder);
   }
 
   /**
