@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.CapabilityPermission;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -50,11 +49,6 @@ import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 
 public class BundleWiringImpl implements BundleWiring {
-
-  private static final int NS_BUNDLE =  1;
-  private static final int NS_HOST =    2;
-  private static final int NS_PACKAGE = 4;
-  private static final int NS_OTHER =   8;
 
   final BundleGeneration gen;
   
@@ -75,30 +69,102 @@ public class BundleWiringImpl implements BundleWiring {
   }
 
   public List<BundleCapability> getCapabilities(String namespace) {
-    // TODO Auto-generated method stub
-    return null;
+    if (!isInUse()) {
+      return null;
+    }
+    int ns = BundleRevisionImpl.whichNameSpaces(namespace);
+    ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
+    if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
+      BundleCapability bc = gen.getRequireHostCapability();
+      if (bc != null) {
+        res.add(bc);
+      }
+    }
+    if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
+      BundleCapability bc = gen.getFragmentHostCapability();
+      if (bc != null) {
+        res.add(bc);
+      }
+    }
+    // TODO Manifest order
+    if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
+      // TODO, do we need to synchronize, should nonproviders be included?
+      for (Iterator<ExportPkg> i = gen.bpkgs.getExports(); i.hasNext(); ) {
+        res.add(i.next());
+      }
+    }
+    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+      // TODO Other namespace wires
+    }
+    return res;
   }
 
   public List<BundleRequirement> getRequirements(String namespace) {
-    // TODO Auto-generated method stub
-    return null;
+    if (!isInUse()) {
+      return null;
+    }
+    int ns = BundleRevisionImpl.whichNameSpaces(namespace);
+    ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
+    if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
+      for (Iterator<RequireBundle> irb = gen.bpkgs.getRequire(); irb.hasNext(); ) {
+        RequireBundle rb = irb.next();
+        if (null != rb.bpkgs && rb.bpkgs.isRequiredBy(gen.bpkgs)) {
+          res.add(rb);
+        }
+      }
+    }
+    if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
+      if (gen.isFragment()) {
+        res.add(gen.fragment);            
+      }
+    }
+    // TODO Manifest order
+    if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
+      for (Iterator<ImportPkg> i = gen.bpkgs.getImports(); i.hasNext(); ) {
+        ImportPkg ip = i.next();
+        if (ip.provider != null) {
+          res.add(ip);
+        }
+      }
+
+    }
+    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+      // TODO Other namespace wires
+    }
+    return res;
   }
 
   public List<BundleWire> getProvidedWires(String namespace) {
-    int ns = whichNameSpaces(namespace);
+    if (!isInUse()) {
+      return null;
+    }
+    int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     ArrayList<BundleWire> res = new ArrayList<BundleWire>();
-    if ((ns & NS_HOST) != 0) {
-      Vector<BundleGeneration> frags = gen.fragments;
-      if (frags != null) {
-        synchronized (frags) {
-          for (BundleGeneration fbg : frags) {
-            res.add(new BundleWireImpl(gen.getFragmentHostCapability(), gen, fbg.fragment, fbg));            
+    if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
+      List<BundlePackages> reqBys = gen.bpkgs.getRequiredBy();
+      for (BundlePackages bp : reqBys) {
+        for (Iterator<RequireBundle> irb = bp.getRequire(); irb.hasNext(); ) {
+          RequireBundle rb = irb.next();
+          if (rb.bpkgs == gen.bpkgs) {
+            res.add(new BundleWireImpl(gen.getRequireHostCapability(), gen, rb, bp.bg));
+          }
+        }
+      }
+    }
+    if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
+      if (gen.isFragment()) {
+        Vector<BundleGeneration> frags = gen.fragments;
+        if (frags != null) {
+          synchronized (frags) {
+            for (BundleGeneration fbg : frags) {
+              res.add(new BundleWireImpl(gen.getFragmentHostCapability(), gen, fbg.fragment, fbg));            
+            }
           }
         }
       }
     }
     // TODO Manifest order
-    if ((ns & NS_PACKAGE) != 0) {
+    if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
       // TODO, do we need to synchronize
       for (Iterator<ExportPkg> i = gen.bpkgs.getExports(); i.hasNext(); ) {
         ExportPkg ep = i.next();
@@ -110,13 +176,27 @@ public class BundleWiringImpl implements BundleWiring {
         }
       }
     }
+    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+      // TODO Other namespace wires
+    }
     return res;
   }
 
   public List<BundleWire> getRequiredWires(String namespace) {
-    int ns = whichNameSpaces(namespace);
+    if (!isInUse()) {
+      return null;
+    }
+    int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     ArrayList<BundleWire> res = new ArrayList<BundleWire>();
-    if ((ns & NS_HOST) != 0) {
+    if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
+      for (Iterator<RequireBundle> irb = gen.bpkgs.getRequire(); irb.hasNext(); ) {
+        RequireBundle rb = irb.next();
+        if (null != rb.bpkgs && rb.bpkgs.isRequiredBy(gen.bpkgs)) {
+          res.add(new BundleWireImpl(rb.bpkgs.bg.getRequireHostCapability(), rb.bpkgs.bg, rb, gen));
+        }
+      }
+    }
+    if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
       if (gen.fragment != null) {
         for (BundleGeneration hbg : gen.fragment.getHosts()) {
           res.add(new BundleWireImpl(hbg.getFragmentHostCapability(), hbg, gen.fragment, gen));
@@ -124,7 +204,7 @@ public class BundleWiringImpl implements BundleWiring {
       }
     }
     // TODO Manifest order
-    if ((ns & NS_PACKAGE) != 0) {
+    if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
       for (Iterator<ImportPkg> i = gen.bpkgs.getImports(); i.hasNext(); ) {
         ImportPkg ip = i.next();
         ExportPkg ep = ip.provider;
@@ -133,6 +213,9 @@ public class BundleWiringImpl implements BundleWiring {
         }
       }
 
+    }
+    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+      // TODO Other namespace wires
     }
     return res;
   }
@@ -152,22 +235,6 @@ public class BundleWiringImpl implements BundleWiring {
   public Collection<String> listResources(String path, String filePattern, int options) {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  private int whichNameSpaces(String namespace) {
-    int ns;
-    if (namespace == null) {
-      ns = NS_BUNDLE|NS_HOST|NS_PACKAGE|NS_OTHER;
-    } else if (BundleRevision.BUNDLE_NAMESPACE.equals(namespace)) {
-      ns = NS_BUNDLE;
-    } else if (BundleRevision.HOST_NAMESPACE.equals(namespace)) {
-      ns = NS_HOST;
-    } else if (BundleRevision.PACKAGE_NAMESPACE.equals(namespace)) {
-      ns = NS_PACKAGE;
-    } else {
-      ns = NS_OTHER;
-    }
-    return ns;
   }
 
 }

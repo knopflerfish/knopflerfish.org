@@ -454,6 +454,16 @@ class BundlePackages {
 
 
   /**
+   * Check if this BundlePackages is required by another Bundle.
+   *
+   * @return True if is required
+   */
+  boolean isRequiredBy(BundlePackages cbp) {
+    return requiredBy != null && requiredBy.contains(cbp);
+  }
+
+
+  /**
    * Get a list of all BundlePackages that requires the exported packages that
    * comes from the bundle owning this object.
    *
@@ -815,6 +825,7 @@ class BundlePackages {
       for (final RequireBundle req : require) {
         if (null != req.bpkgs && null != req.bpkgs.requiredBy) {
           req.bpkgs.requiredBy.remove(this);
+          // TODO check if we can reset bpkgs to make checking easier
         }
       }
     }

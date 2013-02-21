@@ -431,38 +431,6 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
 
   /**
-   * Get all requirements specified by this bundle generation.
-   *
-   * Returns all requirements declared in the manifest.
-   * <p/>
-   * The key in the map is the {@code name-space} of the bundle requirement.
-   */
-  Map<String, List<BundleRequirement>> getAllDeclaredRequirements()
-  {
-    final Map<String, List<BundleRequirement>> res
-      = getDeclaredRequirements();
-
-    final List<BundleRequirement> packageReqs = bpkgs.getDeclaredPackageRequirements();
-    if (packageReqs.size()>0) {
-      res.put(BundleRevision.PACKAGE_NAMESPACE, packageReqs);
-    }
-
-    if (fragment!=null) {
-      final List<BundleRequirement> hostReqs = new ArrayList<BundleRequirement>(1);
-      hostReqs.add(fragment);
-      res.put(BundleRevision.HOST_NAMESPACE, hostReqs);
-    }
-
-    final List<BundleRequirement> bundleReqs = bpkgs.getDeclaredBundleRequirements();
-    if (bundleReqs.size()>0) {
-      res.put(BundleRevision.BUNDLE_NAMESPACE, bundleReqs);
-    }
-
-    return res;
-  }
-
-
-  /**
    *
    */
   boolean resolvePackages() throws BundleException {

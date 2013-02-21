@@ -79,4 +79,31 @@ public class BundleNameVersionCapability implements BundleCapability {
     return gen.getRevision();
   }
 
+
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((gen == null) ? 0 : gen.hashCode());
+    result = prime * result + ((namespace == null) ? 0 : namespace.hashCode());
+    return result;
+  }
+
+  // TODO, should we be equal when gen's are different
+  // but the directives and attributes are the same.
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    BundleNameVersionCapability other = (BundleNameVersionCapability) obj;
+    if (!gen.equals(other.gen))
+      return false;
+    if (!namespace.equals(other.namespace))
+      return false;
+    return true;
+  }
+
+  
 }

@@ -35,6 +35,7 @@ package org.knopflerfish.framework;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
@@ -47,6 +48,11 @@ public class BundleRevisionImpl
   implements BundleRevision
 {
 
+  static final int NS_BUNDLE =  1;
+  static final int NS_HOST =    2;
+  static final int NS_PACKAGE = 4;
+  static final int NS_OTHER =   8;
+
   final BundleGeneration gen;
 
   BundleRevisionImpl(BundleGeneration gen)
@@ -55,48 +61,86 @@ public class BundleRevisionImpl
     this.gen = gen;
   }
 
+  
   public String getSymbolicName()
   {
     return gen.symbolicName;
   }
+
 
   public Version getVersion()
   {
     return gen.version;
   }
 
+
   public List<BundleCapability> getDeclaredCapabilities(String namespace)
   {
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
+    final int ns = whichNameSpaces(namespace);
 
-    BundleCapability bc = gen.getFragmentHostCapability();
-    if (bc!=null)  res.add(bc);
+    if ((ns & NS_BUNDLE) != 0) {
+      BundleCapability bc = gen.getRequireHostCapability();
+      if (bc!=null) {
+        res.add(bc);
+      }
+    }
 
-    bc = gen.getRequireHostCapability();
-    if (bc!=null)  res.add(bc);
+    if ((ns & NS_HOST) != 0) {
+      BundleCapability bc = gen.getFragmentHostCapability();
+      if (bc!=null) {
+        res.add(bc);
+      }
+    }
 
-    res.addAll(gen.bpkgs.getDeclaredPackageCapabilities());
+    if ((ns & NS_PACKAGE) != 0) {
+      res.addAll(gen.bpkgs.getDeclaredPackageCapabilities());
+    }
+
+    if ((ns & NS_OTHER) != 0) {
+      //TODO capabilities
+    }
 
     return res;
   }
+
 
   public List<BundleRequirement> getDeclaredRequirements(String namespace)
   {
     final ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
-    if (namespace == null) {
-      for (final List<BundleRequirement> brs : gen.getAllDeclaredRequirements()
-          .values()) {
-        res.addAll(brs);
-      }
-    } else {
-      final List<BundleRequirement> nsRes = gen.getAllDeclaredRequirements()
-          .get(namespace);
-      if (null != res) {
-        res.addAll(nsRes);
+    final int ns = whichNameSpaces(namespace);
+
+    if ((ns & NS_BUNDLE) != 0) {
+      final List<BundleRequirement> bundleReqs = gen.bpkgs.getDeclaredBundleRequirements();
+      res.addAll(bundleReqs);
+    }
+
+    if ((ns & NS_HOST) != 0) {
+      if (gen.isFragment()) {
+        res.add(gen.fragment);
       }
     }
+
+    if ((ns & NS_PACKAGE) != 0) {
+      final List<BundleRequirement> packageReqs = gen.bpkgs.getDeclaredPackageRequirements();
+      res.addAll(packageReqs);
+    }
+
+    if ((ns & NS_OTHER) != 0) {
+      Map<String, List<BundleRequirement>> reqs = gen.getDeclaredRequirements();
+      if (null != namespace) {
+        List<BundleRequirement> lbr = reqs.get(namespace);
+        res.addAll(lbr);
+      } else {
+        for (List<BundleRequirement> lbr : reqs.values()) {
+          res.addAll(lbr);
+        }
+      }
+    }
+
     return res;
   }
+
 
   public int getTypes()
   {
@@ -107,5 +151,26 @@ public class BundleRevisionImpl
   {
     return gen.getBundleWiring();
   }
+  
+  public String toString() {
+    return "BundleRevision[" + getSymbolicName() + ":" + getVersion() + "]";
+  }
+
+  static int whichNameSpaces(String namespace) {
+    int ns;
+    if (namespace == null) {
+      ns = NS_BUNDLE|NS_HOST|NS_PACKAGE|NS_OTHER;
+    } else if (BundleRevision.BUNDLE_NAMESPACE.equals(namespace)) {
+      ns = NS_BUNDLE;
+    } else if (BundleRevision.HOST_NAMESPACE.equals(namespace)) {
+      ns = NS_HOST;
+    } else if (BundleRevision.PACKAGE_NAMESPACE.equals(namespace)) {
+      ns = NS_PACKAGE;
+    } else {
+      ns = NS_OTHER;
+    }
+    return ns;
+  }
+
 
 }
