@@ -61,7 +61,7 @@ public class BundleRevisionImpl
     this.gen = gen;
   }
 
-  
+
   public String getSymbolicName()
   {
     return gen.symbolicName;
@@ -80,14 +80,13 @@ public class BundleRevisionImpl
     final int ns = whichNameSpaces(namespace);
 
     if ((ns & NS_BUNDLE) != 0) {
-      BundleCapability bc = gen.getRequireHostCapability();
+      final BundleCapability bc = gen.getBundleCapability();
       if (bc!=null) {
         res.add(bc);
       }
     }
-
     if ((ns & NS_HOST) != 0) {
-      BundleCapability bc = gen.getFragmentHostCapability();
+      final BundleCapability bc = gen.getHostCapability();
       if (bc!=null) {
         res.add(bc);
       }
@@ -98,7 +97,15 @@ public class BundleRevisionImpl
     }
 
     if ((ns & NS_OTHER) != 0) {
-      //TODO capabilities
+      final Map<String, List<BundleCapability>> caps = gen.getDeclaredCapabilities();
+      if (null != namespace) {
+        final List<BundleCapability> lcap = caps.get(namespace);
+        res.addAll(lcap);
+      } else {
+        for (final List<BundleCapability> lcap : caps.values()) {
+          res.addAll(lcap);
+        }
+      }
     }
 
     return res;
@@ -127,12 +134,12 @@ public class BundleRevisionImpl
     }
 
     if ((ns & NS_OTHER) != 0) {
-      Map<String, List<BundleRequirement>> reqs = gen.getDeclaredRequirements();
+      final Map<String, List<BundleRequirement>> reqs = gen.getDeclaredRequirements();
       if (null != namespace) {
-        List<BundleRequirement> lbr = reqs.get(namespace);
+        final List<BundleRequirement> lbr = reqs.get(namespace);
         res.addAll(lbr);
       } else {
-        for (List<BundleRequirement> lbr : reqs.values()) {
+        for (final List<BundleRequirement> lbr : reqs.values()) {
           res.addAll(lbr);
         }
       }
@@ -151,7 +158,8 @@ public class BundleRevisionImpl
   {
     return gen.getBundleWiring();
   }
-  
+
+  @Override
   public String toString() {
     return "BundleRevision[" + getSymbolicName() + ":" + getVersion() + "]";
   }

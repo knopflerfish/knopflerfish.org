@@ -127,6 +127,18 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   final Fragment fragment;
 
   /**
+   * The bundle requirements from the Require-Capability header.
+   */
+  final Map<String, List<BundleRequirement>> requirements
+    = new HashMap<String, List<BundleRequirement>>();
+
+  /**
+   * The bundle capabilities from the Provide-Capability header.
+   */
+  final Map<String, List<BundleCapability>> capabilities
+    = new HashMap<String, List<BundleCapability>>();
+
+  /**
    * True when this bundle has its activation policy set to "lazy"
    */
   final boolean lazyActivation;
@@ -155,8 +167,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   private volatile ClassLoader classLoader;
 
   /**
-   * Bundle protect domain. Will allways be <tt>null</tt> for the system bundle,
-   * methods requireing access to it must be overridden in the SystemBundle
+   * Bundle protect domain. Will always be <tt>null</tt> for the system bundle,
+   * methods requiring access to it must be overridden in the SystemBundle
    * class.
    */
   private ProtectionDomain protectionDomain;
@@ -303,6 +315,35 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       lazyIncludes = null;
       lazyExcludes = null;
     }
+
+    i = Util.parseEntries(Constants.REQUIRE_CAPABILITY,
+                          archive.getAttribute(Constants.REQUIRE_CAPABILITY),
+                          true, true, false);
+    while (i.hasNext()) {
+      e = i.next();
+      final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
+      List<BundleRequirement> nsReqs = requirements.get(bri.getNamespace());
+      if (null == nsReqs) {
+        nsReqs = new ArrayList<BundleRequirement>();
+        requirements.put(bri.getNamespace(), nsReqs);
+      }
+      nsReqs.add(bri);
+    }
+
+    i = Util.parseEntries(Constants.PROVIDE_CAPABILITY,
+                          archive.getAttribute(Constants.PROVIDE_CAPABILITY),
+                          true, true, false);
+    while (i.hasNext()) {
+      e = i.next();
+      final BundleCapabilityImpl bci = new BundleCapabilityImpl(this, e);
+      List<BundleCapability> nsCaps = capabilities.get(bci.getNamespace());
+      if (null == nsCaps) {
+        nsCaps = new ArrayList<BundleCapability>();
+        capabilities.put(bci.getNamespace(), nsCaps);
+      }
+      nsCaps.add(bci);
+    }
+
     bpkgs = new BundlePackages(this);
     try {
       if (b.fwCtx.startLevelController == null) {
@@ -400,33 +441,28 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
 
   /**
-   * Get the requirements specified by the Bundle-Requirement header of this
-   * bundle generation.
+   * Get capabilities specified by this bundle generation.
+   *
+   * Returns capabilities declared in the Bundle-Capability manifest header.
+   * <p/>
+   * The key in the map is the {@code name-space} of the capability.
+   */
+  Map<String, List<BundleCapability>> getDeclaredCapabilities()
+  {
+    return capabilities;
+  }
+
+
+  /**
+   * Get requirements specified by this bundle generation.
+   *
+   * Returns all requirements declared in the Bundle-Requirement manifest header.
+   * <p/>
    * The key in the map is the {@code name-space} of the bundle requirement.
    */
   Map<String, List<BundleRequirement>> getDeclaredRequirements()
   {
-    final Map<String, List<BundleRequirement>> res
-      = new HashMap<String, List<BundleRequirement>>();
-
-    // The system bundle has no requirements.
-    if (bundle.getBundleId()!=0) {
-      final Iterator<Map<String, Object>> i = Util
-          .parseEntries(Constants.REQUIRE_CAPABILITY,
-                        archive.getAttribute(Constants.REQUIRE_CAPABILITY),
-                        true, true, false);
-      while (i.hasNext()) {
-        final Map<String, Object> e = i.next();
-        final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
-        List<BundleRequirement> nsReqs = res.get(bri.getNamespace());
-        if (null == nsReqs) {
-          nsReqs = new ArrayList<BundleRequirement>();
-          res.put(bri.getNamespace(), nsReqs);
-        }
-        nsReqs.add(bri);
-      }
-    }
-    return res;
+    return requirements;
   }
 
 
@@ -1013,7 +1049,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  BundleCapability getFragmentHostCapability()
+  BundleCapability getHostCapability()
   {
     if (v2Manifest
         && !attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER) && fragment == null) {
@@ -1023,7 +1059,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     return null;
   }
 
-  BundleCapability getRequireHostCapability() {
+  BundleCapability getBundleCapability() {
     if (v2Manifest && fragment==null) {
       return new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
     }

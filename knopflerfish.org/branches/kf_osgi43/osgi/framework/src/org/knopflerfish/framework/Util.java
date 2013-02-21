@@ -57,6 +57,7 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
 public class Util {
 
@@ -69,9 +70,9 @@ public class Util {
 
 
   public static String getFrameworkDir(Map<String,String> props) {
-    String s = (String)props.get(Constants.FRAMEWORK_STORAGE);
+    String s = props.get(Constants.FRAMEWORK_STORAGE);
     if (s == null || s.length() == 0) {
-      s = (String)props.get(FWDIR_PROP);
+      s = props.get(FWDIR_PROP);
     }
     if (s == null || s.length() == 0) {
       s = System.getProperty(FWDIR_PROP);
@@ -97,17 +98,17 @@ public class Util {
 
   /**
    * Check for local file storage directory.
-   * 
+   *
    * @param name local directory name.
    * @return A FileTree object of directory or null if no storage is available.
    */
   public static FileTree getFileStorage(FrameworkContext ctx, String name) {
     // See if we have a storage directory
-    String fwdir = getFrameworkDir(ctx);
+    final String fwdir = getFrameworkDir(ctx);
     if (fwdir == null) {
       return null;
     }
-    FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);
+    final FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);
     if (dir != null) {
       if (dir.exists()) {
         if (!dir.isDirectory()) {
@@ -126,7 +127,7 @@ public class Util {
   /**
    * Compare to strings formatted as '<int>[.<int>[.<int>]]'. If string is null,
    * then it counts as ZERO.
-   * 
+   *
    * @param ver1 First version string.
    * @param ver2 Second version string.
    * @return Return 0 if equals, -1 if ver1 < ver2 and 1 if ver1 > ver2.
@@ -137,7 +138,7 @@ public class Util {
     int i1, i2;
     while (ver1 != null || ver2 != null) {
       if (ver1 != null) {
-        int d1 = ver1.indexOf(".");
+        final int d1 = ver1.indexOf(".");
         if (d1 == -1) {
           i1 = Integer.parseInt(ver1.trim());
           ver1 = null;
@@ -149,7 +150,7 @@ public class Util {
         i1 = 0;
       }
       if (ver2 != null) {
-        int d2 = ver2.indexOf(".");
+        final int d2 = ver2.indexOf(".");
         if (d2 == -1) {
           i2 = Integer.parseInt(ver2.trim());
           ver2 = null;
@@ -173,26 +174,29 @@ public class Util {
 
   /**
    * Parse strings of format:
-   * 
+   *
    * ENTRY (, ENTRY)*
-   * 
+   *
    * @param d Directive being parsed
    * @param s String to parse
    * @return A HashSet with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static HashSet<String> parseEnumeration(String d, String s) {
-    HashSet<String> result = new HashSet<String>();
+  public static HashSet<String> parseEnumeration(String d, String s)
+  {
+    final HashSet<String> result = new HashSet<String>();
     if (s != null) {
-      AttributeTokenizer at = new AttributeTokenizer(s);
+      final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        String key = at.getKey();
+        final String key = at.getKey();
         if (key == null) {
-          throw new IllegalArgumentException("Directive " + d + ", unexpected character at: "
+          throw new IllegalArgumentException("Directive " + d
+                                             + ", unexpected character at: "
                                              + at.getRest());
         }
         if (!at.getEntryEnd()) {
-          throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
+          throw new IllegalArgumentException("Directive " + d
+                                             + ", expected end of entry at: "
                                              + at.getRest());
         }
         result.add(key);
@@ -203,19 +207,39 @@ public class Util {
     }
   }
 
-
   /**
    * Parse strings of format:
-   * 
-   * ENTRY (, ENTRY)* ENTRY = key (; key)* (; PARAM)* PARAM = attribute '='
-   * value PARAM = directive ':=' value
-   * 
-   * @param a Attribute being parsed
-   * @param s String to parse
-   * @param single If true, only allow one key per ENTRY
+   * <pre>
+   * ENTRY (',' ENTRY)*
+   * ENTRY = key (';' key)* (';' PARAM)*
+   * PARAM = attribute (':' TYPE)? '=' value
+   * PARAM = directive ':=' value
+   * TYPE = SCALAR | LIST
+   * SCALAR = 'String' | 'Version' | 'Long' | 'Double'
+   * LIST = 'List<' SCALAR '>'
+   * </pre>
+   *
+   * The default attribute value type is 'String'.
+   *
+   * The resulting map will contain a synthetic key '$directives' of type
+   * {@code Set<String>} holding the keys for all parameters that are directives.
+   *
+   * The map also has a synthetic key, '$key' (when {@code single} is true)
+   * or '$keys' with the names of the entries as the value (the type is
+   * {@code String} or {@code List<String>}.
+   *
+   * If {@code unique} is true the parameter values in the map are scalars
+   * otherwise the values from different parameter definitions with the same
+   * name are wrapped in a {@code List<?>}.
+   *
+   * @param a Name of attribute being parsed, for error messages.
+   * @param s String to parse.
+   * @param single If true, only allow one key per ENTRY.
    * @param unique Only allow unique parameters for each ENTRY.
    * @param single_entry If true, only allow one ENTRY is allowed.
-   * @return Iterator(Map(param -> value)) or null if input string is null.
+   *
+   * @return iterator over the parameter map or null if input string is null.
+   *
    * @exception IllegalArgumentException If syntax error in input string.
    */
   public static Iterator<Map<String, Object>> parseEntries(String a,
@@ -224,13 +248,13 @@ public class Util {
                                                            boolean unique,
                                                            boolean single_entry)
   {
-    ArrayList<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
+    final ArrayList<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
     if (s != null) {
-      AttributeTokenizer at = new AttributeTokenizer(s);
+      final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        ArrayList<String> keys = new ArrayList<String>();
-        HashMap<String,Object> params = new HashMap<String,Object>();
-        Set<String> directives = new TreeSet<String>();
+        final ArrayList<String> keys = new ArrayList<String>();
+        final HashMap<String,Object> params = new HashMap<String,Object>();
+        final Set<String> directives = new TreeSet<String>();
         params.put("$directives", directives); // $ is not allowed in
                                                // param names...
         String key = at.getKey();
@@ -249,17 +273,18 @@ public class Util {
         }
         String param;
         while ((param = at.getParam()) != null) {
-          @SuppressWarnings({ "unchecked" })
-          List<String> old = (List<String>) params.get(param);
-          boolean is_directive = at.isDirective();
+          @SuppressWarnings("unchecked")
+          List<Object> old = (List<Object>) params.get(param);
+          final boolean is_directive = at.isDirective();
           if (old != null && unique) {
             final String msg = "Definition, " + a + ", duplicate "
                                + (is_directive ? "directive" : "attribute")
                                + ": " + param;
             throw new IllegalArgumentException(msg);
           }
-          String value = at.getValue();
-          if (value == null) {
+          final String paramType = at.getParamType();
+          final String valueStr = at.getValue();
+          if (valueStr == null) {
             final String msg = "Definition, " + a + ", expected value at: "
                                + at.getRest();
             throw new IllegalArgumentException(msg);
@@ -269,11 +294,17 @@ public class Util {
             // This method has become very ugly, please rewrite.
             directives.add(param);
           }
+          Object value = toValue(a, param, paramType, valueStr);
+          if (paramType!=null && !"String".equals(paramType)) {
+
+          } else {
+            value = valueStr;
+          }
           if (unique) {
             params.put(param, value);
           } else {
             if (old == null) {
-              old = new ArrayList<String>();
+              old = new ArrayList<Object>();
               params.put(param, old);
             }
             old.add(value);
@@ -301,17 +332,89 @@ public class Util {
 
 
   /**
+   * Convert an attribute value from string to the requested type.
+   *
+   * The types supported are described in
+   * {@link #parseEntries(String, String, boolean, boolean, boolean)}.
+   *
+   * @param a Name of attribute being parsed, for error messages.
+   * @param p Name of parameter to assign the value to, for error messages.
+   * @param type the type to convert to.
+   * @param value the value to convert.
+   * @return
+   */
+  private static Object toValue(String a, String param, String type, String value)
+  {
+    Object res;
+
+    if (type == null || "String".equals(type)) {
+      res = value;
+    } else if ("Long".equals(type)) {
+      try {
+        res = new Long(value.trim());
+      } catch (final Exception e) {
+        throw (IllegalArgumentException) new
+        IllegalArgumentException("Definition, " +a
+                                 +", expected long value but found '"
+                                 +value +"' for attribute '"
+                                 +param + "'.").initCause(e);
+      }
+    } else if ("Double".equals(type)) {
+      try {
+        res = new Double(value.trim());
+      } catch (final Exception e) {
+        throw (IllegalArgumentException) new
+        IllegalArgumentException("Definition, " +a
+                                 +", expected double value but found '"
+                                 +value +"' for attribute '"
+                                 +param + "'.").initCause(e);
+      }
+    } else if ("Version".equals(type)) {
+      try {
+        res = new Version(value);
+      } catch (final Exception e) {
+        throw (IllegalArgumentException) new
+        IllegalArgumentException("Definition, " +a
+                                 +", expected Version value but found '"
+                                 +value +"' for attribute '"
+                                 +param + "'.").initCause(e);
+      }
+    } else if (type.startsWith("List")) {
+      try {
+        final String elemType = type.substring(type.indexOf('<') + 1,
+                                         type.indexOf('>'));
+        final List<String> elements = splitWordsUnescape(value, ',', '\\');
+        final List<Object> l = new ArrayList<Object>(elements.size());
+        for (final String elem : elements) {
+          l.add(toValue(a, param, elemType, elem));
+        }
+        res = l;
+      } catch (final Exception e) {
+        throw (IllegalArgumentException) new IllegalArgumentException
+          ("Definition, " + a + ", expected " +type +" value but found '"
+           + value + "' for attribute '" + param + "'.")
+            .initCause(e);
+      }
+    } else {
+        throw new IllegalArgumentException("Definition, " +a
+                                 +", unknown type " +type +" for attribute '"
+                                 +param + "'.");
+    }
+    return res;
+  }
+
+  /**
    * Read a resource into a byte array.
-   * 
+   *
    * @param name resource name to read
    * @return byte array with contents of resource.
    */
   static byte[] readResource(String name) throws IOException {
-    byte[] buf = new byte[1024];
+    final byte[] buf = new byte[1024];
 
-    InputStream in = Util.class.getResourceAsStream(name);
+    final InputStream in = Util.class.getResourceAsStream(name);
     try {
-      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      final ByteArrayOutputStream bout = new ByteArrayOutputStream();
       int n;
       while ((n = in.read(buf)) > 0) {
         bout.write(buf, 0, n);
@@ -320,7 +423,7 @@ public class Util {
     } finally {
       try {
         in.close();
-      } catch (Exception ignored) {
+      } catch (final Exception ignored) {
       }
     }
   }
@@ -328,7 +431,7 @@ public class Util {
 
   /**
    * Read a resource into a String.
-   * 
+   *
    * @param name resource name to read
    * @param defaultValue if no resource is available
    * @param encoding resource encoding
@@ -337,7 +440,7 @@ public class Util {
   static String readResource(String file, String defaultValue, String encoding) {
     try {
       return (new String(readResource(file), encoding)).trim();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       return defaultValue;
     }
   }
@@ -363,7 +466,7 @@ public class Util {
 
   /**
    * Utility method to split a string into words separated by whitespace.
-   * 
+   *
    * <p>
    * Equivalent to <tt>splitwords(s, WHITESPACE)</tt>
    * </p>
@@ -375,7 +478,7 @@ public class Util {
 
   /**
    * Utility method to split a string into words separated by whitespace.
-   * 
+   *
    * <p>
    * Equivalent to <tt>splitwords(s, WHITESPACE, CITCHAR)</tt>
    * </p>
@@ -390,7 +493,7 @@ public class Util {
    * <p>
    * Citation chars may be used to group words with embedded whitespace.
    * </p>
-   * 
+   *
    * @param s String to split.
    * @param whiteSpace whitespace to use for splitting. Any of the characters in
    *          the whiteSpace string are considered whitespace between words and
@@ -403,12 +506,12 @@ public class Util {
                                      String whiteSpace,
                                      char citChar) {
     boolean bCit = false; // true when inside citation chars.
-    Vector<String> v = new Vector<String>(); // (String) individual words after splitting
+    final Vector<String> v = new Vector<String>(); // (String) individual words after splitting
     StringBuffer buf = new StringBuffer();
     int i = 0;
 
     while (i < s.length()) {
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
 
       if (bCit || whiteSpace.indexOf(c) == -1) {
         // Build up word until we breaks on either a citation char or whitespace
@@ -441,7 +544,7 @@ public class Util {
     }
 
     // Copy back into an array
-    String[] r = new String[v.size()];
+    final String[] r = new String[v.size()];
     v.copyInto(r);
 
     return r;
@@ -449,29 +552,89 @@ public class Util {
 
 
   /**
-   * Replace all occurances of a substring with another string.
-   * 
+   * Split a string into words separated by a separator char and trim whitespace
+   * from the pieces.
+   *
+   * @param s String to split.
+   * @param sepChar separator char to split on.
+   * @param escChar escape char.
+   */
+  public static List<String> splitWordsUnescape(String s,
+                                                char sepChar,
+                                                char escChar)
+  {
+    final List<String> res = new ArrayList<String>();
+    final StringBuffer buf = new StringBuffer();
+    int pos = 0;
+    final int length = s.length();
+
+    boolean esc = false;
+    int end = 0;
+    while(pos<length && Character.isWhitespace(s.charAt(pos))) pos++;
+    for (; pos < length; pos++) {
+      if (esc) {
+        esc = false;
+        buf.append(s.charAt(pos));
+        end = buf.length();
+      } else {
+        final char c = s.charAt(pos);
+        if (c == escChar) {
+          esc = true;
+        } else if (c == sepChar) {
+          final char[] elem = new char[end];
+          buf.getChars(0, end, elem, 0);
+          res.add(new String(elem));
+          buf.setLength(0);
+          end = 0;
+          while(pos<length && Character.isWhitespace(s.charAt(pos))) pos++;
+        } else {
+          buf.append(c);
+          if (!Character.isWhitespace(c)) {
+            end = buf.length();
+          }
+        }
+      }
+    }
+    if (esc) {
+      throw new IllegalArgumentException("Value ends on escape character");
+    }
+    // The last element.
+    final char[] elem = new char[end];
+    buf.getChars(0, end, elem, 0);
+    res.add(new String(elem));
+    buf.setLength(0);
+
+    return res;
+  }
+
+
+  /**
+   * Replace all occurrences of a substring with another string.
+   *
    * <p>
    * The returned string will shrink or grow as necessary depending on the
    * lengths of <tt>v1</tt> and <tt>v2</tt>.
    * </p>
-   * 
+   *
    * <p>
    * Implementation note: This method avoids using the standard String
    * manipulation methods to increase execution speed. Using the
    * <tt>replace</tt> method does however include two <tt>new</tt> operations in
    * the case when matches are found.
    * </p>
-   * 
-   * 
-   * @param s Source string.
-   * @param v1 String to be replaced with <code>v2</code>.
-   * @param v2 String replacing <code>v1</code>.
+   *
+   *
+   * @param s
+   *          Source string.
+   * @param v1
+   *          String to be replaced with <code>v2</code>.
+   * @param v2
+   *          String replacing <code>v1</code>.
    * @return Modified string. If any of the input strings are <tt>null</tt>, the
    *         source string <tt>s</tt> will be returned unmodified. If
-   *         <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or no occurances of
-   *         <tt>v1</tt> is found, also return <tt>s</tt> unmodified.
-   * 
+   *         <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or no occurrences
+   *         of <tt>v1</tt> is found, also return <tt>s</tt> unmodified.
+   *
    * @author Erik Wistrand
    */
   public static String replace(final String s,
@@ -488,7 +651,7 @@ public class Util {
     }
 
     int ix = 0;
-    int v1Len = v1.length();
+    final int v1Len = v1.length();
     int n = 0;
 
     // count number of occurances to be able to correctly size
@@ -505,8 +668,8 @@ public class Util {
 
     // Set up an output char array of correct size
     int start = 0;
-    int v2Len = v2.length();
-    char[] r = new char[s.length() + n * (v2Len - v1Len)];
+    final int v2Len = v2.length();
+    final char[] r = new char[s.length() + n * (v2Len - v1Len)];
     int rPos = 0;
 
     // for each occurance, copy v2 where v1 used to be
@@ -534,12 +697,12 @@ public class Util {
     try {
       in = new DataInputStream(new FileInputStream(f));
       return in.readUTF();
-    } catch (IOException ignore) {
+    } catch (final IOException ignore) {
     } finally {
       if (in != null) {
         try {
           in.close();
-        } catch (IOException ignore) {
+        } catch (final IOException ignore) {
         }
       }
     }
@@ -581,7 +744,7 @@ public class Util {
 
   /**
    * Sort a vector with objects comparable using a comparison function.
-   * 
+   *
    * @param a Vector to sort
    * @param cf comparison function
    */
@@ -630,7 +793,7 @@ public class Util {
 
 
   private static <A> void swap(List<A> a, int i, int j) {
-    A tmp = a.get(i);
+    final A tmp = a.get(i);
     a.set(i, a.get(j));
     a.set(j, tmp);
   }
@@ -639,7 +802,7 @@ public class Util {
   /**
    * Do binary search for a package entry in the list with the same version
    * number add the specifies package entry.
-   * 
+   *
    * @param pl Sorted list of package entries to search.
    * @param c comparator determining the ordering.
    * @param k The key of the Package entry to search for.
@@ -653,8 +816,8 @@ public class Util {
     int u = pl.size() - 1;
 
     while (l <= u) {
-      int m = (l + u) / 2;
-      int v = c.compare(pl.get(m), k);
+      final int m = (l + u) / 2;
+      final int v = c.compare(pl.get(m), k);
       if (v > 0) {
         l = m + 1;
       } else if (v < 0) {
@@ -685,7 +848,7 @@ public class Util {
 
   /**
    * Encode a raw byte array to a Base64 String.
-   * 
+   *
    * @param in Byte array to encode.
    */
   // public static String encode(byte[] in) throws IOException {
@@ -694,7 +857,7 @@ public class Util {
 
   /**
    * Encode a raw byte array to a Base64 String.
-   * 
+   *
    * @param in Byte array to encode.
    * @param len Length of Base64 lines. 0 means no line breaks.
    */
@@ -773,8 +936,8 @@ public class Util {
    * target will contain all entries in extra that did not exist in target.
    */
   static <A, B> void mergeDictionaries(Dictionary<A, B> target, Dictionary<A,B> extra) {
-    for (Enumeration<A> e = extra.keys(); e.hasMoreElements();) {
-      A key = e.nextElement();
+    for (final Enumeration<A> e = extra.keys(); e.hasMoreElements();) {
+      final A key = e.nextElement();
       if (target.get(key) == null) {
         target.put(key, extra.get(key));
       }
@@ -816,33 +979,35 @@ public class Util {
   }
 
   /**
-   * Class for tokenize an attribute string.
+   * Class for tokenizing an attribute string.
+   * @see Util#parseEntries(String, String, boolean, boolean, boolean)
    */
   static class AttributeTokenizer {
 
-    String s;
+    final String s;
     int length;
     int pos = 0;
 
 
-    AttributeTokenizer(String input) {
+    AttributeTokenizer(final String input) {
       s = input;
       length = s.length();
     }
 
-
+    // get word (non-whitespace chars) up to the next non-quoted
+    // ',', ':', ';', '='
     String getWord() {
       skipWhite();
       boolean backslash = false;
       boolean quote = false;
-      StringBuffer val = new StringBuffer();
+      final StringBuffer val = new StringBuffer();
       int end = 0;
       loop: for (; pos < length; pos++) {
         if (backslash) {
           backslash = false;
           val.append(s.charAt(pos));
         } else {
-          char c = s.charAt(pos);
+          final char c = s.charAt(pos);
           switch (c) {
           case '"':
             quote = !quote;
@@ -871,7 +1036,7 @@ public class Util {
       if (quote || backslash || end == 0) {
         return null;
       }
-      char[] res = new char[end];
+      final char[] res = new char[end];
       val.getChars(0, end, res, 0);
       return new String(res);
     }
@@ -881,16 +1046,16 @@ public class Util {
       if (pos >= length) {
         return null;
       }
-      int save = pos;
+      final int save = pos;
       if (s.charAt(pos) == ';') {
         pos++;
       }
-      String res = getWord();
+      final String res = getWord();
       if (res != null) {
         if (pos == length) {
           return res;
         }
-        char c = s.charAt(pos);
+        final char c = s.charAt(pos);
         if (c == ';' || c == ',') {
           return res;
         }
@@ -904,14 +1069,22 @@ public class Util {
       if (pos == length || s.charAt(pos) != ';') {
         return null;
       }
-      int save = pos++;
-      String res = getWord();
+      final int save = pos++;
+      final String res = getWord();
       if (res != null) {
         if (pos < length && s.charAt(pos) == '=') {
           return res;
         }
         if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos + 1) == '=') {
           return res;
+        }
+        if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos + 1) != '=') {
+          final int save2 = pos++;
+          final String type = getWord();
+          if (type != null && s.charAt(pos) == '=') {
+            pos = save2;
+            return res;
+          }
         }
       }
       pos = save;
@@ -920,7 +1093,7 @@ public class Util {
 
 
     boolean isDirective() {
-      if (pos + 1 < length && s.charAt(pos) == ':') {
+      if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos + 1) == '=') {
         pos++;
         return true;
       } else {
@@ -929,13 +1102,29 @@ public class Util {
     }
 
 
+    String getParamType() {
+      if (pos == length || s.charAt(pos) != ':') {
+        return null;
+      }
+      final int save = pos++;
+      final String res = getWord();
+      if (res != null) {
+        if (pos < length && s.charAt(pos) == '=') {
+          return res;
+        }
+      }
+      pos = save;
+      return null;
+    }
+
+
     String getValue() {
       if (s.charAt(pos) != '=') {
         return null;
       }
-      int save = pos++;
+      final int save = pos++;
       skipWhite();
-      String val = getWord();
+      final String val = getWord();
       if (val == null) {
         pos = save;
         return null;
@@ -945,7 +1134,7 @@ public class Util {
 
 
     boolean getEntryEnd() {
-      int save = pos;
+      final int save = pos;
       skipWhite();
       if (pos == length) {
         return true;
@@ -960,7 +1149,7 @@ public class Util {
 
 
     boolean getEnd() {
-      int save = pos;
+      final int save = pos;
       skipWhite();
       if (pos == length) {
         return true;
@@ -972,7 +1161,7 @@ public class Util {
 
 
     String getRest() {
-      String res = s.substring(pos).trim();
+      final String res = s.substring(pos).trim();
       return res.length() == 0 ? "<END OF LINE>" : res;
     }
 
