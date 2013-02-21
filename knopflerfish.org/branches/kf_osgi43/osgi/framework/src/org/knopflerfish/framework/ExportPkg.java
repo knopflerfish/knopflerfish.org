@@ -34,22 +34,36 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
-import org.osgi.framework.wiring.BundleWiring;
 
 
 /**
  * Data structure for export package definitions.
  *
- * @author Jan Stein
+ * @author Jan Stein, Gunnar Ekolin
  */
-class ExportPkg implements BundleCapability {
+class ExportPkg
+  implements BundleCapability, Comparable<ExportPkg>
+{
+  // To maintain the creation order in the osgi.wiring.package name space.
+  static private int exportPkgCount = 0;
+  final int orderal = ++exportPkgCount;
+
   final String name;
   final BundlePackages bpkgs;
   final HashSet<String> uses;
@@ -81,8 +95,8 @@ class ExportPkg implements BundleCapability {
                                          (String)tokens.remove(Constants.INCLUDE_DIRECTIVE));
     this.exclude = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
                                          (String)tokens.remove(Constants.EXCLUDE_DIRECTIVE));
-    String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
-    String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+    final String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
+    final String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.version = new Version(specVersionStr);
       if (versionStr != null && !this.version.equals(new Version(versionStr))) {
@@ -104,10 +118,12 @@ class ExportPkg implements BundleCapability {
                                          Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
     }
     // Remove all meta-data and all directives from the set of tokens.
-    Set directiveNames = (Set) tokens.remove("$directives");
+    @SuppressWarnings("unchecked")
+    final
+    Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
     if (null!=directiveNames) {
-      for (Iterator dit=directiveNames.iterator(); dit.hasNext();) {
-        tokens.remove((String) dit.next());
+      for (final String directiveName : directiveNames) {
+        tokens.remove(directiveName);
       }
     }
     tokens.remove("$key");
@@ -181,8 +197,8 @@ class ExportPkg implements BundleCapability {
       if (include != null) {
         // assert fullClassName.startsWith(name)
         clazz = fullClassName.substring(name.length() + 1);
-        for (Iterator i = include.iterator(); i.hasNext(); ) {
-          if (Util.filterMatch((String)i.next(), clazz)) {
+        for (final Iterator<String> i = include.iterator(); i.hasNext(); ) {
+          if (Util.filterMatch(i.next(), clazz)) {
             break;
           }
           if (!i.hasNext()) {
@@ -195,8 +211,8 @@ class ExportPkg implements BundleCapability {
           // assert fullClassName.startsWith(name)
           clazz = fullClassName.substring(name.length() + 1);
         }
-        for (Iterator i = exclude.iterator(); i.hasNext(); ) {
-          if (Util.filterMatch((String)i.next(), clazz)) {
+        for (final String string : exclude) {
+          if (Util.filterMatch(string, clazz)) {
             ok = false;
             break;
           }
@@ -233,7 +249,7 @@ class ExportPkg implements BundleCapability {
   synchronized boolean isExported() {
     if (checkPermission() && pkg != null &&
         ((bpkgs.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
-      BundlePackages bp = bpkgs.getProviderBundlePackages(name);
+      final BundlePackages bp = bpkgs.getProviderBundlePackages(name);
       return bp == null || bp.bg.bundle == bpkgs.bg.bundle;
     }
     return false;
@@ -248,10 +264,9 @@ class ExportPkg implements BundleCapability {
    */
   synchronized List<ImportPkg> getPackageImporters() {
     if (pkg != null) {
-      List<ImportPkg> res = new ArrayList<ImportPkg>();
+      final List<ImportPkg> res = new ArrayList<ImportPkg>();
       synchronized (pkg) {
-        for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
-          ImportPkg ip = (ImportPkg)i.next();
+        for (final ImportPkg ip : pkg.importers) {
           if (ip.provider == this && ip.bpkgs != bpkgs) {
             res.add(ip);
           }
@@ -270,7 +285,7 @@ class ExportPkg implements BundleCapability {
    */
   boolean checkPermission() {
     // NYI! cache permission when we have resolved and while resolving
-    if (bpkgs.bg.bundle.state == BundleImpl.INSTALLED) {
+    if (bpkgs.bg.bundle.state == Bundle.INSTALLED) {
       hasPermission = bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
     }
     return hasPermission;
@@ -289,7 +304,7 @@ class ExportPkg implements BundleCapability {
     if (null == o) {
       return false;
     }
-    ExportPkg ep = (ExportPkg)o;
+    final ExportPkg ep = (ExportPkg)o;
     return name.equals(ep.name) &&
       version.equals(ep.version) &&
       (uses == null ? ep.uses == null : uses.equals(ep.uses)) &&
@@ -319,8 +334,9 @@ class ExportPkg implements BundleCapability {
    *
    * @return String.
    */
+  @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer(pkgString());
+    final StringBuffer sb = new StringBuffer(pkgString());
     sb.append('(');
     if (zombie) {
       sb.append("zombie, ");
@@ -337,14 +353,36 @@ class ExportPkg implements BundleCapability {
 
 
   public Map<String, String> getDirectives() {
-    // TODO Auto-generated method stub
-    return null;
+    final Map<String,String> res = new HashMap<String, String>(1);
+
+    if (uses!=null) {
+      final StringBuffer sb = new StringBuffer(uses.size()*30);
+      for (final String pkg : uses) {
+        if (sb.length()>0) sb.append(',');
+        sb.append(pkg);
+      }
+      res.put(Constants.USES_DIRECTIVE, sb.toString());
+    }
+
+    return res;
   }
 
 
   public Map<String, Object> getAttributes() {
-    // TODO Auto-generated method stub
-    return null;
+    final Map<String,Object> res
+      = new HashMap<String, Object>(4+attributes.size());
+
+    res.put(BundleRevision.PACKAGE_NAMESPACE, name);
+    res.put(Constants.VERSION_ATTRIBUTE, version);
+
+    res.put(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE, bpkgs.bg.symbolicName);
+    res.put(Constants.BUNDLE_VERSION_ATTRIBUTE, bpkgs.bg.version);
+
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
+      res.put(entry.getKey(), entry.getValue());
+    }
+
+    return res;
   }
 
 
@@ -356,6 +394,21 @@ class ExportPkg implements BundleCapability {
   Collection<? extends BundleWire> getBundleWires() {
     // TODO Auto-generated method stub
     return null;
+  }
+
+
+  /**
+   * The default ordering is the order in which the {@code ExportPkg}-objects
+   * has been created. I.e., the order they appeared in the {@code Export-Package}
+   * header.
+   *
+   * @param o other object to compare with.
+   * @return Less than zero, zero or greater than zero of this object is smaller
+   *  than, equals to or greater than {@code o}.
+   */
+  public int compareTo(ExportPkg o)
+  {
+    return this.orderal - o.orderal;
   }
 
 }

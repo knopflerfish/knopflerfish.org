@@ -75,6 +75,8 @@ public class BundleRevisionImpl
     bc = gen.getRequireHostCapability();
     if (bc!=null)  res.add(bc);
 
+    res.addAll(gen.bpkgs.getDeclaredPackageCapabilities());
+
     return res;
   }
 

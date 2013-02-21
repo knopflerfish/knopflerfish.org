@@ -34,8 +34,12 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -48,18 +52,18 @@ import org.osgi.framework.wiring.BundleRevision;
 
 /**
  * Data structure for import package definitions.
- * 
+ *
  * @author Jan Stein, Gunnar Ekolin
  */
 class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
-  
+
   /**
    * The value of the resolution directive for dynamically imported packages.
    */
   static final String RESOLUTION_DYNAMIC = "dynamic";
-  
+
   // To maintain the creation order in the osgi.wiring.package name space.
-  static private int importPkgCount = 0; 
+  static private int importPkgCount = 0;
   final int orderal = ++importPkgCount;
 
   final String name;
@@ -81,7 +85,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * Create an import package entry from manifest parser data.
-   * 
+   *
    * @param name the name of the package to be imported.
    * @param tokens the parsed import package statement.
    * @param b back link to the bundle revision owning this import declaration.
@@ -95,7 +99,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not import a java.* package");
     }
-    String res = (String)tokens.remove(Constants.RESOLUTION_DIRECTIVE);
+    final String res = (String)tokens.remove(Constants.RESOLUTION_DIRECTIVE);
     if (dynamic) {
       if (res != null) {
         throw new IllegalArgumentException("Directives not supported for "
@@ -119,8 +123,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
       }
     }
     this.bundleSymbolicName = (String)tokens.remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
-    String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
-    String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+    final String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
+    final String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.packageRange = new VersionRange(specVersionStr);
       if (versionStr != null && !this.packageRange.equals(new VersionRange(versionStr))) {
@@ -133,7 +137,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     } else {
       this.packageRange = VersionRange.defaultVersionRange;
     }
-    String rangeStr = (String)tokens.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+    final String rangeStr = (String)tokens.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     if (rangeStr != null) {
       this.bundleRange = new VersionRange(rangeStr);
     } else {
@@ -141,6 +145,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     }
     // Remove all meta-data and all directives from the set of tokens.
     @SuppressWarnings("unchecked")
+    final
     Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
     if (null != directiveNames) {
       tokens.keySet().removeAll(directiveNames);
@@ -216,7 +221,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * Check if version fulfills import package constraints.
-   * 
+   *
    * @param ver Version to compare to.
    * @return Return 0 if equals, negative if this object is less than obj and
    *         positive if this object is larger then obj.
@@ -228,7 +233,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * Check that all package attributes match.
-   * 
+   *
    * @param ep Exported package.
    * @return True if okay, otherwise false.
    */
@@ -245,8 +250,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
       return false;
     }
     /* Other attributes */
-    for (Entry<String,Object> entry : attributes.entrySet()) {
-      String a = (String) ep.attributes.get(entry.getKey());
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
+      final String a = (String) ep.attributes.get(entry.getKey());
       if (a == null || !a.equals(entry.getValue())) {
         return false;
       }
@@ -257,7 +262,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * Check that we have import permission for exported package.
-   * 
+   *
    * @param ep Exported package.
    * @return True if okay, otherwise false.
    */
@@ -268,7 +273,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * Check that we can do an internal wire to the exported package.
-   * 
+   *
    * @return True if okay, otherwise false.
    */
   boolean mustBeResolved() {
@@ -278,7 +283,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * Check that we intersect specified ImportPkg.
-   * 
+   *
    * @param ip ImportPkg to check.
    * @return True if we overlap, otherwise false.
    */
@@ -289,8 +294,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     }
 
     // Check that no other attributes conflict
-    for (Entry<String,Object> entry : attributes.entrySet()) {
-      String a = (String) ip.attributes.get(entry.getKey());
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
+      final String a = (String) ip.attributes.get(entry.getKey());
       if (a != null && !a.equals(entry.getValue())) {
         return false;
       }
@@ -309,7 +314,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * String describing package name and specification version, if specified.
-   * 
+   *
    * @return String.
    */
   public String pkgString() {
@@ -324,9 +329,10 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * String describing this object.
-   * 
+   *
    * @return String.
    */
+  @Override
   public String toString() {
     return pkgString() + "(" + bpkgs.bg.bundle + ")";
   }
@@ -334,7 +340,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   /**
    * Check that we have all mandatory attributes.
-   * 
+   *
    * @param mandatory Collection of mandatory attribute.
    * @return Return true if we have all mandatory attributes, otherwise false.
    */
@@ -371,7 +377,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   // BundleRequirement method
   public Map<String, String> getDirectives() {
     final Map<String,String> res = new HashMap<String, String>(4);
-    
+
     res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
 
     // For PACKAGE_NAMESPACE effective defaults to resolve and no other value
@@ -420,7 +426,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
           .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
     }
 
-    for (Entry<String,Object> entry : attributes.entrySet()) {
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
       sb.append('(');
       sb.append(entry.getKey());
       sb.append('=');
@@ -435,7 +441,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     }
     try {
       return FrameworkUtil.createFilter(sb.toString());
-    } catch (InvalidSyntaxException _ise) {
+    } catch (final InvalidSyntaxException _ise) {
       // Should not happen...
       System.err.println("createFilter: '" +sb.toString() +"': " +_ise.getMessage());
       return null;
@@ -445,6 +451,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   // BundleRequirement method
   public Map<String, Object> getAttributes() {
     @SuppressWarnings("unchecked")
+    final
     Map<String, Object> res = Collections.EMPTY_MAP;
     return res;
   }
@@ -464,8 +471,13 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
 
   /**
-   * Comparator that orders the import package objects in their creation order.
-   * @param o the other object.
+   * The default ordering is the order in which the {@code ImportPkg}-objects
+   * has been created. I.e., the order they appeared in the {@code Import-Package}
+   * header.
+   *
+   * @param o other object to compare with.
+   * @return Less than zero, zero or greater than zero of this object is smaller
+   *  than, equals to or greater than {@code o}.
    */
   public int compareTo(ImportPkg o)
   {

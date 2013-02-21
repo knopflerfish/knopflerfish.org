@@ -43,6 +43,7 @@ import java.util.TreeSet;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
+import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 
 import org.knopflerfish.framework.Util.Comparator;
@@ -630,6 +631,22 @@ class BundlePackages {
     return new ArrayList<BundleRequirement>(ipCreationOrder);
   }
 
+
+  /**
+   * Get the list of package capabilities derived from the Export-Package header.
+   *
+   * The bundle capability objects in the list has the same order as the packages
+   * in the Export-Package header.
+   *
+   * @return ordered list with bundle capabilities for packages.
+   */
+  public List<BundleCapability> getDeclaredPackageCapabilities()
+  {
+    final TreeSet<ExportPkg> epCreationOrder = new TreeSet<ExportPkg>(exports);
+
+    return new ArrayList<BundleCapability>(epCreationOrder);
+  }
+
   /**
    * Get the list bundle requirements derived from the Require-Bundle header.
    * The bundle requirement objects for required bundles in the list has the
@@ -956,5 +973,6 @@ class BundlePackages {
       return a.name.compareTo(b);
     }
   };
+
 
 }
