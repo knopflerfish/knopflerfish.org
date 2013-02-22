@@ -61,6 +61,13 @@ import org.osgi.framework.Version;
 
 public class Util {
 
+  // Type names used for types OSGi attributes in manifest headers.
+  private static final String DOUBLE_TYPE = "Double";
+  private static final String LONG_TYPE = "Long";
+  private static final String LIST_TYPE = "List";
+  private static final String STRING_TYPE = "String";
+  private static final String VERSION_TYPE = "Version";
+
   /**
    * Pre OSGi 4.2 property used by KF, replaced by Constants.FRAMEWORK_STORAGE
    * as of OSGi R4 v4.2.
@@ -219,7 +226,9 @@ public class Util {
    * LIST = 'List<' SCALAR '>'
    * </pre>
    *
-   * The default attribute value type is 'String'.
+   * The default attribute value type is 'String'. For list values the 'List'
+   * and its following '<' are treated as separate tokens to comply with the
+   * OSGi TCK.
    *
    * The resulting map will contain a synthetic key '$directives' of type
    * {@code Set<String>} holding the keys for all parameters that are directives.
@@ -283,7 +292,9 @@ public class Util {
             throw new IllegalArgumentException(msg);
           }
           final String paramType = at.getParamType();
-          final String valueStr = at.getValue();
+          final boolean keepEscape = paramType != null
+                                     && paramType.startsWith("List");
+          final String valueStr = at.getValue(keepEscape);
           if (valueStr == null) {
             final String msg = "Definition, " + a + ", expected value at: "
                                + at.getRest();
@@ -294,12 +305,7 @@ public class Util {
             // This method has become very ugly, please rewrite.
             directives.add(param);
           }
-          Object value = toValue(a, param, paramType, valueStr);
-          if (paramType!=null && !"String".equals(paramType)) {
-
-          } else {
-            value = valueStr;
-          }
+          final Object value = toValue(a, param, paramType, valueStr);
           if (unique) {
             params.put(param, value);
           } else {
@@ -343,47 +349,63 @@ public class Util {
    * @param value the value to convert.
    * @return
    */
-  private static Object toValue(String a, String param, String type, String value)
+  private static Object toValue(String a,
+                                String param,
+                                String type,
+                                String value)
   {
     Object res;
 
-    if (type == null || "String".equals(type)) {
+    type = type == null ? STRING_TYPE : type.intern();
+    if (STRING_TYPE == type) {
       res = value;
-    } else if ("Long".equals(type)) {
+    } else if (LONG_TYPE == type) {
       try {
         res = new Long(value.trim());
       } catch (final Exception e) {
         throw (IllegalArgumentException) new
         IllegalArgumentException("Definition, " +a
-                                 +", expected long value but found '"
+                                 +", expected value of type Long but found '"
                                  +value +"' for attribute '"
                                  +param + "'.").initCause(e);
       }
-    } else if ("Double".equals(type)) {
+    } else if (DOUBLE_TYPE == type) {
       try {
         res = new Double(value.trim());
       } catch (final Exception e) {
         throw (IllegalArgumentException) new
         IllegalArgumentException("Definition, " +a
-                                 +", expected double value but found '"
+                                 +", expected value of type Double but found '"
                                  +value +"' for attribute '"
                                  +param + "'.").initCause(e);
       }
-    } else if ("Version".equals(type)) {
+    } else if (VERSION_TYPE == type) {
       try {
         res = new Version(value);
       } catch (final Exception e) {
         throw (IllegalArgumentException) new
         IllegalArgumentException("Definition, " +a
-                                 +", expected Version value but found '"
+                                 +", expected value of type Version but found '"
                                  +value +"' for attribute '"
                                  +param + "'.").initCause(e);
       }
-    } else if (type.startsWith("List")) {
+    } else if (type.startsWith(LIST_TYPE)) {
+      String elemType = type.substring(LIST_TYPE.length()).trim();
+      // Let "List" without any "<type>" default to "List<String>"
+      if (elemType.length()>0) {
+        if ('<' != elemType.charAt(0)
+            || elemType.charAt(elemType.length() - 1) != '>') {
+          throw new IllegalArgumentException
+            ("Definition, " + a + ", expected List type definition '"
+                + type + "' for attribute '" + param + "'.");
+        }
+        elemType = elemType.substring(1, elemType.length() - 1).trim().intern();
+      }
+      // The default element type is STRING.
+      if (elemType.length()==0) elemType = STRING_TYPE;
+
       try {
-        final String elemType = type.substring(type.indexOf('<') + 1,
-                                         type.indexOf('>'));
-        final List<String> elements = splitWordsUnescape(value, ',', '\\');
+        final List<String> elements = splitWords(value, ',', STRING_TYPE!=elemType);
         final List<Object> l = new ArrayList<Object>(elements.size());
         for (final String elem : elements) {
           l.add(toValue(a, param, elemType, elem));
@@ -391,13 +413,12 @@ public class Util {
         res = l;
       } catch (final Exception e) {
         throw (IllegalArgumentException) new IllegalArgumentException
-          ("Definition, " + a + ", expected " +type +" value but found '"
-           + value + "' for attribute '" + param + "'.")
-            .initCause(e);
+          ("Definition, " + a + ", expected '" + type + "' value but found '"
+              + value + "' for attribute '" + param + "'.").initCause(e);
       }
     } else {
         throw new IllegalArgumentException("Definition, " +a
-                                 +", unknown type " +type +" for attribute '"
+                                 +", unknown type '" +type +"' for attribute '"
                                  +param + "'.");
     }
     return res;
@@ -552,16 +573,20 @@ public class Util {
 
 
   /**
-   * Split a string into words separated by a separator char and trim whitespace
-   * from the pieces.
+   * Split a string into words separated by a separator char.
+   *
+   * If the separator char shall be part of a word it must be escaped with a
+   * '\' (\u005C). One level of escaping is consumed by this method.
    *
    * @param s String to split.
    * @param sepChar separator char to split on.
-   * @param escChar escape char.
+   * @param trim trim whitespace from the words if {@code true}.
+   *
+   * @return List with the words of the specified string.
    */
-  public static List<String> splitWordsUnescape(String s,
-                                                char sepChar,
-                                                char escChar)
+  public static List<String> splitWords(String s,
+                                        char sepChar,
+                                        boolean trim)
   {
     final List<String> res = new ArrayList<String>();
     final StringBuffer buf = new StringBuffer();
@@ -570,7 +595,6 @@ public class Util {
 
     boolean esc = false;
     int end = 0;
-    while(pos<length && Character.isWhitespace(s.charAt(pos))) pos++;
     for (; pos < length; pos++) {
       if (esc) {
         esc = false;
@@ -578,20 +602,21 @@ public class Util {
         end = buf.length();
       } else {
         final char c = s.charAt(pos);
-        if (c == escChar) {
+        if (c == '\\') {
           esc = true;
         } else if (c == sepChar) {
-          final char[] elem = new char[end];
-          buf.getChars(0, end, elem, 0);
-          res.add(new String(elem));
+          // trim trailing whitespace.
+          if (trim) buf.setLength(end);
+          res.add(buf.toString());
           buf.setLength(0);
           end = 0;
-          while(pos<length && Character.isWhitespace(s.charAt(pos))) pos++;
+        } else if (Character.isWhitespace(c)) {
+          if (buf.length()>0 || !trim) {
+            buf.append(c);
+          }
         } else {
           buf.append(c);
-          if (!Character.isWhitespace(c)) {
-            end = buf.length();
-          }
+          end = buf.length();
         }
       }
     }
@@ -599,10 +624,8 @@ public class Util {
       throw new IllegalArgumentException("Value ends on escape character");
     }
     // The last element.
-    final char[] elem = new char[end];
-    buf.getChars(0, end, elem, 0);
-    res.add(new String(elem));
-    buf.setLength(0);
+    if (trim) buf.setLength(end);
+    res.add(buf.toString());
 
     return res;
   }
@@ -946,7 +969,7 @@ public class Util {
 
 
   /**
-   * Check wildcard filter matches the string
+   * Check wild-card filter matches the string
    */
   public static boolean filterMatch(String filter, String s) {
     return patSubstr(s.toCharArray(), 0, filter.toCharArray(), 0);
@@ -996,7 +1019,7 @@ public class Util {
 
     // get word (non-whitespace chars) up to the next non-quoted
     // ',', ':', ';', '='
-    String getWord() {
+    String getWord(boolean keepEscapse) {
       skipWhite();
       boolean backslash = false;
       boolean quote = false;
@@ -1005,7 +1028,11 @@ public class Util {
       loop: for (; pos < length; pos++) {
         if (backslash) {
           backslash = false;
+          if (keepEscapse) {
+            val.append('\\');
+          }
           val.append(s.charAt(pos));
+          end = val.length();
         } else {
           final char c = s.charAt(pos);
           switch (c) {
@@ -1036,9 +1063,8 @@ public class Util {
       if (quote || backslash || end == 0) {
         return null;
       }
-      final char[] res = new char[end];
-      val.getChars(0, end, res, 0);
-      return new String(res);
+      val.setLength(end);
+      return val.toString();
     }
 
 
@@ -1050,7 +1076,7 @@ public class Util {
       if (s.charAt(pos) == ';') {
         pos++;
       }
-      final String res = getWord();
+      final String res = getWord(false);
       if (res != null) {
         if (pos == length) {
           return res;
@@ -1070,21 +1096,15 @@ public class Util {
         return null;
       }
       final int save = pos++;
-      final String res = getWord();
+      final String res = getWord(false);
       if (res != null) {
         if (pos < length && s.charAt(pos) == '=') {
+          // Untyped parameter
           return res;
         }
-        if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos + 1) == '=') {
+        if (pos < length && s.charAt(pos) == ':') {
+          // Typed parameter or directive
           return res;
-        }
-        if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos + 1) != '=') {
-          final int save2 = pos++;
-          final String type = getWord();
-          if (type != null && s.charAt(pos) == '=') {
-            pos = save2;
-            return res;
-          }
         }
       }
       pos = save;
@@ -1107,7 +1127,7 @@ public class Util {
         return null;
       }
       final int save = pos++;
-      final String res = getWord();
+      final String res = getWord(false);
       if (res != null) {
         if (pos < length && s.charAt(pos) == '=') {
           return res;
@@ -1119,12 +1139,16 @@ public class Util {
 
 
     String getValue() {
+      return getValue(false);
+    }
+
+    String getValue(boolean keepEscapes) {
       if (s.charAt(pos) != '=') {
         return null;
       }
       final int save = pos++;
       skipWhite();
-      final String val = getWord();
+      final String val = getWord(keepEscapes);
       if (val == null) {
         pos = save;
         return null;
