@@ -45,19 +45,22 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.knopflerfish.framework.permissions.ConditionalPermissionAdminImpl;
-import org.knopflerfish.framework.permissions.PermissionAdminImpl;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.FrameworkWiring;
@@ -66,6 +69,9 @@ import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.startlevel.StartLevel;
 import org.osgi.util.tracker.ServiceTracker;
+
+import org.knopflerfish.framework.permissions.ConditionalPermissionAdminImpl;
+import org.knopflerfish.framework.permissions.PermissionAdminImpl;
 
 /**
  * Implementation of the System Bundle object.
@@ -88,6 +94,11 @@ public class SystemBundle extends BundleImpl implements Framework {
   private String exportPackageString;
 
   /**
+   * Provide-Capability string for the system bundle.
+   */
+  private String provideCapabilityString;
+
+  /**
    * The event to return to callers waiting in Framework.waitForStop() when the
    * framework has been stopped.
    */
@@ -101,7 +112,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Lock object
    */
-  private Object lock = new Object();
+  private final Object lock = new Object();
 
   /**
    * Marker that we need to restart JVM.
@@ -151,8 +162,9 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Framework#start
    */
+  @Override
   public void start(int options) throws BundleException {
-    List bundlesToStart = null;
+    List<String> bundlesToStart = null;
     synchronized (lock) {
       waitOnOperation(lock, "Framework.start", true);
 
@@ -180,9 +192,9 @@ public class SystemBundle extends BundleImpl implements Framework {
       fwCtx.startLevelController.open();
     } else {
       // Start bundles according to their autostart setting.
-      final Iterator i = bundlesToStart.iterator();
+      final Iterator<String> i = bundlesToStart.iterator();
       while (i.hasNext()) {
-        final BundleImpl b = (BundleImpl)fwCtx.bundles.getBundle((String)i.next());
+        final BundleImpl b = (BundleImpl)fwCtx.bundles.getBundle(i.next());
         try {
           final int autostartSetting = b.current().archive.getAutostartSetting();
           // Launch must not change the autostart setting of a bundle
@@ -192,7 +204,7 @@ public class SystemBundle extends BundleImpl implements Framework {
             option |= Bundle.START_ACTIVATION_POLICY;
           }
           b.start(option);
-        } catch (BundleException be) {
+        } catch (final BundleException be) {
           fwCtx.listeners.frameworkError(b, be);
         }
       }
@@ -215,13 +227,13 @@ public class SystemBundle extends BundleImpl implements Framework {
       if (((INSTALLED | RESOLVED) & state) == 0) {
         stopEvent = null;
         while (true) {
-          long st = System.currentTimeMillis();
+          final long st = System.currentTimeMillis();
           try {
             lock.wait(timeout);
             if (stopEvent != null) {
               break;
             }
-          } catch (InterruptedException _) {
+          } catch (final InterruptedException _) {
           }
           if (timeout > 0) {
             timeout = timeout - (System.currentTimeMillis() - st);
@@ -248,6 +260,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Framework#stop
    */
+  @Override
   public void stop(int options) throws BundleException {
     secure.checkExecuteAdminPerm(this);
     secure.callShutdown(this, false);
@@ -259,12 +272,13 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Framework#update
    */
+  @Override
   public void update(InputStream in) throws BundleException {
     secure.checkLifecycleAdminPerm(this);
     if (in != null) {
       try {
         in.close();
-      } catch (IOException ignore) {
+      } catch (final IOException ignore) {
       }
     }
     secure.callShutdown(this, true);
@@ -276,6 +290,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Framework#uninstall
    */
+  @Override
   public void uninstall() throws BundleException {
     secure.checkLifecycleAdminPerm(this);
     throw new BundleException("uninstall of System bundle is not allowed",
@@ -288,6 +303,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Bundle#hasPermission
    */
+  @Override
   public boolean hasPermission(Object permission) {
     return true;
   }
@@ -298,7 +314,8 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Bundle#getHeaders
    */
-  public Dictionary getHeaders() {
+  @Override
+  public Dictionary<String, String> getHeaders() {
     return getHeaders(null);
   }
 
@@ -308,9 +325,10 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Bundle#getHeaders
    */
-  public Dictionary getHeaders(String locale) {
+  @Override
+  public Dictionary<String, String> getHeaders(String locale) {
     secure.checkMetadataAdminPerm(this);
-    Hashtable headers = new Hashtable();
+    final Hashtable<String, String> headers = new Hashtable<String, String>();
     headers.put(Constants.BUNDLE_SYMBOLICNAME, getSymbolicName());
     headers.put(Constants.BUNDLE_NAME, location);
     headers.put(Constants.EXPORT_PACKAGE, exportPackageString);
@@ -321,6 +339,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     headers.put("Bundle-Icon", "icon.png;size=32,icon64.png;size=64");
     headers.put(Constants.BUNDLE_VENDOR, "Knopflerfish");
     headers.put(Constants.BUNDLE_DESCRIPTION, "Knopflerfish System Bundle");
+    headers.put(Constants.PROVIDE_CAPABILITY, provideCapabilityString);
     return headers;
   }
 
@@ -330,15 +349,19 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Bundle#findEntries
    */
-  public Enumeration findEntries(String path, String filePattern, boolean recurse) {
+  @Override
+  public Enumeration<URL> findEntries(String path,
+                                      String filePattern,
+                                      boolean recurse)
+  {
     // TBD, What should system bundle return?
     return null;
   }
 
-
   /**
    *
    */
+  @Override
   public URL getEntry(String name) {
     if (secure.okResourceAdminPerm(this)) {
       return getClass().getResource(name);
@@ -350,12 +373,14 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    *
    */
-  public Enumeration getEntryPaths(String path) {
+  @Override
+  public Enumeration<String> getEntryPaths(String path) {
     return null;
   }
 
   // Don't delegate to BundleImp since Bundle adaptations may not
   // apply to the SystemBundle.
+  @Override
   @SuppressWarnings("unchecked")
   public <A> A adapt(Class<A> type)
   {
@@ -384,6 +409,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @return System Bundle classloader.
    */
+  @Override
   ClassLoader getClassLoader() {
     return getClass().getClassLoader();
   }
@@ -429,7 +455,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         addClassPathURL(new URL("file:" + extension.archive.getJarLocation()));
         current().attachFragment(extension);
         handleExtensionActivator(extension);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new UnsupportedOperationException(
             "Framework extension could not be dynamicly activated, " + e);
       }
@@ -447,7 +473,10 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @param baseName the basename for localization properties, <code>null</code>
    *          will choose OSGi default
    */
-  void readLocalization(String locale, Hashtable localization_entries, String baseName) {
+  void readLocalization(String locale,
+                        Hashtable<String, String> localization_entries,
+                        String baseName)
+  {
     if (current().fragments == null) {
       // NYI! read localization from framework.
       // There is no need for this now since it isn't used.
@@ -460,16 +489,16 @@ public class SystemBundle extends BundleImpl implements Framework {
       locale = "_" + locale;
     }
     while (true) {
-      String l = baseName + locale + ".properties";
+      final String l = baseName + locale + ".properties";
       for (int i = current().fragments.size() - 1; i >= 0; i--) {
-        BundleGeneration bg = (BundleGeneration)current().fragments.get(i);
-        Hashtable tmp = bg.archive.getLocalizationEntries(l);
+        final BundleGeneration bg = current().fragments.get(i);
+        final Hashtable<String, String> tmp = bg.archive.getLocalizationEntries(l);
         if (tmp != null) {
           localization_entries.putAll(tmp);
           return;
         }
       }
-      int pos = locale.lastIndexOf('_');
+      final int pos = locale.lastIndexOf('_');
       if (pos == -1) {
         break;
       }
@@ -483,7 +512,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    */
   void initSystemBundle() {
     bundleContext = new BundleContextImpl(this);
-    StringBuffer sp = new StringBuffer(
+    final StringBuffer sp = new StringBuffer(
         fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMPACKAGES));
     if (sp.length() == 0) {
       // Try the system packages file
@@ -501,7 +530,7 @@ public class SystemBundle extends BundleImpl implements Framework {
           }
           try {
             addSysPackagesFromFile(sp, "packages" + jver + ".txt");
-          } catch (IllegalArgumentException iae) {
+          } catch (final IllegalArgumentException iae) {
             if (fwCtx.debug.framework) {
               fwCtx.debug.println("No built in list of Java packages to be exported "
                   + "by the system bundle for JRE with version '" + jver
@@ -518,7 +547,25 @@ public class SystemBundle extends BundleImpl implements Framework {
       sp.append(",").append(extraPkgs);
     }
     exportPackageString = sp.toString();
-    BundleGeneration gen = new BundleGeneration(this, exportPackageString);
+
+    sp.setLength(0);
+    sp.append(fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMCAPABILITIES));
+    if (sp.length()==0) {
+      // Derive osgi.ee capabilities from the EE header.
+      addSysCapabilitiesFromEE(sp);
+    }
+    // Add in extra system capabilities
+    final String epc = fwCtx.props.getProperty(Constants.FRAMEWORK_SYSTEMCAPABILITIES_EXTRA);
+    if (epc.length()>0) {
+      if (sp.length()>0) {
+        sp.append(',');
+      }
+      sp.append(epc);
+    }
+    provideCapabilityString = sp.toString();
+
+    final BundleGeneration gen = new BundleGeneration(this, exportPackageString,
+                                                      provideCapabilityString);
     generations.add(gen);
     gen.bpkgs.registerPackages();
     gen.bpkgs.resolvePackages();
@@ -533,8 +580,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     bundleContext.invalidate();
     bundleContext = null;
     if (!bootClassPathHasChanged) {
-      for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator(); i.hasNext();) {
-        BundleGeneration bg = (BundleGeneration)i.next();
+      for (final BundleGeneration bg : fwCtx.bundles.getFragmentBundles(this)) {
         if (bg.isBootClassPathExtension() && bg.bundle.extensionNeedsRestart()) {
           bootClassPathHasChanged = true;
           break;
@@ -640,7 +686,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
 
     URL url = null;
-    File f = new File(new File(sysPkgFile).getAbsolutePath());
+    final File f = new File(new File(sysPkgFile).getAbsolutePath());
 
     if (!f.exists() || !f.isFile()) {
       url = SystemBundle.class.getResource(sysPkgFile);
@@ -679,13 +725,129 @@ public class SystemBundle extends BundleImpl implements Framework {
           sp.append(",");
         }
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new IllegalArgumentException("Failed to read " + sysPkgFile + ": " + e);
     } finally {
       try {
         in.close();
-      } catch (Exception ignored) {
+      } catch (final Exception ignored) {
       }
+    }
+  }
+
+
+  /**
+   * Create bundle capabilities in the osgi.ee name-space for all execution
+   * environments that the framework supports.
+   *
+   * <p>An Bundle Required Execution Environment is on the form:
+   * <pre>
+   * bree’ ::= n1 ( ’-’ v )? ( ’/’ n2 ( ’-’ v )? )?
+   * </pre>
+   * It will be transformed to an osgi.ee capability with a filter:
+   * <pre>
+   * bree-filter ::= '(&(osgi.ee=' n1 ('/' n2 )? ') ( '(version=' v ')' )? ')'
+   * filter ::= '(osgi.ee=' <ee name> ')'
+   * </pre>
+   * The second alternative applies when no version can be found in the original
+   * {@code bree}.
+   *
+   * @param sp string buffer with all framework provided capabilities to append
+   * to.
+   */
+  private void addSysCapabilitiesFromEE(StringBuffer sp)
+  {
+    final Map<String, List<Version>> eeNameVersions
+      = new HashMap<String, List<Version>>();
+    final String fwEE = fwCtx.props
+        .getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+
+    if (fwEE!=null && fwEE.length()>0) {
+      final String[] ees = Util.splitwords(fwEE, ",");
+      for(final String ee : ees) {
+        final String[] n1n2 = Util.splitwords(ee, "/");
+        switch (n1n2.length) {
+        case 1:
+          final String[] nv = Util.splitwords(ee, "-");
+          if (nv.length==2) {
+            try {
+              final Version v = new Version(nv[1]);
+              addSysCapabilityForVersionedEE(eeNameVersions, nv[0], v);
+            } catch (final Exception e) {
+              addSysCapabilityForEE(sp, ee);
+            }
+          } else {
+            addSysCapabilityForEE(sp, ee);
+          }
+          break;
+        case 2:
+          final String[] n1v = Util.splitwords(n1n2[0], "-");
+          final String[] n2v = Util.splitwords(n1n2[1], "-");
+          try {
+            final Version v1 = n1v.length==2 ? new Version(n1v[1]) : null;
+            final Version v2 = n2v.length==2 ? new Version(n2v[1]) : null;
+            final String n = n1v[0] +"/" +n2v[0];
+            if (v1 != null && v2 != null && v1.equals(v2)) {
+              addSysCapabilityForVersionedEE(eeNameVersions, n, v1);
+            } else if (v1!=null && v2==null) {
+              addSysCapabilityForVersionedEE(eeNameVersions, n, v1);
+            } else if (v1==null && v2!=null) {
+              addSysCapabilityForVersionedEE(eeNameVersions, n, v2);
+            } else {
+              addSysCapabilityForEE(sp, ee);
+            }
+          } catch (final Exception e) {
+            addSysCapabilityForEE(sp, ee);
+          }
+          break;
+        default:
+          addSysCapabilityForEE(sp, ee);
+        }
+      }
+    }
+    addSysCapabilityForVersionedEE(sp, eeNameVersions);
+  }
+
+
+  private void addSysCapabilityForEE(final StringBuffer sb, final String ee)
+  {
+    if (sb.length()>0) {
+      sb.append(',');
+    }
+    sb.append("osgi.ee;osgi.ee=");
+    sb.append(ee);
+    sb.append(")");
+  }
+
+
+  private void addSysCapabilityForVersionedEE(final Map<String, List<Version>> eeNameVersions,
+                                              final String n,
+                                              final Version v)
+  {
+    List<Version> versions = eeNameVersions.get(n);
+    if (versions==null) {
+      versions = new ArrayList<Version>();
+      eeNameVersions.put(n, versions);
+    }
+    versions.add(v)
+;  }
+
+
+  private void addSysCapabilityForVersionedEE(final StringBuffer sb,
+                                              final Map<String, List<Version>> eeNameVersions)
+  {
+    for (final Entry<String,List<Version>> entry : eeNameVersions.entrySet()) {
+      if (sb.length()>0) {
+        sb.append(',');
+      }
+      sb.append("osgi.ee;osgi.ee=");
+      sb.append(entry.getKey());
+      sb.append(";version:List<Version>=\"");
+      for (final Version v : entry.getValue()) {
+        sb.append(v.toString());
+        sb.append(',');
+      }
+      sb.setCharAt(sb.length()-1, '"');
     }
   }
 
@@ -724,13 +886,14 @@ public class SystemBundle extends BundleImpl implements Framework {
           try {
             final boolean wa = wasActive;
             shutdownThread = new Thread(fwCtx.threadGroup, "Framework shutdown") {
+              @Override
               public void run() {
                 shutdown0(restart, wa);
               }
             };
             shutdownThread.setDaemon(false);
             shutdownThread.start();
-          } catch (Exception e) {
+          } catch (final Exception e) {
             systemShuttingdownDone(new FrameworkEvent(FrameworkEvent.ERROR, this, e));
           }
         }
@@ -786,7 +949,7 @@ public class SystemBundle extends BundleImpl implements Framework {
           init();
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       shutdownThread = null;
       systemShuttingdownDone(new FrameworkEvent(FrameworkEvent.ERROR, this, e));
     }
@@ -818,24 +981,24 @@ public class SystemBundle extends BundleImpl implements Framework {
 
     // Stop all active bundles, in reverse bundle ID order
     // The list will be empty when the start level service is in use.
-    final List activeBundles = fwCtx.bundles.getActiveBundles();
+    final List<BundleImpl> activeBundles = fwCtx.bundles.getActiveBundles();
     for (int i = activeBundles.size() - 1; i >= 0; i--) {
-      final BundleImpl b = (BundleImpl)activeBundles.get(i);
+      final BundleImpl b = activeBundles.get(i);
       try {
         if (((Bundle.ACTIVE | Bundle.STARTING) & b.getState()) != 0) {
           // Stop bundle without changing its autostart setting.
           b.stop(Bundle.STOP_TRANSIENT);
         }
-      } catch (BundleException be) {
+      } catch (final BundleException be) {
         fwCtx.listeners.frameworkError(b, be);
       }
     }
 
-    final List allBundles = fwCtx.bundles.getBundles();
+    final List<BundleImpl> allBundles = fwCtx.bundles.getBundles();
 
     // Set state to INSTALLED and purge any unrefreshed bundles
-    for (Iterator i = allBundles.iterator(); i.hasNext();) {
-      final BundleImpl b = (BundleImpl)i.next();
+    for (final BundleImpl bundleImpl : allBundles) {
+      final BundleImpl b = bundleImpl;
       if (b.getBundleId() != 0) {
         b.setStateInstalled(false);
         b.purge();
@@ -845,10 +1008,10 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   private void saveClasspaths() {
-    StringBuffer bootClasspath = new StringBuffer();
-    for (Iterator i = fwCtx.bundles.getFragmentBundles(this).iterator(); i.hasNext();) {
-      BundleGeneration ebg = (BundleGeneration)i.next();
-      String path = ebg.archive.getJarLocation();
+    final StringBuffer bootClasspath = new StringBuffer();
+    for (final BundleGeneration bundleGeneration : fwCtx.bundles.getFragmentBundles(this)) {
+      final BundleGeneration ebg = bundleGeneration;
+      final String path = ebg.archive.getJarLocation();
       if (ebg.isBootClassPathExtension()) {
         if (bootClasspath.length() > 0) {
           bootClasspath.append(File.pathSeparator);
@@ -859,13 +1022,13 @@ public class SystemBundle extends BundleImpl implements Framework {
 
     // Post processing to handle boot class extension
     try {
-      File bcpf = new File(Util.getFrameworkDir(fwCtx), BOOT_CLASSPATH_FILE);
+      final File bcpf = new File(Util.getFrameworkDir(fwCtx), BOOT_CLASSPATH_FILE);
       if (bootClasspath.length() > 0) {
         saveStringBuffer(bcpf, bootClasspath);
       } else {
         bcpf.delete();
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       if (fwCtx.debug.errors) {
         fwCtx.debug.println("Could not save classpath " + e);
       }
@@ -887,14 +1050,14 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   private void addClassPathURL(URL url) throws Exception {
-    ClassLoader cl = getClassLoader();
+    final ClassLoader cl = getClassLoader();
     Method m = null;
-    Class c = cl.getClass();
+    Class<?> c = cl.getClass();
     while (true) {
       try {
         m = c.getDeclaredMethod("addURL", new Class[] { URL.class });
         break;
-      } catch (NoSuchMethodException e) {
+      } catch (final NoSuchMethodException e) {
         c = c.getSuperclass();
         if (c == null) {
           throw e;

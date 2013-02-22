@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ public interface BundleStorage {
    * <code>replaceBundleArchive</code> is needed.
    *
    * @param old BundleArchive to be replaced.
-   * @param is Inputstrem with bundle content.
+   * @param is Input-stream with bundle content.
    * @return Bundle archive object.
    */
   BundleArchive updateBundleArchive(BundleArchive old, InputStream is)
@@ -73,7 +73,7 @@ public interface BundleStorage {
    * was created with updateBundleArchive.
    *
    * @param oldBA BundleArchive to be replaced.
-   * @param newBA Inputstrem with bundle content.
+   * @param newBA BundleArchive with bundle content.
    * @return New bundle archive object.
    */
   void replaceBundleArchive(BundleArchive oldBA, BundleArchive newBA)
@@ -94,7 +94,7 @@ public interface BundleStorage {
    *
    * @return Private copy of a List with bundle id's.
    */
-  List getStartOnLaunchBundles();
+  List<String> getStartOnLaunchBundles();
 
 
   /**

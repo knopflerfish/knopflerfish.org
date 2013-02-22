@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,15 @@
 
 package org.knopflerfish.framework.bundlestorage.memory;
 
-import org.knopflerfish.framework.*;
-import java.io.*;
-import java.util.*;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.knopflerfish.framework.BundleArchive;
+import org.knopflerfish.framework.BundleStorage;
+import org.knopflerfish.framework.FWProps;
+import org.knopflerfish.framework.FrameworkContext;
 
 
 /**
@@ -54,7 +60,7 @@ public class BundleStorageImpl implements BundleStorage {
   /**
    * Bundle id sorted list of all active bundle archives.
    */
-  private ArrayList /* BundleArchive */ archives = new ArrayList();
+  private final ArrayList<BundleArchive> archives = new ArrayList<BundleArchive>();
 
   /**
    * If we should check if bundles are signed
@@ -81,8 +87,8 @@ public class BundleStorageImpl implements BundleStorage {
   public BundleArchive insertBundleJar(String location, InputStream is)
     throws Exception
   {
-    long id = nextFreeId++;
-    BundleArchive ba = new BundleArchiveImpl(this, is, location, id);
+    final long id = nextFreeId++;
+    final BundleArchive ba = new BundleArchiveImpl(this, is, location, id);
     archives.add(ba);
     return ba;
   }
@@ -116,7 +122,7 @@ public class BundleStorageImpl implements BundleStorage {
     throws Exception
   {
     int pos;
-    long id = oldBA.getBundleId();
+    final long id = oldBA.getBundleId();
     synchronized (archives) {
       pos = find(id);
       if (pos >= archives.size() || archives.get(pos) != oldBA) {
@@ -134,7 +140,7 @@ public class BundleStorageImpl implements BundleStorage {
    */
   public BundleArchive [] getAllBundleArchives() {
     synchronized (archives) {
-      return (BundleArchive [])archives.toArray(new BundleArchive[archives.size()]);
+      return archives.toArray(new BundleArchive[archives.size()]);
     }
   }
 
@@ -145,10 +151,9 @@ public class BundleStorageImpl implements BundleStorage {
    *
    * @return Private copy of a List with bundle id's.
    */
-  public List getStartOnLaunchBundles() {
-    ArrayList res = new ArrayList();
-    for (Iterator i = archives.iterator(); i.hasNext(); ) {
-      BundleArchive ba = (BundleArchive)i.next();
+  public List<String> getStartOnLaunchBundles() {
+    final ArrayList<String> res = new ArrayList<String>();
+    for (final BundleArchive ba : archives) {
       if (ba.getAutostartSetting()!=-1) {
         res.add(ba.getBundleLocation());
       }
@@ -163,8 +168,8 @@ public class BundleStorageImpl implements BundleStorage {
    */
   public void close()
   {
-    for (Iterator i = archives.iterator(); i.hasNext(); ) {
-      BundleArchive ba = (BundleArchive) i.next();
+    for (final Iterator<BundleArchive> i = archives.iterator(); i.hasNext(); ) {
+      final BundleArchive ba = i.next();
       ba.close();
       i.remove();
     }
@@ -182,7 +187,7 @@ public class BundleStorageImpl implements BundleStorage {
    */
   boolean removeArchive(BundleArchive ba) {
     synchronized (archives) {
-      int pos = find(ba.getBundleId());
+      final int pos = find(ba.getBundleId());
       if (archives.get(pos) == ba) {
         archives.remove(pos);
         return true;
@@ -209,7 +214,7 @@ public class BundleStorageImpl implements BundleStorage {
     int x = 0;
     while (lb != ub) {
       x = (lb + ub) / 2;
-      long xid = ((BundleArchive)archives.get(x)).getBundleId();
+      final long xid = archives.get(x).getBundleId();
       if (id <= xid) {
         ub = x;
       } else {

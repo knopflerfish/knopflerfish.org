@@ -182,8 +182,10 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * Construct a new BundleGeneration for the System Bundle.
    *
    * @param b BundleImpl this bundle data.
+   * @param exportStr The value of the Export-Package header.
+   * @param capabilityStr The value of the Provide-Capability header.
    */
-  BundleGeneration(BundleImpl b, String exportStr) {
+  BundleGeneration(BundleImpl b, String exportStr, String capabilityStr) {
     bundle = b;
     archive = null;
     generation = 0;
@@ -200,6 +202,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     timeStamp = System.currentTimeMillis();
     bpkgs = new BundlePackages(this, exportStr);
     classLoader = b.getClassLoader();
+    processCapabilities(capabilityStr);
   }
 
 
@@ -330,19 +333,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       nsReqs.add(bri);
     }
 
-    i = Util.parseEntries(Constants.PROVIDE_CAPABILITY,
-                          archive.getAttribute(Constants.PROVIDE_CAPABILITY),
-                          true, true, false);
-    while (i.hasNext()) {
-      e = i.next();
-      final BundleCapabilityImpl bci = new BundleCapabilityImpl(this, e);
-      List<BundleCapability> nsCaps = capabilities.get(bci.getNamespace());
-      if (null == nsCaps) {
-        nsCaps = new ArrayList<BundleCapability>();
-        capabilities.put(bci.getNamespace(), nsCaps);
-      }
-      nsCaps.add(bci);
-    }
+    processCapabilities(archive.getAttribute(Constants.PROVIDE_CAPABILITY));
 
     bpkgs = new BundlePackages(this);
     try {
@@ -390,6 +381,25 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     classLoader = null;
   }
 
+
+  private void processCapabilities(String capabilityStr)
+  {
+    if (capabilityStr != null && capabilityStr.length() > 0) {
+      final Iterator<Map<String, Object>> i = Util
+          .parseEntries(Constants.PROVIDE_CAPABILITY, capabilityStr, true,
+                        true, false);
+      while (i.hasNext()) {
+        final Map<String, Object> e = i.next();
+        final BundleCapabilityImpl bci = new BundleCapabilityImpl(this, e);
+        List<BundleCapability> nsCaps = capabilities.get(bci.getNamespace());
+        if (null == nsCaps) {
+          nsCaps = new ArrayList<BundleCapability>();
+          capabilities.put(bci.getNamespace(), nsCaps);
+        }
+        nsCaps.add(bci);
+      }
+    }
+  }
 
   /**
    * Compares this {@code BundleGeneration} object to another
