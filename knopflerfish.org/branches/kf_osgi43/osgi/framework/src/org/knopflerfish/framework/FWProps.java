@@ -333,8 +333,10 @@ public class FWProps {
    */
   protected void initProperties(FrameworkContext fwCtx) {
     setPropertyIfNotSet(Constants.FRAMEWORK_BOOTDELEGATION, "");
+    setPropertyIfNotSet(Constants.FRAMEWORK_BSNVERSION,
+                        Constants.FRAMEWORK_BSNVERSION_SINGLE);
     setPropertyIfNotSet(Constants.FRAMEWORK_BUNDLE_PARENT,
-        Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
+                        Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");
 
     if (!props.containsKey(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)) {
@@ -426,11 +428,11 @@ public class FWProps {
     props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
     // Only first framework support framework extension
-    // NYI! Improve this in the future
+    // TODO Improve this in the future
     props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
         getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 0 ? TRUE : FALSE);
     // Only first framework can support bootclasspath extension
-    // NYI! Improve this in the future
+    // TODO Improve this in the future
     setPropertyIfNotSet(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);
     if (getBooleanProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION)
         && !(getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 1)) {

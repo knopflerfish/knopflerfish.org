@@ -532,17 +532,25 @@ class SecurePermissionOps extends PermissionOps {
   }
 
 
+  Vector<URL> getBundleClassPathEntry(final BundleGeneration bg, final String name, final boolean onlyFirst) {
+    return (Vector<URL>)AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        return bg.getBundleClassPathEntries(name, onlyFirst);
+      }
+    });
+  }
+
   //
   // Bundles Secure operation
   //
 
-  BundleImpl callInstall0(final Bundles bs, final String location, final InputStream in)
+  BundleImpl callInstall0(final Bundles bs, final String location, final InputStream in, final Bundle caller)
       throws BundleException {
     try {
       final AccessControlContext acc = AccessController.getContext();
       return (BundleImpl)AccessController.doPrivileged(new PrivilegedExceptionAction() {
         public Object run() throws BundleException {
-          return bs.install0(location, in, acc);
+          return bs.install0(location, in, acc, caller);
         }
       });
     } catch (PrivilegedActionException e) {

@@ -880,7 +880,7 @@ class Packages {
   private String checkRequireBundle(BundleImpl b) {
     // NYI! More speed?
     Iterator i = b.current().bpkgs.getRequire();
-    if (i != null) {
+    if (i.hasNext()) {
       if (framework.debug.packages) {
         framework.debug.println("checkRequireBundle: check requiring bundle " + b);
       }

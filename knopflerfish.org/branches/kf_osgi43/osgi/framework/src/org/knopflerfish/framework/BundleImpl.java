@@ -180,13 +180,14 @@ public class BundleImpl implements Bundle {
    * @param fw FrameworkContext for this bundle.
    * @param ba Bundle archive with holding the contents of the bundle.
    * @param checkContext AccessConrolContext to do permission checks against.
+   * @throws BundleException If we have duplicate symbolicname and version.
    * @exception IOException If we fail to read and store our JAR bundle or if
    *              the input data is corrupted.
    * @exception SecurityException If we don't have permission to install
    *              extension.
    * @exception IllegalArgumentException Faulty manifest for bundle
    */
-  BundleImpl(FrameworkContext fw, BundleArchive ba, Object checkContext) {
+  BundleImpl(FrameworkContext fw, BundleArchive ba, Object checkContext) throws BundleException {
     fwCtx = fw;
     secure = fwCtx.perm;
     id = ba.getBundleId();
@@ -1066,8 +1067,12 @@ public class BundleImpl implements Bundle {
         if (cl0 != null) {
           return cl0.getResource(name);
         }
+      } else {
+        Vector<URL> uv = secure.getBundleClassPathEntries(current(), name, true);
+        if (uv != null) {
+          return uv.firstElement();
+        }
       }
-      // NYI! We should search jar if bundle is unresolved.
     }
     return null;
   }
@@ -1536,12 +1541,8 @@ public class BundleImpl implements Bundle {
    */
   public Enumeration<URL> findEntries(String path, String filePattern, boolean recurse) {
     if (secure.okResourceAdminPerm(this)) {
-      if (state == INSTALLED) {
-        // We need to resolve if there are fragments involved
-        if (!fwCtx.bundles.getFragmentBundles(this).isEmpty()) {
-          getUpdatedState();
-        }
-      }
+      // Try to resolve, so that fragments attach.
+      getUpdatedState();
       Vector<URL> res = secure.callFindEntries(current(), path, filePattern, recurse);
       if (!res.isEmpty()) {
         return res.elements();
@@ -1623,8 +1624,12 @@ public class BundleImpl implements Bundle {
             e = cl0.getResourcesOSGi(name);
           }
         }
+      } else {
+        Vector<URL> uv = secure.getBundleClassPathEntries(current(), name, false);
+        if (uv != null) {
+          e = uv.elements();
+        }
       }
-      // NYI! We should search jar if bundle is unresolved.
       if (e != null && e.hasMoreElements()) {
         return e;
       }

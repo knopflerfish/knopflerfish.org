@@ -100,7 +100,9 @@ public class BundleRevisionImpl
       final Map<String, List<BundleCapability>> caps = gen.getDeclaredCapabilities();
       if (null != namespace) {
         final List<BundleCapability> lcap = caps.get(namespace);
-        res.addAll(lcap);
+        if (lcap != null) {
+          res.addAll(lcap);
+        }
       } else {
         for (final List<BundleCapability> lcap : caps.values()) {
           res.addAll(lcap);
@@ -137,7 +139,9 @@ public class BundleRevisionImpl
       final Map<String, List<BundleRequirement>> reqs = gen.getDeclaredRequirements();
       if (null != namespace) {
         final List<BundleRequirement> lbr = reqs.get(namespace);
-        res.addAll(lbr);
+        if (lbr != null) {
+          res.addAll(lbr);
+        }
       } else {
         for (final List<BundleRequirement> lbr : reqs.values()) {
           res.addAll(lbr);

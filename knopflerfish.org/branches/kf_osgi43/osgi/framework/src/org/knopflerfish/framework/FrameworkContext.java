@@ -188,6 +188,11 @@ public class FrameworkContext  {
   final int id;
 
   /**
+   * Framework init count.
+   */
+  int initCount = 0;
+
+  /**
    * Framework properties.
    */
   public FWProps props;
@@ -231,6 +236,9 @@ public class FrameworkContext  {
    * Reference counter for security manager.
    */
   static int smUse = 0;
+
+
+  boolean bsnversionSingle;
 
 
   /**
@@ -278,7 +286,8 @@ public class FrameworkContext  {
   void init()
   {
     log("initializing");
-
+    initCount++;
+    
     if (firstInit && Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
         .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
       deleteFWDir();
@@ -353,6 +362,11 @@ public class FrameworkContext  {
         contentHandlerFactory   = new ServiceContentHandlerFactory(this);
       }
     }
+
+    props.props.put(Constants.FRAMEWORK_UUID, getUUID());
+
+    bsnversionSingle = Constants.FRAMEWORK_BSNVERSION_SINGLE
+        .equals(props.getProperty(Constants.FRAMEWORK_BSNVERSION));
 
     String storageClass = "org.knopflerfish.framework.bundlestorage." +
       props.getProperty(FWProps.BUNDLESTORAGE_PROP) + ".BundleStorageImpl";
@@ -544,6 +558,14 @@ public class FrameworkContext  {
         }
       }
     }
+  }
+
+
+  private String getUUID() {
+    // TODO, set this to something meaningful
+    String sid = Integer.toHexString(id * 65536 + initCount);
+    String baseUUID = "4e524769-3136-4b46-6000-00000000";
+    return baseUUID.substring(0, baseUUID.length() - sid.length()) + sid;
   }
 
 

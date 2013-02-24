@@ -92,7 +92,7 @@ public class Bundles {
    *
    * @param location The location to be installed
    */
-  BundleImpl install(final String location, final InputStream in)
+  BundleImpl install(final String location, final InputStream in, final Bundle caller)
     throws BundleException
   {
     checkIllegalState();
@@ -107,13 +107,13 @@ public class Bundles {
           return b;
         }
       }
-      b = fwCtx.perm.callInstall0(this, location, in);
+      b = fwCtx.perm.callInstall0(this, location, in, caller);
     }
     return b;
   }
 
 
-  BundleImpl install0(String location, InputStream in, Object checkContext)
+  BundleImpl install0(String location, InputStream in, Object checkContext, Bundle caller)
     throws BundleException {
     InputStream bin;
     BundleArchive ba = null;
@@ -156,7 +156,7 @@ public class Bundles {
       }
       final BundleImpl res = new BundleImpl(fwCtx, ba, checkContext);
       bundles.put(location, res);
-      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, res));
+      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.INSTALLED, res, caller));
       return res;
     } catch (final Exception e) {
       if (ba != null) {
@@ -164,6 +164,8 @@ public class Bundles {
       }
       if (e instanceof SecurityException) {
         throw (SecurityException)e;
+      } else if (e instanceof BundleException) {
+        throw (BundleException)e;
       } else {
         throw new BundleException("Failed to install bundle: " + e,
                                   BundleException.UNSPECIFIED, e);

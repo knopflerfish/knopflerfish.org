@@ -742,7 +742,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * <p>An Bundle Required Execution Environment is on the form:
    * <pre>
-   * bree’ ::= n1 ( ’-’ v )? ( ’/’ n2 ( ’-’ v )? )?
+   * bree' ::= n1 ( '-' v )? ( '/' n2 ( '-' v )? )?
    * </pre>
    * It will be transformed to an osgi.ee capability with a filter:
    * <pre>

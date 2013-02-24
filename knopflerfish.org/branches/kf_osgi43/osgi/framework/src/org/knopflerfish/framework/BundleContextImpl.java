@@ -97,7 +97,7 @@ public class BundleContextImpl
    */
   public Bundle installBundle(String location) throws BundleException {
     checkValid();
-    return bundle.fwCtx.bundles.install(location, null);
+    return bundle.fwCtx.bundles.install(location, null, bundle);
   }
 
 
@@ -111,7 +111,7 @@ public class BundleContextImpl
   {
     try {
       checkValid();
-      return bundle.fwCtx.bundles.install(location, in);
+      return bundle.fwCtx.bundles.install(location, in, bundle);
     } finally {
       if (in != null) {
         try {

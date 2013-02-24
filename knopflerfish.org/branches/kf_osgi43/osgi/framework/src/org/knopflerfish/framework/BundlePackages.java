@@ -35,6 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -196,7 +197,7 @@ class BundlePackages {
   /**
    * Create package entry used to clone fragment bundle.
    */
-  BundlePackages(BundlePackages host, BundlePackages frag) {
+  BundlePackages(BundlePackages host, BundlePackages frag, boolean noNew) {
     this.bg = host.bg;
 
     /*
@@ -213,6 +214,9 @@ class BundlePackages {
               "Host bundle import package and fragment bundle " +
                   "import package doesn't intersect so a resolve isn't possible.");
         }
+      } else if (noNew){
+        throw new IllegalStateException("Resolve host bundle package would " + 
+                                        "be shadow by new fragment import.");        
       }
       imports.add(new ImportPkg(fip, this));
     }
@@ -379,8 +383,7 @@ class BundlePackages {
   /**
    * Get all RequiredBundle for this BundlePackages.
    *
-   * @return Iterator of RequireBundle or null we don't require any
-   *         bundles.
+   * @return Iterator of RequireBundle.
    */
   Iterator<RequireBundle> getRequire() {
     if (fragments != null) {
@@ -390,17 +393,16 @@ class BundlePackages {
           iters.add(require.iterator());
         }
         for (final BundlePackages bundlePackages : fragments.values()) {
-          final Iterator<RequireBundle> fi = bundlePackages.getRequire();
-          if (fi != null) {
-            iters.add(fi);
-          }
+          iters.add(bundlePackages.getRequire());
         }
-        return iters.isEmpty() ? null : new IteratorIterator<RequireBundle>(iters);
+        return new IteratorIterator<RequireBundle>(iters);
       }
     } else if (require != null) {
       return require.iterator();
     } else {
-      return null;
+      @SuppressWarnings("unchecked")
+      Iterator<RequireBundle>res = (Iterator<RequireBundle>)Collections.EMPTY_LIST.iterator();
+      return res;
     }
   }
 
@@ -415,18 +417,17 @@ class BundlePackages {
    *         require any bundles.
    */
   ArrayList<BundleGeneration> getRequiredBundleGenerations(String pkg) {
-    final Iterator<RequireBundle> i = getRequire();
-    if (i != null) {
-      final ArrayList<BundleGeneration> res = new ArrayList<BundleGeneration>(2);
-      do {
-        final RequireBundle rb = i.next();
-        if (rb.bpkgs != null && rb.bpkgs.isExported(pkg)) {
-          res.add(rb.bpkgs.bg);
+    ArrayList<BundleGeneration> res = null;
+    for (Iterator<RequireBundle> i = getRequire(); i.hasNext(); ) {
+      final RequireBundle rb = i.next();
+      if (rb.bpkgs != null && rb.bpkgs.isExported(pkg)) {
+        if (res == null) {
+          res = new ArrayList<BundleGeneration>(2);
         }
-      } while (i.hasNext());
-      return res.isEmpty() ? null : res;
+        res.add(rb.bpkgs.bg);
+      }
     }
-    return null;
+    return res;
   }
 
 
@@ -702,10 +703,11 @@ class BundlePackages {
    * @return null if okay, otherwise a String with fail reason.
    */
   String attachFragment(BundlePackages fbpkgs) {
-    // TBD, should we lock this?!
-    final BundlePackages nfbpkgs = new BundlePackages(this, fbpkgs);
+    // TODO, should we lock this?!
+    final boolean resolvedHost = okImports != null;
+    final BundlePackages nfbpkgs = new BundlePackages(this, fbpkgs, resolvedHost);
     nfbpkgs.registerPackages();
-    if (okImports != null) {
+    if (resolvedHost) {
       failReason = bg.bundle.fwCtx.packages.resolve(bg.bundle, nfbpkgs.getImports());
       if (failReason == null) {
         for (final Iterator<ImportPkg> i = nfbpkgs.getImports(); i.hasNext();) {

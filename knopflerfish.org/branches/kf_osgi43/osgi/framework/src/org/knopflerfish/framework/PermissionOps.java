@@ -279,17 +279,19 @@ class PermissionOps {
   BundleClassLoader newBundleClassLoader(final BundleGeneration bg) throws BundleException {
     return new BundleClassLoader(bg);
   }
-  
-  
 
+
+  Vector<URL> getBundleClassPathEntries(final BundleGeneration bg, final String name, final boolean onlyFirst) {
+    return bg.getBundleClassPathEntries(name, onlyFirst);
+  }
 
   //
   // Bundles Secure operation
   //
 
-  BundleImpl callInstall0(final Bundles bs, final String location, final InputStream in)
+  BundleImpl callInstall0(final Bundles bs, final String location, final InputStream in, final Bundle caller)
       throws BundleException {
-    return bs.install0(location, in, null);
+    return bs.install0(location, in, null, caller);
   }
 
 

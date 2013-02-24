@@ -177,6 +177,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   private BundleRevision bundleRevision = null;
 
+  private BundleClassPath unresolvedBundleClassPath;
+
 
   /**
    * Construct a new BundleGeneration for the System Bundle.
@@ -214,6 +216,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * @param b BundleImpl this bundle data.
    * @param ba Bundle archive with holding the contents of the bundle.
    * @param prev the previous generation of this bundle.
+   * 
+   * @throws BundleException If we have duplicate symbolicname and version. 
    *
    * @exception IOException If we fail to read and store our JAR bundle or if
    *              the input data is corrupted.
@@ -221,7 +225,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    *              extension.
    * @exception IllegalArgumentException Faulty manifest for bundle
    */
-  BundleGeneration(BundleImpl b, BundleArchive ba, BundleGeneration prev) {
+  BundleGeneration(BundleImpl b, BundleArchive ba, BundleGeneration prev) throws BundleException {
     bundle = b;
     generation = (prev != null ? prev.generation : -1) + 1;
     archive = ba;
@@ -259,13 +263,16 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
     if (e != null) {
       singleton = "true".equals(e.get(Constants.SINGLETON_DIRECTIVE));
-      final BundleImpl snb = b.fwCtx.bundles.getBundle(symbolicName, version);
       final String tmp = (String)e.get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
       attachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
       // TBD! Should we allow update to same version?
-      if (snb != null && snb != bundle) {
-        throw new IllegalArgumentException("Bundle with same symbolic name and version "
-            + "is already installed (" + symbolicName + ", " + version);
+      if (bundle.fwCtx.bsnversionSingle) {
+        final BundleImpl snb = b.fwCtx.bundles.getBundle(symbolicName, version);
+        if (snb != null && snb != bundle) {
+          throw new BundleException("Bundle with same symbolic name and version "
+                        + "is already installed (" + symbolicName + ", " + version,
+                        BundleException.DUPLICATE_BUNDLE_ERROR);
+        }
       }
     } else {
       attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
@@ -1072,6 +1079,30 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   BundleCapability getBundleCapability() {
     if (v2Manifest && fragment==null) {
       return new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
+    }
+    return null;
+  }
+
+
+  Vector<URL> getBundleClassPathEntries(final String name, final boolean onlyFirst) {
+    BundleClassPath bcp = unresolvedBundleClassPath;
+    if (bcp == null) {
+      bcp = new BundleClassPath(archive, bundle.fwCtx);
+      unresolvedBundleClassPath = bcp;
+    }
+    Vector<FileArchive> fas = bcp.componentExists(name, onlyFirst);
+    if (fas != null) {
+      Vector<URL> res = new Vector<URL>();
+      for (FileArchive fa : fas)  {
+        URL url = fa.getBundleGeneration().getURL(fa.getSubId(), name);
+        if (url != null) {
+          res.addElement(url);
+        } else {
+          // Internal error
+          return null;
+        }
+      }
+      return res;
     }
     return null;
   }
