@@ -184,16 +184,16 @@ class PermissionOps {
   }
 
 
-  void checkGetServicePerms(ServiceReference sr) {
+  void checkGetServicePerms(ServiceReference<?> sr) {
   }
 
 
-  boolean okGetServicePerms(ServiceReference sr) {
+  boolean okGetServicePerms(ServiceReference<?> sr) {
     return true;
   }
 
 
-  void filterGetServicePermission(Set srs) {
+  void filterGetServicePermission(Set<ServiceRegistrationImpl<?>> srs) {
   }
 
 
@@ -225,7 +225,7 @@ class PermissionOps {
   Object callSearchFor(final BundleClassLoader cl, final String name, final String pkg,
                        final String path, final BundleClassLoader.SearchAction action,
                        final boolean onlyFirst,
-                       final BundleClassLoader requestor, final HashSet visited) {
+                       final BundleClassLoader requestor, final HashSet<BundleClassLoader> visited) {
     return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
   }
 
@@ -304,8 +304,8 @@ class PermissionOps {
   }
 
 
-  void callServiceChanged(final FrameworkContext fwCtx, final Collection receivers,
-                          final ServiceEvent evt, final Set matchBefore) {
+  void callServiceChanged(final FrameworkContext fwCtx, final Collection<ServiceListenerEntry> receivers,
+                          final ServiceEvent evt, final Set<ServiceListenerEntry> matchBefore) {
     fwCtx.listeners.serviceChanged(receivers, evt, matchBefore);
   }
 
@@ -323,13 +323,20 @@ class PermissionOps {
   // ServiceRegisterationImpl secure operations
   //
 
-  Object callGetService(final ServiceRegistrationImpl sr, final Bundle b) {
-    return ((ServiceFactory)sr.service).getService(b, sr);
+  <S> S callGetService(final ServiceRegistrationImpl<S> sr, final Bundle b) {
+    @SuppressWarnings("unchecked")
+    final ServiceFactory<S> srf = (ServiceFactory<S>)sr.service;
+    return srf.getService(b, sr);
   }
 
 
-  void callUngetService(final ServiceRegistrationImpl sr, final Bundle b, final Object instance) {
-    ((ServiceFactory)sr.service).ungetService(b, sr, instance);
+  <S> void callUngetService(final ServiceRegistrationImpl<S> sr,
+                            final Bundle b,
+                            final S instance)
+  {
+    @SuppressWarnings("unchecked")
+    final ServiceFactory<S> srf = (ServiceFactory<S>)sr.service;
+    srf.ungetService(b, sr, instance);
   }
 
 
@@ -366,7 +373,7 @@ class PermissionOps {
 
   /**
    * Get bundle URL using a bundle: spec and the BundleURLStreamHandler.
-   * 
+   *
    * <p>
    * Note:<br>
    * Creating bundle: URLs by the URL(String) constructor will only work if the
@@ -383,7 +390,7 @@ class PermissionOps {
   // Privileged system calls
   //
 
-  ClassLoader getClassLoaderOf(final Class c) {
+  ClassLoader getClassLoaderOf(final Class<?> c) {
     return c.getClassLoader();
   }
 
