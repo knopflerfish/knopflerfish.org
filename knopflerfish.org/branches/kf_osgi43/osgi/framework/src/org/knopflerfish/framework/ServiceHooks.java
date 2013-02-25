@@ -146,7 +146,7 @@ class ServiceHooks {
                                String filter,
                                boolean allServices,
                                Collection /*<ServiceReference>*/ refs) {
-    ArrayList srl = fwCtx.services.get(FindHook.class.getName());
+    List<ServiceRegistrationImpl<?>> srl = fwCtx.services.get(FindHook.class.getName());
     if (srl != null) {
       RemoveOnlyCollection filtered = new RemoveOnlyCollection(refs);
 
@@ -173,7 +173,7 @@ class ServiceHooks {
   void filterServiceEventReceivers(final ServiceEvent evt, 
                                    final Collection /*<ServiceListenerEntry>*/ receivers) {
     
-    ArrayList eventHooks = fwCtx.services.get(EventHook.class.getName());
+    List<ServiceRegistrationImpl<?>> eventHooks = fwCtx.services.get(EventHook.class.getName());
     
     if (eventHooks != null) {
       HashSet ctxs = new HashSet();
@@ -205,7 +205,7 @@ class ServiceHooks {
         }
       }
     }
-    ArrayList<ServiceRegistrationImpl> eventListenerHooks = fwCtx.services.get(EventListenerHook.class.getName());
+    List<ServiceRegistrationImpl<?>> eventListenerHooks = fwCtx.services.get(EventListenerHook.class.getName());
     if (eventListenerHooks != null) {
       HashMap<BundleContext, Collection<ListenerInfo>> listeners = new HashMap<BundleContext, Collection<ListenerInfo>>();
       
@@ -329,22 +329,22 @@ class ServiceHooks {
   /**
    *
    */
-  static class RemoveOnlyCollection extends AbstractCollection {
+  static class RemoveOnlyCollection<E> extends AbstractCollection<E> {
     
-    final Collection org;
-    public RemoveOnlyCollection(Collection values) {
+    final Collection<E> org;
+    public RemoveOnlyCollection(Collection<E> values) {
       org = values;
     }
     
-    public boolean add(Object obj) {
+    public boolean add(E obj) {
       throw new UnsupportedOperationException("objects can only be removed");
     }
     
-    public boolean addAll(Collection objs) {
+    public boolean addAll(Collection<? extends E> objs) {
       throw new UnsupportedOperationException("objects can only be removed");
     }    
 
-    public Iterator iterator() {
+    public Iterator<E> iterator() {
       return org.iterator();
     }
     

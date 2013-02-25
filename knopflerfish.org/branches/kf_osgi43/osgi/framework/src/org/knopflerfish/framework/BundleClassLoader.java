@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,8 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   final private BundleClassPath classPath;
 
   // Array of bundles for which a classload is triggering activation.
-  private static ThreadLocal tlBundlesToActivate = new ThreadLocal();
+  private static ThreadLocal<ArrayList<BundleImpl>> tlBundlesToActivate
+    = new ThreadLocal<ArrayList<BundleImpl>>();
 
   // android/dalvik VM stuff
   private static Method dexFileClassLoadDexMethod;
@@ -102,14 +103,14 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   // for dalvik VM
   static boolean bDalvik = false;
 
-  private ArrayList dexFile = null;
+  private ArrayList<Object> dexFile = null;
 
   static {
     try {
-      Class dexFileClass = null;
+      Class<?> dexFileClass = null;
       try {
         dexFileClass = Class.forName("android.dalvik.DexFile");
-      } catch (Exception ex) {
+      } catch (final Exception ex) {
         dexFileClass = Class.forName("dalvik.system.DexFile");
       }
 
@@ -123,7 +124,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
       // if(debug.classLoader) {
       // debug.println("running on dalvik VM");
       // }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       dexFileClassLoadDexMethod = null;
       dexFileClassLoadClassMethod = null;
     }
@@ -158,24 +159,25 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *
    * @see java.lang.ClassLoader#findClass
    */
-  protected Class findClass(String name) throws ClassNotFoundException {
+  @Override
+  protected Class<?> findClass(String name) throws ClassNotFoundException {
     if (name.startsWith("java.")) {
       return fwCtx.parentClassLoader.loadClass(name);
     }
     if (fwCtx.isBootDelegated(name)) {
       try {
-        Class bootDelegationCls = fwCtx.parentClassLoader.loadClass(name);
+        final Class<?> bootDelegationCls = fwCtx.parentClassLoader.loadClass(name);
         if (debug.classLoader && bootDelegationCls != null) {
           debug
               .println(this + " findClass: " + name + " boot delegation: " + bootDelegationCls);
         }
         return bootDelegationCls;
-      } catch (ClassNotFoundException e) {
+      } catch (final ClassNotFoundException e) {
       }
     }
     String path;
     String pkg;
-    int pos = name.lastIndexOf('.');
+    final int pos = name.lastIndexOf('.');
     if (pos != -1) {
       path = name.replace('.', '/');
       pkg = name.substring(0, pos);
@@ -183,7 +185,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
       path = name;
       pkg = null;
     }
-    Class res = (Class)secure.callSearchFor(this, name, pkg, path + ".class", classSearch,
+    Class<?> res = (Class<?>)secure.callSearchFor(this, name, pkg, path + ".class", classSearch,
         true, this, null);
     if (res != null) {
       return res;
@@ -214,8 +216,9 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *
    * @see java.lang.ClassLoader#findLibrary
    */
+  @Override
   protected String findLibrary(String name) {
-    String res = secure.callFindLibrary0(this, name);
+    final String res = secure.callFindLibrary0(this, name);
     if (debug.classLoader) {
       debug.println(this + " Find library: " + name + (res != null ? " OK" : " FAIL"));
     }
@@ -228,6 +231,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *
    * @see java.lang.ClassLoader#findResources
    */
+  @Override
   protected Enumeration<URL> findResources(String name) {
     // Step 1 and 2 are done by getResources
     return getBundleResources(name, false);
@@ -239,10 +243,11 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *
    * @see java.lang.ClassLoader#findResource
    */
+  @Override
   protected URL findResource(String name) {
-    Enumeration res = getBundleResources(name, true);
+    final Enumeration<URL> res = getBundleResources(name, true);
     if (res != null) {
-      return (URL)res.nextElement();
+      return res.nextElement();
     } else {
       return null;
     }
@@ -253,7 +258,8 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * method.
    */
   static class SecurityManagerExposer extends SecurityManager {
-    public Class[] getClassContext() {
+    @Override
+    public Class<?>[] getClassContext() {
       return super.getClassContext();
     }
   }
@@ -265,7 +271,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * @return <code>true</code> if the given class is not loaded by a bundle
    *         class loader, <code>false</false> otherwise.
    */
-  private boolean isNonBundleClass(Class cls) {
+  private boolean isNonBundleClass(Class<?> cls) {
     return (this.getClass().getClassLoader() != cls.getClassLoader())
         && !ClassLoader.class.isAssignableFrom(cls) && !Class.class.equals(cls)
         && !Proxy.class.equals(cls);
@@ -280,22 +286,22 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * @param name The name of the class to load.
    */
   public boolean isBootClassContext(String name) {
-    Class[] classStack = smex.getClassContext();
+    Class<?>[] classStack = smex.getClassContext();
 
     if (classStack == null) { // Android 4.0 returns null
       // TODO: Find a cheaper and better solution
       try {
-        StackTraceElement[] classNames = new Throwable().getStackTrace();
+        final StackTraceElement[] classNames = new Throwable().getStackTrace();
         classStack = new Class[classNames.length];
         for (int i = 1; i < classNames.length; i++)
           classStack[i] = Class.forName(classNames[i].getClassName());
-      } catch (ClassNotFoundException e) {
+      } catch (final ClassNotFoundException e) {
         return false;
       }
     }
 
     for (int i = 1; i < classStack.length; i++) {
-      final Class currentCls = classStack[i];
+      final Class<?> currentCls = classStack[i];
       if (isNonBundleClass(currentCls)) {
         final ClassLoader currentCL = currentCls.getClassLoader();
 
@@ -328,22 +334,25 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * @exception ClassNotFoundException if the class could not be found
    * @see java.lang.ClassLoader#loadClass
    */
-  protected Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-    Class c = findLoadedClass(name);
+  @Override
+  protected Class<?> loadClass(String name, boolean resolve)
+      throws ClassNotFoundException
+  {
+    Class<?> c = findLoadedClass(name);
     if (c == null) {
       c = findClass(name);
     } else if (secure.getClassLoaderOf(c) == this) {
       // Handle bundles that are lazely started after having been
       // stopped. In this case the triggering classes will already
       // be loaded. Only consider classes loaded by this classloader
-      BundleImpl b = (BundleImpl)getBundle();
+      final BundleImpl b = (BundleImpl)getBundle();
       if (b.triggersActivationCls(name)) {
         if (debug.lazy_activation) {
           debug.println(this + " lazy activation of #" + b.id + " triggered by loadClass("
               + name + ")");
         }
 
-        ArrayList bundlesToActivate = (ArrayList)tlBundlesToActivate.get();
+        final ArrayList<BundleImpl> bundlesToActivate = tlBundlesToActivate.get();
         if (null == bundlesToActivate) {
           // Not part of a load chain; activate bundle here.
           if (debug.lazy_activation) {
@@ -351,7 +360,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
           }
           try {
             secure.callFinalizeActivation(b);
-          } catch (BundleException e) {
+          } catch (final BundleException e) {
             fwCtx.listeners.frameworkError(b, e);
           }
         } else {
@@ -359,7 +368,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
           // initiator class has been loaded.
           boolean bundlePresent = false;
           for (int i = 0, size = bundlesToActivate.size(); i < size; i++) {
-            BundleImpl tmp = (BundleImpl)bundlesToActivate.get(i);
+            final BundleImpl tmp = bundlesToActivate.get(i);
             if (tmp.id == b.id) {
               bundlePresent = true;
               break;
@@ -393,6 +402,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *         resource.
    * @see java.lang.ClassLoader#getResource
    */
+  @Override
   public URL getResource(String name) {
     if (debug.classLoader) {
       debug.println(this + " getResource: " + name);
@@ -450,7 +460,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     if (debug.classLoader) {
       debug.println(this + " getResources: " + name);
     }
-    int start = name.startsWith("/") ? 1 : 0;
+    final int start = name.startsWith("/") ? 1 : 0;
     if (name.substring(start).startsWith("java/")) {
       return fwCtx.parentClassLoader.getResources(name);
     }
@@ -477,13 +487,14 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *         to get the resource.
    * @see java.lang.ClassLoader#getResourceAsStream
    */
+  @Override
   public InputStream getResourceAsStream(String name) {
     try {
-      URL url = getResource(name);
+      final URL url = getResource(name);
       if (url != null) {
         return url.openStream();
       }
-    } catch (IOException ignore) {
+    } catch (final IOException ignore) {
     }
     return null;
   }
@@ -494,6 +505,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *
    * @return A message string.
    */
+  @Override
   public String toString() {
     return "BundleClassLoader("
         // +"fw=" +bpkgs.bundle.fwCtx.hashCode()
@@ -535,15 +547,18 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
       debug.println(this + " Find bundle resource" + (onlyFirst ? "" : "s") + ": " + name);
     }
     String pkg = null;
-    int pos = name.lastIndexOf('/');
+    final int pos = name.lastIndexOf('/');
     if (pos > 0) {
-      int start = name.startsWith("/") ? 1 : 0;
+      final int start = name.startsWith("/") ? 1 : 0;
       pkg = name.substring(start, pos).replace('/', '.');
     } else {
       pkg = null;
     }
-    return (Enumeration)secure.callSearchFor(this, null, pkg, name, resourceSearch, onlyFirst,
-        this, null);
+    @SuppressWarnings("unchecked")
+    final Enumeration<URL> res = (Enumeration<URL>) secure
+        .callSearchFor(this, null, pkg, name, resourceSearch, onlyFirst, this,
+                       null);
+    return res;
     // } else {
     // return null;
     // }
@@ -578,33 +593,33 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
   //
 
   /**
-   * Seraches for and loads classes and resources according to OSGi search
+   * Searches for and loads classes and resources according to OSGi search
    * order. When lazy activation of bundles are used this method will detect and
    * perform the activation. The actual searching and loading is done in
    * {@link #searchFor0()}
    *
    * @param name Name of class or null if we look for a resource
    * @param pkg Package name for item
-   * @param path File path to item searched ("/" seperated)
+   * @param path File path to item searched ("/" separated)
    * @param action Action to be taken when item is found
    * @param onlyFirst Stop search when first matching item is found.
    *
    * @return Object returned from action class.
    */
   Object searchFor(String name, String pkg, String path, SearchAction action,
-                   boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
+                   boolean onlyFirst, BundleClassLoader requestor, HashSet<BundleClassLoader> visited) {
     try {
       final BundleImpl b = (BundleImpl)getBundle();
       boolean initiator = false;
-      ArrayList bundlesToActivate = null;
+      ArrayList<BundleImpl> bundlesToActivate = null;
 
       if (action == classSearch) {
         boolean bundlePresent = false;
 
-        bundlesToActivate = (ArrayList)tlBundlesToActivate.get();
+        bundlesToActivate = tlBundlesToActivate.get();
         initiator = bundlesToActivate == null;
         if (initiator) {
-          bundlesToActivate = new ArrayList();
+          bundlesToActivate = new ArrayList<BundleImpl>();
           tlBundlesToActivate.set(bundlesToActivate);
         } else {
           bundlePresent = bundlesToActivate.contains(b);
@@ -623,19 +638,19 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
       if (initiator) {
         tlBundlesToActivate.set(null);
         for (int i = bundlesToActivate.size() - 1; i >= 0; i--) {
-          BundleImpl tmp = (BundleImpl)bundlesToActivate.get(i);
+          final BundleImpl tmp = bundlesToActivate.get(i);
           if (debug.lazy_activation) {
             debug.println(this + " requesting lazy activation of #" + tmp.id);
           }
           try {
             tmp.finalizeActivation();
-          } catch (BundleException e) {
+          } catch (final BundleException e) {
             fwCtx.listeners.frameworkError(tmp, e);
           }
         }
       }
       return res;
-    } catch (Error te) {
+    } catch (final Error te) {
       tlBundlesToActivate.set(null);
       throw te;
     }
@@ -684,20 +699,20 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    *
    * @param name Name of class or null if we look for a resource
    * @param pkg Package name for item
-   * @param path File path to item searched ("/" seperated)
+   * @param path File path to item searched ("/" separated)
    * @param action Action to be taken when item is found
    * @param onlyFirst Stop search when first matching item is found.
    *
    * @return Object returned from action class.
    */
   Object searchFor0(String name, String pkg, String path, SearchAction action,
-                    boolean onlyFirst, BundleClassLoader requestor, HashSet visited) {
+                    boolean onlyFirst, BundleClassLoader requestor, HashSet<BundleClassLoader> visited) {
     BundlePackages pbp;
-    Iterator /* ExportPkg */ep;
+    Iterator<ExportPkg> ep;
 
     // TBD! Should this be an action method
     if (action == classSearch && requestor != this) {
-      Class c = findLoadedClass(name);
+      final Class<?> c = findLoadedClass(name);
       if (c != null) {
         return c;
       }
@@ -714,12 +729,12 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         if (isSystemBundle(pbp.bg.bundle)) {
           try {
             return fwCtx.systemBundle.getClassLoader().loadClass(name);
-          } catch (ClassNotFoundException e) {
+          } catch (final ClassNotFoundException e) {
             // TBD, continue!?
             return null;
           }
         } else {
-          BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
+          final BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
           // Second check avoids a loop when a required bundle imports a
           // package from its requiring host that it self should
           // provide contents for to the requiring bundle.
@@ -739,22 +754,21 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         }
       } else {
         /* 4 */
-        ArrayList pl = bpkgs.getRequiredBundleGenerations(pkg);
+        final ArrayList<BundleGeneration> pl = bpkgs.getRequiredBundleGenerations(pkg);
         if (pl != null) {
           if (visited == null) {
-            visited = new HashSet();
+            visited = new HashSet<BundleClassLoader>();
           }
           visited.add(this);
-          for (Iterator pi = pl.iterator(); pi.hasNext();) {
-            final BundleGeneration pbg = (BundleGeneration) pi.next();
+          for (final BundleGeneration pbg : pl) {
             if (pbg != null) {
-              BundleClassLoader cl = (BundleClassLoader) pbg.getClassLoader();
+              final BundleClassLoader cl = (BundleClassLoader) pbg.getClassLoader();
               if (cl != null && !visited.contains(cl)) {
                 if (debug.classLoader) {
                   debug.println(this + " Required bundle search: " + path + " from #"
                       + pbg.bundle.id);
                 }
-                Object res = secure.callSearchFor(cl, name, pkg, path, action, onlyFirst,
+                final Object res = secure.callSearchFor(cl, name, pkg, path, action, onlyFirst,
                     requestor, visited);
                 if (res != null) {
                   return res;
@@ -776,7 +790,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     if (this != requestor && ep != null) {
       boolean blocked = true;
       while (ep.hasNext()) {
-        if (((ExportPkg)ep.next()).checkFilter(name)) {
+        if (ep.next().checkFilter(name)) {
           blocked = false;
           break;
         }
@@ -788,14 +802,14 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         return null;
       }
     }
-    Vector av = classPath.componentExists(path, onlyFirst);
+    final Vector<FileArchive> av = classPath.componentExists(path, onlyFirst);
     if (av != null) {
       try {
         return action.get(av, path, name, pkg, this);
-      } catch (ClassFormatError cfe) {
+      } catch (final ClassFormatError cfe) {
         // TODO: OSGI43 WeavingHook CT has some specific demands that ClassFormatErrors are thrown that doesn't seem to be in the spec
         throw cfe;
-      } catch (IOException ioe) {
+      } catch (final IOException ioe) {
         fwCtx.listeners.frameworkError(bpkgs.bg.bundle, ioe);
         return null;
       }
@@ -813,11 +827,11 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         if (isSystemBundle(pbp.bg.bundle)) {
           try {
             return fwCtx.systemBundle.getClassLoader().loadClass(name);
-          } catch (ClassNotFoundException e) {
+          } catch (final ClassNotFoundException e) {
             // continue
           }
         } else {
-          BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
+          final BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
           if (cl != null) {
             if (debug.classLoader) {
               debug.println(this + " Dynamic import search: " + path + " from #"
@@ -844,23 +858,32 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * Search action
    */
   interface SearchAction {
-    public abstract Object get(Vector /* FileArchive */items, String path, String name,
-                               String pkg, BundleClassLoader cl) throws IOException;
+    public abstract Object get(Vector<FileArchive> items,
+                               String path,
+                               String name,
+                               String pkg,
+                               BundleClassLoader cl)
+        throws IOException;
   }
 
   /**
    * Search action for class searching
    */
   static final SearchAction classSearch = new SearchAction() {
-    public Object get(Vector items, String path, String name, String pkg, BundleClassLoader cl)
-        throws IOException {
-      byte[] bytes = ((FileArchive)items.get(0)).getClassBytes(path);
+    public Object get(Vector<FileArchive> items,
+                      String path,
+                      String name,
+                      String pkg,
+                      BundleClassLoader cl)
+        throws IOException
+    {
+      byte[] bytes = items.get(0).getClassBytes(path);
       if (bytes != null) {
         if (cl.debug.classLoader) {
           cl.debug.println("classLoader(#" + cl.bpkgs.bg.bundle.id + ") - load class: " + name);
         }
         synchronized (cl) {
-          Class c = cl.findLoadedClass(name);
+          Class<?> c = cl.findLoadedClass(name);
           if (c == null) {
             if (pkg != null) {
               if (cl.getPackage(pkg) == null) {
@@ -873,13 +896,13 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
             if (bDalvik) {
               try {
                 c = cl.getDexFileClass(name);
-              } catch (Exception e) {
+              } catch (final Exception e) {
                 throw new IOException("Failed to load dex class '" + name + "', " + e);
               }
             }
 
             if (c == null) {
-              
+
               WeavingHooks.WovenClassImpl wc = null;
               if(cl != null && cl.bpkgs != null && cl.bpkgs.bg != null && cl.bpkgs.bg.bundle != null) {
                 wc = new WeavingHooks.WovenClassImpl(cl.bpkgs.bg.bundle, name, bytes);
@@ -889,10 +912,10 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
                     cl.bpkgs.parseDynamicImports(wc.getDynamicImportsAsString());
                   }
                   bytes = wc.getBytes();
-                } catch (ClassFormatError cfe) {
+                } catch (final ClassFormatError cfe) {
                   throw cfe;
-                } catch (Throwable t) {
-                  ClassFormatError cfe = new ClassFormatError("Failed to call WeavingHooks for " + name);
+                } catch (final Throwable t) {
+                  final ClassFormatError cfe = new ClassFormatError("Failed to call WeavingHooks for " + name);
                   cfe.initCause(t);
                   throw cfe;
                 }
@@ -903,7 +926,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
               } else {
                 c = cl.defineClass(name, bytes, 0, bytes.length, cl.protectionDomain);
               }
-             
+
               if(wc != null) {
                 wc.setDefinedClass(c);
               }
@@ -916,12 +939,11 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     }
   };
 
-  private void walkAndAddJars(List dexlist, String path) throws Exception {
-    File root = new File(path);
-    File[] list = root.listFiles();
+  private void walkAndAddJars(List<Object> dexlist, String path) throws Exception {
+    final File root = new File(path);
+    final File[] list = root.listFiles();
 
-    for (int i = 0; i < list.length; i++) {
-      File f = list[i];
+    for (final File f : list) {
       if (f.isDirectory()) {
         walkAndAddJars(dexlist, f.getAbsolutePath());
       } else {
@@ -929,7 +951,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
           if (debug.classLoader) {
             debug.println("creating DexFile from " + f.getAbsolutePath());
           }
-          Object dex = dexFileClassLoadDexMethod.invoke(null,
+          final Object dex = dexFileClassLoadDexMethod.invoke(null,
               new Object[] { f.getAbsolutePath(),
                 f.getAbsolutePath() + ".dexopt", new Integer(0) });
           dexlist.add(dex);
@@ -953,20 +975,22 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * <li><code>aapt add bundle.jar classes.dex</code>
    * </ol>
    */
-  private Class getDexFileClass(String name) throws Exception {
+  private Class<?> getDexFileClass(String name)
+      throws Exception
+  {
 
     if (debug.classLoader) {
       debug.println("loading dex class " + name);
     }
 
     if (dexFile == null) {
-      dexFile = new ArrayList();
-      File f = new File(archive.getJarLocation());
+      dexFile = new ArrayList<Object>();
+      final File f = new File(archive.getJarLocation());
       if (!f.isDirectory()) {
         if (debug.classLoader) {
           debug.println("creating DexFile from " + f);
         }
-        Object dex = dexFileClassLoadDexMethod.invoke(null, new Object[] {
+        final Object dex = dexFileClassLoadDexMethod.invoke(null, new Object[] {
           f.getAbsolutePath(), f.getAbsolutePath() + ".dexopt",
                new Integer(0) });
         dexFile.add(dex);
@@ -978,7 +1002,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         if (debug.classLoader) {
           System.err.println("creating DexFile from " + f + "/classes.dex");
         }
-        Object dex = dexFileClassLoadDexMethod.invoke(null, new Object[] {
+        final Object dex = dexFileClassLoadDexMethod.invoke(null, new Object[] {
           f.getAbsolutePath() + "/classes.dex",
                f.getAbsolutePath() + ".dexopt", new Integer(0) });
         dexFile.add(dex);
@@ -990,23 +1014,23 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
       }
     }
 
-    String path = name.replace('.', '/');
+    final String path = name.replace('.', '/');
 
-    Iterator i = dexFile.iterator();
+    final Iterator<Object> i = dexFile.iterator();
     while (i.hasNext()) {
-      Object dex = i.next();
+      final Object dex = i.next();
       if (debug.classLoader) {
         debug.println("trying to load " + path + " from " + dex);
       }
       try {
-        Class clz = (Class)dexFileClassLoadClassMethod.invoke(dex, new Object[] { path, this });
+        final Class<?> clz = (Class<?>)dexFileClassLoadClassMethod.invoke(dex, new Object[] { path, this });
         if (clz != null) {
           if (debug.classLoader) {
             debug.println("loaded " + path + " from " + dex);
           }
           return clz;
         }
-      } catch (Exception e) { }
+      } catch (final Exception e) { }
       if (debug.classLoader) {
         debug.println("failed to load " + path + " from " + dex);
       }
@@ -1019,13 +1043,17 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
    * Search action for resource searching
    */
   static final SearchAction resourceSearch = new SearchAction() {
-    public Object get(Vector items, String path, String name, String pkg, BundleClassLoader cl)
-        throws IOException {
-
-      Vector answer = new Vector();
+    public Object get(Vector<FileArchive> items,
+                      String path,
+                      String name,
+                      String pkg,
+                      BundleClassLoader cl)
+        throws IOException
+    {
+      final Vector<URL> answer = new Vector<URL>();
       for (int i = 0; i < items.size(); i++) {
-        FileArchive fa = (FileArchive)items.elementAt(i);
-        URL url = fa.getBundleGeneration().getURL(fa.getSubId(), path);
+        final FileArchive fa = items.elementAt(i);
+        final URL url = fa.getBundleGeneration().getURL(fa.getSubId(), path);
         if (url != null) {
           if (cl.debug.classLoader) {
             cl.debug.println("classLoader(#" + cl.bpkgs.bg.bundle.id + ") - found: " + path

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
 
 package org.knopflerfish.framework;
 
+import java.util.List;
 import java.util.Set;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -58,16 +59,18 @@ class Services {
   /**
    * All registered services in the current framework.
    * Mapping of registered service to class names under which service
-   * is registerd.
+   * is registered.
    */
-  HashMap<ServiceRegistrationImpl<?>, String[]> services = new HashMap();
+  HashMap<ServiceRegistrationImpl<?>, String[]> services
+    = new HashMap<ServiceRegistrationImpl<?>, String[]>();
 
   /**
    * Mapping of classname to registered service.
    * The List of registered service are order in with highest
    * ranked service first.
    */
-  private HashMap /* String->List(ServiceRegistration) */ classServices = new HashMap();
+  private HashMap<String,List<ServiceRegistrationImpl<?>>> classServices
+    = new HashMap<String, List<ServiceRegistrationImpl<?>>>();
 
   /**
    * Handle to secure call class.
@@ -228,16 +231,20 @@ class Services {
 
   /**
    * Get all service implementing a certain class.
-   * Only used internaly by framework.
+   * Only used internally by framework.
    *
    * @param clazz The class name of requested service.
    * @return A sorted list of {@link ServiceRegistrationImpl} objects
    *         or null if no services is available.
    */
-  synchronized ArrayList get(String clazz) {
-    ArrayList v = (ArrayList) classServices.get(clazz);
+  synchronized List<ServiceRegistrationImpl<?>> get(String clazz) {
+    List<ServiceRegistrationImpl<?>> v = (List<ServiceRegistrationImpl<?>>)
+        classServices.get(clazz);
     if (v != null) {
-      return (ArrayList)v.clone();
+      @SuppressWarnings({ "rawtypes", "unchecked" })
+      final List<ServiceRegistrationImpl<?>> res
+        = (List<ServiceRegistrationImpl<?>>) ((ArrayList) v).clone();
+      return res;
     }
     return null;
   }

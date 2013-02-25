@@ -62,7 +62,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.startlevel.BundleStartLevel;
-import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleRevisions;
 import org.osgi.framework.wiring.BundleWiring;
@@ -327,7 +326,7 @@ public class BundleImpl implements Bundle {
         if (null == bundleContext) {
           bundleContext = new BundleContextImpl(this);
         }
-        BundleException e = bundleThread().callStart0(this);
+        final BundleException e = bundleThread().callStart0(this);
         operation = IDLE;
         fwCtx.packages.notifyAll();
         if (e != null) {
@@ -374,7 +373,8 @@ public class BundleImpl implements Bundle {
     try {
       if (ba != null) {
         @SuppressWarnings("unchecked")
-		Class<BundleActivator> c = 
+        final
+		Class<BundleActivator> c =
             (Class<BundleActivator>) getClassLoader().loadClass(ba.trim());
         error_type = BundleException.ACTIVATOR_ERROR;
         bactivator = c.newInstance();
@@ -382,19 +382,19 @@ public class BundleImpl implements Bundle {
         bactivator.start(bundleContext);
         bStarted = true;
       } else {
-        String locations = fwCtx.props.getProperty(FWProps.MAIN_CLASS_ACTIVATION_PROP);
+        final String locations = fwCtx.props.getProperty(FWProps.MAIN_CLASS_ACTIVATION_PROP);
         if (locations.length() > 0) {
           final String mc = current().archive.getAttribute("Main-Class");
 
           if (mc != null) {
-            String[] locs = Util.splitwords(locations, ",");
-            for (int i = 0; i < locs.length; i++) {
-              if (locs[i].equals(location)) {
+            final String[] locs = Util.splitwords(locations, ",");
+            for (final String loc : locs) {
+              if (loc.equals(location)) {
                 if (fwCtx.debug.packages) {
                   fwCtx.debug.println("starting main class " + mc);
                 }
                 error_type = BundleException.ACTIVATOR_ERROR;
-                Class<?> mainClass = getClassLoader().loadClass(mc.trim());
+                final Class<?> mainClass = getClassLoader().loadClass(mc.trim());
                 bactivator = new MainClassBundleActivator(mainClass);
                 bactivator.start(bundleContext);
                 bStarted = true;
@@ -421,7 +421,7 @@ public class BundleImpl implements Bundle {
         }
       }
       state = ACTIVE;
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       res = new BundleException("Bundle start failed", error_type, t);
     }
     if (fwCtx.debug.lazy_activation) {
@@ -548,7 +548,7 @@ public class BundleImpl implements Bundle {
                 "Bundle changed state because of refresh during stop");
           }
         }
-      } catch (Throwable e) {
+      } catch (final Throwable e) {
         res = new BundleException("Bundle.stop: BundleActivator stop failed",
             BundleException.ACTIVATOR_ERROR, e);
       }
@@ -584,14 +584,14 @@ public class BundleImpl implements Bundle {
     if (operation != IDLE) {
       long left = longWait ? 20000 : 500;
       // TODO: Don't use currentTimeMillis
-      long waitUntil = System.currentTimeMillis() + left;
+      final long waitUntil = System.currentTimeMillis() + left;
       do {
         try {
           lock.wait(left);
           if (operation == IDLE) {
             return;
           }
-        } catch (InterruptedException _ie) {
+        } catch (final InterruptedException _ie) {
         }
         left = waitUntil - System.currentTimeMillis();
       } while (left > 0);
@@ -677,7 +677,7 @@ public class BundleImpl implements Bundle {
       if (in != null) {
         try {
           in.close();
-        } catch (IOException ignore) {
+        } catch (final IOException ignore) {
         }
       }
 
@@ -704,7 +704,7 @@ public class BundleImpl implements Bundle {
           // Take original location
           update = location;
         }
-        URL url = new URL(update);
+        final URL url = new URL(update);
 
         // Handle case where bundle location is a reference and/or a directory
         // URL. In these cases, send a NULL input stream to the archive
@@ -714,7 +714,7 @@ public class BundleImpl implements Bundle {
         if (fname.startsWith("file:")) {
           fname = fname.substring(5);
         }
-        File file = new File(fname);
+        final File file = new File(fname);
         if (file.isDirectory()) {
           bin = null;
         } else {
@@ -729,7 +729,7 @@ public class BundleImpl implements Bundle {
       newGeneration.checkPermissions(checkContext);
       newArchive.setStartLevel(oldStartLevel);
       fwCtx.storage.replaceBundleArchive(current().archive, newGeneration.archive);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (newArchive != null) {
         newArchive.purge();
       }
@@ -737,7 +737,7 @@ public class BundleImpl implements Bundle {
       if (wasActive) {
         try {
           start();
-        } catch (BundleException be) {
+        } catch (final BundleException be) {
           fwCtx.listeners.frameworkError(this, be);
         }
       }
@@ -758,8 +758,8 @@ public class BundleImpl implements Bundle {
             fwCtx.systemBundle.bootClassPathHasChanged = true;
           }
         } else {
-          for (Iterator<BundleGeneration> i = oldFragment.getHosts().iterator(); i.hasNext();) {
-            i.next().bpkgs.fragmentIsZombie(this);
+          for (final BundleGeneration bundleGeneration : oldFragment.getHosts()) {
+            bundleGeneration.bpkgs.fragmentIsZombie(this);
           }
         }
         oldFragment.removeHost(null);
@@ -780,10 +780,10 @@ public class BundleImpl implements Bundle {
     }
 
     // Activate new bundle generation
-    BundleGeneration oldGen = current();
+    final BundleGeneration oldGen = current();
     state = INSTALLED;
     if (saveZombie) {
-      generations.add(0, newGeneration);      
+      generations.add(0, newGeneration);
     } else {
       generations.set(0, newGeneration);
     }
@@ -805,7 +805,7 @@ public class BundleImpl implements Bundle {
     if (wasActive) {
       try {
         start();
-      } catch (BundleException be) {
+      } catch (final BundleException be) {
         fwCtx.listeners.frameworkError(this, be);
       }
     }
@@ -831,7 +831,7 @@ public class BundleImpl implements Bundle {
       if (!current().isUninstalled()) {
         try {
           current().archive.setStartLevel(-2); // Mark as uninstalled
-        } catch (Exception ignored) {
+        } catch (final Exception ignored) {
         }
       }
 
@@ -846,7 +846,7 @@ public class BundleImpl implements Bundle {
         try {
           waitOnOperation(fwCtx.packages, "Bundle.uninstall", true);
           exception = (state & (ACTIVE | STARTING)) != 0 ? stop0() : null;
-        } catch (Exception se) {
+        } catch (final Exception se) {
           // Force to install
           setStateInstalled(false);
           fwCtx.packages.notifyAll();
@@ -864,7 +864,7 @@ public class BundleImpl implements Bundle {
           try {
             waitOnOperation(fwCtx.packages, "Bundle.uninstall", true);
             operation = UNINSTALLING;
-          } catch (BundleException be) {
+          } catch (final BundleException be) {
             // Make sure that bundleContext is invalid
             if (bundleContext != null) {
               bundleContext.invalidate();
@@ -886,8 +886,7 @@ public class BundleImpl implements Bundle {
                 fwCtx.systemBundle.bootClassPathHasChanged = true;
               }
             } else {
-              for (Iterator<BundleGeneration> i = current().getHosts().iterator(); i.hasNext();) {
-                BundleGeneration hbg = i.next();
+              for (final BundleGeneration hbg : current().getHosts()) {
                 if (hbg.bpkgs != null) {
                   hbg.bpkgs.fragmentIsZombie(this);
                 }
@@ -901,7 +900,7 @@ public class BundleImpl implements Bundle {
           }
         } else { // Non-fragment bundle
           // Try to unregister this bundle's packages
-          boolean pkgsUnregistered = current().unregisterPackages(false);
+          final boolean pkgsUnregistered = current().unregisterPackages(false);
 
           if (pkgsUnregistered) {
             // No exports in use, clean up.
@@ -919,9 +918,9 @@ public class BundleImpl implements Bundle {
         bactivator = null;
         state = UNINSTALLED;
         // Purge old archive
-        BundleGeneration oldGen = current();
+        final BundleGeneration oldGen = current();
         if (saveZombie) {
-          generations.add(0, new BundleGeneration(oldGen));      
+          generations.add(0, new BundleGeneration(oldGen));
         } else {
           generations.set(0, new BundleGeneration(oldGen));
         }
@@ -986,13 +985,13 @@ public class BundleImpl implements Bundle {
    */
   public ServiceReference<?>[] getRegisteredServices() {
     checkUninstalled();
-    Set<ServiceRegistrationImpl<?>> sr = fwCtx.services.getRegisteredByBundle(this);
+    final Set<ServiceRegistrationImpl<?>> sr = fwCtx.services.getRegisteredByBundle(this);
     secure.filterGetServicePermission(sr);
     if (sr.size() > 0) {
-      ServiceReference<?>[] res = new ServiceReference[sr.size()];
+      final ServiceReference<?>[] res = new ServiceReference[sr.size()];
       int pos = 0;
-      for (Iterator<ServiceRegistrationImpl<?>> i = sr.iterator(); i.hasNext();) {
-        res[pos++] = i.next().getReference();
+      for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : sr) {
+        res[pos++] = serviceRegistrationImpl.getReference();
       }
       return res;
     }
@@ -1007,13 +1006,13 @@ public class BundleImpl implements Bundle {
    */
   public ServiceReference<?>[] getServicesInUse() {
     checkUninstalled();
-    Set<ServiceRegistrationImpl<?>> sr = fwCtx.services.getUsedByBundle(this);
+    final Set<ServiceRegistrationImpl<?>> sr = fwCtx.services.getUsedByBundle(this);
     secure.filterGetServicePermission(sr);
     if (sr.size() > 0) {
-      ServiceReference<?>[] res = new ServiceReference<?>[sr.size()];
+      final ServiceReference<?>[] res = new ServiceReference<?>[sr.size()];
       int pos = 0;
-      for (Iterator<ServiceRegistrationImpl<?>> i = sr.iterator(); i.hasNext();) {
-        res[pos++] = i.next().getReference();
+      for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : sr) {
+        res[pos++] = serviceRegistrationImpl.getReference();
       }
       return res;
     }
@@ -1027,12 +1026,12 @@ public class BundleImpl implements Bundle {
    * @see org.osgi.framework.Bundle#hasPermission
    */
   public boolean hasPermission(Object permission) {
-    BundleGeneration fix = current();
+    final BundleGeneration fix = current();
     checkUninstalled();
     if (permission instanceof Permission) {
       if (secure.checkPermissions()) {
         // get the current status from permission admin
-        PermissionCollection pc = fix.getProtectionDomain().getPermissions();
+        final PermissionCollection pc = fix.getProtectionDomain().getPermissions();
         return pc != null ? pc.implies((Permission)permission) : false;
       } else {
         return true;
@@ -1063,12 +1062,12 @@ public class BundleImpl implements Bundle {
     // NYI, sync BundleGeneration
     if (secure.okResourceAdminPerm(this) && !current().isFragment()) {
       if (getUpdatedState() != INSTALLED) {
-        ClassLoader cl0 = getClassLoader();
+        final ClassLoader cl0 = getClassLoader();
         if (cl0 != null) {
           return cl0.getResource(name);
         }
       } else {
-        Vector<URL> uv = secure.getBundleClassPathEntries(current(), name, true);
+        final Vector<URL> uv = secure.getBundleClassPathEntries(current(), name, true);
         if (uv != null) {
           return uv.firstElement();
         }
@@ -1109,13 +1108,12 @@ public class BundleImpl implements Bundle {
     } else {
       throw new IllegalArgumentException("signersType not SIGNER_ALL or SIGNERS_TRUSTED");
     }
-    BundleArchive fix = current().archive;
+    final BundleArchive fix = current().archive;
     if (fix != null) {
-      List<List<X509Certificate>> cs = fix.getCertificateChains(onlyTrusted);
+      final List<List<X509Certificate>> cs = fix.getCertificateChains(onlyTrusted);
       if (cs != null) {
-        Map<X509Certificate, List<X509Certificate>> res = new HashMap<X509Certificate, List<X509Certificate>>();
-        for (Iterator<List<X509Certificate>> i = cs.iterator(); i.hasNext();) {
-          final List<X509Certificate> chain = i.next();
+        final Map<X509Certificate, List<X509Certificate>> res = new HashMap<X509Certificate, List<X509Certificate>>();
+        for (final List<X509Certificate> chain : cs) {
           final List<X509Certificate> copy = new ArrayList<X509Certificate>(chain);
           res.put(chain.get(0), copy);
         }
@@ -1169,6 +1167,7 @@ public class BundleImpl implements Bundle {
           if (state == INSTALLED) {
             // NYI! check EE for fragments
             @SuppressWarnings("deprecation")
+            final
             String ee = current().archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
             if (ee != null) {
               if (fwCtx.debug.packages) {
@@ -1180,9 +1179,9 @@ public class BundleImpl implements Bundle {
               }
             }
             if (current().isFragment()) {
-              List<BundleImpl> hosts = current().fragment.targets(fwCtx);
+              final List<BundleImpl> hosts = current().fragment.targets(fwCtx);
               if (hosts != null) {
-                for (BundleImpl host : hosts) {
+                for (final BundleImpl host : hosts) {
                   if (host.state == INSTALLED) {
                     // Try resolve our host
                     // NYI! Detect circular attach
@@ -1212,7 +1211,7 @@ public class BundleImpl implements Bundle {
             }
           }
         }
-      } catch (BundleException be) {
+      } catch (final BundleException be) {
         resolveFailException = be;
         fwCtx.listeners.frameworkError(this, be);
       }
@@ -1225,7 +1224,7 @@ public class BundleImpl implements Bundle {
    * Attach a fragment to host bundle
    */
   boolean attachToFragmentHost(BundleGeneration host) {
-    BundleGeneration fix = current();
+    final BundleGeneration fix = current();
     if (fix.isFragment() && secure.okFragmentBundlePerm(this)) {
       try {
         if (fix.isExtension()) {
@@ -1235,7 +1234,7 @@ public class BundleImpl implements Bundle {
         }
         fix.fragment.addHost(host);
         return true;
-      } catch (Exception e) {
+      } catch (final Exception e) {
         fwCtx.listeners.frameworkWarning(this, e);
       }
     }
@@ -1302,11 +1301,11 @@ public class BundleImpl implements Bundle {
     }
     Vector<BundleGeneration> old;
     synchronized (generations) {
-      List<BundleGeneration> sub = generations.subList(1, generations.size());
+      final List<BundleGeneration> sub = generations.subList(1, generations.size());
       old = new Vector<BundleGeneration>(sub);
       sub.clear();
     }
-    for (BundleGeneration bg : old) {
+    for (final BundleGeneration bg : old) {
       bg.purge(true);
     }
   }
@@ -1319,7 +1318,7 @@ public class BundleImpl implements Bundle {
    */
   BundleArchive getBundleArchive(long generation) {
     synchronized (generations) {
-      for (BundleGeneration bg : generations) {
+      for (final BundleGeneration bg : generations) {
         if (bg.generation == generation) {
           return bg.archive;
         }
@@ -1340,17 +1339,17 @@ public class BundleImpl implements Bundle {
       HashSet<ExportPkg> res;
       if (generations.size() > 1) {
         res = new HashSet<ExportPkg>();
-        for (BundleGeneration bg : generations) {
-          BundlePackages bp = bg.bpkgs;
+        for (final BundleGeneration bg : generations) {
+          final BundlePackages bp = bg.bpkgs;
           if (bp != null) {
-            for (Iterator<ExportPkg> j = bp.getExports(); j.hasNext();) {
+            for (final Iterator<ExportPkg> j = bp.getExports(); j.hasNext();) {
               res.add(j.next());
             }
           }
         }
         return res.iterator();
       } else {
-        BundlePackages bp = generations.get(0).bpkgs;
+        final BundlePackages bp = generations.get(0).bpkgs;
         if (bp != null) {
           return bp.getExports();
         } else {
@@ -1370,8 +1369,8 @@ public class BundleImpl implements Bundle {
     Vector<BundleGeneration> res = null;
     if (zombieHosts) {
       synchronized (generations) {
-        for (BundleGeneration bg : generations) {
-          Vector<BundleGeneration> h = bg.getHosts();
+        for (final BundleGeneration bg : generations) {
+          final Vector<BundleGeneration> h = bg.getHosts();
           if (h != null) {
             if (res != null) {
               res.addAll(h);
@@ -1398,10 +1397,10 @@ public class BundleImpl implements Bundle {
   List<BundlePackages> getRequiredBy() {
     List<BundlePackages> res = null;
     synchronized (generations) {
-      for (BundleGeneration bg : generations) {
-        BundlePackages bp = bg.bpkgs;
+      for (final BundleGeneration bg : generations) {
+        final BundlePackages bp = bg.bpkgs;
         if (bp != null) {
-          List<BundlePackages> rb = bp.getRequiredBy();
+          final List<BundlePackages> rb = bp.getRequiredBy();
           if (res != null) {
             res.addAll(rb);
           } else {
@@ -1432,11 +1431,11 @@ public class BundleImpl implements Bundle {
    */
   void setAutostartSetting0(int setting) {
     try {
-      BundleArchive ba = current().archive;
+      final BundleArchive ba = current().archive;
       if (null != ba) {
         ba.setAutostartSetting(setting);
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       fwCtx.listeners.frameworkError(this, e);
     }
   }
@@ -1448,7 +1447,7 @@ public class BundleImpl implements Bundle {
    * @return the current autostart setting, "-1" if bundle not started.
    */
   int getAutostartSetting() {
-    BundleArchive ba = current().archive;
+    final BundleArchive ba = current().archive;
     return ba != null ? ba.getAutostartSetting() : -1;
   }
 
@@ -1459,7 +1458,7 @@ public class BundleImpl implements Bundle {
    *
    */
   int getStartLevel() {
-    BundleArchive ba = current().archive;
+    final BundleArchive ba = current().archive;
     if (ba != null) {
       return ba.getStartLevel();
     } else {
@@ -1474,11 +1473,11 @@ public class BundleImpl implements Bundle {
   void setStartLevel(int n) {
     // as soon as anoyone sets the start level explicitly
     // the level becomes persistent
-    BundleArchive ba = current().archive;
+    final BundleArchive ba = current().archive;
     if (ba != null) {
       try {
         ba.setStartLevel(n);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         fwCtx.listeners.frameworkError(this, new BundleException(
             "Failed to set start level on #" + id, e));
       }
@@ -1494,13 +1493,14 @@ public class BundleImpl implements Bundle {
    *
    * @return a String representing this bundle.
    */
+  @Override
   public String toString() {
     return toString(0); // 0 is lowest detail
   }
 
 
   String toString(int detail) {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
 
     sb.append("BundleImpl[");
     sb.append("id=" + getBundleId());
@@ -1516,7 +1516,7 @@ public class BundleImpl implements Bundle {
       try {
         sb.append(", autostart setting=");
         sb.append(getAutostartSetting());
-      } catch (Exception e) {
+      } catch (final Exception e) {
         sb.append(e.toString());
       }
     }
@@ -1543,7 +1543,7 @@ public class BundleImpl implements Bundle {
     if (secure.okResourceAdminPerm(this)) {
       // Try to resolve, so that fragments attach.
       getUpdatedState();
-      Vector<URL> res = secure.callFindEntries(current(), path, filePattern, recurse);
+      final Vector<URL> res = secure.callFindEntries(current(), path, filePattern, recurse);
       if (!res.isEmpty()) {
         return res.elements();
       }
@@ -1562,13 +1562,13 @@ public class BundleImpl implements Bundle {
         if ("/".equals(name)) {
           return current().getURL(0, "/");
         }
-        BundleGeneration fix = current();
-        InputStream is = secure.callGetBundleResourceStream(fix.archive, name, 0);
+        final BundleGeneration fix = current();
+        final InputStream is = secure.callGetBundleResourceStream(fix.archive, name, 0);
         if (is != null) {
           is.close();
           return fix.getURL(0, name);
         }
-      } catch (IOException _ignore) {
+      } catch (final IOException _ignore) {
       }
     }
     return null;
@@ -1619,13 +1619,13 @@ public class BundleImpl implements Bundle {
         if (this instanceof SystemBundle) {
           e = getClassLoader().getResources(name);
         } else {
-          BundleClassLoader cl0 = (BundleClassLoader)current().getClassLoader();
+          final BundleClassLoader cl0 = (BundleClassLoader)current().getClassLoader();
           if (cl0 != null) {
             e = cl0.getResourcesOSGi(name);
           }
         }
       } else {
-        Vector<URL> uv = secure.getBundleClassPathEntries(current(), name, false);
+        final Vector<URL> uv = secure.getBundleClassPathEntries(current(), name, false);
         if (uv != null) {
           e = uv.elements();
         }
@@ -1670,7 +1670,7 @@ public class BundleImpl implements Bundle {
 
   /**
    * Get the current generation.
-   * 
+   *
    */
   BundleGeneration current() {
     return generations.get(0);
@@ -1689,7 +1689,7 @@ public class BundleImpl implements Bundle {
    * Checks if this bundle is attached to a fragment host.
    */
   boolean isAttached() {
-    BundleGeneration fix = current();
+    final BundleGeneration fix = current();
     return fix.fragment != null && fix.fragment.hasHosts();
   }
 
@@ -1699,7 +1699,7 @@ public class BundleImpl implements Bundle {
    * a fragment.
    */
   String getFragmentHostName() {
-    BundleGeneration fix = current();
+    final BundleGeneration fix = current();
     if (fix.isFragment()) {
       return fix.fragment.hostName;
     } else {
@@ -1720,7 +1720,7 @@ public class BundleImpl implements Bundle {
     if (Bundle.STOPPING != fwCtx.systemBundle.getState() && state == Bundle.STARTING
         && operation != ACTIVATING) {
       String pkg = "";
-      int pos = name.lastIndexOf('.');
+      final int pos = name.lastIndexOf('.');
       if (pos != -1) {
         pkg = name.substring(0, pos);
       }
@@ -1743,7 +1743,7 @@ public class BundleImpl implements Bundle {
     }
   }
 
-  
+
   @SuppressWarnings("unchecked")
   <A> A adaptSecure(Class<A> type) {
     Object res = null;
@@ -1756,7 +1756,7 @@ public class BundleImpl implements Bundle {
     } else if (fwCtx.startLevelController != null &&
 	           BundleStartLevel.class.equals(type)) {
       res = fwCtx.startLevelController.bundleStartLevel(this);
-    } 
+    }
     return (A) res;
   }
 
@@ -1788,19 +1788,18 @@ public class BundleImpl implements Bundle {
    */
   private void removeBundleResources() {
     fwCtx.listeners.removeAllListeners(bundleContext);
-    Set<ServiceRegistrationImpl<?>> srs = fwCtx.services.getRegisteredByBundle(this);
-    for (Iterator<ServiceRegistrationImpl<?>> i = srs.iterator(); i.hasNext();) {
+    final Set<ServiceRegistrationImpl<?>> srs = fwCtx.services.getRegisteredByBundle(this);
+    for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : srs) {
       try {
-        i.next().unregister();
-      } catch (IllegalStateException ignore) {
+        serviceRegistrationImpl.unregister();
+      } catch (final IllegalStateException ignore) {
         // Someone has unregistered the service after stop completed.
         // This should not occur, but we don't want get stuck in
         // an illegal state so we catch it.
       }
     }
-    Set<ServiceRegistrationImpl<?>> s = fwCtx.services.getUsedByBundle(this);
-    for (Iterator<ServiceRegistrationImpl<?>> i = s.iterator(); i.hasNext();) {
-      ServiceRegistrationImpl<?> sri = i.next();
+    final Set<ServiceRegistrationImpl<?>> s = fwCtx.services.getUsedByBundle(this);
+    for (final ServiceRegistrationImpl<?> sri : s) {
       sri.ungetService(this, false);
     }
   }

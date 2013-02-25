@@ -81,7 +81,7 @@ public class BundleStorageImpl implements BundleStorage {
    * Insert bundle into persistent storage
    *
    * @param location Location of bundle.
-   * @param is Inputstrem with bundle content.
+   * @param is Input stream with bundle content.
    * @return Bundle archive object.
    */
   public BundleArchive insertBundleJar(String location, InputStream is)

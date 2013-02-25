@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,20 +34,25 @@
 
 package org.knopflerfish.framework;
 
-import org.osgi.framework.*;
-import java.io.*;
-import java.util.jar.*;
-import java.util.zip.*;
-import java.util.Map;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.TreeMap;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.Hashtable;
+import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.Iterator;
-import java.net.URL;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+import org.osgi.framework.Constants;
 
 /**
  * Manifest subclass which modifies some of the attributes automatically.
@@ -162,13 +167,13 @@ public class AutoManifest extends Manifest {
   String     location;
   AutoInfo   autoInfo;
   Attributes mainAttrs;
-  Set        packages        = new TreeSet();
+  Set<String> packages = new TreeSet<String>();
 
   static String configSource = null;
-  static Map    configs      = null;
+  static Map<String, AutoInfo>    configs      = null;
 
   /**
-   * Create an AutoManifest instance based on an orginal manifest
+   * Create an AutoManifest instance based on an original manifest
    * and a bundle location.
    *
    * <p>
@@ -207,7 +212,7 @@ public class AutoManifest extends Manifest {
           fwCtx.debug.println("Loaded auto manifest config from " + configSource);
         }
       } else {
-        configs = new TreeMap();
+        configs = new TreeMap<String, AutoInfo>();
       }
     }
 
@@ -229,6 +234,7 @@ public class AutoManifest extends Manifest {
   /**
    * Delegate to original manifest.
    */
+  @Override
   public void 	clear() {
     mf.clear();
     mainAttrs = null;
@@ -237,6 +243,7 @@ public class AutoManifest extends Manifest {
   /**
    * Delegate to original manifest.
    */
+  @Override
   public  Attributes 	getAttributes(String name) {
     return mf.getAttributes(name);
   }
@@ -244,13 +251,16 @@ public class AutoManifest extends Manifest {
   /**
    * Delegate to original manifest.
    */
-  public  Map 	getEntries() {
+  @Override
+  public Map<String,Attributes> getEntries()
+  {
     return mf.getEntries();
   }
 
   /**
    * Delegate to original manifest.
    */
+  @Override
   public  void 	read(InputStream is) throws IOException {
     mf.read(is);
     mainAttrs = null;
@@ -259,6 +269,7 @@ public class AutoManifest extends Manifest {
   /**
    * Delegate to original manifest.
    */
+  @Override
   public  void 	write(OutputStream out) throws IOException {
     mf.write(out);
   }
@@ -282,17 +293,19 @@ public class AutoManifest extends Manifest {
    * AutoManifests are equal if both the original manifest
    * and the bundle location are equal.
    */
+  @Override
   public boolean equals(Object obj) {
     if(obj == null || !(obj instanceof AutoManifest)) {
       return false;
     }
-    AutoManifest af = (AutoManifest)obj;
+    final AutoManifest af = (AutoManifest)obj;
     return mf.equals(af.mf) && location.equals(af.location);
   }
 
   /**
    * Hash code base on original manifest and loation
    */
+  @Override
   public int hashCode() {
     return mf.hashCode() + 17 * location.hashCode();
   }
@@ -301,6 +314,7 @@ public class AutoManifest extends Manifest {
   /**
    * Get the main manifest attributes, possibly modified.
    */
+  @Override
   public  Attributes 	getMainAttributes() {
     if(mainAttrs == null) {
 
@@ -313,14 +327,13 @@ public class AutoManifest extends Manifest {
         // store a flag for debug purposes
         mainAttrs.putValue("Bundle-AutoManifest-config", configSource);
 
-        for(Iterator it = autoInfo.headers.keySet().iterator(); it.hasNext(); ) {
-          String key = (String)it.next();
-          String val = (String)autoInfo.headers.get(key);
+        for (final String key : autoInfo.headers.keySet()) {
+          final String val = autoInfo.headers.get(key);
 
           if("[remove]".equals(val)) {
             mainAttrs.remove(new Attributes.Name(key));
           } else if("[autoexport]".equals(val)) {
-            String exports = getExports();
+            final String exports = getExports();
 
             if(fwCtx.debug.automanifest) {
               fwCtx.debug.println("Auto exports for " + location + ": " + exports);
@@ -351,7 +364,7 @@ public class AutoManifest extends Manifest {
    * Add a File for automatic package export consideration.
    */
   public void addFile(String prefix, File file) throws IOException {
-    String f = prefix.length() < file.getAbsolutePath().length()
+    final String f = prefix.length() < file.getAbsolutePath().length()
       ? file.getAbsolutePath().substring(prefix.length() + 1)
       : file.getAbsolutePath();
 
@@ -360,15 +373,15 @@ public class AutoManifest extends Manifest {
     } else if(isValidFileName(f)) {
       addFileName(f);
     } else if(file.isDirectory()) {
-      String[] files = file.list();
-      for(int i = 0; i < files.length; i++) {
-        addFile(prefix, new File(file.getAbsolutePath(), files[i]));
+      final String[] files = file.list();
+      for (final String file2 : files) {
+        addFile(prefix, new File(file.getAbsolutePath(), file2));
       }
     }
   }
 
   // used to avoid recreating a new hash table at each isValidFileName() call
-  private Hashtable fileProps = new Hashtable();
+  private final Hashtable<String, String> fileProps = new Hashtable<String, String>();
 
   private boolean isValidFileName(String f) {
     if(autoInfo != null && autoInfo.fileNameFilter != null) {
@@ -383,9 +396,9 @@ public class AutoManifest extends Manifest {
    * Add contents of a ZipFile for automatic package export consideration.
    */
   public void addZipFile(ZipFile jar) {
-    for(Enumeration e = jar.entries(); e.hasMoreElements(); ) {
-      ZipEntry ze = (ZipEntry)e.nextElement();
-      String   f  = ze.getName();
+    for(final Enumeration<? extends ZipEntry> e = jar.entries(); e.hasMoreElements(); ) {
+      final ZipEntry ze = e.nextElement();
+      final String   f  = ze.getName();
       if(isValidFileName(f)) {
         addFileName(f);
       }
@@ -401,7 +414,7 @@ public class AutoManifest extends Manifest {
     f = f.replace('\\', '/');
 
     // ..and strip last part
-    int ix = f.lastIndexOf("/");
+    final int ix = f.lastIndexOf("/");
     if(ix != -1) {
       f = f.substring(0, ix);
     }
@@ -410,7 +423,7 @@ public class AutoManifest extends Manifest {
     // check all export patterns if the file matches.
     // If so, add to packages set
     if(autoInfo != null) {
-      Hashtable props = new Hashtable();
+      final Hashtable<String, String> props = new Hashtable<String, String>();
       props.put("pkg", f);
       if(autoInfo.exportFilter.evaluate(props, true)) {
         if(!packages.contains(f)) {
@@ -431,9 +444,8 @@ public class AutoManifest extends Manifest {
    * The package set is created by addFileName() calls
    */
   String getExports() {
-    StringBuffer sb = new StringBuffer();
-    for(Iterator it = packages.iterator(); it.hasNext(); ) {
-      String pkg = (String)it.next();
+    final StringBuffer sb = new StringBuffer();
+    for (final String pkg : packages) {
       if(sb.length() > 0) {
         sb.append(",");
       }
@@ -448,19 +460,17 @@ public class AutoManifest extends Manifest {
 
 
   private AutoInfo findConfig() {
-    Hashtable props = new Hashtable();
+    final Hashtable<String, String> props = new Hashtable<String, String>();
     props.put("location", location);
 
-    Attributes attrs = mf.getMainAttributes();
-    for(Iterator it = attrs.keySet().iterator(); it.hasNext(); ) {
-      Object key = it.next();
-      Object val = attrs.getValue(key.toString());
+    final Attributes attrs = mf.getMainAttributes();
+    for (final Object key : attrs.keySet()) {
+      final Object val = attrs.getValue(key.toString());
       props.put(key.toString(), val.toString());
     }
 
-    for(Iterator it = configs.keySet().iterator(); it.hasNext(); ) {
-      String   id = (String)it.next();
-      AutoInfo ai = (AutoInfo)configs.get(id);
+    for (final String id : configs.keySet()) {
+      final AutoInfo ai = configs.get(id);
 
       if(ai.filter.evaluate(props, true)) {
         return ai;
@@ -469,7 +479,7 @@ public class AutoManifest extends Manifest {
     return null;
   }
 
-  private Map loadConfig(String urlS) {
+  private Map<String, AutoInfo> loadConfig(String urlS) {
     if(urlS != null && !"".equals(urlS)) {
       URL         url = null;
       InputStream is  = null;
@@ -481,45 +491,47 @@ public class AutoManifest extends Manifest {
         }
         is = url.openStream();
         return loadConfigFromInputStream(is);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         fwCtx.debug.printStackTrace("Failed to load autoimportexport conf from " + url, e);
       } finally {
-        try { is.close(); } catch (Exception ignored) { }
+        try { is.close(); } catch (final Exception ignored) { }
       }
     }
-    return new HashMap();
+    return new HashMap<String, AutoInfo>();
   }
 
-  private Map loadConfigFromInputStream(InputStream is) throws IOException {
-    Properties props = new Properties();
+  private Map<String, AutoInfo> loadConfigFromInputStream(InputStream is)
+      throws IOException
+  {
+    final Properties props = new Properties();
     props.load(is);
 
-    Map configMap = new TreeMap();
+    final Map<String, AutoInfo> configMap = new TreeMap<String, AutoInfo>();
 
-    for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
-      String key = (String)it.next();
-      int ix = key.indexOf(".");
+    for (final Object object : props.keySet()) {
+      final String key = (String) object;
+      final int ix = key.indexOf(".");
       if(ix != -1) {
-        String id = key.substring(0, ix);
+        final String id = key.substring(0, ix);
 
-        String pattern     = (String)props.get(id + ".match.filter");
-        String export      = (String)props.get(id + ".export.filter");
+        final String pattern     = (String)props.get(id + ".match.filter");
+        final String export      = (String)props.get(id + ".export.filter");
         String fileFilter  = (String)props.get(id + ".export.file.filter");
-        Map    headers     = new HashMap();
+        final Map<String, String>    headers     = new HashMap<String, String>();
 
         if(fileFilter == null) {
           fileFilter = "(file=*.class)";
         }
 
-        String headerPre = id + ".header.";
-        for(Iterator it2 = props.keySet().iterator(); it2.hasNext(); ) {
-          String key2 = (String)it2.next();
-          String val2 = (String)props.get(key2);
+        final String headerPre = id + ".header.";
+        for (final Object object2 : props.keySet()) {
+          final String key2 = (String) object2;
+          final String val2 = (String) props.get(key2);
           if(key2.startsWith(headerPre)) {
             headers.put(key2.substring(headerPre.length()), val2);
           }
         }
-        AutoInfo ai = new AutoInfo(pattern, export, fileFilter, headers);
+        final AutoInfo ai = new AutoInfo(pattern, export, fileFilter, headers);
         ai.version = (String)props.get(id + ".export.version");
         configMap.put(id, ai);
       }
@@ -529,35 +541,36 @@ public class AutoManifest extends Manifest {
 
 
   /**
-   * Help struct to hold config info.
+   * Helper structure to hold configuration info.
    */
   static class AutoInfo {
     LDAPExpr filter;
     LDAPExpr exportFilter;
     LDAPExpr fileNameFilter;
-    Map      headers;
+    Map<String, String>      headers;
     String   version;
 
-    AutoInfo(String filter, String export, String nameFilter, Map headers) {
+    AutoInfo(String filter, String export, String nameFilter, Map<String, String> headers) {
       try {
         this.filter  = new LDAPExpr(filter);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new RuntimeException("Bad filter '" + filter + "': " +e);
       }
       try {
         this.fileNameFilter  = new LDAPExpr(nameFilter);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new RuntimeException("Bad file name filter '" + nameFilter
                                    + "': " +e);
       }
       try {
         this.exportFilter  = new LDAPExpr(export);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new RuntimeException("Bad export filter '" + export + "': " +e);
       }
       this.headers = headers;
     }
 
+    @Override
     public String toString() {
       return "AutoInfo[" +
         "filter=" + filter +

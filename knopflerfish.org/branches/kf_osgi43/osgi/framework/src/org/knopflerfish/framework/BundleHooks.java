@@ -34,9 +34,16 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 import org.osgi.framework.hooks.bundle.EventHook;
 import org.osgi.framework.hooks.bundle.FindHook;
 
@@ -53,30 +60,31 @@ class BundleHooks {
     if(bundle == null) {
       return bundle;
     }
-    ArrayList srl = fwCtx.services.get(FindHook.class.getName());
+    final List<ServiceRegistrationImpl<?>> srl = fwCtx.services.get(FindHook.class.getName());
     if (srl == null || srl.isEmpty()) {
       return bundle;
     } else {
-      ArrayList<Bundle> bl = new ArrayList<Bundle>();
+      final ArrayList<Bundle> bl = new ArrayList<Bundle>();
       bl.add(bundle);
       filterBundles(bc, bl);
       return bl.isEmpty() ? null : bundle;
     }
   }
-  
+
   void filterBundles(BundleContextImpl bc,
                      Collection<Bundle> bundles) {
-    ArrayList srl = fwCtx.services.get(FindHook.class.getName());
+    final List<ServiceRegistrationImpl<?>> srl = fwCtx.services.get(FindHook.class.getName());
     if (srl != null) {
-      ServiceHooks.RemoveOnlyCollection filtered = new ServiceHooks.RemoveOnlyCollection(bundles);
+      final ServiceHooks.RemoveOnlyCollection<Bundle> filtered
+        = new ServiceHooks.RemoveOnlyCollection<Bundle>(bundles);
 
-      for (Iterator i = srl.iterator(); i.hasNext(); ) {
-        ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;
-        FindHook fh = (FindHook)sr.getService(fwCtx.systemBundle);
+      for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : srl) {
+        final ServiceReferenceImpl sr = serviceRegistrationImpl.reference;
+        final FindHook fh = (FindHook) sr.getService(fwCtx.systemBundle);
         if (fh != null) {
           try {
             fh.find(bc, filtered);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             fwCtx.listeners.frameworkError(bc,
                 new BundleException("Failed to call find Bundle FindHook  #" +
                                     sr.getProperty(Constants.SERVICE_ID), e));
@@ -86,43 +94,45 @@ class BundleHooks {
     }
   }
 
-  void filterBundleEventReceivers(final BundleEvent evt, 
+  void filterBundleEventReceivers(final BundleEvent evt,
                                    final HashSet<ListenerEntry> syncBundleListeners,
                                    final HashSet<ListenerEntry> bundleListeners) {
-    
-    ArrayList eventHooks = fwCtx.services.get(EventHook.class.getName());
-    
+
+    final List<ServiceRegistrationImpl<?>> eventHooks
+      = fwCtx.services.get(EventHook.class.getName());
+
     synchronized(fwCtx.listeners.syncBundleListeners) {
       syncBundleListeners.addAll(fwCtx.listeners.syncBundleListeners);
     }
-    
+
     synchronized(fwCtx.listeners.bundleListeners) {
       if(bundleListeners != null) {
         bundleListeners.addAll(fwCtx.listeners.bundleListeners);
       }
-    }    
-    
+    }
+
     if(eventHooks != null) {
-      HashSet<BundleContext> bundleContexts = new HashSet<BundleContext>();
-      for (ListenerEntry le : syncBundleListeners) {
+      final HashSet<BundleContext> bundleContexts = new HashSet<BundleContext>();
+      for (final ListenerEntry le : syncBundleListeners) {
         bundleContexts.add(le.bc);
       }
       if(bundleListeners != null) {
-        for (ListenerEntry le : bundleListeners) {
+        for (final ListenerEntry le : bundleListeners) {
           bundleContexts.add(le.bc);
         }
       }
-      
-      int unfilteredSize = bundleContexts.size();
-      ServiceHooks.RemoveOnlyCollection filtered = new ServiceHooks.RemoveOnlyCollection(bundleContexts);
-    
-      for (Iterator i = eventHooks.iterator(); i.hasNext(); ) {
-        ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;
-        EventHook eh = (EventHook)sr.getService(fwCtx.systemBundle);
+
+      final int unfilteredSize = bundleContexts.size();
+      final ServiceHooks.RemoveOnlyCollection<BundleContext> filtered
+        = new ServiceHooks.RemoveOnlyCollection<BundleContext>(bundleContexts);
+
+      for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : eventHooks) {
+        final ServiceReferenceImpl sr = serviceRegistrationImpl.reference;
+        final EventHook eh = (EventHook)sr.getService(fwCtx.systemBundle);
         if (eh != null) {
           try {
             eh.event(evt, filtered);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             fwCtx.debug.printStackTrace("Failed to call Bundle EventHook  #" +
                                         sr.getProperty(Constants.SERVICE_ID), e);
           }
@@ -130,13 +140,13 @@ class BundleHooks {
       }
 
       if (unfilteredSize != bundleContexts.size()) {
-        for (ListenerEntry le : syncBundleListeners) {
+        for (final ListenerEntry le : syncBundleListeners) {
           if(!bundleContexts.contains(le.bc)) {
             syncBundleListeners.remove(le);
           }
         }
         if(bundleListeners != null) {
-          for (ListenerEntry le : bundleListeners) {
+          for (final ListenerEntry le : bundleListeners) {
             if(!bundleContexts.contains(le.bc)) {
               bundleListeners.remove(le);
             }
