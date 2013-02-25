@@ -45,7 +45,6 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -54,6 +53,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -737,28 +738,38 @@ public class SystemBundle extends BundleImpl implements Framework {
 
 
   /**
-   * Create bundle capabilities in the osgi.ee name-space for all execution
-   * environments that the framework supports.
+   * Create bundle capabilities in the {@code osgi.ee} name-space for all
+   * execution environments that the framework supports.
    *
-   * <p>An Bundle Required Execution Environment is on the form:
+   * This method converts all BREEs defined using the framework environment
+   * property {@code org.osgi.framework.executionenvironment} into
+   * {@code osgi.ee}-capabilities.
+   *
+   * <p>A Bundle Required Execution Environment often on a from that matches:
    * <pre>
-   * bree' ::= n1 ( '-' v )? ( '/' n2 ( '-' v )? )?
+   * bree'  ::= n1 ( '-' v )? ( '/' n2 ( '-' v )? )?
    * </pre>
-   * It will be transformed to an osgi.ee capability with a filter:
+   * If it matches the BRWW will be transformed to an osgi.ee
+   * capability with attributes as below:
    * <pre>
-   * bree-filter ::= '(&(osgi.ee=' n1 ('/' n2 )? ') ( '(version=' v ')' )? ')'
-   * filter ::= '(osgi.ee=' <ee name> ')'
+   *   osgi.ee = n1 ('/' n2 ) ; version:List&lt;Version&gt; = "v"
+   *   osgi.ee = &lt;ee name&gt;
    * </pre>
-   * The second alternative applies when no version can be found in the original
-   * {@code bree}.
+   * If it does not match the {@code osgi.ee} attribute is set to the original
+   * BREE value.
+   *
+   * BREE definitions for Java standard edition uses different names, "J2SE" and
+   * "JavaSE" depending on the Java major version, but in
+   * {@code osgi.ee}-capabilities the name shall be "JavaSE" independent of Java
+   * release.
    *
    * @param sp string buffer with all framework provided capabilities to append
    * to.
    */
   private void addSysCapabilitiesFromEE(StringBuffer sp)
   {
-    final Map<String, List<Version>> eeNameVersions
-      = new HashMap<String, List<Version>>();
+    final Map<String, SortedSet<Version>> eeNameVersions
+      = new HashMap<String, SortedSet<Version>>();
     final String fwEE = fwCtx.props
         .getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 
@@ -772,12 +783,12 @@ public class SystemBundle extends BundleImpl implements Framework {
           if (nv.length==2) {
             try {
               final Version v = new Version(nv[1]);
-              addSysCapabilityForVersionedEE(eeNameVersions, nv[0], v);
+              addSysCapabilityEE(eeNameVersions, nv[0], v);
             } catch (final Exception e) {
-              addSysCapabilityForEE(sp, ee);
+              addSysCapabilityEE(eeNameVersions, ee, null);
             }
           } else {
-            addSysCapabilityForEE(sp, ee);
+            addSysCapabilityEE(eeNameVersions, ee, null);
           }
           break;
         case 2:
@@ -788,69 +799,65 @@ public class SystemBundle extends BundleImpl implements Framework {
             final Version v2 = n2v.length==2 ? new Version(n2v[1]) : null;
             final String n = n1v[0] +"/" +n2v[0];
             if (v1 != null && v2 != null && v1.equals(v2)) {
-              addSysCapabilityForVersionedEE(eeNameVersions, n, v1);
+              addSysCapabilityEE(eeNameVersions, n, v1);
             } else if (v1!=null && v2==null) {
-              addSysCapabilityForVersionedEE(eeNameVersions, n, v1);
+              addSysCapabilityEE(eeNameVersions, n, v1);
             } else if (v1==null && v2!=null) {
-              addSysCapabilityForVersionedEE(eeNameVersions, n, v2);
+              addSysCapabilityEE(eeNameVersions, n, v2);
             } else {
-              addSysCapabilityForEE(sp, ee);
+              addSysCapabilityEE(eeNameVersions, ee, null);
             }
           } catch (final Exception e) {
-            addSysCapabilityForEE(sp, ee);
+            addSysCapabilityEE(eeNameVersions, ee, null);
           }
           break;
         default:
-          addSysCapabilityForEE(sp, ee);
+          addSysCapabilityEE(eeNameVersions, ee, null);
         }
       }
     }
-    addSysCapabilityForVersionedEE(sp, eeNameVersions);
+    addSysCapabilityForEE(sp, eeNameVersions);
   }
 
 
-  private void addSysCapabilityForEE(final StringBuffer sb, final String ee)
+  private void addSysCapabilityEE(final Map<String, SortedSet<Version>> eeNameVersions,
+                                  String name,
+                                  final Version v)
   {
-    if (sb.length()>0) {
-      sb.append(',');
+    if ("J2SE".equals(name)) {
+      name = "JavaSE";
     }
-    sb.append("osgi.ee;osgi.ee=");
-    sb.append(ee);
-    sb.append(")");
-  }
-
-
-  private void addSysCapabilityForVersionedEE(final Map<String, List<Version>> eeNameVersions,
-                                              final String n,
-                                              final Version v)
-  {
-    List<Version> versions = eeNameVersions.get(n);
+    SortedSet<Version> versions = eeNameVersions.get(name);
     if (versions==null) {
-      versions = new ArrayList<Version>();
-      eeNameVersions.put(n, versions);
+      versions = new TreeSet<Version>();
+      eeNameVersions.put(name, versions);
     }
-    versions.add(v)
-;  }
+    if (v !=null) {
+      versions.add(v);
+    }
+  }
 
 
-  private void addSysCapabilityForVersionedEE(final StringBuffer sb,
-                                              final Map<String, List<Version>> eeNameVersions)
+  private void addSysCapabilityForEE(final StringBuffer sb,
+                                     final Map<String, SortedSet<Version>> eeNameVersions)
   {
-    for (final Entry<String,List<Version>> entry : eeNameVersions.entrySet()) {
-      if (sb.length()>0) {
+    for (final Entry<String, SortedSet<Version>> entry : eeNameVersions
+        .entrySet()) {
+      if (sb.length() > 0) {
         sb.append(',');
       }
       sb.append("osgi.ee;osgi.ee=");
       sb.append(entry.getKey());
-      sb.append(";version:List<Version>=\"");
-      for (final Version v : entry.getValue()) {
-        sb.append(v.toString());
-        sb.append(',');
+      if (!entry.getValue().isEmpty()) {
+        sb.append(";version:List<Version>=\"");
+        for (final Version v : entry.getValue()) {
+          sb.append(v.toString());
+          sb.append(',');
+        }
+        sb.setCharAt(sb.length() - 1, '"');
       }
-      sb.setCharAt(sb.length()-1, '"');
     }
   }
-
 
   /**
    * This method start a thread that stop this Framework, stopping all started
