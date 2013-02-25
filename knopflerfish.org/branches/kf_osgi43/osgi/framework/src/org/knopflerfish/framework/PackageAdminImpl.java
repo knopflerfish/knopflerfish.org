@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,32 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.TreeSet;
+import java.util.Vector;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.service.packageadmin.RequiredBundle;
 
 /**
  * Framework service which allows bundle programmers to inspect the packages
  * exported in the framework and eagerly update or uninstall bundles.
- * 
+ *
  * If present, there will only be a single instance of this service registered
  * in the framework.
- * 
+ *
  * <p>
  * The term <i>exported package</i> (and the corresponding interface
  * {@link ExportedPackage}) refers to a package that has actually been exported
  * (as opposed to one that is available for export).
- * 
+ *
  * <p>
  * Note that the information about exported packages returned by this service is
  * valid only until the next time {@link #refreshPackages} is called. If an
@@ -59,7 +68,7 @@ import org.osgi.service.packageadmin.*;
  * its getName() and getSpecificationVersion() continue to return their old
  * values, isRemovalPending() returns true, and getExportingBundle() and
  * getImportingBundles() return null.
- * 
+ *
  * @see org.osgi.service.packageadmin.PackageAdmin
  * @author Jan Stein
  * @author Erik Wistrand
@@ -71,9 +80,9 @@ public class PackageAdminImpl implements PackageAdmin {
 
   final static String SPEC_VERSION = "1.2";
 
-  private FrameworkContext fwCtx;
+  private final FrameworkContext fwCtx;
 
-  volatile private Vector refreshSync = new Vector(1);
+  volatile private Vector<Thread> refreshSync = new Vector<Thread>(1);
 
   PackageAdminImpl(FrameworkContext fw) {
     fwCtx = fw;
@@ -81,7 +90,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
   /**
    * Gets the packages exported by the specified bundle.
-   * 
+   *
    * @param bundle The bundle whose exported packages are to be returned, or
    *          <tt>null</tt> if all the packages currently exported in the
    *          framework are to be returned. If the specified bundle is the
@@ -92,33 +101,33 @@ public class PackageAdminImpl implements PackageAdmin {
    *          method will return all currently known packages on the system
    *          classpath, that is, all packages on the system classpath that
    *          contains one or more classes that have been loaded.
-   * 
+   *
    * @return The array of packages exported by the specified bundle, or
    *         <tt>null</tt> if the specified bundle has not exported any
    *         packages.
    */
   public ExportedPackage[] getExportedPackages(Bundle bundle) {
-    ArrayList pkgs = new ArrayList();
+    final ArrayList<ExportedPackageImpl> pkgs = new ArrayList<ExportedPackageImpl>();
     if (bundle != null) {
-      for (Iterator i = ((BundleImpl)bundle).getExports(); i.hasNext();) {
-        ExportPkg ep = (ExportPkg)i.next();
+      for (final Iterator<ExportPkg> i = ((BundleImpl)bundle).getExports(); i.hasNext();) {
+        final ExportPkg ep = i.next();
         if (ep.isExported()) {
           pkgs.add(new ExportedPackageImpl(ep));
         }
       }
     } else {
-      for (Iterator bi = fwCtx.bundles.getBundles().iterator(); bi.hasNext();) {
-        for (Iterator i = ((BundleImpl)bi.next()).getExports(); i.hasNext();) {
-          ExportPkg ep = (ExportPkg)i.next();
+      for (final Object element : fwCtx.bundles.getBundles()) {
+        for (final Iterator<ExportPkg> i = ((BundleImpl)element).getExports(); i.hasNext();) {
+          final ExportPkg ep = i.next();
           if (ep.isExported()) {
             pkgs.add(new ExportedPackageImpl(ep));
           }
         }
       }
     }
-    int size = pkgs.size();
+    final int size = pkgs.size();
     if (size > 0) {
-      return (ExportedPackage[])pkgs.toArray(new ExportedPackage[size]);
+      return pkgs.toArray(new ExportedPackage[size]);
     } else {
       return null;
     }
@@ -126,23 +135,23 @@ public class PackageAdminImpl implements PackageAdmin {
 
   /**
    * Gets the exported packages for the specified package name.
-   * 
+   *
    * @param name The name of the exported packages to be returned.
-   * 
+   *
    * @return An array of the exported packages, or <code>null</code> if no
    *         exported packages with the specified name exists.
    */
   public ExportedPackage[] getExportedPackages(String name) {
-    Pkg pkg = fwCtx.packages.getPkg(name);
+    final Pkg pkg = fwCtx.packages.getPkg(name);
     ExportedPackage[] res = null;
     if (pkg != null) {
       synchronized (pkg) {
-        int size = pkg.exporters.size();
+        final int size = pkg.exporters.size();
         if (size > 0) {
           res = new ExportedPackage[size];
-          Iterator i = pkg.exporters.iterator();
+          final Iterator<ExportPkg> i = pkg.exporters.iterator();
           for (int pos = 0; pos < size;) {
-            res[pos++] = new ExportedPackageImpl((ExportPkg)i.next());
+            res[pos++] = new ExportedPackageImpl(i.next());
           }
         }
       }
@@ -157,16 +166,16 @@ public class PackageAdminImpl implements PackageAdmin {
    * advance, this method attempts to see if the named package is on the system
    * classpath. This means that this method may discover an ExportedPackage that
    * was not present in the list returned by <tt>getExportedPackages()</tt>.
-   * 
+   *
    * @param name The name of the exported package to be returned.
-   * 
+   *
    * @return The exported package with the specified name, or <tt>null</tt> if
    *         no expored package with that name exists.
    */
   public ExportedPackage getExportedPackage(String name) {
-    Pkg p = (Pkg)fwCtx.packages.getPkg(name);
+    final Pkg p = fwCtx.packages.getPkg(name);
     if (p != null) {
-      ExportPkg ep = p.getBestProvider();
+      final ExportPkg ep = p.getBestProvider();
       if (ep != null) {
         return new ExportedPackageImpl(ep);
       }
@@ -177,13 +186,13 @@ public class PackageAdminImpl implements PackageAdmin {
   /**
    * Forces the update (replacement) or removal of packages exported by the
    * specified bundles.
-   * 
+   *
    * @see org.osgi.service.packageadmin.PackageAdmin#refreshPackages
    */
   public void refreshPackages(final Bundle[] bundles) {
     refreshPackages(bundles, null);
   }
-  
+
   void refreshPackages(final Bundle[] bundles, final FrameworkListener[] fl) {
     fwCtx.perm.checkResolveAdminPerm();
 
@@ -200,8 +209,8 @@ public class PackageAdminImpl implements PackageAdmin {
         }
       }
     } else {
-      for (Iterator iter = fwCtx.bundles.getBundles().iterator(); iter.hasNext();) {
-        if (((BundleImpl)iter.next()).extensionNeedsRestart()) {
+      for (final Object element : fwCtx.bundles.getBundles()) {
+        if (((BundleImpl)element).extensionNeedsRestart()) {
           restart = true;
           break;
         }
@@ -211,7 +220,7 @@ public class PackageAdminImpl implements PackageAdmin {
       try {
         // will restart the framework.
         fwCtx.systemBundle.update();
-      } catch (BundleException ignored) {
+      } catch (final BundleException ignored) {
         /* this can't be happening. */
       }
       return;
@@ -219,7 +228,8 @@ public class PackageAdminImpl implements PackageAdmin {
 
     final PackageAdminImpl thisClass = this;
     synchronized (refreshSync) {
-      Thread t = new Thread(fwCtx.threadGroup, "RefreshPackages") {
+      final Thread t = new Thread(fwCtx.threadGroup, "RefreshPackages") {
+        @Override
         public void run() {
           fwCtx.perm.callRefreshPackages0(thisClass, bundles, fl);
         }
@@ -230,7 +240,7 @@ public class PackageAdminImpl implements PackageAdmin {
       // Wait for a refresh thread to start
       try {
         refreshSync.wait(500);
-      } catch (InterruptedException ignore) {
+      } catch (final InterruptedException ignore) {
       }
     }
   }
@@ -243,12 +253,12 @@ public class PackageAdminImpl implements PackageAdmin {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
     // TODO send framework error events to fl
-    
-    ArrayList startList = new ArrayList();
+
+    final ArrayList<BundleImpl> startList = new ArrayList<BundleImpl>();
 
     synchronized (fwCtx.packages) {
-      TreeSet zombies = fwCtx.packages.getZombieAffected(bundles);
-      BundleImpl bi[] = (BundleImpl[])zombies.toArray(new BundleImpl[zombies.size()]);
+      final TreeSet<BundleImpl> zombies = fwCtx.packages.getZombieAffected(bundles);
+      final BundleImpl bi[] = zombies.toArray(new BundleImpl[zombies.size()]);
 
       synchronized (refreshSync) {
         refreshSync.notifyAll();
@@ -260,11 +270,11 @@ public class PackageAdminImpl implements PackageAdmin {
           startList.add(0, bi[bx]);
           try {
             bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", false);
-            Exception be = bi[bx].stop0();
+            final Exception be = bi[bx].stop0();
             if (be != null) {
               fwCtx.listeners.frameworkError(bi[bx], be, fl);
             }
-          } catch (BundleException ignore) {
+          } catch (final BundleException ignore) {
             // Wait failed, we will try again
           }
         }
@@ -272,7 +282,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
       // Update the affected bundle states in normal start order
       int startPos = startList.size() - 1;
-      BundleImpl nextStart = startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
+      BundleImpl nextStart = startPos >= 0 ? startList.get(startPos) : null;
       for (int bx = bi.length; bx-- > 0;) {
         Exception be = null;
         switch (bi[bx].state) {
@@ -284,7 +294,7 @@ public class PackageAdminImpl implements PackageAdmin {
             try {
               bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", true);
               break;
-            } catch (BundleException we) {
+            } catch (final BundleException we) {
               if (fwCtx.debug.packages) {
                 fwCtx.debug
                     .println("PackageAdminImpl.refreshPackages() timeout on bundle stop, retry...");
@@ -304,7 +314,7 @@ public class PackageAdminImpl implements PackageAdmin {
         case Bundle.RESOLVED:
           bi[bx].setStateInstalled(true);
           if (bi[bx] == nextStart) {
-            nextStart = --startPos >= 0 ? (BundleImpl)startList.get(startPos) : null;
+            nextStart = --startPos >= 0 ? startList.get(startPos) : null;
           }
           // Fall through...
         case Bundle.INSTALLED:
@@ -321,7 +331,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
     // Restart previously active bundles in normal start order
     startBundles(startList);
-    FrameworkEvent fe = new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
+    final FrameworkEvent fe = new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                            fwCtx.systemBundle, null);
     fwCtx.listeners.frameworkEvent(fe, fl);
     refreshSync.remove(Thread.currentThread());
@@ -336,19 +346,17 @@ public class PackageAdminImpl implements PackageAdmin {
    *
    * @param slist Bundles to start.
    */
-  private void startBundles(List slist, FrameworkListener...fl) {
+  private void startBundles(List<BundleImpl> slist, FrameworkListener...fl) {
     // Sort in start order
     // Resolve first to avoid dead lock
-    for (Iterator i = slist.iterator(); i.hasNext();) {
-      BundleImpl rb = (BundleImpl)i.next();
+    for (final BundleImpl rb : slist) {
       rb.getUpdatedState();
     }
-    for (Iterator i = slist.iterator(); i.hasNext();) {
-      BundleImpl rb = (BundleImpl)i.next();
+    for (final BundleImpl rb : slist) {
       if (rb.getUpdatedState() == Bundle.RESOLVED) {
         try {
           rb.start();
-        } catch (BundleException be) {
+        } catch (final BundleException be) {
           rb.fwCtx.listeners.frameworkError(rb, be, fl);
         }
       }
@@ -363,19 +371,19 @@ public class PackageAdminImpl implements PackageAdmin {
   public boolean resolveBundles(Bundle[] bundles) {
     fwCtx.perm.checkResolveAdminPerm();
     synchronized (fwCtx.packages) {
-      List bl;
+      List<BundleImpl> bl;
       if (bundles != null) {
-        bl = new ArrayList();
-        for (int bx = 0; bx < bundles.length; bx++) {
-          bl.add(bundles[bx]);
+        bl = new ArrayList<BundleImpl>();
+        for (final Bundle bundle : bundles) {
+          bl.add( (BundleImpl) bundle);
         }
       } else {
         bl = fwCtx.bundles.getBundles();
       }
       boolean res = true;
 
-      for (Iterator i = bl.iterator(); i.hasNext();) {
-        BundleImpl b = (BundleImpl)i.next();
+      for (final Bundle bundle : bl) {
+        final BundleImpl b = (BundleImpl)bundle;
         if (b.getUpdatedState() == Bundle.INSTALLED) {
           res = false;
         }
@@ -385,15 +393,15 @@ public class PackageAdminImpl implements PackageAdmin {
   }
 
   public RequiredBundle[] getRequiredBundles(String symbolicName) {
-    List bs;
-    ArrayList res = new ArrayList();
+    List<BundleImpl> bs;
+    final ArrayList<RequiredBundleImpl> res = new ArrayList<RequiredBundleImpl>();
     if (symbolicName != null) {
       bs = fwCtx.bundles.getBundles(symbolicName);
     } else {
       bs = fwCtx.bundles.getBundles();
     }
-    for (Iterator i = bs.iterator(); i.hasNext();) {
-      BundleImpl b = (BundleImpl)i.next();
+    for (final Object element : bs) {
+      final BundleImpl b = (BundleImpl)element;
       if (((b.state & BundleImpl.RESOLVED_FLAGS) != 0
            || b.getRequiredBy().size() > 0)// Required, updated but not
                                            // re-resolved
@@ -401,24 +409,24 @@ public class PackageAdminImpl implements PackageAdmin {
         res.add(new RequiredBundleImpl(b.current().bpkgs));
       }
     }
-    int s = res.size();
+    final int s = res.size();
     if (s > 0) {
-      return (RequiredBundle[])res.toArray(new RequiredBundle[s]);
+      return res.toArray(new RequiredBundle[s]);
     } else {
       return null;
     }
   }
 
   public Bundle[] getBundles(String symbolicName, String versionRange) {
-    VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) :
+    final VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) :
         VersionRange.defaultVersionRange;
-    List bs = fwCtx.bundles.getBundles(symbolicName, vr);
-    int size = bs.size();
+    final List<BundleImpl> bs = fwCtx.bundles.getBundles(symbolicName, vr);
+    final int size = bs.size();
     if (size > 0) {
-      Bundle[] res = new Bundle[size];
-      Iterator i = bs.iterator();
+      final Bundle[] res = new Bundle[size];
+      final Iterator<BundleImpl> i = bs.iterator();
       for (int pos = 0; pos < size;) {
-        res[pos++] = (Bundle)i.next();
+        res[pos++] = i.next();
       }
       return res;
     } else {
@@ -431,17 +439,18 @@ public class PackageAdminImpl implements PackageAdmin {
       return null;
     }
 
-    BundleGeneration bg = ((BundleImpl)bundle).current();
+    final BundleGeneration bg = ((BundleImpl)bundle).current();
 
     if (bg.isFragment()) {
       return null;
     }
 
     if (bg.isFragmentHost()) {
-      Vector fix = (Vector)bg.fragments.clone();
-      Bundle[] r = new Bundle[fix.size()];
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>) bg.fragments.clone();
+      final Bundle[] r = new Bundle[fix.size()];
       for (int i = fix.size() - 1; i >= 0; i--) {
-        r[i] = ((BundleGeneration)fix.get(i)).bundle;
+        r[i] = fix.get(i).bundle;
       }
       return r;
     } else {
@@ -450,14 +459,14 @@ public class PackageAdminImpl implements PackageAdmin {
   }
 
   public Bundle[] getHosts(Bundle bundle) {
-    BundleImpl b = (BundleImpl)bundle;
+    final BundleImpl b = (BundleImpl) bundle;
     if (b != null) {
-      Vector h = b.getHosts(false);
+      final Vector<BundleGeneration> h = b.getHosts(false);
       if (h != null) {
-        Bundle[] r = new Bundle[h.size()];
+        final Bundle[] r = new Bundle[h.size()];
         int pos = 0;
-        for (Iterator i = h.iterator(); i.hasNext();) {
-          r[pos++] = ((BundleGeneration)i.next()).bundle;
+        for (final BundleGeneration bg : h) {
+          r[pos++] = bg.bundle;
         }
         return r;
       }
@@ -465,8 +474,8 @@ public class PackageAdminImpl implements PackageAdmin {
     return null;
   }
 
-  public Bundle getBundle(Class clazz) {
-    ClassLoader cl = clazz.getClassLoader();
+  public Bundle getBundle(@SuppressWarnings("rawtypes") Class  clazz) {
+    final ClassLoader cl = clazz.getClassLoader();
     if (cl instanceof BundleClassLoader) {
       return ((BundleClassLoader)cl).getBundle();
     } else {
@@ -475,7 +484,7 @@ public class PackageAdminImpl implements PackageAdmin {
   }
 
   public int getBundleType(Bundle bundle) {
-    BundleImpl b = (BundleImpl)bundle;
+    final BundleImpl b = (BundleImpl)bundle;
 
     if (b.current().isFragment() && !b.current().isExtension()) {
       return BUNDLE_TYPE_FRAGMENT;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -334,7 +334,7 @@ public class BundleContextImpl
 
     @SuppressWarnings("unchecked")
     final
-    S res = (S) ((ServiceReferenceImpl)reference).getService(bundle);
+    S res = (S) ((ServiceReferenceImpl<S>)reference).getService(bundle);
     return res;
   }
 
@@ -356,7 +356,7 @@ public class BundleContextImpl
       throw new NullPointerException("null ServiceReference is not valid input to ungetService()");
     }
 
-    return ((ServiceReferenceImpl)reference).ungetService(bundle);
+    return ((ServiceReferenceImpl<?>)reference).ungetService(bundle);
   }
 
 

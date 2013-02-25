@@ -79,7 +79,7 @@ class BundleHooks {
         = new ServiceHooks.RemoveOnlyCollection<Bundle>(bundles);
 
       for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : srl) {
-        final ServiceReferenceImpl sr = serviceRegistrationImpl.reference;
+        final ServiceReferenceImpl<?> sr = serviceRegistrationImpl.reference;
         final FindHook fh = (FindHook) sr.getService(fwCtx.systemBundle);
         if (fh != null) {
           try {
@@ -127,7 +127,7 @@ class BundleHooks {
         = new ServiceHooks.RemoveOnlyCollection<BundleContext>(bundleContexts);
 
       for (final ServiceRegistrationImpl<?> serviceRegistrationImpl : eventHooks) {
-        final ServiceReferenceImpl sr = serviceRegistrationImpl.reference;
+        final ServiceReferenceImpl<?> sr = serviceRegistrationImpl.reference;
         final EventHook eh = (EventHook)sr.getService(fwCtx.systemBundle);
         if (eh != null) {
           try {

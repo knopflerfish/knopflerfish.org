@@ -42,8 +42,8 @@ import org.osgi.framework.wiring.FrameworkWiring;
 
 public class FrameworkWiringImpl implements FrameworkWiring {
 
-  private FrameworkContext fwCtx;
-  
+  private final FrameworkContext fwCtx;
+
   static final String SPEC_VERSION = "1.0";
 
   FrameworkWiringImpl(FrameworkContext fwCtx) {
@@ -55,30 +55,33 @@ public class FrameworkWiringImpl implements FrameworkWiring {
   }
 
   public void refreshBundles(Collection<Bundle> bundles, FrameworkListener... listeners) {
-    Bundle[] bs = bundles != null ?
+    final Bundle[] bs = bundles != null ?
                   bundles.toArray(new Bundle[bundles.size()]) :
                   null;
     fwCtx.packageAdmin.refreshPackages(bs, listeners);
   }
 
   public boolean resolveBundles(Collection<Bundle> bundles) {
-    Bundle[] bs = bundles != null ?
+    final Bundle[] bs = bundles != null ?
                   bundles.toArray(new Bundle[bundles.size()]) :
                   null;
     return fwCtx.packageAdmin.resolveBundles(bs);
   }
 
   public Collection<Bundle> getRemovalPendingBundles() {
-    HashSet<Bundle> res = new HashSet<Bundle>();
+    final HashSet<BundleImpl> res = new HashSet<BundleImpl>();
     fwCtx.packages.findAllZombies(res);
-    return res;
+    return new HashSet<Bundle>(res);
   }
 
   public Collection<Bundle> getDependencyClosure(Collection<Bundle> bundles) {
-    HashSet<Bundle> res = new HashSet<Bundle>(bundles);
+    final HashSet<BundleImpl> res = new HashSet<BundleImpl>();
+    for (final Bundle b : bundles) {
+      res.add( (BundleImpl) b);
+    }
     fwCtx.packages.packageClosure(res);
     // TODO - we only get package closure, need all dependencies
-    return res;
+    return new HashSet<Bundle>(res);
   }
 
 }
