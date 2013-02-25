@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,50 +34,56 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.net.ContentHandler;
+import java.net.URLConnection;
 
-import org.osgi.service.url.*;
-import org.osgi.framework.*;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.url.URLConstants;
 
 
 /**
- * Wrapper which delegates an Mime ContentHandlers
+ * Wrapper which delegates an MIME ContentHandlers
  * OSGi registered ContentHandlers
  *
  * <p>
  * Each instance of ContentHandlerWrapper  tracks ContentHandlers
- * for a named mime type and selects the best from all available services.
+ * for a named MIME type and selects the best from all available services.
  * </p>
  */public class ContentHandlerWrapper
-  extends ContentHandler 
+  extends ContentHandler
 {
 
   FrameworkContext       framework;
   String                 mimetype;
   String                 filter;
-  ServiceReference       best;
+  ServiceReference<ContentHandler> best;
 
   ContentHandlerWrapper(FrameworkContext       framework,
 			String                 mimetype) {
-    
+
     this.framework = framework;
     this.mimetype  = mimetype;
 
-    filter = 
-      "(&" + 
-      "(" + Constants.OBJECTCLASS + "=" + 
-      ContentHandler.class.getName() + ")" + 
-      "(" + URLConstants.URL_CONTENT_MIMETYPE + "=" + mimetype + 
-      ")" + 
+    filter =
+      "(&" +
+      "(" + Constants.OBJECTCLASS + "=" +
+      ContentHandler.class.getName() + ")" +
+      "(" + URLConstants.URL_CONTENT_MIMETYPE + "=" + mimetype +
+      ")" +
       ")";
 
-    ServiceListener serviceListener = 
+    final ServiceListener serviceListener =
       new ServiceListener() {
         public void serviceChanged(ServiceEvent evt) {
-          ServiceReference ref = 
-            evt.getServiceReference();
-            
+          @SuppressWarnings("unchecked")
+          final
+          ServiceReference<ContentHandler> ref =
+              (ServiceReference<ContentHandler>) evt.getServiceReference();
+
           switch (evt.getType()) {
           case ServiceEvent.MODIFIED:
             // fall through
@@ -86,7 +92,7 @@ import org.osgi.framework.*;
               updateBest();
               return ;
             }
-            
+
             if (compare(best, ref) > 0) {
               best = ref;
             }
@@ -100,29 +106,29 @@ import org.osgi.framework.*;
           }
         }
       };
-    
+
     try {
       framework.systemBundle.bundleContext.addServiceListener(serviceListener, filter);
-      
-    } catch (Exception e) {
+
+    } catch (final Exception e) {
       throw new IllegalArgumentException("Could not register service listener for content handler: " + e);
     }
-    
+
     if (framework.debug.url) {
       framework.debug.println("created wrapper for " + mimetype + ", filter=" + filter);
     }
   }
-  
-  private int compare(ServiceReference ref1, ServiceReference ref2) {
-    Object tmp1 = ref1.getProperty(Constants.SERVICE_RANKING);
-    Object tmp2 = ref2.getProperty(Constants.SERVICE_RANKING);
-    
-    int r1 = (tmp1 instanceof Integer) ? ((Integer)tmp1).intValue() : 0;
-    int r2 = (tmp2 instanceof Integer) ? ((Integer)tmp2).intValue() : 0;
+
+  private int compare(ServiceReference<?> ref1, ServiceReference<?> ref2) {
+    final Object tmp1 = ref1.getProperty(Constants.SERVICE_RANKING);
+    final Object tmp2 = ref2.getProperty(Constants.SERVICE_RANKING);
+
+    final int r1 = (tmp1 instanceof Integer) ? ((Integer)tmp1).intValue() : 0;
+    final int r2 = (tmp2 instanceof Integer) ? ((Integer)tmp2).intValue() : 0;
 
     if (r2 == r1) {
-      Long i1 = (Long)ref1.getProperty(Constants.SERVICE_ID);      
-      Long i2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
+      final Long i1 = (Long)ref1.getProperty(Constants.SERVICE_ID);
+      final Long i2 = (Long)ref2.getProperty(Constants.SERVICE_ID);
       return i1.compareTo(i2);
 
     } else {
@@ -132,9 +138,11 @@ import org.osgi.framework.*;
 
   private void updateBest() {
     try {
-      ServiceReference[] refs =
-        framework.systemBundle.bundleContext.getServiceReferences(ContentHandler.class.getName(), 
-                                                                  filter);
+      @SuppressWarnings("unchecked")
+      final
+      ServiceReference<ContentHandler>[] refs
+        = (ServiceReference<ContentHandler>[]) framework.systemBundle.bundleContext
+          .getServiceReferences(ContentHandler.class.getName(), filter);
       if (refs != null) {
         best = refs[0];
         for (int i = 1; i < refs.length; i++) {
@@ -143,12 +151,12 @@ import org.osgi.framework.*;
           }
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // TBD, handle differently!? this should not happen.
       throw new IllegalArgumentException("Could not register url handler: " + e);
     }
   }
-  
+
 
   private ContentHandler getService() {
     ContentHandler obj;
@@ -162,33 +170,39 @@ import org.osgi.framework.*;
         throw new IllegalStateException("null: Lost service for protocol="+ mimetype);
       }
 
-      obj = (ContentHandler)framework.systemBundle.bundleContext.getService(best);
+      obj = framework.systemBundle.bundleContext.getService(best);
 
       if (obj == null) {
         throw new IllegalStateException("null: Lost service for protocol=" + mimetype);
       }
-      
-    } catch (Exception e) {
+
+    } catch (final Exception e) {
       throw new IllegalStateException("null: Lost service for protocol=" + mimetype);
     }
 
     return obj;
   }
 
+  @Override
   public Object getContent(URLConnection urlc) throws IOException {
     return getService().getContent(urlc);
   }
 
-  public Object getContent(URLConnection urlc, Class[] classes) throws IOException {
+  @Override
+  public Object getContent(URLConnection urlc,
+                           @SuppressWarnings("rawtypes") Class[] classes)
+      throws IOException
+  {
     return getService().getContent(urlc, classes);
   }
 
+  @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
 
     sb.append("ContentHandlerWrapper[");
 
-    ServiceReference ref = best; 
+    final ServiceReference<ContentHandler> ref = best;
     sb.append("mimetype=" + mimetype);
     if(ref != null) {
       sb.append(", id=" + ref.getProperty(Constants.SERVICE_ID));
@@ -203,4 +217,4 @@ import org.osgi.framework.*;
   }
 }
 
-  
+

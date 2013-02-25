@@ -36,7 +36,9 @@ package org.knopflerfish.framework;
 
 import java.lang.reflect.Method;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
 
 class BundleThread extends Thread {
   final private static int OP_IDLE = 0;
@@ -64,14 +66,14 @@ class BundleThread extends Thread {
   {
     try {
       return Thread.class.getMethod("stop", (Class[]) null);
-    } catch (Throwable _t) {
+    } catch (final Throwable _t) {
       return null;
     }
   }
 
   static void checkWarnStopActionNotSupported(FrameworkContext fc)
   {
-    String s = fc.props.getProperty(FWProps.BUNDLETHREAD_ABORT);
+    final String s = fc.props.getProperty(FWProps.BUNDLETHREAD_ABORT);
     if (ABORT_ACTION_STOP.equals(s) && null==stopMethod) {
       System.err.println("WARNING: Bundle thread abort action stop was "
                          +"requested but is not supported on this execution "
@@ -97,6 +99,7 @@ class BundleThread extends Thread {
   }
 
 
+  @Override
   public void run() {
     while (doRun) {
       synchronized (lock) {
@@ -111,7 +114,7 @@ class BundleThread extends Thread {
                 return;
               }
             }
-          } catch (InterruptedException ie) {
+          } catch (final InterruptedException ie) {
           }
         }
         if (!doRun) {
@@ -133,7 +136,7 @@ class BundleThread extends Thread {
             tmpres = bundle.stop1();
             break;
           }
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
           fwCtx.listeners.frameworkError(bundle, t);
         }
         operation = OP_IDLE;
@@ -185,7 +188,7 @@ class BundleThread extends Thread {
     do {
       try {
         fwCtx.packages.wait();
-      } catch (InterruptedException ie) {
+      } catch (final InterruptedException ie) {
       }
       // Abort start/stop operation if bundle has been uninstalled
       if ((op == OP_START || op == OP_STOP) && b.getState() == Bundle.UNINSTALLED) {
@@ -210,7 +213,7 @@ class BundleThread extends Thread {
         if (null!=stopMethod) {
           try {
             stopMethod.invoke(this, (Object[]) null);
-          } catch (Throwable t) {
+          } catch (final Throwable t) {
             fwCtx.debug.println("bundle thread abort action stop failed: "
                                 +t.getMessage());
             setPriority(Thread.MIN_PRIORITY);

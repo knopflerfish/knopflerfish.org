@@ -34,18 +34,27 @@
 
 package org.knopflerfish.framework;
 
-import java.lang.reflect.*;
-import java.net.*;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.startlevel.StartLevel;
 
 import org.knopflerfish.framework.classpatcher.ClassPatcherActivator;
-// NYI, make these imports dynamic!
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
+// NYI, make these imports dynamic!
 
 
 /**
@@ -91,21 +100,21 @@ public class FrameworkContext  {
    * All service hooks.
    */
   ServiceHooks hooks;
-  
+
   /**
    * All bundle hooks.
    */
   BundleHooks bundleHooks;
-  
+
   /**
    * All weaving hooks.
    */
   WeavingHooks weavingHooks;
-  
+
   /**
    * Class Patching Feature
    */
-  
+
   ClassPatcherActivator classPatcher;
 
   /**
@@ -179,7 +188,7 @@ public class FrameworkContext  {
    * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
    * Used and updated by isValidEE()
    */
-  private Set<String>    eeCacheSet = new HashSet<String>();
+  private final Set<String>    eeCacheSet = new HashSet<String>();
   private String eeCache = null;
 
   /**
@@ -205,7 +214,7 @@ public class FrameworkContext  {
   /**
    * Threads for running listeners and activators
    */
-  LinkedList bundleThreads;
+  LinkedList<BundleThread> bundleThreads;
 
   /**
    * Package admin handle
@@ -245,7 +254,7 @@ public class FrameworkContext  {
    * Contruct a framework context
    *
    */
-  FrameworkContext(Map initProps)  {
+  FrameworkContext(Map<String, String> initProps)  {
     synchronized (globalFwLock) {
       id = globalId++;
     }
@@ -264,11 +273,11 @@ public class FrameworkContext  {
    */
   public ClassLoader getClassLoader(String clazz) {
     if (clazz != null) {
-      int pos = clazz.lastIndexOf('.');
+      final int pos = clazz.lastIndexOf('.');
       if (pos != -1) {
-        Pkg p = packages.getPkg(clazz.substring(0, pos));
+        final Pkg p = packages.getPkg(clazz.substring(0, pos));
         if (p != null) {
-          ExportPkg ep = p.getBestProvider();
+          final ExportPkg ep = p.getBestProvider();
           if (ep != null) {
             return ep.bpkgs.bg.getClassLoader();
           }
@@ -287,7 +296,7 @@ public class FrameworkContext  {
   {
     log("initializing");
     initCount++;
-    
+
     if (firstInit && Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
         .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
       deleteFWDir();
@@ -304,7 +313,7 @@ public class FrameworkContext  {
     }
     perm.init();
 
-    String v = props.getProperty(FWProps.VALIDATOR_PROP);
+    final String v = props.getProperty(FWProps.VALIDATOR_PROP);
     if (!v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
       validator = new ArrayList<Validator>();
       for (int start = 0; start < v.length(); ) {
@@ -312,21 +321,21 @@ public class FrameworkContext  {
         if (end == -1) {
           end = v.length();
         }
-        String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
+        final String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
         try {
-          Class vi = Class.forName(vs);
-          Constructor vc = vi.getConstructor(new Class[] { FrameworkContext.class });
+          final Class<?> vi = Class.forName(vs);
+          final Constructor<?> vc = vi.getConstructor(new Class[] { FrameworkContext.class });
           validator.add((Validator)vc.newInstance(new Object[] { this }));
-        } catch (InvocationTargetException ite) {
+        } catch (final InvocationTargetException ite) {
           // NYI, log error from validator
           System.err.println("Construct of " + vs + " failed: " + ite.getTargetException());
-        } catch (NoSuchMethodException e) {
+        } catch (final NoSuchMethodException e) {
           // If no validator, probably stripped framework
           throw new RuntimeException(vs + ", found no such Validator", e);
-        } catch (NoClassDefFoundError ncdfe) {
+        } catch (final NoClassDefFoundError ncdfe) {
           // Validator uses class not supported by JVM ignore
           throw new RuntimeException(vs + ", Validator not supported by JVM", ncdfe);
-        } catch (Exception e) {
+        } catch (final Exception e) {
           throw new RuntimeException(vs + ", failed to construct Validator", e);
         }
         start = end + 1;
@@ -351,7 +360,7 @@ public class FrameworkContext  {
             URLConnection.setContentHandlerFactory(contentHandlerFactory);
             systemContentHandlerFactory   = contentHandlerFactory;
             systemUrlStreamHandlerFactory = urlStreamHandlerFactory;
-          } catch (Throwable e) {
+          } catch (final Throwable e) {
             debug.printStackTrace
               ("Cannot set global URL handlers, "
                +"continuing without OSGi service URL handler (" +e +")", e);
@@ -368,14 +377,14 @@ public class FrameworkContext  {
     bsnversionSingle = Constants.FRAMEWORK_BSNVERSION_SINGLE
         .equals(props.getProperty(Constants.FRAMEWORK_BSNVERSION));
 
-    String storageClass = "org.knopflerfish.framework.bundlestorage." +
+    final String storageClass = "org.knopflerfish.framework.bundlestorage." +
       props.getProperty(FWProps.BUNDLESTORAGE_PROP) + ".BundleStorageImpl";
     try {
-      Class storageImpl = Class.forName(storageClass);
+      final Class<?> storageImpl = Class.forName(storageClass);
 
-      Constructor cons = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
+      final Constructor<?> cons = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
       storage = (BundleStorage) cons.newInstance(new Object[] { this });
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Throwable cause = e;
       if (e instanceof InvocationTargetException) {
         // Use the nested exception as cause in this case.
@@ -387,7 +396,7 @@ public class FrameworkContext  {
     dataStorage = Util.getFileStorage(this, "data");
 
     BundleThread.checkWarnStopActionNotSupported(this);
-    bundleThreads = new LinkedList();
+    bundleThreads = new LinkedList<BundleThread>();
 
     packages  = new Packages(this);
     listeners = new Listeners(this, perm);
@@ -402,23 +411,23 @@ public class FrameworkContext  {
 
     hooks             = new ServiceHooks(this);
     hooks.open();
-    
+
     bundleHooks = new BundleHooks(this);
-    
+
     weavingHooks = new WeavingHooks(this);
     weavingHooks.open();
-    
+
     classPatcher = new ClassPatcherActivator(this);
     try {
       // classPatcher.start(this.systemBundle.getBundleContext());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       log("Failed to start ClassPatcher", e);
     }
 
     perm.registerService();
 
     packageAdmin = new PackageAdminImpl(this);
-    String[] classes = new String [] { PackageAdmin.class.getName() };
+    final String[] classes = new String [] { PackageAdmin.class.getName() };
     services.register(systemBundle,
                       classes,
                       packageAdmin,
@@ -433,8 +442,7 @@ public class FrameworkContext  {
     log("Installed bundles:");
     // Use the ordering in the bundle storage to get a sorted list of bundles.
     final BundleArchive [] allBAs = storage.getAllBundleArchives();
-    for (int i = 0; i<allBAs.length; i++) {
-      final BundleArchive ba = allBAs[i];
+    for (final BundleArchive ba : allBAs) {
       final Bundle b = bundles.getBundle(ba.getBundleLocation());
       log(" #" +b.getBundleId() +" " +b.getSymbolicName() +":"
           +b.getVersion() +" location:" +b.getLocation());
@@ -467,7 +475,7 @@ public class FrameworkContext  {
 
     synchronized (bundleThreads) {
       while (!bundleThreads.isEmpty()) {
-        ((BundleThread)bundleThreads.remove(0)).quit();
+        bundleThreads.remove(0).quit();
       }
     }
     bundleThreads = null;
@@ -545,13 +553,13 @@ public class FrameworkContext  {
    *
    */
   private void deleteFWDir() {
-    String d = Util.getFrameworkDir(this);
+    final String d = Util.getFrameworkDir(this);
 
-    FileTree dir = (d != null) ? new FileTree(d) : null;
+    final FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
       if(dir.exists()) {
         log("deleting old framework directory.");
-        boolean bOK = dir.delete();
+        final boolean bOK = dir.delete();
         if(!bOK) {
           debug.println("Failed to remove existing fwdir "
                               +dir.getAbsolutePath());
@@ -563,8 +571,8 @@ public class FrameworkContext  {
 
   private String getUUID() {
     // TODO, set this to something meaningful
-    String sid = Integer.toHexString(id * 65536 + initCount);
-    String baseUUID = "4e524769-3136-4b46-6000-00000000";
+    final String sid = Integer.toHexString(id * 65536 + initCount);
+    final String baseUUID = "4e524769-3136-4b46-6000-00000000";
     return baseUUID.substring(0, baseUUID.length() - sid.length()) + sid;
   }
 
@@ -626,7 +634,7 @@ public class FrameworkContext  {
       return true;
     }
 
-    String fwEE = props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+    final String fwEE = props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 
     if(fwEE == null) {
       // If EE is not set, allow everything
@@ -634,16 +642,16 @@ public class FrameworkContext  {
     } else if (!fwEE.equals(eeCache)) {
       eeCacheSet.clear();
 
-      String[] l = Util.splitwords(fwEE, ",");
-      for(int i = 0 ; i < l.length; i++) {
-        eeCacheSet.add(l[i]);
+      final String[] l = Util.splitwords(fwEE, ",");
+      for (final String element : l) {
+        eeCacheSet.add(element);
       }
       eeCache = fwEE;
     }
 
-    String[] eel   = Util.splitwords(ee, ",");
-    for(int i = 0 ; i < eel.length; i++) {
-      if(eeCacheSet.contains(eel[i])) {
+    final String[] eel   = Util.splitwords(ee, ",");
+    for (final String element : eel) {
+      if(eeCacheSet.contains(element)) {
         return true;
       }
     }
@@ -664,12 +672,12 @@ public class FrameworkContext  {
 
     if (bootDelegationUsed) {
       try {
-        Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
+        final Iterator<Map<String, Object>> i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
                                        bootDelegationString,
                                        true, true, false);
         while (i.hasNext()) {
-          Map e = (Map)i.next();
-          String key = (String)e.get("$key");
+          final Map<String, Object> e = i.next();
+          final String key = (String) e.get("$key");
           if (key.equals("*")) {
             bootDelegationPatterns = null;
             //in case funny person puts a * amongst other things
@@ -693,7 +701,7 @@ public class FrameworkContext  {
           }
         }
       }
-      catch (IllegalArgumentException e) {
+      catch (final IllegalArgumentException e) {
         debug.printStackTrace("Failed to parse " +
                               Constants.FRAMEWORK_BOOTDELEGATION, e);
       }
@@ -729,8 +737,7 @@ public class FrameworkContext  {
     final int pos = className.lastIndexOf('.');
     if (pos != -1) {
       final String classPackage = className.substring(0, pos);
-      for (Iterator<String> i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
-        String ps = i.next();
+      for (final String ps : bootDelegationPatterns) {
         if ((ps.endsWith(".") &&
              classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
             classPackage.equals(ps)) {
@@ -790,8 +797,7 @@ public class FrameworkContext  {
    * @param bcl the new bundle class loader to inform about.
    */
   void bundleClassLoaderCreated(final BundleClassLoader bcl) {
-    for (Iterator<ExtensionContext> it = extCtxs.iterator(); it.hasNext(); ) {
-      final ExtensionContext extCtx = it.next();
+    for (final ExtensionContext extCtx : extCtxs) {
       extCtx.bundleClassLoaderCreated(bcl);
     }
   }
@@ -803,8 +809,7 @@ public class FrameworkContext  {
    * @param bcl the closed down bundle class loader to inform about.
    */
   void bundleClassLoaderClosed(final BundleClassLoader bcl) {
-    for (Iterator<ExtensionContext> it = extCtxs.iterator(); it.hasNext(); ) {
-      final ExtensionContext extCtx = it.next();
+    for (final ExtensionContext extCtx : extCtxs) {
       extCtx.bundleClassLoaderClosed(bcl);
     }
   }

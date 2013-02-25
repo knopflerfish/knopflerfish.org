@@ -34,13 +34,13 @@
 
 package org.knopflerfish.framework;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
 import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
 
 
 /**
@@ -102,14 +102,14 @@ public class ExportedPackageImpl implements ExportedPackage {
    * has become stale.
    */
   public Bundle[] getImportingBundles() {
-    List<ImportPkg> imps = pkg.getPackageImporters();
+    final List<ImportPkg> imps = pkg.getPackageImporters();
     if (imps != null) {
-      HashSet<Bundle> bs = new HashSet();
-      for (ImportPkg ip : imps) {
+      final HashSet<Bundle> bs = new HashSet<Bundle>();
+      for (final ImportPkg ip : imps) {
         bs.add(ip.bpkgs.bg.bundle);
       }
-      List<BundlePackages> rl = pkg.bpkgs.getRequiredBy();
-      for (BundlePackages bp : rl) {
+      final List<BundlePackages> rl = pkg.bpkgs.getRequiredBy();
+      for (final BundlePackages bp : rl) {
         bs.add(bp.bg.bundle);
       }
       return bs.toArray(new Bundle[bs.size()]);
@@ -152,6 +152,7 @@ public class ExportedPackageImpl implements ExportedPackage {
     return pkg.version;
   }
 
+  @Override
   public String toString() {
     return pkg.name +"(" +pkg.version +")";
   }

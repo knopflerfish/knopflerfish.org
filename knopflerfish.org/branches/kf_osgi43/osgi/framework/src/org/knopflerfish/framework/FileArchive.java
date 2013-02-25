@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2011, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,14 +39,14 @@ import java.util.Enumeration;
 
 /**
  * Interface for managing bundle contents.
- * 
+ *
  * @author Jan Stein
  */
 public interface FileArchive {
 
   /**
    * Get a byte array containg the contents of named file from a bundle archive.
-   * 
+   *
    * @param component File to get.
    * @return Byte array with contents of file or null if file doesn't exist.
    * @exception IOException if failed to read jar entry.
@@ -57,7 +57,7 @@ public interface FileArchive {
   /**
    * Get a BundleResourceStream to named entry inside a bundle. Leading '/' is
    * stripped.
-   * 
+   *
    * @param component Entry to get reference to.
    * @param ix index of sub archives. A postive number is the classpath entry
    *          index. 0 means look in the main bundle.
@@ -70,16 +70,16 @@ public interface FileArchive {
    * Returns an Enumeration of all the paths (<code>String</code> objects) to
    * entries within the bundle whose longest sub-path matches the supplied path
    * argument.
-   * 
+   *
    * @param name
    * @return
    */
-  Enumeration findResourcesPath(String path);
+  Enumeration<String> findResourcesPath(String path);
 
 
   /**
    * Check for native library in archive.
-   * 
+   *
    * @param path Name of native code file to get.
    * @return If native library exist return libname, otherwise null.
    */
@@ -88,7 +88,7 @@ public interface FileArchive {
 
   /**
    * Get native code library filename.
-   * 
+   *
    * @param libNameKey Key for native lib to get.
    * @return A string with the path to the native library.
    */
