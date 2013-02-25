@@ -35,7 +35,7 @@
             value="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/oscar-shell/readme.txt"/>
   <property name="bmfa.Require-Capability"
             value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=OSGi/Minimum)
-                                               (version>=1.2.1))&quot;"/>
+                                               (version>=1.2))&quot;"/>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 

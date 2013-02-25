@@ -14,7 +14,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-Activator: org.knopflerfish.service.um.useradmin.impl.Activator
 Bundle-Category: service
 Application-Icon: icon.png
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2.1))"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.osgi.framework; version="[1.6,2)",
  org.knopflerfish.service.um.ipam; version="[1.0,2)",
  org.knopflerfish.service.um.useradmin; version="[1.0,2)",

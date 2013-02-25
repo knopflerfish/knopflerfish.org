@@ -13,7 +13,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
 Bundle-Activator: org.knopflerfish.bundle.cm.commands.impl.Activator
 Bundle-Category: service
 Bundle-Icon: icon.png;size=32
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2.1))"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.knopflerfish.service.console,
  org.knopflerfish.shared.cm,
  org.knopflerfish.util.sort,

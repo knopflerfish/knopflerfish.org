@@ -35,7 +35,7 @@
 
   <property name="bmfa.Require-Capability"
             value="osgi.ee;filter:=&quot;(&amp;(osgi.ee=OSGi/Minimum)
-                                               (version>=1.2.1))&quot;"/>
+                                               (version>=1.2))&quot;"/>
   <property name="bmfa.api-Import-Package"
             value="org.osgi.framework; version=&quot;[1.6,2)&quot;"/>
   <property name="bmfa.Import-Package"

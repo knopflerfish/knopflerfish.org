@@ -14,7 +14,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/metatype/kf_metatype/
 Bundle-Classpath: .,nanoxml-2.2.1.jar
 Bundle-Activator: org.knopflerfish.bundle.metatype.Activator
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2.1))"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Export-Package: org.knopflerfish.util.metatype,
  net.n3.nanoxml; version=2.2.1
 Import-Package: org.osgi.framework; version="[1.6,2)",

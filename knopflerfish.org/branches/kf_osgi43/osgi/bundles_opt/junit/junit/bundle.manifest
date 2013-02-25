@@ -14,7 +14,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/junit/junit/
 Bundle-Activator: org.knopflerfish.bundle.junit.Activator
 Bundle-Classpath: .,junit.jar
-Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2.1))"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Export-Package: org.knopflerfish.service.junit; version=1.0.0,
  junit.framework; version=3.8.1
 Import-Package: org.osgi.framework; version="[1.6,2)",
