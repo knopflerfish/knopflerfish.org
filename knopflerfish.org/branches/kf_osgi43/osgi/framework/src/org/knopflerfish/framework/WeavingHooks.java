@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.SortedMap;
 
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.hooks.weaving.WeavingException;
@@ -71,12 +70,12 @@ class WeavingHooks {
     }
 
     weavingHookTracker = new ServiceTracker<WeavingHook, TrackedWeavingHook>(
-        (BundleContext) fwCtx.systemBundle.bundleContext, WeavingHook.class,
+        fwCtx.systemBundle.bundleContext, WeavingHook.class,
         new ServiceTrackerCustomizer<WeavingHook, TrackedWeavingHook>() {
           public TrackedWeavingHook addingService(
               ServiceReference<WeavingHook> reference) {
             return new TrackedWeavingHook(
-                (WeavingHook) fwCtx.systemBundle.bundleContext
+                fwCtx.systemBundle.bundleContext
                     .getService(reference), reference);
           }
 
@@ -112,25 +111,25 @@ class WeavingHooks {
     }
 
     try {
-      SortedMap<ServiceReference<WeavingHook>, TrackedWeavingHook> hooks = weavingHookTracker
+      final SortedMap<ServiceReference<WeavingHook>, TrackedWeavingHook> hooks = weavingHookTracker
           .getTracked();
 
-      for (TrackedWeavingHook twh : hooks.values()) {
+      for (final TrackedWeavingHook twh : hooks.values()) {
         if (twh.isBlackListed())
           continue;
         try {
           twh.weave(wc);
-        } catch (WeavingException we) {
+        } catch (final WeavingException we) {
           fwCtx.listeners.frameworkError(twh.reference.getBundle(), we);
-          ClassFormatError cfe = new ClassFormatError(
+          final ClassFormatError cfe = new ClassFormatError(
               "WeavingException thrown: " + we.getMessage() + " by hook "
                   + twh.getClass().getName());
           cfe.initCause(we);
           throw cfe;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
           fwCtx.listeners.frameworkError(twh.reference.getBundle(), t);
           twh.blacklist();
-          ClassFormatError cfe = new ClassFormatError("Exception throw: " + t
+          final ClassFormatError cfe = new ClassFormatError("Exception throw: " + t
               + " while calling hook " + twh.getClass().getName());
           cfe.initCause(t);
           throw cfe;
@@ -181,7 +180,7 @@ class WeavingHooks {
 
     public byte[] getBytes() {
       if (complete) {
-        byte[] r = new byte[current.length];
+        final byte[] r = new byte[current.length];
         System.arraycopy(current, 0, r, 0, current.length);
         return r;
       } else {
@@ -236,14 +235,15 @@ class WeavingHooks {
       this.c = c;
     }
 
+    @Override
     public String toString() {
       return "WovenClass[" + name + ", " + toString(dynamicImports) + ", byte["
           + current.length + "]=" + current + "]";
     }
 
     String getDynamicImportsAsString() {
-      StringBuffer sb = new StringBuffer();
-      for (String s : dynamicImports) {
+      final StringBuffer sb = new StringBuffer();
+      for (final String s : dynamicImports) {
         if (sb.length() > 0) {
           sb.append(", ");
         }
@@ -253,9 +253,9 @@ class WeavingHooks {
     }
 
     String toString(List<String> sl) {
-      StringBuffer sb = new StringBuffer();
+      final StringBuffer sb = new StringBuffer();
       sb.append("(");
-      for (String s : sl) {
+      for (final String s : sl) {
         if (sb.length() > 1) {
           sb.append(", ");
         }
@@ -290,19 +290,27 @@ class WeavingHooks {
     }
 
     public List<BundleCapability> getCapabilities(String namespace) {
-      return Collections.EMPTY_LIST;
+      @SuppressWarnings("unchecked")
+      final List<BundleCapability> res = Collections.EMPTY_LIST;
+      return res;
     }
 
     public List<BundleRequirement> getRequirements(String namespace) {
-      return Collections.EMPTY_LIST;
+      @SuppressWarnings("unchecked")
+      final List<BundleRequirement> res = Collections.EMPTY_LIST;
+      return res;
     }
 
     public List<BundleWire> getProvidedWires(String namespace) {
-      return Collections.EMPTY_LIST;
+      @SuppressWarnings("unchecked")
+      final List<BundleWire> res = Collections.EMPTY_LIST;
+      return res;
     }
 
     public List<BundleWire> getRequiredWires(String namespace) {
-      return Collections.EMPTY_LIST;
+      @SuppressWarnings("unchecked")
+      final List<BundleWire> res = Collections.EMPTY_LIST;
+      return res;
     }
 
     public BundleRevision getRevision() {
@@ -320,11 +328,15 @@ class WeavingHooks {
         }
 
         public List<BundleCapability> getDeclaredCapabilities(String namespace) {
-          return Collections.EMPTY_LIST;
+          @SuppressWarnings("unchecked")
+          final List<BundleCapability> res = Collections.EMPTY_LIST;
+          return res;
         }
 
         public List<BundleRequirement> getDeclaredRequirements(String namespace) {
-          return Collections.EMPTY_LIST;
+          @SuppressWarnings("unchecked")
+          final List<BundleRequirement> res = Collections.EMPTY_LIST;
+          return res;
         }
 
         public int getTypes() {
@@ -341,13 +353,20 @@ class WeavingHooks {
       return b.getClassLoader();
     }
 
-    public List<URL> findEntries(String path, String filePattern, int options) {
-      return Collections.EMPTY_LIST;
+    public List<URL> findEntries(String path, String filePattern, int options)
+    {
+      @SuppressWarnings("unchecked")
+      final List<URL> res = Collections.EMPTY_LIST;
+      return res;
     }
 
-    public Collection<String> listResources(String path, String filePattern,
-        int options) {
-      return Collections.EMPTY_LIST;
+    public Collection<String> listResources(String path,
+                                            String filePattern,
+                                            int options)
+    {
+      @SuppressWarnings("unchecked")
+      final Collection<String> res = Collections.EMPTY_LIST;
+      return res;
     }
   }
 }
