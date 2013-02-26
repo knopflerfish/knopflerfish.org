@@ -20,6 +20,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     framework uninitialization.
 
 
+=== Services (Compendium) ===
+
+  Prefs (OSGi Preferences Service) 3.0.2
+
+  - Code requiring permissions have been wrapped in do-privileged
+    constructions. Prefs should now work as expected with security
+    enabled. 
+
 ========================================================================
 
 
