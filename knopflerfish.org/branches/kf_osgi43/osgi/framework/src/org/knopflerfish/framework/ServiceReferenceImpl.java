@@ -195,7 +195,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
    * @param bundle requester of service.
    * @return Service requested or null in case of failure.
    */
-  Object getService(final BundleImpl bundle) {
+  S getService(final BundleImpl bundle) {
     bundle.fwCtx.perm.checkGetServicePerms(this);
     return registration.getService(bundle);
   }
@@ -347,7 +347,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
               }
             }
           }
-          // Fallback: Allways Ok when singleton provider of the package
+          // Fallback: Always OK when singleton provider of the package
         } else { // Package imported by both parties
           // Return true if we have same provider as service.
           for (final Object element : pkgProvider) {

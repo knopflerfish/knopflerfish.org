@@ -332,10 +332,8 @@ public class BundleContextImpl
       throw new NullPointerException("null ServiceReference is not valid input to getService()");
     }
 
-    @SuppressWarnings("unchecked")
-    final
-    S res = (S) ((ServiceReferenceImpl<S>)reference).getService(bundle);
-    return res;
+    final ServiceReferenceImpl<S> sri = (ServiceReferenceImpl<S>) reference;
+    return sri.getService(bundle);
   }
 
 

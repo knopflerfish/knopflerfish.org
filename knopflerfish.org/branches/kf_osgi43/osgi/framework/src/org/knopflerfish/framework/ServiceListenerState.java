@@ -231,10 +231,10 @@ class ServiceListenerState {
   /**
    * Gets the listeners interested in modifications of the service reference
    *
-   * @param The reference related to the event describing the service modification.
+   * @param sr The reference related to the event describing the service modification.
    * @return A set of listeners to notify.
    */
-  synchronized Set<ServiceListenerEntry> getMatchingListeners(ServiceReferenceImpl sr)
+  synchronized Set<ServiceListenerEntry> getMatchingListeners(ServiceReferenceImpl<?> sr)
   {
     final Set<ServiceListenerEntry> set = new HashSet<ServiceListenerEntry>();
     // Check complicated or empty listener filters

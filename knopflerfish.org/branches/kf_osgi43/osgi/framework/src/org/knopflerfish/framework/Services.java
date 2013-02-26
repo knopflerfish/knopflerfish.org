@@ -301,7 +301,6 @@ class Services {
     if (clazz == null) {
       if (filter != null) {
         ldap = new LDAPExpr(filter);
-        @SuppressWarnings("unchecked")
         final Set<String> matched = ldap.getMatchedObjectClasses();
         if (matched != null) {
           List<ServiceRegistrationImpl<?>> v = null;

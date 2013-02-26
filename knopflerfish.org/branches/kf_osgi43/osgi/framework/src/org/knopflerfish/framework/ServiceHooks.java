@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,30 +34,45 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
-import org.osgi.framework.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceReference;
 import org.osgi.framework.hooks.service.EventHook;
 import org.osgi.framework.hooks.service.EventListenerHook;
 import org.osgi.framework.hooks.service.FindHook;
 import org.osgi.framework.hooks.service.ListenerHook;
 import org.osgi.framework.hooks.service.ListenerHook.ListenerInfo;
-import org.osgi.util.tracker.*;
+import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
- * Handle all framework hooks, mostly dispatched from BundleImpl, Services and ServiceListenerState
+ * Handle all framework hooks, mostly dispatched from BundleImpl, Services
+ * and ServiceListenerState
  *
  */
 class ServiceHooks {
 
   final private FrameworkContext fwCtx;
-  ServiceTracker listenerHookTracker;
+  ServiceTracker<ListenerHook,ListenerHook> listenerHookTracker;
 
   boolean bOpen;
-  
+
   // TDOD: OSGI43 Temporary solution while OSGi CT fail and don't clean up properly
-  private static final HashSet ignore = new HashSet();
+  private static final HashSet<String> ignore = new HashSet<String>();
   static {
     ignore.add("org.osgi.test.cases.framework.junit.lifecycle.TestBundleControl");
     ignore.add("org.osgi.util.tracker.ServiceTracker$Tracked");
@@ -80,33 +95,35 @@ class ServiceHooks {
       fwCtx.debug.println("opening hooks");
     }
 
-    listenerHookTracker = new ServiceTracker
-      (fwCtx.systemBundle.bundleContext, 
-       ListenerHook.class.getName(), 
-       new ServiceTrackerCustomizer() {
-         public Object addingService(ServiceReference reference) {           
-           ListenerHook lh = (ListenerHook)fwCtx.systemBundle.bundleContext.getService(reference);
+    listenerHookTracker = new ServiceTracker<ListenerHook,ListenerHook>
+      (fwCtx.systemBundle.bundleContext,
+       ListenerHook.class,
+       new ServiceTrackerCustomizer<ListenerHook,ListenerHook>() {
+         public ListenerHook addingService(ServiceReference<ListenerHook> reference) {
+           final ListenerHook lh = fwCtx.systemBundle.bundleContext.getService(reference);
            try {
-             Collection c = getServiceCollection();
-             ArrayList tmp = new ArrayList();
-             for(Object o : c) {
-               if(ignoreSLE((ServiceListenerEntry)o)) continue;
-               tmp.add(o);
+             Collection<ServiceListenerEntry> c = getServiceCollection();
+             final ArrayList<ServiceListenerEntry> tmp = new ArrayList<ServiceListenerEntry>();
+             for(final ServiceListenerEntry sle : c) {
+               if(ignoreSLE(sle)) continue;
+               tmp.add(sle);
              }
              c = tmp;
-             lh.added(c);
-           } catch (Exception e) {
+             @SuppressWarnings({ "rawtypes", "unchecked" })
+             final Collection<ListenerInfo> li = (Collection) c;
+             lh.added(li);
+           } catch (final Exception e) {
              fwCtx.debug.printStackTrace("Failed to call listener hook  #" +
                                          reference.getProperty(Constants.SERVICE_ID), e);
            }
            return lh;
          }
 
-         public void modifiedService(ServiceReference reference, Object service) {
+         public void modifiedService(ServiceReference<ListenerHook> reference, ListenerHook service) {
            // noop
          }
 
-         public void removedService(ServiceReference reference, Object service) {
+         public void removedService(ServiceReference<ListenerHook> reference, ListenerHook service) {
            fwCtx.systemBundle.bundleContext.ungetService(reference);
          }
 
@@ -145,18 +162,22 @@ class ServiceHooks {
                                String service,
                                String filter,
                                boolean allServices,
-                               Collection /*<ServiceReference>*/ refs) {
-    List<ServiceRegistrationImpl<?>> srl = fwCtx.services.get(FindHook.class.getName());
+                               Collection<ServiceReference<?>> refs)
+  {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    final List<ServiceRegistrationImpl<FindHook>> srl
+      = (List) fwCtx.services.get(FindHook.class.getName());
     if (srl != null) {
-      RemoveOnlyCollection filtered = new RemoveOnlyCollection(refs);
+      final RemoveOnlyCollection<ServiceReference<?>> filtered
+        = new RemoveOnlyCollection<ServiceReference<?>>(refs);
 
-      for (Iterator i = srl.iterator(); i.hasNext(); ) {
-        ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;
-        FindHook fh = (FindHook)sr.getService(fwCtx.systemBundle);
+      for (final ServiceRegistrationImpl<FindHook> fhr : srl) {
+        final ServiceReferenceImpl<FindHook> sr = fhr.reference;
+        final FindHook fh = sr.getService(fwCtx.systemBundle);
         if (fh != null) {
           try {
             fh.find(bc, service, filter, allServices, filtered);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             fwCtx.listeners.frameworkError(bc,
                 new BundleException("Failed to call find hook  #" +
                                     sr.getProperty(Constants.SERVICE_ID), e));
@@ -170,47 +191,51 @@ class ServiceHooks {
   /**
    *
    */
-  void filterServiceEventReceivers(final ServiceEvent evt, 
-                                   final Collection /*<ServiceListenerEntry>*/ receivers) {
-    
-    List<ServiceRegistrationImpl<?>> eventHooks = fwCtx.services.get(EventHook.class.getName());
-    
+  void filterServiceEventReceivers(final ServiceEvent evt,
+                                   final Collection<ServiceListenerEntry> receivers) {
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    final List<ServiceRegistrationImpl<EventHook>> eventHooks
+      = (List) fwCtx.services.get(EventHook.class.getName());
+
     if (eventHooks != null) {
-      HashSet ctxs = new HashSet();
-      for (Iterator ir = receivers.iterator(); ir.hasNext(); ) {
-        ServiceListenerEntry sle = (ServiceListenerEntry)ir.next();
+      final HashSet<BundleContext> ctxs = new HashSet<BundleContext>();
+      for (final ServiceListenerEntry sle : receivers) {
         ctxs.add(sle.getBundleContext());
       }
-      int start_size = ctxs.size();
-      RemoveOnlyCollection filtered = new RemoveOnlyCollection(ctxs);
-    
-      for (Iterator i = eventHooks.iterator(); i.hasNext(); ) {
-        ServiceReferenceImpl sr = ((ServiceRegistrationImpl)i.next()).reference;
-        EventHook eh = (EventHook)sr.getService(fwCtx.systemBundle);
+      final int start_size = ctxs.size();
+      final RemoveOnlyCollection<BundleContext> filtered
+        = new RemoveOnlyCollection<BundleContext>(ctxs);
+
+      for (final ServiceRegistrationImpl<EventHook> sregi : eventHooks) {
+        final ServiceReferenceImpl<EventHook> sr = sregi.reference;
+        final EventHook eh = sr.getService(fwCtx.systemBundle);
         if (eh != null) {
           try {
             eh.event(evt, filtered);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             fwCtx.debug.printStackTrace("Failed to call event hook  #" +
                                         sr.getProperty(Constants.SERVICE_ID), e);
           }
         }
       }
-      // NYI, refactor this for speed!?
+      // TODO, refactor this for speed!?
       if (start_size != ctxs.size()) {
-        for (Iterator ir = receivers.iterator(); ir.hasNext(); ) {
-          if (!ctxs.contains(((ServiceListenerEntry)ir.next()).getBundleContext())) {
+        for (final Iterator<ServiceListenerEntry> ir = receivers.iterator(); ir.hasNext(); ) {
+          if (!ctxs.contains(ir.next().getBundleContext())) {
             ir.remove();
           }
         }
       }
     }
-    List<ServiceRegistrationImpl<?>> eventListenerHooks = fwCtx.services.get(EventListenerHook.class.getName());
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    final List<ServiceRegistrationImpl<EventListenerHook>> eventListenerHooks
+      = (List) fwCtx.services.get(EventListenerHook.class.getName());
     if (eventListenerHooks != null) {
-      HashMap<BundleContext, Collection<ListenerInfo>> listeners = new HashMap<BundleContext, Collection<ListenerInfo>>();
-      
-      for (Iterator ir = receivers.iterator(); ir.hasNext(); ) {
-        ServiceListenerEntry sle = (ServiceListenerEntry)ir.next();
+      final HashMap<BundleContext, Collection<ListenerInfo>> listeners
+        = new HashMap<BundleContext, Collection<ListenerInfo>>();
+
+      for (final ServiceListenerEntry sle : receivers) {
         if(ignoreSLE(sle)) {
           // TODO: OSGI43 Temporary hack to work around poor clean up in test suite
           continue;
@@ -220,27 +245,30 @@ class ServiceHooks {
         }
         listeners.get(sle.getBundleContext()).add(sle);
       }
-      
-      for(Entry<BundleContext, Collection<ListenerInfo>> e : listeners.entrySet()) {
-        e.setValue(new RemoveOnlyCollection(e.getValue()));
+
+      for(final Entry<BundleContext, Collection<ListenerInfo>> e : listeners.entrySet()) {
+        e.setValue(new RemoveOnlyCollection<ListenerInfo>(e.getValue()));
       }
-      
-      RemoveOnlyMap filtered = new RemoveOnlyMap(listeners);
-      
-      for(ServiceRegistrationImpl sri : eventListenerHooks) {
-        EventListenerHook elh = (EventListenerHook)sri.reference.getService(fwCtx.systemBundle);
+
+      final RemoveOnlyMap<BundleContext, Collection<ListenerInfo>> filtered
+        = new RemoveOnlyMap<BundleContext, Collection<ListenerInfo>>(listeners);
+
+      for(final ServiceRegistrationImpl<EventListenerHook> sri : eventListenerHooks) {
+        final EventListenerHook elh = sri.reference.getService(fwCtx.systemBundle);
         if(elh != null) {
           try {
             elh.event(evt, filtered);
-          } catch(Exception e) {
+          } catch(final Exception e) {
             fwCtx.debug.printStackTrace("Failed to call event hook  #" +
                 sri.reference.getProperty(Constants.SERVICE_ID), e);
           }
         }
       }
       receivers.clear();
-      for(Collection<ListenerInfo> li : listeners.values()) {
-        receivers.addAll(li);
+      for(final Collection<ListenerInfo> li : listeners.values()) {
+        @SuppressWarnings({ "rawtypes", "unchecked" })
+        final Collection<ServiceListenerEntry> sles = (Collection) li;
+        receivers.addAll(sles);
       }
     }
   }
@@ -249,11 +277,11 @@ class ServiceHooks {
   /**
    *
    */
-  Collection getServiceCollection() {
-    // TBD think about threads?!
+  Collection<ServiceListenerEntry> getServiceCollection() {
+    // TODO think about threads?!
     return Collections.unmodifiableSet(fwCtx.listeners.serviceListeners.serviceSet);
   }
-  
+
 
   /**
    *
@@ -267,17 +295,20 @@ class ServiceHooks {
       return;
     }
 
-    ServiceReference[] srl = listenerHookTracker.getServiceReferences();    
-    
-    Set set = toImmutableSet(sle);
+    final ServiceReference<ListenerHook>[] srl
+      = listenerHookTracker.getServiceReferences();
 
-    for (int i = 0; srl != null && i < srl.length; i++) {
-      ListenerHook lh = (ListenerHook)listenerHookTracker.getService(srl[i]);
+    final Set<ListenerInfo> set = toImmutableSet((ListenerInfo) sle);
+
+    if (srl!=null) {
+    for (final ServiceReference<ListenerHook> sr : srl) {
+      final ListenerHook lh = listenerHookTracker.getService(sr);
       try {
         lh.added(set);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         fwCtx.debug.printStackTrace("Failed to call listener hook #" +
-                                    srl[i].getProperty(Constants.SERVICE_ID), e);
+                                    sr.getProperty(Constants.SERVICE_ID), e);
+      }
       }
 
     }
@@ -297,29 +328,36 @@ class ServiceHooks {
   /**
    *
    */
-  void handleServiceListenerUnreg(Collection /* <ServiceListenerEntry> */ set) {
+  void handleServiceListenerUnreg(Collection<ServiceListenerEntry> set) {
     if(!isOpen() || listenerHookTracker.size() == 0) {
       return;
     }
-    ServiceReference[] srl = listenerHookTracker.getServiceReferences();    
-    
-    for (int i = 0; srl != null && i < srl.length; i++) {
-      ListenerHook lh = (ListenerHook)listenerHookTracker.getService(srl[i]);
-      try {
-        lh.removed(set);
-      } catch (Exception e) {
-        fwCtx.debug.printStackTrace("Failed to call listener hook #" +
-                                    srl[i].getProperty(Constants.SERVICE_ID), e);
+    final ServiceReference<ListenerHook>[] srl
+      = listenerHookTracker.getServiceReferences();
+
+    if (srl != null) {
+      @SuppressWarnings({ "rawtypes", "unchecked" })
+      final Collection<ListenerInfo> lis = (Collection) set;
+
+      for (final ServiceReference<ListenerHook> sr : srl) {
+        final ListenerHook lh = listenerHookTracker.getService(sr);
+        try {
+          lh.removed(lis);
+        } catch (final Exception e) {
+          fwCtx.debug
+              .printStackTrace("Failed to call listener hook #"
+                                   + sr.getProperty(Constants.SERVICE_ID),
+                               e);
+        }
       }
     }
   }
 
-
   /**
    *
    */
-  static Set toImmutableSet(Object obj) {
-    Set set = new HashSet();
+  static <E> Set<E> toImmutableSet(E obj) {
+    Set<E> set = new HashSet<E>();
     set.add(obj);
     set = Collections.unmodifiableSet(set);
     return set;
@@ -330,36 +368,41 @@ class ServiceHooks {
    *
    */
   static class RemoveOnlyCollection<E> extends AbstractCollection<E> {
-    
+
     final Collection<E> org;
     public RemoveOnlyCollection(Collection<E> values) {
       org = values;
     }
-    
+
+    @Override
     public boolean add(E obj) {
       throw new UnsupportedOperationException("objects can only be removed");
     }
-    
+
+    @Override
     public boolean addAll(Collection<? extends E> objs) {
       throw new UnsupportedOperationException("objects can only be removed");
-    }    
+    }
 
+    @Override
     public Iterator<E> iterator() {
       return org.iterator();
     }
-    
+
+    @Override
     public boolean remove(Object o) {
       return org.remove(o);
     }
-    
+
+    @Override
     public int size() {
       return org.size();
     }
   }
-  
-  static class RemoveOnlyMap implements Map {
-    final Map original;
-    public RemoveOnlyMap(Map original) {
+
+  static class RemoveOnlyMap<K,V> implements Map<K,V> {
+    final Map<K,V> original;
+    public RemoveOnlyMap(Map<K,V> original) {
       this.original = original;
     }
 
@@ -376,11 +419,11 @@ class ServiceHooks {
       return original.containsValue(v);
     }
 
-    public Set entrySet() {
+    public Set<Entry<K,V>> entrySet() {
       return original.entrySet();
     }
 
-    public Object get(Object k) {
+    public V get(Object k) {
       return original.get(k);
     }
 
@@ -388,32 +431,32 @@ class ServiceHooks {
       return original.isEmpty();
     }
 
-    public Set keySet() {
+    public Set<K> keySet() {
       return original.keySet();
     }
 
-    public Object put(Object k, Object v) {
+    public V put(Object k, Object v) {
       throw new UnsupportedOperationException("objects can only be removed");
     }
 
-    public void putAll(Map m) {
-      throw new UnsupportedOperationException("objects can only be removed");   
+    public void putAll(Map<? extends K,? extends V> m) {
+      throw new UnsupportedOperationException("objects can only be removed");
     }
 
-    public Object remove(Object k) {
+    public V remove(Object k) {
       return original.remove(k);
     }
-    
+
     public int size() {
       return original.size();
     }
 
-    public Collection values() {
+    public Collection<V> values() {
       return original.values();
     }
 
   }
-  
+
   /*
   void printSLE(String pre, Collection c, String post) {
     if(pre != null) {
@@ -430,7 +473,7 @@ class ServiceHooks {
       System.out.flush();
     }
   }
-  
+
   void printSLE(String pre, Map m, String post) {
     System.out.println(pre);
     System.out.flush();

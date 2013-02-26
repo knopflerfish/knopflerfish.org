@@ -96,7 +96,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
 
   /**
    * Is service available. I.e., if <code>true</code> then holders
-   * of a ServiceReference for the serivice are allowed to get it.
+   * of a ServiceReference for the service are allowed to get it.
    */
   private volatile boolean available;
 
