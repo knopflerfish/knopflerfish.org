@@ -390,8 +390,13 @@
  <target name="run-kf-tests-secure"
          description="Builds then executes the KF testsuite with security enabled."
 	 depends="clean,all">
+   <antcall target="run-kf-tests-secure-bare"/>
+ </target>
+
+ <target name="run-kf-tests-secure-bare">
    <antcall target="run-kf-tests-bare">
      <param name="run.test.secure" value="true"/>
+     <param name="do.cpa.test"     value=""/>
    </antcall>
  </target>
 
