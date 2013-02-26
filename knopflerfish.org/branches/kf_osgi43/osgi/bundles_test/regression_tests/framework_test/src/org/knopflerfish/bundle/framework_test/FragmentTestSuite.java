@@ -90,7 +90,7 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame540a());
     addTest(new Cleanup());
     addTest(new Setup());
-    addTest(new Frame550a());
+    addTest(new Frame550b());
     addTest(new Cleanup());
     addTest(new Setup());
     addTest(new Frame560a());
@@ -336,11 +336,11 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
-  public final static String [] HELP_FRAME550A =  {
+  public final static String [] HELP_FRAME550B =  {
     "Check that we handle dynamic attach of fragments"
   };
 
-  class Frame550a extends FWTestCase {
+  class Frame550b extends FWTestCase {
 
     public void runTest() throws Throwable {
       buF = Util.installBundle(bc, "fb_F-2.0.0.jar");
@@ -353,9 +353,9 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
         buF.start();
       } catch (BundleException bexcR) {
         fail("framework test bundle "+ bexcR
-             +"(" + bexcR.getNestedException() + ") :FRAME550A:FAIL");
+             +"(" + bexcR.getNestedException() + ") :FRAME550B:FAIL");
       } catch (SecurityException secR) {
-        fail("framework test bundle "+ secR +" :FRAME550A:FAIL");
+        fail("framework test bundle "+ secR +" :FRAME550B:FAIL");
       }
 
       assertTrue("Fragment 1.0 should NOT be resolved", buB.getState() == Bundle.INSTALLED);
@@ -375,34 +375,12 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       buC = Util.installBundle(bc, "fb_C_api-1.0.0.jar");
       assertNotNull(buC);
       try {
-        assertTrue("Fragment 1.0 should be resolved", pa.resolveBundles(new Bundle [] {buB}));
+        assertFalse("Fragment 1.0 should not be resolved", pa.resolveBundles(new Bundle [] {buB}));
       } catch (SecurityException secR) {
-        fail("framework test bundle "+ secR +" :FRAME550A:FAIL");
+        fail("framework test bundle "+ secR +" :FRAME550B:FAIL");
       }
 
-      fragData = buF.getResource("/test_fb/fragment/data2");
-      assertNotNull(fragData);
-      try {
-        InputStream is = fragData.openStream();
-        byte [] buf = new byte[1];
-        assertTrue("Host should be able to read Fragment B data", is.read(buf) == 1);
-        assertEquals("Host should get Fragment B data", "B", new String(buf));
-        is.close();
-      } catch (IOException ioe) {
-      }
-
-      fragData = buF.getResource("/test_fb/fragment/data");
-      assertNotNull(fragData);
-      try {
-        InputStream is = fragData.openStream();
-        byte [] buf = new byte[1];
-        assertTrue("Host should still be able to read Fragment G data", is.read(buf) == 1);
-        assertEquals("Host should still get Fragment G data", "G", new String(buf));
-        is.close();
-      } catch (IOException ioe) {
-      }
-
-      out.println("### framework test bundle :FRAME550A:PASS");
+      out.println("### framework test bundle :FRAME550B:PASS");
     }
 
   }
