@@ -465,7 +465,9 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   // BundleRequirement method
   public boolean matches(BundleCapability capability) {
-    // TODO Auto-generated method stub
+    if (BundleRevision.PACKAGE_NAMESPACE.equals(capability.getNamespace())) {
+      return toFilter().matches(capability.getAttributes());
+    }
     return false;
   }
 

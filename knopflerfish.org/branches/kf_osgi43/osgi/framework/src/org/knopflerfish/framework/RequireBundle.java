@@ -37,8 +37,8 @@ package org.knopflerfish.framework;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -176,7 +176,7 @@ class RequireBundle
   public Map<String, String> getDirectives()
   {
     final Map<String,String> res = new HashMap<String, String>(4);
-    
+
     res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
     res.put(Constants.VISIBILITY_DIRECTIVE, visibility);
 
@@ -207,7 +207,7 @@ class RequireBundle
           .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
     }
 
-    for (Entry<String,Object> entry : attributes.entrySet()) {
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
       sb.append('(');
       sb.append(entry.getKey());
       sb.append('=');
@@ -222,7 +222,7 @@ class RequireBundle
     }
     try {
       return FrameworkUtil.createFilter(sb.toString());
-    } catch (InvalidSyntaxException _ise) {
+    } catch (final InvalidSyntaxException _ise) {
       // Should not happen...
       System.err.println("createFilter: '" +sb.toString() +"': " +_ise.getMessage());
       return null;
@@ -233,7 +233,7 @@ class RequireBundle
   public Map<String, Object> getAttributes()
   {
     @SuppressWarnings("unchecked")
-    Map<String, Object> res = Collections.EMPTY_MAP;
+    final Map<String, Object> res = Collections.EMPTY_MAP;
     return res;
   }
 
@@ -246,7 +246,9 @@ class RequireBundle
   // BundleRequirement method
   public boolean matches(BundleCapability capability)
   {
-    // TODO Auto-generated method stub
+    if (BundleRevision.BUNDLE_NAMESPACE.equals(capability.getNamespace())) {
+      return toFilter().matches(capability.getAttributes());
+    }
     return false;
   }
 

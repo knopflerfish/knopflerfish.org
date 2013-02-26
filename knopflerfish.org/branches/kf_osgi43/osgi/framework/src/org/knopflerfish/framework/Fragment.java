@@ -268,7 +268,9 @@ class Fragment
 
 
   public boolean matches(BundleCapability capability) {
-    // TODO Auto-generated method stub
+    if (BundleRevision.HOST_NAMESPACE.equals(capability.getNamespace())) {
+      return toFilter().matches(capability.getAttributes());
+    }
     return false;
   }
 
