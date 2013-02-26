@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,22 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.io.*;
-import java.security.*;
-import java.util.*;
+import java.io.File;
+import java.io.FilePermission;
+import java.io.InputStream;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.security.Permissions;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.PropertyPermission;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.AdminPermission;
+import org.osgi.framework.Bundle;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
-import org.osgi.service.permissionadmin.*;
+import org.osgi.service.permissionadmin.PermissionInfo;
 
 import org.knopflerfish.framework.Debug;
 import org.knopflerfish.framework.FrameworkContext;
@@ -59,15 +67,15 @@ public class PermissionsWrapper extends PermissionCollection {
 
   String location;
 
-  private Bundle bundle;
-  private PermissionInfoStorage pinfos;
-  private ConditionalPermissionInfoStorage cpinfos;
+  private final Bundle bundle;
+  private final PermissionInfoStorage pinfos;
+  private final ConditionalPermissionInfoStorage cpinfos;
   private PermissionCollection implicitPermissions;
   private PermissionCollection localPermissions;
   private volatile PermissionCollection systemPermissions;
   private File dataRoot;
   private boolean readOnly = false;
-  private ArrayList condPermList = null;
+  private ArrayList<ConditionalPermission> condPermList = null;
   private ConditionalPermissionSecurityManager cpsm;
 
   final private FrameworkContext framework;
@@ -91,7 +99,7 @@ public class PermissionsWrapper extends PermissionCollection {
     // If location is null, then we have a dummy bundle.
     // Used for ConditionalPermissionAdmin.getAccessControlerContext()
     if (loc != null) {
-      SecurityManager sm = System.getSecurityManager();
+      final SecurityManager sm = System.getSecurityManager();
       if (sm instanceof ConditionalPermissionSecurityManager) {
         cpsm = (ConditionalPermissionSecurityManager)sm;
       }
@@ -109,8 +117,9 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
+  @Override
   public void add(Permission permission) {
-    PermissionCollection p = getPerms();
+    final PermissionCollection p = getPerms();
     if (p != null) {
       p.add(permission);
     } else {
@@ -122,15 +131,16 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
-  public Enumeration elements() {
+  @Override
+  public Enumeration<Permission> elements() {
     final PermissionCollection p = getPerms();
     if (p == null) {
       throw new RuntimeException("NYI! Using Conditional Permissions 2");
     }
 
-    return new Enumeration() {
-        private Enumeration implicitElements = implicitPermissions.elements();
-        private Enumeration systemElements = p.elements();
+    return new Enumeration<Permission>() {
+        private Enumeration<Permission> implicitElements = implicitPermissions.elements();
+        private final Enumeration<Permission> systemElements = p.elements();
 
         public boolean hasMoreElements() {
           if (implicitElements != null) {
@@ -143,11 +153,11 @@ public class PermissionsWrapper extends PermissionCollection {
         }
 
 
-        public Object nextElement() {
+        public Permission nextElement() {
           if (implicitElements != null) {
             try {
               return implicitElements.nextElement();
-            } catch (NoSuchElementException _ignore) { }
+            } catch (final NoSuchElementException _ignore) { }
             implicitElements = null;
           }
           return systemElements.nextElement();
@@ -159,8 +169,9 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
+  @Override
   public boolean implies(final Permission permission) {
-    String me = "PermissionWrapper.implies: ";
+    final String me = "PermissionWrapper.implies: ";
     if (implicitPermissions != null && implicitPermissions.implies(permission)) {
       if (debug.permissions) {
         debug.println(me + "Implicitly OK for, " + permission);
@@ -172,7 +183,7 @@ public class PermissionsWrapper extends PermissionCollection {
       }
       return false;
     } else {
-      PermissionCollection p = getPerms();
+      final PermissionCollection p = getPerms();
       boolean res;
       if (p != null) {
         res = p.implies(permission);
@@ -193,6 +204,7 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
+  @Override
   public boolean isReadOnly() {
     return readOnly;
   }
@@ -201,10 +213,11 @@ public class PermissionsWrapper extends PermissionCollection {
   /**
    *
    */
+  @Override
   public void setReadOnly() {
     if (!readOnly) {
       readOnly = true;
-      PermissionCollection p = getPerms();
+      final PermissionCollection p = getPerms();
       if (p != null) {
         p.setReadOnly();
       } else {
@@ -227,7 +240,7 @@ public class PermissionsWrapper extends PermissionCollection {
    */
   private PermissionCollection getPerms0() {
     if (systemPermissions == null) {
-      PermissionCollection p = makePermissionCollection();
+      final PermissionCollection p = makePermissionCollection();
       if (readOnly && p != null) {
         p.setReadOnly();
       }
@@ -257,17 +270,17 @@ public class PermissionsWrapper extends PermissionCollection {
 
 
   /**
-   * 
+   *
    */
   private PermissionCollection makeImplicitPermissionCollection(FrameworkContext fw, Bundle b) {
     // NYI, perhaps we should optimize this collection.
-    Permissions pc = new Permissions();
+    final Permissions pc = new Permissions();
     if (dataRoot != null) {
       pc.add(new FilePermission(dataRoot.getPath(), "read,write"));
       pc.add(new FilePermission((new File(dataRoot, "-")).getPath(),
                                 "read,write,delete"));
     }
-    StringBuffer sb = new StringBuffer("(id=");
+    final StringBuffer sb = new StringBuffer("(id=");
     sb.append(b.getBundleId());
     sb.append(")");
     pc.add(new AdminPermission(sb.toString(),
@@ -307,16 +320,16 @@ public class PermissionsWrapper extends PermissionCollection {
    *
    */
   private boolean conditionalPermissionImplies(Permission permission) {
-    List postponement;
+    List<ConditionalPermission> postponement;
     if (cpsm != null && cpsm.isPostponeAvailable()) {
-      postponement = new ArrayList();
+      postponement = new ArrayList<ConditionalPermission>();
     } else {
       postponement = null;
     }
     String immediateAccess = null;
     // TBD, should condPermList by guard from changes!?
-    for (Iterator i = condPermList.iterator(); i.hasNext(); ) {
-      ConditionalPermission cp = (ConditionalPermission)i.next();
+    for (final Object element : condPermList) {
+      final ConditionalPermission cp = (ConditionalPermission)element;
       if (cp == null) {
         // Permission is already checked and is immutable and failed.
         continue;
@@ -343,7 +356,7 @@ public class PermissionsWrapper extends PermissionCollection {
         if (debug.permissions) {
           debug.println("conditionalPermissionImplies: " + cp + " does NOT imply " + permission + " for " + bundle);
         }
-      }  
+      }
     }
     if (postponement != null) {
       // Optimize superfluous
@@ -355,8 +368,8 @@ public class PermissionsWrapper extends PermissionCollection {
         offset = 2;
       }
       for (int pos = postponement.size() - offset; pos >= 0; pos--) {
-        if (((ConditionalPermission)postponement.get(pos)).access == immediateAccess) {
-          Object pruned = postponement.remove(pos);
+        if (postponement.get(pos).access == immediateAccess) {
+          final Object pruned = postponement.remove(pos);
           if (debug.permissions) {
             debug.println("conditionalPermissionImplies: pruned, " + pruned + " for " + bundle);
           }
@@ -385,9 +398,12 @@ public class PermissionsWrapper extends PermissionCollection {
   synchronized void updateChangedConditionalPermission(ConditionalPermissionInfoImpl cpi,
                                                        int cpi_pos,
                                                        int remove_pos,
-                                                       int expected_size) {
-    ConditionalPermission new_cp = cpi != null ? cpi.getConditionalPermission(bundle) : null;
-    Object old_cp;
+                                                       int expected_size)
+  {
+    final ConditionalPermission new_cp = cpi != null ? cpi
+        .getConditionalPermission(bundle) : null;
+    @SuppressWarnings("unused")
+    ConditionalPermission old_cp;
     if (cpi_pos == remove_pos) {
       old_cp = condPermList.set(cpi_pos, new_cp);
     } else if (remove_pos == -1) {
@@ -400,7 +416,8 @@ public class PermissionsWrapper extends PermissionCollection {
       throw new RuntimeException("NYI");
     }
     if (expected_size != condPermList.size()) {
-      debug.printStackTrace("ASSERT, table size differ, " + expected_size + " != " + condPermList.size(), new Throwable());
+      debug.printStackTrace("ASSERT, table size differ, " + expected_size
+                            + " != " + condPermList.size(), new Throwable());
       throw new RuntimeException("ASSERT ERROR");
     }
     // TBD! How to optimize?   if (new_cp != null || old_cp != null) {
@@ -414,11 +431,10 @@ public class PermissionsWrapper extends PermissionCollection {
    */
   private void initCondPermList() {
     // cpinfos is locked when we are here.
-    ArrayList cpis = cpinfos.getAll();
-    condPermList = new ArrayList(cpis.size());
-    // TBD, perhaps we should go back to lazy instanciation.
-    for (Iterator i = cpis.iterator(); i.hasNext(); ) {
-      ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl) i.next();
+    final ArrayList<ConditionalPermissionInfoImpl> cpis = cpinfos.getAll();
+    condPermList = new ArrayList<ConditionalPermission>(cpis.size());
+    // TBD, perhaps we should go back to lazy instantiation.
+    for (final ConditionalPermissionInfoImpl cpi : cpis) {
       if (debug.permissions) {
         debug.println("conditionalPermissionImplies: " + cpi + " Bundle#" + bundle.getBundleId());
       }

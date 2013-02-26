@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,24 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.io.*;
-import java.security.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Reader;
+import java.security.AccessController;
+import java.security.PermissionCollection;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 
 import org.osgi.service.permissionadmin.PermissionInfo;
-import org.knopflerfish.framework.Util;
-import org.knopflerfish.framework.FrameworkContext;
+
 import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.FrameworkContext;
+import org.knopflerfish.framework.Util;
 
 
 class PermissionInfoStorage {
@@ -52,15 +60,18 @@ class PermissionInfoStorage {
 
   private PermissionInfo[] initialDefault = null;
 
-  private File permDir;
+  private final File permDir;
 
   private long lastPermFile;
 
-  private HashMap /* String -> Element */ permissions = new HashMap();
+  private final HashMap<String, Element> permissions
+    = new HashMap<String, Element>();
 
   private PermissionInfo[] defaultPermissions;
 
-  private HashMap defaultInvalidateCallbacks = new HashMap();
+  private final HashMap<String, ArrayList<PermissionsWrapper>>
+    defaultInvalidateCallbacks
+      = new HashMap<String, ArrayList<PermissionsWrapper>>();
 
   final private Debug debug;
 
@@ -85,15 +96,15 @@ class PermissionInfoStorage {
   /**
    * Get the specified permissions to the bundle with the specified
    * location.
-   * 
+   *
    * @param location The location of the bundle.
    */
   synchronized PermissionInfo[] get(String location, PermissionsWrapper callInvalidate) {
-    Element res = (Element) permissions.get(location);
+    final Element res = permissions.get(location);
     if (res != null) {
       if (callInvalidate != null) {
         if (res.invalidateCallback == null) {
-          res.invalidateCallback = new ArrayList(2);
+          res.invalidateCallback = new ArrayList<PermissionsWrapper>(2);
         }
         res.invalidateCallback.add(callInvalidate);
       }
@@ -113,9 +124,9 @@ class PermissionInfoStorage {
    */
   synchronized PermissionInfo[] getDefault(PermissionsWrapper callInvalidate) {
     if (callInvalidate != null && callInvalidate.location != null) {
-      ArrayList cil = (ArrayList)defaultInvalidateCallbacks.get(callInvalidate.location);
+      ArrayList<PermissionsWrapper> cil = defaultInvalidateCallbacks.get(callInvalidate.location);
       if (cil == null) {
-        cil = new ArrayList(2);
+        cil = new ArrayList<PermissionsWrapper>(2);
         defaultInvalidateCallbacks.put(callInvalidate.location, cil);
       }
       cil.add(callInvalidate);
@@ -127,19 +138,19 @@ class PermissionInfoStorage {
   /**
    * Returns the bundle locations that have permissions assigned to them, that
    * is, bundle locations for which an entry exists in the permission table.
-   * 
+   *
    * @return The locations of bundles that have been assigned any permissions,
    *         or <tt>null</tt> if the permission table is empty.
    */
   synchronized String [] getKeys() {
-    int size = permissions.size();
+    final int size = permissions.size();
     if (size == 0) {
       return null;
     } else {
-      String [] res = new String [size];
+      final String [] res = new String [size];
       int ix = 0;
-      for (Iterator i = permissions.keySet().iterator(); i.hasNext();) {
-        res[ix++] = (String)i.next();
+      for (final String string : permissions.keySet()) {
+        res[ix++] = string;
       }
       return res;
     }
@@ -149,36 +160,36 @@ class PermissionInfoStorage {
   /**
    * Assigns the specified permissions to the bundle with the specified
    * location.
-   * 
+   *
    * @param location The location of the bundle that will be assigned the
    *        permissions.
-   * @param permissions The permissions to be assigned, or <code>null</code> if
+   * @param permissions The permissions to be assigned, or {@code null} if
    *        the specified location is to be removed from the permission table.
    */
-  synchronized void put(String location, PermissionInfo[] perms) {
-    Element old = (Element)permissions.put(location, new Element(perms));
+  synchronized void put(String location, PermissionInfo[] perms)
+  {
+    final Element old = permissions.put(location, new Element(perms));
     save(location, perms);
-    ArrayList vpw = old != null ? old.invalidateCallback :
-      (ArrayList)defaultInvalidateCallbacks.remove(location);
+    final ArrayList<PermissionsWrapper> vpw = old != null ? old.invalidateCallback
+        : defaultInvalidateCallbacks.remove(location);
     if (vpw != null) {
-      for (Iterator i = vpw.iterator(); i.hasNext(); ) {
-        ((PermissionsWrapper)i.next()).invalidate();
+      for (final PermissionsWrapper permissionsWrapper : vpw) {
+        permissionsWrapper.invalidate();
       }
     }
   }
 
-
   /**
    * Sets the default permissions.
-   * 
+   *
    * <p>
    * These are the permissions granted to any bundle that does not have
    * permissions assigned to its location.
-   * 
-   * @param permissions The default permissions, or <code>null</code> if the
+   *
+   * @param permissions The default permissions, or {@code null} if the
    *        default permissions are to be removed from the permission table.
    * @throws SecurityException If the caller does not have
-   *            <code>AllPermission</code>.
+   *            {@code AllPermission}.
    */
   synchronized void putDefault(PermissionInfo[] permissions) {
     if (permissions != null) {
@@ -187,9 +198,9 @@ class PermissionInfoStorage {
       defaultPermissions = initialDefault;
     }
     save(null, defaultPermissions);
-    for (Iterator i = defaultInvalidateCallbacks.values().iterator(); i.hasNext(); ) {
-      for (Iterator j = ((ArrayList)i.next()).iterator(); j.hasNext(); ) {
-        ((PermissionsWrapper)j.next()).invalidate();
+    for (final ArrayList<PermissionsWrapper> pws : defaultInvalidateCallbacks.values()) {
+      for (final PermissionsWrapper pw : pws) {
+        pw.invalidate();
       }
     }
     defaultInvalidateCallbacks.clear();
@@ -199,15 +210,15 @@ class PermissionInfoStorage {
   /**
    * Remove any specified permissions to the bundle with the specified
    * location.
-   * 
+   *
    * @param location The location of the bundle.
    */
   synchronized void remove(String location) {
-    Element old = (Element)permissions.remove(location);
+    final Element old = permissions.remove(location);
     save(location, null);
     if (old != null && old.invalidateCallback != null) {
-      for (Iterator i = old.invalidateCallback.iterator(); i.hasNext(); ) {
-        ((PermissionsWrapper)i.next()).invalidate();
+      for (final PermissionsWrapper permissionsWrapper : old.invalidateCallback) {
+        permissionsWrapper.invalidate();
       }
     }
   }
@@ -216,18 +227,19 @@ class PermissionInfoStorage {
   /**
    * Remove any reference to specified permission collection in the
    * callback tables.
-   * 
+   *
    * @param pc The permission collection to purge.
    */
   synchronized void purgeCallback(PermissionCollection pc) {
-    PermissionsWrapper pw = (PermissionsWrapper)pc;
-    Element e = (Element)permissions.get(pw.location);
+    final PermissionsWrapper pw = (PermissionsWrapper)pc;
+    final Element e = permissions.get(pw.location);
     if (e != null && e.invalidateCallback != null && e.invalidateCallback.remove(pw)) {
       if (e.invalidateCallback.isEmpty()) {
         e.invalidateCallback = null;
       }
     } else {
-      ArrayList cil = (ArrayList)defaultInvalidateCallbacks.get(pw.location);
+      final ArrayList<PermissionsWrapper> cil
+        = defaultInvalidateCallbacks.get(pw.location);
       if (cil != null && cil.remove(pw)) {
         if (cil.isEmpty()) {
           defaultInvalidateCallbacks.remove(pw);
@@ -245,7 +257,7 @@ class PermissionInfoStorage {
    */
   private void save(final String location, final PermissionInfo [] perms) {
     if (permDir != null) {
-      AccessController.doPrivileged(new PrivilegedAction() {
+      AccessController.doPrivileged(new PrivilegedAction<Object>() {
           public Object run() {
             File f;
             String loc;
@@ -270,19 +282,19 @@ class PermissionInfoStorage {
               }
               out.write(loc + "\n\n");
               if (perms != null) {
-                for (int i = 0; i < perms.length; i++) {
-                  out.write(perms[i].getEncoded() + "\n");
+                for (final PermissionInfo perm : perms) {
+                  out.write(perm.getEncoded() + "\n");
                 }
               } else {
                 out.write("NULL\n");
               }
               out.write("\n");
               out.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
               if (out != null) {
                 try {
                   out.close();
-                } catch (IOException ignore) { }
+                } catch (final IOException ignore) { }
                 f.delete();
               }
               debug.printStackTrace("NYI! Report error", e);
@@ -298,13 +310,13 @@ class PermissionInfoStorage {
    * Load all saved permission data.
    */
   private void load() {
-    File[] files = PermUtil.getSortedFiles(permDir);
-    for (int i = 0; i < files.length; i++) {
-      load(files[i]);
+    final File[] files = PermUtil.getSortedFiles(permDir);
+    for (final File file : files) {
+      load(file);
     }
     try {
       lastPermFile = Long.parseLong(files[files.length - 1].getName());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       lastPermFile = -1;
     }
   }
@@ -314,20 +326,20 @@ class PermissionInfoStorage {
    */
   private void load(File fh) {
     BufferedReader in = null;
-    boolean isDefault = "default".equals(fh.getName());
+    final boolean isDefault = "default".equals(fh.getName());
     try {
       in = new BufferedReader(new FileReader(fh));
-      String loc = parseLocation(in);
-      ArrayList piv = new ArrayList();
+      final String loc = parseLocation(in);
+      final ArrayList<PermissionInfo> piv = new ArrayList<PermissionInfo>();
       // Read permissions
       int c = in.read();
       while (c != -1) {
-        StringBuffer pe = new StringBuffer();
-        while (c != -1 && c != (int)'\n') {
+        final StringBuffer pe = new StringBuffer();
+        while (c != -1 && c != '\n') {
           pe.append((char) c);
           c = in.read();
         }
-        String line = pe.toString();
+        final String line = pe.toString();
         if ("NULL".equals(line)) {
           // Clear any previous entries
           if (isDefault) {
@@ -337,7 +349,7 @@ class PermissionInfoStorage {
           }
           try {
             in.close();
-          } catch (IOException ignore) { }
+          } catch (final IOException ignore) { }
           return;
         } else if ("".equals(line)) {
           // Correct end with double NL
@@ -353,18 +365,18 @@ class PermissionInfoStorage {
         throw new IOException("Garbage at end of file when parsing permission file: " + fh.getName());
       }
       in.close();
-      PermissionInfo[] pi = new PermissionInfo[piv.size()];
+      final PermissionInfo[] pi = new PermissionInfo[piv.size()];
       piv.toArray(pi);
       if (isDefault) {
         defaultPermissions = pi;
       } else {
         permissions.put(loc, new Element(pi));
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       if (in != null) {
         try {
           in.close();
-        } catch (IOException ignore) { }
+        } catch (final IOException ignore) { }
       }
       debug.printStackTrace("NYI! Report error", e);
     }
@@ -374,14 +386,14 @@ class PermissionInfoStorage {
    * Parse location data.
    */
   private String parseLocation(Reader in) throws IOException {
-    StringBuffer loc = new StringBuffer();
+    final StringBuffer loc = new StringBuffer();
     int c;
     // Read location
     while ((c = in.read()) != -1) {
-      char cc = (char)c;
+      final char cc = (char)c;
       if (cc == '\n') {
         c = in.read();
-        if (c != (int)' ') {
+        if (c != ' ') {
           break;
         }
       }
@@ -395,25 +407,25 @@ class PermissionInfoStorage {
    * Keep two latest version of permission data.
    */
   private void purge() {
-    HashMap foundTwo = new HashMap();
-    File[] files = PermUtil.getSortedFiles(permDir);
+    final HashMap<String, Boolean> foundTwo = new HashMap<String, Boolean>();
+    final File[] files = PermUtil.getSortedFiles(permDir);
     for (int i = files.length - 1; i >= 0; i--) {
       String loc;
       BufferedReader in = null;
       try {
         in = new BufferedReader(new FileReader(files[i]));
         loc = parseLocation(in);
-      } catch (IOException ignore) {
+      } catch (final IOException ignore) {
         files[i].delete();
         continue;
       } finally {
         if (in != null) {
           try {
             in.close();
-          } catch (IOException ignore) { }
+          } catch (final IOException ignore) { }
         }
       }
-      Boolean v = (Boolean)foundTwo.get(loc);
+      final Boolean v = foundTwo.get(loc);
       if (v != null) {
         if (v.booleanValue()) {
           files[i].delete();
@@ -429,7 +441,7 @@ class PermissionInfoStorage {
 
   static class Element {
     PermissionInfo[] pi;
-    ArrayList /* PermissionsWrapper */ invalidateCallback = null;
+    ArrayList /* PermissionsWrapper */<PermissionsWrapper> invalidateCallback = null;
 
     Element(PermissionInfo[] pi) {
       this.pi = pi;
