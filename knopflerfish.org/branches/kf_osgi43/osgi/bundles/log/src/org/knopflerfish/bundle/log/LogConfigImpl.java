@@ -498,14 +498,21 @@ class LogConfigImpl
   // (Re-)compute the cache bidFilters from blFilters and the current
   // set of bundles.
 
-  private void computeBidFilters() {
+  private void computeBidFilters()
+  {
+    // Use a temporary map to avoid holding lock during the computation.
+    Map<Long, Integer> bidFiltersTmp = new HashMap<Long, Integer>();
+
     final Bundle[] bundles = bc.getBundles();
+    for (int i = bundles.length - 1; 0 <= i; i--) {
+      final Bundle bundle = bundles[i];
+      computeBidFilter(bidFiltersTmp, bundle);
+    }
+
+    // Atomic update...
     synchronized (bidFilters) {
       bidFilters.clear();
-      for (int i = bundles.length - 1; 0 <= i; i--) {
-        final Bundle bundle = bundles[i];
-        computeBidFilter(bundle);
-      }
+      bidFilters.putAll(bidFiltersTmp);
     }
   }
 
@@ -513,13 +520,16 @@ class LogConfigImpl
    * Compute and cache a bidFilter entry from blFilters for the given
    * bundle.
    *
+   * @param bidFilters The bundle id to level map to cache the result in
    * @param bundle The bundle to update the cached log level for.
    */
-  private void computeBidFilter(final Bundle bundle) {
+  private void computeBidFilter(final Map<Long, Integer> bidFilters,
+                                final Bundle bundle)
+  {
     Integer level = blFilters.get(bundle.getLocation());
     if (null == level) {
       String l = getSymbolicName(bundle);
-      if (null==l || 0 == l.length()) {
+      if (null == l || 0 == l.length()) {
         l = (String) bundle.getHeaders("").get("Bundle-Name");
       }
 
@@ -529,7 +539,9 @@ class LogConfigImpl
     }
     if (null != level) {
       final Long key = new Long(bundle.getBundleId());
-      bidFilters.put(key, level);
+      synchronized (bidFilters) {
+        bidFilters.put(key, level);
+      }
     }
   }
 
@@ -566,9 +578,7 @@ class LogConfigImpl
     switch (event.getType()) {
       case BundleEvent.INSTALLED: // Fall through
       case BundleEvent.UPDATED:
-        synchronized (bidFilters) {
-          computeBidFilter(event.getBundle());
-        }
+        computeBidFilter(bidFilters, event.getBundle());
         break;
       case BundleEvent.UNINSTALLED:
         final Long key = new Long(event.getBundle().getBundleId());
