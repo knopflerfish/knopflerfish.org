@@ -124,7 +124,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
   /**
    * Set or create a Conditional Permission Info with a specified name.
    *
-   * If the specified name is <code>null</code>, a new Conditional
+   * If the specified name is {@code null}, a new Conditional
    * Permission Info must be created and will be given a unique, never reused
    * name. If there is currently no Conditional Permission Info with the
    * specified name, a new Conditional Permission Info must be created with
@@ -133,7 +133,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
    * Permissions.
    *
    * @param name The name of the Conditional Permission Info, or
-   *        <code>null</code>.
+   *        {@code null}.
    * @param conds The Conditions that need to be satisfied to enable the
    *        corresponding Permissions.
    * @param perms The Permissions that are enable when the corresponding

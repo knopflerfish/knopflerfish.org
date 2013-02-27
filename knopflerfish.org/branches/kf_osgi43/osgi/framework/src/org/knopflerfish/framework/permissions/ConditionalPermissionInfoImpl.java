@@ -379,8 +379,8 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
         }
       }
     }
-    final Condition[] conditions = conds.isEmpty()
-        ? null : conds.toArray(new Condition[conds.size()]);
+
+    final Condition[] conditions = conds.toArray(new Condition[conds.size()]);
 
     return new ConditionalPermission(conditions, getPermissions(), access, this);
   }

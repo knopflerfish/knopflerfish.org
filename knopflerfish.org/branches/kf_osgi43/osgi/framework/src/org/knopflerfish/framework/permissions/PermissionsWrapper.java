@@ -188,12 +188,12 @@ public class PermissionsWrapper extends PermissionCollection {
       if (p != null) {
         res = p.implies(permission);
         if (debug.permissions) {
-          debug.println(me + (res ? "OK" : "No") +  " framework permission for," + permission);
+          debug.println(me + (res ? "OK" : "No") +  " framework permission for, " + permission);
         }
       } else {
         res = conditionalPermissionImplies(permission);
         if (debug.permissions) {
-          debug.println(me + (res ? "OK" : "No") +  " conditional permission for," + permission);
+          debug.println(me + (res ? "OK" : "No") +  " conditional permission for, " + permission);
         }
       }
       return res;
