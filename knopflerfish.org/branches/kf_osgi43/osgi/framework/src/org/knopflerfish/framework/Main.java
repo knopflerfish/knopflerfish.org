@@ -51,7 +51,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -156,9 +155,9 @@ public class Main
 
   public Main() {
     try { // Set the initial verbosity level.
-      final String vpv = (String) System.getProperty(VERBOSITY_PROP);
+      final String vpv = System.getProperty(VERBOSITY_PROP);
       verbosity = Integer.parseInt(null==vpv ? VERBOSITY_DEFAULT: vpv);
-    } catch (Exception ignored) { }
+    } catch (final Exception ignored) { }
     populateSysProps();
   }
 
@@ -205,7 +204,7 @@ public class Main
     if (bZeroArgs) {// Add default xargs file to command line
       // To determine the fwdir we must process all -D/-F definitions
       // on the current command line.
-      String xargsPath = getDefaultXArgs();
+      final String xargsPath = getDefaultXArgs();
       if(xargsPath != null) {
         if (0==args.length) {
           args = new String[] {"-xargs", xargsPath};
@@ -232,7 +231,7 @@ public class Main
     if (val == null) {
       val = sysProps.get(XARGS_WRITESYSPROPS_PROP);
     }
-   
+
     println("writeSysProps? '" + val + "'", 2);
     return "true".equals(val);
   }
@@ -240,9 +239,9 @@ public class Main
 
   public FrameworkFactory getFrameworkFactory() {
     try {
-      String factoryS = new String(Util.readResource("/META-INF/services/org.osgi.framework.launch.FrameworkFactory"), "UTF-8");
+      final String factoryS = new String(Util.readResource("/META-INF/services/org.osgi.framework.launch.FrameworkFactory"), "UTF-8");
       String factoryClassName = FrameworkFactoryImpl.class.getName();
-      String[] w = Util.splitwords(factoryS, "\n\r");
+      final String[] w = Util.splitwords(factoryS, "\n\r");
       for(int i = 0; i < w.length; i++) {
         if(w[i].length() > 0 && !w[i].startsWith("#")) {
           factoryClassName = w[i].trim();
@@ -251,7 +250,7 @@ public class Main
       }
 
       return getFrameworkFactory(factoryClassName);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       error("failed to getFrameworkFactory", e);
       throw new RuntimeException("failed to getFrameworkFactory: " + e);
     }
@@ -261,11 +260,11 @@ public class Main
   public FrameworkFactory getFrameworkFactory(String factoryClassName) {
     try {
       println("getFrameworkFactory(" + factoryClassName + ")", 2);
-      Class<?> clazz = Class.forName(factoryClassName);
-      Constructor<?> cons  = clazz.getConstructor(new Class[] { });
-      FrameworkFactory ff = (FrameworkFactory) cons.newInstance(new Object[] { });
+      final Class<?> clazz = Class.forName(factoryClassName);
+      final Constructor<?> cons  = clazz.getConstructor(new Class[] { });
+      final FrameworkFactory ff = (FrameworkFactory) cons.newInstance(new Object[] { });
       return ff;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       error("failed to create " + factoryClassName, e);
       throw new RuntimeException("failed to create " + factoryClassName + ": " + e);
     }
@@ -279,11 +278,11 @@ public class Main
       jars = JARDIR_DEFAULT;
     }
 
-    String[] base = Util.splitwords(jars, ";");
+    final String[] base = Util.splitwords(jars, ";");
     for (int i=0; i<base.length; i++) {
       try {
         base[i] = new URL(base[i]).toString();
-      } catch (Exception ignored) {
+      } catch (final Exception ignored) {
       }
       println("jar base[" + i + "]=" + base[i], 3);
     }
@@ -309,7 +308,7 @@ public class Main
     final int ix = arg.indexOf("=");
     if(ix != -1) {
       final String key = arg.substring(2, ix);
-      String value = arg.substring(ix + 1);
+      final String value = arg.substring(ix + 1);
 
       println(prefix +key +"=" +value, 1);
       props.put(key,value);
@@ -320,13 +319,13 @@ public class Main
       if (VERBOSITY_PROP.equals(key)) {
         // redo this here since verbosity level may have changed
         try {
-          int old = verbosity;
+          final int old = verbosity;
           verbosity = Integer.parseInt( value.length()==0
                                         ? VERBOSITY_DEFAULT : value);
           if (old != verbosity) {
             println("Verbosity changed to "+verbosity, 1);
           }
-        } catch (Exception ignored) {}
+        } catch (final Exception ignored) {}
       }
     }
   }
@@ -370,7 +369,7 @@ public class Main
         } else if (saveStartLevel && i+1 < args.length && "-startlevel".equals(args[i])) {
           fwProps.put(Constants.FRAMEWORK_BEGINNING_STARTLEVEL, args[i+1]);
         }
-      } catch (Exception e) {
+      } catch (final Exception e) {
         e.printStackTrace(System.err);
         error("Command \"" +args[i] +"\" failed, " + e.getMessage());
       }
@@ -395,18 +394,17 @@ public class Main
 
       final File propsFile = new File(fwDir, Main.FWPROPS_XARGS);
       pr = new PrintWriter(new BufferedWriter(new FileWriter(propsFile)));
-      for (Iterator<Entry<String, String>> it = props.entrySet().iterator(); it.hasNext();) {
-        final Entry<String, String> entry = it.next();
+      for (final Entry<String, String> entry : props.entrySet()) {
         final String key   = entry.getKey();
         final String value = entry.getValue();
-        
+
         // Don't save clean onFirstInit
         if (!Constants.FRAMEWORK_STORAGE_CLEAN.equals(key) ||
             !Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT.equals(value)) {
           pr.println("-F" +key +"=" +value);
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if(e instanceof RuntimeException) {
         throw (RuntimeException)e;
       }
@@ -442,7 +440,7 @@ public class Main
         // Added it here since we can not save multiline properties.
         fwProps.put(BOOT_TEXT_PROP, bootText);
 
-      } catch (BundleException be) {
+      } catch (final BundleException be) {
         error("Failed to initialize the framework: " +be.getMessage(), be);
       }
       println("Framework class " + framework.getClass().getName(), 1);
@@ -548,11 +546,11 @@ public class Main
         } else if ("-shutdown".equals(args[i])) {
           if (i+1 < args.length) {
             i++;
-            long timeout = Long.parseLong(args[i]);
+            final long timeout = Long.parseLong(args[i]);
             try {
               if(framework != null) {
                 framework.stop();
-                FrameworkEvent stopEvent = framework.waitForStop(timeout);
+                final FrameworkEvent stopEvent = framework.waitForStop(timeout);
                 switch (stopEvent.getType()) {
                 case FrameworkEvent.STOPPED:
                   // FW terminated, Main is done!
@@ -581,7 +579,7 @@ public class Main
               } else {
                 throw new IllegalArgumentException("No framework to shutdown");
               }
-            } catch (Exception e) {
+            } catch (final Exception e) {
               error("Failed to shutdown", e);
             }
           } else {
@@ -593,7 +591,7 @@ public class Main
             try {
               println("Sleeping " + t + " seconds...", 0);
               Thread.sleep(t * 1000);
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
               error("Sleep interrupted.");
             }
             i++;
@@ -666,7 +664,7 @@ public class Main
           error("Unknown option: " + args[i] +
                 "\nUse option -help to see all options");
         }
-      } catch (BundleException e) {
+      } catch (final BundleException e) {
         final Throwable ne = e.getNestedException();
         if (ne != null) {
           e.getNestedException().printStackTrace(System.err);
@@ -678,7 +676,7 @@ public class Main
                " " + args[i+1] :
                "") +
               "\" failed, " + e.getMessage());
-      } catch (Exception e) {
+      } catch (final Exception e) {
         e.printStackTrace(System.err);
         error("Command \"" + args[i] +
               ((i+1 < args.length && !args[i+1].startsWith("-")) ?
@@ -694,8 +692,8 @@ public class Main
         bLaunched = doLaunch();
       } catch (Throwable t) {
         if (t instanceof BundleException) {
-          BundleException be = (BundleException) t;
-          Throwable ne = be.getNestedException();
+          final BundleException be = (BundleException) t;
+          final Throwable ne = be.getNestedException();
           if (ne != null) t = ne;
         }
         error("Framework launch failed, " + t.getMessage(), t);
@@ -727,7 +725,7 @@ public class Main
                 stopEvent.getThrowable());
           break;
         }
-      } catch (InterruptedException ie) { }
+      } catch (final InterruptedException ie) { }
     }
   }
 
@@ -741,7 +739,7 @@ public class Main
       try {
         b.stop(options);
         println("Stopped: ", b);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         error("Failed to stop", e);
       }
       i++;
@@ -796,9 +794,9 @@ public class Main
   private long getBundleID(Framework fw, String idLocation) {
     try {
       return Long.parseLong(idLocation);
-    } catch (NumberFormatException nfe) {
-      Bundle[] bl = fw.getBundleContext().getBundles();
-      String loc = completeLocation(idLocation);
+    } catch (final NumberFormatException nfe) {
+      final Bundle[] bl = fw.getBundleContext().getBundles();
+      final String loc = completeLocation(idLocation);
       for(int i = 0; bl != null && i < bl.length; i++) {
         if(loc.equals(bl[i].getLocation())) {
           return bl[i].getBundleId();
@@ -815,31 +813,31 @@ public class Main
    * @param location The location to be completed.
    */
   private String completeLocation(String location) {
-    String[] base = getJarBase();
+    final String[] base = getJarBase();
     // Handle file: case where topDir is not ""
     if(location.startsWith("file:jars/") && !topDir.equals("")) {
       location = ("file:" + topDir + "/" + location.substring(5)).replace('\\', '/');
       println("mangled bundle location to " + location, 2);
     }
-    int ic = location.indexOf(":");
+    final int ic = location.indexOf(":");
     if (ic<2 || ic>location.indexOf("/")) {
       println("location=" + location, 2);
       // URL without protocol complete it.
       for (int i=0; i<base.length; i++) {
         println("base[" + i + "]=" + base[i], 2);
         try {
-          URL url = new URL( new URL(base[i]), location );
+          final URL url = new URL( new URL(base[i]), location );
 
           println("check " + url, 2);
           if ("file".equals(url.getProtocol())) {
-            File f = new File(url.getFile()).getAbsoluteFile();
+            final File f = new File(url.getFile()).getAbsoluteFile();
             if (!f.exists() || !f.canRead()) {
               continue; // Noope; try next.
             }
           } else if ("http".equals(url.getProtocol())) {
-            HttpURLConnection uc = (HttpURLConnection) url.openConnection();
+            final HttpURLConnection uc = (HttpURLConnection) url.openConnection();
             uc.connect();
-            int rc = uc.getResponseCode();
+            final int rc = uc.getResponseCode();
             uc.disconnect();
             if (rc!=HttpURLConnection.HTTP_OK) {
               println("Can't access HTTP bundle: " + url + ", response code=" + rc, 0);
@@ -857,7 +855,7 @@ public class Main
           location = url.toString();
           println("found location=" + location, 5);
           break; // Found.
-        } catch (Exception _e) {
+        } catch (final Exception _e) {
         }
       }
     }
@@ -876,22 +874,22 @@ public class Main
    *         options have been expanded.
    */
   String[] expandArgs(String[] argv) {
-    List<String> v = new ArrayList<String>();
+    final List<String> v = new ArrayList<String>();
     int i = 0;
     while(i < argv.length) {
       if ("-xargs".equals(argv[i]) || "--xargs".equals(argv[i])) {
         // if "--xargs", ignore any load errors of xargs file
-        boolean bIgnoreException = argv[i].equals("--xargs");
+        final boolean bIgnoreException = argv[i].equals("--xargs");
         if (i+1 < argv.length) {
-          String   xargsPath = argv[i+1];
+          final String   xargsPath = argv[i+1];
           i++;
           try {
-            String[] moreArgs = loadArgs(xargsPath, argv);
-            String[] r = expandArgs(moreArgs);
-            for(int j = 0; j < r.length; j++) {
-              v.add(r[j]);
+            final String[] moreArgs = loadArgs(xargsPath, argv);
+            final String[] r = expandArgs(moreArgs);
+            for (final String element : r) {
+              v.add(element);
             }
-          } catch (RuntimeException e) {
+          } catch (final RuntimeException e) {
             if(bIgnoreException) {
               println("Failed to load -xargs " + xargsPath, 1, e);
             } else {
@@ -906,7 +904,7 @@ public class Main
       }
       i++;
     }
-    String[] r = new String[v.size()];
+    final String[] r = new String[v.size()];
 
     v.toArray(r);
     return r;
@@ -919,7 +917,7 @@ public class Main
   void printResource(String name) {
     try {
       System.out.println(new String(Util.readResource(name)));
-    } catch (Exception e) {
+    } catch (final Exception e) {
       System.out.println("No resource '" + name + "' available");
     }
   }
@@ -930,23 +928,23 @@ public class Main
    */
   void printJVMInfo(Framework framework) {
     try {
-      Properties props = System.getProperties();
+      final Properties props = System.getProperties();
       System.out.println("--- System properties ---");
-      for(Enumeration<?> e = props.keys(); e.hasMoreElements(); ) {
-        String key = (String) e.nextElement();
+      for(final Enumeration<?> e = props.keys(); e.hasMoreElements(); ) {
+        final String key = (String) e.nextElement();
         System.out.println(key + ": " + props.get(key));
       }
 
       System.out.println("\n");
       System.out.println("--- Framework properties ---");
 
-      String keyStr = framework.getBundleContext().getProperty("org.knopflerfish.framework.bundleprops.keys");
-      String[] keys = Util.splitwords(keyStr != null ? keyStr : "", ",");
+      final String keyStr = framework.getBundleContext().getProperty("org.knopflerfish.framework.bundleprops.keys");
+      final String[] keys = Util.splitwords(keyStr != null ? keyStr : "", ",");
 
-      for(int i = 0; i < keys.length; i++) {
-        System.out.println(keys[i] + ": " + framework.getBundleContext().getProperty(keys[i]));
+      for (final String key : keys) {
+        System.out.println(key + ": " + framework.getBundleContext().getProperty(key));
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -967,9 +965,9 @@ public class Main
     boolean bInit = Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
       .equals(fwProps.get(Constants.FRAMEWORK_STORAGE_CLEAN));
 
-    String fwDirStr = Util.getFrameworkDir(fwProps);
+    final String fwDirStr = Util.getFrameworkDir(fwProps);
     // avoid getAbsoluteFile since some profiles don't have this
-    File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
+    final File fwDir      = new File(new File(fwDirStr).getAbsolutePath());
     println("fwdir is " + fwDir, 1);
 
     if (!bInit) { // Implicit init needed?
@@ -979,22 +977,22 @@ public class Main
     println("init is "  +bInit, 2);
 
     // avoid getParentFile since some profiles don't have this
-    String defDirStr = fwDir.getParent();
-    File   defDir    = defDirStr != null ? new File(defDirStr) : null;
+    final String defDirStr = fwDir.getParent();
+    final File   defDir    = defDirStr != null ? new File(defDirStr) : null;
 
-    File   cwDir = new File(new File("").getAbsolutePath());
+    final File   cwDir = new File(new File("").getAbsolutePath());
 
     println("defDir=" +defDir, 5);
     println("cwDir="  +cwDir, 5);
 
-    File[] dirs = null!=defDir ?
+    final File[] dirs = null!=defDir ?
       new File[]{ fwDir, defDir, cwDir } : new File[]{ fwDir, cwDir };
 
     // Determine the root OSGi dir, a.k.a. topDir
-    for (int i = 0; i<dirs.length; i++) {
-      final File jarsDir = new File(dirs[i],"jars");
+    for (final File dir : dirs) {
+      final File jarsDir = new File(dir,"jars");
       if (jarsDir.exists() && jarsDir.isDirectory()) {
-        topDir = dirs[i].getAbsolutePath();
+        topDir = dir.getAbsolutePath();
         break;
       }
     }
@@ -1012,7 +1010,7 @@ public class Main
     xargsSearch:
     for (int i = 0; i<dirs.length; i++) {
       for (int k = 0; k<xargNames.length; k++) {
-        File xargsFile = new File(dirs[i], xargNames[k]);
+        final File xargsFile = new File(dirs[i], xargNames[k]);
         println("  trying " +xargsFile.getAbsolutePath(), 5);
         if (xargsFile.exists()) {
           xargsFound = xargsFile.getAbsolutePath();
@@ -1038,8 +1036,7 @@ public class Main
    * @see defaultSysProps
    */
   protected void addDefaultProps() {
-    for(Iterator<Entry<String, String>> it = defaultFwProps.entrySet().iterator(); it.hasNext();) {
-      final Entry<String, String> entry = it.next();
+    for (final Entry<String, String> entry : defaultFwProps.entrySet()) {
       final String key = entry.getKey();
       if(!fwProps.containsKey(key)) {
         final String val = entry.getValue();
@@ -1065,29 +1062,29 @@ public class Main
     if(!(jars == null || "".equals(jars))) {
       println("old jars=" + jars, 1);
     } else {
-      String jarBaseDir = topDir + File.separator + "jars";
+      final String jarBaseDir = topDir + File.separator + "jars";
       println("jarBaseDir=" + jarBaseDir, 2);
 
       // avoid getAbsoluteFile since some profiles don't have this
-      File jarDir = new File(new File(jarBaseDir).getAbsolutePath());
+      final File jarDir = new File(new File(jarBaseDir).getAbsolutePath());
       if(jarDir.exists() && jarDir.isDirectory()) {
 
         // avoid FileNameFilter since some profiles don't have it
-        String [] names = jarDir.list();
-        List<String> v = new ArrayList<String>();
-        for(int i = 0; i < names.length; i++) {
-          File f = new File(jarDir, names[i]);
+        final String [] names = jarDir.list();
+        final List<String> v = new ArrayList<String>();
+        for (final String name : names) {
+          final File f = new File(jarDir, name);
           if(f.isDirectory()) {
-            v.add(names[i]);
+            v.add(name);
           }
         }
-        String [] subdirs = new String[v.size()];
+        final String [] subdirs = new String[v.size()];
         v.toArray(subdirs);
 
-        StringBuffer sb = new StringBuffer();
+        final StringBuffer sb = new StringBuffer();
         sb.append("file:" + jarBaseDir + "/");
-        for(int i = 0; i < subdirs.length; i++) {
-          sb.append(";file:" + jarBaseDir + "/" + subdirs[i] + "/");
+        for (final String subdir : subdirs) {
+          sb.append(";file:" + jarBaseDir + "/" + subdir + "/");
         }
         jars = sb.toString().replace('\\', '/');
         fwProps.put(JARDIR_PROP, jars);
@@ -1113,7 +1110,7 @@ public class Main
           saveStartLevel = false;
         }
         println("Initial system property: " +name +"=" +value, 3);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         println("Failed to process system property: " +e, 1, e);
       }
     }
@@ -1174,8 +1171,7 @@ public class Main
   {
     Map<String, String> all = null;
 
-    for (Iterator<Entry<String, String>> eit = toExpand.entrySet().iterator(); eit.hasNext();) {
-      final Entry<String, String> entry = eit.next();
+    for (final Entry<String, String> entry : toExpand.entrySet()) {
       String value = entry.getValue();
 
       if(-1 != value.indexOf("${")) {
@@ -1186,8 +1182,7 @@ public class Main
           }
           all.putAll(toExpand);
         }
-        for(Iterator<Entry<String, String>> it = all.entrySet().iterator(); it.hasNext();) {
-          final Entry<String, String> allEntry = it.next();
+        for (final Entry<String, String> allEntry : all.entrySet()) {
           final String rk = "${" + allEntry.getKey() + "}";
           final String rv = allEntry.getValue();
           value = Util.replace(value, rk, rv);
@@ -1214,12 +1209,12 @@ public class Main
     if (0==args.size()) {
       args.add(arg);
     } else {
-      String lastArg = args.get(args.size()-1);
+      final String lastArg = args.get(args.size()-1);
       if ("-xargs".equals(lastArg) || "--xargs".equals(lastArg)) {
-        String[] exArgs = expandArgs( new String[]{ lastArg, arg } );
+        final String[] exArgs = expandArgs( new String[]{ lastArg, arg } );
         args.remove(args.size()-1);
-        for (int i=0; i<exArgs.length; i++) {
-          args.add(exArgs[i]);
+        for (final String exArg : exArgs) {
+          args.add(exArg);
         }
       } else {
         args.add(arg);
@@ -1321,7 +1316,7 @@ public class Main
           final URL url = new URL(xargsPath);
           println("Loading xargs url " + url, 0);
           in = new BufferedReader(new InputStreamReader(url.openStream()));
-        } catch (MalformedURLException e)  {
+        } catch (final MalformedURLException e)  {
           throw new IllegalArgumentException("Bad xargs URL " + xargsPath +
                                              ": " + e);
         }
@@ -1370,7 +1365,7 @@ public class Main
           // Ignore comments
         } else if(line.startsWith("-")) {
           // Split command that contains a ' ' int two args
-          int i = line.indexOf(' ');
+          final int i = line.indexOf(' ');
           if (i != -1) {
             addArg(v, line.substring(0,i));
             line = line.substring(i).trim();
@@ -1390,7 +1385,7 @@ public class Main
       // source for all code, including the framework itself.
       // framework.props.setProperties(sysProps);
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if(e instanceof RuntimeException) {
         throw (RuntimeException)e;
       }
@@ -1399,7 +1394,7 @@ public class Main
       if (null!=in) {
         try {
           in.close();
-        } catch (IOException ignore) { }
+        } catch (final IOException ignore) { }
       }
     }
 
@@ -1425,7 +1420,7 @@ public class Main
                                                              (Class[]) null);
         closeMethod.invoke(splashScreen, (Object[]) null);
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // Ignore any error.
       println("close splash screen: ", 6, e);
     }
