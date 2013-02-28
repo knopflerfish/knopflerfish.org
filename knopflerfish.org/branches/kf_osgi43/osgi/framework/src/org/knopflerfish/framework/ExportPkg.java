@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -382,7 +383,7 @@ class ExportPkg
       res.put(entry.getKey(), entry.getValue());
     }
 
-    return res;
+    return Collections.unmodifiableMap(res);
   }
 
 
