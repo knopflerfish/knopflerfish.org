@@ -391,6 +391,7 @@ public class Activator
       ClosureHTMLDisplayer.class.getName(),
       ServiceHTMLDisplayer.class.getName(),
       PackageHTMLDisplayer.class.getName(),
+      WiringHTMLDisplayer.class.getName(),
       SCRHTMLDisplayer.class.getName(),
       LogDisplayer.class.getName(),
       EventDisplayer.class.getName(),
