@@ -106,7 +106,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       final List<BundleWire> pws = bw.getProvidedWires(null);
       if (pws != null) { // is null when bundle wiring not in use!
-        sb.append("<b>Provided Wires</b><br>");
+        sb.append("<b>Provided Capabilities and Wired Requireing Bundles</b><br>");
 
         groupWiresOnNameSpace(nswMap, pws);
 
@@ -117,7 +117,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
           sb.append("</em>:<br>");
 
           if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
-            appendExportPackages(sb, entry.getValue());
+            appendProvidedCapabilitesPackage(sb, entry.getValue());
           } else if ("osgi.ee".equals(nameSpace)) {
             appendProvidedCapabilitiesEE(sb, entry.getValue());
           } else {
@@ -131,7 +131,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       final List<BundleWire> rws = bw.getRequiredWires(null);
       if (rws != null) { // is null when bundle wiring not in use!
-        sb.append("<b>Required Wires</b><br>");
+        sb.append("<b>Required Capabilities and Wired Providing Bundles</b><br>");
 
         nswMap.clear();
         groupWiresOnNameSpace(nswMap, rws);
@@ -181,55 +181,43 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     private void appendProvidedCapabilityGeneric(final StringBuffer sb,
                                                  final List<BundleWire> wires)
     {
-      for (final BundleWire w : wires) {
-        final BundleCapability cap = w.getCapability();
+      // Mapping from capability title to (string) to requesters (strings)
+      final Map<String,List<String>> cap2requesters
+        = new TreeMap<String, List<String>>();
 
-        sb.append("&nbsp;&nbsp;");
-        sb.append(cap.getAttributes());
-        sb.append("<br>");
-
-        final BundleWiring rbw = w.getRequirerWiring();
-        final BundleRevision rbr = rbw.getRevision();
-        final Bundle rb = rbr.getBundle();
-        sb.append("&nbsp;&nbsp;");
-        Util.bundleLink(sb, rb);
-        sb.append("<br>");
-      }
+      final WireFormatter wf = new WireFormatter(wires);
+      wf.providedCapabilitiesView(cap2requesters);
+      appendCapabilityInfo(sb, cap2requesters);
     }
 
     private void appendProvidedCapabilitiesEE(StringBuffer sb,
                                               List<BundleWire> wires)
     {
-      // Mapping from provided EE name and version string to requester strings
-      final Map<String,List<String>> ees = new TreeMap<String, List<String>>();
-      final StringBuffer sb1 = new StringBuffer(50);
-      for (final BundleWire w : wires) {
-        final BundleCapability cap = w.getCapability();
-        final Map<String,Object> attrs
-          = new TreeMap<String, Object>(cap.getAttributes());
-        final String eeName = (String) attrs.remove("osgi.ee");
-        @SuppressWarnings("unchecked")
-        final List<Version> versions = (List<Version>) attrs.remove(Constants.VERSION_ATTRIBUTE);
+      // Mapping from capability title to (string) to requesters (strings)
+      final Map<String,List<String>> cap2requesters
+        = new TreeMap<String, List<String>>();
 
-        sb1.setLength(0);
-        appendFormatedPackage(sb1, eeName, versions.toString(), attrs);
-        final String key = sb1.toString();
+      final WireFormatter wf = new WireFormatterEE(wires);
+      wf.providedCapabilitiesView(cap2requesters);
+      appendCapabilityInfo(sb, cap2requesters);
+    }
 
-        sb1.setLength(0);
-        final BundleWiring rbw = w.getRequirerWiring();
-        final BundleRevision rbr = rbw.getRevision();
-        final Bundle rb = rbr.getBundle();
-        Util.bundleLink(sb1, rb);
+    /**
+     * Append information about the provider side of the given wires
+     * representing exported packages.
+     *
+     * @param sb Output buffer.
+     * @param wires The set of package wires to present.
+     */
+    private void appendProvidedCapabilitesPackage(StringBuffer sb, List<BundleWire> wires)
+    {
+      // Mapping from capability title to (string) to requesters (strings)
+      final Map<String,List<String>> cap2requesters
+        = new TreeMap<String, List<String>>();
 
-        List<String> requireingBundles = ees.get(key);
-        if (requireingBundles==null) {
-          requireingBundles = new ArrayList<String>();
-          ees.put(key, requireingBundles);
-        }
-        requireingBundles.add(sb1.toString());
-      }
-
-      appendPackages(sb, ees);
+      final WireFormatter wf = new WireFormatterPackage(wires);
+      wf.providedCapabilitiesView(cap2requesters);
+      appendCapabilityInfo(sb, cap2requesters);
     }
 
     /**
@@ -241,96 +229,25 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     private void appendRequiredCapabilityGeneric(final StringBuffer sb,
                                                  final List<BundleWire> wires)
     {
-      for (final BundleWire w : wires) {
-        final BundleCapability cap = w.getCapability();
+      // Mapping from capability title to (string) to provider (strings)
+      final Map<String,List<String>> cap2providers
+        = new TreeMap<String, List<String>>();
 
-        sb.append("&nbsp;&nbsp;");
-        sb.append(cap.getAttributes());
-        sb.append("<br>");
-
-        final BundleWiring pbw = w.getProviderWiring();
-        final BundleRevision pbr = pbw.getRevision();
-        final Bundle pb = pbr.getBundle();
-        sb.append("&nbsp;&nbsp;");
-        Util.bundleLink(sb, pb);
-        sb.append("<br>");
-      }
+      final WireFormatter wf = new WireFormatter(wires);
+      wf.requiredCapabilitiesView(cap2providers);
+      appendCapabilityInfo(sb, cap2providers);
     }
 
     private void appendRequiredCapabilitiesEE(StringBuffer sb,
                                               List<BundleWire> wires)
     {
-      // Mapping from required EE name and version string to provided EE strings
-      final Map<String,List<String>> reqEEs = new TreeMap<String, List<String>>();
-      final StringBuffer sb1 = new StringBuffer(50);
-      for (final BundleWire w : wires) {
-        final BundleCapability cap = w.getCapability();
-        final Map<String,Object> attrs
-          = new TreeMap<String, Object>(cap.getAttributes());
-        final String eeName = (String) attrs.remove("osgi.ee");
-        @SuppressWarnings("unchecked")
-        final List<Version> versions = (List<Version>) attrs.remove(Constants.VERSION_ATTRIBUTE);
+      // Mapping from capability title to (string) to provider (strings)
+      final Map<String,List<String>> cap2providers
+        = new TreeMap<String, List<String>>();
 
-        sb1.setLength(0);
-        appendFormatedPackage(sb1, eeName, versions.toString(), attrs);
-        final String expKey = sb1.toString();
-
-        sb1.setLength(0);
-        final BundleWiring pbw = w.getProviderWiring();
-        final BundleRevision pbr = pbw.getRevision();
-        final Bundle pb = pbr.getBundle();
-        Util.bundleLink(sb1, pb);
-
-        List<String> exporters = reqEEs.get(expKey);
-        if (exporters==null) {
-          exporters = new ArrayList<String>();
-          reqEEs.put(expKey, exporters);
-        }
-        exporters.add(sb1.toString());
-      }
-
-      appendPackages(sb, reqEEs);
-    }
-
-    /**
-     * Append information about the provider side of the given wires.
-     *
-     * @param sb Output buffer.
-     * @param wires The set of wires to present.
-     */
-    private void appendExportPackages(StringBuffer sb, List<BundleWire> wires)
-    {
-      // Mapping from exported package name and version string to importer strings
-      final Map<String,List<String>> exports = new TreeMap<String, List<String>>();
-      final StringBuffer sb1 = new StringBuffer(50);
-      for (final BundleWire w : wires) {
-        final BundleCapability cap = w.getCapability();
-        final Map<String,Object> attrs
-          = new TreeMap<String, Object>(cap.getAttributes());
-        final String pkg = (String) attrs.remove(BundleRevision.PACKAGE_NAMESPACE);
-        final Version version = (Version) attrs.remove(Constants.VERSION_ATTRIBUTE);
-        attrs.remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
-        attrs.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
-
-        sb1.setLength(0);
-        appendFormatedPackage(sb1, pkg, version.toString(), attrs);
-        final String expKey = sb1.toString();
-
-        sb1.setLength(0);
-        final BundleWiring rbw = w.getRequirerWiring();
-        final BundleRevision rbr = rbw.getRevision();
-        final Bundle rb = rbr.getBundle();
-        Util.bundleLink(sb1, rb);
-
-        List<String> importers = exports.get(expKey);
-        if (importers==null) {
-          importers = new ArrayList<String>();
-          exports.put(expKey, importers);
-        }
-        importers.add(sb1.toString());
-      }
-
-      appendPackages(sb, exports);
+      final WireFormatter wf = new WireFormatterEE(wires);
+      wf.requiredCapabilitiesView(cap2providers);
+      appendCapabilityInfo(sb, cap2providers);
     }
 
     /**
@@ -341,50 +258,58 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
      */
     private void appendImportPackages(StringBuffer sb, List<BundleWire> wires)
     {
-      // Mapping from imported package name and version string to exporter strings
-      final Map<String,List<String>> imports = new TreeMap<String, List<String>>();
-      final StringBuffer sb1 = new StringBuffer(50);
-      for (final BundleWire w : wires) {
-        final BundleCapability cap = w.getCapability();
-        final Map<String,Object> attrs
-          = new TreeMap<String, Object>(cap.getAttributes());
-        final String pkg = (String) attrs.remove(BundleRevision.PACKAGE_NAMESPACE);
-        final Version version = (Version) attrs.remove(Constants.VERSION_ATTRIBUTE);
-        attrs.remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
-        attrs.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+      // Mapping from capability title to (string) to provider (strings)
+      final Map<String,List<String>> cap2providers
+        = new TreeMap<String, List<String>>();
 
-        sb1.setLength(0);
-        appendFormatedPackage(sb1, pkg, version.toString(), attrs);
-        final String expKey = sb1.toString();
-
-        sb1.setLength(0);
-        final BundleWiring pbw = w.getProviderWiring();
-        final BundleRevision pbr = pbw.getRevision();
-        final Bundle pb = pbr.getBundle();
-        Util.bundleLink(sb1, pb);
-
-        List<String> exporters = imports.get(expKey);
-        if (exporters==null) {
-          exporters = new ArrayList<String>();
-          imports.put(expKey, exporters);
-        }
-        exporters.add(sb1.toString());
-      }
-
-      appendPackages(sb, imports);
+      final WireFormatter wf = new WireFormatterPackage(wires);
+      wf.requiredCapabilitiesView(cap2providers);
+      appendCapabilityInfo(sb, cap2providers);
     }
 
     /**
-     * Appends a formated string for the given package to the output buffer.
-     * @param sb Output buffer.
-     * @param pkg Name of the package.
-     * @param version Version of the package.
-     * @param attrs Other attributes for the package.
+     * Appends data for provided or required capabilities to the output buffer.
+     * @param sb The output buffer.
+     * @param pkgInfos Map with the pre-formated capability information to output.
      */
-    private void appendFormatedPackage(StringBuffer sb,
-                                       String pkg,
-                                       String version,
-                                       Map<String, Object> attrs)
+    private void appendCapabilityInfo(StringBuffer sb,
+                                      final Map<String, List<String>> pkgInfos)
+    {
+      for (final Entry<String,List<String>> pkgInfo : pkgInfos.entrySet()) {
+        sb.append("&nbsp;&nbsp;");
+        sb.append(pkgInfo.getKey());
+        sb.append("<br>");
+        for (final String user : pkgInfo.getValue()) {
+          sb.append("&nbsp;&nbsp;&nbsp;&nbsp;");
+          sb.append(user);
+          sb.append("<br>");
+        }
+      }
+    }
+
+  }
+
+  static private class WireFormatter {
+    // All wires shall belong to the same name-space.
+    final List<BundleWire> wires;
+
+    /**
+     * Appends a formated string for the given package to the output buffer.
+     *
+     * @param sb
+     *          Output buffer.
+     * @param pkg
+     *          Name of the package.
+     * @param version
+     *          Version of the package.
+     * @param attrs
+     *          Other attributes for the package.
+     */
+    static void appendFormatedPackage(final StringBuffer sb,
+                                      final String pkg,
+                                      final String version,
+                                      final Map<String, Object> attrs,
+                                      final String extra)
     {
       sb.append("<font color=\"#444444\">");
       sb.append(pkg);
@@ -394,30 +319,158 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append("&nbsp;");
         sb.append(attrs);
       }
+      if (extra!=null) {
+        sb.append(extra);
+      }
       sb.append("</font>");
     }
 
-  }
+    /**
+     * Creates a wire formatter for a name-space.
+     * @param wires all the wires in the list must belong to capabilities in
+     *              the same name-space.
+     */
+    WireFormatter(final List<BundleWire> wires)
+    {
+      this.wires = wires;
+    }
 
+    /**
+     * Get a HTML-formated presentation string for the capability described by
+     * the given {@code attrs} map.
+     * @param bundleWiring  the bundle wiring of the provider of this capability.
+     * @param attrs capability attributes.
+     * @return
+     */
+    String getCapName(BundleWiring bundleWiring, Map<String, Object> attrs)
+    {
+      final StringBuffer sb = new StringBuffer(50);
+      sb.append(attrs);
+      if (!bundleWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
 
-  /**
-   * Appends data for provided or required packages to the output buffer.
-   * @param sb The output buffer.
-   * @param pkgInfos Map with the pre-formated package information to output.
-   */
-  private void appendPackages(StringBuffer sb,
-                              final Map<String, List<String>> pkgInfos)
-  {
-    for (final Entry<String,List<String>> pkgInfo : pkgInfos.entrySet()) {
-      sb.append("&nbsp;&nbsp;");
-      sb.append(pkgInfo.getKey());
-      sb.append("<br>");
-      for (final String user : pkgInfo.getValue()) {
-        sb.append("&nbsp;&nbsp;&nbsp;&nbsp;");
-        sb.append(user);
-        sb.append("<br>");
+      return sb.toString();
+    }
+
+    /**
+     * Get a HTML-formated presentation string for the owner of a wiring.
+     * E.g., for the provide or requester of a capability.
+     *
+     * @return bundle name as a bundle selection link.
+     */
+    String getWiringName(BundleWiring bw) {
+      final BundleRevision br = bw.getRevision();
+      final Bundle b = br.getBundle();
+      final StringBuffer sb = new StringBuffer(50);
+      Util.bundleLink(sb, b);
+      return sb.toString();
+    }
+
+    /**
+     * Group wires related to the same capability and build a map with the title
+     * for the capability as the key and a list with one entry for each wired
+     * requester of the capability as the value.
+     *
+     * @param cap2requesters map to return the result in.
+     */
+    final void providedCapabilitiesView(Map<String, List<String>> cap2requesters)
+    {
+      for (final BundleWire w : wires) {
+        final BundleCapability cap = w.getCapability();
+        final Map<String,Object> attrs
+          = new TreeMap<String, Object>(cap.getAttributes());
+
+        final String capName = getCapName(w.getProviderWiring(), attrs);
+
+        final BundleWiring bw = w.getRequirerWiring();
+        final String wName = getWiringName(bw);
+
+        List<String> requesters = cap2requesters.get(capName);
+        if (requesters==null) {
+          requesters = new ArrayList<String>();
+          cap2requesters.put(capName, requesters);
+        }
+        requesters.add(wName);
       }
     }
+
+    final void requiredCapabilitiesView(Map<String, List<String>> cap2providers)
+    {
+      for (final BundleWire w : wires) {
+        final BundleCapability cap = w.getCapability();
+        final Map<String,Object> attrs
+          = new TreeMap<String, Object>(cap.getAttributes());
+
+        final String capName = getCapName(w.getProviderWiring(), attrs);
+
+        final BundleWiring bw = w.getProviderWiring();
+        final String wName = getWiringName(bw);
+
+        List<String> providers = cap2providers.get(capName);
+        if (providers==null) {
+          providers = new ArrayList<String>();
+          cap2providers.put(capName, providers);
+        }
+        providers.add(wName);
+      }
+    }
+
   }
 
+
+  static private class WireFormatterEE extends WireFormatter
+  {
+
+    WireFormatterEE(final List<BundleWire> wires)
+    {
+      super(wires);
+    }
+
+    @Override
+    String getCapName(BundleWiring bundleWiring, Map<String, Object> attrs)
+    {
+      final String eeName = (String) attrs.remove("osgi.ee");
+      @SuppressWarnings("unchecked")
+      final List<Version> versions = (List<Version>) attrs
+          .remove(Constants.VERSION_ATTRIBUTE);
+
+      final StringBuffer sb = new StringBuffer(50);
+      final String extra = bundleWiring.isCurrent() ? (String) null
+          : "&nbsp;<i>pending removal on refresh</i>";
+      appendFormatedPackage(sb, eeName, versions.toString(), attrs, extra);
+
+      return sb.toString();
+    }
+
+  }
+
+
+  static private class WireFormatterPackage extends WireFormatter
+  {
+
+    WireFormatterPackage(final List<BundleWire> wires)
+    {
+      super(wires);
+    }
+
+    @Override
+    String getCapName(BundleWiring bundleWiring, Map<String, Object> attrs)
+    {
+      final String pkg = (String) attrs
+          .remove(BundleRevision.PACKAGE_NAMESPACE);
+      final Version version = (Version) attrs
+          .remove(Constants.VERSION_ATTRIBUTE);
+      attrs.remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
+      attrs.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+
+      final StringBuffer sb = new StringBuffer(50);
+      final String extra = bundleWiring.isCurrent() ? (String) null
+          : "&nbsp;<i>pending removal on refresh</i>";
+      appendFormatedPackage(sb, pkg, version.toString(), attrs, extra);
+
+      return sb.toString();
+    }
+
+  }
 }

@@ -77,7 +77,7 @@ public class PackageManager  {
   final Object lock = new Object();
 
   public PackageAdmin getPackageAdmin() {
-    return (PackageAdmin) pkgTracker.getService();
+    return pkgTracker.getService();
   }
 
   static final Bundle[] EMPTY_BUNDLES = new Bundle[0];
@@ -137,8 +137,7 @@ public class PackageManager  {
         Collection<ExportedPackage> okSet  = getImportedPackages(b);
 
         // Remove wired imports
-        for(Iterator<ExportedPackage> it = okSet.iterator(); it.hasNext(); ) {
-          final ExportedPackage pkg = it.next();
+        for (final ExportedPackage pkg : okSet) {
           missing.remove(pkg.getName());
         }
 
@@ -146,8 +145,7 @@ public class PackageManager  {
         // imports from the current classloader will not have any
         // wires)
         okSet = getExportedPackages(b);
-        for(Iterator<ExportedPackage> it = okSet.iterator(); it.hasNext(); ) {
-          final ExportedPackage pkg = it.next();
+        for (final ExportedPackage pkg : okSet) {
           missing.remove(pkg.getName());
         }
 
@@ -181,7 +179,7 @@ public class PackageManager  {
           final List<String> pkgs = (List<String>) entry.get("$keys");
           res.addAll(pkgs);
         }
-      } catch (IllegalArgumentException iae) {
+      } catch (final IllegalArgumentException iae) {
       }
     }
     return res;
@@ -194,7 +192,7 @@ public class PackageManager  {
       if(r == null) {
         r = new TreeSet<ExportedPackage>(pkgComparator);
         final PackageAdmin pkgAdmin = getPackageAdmin();
-        ExportedPackage[] pkgs = null!=pkgAdmin
+        final ExportedPackage[] pkgs = null!=pkgAdmin
           ? pkgAdmin.getExportedPackages(b) : null;
         for(int i = 0; pkgs != null && i < pkgs.length; i++) {
           if(accept(pkgs[i])) {
@@ -210,8 +208,7 @@ public class PackageManager  {
   public boolean isWired(final String pkgName, final Bundle b)
   {
     final Collection<ExportedPackage> pkgs = getImportedPackages(b);
-    for (Iterator<ExportedPackage> it = pkgs.iterator(); it.hasNext(); ) {
-      final ExportedPackage epkg = it.next();
+    for (final ExportedPackage epkg : pkgs) {
       if (pkgName.equals(epkg.getName())) {
         return true;
       }
@@ -243,7 +240,7 @@ public class PackageManager  {
 
   public static class NoCommonPackagesFilter implements PackageFilter {
     public boolean accept(final ExportedPackage pkg) {
-      String name = pkg.getName();
+      final String name = pkg.getName();
       if(name.startsWith("org.eclipse.swt.")) {
         return false;
       }
@@ -289,8 +286,11 @@ public class PackageManager  {
         for(int i = 0; pkgs != null && i < pkgs.length; i++) {
 
           if(accept(pkgs[i])) {
-            Bundle   fromB = pkgs[i].getExportingBundle();
-            if (null==fromB) continue; // Ignore STALE epkgs
+            final Bundle   fromB = pkgs[i].getExportingBundle();
+            if (null==fromB)
+             {
+              continue; // Ignore STALE epkgs
+            }
 
             Collection<ExportedPackage> r = bundleExports.get(fromB);
             if(r == null) {
@@ -301,7 +301,7 @@ public class PackageManager  {
               r.add(pkgs[i]);
             }
 
-            Bundle[] bl    = pkgs[i].getImportingBundles();
+            final Bundle[] bl    = pkgs[i].getImportingBundles();
             for(int j = 0; bl != null && j < bl.length; j++) {
               if (isBundleRequiredBy(rbl, fromB, bl[j])) {
                 Set<ExportedPackage> reqs = bundleReqs.get(bl[j]);
@@ -343,12 +343,20 @@ public class PackageManager  {
   {
     final RequiredBundle rb = getRequiredBundle(rbl, requiredBundle);
 
+    try {
     final Bundle[] requiringBundles
       = rb!=null ? rb.getRequiringBundles() : null;
     for (int j=0; requiringBundles!=null && j<requiringBundles.length;j++){
       if (requiringBundles[j].getBundleId()==requiringBundle.getBundleId()){
         return true;
       }
+    }
+    } catch (final NullPointerException npe) {
+      // Thrown by equinox 3.8 after an update; ignore it.
+      // java.lang.NullPointerException
+      //  at org.eclipse.osgi.internal.loader.BundleLoaderProxy.addRequirers(BundleLoaderProxy.java:142)
+      //  at org.eclipse.osgi.internal.loader.BundleLoaderProxy.getRequiringBundles(BundleLoaderProxy.java:129)
+      //  at org.knopflerfish.bundle.desktop.swing.PackageManager.isBundleRequiredBy(PackageManager.java:346)
     }
     return false;
   }
@@ -389,24 +397,35 @@ public class PackageManager  {
     {
       // First package name
       int res = ep1.getName().compareTo(ep2.getName());
-      if (0!=res) return res;
+      if (0!=res) {
+        return res;
+      }
 
       // Then package version
       res = ep1.getVersion().compareTo(ep2.getVersion());
-      if (0!=res) return res;
+      if (0!=res) {
+        return res;
+      }
 
       // Then pending removal
-      if (ep1.isRemovalPending() && !ep2.isRemovalPending()) return -1;
-      if (!ep1.isRemovalPending() && ep2.isRemovalPending()) return 1;
+      if (ep1.isRemovalPending() && !ep2.isRemovalPending()) {
+        return -1;
+      }
+      if (!ep1.isRemovalPending() && ep2.isRemovalPending()) {
+        return 1;
+      }
 
       // Then number of importing bundles
       res = ep2.getImportingBundles().length - ep1.getImportingBundles().length;
-      if (0!=res) return res;
+      if (0!=res) {
+        return res;
+      }
 
       // Finally object identity (hashCode is the closest approximation)
       res = ep2.hashCode() - ep1.hashCode();
       return res;
     }
+    @Override
     public boolean equals(Object o)
     {
       return o instanceof ExportedPackageComparator;
