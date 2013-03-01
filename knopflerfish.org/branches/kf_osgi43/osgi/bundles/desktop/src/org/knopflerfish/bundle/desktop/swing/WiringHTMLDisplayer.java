@@ -35,10 +35,13 @@ package org.knopflerfish.bundle.desktop.swing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import javax.swing.JComponent;
 
@@ -47,6 +50,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
@@ -109,6 +113,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append("<b>Provided Capabilities and Wired Requireing Bundles</b><br>");
 
         groupWiresOnNameSpace(nswMap, pws);
+        addNameSpaceForDeclaredCapabilities(nswMap, bw.getCapabilities(null));
 
         for (final Entry<String, List<BundleWire>> entry : nswMap.entrySet()) {
           final String nameSpace = entry.getKey();
@@ -117,11 +122,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
           sb.append("</em>:<br>");
 
           if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
-            appendProvidedCapabilitesPackage(sb, entry.getValue());
+            appendProvidedCapabilitesPackage(sb, entry.getValue(), bw);
           } else if ("osgi.ee".equals(nameSpace)) {
-            appendProvidedCapabilitiesEE(sb, entry.getValue());
+            appendProvidedCapabilitiesEE(sb, entry.getValue(), bw);
           } else {
-            appendProvidedCapabilityGeneric(sb, entry.getValue());
+            appendProvidedCapabilityGeneric(sb, nameSpace, entry.getValue(), bw);
           }
         }
         if (useParagraph) {
@@ -143,11 +148,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
           sb.append("</em>:<br>");
 
           if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
-            appendImportPackages(sb, entry.getValue());
+            appendRequiredCapabilitiesPackages(sb, entry.getValue(), bw);
           } else if ("osgi.ee".equals(nameSpace)) {
-            appendRequiredCapabilitiesEE(sb, entry.getValue());
+            appendRequiredCapabilitiesEE(sb, entry.getValue(), bw);
           } else {
-            appendRequiredCapabilityGeneric(sb, entry.getValue());
+            appendRequiredCapabilityGeneric(sb, nameSpace, entry.getValue(), bw);
           }
         }
 
@@ -172,32 +177,49 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
+    private void addNameSpaceForDeclaredCapabilities(Map<String, List<BundleWire>> nswMap,
+                                                     List<BundleCapability> capabilities)
+    {
+      for (final BundleCapability cap : capabilities) {
+        final String nameSpace = cap.getNamespace();
+        if (!nswMap.containsKey(nameSpace)) {
+          nswMap.put(nameSpace, new ArrayList<BundleWire>());
+        }
+      }
+
+    }
+
     /**
      * Append information about the provider side of the given wires.
      *
      * @param sb Output buffer.
+     * @param nameSpace The name space that we present capabilities for.
      * @param wires The set of wires to present.
+     * @param wiring The wiring that we present capabilities for.
      */
     private void appendProvidedCapabilityGeneric(final StringBuffer sb,
-                                                 final List<BundleWire> wires)
+                                                 final String nameSpace,
+                                                 final List<BundleWire> wires,
+                                                 final BundleWiring wiring)
     {
       // Mapping from capability title to (string) to requesters (strings)
       final Map<String,List<String>> cap2requesters
         = new TreeMap<String, List<String>>();
 
-      final WireFormatter wf = new WireFormatter(wires);
+      final WireFormatter wf = new WireFormatter(wires, wiring, nameSpace);
       wf.providedCapabilitiesView(cap2requesters);
       appendCapabilityInfo(sb, cap2requesters);
     }
 
-    private void appendProvidedCapabilitiesEE(StringBuffer sb,
-                                              List<BundleWire> wires)
+    private void appendProvidedCapabilitiesEE(final StringBuffer sb,
+                                              final List<BundleWire> wires,
+                                              final BundleWiring wiring)
     {
       // Mapping from capability title to (string) to requesters (strings)
       final Map<String,List<String>> cap2requesters
         = new TreeMap<String, List<String>>();
 
-      final WireFormatter wf = new WireFormatterEE(wires);
+      final WireFormatter wf = new WireFormatterEE(wires, wiring, "osgi.ee");
       wf.providedCapabilitiesView(cap2requesters);
       appendCapabilityInfo(sb, cap2requesters);
     }
@@ -208,14 +230,20 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
      *
      * @param sb Output buffer.
      * @param wires The set of package wires to present.
+     * @param wiring The wiring that we present capabilities for.
      */
-    private void appendProvidedCapabilitesPackage(StringBuffer sb, List<BundleWire> wires)
+    private void appendProvidedCapabilitesPackage(final StringBuffer sb,
+                                                  final List<BundleWire> wires,
+                                                  final BundleWiring wiring)
     {
       // Mapping from capability title to (string) to requesters (strings)
       final Map<String,List<String>> cap2requesters
         = new TreeMap<String, List<String>>();
 
-      final WireFormatter wf = new WireFormatterPackage(wires);
+      final WireFormatter wf = new WireFormatterPackage(
+                                                        wires,
+                                                        wiring,
+                                                        BundleRevision.PACKAGE_NAMESPACE);
       wf.providedCapabilitiesView(cap2requesters);
       appendCapabilityInfo(sb, cap2requesters);
     }
@@ -224,28 +252,20 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
      * Append information about the requirement side of the given wires.
      *
      * @param sb Output buffer.
+     * @param nameSpace The name-space that we present requirements for.
      * @param wires The set of wires to present.
+     * @param wiring The wiring that we present requirements for.
      */
     private void appendRequiredCapabilityGeneric(final StringBuffer sb,
-                                                 final List<BundleWire> wires)
+                                                 final String nameSpace,
+                                                 final List<BundleWire> wires,
+                                                 final BundleWiring wiring)
     {
       // Mapping from capability title to (string) to provider (strings)
       final Map<String,List<String>> cap2providers
         = new TreeMap<String, List<String>>();
 
-      final WireFormatter wf = new WireFormatter(wires);
-      wf.requiredCapabilitiesView(cap2providers);
-      appendCapabilityInfo(sb, cap2providers);
-    }
-
-    private void appendRequiredCapabilitiesEE(StringBuffer sb,
-                                              List<BundleWire> wires)
-    {
-      // Mapping from capability title to (string) to provider (strings)
-      final Map<String,List<String>> cap2providers
-        = new TreeMap<String, List<String>>();
-
-      final WireFormatter wf = new WireFormatterEE(wires);
+      final WireFormatter wf = new WireFormatter(wires, wiring, nameSpace);
       wf.requiredCapabilitiesView(cap2providers);
       appendCapabilityInfo(sb, cap2providers);
     }
@@ -255,14 +275,40 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
      *
      * @param sb Output buffer.
      * @param wires The set of wires to present.
+     * @param wiring The wiring that we present requirements for.
      */
-    private void appendImportPackages(StringBuffer sb, List<BundleWire> wires)
+    private void appendRequiredCapabilitiesEE(final StringBuffer sb,
+                                              final List<BundleWire> wires,
+                                              final BundleWiring wiring)
     {
       // Mapping from capability title to (string) to provider (strings)
       final Map<String,List<String>> cap2providers
         = new TreeMap<String, List<String>>();
 
-      final WireFormatter wf = new WireFormatterPackage(wires);
+      final WireFormatter wf = new WireFormatterEE(wires, wiring, "osgi.ee");
+      wf.requiredCapabilitiesView(cap2providers);
+      appendCapabilityInfo(sb, cap2providers);
+    }
+
+    /**
+     * Append information about the requirement side of the given wires.
+     *
+     * @param sb Output buffer.
+     * @param wires The set of wires to present.
+     * @param wiring The wiring that we present requirements for.
+     */
+    private void appendRequiredCapabilitiesPackages(final StringBuffer sb,
+                                                    final List<BundleWire> wires,
+                                                    final BundleWiring wiring)
+    {
+      // Mapping from capability title to (string) to provider (strings)
+      final Map<String,List<String>> cap2providers
+        = new TreeMap<String, List<String>>();
+
+      final WireFormatter wf = new WireFormatterPackage(
+                                                        wires,
+                                                        wiring,
+                                                        BundleRevision.PACKAGE_NAMESPACE);
       wf.requiredCapabilitiesView(cap2providers);
       appendCapabilityInfo(sb, cap2providers);
     }
@@ -290,6 +336,8 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
   }
 
   static private class WireFormatter {
+    final String nameSpace;
+    final BundleWiring wiring;
     // All wires shall belong to the same name-space.
     final List<BundleWire> wires;
 
@@ -325,14 +373,44 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       sb.append("</font>");
     }
 
+    static String getFilterValue(final String filter,
+                                 final String attribute)
+    {
+      int start = filter.indexOf(attribute);
+      if (start == -1) {
+        return "";
+      }
+      start += attribute.length();
+      while (start<filter.length() && Character.isWhitespace(filter.charAt(start))) {
+        ++start;
+      }
+      if (filter.charAt(start++) != '=') {
+        return "";
+      }
+
+      final int end = filter.indexOf(')', start);
+      if (end == -1) {
+        return "";
+      }
+
+      final String value = filter.substring(start, end).trim();
+
+      return value;
+    }
+
+
     /**
      * Creates a wire formatter for a name-space.
      * @param wires all the wires in the list must belong to capabilities in
      *              the same name-space.
      */
-    WireFormatter(final List<BundleWire> wires)
+    WireFormatter(final List<BundleWire> wires,
+                  final BundleWiring wiring,
+                  final String nameSpace)
     {
       this.wires = wires;
+      this.wiring = wiring;
+      this.nameSpace = nameSpace;
     }
 
     /**
@@ -351,6 +429,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       return sb.toString();
+    }
+
+    String getReqName(BundleWiring wiring2, String filter)
+    {
+      return filter;
     }
 
     /**
@@ -376,6 +459,21 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
      */
     final void providedCapabilitiesView(Map<String, List<String>> cap2requesters)
     {
+      // All declared capabilities
+      for (final BundleCapability cap : wiring.getRevision().getDeclaredCapabilities(nameSpace)) {
+        final Map<String,Object> attrs
+        = new TreeMap<String, Object>(cap.getAttributes());
+
+        final String capName = getCapName(wiring, attrs);
+        List<String> requesters = cap2requesters.get(capName);
+        if (requesters==null) {
+          requesters = new ArrayList<String>();
+          cap2requesters.put(capName, requesters);
+        }
+      }
+
+      // Add requesters for wired capabilities, note this may add "stale"
+      // capabilities when there is a wire to an old generation of the bundle.
       for (final BundleWire w : wires) {
         final BundleCapability cap = w.getCapability();
         final Map<String,Object> attrs
@@ -393,12 +491,36 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         }
         requesters.add(wName);
       }
+
+      // All capabilities provided be the current wiring
+      for (final BundleCapability cap : wiring.getCapabilities(nameSpace)) {
+        final Map<String,Object> attrs
+        = new TreeMap<String, Object>(cap.getAttributes());
+
+        final String capName = getCapName(wiring, attrs);
+        List<String> requesters = cap2requesters.get(capName);
+        if (requesters==null) {
+          requesters = new ArrayList<String>();
+          cap2requesters.put(capName, requesters);
+        }
+        if (requesters.isEmpty()) {
+          // the bundle itself uses this capability.
+          requesters.add(getWiringName(wiring));
+
+        }
+      }
+
     }
 
     final void requiredCapabilitiesView(Map<String, List<String>> cap2providers)
     {
+      final Set<BundleCapability> wiredCapabilities = new HashSet<BundleCapability>();
+
+      // Add provider for wired requirements, note this may add "stale"
+      // requirements when there is a wire to an old generation of a provider.
       for (final BundleWire w : wires) {
         final BundleCapability cap = w.getCapability();
+        wiredCapabilities.add(cap);
         final Map<String,Object> attrs
           = new TreeMap<String, Object>(cap.getAttributes());
 
@@ -414,6 +536,31 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         }
         providers.add(wName);
       }
+
+    final List<BundleRequirement> declaredReqs
+      = wiring.getRevision().getDeclaredRequirements(nameSpace);
+    final List<BundleRequirement> activeReqs
+      = wiring.getRequirements(nameSpace);
+    // All non-active requirements for the current bundle revision.
+    final Set<BundleRequirement> reqs = new TreeSet<BundleRequirement>();
+    if (declaredReqs!=null) {
+      reqs.addAll(declaredReqs);
+    }
+    if (activeReqs!=null) {
+      reqs.removeAll(activeReqs);
+    }
+
+      for (final BundleRequirement req : reqs) {
+        // TODO: Use the filter to derive a capName...
+        final String filter = req.getDirectives().get("filter");
+
+        final String capName = getReqName(wiring, filter);
+        List<String> providers = cap2providers.get(capName);
+        if (providers == null) {
+          providers = new ArrayList<String>();
+          cap2providers.put(capName, providers);
+        }
+      }
     }
 
   }
@@ -422,9 +569,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
   static private class WireFormatterEE extends WireFormatter
   {
 
-    WireFormatterEE(final List<BundleWire> wires)
+    WireFormatterEE(final List<BundleWire> wires,
+                    final BundleWiring wiring,
+                    final String nameSpace)
     {
-      super(wires);
+      super(wires, wiring, nameSpace);
     }
 
     @Override
@@ -449,9 +598,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
   static private class WireFormatterPackage extends WireFormatter
   {
 
-    WireFormatterPackage(final List<BundleWire> wires)
+    WireFormatterPackage(final List<BundleWire> wires,
+                         final BundleWiring wiring,
+                         final String nameSpace)
     {
-      super(wires);
+      super(wires, wiring, nameSpace);
     }
 
     @Override
@@ -467,10 +618,23 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       final StringBuffer sb = new StringBuffer(50);
       final String extra = bundleWiring.isCurrent() ? (String) null
           : "&nbsp;<i>pending removal on refresh</i>";
-      appendFormatedPackage(sb, pkg, version.toString(), attrs, extra);
+      appendFormatedPackage(sb, pkg, version==null? "" :version.toString(), attrs, extra);
+
+      return sb.toString();
+    }
+
+    @Override
+    String getReqName(final BundleWiring wiring2, final String filter)
+    {
+      final String pkg = getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE);
+
+      final StringBuffer sb = new StringBuffer(50);
+      appendFormatedPackage(sb, pkg, "", null, null);
 
       return sb.toString();
     }
 
   }
+
+
 }
