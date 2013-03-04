@@ -323,6 +323,24 @@ public class Bundles {
 
 
   /**
+   * Get removal pending bundles.
+   *
+   * @return A Bundle array with bundles.
+   */
+  Collection<Bundle> getRemovalPendingBundles() {
+    final ArrayList<Bundle> res = new ArrayList<Bundle>();
+    synchronized (bundles) {
+      for (BundleImpl b : bundles.values()) {
+        if (b.hasZombies()) {
+          res.add(b);
+        }
+      }
+    }
+    return res;
+  }
+
+
+  /**
    * Try to load any saved framework state.
    * This is done by installing all saved bundles from the local archive
    * copy, and restoring the saved state for each bundle. This is only

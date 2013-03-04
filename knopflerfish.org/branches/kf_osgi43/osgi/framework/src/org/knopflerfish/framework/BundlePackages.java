@@ -72,7 +72,7 @@ class BundlePackages {
   /* Sorted list of declared dynamic imports */
   private final ArrayList<ImportPkg> dImportPatterns = new ArrayList<ImportPkg>(1);
 
-  private final Map<String, List<BundleCapability>> capabilities;
+  private final Map<String, List<BundleCapabilityImpl>> capabilities;
 
   private TreeMap<BundleGeneration, BundlePackages> fragments = null;
 
@@ -252,11 +252,11 @@ class BundlePackages {
       }
       exports.add(new ExportPkg(fep, this));
     }
-    capabilities = new HashMap<String, List<BundleCapability>>();
+    capabilities = new HashMap<String, List<BundleCapabilityImpl>>();
 
-    for (final Entry<String, List<BundleCapability>> e : frag.bg.getDeclaredCapabilities().entrySet()) {
-      final List<BundleCapability> l = new ArrayList<BundleCapability>();
-      for (final BundleCapability bc : e.getValue()) {
+    for (Entry<String, List<BundleCapabilityImpl>> e : frag.bg.getDeclaredCapabilities().entrySet()) {
+      List<BundleCapabilityImpl> l = new ArrayList<BundleCapabilityImpl>();
+      for (BundleCapabilityImpl bc : e.getValue()) {
         l.add(new BundleCapabilityImpl(bc, bg));
       }
       capabilities.put(e.getKey(), l);

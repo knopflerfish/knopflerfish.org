@@ -39,6 +39,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -74,35 +75,43 @@ public class BundleWiringImpl implements BundleWiring {
     }
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
-    if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
-      final BundleCapability bc = gen.getBundleCapability();
-      if (bc != null) {
-        res.add(bc);
+    if (!gen.isFragment()) {
+      if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
+        final BundleCapability bc = gen.getBundleCapability();
+        if (bc != null) {
+          res.add(bc);
+        }
       }
-    }
-    if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
-      final BundleCapability bc = gen.getHostCapability();
-      if (bc != null) {
-        res.add(bc);
+      if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
+        final BundleCapability bc = gen.getHostCapability();
+        if (bc != null) {
+          res.add(bc);
+        }
       }
-    }
-    // TODO Manifest order
-    if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-      // TODO, do we need to synchronize, should nonproviders be included?
-      for (final Iterator<ExportPkg> i = gen.bpkgs.getExports(); i.hasNext(); ) {
-        res.add(i.next());
+      // TODO Manifest order
+      if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
+        // TODO, do we need to synchronize, should nonproviders be included?
+        for (final Iterator<ExportPkg> i = gen.bpkgs.getExports(); i.hasNext(); ) {
+          res.add(i.next());
+        }
       }
-    }
-    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
-      List<BundleWireImpl> other = gen.getCapabilityWires();
-      if (other != null) {
-        BundleCapability prev = null;
-        for (BundleWireImpl bw : other) {
-          BundleCapability bc = bw.getCapability();
-          if (!bc.equals(prev)) {
-            prev = bc;
-            if (namespace == null || namespace.equals(bc.getNamespace())) {
-              res.add(bc);
+      if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+        final Map<String, List<BundleCapabilityImpl>> caps = gen.getOtherCapabilities();
+        Collection<List<BundleCapabilityImpl>> clbc = null;
+        if (null != namespace) {
+          final List<BundleCapabilityImpl> lbc = caps.get(namespace);
+          if (lbc != null) {
+            clbc  = Collections.singleton(lbc);
+          }
+        } else {
+          clbc = caps.values();
+        }
+        if (null != clbc) {
+          for (final List<BundleCapabilityImpl> lbc : clbc) {
+            for (final BundleCapabilityImpl bc : lbc) {
+              if (bc.isEffectiveResolve()) {
+                res.add(bc);
+              }
             }
           }
         }
@@ -117,35 +126,46 @@ public class BundleWiringImpl implements BundleWiring {
     }
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
-    if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
-      for (final Iterator<RequireBundle> irb = gen.bpkgs.getRequire(); irb.hasNext(); ) {
-        final RequireBundle rb = irb.next();
-        if (null != rb.bpkgs && rb.bpkgs.isRequiredBy(gen.bpkgs)) {
-          res.add(rb);
-        }
-      }
-    }
-    if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
-      if (gen.isFragment()) {
+    if (gen.isFragment()) {
+      if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
         res.add(gen.fragment);
       }
-    }
-    // TODO Manifest order
-    if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-      for (final Iterator<ImportPkg> i = gen.bpkgs.getImports(); i.hasNext(); ) {
-        final ImportPkg ip = i.next();
-        if (ip.provider != null) {
-          res.add(ip);
+    } else {
+      if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
+        for (final Iterator<RequireBundle> irb = gen.bpkgs.getRequire(); irb.hasNext(); ) {
+          final RequireBundle rb = irb.next();
+          if (null != rb.bpkgs && rb.bpkgs.isRequiredBy(gen.bpkgs)) {
+            res.add(rb);
+          }
         }
       }
-    }
-    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
-      List<BundleWireImpl> other = gen.getRequirementWires();
-      if (other != null) {
-        for (BundleWireImpl bw : other) {
-          final BundleRequirement br = bw.getRequirement();
-          if (namespace == null || namespace.equals(br.getNamespace())) {
-            res.add(br);
+      // TODO Manifest order
+      if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
+        for (final Iterator<ImportPkg> i = gen.bpkgs.getImports(); i.hasNext(); ) {
+          final ImportPkg ip = i.next();
+          if (ip.provider != null) {
+            res.add(ip);
+          }
+        }
+      }
+      if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+        final Map<String, List<BundleRequirementImpl>> reqs = gen.getOtherRequirements();
+        Collection<List<BundleRequirementImpl>> clbr = null;
+        if (null != namespace) {
+          final List<BundleRequirementImpl> lbr = reqs.get(namespace);
+          if (lbr != null) {
+            clbr = Collections.singleton(lbr);
+          }
+        } else {
+          clbr = reqs.values();
+        }
+        if (null != clbr) {
+          for (final List<BundleRequirementImpl> lbr : clbr) {
+            for (final BundleRequirementImpl br : lbr) {
+              if (br.shouldResolve()) {
+                res.add(br);
+              }
+            }
           }
         }
       }

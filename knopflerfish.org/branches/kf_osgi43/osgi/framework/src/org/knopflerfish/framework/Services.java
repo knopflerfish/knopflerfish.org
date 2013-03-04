@@ -51,7 +51,6 @@ import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
-import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 
 
@@ -71,7 +70,7 @@ class Services {
     = new HashMap<ServiceRegistrationImpl<?>, String[]>();
 
   /**
-   * Mapping of classname to registered service.
+   * Mapping of class name to registered service.
    * The List of registered service are order in with highest
    * ranked service first.
    */
@@ -115,6 +114,7 @@ class Services {
    * instance of all the named classes in the classes parameter.</li>
    * </ul>
    */
+  @SuppressWarnings("deprecation")
   ServiceRegistration<?> register(BundleImpl bundle,
                                   String[] classes,
                                   Object service,
@@ -131,7 +131,7 @@ class Services {
       }
       secure.checkRegisterServicePerm(cls);
       if (bundle.id != 0) {
-        if (cls.equals(PackageAdmin.class.getName())) {
+        if (cls.equals(org.osgi.service.packageadmin.PackageAdmin.class.getName())) {
           throw new IllegalArgumentException
             ("Registeration of a PackageAdmin service is not allowed");
         }

@@ -314,7 +314,7 @@ public class Util {
               List<Object> oldValues = (List<Object>) old;
               if (oldValues == null) {
                 oldValues = new ArrayList<Object>();
-                he.attributes.put(param, old);
+                he.attributes.put(param, oldValues);
               }
               oldValues.add(value);
             }
@@ -1019,7 +1019,7 @@ public class Util {
 
     // get word (non-whitespace chars) up to the next non-quoted
     // ',', ':', ';', '='
-    String getWord(boolean keepEscapse) {
+    String getWord(boolean keepEscapse, boolean valueWord) {
       skipWhite();
       boolean backslash = false;
       boolean quote = false;
@@ -1047,7 +1047,7 @@ public class Util {
           case ':':
           case ';':
           case '=':
-            if (!quote) {
+            if (!quote && !(valueWord && c=='=')) {
               break loop;
             }
             // Fall through
@@ -1076,7 +1076,7 @@ public class Util {
       if (s.charAt(pos) == ';') {
         pos++;
       }
-      final String res = getWord(false);
+      final String res = getWord(false, false);
       if (res != null) {
         if (pos == length) {
           return res;
@@ -1096,7 +1096,7 @@ public class Util {
         return null;
       }
       final int save = pos++;
-      final String res = getWord(false);
+      final String res = getWord(false, false);
       if (res != null) {
         if (pos < length && s.charAt(pos) == '=') {
           // Untyped parameter
@@ -1127,7 +1127,7 @@ public class Util {
         return null;
       }
       final int save = pos++;
-      final String res = getWord(false);
+      final String res = getWord(false, false);
       if (res != null) {
         if (pos < length && s.charAt(pos) == '=') {
           return res;
@@ -1148,7 +1148,7 @@ public class Util {
       }
       final int save = pos++;
       skipWhite();
-      final String val = getWord(keepEscapes);
+      final String val = getWord(keepEscapes, true);
       if (val == null) {
         pos = save;
         return null;

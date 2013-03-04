@@ -97,14 +97,14 @@ public class BundleRevisionImpl
     }
 
     if ((ns & NS_OTHER) != 0) {
-      final Map<String, List<BundleCapability>> caps = gen.getDeclaredCapabilities();
+      final Map<String, List<BundleCapabilityImpl>> caps = gen.getDeclaredCapabilities();
       if (null != namespace) {
-        final List<BundleCapability> lcap = caps.get(namespace);
+        final List<BundleCapabilityImpl> lcap = caps.get(namespace);
         if (lcap != null) {
           res.addAll(lcap);
         }
       } else {
-        for (final List<BundleCapability> lcap : caps.values()) {
+        for (final List<BundleCapabilityImpl> lcap : caps.values()) {
           res.addAll(lcap);
         }
       }
@@ -136,14 +136,14 @@ public class BundleRevisionImpl
     }
 
     if ((ns & NS_OTHER) != 0) {
-      final Map<String, List<BundleRequirement>> reqs = gen.getDeclaredRequirements();
+      final Map<String, List<BundleRequirementImpl>> reqs = gen.getDeclaredRequirements();
       if (null != namespace) {
-        final List<BundleRequirement> lbr = reqs.get(namespace);
+        final List<BundleRequirementImpl> lbr = reqs.get(namespace);
         if (lbr != null) {
           res.addAll(lbr);
         }
       } else {
-        for (final List<BundleRequirement> lbr : reqs.values()) {
+        for (final List<BundleRequirementImpl> lbr : reqs.values()) {
           res.addAll(lbr);
         }
       }

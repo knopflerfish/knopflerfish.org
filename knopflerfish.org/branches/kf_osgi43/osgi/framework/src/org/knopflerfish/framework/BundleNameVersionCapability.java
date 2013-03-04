@@ -33,6 +33,7 @@
  */
 package org.knopflerfish.framework;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -55,24 +56,15 @@ public class BundleNameVersionCapability implements BundleCapability {
   }
 
   public Map<String, String> getDirectives() {
-    final Map<String,String> res = new HashMap<String, String>(1);
-
-    if (BundleRevision.HOST_NAMESPACE.equals(namespace)) {
-      res.put(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE, gen.attachPolicy);
-    } else if (BundleRevision.BUNDLE_NAMESPACE.equals(namespace)) {
-      res.put(Constants.SINGLETON_DIRECTIVE, String.valueOf(gen.singleton));
-    }
-
-    return res;
+    return Collections.unmodifiableMap(gen.symbolicNameParameters.getDirectives());
   }
 
   public Map<String, Object> getAttributes() {
-    final Map<String,Object> res = new HashMap<String, Object>(2);
+    final Map<String,Object> res = new HashMap<String, Object>(gen.symbolicNameParameters.getAttributes());
 
     res.put(namespace, gen.symbolicName);
     res.put(Constants.BUNDLE_VERSION_ATTRIBUTE, gen.version);
-
-    return res;
+    return Collections.unmodifiableMap(res);
   }
 
   public BundleRevision getRevision() {

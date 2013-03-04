@@ -71,9 +71,7 @@ public class FrameworkWiringImpl implements FrameworkWiring {
   }
 
   public Collection<Bundle> getRemovalPendingBundles() {
-    final HashSet<BundleImpl> res = new HashSet<BundleImpl>();
-    fwCtx.packages.findAllZombies(res);
-    return new HashSet<Bundle>(res);
+    return fwCtx.bundles.getRemovalPendingBundles();
   }
 
   public Collection<Bundle> getDependencyClosure(Collection<Bundle> bundles) {

@@ -54,7 +54,6 @@ public class BundleRequirementImpl
   private final BundleGeneration gen;
   private final String nameSpace;
   private final Map<String,String> directives;
-  private final Map<String,Object> attributes;
   private final Filter filter;
 
 
@@ -83,14 +82,6 @@ public class BundleRequirementImpl
       }
     }
 
-    // Attributes of a requirement are expected to be empty...
-    if (!he.getAttributes().isEmpty()) {
-      throw new IllegalArgumentException("Attributes was defined in "
-          + Constants.REQUIRE_CAPABILITY + "for name-space " +nameSpace
-          +": " + he.getAttributes());
-    }
-    attributes = Collections.unmodifiableMap(he.getAttributes());
-
     final String filterStr = he.getDirectives().remove("filter");
     if (null!=filterStr && filterStr.length()>0) {
       try {
@@ -107,6 +98,8 @@ public class BundleRequirementImpl
       filter = null;
     }
     directives = Collections.unmodifiableMap(he.getDirectives());
+    
+    // TODO, warn about defined attributes
   }
 
   public String getNamespace()
@@ -119,9 +112,10 @@ public class BundleRequirementImpl
     return directives;
   }
 
+  @SuppressWarnings("unchecked")
   public Map<String, Object> getAttributes()
   {
-    return attributes;
+    return Collections.EMPTY_MAP;
   }
 
   public BundleRevision getRevision()
@@ -137,7 +131,6 @@ public class BundleRequirementImpl
     return false;
   }
 
-  @Override
   public String toString() {
     final StringBuffer sb = new StringBuffer(40);
 
@@ -147,8 +140,6 @@ public class BundleRequirementImpl
     .append(nameSpace)
     .append(" directives: ")
     .append(directives.toString())
-    .append(" attributes: ")
-    .append(attributes.toString())
     .append("]");
 
     return sb.toString();

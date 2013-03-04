@@ -34,13 +34,10 @@
 package org.knopflerfish.framework;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.osgi.framework.wiring.BundleCapability;
 
 public class Capabilities {
 
@@ -53,17 +50,30 @@ public class Capabilities {
     return namespaceCapabilties.get(namespace);
   }
 
-  @SuppressWarnings("unchecked")
-  void addCapabilities(Map<String, List<BundleCapability>> capabilities) {
-    for (Entry<String, List<BundleCapability>> e : capabilities.entrySet()) {
+  void addCapabilities(Map<String, List<BundleCapabilityImpl>> capabilities) {
+    for (Entry<String, List<BundleCapabilityImpl>> e : capabilities.entrySet()) {
       final String ns = e.getKey();
       ArrayList<BundleCapabilityImpl> bcl = namespaceCapabilties.get(ns);
       if (bcl == null) {
         bcl = new ArrayList<BundleCapabilityImpl>();
         namespaceCapabilties.put(ns, bcl);  
       }
-      Collection<?> bcs = (Collection<?>) e.getValue();
-      bcl.addAll((Collection<BundleCapabilityImpl>) bcs);
+      bcl.addAll(e.getValue());
+    }
+  }
+
+  void removeCapabilities(Map<String, List<BundleCapabilityImpl>> capabilities) {
+    for (Entry<String, List<BundleCapabilityImpl>> e : capabilities.entrySet()) {
+      final String ns = e.getKey();
+      ArrayList<BundleCapabilityImpl> bcl = namespaceCapabilties.get(ns);
+      if (bcl != null) {
+        bcl.removeAll(e.getValue());
+        if (bcl.isEmpty()) {
+          namespaceCapabilties.remove(ns);
+        }
+      } else {
+        // TODO internal error
+      }
     }
   }
 

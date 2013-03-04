@@ -55,16 +55,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Vector;
 
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
-import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
-
-import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Bundle generation specific data.
@@ -111,6 +109,11 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   final String symbolicName;
 
   /**
+   * Symbolic name parameters
+   */
+  final HeaderEntry symbolicNameParameters;
+
+  /**
    * Bundle is a singleton.
    */
   final boolean singleton;
@@ -133,14 +136,14 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   /**
    * The bundle requirements from the Require-Capability header.
    */
-  final Map<String, List<BundleRequirement>> requirements
-    = new HashMap<String, List<BundleRequirement>>();
+  final Map<String, List<BundleRequirementImpl>> requirements
+    = new HashMap<String, List<BundleRequirementImpl>>();
 
   /**
    * The bundle capabilities from the Provide-Capability header.
    */
-  final Map<String, List<BundleCapability>> capabilities
-    = new HashMap<String, List<BundleCapability>>();
+  final Map<String, List<BundleCapabilityImpl>> capabilities
+    = new HashMap<String, List<BundleCapabilityImpl>>();
 
   /**
    * True when this bundle has its activation policy set to "lazy"
@@ -201,6 +204,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     generation = 0;
     v2Manifest = true;
     symbolicName = KNOPFLERFISH_SYMBOLICNAME;
+    symbolicNameParameters = null;
     singleton = false;
     version = new Version(Util.readFrameworkVersion());
     attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
@@ -283,9 +287,11 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
                         BundleException.DUPLICATE_BUNDLE_ERROR);
         }
       }
+      symbolicNameParameters = he;
     } else {
       attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
       singleton = false;
+      symbolicNameParameters = null;
     }
 
     hes = Util.parseManifestHeader(Constants.FRAGMENT_HOST, archive
@@ -340,9 +346,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         .getAttribute(Constants.REQUIRE_CAPABILITY), true, true, false);
     for (final HeaderEntry e : hes) {
       final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
-      List<BundleRequirement> nsReqs = requirements.get(bri.getNamespace());
+      List<BundleRequirementImpl> nsReqs = requirements.get(bri.getNamespace());
       if (null == nsReqs) {
-        nsReqs = new ArrayList<BundleRequirement>();
+        nsReqs = new ArrayList<BundleRequirementImpl>();
         requirements.put(bri.getNamespace(), nsReqs);
       }
       nsReqs.add(bri);
@@ -382,6 +388,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     generation = prev.generation + 1;
     v2Manifest = prev.v2Manifest;
     symbolicName = prev.symbolicName;
+    symbolicNameParameters = prev.symbolicNameParameters;
     singleton = prev.singleton;
     version = prev.version;
     attachPolicy = Constants.FRAGMENT_ATTACHMENT_NEVER;
@@ -404,9 +411,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
           .parseManifestHeader(Constants.PROVIDE_CAPABILITY, capabilityStr,
                                true, true, false)) {
         final BundleCapabilityImpl bci = new BundleCapabilityImpl(this, he);
-        List<BundleCapability> nsCaps = capabilities.get(bci.getNamespace());
+        List<BundleCapabilityImpl> nsCaps = capabilities.get(bci.getNamespace());
         if (null == nsCaps) {
-          nsCaps = new ArrayList<BundleCapability>();
+          nsCaps = new ArrayList<BundleCapabilityImpl>();
           capabilities.put(bci.getNamespace(), nsCaps);
         }
         nsCaps.add(bci);
@@ -470,7 +477,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * <p/>
    * The key in the map is the {@code name-space} of the capability.
    */
-  Map<String, List<BundleCapability>> getDeclaredCapabilities()
+  Map<String, List<BundleCapabilityImpl>> getDeclaredCapabilities()
   {
     return capabilities;
   }
@@ -483,7 +490,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * <p/>
    * The key in the map is the {@code name-space} of the bundle requirement.
    */
-  Map<String, List<BundleRequirement>> getDeclaredRequirements()
+  Map<String, List<BundleRequirementImpl>> getDeclaredRequirements()
   {
     return requirements;
   }
@@ -1140,22 +1147,51 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  Map<String, List<BundleRequirement>> getCombinedRequirements() {
-    Map<String, List<BundleRequirement>> res = getDeclaredRequirements();
+  Map<String, List<BundleCapabilityImpl>> getOtherCapabilities() {
+    Map<String, List<BundleCapabilityImpl>> res = getDeclaredCapabilities();
     if (isFragmentHost()) {
       boolean copied = false;
       for (final BundleGeneration fbg : fragments) {
-        final Map<String, List<BundleRequirement>> frm = fbg.getDeclaredRequirements();
+        Map<String, List<BundleCapabilityImpl>> frm = fbg.getDeclaredCapabilities();
         if (!frm.isEmpty()) {
           if (!copied) {
-            res = new HashMap<String, List<BundleRequirement>>(res);
+            res = new HashMap<String, List<BundleCapabilityImpl>>(res);
             copied = true;
           }
-          for (final Entry<String, List<BundleRequirement>> e : frm.entrySet()) {
-            final String ns = e.getKey();
-            List<BundleRequirement> p = res.get(ns);
+          for (Entry<String, List<BundleCapabilityImpl>> e : frm.entrySet()) {
+            String ns = e.getKey();
+            List<BundleCapabilityImpl> p = res.get(ns);
             if (p != null) {
-              p = new ArrayList<BundleRequirement>(p);
+              p = new ArrayList<BundleCapabilityImpl>(p);
+              p.addAll(e.getValue());
+            } else {
+              p = e.getValue();
+            }
+            res.put(ns, p);
+          }
+        }
+      }
+    }
+    return res;
+  }
+
+
+  Map<String, List<BundleRequirementImpl>> getOtherRequirements() {
+    Map<String, List<BundleRequirementImpl>> res = getDeclaredRequirements();
+    if (isFragmentHost()) {
+      boolean copied = false;
+      for (final BundleGeneration fbg : fragments) {
+        Map<String, List<BundleRequirementImpl>> frm = fbg.getDeclaredRequirements();
+        if (!frm.isEmpty()) {
+          if (!copied) {
+            res = new HashMap<String, List<BundleRequirementImpl>>(res);
+            copied = true;
+          }
+          for (Entry<String, List<BundleRequirementImpl>> e : frm.entrySet()) {
+            String ns = e.getKey();
+            List<BundleRequirementImpl> p = res.get(ns);
+            if (p != null) {
+              p = new ArrayList<BundleRequirementImpl>(p);
               p.addAll(e.getValue());
             } else {
               p = e.getValue();

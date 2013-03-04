@@ -155,7 +155,7 @@ class Packages {
    * @param exports Exported packages.
    * @param imports Imported packages.
    */
-  synchronized void registerCapabilities(Map<String, List<BundleCapability>> capabilities,
+  synchronized void registerCapabilities(Map<String, List<BundleCapabilityImpl>> capabilities,
                                          Iterator<ExportPkg> exports,
                                          Iterator<ImportPkg> imports) {
     this.capabilities.addCapabilities(capabilities);
@@ -249,7 +249,7 @@ class Packages {
    * @return True if all packages were successfully unregistered, otherwise
    *         false.
    */
-  synchronized boolean unregisterCapabilities(Map<String, List<BundleCapability>> capabilities,
+  synchronized boolean unregisterCapabilities(Map<String, List<BundleCapabilityImpl>> capabilities,
                                               Iterator<ExportPkg> exports,
                                               Iterator<ImportPkg> imports,
                                               boolean force) {
@@ -310,6 +310,7 @@ class Packages {
         packages.remove(ip.name);
       }
     }
+    this.capabilities.removeCapabilities(capabilities);
     return true;
   }
 
@@ -497,7 +498,11 @@ class Packages {
   }
 
 
-  synchronized void findAllZombies(Set<BundleImpl> affected) {
+  //
+  // Private methods.
+  //
+
+  private void findAllZombies(Set<BundleImpl> affected) {
     for (final Pkg p : packages.values()) {
 
       // Search all exporters to catch both provided and required pkgs
@@ -512,10 +517,6 @@ class Packages {
     }
   }
 
-
-  //
-  // Private methods.
-  //
 
   /**
    * Backtrack package "uses" so that we can initialize tempProvider with
@@ -921,10 +922,9 @@ class Packages {
    */
   private String checkBundleRequirements(BundleGeneration bg) {
     // TODO, Handle fragment requirements
-    for (Entry<String, List<BundleRequirement>> e : bg.getCombinedRequirements().entrySet()) {
+    for (Entry<String, List<BundleRequirementImpl>> e : bg.getOtherRequirements().entrySet()) {
       String namespace = e.getKey(); 
-      for (Iterator<BundleRequirement> iterator = e.getValue().iterator(); iterator.hasNext();) {
-        BundleRequirementImpl br = (BundleRequirementImpl) iterator.next();
+      for (BundleRequirementImpl br : e.getValue()) {
         if (!br.shouldResolve()) {
           continue;
         }

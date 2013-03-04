@@ -115,4 +115,9 @@ public class BundleCapabilityImpl implements BundleCapability {
     return gen;
   }
 
+  boolean isEffectiveResolve() {
+    final String effective = directives.get(Constants.EFFECTIVE_DIRECTIVE);
+    return effective == null || effective.equals(Constants.EFFECTIVE_RESOLVE);
+  }
+
 }

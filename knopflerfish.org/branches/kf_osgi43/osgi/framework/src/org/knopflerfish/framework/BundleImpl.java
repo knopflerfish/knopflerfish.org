@@ -1765,9 +1765,9 @@ public class BundleImpl implements Bundle {
     return generations.contains(check);
   }
 
-  
-  boolean checkRequirements() {
-    return false;
+
+  boolean hasZombies() {
+    return generations.size() > 1;
   }
 
   //
