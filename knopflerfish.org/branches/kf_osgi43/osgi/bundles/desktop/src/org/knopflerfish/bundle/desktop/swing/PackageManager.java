@@ -37,8 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -48,6 +46,8 @@ import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
 import org.osgi.util.tracker.ServiceTracker;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 public class PackageManager  {
   final ServiceTracker<PackageAdmin,PackageAdmin> pkgTracker;
@@ -171,13 +171,9 @@ public class PackageManager  {
     if(v != null && v.length() > 0) {
       // Uses the manifest entry parser from the KF-framework
       try {
-        final Iterator<Map<String, Object>> it = org.knopflerfish.framework.Util
-          .parseEntries(headerName, v, false, false, false);
-        while (it.hasNext()) {
-          final Map<String, Object> entry = it.next();
-          @SuppressWarnings("unchecked")
-          final List<String> pkgs = (List<String>) entry.get("$keys");
-          res.addAll(pkgs);
+        for (final HeaderEntry he : org.knopflerfish.framework.Util
+            .parseManifestHeader(headerName, v, false, false, false)) {
+          res.addAll(he.getKeys());
         }
       } catch (final IllegalArgumentException iae) {
       }

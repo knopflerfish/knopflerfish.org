@@ -45,7 +45,6 @@ import java.util.ConcurrentModificationException;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -53,6 +52,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -63,6 +63,8 @@ import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Bundle generation specific data.
@@ -144,8 +146,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * True when this bundle has its activation policy set to "lazy"
    */
   final boolean lazyActivation;
-  final private HashSet<String> lazyIncludes;
-  final private HashSet<String> lazyExcludes;
+  final private Set<String> lazyIncludes;
+  final private Set<String> lazyExcludes;
 
   /**
    * Time when bundle was last created.
@@ -222,8 +224,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * @param b BundleImpl this bundle data.
    * @param ba Bundle archive with holding the contents of the bundle.
    * @param prev the previous generation of this bundle.
-   * 
-   * @throws BundleException If we have duplicate symbolicname and version. 
+   *
+   * @throws BundleException If we have duplicate symbolicname and version.
    *
    * @exception IOException If we fail to read and store our JAR bundle or if
    *              the input data is corrupted.
@@ -239,12 +241,13 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     // TBD, v2Manifest unnecessary to cache?
     final String mv = archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION);
     v2Manifest = mv != null && mv.trim().equals("2");
-    Iterator<Map<String, Object>> i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
-        archive.getAttribute(Constants.BUNDLE_SYMBOLICNAME), true, true, true);
-    Map<String, Object> e = null;
-    if (i.hasNext()) {
-      e = i.next();
-      symbolicName = (String)e.get("$key");
+    List<HeaderEntry> hes = Util
+        .parseManifestHeader(Constants.BUNDLE_SYMBOLICNAME, archive
+            .getAttribute(Constants.BUNDLE_SYMBOLICNAME), true, true, true);
+    HeaderEntry he = null;
+    if (!hes.isEmpty()) {
+      he = hes.get(0);
+      symbolicName = he.getKey();
     } else {
       if (v2Manifest) {
         throw new IllegalArgumentException("Bundle has no symbolic name, location="
@@ -267,9 +270,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     }
     version = newVer;
 
-    if (e != null) {
-      singleton = "true".equals(e.get(Constants.SINGLETON_DIRECTIVE));
-      final String tmp = (String)e.get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
+    if (he != null) {
+      singleton = "true".equals(he.getDirectives().get(Constants.SINGLETON_DIRECTIVE));
+      final String tmp = he.getDirectives().get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
       attachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
       // TBD! Should we allow update to same version?
       if (bundle.fwCtx.bsnversionSingle) {
@@ -285,34 +288,35 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       singleton = false;
     }
 
-    i = Util.parseEntries(Constants.FRAGMENT_HOST,
-        archive.getAttribute(Constants.FRAGMENT_HOST), true, true, true);
-    if (i.hasNext()) {
-      fragment = new Fragment(this, i.next());
+    hes = Util.parseManifestHeader(Constants.FRAGMENT_HOST, archive
+        .getAttribute(Constants.FRAGMENT_HOST), true, true, true);
+    if (!hes.isEmpty()) {
+      fragment = new Fragment(this, hes.get(0));
     } else {
       fragment = null;
     }
 
-    i = Util.parseEntries(Constants.BUNDLE_ACTIVATIONPOLICY,
-        archive.getAttribute(Constants.BUNDLE_ACTIVATIONPOLICY), true, true, true);
-    if (i.hasNext()) {
-      e = i.next();
-      lazyActivation = Constants.ACTIVATION_LAZY.equals(e.get("$key"));
+    hes = Util.parseManifestHeader(Constants.BUNDLE_ACTIVATIONPOLICY, archive
+        .getAttribute(Constants.BUNDLE_ACTIVATIONPOLICY), true, true, true);
+    if (!hes.isEmpty()) {
+      he = hes.get(0);
+      lazyActivation = Constants.ACTIVATION_LAZY.equals(he.getKey());
       if (lazyActivation) {
-        if (e.containsKey(Constants.INCLUDE_DIRECTIVE)) {
+        if (he.getDirectives().containsKey(Constants.INCLUDE_DIRECTIVE)) {
           lazyIncludes = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
-              (String)e.get(Constants.INCLUDE_DIRECTIVE));
+              he.getDirectives().get(Constants.INCLUDE_DIRECTIVE));
         } else {
           lazyIncludes = null;
         }
-        if (e.containsKey(Constants.EXCLUDE_DIRECTIVE)) {
+        if (he.getDirectives().containsKey(Constants.EXCLUDE_DIRECTIVE)) {
           lazyExcludes = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
-              (String)e.get(Constants.EXCLUDE_DIRECTIVE));
+              he.getDirectives().get(Constants.EXCLUDE_DIRECTIVE));
 
           if (lazyIncludes != null) {
             for (final String entry : lazyExcludes) {
               if (lazyIncludes.contains(entry)) {
-                throw new IllegalArgumentException("Conflicting " + Constants.INCLUDE_DIRECTIVE
+                throw new IllegalArgumentException("Conflicting "
+                    + Constants.INCLUDE_DIRECTIVE
                     + "/" + Constants.EXCLUDE_DIRECTIVE + " entries in "
                     + Constants.BUNDLE_ACTIVATIONPOLICY + ": '" + entry
                     + "' both included and excluded");
@@ -332,11 +336,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       lazyExcludes = null;
     }
 
-    i = Util.parseEntries(Constants.REQUIRE_CAPABILITY,
-                          archive.getAttribute(Constants.REQUIRE_CAPABILITY),
-                          true, true, false);
-    while (i.hasNext()) {
-      e = i.next();
+    hes = Util.parseManifestHeader(Constants.REQUIRE_CAPABILITY, archive
+        .getAttribute(Constants.REQUIRE_CAPABILITY), true, true, false);
+    for (final HeaderEntry e : hes) {
       final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
       List<BundleRequirement> nsReqs = requirements.get(bri.getNamespace());
       if (null == nsReqs) {
@@ -398,12 +400,10 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   private void processCapabilities(String capabilityStr)
   {
     if (capabilityStr != null && capabilityStr.length() > 0) {
-      final Iterator<Map<String, Object>> i = Util
-          .parseEntries(Constants.PROVIDE_CAPABILITY, capabilityStr, true,
-                        true, false);
-      while (i.hasNext()) {
-        final Map<String, Object> e = i.next();
-        final BundleCapabilityImpl bci = new BundleCapabilityImpl(this, e);
+      for (final HeaderEntry he : Util
+          .parseManifestHeader(Constants.PROVIDE_CAPABILITY, capabilityStr,
+                               true, true, false)) {
+        final BundleCapabilityImpl bci = new BundleCapabilityImpl(this, he);
         List<BundleCapability> nsCaps = capabilities.get(bci.getNamespace());
         if (null == nsCaps) {
           nsCaps = new ArrayList<BundleCapability>();
@@ -1097,11 +1097,11 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       bcp = new BundleClassPath(archive, bundle.fwCtx);
       unresolvedBundleClassPath = bcp;
     }
-    Vector<FileArchive> fas = bcp.componentExists(name, onlyFirst);
+    final Vector<FileArchive> fas = bcp.componentExists(name, onlyFirst);
     if (fas != null) {
-      Vector<URL> res = new Vector<URL>();
-      for (FileArchive fa : fas)  {
-        URL url = fa.getBundleGeneration().getURL(fa.getSubId(), name);
+      final Vector<URL> res = new Vector<URL>();
+      for (final FileArchive fa : fas)  {
+        final URL url = fa.getBundleGeneration().getURL(fa.getSubId(), name);
         if (url != null) {
           res.addElement(url);
         } else {
@@ -1145,14 +1145,14 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     if (isFragmentHost()) {
       boolean copied = false;
       for (final BundleGeneration fbg : fragments) {
-        Map<String, List<BundleRequirement>> frm = fbg.getDeclaredRequirements();
+        final Map<String, List<BundleRequirement>> frm = fbg.getDeclaredRequirements();
         if (!frm.isEmpty()) {
           if (!copied) {
             res = new HashMap<String, List<BundleRequirement>>(res);
             copied = true;
           }
-          for (Entry<String, List<BundleRequirement>> e : frm.entrySet()) {
-            String ns = e.getKey();
+          for (final Entry<String, List<BundleRequirement>> e : frm.entrySet()) {
+            final String ns = e.getKey();
             List<BundleRequirement> p = res.get(ns);
             if (p != null) {
               p = new ArrayList<BundleRequirement>(p);

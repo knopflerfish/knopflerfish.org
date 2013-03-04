@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -49,6 +48,8 @@ import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Data structure for import package definitions.
@@ -87,11 +88,11 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
    * Create an import package entry from manifest parser data.
    *
    * @param name the name of the package to be imported.
-   * @param tokens the parsed import package statement.
+   * @param he the parsed import package statement.
    * @param b back link to the bundle revision owning this import declaration.
    * @param dynamic Set to true if this is a dynamic import package declaration.
    */
-  ImportPkg(String name, Map<String, Object> tokens, BundlePackages b,
+  ImportPkg(final String name, final HeaderEntry he, final BundlePackages b,
             boolean dynamic)
   {
     this.bpkgs = b;
@@ -99,7 +100,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not import a java.* package");
     }
-    final String res = (String)tokens.remove(Constants.RESOLUTION_DIRECTIVE);
+    final String res = he.getDirectives().get(Constants.RESOLUTION_DIRECTIVE);
     if (dynamic) {
       if (res != null) {
         throw new IllegalArgumentException("Directives not supported for "
@@ -122,9 +123,12 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
         this.resolution = Constants.RESOLUTION_MANDATORY;
       }
     }
-    this.bundleSymbolicName = (String)tokens.remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
-    final String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
-    final String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+    this.bundleSymbolicName = (String) he.getAttributes()
+        .remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
+    final String versionStr = (String) he.getAttributes()
+        .remove(Constants.VERSION_ATTRIBUTE);
+    final String specVersionStr = (String) he.getAttributes()
+        .remove(Constants.PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.packageRange = new VersionRange(specVersionStr);
       if (versionStr != null && !this.packageRange.equals(new VersionRange(versionStr))) {
@@ -137,22 +141,14 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     } else {
       this.packageRange = VersionRange.defaultVersionRange;
     }
-    final String rangeStr = (String)tokens.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+    final String rangeStr = (String) he.getAttributes()
+        .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     if (rangeStr != null) {
       this.bundleRange = new VersionRange(rangeStr);
     } else {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
-    // Remove all meta-data and all directives from the set of tokens.
-    @SuppressWarnings("unchecked")
-    final
-    Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
-    if (null != directiveNames) {
-      tokens.keySet().removeAll(directiveNames);
-    }
-    tokens.remove("$key");
-    tokens.remove("$keys");
-    this.attributes = tokens;
+    this.attributes = Collections.unmodifiableMap(he.getAttributes());
   }
 
 

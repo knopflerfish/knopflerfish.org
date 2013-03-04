@@ -38,11 +38,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.osgi.framework.Bundle;
@@ -51,6 +49,8 @@ import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 
 /**
@@ -67,10 +67,10 @@ class ExportPkg
 
   final String name;
   final BundlePackages bpkgs;
-  final HashSet<String> uses;
-  final HashSet<String> mandatory;
-  final HashSet <String> include;
-  final HashSet<String> exclude;
+  final Set<String> uses;
+  final Set<String> mandatory;
+  final Set <String> include;
+  final Set<String> exclude;
   final Version version;
   final Map<String,Object> attributes;
   boolean zombie = false;
@@ -82,22 +82,25 @@ class ExportPkg
   /**
    * Create an export package entry.
    */
-  ExportPkg(String name, Map<String, Object> tokens, BundlePackages b) {
+  ExportPkg(final String name, final HeaderEntry he, final BundlePackages b)
+  {
     this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not export a java.* package");
     }
-    this.uses = Util.parseEnumeration(Constants.USES_DIRECTIVE,
-                                      (String)tokens.remove(Constants.USES_DIRECTIVE));
-    this.mandatory = Util.parseEnumeration(Constants.MANDATORY_DIRECTIVE,
-                                           (String)tokens.remove(Constants.MANDATORY_DIRECTIVE));
-    this.include = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
-                                         (String)tokens.remove(Constants.INCLUDE_DIRECTIVE));
-    this.exclude = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
-                                         (String)tokens.remove(Constants.EXCLUDE_DIRECTIVE));
-    final String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
-    final String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+    this.uses = Util.parseEnumeration(Constants.USES_DIRECTIVE, he
+        .getDirectives().get(Constants.USES_DIRECTIVE));
+    this.mandatory = Util.parseEnumeration(Constants.MANDATORY_DIRECTIVE, he
+        .getDirectives().get(Constants.MANDATORY_DIRECTIVE));
+    this.include = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE, he
+        .getDirectives().get(Constants.INCLUDE_DIRECTIVE));
+    this.exclude = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE, he
+        .getDirectives().get(Constants.EXCLUDE_DIRECTIVE));
+    final String versionStr = (String) he.getAttributes()
+        .remove(Constants.VERSION_ATTRIBUTE);
+    final String specVersionStr = (String) he.getAttributes()
+        .remove(Constants.PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.version = new Version(specVersionStr);
       if (versionStr != null && !this.version.equals(new Version(versionStr))) {
@@ -110,27 +113,15 @@ class ExportPkg
     } else {
       this.version = Version.emptyVersion;
     }
-    if (tokens.containsKey(Constants.BUNDLE_VERSION_ATTRIBUTE)) {
+    if (he.getAttributes().containsKey(Constants.BUNDLE_VERSION_ATTRIBUTE)) {
       throw new IllegalArgumentException("Export definition illegally contains attribute, " +
                                          Constants.BUNDLE_VERSION_ATTRIBUTE);
     }
-    if (tokens.containsKey(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE)) {
+    if (he.getAttributes().containsKey(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE)) {
       throw new IllegalArgumentException("Export definition illegally contains attribute, " +
                                          Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
     }
-    // Remove all meta-data and all directives from the set of tokens.
-    @SuppressWarnings("unchecked")
-    final
-    Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
-    if (null!=directiveNames) {
-      for (final String directiveName : directiveNames) {
-        tokens.remove(directiveName);
-      }
-    }
-    tokens.remove("$key");
-    tokens.remove("$keys");
-
-    this.attributes = tokens;
+    this.attributes = Collections.unmodifiableMap(he.getAttributes());
   }
 
 
@@ -379,9 +370,7 @@ class ExportPkg
     res.put(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE, bpkgs.bg.symbolicName);
     res.put(Constants.BUNDLE_VERSION_ATTRIBUTE, bpkgs.bg.version);
 
-    for (final Entry<String,Object> entry : attributes.entrySet()) {
-      res.put(entry.getKey(), entry.getValue());
-    }
+    res.putAll(attributes);
 
     return Collections.unmodifiableMap(res);
   }

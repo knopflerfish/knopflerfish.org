@@ -40,18 +40,18 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.knopflerfish.framework.classpatcher.ClassPatcherActivator;
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Constants;
 
 
 /**
@@ -326,8 +326,9 @@ public class FrameworkContext  {
         final String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
         try {
           @SuppressWarnings("unchecked")
+          final
           Class<? extends Validator> vi = (Class<? extends Validator>) Class.forName(vs);
-          Constructor<? extends Validator> vc =
+          final Constructor<? extends Validator> vc =
               vi.getConstructor(new Class[] { FrameworkContext.class });
           validator.add(vc.newInstance(new Object[] { this }));
         } catch (final InvocationTargetException ite) {
@@ -385,10 +386,11 @@ public class FrameworkContext  {
       props.getProperty(FWProps.BUNDLESTORAGE_PROP) + ".BundleStorageImpl";
     try {
       @SuppressWarnings("unchecked")
+      final
       Class<? extends BundleStorage> storageImpl =
           (Class<? extends BundleStorage>) Class.forName(storageClass);
 
-      Constructor<? extends BundleStorage> cons =
+      final Constructor<? extends BundleStorage> cons =
           storageImpl.getConstructor(new Class[] { FrameworkContext.class });
       storage = cons.newInstance(new Object[] { this });
     } catch (final Exception e) {
@@ -420,7 +422,7 @@ public class FrameworkContext  {
     serviceHooks.open();
 
     bundleHooks = new BundleHooks(this);
-    
+
     resolverHooks = new ResolverHooks(this);
     resolverHooks.open();
 
@@ -438,6 +440,7 @@ public class FrameworkContext  {
 
     packageAdmin = new PackageAdminImpl(this);
     @SuppressWarnings("deprecation")
+    final
     String[] classes = new String [] { org.osgi.service.packageadmin.PackageAdmin.class.getName() };
     services.register(systemBundle,
                       classes,
@@ -607,6 +610,7 @@ public class FrameworkContext  {
       startLevelController.restoreState();
 
       @SuppressWarnings("deprecation")
+      final
       String [] clsName = new String [] { org.osgi.service.startlevel.StartLevel.class.getName() };
       services.register(systemBundle,
                         clsName,
@@ -676,7 +680,7 @@ public class FrameworkContext  {
 
 
   /**
-   * Parse bootdelegation pattern property.
+   * Parse boot-delegation pattern property.
    *
    */
   void buildBootDelegationPatterns() {
@@ -688,12 +692,10 @@ public class FrameworkContext  {
 
     if (bootDelegationUsed) {
       try {
-        final Iterator<Map<String, Object>> i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
-                                                                  bootDelegationString,
-                                                                  true, true, false);
-        while (i.hasNext()) {
-          final Map<String, Object> e = i.next();
-          final String key = (String) e.get("$key");
+        for (final HeaderEntry he : Util
+            .parseManifestHeader(Constants.FRAMEWORK_BOOTDELEGATION,
+                                 bootDelegationString, true, true, false)) {
+          final String key = he.getKey();
           if (key.equals("*")) {
             bootDelegationPatterns = null;
             //in case funny person puts a * amongst other things

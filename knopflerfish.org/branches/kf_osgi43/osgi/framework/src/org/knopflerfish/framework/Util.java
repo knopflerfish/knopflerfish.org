@@ -49,11 +49,9 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import org.osgi.framework.Constants;
@@ -189,7 +187,7 @@ public class Util {
    * @return A HashSet with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static HashSet<String> parseEnumeration(String d, String s)
+  public static Set<String> parseEnumeration(String d, String s)
   {
     final HashSet<String> result = new HashSet<String>();
     if (s != null) {
@@ -214,8 +212,9 @@ public class Util {
     }
   }
 
+
   /**
-   * Parse strings of format:
+   * Parse manifest header values on format:
    * <pre>
    * ENTRY (',' ENTRY)*
    * ENTRY = key (';' key)* (';' PARAM)*
@@ -230,42 +229,36 @@ public class Util {
    * and its following '<' are treated as separate tokens to comply with the
    * OSGi TCK.
    *
-   * The resulting map will contain a synthetic key '$directives' of type
-   * {@code Set<String>} holding the keys for all parameters that are directives.
+   * The parse result is one {@link HeaderEntry}-instance for each entry.
+   * If {@code single} is true then the entry only contains one key that can be
+   * accesses by calling {@link HeaderEntry#getKey()}.
    *
-   * The map also has a synthetic key, '$key' (when {@code single} is true)
-   * or '$keys' with the names of the entries as the value (the type is
-   * {@code String} or {@code List<String>}.
-   *
-   * If {@code unique} is true the parameter values in the map are scalars
-   * otherwise the values from different parameter definitions with the same
+   * If {@code unique} is true the attribute values in the map are scalars
+   * otherwise the values from different attribute definitions with the same
    * name are wrapped in a {@code List<?>}.
    *
    * @param a Name of attribute being parsed, for error messages.
    * @param s String to parse.
    * @param single If true, only allow one key per ENTRY.
-   * @param unique Only allow unique parameters for each ENTRY.
-   * @param single_entry If true, only allow one ENTRY is allowed.
+   * @param unique Only allow unique attributes for each ENTRY.
+   * @param single_entry If true, only allow one ENTRY in {@code s}.
    *
-   * @return iterator over the parameter map or null if input string is null.
+   * @return List of {@link HeaderEntry}-object, one per entry in {@code s}.
    *
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static Iterator<Map<String, Object>> parseEntries(String a,
-                                                           String s,
-                                                           boolean single,
-                                                           boolean unique,
-                                                           boolean single_entry)
+  public static List<HeaderEntry> parseManifestHeader(String a,
+                                                      String s,
+                                                      boolean single,
+                                                      boolean unique,
+                                                      boolean single_entry)
   {
-    final ArrayList<Map<String,Object>> result = new ArrayList<Map<String,Object>>();
+    final List<HeaderEntry> res = new ArrayList<Util.HeaderEntry>();
+
     if (s != null) {
       final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        final ArrayList<String> keys = new ArrayList<String>();
-        final HashMap<String,Object> params = new HashMap<String,Object>();
-        final Set<String> directives = new TreeSet<String>();
-        params.put("$directives", directives); // $ is not allowed in
-                                               // param names...
+        final HeaderEntry he = new HeaderEntry(a, single);
         String key = at.getKey();
         if (key == null) {
           final String msg = "Definition, " + a + ", expected key at: "
@@ -274,55 +267,61 @@ public class Util {
                              + "contain ':', '='.";
           throw new IllegalArgumentException(msg);
         }
+        he.keys.add(key);
         if (!single) {
-          keys.add(key);
           while ((key = at.getKey()) != null) {
-            keys.add(key);
+            he.keys.add(key);
           }
         }
         String param;
         while ((param = at.getParam()) != null) {
-          @SuppressWarnings("unchecked")
-          List<Object> old = (List<Object>) params.get(param);
           final boolean is_directive = at.isDirective();
-          if (old != null && unique) {
-            final String msg = "Definition, " + a + ", duplicate "
-                               + (is_directive ? "directive" : "attribute")
-                               + ": " + param;
-            throw new IllegalArgumentException(msg);
-          }
-          final String paramType = at.getParamType();
-          final boolean keepEscape = paramType != null
-                                     && paramType.startsWith("List");
-          final String valueStr = at.getValue(keepEscape);
-          if (valueStr == null) {
-            final String msg = "Definition, " + a + ", expected value at: "
-                               + at.getRest();
-            throw new IllegalArgumentException(msg);
-          }
           if (is_directive) {
-            // NYI Handle directives and check them
-            // This method has become very ugly, please rewrite.
-            directives.add(param);
-          }
-          final Object value = toValue(a, param, paramType, valueStr);
-          if (unique) {
-            params.put(param, value);
-          } else {
-            if (old == null) {
-              old = new ArrayList<Object>();
-              params.put(param, old);
+            if (he.directives.containsKey(param)) {
+              final String msg = "Definition, " + a + ", duplicate directive: "
+                    + param;
+              throw new IllegalArgumentException(msg);
             }
-            old.add(value);
+            final String valueStr = at.getValue(false);
+            if (valueStr == null) {
+              final String msg = "Definition, " + a + ", expected value for "
+                  + " directive " + param + " at: " + at.getRest();
+              throw new IllegalArgumentException(msg);
+            }
+            he.directives.put(param, valueStr);
+          } else {
+            // Attribute definition with optional type
+            final Object old = he.attributes.get(param);
+            if (old != null && unique) {
+              final String msg = "Definition, " + a + ", duplicate attribute: "
+                                + param;
+              throw new IllegalArgumentException(msg);
+            }
+            final String paramType = at.getParamType();
+            final boolean keepEscape = paramType != null
+                                       && paramType.startsWith("List");
+            final String valueStr = at.getValue(keepEscape);
+            if (valueStr == null) {
+              final String msg = "Definition, " + a + ", expected value for "
+                  + " attribute " + param + " at: " + at.getRest();
+              throw new IllegalArgumentException(msg);
+            }
+            final Object value = toValue(a, param, paramType, valueStr);
+            if (unique) {
+              he.attributes.put(param, value);
+            } else {
+              @SuppressWarnings("unchecked")
+              List<Object> oldValues = (List<Object>) old;
+              if (oldValues == null) {
+                oldValues = new ArrayList<Object>();
+                he.attributes.put(param, old);
+              }
+              oldValues.add(value);
+            }
           }
         }
         if (at.getEntryEnd()) {
-          if (single) {
-            params.put("$key", key);
-          } else {
-            params.put("$keys", keys);
-          }
-          result.add(params);
+          res.add(he);
         } else {
           throw new IllegalArgumentException("Definition, " + a
               + ", expected end of entry at: " + at.getRest());
@@ -333,7 +332,8 @@ public class Util {
         }
       } while (!at.getEnd());
     }
-    return result.iterator();
+
+    return res;
   }
 
 
@@ -1198,4 +1198,51 @@ public class Util {
       }
     }
   }
+
+  /**
+   * A class that holds the parse result for one entry of a manifest header
+   * following the general OSGi manifest header syntax. See
+   * {@link Util#parseManifestHeader()} for
+   * details on the syntax.
+   */
+  public static class HeaderEntry
+  {
+    final String headerName;
+    final boolean singleKey;
+    final List<String> keys = new ArrayList<String>();
+    final Map<String, Object> attributes = new HashMap<String, Object>();
+    final Map<String, String> directives = new HashMap<String, String>();
+
+    /**
+     * @param singleKey
+     */
+    HeaderEntry(String headerName, boolean singleKey)
+    {
+      this.headerName = headerName;
+      this.singleKey = singleKey;
+    }
+
+    public String getKey()
+    {
+      if  (singleKey)
+        return keys.get(0);
+      throw new IllegalArgumentException("Requesting single key for multi key header clause");
+    }
+
+    public List<String> getKeys()
+    {
+      return keys;
+    }
+
+    public Map<String, Object> getAttributes()
+    {
+      return attributes;
+    }
+
+    public Map<String, String> getDirectives()
+    {
+      return directives;
+    }
+  }
+
 }

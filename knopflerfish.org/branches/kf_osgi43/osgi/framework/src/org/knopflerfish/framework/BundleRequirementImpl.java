@@ -35,9 +35,7 @@ package org.knopflerfish.framework;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -46,6 +44,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 public class BundleRequirementImpl
   implements BundleRequirement
@@ -59,17 +59,18 @@ public class BundleRequirementImpl
 
 
   /**
-   * Creates a {@link BundleRequirement} from the output of the
-   * {@link FrameworkUtil#parseEntries() } applied to the Bundle-Requirement
-   * header.
+   * Creates a {@link BundleRequirement} from one entry in the parsed
+   * "Require-Capability" manifest header.
    *
-   * @param gen the owning bundle revision.
-   * @param tokens the parsed data for this requirement.
+   * @param gen
+   *          the owning bundle revision.
+   * @param he
+   *          the parsed entry from the "Require-Capability" manifest header.
    */
-  BundleRequirementImpl(BundleGeneration gen, Map<String, Object> tokens)
+  BundleRequirementImpl(final BundleGeneration gen, final HeaderEntry he)
   {
     this.gen = gen;
-    nameSpace = (String) tokens.remove("$key");
+    nameSpace = he.getKey();
     for (final String ns : Arrays
         .asList(new String[] { BundleRevision.BUNDLE_NAMESPACE,
                                BundleRevision.HOST_NAMESPACE,
@@ -82,27 +83,19 @@ public class BundleRequirementImpl
       }
     }
 
-    @SuppressWarnings("unchecked")
-    final
-    Map<String,Object> attrs = Collections.EMPTY_MAP;
-    attributes = attrs;
-
-    // Only directives are allowed
-    @SuppressWarnings("unchecked")
-    final Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
-
-    final Set<String> attributeNames = new HashSet<String>(tokens.keySet());
-    attributeNames.removeAll(directiveNames);
-    if (!attributeNames.isEmpty()) {
+    // Attributes of a requirement are expected to be empty...
+    if (!he.getAttributes().isEmpty()) {
       throw new IllegalArgumentException("Attributes was defined in "
           + Constants.REQUIRE_CAPABILITY + "for name-space " +nameSpace
-          +": " + attributeNames);
+          +": " + he.getAttributes());
     }
-    final String filterStr = (String) tokens.remove("filter");
+    attributes = Collections.unmodifiableMap(he.getAttributes());
+
+    final String filterStr = he.getDirectives().remove("filter");
     if (null!=filterStr && filterStr.length()>0) {
       try {
         filter = FrameworkUtil.createFilter(filterStr);
-        tokens.put("filter", filter.toString());
+        he.getDirectives().put("filter", filter.toString());
       } catch (final InvalidSyntaxException ise) {
         final String msg = "Invalid filter '" + filterStr + "' in "
                            + Constants.REQUIRE_CAPABILITY
@@ -113,10 +106,7 @@ public class BundleRequirementImpl
     } else {
       filter = null;
     }
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    final
-    Map<String,String> res = (Map) tokens;
-    directives = Collections.unmodifiableMap(res);
+    directives = Collections.unmodifiableMap(he.getDirectives());
   }
 
   public String getNamespace()

@@ -35,14 +35,13 @@ package org.knopflerfish.framework;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Implementation of bundle capability for generic capabilities specified in the
@@ -55,17 +54,18 @@ public class BundleCapabilityImpl implements BundleCapability {
   private final Map<String,String> directives;
 
   /**
-   * Creates a {@link BundleCapability} from the output of the
-   * {@link FrameworkUtil#parseEntries() } applied to one entry in the
-   * Bundle-Capability header.
+   * Creates a {@link BundleCapability} from one entry of the Bundle-Capability
+   * header.
    *
-   * @param gen the owning bundle revision.
-   * @param tokens the parsed data for this requirement.
+   * @param gen
+   *          the owning bundle revision.
+   * @param he
+   *          the parsed bundle capability header entry.
    */
-  public BundleCapabilityImpl(BundleGeneration gen, Map<String, Object> tokens)
+  public BundleCapabilityImpl(final BundleGeneration gen, final HeaderEntry he)
   {
     this.gen = gen;
-    nameSpace = (String) tokens.remove("$key");
+    nameSpace = he.getKey();
     for (final String ns : Arrays
         .asList(new String[] { BundleRevision.BUNDLE_NAMESPACE,
                                BundleRevision.HOST_NAMESPACE,
@@ -78,15 +78,8 @@ public class BundleCapabilityImpl implements BundleCapability {
       }
     }
 
-    // Move directives to directives map
-    @SuppressWarnings("unchecked")
-    final Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
-    directives = new HashMap<String, String>();
-    for (final String directiveName : directiveNames) {
-      directives.put(directiveName, (String) tokens.remove(directiveName));
-    }
-
-    attributes = Collections.unmodifiableMap(tokens);
+    directives = Collections.unmodifiableMap(he.getDirectives());
+    attributes = Collections.unmodifiableMap(he.getAttributes());
   }
 
   public BundleCapabilityImpl(BundleCapability bc, BundleGeneration bg) {
@@ -112,6 +105,7 @@ public class BundleCapabilityImpl implements BundleCapability {
     return gen.getRevision();
   }
 
+  @Override
   public String toString() {
     return "BundleCapability[nameSpace=" + nameSpace + ", attributes=" + attributes +
         ", directives=" + directives + ", revision=" + getRevision() + "]";

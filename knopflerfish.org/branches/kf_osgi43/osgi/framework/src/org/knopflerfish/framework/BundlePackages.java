@@ -50,6 +50,7 @@ import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 
 import org.knopflerfish.framework.Util.Comparator;
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Class representing all packages imported and exported.
@@ -81,7 +82,7 @@ class BundlePackages {
 
   /* Sorted list of active imports */
   private ArrayList<ImportPkg> okImports = null;
-  
+
   /* Is our packages registered */
   private boolean registered = false;
 
@@ -98,16 +99,10 @@ class BundlePackages {
     this.bg = bg;
     final BundleArchive ba = bg.archive;
 
-    Iterator<Map<String, Object>> i = Util
-        .parseEntries(Constants.IMPORT_PACKAGE,
-                      ba.getAttribute(Constants.IMPORT_PACKAGE), false, true,
-                      false);
-    while (i.hasNext()) {
-      final Map<String, Object> e = i.next();
-      @SuppressWarnings("unchecked")
-      final
-      Iterator<String> pi = ((List<String>) e.remove("$keys")).iterator();
-      ImportPkg ip = new ImportPkg(pi.next(), e, this, false);
+    for (final HeaderEntry he : Util.parseManifestHeader(Constants.IMPORT_PACKAGE, ba
+        .getAttribute(Constants.IMPORT_PACKAGE), false, true, false)) {
+      final Iterator<String> pi = he.getKeys().iterator();
+      ImportPkg ip = new ImportPkg(pi.next(), he, this, false);
       for (;;) {
         final int ii = Util.binarySearch(imports, ipComp, ip);
         if (ii < 0) {
@@ -123,16 +118,13 @@ class BundlePackages {
       }
     }
 
-    i = Util.parseEntries(Constants.EXPORT_PACKAGE,
-                          ba.getAttribute(Constants.EXPORT_PACKAGE),
-                          false, true, false);
-    while (i.hasNext()) {
-      final Map<String, Object> e = i.next();
-      @SuppressWarnings("unchecked")
-      final
-      List<String> keys = (List<String>) e.remove("$keys");
+    for (final HeaderEntry he : Util
+        .parseManifestHeader(Constants.EXPORT_PACKAGE,
+                             ba.getAttribute(Constants.EXPORT_PACKAGE), false,
+                             true, false)) {
+      final List<String> keys = he.getKeys();
       final Iterator<String> pi = keys.iterator();
-      ExportPkg ep = new ExportPkg(pi.next(), e, this);
+      ExportPkg ep = new ExportPkg(pi.next(), he, this);
       for (;;) {
         final int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
         exports.add(ei, ep);
@@ -153,15 +145,15 @@ class BundlePackages {
 
     parseDynamicImports(ba.getAttribute(Constants.DYNAMICIMPORT_PACKAGE));
 
-    i = Util.parseEntries(Constants.REQUIRE_BUNDLE,
-                          ba.getAttribute(Constants.REQUIRE_BUNDLE),
-                          true, true, false);
-    if (i.hasNext()) {
+    final List<HeaderEntry> hes = Util
+        .parseManifestHeader(Constants.REQUIRE_BUNDLE,
+                             ba.getAttribute(Constants.REQUIRE_BUNDLE), true,
+                             true, false);
+    if (!hes.isEmpty()) {
       require = new ArrayList<RequireBundle>();
-      do {
-        final Map<String, Object> e = i.next();
-        require.add(new RequireBundle(this, e));
-      } while (i.hasNext());
+      for (final HeaderEntry he : hes) {
+        require.add(new RequireBundle(this, he));
+      }
     } else {
       require = null;
     }
@@ -175,15 +167,12 @@ class BundlePackages {
   BundlePackages(BundleGeneration bg, String exportString) {
     this.bg = bg;
 
-    final Iterator<Map<String, Object>> i = Util.parseEntries(Constants.EXPORT_PACKAGE,
-                                                        exportString, false, true, false);
-    while (i.hasNext()) {
-      final Map<String, Object> e = i.next();
-      @SuppressWarnings("unchecked")
-      final
-      List<String> keys = (List<String>) e.remove("$keys");
+    for (final HeaderEntry he : Util.parseManifestHeader(Constants.EXPORT_PACKAGE,
+                                                   exportString, false, true,
+                                                   false)) {
+      final List<String> keys = he.getKeys();
       final Iterator<String> pi = keys.iterator();
-      ExportPkg ep = new ExportPkg(pi.next(), e, this);
+      ExportPkg ep = new ExportPkg(pi.next(), he, this);
       for (;;) {
         final int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
         exports.add(ei, ep);
@@ -219,8 +208,8 @@ class BundlePackages {
                   "import package doesn't intersect so a resolve isn't possible.");
         }
       } else if (noNew){
-        throw new IllegalStateException("Resolve host bundle package would " + 
-                                        "be shadow by new fragment import.");        
+        throw new IllegalStateException("Resolve host bundle package would " +
+                                        "be shadow by new fragment import.");
       }
       imports.add(new ImportPkg(fip, this));
     }
@@ -265,9 +254,9 @@ class BundlePackages {
     }
     capabilities = new HashMap<String, List<BundleCapability>>();
 
-    for (Entry<String, List<BundleCapability>> e : frag.bg.getDeclaredCapabilities().entrySet()) {
-      List<BundleCapability> l = new ArrayList<BundleCapability>();
-      for (BundleCapability bc : e.getValue()) {
+    for (final Entry<String, List<BundleCapability>> e : frag.bg.getDeclaredCapabilities().entrySet()) {
+      final List<BundleCapability> l = new ArrayList<BundleCapability>();
+      for (final BundleCapability bc : e.getValue()) {
         l.add(new BundleCapabilityImpl(bc, bg));
       }
       capabilities.put(e.getKey(), l);
@@ -420,7 +409,8 @@ class BundlePackages {
       return require.iterator();
     } else {
       @SuppressWarnings("unchecked")
-      Iterator<RequireBundle>res = (Iterator<RequireBundle>)Collections.EMPTY_LIST.iterator();
+      final
+      Iterator<RequireBundle>res = Collections.EMPTY_LIST.iterator();
       return res;
     }
   }
@@ -437,7 +427,7 @@ class BundlePackages {
    */
   ArrayList<BundleGeneration> getRequiredBundleGenerations(String pkg) {
     ArrayList<BundleGeneration> res = null;
-    for (Iterator<RequireBundle> i = getRequire(); i.hasNext(); ) {
+    for (final Iterator<RequireBundle> i = getRequire(); i.hasNext(); ) {
       final RequireBundle rb = i.next();
       if (rb.bpkgs != null && rb.bpkgs.isExported(pkg)) {
         if (res == null) {
@@ -900,23 +890,17 @@ class BundlePackages {
    */
 
   void parseDynamicImports(final String s) {
-    Iterator<Map<String,Object>> i;
-    i = Util.parseEntries(Constants.DYNAMICIMPORT_PACKAGE,
-                          s,
-                          false, true, false);
-    while (i.hasNext()) {
-      final Map<String, Object> e = i.next();
-      if (e.containsKey(Constants.RESOLUTION_DIRECTIVE)) {
+    for (final HeaderEntry he : Util
+        .parseManifestHeader(Constants.DYNAMICIMPORT_PACKAGE, s, false, true,
+                             false)) {
+      if (he.getDirectives().containsKey(Constants.RESOLUTION_DIRECTIVE)) {
         throw new IllegalArgumentException(Constants.DYNAMICIMPORT_PACKAGE +
                                            " entry illegal contains a " +
                                            Constants.RESOLUTION_DIRECTIVE +
                                            " directive.");
       }
       ImportPkg tmpl = null;
-      @SuppressWarnings("unchecked")
-      final
-      List<String> keys = (List<String>) e.remove("$keys");
-      for (String key : keys) {
+      for (String key : he.getKeys()) {
         if (key.equals("*")) {
           key = EMPTY_STRING;
         } else if (key.endsWith(".*")) {
@@ -931,7 +915,7 @@ class BundlePackages {
         if (tmpl != null) {
           dImportPatterns.add(new ImportPkg(tmpl, key));
         } else {
-          tmpl = new ImportPkg(key, e, this, true);
+          tmpl = new ImportPkg(key, he, this, true);
           dImportPatterns.add(tmpl);
         }
       }

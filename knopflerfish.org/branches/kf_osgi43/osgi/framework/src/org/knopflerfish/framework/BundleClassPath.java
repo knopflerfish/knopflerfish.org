@@ -50,6 +50,8 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
 
+import org.knopflerfish.framework.Util.HeaderEntry;
+
 /**
  * Bundle Class Path handler.
  *
@@ -346,23 +348,24 @@ public class BundleClassPath {
       VersionRange bestVer = null;
       boolean bestLang = false;
 
-      for (final Iterator<Map<String, Object>> i = Util
-          .parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext();) {
+      final List<HeaderEntry> hes = Util
+          .parseManifestHeader(Constants.BUNDLE_NATIVECODE, bnc, false, false,
+                               false);
+      for (final Iterator<HeaderEntry> heIt = hes.iterator(); heIt.hasNext();) {
+        final HeaderEntry he = heIt.next();
         VersionRange matchVer = null;
         boolean matchLang = false;
-        final Map<String, Object> params = i.next();
 
-        @SuppressWarnings("unchecked")
         final
-        List<String> keys = (List<String>) params.get("$keys");
-        if (keys.size() == 1 && "*".equals(keys.get(0)) && !i.hasNext()) {
+        List<String> keys = he.getKeys();
+        if (keys.size() == 1 && "*".equals(keys.get(0)) && !heIt.hasNext()) {
           optional = true;
           break;
         }
 
         @SuppressWarnings("unchecked")
         final
-        List<String> pl = (List<String>) params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
+        List<String> pl = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
         if (pl != null) {
           if (!containsIgnoreCase(proc, pl)) {
             continue;
@@ -374,7 +377,7 @@ public class BundleClassPath {
 
         @SuppressWarnings("unchecked")
         final
-        List<String> ol = (List<String>) params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
+        List<String> ol = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_OSNAME);
         if (ol != null) {
           if (!containsIgnoreCase(os, ol)) {
             continue;
@@ -386,7 +389,7 @@ public class BundleClassPath {
 
         @SuppressWarnings("unchecked")
         final
-        List<String> ver = (List<String>) params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
+        List<String> ver = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_OSVERSION);
         if (ver != null) {
           boolean okVer = false;
           for (final String string : ver) {
@@ -404,7 +407,7 @@ public class BundleClassPath {
 
         @SuppressWarnings("unchecked")
         final
-        List<String> lang = (List<String>) params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
+        List<String> lang = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
         if (lang != null) {
           for (final String string : lang) {
             if (osLang.equalsIgnoreCase(string)) {
@@ -420,7 +423,7 @@ public class BundleClassPath {
 
         @SuppressWarnings("unchecked")
         final
-        List<String> sf = (List<String>) params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
+        List<String> sf = (List<String>) he.getAttributes().get(Constants.SELECTION_FILTER_ATTRIBUTE);
         if (sf != null) {
           final String sfs = sf.get(0);
           if (sf.size() == 1) {

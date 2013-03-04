@@ -57,7 +57,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
@@ -76,6 +76,7 @@ import org.knopflerfish.framework.BundleResourceStream;
 import org.knopflerfish.framework.FileArchive;
 import org.knopflerfish.framework.FileTree;
 import org.knopflerfish.framework.Util;
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * JAR file handling.
@@ -1005,10 +1006,12 @@ public class Archive implements FileArchive {
    */
   private void checkManifest() {
     final Attributes a = manifest.getMainAttributes();
-    Util.parseEntries(Constants.EXPORT_PACKAGE, a.getValue(Constants.EXPORT_PACKAGE), false,
-        true, false);
-    Util.parseEntries(Constants.IMPORT_PACKAGE, a.getValue(Constants.IMPORT_PACKAGE), false,
-        true, false);
+    Util.parseManifestHeader(Constants.EXPORT_PACKAGE,
+                             a.getValue(Constants.EXPORT_PACKAGE), false, true,
+                             false);
+    Util.parseManifestHeader(Constants.IMPORT_PACKAGE,
+                             a.getValue(Constants.IMPORT_PACKAGE), false, true,
+                             false);
     // NYI, more checks?
   }
 
@@ -1021,10 +1024,12 @@ public class Archive implements FileArchive {
    * @exception IllegalArgumentException if we have a broken manifest.
    */
   private boolean needUnpack(Attributes a) {
-    final Iterator<Map<String, Object>> nc = Util.parseEntries(Constants.BUNDLE_NATIVECODE,
-        a.getValue(Constants.BUNDLE_NATIVECODE), false, false, false);
+    final List<HeaderEntry> nc = Util
+        .parseManifestHeader(Constants.BUNDLE_NATIVECODE,
+                             a.getValue(Constants.BUNDLE_NATIVECODE), false,
+                             false, false);
     final String bc = a.getValue(Constants.BUNDLE_CLASSPATH);
-    return (bc != null && !bc.trim().equals(".")) || nc.hasNext();
+    return (bc != null && !bc.trim().equals(".")) || !nc.isEmpty();
   }
 
 

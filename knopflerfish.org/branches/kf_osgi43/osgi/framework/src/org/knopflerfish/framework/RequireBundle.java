@@ -38,7 +38,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
@@ -47,6 +46,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 
 class RequireBundle
@@ -82,13 +83,21 @@ class RequireBundle
     this.attributes = parent.attributes;
   }
 
-  RequireBundle(BundlePackages requestor,
-                Map<String, Object> tokens)
+  /**
+   * A require bundle requirement.
+   *
+   * @param requestor
+   *          The bundle packages of the fragment host that requires a bundle.
+   * @param he
+   *          The parsed require bundle header.
+   */
+  RequireBundle(final BundlePackages requestor, final HeaderEntry he)
   {
     this.requestor = requestor;
-    this.name = (String) tokens.remove("$key");
+    this.name = he.getKey();
 
-    final String visibility = (String) tokens.remove(Constants.VISIBILITY_DIRECTIVE);
+    final String visibility = he.getDirectives()
+        .get(Constants.VISIBILITY_DIRECTIVE);
     if (visibility != null) {
       this.visibility = visibility.intern();
       if (this.visibility!=Constants.VISIBILITY_PRIVATE &&
@@ -108,7 +117,8 @@ class RequireBundle
       this.visibility = Constants.VISIBILITY_PRIVATE;
     }
 
-    final String resolution = (String) tokens.remove(Constants.RESOLUTION_DIRECTIVE);
+    final String resolution = he.getDirectives()
+        .get(Constants.RESOLUTION_DIRECTIVE);
     if (resolution != null) {
       this.resolution = resolution.intern();
       if (this.resolution!=Constants.RESOLUTION_MANDATORY &&
@@ -128,29 +138,21 @@ class RequireBundle
       this.resolution = Constants.RESOLUTION_MANDATORY;
     }
 
-    final String range = (String) tokens.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+    final String range = (String) he.getAttributes()
+        .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     if (range != null) {
       this.bundleRange = new VersionRange(range);
     } else {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
 
-    // Remove all meta-data and all directives from the set of tokens.
-    @SuppressWarnings("unchecked")
-    final
-    Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
-    if (null != directiveNames) {
-      tokens.keySet().removeAll(directiveNames);
-    }
-    // Warn about unknown directives...
-    tokens.remove("$keys");
-    this.attributes = tokens;
+    this.attributes = Collections.unmodifiableMap(he.getAttributes());
 
   }
 
 
   /**
-   * Check if this object completly overlap specified RequireBundle.
+   * Check if this object completely overlap specified RequireBundle.
    *
    * @return True if we overlap, otherwise false.
    */

@@ -40,7 +40,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.Vector;
 
 import org.osgi.framework.Constants;
@@ -50,6 +49,8 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Fragment information
@@ -66,15 +67,22 @@ class Fragment
   private final Vector<BundleGeneration> hosts = new Vector<BundleGeneration>(2);
 
 
-  Fragment(BundleGeneration gen, Map<String, Object> tokens) {
+  /**
+   * @param gen
+   *          The bundle generation of this fragment.
+   * @param headerEntry
+   *          the fragment-host manifest header describing this fragment.
+   */
+  Fragment(final BundleGeneration gen, final HeaderEntry headerEntry) {
     this.gen = gen;
-    this.hostName = (String) tokens.remove("$key");
+    this.hostName = headerEntry.getKey();
 
     if (gen.archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
       throw new IllegalArgumentException("A fragment bundle can not have a Bundle-Activator.");
     }
 
-    final String extension = (String) tokens.remove(Constants.EXTENSION_DIRECTIVE);
+    final String extension = headerEntry.getDirectives()
+        .remove(Constants.EXTENSION_DIRECTIVE);
     if (Constants.EXTENSION_FRAMEWORK.equals(extension)
         || Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
       // an extension bundle must target the system bundle.
@@ -116,20 +124,12 @@ class Fragment
     }
     this.extension = extension;
 
-    final String range = (String) tokens
+    final String range = (String) headerEntry.getAttributes()
         .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     this.versionRange = range == null ? VersionRange.defaultVersionRange
         : new VersionRange(range);
 
-    // Remove all meta-data and all unknown directives from the set of tokens.
-    @SuppressWarnings("unchecked")
-    final
-    Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
-    if (null != directiveNames) {
-      tokens.keySet().removeAll(directiveNames);
-    }
-    tokens.remove("$keys");
-    this.attributes = tokens;
+    this.attributes = headerEntry.getAttributes();
   }
 
 
