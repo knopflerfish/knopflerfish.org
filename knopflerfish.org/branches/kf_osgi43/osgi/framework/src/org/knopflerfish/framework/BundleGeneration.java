@@ -48,9 +48,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -177,7 +179,11 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   private BundleRevision bundleRevision = null;
 
-  private BundleClassPath unresolvedBundleClassPath;
+  private BundleClassPath unresolvedBundleClassPath = null;
+
+  private LinkedList<BundleWireImpl> capabilityWires = null;
+
+  private LinkedList<BundleWireImpl> requirementWires = null;
 
 
   /**
@@ -499,7 +505,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
               fragments.add(bg);
             }
           }
-	}
+        }
         classLoader = bundle.secure.newBundleClassLoader(this);
 
         return true;
@@ -591,6 +597,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       try {
         ((BundleClassLoader)classLoader).attachFragment(fragmentBundle);
       } catch (final BundleException be) {
+        // TODO, should we unregister fragment packaaes
         throw new IllegalStateException(be.getMessage());
       }
     }
@@ -1105,6 +1112,60 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       return res;
     }
     return null;
+  }
+
+
+  void addCapabilityWire(BundleWireImpl bw) {
+    // TODO fix sorting
+    if (capabilityWires == null) {
+      capabilityWires = new LinkedList<BundleWireImpl>();
+    }
+    capabilityWires.add(bw);
+  }
+
+
+  void addRequirementWire(BundleWireImpl bw) {
+    if (requirementWires == null) {
+      requirementWires = new LinkedList<BundleWireImpl>();
+    }
+    requirementWires.add(bw);
+  }
+
+  List<BundleWireImpl> getCapabilityWires() {
+    return capabilityWires;
+  }
+
+  List<BundleWireImpl> getRequirementWires() {
+    return capabilityWires;
+  }
+
+
+  Map<String, List<BundleRequirement>> getCombinedRequirements() {
+    Map<String, List<BundleRequirement>> res = getDeclaredRequirements();
+    if (isFragmentHost()) {
+      boolean copied = false;
+      for (final BundleGeneration fbg : fragments) {
+        Map<String, List<BundleRequirement>> frm = fbg.getDeclaredRequirements();
+        if (!frm.isEmpty()) {
+          if (!copied) {
+            res = new HashMap<String, List<BundleRequirement>>(res);
+            copied = true;
+          }
+          for (Entry<String, List<BundleRequirement>> e : frm.entrySet()) {
+            String ns = e.getKey();
+            List<BundleRequirement> p = res.get(ns);
+            if (p != null) {
+              p = new ArrayList<BundleRequirement>(p);
+              p.addAll(e.getValue());
+            } else {
+              p = e.getValue();
+            }
+            res.put(ns, p);
+          }
+        }
+      }
+    }
+    return res;
   }
 
 }

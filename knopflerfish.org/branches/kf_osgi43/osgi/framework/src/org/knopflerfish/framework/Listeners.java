@@ -430,7 +430,7 @@ class Listeners {
       }
     }
 
-    framework.hooks.filterServiceEventReceivers(evt, receivers);
+    framework.serviceHooks.filterServiceEventReceivers(evt, receivers);
 
     for (final ServiceListenerEntry l : receivers) {
       try {

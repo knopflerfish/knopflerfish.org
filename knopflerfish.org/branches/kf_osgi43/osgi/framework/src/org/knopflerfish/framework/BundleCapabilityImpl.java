@@ -52,7 +52,7 @@ public class BundleCapabilityImpl implements BundleCapability {
   private final BundleGeneration gen;
   private final String nameSpace;
   private final Map<String,Object> attributes;
-  private final Map<String,String> directives = new HashMap<String, String>();
+  private final Map<String,String> directives;
 
   /**
    * Creates a {@link BundleCapability} from the output of the
@@ -81,11 +81,19 @@ public class BundleCapabilityImpl implements BundleCapability {
     // Move directives to directives map
     @SuppressWarnings("unchecked")
     final Set<String> directiveNames = (Set<String>) tokens.remove("$directives");
+    directives = new HashMap<String, String>();
     for (final String directiveName : directiveNames) {
       directives.put(directiveName, (String) tokens.remove(directiveName));
     }
 
     attributes = Collections.unmodifiableMap(tokens);
+  }
+
+  public BundleCapabilityImpl(BundleCapability bc, BundleGeneration bg) {
+    gen = bg;
+    nameSpace = bc.getNamespace();
+    attributes = bc.getAttributes();
+    directives = bc.getDirectives();
   }
 
   public String getNamespace() {
@@ -102,6 +110,15 @@ public class BundleCapabilityImpl implements BundleCapability {
 
   public BundleRevision getRevision() {
     return gen.getRevision();
+  }
+
+  public String toString() {
+    return "BundleCapability[nameSpace=" + nameSpace + ", attributes=" + attributes +
+        ", directives=" + directives + ", revision=" + getRevision() + "]";
+  }
+
+  BundleGeneration getBundleGeneration() {
+    return gen;
   }
 
 }

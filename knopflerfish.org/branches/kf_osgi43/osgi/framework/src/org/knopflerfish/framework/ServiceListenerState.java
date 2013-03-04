@@ -115,7 +115,7 @@ class ServiceListenerState {
       remove(bc, listener);
     }
     serviceSet.add(sle);
-    listeners.framework.hooks.handleServiceListenerReg(sle);
+    listeners.framework.serviceHooks.handleServiceListenerReg(sle);
     checkSimple(sle);
   }
 
@@ -130,7 +130,7 @@ class ServiceListenerState {
       final ServiceListenerEntry sle = it.next();
       if (sle.bc == bc && sle.listener == listener) {
         sle.setRemoved(true);
-        listeners.framework.hooks.handleServiceListenerUnreg(sle);
+        listeners.framework.serviceHooks.handleServiceListenerUnreg(sle);
         removeFromCache(sle);
         it.remove();
         break;
@@ -193,7 +193,7 @@ class ServiceListenerState {
         entries.add(sle);
       }
     }
-    listeners.framework.hooks.handleServiceListenerUnreg(Collections.unmodifiableList(entries));
+    listeners.framework.serviceHooks.handleServiceListenerUnreg(Collections.unmodifiableList(entries));
   }
 
 

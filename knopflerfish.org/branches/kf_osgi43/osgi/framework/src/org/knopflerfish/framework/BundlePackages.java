@@ -36,9 +36,11 @@ package org.knopflerfish.framework;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -69,6 +71,8 @@ class BundlePackages {
   /* Sorted list of declared dynamic imports */
   private final ArrayList<ImportPkg> dImportPatterns = new ArrayList<ImportPkg>(1);
 
+  private final Map<String, List<BundleCapability>> capabilities;
+
   private TreeMap<BundleGeneration, BundlePackages> fragments = null;
 
   private ArrayList<RequireBundle> require;
@@ -77,7 +81,7 @@ class BundlePackages {
 
   /* Sorted list of active imports */
   private ArrayList<ImportPkg> okImports = null;
-
+  
   /* Is our packages registered */
   private boolean registered = false;
 
@@ -161,7 +165,7 @@ class BundlePackages {
     } else {
       require = null;
     }
-
+    capabilities = bg.getDeclaredCapabilities();
   }
 
 
@@ -191,6 +195,7 @@ class BundlePackages {
       }
     }
     require = null;
+    capabilities = bg.getDeclaredCapabilities();
   }
 
 
@@ -199,7 +204,6 @@ class BundlePackages {
    */
   BundlePackages(BundlePackages host, BundlePackages frag, boolean noNew) {
     this.bg = host.bg;
-
     /*
      * make sure that the fragment's bundle does not conflict with this bundle's
      * (see 3.1.4 r4-core)
@@ -259,6 +263,21 @@ class BundlePackages {
       }
       exports.add(new ExportPkg(fep, this));
     }
+    capabilities = new HashMap<String, List<BundleCapability>>();
+
+    for (Entry<String, List<BundleCapability>> e : frag.bg.getDeclaredCapabilities().entrySet()) {
+      List<BundleCapability> l = new ArrayList<BundleCapability>();
+      for (BundleCapability bc : e.getValue()) {
+        l.add(new BundleCapabilityImpl(bc, bg));
+      }
+      capabilities.put(e.getKey(), l);
+    }
+  }
+
+
+   List<BundleCapability> getBundleCapabilities() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 
@@ -267,7 +286,7 @@ class BundlePackages {
    *
    */
   void registerPackages() {
-    bg.bundle.fwCtx.packages.registerPackages(exports.iterator(), imports.iterator());
+    bg.bundle.fwCtx.packages.registerCapabilities(capabilities, exports.iterator(), imports.iterator());
     registered = true;
   }
 
@@ -278,7 +297,7 @@ class BundlePackages {
    */
   synchronized boolean unregisterPackages(boolean force) {
     if (registered) {
-      if (bg.bundle.fwCtx.packages.unregisterPackages(getExports(), getImports(), force)) {
+      if (bg.bundle.fwCtx.packages.unregisterCapabilities(capabilities, getExports(), getImports(), force)) {
         okImports = null;
         registered = false;
         unRequireBundles();
@@ -298,7 +317,7 @@ class BundlePackages {
    *         for fail can be fetched with getResolveFailReason().
    */
   boolean resolvePackages() {
-    failReason = bg.bundle.fwCtx.packages.resolve(bg.bundle, getImports());
+    failReason = bg.bundle.fwCtx.packages.resolve(bg, getImports());
     if (failReason == null) {
       // TBD, Perhaps we should use complete size here
       okImports = new ArrayList<ImportPkg>(imports.size());
@@ -708,7 +727,7 @@ class BundlePackages {
     final BundlePackages nfbpkgs = new BundlePackages(this, fbpkgs, resolvedHost);
     nfbpkgs.registerPackages();
     if (resolvedHost) {
-      failReason = bg.bundle.fwCtx.packages.resolve(bg.bundle, nfbpkgs.getImports());
+      failReason = bg.bundle.fwCtx.packages.resolve(bg, nfbpkgs.getImports());
       if (failReason == null) {
         for (final Iterator<ImportPkg> i = nfbpkgs.getImports(); i.hasNext();) {
           final ImportPkg ip = i.next();

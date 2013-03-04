@@ -94,7 +94,19 @@ public class BundleWiringImpl implements BundleWiring {
       }
     }
     if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
-      // TODO Other namespace wires
+      List<BundleWireImpl> other = gen.getCapabilityWires();
+      if (other != null) {
+        BundleCapability prev = null;
+        for (BundleWireImpl bw : other) {
+          BundleCapability bc = bw.getCapability();
+          if (!bc.equals(prev)) {
+            prev = bc;
+            if (namespace == null || namespace.equals(bc.getNamespace())) {
+              res.add(bc);
+            }
+          }
+        }
+      }
     }
     return res;
   }
@@ -126,10 +138,17 @@ public class BundleWiringImpl implements BundleWiring {
           res.add(ip);
         }
       }
-
     }
     if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
-      // TODO Other namespace wires
+      List<BundleWireImpl> other = gen.getRequirementWires();
+      if (other != null) {
+        for (BundleWireImpl bw : other) {
+          final BundleRequirement br = bw.getRequirement();
+          if (namespace == null || namespace.equals(br.getNamespace())) {
+            res.add(br);
+          }
+        }
+      }
     }
     return res;
   }
@@ -152,13 +171,11 @@ public class BundleWiringImpl implements BundleWiring {
       }
     }
     if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
-      if (gen.isFragment()) {
-        final Vector<BundleGeneration> frags = gen.fragments;
-        if (frags != null) {
-          synchronized (frags) {
-            for (final BundleGeneration fbg : frags) {
-              res.add(new BundleWireImpl(gen.getHostCapability(), gen, fbg.fragment, fbg));
-            }
+      final Vector<BundleGeneration> frags = gen.fragments;
+      if (frags != null) {
+        synchronized (frags) {
+          for (final BundleGeneration fbg : frags) {
+            res.add(new BundleWireImpl(gen.getHostCapability(), gen, fbg.fragment, fbg));
           }
         }
       }
@@ -177,7 +194,14 @@ public class BundleWiringImpl implements BundleWiring {
       }
     }
     if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
-      // TODO Other namespace wires
+      List<BundleWireImpl> other = gen.getCapabilityWires();
+      if (other != null) {
+        for (BundleWireImpl bw : other) {
+          if (namespace == null || namespace.equals(bw.getCapability().getNamespace())) {
+            res.add(bw);
+          }
+        }
+      }
     }
     return res;
   }
@@ -215,7 +239,14 @@ public class BundleWiringImpl implements BundleWiring {
 
     }
     if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
-      // TODO Other namespace wires
+      List<BundleWireImpl> other = gen.getRequirementWires();
+      if (other != null) {
+        for (BundleWireImpl bw : other) {
+          if (namespace == null || namespace.equals(bw.getRequirement().getNamespace())) {
+            res.add(bw);
+          }
+        }
+      }
     }
     return res;
   }

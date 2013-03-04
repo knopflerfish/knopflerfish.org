@@ -42,6 +42,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -49,6 +50,8 @@ import java.util.Vector;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRequirement;
 
 /**
  * Here we handle all the java packages that are imported and exported within
@@ -67,6 +70,11 @@ class Packages {
    * All exported and imported packages.
    */
   private final Hashtable<String, Pkg> packages = new Hashtable<String, Pkg>();
+
+  /*
+   * All BundleCapabilities that can be or is resolved.
+   */
+  private final Capabilities capabilities = new Capabilities();
 
   /**
    * Temporary set of resolved bundles during a resolve operation.
@@ -95,6 +103,12 @@ class Packages {
    */
   private HashSet<BundlePackages> tempBackTracked = null;
 
+  /**
+   * Temporary list of bundle wires during a resolve operation.
+   */
+  private ArrayList<BundleWireImpl> tempWires = null;
+
+
   /* Statistics to check need for tempBlackList */
   int tempBlackListChecks = 0;
   int tempBlackListHits = 0;
@@ -113,16 +127,24 @@ class Packages {
    */
   void clear() {
     packages.clear();
-    if (null != tempResolved)
+    if (null != tempResolved) {
       tempResolved.clear();
-    if (null != tempProvider)
+    }
+    if (null != tempProvider) {
       tempProvider.clear();
-    if (null != tempRequired)
+    }
+    if (null != tempRequired) {
       tempRequired.clear();
-    if (null != tempBlackList)
+    }
+    if (null != tempBlackList) {
       tempBlackList.clear();
-    if (null != tempBackTracked)
+    }
+    if (null != tempBackTracked) {
       tempBackTracked.clear();
+    }
+    if (null != tempWires) {
+      tempWires.clear();
+    }
   }
 
 
@@ -133,9 +155,10 @@ class Packages {
    * @param exports Exported packages.
    * @param imports Imported packages.
    */
-  synchronized void registerPackages(Iterator<ExportPkg> exports,
-                                     Iterator<ImportPkg> imports)
-  {
+  synchronized void registerCapabilities(Map<String, List<BundleCapability>> capabilities,
+                                         Iterator<ExportPkg> exports,
+                                         Iterator<ImportPkg> imports) {
+    this.capabilities.addCapabilities(capabilities);
     while (exports.hasNext()) {
       final ExportPkg pe = exports.next();
       Pkg p = packages.get(pe.name);
@@ -223,12 +246,13 @@ class Packages {
    * @param exports Exported packages.
    * @param imports Imported packages.
    * @param force If true force unregistration of package providers.
-   * @return True if all packages were succesfully unregistered, otherwise
+   * @return True if all packages were successfully unregistered, otherwise
    *         false.
    */
-  synchronized boolean unregisterPackages(Iterator<ExportPkg> exports,
-                                          Iterator<ImportPkg> imports,
-                                          boolean force) {
+  synchronized boolean unregisterCapabilities(Map<String, List<BundleCapability>> capabilities,
+                                              Iterator<ExportPkg> exports,
+                                              Iterator<ImportPkg> imports,
+                                              boolean force) {
     // Check if somebody other than ourselves use our exports
     if (!force) {
       final ArrayList<ExportPkg> saved = new ArrayList<ExportPkg>();
@@ -297,15 +321,15 @@ class Packages {
    * @param pkgs List of packages to be resolved.
    * @return String with reason for failure or null if all were resolved.
    */
-  synchronized String resolve(BundleImpl bundle, Iterator<ImportPkg> pkgs) {
+  synchronized String resolve(BundleGeneration bg, Iterator<ImportPkg> pkgs) {
     String res;
     if (framework.debug.packages) {
-      framework.debug.println("resolve: " + bundle);
+      framework.debug.println("resolve: " + bg);
     }
     // If we enter with tempResolved set, it means that we already have
     // resolved bundles. Check that it is true!
     while (tempResolved != null) {
-      if (tempResolved.contains(bundle)) {
+      if (tempResolved.contains(bg.bundle)) {
         return null;
       }
       // Not true, wait before starting new resolve process.
@@ -316,43 +340,51 @@ class Packages {
     }
 
     tempResolved = new HashSet<BundleImpl>();
-    final BundleImpl sb = checkBundleSingleton(bundle);
+    final BundleImpl sb = checkBundleSingleton(bg);
     if (sb != null) {
       tempResolved = null;
       return "Singleton bundle failed to resolve because " + sb + " is already resolved";
     }
-
+    
     tempProvider = new HashMap<String, ExportPkg>();
     tempRequired = new HashMap<RequireBundle, BundlePackages>();
     tempBlackList = new HashSet<ExportPkg>();
-    tempResolved.add(bundle);
-    final String br = checkRequireBundle(bundle);
-    if (br == null) {
-      final List<ImportPkg> failed = resolvePackages(pkgs);
-      if (failed.size() == 0) {
-        registerNewProviders(bundle);
-        res = null;
-      } else {
-        final StringBuffer r = new StringBuffer(
-            "missing package(s) or can not resolve all of the them: ");
-        final Iterator<ImportPkg> mi = failed.iterator();
-        r.append(mi.next().pkgString());
-        while (mi.hasNext()) {
-          r.append(", ");
+    tempWires = new ArrayList<BundleWireImpl>();
+    tempResolved.add(bg.bundle);
+    final String breq = checkBundleRequirements(bg);
+    if (breq == null) {
+      String br = checkRequireBundle(bg);
+      if (br == null) {
+        List<ImportPkg> failed = resolvePackages(pkgs);
+        if (failed.size() == 0) {
+          registerNewProviders(bg.bundle);
+          registerNewWires();
+          res = null;
+        } else {
+          StringBuffer r = new StringBuffer(
+              "missing package(s) or can not resolve all of the them: ");
+          final Iterator<ImportPkg> mi = failed.iterator();
           r.append(mi.next().pkgString());
+          while (mi.hasNext()) {
+            r.append(", ");
+            r.append(mi.next().pkgString());
+          }
+          res = r.toString();
         }
-        res = r.toString();
+      } else {
+        res = "Failed to resolve required bundle or host: " + br;
       }
     } else {
-      res = "Failed to resolve required bundle or host: " + br;
+      res = "Failed to fulfill requirement: " + breq;
     }
     tempResolved = null;
     tempProvider = null;
     tempRequired = null;
     tempBlackList = null;
+    tempWires = null;
     notifyAll();
     if (framework.debug.packages) {
-      framework.debug.println("resolve: Done for " + bundle);
+      framework.debug.println("resolve: Done for " + bg);
     }
     return res;
   }
@@ -609,8 +641,7 @@ class Packages {
           provider = null;
         }
       } else {
-        for (final Object element : ip.pkg.providers) {
-          final ExportPkg ep = (ExportPkg)element;
+        for (final ExportPkg ep : ip.pkg.providers) {
           tempBlackListChecks++;
           if (tempBlackList.contains(ep)) {
             tempBlackListHits++;
@@ -627,8 +658,7 @@ class Packages {
                                       " - has provider - " + ep);
             }
             if (ip.checkPermission(ep)) {
-              @SuppressWarnings("unchecked")
-              final HashMap<String, ExportPkg> oldTempProvider = (HashMap<String, ExportPkg>)tempProvider.clone();
+              final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
               if (!checkUses(ep)) {
                 tempProvider = oldTempProvider;
                 tempBlackList.add(ep);
@@ -664,6 +694,12 @@ class Packages {
   }
 
 
+  @SuppressWarnings("unchecked")
+  private HashMap<String, ExportPkg> tempProviderClone() {
+    return (HashMap<String, ExportPkg>)tempProvider.clone();
+  }
+
+
   /**
    * Find a provider for specified package.
    *
@@ -674,9 +710,8 @@ class Packages {
     if (framework.debug.packages) {
       framework.debug.println("pickProvider: for - " + ip);
     }
-    final ArrayList<ExportPkg> possibleProvider = new ArrayList<ExportPkg>(ip.pkg.exporters.size());
-    for (final Object element : ip.pkg.exporters) {
-      final ExportPkg ep = (ExportPkg)element;
+    ArrayList<ExportPkg> possibleProvider = new ArrayList<ExportPkg>(ip.pkg.exporters.size());
+    for (ExportPkg ep : ip.pkg.exporters) {
       tempBlackListChecks++;
       if (tempBlackList.contains(ep)) {
         tempBlackListHits++;
@@ -707,8 +742,7 @@ class Packages {
         continue;
       }
       if ((ep.bpkgs.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
-        @SuppressWarnings("unchecked")
-        final HashMap<String, ExportPkg> oldTempProvider = (HashMap<String, ExportPkg>)tempProvider.clone();
+        final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
         if (checkUses(ep)) {
           if (framework.debug.packages) {
             framework.debug.println("pickProvider: " + ip +
@@ -729,7 +763,7 @@ class Packages {
       if (framework.debug.packages) {
         framework.debug.println("pickProvider: check possible provider - " + ep);
       }
-      if (tempResolved.contains(ep.bpkgs.bg.bundle) || checkResolve(ep.bpkgs.bg.bundle, ep)) {
+      if (tempResolved.contains(ep.bpkgs.bg.bundle) || checkResolve(ep.bpkgs.bg, ep)) {
         if (framework.debug.packages) {
           framework.debug.println("pickProvider: " + ip + " - got provider - " + ep);
         }
@@ -752,30 +786,34 @@ class Packages {
    * @param ep ExportPkg that must be exported by bundle.
    * @return true if resolvable otherwise false.
    */
-  private boolean checkResolve(BundleImpl b, ExportPkg ep) {
-    if (checkBundleSingleton(b) == null) {
+  private boolean checkResolve(BundleGeneration bg, ExportPkg ep) {
+    if (checkBundleSingleton(bg) == null) {
+      final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
       @SuppressWarnings("unchecked")
       final HashSet<BundleImpl> oldTempResolved = (HashSet<BundleImpl>)tempResolved.clone();
-      @SuppressWarnings("unchecked")
-      final HashMap<String, ExportPkg> oldTempProvider = (HashMap<String, ExportPkg>)tempProvider.clone();
       @SuppressWarnings("unchecked")
       final HashMap<RequireBundle, BundlePackages> oldTempRequired = (HashMap<RequireBundle, BundlePackages>)tempRequired.clone();
       @SuppressWarnings("unchecked")
       final HashSet<ExportPkg> oldTempBlackList = (HashSet<ExportPkg>)tempBlackList.clone();
+      final int oldTempWiresSize = tempWires.size();
       if (ep != null) {
         tempProvider.put(ep.pkg.pkg, ep);
       }
-      tempResolved.add(b);
-      if (checkRequireBundle(b) == null) {
-        final List<ImportPkg> r = resolvePackages(b.current().bpkgs.getImports());
-        if (r.size() == 0) {
-          return true;
+      tempResolved.add(bg.bundle);
+      final String breq = checkBundleRequirements(bg);
+      if (breq == null) {
+        if (checkRequireBundle(bg) == null) {
+          final List<ImportPkg> r = resolvePackages(bg.bpkgs.getImports());
+          if (r.size() == 0) {
+            return true;
+          }
         }
       }
       tempResolved = oldTempResolved;
       tempProvider = oldTempProvider;
       tempRequired = oldTempRequired;
       tempBlackList = oldTempBlackList;
+      tempWires.subList(oldTempWiresSize, tempWires.size()).clear();
     }
     return false;
   }
@@ -851,21 +889,81 @@ class Packages {
    * @param b Bundle to check, must be in INSTALLED state
    * @return Bundle blocking resolve, otherwise null.
    */
-  private BundleImpl checkBundleSingleton(BundleImpl b) {
+  private BundleImpl checkBundleSingleton(BundleGeneration bg) {
     // NYI! More speed?
-    if (b.getSymbolicName() != null && b.current().singleton) {
+    if (bg.symbolicName != null && bg.singleton) {
       if (framework.debug.packages) {
-        framework.debug.println("checkBundleSingleton: check singleton bundle " + b);
+        framework.debug.println("checkBundleSingleton: check singleton bundle " + bg);
       }
-      final List<BundleImpl> bl = framework.bundles.getBundles(b.getSymbolicName());
+      final List<BundleImpl> bl = framework.bundles.getBundles(bg.symbolicName);
       if (bl.size() > 1) {
         for (final BundleImpl b2 : bl) {
           if (b2.current().singleton && ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0 ||
-                               tempResolved.contains(b2))) {
+              tempResolved.contains(b2))) {
             if (framework.debug.packages) {
               framework.debug.println("checkBundleSingleton: Reject because of bundle: " + b2);
             }
             return b2;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Check that the bundle specified can resolve all its Require-Capability
+   * constraints.
+   * 
+   * @param b Bundle to check, must be in INSTALLED state
+   * @return Capability not full name of bundle blocking resolve, otherwise null.
+   */
+  private String checkBundleRequirements(BundleGeneration bg) {
+    // TODO, Handle fragment requirements
+    for (Entry<String, List<BundleRequirement>> e : bg.getCombinedRequirements().entrySet()) {
+      String namespace = e.getKey(); 
+      for (Iterator<BundleRequirement> iterator = e.getValue().iterator(); iterator.hasNext();) {
+        BundleRequirementImpl br = (BundleRequirementImpl) iterator.next();
+        if (!br.shouldResolve()) {
+          continue;
+        }
+        if (framework.debug.packages) {
+          framework.debug.println("checkBundleRequirements: Check requirement: " + br);
+        }
+        List<BundleCapabilityImpl> bcs = capabilities.getCapabilities(namespace);
+        if (bcs != null) {
+          List<BundleCapabilityImpl> matches = new ArrayList<BundleCapabilityImpl>();
+          for (BundleCapabilityImpl bc : bcs) {
+            if (br.matches(bc)) {
+              BundleGeneration bcbg = bc.getBundleGeneration();
+              if (bcbg.bundle.state == Bundle.INSTALLED &&
+                  !tempResolved.contains(bcbg.bundle)) {
+                matches.add(bc);
+              } else {
+                matches.add(0, bc);
+              }
+            }
+          }
+          BundleWireImpl found = null;
+          for (BundleCapabilityImpl bc : matches) {
+            BundleGeneration bcbg = bc.getBundleGeneration();
+            if (!tempResolved.contains(bcbg.bundle)) {
+              if (bcbg.bundle.state == Bundle.INSTALLED) {
+                if (!checkResolve(bcbg, null)) {
+                  continue;
+                }
+              } else {
+                // Check uses
+              }
+            }
+            found = new BundleWireImpl(bc, bcbg, br, bg);
+            break;
+          }
+          if (found != null) {
+            tempWires.add(found);
+          } else if (!br.isOptional()) {
+            return "Failed to satisfy: " + br;
           }
         }
       }
@@ -881,15 +979,15 @@ class Packages {
    * @param b Bundle to check, must be in INSTALLED state
    * @return Symbolic name of bundle blocking resolve, otherwise null.
    */
-  private String checkRequireBundle(BundleImpl b) {
+  private String checkRequireBundle(BundleGeneration bg) {
     // NYI! More speed?
-    final Iterator<RequireBundle> i = b.current().bpkgs.getRequire();
+    final Iterator<RequireBundle> i = bg.bpkgs.getRequire();
     if (i.hasNext()) {
       if (framework.debug.packages) {
-        framework.debug.println("checkRequireBundle: check requiring bundle " + b);
+        framework.debug.println("checkRequireBundle: check requiring bundle " + bg);
       }
-      if (!framework.perm.okRequireBundlePerm(b)) {
-        return b.getSymbolicName();
+      if (!framework.perm.okRequireBundlePerm(bg.bundle)) {
+        return bg.symbolicName;
       }
       final HashMap<RequireBundle, BundlePackages> res = new HashMap<RequireBundle, BundlePackages>();
       do {
@@ -901,8 +999,7 @@ class Packages {
           if (tempResolved.contains(b2)) {
             ok = b2;
           } else if ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0) {
-            @SuppressWarnings("unchecked")
-            final HashMap<String, ExportPkg> oldTempProvider = (HashMap<String, ExportPkg>)tempProvider.clone();
+            final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
             ok = b2;
             for (final Iterator<ExportPkg> epi = b2.current().bpkgs.getExports(); epi.hasNext();) {
               final ExportPkg ep = epi.next();
@@ -914,7 +1011,7 @@ class Packages {
             }
           } else if (b2.state == Bundle.INSTALLED &&
                      framework.perm.okProvideBundlePerm(b2) &&
-                     checkResolve(b2, null)) {
+                     checkResolve(b2.current(), null)) {
             ok = b2;
           }
         }
@@ -1020,6 +1117,16 @@ class Packages {
           }
         }
       }
+    }
+  }
+
+  /**
+   *
+   */
+  private void registerNewWires() {
+    for (final BundleWireImpl bw : tempWires) {
+      bw.getProvider().addCapabilityWire(bw);
+      bw.getRequirer().addRequirementWire(bw);
     }
   }
 

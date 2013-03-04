@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -162,5 +162,15 @@ public class BundleRequirementImpl
     .append("]");
 
     return sb.toString();
+  }
+
+  boolean isOptional() {
+    final String resolution = directives.get(Constants.RESOLUTION_DIRECTIVE);
+    return Constants.RESOLUTION_OPTIONAL.equals(resolution);
+  }
+
+  boolean shouldResolve() {
+    final String effective = directives.get(Constants.EFFECTIVE_DIRECTIVE);
+    return effective == null || effective.equals(Constants.EFFECTIVE_RESOLVE);
   }
 }

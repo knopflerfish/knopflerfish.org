@@ -105,5 +105,10 @@ public class BundleNameVersionCapability implements BundleCapability {
     return true;
   }
 
-  
+  public String toString() {
+    return "BundleNameVersionCapability[nameSpace=" + namespace + ", attributes=" +
+        getAttributes() + ", directives=" + getDirectives() + ", revision=" +
+        getRevision() + "]";
+  }
+
 }

@@ -69,4 +69,66 @@ public class BundleWireImpl implements BundleWire {
     return requirerGen.getBundleWiring();
   }
 
+  BundleGeneration getProvider() {
+    return providerGen;
+  }
+
+  BundleGeneration getRequirer() {
+    return requirerGen;
+  }
+
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((capability == null) ? 0 : capability.hashCode());
+    result = prime * result + ((providerGen == null) ? 0 : providerGen.hashCode());
+    result = prime * result + ((requirement == null) ? 0 : requirement.hashCode());
+    result = prime * result + ((requirerGen == null) ? 0 : requirerGen.hashCode());
+    return result;
+  }
+
+  public boolean equals(Object obj) {
+System.err.println("equals: " + capability + " -> " + requirement);
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof BundleWireImpl)) {
+      return false;
+    }
+    BundleWireImpl other = (BundleWireImpl) obj;
+System.err.println("other: " + other.capability + " -> " + other.requirement);
+    if (capability == null) {
+      if (other.capability != null) {
+        return false;
+      }
+    } else if (!capability.equals(other.capability)) {
+      return false;
+    }
+    if (providerGen == null) {
+      if (other.providerGen != null) {
+        return false;
+      }
+    } else if (!providerGen.equals(other.providerGen)) {
+      return false;
+    }
+    if (requirement == null) {
+      if (other.requirement != null) {
+        return false;
+      }
+    } else if (!requirement.equals(other.requirement)) {
+      return false;
+    }
+    if (requirerGen == null) {
+      if (other.requirerGen != null) {
+        return false;
+      }
+    } else if (!requirerGen.equals(other.requirerGen)) {
+      return false;
+    }
+    return true;
+  }
+
 }

@@ -33,57 +33,38 @@
  */
 package org.knopflerfish.framework;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkListener;
-import org.osgi.framework.wiring.FrameworkWiring;
+import org.osgi.framework.wiring.BundleCapability;
 
-public class FrameworkWiringImpl implements FrameworkWiring {
+public class Capabilities {
 
-  private final FrameworkContext fwCtx;
+  
+  private HashMap<String, ArrayList<BundleCapabilityImpl>> namespaceCapabilties =
+      new HashMap<String, ArrayList<BundleCapabilityImpl>>();
 
-  static final String SPEC_VERSION = "1.0";
-
-  FrameworkWiringImpl(FrameworkContext fwCtx) {
-    this.fwCtx = fwCtx;
+  List<BundleCapabilityImpl> getCapabilities(String namespace) {
+    // TODO make sure that capabilities are priority order?
+    return namespaceCapabilties.get(namespace);
   }
 
-  public Bundle getBundle() {
-    return fwCtx.systemBundle;
-  }
-
-  public void refreshBundles(Collection<Bundle> bundles, FrameworkListener... listeners) {
-    // TODO, Check system bundle resolve permission
-    final Bundle[] bs = bundles != null ?
-                  bundles.toArray(new Bundle[bundles.size()]) :
-                  null;
-    fwCtx.packageAdmin.refreshPackages(bs, listeners);
-  }
-
-  public boolean resolveBundles(Collection<Bundle> bundles) {
-    // TODO, Check system bundle resolve permission
-    final Bundle[] bs = bundles != null ?
-                  bundles.toArray(new Bundle[bundles.size()]) :
-                  null;
-    return fwCtx.packageAdmin.resolveBundles(bs);
-  }
-
-  public Collection<Bundle> getRemovalPendingBundles() {
-    final HashSet<BundleImpl> res = new HashSet<BundleImpl>();
-    fwCtx.packages.findAllZombies(res);
-    return new HashSet<Bundle>(res);
-  }
-
-  public Collection<Bundle> getDependencyClosure(Collection<Bundle> bundles) {
-    final HashSet<BundleImpl> res = new HashSet<BundleImpl>();
-    for (final Bundle b : bundles) {
-      res.add( (BundleImpl) b);
+  @SuppressWarnings("unchecked")
+  void addCapabilities(Map<String, List<BundleCapability>> capabilities) {
+    for (Entry<String, List<BundleCapability>> e : capabilities.entrySet()) {
+      final String ns = e.getKey();
+      ArrayList<BundleCapabilityImpl> bcl = namespaceCapabilties.get(ns);
+      if (bcl == null) {
+        bcl = new ArrayList<BundleCapabilityImpl>();
+        namespaceCapabilties.put(ns, bcl);  
+      }
+      Collection<?> bcs = (Collection<?>) e.getValue();
+      bcl.addAll((Collection<BundleCapabilityImpl>) bcs);
     }
-    fwCtx.packages.packageClosure(res);
-    // TODO - we only get package closure, need all dependencies
-    return new HashSet<Bundle>(res);
   }
 
 }

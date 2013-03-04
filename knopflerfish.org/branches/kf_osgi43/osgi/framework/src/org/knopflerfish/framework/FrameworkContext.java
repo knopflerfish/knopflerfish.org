@@ -46,15 +46,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Constants;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.startlevel.StartLevel;
-
 import org.knopflerfish.framework.classpatcher.ClassPatcherActivator;
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
-// NYI, make these imports dynamic!
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
 
 
 /**
@@ -99,12 +96,17 @@ public class FrameworkContext  {
   /**
    * All service hooks.
    */
-  ServiceHooks hooks;
+  ServiceHooks serviceHooks;
 
   /**
    * All bundle hooks.
    */
   BundleHooks bundleHooks;
+
+  /**
+   * All resolver hooks.
+   */
+  ResolverHooks resolverHooks;
 
   /**
    * All weaving hooks.
@@ -323,9 +325,11 @@ public class FrameworkContext  {
         }
         final String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
         try {
-          final Class<?> vi = Class.forName(vs);
-          final Constructor<?> vc = vi.getConstructor(new Class[] { FrameworkContext.class });
-          validator.add((Validator)vc.newInstance(new Object[] { this }));
+          @SuppressWarnings("unchecked")
+          Class<? extends Validator> vi = (Class<? extends Validator>) Class.forName(vs);
+          Constructor<? extends Validator> vc =
+              vi.getConstructor(new Class[] { FrameworkContext.class });
+          validator.add(vc.newInstance(new Object[] { this }));
         } catch (final InvocationTargetException ite) {
           // NYI, log error from validator
           System.err.println("Construct of " + vs + " failed: " + ite.getTargetException());
@@ -380,10 +384,13 @@ public class FrameworkContext  {
     final String storageClass = "org.knopflerfish.framework.bundlestorage." +
       props.getProperty(FWProps.BUNDLESTORAGE_PROP) + ".BundleStorageImpl";
     try {
-      final Class<?> storageImpl = Class.forName(storageClass);
+      @SuppressWarnings("unchecked")
+      Class<? extends BundleStorage> storageImpl =
+          (Class<? extends BundleStorage>) Class.forName(storageClass);
 
-      final Constructor<?> cons = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
-      storage = (BundleStorage) cons.newInstance(new Object[] { this });
+      Constructor<? extends BundleStorage> cons =
+          storageImpl.getConstructor(new Class[] { FrameworkContext.class });
+      storage = cons.newInstance(new Object[] { this });
     } catch (final Exception e) {
       Throwable cause = e;
       if (e instanceof InvocationTargetException) {
@@ -407,12 +414,15 @@ public class FrameworkContext  {
 
     systemBundle.initSystemBundle();
 
-    bundles           = new Bundles(this);
+    bundles = new Bundles(this);
 
-    hooks             = new ServiceHooks(this);
-    hooks.open();
+    serviceHooks = new ServiceHooks(this);
+    serviceHooks.open();
 
     bundleHooks = new BundleHooks(this);
+    
+    resolverHooks = new ResolverHooks(this);
+    resolverHooks.open();
 
     weavingHooks = new WeavingHooks(this);
     weavingHooks.open();
@@ -427,7 +437,8 @@ public class FrameworkContext  {
     perm.registerService();
 
     packageAdmin = new PackageAdminImpl(this);
-    final String[] classes = new String [] { PackageAdmin.class.getName() };
+    @SuppressWarnings("deprecation")
+    String[] classes = new String [] { org.osgi.service.packageadmin.PackageAdmin.class.getName() };
     services.register(systemBundle,
                       classes,
                       packageAdmin,
@@ -461,6 +472,8 @@ public class FrameworkContext  {
 
     systemBundle.uninitSystemBundle();
 
+    resolverHooks = null;
+
     bundles.clear();
     bundles = null;
 
@@ -485,7 +498,7 @@ public class FrameworkContext  {
     storage.close();
     storage = null;
 
-    if(props.REGISTERSERVICEURLHANDLER) {
+    if (props.REGISTERSERVICEURLHANDLER) {
       // Since handlers can only be registered once, keep them in this
       // case.
     } else {
@@ -593,8 +606,10 @@ public class FrameworkContext  {
       // This is done after framework has been launched.
       startLevelController.restoreState();
 
+      @SuppressWarnings("deprecation")
+      String [] clsName = new String [] { org.osgi.service.startlevel.StartLevel.class.getName() };
       services.register(systemBundle,
-                        new String [] { StartLevel.class.getName() },
+                        clsName,
                         startLevelController,
                         null);
     }
@@ -634,6 +649,7 @@ public class FrameworkContext  {
       return true;
     }
 
+    @SuppressWarnings("deprecation")
     final String fwEE = props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 
     if(fwEE == null) {
@@ -673,8 +689,8 @@ public class FrameworkContext  {
     if (bootDelegationUsed) {
       try {
         final Iterator<Map<String, Object>> i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
-                                       bootDelegationString,
-                                       true, true, false);
+                                                                  bootDelegationString,
+                                                                  true, true, false);
         while (i.hasNext()) {
           final Map<String, Object> e = i.next();
           final String key = (String) e.get("$key");

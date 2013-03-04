@@ -368,10 +368,10 @@ class Services {
       return null;
     } else {
       if (bundle != null) {
-        framework.hooks.filterServiceReferences(bundle.bundleContext,
+        framework.serviceHooks.filterServiceReferences(bundle.bundleContext,
                                                 clazz, filter, false, res);
       } else {
-        framework.hooks.filterServiceReferences(null, clazz, filter, true, res);
+        framework.serviceHooks.filterServiceReferences(null, clazz, filter, true, res);
       }
       if (res.isEmpty()) {
         return null;
