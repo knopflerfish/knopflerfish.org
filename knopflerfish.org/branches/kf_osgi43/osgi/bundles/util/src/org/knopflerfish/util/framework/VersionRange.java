@@ -113,11 +113,16 @@ public class VersionRange implements Comparable<VersionRange>
    *          The filter string to process.
    * @param key
    *          The attribute name of the version.
+   * @param defaultIfNotSpecified
+   *          if no version is found in the filter then this controls whether to
+   *          return the default version range or throw
+   *          {@link IllegalArgumentException}.
    * @return version range from filter.
    * @throws IllegalArgumentException
    *           when no version range was found in the filter.
    */
-  public VersionRange(final String filter, final String key)
+  public VersionRange(final String filter, final String key,
+                      boolean defaultIfNotSpecified)
   {
     Version low = null;
     Version high = null;
@@ -185,13 +190,16 @@ public class VersionRange implements Comparable<VersionRange>
       this.lowIncluded = lowIncluded;
       this.high = high;
       this.highIncluded = highIncluded;
-    } else {
+    } else if (defaultIfNotSpecified) {
       // The default empty version
       this.low = Version.emptyVersion;
       this.lowIncluded = true;
       this.high = null;
       this.highIncluded = false;
+    } else {
+      throw new IllegalArgumentException("no version range found in " +filter);
     }
+
   }
 
 
@@ -288,6 +296,36 @@ public class VersionRange implements Comparable<VersionRange>
     } else {
       return low.toString();
     }
+  }
+
+  /**
+   * HTML-formated range that allays has both a lower and an upper limit.
+   *
+   * @return String.
+   */
+  public String toHtmlString()
+  {
+    final StringBuffer res = new StringBuffer();
+    if (high != null) {
+      if (lowIncluded) {
+        res.append('[');
+      } else {
+        res.append('(');
+      }
+      res.append(low.toString());
+      res.append(',');
+      res.append(high.toString());
+      if (highIncluded) {
+        res.append(']');
+      } else {
+        res.append(')');
+      }
+    } else {
+      res.append('[');
+      res.append(low.toString());
+      res.append(",&infin;)");
+    }
+    return res.toString();
   }
 
   /**
