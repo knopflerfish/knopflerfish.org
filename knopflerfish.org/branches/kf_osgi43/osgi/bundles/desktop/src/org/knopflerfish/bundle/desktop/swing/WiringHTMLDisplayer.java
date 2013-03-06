@@ -34,6 +34,7 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -52,6 +53,8 @@ import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
+
+import org.knopflerfish.util.framework.VersionRange;
 
 
 
@@ -85,6 +88,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
   class JHTML extends JHTMLBundle {
     private static final long serialVersionUID = 1L;
+    protected static final String OSGI_EE = "osgi.ee";
 
     JHTML(DefaultSwingBundleDisplayer displayer)
     {
@@ -106,11 +110,16 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append("<p>");
       }
 
-      if (bw != null && bw.isInUse()) {
+      if (bw == null) {
+        sb.append("<b>Unresolved bundle.</b><br>");
+        // TODO add resolve button.
+      } else if (!bw.isInUse()) {
+        sb.append("<b>Stale bundle.</b><br>");
+      } else {
         // Find all name-spaces that b provides capabilities in.
         final Set<String> providedNameSpaces = getNameSapcesOfProvidedCaps(bw);
 
-        sb.append("<b>Provided Capabilities and Requiring Bundles</b><br>");
+        sb.append("<b>Provided Capabilities and Wired Requesters</b><br>");
 
         for (final String nameSpace : providedNameSpaces) {
           sb.append("<em>");
@@ -126,7 +135,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
         // Find all name-spaces that b requires capabilities in.
         final Set<String> requiredNameSpaces = getNameSapcesOfRequiredCaps(bw);
-        sb.append("<b>Required Capabilities and Providing Bundles</b><br>");
+        sb.append("<b>Required Capabilities and Wired Providers</b><br>");
 
         for (final String nameSpace : requiredNameSpaces) {
           sb.append("<em>");
@@ -158,13 +167,6 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
       }
 
-      final List<BundleWire> pbws = bw.getProvidedWires(null);
-      if (pbws != null) {
-        for (final BundleWire wire : pbws) {
-          res.add(wire.getCapability().getNamespace());
-        }
-      }
-
       return res;
     }
 
@@ -178,15 +180,8 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       final List<BundleRequirement> reqs = bw.getRequirements(null);
       if (reqs != null) {
-      for (final BundleRequirement req : reqs) {
-        res.add(req.getNamespace());
-      }
-      }
-
-      final List<BundleWire> pbws = bw.getProvidedWires(null);
-      if (pbws != null) {
-        for (final BundleWire wire : pbws) {
-          res.add(wire.getCapability().getNamespace());
+        for (final BundleRequirement req : reqs) {
+          res.add(req.getNamespace());
         }
       }
 
@@ -208,7 +203,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterPackage(nameSpace, wiring);
-      } else if ("osgi.ee".equals(nameSpace)) {
+      } else if ("JHTML.OSGI_EE".equals(nameSpace)) {
         wf = new WireFormatterEE(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
@@ -236,7 +231,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterPackage(nameSpace, wiring);
-      } else if ("osgi.ee".equals(nameSpace)) {
+      } else if ("JHTML.OSGI_EE".equals(nameSpace)) {
         wf = new WireFormatterEE(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
@@ -253,16 +248,16 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     /**
      * Appends data for provided or required capabilities to the output buffer.
      * @param sb The output buffer.
-     * @param pkgInfos Map with the pre-formated capability information to output.
+     * @param capInfos Map with the pre-formated capability information to output.
      */
     private void appendCapabilityInfo(StringBuffer sb,
-                                      final Map<String, List<String>> pkgInfos)
+                                      final Map<String, List<String>> capInfos)
     {
-      for (final Entry<String,List<String>> pkgInfo : pkgInfos.entrySet()) {
-        sb.append("&nbsp;&nbsp;");
-        sb.append(pkgInfo.getKey());
-        sb.append("<br>");
-        for (final String user : pkgInfo.getValue()) {
+      for (final Entry<String,List<String>> capInfo : capInfos.entrySet()) {
+        sb.append("&nbsp;&nbsp;<font color=\"#444444\">");
+        sb.append(capInfo.getKey());
+        sb.append("</font><br>");
+        for (final String user : capInfo.getValue()) {
           sb.append("&nbsp;&nbsp;&nbsp;&nbsp;");
           sb.append(user);
           sb.append("<br>");
@@ -276,37 +271,6 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     final String nameSpace;
     final BundleWiring wiring;
 
-    /**
-     * Appends a formated string for the given package to the output buffer.
-     *
-     * @param sb
-     *          Output buffer.
-     * @param pkg
-     *          Name of the package.
-     * @param version
-     *          Version of the package.
-     * @param attrs
-     *          Other attributes for the package.
-     */
-    static void appendFormatedPackage(final StringBuffer sb,
-                                      final String pkg,
-                                      final String version,
-                                      final Map<String, Object> attrs,
-                                      final String extra)
-    {
-      sb.append("<font color=\"#444444\">");
-      sb.append(pkg);
-      sb.append("&nbsp;");
-      sb.append(version);
-      if (attrs != null && !attrs.isEmpty()) {
-        sb.append("&nbsp;");
-        sb.append(attrs);
-      }
-      if (extra!=null) {
-        sb.append(extra);
-      }
-      sb.append("</font>");
-    }
 
     static String getFilterValue(final String filter,
                                  final String attribute)
@@ -348,39 +312,60 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     /**
      * Get a HTML-formated presentation string for the capability described by
-     * the given {@code attrs} map.
-     * @param bundleWiring  the bundle wiring of the provider of this capability.
-     * @param attrs capability attributes.
+     * the given {@code capability}.
+     * @param capability capability to be named.
+     * @param requirement that is wired to the capability.
      * @return
      */
-    String getCapName(BundleWiring bundleWiring, Map<String, Object> attrs)
+    String getCapName(final BundleCapability capability,
+                      final BundleRequirement requirement)
     {
       final StringBuffer sb = new StringBuffer(50);
-      sb.append(attrs);
-      if (!bundleWiring.isCurrent()) {
+      sb.append(capability.getAttributes());
+
+      final BundleWiring capWiring = capability.getRevision().getWiring();
+      if (capWiring!=null && !capWiring.isCurrent()) {
         sb.append("&nbsp;<i>pending removal on refresh</i>");
       }
 
       return sb.toString();
     }
 
-    String getReqName(BundleWiring wiring2, String filter)
+    String getReqName(BundleRequirement req)
     {
-      return filter;
+      return req.getDirectives().get("filter");
     }
 
     /**
      * Get a HTML-formated presentation string for the owner of a wiring.
      * E.g., for the provide or requester of a capability.
      *
+     * @param bw the bundle wiring to present.
+     *
      * @return bundle name as a bundle selection link.
      */
     String getWiringName(BundleWiring bw) {
+      return getWiringName(bw, true);
+    }
+
+    /**
+     * Get a HTML-formated presentation string for the owner of a wiring.
+     * E.g., for the provide or requester of a capability.
+     *
+     * @param bw the bundle wiring to present.
+     * @param link if true return a bundle selection link.
+     * @return bundle name as a bundle selection link.
+     */
+    String getWiringName(BundleWiring bw, boolean link)
+    {
       final BundleRevision br = bw.getRevision();
       final Bundle b = br.getBundle();
-      final StringBuffer sb = new StringBuffer(50);
-      Util.bundleLink(sb, b);
-      return sb.toString();
+      if (link) {
+        final StringBuffer sb = new StringBuffer(50);
+        Util.bundleLink(sb, b);
+        return sb.toString();
+      }
+      return Util.getBundleName(b);
     }
 
     /**
@@ -394,10 +379,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     {
       // All declared capabilities
       for (final BundleCapability cap : wiring.getRevision().getDeclaredCapabilities(nameSpace)) {
-        final Map<String,Object> attrs
-        = new TreeMap<String, Object>(cap.getAttributes());
-
-        final String capName = getCapName(wiring, attrs);
+        final String capName = getCapName(cap, null);
         List<String> requesters = cap2requesters.get(capName);
         if (requesters==null) {
           requesters = new ArrayList<String>();
@@ -411,12 +393,10 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       if (wires != null) {
         for (final BundleWire w : wires) {
           final BundleCapability cap = w.getCapability();
-          final Map<String, Object> attrs
-            = new TreeMap<String, Object>(cap.getAttributes());
 
           if (wiring.equals(w.getProviderWiring())) {
             // Only add requirer when the wiring we are presenting is the provider
-            final String capName = getCapName(wiring, attrs);
+            final String capName = getCapName(cap, null);
 
             final BundleWiring bw = w.getRequirerWiring();
             final String wName = getWiringName(bw);
@@ -436,16 +416,13 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       for (final BundleCapability cap : wiring.getCapabilities(nameSpace)) {
         for (final BundleRequirement req : wiring.getRequirements(nameSpace)) {
           if (req.matches(cap)) {
-            final Map<String,Object> attrs
-            = new TreeMap<String, Object>(cap.getAttributes());
-
-            final String capName = getCapName(wiring, attrs);
+            final String capName = getCapName(cap, null);
             List<String> requesters = cap2requesters.get(capName);
             if (requesters==null) {
               requesters = new ArrayList<String>();
               cap2requesters.put(capName, requesters);
             }
-            requesters.add(getWiringName(wiring) +" direct (no wire)");
+            requesters.add("(" + getWiringName(wiring,false) +")");
             break;
           }
         }
@@ -456,47 +433,62 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     final void requiredCapabilitiesView(Map<String, List<String>> cap2providers)
     {
+      // The requirements of the wiring we are handling.
+      final List<BundleRequirement> reqs = new ArrayList<BundleRequirement>();
+
       // All declared requirements
       for (final BundleRequirement req : wiring.getRevision()
           .getDeclaredRequirements(nameSpace)) {
-        final String filter = req.getDirectives().get("filter");
-        final String capName = getReqName(wiring, filter);
-
-        List<String> providers = cap2providers.get(capName);
-        if (providers == null) {
-          providers = new ArrayList<String>();
-          cap2providers.put(capName, providers);
-        }
+        reqs.add(req);
       }
 
       // All active requirements
       for (final BundleRequirement req : wiring.getRequirements(nameSpace)) {
-        final String filter = req.getDirectives().get("filter");
-        final String capName = getReqName(wiring, filter);
+        final int i = reqs.indexOf(req);
+        if (-1 == i) {
+          reqs.add(req);
+        }
+      }
+
+      // caps[i] holds the wired capability, if any, for reqs[i].
+      final BundleCapability[] caps = new BundleCapability[reqs.size()];
+
+      // Add provider for wired requirements.
+      for (final BundleWire w : wiring.getRequiredWires(nameSpace)) {
+        final BundleRequirement req = w.getRequirement();
+        final int i = reqs.indexOf(req);
+        if (-1 == i) {
+          System.err.println("Found wire to bundle requirement that is not part"
+                             +" of the requirements in the bundle wiring: "
+                             + req);
+          continue;
+        }
+        if (caps[i] != null) {
+          throw new IllegalArgumentException("Found second wire for requirement: "
+                                             + req + " cap1: " +caps[i]
+                                             + "; cap2: " + w.getCapability());
+        }
+        caps[i] = w.getCapability();
+      }
+
+      // Populate cap2providers
+      for (int i = 0; i<reqs.size(); i++) {
+        final BundleRequirement req = reqs.get(i);
+        final BundleCapability cap = caps[i];
+
+        final String capName = cap==null
+            ? getReqName(req) : getCapName(cap, req);
 
         List<String> providers = cap2providers.get(capName);
         if (providers == null) {
           providers = new ArrayList<String>();
           cap2providers.put(capName, providers);
         }
-      }
-
-      // Add provider for wired requirements, note this may add "stale"
-      // requirements when there is a wire to an old generation of a provider.
-      for (final BundleWire w : wiring.getRequiredWires(nameSpace)) {
-        final BundleRequirement req = w.getRequirement();
-        final String filter = req.getDirectives().get("filter");
-        final String capName = getReqName(wiring, filter);
-
-        final BundleWiring bw = w.getProviderWiring();
-        final String wName = getWiringName(bw);
-
-        List<String> providers = cap2providers.get(capName);
-        if (providers==null) {
-          providers = new ArrayList<String>();
-          cap2providers.put(capName, providers);
+        if (cap != null) {
+          final BundleWiring bw = cap.getRevision().getWiring();
+          final String wName = getWiringName(bw);
+          providers.add(wName);
         }
-        providers.add(wName);
       }
     }
   }
@@ -518,17 +510,33 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     @Override
-    String getCapName(BundleWiring bundleWiring, Map<String, Object> attrs)
+    String getCapName(final BundleCapability capability,
+                      final BundleRequirement requirement)
     {
-      final String eeName = (String) attrs.remove("osgi.ee");
+      // Make a modifiable clone of the attributes.
+      final Map<String, Object> attrs
+        = new HashMap<String, Object>(capability.getAttributes());
+
+      final StringBuffer sb = new StringBuffer(50);
+      sb.append(attrs.remove(JHTML.OSGI_EE));
+
       @SuppressWarnings("unchecked")
       final List<Version> versions = (List<Version>) attrs
           .remove(Constants.VERSION_ATTRIBUTE);
+      if (versions!=null) {
+        sb.append("&nbsp;");
+        sb.append(versions);
+      }
 
-      final StringBuffer sb = new StringBuffer(50);
-      final String extra = bundleWiring.isCurrent() ? (String) null
-          : "&nbsp;<i>pending removal on refresh</i>";
-      appendFormatedPackage(sb, eeName, versions.toString(), attrs, extra);
+      if (!attrs.isEmpty()) {
+        sb.append("&nbsp;");
+        sb.append(attrs);
+      }
+
+      final BundleWiring capWiring = capability.getRevision().getWiring();
+      if (capWiring!=null && !capWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
 
       return sb.toString();
     }
@@ -551,31 +559,94 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       super(nameSpace, wiring);
     }
 
-    @Override
-    String getCapName(BundleWiring bundleWiring, Map<String, Object> attrs)
+    private void appendVersionAndResolutionDirective(final StringBuffer sb,
+                                                     final BundleRequirement requirement)
     {
-      final String pkg = (String) attrs
-          .remove(BundleRevision.PACKAGE_NAMESPACE);
+      final String filter = requirement.getDirectives()
+          .get(Constants.FILTER_DIRECTIVE);
+
+      try {
+        final VersionRange vr
+          = new VersionRange(filter, Constants.VERSION_ATTRIBUTE);
+        sb.append("&nbsp;<font size=\"-3\">(");
+        sb.append(vr);
+        sb.append(")</font>");
+      } catch (final IllegalArgumentException iae) {
+        System.err.println(iae.getMessage());
+      }
+
+      final String resolution = requirement.getDirectives()
+          .get(Constants.RESOLUTION_DIRECTIVE);
+      if (resolution != null && resolution.length() > 0) {
+        if (resolution.equals(Constants.RESOLUTION_MANDATORY)) {
+          // Default, don't print
+        } else {
+          sb.append("&nbsp;");
+          sb.append(resolution);
+          if (resolution.equals("dynamic")) {
+            // print pattern
+            sb.append("&nbsp;'<em>");
+            sb.append(getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE));
+            sb.append("</em>'");
+          }
+        }
+      }
+    }
+
+    @Override
+    String getCapName(final BundleCapability capability,
+                      final BundleRequirement requirement)
+    {
+      final StringBuffer sb = new StringBuffer(50);
+
+      // Make a modifiable clone of the capability attributes.
+      final Map<String, Object> attrs
+        = new HashMap<String, Object>(capability.getAttributes());
+
+      sb.append(attrs.remove(BundleRevision.PACKAGE_NAMESPACE));
+
       final Version version = (Version) attrs
           .remove(Constants.VERSION_ATTRIBUTE);
+      if (version!=null) {
+        sb.append("&nbsp;");
+        sb.append(version);
+      }
+
       attrs.remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
       attrs.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+      if (!attrs.isEmpty()) {
+        sb.append("&nbsp;");
+        sb.append(attrs);
+      }
 
-      final StringBuffer sb = new StringBuffer(50);
-      final String extra = bundleWiring.isCurrent() ? (String) null
-          : "&nbsp;<i>pending removal on refresh</i>";
-      appendFormatedPackage(sb, pkg, version==null? "" :version.toString(), attrs, extra);
+      final BundleWiring capWiring = capability.getRevision().getWiring();
+      if (capWiring!=null && !capWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
+
+      if (requirement!=null) {
+        appendVersionAndResolutionDirective(sb, requirement);
+
+//        sb.append("&nbsp;&nbsp;<font size=\"-2\">");
+//        sb.append(requirement.getDirectives().get("filter"));
+//        sb.append("</font>");
+      }
 
       return sb.toString();
     }
 
     @Override
-    String getReqName(final BundleWiring wiring2, final String filter)
+    String getReqName(final BundleRequirement requirement)
     {
-      final String pkg = getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE);
-
       final StringBuffer sb = new StringBuffer(50);
-      appendFormatedPackage(sb, pkg, "", null, null);
+      final String filter = requirement.getDirectives().get("filter");
+      sb.append(getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE));
+
+      appendVersionAndResolutionDirective(sb, requirement);
+
+//      sb.append("&nbsp;&nbsp;<font size=\"-2\">");
+//      sb.append(filter);
+//      sb.append("</font>");
 
       return sb.toString();
     }

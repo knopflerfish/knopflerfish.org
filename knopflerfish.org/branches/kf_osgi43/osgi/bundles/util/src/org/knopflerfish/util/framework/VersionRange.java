@@ -63,13 +63,13 @@ public class VersionRange implements Comparable<VersionRange>
    * @param vr Input string.
    */
   public VersionRange(String vr) throws NumberFormatException {
-    boolean op = vr.startsWith("(");
-    boolean ob = vr.startsWith("[");
+    final boolean op = vr.startsWith("(");
+    final boolean ob = vr.startsWith("[");
 
     if (op || ob) {
-      boolean cp = vr.endsWith(")");
-      boolean cb = vr.endsWith("]");
-      int comma = vr.indexOf(',');
+      final boolean cp = vr.endsWith(")");
+      final boolean cb = vr.endsWith("]");
+      final int comma = vr.indexOf(',');
 
       if (comma > 0 && (cp || cb)) {
         low = new Version(vr.substring(1, comma).trim());
@@ -97,6 +97,101 @@ public class VersionRange implements Comparable<VersionRange>
     high = null;
     lowIncluded = true;
     highIncluded = false;
+  }
+
+
+  /**
+   * Extract a version range from an OSGi LDAP filter.
+   *
+   * E.g. from a require capability filter like
+   *
+   * <pre>
+   * Ê(&(osgi.wiring.package=org.kxml.io)(&(version>=0.0.0)(!(version>=1.0.0))))
+   * </pre>
+   *
+   * @param filter
+   *          The filter string to process.
+   * @param key
+   *          The attribute name of the version.
+   * @return version range from filter.
+   * @throws IllegalArgumentException
+   *           when no version range was found in the filter.
+   */
+  public VersionRange(final String filter, final String key)
+  {
+    Version low = null;
+    Version high = null;
+    boolean lowIncluded = true;
+    boolean highIncluded = false;
+
+    boolean negated = false;
+    String op = null;
+    int start = filter.indexOf(key);
+    while (start>-1) {
+      int end = start + key.length();
+
+      // Check to the left for '(' and '!'
+      --start;
+      while (start>=0 && Character.isWhitespace(filter.charAt(start))) {
+        --start;
+      }
+      if (filter.charAt(start) == '(') {
+        --start;
+        while (start>=0 && Character.isWhitespace(filter.charAt(start))) {
+          --start;
+        }
+        negated = filter.charAt(start) == '!';
+      }
+
+      while (end<filter.length() && Character.isWhitespace(filter.charAt(end))) {
+        ++end;
+      }
+      if (filter.charAt(end) == '=') {
+        op = "eq";
+      } else if (filter.charAt(end) == '<' && filter.charAt(++end) == '=') {
+        op = negated ? "gt" : "le";
+      } else if (filter.charAt(end) == '>' && filter.charAt(++end) == '=') {
+        op = negated ? "lt" : "ge";
+      }
+      start = ++end;
+      while (start<filter.length() && Character.isWhitespace(filter.charAt(start))) {
+        ++start;
+      }
+      end = filter.indexOf(')', start);
+      if (end > -1) {
+        try {
+          final Version v = new Version(filter.substring(start, end));
+          if ("eq".equals(op)) {
+            low = v;
+            high = v;
+            highIncluded = true;
+            lowIncluded = true;
+            break;
+          } else if (op.charAt(0) == 'g') {
+            low = v;
+            lowIncluded = op.charAt(1) == 'e';
+          } else if (op.charAt(0) == 'l') {
+            high = v;
+            highIncluded = op.charAt(1) == 'e';
+          }
+        } catch (final IllegalArgumentException eae) {
+        }
+      }
+      start = filter.indexOf(key, end);
+    }
+
+    if (low!=null) {
+      this.low = low;
+      this.lowIncluded = lowIncluded;
+      this.high = high;
+      this.highIncluded = highIncluded;
+    } else {
+      // The default empty version
+      this.low = Version.emptyVersion;
+      this.lowIncluded = true;
+      this.high = null;
+      this.highIncluded = false;
+    }
   }
 
 
@@ -171,21 +266,23 @@ public class VersionRange implements Comparable<VersionRange>
    *
    * @return String.
    */
-  public String toString() {
+  @Override
+  public String toString()
+  {
     if (high != null) {
-      StringBuffer res = new StringBuffer();
+      final StringBuffer res = new StringBuffer();
       if (lowIncluded) {
-	res.append('[');
+        res.append('[');
       } else {
-	res.append('(');
+        res.append('(');
       }
       res.append(low.toString());
       res.append(',');
       res.append(high.toString());
       if (highIncluded) {
-	res.append(']');
+        res.append(']');
       } else {
-	res.append(')');
+        res.append(')');
       }
       return res.toString();
     } else {
@@ -193,15 +290,15 @@ public class VersionRange implements Comparable<VersionRange>
     }
   }
 
-
   /**
    * Check if object is equal to this object.
    *
    * @param obj Package entry to compare to.
    * @return true if equal, otherwise false.
    */
+  @Override
   public boolean equals(Object obj) throws ClassCastException {
-    VersionRange o = (VersionRange)obj;
+    final VersionRange o = (VersionRange)obj;
     if (low.equals(o.low)) {
       if (high != null) {
         return high.equals(o.high)  &&
@@ -220,6 +317,7 @@ public class VersionRange implements Comparable<VersionRange>
    *
    * @return int value.
    */
+  @Override
   public int hashCode() {
     if (high != null) {
       return low.hashCode() + high.hashCode();
