@@ -89,6 +89,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
   class JHTML extends JHTMLBundle {
     private static final long serialVersionUID = 1L;
     protected static final String OSGI_EE = "osgi.ee";
+    protected static final String OSGI_IDENTITY = "osgi.identity";
 
     JHTML(DefaultSwingBundleDisplayer displayer)
     {
@@ -207,6 +208,10 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         wf = new WireFormatterEE(nameSpace, wiring);
       } else if (BundleRevision.HOST_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterHost(nameSpace, wiring);
+      } else if (BundleRevision.BUNDLE_NAMESPACE.equals(nameSpace)) {
+        wf = new WireFormatterBundle(nameSpace, wiring);
+      } else if (JHTML.OSGI_IDENTITY.equals(nameSpace)) {
+        wf = new WireFormatterID(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
       }
@@ -237,6 +242,10 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         wf = new WireFormatterEE(nameSpace, wiring);
       } else if (BundleRevision.HOST_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterHost(nameSpace, wiring);
+      } else if (BundleRevision.BUNDLE_NAMESPACE.equals(nameSpace)) {
+        wf = new WireFormatterBundle(nameSpace, wiring);
+      } else if (JHTML.OSGI_IDENTITY.equals(nameSpace)) {
+        wf = new WireFormatterID(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
       }
@@ -313,6 +322,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       return start == -1 ? value : (String) null;
     }
+
 
     /**
      * Creates a wire formatter for a name-space.
@@ -546,9 +556,9 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       try {
         final VersionRange vr =
-          new VersionRange(filter, Constants.VERSION_ATTRIBUTE);
+          new VersionRange(filter, Constants.VERSION_ATTRIBUTE, true);
         sb.append("&nbsp;");
-        sb.append(vr);
+        sb.append(vr.toHtmlString());
       } catch (final IllegalArgumentException iae) {
         System.err.println(iae.getMessage());
       }
@@ -627,9 +637,9 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       try {
         final VersionRange vr =
-          new VersionRange(filter, Constants.BUNDLE_VERSION_ATTRIBUTE);
+          new VersionRange(filter, Constants.BUNDLE_VERSION_ATTRIBUTE, true);
         sb.append("&nbsp;");
-        sb.append(vr);
+        sb.append(vr.toHtmlString());
       } catch (final IllegalArgumentException iae) {
         System.err.println(iae.getMessage());
       }
@@ -686,6 +696,180 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
   }
 
 
+  static private class WireFormatterID extends WireFormatter
+  {
+
+    /**
+     * @param nameSpace
+     *          The name-space to present info for.
+     * @param wiring
+     *          The wiring to present info for.
+     */
+    WireFormatterID(final String nameSpace, final BundleWiring wiring)
+    {
+      super(nameSpace, wiring);
+    }
+
+    private void appendVersionAndType(final StringBuffer sb,
+                                      final BundleRequirement requirement)
+    {
+      final String filter =
+        requirement.getDirectives().get(Constants.FILTER_DIRECTIVE);
+
+      try {
+        final VersionRange vr =
+          new VersionRange(filter, Constants.VERSION_ATTRIBUTE, false);
+        sb.append("&nbsp;");
+        sb.append(vr.toHtmlString());
+      } catch (final IllegalArgumentException iae) {
+      }
+
+      final String type = getFilterValue(filter, "type");
+      if (type != null) {
+        sb.append("&nbsp;");
+        sb.append(type);
+      }
+    }
+
+    @Override
+    String getCapName(final BundleCapability capability,
+                      final BundleRequirement requirement)
+    {
+      // Make a modifiable clone of the attributes.
+      final Map<String, Object> attrs
+        = new HashMap<String, Object>(capability.getAttributes());
+
+      final StringBuffer sb = new StringBuffer(50);
+      sb.append(attrs.remove(JHTML.OSGI_IDENTITY));
+
+      final Version version =
+          (Version) attrs.remove(Constants.VERSION_ATTRIBUTE);
+        if (version != null) {
+          sb.append("&nbsp;");
+          sb.append(version);
+        }
+
+      final String type = (String) attrs.remove("type");
+      if (type != null) {
+        sb.append("&nbsp;");
+        sb.append(type);
+      }
+
+      if (!attrs.isEmpty()) {
+        sb.append("&nbsp;");
+        sb.append(attrs);
+      }
+
+      final BundleWiring capWiring = capability.getRevision().getWiring();
+      if (capWiring!=null && !capWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
+
+      return sb.toString();
+    }
+
+    @Override
+    String getReqName(final BundleRequirement requirement)
+    {
+      final StringBuffer sb = new StringBuffer(50);
+      final String filter = requirement.getDirectives().get("filter");
+      final String idName = getFilterValue(filter, JHTML.OSGI_IDENTITY);
+      if (idName != null) {
+        sb.append(idName);
+        appendVersionAndType(sb, requirement);
+      } else {
+        // Filter too complex to extract info from...
+        sb.append(filter);
+      }
+
+      return sb.toString();
+    }
+
+  }
+
+
+  static private class WireFormatterBundle
+    extends WireFormatter
+  {
+
+    /**
+     * @param nameSpace
+     *          The name-space to present info for.
+     * @param wiring
+     *          The wiring to present info for.
+     */
+    WireFormatterBundle(final String nameSpace, final BundleWiring wiring)
+    {
+      super(nameSpace, wiring);
+    }
+
+    private void appendVersion(final StringBuffer sb,
+                               final BundleRequirement requirement)
+    {
+      final String filter =
+        requirement.getDirectives().get(Constants.FILTER_DIRECTIVE);
+
+      try {
+        final VersionRange vr =
+          new VersionRange(filter, Constants.BUNDLE_VERSION_ATTRIBUTE, true);
+        sb.append("&nbsp;");
+        sb.append(vr.toHtmlString());
+      } catch (final IllegalArgumentException iae) {
+        System.err.println(iae.getMessage());
+      }
+    }
+
+    @Override
+    String getCapName(final BundleCapability capability,
+                      final BundleRequirement requirement)
+    {
+      // Make a modifiable clone of the attributes.
+      final Map<String, Object> attrs =
+        new HashMap<String, Object>(capability.getAttributes());
+
+      final StringBuffer sb = new StringBuffer(50);
+      sb.append(attrs.remove(BundleRevision.BUNDLE_NAMESPACE));
+
+      final Version version =
+        (Version) attrs.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+      if (version != null) {
+        sb.append("&nbsp;");
+        sb.append(version);
+      }
+
+      if (!attrs.isEmpty()) {
+        sb.append("&nbsp;");
+        sb.append(attrs);
+      }
+
+      final BundleWiring capWiring = capability.getRevision().getWiring();
+      if (capWiring != null && !capWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
+
+      return sb.toString();
+    }
+
+    @Override
+    String getReqName(final BundleRequirement requirement)
+    {
+      final StringBuffer sb = new StringBuffer(50);
+      final String filter = requirement.getDirectives().get("filter");
+      final String bundleName =
+        getFilterValue(filter, BundleRevision.BUNDLE_NAMESPACE);
+      if (bundleName != null) {
+        sb.append(bundleName);
+        appendVersion(sb, requirement);
+      } else {
+        // Filter too complex to extract info from...
+        sb.append(filter);
+      }
+
+      return sb.toString();
+    }
+
+  }
+
   static private class WireFormatterPackage extends WireFormatter
   {
 
@@ -709,9 +893,9 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       try {
         final VersionRange vr =
-          new VersionRange(filter, Constants.VERSION_ATTRIBUTE);
+          new VersionRange(filter, Constants.VERSION_ATTRIBUTE, true);
         sb.append("&nbsp;");
-        sb.append(vr);
+        sb.append(vr.toHtmlString());
       } catch (final IllegalArgumentException iae) {
         System.err.println(iae.getMessage());
       }
