@@ -203,8 +203,10 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterPackage(nameSpace, wiring);
-      } else if ("JHTML.OSGI_EE".equals(nameSpace)) {
+      } else if (JHTML.OSGI_EE.equals(nameSpace)) {
         wf = new WireFormatterEE(nameSpace, wiring);
+      } else if (BundleRevision.HOST_NAMESPACE.equals(nameSpace)) {
+        wf = new WireFormatterHost(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
       }
@@ -231,8 +233,10 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       if (BundleRevision.PACKAGE_NAMESPACE.equals(nameSpace)) {
         wf = new WireFormatterPackage(nameSpace, wiring);
-      } else if ("JHTML.OSGI_EE".equals(nameSpace)) {
+      } else if (JHTML.OSGI_EE.equals(nameSpace)) {
         wf = new WireFormatterEE(nameSpace, wiring);
+      } else if (BundleRevision.HOST_NAMESPACE.equals(nameSpace)) {
+        wf = new WireFormatterHost(nameSpace, wiring);
       } else {
         wf = new WireFormatter(nameSpace, wiring);
       }
@@ -272,31 +276,43 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     final BundleWiring wiring;
 
 
-    static String getFilterValue(final String filter,
-                                 final String attribute)
+    /**
+     * Get the match value for an attribute from a simple filter.
+     *
+     * @param filter
+     *          the filter to analyze
+     * @param attribute
+     *          the key of the attribute to fetch the desired value of.
+     * @return the desired value of the given attribute, "" if the attribute is
+     *         not present in the filter or {@code null} if the filter is too
+     *         complex.
+     */
+    static String getFilterValue(final String filter, final String attribute)
     {
       int start = filter.indexOf(attribute);
       if (start == -1) {
         return "";
       }
       start += attribute.length();
-      while (start<filter.length() && Character.isWhitespace(filter.charAt(start))) {
+      while (start < filter.length()
+             && Character.isWhitespace(filter.charAt(start))) {
         ++start;
       }
       if (filter.charAt(start++) != '=') {
-        return "";
+        return null;
       }
 
       final int end = filter.indexOf(')', start);
       if (end == -1) {
-        return "";
+        return null;
       }
 
       final String value = filter.substring(start, end).trim();
 
-      return value;
-    }
+      start = filter.indexOf(attribute, end);
 
+      return start == -1 ? value : (String) null;
+    }
 
     /**
      * Creates a wire formatter for a name-space.
@@ -331,9 +347,16 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       return sb.toString();
     }
 
+    /**
+     * Present a generic requirement by showing its filter.
+     *
+     * @param req The requirement to present.
+     * @return string presentation of the requirement.
+     */
     String getReqName(BundleRequirement req)
     {
-      return req.getDirectives().get("filter");
+      final String filter = req.getDirectives().get("filter");
+      return filter != null ? filter :" - ";
     }
 
     /**
@@ -471,29 +494,28 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       // Populate cap2providers
+      final StringBuffer sb = new StringBuffer(50);
       for (int i = 0; i < reqs.size(); i++) {
         final BundleRequirement req = reqs.get(i);
         final List<BundleCapability> providerCaps = caps.get(i);
 
+        final String capName = getReqName(req);
+        List<String> providers = cap2providers.get(capName);
+        if (providers == null) {
+          providers = new ArrayList<String>();
+          cap2providers.put(capName, providers);
+        }
         if (providerCaps.isEmpty()) {
-          final String capName = getReqName(req);
-          List<String> providers = cap2providers.get(capName);
-          if (providers == null) {
-            providers = new ArrayList<String>();
-            cap2providers.put(capName, providers);
-          }
+          providers.add("&mdash");
         } else {
           for (final BundleCapability cap : providerCaps) {
-            final String capName = getCapName(cap, req);
-
-            List<String> providers = cap2providers.get(capName);
-            if (providers == null) {
-              providers = new ArrayList<String>();
-              cap2providers.put(capName, providers);
-            }
+            sb.setLength(0);
             final BundleWiring bw = cap.getRevision().getWiring();
-            final String wName = getWiringName(bw);
-            providers.add(wName);
+            sb.append(getWiringName(bw));
+            sb.append("&nbsp;&nbsp;&mdash;&nbsp;&nbsp;<font size=\"-2\" color=\"#666666\">");
+            sb.append(getCapName(cap, req));
+            sb.append("</font>");
+            providers.add(sb.toString());
           }
         }
       }
@@ -514,6 +536,22 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
                     final BundleWiring wiring)
     {
       super(nameSpace, wiring);
+    }
+
+    private void appendVersion(final StringBuffer sb,
+                               final BundleRequirement requirement)
+    {
+      final String filter =
+        requirement.getDirectives().get(Constants.FILTER_DIRECTIVE);
+
+      try {
+        final VersionRange vr =
+          new VersionRange(filter, Constants.VERSION_ATTRIBUTE);
+        sb.append("&nbsp;");
+        sb.append(vr);
+      } catch (final IllegalArgumentException iae) {
+        System.err.println(iae.getMessage());
+      }
     }
 
     @Override
@@ -548,6 +586,103 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       return sb.toString();
     }
 
+    @Override
+    String getReqName(final BundleRequirement requirement)
+    {
+      final StringBuffer sb = new StringBuffer(50);
+      final String filter = requirement.getDirectives().get("filter");
+      final String eeName = getFilterValue(filter, JHTML.OSGI_EE);
+
+      if (eeName != null) {
+        sb.append(eeName);
+        appendVersion(sb, requirement);
+      } else {
+        // Filter too complex to extract info from...
+        sb.append(filter);
+      }
+      return sb.toString();
+    }
+  }
+
+  static private class WireFormatterHost extends WireFormatter
+  {
+
+    /**
+     * @param nameSpace
+     *          The name-space to present info for.
+     * @param wiring
+     *          The wiring to present info for.
+     */
+    WireFormatterHost(final String nameSpace,
+                    final BundleWiring wiring)
+    {
+      super(nameSpace, wiring);
+    }
+
+    private void appendVersion(final StringBuffer sb,
+                               final BundleRequirement requirement)
+    {
+      final String filter =
+        requirement.getDirectives().get(Constants.FILTER_DIRECTIVE);
+
+      try {
+        final VersionRange vr =
+          new VersionRange(filter, Constants.BUNDLE_VERSION_ATTRIBUTE);
+        sb.append("&nbsp;");
+        sb.append(vr);
+      } catch (final IllegalArgumentException iae) {
+        System.err.println(iae.getMessage());
+      }
+    }
+
+    @Override
+    String getCapName(final BundleCapability capability,
+                      final BundleRequirement requirement)
+    {
+      // Make a modifiable clone of the attributes.
+      final Map<String, Object> attrs
+        = new HashMap<String, Object>(capability.getAttributes());
+
+      final StringBuffer sb = new StringBuffer(50);
+      sb.append(attrs.remove(BundleRevision.HOST_NAMESPACE));
+
+      final Version version =
+        (Version) attrs.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+      if (version != null) {
+        sb.append("&nbsp;");
+        sb.append(version);
+      }
+
+      if (!attrs.isEmpty()) {
+        sb.append("&nbsp;");
+        sb.append(attrs);
+      }
+
+      final BundleWiring capWiring = capability.getRevision().getWiring();
+      if (capWiring!=null && !capWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
+
+      return sb.toString();
+    }
+
+    @Override
+    String getReqName(final BundleRequirement requirement)
+    {
+      final StringBuffer sb = new StringBuffer(50);
+      final String filter = requirement.getDirectives().get("filter");
+      final String hostName = getFilterValue(filter, BundleRevision.HOST_NAMESPACE);
+      if (hostName != null) {
+        sb.append(hostName);
+        appendVersion(sb, requirement);
+      } else {
+        // Filter too complex to extract info from...
+        sb.append(filter);
+      }
+
+      return sb.toString();
+    }
+
   }
 
 
@@ -569,33 +704,26 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     private void appendVersionAndResolutionDirective(final StringBuffer sb,
                                                      final BundleRequirement requirement)
     {
-      final String filter = requirement.getDirectives()
-          .get(Constants.FILTER_DIRECTIVE);
+      final String filter =
+        requirement.getDirectives().get(Constants.FILTER_DIRECTIVE);
 
       try {
-        final VersionRange vr
-          = new VersionRange(filter, Constants.VERSION_ATTRIBUTE);
-        sb.append("&nbsp;<font size=\"-3\">(");
+        final VersionRange vr =
+          new VersionRange(filter, Constants.VERSION_ATTRIBUTE);
+        sb.append("&nbsp;");
         sb.append(vr);
-        sb.append(")</font>");
       } catch (final IllegalArgumentException iae) {
         System.err.println(iae.getMessage());
       }
 
-      final String resolution = requirement.getDirectives()
-          .get(Constants.RESOLUTION_DIRECTIVE);
+      final String resolution =
+        requirement.getDirectives().get(Constants.RESOLUTION_DIRECTIVE);
       if (resolution != null && resolution.length() > 0) {
         if (resolution.equals(Constants.RESOLUTION_MANDATORY)) {
           // Default, don't print
         } else {
           sb.append("&nbsp;");
           sb.append(resolution);
-          if (resolution.equals("dynamic")) {
-            // print pattern
-            sb.append("&nbsp;'<em>");
-            sb.append(getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE));
-            sb.append("</em>'");
-          }
         }
       }
     }
@@ -631,14 +759,6 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append("&nbsp;<i>pending removal on refresh</i>");
       }
 
-      if (requirement!=null) {
-        appendVersionAndResolutionDirective(sb, requirement);
-
-//        sb.append("&nbsp;&nbsp;<font size=\"-2\">");
-//        sb.append(requirement.getDirectives().get("filter"));
-//        sb.append("</font>");
-      }
-
       return sb.toString();
     }
 
@@ -647,13 +767,14 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     {
       final StringBuffer sb = new StringBuffer(50);
       final String filter = requirement.getDirectives().get("filter");
-      sb.append(getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE));
-
-      appendVersionAndResolutionDirective(sb, requirement);
-
-//      sb.append("&nbsp;&nbsp;<font size=\"-2\">");
-//      sb.append(filter);
-//      sb.append("</font>");
+      final String pkgName =
+        getFilterValue(filter, BundleRevision.PACKAGE_NAMESPACE);
+      if (pkgName != null) {
+        sb.append(pkgName);
+        appendVersionAndResolutionDirective(sb, requirement);
+      } else {
+        sb.append(filter);
+      }
 
       return sb.toString();
     }

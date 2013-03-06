@@ -59,6 +59,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLEditorKit;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.wiring.BundleRevision;
 
 /**
  * Utility swing component which display bundle info as HTML.
@@ -98,8 +99,8 @@ public abstract class JHTMLBundle extends JPanel
   private static final List<JHTMLBundleLinkHandler> linkHandlers
     = new ArrayList<JHTMLBundleLinkHandler>();
 
-  JHTMLBundle(DefaultSwingBundleDisplayer _displayer) {
-
+  JHTMLBundle(DefaultSwingBundleDisplayer _displayer)
+  {
     setLayout(new BorderLayout());
 
     this.displayer = _displayer;
@@ -118,7 +119,7 @@ public abstract class JHTMLBundle extends JPanel
         .getMethod("setAutoFormSubmission", new Class[]{ Boolean.TYPE});
       setAutoFormSubmissionMethod.invoke(htmlEditor,
                                          new Object[]{Boolean.FALSE});
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       Activator.log.warn("Failed to enable auto form submission for JHTMLBundle.", t);
     }
 
@@ -150,7 +151,7 @@ public abstract class JHTMLBundle extends JPanel
 
     html.setPreferredSize(new Dimension(300, 300));
 
-    JToolBar cmds = new JToolBar() {
+    final JToolBar cmds = new JToolBar() {
       private static final long serialVersionUID = 1L;
       {
         add(backButton = new JButton(Desktop.prevIcon) {
@@ -207,11 +208,13 @@ public abstract class JHTMLBundle extends JPanel
     fwdButton.setEnabled(historyFwd.size()>0);
   }
 
+  @Override
   public void addNotify() {
     super.addNotify();
     addHierarchyListener(this);
   }
 
+  @Override
   public void removeNotify() {
     removeHierarchyListener(this);
     super.removeNotify();
@@ -253,7 +256,7 @@ public abstract class JHTMLBundle extends JPanel
       gotoBid(bid);
     } else {
       boolean handled = false;
-      for (Iterator<JHTMLBundleLinkHandler> it = linkHandlers.iterator(); it.hasNext() && !handled;) {
+      for (final Iterator<JHTMLBundleLinkHandler> it = linkHandlers.iterator(); it.hasNext() && !handled;) {
         final JHTMLBundleLinkHandler handler = it.next();
         if (handler.canRenderUrl(url)) {
           final StringBuffer sb = new StringBuffer(600);
@@ -265,7 +268,7 @@ public abstract class JHTMLBundle extends JPanel
       if (!handled) {
         try {
           Util.openExternalURL(url);
-        } catch (Exception e2) {
+        } catch (final Exception e2) {
           Activator.log.error("Failed to open url " + url, e2);
         }
         // External URLs shall not be added to the history.
@@ -305,15 +308,19 @@ public abstract class JHTMLBundle extends JPanel
   /**
    * Get header text for selected bundle page.
    */
-  public static String getBundleSelectedHeader(Bundle b) {
-    return
-      "#" + b.getBundleId() + "  " +  Util.getBundleName(b);
-  }
+  public static String getBundleSelectedHeader(Bundle b)
+  {
+    final BundleRevision rev = b.adapt(BundleRevision.class);
+    final boolean isFragment =
+      (rev.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0;
 
+    return "#" + b.getBundleId() + "  " + Util.getBundleName(b)
+           + (isFragment ? "  (fragment)" : "");
+  }
 
   // Lock that must be taken before accessing the fields
   // currentSelection and currentUpdater.
-  private Object valueChangedLock = new Object();
+  private final Object valueChangedLock = new Object();
   // The most resent selection, to be used by updateView().
   private Bundle[] currentSelection = null;
   // If non-null an updateView() is scheduled on the EDT.
@@ -407,19 +414,19 @@ public abstract class JHTMLBundle extends JPanel
 
       setCurrentBID(bl[0].getBundleId());
 
-      for(int i = 0; i < bl.length; i++) {
+      for (final Bundle element : bl) {
 
         sb.append("<table border=\"0\" width=\"100%\">\n");
         sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
         startFont(sb, "-1");
-        sb.append(getBundleSelectedHeader(bl[i]));
+        sb.append(getBundleSelectedHeader(element));
         stopFont(sb);
         sb.append("</td>\n");
         sb.append("</tr>\n");
 
         sb.append("<tr><td bgcolor=\"#ffffff\">");
 //         long t0 = System.currentTimeMillis();
-        StringBuffer bi = bundleInfo(bl[i]);
+        final StringBuffer bi = bundleInfo(element);
 //         long t1 = System.currentTimeMillis();
 //         if(t1 - t0 > 50) {
 //           System.out.println("  " + (t1-t0) + "ms " + getClass().getName());
@@ -460,12 +467,12 @@ public abstract class JHTMLBundle extends JPanel
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
           try {
-            JViewport vp = scroll.getViewport();
+            final JViewport vp = scroll.getViewport();
             if(vp != null) {
               vp.setViewPosition(new Point(0,0));
               scroll.setViewport(vp);
             }
-          } catch (Exception e) {
+          } catch (final Exception e) {
             e.printStackTrace();
           }
         }
