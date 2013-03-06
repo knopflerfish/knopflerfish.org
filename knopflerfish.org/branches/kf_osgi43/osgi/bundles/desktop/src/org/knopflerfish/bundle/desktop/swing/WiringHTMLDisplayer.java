@@ -450,8 +450,12 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         }
       }
 
-      // caps[i] holds the wired capability, if any, for reqs[i].
-      final BundleCapability[] caps = new BundleCapability[reqs.size()];
+      // caps[i] holds a list with the wired capabilities, if any, for reqs[i].
+      final List<List<BundleCapability>> caps =
+        new ArrayList<List<BundleCapability>>(reqs.size());
+      for (int i = 0; i<reqs.size(); i++) {
+        caps.add(new ArrayList<BundleCapability>());
+      }
 
       // Add provider for wired requirements.
       for (final BundleWire w : wiring.getRequiredWires(nameSpace)) {
@@ -463,31 +467,34 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
                              + req);
           continue;
         }
-        if (caps[i] != null) {
-          throw new IllegalArgumentException("Found second wire for requirement: "
-                                             + req + " cap1: " +caps[i]
-                                             + "; cap2: " + w.getCapability());
-        }
-        caps[i] = w.getCapability();
+        caps.get(i).add(w.getCapability());
       }
 
       // Populate cap2providers
-      for (int i = 0; i<reqs.size(); i++) {
+      for (int i = 0; i < reqs.size(); i++) {
         final BundleRequirement req = reqs.get(i);
-        final BundleCapability cap = caps[i];
+        final List<BundleCapability> providerCaps = caps.get(i);
 
-        final String capName = cap==null
-            ? getReqName(req) : getCapName(cap, req);
+        if (providerCaps.isEmpty()) {
+          final String capName = getReqName(req);
+          List<String> providers = cap2providers.get(capName);
+          if (providers == null) {
+            providers = new ArrayList<String>();
+            cap2providers.put(capName, providers);
+          }
+        } else {
+          for (final BundleCapability cap : providerCaps) {
+            final String capName = getCapName(cap, req);
 
-        List<String> providers = cap2providers.get(capName);
-        if (providers == null) {
-          providers = new ArrayList<String>();
-          cap2providers.put(capName, providers);
-        }
-        if (cap != null) {
-          final BundleWiring bw = cap.getRevision().getWiring();
-          final String wName = getWiringName(bw);
-          providers.add(wName);
+            List<String> providers = cap2providers.get(capName);
+            if (providers == null) {
+              providers = new ArrayList<String>();
+              cap2providers.put(capName, providers);
+            }
+            final BundleWiring bw = cap.getRevision().getWiring();
+            final String wName = getWiringName(bw);
+            providers.add(wName);
+          }
         }
       }
     }
