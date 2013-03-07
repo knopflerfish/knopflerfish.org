@@ -442,7 +442,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       // reqs[i] holds a list with the wired requirer, if any, for caps[i].
       final List<List<BundleRequirement>> reqs =
         new ArrayList<List<BundleRequirement>>(caps.size());
-      for (int i = 0; i < reqs.size(); i++) {
+      for (int i = 0; i < caps.size(); i++) {
         reqs.add(new ArrayList<BundleRequirement>());
       }
 
@@ -464,8 +464,9 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       // wiring.getProvidedWires().
       for (final BundleWire w : wiring.getRequiredWires(nameSpace)) {
         final BundleRequirement req = w.getRequirement();
-        if (req.getRevision().equals(wiring.getRevision())) {
-          final BundleCapability cap = w.getCapability();
+        final BundleCapability  cap = w.getCapability();
+        if (req.getRevision().equals(wiring.getRevision())
+            && cap.getRevision().equals(wiring.getRevision())) {
           final int i = caps.indexOf(cap);
           if (-1 == i) {
             System.err
