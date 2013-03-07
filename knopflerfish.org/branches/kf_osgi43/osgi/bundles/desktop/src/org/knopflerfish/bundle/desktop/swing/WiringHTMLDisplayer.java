@@ -33,7 +33,10 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,18 +50,24 @@ import javax.swing.JComponent;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.FrameworkWiring;
 
 import org.knopflerfish.util.framework.VersionRange;
 
 
 
-public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
+public class WiringHTMLDisplayer
+  extends DefaultSwingBundleDisplayer
+  implements FrameworkListener, JHTMLBundleLinkHandler
+{
 
   public WiringHTMLDisplayer(BundleContext bc) {
     super(bc, "Wiring", "Shows wiring between bundle revisions.", true);
@@ -86,6 +95,180 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
   }
 
+  public void frameworkEvent(FrameworkEvent event)
+  {
+    // Refresh is done, update displayer.
+    valueChanged(event.getBundle().getBundleId());
+  }
+
+  public boolean canRenderUrl(URL url)
+  {
+    return WiringUrl.isWiringLink(url);
+  }
+
+  public boolean renderUrl(URL url, StringBuffer sb)
+  {
+    final WiringUrl wiringUrl = new WiringUrl(url);
+
+    if (wiringUrl.doResolve()) {
+      final long bid = wiringUrl.getBid();
+      final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+      final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
+      final FrameworkWiring frameworkWiring =
+        systemBundle.adapt(FrameworkWiring.class);
+      frameworkWiring.resolveBundles(Collections.singleton(bundle));
+      valueChanged(bid);
+    } else if (wiringUrl.doRefresh()) {
+      final long bid = wiringUrl.getBid();
+      final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+      final Collection<Bundle> bundles = Collections.singleton(bundle);
+
+      final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
+      final FrameworkWiring frameworkWiring =
+        systemBundle.adapt(FrameworkWiring.class);
+
+      final Collection<Bundle> closure =
+        frameworkWiring.getDependencyClosure(bundles);
+      final List<String> closureNames = new ArrayList<String>(closure.size());
+      for (final Bundle b : closure) {
+        closureNames.add(Util.getBundleName(b));
+      }
+      frameworkWiring.refreshBundles(bundles, this);
+      sb.append("Refreshing " + Util.getBundleName(bundle) + " will affect: "
+                + closureNames);
+    }
+
+    // URLs with a command must not be added to the history.
+    return !wiringUrl.isCommand();
+  }
+
+
+  //-------------------------------- Wiring URL ---------------------------------
+  /**
+   * Helper class that handles links for wiring operations.
+   * <p>
+   * The URL will look like:
+   * <code>http://desktop/wiring?bid=&lt;BID>&amp;cmd=&lt;CMD></code>.
+   * </p>
+   */
+  public static class WiringUrl {
+    public static final String URL_WIRING_HOST = "desktop";
+    public static final String URL_WIRING_PREFIX_PATH = "/wiring";
+    public static final String URL_WIRING_KEY_BID = "bid";
+    public static final String URL_WIRING_KEY_CMD = "cmd";
+    public static final String URL_WIRING_CMD_REFRESH = "Refresh";
+    public static final String URL_WIRING_CMD_RESOLVE = "Resolve";
+
+    /** Bundle id of the bundle the URL is about. */
+    private long bid = -1;
+    /** True if the URL contains a command. */
+    private boolean isCmd = false;
+    /** True if the URL is a command to resolve the bundle.*/
+    private boolean doResolve = false;
+    /** True if the URL is a command to refresh the bundle.*/
+    private boolean doRefresh = false;
+
+    public static boolean isWiringLink(URL url) {
+      return URL_WIRING_HOST.equals(url.getHost())
+          && url.getPath().startsWith(URL_WIRING_PREFIX_PATH);
+    }
+
+    public WiringUrl(URL url)
+    {
+      if (!isWiringLink(url)) {
+        throw new RuntimeException("URL '" + url + "' does not start with "
+                                   + "http://" + URL_WIRING_HOST
+                                   + URL_WIRING_PREFIX_PATH);
+      }
+
+      final Map<String, String> params = Util.paramsFromURL(url);
+      if (params.containsKey(URL_WIRING_KEY_BID)) {
+        bid = Long.parseLong(params.get(URL_WIRING_KEY_BID));
+      } else {
+        throw new RuntimeException("Invalid wiring command URL '" + url
+                                   + "' bundle id is missing.");
+      }
+      isCmd = params.containsKey(URL_WIRING_KEY_CMD);
+      if (isCmd) {
+        final String cmd = params.get(URL_WIRING_KEY_CMD);
+        doRefresh = URL_WIRING_CMD_REFRESH.equals(cmd);
+        doResolve = URL_WIRING_CMD_RESOLVE.equals(cmd);
+      }
+    }
+
+    public WiringUrl(final Bundle bundle)
+    {
+      bid = bundle.getBundleId();
+    }
+
+    public long getBid() {
+      return bid;
+    }
+
+    public boolean isCommand() {
+      return isCmd;
+    }
+
+    public boolean doRefresh() {
+      return isCmd && doRefresh;
+    }
+
+    public boolean doResolve() {
+      return isCmd && doResolve;
+    }
+
+    private void appendBaseURL(final StringBuffer sb) {
+      sb.append("http://");
+      sb.append(URL_WIRING_HOST);
+      sb.append(URL_WIRING_PREFIX_PATH);
+    }
+
+    private Map<String, String> getParams() {
+      final Map<String, String> params = new HashMap<String, String>();
+      if (bid>-1) {
+        params.put(URL_WIRING_KEY_BID, String.valueOf(bid));
+      }
+      if (doRefresh) {
+        params.put(URL_WIRING_KEY_CMD, URL_WIRING_CMD_REFRESH);
+      } else if (doResolve) {
+        params.put(URL_WIRING_KEY_CMD, URL_WIRING_CMD_RESOLVE);
+      }
+      return params;
+    }
+
+    public void refreshLink(final StringBuffer sb, final String label) {
+      doRefresh = true;
+      sb.append("<a href=\"");
+      appendBaseURL(sb);
+      Util.appendParams(sb, getParams());
+      sb.append("\">");
+      sb.append(label);
+      sb.append("</a>");
+    }
+
+    public void resolveForm(final StringBuffer sb) {
+
+      sb.append("<form action=\"");
+      appendBaseURL(sb);
+      sb.append("\" method=\"get\">");
+      sb.append("<input type=\"submit\" name=\"");
+      sb.append(URL_WIRING_KEY_CMD);
+      sb.append("\" value=\"");
+      sb.append(URL_WIRING_CMD_RESOLVE);
+      sb.append("\">");
+      for (final Entry<String,String> entry : getParams().entrySet()) {
+        sb.append("<input type=\"hidden\" name=\"");
+        sb.append(entry.getKey());
+        sb.append("\" value=\"");
+        sb.append(entry.getValue());
+        sb.append("\">");
+      }
+      sb.append("</form>");
+    }
+
+  }
+
+
   class JHTML extends JHTMLBundle {
     private static final long serialVersionUID = 1L;
     protected static final String OSGI_EE = "osgi.ee";
@@ -112,8 +295,14 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       if (bw == null) {
-        sb.append("<b>Unresolved bundle.</b><br>");
-        // TODO add resolve button.
+        final BundleRevision rev = b.adapt(BundleRevision.class);
+        if ((rev.getTypes() & BundleRevision.TYPE_FRAGMENT) == BundleRevision.TYPE_FRAGMENT) {
+          sb.append("<b>Un-attached fragment.</b><br>");
+        } else {
+          sb.append("<b>Unresolved bundle.</b><br>");
+          final WiringUrl wiringUrl = new WiringUrl(b);
+          wiringUrl.resolveForm(sb);
+        }
       } else if (!bw.isInUse()) {
         sb.append("<b>Stale bundle.</b><br>");
       } else {
@@ -131,6 +320,8 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         }
         if (useParagraph) {
           sb.append("</p>");
+        } else {
+          sb.append("<br>");
         }
 
 
@@ -152,6 +343,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       return sb;
     }
+
 
     private Set<String> getNameSapcesOfProvidedCaps(BundleWiring bw)
     {
@@ -336,23 +528,29 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       this.nameSpace = nameSpace;
     }
 
+    static void appendPendingRemovalOnRefresh(final StringBuffer sb,
+                                              final BundleWiring wiring)
+    {
+      if (wiring!=null && !wiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on ");
+        new WiringUrl(wiring.getBundle()).refreshLink(sb, "refresh");
+        sb.append("</i>");
+      }
+    }
+
     /**
      * Get a HTML-formated presentation string for the capability described by
      * the given {@code capability}.
      * @param capability capability to be named.
-     * @param requirement that is wired to the capability.
      * @return
      */
-    String getCapName(final BundleCapability capability,
-                      final BundleRequirement requirement)
+    String getCapName(final BundleCapability capability)
     {
       final StringBuffer sb = new StringBuffer(50);
       sb.append(capability.getAttributes());
 
       final BundleWiring capWiring = capability.getRevision().getWiring();
-      if (capWiring!=null && !capWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, capWiring);
 
       return sb.toString();
     }
@@ -375,9 +573,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring reqWiring = requirement.getRevision().getWiring();
-      if (reqWiring!=null && !reqWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, reqWiring);
 
       return sb.toString();
     }
@@ -485,7 +681,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         final BundleCapability cap = caps.get(i);
         final List<BundleRequirement> requesterReqs = reqs.get(i);
 
-        final String capName = getCapName(cap, null);
+        final String capName = getCapName(cap);
         List<String> requesters = cap2requesters.get(capName);
         if (requesters == null) {
           requesters = new ArrayList<String>();
@@ -567,7 +763,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
             final BundleWiring bw = cap.getRevision().getWiring();
             sb.append(getWiringName(bw));
             sb.append("&nbsp;&nbsp;&mdash;&nbsp;&nbsp;<font size=\"-2\" color=\"#666666\">");
-            sb.append(getCapName(cap, req));
+            sb.append(getCapName(cap));
             sb.append("</font>");
             providers.add(sb.toString());
           }
@@ -609,8 +805,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     @Override
-    String getCapName(final BundleCapability capability,
-                      final BundleRequirement requirement)
+    String getCapName(final BundleCapability capability)
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs
@@ -633,9 +828,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring capWiring = capability.getRevision().getWiring();
-      if (capWiring!=null && !capWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, capWiring);
 
       return sb.toString();
     }
@@ -656,9 +849,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring reqWiring = requirement.getRevision().getWiring();
-      if (reqWiring!=null && !reqWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, reqWiring);
 
       return sb.toString();
     }
@@ -696,8 +887,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     @Override
-    String getCapName(final BundleCapability capability,
-                      final BundleRequirement requirement)
+    String getCapName(final BundleCapability capability)
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs
@@ -719,9 +909,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring capWiring = capability.getRevision().getWiring();
-      if (capWiring!=null && !capWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, capWiring);
 
       return sb.toString();
     }
@@ -741,9 +929,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring reqWiring = requirement.getRevision().getWiring();
-      if (reqWiring!=null && !reqWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, reqWiring);
 
       return sb.toString();
     }
@@ -787,8 +973,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     @Override
-    String getCapName(final BundleCapability capability,
-                      final BundleRequirement requirement)
+    String getCapName(final BundleCapability capability)
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs
@@ -816,9 +1001,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring capWiring = capability.getRevision().getWiring();
-      if (capWiring!=null && !capWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, capWiring);
 
       return sb.toString();
     }
@@ -838,9 +1021,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring reqWiring = requirement.getRevision().getWiring();
-      if (reqWiring!=null && !reqWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, reqWiring);
 
       return sb.toString();
     }
@@ -880,8 +1061,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     @Override
-    String getCapName(final BundleCapability capability,
-                      final BundleRequirement requirement)
+    String getCapName(final BundleCapability capability)
     {
       // Make a modifiable clone of the attributes.
       final Map<String, Object> attrs =
@@ -903,9 +1083,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring capWiring = capability.getRevision().getWiring();
-      if (capWiring != null && !capWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, capWiring);
 
       return sb.toString();
     }
@@ -926,9 +1104,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring reqWiring = requirement.getRevision().getWiring();
-      if (reqWiring!=null && !reqWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, reqWiring);
 
       return sb.toString();
     }
@@ -978,8 +1154,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     @Override
-    String getCapName(final BundleCapability capability,
-                      final BundleRequirement requirement)
+    String getCapName(final BundleCapability capability)
     {
       final StringBuffer sb = new StringBuffer(50);
 
@@ -1004,9 +1179,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring capWiring = capability.getRevision().getWiring();
-      if (capWiring!=null && !capWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, capWiring);
 
       return sb.toString();
     }
@@ -1026,9 +1199,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       }
 
       final BundleWiring reqWiring = requirement.getRevision().getWiring();
-      if (reqWiring!=null && !reqWiring.isCurrent()) {
-        sb.append("&nbsp;<i>pending removal on refresh</i>");
-      }
+      appendPendingRemovalOnRefresh(sb, reqWiring);
 
       return sb.toString();
     }
