@@ -360,13 +360,26 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
     /**
      * Present a generic requirement by showing its filter.
      *
-     * @param req The requirement to present.
+     * @param requirement The requirement to present.
      * @return string presentation of the requirement.
      */
-    String getReqName(BundleRequirement req)
+    String getReqName(BundleRequirement requirement)
     {
-      final String filter = req.getDirectives().get("filter");
-      return filter != null ? filter :" - ";
+      final StringBuffer sb = new StringBuffer(50);
+
+      final String filter = requirement.getDirectives().get("filter");
+      if (filter != null) {
+        sb.append(filter);
+      } else {
+        sb.append("&nbsp;&emdash;&nbsp;");
+      }
+
+      final BundleWiring reqWiring = requirement.getRevision().getWiring();
+      if (reqWiring!=null && !reqWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
+
+      return sb.toString();
     }
 
     /**
@@ -410,57 +423,87 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
      */
     final void providedCapabilitiesView(Map<String, List<String>> cap2requesters)
     {
+      // The capabilities provided by the wiring we are handling.
+      final List<BundleCapability> caps = new ArrayList<BundleCapability>();
+
       // All declared capabilities
       for (final BundleCapability cap : wiring.getRevision().getDeclaredCapabilities(nameSpace)) {
-        final String capName = getCapName(cap, null);
-        List<String> requesters = cap2requesters.get(capName);
-        if (requesters==null) {
-          requesters = new ArrayList<String>();
-          cap2requesters.put(capName, requesters);
+        caps.add(cap);
+      }
+
+      // All active capabilities (additional caps may come from attached fragments)
+      for (final BundleCapability cap : wiring.getCapabilities(nameSpace)) {
+        final int i = caps.indexOf(cap);
+        if (-1 == i) {
+          caps.add(cap);
         }
       }
 
-      // Add requesters for wired capabilities, note this may add "stale"
-      // capabilities when there is a wire to an old generation of the bundle.
-      final List<BundleWire> wires = wiring.getProvidedWires(nameSpace);
-      if (wires != null) {
-        for (final BundleWire w : wires) {
-          final BundleCapability cap = w.getCapability();
+      // reqs[i] holds a list with the wired requirer, if any, for caps[i].
+      final List<List<BundleRequirement>> reqs =
+        new ArrayList<List<BundleRequirement>>(caps.size());
+      for (int i = 0; i < reqs.size(); i++) {
+        reqs.add(new ArrayList<BundleRequirement>());
+      }
 
-          if (wiring.equals(w.getProviderWiring())) {
-            // Only add requirer when the wiring we are presenting is the provider
-            final String capName = getCapName(cap, null);
-
-            final BundleWiring bw = w.getRequirerWiring();
-            final String wName = getWiringName(bw);
-
-            List<String> requesters = cap2requesters.get(capName);
-            if (requesters == null) {
-              requesters = new ArrayList<String>();
-              cap2requesters.put(capName, requesters);
-            }
-            requesters.add(wName);
-          }
+      // Add requirer for wired capabilities.
+      for (final BundleWire w : wiring.getProvidedWires(nameSpace)) {
+        final BundleCapability cap = w.getCapability();
+        final int i = caps.indexOf(cap);
+        if (-1 == i) {
+          System.err
+              .println("Found wire from bundle capability that is not part"
+                       + " of the capabilities in the bundle wiring: " + cap);
+          continue;
         }
+        reqs.get(i).add(w.getRequirement());
       }
 
       // Add the current wiring as requester when the bundle itself uses the
-      // capability since wires to itself must not be created in the wiring.
-      for (final BundleCapability cap : wiring.getCapabilities(nameSpace)) {
-        for (final BundleRequirement req : wiring.getRequirements(nameSpace)) {
-          if (req.matches(cap)) {
-            final String capName = getCapName(cap, null);
-            List<String> requesters = cap2requesters.get(capName);
-            if (requesters==null) {
-              requesters = new ArrayList<String>();
-              cap2requesters.put(capName, requesters);
-            }
-            requesters.add("(" + getWiringName(wiring,false) +")");
-            break;
+      // capability since wires to itself is not included in
+      // wiring.getProvidedWires().
+      for (final BundleWire w : wiring.getRequiredWires(nameSpace)) {
+        final BundleRequirement req = w.getRequirement();
+        if (req.getRevision().equals(wiring.getRevision())) {
+          final BundleCapability cap = w.getCapability();
+          final int i = caps.indexOf(cap);
+          if (-1 == i) {
+            System.err
+                .println("Found wire to self from bundle capability that "
+                         + "is not part of the capabilities in the "
+                         + "bundle wiring: " + cap);
+            continue;
           }
+          reqs.get(i).add(w.getRequirement());
         }
       }
 
+      // Populate cap2requesters
+      final StringBuffer sb = new StringBuffer(50);
+      for (int i = 0; i < caps.size(); i++) {
+        final BundleCapability cap = caps.get(i);
+        final List<BundleRequirement> requesterReqs = reqs.get(i);
+
+        final String capName = getCapName(cap, null);
+        List<String> requesters = cap2requesters.get(capName);
+        if (requesters == null) {
+          requesters = new ArrayList<String>();
+          cap2requesters.put(capName, requesters);
+        }
+        if (requesterReqs.isEmpty()) {
+          requesters.add("&mdash");
+        } else {
+          for (final BundleRequirement req : requesterReqs) {
+            sb.setLength(0);
+            final BundleWiring bw = req.getRevision().getWiring();
+            sb.append(getWiringName(bw, !bw.equals(wiring)));
+            sb.append("&nbsp;&nbsp;&mdash;&nbsp;&nbsp;<font size=\"-2\" color=\"#666666\">");
+            sb.append(getReqName(req));
+            sb.append("</font>");
+            requesters.add(sb.toString());
+          }
+        }
+      }
     }
 
 
@@ -486,7 +529,7 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       // caps[i] holds a list with the wired capabilities, if any, for reqs[i].
       final List<List<BundleCapability>> caps =
         new ArrayList<List<BundleCapability>>(reqs.size());
-      for (int i = 0; i<reqs.size(); i++) {
+      for (int i = 0; i < reqs.size(); i++) {
         caps.add(new ArrayList<BundleCapability>());
       }
 
@@ -610,6 +653,12 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         // Filter too complex to extract info from...
         sb.append(filter);
       }
+
+      final BundleWiring reqWiring = requirement.getRevision().getWiring();
+      if (reqWiring!=null && !reqWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
+
       return sb.toString();
     }
   }
@@ -688,6 +737,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       } else {
         // Filter too complex to extract info from...
         sb.append(filter);
+      }
+
+      final BundleWiring reqWiring = requirement.getRevision().getWiring();
+      if (reqWiring!=null && !reqWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
       }
 
       return sb.toString();
@@ -782,6 +836,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append(filter);
       }
 
+      final BundleWiring reqWiring = requirement.getRevision().getWiring();
+      if (reqWiring!=null && !reqWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
+      }
+
       return sb.toString();
     }
 
@@ -863,6 +922,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
       } else {
         // Filter too complex to extract info from...
         sb.append(filter);
+      }
+
+      final BundleWiring reqWiring = requirement.getRevision().getWiring();
+      if (reqWiring!=null && !reqWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
       }
 
       return sb.toString();
@@ -958,6 +1022,11 @@ public class WiringHTMLDisplayer extends DefaultSwingBundleDisplayer {
         appendVersionAndResolutionDirective(sb, requirement);
       } else {
         sb.append(filter);
+      }
+
+      final BundleWiring reqWiring = requirement.getRevision().getWiring();
+      if (reqWiring!=null && !reqWiring.isCurrent()) {
+        sb.append("&nbsp;<i>pending removal on refresh</i>");
       }
 
       return sb.toString();
