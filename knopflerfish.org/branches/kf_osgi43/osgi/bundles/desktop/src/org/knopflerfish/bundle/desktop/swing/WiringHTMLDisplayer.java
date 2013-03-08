@@ -600,6 +600,9 @@ public class WiringHTMLDisplayer
      */
     String getWiringName(BundleWiring bw, boolean link)
     {
+      if (bw == null) {
+        return "&mdash;?&mdash;";
+      }
       final BundleRevision br = bw.getRevision();
       final Bundle b = br.getBundle();
       if (link) {
@@ -693,7 +696,11 @@ public class WiringHTMLDisplayer
           for (final BundleRequirement req : requesterReqs) {
             sb.setLength(0);
             final BundleWiring bw = req.getRevision().getWiring();
-            sb.append(getWiringName(bw, !bw.equals(wiring)));
+            if (bw==null) {
+              sb.append(Util.getBundleName(req.getRevision().getBundle()));
+            } else {
+              sb.append(getWiringName(bw, !wiring.equals(bw)));
+            }
             sb.append("&nbsp;&nbsp;&mdash;&nbsp;&nbsp;<font size=\"-2\" color=\"#666666\">");
             sb.append(getReqName(req));
             sb.append("</font>");
