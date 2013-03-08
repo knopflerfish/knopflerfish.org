@@ -51,28 +51,34 @@ import org.osgi.framework.wiring.BundleWiring;
 
 public class BundleWiringImpl implements BundleWiring {
 
-  final BundleGeneration gen;
+  final BundleRevisionImpl bundleRevision;
 
-  BundleWiringImpl(BundleGeneration bundleGeneration) {
-    gen = bundleGeneration;
+  BundleWiringImpl(BundleRevisionImpl br) {
+    bundleRevision = br;
   }
+
 
   public Bundle getBundle() {
-    return gen.bundle;
+    return bundleRevision.getBundle();
   }
+
 
   public boolean isCurrent() {
-    return gen == gen.bundle.current();
+    return bundleRevision == bundleRevision.bundle.bundleRevision;
   }
 
+
   public boolean isInUse() {
-    return !gen.isUninstalled() && gen.bundle.usesBundleGeneration(gen);
+    BundleGeneration gen = bundleRevision.getBundleGeneration();
+    return gen.isCurrentBundleRevision(bundleRevision) && bundleRevision.bundle.usesBundleGeneration(gen);
   }
+
 
   public List<BundleCapability> getCapabilities(String namespace) {
     if (!isInUse()) {
       return null;
     }
+    BundleGeneration gen = bundleRevision.getBundleGeneration();
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
     if (!gen.isFragment()) {
@@ -88,15 +94,11 @@ public class BundleWiringImpl implements BundleWiring {
           res.add(bc);
         }
       }
-      // TODO Manifest order
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-        // TODO, do we need to synchronize, should nonproviders be included?
-        for (final Iterator<ExportPkg> i = gen.bpkgs.getExports(); i.hasNext(); ) {
-          res.add(i.next());
-        }
+        res.addAll(gen.bpkgs.getPackageCapabilities());
       }
       if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
-        final Map<String, List<BundleCapabilityImpl>> caps = gen.getOtherCapabilities();
+        final Map<String, List<BundleCapabilityImpl>> caps = gen.bpkgs.getOtherCapabilities();
         Collection<List<BundleCapabilityImpl>> clbc = null;
         if (null != namespace) {
           final List<BundleCapabilityImpl> lbc = caps.get(namespace);
@@ -120,10 +122,12 @@ public class BundleWiringImpl implements BundleWiring {
     return res;
   }
 
+
   public List<BundleRequirement> getRequirements(String namespace) {
     if (!isInUse()) {
       return null;
     }
+    BundleGeneration gen = bundleRevision.getBundleGeneration();
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
     if (gen.isFragment()) {
@@ -139,10 +143,8 @@ public class BundleWiringImpl implements BundleWiring {
           }
         }
       }
-      // TODO Manifest order
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-        for (final Iterator<ImportPkg> i = gen.bpkgs.getImports(); i.hasNext(); ) {
-          final ImportPkg ip = i.next();
+        for (final ImportPkg ip : gen.bpkgs.getPackageRequirements()) {
           if (ip.provider != null) {
             res.add(ip);
           }
@@ -162,7 +164,7 @@ public class BundleWiringImpl implements BundleWiring {
         if (null != clbr) {
           for (final List<BundleRequirementImpl> lbr : clbr) {
             for (final BundleRequirementImpl br : lbr) {
-              if (br.shouldResolve()) {
+              if (br.isWired()) {
                 res.add(br);
               }
             }
@@ -177,6 +179,7 @@ public class BundleWiringImpl implements BundleWiring {
     if (!isInUse()) {
       return null;
     }
+    BundleGeneration gen = bundleRevision.getBundleGeneration();
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleWire> res = new ArrayList<BundleWire>();
     if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
@@ -230,6 +233,7 @@ public class BundleWiringImpl implements BundleWiring {
     if (!isInUse()) {
       return null;
     }
+    BundleGeneration gen = bundleRevision.getBundleGeneration();
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleWire> res = new ArrayList<BundleWire>();
     if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
@@ -272,15 +276,23 @@ public class BundleWiringImpl implements BundleWiring {
   }
 
   public BundleRevision getRevision() {
-    return gen.getRevision();
+    return bundleRevision;
   }
 
   public ClassLoader getClassLoader() {
-    return gen.getClassLoader();
+    BundleGeneration gen = bundleRevision.getBundleGeneration();
+    if (gen.isCurrentBundleRevision(bundleRevision)) {
+      return gen.getClassLoader();
+    }
+    return null;
   }
 
   public List<URL> findEntries(String path, String filePattern, int options) {
-    return Collections.unmodifiableList(gen.bundle.secure.callFindEntries(gen, path, filePattern, (options & FINDENTRIES_RECURSE) != 0));
+    BundleGeneration gen = bundleRevision.getBundleGeneration();
+    if (isInUse()) {
+      return Collections.unmodifiableList(gen.bundle.secure.callFindEntries(gen, path, filePattern, (options & FINDENTRIES_RECURSE) != 0));
+    }
+    return null;
   }
 
   public Collection<String> listResources(String path, String filePattern, int options) {

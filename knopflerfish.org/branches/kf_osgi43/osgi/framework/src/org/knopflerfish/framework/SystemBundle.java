@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Vector;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
@@ -478,7 +479,8 @@ public class SystemBundle extends BundleImpl implements Framework {
                         Hashtable<String, String> localization_entries,
                         String baseName)
   {
-    if (current().fragments == null) {
+    final Vector<BundleGeneration> fragments = current().fragments;
+    if (fragments == null) {
       // NYI! read localization from framework.
       // There is no need for this now since it isn't used.
       return;
@@ -491,8 +493,8 @@ public class SystemBundle extends BundleImpl implements Framework {
     }
     while (true) {
       final String l = baseName + locale + ".properties";
-      for (int i = current().fragments.size() - 1; i >= 0; i--) {
-        final BundleGeneration bg = current().fragments.get(i);
+      for (int i = fragments.size() - 1; i >= 0; i--) {
+        final BundleGeneration bg = fragments.get(i);
         final Hashtable<String, String> tmp = bg.archive.getLocalizationEntries(l);
         if (tmp != null) {
           localization_entries.putAll(tmp);
@@ -570,6 +572,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     generations.add(gen);
     gen.bpkgs.registerPackages();
     gen.bpkgs.resolvePackages();
+    newBundleRevision();
     fwWiring = new FrameworkWiringImpl(fwCtx);
   }
 
@@ -1007,7 +1010,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     for (final BundleImpl bundleImpl : allBundles) {
       final BundleImpl b = bundleImpl;
       if (b.getBundleId() != 0) {
-        b.setStateInstalled(false);
+        b.setStateInstalled(false, false);
         b.purge();
       }
     }

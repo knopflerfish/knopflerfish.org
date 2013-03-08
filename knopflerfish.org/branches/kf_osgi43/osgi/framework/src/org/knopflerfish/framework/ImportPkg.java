@@ -455,7 +455,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
   // BundleRequirement method
   public BundleRevision getRevision() {
-    return bpkgs.bg.getRevision();
+    return bpkgs.bg.getBundleRevision();
   }
 
 

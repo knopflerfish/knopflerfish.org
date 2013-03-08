@@ -377,7 +377,7 @@ class ExportPkg
 
 
   public BundleRevision getRevision() {
-    return bpkgs.bg.getRevision();
+    return bpkgs.bg.getBundleRevision();
   }
 
 

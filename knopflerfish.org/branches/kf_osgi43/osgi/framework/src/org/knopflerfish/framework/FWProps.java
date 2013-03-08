@@ -429,7 +429,7 @@ public class FWProps {
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
     // Only first framework support framework extension
     // TODO Improve this in the future
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+    setPropertyIfNotSet(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
         getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 0 ? TRUE : FALSE);
     // Only first framework can support bootclasspath extension
     // TODO Improve this in the future

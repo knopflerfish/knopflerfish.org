@@ -54,11 +54,14 @@ public class BundleRevisionImpl
   static final int NS_OTHER =   8;
 
   final BundleGeneration gen;
+  private BundleWiring bundleWiring = null;
+
 
   BundleRevisionImpl(BundleGeneration gen)
   {
     super(gen.bundle);
     this.gen = gen;
+    gen.setBundleRevision(this);
   }
 
 
@@ -120,8 +123,7 @@ public class BundleRevisionImpl
     final int ns = whichNameSpaces(namespace);
 
     if ((ns & NS_BUNDLE) != 0) {
-      final List<BundleRequirement> bundleReqs = gen.bpkgs.getDeclaredBundleRequirements();
-      res.addAll(bundleReqs);
+      res.addAll(gen.bpkgs.getDeclaredBundleRequirements());
     }
 
     if ((ns & NS_HOST) != 0) {
@@ -131,8 +133,7 @@ public class BundleRevisionImpl
     }
 
     if ((ns & NS_PACKAGE) != 0) {
-      final List<BundleRequirement> packageReqs = gen.bpkgs.getDeclaredPackageRequirements();
-      res.addAll(packageReqs);
+      res.addAll(gen.bpkgs.getDeclaredPackageRequirements(true));
     }
 
     if ((ns & NS_OTHER) != 0) {
@@ -158,15 +159,29 @@ public class BundleRevisionImpl
     return gen.isFragment() ? TYPE_FRAGMENT : 0;
   }
 
+
   public BundleWiring getWiring()
   {
-    return gen.getBundleWiring();
+    if (gen.isWired(this)) {
+      if (bundleWiring == null) {
+        bundleWiring = new BundleWiringImpl(this);
+      }
+    } else {
+      bundleWiring = null;
+    }
+    return bundleWiring;
   }
 
-  @Override
+
   public String toString() {
     return "BundleRevision[" + getSymbolicName() + ":" + getVersion() + "]";
   }
+
+
+  BundleGeneration getBundleGeneration() {
+    return gen;
+  }
+
 
   static int whichNameSpaces(String namespace) {
     int ns;

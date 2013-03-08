@@ -242,7 +242,7 @@ class RequireBundle
   // BundleRequirement method
   public BundleRevision getRevision()
   {
-    return requestor.bg.getRevision();
+    return requestor.bg.getBundleRevision();
   }
 
   // BundleRequirement method

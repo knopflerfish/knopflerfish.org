@@ -41,6 +41,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -205,7 +206,7 @@ class BundlePackages {
         if (!fip.intersect(ip)) {
           throw new IllegalStateException(
               "Host bundle import package and fragment bundle " +
-                  "import package doesn't intersect so a resolve isn't possible.");
+                  "import package doesn't intersect, resolve isn't possible.");
         }
       } else if (noNew){
         throw new IllegalStateException("Resolve host bundle package would " +
@@ -219,7 +220,7 @@ class BundlePackages {
       for (final RequireBundle fragReq : frag.require) {
         boolean match = false;
 
-        if (require != null) {
+        if (host.require != null) {
           // check for conflicts
           for (final RequireBundle req : host.require) {
             if (fragReq.name.equals(req.name)) {
@@ -264,12 +265,6 @@ class BundlePackages {
   }
 
 
-   List<BundleCapability> getBundleCapabilities() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-
   /**
    * Register bundle packages in framework.
    *
@@ -289,6 +284,11 @@ class BundlePackages {
       if (bg.bundle.fwCtx.packages.unregisterCapabilities(capabilities, getExports(), getImports(), force)) {
         okImports = null;
         registered = false;
+        for (List<BundleRequirementImpl> lbr : bg.getOtherRequirements().values()) {
+          for (BundleRequirementImpl br : lbr) {
+            br.resetWire();
+          }
+        }
         unRequireBundles();
         detachFragments();
       } else {
@@ -638,21 +638,6 @@ class BundlePackages {
 
 
   /**
-   * Get the list package requirements derived from the Import-Package header.
-   * The bundle requirement objects for imported packages in the list has the
-   * same order as the packages in the Import-Package header.
-   *
-   * @return all defined import package requirements for this bundle revision.
-   */
-  List<BundleRequirement> getDeclaredPackageRequirements() {
-    final TreeSet<ImportPkg> ipCreationOrder = new TreeSet<ImportPkg>(imports);
-    ipCreationOrder.addAll(dImportPatterns);
-
-    return new ArrayList<BundleRequirement>(ipCreationOrder);
-  }
-
-
-  /**
    * Get the list of package capabilities derived from the Export-Package header.
    *
    * The bundle capability objects in the list has the same order as the packages
@@ -660,12 +645,71 @@ class BundlePackages {
    *
    * @return ordered list with bundle capabilities for packages.
    */
-  public List<BundleCapability> getDeclaredPackageCapabilities()
+  SortedSet<ExportPkg> getDeclaredPackageCapabilities()
   {
     final TreeSet<ExportPkg> epCreationOrder = new TreeSet<ExportPkg>(exports);
 
-    return new ArrayList<BundleCapability>(epCreationOrder);
+    return epCreationOrder;
   }
+
+
+  /**
+   * Get the list package requirements derived from the Import-Package header.
+   * The bundle requirement objects for imported packages in the list has the
+   * same order as the packages in the Import-Package header.
+   *
+   * @return all defined import package requirements for this bundle revision.
+   */
+  SortedSet<ImportPkg> getDeclaredPackageRequirements(boolean withDynamicImport) {
+    final TreeSet<ImportPkg> ipCreationOrder = new TreeSet<ImportPkg>(imports);
+    if (withDynamicImport) {
+      ipCreationOrder.addAll(dImportPatterns);
+    }
+    return ipCreationOrder;
+  }
+
+
+  /**
+   * Get the list of package capabilities available for export. Contains exports from fragments.
+   *
+   * The bundle capability objects in the list has the same order as the packages
+   * in the Export-Package header.
+   *
+   * @return ordered list with bundle capabilities for packages.
+   */
+  List<ExportPkg> getPackageCapabilities() {
+    List<ExportPkg> res = new ArrayList<ExportPkg>(getDeclaredPackageCapabilities());
+    if (fragments != null) {
+      synchronized (fragments) {
+        for (final BundlePackages bpkgs : fragments.values()) {
+          res.addAll(bpkgs.getDeclaredPackageCapabilities());
+        }
+      }
+    }
+    return res;
+  }
+
+
+  /**
+   * Get the list of package capabilities available for export. Contains exports from fragments.
+   *
+   * The bundle capability objects in the list has the same order as the packages
+   * in the Export-Package header.
+   *
+   * @return ordered list with bundle capabilities for packages.
+   */
+  List<ImportPkg> getPackageRequirements() {
+    List<ImportPkg> res = new ArrayList<ImportPkg>(getDeclaredPackageRequirements(false));
+    if (fragments != null) {
+      synchronized (fragments) {
+        for (final BundlePackages bpkgs : fragments.values()) {
+          res.addAll(bpkgs.getDeclaredPackageRequirements(false));
+        }
+      }
+    }
+    return res;
+  }
+
 
   /**
    * Get the list bundle requirements derived from the Require-Bundle header.
@@ -684,6 +728,42 @@ class BundlePackages {
     }
     return res;
   }
+
+  /**
+   * 
+   * @return
+   */
+  Map<String, List<BundleCapabilityImpl>> getOtherCapabilities() {
+    Map<String, List<BundleCapabilityImpl>> res = capabilities;
+    if (fragments != null) {
+      synchronized (fragments) {
+        boolean copied = false;
+        for (final BundlePackages bpkgs : fragments.values()) {
+          Map<String, List<BundleCapabilityImpl>> frm = bpkgs.getOtherCapabilities();
+          if (!frm.isEmpty()) {
+            if (!copied) {
+              res = new HashMap<String, List<BundleCapabilityImpl>>(res);
+              copied = true;
+            }
+            for (Entry<String, List<BundleCapabilityImpl>> e : frm.entrySet()) {
+              String ns = e.getKey();
+              List<BundleCapabilityImpl> p = res.get(ns);
+              if (p != null) {
+                p = new ArrayList<BundleCapabilityImpl>(p);
+                p.addAll(e.getValue());
+              } else {
+                p = e.getValue();
+              }
+              res.put(ns, p);
+            }
+          }
+        }
+      }
+    }
+    return res;
+  }
+
+
 
   /**
    * Get class loader for these packages.
@@ -775,9 +855,11 @@ class BundlePackages {
    *
    * @param fb The fragment bundle to detach.
    */
-  void detachFragment(BundleGeneration fbg) {
-    synchronized (fragments) {
-      detachFragment(fbg, true);
+  void detachFragmentSynchronized(BundleGeneration fbg, boolean unregister) {
+    if (fragments != null) {
+      synchronized (fragments) {
+        detachFragment(fbg, unregister);
+      }
     }
   }
 
@@ -852,6 +934,7 @@ class BundlePackages {
         while (!fragments.isEmpty()) {
           detachFragment(fragments.lastKey(), false);
         }
+        fragments = null;
       }
     }
   }

@@ -209,12 +209,7 @@ public class PackageAdminImpl implements PackageAdmin {
         }
       }
     } else {
-      for (final Object element : fwCtx.bundles.getBundles()) {
-        if (((BundleImpl)element).extensionNeedsRestart()) {
-          restart = true;
-          break;
-        }
-      }
+      restart = fwCtx.bundles.checkExtensionBundleRestart();
     }
     if (restart) {
       try {
@@ -257,7 +252,7 @@ public class PackageAdminImpl implements PackageAdmin {
     final ArrayList<BundleImpl> startList = new ArrayList<BundleImpl>();
 
     synchronized (fwCtx.packages) {
-      final TreeSet<BundleImpl> zombies = fwCtx.packages.getZombieAffected(bundles);
+      final TreeSet<Bundle> zombies = fwCtx.packages.getZombieAffected(bundles);
       final BundleImpl bi[] = zombies.toArray(new BundleImpl[zombies.size()]);
 
       synchronized (refreshSync) {
@@ -312,7 +307,7 @@ public class PackageAdminImpl implements PackageAdmin {
           // Fall through...
         case Bundle.STOPPING:
         case Bundle.RESOLVED:
-          bi[bx].setStateInstalled(true);
+          bi[bx].setStateInstalled(true, true);
           if (bi[bx] == nextStart) {
             nextStart = --startPos >= 0 ? startList.get(startPos) : null;
           }
@@ -402,11 +397,12 @@ public class PackageAdminImpl implements PackageAdmin {
     }
     for (final Object element : bs) {
       final BundleImpl b = (BundleImpl)element;
+      final BundleGeneration current = b.current();
       if (((b.state & BundleImpl.RESOLVED_FLAGS) != 0
            || b.getRequiredBy().size() > 0)// Required, updated but not
                                            // re-resolved
-          && !b.current().isFragment()) {
-        res.add(new RequiredBundleImpl(b.current().bpkgs));
+          && !current.isFragment()) {
+        res.add(new RequiredBundleImpl(current.bpkgs));
       }
     }
     final int s = res.size();
@@ -483,14 +479,10 @@ public class PackageAdminImpl implements PackageAdmin {
     }
   }
 
+  @SuppressWarnings("deprecation")
   public int getBundleType(Bundle bundle) {
-    final BundleImpl b = (BundleImpl)bundle;
-
-    if (b.current().isFragment() && !b.current().isExtension()) {
-      return BUNDLE_TYPE_FRAGMENT;
-    }
-
-    return 0;
+    final BundleGeneration bg = ((BundleImpl)bundle).current();
+    return bg.isFragment() && !bg.isExtension() ? BUNDLE_TYPE_FRAGMENT : 0;
   }
 
 }

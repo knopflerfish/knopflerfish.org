@@ -180,15 +180,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    */
   private ProtectionDomain protectionDomain;
 
-  private BundleWiring bundleWiring = null;
-
-  private BundleRevision bundleRevision = null;
+  private volatile BundleRevisionImpl bundleRevision = null;
 
   private BundleClassPath unresolvedBundleClassPath = null;
-
-  private LinkedList<BundleWireImpl> capabilityWires = null;
-
-  private LinkedList<BundleWireImpl> requirementWires = null;
 
 
   /**
@@ -392,7 +386,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     singleton = prev.singleton;
     version = prev.version;
     attachPolicy = Constants.FRAGMENT_ATTACHMENT_NEVER;
-    fragment = null;
+    fragment = prev.fragment;
     protectionDomain = null;
     lazyActivation = false;
     lazyIncludes = null;
@@ -524,7 +518,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         if (detached == null) {
           detached = new ArrayList<BundleGeneration>();
         }
-        detached.add(detachLastFragment());
+        detached.add(detachLastFragment(true));
         if (fragments.isEmpty()) {
           fragments = null;
         }
@@ -632,12 +626,12 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    *
    * @return BundleGeneration for fragment removed, otherwise null.
    */
-  private BundleGeneration detachLastFragment() {
-    // NYI! extensions
+  private BundleGeneration detachLastFragment(boolean unregister) {
+    // TODO, handle extensions
     final int last = fragments.size() - 1;
     if (last >= 0) {
       final BundleGeneration fbg = fragments.remove(last);
-      bpkgs.detachFragment(fbg);
+      bpkgs.detachFragmentSynchronized(fbg, unregister);
       if (bundle.fwCtx.debug.packages) {
         bundle.fwCtx.debug.println("Fragment(id=" + fbg.bundle.id + ") detached from host(id="
             + bundle.id + ",gen=" + generation + ")");
@@ -645,8 +639,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       if (fbg.bundle.state != Bundle.UNINSTALLED) {
         fbg.fragment.removeHost(this);
         if (!fbg.fragment.hasHosts()) {
-          if (fbg == fbg.bundle.current()) {
-            fbg.bundle.setStateInstalled(true);
+          if (fbg.isCurrent()) {
+            fbg.bundle.setStateInstalled(true, false);
           } else {
             // ... NYI zombie detach
           }
@@ -910,7 +904,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   boolean unregisterPackages(boolean force) {
     final boolean res = bpkgs.unregisterPackages(force);
     if (res && isFragmentHost()) {
-      while (detachLastFragment() != null)
+      while (detachLastFragment(false) != null)
         ;
       fragments = null;
     }
@@ -1051,7 +1045,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  BundleWiring getBundleWiring() {
+/*  BundleWiring getBundleWiring() {
     if (bpkgs == null) {
       // Is uninstalled
       return null;
@@ -1061,20 +1055,12 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       return null;
     }
     if (bundleWiring == null) {
-      bundleWiring = new BundleWiringImpl(this);
+      bundleWiring = 
     }
     return bundleWiring;
   }
 
-
-  BundleRevision getRevision() {
-    if (bundleRevision == null) {
-      bundleRevision = new BundleRevisionImpl(this);
-    }
-    return bundleRevision;
-  }
-
-
+*/
   boolean isUninstalled() {
     return bpkgs == null;
   }
@@ -1122,53 +1108,28 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  void addCapabilityWire(BundleWireImpl bw) {
-    // TODO fix sorting
-    if (capabilityWires == null) {
-      capabilityWires = new LinkedList<BundleWireImpl>();
-    }
-    capabilityWires.add(bw);
-  }
-
-
-  void addRequirementWire(BundleWireImpl bw) {
-    if (requirementWires == null) {
-      requirementWires = new LinkedList<BundleWireImpl>();
-    }
-    requirementWires.add(bw);
-  }
-
   List<BundleWireImpl> getCapabilityWires() {
-    return capabilityWires;
+    if (bpkgs != null) {
+      List<BundleWireImpl> res = new ArrayList<BundleWireImpl>();
+      for (List<BundleCapabilityImpl> lbc : bpkgs.getOtherCapabilities().values()) {
+        for (BundleCapabilityImpl bc : lbc) {
+          bc.getWires(res);
+        }
+      }
+      return res;
+    } else {
+      return null;
+    }
   }
+
 
   List<BundleWireImpl> getRequirementWires() {
-    return capabilityWires;
-  }
-
-
-  Map<String, List<BundleCapabilityImpl>> getOtherCapabilities() {
-    Map<String, List<BundleCapabilityImpl>> res = getDeclaredCapabilities();
-    if (isFragmentHost()) {
-      boolean copied = false;
-      for (final BundleGeneration fbg : fragments) {
-        Map<String, List<BundleCapabilityImpl>> frm = fbg.getDeclaredCapabilities();
-        if (!frm.isEmpty()) {
-          if (!copied) {
-            res = new HashMap<String, List<BundleCapabilityImpl>>(res);
-            copied = true;
-          }
-          for (Entry<String, List<BundleCapabilityImpl>> e : frm.entrySet()) {
-            String ns = e.getKey();
-            List<BundleCapabilityImpl> p = res.get(ns);
-            if (p != null) {
-              p = new ArrayList<BundleCapabilityImpl>(p);
-              p.addAll(e.getValue());
-            } else {
-              p = e.getValue();
-            }
-            res.put(ns, p);
-          }
+    List<BundleWireImpl> res = new ArrayList<BundleWireImpl>();
+    for (List<BundleRequirementImpl> lbr : getOtherRequirements().values()) {
+      for (BundleRequirementImpl br : lbr) {
+        final BundleWireImpl wire = br.getWire();
+        if (wire != null) {
+          res.add(wire);
         }
       }
     }
@@ -1180,6 +1141,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     Map<String, List<BundleRequirementImpl>> res = getDeclaredRequirements();
     if (isFragmentHost()) {
       boolean copied = false;
+      // TODO, do we need to synchronize
       for (final BundleGeneration fbg : fragments) {
         Map<String, List<BundleRequirementImpl>> frm = fbg.getDeclaredRequirements();
         if (!frm.isEmpty()) {
@@ -1201,7 +1163,34 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         }
       }
     }
+    // TODO filter optional
     return res;
+  }
+
+
+  BundleRevisionImpl getBundleRevision() {
+    return bundleRevision;
+  }
+
+
+  boolean isWired(BundleRevisionImpl br) {
+    return br == bundleRevision && bpkgs != null &&
+        (fragment == null ? bpkgs.isActive() : fragment.hasHosts());
+  }
+
+
+  boolean isCurrentBundleRevision(BundleRevisionImpl br) {
+    return bundleRevision == br;
+  }
+
+
+  void setBundleRevision(BundleRevisionImpl br) {
+    bundleRevision = br;
+  }
+
+
+  boolean isCurrent() {
+    return this == bundle.current();
   }
 
 }

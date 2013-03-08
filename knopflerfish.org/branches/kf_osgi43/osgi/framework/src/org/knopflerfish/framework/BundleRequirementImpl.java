@@ -55,6 +55,7 @@ public class BundleRequirementImpl
   private final String nameSpace;
   private final Map<String,String> directives;
   private final Filter filter;
+  private BundleWireImpl wire = null;
 
 
   /**
@@ -102,15 +103,18 @@ public class BundleRequirementImpl
     // TODO, warn about defined attributes
   }
 
+
   public String getNamespace()
   {
     return nameSpace;
   }
 
+
   public Map<String, String> getDirectives()
   {
     return directives;
   }
+
 
   @SuppressWarnings("unchecked")
   public Map<String, Object> getAttributes()
@@ -118,10 +122,12 @@ public class BundleRequirementImpl
     return Collections.EMPTY_MAP;
   }
 
+
   public BundleRevision getRevision()
   {
-    return gen.getRevision();
+    return gen.getBundleRevision();
   }
+
 
   public boolean matches(BundleCapability capability)
   {
@@ -130,6 +136,7 @@ public class BundleRequirementImpl
     }
     return false;
   }
+
 
   public String toString() {
     final StringBuffer sb = new StringBuffer(40);
@@ -145,13 +152,35 @@ public class BundleRequirementImpl
     return sb.toString();
   }
 
+
+  BundleWireImpl getWire() {
+    return wire;
+  }
+
+
+  void resetWire() {
+    this.wire = null;
+  }
+
+
+  void setWire(BundleWireImpl wire) {
+    this.wire = wire;
+  }
+
+
   boolean isOptional() {
     final String resolution = directives.get(Constants.RESOLUTION_DIRECTIVE);
     return Constants.RESOLUTION_OPTIONAL.equals(resolution);
   }
 
+
   boolean shouldResolve() {
     final String effective = directives.get(Constants.EFFECTIVE_DIRECTIVE);
     return effective == null || effective.equals(Constants.EFFECTIVE_RESOLVE);
+  }
+
+
+  boolean isWired() {
+    return wire != null;
   }
 }

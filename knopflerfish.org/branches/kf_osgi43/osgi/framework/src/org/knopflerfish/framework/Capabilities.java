@@ -34,6 +34,7 @@
 package org.knopflerfish.framework;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,9 +42,13 @@ import java.util.Map.Entry;
 
 public class Capabilities {
 
-  
+  /**
+   * List of registered capabilities indexed by name space.
+   * The list is order in manifest order.
+   */
   private HashMap<String, ArrayList<BundleCapabilityImpl>> namespaceCapabilties =
       new HashMap<String, ArrayList<BundleCapabilityImpl>>();
+
 
   List<BundleCapabilityImpl> getCapabilities(String namespace) {
     // TODO make sure that capabilities are priority order?
@@ -67,14 +72,22 @@ public class Capabilities {
       final String ns = e.getKey();
       ArrayList<BundleCapabilityImpl> bcl = namespaceCapabilties.get(ns);
       if (bcl != null) {
+        int before = bcl.size();
         bcl.removeAll(e.getValue());
         if (bcl.isEmpty()) {
           namespaceCapabilties.remove(ns);
         }
+        if (before != bcl.size() + e.getValue().size()) {
+          throw new RuntimeException("Internal error, tried to remove unknown capabilities");          
+        }
       } else {
-        // TODO internal error
+        throw new RuntimeException("Internal error, tried to remove unknown name space with capabilities");
       }
     }
+  }
+
+  Collection<ArrayList<BundleCapabilityImpl>> getAll() {
+    return namespaceCapabilties.values();
   }
 
 }

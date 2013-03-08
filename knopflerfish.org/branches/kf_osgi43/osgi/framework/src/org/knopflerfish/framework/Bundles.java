@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -64,6 +65,8 @@ public class Bundles {
    * Key is bundle location.
    */
   final private Hashtable<String, BundleImpl> bundles = new Hashtable<String, BundleImpl>();
+
+  final private HashSet<BundleImpl> zombies = new HashSet<BundleImpl>();
 
   /**
    * Link to framework object.
@@ -183,6 +186,17 @@ public class Bundles {
     bundles.remove(location);
   }
 
+  void addZombie(BundleImpl b) {
+    synchronized (bundles) {
+      zombies.add(b);
+    }
+  }
+
+  void removeZombie(BundleImpl b) {
+    synchronized (bundles) {
+      zombies.remove(b);
+    }
+  }
 
   /**
    * Get bundle that has specified bundle identifier.
@@ -327,16 +341,37 @@ public class Bundles {
    *
    * @return A Bundle array with bundles.
    */
-  Collection<Bundle> getRemovalPendingBundles() {
-    final ArrayList<Bundle> res = new ArrayList<Bundle>();
+  void getRemovalPendingBundles(Collection<Bundle> res) {
     synchronized (bundles) {
       for (BundleImpl b : bundles.values()) {
         if (b.hasZombies()) {
           res.add(b);
         }
       }
+      res.addAll(zombies);
     }
-    return res;
+  }
+
+
+  /**
+   * Check if any extension bundle needs a framework restart.
+   *
+   * @return A Bundle array with bundles.
+   */
+  boolean checkExtensionBundleRestart() {
+    synchronized (bundles) {
+      for (BundleImpl b : zombies) {
+        if (b.extensionNeedsRestart()) {
+          return true;
+        }
+      }
+      for (BundleImpl b : bundles.values()) {
+        if (b.extensionNeedsRestart()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
 

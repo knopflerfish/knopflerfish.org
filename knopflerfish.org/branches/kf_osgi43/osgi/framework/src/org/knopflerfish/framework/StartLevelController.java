@@ -439,13 +439,14 @@ public class StartLevelController
       synchronized(lock) {
         synchronized (fwCtx.packages) {
           if (bs.getStartLevel() <= currentLevel) {
+            final BundleGeneration current = bs.current();
             if ((bs.getState() & (Bundle.INSTALLED|Bundle.RESOLVED|Bundle.STOPPING)) != 0
-                && bs.current().archive.getAutostartSetting()!=-1) {
+                && current.archive.getAutostartSetting()!=-1) {
               if (fwCtx.debug.startlevel) {
                 fwCtx.debug.println("startlevel: start " + bs);
               }
               int startOptions = Bundle.START_TRANSIENT;
-              if (isBundleActivationPolicyUsed(bs.current().archive)) {
+              if (isBundleActivationPolicyUsed(current.archive)) {
                 startOptions |= Bundle.START_ACTIVATION_POLICY;
               }
               bs.start(startOptions);

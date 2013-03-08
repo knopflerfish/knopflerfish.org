@@ -38,9 +38,9 @@ import org.osgi.framework.BundleReference;
 
 public class BundleReferenceImpl implements BundleReference {
 
-	final private Bundle bundle;
+	final BundleImpl bundle;
 
-  BundleReferenceImpl(Bundle bundle) {
+  BundleReferenceImpl(BundleImpl bundle) {
 	  this.bundle = bundle;
 	}
 

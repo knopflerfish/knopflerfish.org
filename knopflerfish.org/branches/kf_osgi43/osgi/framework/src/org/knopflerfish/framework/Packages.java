@@ -284,6 +284,13 @@ class Packages {
         }
       }
       exports = saved.iterator();
+      for (List<BundleCapabilityImpl> lbc : capabilities.values()) {
+        for (BundleCapabilityImpl bc : lbc) {
+          if (bc.isWired()) {
+            return false;
+          }
+        }
+      }
     }
 
     while (exports.hasNext()) {
@@ -311,6 +318,11 @@ class Packages {
       }
     }
     this.capabilities.removeCapabilities(capabilities);
+    for (List<BundleCapabilityImpl> lbc : capabilities.values()) {
+      for (BundleCapabilityImpl bc : lbc) {
+        bc.removeWires();
+      }
+    }
     return true;
   }
 
@@ -418,28 +430,27 @@ class Packages {
    * @param bundles Initial bundle set.
    * @return List of bundles affected.
    */
-  synchronized TreeSet<BundleImpl> getZombieAffected(Bundle[] bundles) {
+  synchronized TreeSet<Bundle> getZombieAffected(Bundle[] bundles) {
     // set of affected bundles will be in start-level/bundle-id order
-    final TreeSet<BundleImpl> affected = new TreeSet<BundleImpl>(new Comparator<BundleImpl>() {
-      public int compare(BundleImpl b1, BundleImpl b2) {
-        int dif = b1.getStartLevel() - b2.getStartLevel();
+    final TreeSet<Bundle> affected = new TreeSet<Bundle>(new Comparator<Bundle>() {
+      public int compare(Bundle b1, Bundle b2) {
+        int dif = ((BundleImpl) b1).getStartLevel() - ((BundleImpl) b2).getStartLevel();
         if (dif == 0) {
           dif = (int)(b1.getBundleId() - b2.getBundleId());
         }
         return dif;
       }
 
-
-      @Override
       public boolean equals(Object o) {
         return ((o != null) && getClass().equals(o.getClass()));
       }
     });
+
     if (bundles == null) {
       if (framework.debug.packages) {
         framework.debug.println("getZombieAffected: check - null");
       }
-      findAllZombies(affected);
+      framework.bundles.getRemovalPendingBundles(affected);
     } else {
       for (final Bundle bundle : bundles) {
         final BundleImpl tmp = (BundleImpl)bundle;
@@ -448,24 +459,18 @@ class Packages {
             framework.debug.println("getZombieAffected: check - " + bundle);
           }
           affected.add(tmp);
-          final Vector<BundleGeneration> h = tmp.getHosts(true);
-          if (h != null) {
-            for (final BundleGeneration bundleGeneration : h) {
-              affected.add(bundleGeneration.bundle);
-            }
-          }
         }
       }
     }
-    packageClosure(affected);
+    closure(affected);
     return affected;
   }
 
 
-  synchronized void packageClosure(Set<BundleImpl> bundles) {
-    final ArrayList<BundleImpl> moreBundles = new ArrayList<BundleImpl>(bundles);
+  synchronized void closure(Set<Bundle> bundles) {
+    final ArrayList<Bundle> moreBundles = new ArrayList<Bundle>(bundles);
     for (int i = 0; i < moreBundles.size(); i++) {
-      final BundleImpl b = moreBundles.get(i);
+      final BundleImpl b = (BundleImpl) moreBundles.get(i);
       for (final Iterator<ExportPkg> j = b.getExports(); j.hasNext();) {
         final ExportPkg ep = j.next();
         if (ep.pkg != null && ep.pkg.providers.contains(ep)) {
@@ -474,7 +479,7 @@ class Packages {
             if (!bundles.contains(ib)) {
               moreBundles.add(ib);
               if (framework.debug.packages) {
-                framework.debug.println("getZombieAffected: added importing bundle - "
+                framework.debug.println("closure: added importing bundle - "
                                         + ib);
               }
               bundles.add(ib);
@@ -487,36 +492,63 @@ class Packages {
           if (!bundles.contains(rb)) {
             moreBundles.add(rb);
             if (framework.debug.packages) {
-              framework.debug.println("getZombieAffected: added requiring bundle - "
+              framework.debug.println("closure: added requiring bundle - "
                                       + rb);
             }
             bundles.add(rb);
           }
         }
       }
-    }
-  }
-
-
-  //
-  // Private methods.
-  //
-
-  private void findAllZombies(Set<BundleImpl> affected) {
-    for (final Pkg p : packages.values()) {
-
-      // Search all exporters to catch both provided and required pkgs
-      for (final ExportPkg ep : p.exporters) {
-        if (ep.zombie) {
-          if (framework.debug.packages) {
-            framework.debug.println("getZombieAffected: found zombie - " + ep);
+      for (BundleGeneration bbg : b.generations) {
+        List<BundleWireImpl> bwl = bbg.getCapabilityWires();
+        if (bwl != null) {
+          for (final BundleWireImpl bcw : bwl) {
+            BundleImpl bbr = bcw.getRequirer().bundle;
+            if (!bundles.contains(bbr)) {
+              moreBundles.add(bbr);
+              if (framework.debug.packages) {
+                framework.debug.println("closure: added wired bundle - "
+                                        + bbr);
+              }
+              bundles.add(bbr);
+            }
           }
-          affected.add(ep.bpkgs.bg.bundle);
+        }
+        if (bbg.isFragmentHost()) {
+          for (BundleGeneration fbg : bbg.fragments) {
+            // TODO, do we need to examine fragments?
+            if (!bundles.contains(fbg.bundle)) {
+              moreBundles.add(fbg.bundle);
+              if (framework.debug.packages) {
+                framework.debug.println("closure: added fragment bundle - "
+                                        + fbg.bundle);
+              }
+              bundles.add(fbg.bundle);
+            }
+          }
+        }
+        if (bbg.isFragment()) {
+          final Vector<BundleGeneration> hosts = bbg.fragment.getHosts();
+          if (hosts != null) {
+            for (BundleGeneration hbg : hosts) {
+              if (!bundles.contains(hbg.bundle)) {
+                moreBundles.add(hbg.bundle);
+                if (framework.debug.packages) {
+                  framework.debug.println("closure: added fragment host bundle - "
+                                          + hbg.bundle);
+                }
+                bundles.add(hbg.bundle);              
+              }
+            }
+          }
         }
       }
     }
   }
 
+  //
+  // Private methods.
+  //
 
   /**
    * Backtrack package "uses" so that we can initialize tempProvider with
@@ -932,20 +964,36 @@ class Packages {
           framework.debug.println("checkBundleRequirements: Check requirement: " + br);
         }
         List<BundleCapabilityImpl> bcs = capabilities.getCapabilities(namespace);
+        BundleWireImpl found = null;
         if (bcs != null) {
           List<BundleCapabilityImpl> matches = new ArrayList<BundleCapabilityImpl>();
+          int n_active = 0;
           for (BundleCapabilityImpl bc : bcs) {
             if (br.matches(bc)) {
               BundleGeneration bcbg = bc.getBundleGeneration();
-              if (bcbg.bundle.state == Bundle.INSTALLED &&
-                  !tempResolved.contains(bcbg.bundle)) {
-                matches.add(bc);
+              if (bcbg.isCurrent()) {
+                // Select active or soon active first
+                if (bcbg.bpkgs.isActive() || tempResolved.contains(bcbg.bundle)) {
+                  matches.add(0, bc);
+                  n_active++;
+                  if (framework.debug.packages) {
+                    framework.debug.println("checkBundleRequirements: Found active capability: " + bc);
+                  }
+                } else {
+                  matches.add(n_active, bc);
+                  if (framework.debug.packages) {
+                    framework.debug.println("checkBundleRequirements: Found unresolved capability: " + bc);
+                  }
+                }
               } else {
-                matches.add(0, bc);
+                // Select zombies last
+                matches.add(bc);
+                if (framework.debug.packages) {
+                  framework.debug.println("checkBundleRequirements: Found zombie capability: " + bc);
+                }
               }
             }
           }
-          BundleWireImpl found = null;
           for (BundleCapabilityImpl bc : matches) {
             BundleGeneration bcbg = bc.getBundleGeneration();
             if (!tempResolved.contains(bcbg.bundle)) {
@@ -960,11 +1008,11 @@ class Packages {
             found = new BundleWireImpl(bc, bcbg, br, bg);
             break;
           }
-          if (found != null) {
-            tempWires.add(found);
-          } else if (!br.isOptional()) {
-            return "Failed to satisfy: " + br;
-          }
+        }
+        if (found != null) {
+          tempWires.add(found);
+        } else if (!br.isOptional()) {
+          return "Failed to satisfy: " + br;
         }
       }
     }
@@ -1125,8 +1173,8 @@ class Packages {
    */
   private void registerNewWires() {
     for (final BundleWireImpl bw : tempWires) {
-      bw.getProvider().addCapabilityWire(bw);
-      bw.getRequirer().addRequirementWire(bw);
+      ((BundleCapabilityImpl)bw.getCapability()).addWire(bw);
+      ((BundleRequirementImpl)bw.getRequirement()).setWire(bw);
     }
   }
 

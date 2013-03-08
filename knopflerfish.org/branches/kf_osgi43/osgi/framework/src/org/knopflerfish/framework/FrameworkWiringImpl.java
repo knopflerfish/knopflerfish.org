@@ -35,6 +35,7 @@ package org.knopflerfish.framework;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkListener;
@@ -71,17 +72,15 @@ public class FrameworkWiringImpl implements FrameworkWiring {
   }
 
   public Collection<Bundle> getRemovalPendingBundles() {
-    return fwCtx.bundles.getRemovalPendingBundles();
+    Set<Bundle> res = new HashSet<Bundle>();
+    fwCtx.bundles.getRemovalPendingBundles(res);
+    return res;
   }
 
   public Collection<Bundle> getDependencyClosure(Collection<Bundle> bundles) {
-    final HashSet<BundleImpl> res = new HashSet<BundleImpl>();
-    for (final Bundle b : bundles) {
-      res.add( (BundleImpl) b);
-    }
-    fwCtx.packages.packageClosure(res);
-    // TODO - we only get package closure, need all dependencies
-    return new HashSet<Bundle>(res);
+    final HashSet<Bundle> res = new HashSet<Bundle>(bundles);
+    fwCtx.packages.closure(res);
+    return res;
   }
 
 }

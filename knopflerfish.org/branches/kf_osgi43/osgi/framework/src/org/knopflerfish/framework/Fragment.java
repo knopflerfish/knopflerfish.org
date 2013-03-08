@@ -263,7 +263,7 @@ class Fragment
 
 
   public BundleRevision getRevision() {
-    return gen.getRevision();
+    return gen.getBundleRevision();
   }
 
 

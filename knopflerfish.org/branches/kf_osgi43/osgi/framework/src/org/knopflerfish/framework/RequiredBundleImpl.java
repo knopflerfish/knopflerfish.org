@@ -130,7 +130,7 @@ public class RequiredBundleImpl implements RequiredBundle
    *         become stale; <code>false</code> otherwise.
    */
   public boolean isRemovalPending() {
-    return bpkgs.bg.bundle.current() != bpkgs.bg;
+    return !bpkgs.bg.isCurrent();
   }
 
 }

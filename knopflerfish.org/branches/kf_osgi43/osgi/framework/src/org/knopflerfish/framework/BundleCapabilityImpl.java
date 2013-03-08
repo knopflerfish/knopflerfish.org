@@ -33,9 +33,13 @@
  */
 package org.knopflerfish.framework;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.wiring.BundleCapability;
@@ -49,9 +53,11 @@ import org.knopflerfish.framework.Util.HeaderEntry;
  */
 public class BundleCapabilityImpl implements BundleCapability {
   private final BundleGeneration gen;
+  private final BundleGeneration owner;
   private final String nameSpace;
   private final Map<String,Object> attributes;
   private final Map<String,String> directives;
+  private Vector<BundleWireImpl> wires = new Vector<BundleWireImpl>(2);
 
   /**
    * Creates a {@link BundleCapability} from one entry of the Bundle-Capability
@@ -65,6 +71,7 @@ public class BundleCapabilityImpl implements BundleCapability {
   public BundleCapabilityImpl(final BundleGeneration gen, final HeaderEntry he)
   {
     this.gen = gen;
+    owner = gen;
     nameSpace = he.getKey();
     for (final String ns : Arrays
         .asList(new String[] { BundleRevision.BUNDLE_NAMESPACE,
@@ -84,6 +91,7 @@ public class BundleCapabilityImpl implements BundleCapability {
 
   public BundleCapabilityImpl(BundleCapability bc, BundleGeneration bg) {
     gen = bg;
+    owner = ((BundleCapabilityImpl)bc).owner;
     nameSpace = bc.getNamespace();
     attributes = bc.getAttributes();
     directives = bc.getDirectives();
@@ -102,10 +110,9 @@ public class BundleCapabilityImpl implements BundleCapability {
   }
 
   public BundleRevision getRevision() {
-    return gen.getRevision();
+    return owner.getBundleRevision();
   }
 
-  @Override
   public String toString() {
     return "BundleCapability[nameSpace=" + nameSpace + ", attributes=" + attributes +
         ", directives=" + directives + ", revision=" + getRevision() + "]";
@@ -120,4 +127,25 @@ public class BundleCapabilityImpl implements BundleCapability {
     return effective == null || effective.equals(Constants.EFFECTIVE_RESOLVE);
   }
 
+  boolean isZombie() {
+    return !gen.isCurrent();
+  }
+
+  void addWire(BundleWireImpl bw) {
+    wires.add(bw);
+  }
+
+  void getWires(List<BundleWireImpl> res) {
+    synchronized (wires) {
+      res.addAll(wires);
+    }
+  }
+
+  void removeWires() {
+    wires.clear();
+  }
+
+  boolean isWired() {
+    return !wires.isEmpty();
+  }
 }

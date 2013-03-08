@@ -62,11 +62,11 @@ public class BundleWireImpl implements BundleWire {
   }
 
   public BundleWiring getProviderWiring() {
-    return providerGen.getBundleWiring();
+    return providerGen.getBundleRevision().getWiring();
   }
 
   public BundleWiring getRequirerWiring() {
-    return requirerGen.getBundleWiring();
+    return requirerGen.getBundleRevision().getWiring();
   }
 
   BundleGeneration getProvider() {
@@ -88,7 +88,6 @@ public class BundleWireImpl implements BundleWire {
   }
 
   public boolean equals(Object obj) {
-System.err.println("equals: " + capability + " -> " + requirement);
     if (this == obj) {
       return true;
     }
@@ -99,7 +98,6 @@ System.err.println("equals: " + capability + " -> " + requirement);
       return false;
     }
     BundleWireImpl other = (BundleWireImpl) obj;
-System.err.println("other: " + other.capability + " -> " + other.requirement);
     if (capability == null) {
       if (other.capability != null) {
         return false;
