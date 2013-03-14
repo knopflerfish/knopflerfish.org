@@ -74,6 +74,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   final VersionRange packageRange;
   final VersionRange bundleRange;
   final Map<String,Object> attributes;
+  final ImportPkg parent;
 
   // Link to pkg entry
   Pkg pkg = null;
@@ -149,6 +150,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
     this.attributes = Collections.unmodifiableMap(he.getAttributes());
+    this.parent = null;
   }
 
 
@@ -163,6 +165,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
     this.attributes = ip.attributes;
+    this.parent = ip;
   }
 
 
@@ -177,6 +180,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
     this.attributes = ip.attributes;
+    this.parent = ip.parent;
   }
 
 
@@ -195,6 +199,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     }
     this.bundleRange = VersionRange.defaultVersionRange;
     this.attributes = p.attributes;
+    this.parent = null;
   }
 
 
@@ -331,6 +336,11 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   @Override
   public String toString() {
     return pkgString() + "(" + bpkgs.bg.bundle + ")";
+  }
+
+
+  boolean isDynamic() {
+    return resolution == RESOLUTION_DYNAMIC;
   }
 
 

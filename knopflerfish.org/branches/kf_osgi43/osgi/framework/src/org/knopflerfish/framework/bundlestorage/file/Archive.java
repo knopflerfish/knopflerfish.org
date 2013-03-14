@@ -53,12 +53,15 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.Attributes;
@@ -67,6 +70,7 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import org.osgi.framework.Constants;
 
@@ -658,6 +662,9 @@ public class Archive implements FileArchive {
 
   // TODO not extensively tested
   public Enumeration<String> findResourcesPath(String path) {
+    if (bClosed) {
+      return null;
+    }
     final Vector<String> answer = new Vector<String>();
     if (jar != null) {
       ZipEntry entry;
@@ -715,6 +722,185 @@ public class Archive implements FileArchive {
       return null;
     }
     return answer.elements();
+  }
+
+
+  /**
+   * Get a BundleResourceStream to named entry inside an Archive.
+   *
+   * @param component Entry to get reference to.
+   * @return BundleResourceStream to entry or null if it doesn't exist.
+   */
+  public Set<String> listDir(String path) {
+    if (bClosed) {
+      return null;
+    }
+    if (path.startsWith("/")) {
+      throw new RuntimeException("Assert! Path should never start with / here");
+    }
+    try {
+      if (jar != null) {
+        if (!path.endsWith("/")) {
+          path = path + "/";
+        }
+        if (subJar != null) {
+          if (subJar.isDirectory()) {
+            path = subJar.getName() + path;
+          } else {
+            final JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+            return listZipDir(path, ji);
+          }
+        }
+        Set<String> res = new HashSet<String>();
+        for (Enumeration<? extends ZipEntry> ize = jar.entries(); ize.hasMoreElements(); ) {
+          ZipEntry ze = ize.nextElement();
+          String e = matchPath(path, ze.getName());
+          if (e != null) {
+            res.add(e);
+          }
+        }
+        return res;
+      } else {
+        final File f = findFile(file, path);
+        if (f.isDirectory()) {
+          Set<String> res = new HashSet<String>();
+          for (File fl : f.listFiles()) {
+            if (fl.isDirectory()) {
+              res.add(fl.getName() + "/");
+            } else {
+              res.add(fl.getName());
+            }
+          }
+          return res;
+        }
+      }
+    } catch (final IOException ignore) {
+    }
+    return null;
+  }
+
+
+  private Set<String> listZipDir(String path, final JarInputStream ji) {
+    ZipEntry ze;
+    HashSet<String> res = new HashSet<String>();
+    try {
+      for (ze = ji.getNextJarEntry(); ze != null; ) {
+        String e = matchPath(path, ze.getName());
+        if (e != null) {
+          res.add(e);
+        }
+      }
+    } catch (IOException ioe) {
+      try {
+        ji.close();
+      } catch (IOException _ignore) {
+      }
+    }
+    return res;
+  }
+
+
+  private String matchPath(String basePath, String path) {
+    final int len = basePath.length();
+    if (path.startsWith(basePath) && path.length() > len) {
+      int i = path.indexOf('/', len);
+      if (i == -1) {
+        return path.substring(len);
+      } else {
+        return path.substring(len, i + 1);
+      }
+    }
+    return null;
+  }
+
+
+  /**
+   * Get a BundleResourceStream to named entry inside an Archive.
+   *
+   * @param component Entry to get reference to.
+   * @return BundleResourceStream to entry or null if it doesn't exist.
+   */
+  public boolean exists(String path, boolean onlyDirs) {
+    if (bClosed) {
+      return false;
+    }
+    if (path.startsWith("/")) {
+      throw new RuntimeException("Assert! Path should never start with / here");
+    }
+    if (path.equals("")) {
+      return true;
+    }
+    ZipEntry ze;
+    try {
+      if (jar != null) {
+        if (onlyDirs && !path.endsWith("/")) {
+          path = path + "/";
+        }
+        if (subJar != null) {
+          if (subJar.isDirectory()) {
+            path = subJar.getName() + path;
+            ze = jar.getEntry(path);
+            if (null != ze) {
+              return ze.isDirectory() || !onlyDirs;
+            }
+            if (onlyDirs) {
+              return checkMatch(path);
+            }
+          } else {
+            final JarInputStream ji = new JarInputStream(jar.getInputStream(subJar));
+            try {
+              String n;
+              if (onlyDirs && !path.endsWith("/")) {
+                path = path + "/";
+              }
+              for (ze = ji.getNextJarEntry(); ze != null; ) {
+                n = ze.getName();
+                if (onlyDirs) {
+                  if (n.startsWith(path)) {
+                    return true;
+                  }
+                } else if (n.equals(path)) {
+                  return true;
+                }
+              }
+            } finally {
+              ji.close();
+            }
+          }
+        } else {
+          ze = jar.getEntry(path);
+          if (null != ze) {
+            return ze.isDirectory() || !onlyDirs;
+          }
+          if (onlyDirs) {
+            return checkMatch(path);
+          }
+        }
+      } else {
+        final File f = findFile(file, path);
+        if (f.exists()) {
+          return f.isDirectory() || !onlyDirs;
+        }
+      }
+    } catch (final IOException ignore) {
+    }
+    return false;
+  }
+
+
+  private boolean checkMatch(String path) {
+    ZipEntry ze;
+    if (!path.endsWith("/")) {
+      path = path + "/";
+    }
+    for (Enumeration<? extends ZipEntry> ize = jar.entries(); ize.hasMoreElements(); ) {
+      ze = ize.nextElement();
+      String e = matchPath(path, ze.getName());
+      if (e != null) {
+        return true;
+      }
+    }
+    return false;
   }
 
 

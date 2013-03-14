@@ -45,6 +45,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -61,6 +62,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -183,7 +185,6 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   private volatile BundleRevisionImpl bundleRevision = null;
 
   private BundleClassPath unresolvedBundleClassPath = null;
-
 
   /**
    * Construct a new BundleGeneration for the System Bundle.
@@ -567,7 +568,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    */
   private void attachFragments() {
     if (!attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
-      final Collection<BundleGeneration> hosting = bundle.fwCtx.bundles.getFragmentBundles(bundle);
+      final Collection<BundleGeneration> hosting = bundle.fwCtx.bundles.getFragmentBundles(this);
       if (hosting.size() > 0 && bundle.secure.okHostBundlePerm(bundle)) {
         // retrieve all fragments this bundle host
         for (final BundleGeneration fbg : hosting) {
@@ -1045,22 +1046,6 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-/*  BundleWiring getBundleWiring() {
-    if (bpkgs == null) {
-      // Is uninstalled
-      return null;
-    }
-    if (fragment == null ? !bpkgs.isActive() : !fragment.hasHosts()) {
-      // Isn't resolved
-      return null;
-    }
-    if (bundleWiring == null) {
-      bundleWiring = 
-    }
-    return bundleWiring;
-  }
-
-*/
   boolean isUninstalled() {
     return bpkgs == null;
   }
@@ -1090,7 +1075,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       bcp = new BundleClassPath(archive, bundle.fwCtx);
       unresolvedBundleClassPath = bcp;
     }
-    final Vector<FileArchive> fas = bcp.componentExists(name, onlyFirst);
+    final Vector<FileArchive> fas = bcp.componentExists(name, onlyFirst, false);
     if (fas != null) {
       final Vector<URL> res = new Vector<URL>();
       for (final FileArchive fa : fas)  {
@@ -1191,6 +1176,28 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   boolean isCurrent() {
     return this == bundle.current();
+  }
+
+
+  boolean bsnAttrMatch(Map<String, Object> attributes) {
+    final Map<String, Object> attr = symbolicNameParameters.getAttributes();
+    final String mandatory = symbolicNameParameters.getDirectives().get(Constants.MANDATORY_DIRECTIVE);
+    HashSet<String> mAttr = new HashSet<String>();
+    if (mandatory != null) {
+      String [] split = Util.splitwords(mandatory, ",");
+      for (String e : split) {
+        mAttr.add(e.trim());
+      }
+    }
+    for (Entry<String, Object> e : attributes.entrySet()) {
+      final String key = e.getKey();
+      if (e.getValue().equals(attr.get(key))) {
+        mAttr.remove(key);
+      } else {
+        return false;
+      }
+    }
+    return mAttr.isEmpty();
   }
 
 }

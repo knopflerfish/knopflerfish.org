@@ -488,14 +488,14 @@ class SecurePermissionOps
                        final String pkg,
                        final String path,
                        final BundleClassLoader.SearchAction action,
-                       final boolean onlyFirst,
+                       final int options,
                        final BundleClassLoader requestor,
                        final HashSet<BundleClassLoader> visited)
   {
     return AccessController.doPrivileged(new PrivilegedAction<Object>() {
       public Object run()
       {
-        return cl.searchFor(name, pkg, path, action, onlyFirst, requestor,
+        return cl.searchFor(name, pkg, path, action, options, requestor,
                             visited);
       }
     });

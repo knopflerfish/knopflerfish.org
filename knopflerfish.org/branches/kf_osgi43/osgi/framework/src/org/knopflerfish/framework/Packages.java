@@ -1044,6 +1044,9 @@ class Packages {
         BundleImpl ok = null;
         for (final Iterator<BundleImpl> bci = bl.iterator(); bci.hasNext() && ok == null;) {
           final BundleImpl b2 = bci.next();
+          if (!b2.current().bsnAttrMatch(br.attributes)) {
+            continue;
+          }
           if (tempResolved.contains(b2)) {
             ok = b2;
           } else if ((b2.state & BundleImpl.RESOLVED_FLAGS) != 0) {

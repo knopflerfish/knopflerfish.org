@@ -224,9 +224,9 @@ class PermissionOps {
 
   Object callSearchFor(final BundleClassLoader cl, final String name, final String pkg,
                        final String path, final BundleClassLoader.SearchAction action,
-                       final boolean onlyFirst,
+                       final int options,
                        final BundleClassLoader requestor, final HashSet<BundleClassLoader> visited) {
-    return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+    return cl.searchFor(name, pkg, path, action, options, requestor, visited);
   }
 
 

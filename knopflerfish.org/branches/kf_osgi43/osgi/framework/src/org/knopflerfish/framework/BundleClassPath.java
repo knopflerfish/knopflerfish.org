@@ -137,7 +137,7 @@ public class BundleClassPath {
    * @param onlyFirst End search when we find first entry if this is true.
    * @return Vector or entry numbers, or null if it doesn't exist.
    */
-  Vector<FileArchive> componentExists(String component, boolean onlyFirst) {
+  Vector<FileArchive> componentExists(String component, boolean onlyFirst, boolean dirs) {
     Vector<FileArchive> v = null;
     if (component.startsWith("/")) {
       component = component.substring(1);
@@ -161,18 +161,13 @@ public class BundleClassPath {
       }
     } else {
       for (final FileArchive fa : archives) {
-        final InputStream ai = fa.getBundleResourceStream(component);
-        if (ai != null) {
+        if (fa.exists(component, dirs)) {
           if (v == null) {
             v = new Vector<FileArchive>();
           }
           v.addElement(fa);
           if (debug.classLoader) {
             debug.println(this + "compentExists added: " + fa);
-          }
-          try {
-            ai.close();
-          } catch (final IOException ignore) {
           }
           if (onlyFirst) {
             break;

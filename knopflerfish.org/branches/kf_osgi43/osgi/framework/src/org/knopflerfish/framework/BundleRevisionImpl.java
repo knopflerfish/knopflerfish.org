@@ -133,7 +133,7 @@ public class BundleRevisionImpl
     }
 
     if ((ns & NS_PACKAGE) != 0) {
-      res.addAll(gen.bpkgs.getDeclaredPackageRequirements(true));
+      res.addAll(gen.bpkgs.getDeclaredPackageRequirements());
     }
 
     if ((ns & NS_OTHER) != 0) {

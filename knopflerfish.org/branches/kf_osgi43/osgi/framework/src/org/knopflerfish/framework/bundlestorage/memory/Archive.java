@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.jar.JarEntry;
@@ -317,6 +318,20 @@ class Archive implements FileArchive {
       }
     }
     return files;
+  }
+
+
+  @Override
+  public boolean exists(String path, boolean dirs) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+
+  @Override
+  public Set<String> listDir(String path) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

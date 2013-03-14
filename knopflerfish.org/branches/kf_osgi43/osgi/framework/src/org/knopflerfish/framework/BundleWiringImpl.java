@@ -144,11 +144,7 @@ public class BundleWiringImpl implements BundleWiring {
         }
       }
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-        for (final ImportPkg ip : gen.bpkgs.getPackageRequirements()) {
-          if (ip.provider != null) {
-            res.add(ip);
-          }
-        }
+        res.addAll(gen.bpkgs.getPackageRequirements());
       }
       if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
         final Map<String, List<BundleRequirementImpl>> reqs = gen.getOtherRequirements();
@@ -203,15 +199,20 @@ public class BundleWiringImpl implements BundleWiring {
         }
       }
     }
-    // TODO Manifest order
     if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-      // TODO, do we need to synchronize
-      for (final Iterator<ExportPkg> i = gen.bpkgs.getExports(); i.hasNext(); ) {
-        final ExportPkg ep = i.next();
+      for (final BundleCapability bc : gen.bpkgs.getPackageCapabilities()) {
+        final ExportPkg ep = (ExportPkg)bc;
         final List<ImportPkg> ips = ep.getPackageImporters();
         if (ips != null) {
           for (final ImportPkg ip : ips) {
-            res.add(new BundleWireImpl(ep, gen, ip, ip.bpkgs.bg));
+            // Fetch the original for dynamic and fragment imports
+            ImportPkg oip;
+            if (ip.parent != null && ip.parent.bpkgs != ip.bpkgs) {
+              oip = ip.parent;
+            } else {
+              oip = ip;
+            }
+            res.add(new BundleWireImpl(ep, gen, oip, ip.bpkgs.bg));
           }
         }
       }
@@ -251,13 +252,16 @@ public class BundleWiringImpl implements BundleWiring {
         }
       }
     }
-    // TODO Manifest order
     if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-      for (final Iterator<ImportPkg> i = gen.bpkgs.getImports(); i.hasNext(); ) {
-        final ImportPkg ip = i.next();
-        final ExportPkg ep = ip.provider;
-        if (ep != null) {
+      for (final ImportPkg ip : gen.bpkgs.getPackageRequirements()) {
+        ExportPkg ep = ip.provider;
+        if (ip.provider != null) {
           res.add(new BundleWireImpl(ep, ep.bpkgs.bg, ip, gen));
+        } else {
+          // Must be dynamic import or fragment
+          for (ExportPkg cep : gen.bpkgs.getActiveChildProviders(ip)) {
+            res.add(new BundleWireImpl(cep, cep.bpkgs.bg, ip, gen));
+          }
         }
       }
 
@@ -296,8 +300,18 @@ public class BundleWiringImpl implements BundleWiring {
   }
 
   public Collection<String> listResources(String path, String filePattern, int options) {
-    // TODO Auto-generated method stub
-    return null;
+    BundleGeneration gen = bundleRevision.getBundleGeneration();
+    if (!isInUse()) {
+      return null;
+    }
+    @SuppressWarnings("unchecked")
+    Collection<String> res = Collections.EMPTY_SET;
+    ClassLoader cl = gen.getClassLoader();
+    if (cl != null && cl instanceof BundleClassLoader) {
+      BundleClassLoader bcl = (BundleClassLoader) gen.getClassLoader();
+      res = bcl.listResources(path, filePattern, options);
+    }
+    return res;
   }
 
 }

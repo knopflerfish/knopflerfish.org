@@ -215,7 +215,7 @@ class RequireBundle
       sb.append('=');
       sb.append(entry.getValue().toString());
       sb.append(')');
-      multipleConditions |= true;
+      multipleConditions = true;
     }
 
     if (multipleConditions) {
@@ -232,11 +232,10 @@ class RequireBundle
   }
 
   // BundleRequirement method
+  @SuppressWarnings("unchecked")
   public Map<String, Object> getAttributes()
   {
-    @SuppressWarnings("unchecked")
-    final Map<String, Object> res = Collections.EMPTY_MAP;
-    return res;
+    return Collections.EMPTY_MAP;
   }
 
   // BundleRequirement method

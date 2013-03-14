@@ -584,7 +584,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     bundleContext.invalidate();
     bundleContext = null;
     if (!bootClassPathHasChanged) {
-      for (final BundleGeneration bg : fwCtx.bundles.getFragmentBundles(this)) {
+      for (final BundleGeneration bg : fwCtx.bundles.getFragmentBundles(current())) {
         if (bg.isBootClassPathExtension() && bg.bundle.extensionNeedsRestart()) {
           bootClassPathHasChanged = true;
           break;
@@ -1019,7 +1019,7 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   private void saveClasspaths() {
     final StringBuffer bootClasspath = new StringBuffer();
-    for (final BundleGeneration bundleGeneration : fwCtx.bundles.getFragmentBundles(this)) {
+    for (final BundleGeneration bundleGeneration : fwCtx.bundles.getFragmentBundles(current())) {
       final BundleGeneration ebg = bundleGeneration;
       final String path = ebg.archive.getJarLocation();
       if (ebg.isBootClassPathExtension()) {

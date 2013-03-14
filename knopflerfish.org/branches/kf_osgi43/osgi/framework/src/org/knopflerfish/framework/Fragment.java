@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
@@ -49,8 +50,6 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
-
-import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Fragment information
@@ -163,10 +162,11 @@ class Fragment
     return !hosts.isEmpty();
   }
 
-  boolean isTarget(BundleImpl b)
+  boolean isTarget(BundleGeneration bg)
   {
-    return hostName.equals(b.getSymbolicName())
-           && versionRange.withinRange(b.getVersion());
+    return hostName.equals(bg.symbolicName)
+           && versionRange.withinRange(bg.version)
+           && bg.bsnAttrMatch(attributes);
   }
 
   List<BundleImpl> targets(final FrameworkContext fwCtx)
@@ -174,9 +174,10 @@ class Fragment
     final List<BundleImpl> bundles = fwCtx.bundles.getBundles(hostName,
                                                               versionRange);
     for (final Iterator<BundleImpl> iter = bundles.iterator(); iter.hasNext();) {
-      final BundleImpl t = iter.next();
+      final BundleGeneration tbg = iter.next().current();
 
-      if (t.current().attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
+      if (tbg.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER) ||
+          !isTarget(tbg)) {
         iter.remove();
       }
     }
@@ -254,11 +255,9 @@ class Fragment
   }
 
 
+  @SuppressWarnings("unchecked")
   public Map<String, Object> getAttributes() {
-    @SuppressWarnings("unchecked")
-    final
-    Map<String, Object> res = Collections.EMPTY_MAP;
-    return res;
+    return Collections.EMPTY_MAP;
   }
 
 

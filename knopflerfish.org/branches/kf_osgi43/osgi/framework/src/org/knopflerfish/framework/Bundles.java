@@ -411,7 +411,7 @@ public class Bundles {
    * @param target the targeted bundle
    * @return a list of all matching fragment bundle generations.
    */
-  Collection<BundleGeneration> getFragmentBundles(BundleImpl target) {
+  Collection<BundleGeneration> getFragmentBundles(BundleGeneration target) {
     final HashMap<String, BundleGeneration> res = new HashMap<String, BundleGeneration>();
     for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
       final BundleImpl b = e.nextElement();

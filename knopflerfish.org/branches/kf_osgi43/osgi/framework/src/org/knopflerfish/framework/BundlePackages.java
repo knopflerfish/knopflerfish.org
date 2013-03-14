@@ -37,21 +37,21 @@ package org.knopflerfish.framework;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Constants;
-import org.osgi.framework.wiring.BundleCapability;
-import org.osgi.framework.wiring.BundleRequirement;
-
 import org.knopflerfish.framework.Util.Comparator;
 import org.knopflerfish.framework.Util.HeaderEntry;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.wiring.BundleRequirement;
 
 /**
  * Class representing all packages imported and exported.
@@ -353,6 +353,48 @@ class BundlePackages {
       return okImports.get(ii).provider.bpkgs;
     }
     return null;
+  }
+
+
+  /**
+   * List available sub packages.
+   *
+   * @param pkg Package name
+   * @return .
+   */
+  synchronized Set<String> getSubProvider(String pkg) {
+    Set<String> res = new HashSet<String>();
+    if (bg.bundle instanceof SystemBundle) {
+      // TODO handle system bundle
+    }
+    if (pkg.length() > 0) {
+      pkg = pkg + ".";
+    }
+    if (okImports != null) {
+      for (ImportPkg ip : okImports) {
+        if (ip.provider != null && ip.name.startsWith(pkg)) {
+          String n = ip.name.substring(pkg.length());
+          if (n.indexOf('.') == -1) {
+            res.add(n);
+          }
+        }
+      }
+      for (Iterator<RequireBundle> irb = getRequire(); irb.hasNext(); ) {
+        RequireBundle rb = irb.next();
+        if (rb.bpkgs != null) {
+          for (Iterator<ExportPkg> iep = rb.bpkgs.getExports(); iep.hasNext(); ) {
+            ExportPkg ep = iep.next();
+            if (ep.name.startsWith(pkg)) {
+              String n = ep.name.substring(pkg.length());
+              if (n.indexOf('.') == -1) {
+                res.add(n);
+              }
+            }
+          }
+        }
+      }
+    }
+    return res;
   }
 
 
@@ -660,11 +702,9 @@ class BundlePackages {
    *
    * @return all defined import package requirements for this bundle revision.
    */
-  SortedSet<ImportPkg> getDeclaredPackageRequirements(boolean withDynamicImport) {
+  SortedSet<ImportPkg> getDeclaredPackageRequirements() {
     final TreeSet<ImportPkg> ipCreationOrder = new TreeSet<ImportPkg>(imports);
-    if (withDynamicImport) {
-      ipCreationOrder.addAll(dImportPatterns);
-    }
+    ipCreationOrder.addAll(dImportPatterns);
     return ipCreationOrder;
   }
 
@@ -699,12 +739,42 @@ class BundlePackages {
    * @return ordered list with bundle capabilities for packages.
    */
   List<ImportPkg> getPackageRequirements() {
-    List<ImportPkg> res = new ArrayList<ImportPkg>(getDeclaredPackageRequirements(false));
+    List<ImportPkg> res = new ArrayList<ImportPkg>();
+    for (ImportPkg ip : getDeclaredPackageRequirements()) {
+      if (ip.provider != null || ip.isDynamic()) {
+        res.add(ip);
+      }      
+    }
     if (fragments != null) {
+      HashSet<ImportPkg> parents = new HashSet<ImportPkg>();
+      synchronized (this) {
+        // Get fragment parents
+        for (ImportPkg oip : okImports) {
+          if (oip.parent != null && oip.parent.bpkgs != oip.bpkgs) {
+            parents.add(oip.parent);
+          }
+        }
+      }
       synchronized (fragments) {
         for (final BundlePackages bpkgs : fragments.values()) {
-          res.addAll(bpkgs.getDeclaredPackageRequirements(false));
+          for (ImportPkg ip : bpkgs.getDeclaredPackageRequirements()) {
+            if (ip.isDynamic() || parents.contains(ip)) {
+              res.add(ip);
+            }
+          }
         }
+      }
+    }
+    return res;
+  }
+
+
+  synchronized List<ExportPkg> getActiveChildProviders(ImportPkg ip) {
+    List<ExportPkg> res = new ArrayList<ExportPkg>();
+    for (ImportPkg oip : okImports) {
+      if (oip.parent == ip) {
+        // TODO, insert first to avoid bug in TCK
+        res.add(0, oip.provider);
       }
     }
     return res;
@@ -1072,6 +1142,5 @@ class BundlePackages {
       return a.name.compareTo(b);
     }
   };
-
 
 }

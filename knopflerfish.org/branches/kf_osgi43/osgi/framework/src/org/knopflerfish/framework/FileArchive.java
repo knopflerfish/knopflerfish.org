@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.Set;
 
 /**
  * Interface for managing bundle contents.
@@ -105,5 +106,24 @@ public interface FileArchive {
    * Get sub-archive id for this archive.
    */
   int getSubId();
+
+
+  /**
+   * Check if a file exists (or dir, if dirs is true).
+   *
+   * @param path
+   * @param dirs
+   * @return
+   */
+  boolean exists(String path, boolean dirs);
+
+
+  /**
+   * List all entries for named directory.
+   *
+   * @param path
+   * @return
+   */
+  Set<String> listDir(String path);
 
 }
