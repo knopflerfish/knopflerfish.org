@@ -766,9 +766,10 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
               try {
                 return cl.loadClass(name);
               } catch (final ClassNotFoundException e) {
-                // TBD, continue!?
+                return null;
               }
             }
+            // TBD, continue!?
           } else {
             final BundleClassLoader bcl = (BundleClassLoader) cl;
             // Second check avoids a loop when a required bundle imports a
@@ -786,11 +787,11 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
                   debug.println(this + " No import found: " + path);
                 }
               }
+              if (!recurse) {
+                return answer;
+              }
             }
           }
-        }
-        if (!recurse) {
-          return answer;
         }
         // Import checked we don't need to list any more in this directory.
         options |= ONLY_RECURSE;
