@@ -171,13 +171,6 @@
 	   testJars="${test_jars}"
 	   outDir="${root.out.dir}/xargs"/>
 
-    <xargs template="${test.dir}/axis2_soapclient_adb/soapcline_adb_test.xargs.in"
-	   xargs="${xargs.out.dir}/soapcline_adb_test.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${test.gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
-
     <xargs template="${test.dir}/restart_test/test-restart1.xargs.in"
 	   xargs="${xargs.out.dir}/test-restart1.xargs"
 	   baseDir="${xargs.base.dir}"
@@ -381,7 +374,6 @@
 
    <antcall target="test_xargs"/>
    <antcall target="run-kf-tests-bare-main"/>
-   <antcall target="run-kf-tests-bare-axis2"/>
    <antcall target="run-kf-tests-bare-restart"/>
    <echo message="Test output is available in ${junit.out.dir}/out.txt."/>
    <echo message="Test results are available in ${junit.out.dir}/index.xml"/>
@@ -448,14 +440,6 @@
      <param name="run.test.msg"    value="Running the main test suite..."/>
      <param name="run.test.append" value="false"/>
      <param name="run.test.xargs"  value="init-tests.xargs"/>
-   </antcall>
- </target>
-
- <target name="run-kf-tests-bare-axis2">
-   <antcall target="run-test">
-     <param name="run.test.msg"    value="Running the SOAP-Axis2TestSuite..."/>
-     <param name="run.test.append" value="true"/>
-     <param name="run.test.xargs"  value="soapcline_adb_test.xargs"/>
    </antcall>
  </target>
 
