@@ -5,14 +5,6 @@
   <!-- Internal target that calls a specified target in all sub-dirs. -->
   <target name="doAntBuild">
     <ant target="${the.target}" dir="../commons-logging"/>
-    <ant target="${the.target}" dir="axis-osgi"/>
-    <ant target="${the.target}" dir="axis2-osgi"/>
-    <ant target="${the.target}" dir="soap_desktop"/>
-    <ant target="${the.target}" dir="soap_remotefw"/>
-    <ant target="${the.target}" dir="soapobject"/>
-    <ant target="${the.target}" dir="demos"/>
-    <ant target="${the.target}" dir="ksoap-osgi"/>
-    <ant target="${the.target}" dir="ksoap_remotefw"/>
   </target>
 
   <target name="all" 
@@ -42,14 +34,7 @@
 
   <!-- Bundles to include on the bundle_doc_overview page -->
   <fileset id="docbuild.jarfiles" dir="${jars.dir}">
-    <include name="axis-osgi/**/*.jar"/>
-    <include name="axis2-osgi/**/*.jar"/>
-    <include name="ksoap-osgi/**/*.jar"/>
-    <include name="ksoap_remotefw/**/*.jar"/>
-    <include name="remotefw/**/*.jar"/>
-    <include name="soap_desktop/**/*.jar"/>
-    <include name="soap_remotefw/**/*.jar"/>
-    <include name="soapobject/**/*.jar"/>
+    <exclude name="**/*.jar"/>
   </fileset>
 
   <target name="bundle_doc_overview">
