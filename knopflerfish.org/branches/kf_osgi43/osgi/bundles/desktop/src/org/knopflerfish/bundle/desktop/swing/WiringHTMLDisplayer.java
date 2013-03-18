@@ -109,6 +109,8 @@ public class WiringHTMLDisplayer
   public boolean renderUrl(URL url, StringBuffer sb)
   {
     final WiringUrl wiringUrl = new WiringUrl(url);
+    // URLs with a command must not be added to the history.
+    boolean addToHistory = !wiringUrl.isCommand();
 
     if (wiringUrl.doResolve()) {
       final long bid = wiringUrl.getBid();
@@ -118,28 +120,71 @@ public class WiringHTMLDisplayer
         systemBundle.adapt(FrameworkWiring.class);
       frameworkWiring.resolveBundles(Collections.singleton(bundle));
       valueChanged(bid);
+    } else if (wiringUrl.doAskRefresh()) {
+      addToHistory = true; // Presentation command that does not change state.
+      appendRefreshMessage(sb, wiringUrl);
     } else if (wiringUrl.doRefresh()) {
-      final long bid = wiringUrl.getBid();
-      final Bundle bundle = Activator.getTargetBC_getBundle(bid);
-      final Collection<Bundle> bundles = Collections.singleton(bundle);
+      sb.append("  Refreshing...  ");
+      final Collection<Bundle> bundles = wiringUrl.getBundles();
 
       final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
       final FrameworkWiring frameworkWiring =
         systemBundle.adapt(FrameworkWiring.class);
 
-      final Collection<Bundle> closure =
-        frameworkWiring.getDependencyClosure(bundles);
-      final List<String> closureNames = new ArrayList<String>(closure.size());
-      for (final Bundle b : closure) {
-        closureNames.add(Util.getBundleName(b));
-      }
       frameworkWiring.refreshBundles(bundles, this);
-      sb.append("Refreshing " + Util.getBundleName(bundle) + " will affect: "
-                + closureNames);
     }
 
-    // URLs with a command must not be added to the history.
-    return !wiringUrl.isCommand();
+    return addToHistory;
+  }
+
+
+  public void appendRefreshMessage(final StringBuffer sb,
+                                   final WiringUrl wiringUrl) {
+    final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
+    final FrameworkWiring frameworkWiring =
+      systemBundle.adapt(FrameworkWiring.class);
+
+    final Collection<Bundle> bundles = wiringUrl.getBundles();
+    final Collection<Bundle> closure =
+      frameworkWiring.getDependencyClosure(bundles);
+
+    sb.append("<table border=\"0\" width=\"100%\">\n");
+    sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+    sb.append("Refresh Opertation");
+    sb.append("</td>\n");
+    sb.append("</tr>\n");
+
+    sb.append("<tr><td bgcolor=\"#ffffff\">");
+    JHTMLBundle.startFont(sb, "-1");
+    sb.append("<b>Refresh operation for</b><br><font color=\"#444444\">");
+    for (final Bundle b : bundles) {
+      sb.append("&nbsp;&nbsp;#");
+      sb.append(b.getBundleId());
+      sb.append("  ");
+      Util.bundleLink(sb, b);
+      sb.append("<br>");
+    }
+    sb.append("</font></td></tr>\n");
+    JHTMLBundle.stopFont(sb);
+
+    sb.append("<tr><td bgcolor=\"#ffffff\">");
+    JHTMLBundle.startFont(sb, "-1");
+    sb.append("<em>will affect:</em><br><font color=\"#666666\">");
+    for (final Bundle b : closure) {
+      sb.append("&nbsp;&nbsp;#");
+      sb.append(b.getBundleId());
+      sb.append("  ");
+      Util.bundleLink(sb, b);
+      sb.append("<br>");
+    }
+    sb.append("</font></td></tr>\n");
+    JHTMLBundle.stopFont(sb);
+
+    sb.append("<tr><td bgcolor=\"#ffffff\">");
+    wiringUrl.refreshForm(sb);
+    sb.append("</td>\n");
+    sb.append("</tr>\n");
+    sb.append("</table>\n");
   }
 
 
@@ -156,6 +201,7 @@ public class WiringHTMLDisplayer
     public static final String URL_WIRING_PREFIX_PATH = "/wiring";
     public static final String URL_WIRING_KEY_BID = "bid";
     public static final String URL_WIRING_KEY_CMD = "cmd";
+    public static final String URL_WIRING_CMD_ASK_REFRESH = "AskRefresh";
     public static final String URL_WIRING_CMD_REFRESH = "Refresh";
     public static final String URL_WIRING_CMD_RESOLVE = "Resolve";
 
@@ -167,6 +213,8 @@ public class WiringHTMLDisplayer
     private boolean doResolve = false;
     /** True if the URL is a command to refresh the bundle.*/
     private boolean doRefresh = false;
+    /** True if the URL is a command to ask to perform refresh of the bundle.*/
+    private boolean doAskRefresh = false;
 
     public static boolean isWiringLink(URL url) {
       return URL_WIRING_HOST.equals(url.getHost())
@@ -191,6 +239,7 @@ public class WiringHTMLDisplayer
       isCmd = params.containsKey(URL_WIRING_KEY_CMD);
       if (isCmd) {
         final String cmd = params.get(URL_WIRING_KEY_CMD);
+        doAskRefresh = URL_WIRING_CMD_ASK_REFRESH.equals(cmd);
         doRefresh = URL_WIRING_CMD_REFRESH.equals(cmd);
         doResolve = URL_WIRING_CMD_RESOLVE.equals(cmd);
       }
@@ -205,8 +254,24 @@ public class WiringHTMLDisplayer
       return bid;
     }
 
+    /**
+     * Returns the bundle selected by {@code bid} wrapped in a collection of
+     * bundles.
+     *
+     * @return a collection of bundles selected by this URL.
+     */
+    public Collection<Bundle> getBundles() {
+      final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+      final Collection<Bundle> bundles = Collections.singleton(bundle);
+      return bundles;
+    }
+
     public boolean isCommand() {
       return isCmd;
+    }
+
+    public boolean doAskRefresh() {
+      return isCmd && doAskRefresh;
     }
 
     public boolean doRefresh() {
@@ -228,7 +293,9 @@ public class WiringHTMLDisplayer
       if (bid>-1) {
         params.put(URL_WIRING_KEY_BID, String.valueOf(bid));
       }
-      if (doRefresh) {
+      if (doAskRefresh) {
+        params.put(URL_WIRING_KEY_CMD, URL_WIRING_CMD_ASK_REFRESH);
+      } else if (doRefresh) {
         params.put(URL_WIRING_KEY_CMD, URL_WIRING_CMD_REFRESH);
       } else if (doResolve) {
         params.put(URL_WIRING_KEY_CMD, URL_WIRING_CMD_RESOLVE);
@@ -237,7 +304,10 @@ public class WiringHTMLDisplayer
     }
 
     public void refreshLink(final StringBuffer sb, final String label) {
-      doRefresh = true;
+      doAskRefresh = true;
+      doRefresh = false;
+      doResolve = false;
+
       sb.append("<a href=\"");
       appendBaseURL(sb);
       Util.appendParams(sb, getParams());
@@ -246,7 +316,33 @@ public class WiringHTMLDisplayer
       sb.append("</a>");
     }
 
+    public void refreshForm(final StringBuffer sb) {
+      doAskRefresh = false;
+      doRefresh = true;
+      doResolve = false;
+
+      sb.append("<form action=\"");
+      appendBaseURL(sb);
+      sb.append("\" method=\"get\">");
+      sb.append("<input type=\"submit\" name=\"");
+      sb.append(URL_WIRING_KEY_CMD);
+      sb.append("\" value=\"");
+      sb.append(URL_WIRING_CMD_REFRESH);
+      sb.append("\">");
+      for (final Entry<String,String> entry : getParams().entrySet()) {
+        sb.append("<input type=\"hidden\" name=\"");
+        sb.append(entry.getKey());
+        sb.append("\" value=\"");
+        sb.append(entry.getValue());
+        sb.append("\">");
+      }
+      sb.append("</form>");
+    }
+
     public void resolveForm(final StringBuffer sb) {
+      doAskRefresh = false;
+      doRefresh = false;
+      doResolve = true;
 
       sb.append("<form action=\"");
       appendBaseURL(sb);
