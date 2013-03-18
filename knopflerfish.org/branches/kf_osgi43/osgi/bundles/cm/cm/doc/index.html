@@ -45,6 +45,39 @@
   provides. 
 </p>
 
+
+<h2>Configuration properties</h2>
+
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Value type</th>
+    <th>Default value</th>
+  </tr>
+  <tr>
+    <td>com.gatespace.bundle.cm.store</td>
+    <td>
+
+	Path to a directory that CM will use for its persistent
+	storage. The default location when this property is un-set or
+	empty is a sub-directory named <tt>cm_store</tt> in the
+	bundles data-directory. This means that all configurations are
+	lost when the framework is restarted with the <tt>-init</tt>
+	option present (i.e., the framework property
+	<tt>org.osgi.framework.storage.clean</tt> set to <tt>true</tt>).
+
+	<p>Set this to a path pointing to some writable directory
+	outside the frameworks cache directory (<tt>fwdir</tt>) if
+	configuration data are to survive <tt>-init</tt> restarts.
+
+    </td>
+    <td>String</td>
+    <td></td>
+  </tr>
+</table>
+
+
 <h2>See Also</h2>
 <a href="../cm_cmd/index.html">cm_commands</a>, 
 <a href="../prefs/index.html">prefs</a>, 
