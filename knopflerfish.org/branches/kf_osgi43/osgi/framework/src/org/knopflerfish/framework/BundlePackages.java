@@ -50,6 +50,7 @@ import java.util.TreeSet;
 import org.knopflerfish.framework.Util.Comparator;
 import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.wiring.BundleRequirement;
 
@@ -304,8 +305,9 @@ class BundlePackages {
    *
    * @return true if we resolved all packages. If we failed return false. Reason
    *         for fail can be fetched with getResolveFailReason().
+   * @throws BundleException Resolver hook complaint.
    */
-  boolean resolvePackages() {
+  boolean resolvePackages() throws BundleException {
     failReason = bg.bundle.fwCtx.packages.resolve(bg, getImports());
     if (failReason == null) {
       // TBD, Perhaps we should use complete size here
@@ -413,20 +415,35 @@ class BundlePackages {
     if (ii >= 0) {
       return okImports.get(ii).provider.bpkgs;
     }
-    for (final ImportPkg ip : dImportPatterns) {
-      if (ip.name == EMPTY_STRING ||
-          (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
-          pkg.equals(ip.name)) {
-        final ImportPkg nip = new ImportPkg(ip, pkg);
-        final ExportPkg ep = bg.bundle.fwCtx.packages.registerDynamicImport(nip);
-        if (ep != null) {
-          nip.provider = ep;
-          okImports.add(-ii - 1, nip);
-          return ep.bpkgs;
+    BundlePackages res = null;
+    BundleImpl [] trigger = null;
+    final FrameworkContext fwCtx = bg.bundle.fwCtx;
+    try {
+      for (final ImportPkg ip : dImportPatterns) {
+        if (ip.name == EMPTY_STRING ||
+            (ip.name.endsWith(".") && pkg.startsWith(ip.name)) ||
+            pkg.equals(ip.name)) {
+          if (trigger == null) {
+            trigger = new BundleImpl[] { bg.bundle };
+            fwCtx.resolverHooks.beginResolve(trigger);
+          }
+          final ImportPkg nip = new ImportPkg(ip, pkg);
+          final ExportPkg ep = fwCtx.packages.registerDynamicImport(nip);
+          if (ep != null) {
+            nip.provider = ep;
+            okImports.add(-ii - 1, nip);
+            res = ep.bpkgs;
+            break;
+          }
         }
       }
+    } catch (BundleException be) {
+      fwCtx.listeners.frameworkError(bg.bundle, be);
     }
-    return null;
+    if (trigger != null) {
+      fwCtx.resolverHooks.endResolve(trigger);      
+    }
+    return res;
   }
 
 
@@ -672,9 +689,11 @@ class BundlePackages {
   Iterator<ImportPkg> getActiveImports() {
     if (okImports != null) {
       return okImports.iterator();
-    } else {
+    } else if (bg.isFragment()){
       // This is fragment BP, use host
       return bg.bpkgs.getActiveImports();
+    } else {
+      return null;
     }
   }
 
@@ -860,14 +879,20 @@ class BundlePackages {
    *
    * @param fbpkgs The BundlePackages of the fragment to be attached.
    * @return null if okay, otherwise a String with fail reason.
+   * @throws BundleException Resolver hook complaint.
    */
-  String attachFragment(BundlePackages fbpkgs) {
+  String attachFragment(BundlePackages fbpkgs) throws BundleException {
     // TODO, should we lock this?!
     final boolean resolvedHost = okImports != null;
     final BundlePackages nfbpkgs = new BundlePackages(this, fbpkgs, resolvedHost);
     nfbpkgs.registerPackages();
     if (resolvedHost) {
-      failReason = bg.bundle.fwCtx.packages.resolve(bg, nfbpkgs.getImports());
+      try {
+        failReason = bg.bundle.fwCtx.packages.resolve(bg, nfbpkgs.getImports());
+      } catch (BundleException be) {
+        nfbpkgs.unregisterPackages(true);
+        throw be;
+      }
       if (failReason == null) {
         for (final Iterator<ImportPkg> i = nfbpkgs.getImports(); i.hasNext();) {
           final ImportPkg ip = i.next();

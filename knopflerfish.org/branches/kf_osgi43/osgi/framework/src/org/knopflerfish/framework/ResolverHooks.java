@@ -33,16 +33,25 @@
  */
 package org.knopflerfish.framework;
 
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.SortedMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.hooks.resolver.ResolverHook;
 import org.osgi.framework.hooks.resolver.ResolverHookFactory;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
@@ -52,7 +61,11 @@ public class ResolverHooks {
   private final FrameworkContext fwCtx;
   private ServiceTracker<ResolverHookFactory, TrackedResolverHookFactory> resolverHookTracker;
 
-  private SortedMap<ServiceReference<ResolverHookFactory>, TrackedResolverHookFactory> activeHooks;
+  private Set<TrackedResolverHookFactory> activeTrackedRHF = null;
+  private List<ResolverHook> activeHooks = null;
+  private BundleImpl [] currentTriggers = null;
+  private Map<BundleGeneration, Boolean> resolvableBundles = null;
+  private Thread blockThread = null;
 
   ResolverHooks(FrameworkContext frameworkContext) {
     this.fwCtx = frameworkContext;
@@ -91,67 +104,260 @@ public class ResolverHooks {
     resolverHookTracker = null;
   }
 
-  synchronized public boolean isOpen() {
+  synchronized boolean isOpen() {
     return resolverHookTracker != null;
   }
 
-  synchronized List<ResolverHook> beginResolve(final Collection<BundleRevision> triggers) throws Exception {
+  synchronized void beginResolve(final BundleImpl [] triggers) throws BundleException {
     if (!isOpen()) {
-      return null;
+      return;
     }
-    if (activeHooks != null) {
-      throw new IllegalStateException("Resolve in progress");
-    }
-    List<ResolverHook> res = new ArrayList<ResolverHook>();
-    try {
-      activeHooks = resolverHookTracker.getTracked();
-
-      for (Iterator<TrackedResolverHookFactory> i = activeHooks.values().iterator(); i.hasNext();) {
-        TrackedResolverHookFactory trhf = i.next();
+    if (currentTriggers == null) {
+      activeHooks = new ArrayList<ResolverHook>();
+      activeTrackedRHF = new HashSet<TrackedResolverHookFactory>();
+      Collection<BundleRevision> triggerCollection = new ArrayList<BundleRevision>();
+      for (BundleImpl b : triggers) {
+        triggerCollection.add(b.current().getBundleRevision());
+      }
+      for (TrackedResolverHookFactory trhf : resolverHookTracker.getTracked().values()) {
         if (trhf.isBlackListed()) {
           continue;
         }
-        ResolverHook rh = trhf.begin(triggers);
-        if (rh != null) {
-          res.add(rh);
-        } else {
-          i.remove();
+        blockResolveForHooks();
+        try {
+          ResolverHook rh = trhf.begin(triggerCollection);
+          if (rh != null) {
+            activeTrackedRHF.add(trhf);
+            activeHooks.add(rh);
+          }
+        } catch (RuntimeException re) {
+          throw new BundleException("Exception during resolve hook begin",
+                                    BundleException.REJECTED_BY_HOOK, re);
+        } finally {
+          unblockResolveForHooks();
         }
       }
-    } finally {
+      if (activeHooks.isEmpty()) {
+        activeHooks = null;
+        activeTrackedRHF = null;
+      } else {
+        currentTriggers = triggers;
+        resolvableBundles = new HashMap<BundleGeneration, Boolean>();
+      }
     }
-    return res;
   }
 
-  synchronized void endResolve() {
 
-    for (TrackedResolverHookFactory trhf : activeHooks.values()) {
+  synchronized void endResolve(final BundleImpl [] triggers) {
+    if (triggers == currentTriggers) {
+      blockResolveForHooks();
+      for (ResolverHook rh : activeHooks) {
+        try {
+          rh.end();
+        } catch (RuntimeException re) {
+          // TODO, should we abort resolve?
+          fwCtx.listeners.frameworkWarning(null, re);
+        }
+      }
+      unblockResolveForHooks();
+      currentTriggers = null;
+      activeHooks = null;
+      activeTrackedRHF = null;
+      resolvableBundles = null;
     }
-    activeHooks = null;
   }
 
-  static class TrackedResolverHookFactory implements ResolverHookFactory {
+
+  void filterMatches(BundleRequirement requirement , Collection<? extends BundleCapability> candidates) throws BundleException {
+    if (hasHooks()) {
+      @SuppressWarnings("unchecked")
+      Collection<BundleCapability> c = new RemoveOnlyCollection<BundleCapability>((Collection<BundleCapability>) candidates);
+      blockResolveForHooks();
+      try {
+        for (ResolverHook rh : activeHooks) {
+          try {
+            rh.filterMatches(requirement, c);
+          } catch (RuntimeException re) {
+            throw new BundleException("Resolver hook throw an exception",
+                                      BundleException.REJECTED_BY_HOOK, re);
+          }
+        }
+      } finally {
+        unblockResolveForHooks();
+      }
+    }
+  }
+
+
+  boolean filterMatches(BundleRequirement requirement , BundleCapability candidate) throws BundleException {
+    if (hasHooks()) {
+      Collection<BundleCapability> c = new ShrinkableSingletonCollection<BundleCapability>(candidate);
+      filterMatches(requirement, c);
+      return !c.isEmpty();
+    }
+    return true;
+  }
+
+
+  boolean filterResolvable(BundleGeneration bg) throws BundleException {
+    if (hasHooks()) {
+      Boolean res = resolvableBundles.get(bg);
+      if (res == null) {
+        Collection<BundleRevision> c = new ShrinkableSingletonCollection<BundleRevision>(bg.getBundleRevision());
+        blockResolveForHooks();
+        try {
+          for (ResolverHook rh : activeHooks) {
+            try {
+              rh.filterResolvable(c);
+            } catch (RuntimeException re) {
+              throw new BundleException("Resolver hook throw an exception",
+                                        BundleException.REJECTED_BY_HOOK, re);
+            }
+          }
+        } finally {
+          unblockResolveForHooks();
+        }
+        res = Boolean.valueOf(!c.isEmpty());
+        resolvableBundles.put(bg, res);
+      }
+      return res.booleanValue();
+    }
+    return true;
+  }
+
+
+  void filterSingletonCollisions(BundleCapability singleton , Collection<BundleCapability> candidates) throws BundleException {
+    if (hasHooks()) {
+      Collection<BundleCapability> c = new RemoveOnlyCollection<BundleCapability>(candidates);
+      blockResolveForHooks();
+      try {
+        for (ResolverHook rh : activeHooks) {
+          try {
+            rh.filterSingletonCollisions(singleton, c);
+          } catch (RuntimeException re) {
+            throw new BundleException("Resolver hook throw an exception",
+                                      BundleException.REJECTED_BY_HOOK, re);
+          }
+        }
+      } finally {
+        unblockResolveForHooks();
+      }
+    }
+  }
+
+
+  void checkResolveBlocked() {
+    if (blockThread != null && Thread.currentThread() == blockThread) {
+      throw new IllegalStateException("Resolve hooks aren't allowed to resolve bundle");
+    }
+  }
+  boolean hasHooks() {
+    return activeHooks != null;
+  }
+
+  private void blockResolveForHooks() {
+    blockThread = Thread.currentThread();
+  }
+
+  private void unblockResolveForHooks() {
+    blockThread = null;
+  }
+
+  static class TrackedResolverHookFactory implements ResolverHookFactory
+  {
     final ResolverHookFactory tracked;
     final ServiceReference<ResolverHookFactory> reference;
     boolean blacklisted = false;
-
+  
     TrackedResolverHookFactory(ResolverHookFactory tracked,
         ServiceReference<ResolverHookFactory> reference) {
       this.tracked = tracked;
       this.reference = reference;
     }
-
+  
     public ResolverHook begin(final Collection<BundleRevision> triggers) {
       return tracked.begin(triggers);
     }
-
+  
     void blacklist() {
       blacklisted = true;
     }
-
+  
     boolean isBlackListed() {
       return blacklisted;
     }
+  }
+
+
+  static class ShrinkableSingletonCollection<T> extends AbstractCollection<T>
+  {
+    T singleton;
+    
+    public ShrinkableSingletonCollection(T singleton) {
+      this.singleton = singleton;
+    }
+
+    @Override
+    public boolean add(T br) {
+      throw new UnsupportedOperationException("Add not allowed");
+    }
+  
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+      throw new UnsupportedOperationException("Add not allowed");
+    }
+  
+    @Override
+    public boolean isEmpty() {
+      return singleton == null;
+    }
+  
+    @Override
+    public Iterator<T> iterator() {
+      return new Iterator<T>() {
+        boolean hasNext = !isEmpty();
+        
+        @Override
+        public boolean hasNext() {
+          return hasNext;
+        }
+
+        @Override
+        public T next() {
+          if (hasNext) {
+            hasNext = false;
+            if (isEmpty()) {
+              throw new ConcurrentModificationException();
+            }
+            return singleton;
+          }
+          throw new NoSuchElementException();
+        }
+
+        @Override
+        public void remove() {
+          if (hasNext || isEmpty()) {
+            throw new IllegalStateException();
+          }
+          singleton = null;
+        }
+      };
+    }
+  
+    @Override
+    public boolean remove(Object o) {
+      if (singleton != null && singleton.equals(o)) {
+        singleton = null;
+        return true;
+      }
+      return false;
+    }
+  
+    @Override
+    public int size() {
+      return singleton != null ? 1 : 0;
+    }
+  
   }
 
 }

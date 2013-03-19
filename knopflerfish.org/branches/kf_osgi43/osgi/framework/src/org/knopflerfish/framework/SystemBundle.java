@@ -442,8 +442,9 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Adds an bundle as an extension that will be included in the boot class path
    * on restart.
+   * @throws BundleException Should not happened.
    */
-  void attachExtension(BundleGeneration extension) {
+  void attachExtension(BundleGeneration extension) throws BundleException  {
     if (extension.isBootClassPathExtension()) {
       // if we attach during startup, we assume that bundle is in BCP.
       if (getClassLoader() == null) {
@@ -571,7 +572,11 @@ public class SystemBundle extends BundleImpl implements Framework {
                                                       provideCapabilityString);
     generations.add(gen);
     gen.bpkgs.registerPackages();
-    gen.bpkgs.resolvePackages();
+    try {
+      gen.bpkgs.resolvePackages();
+    } catch (BundleException _ignore) {
+      // Shouldn't happend, hooks not active;
+    }
     newBundleRevision();
     fwWiring = new FrameworkWiringImpl(fwCtx);
   }

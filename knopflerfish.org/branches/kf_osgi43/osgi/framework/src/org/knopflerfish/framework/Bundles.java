@@ -270,16 +270,15 @@ public class Bundles {
   /**
    * Get all bundles that has specified bundle symbolic name.
    *
-   * @param name The symbolic name of bundles to get.
-   * @return A List of BundleImpl.
+   * @param name The symbolic name of bundles to get, if null get all.
+   * @return A List of current BundleGenerations.
    */
-  List<BundleImpl> getBundles(String name) {
-    final ArrayList<BundleImpl> res = new ArrayList<BundleImpl>();
+  List<BundleGeneration> getBundleGenerations(String name) {
+    final ArrayList<BundleGeneration> res = new ArrayList<BundleGeneration>();
     synchronized (bundles) {
-      for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
-        final BundleImpl b = e.nextElement();
-        if (name.equals(b.getSymbolicName())) {
-          res.add(b);
+      for (final BundleImpl b : bundles.values()) {
+        if (name == null || name.equals(b.getSymbolicName())) {
+          res.add(b.current());
         }
       }
     }
@@ -293,21 +292,21 @@ public class Bundles {
    *
    * @param name The symbolic name of bundles to get.
    * @param range Version range of bundles to get.
-   * @return A List of BundleImpl.
+   * @return A List of current BundleGenerations.
    */
-  List<BundleImpl> getBundles(String name, VersionRange range) {
+  List<BundleGeneration> getBundles(String name, VersionRange range) {
     checkIllegalState();
-    final List<BundleImpl> res = getBundles(name);
+    final List<BundleGeneration> res = getBundleGenerations(name);
     for (int i = 0; i < res.size(); ) {
-      final BundleImpl b = res.remove(i);
-      if (range.withinRange(b.getVersion())) {
+      final BundleGeneration bg = res.remove(i);
+      if (range.withinRange(bg.version)) {
         int j = i;
         while (--j >= 0) {
-          if (b.getVersion().compareTo(res.get(j).getVersion()) <= 0) {
+          if (bg.version.compareTo(res.get(j).version) <= 0) {
             break;
           }
         }
-        res.add(j + 1, b);
+        res.add(j + 1, bg);
         i++;
       }
     }

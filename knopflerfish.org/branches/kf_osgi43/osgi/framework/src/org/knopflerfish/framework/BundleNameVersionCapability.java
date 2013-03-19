@@ -43,8 +43,8 @@ import org.osgi.framework.wiring.BundleRevision;
 
 public class BundleNameVersionCapability implements BundleCapability {
 
-  private final BundleGeneration gen;
-  private final String namespace;
+  final BundleGeneration gen;
+  final String namespace;
 
   BundleNameVersionCapability(BundleGeneration bundleGeneration, String namespace) {
     gen = bundleGeneration;

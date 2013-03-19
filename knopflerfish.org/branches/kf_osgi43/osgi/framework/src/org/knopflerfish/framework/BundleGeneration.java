@@ -565,13 +565,15 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   /**
    * Attaches all relevant fragments to this bundle.
+   * @throws BundleException Resolve hook throw an exception.
    */
-  private void attachFragments() {
+  private void attachFragments() throws BundleException {
     if (!attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
       final Collection<BundleGeneration> hosting = bundle.fwCtx.bundles.getFragmentBundles(this);
       if (hosting.size() > 0 && bundle.secure.okHostBundlePerm(bundle)) {
         // retrieve all fragments this bundle host
         for (final BundleGeneration fbg : hosting) {
+          // TODO, do we need to clean in case of BundleException?
           fbg.bundle.attachToFragmentHost(this);
         }
       }
@@ -581,16 +583,20 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   /**
    * Attaches a fragment to this bundle generation.
+   * @throws BundleException 
    */
-  void attachFragment(BundleGeneration fragmentBundle) {
+  void attachFragment(BundleGeneration fragmentBundle) throws BundleException {
     if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
       throw new IllegalStateException("Bundle does not allow fragments to attach");
     }
     if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME)
         && (bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
-      throw new IllegalStateException("Bundle does not allow fragments to attach dynamicly");
+      throw new IllegalStateException("Bundle does not allow fragments to attach dynamically");
     }
-
+    if (!bundle.fwCtx.resolverHooks.filterMatches(fragmentBundle.fragment,
+                                                  new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE))) {
+      throw new IllegalStateException("Resolver hooks vetoed attach to: " + this);      
+    }
     final String failReason = bpkgs.attachFragment(fragmentBundle.bpkgs);
     if (failReason != null) {
       throw new IllegalStateException("Failed to attach: " + failReason);
@@ -657,7 +663,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     if (fragments != null) {
       for (final BundleGeneration bundleGeneration : fragments) {
         final BundleImpl fb = bundleGeneration.bundle;
-        fb.getUpdatedState();
+        fb.getUpdatedState(null);
       }
     }
   }

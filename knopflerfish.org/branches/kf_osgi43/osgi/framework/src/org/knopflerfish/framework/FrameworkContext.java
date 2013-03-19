@@ -414,19 +414,17 @@ public class FrameworkContext  {
     // Add this framework to the bundle URL handle
     urlStreamHandlerFactory.addFramework(this);
 
+    serviceHooks = new ServiceHooks(this);
+    bundleHooks = new BundleHooks(this);
+    resolverHooks = new ResolverHooks(this);
+    weavingHooks = new WeavingHooks(this);
+
     systemBundle.initSystemBundle();
 
     bundles = new Bundles(this);
 
-    serviceHooks = new ServiceHooks(this);
     serviceHooks.open();
-
-    bundleHooks = new BundleHooks(this);
-
-    resolverHooks = new ResolverHooks(this);
     resolverHooks.open();
-
-    weavingHooks = new WeavingHooks(this);
     weavingHooks.open();
 
     classPatcher = new ClassPatcherActivator(this);

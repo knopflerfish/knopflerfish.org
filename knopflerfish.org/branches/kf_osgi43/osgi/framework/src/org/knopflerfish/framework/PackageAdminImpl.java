@@ -116,8 +116,8 @@ public class PackageAdminImpl implements PackageAdmin {
         }
       }
     } else {
-      for (final Object element : fwCtx.bundles.getBundles()) {
-        for (final Iterator<ExportPkg> i = ((BundleImpl)element).getExports(); i.hasNext();) {
+      for (final BundleImpl b : fwCtx.bundles.getBundles()) {
+        for (final Iterator<ExportPkg> i = b.getExports(); i.hasNext();) {
           final ExportPkg ep = i.next();
           if (ep.isExported()) {
             pkgs.add(new ExportedPackageImpl(ep));
@@ -250,10 +250,11 @@ public class PackageAdminImpl implements PackageAdmin {
     // TODO send framework error events to fl
 
     final ArrayList<BundleImpl> startList = new ArrayList<BundleImpl>();
+    BundleImpl [] bi;
 
     synchronized (fwCtx.packages) {
       final TreeSet<Bundle> zombies = fwCtx.packages.getZombieAffected(bundles);
-      final BundleImpl bi[] = zombies.toArray(new BundleImpl[zombies.size()]);
+      bi = zombies.toArray(new BundleImpl[zombies.size()]);
 
       synchronized (refreshSync) {
         refreshSync.notifyAll();
@@ -325,7 +326,7 @@ public class PackageAdminImpl implements PackageAdmin {
     }
 
     // Restart previously active bundles in normal start order
-    startBundles(startList);
+    startBundles(startList, bi, fl);
     final FrameworkEvent fe = new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                            fwCtx.systemBundle, null);
     fwCtx.listeners.frameworkEvent(fe, fl);
@@ -341,14 +342,15 @@ public class PackageAdminImpl implements PackageAdmin {
    *
    * @param slist Bundles to start.
    */
-  private void startBundles(List<BundleImpl> slist, FrameworkListener...fl) {
+  private void startBundles(List<BundleImpl> slist, BundleImpl [] triggers, FrameworkListener...fl) {
     // Sort in start order
     // Resolve first to avoid dead lock
     for (final BundleImpl rb : slist) {
-      rb.getUpdatedState();
+      rb.getUpdatedState(triggers);
     }
+    fwCtx.resolverHooks.endResolve(triggers);
     for (final BundleImpl rb : slist) {
-      if (rb.getUpdatedState() == Bundle.RESOLVED) {
+      if (rb.getState() == Bundle.RESOLVED) {
         try {
           rb.start();
         } catch (final BundleException be) {
@@ -366,43 +368,45 @@ public class PackageAdminImpl implements PackageAdmin {
   public boolean resolveBundles(Bundle[] bundles) {
     fwCtx.perm.checkResolveAdminPerm();
     synchronized (fwCtx.packages) {
-      List<BundleImpl> bl;
+      fwCtx.resolverHooks.checkResolveBlocked();
+      List<BundleImpl> bl = new ArrayList<BundleImpl>();
       if (bundles != null) {
-        bl = new ArrayList<BundleImpl>();
         for (final Bundle bundle : bundles) {
-          bl.add( (BundleImpl) bundle);
+          if (bundle.getState() == Bundle.INSTALLED) {
+            bl.add((BundleImpl)bundle);
+          }
         }
       } else {
-        bl = fwCtx.bundles.getBundles();
+        for (final BundleImpl bundle : fwCtx.bundles.getBundles()) {
+          if (bundle.getState() == Bundle.INSTALLED) {
+            bl.add(bundle);
+          }
+        }
       }
       boolean res = true;
 
+      final BundleImpl [] triggers = bl.toArray(new BundleImpl[bl.size()]);
       for (final Bundle bundle : bl) {
         final BundleImpl b = (BundleImpl)bundle;
-        if (b.getUpdatedState() == Bundle.INSTALLED) {
+        if (b.getUpdatedState(triggers) == Bundle.INSTALLED) {
           res = false;
         }
       }
+      fwCtx.resolverHooks.endResolve(triggers);
       return res;
     }
   }
 
+  @SuppressWarnings("deprecation")
   public RequiredBundle[] getRequiredBundles(String symbolicName) {
-    List<BundleImpl> bs;
+    List<BundleGeneration> bgs = fwCtx.bundles.getBundleGenerations(symbolicName);
     final ArrayList<RequiredBundleImpl> res = new ArrayList<RequiredBundleImpl>();
-    if (symbolicName != null) {
-      bs = fwCtx.bundles.getBundles(symbolicName);
-    } else {
-      bs = fwCtx.bundles.getBundles();
-    }
-    for (final Object element : bs) {
-      final BundleImpl b = (BundleImpl)element;
-      final BundleGeneration current = b.current();
-      if (((b.state & BundleImpl.RESOLVED_FLAGS) != 0
-           || b.getRequiredBy().size() > 0)// Required, updated but not
+    for (final BundleGeneration bg : bgs) {
+      if (((bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0
+           || bg.bundle.getRequiredBy().size() > 0)// Required, updated but not
                                            // re-resolved
-          && !current.isFragment()) {
-        res.add(new RequiredBundleImpl(current.bpkgs));
+          && !bg.isFragment()) {
+        res.add(new RequiredBundleImpl(bg.bpkgs));
       }
     }
     final int s = res.size();
@@ -416,13 +420,13 @@ public class PackageAdminImpl implements PackageAdmin {
   public Bundle[] getBundles(String symbolicName, String versionRange) {
     final VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) :
         VersionRange.defaultVersionRange;
-    final List<BundleImpl> bs = fwCtx.bundles.getBundles(symbolicName, vr);
-    final int size = bs.size();
+    final List<BundleGeneration> bgs = fwCtx.bundles.getBundles(symbolicName, vr);
+    final int size = bgs.size();
     if (size > 0) {
       final Bundle[] res = new Bundle[size];
-      final Iterator<BundleImpl> i = bs.iterator();
+      final Iterator<BundleGeneration> i = bgs.iterator();
       for (int pos = 0; pos < size;) {
-        res[pos++] = i.next();
+        res[pos++] = i.next().bundle;
       }
       return res;
     } else {

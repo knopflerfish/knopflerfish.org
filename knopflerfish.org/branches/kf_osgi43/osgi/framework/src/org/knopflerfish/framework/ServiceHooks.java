@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -363,42 +362,6 @@ class ServiceHooks {
     return set;
   }
 
-
-  /**
-   *
-   */
-  static class RemoveOnlyCollection<E> extends AbstractCollection<E> {
-
-    final Collection<E> org;
-    public RemoveOnlyCollection(Collection<E> values) {
-      org = values;
-    }
-
-    @Override
-    public boolean add(E obj) {
-      throw new UnsupportedOperationException("objects can only be removed");
-    }
-
-    @Override
-    public boolean addAll(Collection<? extends E> objs) {
-      throw new UnsupportedOperationException("objects can only be removed");
-    }
-
-    @Override
-    public Iterator<E> iterator() {
-      return org.iterator();
-    }
-
-    @Override
-    public boolean remove(Object o) {
-      return org.remove(o);
-    }
-
-    @Override
-    public int size() {
-      return org.size();
-    }
-  }
 
   static class RemoveOnlyMap<K,V> implements Map<K,V> {
     final Map<K,V> original;

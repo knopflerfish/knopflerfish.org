@@ -169,23 +169,18 @@ class Fragment
            && bg.bsnAttrMatch(attributes);
   }
 
-  List<BundleImpl> targets(final FrameworkContext fwCtx)
+  List<BundleGeneration> targets(final FrameworkContext fwCtx)
   {
-    final List<BundleImpl> bundles = fwCtx.bundles.getBundles(hostName,
-                                                              versionRange);
-    for (final Iterator<BundleImpl> iter = bundles.iterator(); iter.hasNext();) {
-      final BundleGeneration tbg = iter.next().current();
-
+    final List<BundleGeneration> lbg = fwCtx.bundles.getBundles(hostName,
+                                                                versionRange);
+    for (Iterator<BundleGeneration> i = lbg.iterator(); i.hasNext();) {
+      final BundleGeneration tbg = i.next();
       if (tbg.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER) ||
           !isTarget(tbg)) {
-        iter.remove();
+        i.remove();
       }
     }
-
-    if (bundles.isEmpty()) {
-      return null;
-    }
-    return bundles;
+    return lbg;
   }
 
   public String getNamespace() {
