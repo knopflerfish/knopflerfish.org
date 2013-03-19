@@ -426,12 +426,12 @@
     <ant dir="osgi" target="run-kf-tests-bare">
       <property name="junit.out.dir"   location="${distrib.junit_grunt.dir}"/>
       <property name="run.test.secure" value="true"/>
-      <property name="jars.dir"      location="${distrib.osgi.dir}/jars"/>
+      <property name="jars.dir"        location="${distrib.osgi.dir}/jars"/>
       <property name="test.jars.dir" location="${distrib.osgi.dir}/test_jars"/>
-      <property name="xargs.out.dir" location="${distrib.osgi.dir}"/>
-      <property name="xargs.base.dir" location="${distrib.osgi.dir}"/>
-      <property name="run.test.dir"  location="${distrib.osgi.dir}"/>
-      <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="xargs.out.dir"   location="${distrib.osgi.dir}"/>
+      <property name="xargs.base.dir"  location="${distrib.osgi.dir}"/>
+      <property name="run.test.dir"    location="${distrib.osgi.dir}"/>
+      <property name="root.out.dir"    location="${distrib.tmp.dir}"/>
     </ant>
   </target>
 

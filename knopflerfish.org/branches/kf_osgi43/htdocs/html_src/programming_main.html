@@ -833,40 +833,51 @@ Bundles must be refreshed after an update</td>
 </tr>
   <tr>
     <td valign=top>
-Bundle update does <b>not</b> automatically release all exported packages.
-<p>
-This means that a bundle that has exported any package to another bundle, or
-to the framework itself, needs to be explicitly <b>refreshed</b> before
-classes in those packages are releases.
-</p>
-<p>
-If you happen to have exported the package that your BundleActivator
-resides in, this could mean that the "old" class will be used and not
-the newly installed one.
-</p>
+
+    Bundle update does <b>not</b> automatically release all wired
+    capabilities (exported packages).
+
+    <p>
+    This means that a bundle that has a wire from a provided
+    capability (e.g., exported package) to another bundle requiring
+    that capability needs to be explicitly <b>refreshed</b> before
+    that capability (e.g., classes in the exported package) is
+    released.
+    </p>
+
+    <p>
+    If you happen to have exported the package that your
+    BundleActivator resides in, this could mean that the "old" class
+    will be used and not the newly installed one.
+    </p>
+
     </td>
     <td valign=top>
-Both the console and desktop provides means of calling refresh:
-<p>
-Console:
+
+    Both the console and desktop provides means of calling refresh:
+
+    <p>
+    Console:
 <pre class="shell">
  &gt; /framework refresh
 </pre>
-</p>
-<p>
-Desktop: <br>
-Bundles -&gt; Refresh bundle packages<br>
-or CTRL + R
-</p>
-<p>
+    </p>
 
-Both of these methods uses the <tt>org.osgi.service.PackageAdmin</tt> service
-to refresh packages:
+    <p>
+    Desktop: <br>
+    Bundles -&gt; Refresh bundle packages<br>
+    or CTRL + R<br>
+    or press the refresh link in the wiring displayer on a capability
+    that is pending removal on refresh.
+    </p>
+
+    <p>
+    Both of these methods uses the
+    <tt>org.osgi.wiring.FrameworkWiring</tt> API to refresh bundles:
 <pre class="code">
   // refresh all bundles
-  packageAdmin.refreshPackages(null)
+  frameworkWiring.refreshBundles(null)
 </pre>
-
 
     </td>
   </tr>

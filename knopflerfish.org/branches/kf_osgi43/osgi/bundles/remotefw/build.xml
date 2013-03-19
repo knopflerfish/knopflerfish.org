@@ -9,7 +9,9 @@
   <property name = "bundle.build.impl"  value = "false"/>
   <property name = "bundle.build.all"   value = "false"/>
   <property name = "bundle.build.lib"   value = "false"/>
-  <property name = "bundle.build.doc"   value = "true"/>
+
+  <!-- We do not have any remote framework impl right now ... -->
+  <property name = "bundle.build.doc"   value = "false"/>
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>

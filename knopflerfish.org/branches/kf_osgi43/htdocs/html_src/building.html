@@ -1,20 +1,22 @@
 <h1 class="kf">Building Knopflerfish</h1>
 
 Knopflerfish includes an ant based build system for building a complete Knopflerfish distribution as well as building 
-<a href="/releases/current/docs/programming.html">individual bundles</a>. Ant 1.7 or later is required, available from <a href="http://ant.apache.org/">ant.apache.org</a>
+<a href="programming.html">individual bundles</a>. Ant 1.7 or later is required, available from <a href="http://ant.apache.org/">ant.apache.org</a>
 
 <p>
 Knopflerfish can be built either by 
- <a href="svn_info.html">
+ <a href="http://www.knopflerfish.org/svn_info.html">
    checking out the entire source code
 </a>,
 or by (re)building an installed distribution.
 </p>
+
 <p>
  The top level build file is located in the <tt>osgi</tt>
  directory. The default target is to build the framework and all
  bundles in the bundles directory.
 </p>
+
 <p>
 Invoking ant with the -p option will display the possible targets.
 </p>
@@ -25,29 +27,27 @@ Buildfile: build.xml
 
 Main targets:
 
- all                       Builds the framework and all bundles including optional and test bundles
- bundle_doc                Builds bundle specific docs
- bundle_tasks              Defines the custom Knopflerfish bundle tasks
- bundletasks.bundle_tasks  Defines the custom Knopflerfish bundle tasks
- clean                     Removes all generated files and directories.
- clean_local               Remove all bundles built by this build-file but keep all other bundles 
-                           in the jars sub-directory.
- default                   Builds the framework and bundles in bundles-directory
- javadoc                   Create javadoc for all exported packages
- rebuild                   Cleans then build build all
- run                       (Re)start the framework.
- run-init                  Initial start with default set of bundles.
- run-kf-tests              Builds then executes the KF testsuite.
- run-kf-tests-secure       Builds then executes the KF testsuite with security enabled.
- run-secure                (Re)start framework with security enabled.
- run-secure-init           Initial start with security enabled and default set of bundles.
+ all                  Builds the framework and all bundles including optional and test bundles
+ bundle_doc           Builds bundle specific docs
+ bundle_tasks         Builds and defines the Knopflerfish bundle tasks
+ clean                Removes all generated files and directories.
+ clean_local          Remove all bundles built by this build-file but keep all other bundles
+                      in the jars sub-directory.
+ default              Builds the framework and bundles in bundles-directory
+ define_bundle_tasks  Defines the Knopflerfish bundle tasks
+ javadoc              Create javadoc for all exported packages
+ rebuild              Cleans then build build all
+ run                  (Re)start the framework.
+ run-init             Initial start with default set of bundles.
+ run-kf-tests         Builds then executes the KF testsuite.
+ run-kf-tests-secure  Builds then executes the KF testsuite with security enabled.
+ run-secure           (Re)start framework with security enabled.
+ run-secure-init      Initial start with security enabled and default set of bundles.
 Default target: default
 bash-3.2$ 
 </pre>
+
 <p>
-To add and build additional bundles see the
-<a href="programming.html">
-  programming
-</a>
-section.
+To add and build additional bundles see the <a
+href="programming.html">programming</a> section.
 </p>

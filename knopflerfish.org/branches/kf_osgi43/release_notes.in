@@ -1,19 +1,72 @@
 Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.3)
 --------------------------------------------------
 
-  First release of Knopflerfish that supports OSGi R4 v4.3 available
-  from @DOWNLOAD_URL@
+  First official release of Knopflerfish 4 available from
+  @DOWNLOAD_URL@
 
-  Here follows a breakdown of the most important changes since the
-  last release.
+  Knopflerfish 4 is an implementation of the "OSGi Service Platform
+  Release 4 Version 4.3". It contains all services specified in the
+  "Core Specification" and most of the non Enterprise Edition related
+  services specified in the "Compendium Specification".
 
-  Framewwork and Compendium services implements the OSGi R4 v4.3
-  specification.
+  Here follows a breakdown of the most important changes since
+  Knopflerfish 3.5 release that aren't caused by updating KF
+  to "OSGi R4 v4.3".
 
-  The SOAP bundles present in Knopflerfish&nbsp;3 has been removed
-  since they are all deprecated by the Remote Service Admin compendium
-  service.
 
+----------------------------------------------
+OSGi Core Specification
+----------------------------------------------
+
+All the Core Specification Services are included and up to date
+OSGi R4 v4.3 specification. Please consult the "OSGi Service Platform,
+Core Specification, Release 4 Version 4.3" for more information.
+
+Framework 6.0.0
+ - Several parts of the framework has been rewritten to handle
+   the new OSGi framework specification and improve stability.
+ - The Android support has temporarily been dropped. Will probably
+   be restored in the next release.
+
+
+----------------------------------------------
+OSGi Compendium Specification
+----------------------------------------------
+
+All the Compendium Specification Services included are updated to
+implement the OSGi R4 v4.3 specification. Please consult the "OSGi
+Service Platform, Service Compendium, Release 4 Version 4.3" for more
+information.
+
+The version of these bundles has been set to 4.0.0 and all imported
+packages has a minimum version in their import statements set to the
+version of the package defined in the OSGi R4 v4.3 specification.
+
+
+----------------------------------------------
+Knopflerfish Specific
+----------------------------------------------
+
+The SOAP related bundles present in Knopflerfish 3 has been
+removed since they are deprecated and should be replaced by usage of
+the Remote Service Admin service from the compendium specification.
+The removed bundles are: axis-osgi, axis2-osgi, ksoap-osgi,
+ksoap_commandgroup, ksoap_remotefw, soap_desktop, soap_remotefw,
+soapclient and soapobject.
+
+Desktop 4.0.0
+ - A new "Wiring" displayer has been added that presents information
+   from new wiring API. This displayer replaces the "Package"
+   displayer that only showed wiring info for the osgi.wiring.package
+   namespace.
+ - Use the wiring API to perform refresh and resolve operations.
+ - Use the start-level API to perform start-level operations.
+
+Framework Commands 4.0.0
+ - New command 'capability' that presents both provided and required
+   capabilities for the current bundle revision of a bundle.
+ - New command 'wiring' that lists all active wires for the current
+   wiring of a bundle.
 
 ----------------------------------------------
 

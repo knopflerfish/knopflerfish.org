@@ -5,6 +5,9 @@
 
 <project name="xargs" basedir=".">
 
+  <!-- Users of this macro should call the check_openssl target before
+       calling this macro to ensure that the property openssl_exists
+       is correctly set. -->
   <macrodef name="xargs"
 	    description="Generates xargs-file from templare.">
     <attribute name="template"
@@ -53,7 +56,6 @@
 	<bundles/>
       </bundle_locator>
 
-      <antcall target="check_openssl"/>
       <condition property="do.cpa.test" value="" else="#">
 	<and>
           <isset property="openssl_exist"/>

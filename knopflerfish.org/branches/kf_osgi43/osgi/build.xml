@@ -163,7 +163,7 @@
 	   outDir="${root.out.dir}/xargs"/>
   </target>
 
-  <target name="test_xargs">
+  <target name="test_xargs" depends="check_openssl">
     <xargs template="init-tests.xargs.in"
 	   xargs="${xargs.out.dir}/init-tests.xargs"
 	   baseDir="${xargs.base.dir}"
@@ -216,8 +216,13 @@
     <property name="javadoc.packages"
               value="org.knopflerfish.ant.taskdefs.bundle,
                      org.osgi.framework,
+		     org.osgi.framework.hooks.bundle,
+		     org.osgi.framework.hooks.resolver,
 		     org.osgi.framework.hooks.service,
+		     org.osgi.framework.hooks.weawing,
 		     org.osgi.framework.launch,
+		     org.osgi.framework.startlevel,
+		     org.osgi.framework.wiring,
                      org.osgi.service.condpermadmin,
                      org.osgi.service.packageadmin,
                      org.osgi.service.permissionadmin,
@@ -388,7 +393,6 @@
  <target name="run-kf-tests-secure-bare">
    <antcall target="run-kf-tests-bare">
      <param name="run.test.secure" value="true"/>
-     <param name="do.cpa.test"     value=""/>
    </antcall>
  </target>
 
