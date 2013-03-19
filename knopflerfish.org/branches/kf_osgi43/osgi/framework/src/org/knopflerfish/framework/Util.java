@@ -475,6 +475,24 @@ public class Util {
   }
 
   /**
+   * Read framework build year from the tstamp-file
+   */
+  static String readTstampYear() {
+    // tstamp format: "Build EE MMMM d yyyy, HH:mm:ss"
+    String year = readResource("/tstamp", "2013", "UTF-8");
+
+    int pos = year.indexOf(',');
+    if (pos>-1) {
+      year = year.substring(0, pos);
+      pos = year.lastIndexOf(' ');
+      if (pos>-1) {
+        year = year.substring(pos+1);
+      }
+    }
+    return year;
+  }
+
+  /**
    * Default whitespace string for splitwords(). Value is <tt>" \t\n\r"</tt>)
    */
   protected static String WHITESPACE = " \t\n\r";

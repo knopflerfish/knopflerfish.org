@@ -164,10 +164,11 @@ public class Main
 
   protected void start(String[] args) {
     version = Util.readFrameworkVersion();
+    String tstampYear = Util.readTstampYear();
 
     bootText =
       "Knopflerfish OSGi framework launcher, version " + version + "\n" +
-      "Copyright 2003-2012 Knopflerfish. All Rights Reserved.\n" +
+      "Copyright 2003-" +tstampYear +" Knopflerfish. All Rights Reserved.\n" +
       "See http://www.knopflerfish.org for more information.\n";
 
     System.out.println(bootText);
