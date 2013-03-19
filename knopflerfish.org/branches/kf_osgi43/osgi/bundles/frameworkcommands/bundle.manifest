@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: FW-Commands
 Bundle-SymbolicName: org.knopflerfish.bundle.frameworkcommands
-Bundle-Version: 3.2.0
+Bundle-Version: 4.0.0
 Bundle-Activator: org.knopflerfish.bundle.frameworkcommands.Activator
 Bundle-Description: Framework commands
 Bundle-Vendor: Knopflerfish
@@ -15,7 +15,7 @@ Bundle-Category: service
 Bundle-Icon: icon.png;size=32
 Import-Service: org.osgi.service.log.LogService,
  org.knopflerfish.service.console.ConsoleService
-Import-Package: org.osgi.framework;version="[1.5,2.0)",
+Import-Package: org.osgi.framework;version="[1.6,2.0)",
  org.osgi.framework.startlevel;version="[1.0,2.0)",
  org.osgi.framework.wiring;version="[1.0,2.0)",
  org.knopflerfish.service.console,

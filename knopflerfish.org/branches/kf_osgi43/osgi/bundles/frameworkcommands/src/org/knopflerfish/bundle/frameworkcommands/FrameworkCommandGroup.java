@@ -53,6 +53,8 @@ import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -77,9 +79,9 @@ import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.packageadmin.RequiredBundle;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
@@ -366,34 +368,37 @@ public class FrameworkCommandGroup
     }
   }
 
-  private String getBundleSpeciality(Bundle bundle) {
-    if (packageAdmin == null) {
-      return "";
-    }
+  private String getBundleSpeciality(Bundle bundle)
+  {
     final StringBuffer sb = new StringBuffer();
-    final Bundle[] fragments = packageAdmin.getFragments(bundle);
-    if (fragments != null && fragments.length > 0) {
-      sb.append("h:"); // host
-      for (int i=0; i<fragments.length;i++){
-        if (i>0) {
-          sb.append(",");
-        }
-        sb.append(fragments[i].getBundleId());
-      }
-    }
-    final Bundle[] hosts = packageAdmin.getHosts(bundle);
-    if (hosts != null && hosts.length > 0) {
-      sb.append("f:"); // fragment
-      for (int i=0; i<hosts.length;i++){
-        if (i>0) {
-          sb.append(",");
-        }
-        sb.append(hosts[i].getBundleId());
-      }
-    }
-    return sb.length()>0 ? (" (" +sb.toString() + ")" ) : "";
-  }
+    final BundleWiring bw = bundle.adapt(BundleWiring.class);
 
+    // Host bundle with attached fragments.
+    final List<BundleWire> pws =
+      bw.getProvidedWires(BundleRevision.HOST_NAMESPACE);
+    if (!pws.isEmpty()) {
+      sb.append("h:");
+      for (final BundleWire w : pws) {
+        sb.append(w.getRequirement().getRevision().getBundle().getBundleId());
+        sb.append(",");
+      }
+      sb.setLength(sb.length() - 1); // Remove trailing ','
+    }
+
+    // Fragment attached to hosts.
+    final List<BundleWire> rws =
+      bw.getRequiredWires(BundleRevision.HOST_NAMESPACE);
+    if (!rws.isEmpty()) {
+      sb.append("f:");
+      for (final BundleWire w : rws) {
+        sb.append(w.getProviderWiring().getRevision().getBundle().getBundleId());
+        sb.append(",");
+      }
+      sb.setLength(sb.length() - 1); // Remove trailing ','
+    }
+
+    return sb.length() > 0 ? (" (" + sb.toString() + ")") : "";
+  }
 
   //
   // Call command
@@ -685,13 +690,14 @@ public class FrameworkCommandGroup
     "Display the closure for a bundle",
     "<bundle> - Name or id of bundle" };
 
-  public int cmdClosure(Dictionary<String,?> opts, Reader in, PrintWriter out,
-                        Session session) {
-
-    if (packageAdmin == null) {
-      out.println("Package Admin service is not available");
-      return 1;
-    }
+  public int cmdClosure(Dictionary<String, ?> opts,
+                        Reader in,
+                        PrintWriter out,
+                        Session session)
+  {
+    final Bundle systemBundle = bc.getBundle(0);
+    final FrameworkWiring frameworkWiring =
+      systemBundle.adapt(FrameworkWiring.class);
 
     final String bname = (String) opts.get("bundle");
     Bundle[] bl = getBundles(new String[] { bname }, true);
@@ -703,33 +709,17 @@ public class FrameworkCommandGroup
 
     bl = getBundles(null, false, false, false);
 
-    // Package
+    // Wiring
+    final Collection<Bundle> wbs =
+      frameworkWiring.getDependencyClosure(Collections.singleton(bundle));
 
-    final Vector<Bundle> pkgClosure = new Vector<Bundle>();
-    // This is O(n2) at least, possibly O(n3). Should be improved
-    for(int b = 0; b < bl.length; b++) {
-      final ExportedPackage[] pkgs = packageAdmin.getExportedPackages(bl[b]);
-      if (pkgs == null) {
-        continue;
-      }
-      for (final ExportedPackage pkg : pkgs) {
-        final Bundle[] bl2 = pkg.getImportingBundles();
-        if (bl2 == null) {
-          continue;
-        }
-        for (final Bundle element : bl2) {
-          if(element.getBundleId() == bundle.getBundleId() && !pkgClosure.contains(bl[b])) {
-            pkgClosure.add(bl[b]);
-          }
-        }
-      }
-    }
-    pkgClosure.remove(bundle);
-    if (pkgClosure.size() == 0) {
-      out.println("No package dependencies");
+    if (wbs.isEmpty()) {
+      out.println("No wiring dependencies");
     } else {
-      out.println("Static dependencies via packages:");
-      final Bundle[] bundles = pkgClosure.toArray(new Bundle[pkgClosure.size()]);
+      wbs.remove(bundle);
+      out.println("Static dependencies via wires:");
+      final Bundle[] bundles = wbs.toArray(new Bundle[wbs.size()]);
+      Util.sortBundlesId(bundles);
       printBundles(out, bundles, false, true);
     }
 
@@ -748,68 +738,6 @@ public class FrameworkCommandGroup
     } else {
       out.println("Runtime dependencies via services:");
       final Bundle[] bundles = serviceClosure.toArray(new Bundle[serviceClosure.size()]);
-      printBundles(out, bundles, false, true);
-    }
-
-    // Fragment
-
-    final Bundle[] fragmentBundles = packageAdmin.getFragments(bundle);
-    if (fragmentBundles == null) {
-      out.println("No fragments");
-    } else {
-      out.println("Fragments:");
-      printBundles(out, fragmentBundles, false, true);
-    }
-
-    // Host
-
-    final Bundle[] hostBundles = packageAdmin.getHosts(bundle);
-    if (hostBundles == null) {
-      out.println("No hosts");
-    } else {
-      out.println("Hosts:");
-      printBundles(out, hostBundles, false, true);
-    }
-
-    // Required
-
-    final Vector<Bundle> required = new Vector<Bundle>();
-    final Vector<Bundle> requiredBy = new Vector<Bundle>();
-
-    try { // untested code
-      final RequiredBundle[] requiredBundles = packageAdmin.getRequiredBundles(null);
-      if (requiredBundles != null) {
-        for (final RequiredBundle requiredBundle : requiredBundles) {
-          final Bundle[] requiringBundles = requiredBundle.getRequiringBundles();
-          if (requiringBundles == null) {
-            continue;
-          }
-          if (requiredBundle.getBundle().equals(bundle)) {
-            for (final Bundle requiringBundle : requiringBundles) {
-              requiredBy.add(requiringBundle);
-            }
-          } else {
-            for (final Bundle requiringBundle : requiringBundles) {
-              if (requiringBundle.equals(bundle)) {
-                required.add(requiredBundle.getBundle());
-              }
-            }
-          }
-        }
-      }
-    } catch (final Throwable ignored) {}
-    if (required.size() == 0) {
-      out.println("No required bundles");
-    } else {
-      out.println("Required bundles:");
-      final Bundle[] bundles = required.toArray(new Bundle[required.size()]);
-      printBundles(out, bundles, false, true);
-    }
-    if (requiredBy.size() == 0) {
-      out.println("No requiring bundles");
-    } else {
-      out.println("Requiring bundles:");
-      final Bundle[] bundles = requiredBy.toArray(new Bundle[requiredBy.size()]);
       printBundles(out, bundles, false, true);
     }
 
@@ -1322,34 +1250,32 @@ public class FrameworkCommandGroup
   public final static String USAGE_REFRESH = "[<bundle>] ...";
 
   public final static String[] HELP_REFRESH = new String[] {
-    "Refresh all exported java packages belong to specified bundle",
+    "Refresh all wired capabilities provided by the specified bundle(s)",
     "If no bundle is specified refresh all bundles",
     "<bundle> Name or id of bundle" };
 
   public int cmdRefresh(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
-    if (packageAdmin == null) {
-      out.println("Package Admin service is not available");
-      return 1;
-    }
+    final Bundle systemBundle = bc.getBundle(0);
+    final FrameworkWiring frameworkWiring =
+      systemBundle.adapt(FrameworkWiring.class);
+
+    final List<Bundle> bundles = new ArrayList<Bundle>();
     final String[] bs = (String[]) opts.get("bundle");
     if (bs != null) {
-      Bundle[] b = getBundles(bs, true);
-      for (int i = 0; i < b.length; i++) {
-        if (b[i] == null) {
-          final Bundle[] nb = new Bundle[i];
-          System.arraycopy(b, 0, nb, 0, nb.length);
-          b = nb;
-          break;
+      final Bundle[] b = getBundles(bs, true);
+      for (final Bundle element : b) {
+        if (element != null) {
+          bundles.add(element);
         }
       }
-      if (b.length == 0) {
+      if (bundles.isEmpty()) {
         out.println("ERROR! No matching bundle");
         return 1;
       }
-      packageAdmin.refreshPackages(b);
+      frameworkWiring.refreshBundles(bundles);
     } else {
-      packageAdmin.refreshPackages(null);
+      frameworkWiring.refreshBundles(null);
     }
     return 0;
   }
@@ -1367,28 +1293,28 @@ public class FrameworkCommandGroup
 
   public int cmdResolve(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
-    if (packageAdmin == null) {
-      out.println("Package Admin service is not available");
-      return 1;
-    }
+    final Bundle systemBundle = bc.getBundle(0);
+    final FrameworkWiring frameworkWiring =
+      systemBundle.adapt(FrameworkWiring.class);
+
+    final List<Bundle> bundles = new ArrayList<Bundle>();
     final String[] bs = (String[]) opts.get("bundle");
     Bundle[] b = null;
     if (bs != null) {
       b = getBundles(bs, true);
-      for (int i = 0; i < b.length; i++) {
-        if (b[i] == null) {
-          final Bundle[] nb = new Bundle[i];
-          System.arraycopy(b, 0, nb, 0, nb.length);
-          b = nb;
-          break;
+      for (final Bundle element : b) {
+        if (element != null) {
+          bundles.add(element);
         }
       }
       if (b.length == 0) {
         out.println("ERROR! No matching bundle");
         return 1;
       }
+      frameworkWiring.resolveBundles(bundles);
+    } else {
+      frameworkWiring.resolveBundles(null);
     }
-    packageAdmin.resolveBundles(b);
     return 0;
   }
 
