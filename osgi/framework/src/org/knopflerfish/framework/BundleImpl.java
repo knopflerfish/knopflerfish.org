@@ -132,10 +132,15 @@ public class BundleImpl implements Bundle {
   /** Saved exception of resolve failure. */
   private BundleException resolveFailException;
 
-  /** Rember if bundle was started */
+  /** Remember if bundle was started */
   private boolean wasStarted;
 
+  /** start/stop time-out/uninstall flag, see BundleThread */
+  volatile Boolean aborted;
 
+  /** current bundle thread */
+  private BundleThread bundleThread;
+  
   /**
    * Construct a new Bundle empty.
    *
@@ -333,6 +338,7 @@ public class BundleImpl implements Bundle {
   BundleException start0() {
     final String ba = gen.archive.getAttribute(Constants.BUNDLE_ACTIVATOR);
     boolean bStarted = false;
+    // res is used to signal that start did not complete in a normal way
     BundleException res = null;
 
     fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTING, this));
@@ -387,40 +393,75 @@ public class BundleImpl implements Bundle {
         // make sure users are aware of the missing activator?
       }
 
-      if (STARTING != state) {
-        error_type = BundleException.STATECHANGE_ERROR;
-        if (UNINSTALLED == state) {
-          throw new Exception("Bundle uninstalled during start()");
-        } else {
-          throw new Exception("Bundle changed state because of refresh during start()");
-        }
-      }
-      state = ACTIVE;
     } catch (Throwable t) {
       res = new BundleException("Bundle start failed", error_type, t);
     }
+    
+    // activator.start() done
+    // - normal -> state = active, started event
+    // - exception from start() -> res = ex, start-failed clean-up
+    // - unexpected state change (uninstall, refresh?):
+    //   -> res = new exception
+    // - start time-out -> res = new exception (not used?)    
+
+    // if start was aborted (uninstall or timeout), make sure
+    // finalizeActivation() has finished before checking aborted/state
+    synchronized (fwCtx.packages) {
+      if (Thread.currentThread() != bundleThread) {
+        // newer BundleThread instance has been active for this BundleImpl,
+        // end thread execution 
+        throw new RuntimeException("Aborted bundle thread ending execution");
+      }
+      
+      Exception cause = null;
+      if (aborted == Boolean.TRUE) {
+        if (UNINSTALLED == state) {
+          cause = new Exception("Bundle uninstalled during start()");
+        } else {
+          cause = new Exception("Bundle activator start() time-out");
+        }
+      } else {
+        aborted = Boolean.FALSE; // signal to other thread that BundleThread
+                                 // concludes start/stop
+        if (STARTING != state) {
+          cause = new Exception("Bundle changed state because of refresh during start()");
+        }
+      }
+      if (cause != null) {
+        res = new BundleException("Bundle start failed",
+                                BundleException.STATECHANGE_ERROR, cause);
+      }
+    }
+    
     if (fwCtx.debug.lazy_activation) {
       fwCtx.debug.println("activating #" + getBundleId() + " completed.");
     }
     if (fwCtx.props.SETCONTEXTCLASSLOADER) {
       Thread.currentThread().setContextClassLoader(oldLoader);
     }
+
     if (res == null) {
       // 10:
+      state = ACTIVE;
       fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STARTED, this));
     } else if (operation == ACTIVATING) {
       // 8:
-      state = STOPPING;
-      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
-      removeBundleResources();
-      bundleContext.invalidate();
-      bundleContext = null;
-      state = RESOLVED;
-      fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
+      startFailed();
     }
     return res;
   }
 
+  void startFailed()
+  {
+    // 8:
+    state = STOPPING;
+    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPING, this));
+    removeBundleResources();
+    bundleContext.invalidate();
+    bundleContext = null;
+    state = RESOLVED;
+    fwCtx.listeners.bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
+  }
 
   /**
    * Stop this bundle.
@@ -515,34 +556,54 @@ public class BundleImpl implements Bundle {
     if (wasStarted && bactivator != null) {
       try {
         bactivator.stop(bundleContext);
-        if (state != STOPPING) {
-          if (state == UNINSTALLED) {
-            return new IllegalStateException("Bundle is uninstalled");
-          } else {
-            return new IllegalStateException(
-                "Bundle changed state because of refresh during stop");
-          }
-        }
       } catch (Throwable e) {
         res = new BundleException("Bundle.stop: BundleActivator stop failed",
             BundleException.ACTIVATOR_ERROR, e);
+      }
+
+      // if stop was aborted (uninstall or timeout), make sure
+      // finalizeActivation() has finished before checking aborted/state
+      synchronized (fwCtx.packages) {
+        Exception cause = null;
+        if (aborted == Boolean.TRUE) {
+          if (UNINSTALLED == state) {
+            cause = new Exception("Bundle uninstalled during stop()");
+          } else {
+            cause = new Exception("Bundle activator stop() time-out");
+          }
+        } else {
+          aborted = Boolean.FALSE; // signal to other thread that BundleThread
+                                   // concludes stop
+          if (STOPPING != state) {
+            cause = new Exception("Bundle changed state because of refresh during stop()");
+          }
+        }
+        if (cause != null) {
+          res = new BundleException("Bundle stop failed",
+                                  BundleException.STATECHANGE_ERROR, cause);
+        }
       }
       bactivator = null;
     }
 
     if (operation == DEACTIVATING) {
-      // Call hooks after we've called Activator.stop(), but before we've
-      // cleared all resources
-      if (null != bundleContext) {
-        fwCtx.listeners.serviceListeners.hooksBundleStopped(bundleContext);
-        // 8-10:
-        removeBundleResources();
-        bundleContext.invalidate();
-        bundleContext = null;
-      }
+      stop2();
     }
 
     return res;
+  }
+
+  void stop2()
+  {
+    // Call hooks after we've called Activator.stop(), but before we've
+    // cleared all resources
+    if (null != bundleContext) {
+      fwCtx.listeners.serviceListeners.hooksBundleStopped(bundleContext);
+      // 8-10:
+      removeBundleResources();
+      bundleContext.invalidate();
+      bundleContext = null;
+    }
   }
 
 
@@ -1674,10 +1735,11 @@ public class BundleImpl implements Bundle {
   BundleThread bundleThread() {
     synchronized (fwCtx.bundleThreads) {
       if (fwCtx.bundleThreads.isEmpty()) {
-        return secure.createBundleThread(fwCtx);
+        bundleThread = secure.createBundleThread(fwCtx);
       } else {
-        return (BundleThread)fwCtx.bundleThreads.removeFirst();
+        bundleThread = (BundleThread)fwCtx.bundleThreads.removeFirst();
       }
+      return bundleThread;
     }
   }
 
