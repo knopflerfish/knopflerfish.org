@@ -353,14 +353,7 @@ public class RequestImpl implements Request, PoolableObject {
     if (value == null)
       return -1; // NYI: throw new IllegalArgumentException()???
 
-    for (int i = 0; i < HttpUtil.DATE_FORMATS.length; i++) {
-      try {
-        return HttpUtil.DATE_FORMATS[i].parse(value).getTime();
-      } catch (Exception ignore) {
-      }
-    }
-
-    throw new IllegalArgumentException("Invalid date value: "+value);
+    return HttpUtil.parseDate(value);
   }
 
   public String getHeader(String name) {
