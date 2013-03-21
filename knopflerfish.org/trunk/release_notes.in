@@ -10,7 +10,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.3.4
+* Framework 5.3.5
+
+  - Time-out added to Bundle.start and Bundle.stop. The time-out
+    is enabled by setting the framework property
+    org.knopflerfish.framework.bundlethread.timeout. 
+
+  Framework 5.3.4
 
   - Create data storage are for system bundle. Can be accessed via
     getDataFile() for the system bundle.
@@ -753,7 +759,7 @@ Release Notes Knopflerfish 3.2.0 (OSGi R4 v4.2)
   - Viewers are now updated when one of the selected bundles are
     changes. E.g., when updated.
 
-‹
+
   HTTP-root 3.0.1
 
   - Sort entries on the Http-Server-Info page.
