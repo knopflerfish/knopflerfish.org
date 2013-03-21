@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
@@ -49,6 +48,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.servlet.ServletOutputStream;
@@ -208,6 +208,30 @@ public class ResponseImpl
     return headBytes;
   }
 
+  // SimpleDateFormat and GregorianCalendar are expensive to create
+  // and not thread safe; thus we try to share one instance of each
+  // amongst all response object. Also note that RFC2616, 3.3.1 states
+  // that all dates in HTTP-headers must be given in GMT.
+  private static final SimpleDateFormat cookieExpiresDateFormatter
+    = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z");
+  static
+  {
+    cookieExpiresDateFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+  }
+
+  private static final GregorianCalendar cookieExpiresCalendar
+    = new GregorianCalendar();
+  private void appendCookieExpires(final StringBuffer header,
+                                   final int maxAge)
+  {
+    synchronized (cookieExpiresDateFormatter) {
+      cookieExpiresCalendar.setTimeInMillis(System.currentTimeMillis());
+      cookieExpiresCalendar.add(Calendar.SECOND, maxAge);
+      header.append(";Expires=");
+      header.append(cookieExpiresDateFormatter.format(cookieExpiresCalendar.getTime()));
+    }
+  }
+
   public void setCookieHeader(Cookie cookie) {
 
     if (cookie == null)
@@ -223,11 +247,7 @@ public class ResponseImpl
       header.append(";Domain=" + attrValue);
     if ((maxAge = cookie.getMaxAge()) != -1) {
       if (maxAge > 0) {
-        SimpleDateFormat s = new SimpleDateFormat(
-                                                  "EEE, dd-MMM-yyyy HH:mm:ss z");
-        GregorianCalendar cal = new GregorianCalendar();
-        cal.add(Calendar.SECOND, maxAge);
-        header.append(";Expires=" + s.format(cal.getTime()));
+        appendCookieExpires(header, maxAge);
       }
       header.append(";Max-Age=" + maxAge);
     }
@@ -297,7 +317,7 @@ public class ResponseImpl
   }
 
   public void setDateHeader(String name, long value) {
-    setHeader(name, HttpUtil.DATE_FORMATS[0].format(new Date(value)));
+    setHeader(name, HttpUtil.formatDate(value));
   }
 
   public void setHeader(String name, String value) {
@@ -328,7 +348,7 @@ public class ResponseImpl
   }
 
   public void addDateHeader(String name, long value) {
-    addHeader(name, HttpUtil.DATE_FORMATS[0].format(new Date(value)));
+    addHeader(name, HttpUtil.formatDate(value));
   }
 
   public void addHeader(String name, String value) {
