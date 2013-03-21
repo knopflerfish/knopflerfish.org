@@ -49,6 +49,7 @@ class BundleThread extends Thread {
   final static String ABORT_ACTION_IGNORE = "ignore";
 
   final private FrameworkContext fwCtx;
+  private long startStopTimeout = 0;
   final private Object lock = new Object();
   volatile private BundleEvent be;
   volatile private BundleImpl bundle;
@@ -62,6 +63,18 @@ class BundleThread extends Thread {
     setDaemon(true);
     fwCtx = fc;
     doRun = true;
+    
+    // get bundlethread timeout property value
+    String timeout = fwCtx.props.getProperty(FWProps.BUNDLETHREAD_TIMEOUT);
+    if (timeout != null) {
+      try {
+        startStopTimeout = 1000 * Integer.parseInt(timeout);
+      } catch (NumberFormatException nfe) {
+        fwCtx.debug.println("Property " + FWProps.BUNDLETHREAD_TIMEOUT
+                            + " has a non integer value, ignoring");
+      }
+    }
+    
     start();
   }
 
@@ -159,28 +172,73 @@ class BundleThread extends Thread {
       operation = op;
       lock.notifyAll();
     }
-    boolean abort = false;
+
+    // timeout for waiting on op to finish can be set for start/stopp
+    long left = 0;
+    if (op == OP_START || op == OP_STOP) {
+      b.aborted = null; // clear aborted status
+      left = startStopTimeout;
+    }    
+    boolean timeout = false;
+    boolean uninstall = false;
+
+    long waitUntil = System.currentTimeMillis() + left;
     do {
       try {
-        fwCtx.packages.wait();
-      } catch (InterruptedException ie) {
-      }
+        fwCtx.packages.wait(left);
+      } catch (InterruptedException ie) {}
+      
       // Abort start/stop operation if bundle has been uninstalled
       if ((op == OP_START || op == OP_STOP) && b.getState() == Bundle.UNINSTALLED) {
-        abort = true;
-        break;
+        uninstall = true;
+        res = null;
+      } else if (left > 0) { // we were waiting with a timeout
+        left = waitUntil - System.currentTimeMillis();
+        
+        // check time-out for Bundle.start and .stop
+        if (left <= 0 && ((op == OP_START && b.getState() == Bundle.STARTING)
+                       || (op == OP_STOP && b.getState() == Bundle.STOPPING))) {
+          timeout = true;
+          res = null;
+        }
       }
+      
     } while (res == Boolean.FALSE);
 
-    if (abort) {
-      // Bundle thread is aborted
+    // if b.aborted is set, BundleThread has/will concluded start/stop
+    if (b.aborted == null && (timeout || uninstall)) {
+      // BundleThreda is still in BundleActivator.start/.stop, 
+
+      b.aborted = Boolean.TRUE; // signal to BundleThread that this
+                                // thread is acting on uninstall/time-out
+
+      String opType = op == OP_START ? "start" : "stop";
+      String reason = timeout ? "Time-out during bundle " + opType + "()"
+                              : "Bundle uninstalled during " + opType + "()";
+
       String s = fwCtx.props.getProperty(FWProps.BUNDLETHREAD_ABORT);
       if (s == null) {
         s = ABORT_ACTION_IGNORE;
       }
-      fwCtx.debug.println("bundle thread aborted during "
-          + (op == OP_START ? "start" : "stop") + " of bundle #"
-          + b.getBundleId() + ", abort action set to '" + s + "'");
+      fwCtx.debug.println("bundle thread aborted during " + opType
+          + " of bundle #" + b.getBundleId() + ", abort action set to '"
+          + s + "'");
+
+      if (timeout) {
+        if (op == OP_START) {
+          // set state, send events, do clean-up like when Bundle.start()
+          // throws an exception
+          // TODO: startFailed() calls BundleListener.bundleChanged and
+          // should not be called with the packages lock as we do here
+          b.startFailed();
+          
+        } else {
+          // STOP, like when Bundle.stop() returns/throws an exception
+          b.bactivator = null;
+          b.stop2();
+        }
+      }
+      
       quit();
 
       // Check what abort action to use
@@ -190,19 +248,8 @@ class BundleThread extends Thread {
         setPriority(Thread.MIN_PRIORITY);
       }
 
-      switch (op) {
-      case OP_START:
-        res = new BundleException("Bundle start failed",
-            BundleException.STATECHANGE_ERROR, new Exception(
-                "Bundle uninstalled during start()"));
-        break;
-      case OP_STOP:
-        res = new BundleException("Bundle stop failed",
-            BundleException.STATECHANGE_ERROR, new Exception(
-                "Bundle uninstalled during stop()"));
-        break;
-      }
-
+      res = new BundleException("Bundle " + opType + " failed",
+          BundleException.STATECHANGE_ERROR, new Exception(reason));
       return res;
     } else {
       synchronized (fwCtx.bundleThreads) {
