@@ -203,6 +203,7 @@ public class Util {
     String res = s.replace("&", "&amp;");
     res = res.replace("<", "&lt;");
     res = res.replace(">", "&gt;");
+    res = res.replace("\n", "<br>");
 
     return res;
   }
