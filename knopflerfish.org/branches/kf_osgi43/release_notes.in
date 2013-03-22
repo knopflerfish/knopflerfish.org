@@ -42,6 +42,11 @@ The version of these bundles has been set to 4.0.0 and all imported
 packages has a minimum version in their import statements set to the
 version of the package defined in the OSGi R4 v4.3 specification.
 
+Http 4.0.0
+ - The methods javax.servlet.Request.getLocale() and
+   javax.servlet.Reuqest.getLocales() now returns data based on the
+   Accept-Language header in the request.
+
 
 ----------------------------------------------
 Knopflerfish Specific
