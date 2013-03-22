@@ -40,13 +40,16 @@ import java.lang.reflect.Modifier;
 
 import javax.servlet.Servlet;
 
-public class ServletPool extends ObjectPool {
+public class ServletPool
+  extends ObjectPool
+{
 
   // private fields
 
-  private Constructor servletConstructor;
+  private Constructor<?> servletConstructor;
 
-  public ServletPool(final Class servletClass) {
+  public ServletPool(final Class<?> servletClass)
+  {
 
     super(10, 5);
 
@@ -55,34 +58,40 @@ public class ServletPool extends ObjectPool {
 
   // private methods
 
-  private void init(final Class servletClass) {
+  private void init(final Class<?> servletClass)
+  {
 
-    if (!servletClass.isAssignableFrom(Servlet.class))
+    if (!servletClass.isAssignableFrom(Servlet.class)) {
       throw new IllegalArgumentException("Class must implement "
                                          + Servlet.class.getName());
+    }
     try {
       servletConstructor = servletClass.getConstructor((Class[]) null);
-    } catch (NoSuchMethodException nsme) {
-      throw new IllegalArgumentException
-        ("Class must have public default constructor");
+    } catch (final NoSuchMethodException nsme) {
+      throw new IllegalArgumentException(
+                                         "Class must have public default constructor");
     }
-    if (!Modifier.isPublic(servletConstructor.getModifiers()))
-      throw new IllegalArgumentException
-        ("Class must have public default constructor");
+    if (!Modifier.isPublic(servletConstructor.getModifiers())) {
+      throw new IllegalArgumentException(
+                                         "Class must have public default constructor");
+    }
   }
 
   // extends ObjectPool
 
-  protected PoolableObject createPoolableObject() {
+  @Override
+  protected PoolableObject createPoolableObject()
+  {
 
     try {
-      return new PoolableServletWrapper((Servlet) servletConstructor
-                                        .newInstance((Object[]) null));
-    } catch (InstantiationException e) {
+      return new PoolableServletWrapper(
+                                        (Servlet) servletConstructor
+                                            .newInstance((Object[]) null));
+    } catch (final InstantiationException e) {
       return null;
-    } catch (IllegalAccessException e) {
+    } catch (final IllegalAccessException e) {
       return null;
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       return null;
     }
   }

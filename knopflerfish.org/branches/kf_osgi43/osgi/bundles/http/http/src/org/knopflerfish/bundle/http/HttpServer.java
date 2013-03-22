@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,143 +38,152 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 
-public class HttpServer {
+import org.knopflerfish.service.log.LogRef;
 
-    // private fields
+public class HttpServer
+{
+  // private fields
 
-    private final HttpConfig httpConfig;
+  private final HttpConfig httpConfig;
 
-    private final Registrations registrations;
+  private final Registrations registrations;
 
-    private final ServletContextManager contextManager;
+  private final ServletContextManager contextManager;
 
-    private final HttpServiceFactory serviceFactory;
+  private final HttpServiceFactory serviceFactory;
 
-    private final HttpSessionManager sessionManager;
+  private final HttpSessionManager sessionManager;
 
-    private final TransactionManager transactionManager;
+  private final TransactionManager transactionManager;
 
-    private final SocketListener httpSocketListener;
+  private final SocketListener httpSocketListener;
 
-    private final SocketListener httpsSocketListener;
+  private final SocketListener httpsSocketListener;
 
-    private ServiceRegistration httpReg = null;
+  private ServiceRegistration<?> httpReg = null;
 
-    private BundleContext bc = null;
+  private BundleContext bc = null;
 
-    // constructors
+  // constructors
 
-    public HttpServer(BundleContext bc,
-                      final HttpConfig httpConfig,
-                      final LogRef log)
-    {
-        this.bc = bc;
-        this.httpConfig = httpConfig;
-        registrations = new Registrations();
+  public HttpServer(BundleContext bc, final HttpConfig httpConfig,
+                    final LogRef log)
+  {
+    this.bc = bc;
+    this.httpConfig = httpConfig;
+    registrations = new Registrations();
 
-        contextManager = new ServletContextManager(httpConfig, log,
-                registrations);
-        serviceFactory = new HttpServiceFactory(log, registrations,
-                contextManager);
+    contextManager = new ServletContextManager(httpConfig, log, registrations);
+    serviceFactory = new HttpServiceFactory(log, registrations, contextManager);
 
-        sessionManager = new HttpSessionManager(httpConfig);
-        transactionManager = new TransactionManager(log, registrations,
-                sessionManager);
+    sessionManager = new HttpSessionManager(httpConfig);
+    transactionManager =
+      new TransactionManager(log, registrations, sessionManager);
 
-        httpSocketListener
-          = new SocketListener(httpConfig.HTTP, log,
-                               transactionManager, bc, this);
-        httpsSocketListener
-          = new SocketListener(httpConfig.HTTPS, log,
-                               transactionManager, bc, this);
+    httpSocketListener =
+      new SocketListener(httpConfig.HTTP, log, transactionManager, bc, this);
+    httpsSocketListener =
+      new SocketListener(httpConfig.HTTPS, log, transactionManager, bc, this);
+  }
+
+  // public methods
+
+  public HttpConfig getHttpConfig()
+  {
+    return httpConfig;
+  }
+
+  public HttpServiceFactory getHttpServiceFactory()
+  {
+    return serviceFactory;
+  }
+
+  public void updated()
+      throws ConfigurationException
+  {
+
+    try {
+      httpSocketListener.updated();
+      httpsSocketListener.updated();
+      doHttpReg();
+    } catch (final ConfigurationException e) {
+      // If configuration failed, make sure we don't have
+      // any registered service
+      if (httpReg != null) {
+        httpReg.unregister();
+        httpReg = null;
+      }
+      // and rethrow the exception
+      throw e;
     }
+  }
 
-    // public methods
-
-    public HttpConfig getHttpConfig() {
-        return httpConfig;
+  public void destroy()
+  {
+    if (httpSocketListener != null) {
+      httpSocketListener.destroy();
     }
-
-    public HttpServiceFactory getHttpServiceFactory() {
-        return serviceFactory;
+    if (httpsSocketListener != null) {
+      httpsSocketListener.destroy();
     }
-
-    public void updated() throws ConfigurationException {
-
-        try {
-            httpSocketListener.updated();
-            httpsSocketListener.updated();
-            doHttpReg();
-        } catch (ConfigurationException e) {
-            // If configuration failed, make sure we don't have
-            // any registered service
-            if (httpReg != null) {
-                httpReg.unregister();
-                httpReg = null;
-            }
-            // and rethrow the exception
-            throw e;
-        }
+    if (httpReg != null) {
+      httpReg.unregister();
+      httpReg = null;
     }
-
-    public void destroy()
-    {
-        if (httpSocketListener != null) {
-            httpSocketListener.destroy();
-        }
-        if (httpsSocketListener != null) {
-            httpsSocketListener.destroy();
-        }
-        if (httpReg != null) {
-            httpReg.unregister();
-            httpReg = null;
-        }
-        if (sessionManager != null) {
-            sessionManager.destroy();
-        }
+    if (sessionManager != null) {
+      sessionManager.destroy();
     }
+  }
 
-    synchronized void doHttpReg()
-    {
-        Dictionary conf = httpConfig.getConfiguration();
+  synchronized void doHttpReg()
+  {
+    final Dictionary<String, Object> conf = httpConfig.getConfiguration();
 
-        Hashtable props = new Hashtable();
-        for (Enumeration e = conf.keys(); e.hasMoreElements();) {
-            Object key = e.nextElement();
-            Object val = conf.get(key);
-            props.put(key, val);
-        }
-        // UPnP Ref impl need this
-        props.put("openPort", props.get(HttpConfig.HTTP_PORT_KEY));
-
-        // register and/or update service properties
-        if (httpReg == null) {
-          httpReg = bc.registerService(HttpServiceImpl.HTTP_INTERFACES,
-                                       getHttpServiceFactory(), props);
-        } else {
-          httpReg.setProperties(props);
-        }
+    final Hashtable<String, Object> props = new Hashtable<String, Object>();
+    for (final Enumeration<String> e = conf.keys(); e.hasMoreElements();) {
+      final String key = e.nextElement();
+      // Properties with a key starting on '.' are private and should not be
+      // published as service properties. See Compendium 104.4.4.
+      if (key.charAt(0) != '.') {
+        final Object val = conf.get(key);
+        props.put(key, val);
+      }
     }
+    // UPnP Ref impl need this
+    props.put("openPort", props.get(HttpConfig.HTTP_PORT_KEY));
 
-   public Registrations getRegistrations() {
-      return registrations;
-   }
-   
-   public TransactionManager getTransactionManager() {
-      return transactionManager;
-   }
-   
-   public boolean isHttpOpen() {
-      return httpSocketListener.isOpen();
-   }
+    // register and/or update service properties
+    if (httpReg == null) {
+      httpReg =
+        bc.registerService(HttpServiceImpl.HTTP_INTERFACES,
+                           getHttpServiceFactory(), props);
+    } else {
+      httpReg.setProperties(props);
+    }
+  }
 
-   public boolean isHttpsOpen() {
-      return httpsSocketListener.isOpen();
-   }
-   
+  public Registrations getRegistrations()
+  {
+    return registrations;
+  }
+
+  public TransactionManager getTransactionManager()
+  {
+    return transactionManager;
+  }
+
+  public boolean isHttpOpen()
+  {
+    return httpSocketListener.isOpen();
+  }
+
+  public boolean isHttpsOpen()
+  {
+    return httpsSocketListener.isOpen();
+  }
+
 } // HttpServer

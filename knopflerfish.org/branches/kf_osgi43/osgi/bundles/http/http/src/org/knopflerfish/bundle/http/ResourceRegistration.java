@@ -42,88 +42,95 @@ import javax.servlet.ServletContext;
 
 import org.osgi.service.http.HttpContext;
 
-public class ResourceRegistration implements Registration {
+public class ResourceRegistration
+  implements Registration
+{
 
-    // private fields
+  // private fields
 
-    private final String alias;
+  private final String alias;
 
-    private final HttpContext httpContext;
+  private final HttpContext httpContext;
 
-    private final ServletContextManager contextManager;
+  private final ServletContextManager contextManager;
 
-    private final ServletContext context;
+  private final ServletContext context;
 
-    private final ServletConfig config;
+  private final ServletConfig config;
 
+  // HACK CSM
+  private final long lastModificationDate;
+
+  // Bundle that made the registration, quick fix for console
+  private Object owner;
+
+  // constructors
+
+  // HACK CSM
+  public ResourceRegistration(final String alias, final String realPath,
+                              final HttpContext httpContext,
+                              final ServletContextManager contextManager,
+                              long newDate)
+  {
+    this.alias = alias;
+    this.httpContext = httpContext;
+    this.contextManager = contextManager;
     // HACK CSM
-    private long lastModificationDate;
+    lastModificationDate = newDate;
 
-    // Bundle that made the registration, quick fix for console
-    private Object owner;
+    context = contextManager.getServletContext(httpContext, realPath);
+    config = new ServletConfigImpl(new Hashtable<String, String>(), context);
+  }
 
-    // constructors
+  // private methods
 
-    // HACK CSM
-    public ResourceRegistration(final String alias,
-                                final String realPath,
-                                final HttpContext httpContext,
-                                final ServletContextManager contextManager,
-                                long newDate)
-    {
-        this.alias = alias;
-        this.httpContext = httpContext;
-        this.contextManager = contextManager;
-        //HACK CSM
-        lastModificationDate = newDate;
-
-        context = contextManager.getServletContext(httpContext, realPath);
-        config = new ServletConfigImpl(new Hashtable(), context);
+  private boolean exists(String path)
+  {
+    if (path.startsWith(alias)) {
+      try {
+        return context.getResource(HttpUtil.makeTarget(path, alias)) != null;
+      } catch (final MalformedURLException ignore) {
+      }
     }
 
-    // private methods
+    return false;
+  }
 
-    private boolean exists(String path) {
+  // implements Registration
 
-        if (path.startsWith(alias)) {
-            try {
-                return context.getResource(HttpUtil.makeTarget(path, alias)) != null;
-            } catch (MalformedURLException ignore) {
-            }
-        }
-
-        return false;
+  public RequestDispatcherImpl getRequestDispatcher(String uri)
+  {
+    if (!exists(uri)) {
+      return null;
     }
 
-    // implements Registration
+    final RequestDispatcherImpl dispatcher =
+      new RequestDispatcherImpl(alias, null, httpContext, config,
+                                lastModificationDate);
+    dispatcher.setURI(uri);
 
-    public RequestDispatcherImpl getRequestDispatcher(String uri) {
+    return dispatcher;
+  }
 
-        if (!exists(uri))
-            return null;
+  // HACK CSM
+  public long getLastModificationDate()
+  {
+    return lastModificationDate;
+  }
 
-        RequestDispatcherImpl dispatcher = new RequestDispatcherImpl(alias,
-                null, httpContext, config, lastModificationDate);
-        dispatcher.setURI(uri);
+  public void destroy()
+  {
+    contextManager.ungetServletContext(context);
+  }
 
-        return dispatcher;
-    }
+  public void setOwner(Object o)
+  {
+    this.owner = o;
+  }
 
-    // HACK CSM
-    public long getLastModificationDate() {
-        return lastModificationDate;
-    }
-
-    public void destroy() {
-        contextManager.ungetServletContext(context);
-    }
-
-    public void setOwner(Object o) {
-	this.owner = o;
-    }
-
-    public Object getOwner() {
-	return owner;
-    }
+  public Object getOwner()
+  {
+    return owner;
+  }
 
 } // ResourceRegistration

@@ -39,19 +39,20 @@ import java.io.InputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
-
 public class RequestWrapper
   extends HttpServletRequestWrapper
   implements Request
 {
   // constructors
-  public RequestWrapper(HttpServletRequest request) {
+  public RequestWrapper(HttpServletRequest request)
+  {
     super(request);
   }
 
   // implements Request
-  public InputStream getRawInputStream() {
-    HttpServletRequest request = (HttpServletRequest) getRequest();
+  public InputStream getRawInputStream()
+  {
+    final HttpServletRequest request = (HttpServletRequest) getRequest();
 
     if (request instanceof Request) {
       return ((Request) request).getRawInputStream();

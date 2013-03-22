@@ -42,425 +42,456 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-public class SocketListener implements Runnable, ServiceTrackerCustomizer {
+import org.knopflerfish.service.log.LogRef;
 
-    // private constants
+@SuppressWarnings("rawtypes")
+public class SocketListener
+  implements Runnable, ServiceTrackerCustomizer
+{
 
-    private final static String zeroAddress = "0.0.0.0";
+  // private constants
 
-    // private fields
+  private final static String zeroAddress = "0.0.0.0";
 
-    private final HttpConfigWrapper httpConfig;
+  // private fields
 
-    private final LogRef log;
+  private final HttpConfigWrapper httpConfig;
 
-    private final TransactionManager transactionManager;
+  private final LogRef log;
 
-    private final BundleContext bc;
+  private final TransactionManager transactionManager;
 
-    private final HttpServer httpServer;
+  private final BundleContext bc;
 
-    private ServiceTracker securityTracker = null;
+  private final HttpServer httpServer;
 
-    private int port = -1;
+  private ServiceTracker<?, ?> securityTracker = null;
 
-    private String host = null;
+  private int port = -1;
 
-    private int maxConnections = -1;
+  private String host = null;
 
-    private boolean isSecure = false;
+  private int maxConnections = -1;
 
-    private boolean isEnabled = false;
+  private boolean isSecure = false;
 
-    private Boolean requireClientAuth = null;
+  private boolean isEnabled = false;
 
-    private boolean done = false;
+  private Boolean requireClientAuth = null;
 
-    private ServerSocket socket = null;
+  private boolean done = false;
 
-    private Thread thread = null;
+  private ServerSocket socket = null;
 
-    // constructors
+  private Thread thread = null;
 
-    public SocketListener(final HttpConfigWrapper httpConfig,
-                          final LogRef log,
-                          final TransactionManager transactionManager,
-                          final BundleContext bc,
-                          final HttpServer httpServer)
+  // constructors
+
+  public SocketListener(final HttpConfigWrapper httpConfig, final LogRef log,
+                        final TransactionManager transactionManager,
+                        final BundleContext bc, final HttpServer httpServer)
   {
+    this.httpConfig = httpConfig;
+    this.log = log;
+    this.transactionManager = transactionManager;
+    this.bc = bc;
+    this.httpServer = httpServer;
+  }
 
-        this.httpConfig = httpConfig;
-        this.log = log;
-        this.transactionManager = transactionManager;
-        this.bc = bc;
-        this.httpServer = httpServer;
+  @SuppressWarnings("unchecked")
+  public void updated()
+      throws ConfigurationException
+  {
+    // the following if statements prevents unnecessary calls to init
+    // (nothing
+    // changed)
+    if (isSecure == httpConfig.isSecure() && (requireClientAuth != null)
+        && (requireClientAuth.booleanValue() == httpConfig.requireClientAuth())
+        && port == httpConfig.getPort() && httpConfig.getHost().equals(host)
+        && httpConfig.getMaxConnections() == maxConnections
+        && isEnabled == httpConfig.isEnabled()) {
+      return;
     }
 
-    public void updated() throws ConfigurationException {
+    isSecure = httpConfig.isSecure();
+    requireClientAuth = new Boolean(httpConfig.requireClientAuth());
+    port = httpConfig.getPort();
+    host = httpConfig.getHost();
+    maxConnections = httpConfig.getMaxConnections();
+    isEnabled = httpConfig.isEnabled();
 
-        // the following if statements prevents unnecessary calls to init
-        // (nothing
-        // changed)
-        if (isSecure == httpConfig.isSecure()
-                && (requireClientAuth != null)
-                && (requireClientAuth.booleanValue() == httpConfig
-                        .requireClientAuth()) && port == httpConfig.getPort()
-                && httpConfig.getHost().equals(host)
-                && httpConfig.getMaxConnections() == maxConnections
-                && isEnabled == httpConfig.isEnabled()) {
-            return;
-        }
+    destroy();
 
-        isSecure = httpConfig.isSecure();
-        requireClientAuth = new Boolean(httpConfig.requireClientAuth());
-        port = httpConfig.getPort();
-        host = httpConfig.getHost();
-        maxConnections = httpConfig.getMaxConnections();
-        isEnabled = httpConfig.isEnabled();
-
-        destroy();
-
-        if (!isEnabled) {
-            return;
-        }
-
-        /**
-         * We want to be able to do either HTTPS or HTTP. The latter would
-         * always be executed synchronously, e.g. in this invocation. This might
-         * not be the case for HTTPs, which might happen on different threads.
-         * Therefore, try to throw any ConfigurationEx as early as possible
-         */
-        if ((port < 0) || (port > 0xFFFF)) {
-            throw new ConfigurationException(
-                    (httpConfig.isSecure() ? HttpConfig.HTTPS_PORT_KEY
-                            : HttpConfig.HTTP_PORT_KEY), "invalid value="
-                            + port);
-
-        }
-        if (maxConnections < 1) {
-            throw new ConfigurationException("maxConnections", "invalid value="
-                    + maxConnections);
-
-        }
-
-        if (!isSecure) {
-            // for HTTP create the socket right away AND start
-            try {
-                if (log.doDebug())
-                    log.debug("Creating socket");
-                if (host == null || host.length() == 0) {
-                    socket = new ServerSocket(port, maxConnections);
-                } else {
-                    try {
-                        socket = new ServerSocket(port, maxConnections,
-                                InetAddress.getByName(host));
-                    } catch (UnknownHostException uhe) {
-                        socket = new ServerSocket(port, maxConnections);
-                    }
-                }
-
-                init();
-
-            } catch (Exception e) {
-                if (log.doDebug())
-                    log.debug("Exception creating HTTP Socket", e);
-                throw new ConfigurationException(
-                        "Exception creating HTTP Socket", e.toString());
-            }
-
-        } else // secure case, can not create socket by myself, need to get
-                // service
-        {
-            securityTracker = new ServiceTracker(this.bc,
-                    "javax.net.ssl.SSLServerSocketFactory", this);
-            securityTracker.open();
-        }
+    if (!isEnabled) {
+      return;
     }
 
-    public Object addingService(ServiceReference sRef) {
-        // TE this class must not explicitly reference SSLServerFactory.
-        Object factory = null;
+    /**
+     * We want to be able to do either HTTPS or HTTP. The latter would always be
+     * executed synchronously, e.g. in this invocation. This might not be the
+     * case for HTTPs, which might happen on different threads. Therefore, try
+     * to throw any ConfigurationEx as early as possible
+     */
+    if ((port < 0) || (port > 0xFFFF)) {
+      throw new ConfigurationException((httpConfig.isSecure()
+        ? HttpConfig.HTTPS_PORT_KEY
+        : HttpConfig.HTTP_PORT_KEY), "invalid value=" + port);
 
-        if (this.socket != null) {
-            if (log.doWarn())
-                log.warn("SEVERAL  SSLServerSocketFactories are available,"
-                         +" selection random");
-            return null; // do not track
+    }
+    if (maxConnections < 1) {
+      throw new ConfigurationException("maxConnections", "invalid value="
+                                                         + maxConnections);
+
+    }
+
+    if (!isSecure) {
+      // for HTTP create the socket right away AND start
+      try {
+        if (log.doDebug()) {
+          log.debug("Creating socket");
         }
-
-        factory = this.bc.getService(sRef);
-
-        // find the two methods using reflection
-        Method create2 = null;
-        Method create3 = null;
-
-        try {
-            create2 = factory.getClass().getMethod("createServerSocket",
-                    new Class[] { int.class, int.class });
-            create3 = factory.getClass().getMethod("createServerSocket",
-                    new Class[] { int.class, int.class, InetAddress.class });
-
-        } catch (Exception cmethE) {
-            log.error("not an SSL factory, or no access : " + factory, cmethE);
-
-        }
-
         if (host == null || host.length() == 0) {
-            try {
-                socket = (ServerSocket) create2.invoke(factory, new Object[] {
-                        new Integer(port), new Integer(maxConnections) });
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                log.error("creating ssl socket on server:", ex);
-            }
-
+          socket = new ServerSocket(port, maxConnections);
         } else {
-            try {
-                try {
-                    socket = (ServerSocket) create3.invoke(factory,
-                            new Object[] { new Integer(port),
-                                    new Integer(maxConnections),
-                                    InetAddress.getByName(host) });
-
-                } catch (UnknownHostException uhe) {
-                    socket = (ServerSocket) create2.invoke(factory,
-                            new Object[] { new Integer(port),
-                                    new Integer(maxConnections) });
-                }
-
-            } catch (Exception ex) {
-                log.error("creating socket ", ex);
-            }
-
-        }
-
-        if (socket != null) {
-            try {
-                Class sslSockClass = Class
-                        .forName("javax.net.ssl.SSLServerSocket");
-                Method auth = sslSockClass.getMethod("setNeedClientAuth",
-                        new Class[] { boolean.class });
-                auth.invoke(socket, new Object[] { requireClientAuth });
-
-            } catch (Exception exc) {
-                log.error(exc.toString());
-            }
-        }
-
-        if (socket != null) {
-            try {
-                init();
-            } catch (Exception e) {
-                log.error("Can not initialize", e);
-                socket = null;
-            }
-        }
-
-        if (socket == null) {
-            this.bc.ungetService(sRef);
-            factory = null;
-
-        }
-
-        return factory;
-    }
-
-    public void modifiedService(ServiceReference arg0, Object arg1) {
-
-    }
-
-    public void removedService(ServiceReference sRef, Object arg1) {
-        if (log.doDebug())
-            log.debug("SSLFactory Security service was removed.");
-
-        uninit();
-
-        this.bc.ungetService(sRef);
-
-    }
-
-    private synchronized void init() {
-        // socket exists, otherwise not called
-        done = false;
-
-        port = socket.getLocalPort();
-        if (port!=httpConfig.getPort()) {
-          // Update config to reflect the actual port used (if port was
-          // specified as 0 this will make a difference).
-          httpConfig.setPort(port);
-
-          if (isSecure) {
-            // Make sure that the service property port.https is
-            // correct. Only needed for https, since init() is called
-            // asynchroneous in that case.
-            httpServer.doHttpReg();
+          try {
+            socket =
+              new ServerSocket(port, maxConnections,
+                               InetAddress.getByName(host));
+          } catch (final UnknownHostException uhe) {
+            socket = new ServerSocket(port, maxConnections);
           }
         }
 
-        String sch = httpConfig.getScheme().toUpperCase();
+        init();
 
-        if (log.doInfo())
-            log.info(sch + " server started on port " + port);
+      } catch (final Exception e) {
+        if (log.doDebug()) {
+          log.debug("Exception creating HTTP Socket", e);
+        }
+        throw new ConfigurationException("Exception creating HTTP Socket on "
+                                         + (host == null || host.length() == 0
+                                           ? "*"
+                                           : host) + ":" + port, e.toString());
+      }
 
-        thread = new Thread(this, sch + " server:" + port);
-        thread.start();
+    } else // secure case, can not create socket by myself, need to get
+           // service
+    {
+      securityTracker =
+        new ServiceTracker(this.bc, "javax.net.ssl.SSLServerSocketFactory",
+                           this);
+      securityTracker.open();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  public Object addingService(ServiceReference sRef)
+  {
+    // TE this class must not explicitly reference SSLServerFactory.
+    Object factory = null;
+
+    if (this.socket != null) {
+      if (log.doWarn()) {
+        log.warn("SEVERAL  SSLServerSocketFactories are available,"
+                 + " selection random");
+      }
+      return null; // do not track
+    }
+
+    factory = this.bc.getService(sRef);
+
+    // find the two methods using reflection
+    Method create2 = null;
+    Method create3 = null;
+
+    try {
+      create2 =
+        factory.getClass().getMethod("createServerSocket",
+                                     new Class[] { int.class, int.class });
+      create3 =
+        factory.getClass().getMethod("createServerSocket",
+                                     new Class[] { int.class, int.class,
+                                                  InetAddress.class });
+
+    } catch (final Exception cmethE) {
+      log.error("not an SSL factory, or no access : " + factory, cmethE);
 
     }
 
-    private synchronized void uninit() {
-        done = true;
+    if (host == null || host.length() == 0) {
+      try {
+        socket =
+          (ServerSocket) create2
+              .invoke(factory, new Object[] { new Integer(port),
+                                             new Integer(maxConnections) });
 
-        Thread[] threads = new Thread[transactionManager.activeCount()];
-        transactionManager.enumerate(threads);
-        for (int i = 0; i < threads.length; i++)
-            if (threads[i] != null)
-                threads[i].interrupt();
+      } catch (final Exception ex) {
+        ex.printStackTrace();
+        log.error("creating ssl socket on server:", ex);
+      }
 
-        threads = new Thread[transactionManager.activeCount()];
-        transactionManager.enumerate(threads);
-        for (int i = 0; i < threads.length; i++) {
-            if (threads[i] != null) {
-                try {
-                    threads[i].join(5000);
-                } catch (InterruptedException ignore) {
-                }
-                if (threads[i].isAlive()) {
-                    // TBD, threads[i].stop();
-                    log.error("Thread " + threads[i] + ", refuse to stop");
-                }
-            }
-        }
-
-        if (thread != null)
-            thread.interrupt();
-
-        if (socket != null) {
-            // Try different ways to find out local address.
-            int port = socket.getLocalPort();
-            InetAddress address = socket.getInetAddress();
-            if (address.getHostAddress().equals(zeroAddress)) {
-                try {
-                    address = InetAddress.getLocalHost();
-                } catch (UnknownHostException ignore) {
-                    try {
-                        address = InetAddress.getByName("localhost");
-                    } catch (UnknownHostException ignore2) {
-                        try {
-                            address = InetAddress.getByName("127.0.0.1");
-                        } catch (UnknownHostException e) {
-                            address = null;
-                            log.error("Failed to get local address", e);
-                        }
-                    }
-                }
-            }
-            try {
-                if (address != null) {
-                    (new Socket(address, port)).close();
-                }
-            } catch (IOException ignore) {
-                // Socket could already be closed?!
-            } finally {
-                socket = null;
-            }
-        }
-
-        if (thread != null) {
-            try {
-                thread.join(60000);
-            } catch (InterruptedException ignore) {
-            } finally {
-                if (thread.isAlive()) {
-                    log.error("Failed to stop socket listener thread, " + thread);
-                }
-                thread = null;
-            }
-        }
-    }
-
-    public void destroy() {
-
-        if (!httpConfig.isSecure()) {
-            uninit();
-
-        } else {
-            ServiceTracker tempTr = this.securityTracker;
-            this.securityTracker = null;
-            if (tempTr != null) {
-                try {
-                    tempTr.close();
-
-                } catch (Exception excpt) {
-                }
-            }
-        }
-    }
-
-    public void run() {
-
-        ServerSocket socket = this.socket;
-        Socket client = null;
-
-        while (!done) {
-
-            try {
-
-                while (transactionManager.activeCount() >= httpConfig
-                        .getMaxConnections()) {
-                    try {
-                        Thread.sleep(50);
-                        if (done)
-                            break;
-                    } catch (Exception e) {
-                    }
-                }
-
-                if (!done) {
-                    client = socket.accept();
-                    if (done) {
-                        client.close();
-                        break;
-                    }
-                }
-
-                transactionManager.startTransaction(client, httpConfig);
-
-            } catch (InterruptedIOException iioe) {
-                if (!done && log.doDebug())
-                    log.debug("Communication error on "
-                            + (host != null ? (host + ":") : "") + port, iioe);
-            } catch (IOException ioe) {
-                if (!done && log.doDebug())
-                    log.debug("Communication error on "
-                            + (host != null ? (host + ":") : "") + port, ioe);
-            } catch (ThreadDeath td) {
-                throw td;
-            } catch (Throwable t) {
-                if (!done && log.doDebug())
-                    log.debug("Internal error on"
-                            + (host != null ? (host + ":") : "") + port, t);
-            }
-
-        }
-
+    } else {
+      try {
         try {
-            if (socket != null)
-                socket.close();
-        } catch (IOException ignore) {
+          socket =
+            (ServerSocket) create3
+                .invoke(factory, new Object[] { new Integer(port),
+                                               new Integer(maxConnections),
+                                               InetAddress.getByName(host) });
+
+        } catch (final UnknownHostException uhe) {
+          socket =
+            (ServerSocket) create2
+                .invoke(factory, new Object[] { new Integer(port),
+                                               new Integer(maxConnections) });
         }
-        socket = null;
+
+      } catch (final Exception ex) {
+        log.error("creating socket ", ex);
+      }
+
     }
 
-    public boolean isOpen() {
-	return socket != null;
+    if (socket != null) {
+      try {
+        final Class<?> sslSockClass =
+          Class.forName("javax.net.ssl.SSLServerSocket");
+        final Method auth =
+          sslSockClass.getMethod("setNeedClientAuth",
+                                 new Class[] { boolean.class });
+        auth.invoke(socket, new Object[] { requireClientAuth });
+
+      } catch (final Exception exc) {
+        log.error(exc.toString());
+      }
     }
-    
+
+    if (socket != null) {
+      try {
+        init();
+      } catch (final Exception e) {
+        log.error("Can not initialize", e);
+        socket = null;
+      }
+    }
+
+    if (socket == null) {
+      this.bc.ungetService(sRef);
+      factory = null;
+
+    }
+
+    return factory;
+  }
+
+  public void modifiedService(ServiceReference arg0, Object arg1)
+  {
+  }
+
+  public void removedService(ServiceReference sRef, Object arg1)
+  {
+    if (log.doDebug()) {
+      log.debug("SSLFactory Security service was removed.");
+    }
+
+    uninit();
+
+    this.bc.ungetService(sRef);
+
+  }
+
+  private synchronized void init()
+  {
+    // socket exists, otherwise not called
+    done = false;
+
+    port = socket.getLocalPort();
+    if (port != httpConfig.getPort()) {
+      // Update config to reflect the actual port used (if port was
+      // specified as 0 this will make a difference).
+      httpConfig.setPort(port);
+
+      if (isSecure) {
+        // Make sure that the service property port.https is
+        // correct. Only needed for https, since init() is called
+        // asynchroneous in that case.
+        httpServer.doHttpReg();
+      }
+    }
+
+    final String sch = httpConfig.getScheme().toUpperCase();
+
+    if (log.doInfo()) {
+      log.info(sch + " server started on port " + port);
+    }
+
+    thread = new Thread(this, sch + " server:" + port);
+    thread.start();
+
+  }
+
+  private synchronized void uninit()
+  {
+    done = true;
+
+    Thread[] threads = new Thread[transactionManager.activeCount()];
+    transactionManager.enumerate(threads);
+    for (final Thread thread2 : threads) {
+      if (thread2 != null) {
+        thread2.interrupt();
+      }
+    }
+
+    threads = new Thread[transactionManager.activeCount()];
+    transactionManager.enumerate(threads);
+    for (final Thread thread2 : threads) {
+      if (thread2 != null) {
+        try {
+          thread2.join(5000);
+        } catch (final InterruptedException ignore) {
+        }
+        if (thread2.isAlive()) {
+          // TBD, threads[i].stop();
+          log.error("Thread " + thread2 + ", refuse to stop");
+        }
+      }
+    }
+
+    if (thread != null) {
+      thread.interrupt();
+    }
+
+    if (socket != null) {
+      // Try different ways to find out local address.
+      final int port = socket.getLocalPort();
+      InetAddress address = socket.getInetAddress();
+      if (address.getHostAddress().equals(zeroAddress)) {
+        try {
+          address = InetAddress.getLocalHost();
+        } catch (final UnknownHostException ignore) {
+          try {
+            address = InetAddress.getByName("localhost");
+          } catch (final UnknownHostException ignore2) {
+            try {
+              address = InetAddress.getByName("127.0.0.1");
+            } catch (final UnknownHostException e) {
+              address = null;
+              log.error("Failed to get local address", e);
+            }
+          }
+        }
+      }
+      try {
+        if (address != null) {
+          (new Socket(address, port)).close();
+        }
+      } catch (final IOException ignore) {
+        // Socket could already be closed?!
+      } finally {
+        socket = null;
+      }
+    }
+
+    if (thread != null) {
+      try {
+        thread.join(60000);
+      } catch (final InterruptedException ignore) {
+      } finally {
+        if (thread.isAlive()) {
+          log.error("Failed to stop socket listener thread, " + thread);
+        }
+        thread = null;
+      }
+    }
+  }
+
+  public void destroy()
+  {
+    if (!httpConfig.isSecure()) {
+      uninit();
+
+    } else {
+      final ServiceTracker<?, ?> tempTr = this.securityTracker;
+      this.securityTracker = null;
+      if (tempTr != null) {
+        try {
+          tempTr.close();
+
+        } catch (final Exception excpt) {
+        }
+      }
+    }
+  }
+
+  public void run()
+  {
+    ServerSocket socket = this.socket;
+    Socket client = null;
+
+    while (!done) {
+
+      try {
+
+        while (transactionManager.activeCount() >= httpConfig
+            .getMaxConnections()) {
+          try {
+            Thread.sleep(50);
+            if (done) {
+              break;
+            }
+          } catch (final Exception e) {
+          }
+        }
+
+        if (!done) {
+          client = socket.accept();
+          if (done) {
+            client.close();
+            break;
+          }
+        }
+
+        transactionManager.startTransaction(client, httpConfig);
+
+      } catch (final InterruptedIOException iioe) {
+        if (!done && log.doDebug()) {
+          log.debug("Communication error on "
+                    + (host != null ? (host + ":") : "") + port, iioe);
+        }
+      } catch (final IOException ioe) {
+        if (!done && log.doDebug()) {
+          log.debug("Communication error on "
+                    + (host != null ? (host + ":") : "") + port, ioe);
+        }
+      } catch (final ThreadDeath td) {
+        throw td;
+      } catch (final Throwable t) {
+        if (!done && log.doDebug()) {
+          log.debug("Internal error on" + (host != null ? (host + ":") : "")
+                    + port, t);
+        }
+      }
+
+    }
+
+    try {
+      if (socket != null) {
+        socket.close();
+      }
+    } catch (final IOException ignore) {
+    }
+    socket = null;
+  }
+
+  public boolean isOpen()
+  {
+    return socket != null;
+  }
+
 } // SocketListener

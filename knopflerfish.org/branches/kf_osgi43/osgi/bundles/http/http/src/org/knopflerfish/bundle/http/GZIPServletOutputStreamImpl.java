@@ -41,11 +41,13 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.ServletOutputStream;
 
 /**
- * An output stream wrapper that will produce gzip:ed output to the
- * underlying stream. Note that the {@link flush()}-method must only
- * be called once since it will finish the gzip processing.
+ * An output stream wrapper that will produce gzip:ed output to the underlying
+ * stream. Note that the {@link flush()}-method must only be called once since
+ * it will finish the gzip processing.
  */
-public class GZIPServletOutputStreamImpl extends ServletOutputStream {
+public class GZIPServletOutputStreamImpl
+  extends ServletOutputStream
+{
 
   // private fields
 
@@ -53,20 +55,25 @@ public class GZIPServletOutputStreamImpl extends ServletOutputStream {
 
   // constructors
 
-  public GZIPServletOutputStreamImpl(final OutputStream out)
-    throws IOException
+  public GZIPServletOutputStreamImpl(final OutputStream out) throws IOException
   {
     this.out = new GZIPOutputStream(out);
   }
 
   // extends ServletOutputStream
 
-  public void write(final int b) throws IOException {
+  @Override
+  public void write(final int b)
+      throws IOException
+  {
     out.write(b);
   }
 
   // flush may only be called once, since it calls finish()!
-  public void flush() throws IOException {
+  @Override
+  public void flush()
+      throws IOException
+  {
     out.finish();
     out.flush();
   }

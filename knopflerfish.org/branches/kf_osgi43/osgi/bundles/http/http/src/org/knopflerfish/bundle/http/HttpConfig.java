@@ -34,9 +34,8 @@
 
 package org.knopflerfish.bundle.http;
 
-import java.io.InputStream;
 import java.io.IOException;
-import java.net.InetAddress;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Dictionary;
@@ -48,7 +47,8 @@ import java.util.Vector;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 
-public class HttpConfig {
+public class HttpConfig
+{
 
   // public constants
 
@@ -60,36 +60,36 @@ public class HttpConfig {
   public final static String CONNECTION_TIMEOUT_KEY = "connection.timeout";
   public final static String CONNECTION_MAX_KEY = "connection.max";
   public final static String DNS_LOOKUP_KEY = "dns.lookup";
-  public final static String RESPONSE_BUFFER_SIZE_DEFAULT_KEY
-    = "response.buffer.size.default";
+  public final static String RESPONSE_BUFFER_SIZE_DEFAULT_KEY =
+    "response.buffer.size.default";
   public final static String SERVICE_RANKING_KEY = "service.ranking";
   public final static String HTTP_ENABLED_KEY = "http.enabled";
   public final static String HTTPS_ENABLED_KEY = "https.enabled";
   public final static String REQ_CLIENT_AUTH_KEY = "req.client.auth";
   private static final int HTTP_PORT_DEFAULT = 80;
   private static final int HTTPS_PORT_DEFAULT = 443;
-  public final static String DEFAULT_CHAR_ENCODING_KEY
-    = "org.knopflerfish.http.encoding.default";
-  public final static String TRACE_ENABLED
-    = "org.knopflerfish.http.trace.enabled";
-  public final static String LIMIT_REQUEST_LINE
-    = "org.knopflerfish.http.limit.requestline";
-  public final static String LIMIT_POST_SIZE
-    = "org.knopflerfish.http.limit.postsize";
-  public final static String LIMIT_REQUEST_HEADERS
-    = "org.knopflerfish.http.limit.requestheaders";
+  public final static String DEFAULT_CHAR_ENCODING_KEY =
+    "org.knopflerfish.http.encoding.default";
+  public final static String TRACE_ENABLED =
+    "org.knopflerfish.http.trace.enabled";
+  public final static String LIMIT_REQUEST_LINE =
+    "org.knopflerfish.http.limit.requestline";
+  public final static String LIMIT_POST_SIZE =
+    "org.knopflerfish.http.limit.postsize";
+  public final static String LIMIT_REQUEST_HEADERS =
+    "org.knopflerfish.http.limit.requestheaders";
 
   //
-  public HttpConfigWrapper HTTP  = new HttpConfigWrapper(false, this);
+  public HttpConfigWrapper HTTP = new HttpConfigWrapper(false, this);
   public HttpConfigWrapper HTTPS = new HttpConfigWrapper(true, this);
 
   // private fields
-  private BundleContext bc;
-  private Dictionary configuration;
+  private final Dictionary<String, Object> configuration;
   private int httpPort = HTTP_PORT_DEFAULT;
   private int httpsPort = HTTPS_PORT_DEFAULT;
   private String host = "";
-  private final Hashtable mimeMap = new Hashtable();
+  private final Hashtable<Object, Object> mimeMap =
+    new Hashtable<Object, Object>();
   private int defaultSessionTimeout = 1200;
   private int connectionTimeout = 30;
   private int connectionMax = 50;
@@ -108,122 +108,105 @@ public class HttpConfig {
 
   // constructor(s)
 
-  public HttpConfig(BundleContext bc, Dictionary configuration)
+  public HttpConfig(BundleContext bc, Dictionary<String, ?> configuration)
     throws ConfigurationException
   {
-    this.bc = bc;
     this.configuration = HttpConfig.getDefaultConfig(bc);
     updated(configuration);
   }
 
   // public methods
-  public static Dictionary getDefaultConfig(BundleContext bc) {
+  public static Dictionary<String, Object> getDefaultConfig(BundleContext bc)
+  {
+    final Dictionary<String, Object> config = new Hashtable<String, Object>();
 
-    final Dictionary config = new Hashtable();
-
-    config.put(HttpConfig.HTTP_ENABLED_KEY,
-               getPropertyAsBoolean(bc,
-                                    "org.knopflerfish.http.enabled",
-                                    "true"));
+    config
+        .put(HttpConfig.HTTP_ENABLED_KEY,
+             getPropertyAsBoolean(bc, "org.knopflerfish.http.enabled", "true"));
     config.put(HttpConfig.HTTPS_ENABLED_KEY,
-               getPropertyAsBoolean(bc,
-                                    "org.knopflerfish.http.secure.enabled",
+               getPropertyAsBoolean(bc, "org.knopflerfish.http.secure.enabled",
                                     "true"));
     config.put(HttpConfig.HTTP_PORT_KEY,
-               getPropertyAsInteger(bc,
-                                    "org.osgi.service.http.port",
+               getPropertyAsInteger(bc, "org.osgi.service.http.port",
                                     HTTP_PORT_DEFAULT));
     config.put(HttpConfig.HTTPS_PORT_KEY,
-               getPropertyAsInteger(bc,
-                                    "org.osgi.service.http.secure.port",
+               getPropertyAsInteger(bc, "org.osgi.service.http.secure.port",
                                     HTTPS_PORT_DEFAULT));
     config.put(HttpConfig.HOST_KEY,
-               getPropertyAsString(bc,
-                                   "org.osgi.service.http.hostname",
-                                   ""));
+               getPropertyAsString(bc, "org.osgi.service.http.hostname", ""));
 
-    Properties mimeProps = new Properties();
+    final Properties mimeProps = new Properties();
     try {
-      InputStream mis = HttpConfig.class.getResourceAsStream("/mime.default");
+      final InputStream mis = HttpConfig.class.getResourceAsStream("/mime.default");
       if (mis != null) {
         try {
           mimeProps.load(mis);
         } finally {
           mis.close();
         }
-        String propurl = getPropertyAsString(bc,
-                                             "org.knopflerfish.http.mime.props",
-                                             "");
+        final String propurl =
+          getPropertyAsString(bc, "org.knopflerfish.http.mime.props", "");
         if (propurl.length() > 0) {
-          URL url = new URL(propurl);
-          Properties userMimeProps = new Properties();
-          InputStream pis = url.openStream();
+          final URL url = new URL(propurl);
+          final Properties userMimeProps = new Properties();
+          final InputStream pis = url.openStream();
           userMimeProps.load(pis);
-          Enumeration e = userMimeProps.keys();
+          final Enumeration<?> e = userMimeProps.keys();
           while (e.hasMoreElements()) {
-            String key = (String) e.nextElement();
+            final String key = (String) e.nextElement();
             mimeProps.put(key, userMimeProps.getProperty(key));
           }
           pis.close();
         }
       }
-    } catch (MalformedURLException ignore) {
-    } catch (IOException ignore) {
+    } catch (final MalformedURLException ignore) {
+    } catch (final IOException ignore) {
     }
-    Vector mimeVector = new Vector(mimeProps.size());
-    Enumeration e = mimeProps.keys();
+    final Vector<String[]> mimeVector = new Vector<String[]>(mimeProps.size());
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    final Enumeration<String> e = ((Hashtable) mimeProps).keys();
     while (e.hasMoreElements()) {
-      String key = (String) e.nextElement();
-      mimeVector.addElement(new String[] { key,
-                                           mimeProps.getProperty(key) });
+      final String key = e.nextElement();
+      mimeVector.addElement(new String[] { key, mimeProps.getProperty(key) });
     }
     config.put(HttpConfig.MIME_PROPS_KEY, mimeVector);
 
-    config.put(HttpConfig.SESSION_TIMEOUT_KEY,
-               getPropertyAsInteger(bc,
-                                    "org.knopflerfish.http.session.timeout.default",
-                                    1200));
+    config
+        .put(HttpConfig.SESSION_TIMEOUT_KEY,
+             getPropertyAsInteger(bc,
+                                  "org.knopflerfish.http.session.timeout.default",
+                                  1200));
 
     config.put(HttpConfig.CONNECTION_TIMEOUT_KEY,
                getPropertyAsInteger(bc,
                                     "org.knopflerfish.http.connection.timeout",
                                     30));
     config.put(HttpConfig.CONNECTION_MAX_KEY,
-               getPropertyAsInteger(bc,
-                                    "org.knopflerfish.http.connection.max",
+               getPropertyAsInteger(bc, "org.knopflerfish.http.connection.max",
                                     50));
 
     config.put(HttpConfig.DNS_LOOKUP_KEY,
-               getPropertyAsBoolean(bc,
-                                    "org.knopflerfish.http.dnslookup",
+               getPropertyAsBoolean(bc, "org.knopflerfish.http.dnslookup",
                                     "false"));
-    config.put(HttpConfig.RESPONSE_BUFFER_SIZE_DEFAULT_KEY,
-               getPropertyAsInteger(bc,
-                                    "org.knopflerfish.http.response.buffer.size.default",
-                                    16384));
+    config
+        .put(HttpConfig.RESPONSE_BUFFER_SIZE_DEFAULT_KEY,
+             getPropertyAsInteger(bc,
+                                  "org.knopflerfish.http.response.buffer.size.default",
+                                  16384));
 
     config.put(HttpConfig.DEFAULT_CHAR_ENCODING_KEY,
-               getPropertyAsString(bc,
-                                   HttpConfig.DEFAULT_CHAR_ENCODING_KEY,
+               getPropertyAsString(bc, HttpConfig.DEFAULT_CHAR_ENCODING_KEY,
                                    "ISO-8859-1"));
 
     config.put(HttpConfig.TRACE_ENABLED,
-               getPropertyAsBoolean(bc,
-				    HttpConfig.TRACE_ENABLED,
-				    "false"));
+               getPropertyAsBoolean(bc, HttpConfig.TRACE_ENABLED, "false"));
 
     config.put(HttpConfig.LIMIT_REQUEST_LINE,
-               getPropertyAsInteger(bc,
-				    HttpConfig.LIMIT_REQUEST_LINE,
-				    8190));
+               getPropertyAsInteger(bc, HttpConfig.LIMIT_REQUEST_LINE, 8190));
     config.put(HttpConfig.LIMIT_POST_SIZE,
-               getPropertyAsInteger(bc,
-				    HttpConfig.LIMIT_POST_SIZE,
-				    -1));
+               getPropertyAsInteger(bc, HttpConfig.LIMIT_POST_SIZE, -1));
     config.put(HttpConfig.LIMIT_REQUEST_HEADERS,
-               getPropertyAsInteger(bc,
-				    HttpConfig.LIMIT_REQUEST_HEADERS,
-				    100));
+               getPropertyAsInteger(bc, HttpConfig.LIMIT_REQUEST_HEADERS, 100));
     config.put(HttpConfig.REQ_CLIENT_AUTH_KEY,
                getPropertyAsBoolean(bc,
                                     "org.knopflerfish.http.req.client.auth",
@@ -232,16 +215,17 @@ public class HttpConfig {
     return config;
   }
 
-  public void mergeConfiguration(Dictionary configuration)
-    throws ConfigurationException {
-
-    if (configuration == null)
+  public void mergeConfiguration(Dictionary<String, ?> configuration)
+      throws ConfigurationException
+  {
+    if (configuration == null) {
       return;
+    }
 
-    Enumeration e = configuration.keys();
+    final Enumeration<String> e = configuration.keys();
     while (e.hasMoreElements()) {
-      String key = (String) e.nextElement();
-      Object value = configuration.get(key);
+      final String key = e.nextElement();
+      final Object value = configuration.get(key);
       try {
         if (key.equals(HTTP_PORT_KEY)) {
           httpPort = ((Integer) value).intValue();
@@ -253,14 +237,14 @@ public class HttpConfig {
           host = (String) value;
           this.configuration.put(key, value);
         } else if (key.equals(MIME_PROPS_KEY)) {
-          Enumeration pairs = ((Vector) value).elements();
+          final Enumeration<?> pairs = ((Vector<?>) value).elements();
           while (pairs.hasMoreElements()) {
-            Object o = pairs.nextElement();
+            final Object o = pairs.nextElement();
             if (o instanceof Object[]) {
-              Object[] pair = (Object[]) o;
+              final Object[] pair = (Object[]) o;
               mimeMap.put(pair[0], pair[1]);
             } else if (o instanceof Vector) {
-              Vector pair = (Vector) o;
+              final Vector<?> pair = (Vector<?>) o;
               mimeMap.put(pair.elementAt(0), pair.elementAt(1));
             }
           }
@@ -296,145 +280,169 @@ public class HttpConfig {
           this.traceEnabled = ((Boolean) value).booleanValue();
           this.configuration.put(key, value);
         } else if (key.equals(LIMIT_REQUEST_LINE)) {
-	  this.limitRequestLine = ((Integer) value).intValue();
-	  ServletInputStreamImpl.setLimitRequestLine(this.limitRequestLine); // set globally
-	  this.configuration.put(key, value);
+          this.limitRequestLine = ((Integer) value).intValue();
+          ServletInputStreamImpl.setLimitRequestLine(this.limitRequestLine); // set
+                                                                             // globally
+          this.configuration.put(key, value);
         } else if (key.equals(LIMIT_POST_SIZE)) {
-	  this.limitPostSize = ((Integer) value).intValue();
-	  this.configuration.put(key, value);
+          this.limitPostSize = ((Integer) value).intValue();
+          this.configuration.put(key, value);
         } else if (key.equals(LIMIT_REQUEST_HEADERS)) {
-	  this.limitRequestHeaders = ((Integer) value).intValue();
-	  this.configuration.put(key, value);
+          this.limitRequestHeaders = ((Integer) value).intValue();
+          this.configuration.put(key, value);
         } else if (key.equals(REQ_CLIENT_AUTH_KEY)) {
           this.requireClientAuth = ((Boolean) value).booleanValue();
           this.configuration.put(key, value);
-        } else
+        } else {
           this.configuration.put(key, value);
-      } catch (IndexOutOfBoundsException ioobe) {
+        }
+      } catch (final IndexOutOfBoundsException ioobe) {
         throw new ConfigurationException(key, "Wrong type");
-      } catch (ClassCastException cce) {
+      } catch (final ClassCastException cce) {
         throw new ConfigurationException(key, "Wrong type: "
-                                         + value.getClass().getName());
+                                              + value.getClass().getName());
       }
     }
   }
 
-  public Dictionary getConfiguration() {
+  public Dictionary<String, Object> getConfiguration()
+  {
     return configuration;
   }
 
-  public int getMaxConnections() {
+  public int getMaxConnections()
+  {
     return connectionMax;
   }
 
-  public String getServerInfo() {
+  public String getServerInfo()
+  {
     return "The Knopflerfish HTTP Server"; // NYI
   }
 
-  public String getMimeType(String file) {
-
+  public String getMimeType(String file)
+  {
     String mimeType = null;
 
-    int index = file.lastIndexOf('.');
-    if (index != -1)
+    final int index = file.lastIndexOf('.');
+    if (index != -1) {
       mimeType = (String) mimeMap.get(file.substring(index + 1));
+    }
 
     return mimeType;
   }
 
-  public int getDefaultSessionTimeout() {
+  public int getDefaultSessionTimeout()
+  {
     return defaultSessionTimeout; // NYI
   }
 
-  public int getDefaultBufferSize() {
+  public int getDefaultBufferSize()
+  {
     return defaultResponseBufferSize; // NYI
   }
 
-  public int getConnectionTimeout() {
+  public int getConnectionTimeout()
+  {
     return connectionTimeout;
   }
 
-  public boolean isHttpEnabled() {
+  public boolean isHttpEnabled()
+  {
     return httpEnabled;
   }
 
-  public boolean isHttpsEnabled() {
+  public boolean isHttpsEnabled()
+  {
     return httpsEnabled;
   }
 
-  public boolean isTraceEnabled() {
+  public boolean isTraceEnabled()
+  {
     return traceEnabled;
   }
 
-  public int getLimitPostSize() {
+  public int getLimitPostSize()
+  {
     return limitPostSize;
   }
 
-  public int getLimitRequestHeaders() {
+  public int getLimitRequestHeaders()
+  {
     return limitRequestHeaders;
   }
 
-  public String getHost() {
+  public String getHost()
+  {
     return host;
   }
 
-  public int getHttpPort() {
+  public int getHttpPort()
+  {
     return httpPort;
   }
 
-  public int getHttpsPort() {
+  public int getHttpsPort()
+  {
     return httpsPort;
   }
 
-  public void setHttpPort(int port) {
+  public void setHttpPort(int port)
+  {
     this.httpPort = port;
     configuration.put(HTTP_PORT_KEY, new Integer(port));
   }
 
-  public void setHttpsPort(int port) {
+  public void setHttpsPort(int port)
+  {
     this.httpsPort = port;
     configuration.put(HTTPS_PORT_KEY, new Integer(port));
   }
 
-  public boolean getDNSLookup() {
+  public boolean getDNSLookup()
+  {
     return dnsLookup;
   }
 
-  public boolean requireClientAuth() {
+  public boolean requireClientAuth()
+  {
     return requireClientAuth;
   }
 
-  public String getDefaultCharacterEncoding() {
+  public String getDefaultCharacterEncoding()
+  {
     return defaultCharEncoding;
   }
 
-  public void updated(Dictionary configuration) throws ConfigurationException {
+  public void updated(Dictionary<String, ?> configuration)
+      throws ConfigurationException
+  {
     mergeConfiguration(configuration); // NYI
   }
 
   // private helper methods
   private static Boolean getPropertyAsBoolean(BundleContext bc,
                                               String name,
-                                              String defVal )
+                                              String defVal)
   {
-    String val = bc.getProperty(name);
-    return Boolean.valueOf(val==null? defVal : val);
+    final String val = bc.getProperty(name);
+    return Boolean.valueOf(val == null ? defVal : val);
   }
 
   private static Integer getPropertyAsInteger(BundleContext bc,
                                               String name,
-                                              int    defVal )
+                                              int defVal)
   {
-    String val = bc.getProperty(name);
-    return val==null ? new Integer(defVal) : Integer.valueOf(val);
+    final String val = bc.getProperty(name);
+    return val == null ? new Integer(defVal) : Integer.valueOf(val);
   }
 
   private static String getPropertyAsString(BundleContext bc,
                                             String name,
-                                            String defVal )
+                                            String defVal)
   {
-    String val = bc.getProperty(name);
-    return val==null ? defVal : val;
+    final String val = bc.getProperty(name);
+    return val == null ? defVal : val;
   }
 
 } // HttpConfig

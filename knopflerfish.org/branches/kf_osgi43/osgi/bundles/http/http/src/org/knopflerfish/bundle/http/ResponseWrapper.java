@@ -43,7 +43,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
-
 public class ResponseWrapper
   extends HttpServletResponseWrapper
   implements Response
@@ -53,18 +52,20 @@ public class ResponseWrapper
   private ServletOutputStream sos = null;
 
   // constructors
-  public ResponseWrapper(final HttpServletResponse response) {
+  public ResponseWrapper(final HttpServletResponse response)
+  {
     super(response);
   }
 
-  private HttpServletResponse _getHttpServletResponse() {
+  private HttpServletResponse _getHttpServletResponse()
+  {
     return (HttpServletResponse) super.getResponse();
   }
 
-
   // implements Response
-  public OutputStream getRawOutputStream() {
-    HttpServletResponse response = _getHttpServletResponse();
+  public OutputStream getRawOutputStream()
+  {
+    final HttpServletResponse response = _getHttpServletResponse();
 
     if (response instanceof Response) {
       return ((Response) response).getRawOutputStream();
@@ -73,36 +74,42 @@ public class ResponseWrapper
   }
 
   // override ServletResponse methods
+  @Override
   public ServletOutputStream getOutputStream()
-    throws IOException
+      throws IOException
   {
-    if (pw != null)
+    if (pw != null) {
       throw new IllegalStateException("getWriter() already called");
+    }
 
     if (sos == null) {
       final OutputStream os = getRawOutputStream();
-      if (os == null)
+      if (os == null) {
         sos = _getHttpServletResponse().getOutputStream();
-      else
+      } else {
         sos = new ServletOutputStreamImpl(os);
+      }
     }
 
     return sos;
   }
 
+  @Override
   public PrintWriter getWriter()
-    throws IOException
+      throws IOException
   {
-    if (sos != null)
+    if (sos != null) {
       throw new IllegalStateException("getOutputStream() already called");
+    }
 
     if (pw == null) {
       final OutputStream os = getRawOutputStream();
-      if (os == null)
+      if (os == null) {
         pw = _getHttpServletResponse().getWriter();
-      else
-        pw = new PrintWriter(new OutputStreamWriter(os,
-                                                    getCharacterEncoding()));
+      } else {
+        pw =
+          new PrintWriter(new OutputStreamWriter(os, getCharacterEncoding()));
+      }
     }
 
     return pw;

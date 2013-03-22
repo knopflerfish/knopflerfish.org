@@ -36,97 +36,117 @@ package org.knopflerfish.bundle.http;
 /**
  * @author tenderes
  *
- * There is a relationship of 1 : 1 between HttpServer objects and Http Config
- * instances. Each HttpServer instance should be able to expose all registered
- * resources both via HTTP and/or via HTTPS. This class enables us to provide
- * two different views to the same HttpConfig object, one for HTTP, one for
- * HTTPS. This keeps the processing of HTTPS-aware processing in other classes
- * to a minimum.
+ *         There is a relationship of 1 : 1 between HttpServer objects and Http
+ *         Config instances. Each HttpServer instance should be able to expose
+ *         all registered resources both via HTTP and/or via HTTPS. This class
+ *         enables us to provide two different views to the same HttpConfig
+ *         object, one for HTTP, one for HTTPS. This keeps the processing of
+ *         HTTPS-aware processing in other classes to a minimum.
  */
-public class HttpConfigWrapper {
-    private final HttpConfig config;
+public class HttpConfigWrapper
+{
+  private final HttpConfig config;
 
-    private boolean isSecure;
+  private final boolean isSecure;
 
-    public HttpConfigWrapper(boolean isSecure, HttpConfig config) {
-        this.isSecure = isSecure;
-        this.config = config;
+  public HttpConfigWrapper(boolean isSecure, HttpConfig config)
+  {
+    this.isSecure = isSecure;
+    this.config = config;
+  }
+
+  public boolean isSecure()
+  {
+    return isSecure;
+  }
+
+  public String getScheme()
+  {
+    return isSecure ? "https" : "http";
+  }
+
+  public int getConnectionTimeout()
+  {
+    return config.getConnectionTimeout();
+  }
+
+  public int getDefaultBufferSize()
+  {
+    return config.getDefaultBufferSize();
+  }
+
+  public int getDefaultSessionTimeout()
+  {
+    return config.getDefaultSessionTimeout();
+  }
+
+  public boolean getDNSLookup()
+  {
+    return config.getDNSLookup();
+  }
+
+  public String getHost()
+  {
+    return config.getHost();
+  }
+
+  public int getPort()
+  {
+    return isSecure ? config.getHttpsPort() : config.getHttpPort();
+  }
+
+  public void setPort(int port)
+  {
+    if (isSecure) {
+      config.setHttpsPort(port);
+    } else {
+      config.setHttpPort(port);
     }
+  }
 
-    public boolean isSecure() {
-        return isSecure;
-    }
+  public int getMaxConnections()
+  {
+    return config.getMaxConnections();
+  }
 
-    public String getScheme() {
-        return isSecure ? "https" : "http";
-    }
+  public String getMimeType(String file)
+  {
+    return config.getMimeType(file);
+  }
 
-    public int getConnectionTimeout() {
-        return config.getConnectionTimeout();
-    }
+  public String getServerInfo()
+  {
+    return config.getServerInfo();
+  }
 
-    public int getDefaultBufferSize() {
-        return config.getDefaultBufferSize();
-    }
+  public boolean isEnabled()
+  {
+    return isSecure ? config.isHttpsEnabled() : config.isHttpEnabled();
+  }
 
-    public int getDefaultSessionTimeout() {
-        return config.getDefaultSessionTimeout();
-    }
+  public boolean isTraceEnabled()
+  {
+    return config.isTraceEnabled();
+  }
 
-    public boolean getDNSLookup() {
-        return config.getDNSLookup();
-    }
+  public int getLimitPostSize()
+  {
+    return config.getLimitPostSize();
+  }
 
-    public String getHost() {
-        return config.getHost();
-    }
+  public int getLimitRequestHeaders()
+  {
+    return config.getLimitRequestHeaders();
+  }
 
-    public int getPort() {
-        return isSecure ? config.getHttpsPort() : config.getHttpPort();
-    }
+  String getDefaultCharacterEncoding()
+  {
+    return config.getDefaultCharacterEncoding();
+  }
 
-    public void setPort(int port) {
-        if (isSecure) {
-            config.setHttpsPort(port);
-        } else {
-            config.setHttpPort(port);
-        }
-    }
-
-    public int getMaxConnections() {
-        return config.getMaxConnections();
-    }
-
-    public String getMimeType(String file) {
-        return config.getMimeType(file);
-    }
-
-    public String getServerInfo() {
-        return config.getServerInfo();
-    }
-
-    public boolean isEnabled() {
-        return isSecure ? config.isHttpsEnabled() : config.isHttpEnabled();
-    }
-
-    public boolean isTraceEnabled() {
-      return config.isTraceEnabled();
-    }
-
-    public int getLimitPostSize() {
-      return config.getLimitPostSize();
-    }
-
-    public int getLimitRequestHeaders() {
-      return config.getLimitRequestHeaders();
-    }
-
-    String getDefaultCharacterEncoding() {
-      return config.getDefaultCharacterEncoding();
-    }
-
-    public boolean requireClientAuth() {
-        return config.requireClientAuth();
-    }
+  public boolean requireClientAuth()
+  {
+    return config.requireClientAuth();
+  }
 
 }

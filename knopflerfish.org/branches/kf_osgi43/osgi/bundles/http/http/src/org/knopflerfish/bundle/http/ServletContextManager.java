@@ -39,90 +39,105 @@ import java.util.Hashtable;
 
 import javax.servlet.ServletContext;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.service.http.HttpContext;
 
-public class ServletContextManager {
+import org.knopflerfish.service.log.LogRef;
 
-    // private classes
+public class ServletContextManager
+{
 
-    private final static class ContextKey {
-        int referenceCount = 1;
+  // private classes
 
-        final HttpContext httpContext;
+  private final static class ContextKey
+  {
+    int referenceCount = 1;
 
-        final String realPath;
+    final HttpContext httpContext;
 
-        ContextKey(HttpContext httpContext, String realPath) {
-            this.httpContext = httpContext;
-            this.realPath = realPath;
-        }
+    final String realPath;
 
-        public int hashCode() {
-            return httpContext.hashCode() ^ realPath.hashCode();
-        }
-
-        public boolean equals(Object object) {
-            if (object instanceof ContextKey) {
-                ContextKey key = (ContextKey) object;
-                return httpContext.equals(key.httpContext)
-                        && realPath.equals(key.realPath);
-            }
-            return false;
-        }
+    ContextKey(HttpContext httpContext, String realPath)
+    {
+      this.httpContext = httpContext;
+      this.realPath = realPath;
     }
 
-    // private fields
-
-    private final Dictionary keyMap = new Hashtable();
-
-    private final Dictionary contextMap = new Hashtable();
-
-    private final HttpConfig httpConfig;
-
-    private final LogRef log;
-
-    private final Registrations registrations;
-
-    // constructors
-
-    public ServletContextManager(final HttpConfig httpConfig, final LogRef log,
-            final Registrations registrations) {
-
-        this.httpConfig = httpConfig;
-        this.log = log;
-        this.registrations = registrations;
+    @Override
+    public int hashCode()
+    {
+      return httpContext.hashCode() ^ realPath.hashCode();
     }
 
-    // public methods
+    @Override
+    public boolean equals(Object object)
+    {
+      if (object instanceof ContextKey) {
+        final ContextKey key = (ContextKey) object;
+        return httpContext.equals(key.httpContext)
+               && realPath.equals(key.realPath);
+      }
+      return false;
+    }
+  }
 
-    public synchronized ServletContext getServletContext(
-            final HttpContext httpContext, String realPath) {
+  // private fields
 
-        if (realPath == null)
-            realPath = "";
+  private final Dictionary<ServletContextImpl, ContextKey> keyMap =
+    new Hashtable<ServletContextImpl, ContextKey>();
 
-        final ContextKey key = new ContextKey(httpContext, realPath);
-        ServletContextImpl context = (ServletContextImpl) contextMap.get(key);
-        if (context == null) {
-            context = new ServletContextImpl(httpContext, realPath, httpConfig,
-                    log, registrations);
-            keyMap.put(context, key);
-            contextMap.put(key, context);
-        } else {
-            ((ContextKey) keyMap.get(context)).referenceCount++;
-        }
+  private final Dictionary<ContextKey, ServletContextImpl> contextMap =
+    new Hashtable<ContextKey, ServletContextImpl>();
 
-        return context;
+  private final HttpConfig httpConfig;
+
+  private final LogRef log;
+
+  private final Registrations registrations;
+
+  // constructors
+
+  public ServletContextManager(final HttpConfig httpConfig, final LogRef log,
+                               final Registrations registrations)
+  {
+
+    this.httpConfig = httpConfig;
+    this.log = log;
+    this.registrations = registrations;
+  }
+
+  // public methods
+
+  public synchronized ServletContext getServletContext(final HttpContext httpContext,
+                                                       String realPath)
+  {
+
+    if (realPath == null) {
+      realPath = "";
     }
 
-    public synchronized void ungetServletContext(ServletContext context) {
-
-        final ContextKey key = (ContextKey) keyMap.get(context);
-        if (key != null && --key.referenceCount <= 0) {
-            contextMap.remove(key);
-            keyMap.remove(context);
-        }
+    final ContextKey key = new ContextKey(httpContext, realPath);
+    ServletContextImpl context = contextMap.get(key);
+    if (context == null) {
+      context =
+        new ServletContextImpl(httpContext, realPath, httpConfig, log,
+                               registrations);
+      keyMap.put(context, key);
+      contextMap.put(key, context);
+    } else {
+      keyMap.get(context).referenceCount++;
     }
+
+    return context;
+  }
+
+  public synchronized void ungetServletContext(ServletContext context)
+  {
+
+    final ContextKey key = keyMap.get(context);
+    if (key != null && --key.referenceCount <= 0) {
+      contextMap.remove(key);
+      keyMap.remove(context);
+    }
+  }
 
 } // ServletContextManager

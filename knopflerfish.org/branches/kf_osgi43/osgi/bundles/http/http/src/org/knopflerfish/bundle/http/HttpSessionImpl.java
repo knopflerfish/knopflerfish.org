@@ -43,181 +43,201 @@ import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
 import javax.servlet.http.HttpSessionContext;
 
-public class HttpSessionImpl implements HttpSession {
+public class HttpSessionImpl
+  implements HttpSession
+{
+  // private fields
 
-    // private fields
+  private boolean invalid = true;
 
-    private boolean invalid = true;
+  private String id = null;
 
-    private String id = null;
+  private long creationTime = -1;
 
-    private long creationTime = -1;
+  private long accessedTime = -1;
 
-    private long accessedTime = -1;
+  private long lastAccessedTime = -1;
 
-    private long lastAccessedTime = -1;
+  private int maxInactiveInterval = -1;
 
-    private int maxInactiveInterval = -1;
+  private final Attributes attributes = new Attributes();
 
-    private final Attributes attributes = new Attributes();
+  // public methods
 
-    // public methods
+  public void init(int count)
+  {
+    creationTime = System.currentTimeMillis();
+    accessedTime = creationTime;
 
-    public void init(int count) {
+    id = "session." + count + "." + creationTime;
 
-        creationTime = System.currentTimeMillis();
-        accessedTime = creationTime;
+    invalid = false;
+  }
 
-        id = "session." + count + "." + creationTime;
+  public void join()
+  {
+    lastAccessedTime = accessedTime;
+    accessedTime = System.currentTimeMillis();
+  }
 
-        invalid = false;
-    }
-
-    public void join() {
-
-        lastAccessedTime = accessedTime;
-        accessedTime = System.currentTimeMillis();
-    }
-
-  public ServletContext getServletContext() {
+  public ServletContext getServletContext()
+  {
     System.err.println("***NYI." + getClass().getName());
     throw new RuntimeException("NYI");
   }
 
-    public boolean isExpired() {
-        return invalid
-                || accessedTime + maxInactiveInterval * 1000 < System
-                        .currentTimeMillis();
+  public boolean isExpired()
+  {
+    return invalid
+           || accessedTime + maxInactiveInterval * 1000 < System
+               .currentTimeMillis();
+  }
+
+  public void destroy()
+  {
+    invalid = true;
+
+    id = null;
+    creationTime = -1;
+    accessedTime = -1;
+    lastAccessedTime = -1;
+    maxInactiveInterval = -1;
+
+    attributes.removeAll();
+  }
+
+  // implements HttpSession
+
+  public String getId()
+  {
+    return id;
+  }
+
+  public boolean isNew()
+  {
+    if (invalid) {
+      throw new IllegalStateException("Invalid session");
     }
 
-    public void destroy() {
+    return lastAccessedTime == -1;
+  }
 
-        invalid = true;
-
-        id = null;
-        creationTime = -1;
-        accessedTime = -1;
-        lastAccessedTime = -1;
-        maxInactiveInterval = -1;
-
-        attributes.removeAll();
+  public long getCreationTime()
+  {
+    if (invalid) {
+      throw new IllegalStateException("Invalid session");
     }
 
-    // implements HttpSession
+    return creationTime;
+  }
 
-    public String getId() {
-        return id;
+  public long getLastAccessedTime()
+  {
+    return lastAccessedTime;
+  }
+
+  public int getMaxInactiveInterval()
+  {
+    return maxInactiveInterval;
+  }
+
+  public void setMaxInactiveInterval(int maxInactiveInterval)
+  {
+    this.maxInactiveInterval = maxInactiveInterval;
+  }
+
+  public void invalidate()
+  {
+    if (invalid) {
+      throw new IllegalStateException("Invalid session");
     }
 
-    public boolean isNew() {
-
-        if (invalid)
-            throw new IllegalStateException("Invalid session");
-
-        return lastAccessedTime == -1;
+    final Enumeration<String> names = getAttributeNames();
+    while (names.hasMoreElements()) {
+      removeAttribute(names.nextElement());
     }
 
-    public long getCreationTime() {
+    invalid = true;
+  }
 
-        if (invalid)
-            throw new IllegalStateException("Invalid session");
-
-        return creationTime;
+  public Object getAttribute(String name)
+  {
+    if (invalid) {
+      throw new IllegalStateException("Invalid session");
     }
 
-    public long getLastAccessedTime() {
-        return lastAccessedTime;
+    return attributes.getAttribute(name);
+  }
+
+  public synchronized Enumeration<String> getAttributeNames()
+  {
+    if (invalid) {
+      throw new IllegalStateException("Invalid session");
     }
 
-    public int getMaxInactiveInterval() {
-        return maxInactiveInterval;
+    return attributes.getAttributeNames();
+  }
+
+  public synchronized void setAttribute(String name, Object value)
+  {
+    if (invalid) {
+      throw new IllegalStateException("Invalid session");
     }
 
-    public void setMaxInactiveInterval(int maxInactiveInterval) {
-        this.maxInactiveInterval = maxInactiveInterval;
+    attributes.setAttribute(name, value);
+
+    if (value instanceof HttpSessionBindingListener) {
+      final HttpSessionBindingListener listener = (HttpSessionBindingListener) value;
+      listener.valueBound(new HttpSessionBindingEvent(this, name));
+    }
+  }
+
+  public synchronized void removeAttribute(String name)
+  {
+    if (invalid) {
+      throw new IllegalStateException("Invalid session");
     }
 
-    public void invalidate() {
+    final Object value = attributes.removeAttribute(name);
 
-        if (invalid)
-            throw new IllegalStateException("Invalid session");
-
-        Enumeration names = getAttributeNames();
-        while (names.hasMoreElements())
-            removeAttribute((String) names.nextElement());
-
-        invalid = true;
+    if (value != null && value instanceof HttpSessionBindingListener) {
+      final HttpSessionBindingListener listener = (HttpSessionBindingListener) value;
+      listener.valueUnbound(new HttpSessionBindingEvent(this, name));
     }
+  }
 
-    public Object getAttribute(String name) {
+  public synchronized Object getValue(String name)
+  {
+    return getAttribute(name); // deprecated
+  }
 
-        if (invalid)
-            throw new IllegalStateException("Invalid session");
+  public synchronized String[] getValueNames()
+  { // deprecated
+    final Vector<String> v = new Vector<String>();
 
-        return attributes.getAttribute(name);
+    final Enumeration<String> e = getAttributeNames();
+    while (e.hasMoreElements()) {
+      v.addElement(e.nextElement());
     }
+    final String[] names = new String[v.size()];
+    v.copyInto(names);
 
-    public synchronized Enumeration getAttributeNames() {
+    return names;
+  }
 
-        if (invalid)
-            throw new IllegalStateException("Invalid session");
+  public void putValue(String name, Object value)
+  {
+    setAttribute(name, value); // deprecated
+  }
 
-        return attributes.getAttributeNames();
-    }
+  public void removeValue(String name)
+  {
+    removeAttribute(name); // deprecated
+  }
 
-    public synchronized void setAttribute(String name, Object value) {
-
-        if (invalid)
-            throw new IllegalStateException("Invalid session");
-
-        attributes.setAttribute(name, value);
-
-        if (value instanceof HttpSessionBindingListener) {
-            HttpSessionBindingListener listener = (HttpSessionBindingListener) value;
-            listener.valueBound(new HttpSessionBindingEvent(this, name));
-        }
-    }
-
-    public synchronized void removeAttribute(String name) {
-
-        if (invalid)
-            throw new IllegalStateException("Invalid session");
-
-        Object value = attributes.removeAttribute(name);
-
-        if (value != null && value instanceof HttpSessionBindingListener) {
-            HttpSessionBindingListener listener = (HttpSessionBindingListener) value;
-            listener.valueUnbound(new HttpSessionBindingEvent(this, name));
-        }
-    }
-
-    public synchronized Object getValue(String name) {
-        return getAttribute(name); // deprecated
-    }
-
-    public synchronized String[] getValueNames() { // deprecated
-
-        Vector v = new Vector();
-
-        Enumeration e = getAttributeNames();
-        while (e.hasMoreElements())
-            v.addElement(e.nextElement());
-        String[] names = new String[v.size()];
-        v.copyInto(names);
-
-        return names;
-    }
-
-    public void putValue(String name, Object value) {
-        setAttribute(name, value); // deprecated
-    }
-
-    public void removeValue(String name) {
-        removeAttribute(name); // deprecated
-    }
-
-    public HttpSessionContext getSessionContext() {
-        return null; // deprecated
-    }
+  public HttpSessionContext getSessionContext()
+  {
+    return null; // deprecated
+  }
 
 } // HttpSessionImpl

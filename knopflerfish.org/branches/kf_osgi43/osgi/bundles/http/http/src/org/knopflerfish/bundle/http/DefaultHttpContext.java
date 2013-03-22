@@ -42,31 +42,36 @@ import javax.servlet.http.HttpServletResponse;
 import org.osgi.framework.Bundle;
 import org.osgi.service.http.HttpContext;
 
-public class DefaultHttpContext implements HttpContext {
+public class DefaultHttpContext
+  implements HttpContext
+{
+  // private fields
 
-    // private fields
+  private final Bundle bundle;
 
-    private Bundle bundle;
+  // constructors
 
-    // constructors
+  public DefaultHttpContext(Bundle bundle)
+  {
+    this.bundle = bundle;
+  }
 
-    public DefaultHttpContext(Bundle bundle) {
-        this.bundle = bundle;
-    }
+  // implements HttpContext
 
-    // implements HttpContext
+  public boolean handleSecurity(HttpServletRequest request,
+                                HttpServletResponse response)
+  {
+    return true;
+  }
 
-    public boolean handleSecurity(HttpServletRequest request,
-            HttpServletResponse response) {
-        return true;
-    }
+  public URL getResource(String name)
+  {
+    return bundle.getResource(name);
+  }
 
-    public URL getResource(String name) {
-        return bundle.getResource(name);
-    }
-
-    public String getMimeType(String name) {
-        return null;
-    }
+  public String getMimeType(String name)
+  {
+    return null;
+  }
 
 } // DefaultHttpContext

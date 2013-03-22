@@ -35,80 +35,87 @@
 package org.knopflerfish.bundle.http;
 
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.Enumeration;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletException;
 
-public class Registrations {
+public class Registrations
+{
+  // private fields
 
-    // private fields
+  private final Dictionary<String, Registration> registrations =
+    new Hashtable<String, Registration>();
 
-    private final Dictionary registrations = new Hashtable();
+  private final Vector<Servlet> servlets = new Vector<Servlet>();
 
-    private final Vector servlets = new Vector();
+  // private methods
 
-    // private methods
+  private String fixAlias(String alias)
+  {
+    if (alias.equals("/")) {
+      return "";
+    }
+    return alias;
+  }
 
-    private String fixAlias(String alias) {
+  // public methods
 
-        if (alias.equals("/"))
-            return "";
-        return alias;
+  public void addServlet(Servlet servlet)
+      throws ServletException
+  {
+    if (servlets.contains(servlet)) {
+      throw new ServletException("Servlet already registered");
     }
 
-    // public methods
+    servlets.addElement(servlet);
+  }
 
-    public void addServlet(Servlet servlet)
-        throws ServletException
-    {
+  public void removeServlet(Servlet servlet)
+  {
+    servlets.removeElement(servlet);
+  }
 
-        if (servlets.contains(servlet))
-            throw new ServletException("Servlet already registered");
+  public void put(String alias, Registration registration)
+  {
+    registrations.put(fixAlias(alias), registration);
+  }
 
-        servlets.addElement(servlet);
-    }
+  public Registration remove(String alias)
+  {
+    return registrations.remove(fixAlias(alias));
+  }
 
-    public void removeServlet(Servlet servlet) {
-        servlets.removeElement(servlet);
-    }
+  public Registration get(String alias)
+  {
+    return registrations.get(fixAlias(alias));
+  }
 
-    public void put(String alias, Registration registration) {
-        registrations.put(fixAlias(alias), registration);
-    }
-
-    public Registration remove(String alias) {
-        return (Registration) registrations.remove(fixAlias(alias));
-    }
-
-    public Registration get(String alias) {
-        return (Registration) registrations.get(fixAlias(alias));
-    }
-
-    public RequestDispatcherImpl getRequestDispatcher(String uri)
-    {
-        String alias = uri;
-        while (true) {
-            Registration registration = (Registration) registrations.get(alias);
-            if (registration != null) {
-                RequestDispatcherImpl dispatcher = registration
-                        .getRequestDispatcher(uri);
-                if (dispatcher != null)
-                    return dispatcher;
-            }
-            int index = alias.lastIndexOf('/');
-            if (index == -1) {
-                return null;
-            }
-            alias = alias.substring(0, index);
+  public RequestDispatcherImpl getRequestDispatcher(String uri)
+  {
+    String alias = uri;
+    while (true) {
+      final Registration registration = registrations.get(alias);
+      if (registration != null) {
+        final RequestDispatcherImpl dispatcher =
+          registration.getRequestDispatcher(uri);
+        if (dispatcher != null) {
+          return dispatcher;
         }
+      }
+      final int index = alias.lastIndexOf('/');
+      if (index == -1) {
+        return null;
+      }
+      alias = alias.substring(0, index);
     }
-  
+  }
 
-    public Enumeration getAliases() {
-	return registrations.keys();
-    }
-    
+  public Enumeration<String> getAliases()
+  {
+    return registrations.keys();
+  }
+
 } // Registrations

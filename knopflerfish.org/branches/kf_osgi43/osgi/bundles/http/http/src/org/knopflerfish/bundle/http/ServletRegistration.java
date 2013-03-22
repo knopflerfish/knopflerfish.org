@@ -44,92 +44,96 @@ import javax.servlet.ServletException;
 
 import org.osgi.service.http.HttpContext;
 
-public class ServletRegistration implements Registration {
+public class ServletRegistration
+  implements Registration
+{
 
-    // private fields
+  // private fields
 
-    private final ServletContextManager contextManager;
+  private final ServletContextManager contextManager;
 
-    private final Registrations registrations;
+  private final Registrations registrations;
 
-    private final RequestDispatcherImpl dispatcher;
+  private final RequestDispatcherImpl dispatcher;
 
-    // Bundle that made the registration, quick fix for console
-    private Object owner;
+  // Bundle that made the registration, quick fix for console
+  private Object owner;
 
-    /**
-     * HACK CSM
-     */
-    private long lastModificationDate;
+  /**
+   * HACK CSM
+   */
+  private long lastModificationDate;
 
-    // constructors
+  // constructors
 
-    public ServletRegistration(final String alias,
-                               final Servlet servlet,
-                               Dictionary parameters,
-                               final HttpContext httpContext,
-                               final ServletContextManager contextManager,
-                               final Registrations registrations)
-        throws ServletException
-    {
-        if (parameters == null)
-            parameters = new Hashtable();
-
-        if (parameters.get(HttpUtil.SERVLET_NAME_KEY) == null)
-            parameters.put(HttpUtil.SERVLET_NAME_KEY, servlet.getClass()
-                    .getName());
-
-        this.contextManager = contextManager;
-        this.registrations = registrations;
-
-        // Fail fast if servlet already registered!
-        registrations.addServlet(servlet);
-
-        final ServletContext context = contextManager.getServletContext(
-                httpContext, null);
-        final ServletConfig config = new ServletConfigImpl(parameters, context);
-        servlet.init(config);
-
-        dispatcher = new RequestDispatcherImpl(alias, servlet, httpContext,
-                                               lastModificationDate);
+  public ServletRegistration(final String alias, final Servlet servlet,
+                             Dictionary<String, String> parameters,
+                             final HttpContext httpContext,
+                             final ServletContextManager contextManager,
+                             final Registrations registrations)
+    throws ServletException
+  {
+    if (parameters == null) {
+      parameters = new Hashtable<String, String>();
     }
 
-    // implements Registration
-
-    public RequestDispatcherImpl getRequestDispatcher(final String uri)
-    {
-        dispatcher.setURI(uri);
-
-        return dispatcher;
+    if (parameters.get(HttpUtil.SERVLET_NAME_KEY) == null) {
+      parameters.put(HttpUtil.SERVLET_NAME_KEY, servlet.getClass().getName());
     }
 
-    public void destroy()
-    {
-        final Servlet servlet = dispatcher.getServlet();
-        final ServletConfig cfg = servlet.getServletConfig();
-        final ServletContext context = cfg != null ? cfg.getServletContext() : null;
-        servlet.destroy();
-        if (context != null) {
-          contextManager.ungetServletContext(context);
-        }
-        registrations.removeServlet(servlet);
-    }
+    this.contextManager = contextManager;
+    this.registrations = registrations;
 
-    /**
-     * HACK CSM
-     */
-    public long getLastModificationDate()
-    {
-        return lastModificationDate;
-    }
+    // Fail fast if servlet already registered!
+    registrations.addServlet(servlet);
 
-    public void setOwner(Object o) {
-	this.owner = o;
-    }
+    final ServletContext context =
+      contextManager.getServletContext(httpContext, null);
+    final ServletConfig config = new ServletConfigImpl(parameters, context);
+    servlet.init(config);
 
-    public Object getOwner() {
-	return owner;
-    }
+    dispatcher =
+      new RequestDispatcherImpl(alias, servlet, httpContext,
+                                lastModificationDate);
+  }
 
+  // implements Registration
+
+  public RequestDispatcherImpl getRequestDispatcher(final String uri)
+  {
+    dispatcher.setURI(uri);
+
+    return dispatcher;
+  }
+
+  public void destroy()
+  {
+    final Servlet servlet = dispatcher.getServlet();
+    final ServletConfig cfg = servlet.getServletConfig();
+    final ServletContext context = cfg != null ? cfg.getServletContext() : null;
+    servlet.destroy();
+    if (context != null) {
+      contextManager.ungetServletContext(context);
+    }
+    registrations.removeServlet(servlet);
+  }
+
+  /**
+   * HACK CSM
+   */
+  public long getLastModificationDate()
+  {
+    return lastModificationDate;
+  }
+
+  public void setOwner(Object o)
+  {
+    this.owner = o;
+  }
+
+  public Object getOwner()
+  {
+    return owner;
+  }
 
 } // ServletRegistration

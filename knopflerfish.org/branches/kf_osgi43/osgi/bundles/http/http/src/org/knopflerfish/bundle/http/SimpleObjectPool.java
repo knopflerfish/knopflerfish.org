@@ -38,30 +38,35 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
-public class SimpleObjectPool extends ObjectPool {
+public class SimpleObjectPool
+  extends ObjectPool
+{
 
   // private fields
 
-  private Constructor constructor;
+  private Constructor<?> constructor;
 
   // constructors
 
-  public SimpleObjectPool(final Class clazz) {
+  public SimpleObjectPool(final Class<?> clazz)
+  {
 
     super();
 
     init(clazz);
   }
 
-  public SimpleObjectPool(final Class clazz, final int maxInstances) {
+  public SimpleObjectPool(final Class<?> clazz, final int maxInstances)
+  {
 
     super(maxInstances);
 
     init(clazz);
   }
 
-  public SimpleObjectPool(final Class clazz, final int maxInstances,
-                          final int createInstances) {
+  public SimpleObjectPool(final Class<?> clazz, final int maxInstances,
+                          final int createInstances)
+  {
 
     super(maxInstances, createInstances);
 
@@ -70,33 +75,38 @@ public class SimpleObjectPool extends ObjectPool {
 
   // private methods
 
-  private void init(final Class clazz) {
+  private void init(final Class<?> clazz)
+  {
 
-    if (!clazz.isAssignableFrom(PoolableObject.class))
+    if (!clazz.isAssignableFrom(PoolableObject.class)) {
       throw new IllegalArgumentException("Class must implement "
                                          + PoolableObject.class.getName());
+    }
     try {
       constructor = clazz.getConstructor((Class[]) null);
-    } catch (NoSuchMethodException nsme) {
-      throw new IllegalArgumentException
-        ("Class must have public default constructor");
+    } catch (final NoSuchMethodException nsme) {
+      throw new IllegalArgumentException(
+                                         "Class must have public default constructor");
     }
-    if (!Modifier.isPublic(constructor.getModifiers()))
-      throw new IllegalArgumentException
-        ("Class must have public default constructor");
+    if (!Modifier.isPublic(constructor.getModifiers())) {
+      throw new IllegalArgumentException(
+                                         "Class must have public default constructor");
+    }
   }
 
   // extends ObjectPool
 
-  protected PoolableObject createPoolableObject() {
+  @Override
+  protected PoolableObject createPoolableObject()
+  {
 
     try {
       return (PoolableObject) constructor.newInstance((Object[]) null);
-    } catch (InstantiationException e) {
+    } catch (final InstantiationException e) {
       return null;
-    } catch (IllegalAccessException e) {
+    } catch (final IllegalAccessException e) {
       return null;
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       return null;
     }
   }
