@@ -373,30 +373,32 @@ public class FrameworkCommandGroup
     final StringBuffer sb = new StringBuffer();
     final BundleWiring bw = bundle.adapt(BundleWiring.class);
 
-    // Host bundle with attached fragments.
-    final List<BundleWire> pws =
-      bw.getProvidedWires(BundleRevision.HOST_NAMESPACE);
-    if (!pws.isEmpty()) {
-      sb.append("h:");
-      for (final BundleWire w : pws) {
-        sb.append(w.getRequirement().getRevision().getBundle().getBundleId());
-        sb.append(",");
+    if (bw != null) {
+      // Host bundle with attached fragments.
+      final List<BundleWire> pws =
+        bw.getProvidedWires(BundleRevision.HOST_NAMESPACE);
+      if (!pws.isEmpty()) {
+        sb.append("h:");
+        for (final BundleWire w : pws) {
+          sb.append(w.getRequirement().getRevision().getBundle().getBundleId());
+          sb.append(",");
+        }
+        sb.setLength(sb.length() - 1); // Remove trailing ','
       }
-      sb.setLength(sb.length() - 1); // Remove trailing ','
-    }
 
-    // Fragment attached to hosts.
-    final List<BundleWire> rws =
-      bw.getRequiredWires(BundleRevision.HOST_NAMESPACE);
-    if (!rws.isEmpty()) {
-      sb.append("f:");
-      for (final BundleWire w : rws) {
-        sb.append(w.getProviderWiring().getRevision().getBundle().getBundleId());
-        sb.append(",");
+      // Fragment attached to hosts.
+      final List<BundleWire> rws =
+        bw.getRequiredWires(BundleRevision.HOST_NAMESPACE);
+      if (!rws.isEmpty()) {
+        sb.append("f:");
+        for (final BundleWire w : rws) {
+          sb.append(w.getProviderWiring().getRevision().getBundle()
+              .getBundleId());
+          sb.append(",");
+        }
+        sb.setLength(sb.length() - 1); // Remove trailing ','
       }
-      sb.setLength(sb.length() - 1); // Remove trailing ','
     }
-
     return sb.length() > 0 ? (" (" + sb.toString() + ")") : "";
   }
 
