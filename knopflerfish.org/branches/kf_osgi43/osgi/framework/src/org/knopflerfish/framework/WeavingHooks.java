@@ -34,24 +34,16 @@
 
 package org.knopflerfish.framework;
 
-import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedMap;
 
-import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.Version;
 import org.osgi.framework.hooks.weaving.WeavingException;
 import org.osgi.framework.hooks.weaving.WeavingHook;
 import org.osgi.framework.hooks.weaving.WovenClass;
-import org.osgi.framework.wiring.BundleCapability;
-import org.osgi.framework.wiring.BundleRequirement;
-import org.osgi.framework.wiring.BundleRevision;
-import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
@@ -165,15 +157,15 @@ class WeavingHooks {
   }
 
   static class WovenClassImpl implements WovenClass {
-    final MockBundleWiring bw;
+    final BundleImpl bundle;
     final String name;
     byte[] current = null;
     boolean complete = false;
     Class<?> c = null;
     final List<String> dynamicImports = new ArrayList<String>();
 
-    WovenClassImpl(BundleImpl b, String name, byte[] initial) {
-      this.bw = new MockBundleWiring(b);
+    WovenClassImpl(BundleImpl bundle, String name, byte[] initial) {
+      this.bundle = bundle;
       this.name = name;
       this.current = initial;
     }
@@ -223,7 +215,7 @@ class WeavingHooks {
     }
 
     public BundleWiring getBundleWiring() {
-      return bw;
+      return bundle.current().bundleRevision.getWiring();
     }
 
     void markAsComplete() {
@@ -267,106 +259,6 @@ class WeavingHooks {
 
     public boolean hasAdditionalDynamicImports() {
       return !dynamicImports.isEmpty();
-    }
-  }
-
-  static class MockBundleWiring implements BundleWiring {
-    final BundleImpl b;
-
-    MockBundleWiring(BundleImpl b) {
-      this.b = b;
-    }
-
-    public Bundle getBundle() {
-      return b;
-    }
-
-    public boolean isCurrent() {
-      return true;
-    }
-
-    public boolean isInUse() {
-      return true;
-    }
-
-    public List<BundleCapability> getCapabilities(String namespace) {
-      @SuppressWarnings("unchecked")
-      final List<BundleCapability> res = Collections.EMPTY_LIST;
-      return res;
-    }
-
-    public List<BundleRequirement> getRequirements(String namespace) {
-      @SuppressWarnings("unchecked")
-      final List<BundleRequirement> res = Collections.EMPTY_LIST;
-      return res;
-    }
-
-    public List<BundleWire> getProvidedWires(String namespace) {
-      @SuppressWarnings("unchecked")
-      final List<BundleWire> res = Collections.EMPTY_LIST;
-      return res;
-    }
-
-    public List<BundleWire> getRequiredWires(String namespace) {
-      @SuppressWarnings("unchecked")
-      final List<BundleWire> res = Collections.EMPTY_LIST;
-      return res;
-    }
-
-    public BundleRevision getRevision() {
-      return new BundleRevision() {
-        public Bundle getBundle() {
-          return MockBundleWiring.this.b;
-        }
-
-        public String getSymbolicName() {
-          return MockBundleWiring.this.b.getSymbolicName();
-        }
-
-        public Version getVersion() {
-          return MockBundleWiring.this.b.getVersion();
-        }
-
-        public List<BundleCapability> getDeclaredCapabilities(String namespace) {
-          @SuppressWarnings("unchecked")
-          final List<BundleCapability> res = Collections.EMPTY_LIST;
-          return res;
-        }
-
-        public List<BundleRequirement> getDeclaredRequirements(String namespace) {
-          @SuppressWarnings("unchecked")
-          final List<BundleRequirement> res = Collections.EMPTY_LIST;
-          return res;
-        }
-
-        public int getTypes() {
-          return 0;
-        }
-
-        public BundleWiring getWiring() {
-          return MockBundleWiring.this;
-        }
-      };
-    }
-
-    public ClassLoader getClassLoader() {
-      return b.getClassLoader();
-    }
-
-    public List<URL> findEntries(String path, String filePattern, int options)
-    {
-      @SuppressWarnings("unchecked")
-      final List<URL> res = Collections.EMPTY_LIST;
-      return res;
-    }
-
-    public Collection<String> listResources(String path,
-                                            String filePattern,
-                                            int options)
-    {
-      @SuppressWarnings("unchecked")
-      final Collection<String> res = Collections.EMPTY_LIST;
-      return res;
     }
   }
 }
