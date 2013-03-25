@@ -62,11 +62,11 @@ public class BundleWireImpl implements BundleWire {
   }
 
   public BundleWiring getProviderWiring() {
-    return providerGen.getBundleRevision().getWiring();
+    return providerGen.bundleRevision.getWiring();
   }
 
   public BundleWiring getRequirerWiring() {
-    return requirerGen.getBundleRevision().getWiring();
+    return requirerGen.bundleRevision.getWiring();
   }
 
   BundleGeneration getProvider() {

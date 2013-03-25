@@ -110,7 +110,7 @@ public class BundleCapabilityImpl implements BundleCapability {
   }
 
   public BundleRevision getRevision() {
-    return owner.getBundleRevision();
+    return owner.bundleRevision;
   }
 
   public String toString() {

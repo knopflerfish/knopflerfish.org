@@ -516,7 +516,7 @@ public class StartLevelController
   {
   }
 
-  static class StartLevelImpl
+  public static class StartLevelImpl
     implements StartLevel
   {
     private final StartLevelController st;

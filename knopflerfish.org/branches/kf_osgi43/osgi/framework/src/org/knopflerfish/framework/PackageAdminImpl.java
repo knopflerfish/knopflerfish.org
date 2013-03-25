@@ -308,7 +308,7 @@ public class PackageAdminImpl implements PackageAdmin {
           // Fall through...
         case Bundle.STOPPING:
         case Bundle.RESOLVED:
-          bi[bx].setStateInstalled(true, true);
+          bi[bx].setStateInstalled(true);
           if (bi[bx] == nextStart) {
             nextStart = --startPos >= 0 ? startList.get(startPos) : null;
           }
@@ -326,7 +326,7 @@ public class PackageAdminImpl implements PackageAdmin {
     }
 
     // Restart previously active bundles in normal start order
-    startBundles(startList, bi, fl);
+    startBundles(startList, fl);
     final FrameworkEvent fe = new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                            fwCtx.systemBundle, null);
     fwCtx.listeners.frameworkEvent(fe, fl);
@@ -342,9 +342,10 @@ public class PackageAdminImpl implements PackageAdmin {
    *
    * @param slist Bundles to start.
    */
-  private void startBundles(List<BundleImpl> slist, BundleImpl [] triggers, FrameworkListener...fl) {
+  private void startBundles(List<BundleImpl> slist, FrameworkListener...fl) {
     // Sort in start order
     // Resolve first to avoid dead lock
+    BundleImpl [] triggers = slist.toArray(new BundleImpl[slist.size()]);
     for (final BundleImpl rb : slist) {
       rb.getUpdatedState(triggers);
     }
@@ -370,10 +371,13 @@ public class PackageAdminImpl implements PackageAdmin {
     synchronized (fwCtx.packages) {
       fwCtx.resolverHooks.checkResolveBlocked();
       List<BundleImpl> bl = new ArrayList<BundleImpl>();
+      boolean res = true;
       if (bundles != null) {
         for (final Bundle bundle : bundles) {
           if (bundle.getState() == Bundle.INSTALLED) {
             bl.add((BundleImpl)bundle);
+          } else if (bundle.getState() == Bundle.UNINSTALLED) {
+            res = false;
           }
         }
       } else {
@@ -383,16 +387,17 @@ public class PackageAdminImpl implements PackageAdmin {
           }
         }
       }
-      boolean res = true;
-
-      final BundleImpl [] triggers = bl.toArray(new BundleImpl[bl.size()]);
-      for (final Bundle bundle : bl) {
-        final BundleImpl b = (BundleImpl)bundle;
-        if (b.getUpdatedState(triggers) == Bundle.INSTALLED) {
-          res = false;
+      if (!bl.isEmpty()) {
+        final BundleImpl [] triggers = bl.toArray(new BundleImpl[bl.size()]);
+        // TODO Resolve all at once, so that we can handle resolver abort correctly! 
+        for (final Bundle bundle : bl) {
+          final BundleImpl b = (BundleImpl)bundle;
+          if (b.getUpdatedState(triggers) == Bundle.INSTALLED) {
+            res = false;
+          }
         }
+        fwCtx.resolverHooks.endResolve(triggers);
       }
-      fwCtx.resolverHooks.endResolve(triggers);
       return res;
     }
   }

@@ -182,9 +182,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    */
   private ProtectionDomain protectionDomain;
 
-  private volatile BundleRevisionImpl bundleRevision = null;
-
   private BundleClassPath unresolvedBundleClassPath = null;
+
+  final BundleRevisionImpl bundleRevision;
 
   /**
    * Construct a new BundleGeneration for the System Bundle.
@@ -210,6 +210,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     lazyExcludes = null;
     timeStamp = System.currentTimeMillis();
     bpkgs = new BundlePackages(this, exportStr);
+    bundleRevision = new BundleRevisionImpl(this);
     classLoader = b.getClassLoader();
     processCapabilities(capabilityStr);
   }
@@ -368,6 +369,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     if (lastModified == 0) {
       lastModified = System.currentTimeMillis();
     }
+    bundleRevision = new BundleRevisionImpl(this);
     timeStamp = lastModified;
   }
 
@@ -396,6 +398,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     bpkgs = null;
     cachedRawHeaders = prev.cachedRawHeaders;
     classLoader = null;
+    bundleRevision = null;
   }
 
 
@@ -647,7 +650,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         fbg.fragment.removeHost(this);
         if (!fbg.fragment.hasHosts()) {
           if (fbg.isCurrent()) {
-            fbg.bundle.setStateInstalled(true, false);
+            fbg.bundle.setStateInstalled(true);
           } else {
             // ... NYI zombie detach
           }
@@ -1067,7 +1070,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     return null;
   }
 
-  BundleCapability getBundleCapability() {
+  BundleNameVersionCapability getBundleCapability() {
     if (v2Manifest && fragment==null) {
       return new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
     }
@@ -1159,27 +1162,6 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
-  BundleRevisionImpl getBundleRevision() {
-    return bundleRevision;
-  }
-
-
-  boolean isWired(BundleRevisionImpl br) {
-    return br == bundleRevision && bpkgs != null &&
-        (fragment == null ? bpkgs.isActive() : fragment.hasHosts());
-  }
-
-
-  boolean isCurrentBundleRevision(BundleRevisionImpl br) {
-    return bundleRevision == br;
-  }
-
-
-  void setBundleRevision(BundleRevisionImpl br) {
-    bundleRevision = br;
-  }
-
-
   boolean isCurrent() {
     return this == bundle.current();
   }
@@ -1204,6 +1186,16 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       }
     }
     return mAttr.isEmpty();
+  }
+
+
+  void setWired() {
+    bundleRevision.setWired();
+  }
+
+
+  void clearWiring() {
+    bundleRevision.clearWiring();
   }
 
 }

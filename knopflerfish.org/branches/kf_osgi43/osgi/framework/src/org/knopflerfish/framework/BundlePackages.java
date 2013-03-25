@@ -176,8 +176,15 @@ class BundlePackages {
       final Iterator<String> pi = keys.iterator();
       ExportPkg ep = new ExportPkg(pi.next(), he, this);
       for (;;) {
-        final int ei = Math.abs(Util.binarySearch(exports, epComp, ep) + 1);
-        exports.add(ei, ep);
+        final int ei = Util.binarySearch(exports, epComp, ep);
+        if (ei >= 0) {
+          // Duplicate export entries from system bundle
+          // use the last one since it is configured by
+          // the user.
+          exports.set(ei, ep);
+        } else {
+          exports.add(-ei - 1, ep);
+        }
         if (pi.hasNext()) {
           ep = new ExportPkg(ep, pi.next());
         } else {

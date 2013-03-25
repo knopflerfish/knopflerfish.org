@@ -125,7 +125,7 @@ public class BundleRequirementImpl
 
   public BundleRevision getRevision()
   {
-    return gen.getBundleRevision();
+    return gen.bundleRevision;
   }
 
 

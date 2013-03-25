@@ -118,11 +118,6 @@ public class BundleImpl implements Bundle {
   protected final Vector<BundleGeneration> generations;
 
   /**
-   * Current bundle revision
-   */
-  volatile BundleRevisionImpl bundleRevision;
-
-  /**
    * Directory for bundle data.
    */
   protected FileTree bundleDir = null;
@@ -199,15 +194,16 @@ public class BundleImpl implements Bundle {
     location = ba.getBundleLocation();
     state = INSTALLED;
     generations = new Vector<BundleGeneration>(2);
-    generations.add(new BundleGeneration(this, ba, null));
-    current().checkPermissions(checkContext);
+    final BundleGeneration gen = new BundleGeneration(this, ba, null);
+    generations.add(gen);
+    gen.checkPermissions(checkContext);
     doExportImport();
     bundleDir = fwCtx.getDataStorage(id);
-    newBundleRevision();
 
     // Activate extension as soon as they are installed so that
     // they get added in bundle id order.
-    if (current().isExtension() && attachToFragmentHost(fwCtx.systemBundle.current())) {
+    if (gen.isExtension() && attachToFragmentHost(fwCtx.systemBundle.current())) {
+      gen.setWired();
       state = RESOLVED;
     }
   }
@@ -800,7 +796,6 @@ public class BundleImpl implements Bundle {
       generations.set(0, newGeneration);
     }
     doExportImport();
-    newBundleRevision();
 
     // Purge old archive
     if (purgeOld) {
@@ -862,7 +857,7 @@ public class BundleImpl implements Bundle {
           exception = (state & (ACTIVE | STARTING)) != 0 ? stop0() : null;
         } catch (final Exception se) {
           // Force to install
-          setStateInstalled(false, false);
+          setStateInstalled(false);
           fwCtx.packages.notifyAll();
           exception = se;
         }
@@ -939,7 +934,6 @@ public class BundleImpl implements Bundle {
         } else {
           generations.set(0, new BundleGeneration(oldGen));
         }
-        bundleRevision = null;
         if (doPurge) {
           oldGen.purge(false);
         }
@@ -1213,6 +1207,7 @@ public class BundleImpl implements Bundle {
                   }
                 }
                 if (state == INSTALLED && current.fragment.hasHosts()) {
+                  current.setWired();
                   state = RESOLVED;
                   operation = RESOLVING;
                   bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
@@ -1221,6 +1216,7 @@ public class BundleImpl implements Bundle {
               }
             } else {
               if (current.resolvePackages()) {
+                current.setWired();
                 state = RESOLVED;
                 operation = RESOLVING;
                 current.updateStateFragments();
@@ -1234,13 +1230,13 @@ public class BundleImpl implements Bundle {
                                             BundleException.RESOLVE_ERROR);
               }
             }
-            if (triggers != null) {
+            if (triggers != null && triggers.length == 1) {
               fwCtx.resolverHooks.endResolve(triggers);
             }
           }
         }
       } catch (final BundleException be) {
-        if (triggers != null) {
+        if (triggers != null && triggers.length == 1) {
           fwCtx.resolverHooks.endResolve(triggers);
         }
         resolveFailException = be;
@@ -1302,7 +1298,7 @@ public class BundleImpl implements Bundle {
    * registration. We assume that the bundle is resolved when entering this
    * method.
    */
-  void setStateInstalled(boolean sendEvent, boolean newRevision) {
+  void setStateInstalled(boolean sendEvent) {
     synchronized (fwCtx.packages) {
       // Make sure that bundleContext is invalid
       if (bundleContext != null) {
@@ -1317,9 +1313,7 @@ public class BundleImpl implements Bundle {
         current.unregisterPackages(true);
         current.bpkgs.registerPackages();
       }
-      if (newRevision) {
-        newBundleRevision();
-      }
+      current.clearWiring();
       state = INSTALLED;
       if (sendEvent) {
         operation = UNRESOLVING;
@@ -1788,10 +1782,11 @@ public class BundleImpl implements Bundle {
   <A> A adaptSecure(Class<A> type) {
     Object res = null;
     if (BundleRevision.class.equals(type)) {
-      res = bundleRevision;
+      res = current().bundleRevision;
     } else if (BundleRevisions.class.equals(type)) {
       res = new BundleRevisionsImpl(generations);
     } else if (BundleWiring.class.equals(type)) {
+      BundleRevision bundleRevision = current().bundleRevision;
       if (bundleRevision != null) {
         res = bundleRevision.getWiring();
       }
@@ -1810,11 +1805,6 @@ public class BundleImpl implements Bundle {
 
   boolean hasZombies() {
     return generations.size() > 1;
-  }
-
-
-  void newBundleRevision() {
-    bundleRevision = new BundleRevisionImpl(current());
   }
 
   //

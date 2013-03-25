@@ -68,7 +68,7 @@ public class BundleNameVersionCapability implements BundleCapability {
   }
 
   public BundleRevision getRevision() {
-    return gen.getBundleRevision();
+    return gen.bundleRevision;
   }
 
 

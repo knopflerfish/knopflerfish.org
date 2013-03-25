@@ -684,37 +684,36 @@ class Packages {
       if (framework.debug.packages) {
         framework.debug.println("resolvePackages: check - " + ip.pkgString());
       }
-      List<ExportPkg> possibleProvider = new LinkedList<ExportPkg>(ip.pkg.exporters);
+      List<ExportPkg> possibleProvider = new LinkedList<ExportPkg>();
+      for (ExportPkg ep : ip.pkg.exporters) {
+        if (ip.checkAttributes(ep)) {
+          if (ip.bpkgs == ep.bpkgs || ip.checkPermission(ep)) {
+            possibleProvider.add(ep);
+          }
+        }
+      }
       framework.resolverHooks.filterMatches((BundleRequirement)ip,
                                             (Collection<? extends BundleCapability>) possibleProvider);
       provider = tempProvider.get(ip.name);
-      // TODO, new with resolverhook when do check collision with rejected provider
-      if (provider != null && possibleProvider.contains(provider)) {
+      // TODO, new with resolver hook when do check collision with rejected provider
+      if (provider != null) {
         if (framework.debug.packages) {
           framework.debug.println("resolvePackages: " + ip.name
               + " - has temporary provider - "
                                   + provider);
         }
-        if (provider.zombie && provider.bpkgs.bg.bundle.state == Bundle.UNINSTALLED) {
+        if (!possibleProvider.contains(provider)) {
+          if (framework.debug.packages) {
+            framework.debug.println("resolvePackages: " + ip.name
+                                    + " - provider not used, rejected by constraints or resolver hooks - "
+                                    + provider);
+          }
+          provider = null;
+        } else if (provider.zombie && provider.bpkgs.bg.bundle.state == Bundle.UNINSTALLED) {
           if (framework.debug.packages) {
             framework.debug.println("resolvePackages: " + ip.name +
                                     " - provider not used since it is an uninstalled zombie - "
                                     + provider);
-          }
-          provider = null;
-        } else if (!ip.checkAttributes(provider)) {
-          if (framework.debug.packages) {
-            framework.debug.println("resolvePackages: " + ip.name +
-                                    " - provider has wrong attributes - " + provider);
-            // NYI, print what is missing
-          }
-          provider = null;
-        } else if (ip.bpkgs != provider.bpkgs && !ip.checkPermission(provider)) {
-          // We can not make internal wire if it collide with the
-          // provided version.
-          if (framework.debug.packages) {
-            framework.debug.println("resolvePackages: " + ip.name +
-                                    " -  has no permission to use - " + provider);
           }
           provider = null;
         }
@@ -734,29 +733,14 @@ class Packages {
             // provider instead?
             continue;
           }
-          if (ip.checkAttributes(ep)) {
-            if (framework.debug.packages) {
-              framework.debug.println("resolvePackages: " + ip.name +
-                                      " - has provider - " + ep);
-            }
-            if (ip.checkPermission(ep)) {
-              final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
-              if (!checkUses(ep)) {
-                tempProvider = oldTempProvider;
-                tempBlackList.add(ep);
-                continue;
-              }
-              provider = ep;
-              break;
-            } else {
-              if (framework.debug.packages) {
-                framework.debug.println("resolvePackages: no permission for - " + ep);
-              }
-              possibleProvider.remove(ep);
-            }
-          } else {
-            possibleProvider.remove(ep);
+          final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
+          if (!checkUses(ep)) {
+            tempProvider = oldTempProvider;
+            tempBlackList.add(ep);
+            continue;
           }
+          provider = ep;
+          break;
         }
         if (provider == null) {
           provider = pickProvider(ip, possibleProvider);
@@ -804,13 +788,7 @@ class Packages {
         i.remove();
         continue;
       }
-      if (!ip.checkAttributes(ep)) {
-        if (framework.debug.packages) {
-          framework.debug.println("pickProvider: attribute match failed for - " + ep);
-        }
-        i.remove();
-        continue;
-      }
+      // TODO optimize this, check could already be checked.
       if (!ip.checkPermission(ep)) {
         if (ip.bpkgs == ep.bpkgs) {
           if (framework.debug.packages) {
@@ -997,21 +975,47 @@ class Packages {
       if (bl.size() > 1) {
         // TODO shouldn't we check no singletons?
         if (framework.resolverHooks.hasHooks()) {
-          Collection<BundleCapability> c = new LinkedList<BundleCapability>();
+          final BundleCapability bc = bg.getBundleCapability();
+          Collection<BundleCapability> candidates = new LinkedList<BundleCapability>();
+          List<BundleNameVersionCapability> active = new ArrayList<BundleNameVersionCapability>(bl.size());
           for (final BundleGeneration bg2 : bl) {
-            if (bg != bg2 && bg2.singleton) {
-              c.add(bg2.getBundleCapability());
+            if (bg2.singleton) {
+              if (bg2 != bg) {
+                BundleNameVersionCapability bc2 = bg2.getBundleCapability();
+                if (bc2 != null) {
+                  if (bg2.bpkgs.isActive()) {
+                    active.add(bc2);
+                  } else {
+                    candidates.add(bc2);
+                  }
+                }
+              }
             }
           }
-          framework.resolverHooks.filterSingletonCollisions(bg.getBundleCapability(), c);
-          for (final BundleCapability bc2 : c) {
-            BundleGeneration bg2 = ((BundleRevisionImpl)bc2.getRevision()).gen;
-            if (bg != bg2 && bg2.singleton && (bg2.bpkgs.isActive() || tempResolved.contains(bg2))) {
-              if (framework.debug.packages) {
-                framework.debug.println("checkBundleSingleton: Reject because of bundle: "
-                                        + bg2.bundle);
+          if (!active.isEmpty()) {
+            for (BundleNameVersionCapability abc : active) {
+              Collection<BundleCapability> c = new LinkedList<BundleCapability>(candidates);
+              c.add(bc);
+              framework.resolverHooks.filterSingletonCollisions(abc, c);
+              if (c.contains(bc)) {
+                return abc.gen;
+              } else {
+                candidates.removeAll(c);
               }
-              return bg2;
+            }
+          }
+          if (!candidates.isEmpty()) {
+            framework.resolverHooks.filterSingletonCollisions(bc, candidates);
+            for (final BundleCapability bc2 : candidates) {
+              BundleGeneration bg2 = ((BundleRevisionImpl)bc2.getRevision()).gen;
+              if (tempResolved.contains(bg2)) {
+                // TODO add to blacklist to avoid resolve tries?!
+                if (framework.debug.packages) {
+                  framework.debug.println("checkBundleSingleton: Reject because of bundle: "
+                                          + bg2.bundle);
+               }
+                return bg2;
+              }
             }
           }
         } else {
@@ -1053,6 +1057,12 @@ class Packages {
         List<BundleCapabilityImpl> bcs = capabilities.getCapabilities(namespace);
         BundleWireImpl found = null;
         if (bcs != null) {
+          bcs = new LinkedList<BundleCapabilityImpl>(bcs);
+          for (Iterator<BundleCapabilityImpl> ibc = bcs.iterator(); ibc.hasNext();) {
+            if (!br.matches(ibc.next())) {
+              ibc.remove();
+            }
+          }
           if (framework.resolverHooks.hasHooks()) {
             bcs = new LinkedList<BundleCapabilityImpl>(bcs);
             framework.resolverHooks.filterMatches(br, (Collection<? extends BundleCapability>) bcs);
@@ -1060,28 +1070,26 @@ class Packages {
           List<BundleCapabilityImpl> matches = new ArrayList<BundleCapabilityImpl>();
           int n_active = 0;
           for (BundleCapabilityImpl bc : bcs) {
-            if (br.matches(bc)) {
-              BundleGeneration bcbg = bc.getBundleGeneration();
-              if (bcbg.isCurrent()) {
-                // Select active or soon active first
-                if (bcbg.bpkgs.isActive() || tempResolved.contains(bcbg)) {
-                  matches.add(0, bc);
-                  n_active++;
-                  if (framework.debug.packages) {
-                    framework.debug.println("checkBundleRequirements: Found active capability: " + bc);
-                  }
-                } else {
-                  matches.add(n_active, bc);
-                  if (framework.debug.packages) {
-                    framework.debug.println("checkBundleRequirements: Found unresolved capability: " + bc);
-                  }
+            BundleGeneration bcbg = bc.getBundleGeneration();
+            if (bcbg.isCurrent()) {
+              // Select active or soon active first
+              if (bcbg.bpkgs.isActive() || tempResolved.contains(bcbg)) {
+                matches.add(0, bc);
+                n_active++;
+                if (framework.debug.packages) {
+                  framework.debug.println("checkBundleRequirements: Found active capability: " + bc);
                 }
               } else {
-                // Select zombies last
-                matches.add(bc);
+                matches.add(n_active, bc);
                 if (framework.debug.packages) {
-                  framework.debug.println("checkBundleRequirements: Found zombie capability: " + bc);
+                  framework.debug.println("checkBundleRequirements: Found unresolved capability: " + bc);
                 }
+              }
+            } else {
+              // Select zombies last
+              matches.add(bc);
+              if (framework.debug.packages) {
+                framework.debug.println("checkBundleRequirements: Found zombie capability: " + bc);
               }
             }
           }

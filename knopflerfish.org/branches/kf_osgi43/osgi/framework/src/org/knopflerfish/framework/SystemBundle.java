@@ -577,7 +577,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     } catch (BundleException _ignore) {
       // Shouldn't happend, hooks not active;
     }
-    newBundleRevision();
+    gen.setWired();
     fwWiring = new FrameworkWiringImpl(fwCtx);
   }
 
@@ -1015,7 +1015,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     for (final BundleImpl bundleImpl : allBundles) {
       final BundleImpl b = bundleImpl;
       if (b.getBundleId() != 0) {
-        b.setStateInstalled(false, false);
+        b.setStateInstalled(false);
         b.purge();
       }
     }

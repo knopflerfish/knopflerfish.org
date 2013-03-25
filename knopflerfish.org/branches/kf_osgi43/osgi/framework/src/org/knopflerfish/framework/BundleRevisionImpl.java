@@ -61,7 +61,6 @@ public class BundleRevisionImpl
   {
     super(gen.bundle);
     this.gen = gen;
-    gen.setBundleRevision(this);
   }
 
 
@@ -162,13 +161,6 @@ public class BundleRevisionImpl
 
   public BundleWiring getWiring()
   {
-    if (gen.isWired(this)) {
-      if (bundleWiring == null) {
-        bundleWiring = new BundleWiringImpl(this);
-      }
-    } else {
-      bundleWiring = null;
-    }
     return bundleWiring;
   }
 
@@ -182,6 +174,14 @@ public class BundleRevisionImpl
     return gen;
   }
 
+  
+  void setWired() {
+    bundleWiring = new BundleWiringImpl(this);
+  }
+
+  void clearWiring() {
+    bundleWiring = null;
+  }
 
   static int whichNameSpaces(String namespace) {
     int ns;

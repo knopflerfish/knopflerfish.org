@@ -61,6 +61,11 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
   /**
    * Bundle registering this service.
    */
+  final FrameworkContext fwCtx;
+
+  /**
+   * Bundle registering this service.
+   */
   BundleImpl bundle;
 
   /**
@@ -128,6 +133,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
    * @param props Properties describing service.
    */
   ServiceRegistrationImpl(BundleImpl b, Object s, PropertiesDictionary props) {
+    fwCtx = b.fwCtx;
     bundle = b;
     service = s;
     properties = props;
@@ -164,29 +170,29 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
       if (available) {
         Set<ServiceListenerEntry> before;
         // TBD, optimize the locking of services
-        synchronized (bundle.fwCtx.services) {
+        synchronized (fwCtx.services) {
           synchronized (properties) {
             // NYI! Optimize the MODIFIED_ENDMATCH code
             final Object old_rank = properties.get(Constants.SERVICE_RANKING);
-            before = bundle.fwCtx.listeners.getMatchingServiceListeners(reference);
+            before = fwCtx.listeners.getMatchingServiceListeners(reference);
             final String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
             final Long sid = (Long)properties.get(Constants.SERVICE_ID);
             properties = new PropertiesDictionary(props, classes, sid);
             final Object new_rank = properties.get(Constants.SERVICE_RANKING);
             if (old_rank != new_rank && new_rank instanceof Integer &&
                 !((Integer)new_rank).equals(old_rank)) {
-              bundle.fwCtx.services.updateServiceRegistrationOrder(this, classes);
+              fwCtx.services.updateServiceRegistrationOrder(this, classes);
             }
           }
         }
-        bundle.fwCtx.perm
-          .callServiceChanged(bundle.fwCtx,
-                              bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+        fwCtx.perm
+          .callServiceChanged(fwCtx,
+                              fwCtx.listeners.getMatchingServiceListeners(reference),
                               new ServiceEvent(ServiceEvent.MODIFIED, reference),
                               before);
         if (!before.isEmpty()) {
-          bundle.fwCtx.perm
-            .callServiceChanged(bundle.fwCtx,
+          fwCtx.perm
+            .callServiceChanged(fwCtx,
                                 before,
                                 new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, reference),
                                 null);
@@ -210,7 +216,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
 
       if (available) {
         if (null!=bundle) {
-          bundle.fwCtx.services.removeServiceRegistration(this);
+          fwCtx.services.removeServiceRegistration(this);
         }
       } else {
         throw new IllegalStateException("Service is unregistered");
@@ -218,9 +224,9 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
     }
 
     if (null!=bundle) {
-      bundle.fwCtx.perm
-        .callServiceChanged(bundle.fwCtx,
-                            bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+      fwCtx.perm
+        .callServiceChanged(fwCtx,
+                            fwCtx.listeners.getMatchingServiceListeners(reference),
                             new ServiceEvent(ServiceEvent.UNREGISTERING, reference),
                             null);
     }

@@ -64,13 +64,18 @@ public class BundleWiringImpl implements BundleWiring {
 
 
   public boolean isCurrent() {
-    return bundleRevision == bundleRevision.bundle.bundleRevision;
+    return this == bundleRevision.getWiring() &&
+           bundleRevision.bundle.current() == bundleRevision.gen;
   }
 
 
   public boolean isInUse() {
-    BundleGeneration gen = bundleRevision.getBundleGeneration();
-    return gen.isCurrentBundleRevision(bundleRevision) && bundleRevision.bundle.usesBundleGeneration(gen);
+    if (this == bundleRevision.getWiring()) {
+      // TODO, perhaps we should clear wiring when it becomes unused
+      // so that we don't need this test.
+      return bundleRevision.bundle.usesBundleGeneration(bundleRevision.gen);
+    }
+    return false;
   }
 
 
@@ -284,9 +289,8 @@ public class BundleWiringImpl implements BundleWiring {
   }
 
   public ClassLoader getClassLoader() {
-    BundleGeneration gen = bundleRevision.getBundleGeneration();
-    if (gen.isCurrentBundleRevision(bundleRevision)) {
-      return gen.getClassLoader();
+    if (isInUse()) {
+      return bundleRevision.getBundleGeneration().getClassLoader();
     }
     return null;
   }

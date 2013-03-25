@@ -21,7 +21,7 @@ public class BundleRevisionsImpl extends BundleReferenceImpl implements BundleRe
       List<BundleRevision> res = new ArrayList<BundleRevision>(generations.size());
       for (BundleGeneration bg : generations) {
         if (!bg.isUninstalled()) {
-          res.add(bg.getBundleRevision());
+          res.add(bg.bundleRevision);
         }
       }
       return res;

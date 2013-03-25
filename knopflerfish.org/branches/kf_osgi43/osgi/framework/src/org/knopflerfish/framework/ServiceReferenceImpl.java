@@ -128,7 +128,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
     if (that instanceof ServiceReferenceImpl) {
       final ServiceReferenceImpl<?> thatImpl = (ServiceReferenceImpl<?>) that;
       sameFw
-        = this.registration.bundle.fwCtx == thatImpl.registration.bundle.fwCtx;
+        = this.registration.fwCtx == thatImpl.registration.fwCtx;
     }
     if (!sameFw) {
       throw new IllegalArgumentException("Can not compare service references "
