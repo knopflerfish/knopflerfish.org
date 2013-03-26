@@ -185,7 +185,10 @@ public class FWProps {
   public static int javaVersionMicro = -1;
 
   static {
-    final String javaVersion = System.getProperty("java.version");
+    String javaVersion = System.getProperty("java.specification.version");
+    if (javaVersion == null || javaVersion.length()==0) {
+      javaVersion = System.getProperty("java.version");
+    }
     // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
     if (null != javaVersion) {
       int startPos = 0;

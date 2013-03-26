@@ -538,9 +538,9 @@ public class SystemBundle extends BundleImpl implements Framework {
             if (fwCtx.debug.framework) {
               fwCtx.debug.println("No built in list of Java packages to be exported "
                   + "by the system bundle for JRE with version '" + jver
-                  + "', using the list for 1.6.");
+                  + "', using the list for 1.7.");
             }
-            addSysPackagesFromFile(sp, "packages1.6.txt");
+            addSysPackagesFromFile(sp, "packages1.7.txt");
           }
         }
         addSystemPackages(sp);
@@ -574,7 +574,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     gen.bpkgs.registerPackages();
     try {
       gen.bpkgs.resolvePackages();
-    } catch (BundleException _ignore) {
+    } catch (final BundleException _ignore) {
       // Shouldn't happend, hooks not active;
     }
     gen.setWired();
