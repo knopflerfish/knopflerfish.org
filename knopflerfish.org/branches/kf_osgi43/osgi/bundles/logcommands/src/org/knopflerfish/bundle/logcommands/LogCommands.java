@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,71 +34,73 @@
 
 package org.knopflerfish.bundle.logcommands;
 
+import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.knopflerfish.service.console.CommandGroup;
-import org.knopflerfish.service.log.LogConfig;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
+import org.knopflerfish.service.console.CommandGroup;
+import org.knopflerfish.service.log.LogConfig;
+
 /**
- * * Bundle activator implementation. * *
- * 
- * @author Jan Stein *
- * @version $Revision: 1.1.1.1 $
+ * Bundle activator implementation.
+ *
+ * @author Jan Stein
  */
-public class LogCommands implements BundleActivator {
+public class LogCommands
+  implements BundleActivator
+{
+  static BundleContext bc;
 
-    static final String COMMAND_GROUP = org.knopflerfish.service.console.CommandGroup.class
-            .getName();
+  static ServiceTracker<LogConfig, LogConfig> logConfigTracker;
 
-    static BundleContext bc;
+  /*---------------------------------------------------------------------------*
+   *			  BundleActivator implementation
+   *---------------------------------------------------------------------------*/
 
-    static ServiceTracker logConfigTracker;
+  /**
+   * Called by the framework when this bundle is started.
+   *
+   * @param bc
+   *          Bundle context.
+   */
+  public void start(BundleContext bc)
+  {
+    LogCommands.bc = bc;
 
-    /*---------------------------------------------------------------------------*
-     *			  BundleActivator implementation
-     *---------------------------------------------------------------------------*/
+    // Create service tracker for log config service
+    LogCommands.logConfigTracker =
+      new ServiceTracker<LogConfig, LogConfig>(bc, LogConfig.class, null);
+    LogCommands.logConfigTracker.open();
 
-    /**
-     * Called by the framework when this bundle is started.
-     * 
-     * @param bc
-     *            Bundle context.
-     */
-    public void start(BundleContext bc) {
-        LogCommands.bc = bc;
+    // Register log commands
+    final CommandGroup logCommandGroup = new LogCommandGroup(bc);
+    Dictionary<String, Object> props = new Hashtable<String, Object>();
+    props.put("groupName", logCommandGroup.getGroupName());
+    bc.registerService(CommandGroup.class, logCommandGroup, props);
 
-        // Create service tracker for log config service
-        LogCommands.logConfigTracker = new ServiceTracker(bc, LogConfig.class
-                .getName(), null);
-        LogCommands.logConfigTracker.open();
+    // Register log config commands
+    final CommandGroup logConfigCommandGroup = new LogConfigCommandGroup();
+    props = new Hashtable<String, Object>();
+    props.put("groupName", logConfigCommandGroup.getGroupName());
+    bc.registerService(CommandGroup.class, logConfigCommandGroup, props);
+  }
 
-        // Register log commands
-        CommandGroup logCommandGroup = new LogCommandGroup(bc);
-        Hashtable props = new Hashtable();
-        props.put("groupName", logCommandGroup.getGroupName());
-        bc.registerService(COMMAND_GROUP, logCommandGroup, props);
-
-        // Register log config commands
-        CommandGroup logConfigCommandGroup = new LogConfigCommandGroup();
-        props = new Hashtable();
-        props.put("groupName", logConfigCommandGroup.getGroupName());
-        bc.registerService(COMMAND_GROUP, logConfigCommandGroup, props);
+  /**
+   * Called by the framework when this bundle is stopped.
+   *
+   * @param bc
+   *          Bundle context.
+   */
+  public void stop(BundleContext bc)
+  {
+    // Close service tracker for log config service
+    if (LogCommands.logConfigTracker != null) {
+      LogCommands.logConfigTracker.close();
     }
 
-    /**
-     * Called by the framework when this bundle is stopped.
-     * 
-     * @param bc
-     *            Bundle context.
-     */
-    public void stop(BundleContext bc) {
-        // Close service tracker for log config service
-        if (LogCommands.logConfigTracker != null)
-            LogCommands.logConfigTracker.close();
-
-    }
+  }
 
 }

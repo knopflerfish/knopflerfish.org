@@ -73,6 +73,14 @@ Framework Commands 4.0.0
  - New command 'wiring' that lists all active wires for the current
    wiring of a bundle.
 
+LogCommands 4.0.0
+ - Calling the comamnd "logconfig memory <int>" did not change the
+   memory limit, but calling "logconfig memory -c <int>" did.  Now
+   both calls changes the limit on the number of log entries that are
+   keept in memory as expected.
+
+
+
 ----------------------------------------------
 
 Please read on the KF site for more information.
