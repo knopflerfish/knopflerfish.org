@@ -66,6 +66,8 @@ Desktop 4.0.0
    namespace.
  - Use the wiring API to perform refresh and resolve operations.
  - Use the start-level API to perform start-level operations.
+ - Improve layout of the tool-bar, add some glue to the left of the
+   start level label.
 
 Framework Commands 4.0.0
  - New command 'capability' that presents both provided and required
