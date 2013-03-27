@@ -66,8 +66,10 @@ Desktop 4.0.0
    namespace.
  - Use the wiring API to perform refresh and resolve operations.
  - Use the start-level API to perform start-level operations.
- - Improve layout of the tool-bar, add some glue to the left of the
-   start level label.
+ - Improve layout of the tool-bar by add some glue to the left of the
+   start level label. In the start-level drop-down, emphasis the
+   start-level number and present the bundles on each start level as
+   list using a smaller, weaker font.
 
 Framework Commands 4.0.0
  - New command 'capability' that presents both provided and required

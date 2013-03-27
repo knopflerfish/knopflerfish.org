@@ -191,6 +191,7 @@ public class Strings {
               "Stop bundle without marking it as not persistently started.");
 
           put("startlevel.label",     "Start level: ");
+          put("startlevel.label.descr", "Change the active start level of the Framework.");
           put("startlevel.descr",  "Sets startlevel for the selected bundle.");
           put("startlevel.noSel",  "No bundle selected");
           put("menu_startlevel",      "Start level");
@@ -213,7 +214,7 @@ public class Strings {
    */
   public static String get(String key) {
     if(strings.containsKey(key)) {
-      return (String)strings.get(key);
+      return strings.get(key);
     } else {
       return key;
     }
@@ -278,7 +279,7 @@ public class Strings {
     }
 
     int ix       = 0;
-    int v1Len    = v1.length();
+    final int v1Len    = v1.length();
     int n        = 0;
 
     // count number of occurrences to be able to correctly size
@@ -295,13 +296,15 @@ public class Strings {
 
     // Set up an output char array of correct size
     int     start  = 0;
-    int     v2Len  = v2.length();
-    char[]  r      = new char[s.length() + n * (v2Len - v1Len)];
+    final int     v2Len  = v2.length();
+    final char[]  r      = new char[s.length() + n * (v2Len - v1Len)];
     int     rPos   = 0;
 
     // for each occurrence, copy v2 where v1 used to be
     while(-1 != (ix = s.indexOf(v1, start))) {
-      while(start < ix) r[rPos++] = s.charAt(start++);
+      while(start < ix) {
+        r[rPos++] = s.charAt(start++);
+      }
       for(int j = 0; j < v2Len; j++) {
         r[rPos++] = v2.charAt(j);
       }
@@ -310,7 +313,9 @@ public class Strings {
 
     // ...and add all remaining chars
     ix = s.length();
-    while(start < ix) r[rPos++] = s.charAt(start++);
+    while(start < ix) {
+      r[rPos++] = s.charAt(start++);
+    }
 
     // ..ouch. this hurts.
     return new String(r);
@@ -341,11 +346,11 @@ public class Strings {
   {
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.
-    StringBuffer buf = new StringBuffer();
+    final StringBuffer buf = new StringBuffer();
     int i = 0;
 
     while (i < s.length()) {
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
 
       if (bCit || separators.indexOf(c) == -1) {
         // Build up word until we breaks on either a citation char or
@@ -400,7 +405,7 @@ public class Strings {
     int i = 0;
 
     while (i < s.length()) {
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
 
       if (bCit || separators.indexOf(c) == -1) {
         // Build up word until we breaks on either a citation char or

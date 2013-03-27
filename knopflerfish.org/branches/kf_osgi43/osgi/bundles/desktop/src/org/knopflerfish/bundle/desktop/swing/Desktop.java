@@ -94,7 +94,6 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
@@ -779,17 +778,18 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     Activator.log.debug("has start level service");
 
-    final JPanel panel = new JPanel();
-    panel.setLayout(new BoxLayout(panel, BoxLayout.LINE_AXIS));
-    panel.add(Box.createHorizontalGlue());
+    levelPanel = Box.createHorizontalBox();
+    levelPanel.add(Box.createHorizontalGlue());
+    levelPanel.add(Box.createHorizontalStrut(LEVEL_STRUT_WIDTH));
 
-    final JLabel label = new JLabel(Strings.get("startlevel.label"));
+    levelLabel = new JLabel(Strings.get("startlevel.label"));
+    levelLabel.setToolTipText(Strings.get("startlevel.label.descr"));
     levelBox = new JComboBox();
 
-    label.setLabelFor(levelBox);
+    levelLabel.setLabelFor(levelBox);
 
-    panel.add(label);
-    panel.add(levelBox);
+    levelPanel.add(levelLabel);
+    levelPanel.add(levelBox);
 
     updateLevelItems();
 
@@ -803,8 +803,7 @@ public class Desktop implements BundleListener, FrameworkListener,
           return;
         }
 
-        // Delay actual setting to avoid flipping thru
-        // levels quickly.
+        // Delay actual setting to avoid flipping through levels quickly.
         SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             final Thread t = new Thread() {
@@ -814,7 +813,9 @@ public class Desktop implements BundleListener, FrameworkListener,
                   Thread.sleep(500);
                   setFWStartLevel();
                 } catch (final Exception e) {
-                  Activator.log.error("Failed to set start level");
+                  if (Activator.log != null) {
+                    Activator.log.error("Failed to set start level", e);
+                  }
                 }
               }
             };
@@ -839,7 +840,7 @@ public class Desktop implements BundleListener, FrameworkListener,
       }
     });
 
-    return panel;
+    return levelPanel;
 
   }
 
@@ -962,44 +963,60 @@ public class Desktop implements BundleListener, FrameworkListener,
   {
     final FrameworkStartLevel fsl =
       Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
-
-    if (fsl != null) {
-      levelMax = Math.max(levelMax, fsl.getStartLevel());
+    if (fsl==null) {
+      // No start level service present.
+      return;
     }
+    levelMax = Math.max(levelMax, fsl.getStartLevel());
     levelItems = new String[levelMax - levelMin + 1];
 
     final Bundle[] bundles = Activator.getTargetBC().getBundles();
-
-    for (int i = levelMin; i <= levelMax; i++) {
-      final StringBuffer sb = new StringBuffer();
-      final int level = i;
-      for (final Bundle bundle : bundles) {
-        final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
-        try {
-          if (bsl != null && bsl.getStartLevel() == level) {
-            if (sb.length() > 0) {
-              sb.append(", ");
-            }
-            final String name = Util.getBundleName(bundle);
-            sb.append(name);
+    final StringBuffer sb = new StringBuffer();
+    for (final Bundle bundle : bundles) {
+      final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
+      if (bsl != null) {
+        final int ix = bsl.getStartLevel() - levelMin;
+        if (0 <= ix && ix < levelItems.length) {
+          sb.setLength(0);
+          if (levelItems[ix] != null) {
+            sb.append(levelItems[ix]);
           }
-        } catch (final IllegalArgumentException e) {
+          if (sb.length() > 0) {
+            sb.append(", ");
+          }
+          final String name = Util.getBundleName(bundle);
+          sb.append(name);
+          levelItems[ix] = sb.toString();
         }
       }
-      String txt = sb.toString();
-      final int maxLen = 50;
-      if (txt.length() > maxLen) {
-        txt = txt.substring(0, maxLen) + "...";
+    }
+
+    final int maxItemLen = 70;
+    for (int level = levelMin; level <= levelMax; level++) {
+      sb.setLength(0);
+      final String levelBundles = levelItems[level - levelMin];
+      sb.append("<html><b>");
+      sb.append(level);
+      sb.append("</b><font size=\"-2\" color=\"#666666\">");
+      if (levelBundles != null) {
+        sb.append("<font size=\"-2\">&nbsp;[");
+        if (levelBundles.length() > maxItemLen) {
+          sb.append(levelBundles.subSequence(0, maxItemLen));
+          sb.append("...");
+        } else {
+          sb.append(levelBundles);
+        }
+        sb.append("]</font>");
       }
-      if (txt.length()>0) {
-        txt = " (" + txt +")";
-      }
-      levelItems[i - levelMin] = i + txt;
+      sb.append("</html>");
+      levelItems[level - levelMin] = sb.toString();
     }
 
     if (levelBox != null) {
       final DefaultComboBoxModel model = new DefaultComboBoxModel(levelItems);
       levelBox.setModel(model);
+      // Avoid a lot of whitespace to the right of any "..."
+      levelBox.setMaximumSize(levelBox.getPreferredSize());
     }
   }
 
@@ -1036,10 +1053,13 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   // items handling start level stuff. Only used if a StartLevel
   // service is available at startup
-  Object[] levelItems;
+  Box levelPanel = null;
+  JLabel levelLabel = null;
   JComboBox levelBox = null;
+  String[] levelItems;
   int levelMin = 1;
   int levelMax = 20;
+  private static final int LEVEL_STRUT_WIDTH = 13;
 
   int baActive = 0;
   int baInstalled = 0;
