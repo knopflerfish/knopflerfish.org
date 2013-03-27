@@ -1054,12 +1054,14 @@ class Packages {
         if (framework.debug.packages) {
           framework.debug.println("checkBundleRequirements: Check requirement: " + br);
         }
+        final boolean reqPerm = framework.perm.hasRequirePermission(br);
         List<BundleCapabilityImpl> bcs = capabilities.getCapabilities(namespace);
         BundleWireImpl found = null;
         if (bcs != null) {
           bcs = new LinkedList<BundleCapabilityImpl>(bcs);
           for (Iterator<BundleCapabilityImpl> ibc = bcs.iterator(); ibc.hasNext();) {
-            if (!br.matches(ibc.next())) {
+            final BundleCapabilityImpl bc = ibc.next();
+            if (!br.matches(bc) || !bc.checkPermission() || !(reqPerm || framework.perm.hasRequirePermission(br, bc))) {
               ibc.remove();
             }
           }

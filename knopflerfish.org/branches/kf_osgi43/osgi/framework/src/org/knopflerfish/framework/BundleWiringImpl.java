@@ -100,7 +100,11 @@ public class BundleWiringImpl implements BundleWiring {
         }
       }
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-        res.addAll(gen.bpkgs.getPackageCapabilities());
+        for (ExportPkg ep : gen.bpkgs.getPackageCapabilities()) {
+          if (ep.checkPermission()) {
+            res.add(ep);            
+          }
+        }
       }
       if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
         final Map<String, List<BundleCapabilityImpl>> caps = gen.bpkgs.getOtherCapabilities();
@@ -116,7 +120,7 @@ public class BundleWiringImpl implements BundleWiring {
         if (null != clbc) {
           for (final List<BundleCapabilityImpl> lbc : clbc) {
             for (final BundleCapabilityImpl bc : lbc) {
-              if (bc.isEffectiveResolve()) {
+              if (bc.isEffectiveResolve() && bc.checkPermission()) {
                 res.add(bc);
               }
             }

@@ -48,7 +48,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -62,9 +61,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
-import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
-import org.osgi.framework.wiring.BundleWiring;
 
 /**
  * Bundle generation specific data.
@@ -278,9 +275,10 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       if (bundle.fwCtx.bsnversionSingle) {
         final BundleImpl snb = b.fwCtx.bundles.getBundle(symbolicName, version);
         if (snb != null && snb != bundle) {
-          throw new BundleException("Bundle with same symbolic name and version "
-                        + "is already installed (" + symbolicName + ", " + version,
-                        BundleException.DUPLICATE_BUNDLE_ERROR);
+          throw new BundleException("Bundle#" + b.id +
+                                    ", a bundle with same symbolic name and version "
+                                    + "is already installed (" + symbolicName + ", "
+                                    + version, BundleException.DUPLICATE_BUNDLE_ERROR);
         }
       }
       symbolicNameParameters = he;

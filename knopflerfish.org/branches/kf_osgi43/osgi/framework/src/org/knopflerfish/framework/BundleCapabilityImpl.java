@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
@@ -58,6 +59,7 @@ public class BundleCapabilityImpl implements BundleCapability {
   private final Map<String,Object> attributes;
   private final Map<String,String> directives;
   private Vector<BundleWireImpl> wires = new Vector<BundleWireImpl>(2);
+  private boolean hasPermission = true;
 
   /**
    * Creates a {@link BundleCapability} from one entry of the Bundle-Capability
@@ -148,4 +150,15 @@ public class BundleCapabilityImpl implements BundleCapability {
   boolean isWired() {
     return !wires.isEmpty();
   }
+
+  /**
+   * Check if we have provide permissions.
+   *
+   * @return true if we have provide permission
+   */
+  boolean checkPermission() {
+    // TODO cache result?
+    return gen.bundle.fwCtx.perm.hasProvidePermission(this);
+  }
+
 }

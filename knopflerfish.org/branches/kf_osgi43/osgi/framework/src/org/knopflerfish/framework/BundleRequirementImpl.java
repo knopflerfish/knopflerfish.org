@@ -153,6 +153,11 @@ public class BundleRequirementImpl
   }
 
 
+  BundleGeneration getBundleGeneration() {
+    return gen;
+  }
+
+
   BundleWireImpl getWire() {
     return wire;
   }

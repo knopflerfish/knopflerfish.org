@@ -105,7 +105,8 @@ public class Bundles {
       if (b != null) {
         b = (BundleImpl)b.fwCtx.bundleHooks.filterBundle(b.bundleContext, b);
         if(b == null) {
-          throw new BundleException("Rejected by Hook", BundleException.REJECTED_BY_HOOK);
+          throw new BundleException("Rejected by a bundle hook",
+                                    BundleException.REJECTED_BY_HOOK);
         } else {
           return b;
         }

@@ -295,8 +295,8 @@ public class SystemBundle extends BundleImpl implements Framework {
   @Override
   public void uninstall() throws BundleException {
     secure.checkLifecycleAdminPerm(this);
-    throw new BundleException("uninstall of System bundle is not allowed",
-        BundleException.INVALID_OPERATION);
+    throw new BundleException("Uninstall of System bundle is not allowed",
+                              BundleException.INVALID_OPERATION);
   }
 
 

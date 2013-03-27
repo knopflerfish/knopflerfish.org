@@ -65,6 +65,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundlePermission;
+import org.osgi.framework.CapabilityPermission;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.PackagePermission;
@@ -72,6 +73,7 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServicePermission;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 
@@ -89,7 +91,8 @@ class SecurePermissionOps
   private static final int AP_METADATA = 5;
   private static final int AP_RESOURCE = 6;
   private static final int AP_CONTEXT = 7;
-  private static final int AP_MAX = 8;
+  private static final int AP_WEAVE = 8;
+  private static final int AP_MAX = 9;
 
   private static String[] AP_TO_STRING = new String[] {
                                                        AdminPermission.CLASS,
@@ -99,7 +102,8 @@ class SecurePermissionOps
                                                        AdminPermission.LISTENER,
                                                        AdminPermission.METADATA,
                                                        AdminPermission.RESOURCE,
-                                                       AdminPermission.CONTEXT, };
+                                                       AdminPermission.CONTEXT,
+                                                       AdminPermission.WEAVE };
 
   private final FrameworkContext framework;
   private PermissionsHandle ph;
@@ -303,6 +307,15 @@ class SecurePermissionOps
     }
   }
 
+  @Override
+  void checkWeaveAdminPerm(Bundle b)
+  {
+    final SecurityManager sm = System.getSecurityManager();
+    if (null != sm) {
+      sm.checkPermission(getAdminPermission(b, AP_WEAVE));
+    }
+  }
+
   //
   // Bundle permission checks
   //
@@ -435,8 +448,50 @@ class SecurePermissionOps
   }
 
   //
+  // Capability and Requirement checks
+  //
+
+  @Override
+  boolean hasProvidePermission(BundleCapabilityImpl bc) {
+    final BundleImpl b = bc.getBundleGeneration().bundle;
+    if (b.id != 0) {
+      final PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
+      return pc.implies(new CapabilityPermission(bc.getNamespace(),
+                                                 CapabilityPermission.PROVIDE));
+    }
+    return true;
+  }
+
+
+  @Override
+  boolean hasRequirePermission(BundleRequirementImpl br) {
+    final BundleImpl b = br.getBundleGeneration().bundle;
+    if (b.id != 0) {
+      final PermissionCollection pc = ph.getPermissionCollection(new Long(b.id));
+      return pc.implies(new CapabilityPermission(br.getNamespace(),
+                                                 CapabilityPermission.REQUIRE));
+    }
+    return true;
+  }
+
+
+  @Override
+  boolean hasRequirePermission(BundleRequirementImpl br, BundleCapabilityImpl bc) {
+    final BundleImpl bbr = br.getBundleGeneration().bundle;
+    if (bbr.id != 0) {
+      final PermissionCollection pc = ph.getPermissionCollection(new Long(bbr.id));
+      return pc.implies(new CapabilityPermission(bc.getNamespace(),
+                                                 bc.getAttributes(),
+                                                 bc.getBundleGeneration().bundle,
+                                                 CapabilityPermission.REQUIRE));
+    }
+    return true;
+  }
+
+  //
   // AdaptPermission checks
   //
+
   @Override
   <A> void checkAdaptPerm(BundleImpl b, Class<A> type)
   {

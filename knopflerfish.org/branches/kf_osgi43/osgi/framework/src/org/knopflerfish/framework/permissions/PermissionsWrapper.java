@@ -48,6 +48,7 @@ import java.util.PropertyPermission;
 
 import org.osgi.framework.AdminPermission;
 import org.osgi.framework.Bundle;
+import org.osgi.framework.CapabilityPermission;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
@@ -56,7 +57,7 @@ import org.knopflerfish.framework.FrameworkContext;
 
 
 /**
- * Wrapps Permissions so that we can update it dynamically.
+ * Wraps Permissions so that we can update it dynamically.
  *
  * @author Jan Stein, Philippe Laporte
  */
@@ -288,6 +289,7 @@ public class PermissionsWrapper extends PermissionCollection {
                                AdminPermission.METADATA + "," +
                                AdminPermission.CLASS));
     pc.add(new PropertyPermission("org.osgi.framework.*", "read"));
+    pc.add(new CapabilityPermission("osgi.ee", CapabilityPermission.REQUIRE));
     return pc;
   }
 

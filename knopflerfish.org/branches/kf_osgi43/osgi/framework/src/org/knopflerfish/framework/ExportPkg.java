@@ -74,7 +74,7 @@ class ExportPkg
   final Version version;
   final Map<String,Object> attributes;
   boolean zombie = false;
-  boolean hasPermission = true;
+  private boolean hasPermission = true;
 
   // Link to pkg entry
   Pkg pkg = null;
@@ -276,11 +276,12 @@ class ExportPkg
    * @return true if we have export permission
    */
   boolean checkPermission() {
-    // NYI! cache permission when we have resolved and while resolving
-    if (bpkgs.bg.bundle.state == Bundle.INSTALLED) {
-      hasPermission = bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
-    }
-    return hasPermission;
+    // TODO? cache permission when we have resolved and while resolving
+//    if (bpkgs.bg.bundle.state == Bundle.INSTALLED) {
+//      hasPermission = bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
+//    }
+//    return hasPermission;
+    return bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
   }
 
 

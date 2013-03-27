@@ -427,12 +427,14 @@ public class BundleClassPath {
                 continue;
               }
             } catch (final InvalidSyntaxException ise) {
-              throw new BundleException("Invalid syntax for native code selection filter: "
-                  + sfs, BundleException.NATIVECODE_ERROR, ise);
+              throw new BundleException("Bundle#" + bid +
+                                        ", Invalid syntax for native code selection filter: "
+                                        + sfs, BundleException.NATIVECODE_ERROR, ise);
             }
           } else {
-            throw new BundleException("Invalid character after native code selection filter: "
-                + sfs, BundleException.NATIVECODE_ERROR);
+            throw new BundleException("Bundle#" + bid +
+                                      ", Invalid character after native code selection filter: "
+                                      + sfs, BundleException.NATIVECODE_ERROR);
           }
         }
 
@@ -464,7 +466,8 @@ public class BundleClassPath {
         if (optional) {
           return;
         } else {
-          throw new BundleException("No matching native code libraries found for os="
+          throw new BundleException("Bundle#" + bid +
+                                    ", no matching native code libraries found for os="
                                     + os + " version=" + osVer + ", processor="
                                     + proc + " and language=" + osLang + ".",
                                     BundleException.NATIVECODE_ERROR);
@@ -484,8 +487,8 @@ public class BundleClassPath {
             }
           }
         }
-        throw new BundleException("Failed to resolve native code: " + name,
-            BundleException.NATIVECODE_ERROR);
+        throw new BundleException("Bundle#" + bid + ", failed to resolve native code: "
+                                  + name, BundleException.NATIVECODE_ERROR);
       }
     } else {
       // No native code in this bundle

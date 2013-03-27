@@ -132,7 +132,7 @@ public class ResolverHooks {
               active.add(rhf);
             }
           } catch (RuntimeException re) {
-            throw new BundleException("Resolver hook service was unregistered",
+            throw new BundleException("Resolver hook throw an exception",
                                       BundleException.REJECTED_BY_HOOK, re);
           } finally {
             unblockResolveForHooks();

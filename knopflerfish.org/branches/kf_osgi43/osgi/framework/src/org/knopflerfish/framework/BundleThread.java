@@ -225,16 +225,17 @@ class BundleThread extends Thread {
         setPriority(Thread.MIN_PRIORITY);
       }
 
+      final String bmsg = "Bundle#" + b.id;
       switch (op) {
       case OP_START:
-        res = new BundleException("Bundle start failed",
-            BundleException.STATECHANGE_ERROR, new Exception(
-                "Bundle uninstalled during start()"));
+        res = new BundleException(bmsg + " start failed",
+                                  BundleException.STATECHANGE_ERROR,
+                                  new Exception(bmsg + " uninstalled during start()"));
         break;
       case OP_STOP:
-        res = new BundleException("Bundle stop failed",
-            BundleException.STATECHANGE_ERROR, new Exception(
-                "Bundle uninstalled during stop()"));
+        res = new BundleException(bmsg + " stop failed",
+                                  BundleException.STATECHANGE_ERROR,
+                                  new Exception(bmsg + " uninstalled during stop()"));
         break;
       }
 

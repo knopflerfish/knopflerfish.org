@@ -51,6 +51,7 @@ import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.wiring.BundleRequirement;
 
 /**
  * This is a wrapper class for operations that requires some kind of security
@@ -133,6 +134,9 @@ class PermissionOps {
   }
 
 
+  void checkWeaveAdminPerm(Bundle b) {
+  }
+
   //
   // Bundle permission checks
   //
@@ -196,10 +200,28 @@ class PermissionOps {
   void filterGetServicePermission(Set<ServiceRegistrationImpl<?>> srs) {
   }
 
+  //
+  // Capability and Requirement checks
+  //
+
+  boolean hasProvidePermission(BundleCapabilityImpl bc) {
+    return true;
+  }
+
+
+  boolean hasRequirePermission(BundleRequirementImpl br) {
+    return true;
+  }
+
+
+  boolean hasRequirePermission(BundleRequirementImpl br, BundleCapabilityImpl bc) {
+    return true;
+  }
 
   //
   // AdaptPermission checks
   //
+
   <A> void checkAdaptPerm(BundleImpl b, Class<A> type) {
   }
 

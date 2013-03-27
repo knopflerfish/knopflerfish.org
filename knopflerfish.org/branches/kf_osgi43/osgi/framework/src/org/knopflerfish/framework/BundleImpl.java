@@ -239,8 +239,9 @@ public class BundleImpl implements Bundle {
     synchronized (fwCtx.packages) {
       final BundleGeneration current = current();
       if (current.isFragment()) {
-        throw new BundleException("Cannot start a fragment bundle",
-            BundleException.INVALID_OPERATION);
+        throw new BundleException("Bundle#" + id +
+                                  ", cannot start a fragment bundle",
+                                  BundleException.INVALID_OPERATION);
       }
       if (state == UNINSTALLED) {
         throw new IllegalStateException("Bundle is uninstalled");
@@ -254,10 +255,11 @@ public class BundleImpl implements Bundle {
       if (fwCtx.startLevelController != null) {
         if (getStartLevel() > fwCtx.startLevelController.getStartLevel()) {
           if ((options & START_TRANSIENT) != 0) {
-            throw new BundleException("Can not transiently activate bundle with start level "
-                + getStartLevel() + " when running on start level "
-                + fwCtx.startLevelController.getStartLevel(),
-                BundleException.START_TRANSIENT_ERROR);
+            throw new BundleException("Bundle#" + id +
+                                      ", can not transiently activate bundle with start level "
+                                      + getStartLevel() + " when running on start level "
+                                      + fwCtx.startLevelController.getStartLevel(),
+                                      BundleException.START_TRANSIENT_ERROR);
           } else {
             setAutostartSetting(options);
             return;
@@ -343,8 +345,9 @@ public class BundleImpl implements Bundle {
         // This happens if call start from inside the BundleActivator.stop
         // method.
         // Don't allow it.
-        throw new BundleException("start called from BundleActivator.stop",
-            BundleException.ACTIVATOR_ERROR);
+        throw new BundleException("Bundle#" + id +
+                                  ", start called from BundleActivator.stop",
+                                  BundleException.ACTIVATOR_ERROR);
       case UNINSTALLED:
         throw new IllegalStateException("Bundle is in UNINSTALLED state");
       }
@@ -427,7 +430,7 @@ public class BundleImpl implements Bundle {
       }
       state = ACTIVE;
     } catch (final Throwable t) {
-      res = new BundleException("Bundle start failed", error_type, t);
+      res = new BundleException("Bundle#" + id + " start failed", error_type, t);
     }
     if (fwCtx.debug.lazy_activation) {
       fwCtx.debug.println("activating #" + getBundleId() + " completed.");
@@ -474,8 +477,8 @@ public class BundleImpl implements Bundle {
 
     synchronized (fwCtx.packages) {
       if (current().isFragment()) {
-        throw new BundleException("Cannot stop a fragment bundle",
-            BundleException.INVALID_OPERATION);
+        throw new BundleException("Bundle#" + id + ", can not stop a fragment",
+                                  BundleException.INVALID_OPERATION);
       }
 
       // 1:
@@ -554,8 +557,8 @@ public class BundleImpl implements Bundle {
           }
         }
       } catch (final Throwable e) {
-        res = new BundleException("Bundle.stop: BundleActivator stop failed",
-            BundleException.ACTIVATOR_ERROR, e);
+        res = new BundleException("Bundle#" + id + ", BundleActivator.stop() failed",
+                                  BundleException.ACTIVATOR_ERROR, e);
       }
       bactivator = null;
     }
@@ -627,8 +630,8 @@ public class BundleImpl implements Bundle {
         op = "unknown operation";
         break;
       }
-      throw new BundleException(src + " called during " + op + " of Bundle",
-          BundleException.STATECHANGE_ERROR);
+      throw new BundleException(src + " called during " + op + " of Bundle#"
+                                + id, BundleException.STATECHANGE_ERROR);
     }
   }
 
@@ -751,7 +754,7 @@ public class BundleImpl implements Bundle {
       if (e instanceof BundleException) {
         throw (BundleException)e;
       } else {
-        throw new BundleException("Failed to get update bundle", BundleException.UNSPECIFIED, e);
+        throw new BundleException("Failed to get update Bundle#" + id , BundleException.UNSPECIFIED, e);
       }
     }
 
@@ -1188,8 +1191,10 @@ public class BundleImpl implements Bundle {
                 fwCtx.debug.println("bundle #" + current.archive.getBundleId() + " has EE=" + ee);
               }
               if (!fwCtx.isValidEE(ee)) {
-                throw new BundleException("Unable to resolve bundle: Execution environment '"
-                    + ee + "' is not supported", BundleException.RESOLVE_ERROR);
+                throw new BundleException("Bundle#" + id +
+                                          ", unable to resolve: Execution environment '"
+                                          + ee + "' is not supported",
+                                          BundleException.RESOLVE_ERROR);
               }
             }
             if (current.isFragment()) {
@@ -1224,7 +1229,8 @@ public class BundleImpl implements Bundle {
                 operation = IDLE;
               } else {
                 String reason = current.bpkgs.getResolveFailReason();
-                throw new BundleException("Unable to resolve bundle: " + reason,
+                throw new BundleException("Bundle#" + id + ", unable to resolve: "
+                                          + reason,
                                           reason == Packages.RESOLVER_HOOK_VETO ?
                                             BundleException.REJECTED_BY_HOOK :
                                             BundleException.RESOLVE_ERROR);
