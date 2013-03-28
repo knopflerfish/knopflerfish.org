@@ -278,7 +278,7 @@ class BundlePackages {
    *
    */
   void registerPackages() {
-    bg.bundle.fwCtx.packages.registerCapabilities(capabilities, exports.iterator(), imports.iterator());
+    bg.bundle.fwCtx.resolver.registerCapabilities(capabilities, exports.iterator(), imports.iterator());
     registered = true;
   }
 
@@ -289,7 +289,7 @@ class BundlePackages {
    */
   synchronized boolean unregisterPackages(boolean force) {
     if (registered) {
-      if (bg.bundle.fwCtx.packages.unregisterCapabilities(capabilities, getExports(), getImports(), force)) {
+      if (bg.bundle.fwCtx.resolver.unregisterCapabilities(capabilities, getExports(), getImports(), force)) {
         okImports = null;
         registered = false;
         for (List<BundleRequirementImpl> lbr : bg.getOtherRequirements().values()) {
@@ -315,7 +315,7 @@ class BundlePackages {
    * @throws BundleException Resolver hook complaint.
    */
   boolean resolvePackages() throws BundleException {
-    failReason = bg.bundle.fwCtx.packages.resolve(bg, getImports());
+    failReason = bg.bundle.fwCtx.resolver.resolve(bg, getImports());
     if (failReason == null) {
       // TBD, Perhaps we should use complete size here
       okImports = new ArrayList<ImportPkg>(imports.size());
@@ -435,7 +435,7 @@ class BundlePackages {
             fwCtx.resolverHooks.beginResolve(trigger);
           }
           final ImportPkg nip = new ImportPkg(ip, pkg);
-          final ExportPkg ep = fwCtx.packages.registerDynamicImport(nip);
+          final ExportPkg ep = fwCtx.resolver.registerDynamicImport(nip);
           if (ep != null) {
             nip.provider = ep;
             okImports.add(-ii - 1, nip);
@@ -895,7 +895,7 @@ class BundlePackages {
     nfbpkgs.registerPackages();
     if (resolvedHost) {
       try {
-        failReason = bg.bundle.fwCtx.packages.resolve(bg, nfbpkgs.getImports());
+        failReason = bg.bundle.fwCtx.resolver.resolve(bg, nfbpkgs.getImports());
       } catch (BundleException be) {
         nfbpkgs.unregisterPackages(true);
         throw be;
@@ -933,7 +933,7 @@ class BundlePackages {
    */
   void fragmentIsZombie(BundleImpl fb) {
     if (null != exports) {
-      if (bg.bundle.fwCtx.debug.packages) {
+      if (bg.bundle.fwCtx.debug.resolver) {
         bg.bundle.fwCtx.debug.println("Marking all packages exported by host bundle(id="
                                       + bg.bundle.id + ",gen=" + bg.generation
                                       + ") as zombies since the attached fragment (id="

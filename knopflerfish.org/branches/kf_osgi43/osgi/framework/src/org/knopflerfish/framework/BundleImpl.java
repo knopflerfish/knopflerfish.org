@@ -236,7 +236,7 @@ public class BundleImpl implements Bundle {
   public void start(int options) throws BundleException {
     secure.checkExecuteAdminPerm(this);
 
-    synchronized (fwCtx.packages) {
+    synchronized (fwCtx.resolver) {
       final BundleGeneration current = current();
       if (current.isFragment()) {
         throw new BundleException("Bundle#" + id +
@@ -271,7 +271,7 @@ public class BundleImpl implements Bundle {
       // activation.
 
       // 1: If an operation is in progress, wait a little
-      waitOnOperation(fwCtx.packages, "Bundle.start", false);
+      waitOnOperation(fwCtx.resolver, "Bundle.start", false);
 
       // 2: start() is idempotent, i.e., nothing to do when already started
       if (state == ACTIVE) {
@@ -301,16 +301,16 @@ public class BundleImpl implements Bundle {
     }
     // Last step of lazy activation
     secure.callBundleChanged(fwCtx, new BundleEvent(BundleEvent.LAZY_ACTIVATION, this));
-    synchronized (fwCtx.packages) {
+    synchronized (fwCtx.resolver) {
       operation = IDLE;
-      fwCtx.packages.notifyAll();
+      fwCtx.resolver.notifyAll();
     }
   }
 
 
   // Performs the actual activation.
   void finalizeActivation() throws BundleException {
-    synchronized (fwCtx.packages) {
+    synchronized (fwCtx.resolver) {
       // 4: Resolve bundle (if needed)
       switch (getUpdatedState(new BundleImpl [] { this })) {
       case INSTALLED:
@@ -334,7 +334,7 @@ public class BundleImpl implements Bundle {
         }
         final BundleException e = bundleThread().callStart0(this);
         operation = IDLE;
-        fwCtx.packages.notifyAll();
+        fwCtx.resolver.notifyAll();
         if (e != null) {
           throw e;
         }
@@ -398,7 +398,7 @@ public class BundleImpl implements Bundle {
             final String[] locs = Util.splitwords(locations, ",");
             for (final String loc : locs) {
               if (loc.equals(location)) {
-                if (fwCtx.debug.packages) {
+                if (fwCtx.debug.resolver) {
                   fwCtx.debug.println("starting main class " + mc);
                 }
                 error_type = BundleException.ACTIVATOR_ERROR;
@@ -475,7 +475,7 @@ public class BundleImpl implements Bundle {
 
     secure.checkExecuteAdminPerm(this);
 
-    synchronized (fwCtx.packages) {
+    synchronized (fwCtx.resolver) {
       if (current().isFragment()) {
         throw new BundleException("Bundle#" + id + ", can not stop a fragment",
                                   BundleException.INVALID_OPERATION);
@@ -487,7 +487,7 @@ public class BundleImpl implements Bundle {
       }
 
       // 2: If an operation is in progress, wait a little
-      waitOnOperation(fwCtx.packages, "Bundle.stop", false);
+      waitOnOperation(fwCtx.resolver, "Bundle.stop", false);
 
       // 3:
       if ((options & STOP_TRANSIENT) == 0) {
@@ -527,7 +527,7 @@ public class BundleImpl implements Bundle {
     if (state != UNINSTALLED) {
       state = RESOLVED;
       bundleThread().bundleChanged(new BundleEvent(BundleEvent.STOPPED, this));
-      fwCtx.packages.notifyAll();
+      fwCtx.resolver.notifyAll();
       operation = IDLE;
     }
     return savedException;
@@ -657,7 +657,7 @@ public class BundleImpl implements Bundle {
       if (current().isExtension()) {
         secure.checkExtensionLifecycleAdminPerm(this);
       }
-      synchronized (fwCtx.packages) {
+      synchronized (fwCtx.resolver) {
         final boolean wasActive = state == ACTIVE;
 
         switch (getState()) {
@@ -838,7 +838,7 @@ public class BundleImpl implements Bundle {
 
 
   void uninstall0() {
-    synchronized (fwCtx.packages) {
+    synchronized (fwCtx.resolver) {
       final BundleGeneration current = current();
       if (!current.isUninstalled()) {
         try {
@@ -856,12 +856,12 @@ public class BundleImpl implements Bundle {
       case STOPPING:
         Exception exception;
         try {
-          waitOnOperation(fwCtx.packages, "Bundle.uninstall", true);
+          waitOnOperation(fwCtx.resolver, "Bundle.uninstall", true);
           exception = (state & (ACTIVE | STARTING)) != 0 ? stop0() : null;
         } catch (final Exception se) {
           // Force to install
           setStateInstalled(false);
-          fwCtx.packages.notifyAll();
+          fwCtx.resolver.notifyAll();
           exception = se;
         }
         operation = UNINSTALLING;
@@ -874,7 +874,7 @@ public class BundleImpl implements Bundle {
         fwCtx.bundles.remove(location);
         if (operation != UNINSTALLING) {
           try {
-            waitOnOperation(fwCtx.packages, "Bundle.uninstall", true);
+            waitOnOperation(fwCtx.resolver, "Bundle.uninstall", true);
             operation = UNINSTALLING;
           } catch (final BundleException be) {
             // Make sure that bundleContext is invalid
@@ -952,7 +952,7 @@ public class BundleImpl implements Bundle {
 
         // There might be bundle threads that are running start or stop
         // operation. This will wake them and give them an chance to terminate.
-        fwCtx.packages.notifyAll();
+        fwCtx.resolver.notifyAll();
         break;
       }
     }
@@ -1175,8 +1175,8 @@ public class BundleImpl implements Bundle {
     if (state == INSTALLED) {
       try {
         // TODO, fix double locking
-        synchronized (fwCtx.packages) {
-          waitOnOperation(fwCtx.packages, "Bundle.resolve", true);
+        synchronized (fwCtx.resolver) {
+          waitOnOperation(fwCtx.resolver, "Bundle.resolve", true);
           if (state == INSTALLED) {
             // TODO, check EE for fragments
             final BundleGeneration current = current();
@@ -1187,7 +1187,7 @@ public class BundleImpl implements Bundle {
             final
             String ee = current.archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
             if (ee != null) {
-              if (fwCtx.debug.packages) {
+              if (fwCtx.debug.resolver) {
                 fwCtx.debug.println("bundle #" + current.archive.getBundleId() + " has EE=" + ee);
               }
               if (!fwCtx.isValidEE(ee)) {
@@ -1231,7 +1231,7 @@ public class BundleImpl implements Bundle {
                 String reason = current.bpkgs.getResolveFailReason();
                 throw new BundleException("Bundle#" + id + ", unable to resolve: "
                                           + reason,
-                                          reason == Packages.RESOLVER_HOOK_VETO ?
+                                          reason == Resolver.RESOLVER_HOOK_VETO ?
                                             BundleException.REJECTED_BY_HOOK :
                                             BundleException.RESOLVE_ERROR);
               }
@@ -1305,7 +1305,7 @@ public class BundleImpl implements Bundle {
    * method.
    */
   void setStateInstalled(boolean sendEvent) {
-    synchronized (fwCtx.packages) {
+    synchronized (fwCtx.resolver) {
       // Make sure that bundleContext is invalid
       if (bundleContext != null) {
         bundleContext.invalidate();

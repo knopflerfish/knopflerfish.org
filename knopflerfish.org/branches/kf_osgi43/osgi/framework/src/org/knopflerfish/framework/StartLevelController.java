@@ -364,7 +364,7 @@ public class StartLevelController
 
       Util.sort(set, BSComparator, true);
 
-      synchronized (fwCtx.packages) {
+      synchronized (fwCtx.resolver) {
         for (int i = 0; i < set.size(); i++) {
           final BundleImpl bs = set.elementAt(i);
           if (bs.getState() == Bundle.ACTIVE ||
@@ -437,7 +437,7 @@ public class StartLevelController
         fwCtx.debug.println("syncstartlevel: " + bs);
       }
       synchronized(lock) {
-        synchronized (fwCtx.packages) {
+        synchronized (fwCtx.resolver) {
           if (bs.getStartLevel() <= currentLevel) {
             final BundleGeneration current = bs.current();
             if ((bs.getState() & (Bundle.INSTALLED|Bundle.RESOLVED|Bundle.STOPPING)) != 0

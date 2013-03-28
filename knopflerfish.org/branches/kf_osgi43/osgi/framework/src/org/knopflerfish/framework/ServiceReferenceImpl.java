@@ -286,7 +286,7 @@ public class ServiceReferenceImpl<S> implements ServiceReference<S>
     final int pos = className.lastIndexOf('.');
     if (pos != -1) {
       final String name = className.substring(0, pos);
-      final Pkg p = fwCtx.packages.getPkg(name);
+      final Pkg p = fwCtx.resolver.getPkg(name);
       // Is package exported by a bundle
       if (p != null) {
         final BundlePackages rbp = sBundle.current().bpkgs;

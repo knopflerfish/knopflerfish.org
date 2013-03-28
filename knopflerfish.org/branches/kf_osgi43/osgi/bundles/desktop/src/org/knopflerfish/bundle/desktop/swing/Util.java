@@ -688,7 +688,7 @@ public class Util {
   static String[] STD_PROPS = {
     "org.knopflerfish.verbosity=0",
     "org.knopflerfish.gosg.jars",
-    "org.knopflerfish.framework.debug.packages=false",
+    "org.knopflerfish.framework.debug.resolver=false",
     "org.knopflerfish.framework.debug.errors=false",
     "org.knopflerfish.framework.debug.classloader=false",
     "org.knopflerfish.framework.debug.startlevel=false",

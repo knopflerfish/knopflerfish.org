@@ -79,7 +79,7 @@ public class FrameworkWiringImpl implements FrameworkWiring {
 
   public Collection<Bundle> getDependencyClosure(Collection<Bundle> bundles) {
     final HashSet<Bundle> res = new HashSet<Bundle>(bundles);
-    fwCtx.packages.closure(res);
+    fwCtx.resolver.closure(res);
     return res;
   }
 

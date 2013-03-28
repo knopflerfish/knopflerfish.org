@@ -142,7 +142,7 @@ public class PackageAdminImpl implements PackageAdmin {
    *         exported packages with the specified name exists.
    */
   public ExportedPackage[] getExportedPackages(String name) {
-    final Pkg pkg = fwCtx.packages.getPkg(name);
+    final Pkg pkg = fwCtx.resolver.getPkg(name);
     ExportedPackage[] res = null;
     if (pkg != null) {
       synchronized (pkg) {
@@ -173,7 +173,7 @@ public class PackageAdminImpl implements PackageAdmin {
    *         no expored package with that name exists.
    */
   public ExportedPackage getExportedPackage(String name) {
-    final Pkg p = fwCtx.packages.getPkg(name);
+    final Pkg p = fwCtx.resolver.getPkg(name);
     if (p != null) {
       final ExportPkg ep = p.getBestProvider();
       if (ep != null) {
@@ -244,7 +244,7 @@ public class PackageAdminImpl implements PackageAdmin {
    *
    */
   void refreshPackages0(final Bundle[] bundles, final FrameworkListener...fl) {
-    if (fwCtx.debug.packages) {
+    if (fwCtx.debug.resolver) {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
     // TODO send framework error events to fl
@@ -252,8 +252,8 @@ public class PackageAdminImpl implements PackageAdmin {
     final ArrayList<BundleImpl> startList = new ArrayList<BundleImpl>();
     BundleImpl [] bi;
 
-    synchronized (fwCtx.packages) {
-      final TreeSet<Bundle> zombies = fwCtx.packages.getZombieAffected(bundles);
+    synchronized (fwCtx.resolver) {
+      final TreeSet<Bundle> zombies = fwCtx.resolver.getZombieAffected(bundles);
       bi = zombies.toArray(new BundleImpl[zombies.size()]);
 
       synchronized (refreshSync) {
@@ -265,7 +265,7 @@ public class PackageAdminImpl implements PackageAdmin {
         if (bi[bx].state == Bundle.ACTIVE || bi[bx].state == Bundle.STARTING) {
           startList.add(0, bi[bx]);
           try {
-            bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", false);
+            bi[bx].waitOnOperation(fwCtx.resolver, "PackageAdmin.refreshPackages", false);
             final Exception be = bi[bx].stop0();
             if (be != null) {
               fwCtx.listeners.frameworkError(bi[bx], be, fl);
@@ -288,10 +288,10 @@ public class PackageAdminImpl implements PackageAdmin {
           // We could hang forever here.
           while (true) {
             try {
-              bi[bx].waitOnOperation(fwCtx.packages, "PackageAdmin.refreshPackages", true);
+              bi[bx].waitOnOperation(fwCtx.resolver, "PackageAdmin.refreshPackages", true);
               break;
             } catch (final BundleException we) {
-              if (fwCtx.debug.packages) {
+              if (fwCtx.debug.resolver) {
                 fwCtx.debug
                     .println("PackageAdminImpl.refreshPackages() timeout on bundle stop, retry...");
               }
@@ -320,7 +320,7 @@ public class PackageAdminImpl implements PackageAdmin {
         bi[bx].purge();
       }
     }
-    if (fwCtx.debug.packages) {
+    if (fwCtx.debug.resolver) {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() "
                           + "all affected bundles now in state INSTALLED");
     }
@@ -331,7 +331,7 @@ public class PackageAdminImpl implements PackageAdmin {
                                            fwCtx.systemBundle, null);
     fwCtx.listeners.frameworkEvent(fe, fl);
     refreshSync.remove(Thread.currentThread());
-    if (fwCtx.debug.packages) {
+    if (fwCtx.debug.resolver) {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() done.");
     }
   }
@@ -368,7 +368,7 @@ public class PackageAdminImpl implements PackageAdmin {
    */
   public boolean resolveBundles(Bundle[] bundles) {
     fwCtx.perm.checkResolveAdminPerm();
-    synchronized (fwCtx.packages) {
+    synchronized (fwCtx.resolver) {
       fwCtx.resolverHooks.checkResolveBlocked();
       List<BundleImpl> bl = new ArrayList<BundleImpl>();
       boolean res = true;

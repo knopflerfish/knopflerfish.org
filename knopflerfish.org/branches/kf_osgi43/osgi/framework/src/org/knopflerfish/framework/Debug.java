@@ -110,10 +110,10 @@ public class Debug {
   boolean ldap;
 
   /**
-   * Report package handling events.
+   * Report resolver handling events.
    */
-  public static String PACKAGES_PROP = "org.knopflerfish.framework.debug.packages";
-  boolean packages;
+  public static String RESOLVER_PROP = "org.knopflerfish.framework.debug.resolver";
+  boolean resolver;
 
   /**
    * Report Class patching handling
@@ -164,7 +164,7 @@ public class Debug {
     props.setPropertyDefault(FRAMEWORK_PROP, FWProps.FALSE);
     props.setPropertyDefault(HOOKS_PROP, FWProps.FALSE);
     props.setPropertyDefault(LAZY_ACTIVATION_PROP, FWProps.FALSE);
-    props.setPropertyDefault(PACKAGES_PROP, FWProps.FALSE);
+    props.setPropertyDefault(RESOLVER_PROP, FWProps.FALSE);
     props.setPropertyDefault(PATCH_PROP, FWProps.FALSE);
     props.setPropertyDefault(PERMISSIONS_PROP, FWProps.FALSE);
     props.setPropertyDefault(SERVICE_REFERENCE_PROP, FWProps.FALSE);
@@ -178,7 +178,7 @@ public class Debug {
     framework = props.getBooleanProperty(FRAMEWORK_PROP);
     hooks = props.getBooleanProperty(HOOKS_PROP);
     lazy_activation = props.getBooleanProperty(LAZY_ACTIVATION_PROP);
-    packages = props.getBooleanProperty(PACKAGES_PROP);
+    resolver = props.getBooleanProperty(RESOLVER_PROP);
     patch = props.getBooleanProperty(PATCH_PROP);
     permissions = props.getBooleanProperty(PERMISSIONS_PROP);
     service_reference = props.getBooleanProperty(SERVICE_REFERENCE_PROP);

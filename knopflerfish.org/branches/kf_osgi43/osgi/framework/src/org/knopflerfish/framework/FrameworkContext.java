@@ -120,9 +120,9 @@ public class FrameworkContext  {
   ClassPatcherActivator classPatcher;
 
   /**
-   * All exported and imported packages in this framework.
+   * All capabilities, exported and imported packages in this framework.
    */
-  Packages packages;
+  Resolver resolver;
 
   /**
    * All registered services in this framework.
@@ -277,7 +277,7 @@ public class FrameworkContext  {
     if (clazz != null) {
       final int pos = clazz.lastIndexOf('.');
       if (pos != -1) {
-        final Pkg p = packages.getPkg(clazz.substring(0, pos));
+        final Pkg p = resolver.getPkg(clazz.substring(0, pos));
         if (p != null) {
           final ExportPkg ep = p.getBestProvider();
           if (ep != null) {
@@ -407,7 +407,7 @@ public class FrameworkContext  {
     BundleThread.checkWarnStopActionNotSupported(this);
     bundleThreads = new LinkedList<BundleThread>();
 
-    packages  = new Packages(this);
+    resolver  = new Resolver(this);
     listeners = new Listeners(this, perm);
     services  = new Services(this, perm);
 
@@ -484,8 +484,8 @@ public class FrameworkContext  {
     listeners.clear();
     listeners = null;
 
-    packages.clear();
-    packages = null;
+    resolver.clear();
+    resolver = null;
 
     synchronized (bundleThreads) {
       while (!bundleThreads.isEmpty()) {

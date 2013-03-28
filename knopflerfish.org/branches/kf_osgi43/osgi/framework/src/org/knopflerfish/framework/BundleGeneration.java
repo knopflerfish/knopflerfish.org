@@ -514,7 +514,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         return true;
       }
       if (fragments != null) {
-        if (bundle.fwCtx.debug.packages) {
+        if (bundle.fwCtx.debug.resolver) {
           bundle.fwCtx.debug.println("Resolve failed, remove last fragment and retry");
         }
         if (detached == null) {
@@ -610,7 +610,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         throw new IllegalStateException(be.getMessage());
       }
     }
-    if (bundle.fwCtx.debug.packages) {
+    if (bundle.fwCtx.debug.resolver) {
       bundle.fwCtx.debug.println("Fragment(" + fragmentBundle.bundle + ") attached to host(id="
           + bundle.id + ",gen=" + generation + ")");
     }
@@ -640,7 +640,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     if (last >= 0) {
       final BundleGeneration fbg = fragments.remove(last);
       bpkgs.detachFragmentSynchronized(fbg, unregister);
-      if (bundle.fwCtx.debug.packages) {
+      if (bundle.fwCtx.debug.resolver) {
         bundle.fwCtx.debug.println("Fragment(id=" + fbg.bundle.id + ") detached from host(id="
             + bundle.id + ",gen=" + generation + ")");
       }

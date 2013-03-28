@@ -690,7 +690,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     if (null == sysPkgFile || 0 == sysPkgFile.length())
       return;
 
-    if (fwCtx.debug.packages) {
+    if (fwCtx.debug.resolver) {
       fwCtx.debug.println("Will add system packages from file " + sysPkgFile);
     }
 
@@ -703,7 +703,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         url = SystemBundle.class.getResource("/" + sysPkgFile);
       }
       if (null == url) {
-        if (fwCtx.debug.packages) {
+        if (fwCtx.debug.resolver) {
           fwCtx.debug.println("Could not add system bundle package exports from '" + sysPkgFile
               + "', file not found.");
         }
@@ -722,7 +722,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         source = url.toString();
       }
       in = new BufferedReader(reader);
-      if (fwCtx.debug.packages) {
+      if (fwCtx.debug.resolver) {
         fwCtx.debug.println("\treading from " + source);
       }
 

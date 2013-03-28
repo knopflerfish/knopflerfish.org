@@ -142,8 +142,8 @@ class BundleThread extends Thread {
         operation = OP_IDLE;
         res = tmpres;
       }
-      synchronized (fwCtx.packages) {
-        fwCtx.packages.notifyAll();
+      synchronized (fwCtx.resolver) {
+        fwCtx.resolver.notifyAll();
       }
     }
   }
@@ -187,7 +187,7 @@ class BundleThread extends Thread {
     boolean abort = false;
     do {
       try {
-        fwCtx.packages.wait();
+        fwCtx.resolver.wait();
       } catch (final InterruptedException ie) {
       }
       // Abort start/stop operation if bundle has been uninstalled
