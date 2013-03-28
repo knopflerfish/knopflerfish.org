@@ -6,11 +6,13 @@
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name = "bundle.build.impl"  value = "false"/>
+  <property name = "bundle.build.doc"   value = "true"/>
+
   <property name="all.suffix.name" value=""/>
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <!-- Needs java.awt outside of ee.minimum -->
-  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.6"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/**"/>
