@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: sslj2sp
 Bundle-SymbolicName: org.knopflerfish.bundle.sslj2sp
-Bundle-Version: 3.0.0
+Bundle-Version: 4.0.0
 Bundle-Category: service
-Bundle-Description: SSL Provider using the J2 security architecture.
+Bundle-Description: SSL Provider using the Java 2 security architecture.
 Bundle-Vendor: Knopflerfish/Oscar
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk

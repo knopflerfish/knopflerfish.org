@@ -12,6 +12,7 @@
   <property name = "bundle.build.impl"     value = "true"/>
   <property name = "bundle.build.lib"      value = "false"/>
   <property name = "bundle.build.all"      value = "false"/>
+  <property name = "bundle.build.doc"      value = "true"/>
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <!-- Needs javax.net.ssl outside of ee.minimum -->
