@@ -91,13 +91,17 @@ public class BundleImageIcon extends ImageIcon {
       installedIcon   = null;
       //        new ImageIcon(getClass().getResource("/overlay_installed.gif"));
 
-      resolvedIcon = null;
+      resolvedIcon = 
+        //new ImageIcon(getClass().getResource("/player_resolved_14x14.png"));
+        new ImageIcon(getClass().getResource("/player_resolved2_14x14.png"));
       //        new ImageIcon(getClass().getResource("/overlay_resolved.gif"));
 
-      startingIcon    = null;
+      startingIcon    = 
+        new ImageIcon(getClass().getResource("/overlay_starting_14x14.png"));
       //        new ImageIcon(getClass().getResource("/overlay_starting.gif"));
 
-      stoppingIcon    = null;
+      stoppingIcon    =
+        new ImageIcon(getClass().getResource("/player_stopping_14x14.png"));
       //        new ImageIcon(getClass().getResource("/overlay_stopping.gif"));
 
       uninstalledIcon = null;
@@ -129,7 +133,7 @@ public class BundleImageIcon extends ImageIcon {
       break;
     case Bundle.STOPPING:
       overlay = stoppingIcon;
-      break;
+     break;
     case Bundle.UNINSTALLED:
       overlay = uninstalledIcon;
       break;
