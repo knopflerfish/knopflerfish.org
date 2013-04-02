@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,8 @@ public class HttpServer {
 
     private final SocketListener httpsSocketListener;
 
+    private final LogRef log;
+
     private ServiceRegistration httpReg = null;
 
     private BundleContext bc = null;
@@ -74,6 +76,7 @@ public class HttpServer {
                       final LogRef log)
     {
         this.bc = bc;
+        this.log = log;
         this.httpConfig = httpConfig;
         registrations = new Registrations();
 
@@ -135,7 +138,13 @@ public class HttpServer {
             httpReg = null;
         }
         if (transactionManager != null) {
+          try {
             transactionManager.destroy();
+          } catch (IllegalThreadStateException itse) {
+            log.warn("All HTTP transaction threads did not terminate; "
+                     +"unable to destroy transaction manager thread group.",
+                     itse);
+          }
         }
         if (sessionManager != null) {
             sessionManager.destroy();
