@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012 KNOPFLERFISH project
+ * Copyright (c) 2003-2013 KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -417,7 +417,7 @@ public class HttpConfig
   public void updated(Dictionary<String, ?> configuration)
       throws ConfigurationException
   {
-    mergeConfiguration(configuration); // NYI
+    mergeConfiguration(configuration);
   }
 
   // private helper methods

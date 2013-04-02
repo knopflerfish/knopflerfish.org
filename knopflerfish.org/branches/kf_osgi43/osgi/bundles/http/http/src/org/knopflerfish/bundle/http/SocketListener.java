@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 import org.knopflerfish.service.log.LogRef;
 
+//NOTE: Use rawtypes to avoid explicit dependency on SSLServerSocketFactory.
 @SuppressWarnings("rawtypes")
 public class SocketListener
   implements Runnable, ServiceTrackerCustomizer
@@ -170,18 +171,20 @@ public class SocketListener
         init();
 
       } catch (final Exception e) {
+        final String msg =
+          "Failed to open HTTP Server Socket on "
+              + (host == null || host.length() == 0 ? "*" : host) + ":" + port
+              + " reason: " + e.toString();
         if (log.doDebug()) {
-          log.debug("Exception creating HTTP Socket", e);
+          log.debug(msg, e);
         }
-        throw new ConfigurationException("Exception creating HTTP Socket on "
-                                         + (host == null || host.length() == 0
-                                           ? "*"
-                                           : host) + ":" + port, e.toString());
+        throw new ConfigurationException(HttpConfig.HTTP_PORT_KEY, msg, e);
       }
 
     } else // secure case, can not create socket by myself, need to get
            // service
     {
+      // NOTE: Specify the class using a string to avoid explicit dependency.
       securityTracker =
         new ServiceTracker(this.bc, "javax.net.ssl.SSLServerSocketFactory",
                            this);
@@ -217,10 +220,8 @@ public class SocketListener
         factory.getClass().getMethod("createServerSocket",
                                      new Class[] { int.class, int.class,
                                                   InetAddress.class });
-
     } catch (final Exception cmethE) {
       log.error("not an SSL factory, or no access : " + factory, cmethE);
-
     }
 
     if (host == null || host.length() == 0) {
@@ -229,12 +230,15 @@ public class SocketListener
           (ServerSocket) create2
               .invoke(factory, new Object[] { new Integer(port),
                                              new Integer(maxConnections) });
-
       } catch (final Exception ex) {
-        ex.printStackTrace();
-        log.error("creating ssl socket on server:", ex);
+        final Throwable cause = ex.getCause();
+        final String msg =
+          "Failed to open HTTPS Server Socket on *:" + port + " reason: "
+              + cause.toString();
+        if (log.doWarn()) {
+          log.warn(msg, ex);
+        }
       }
-
     } else {
       try {
         try {
@@ -243,18 +247,26 @@ public class SocketListener
                 .invoke(factory, new Object[] { new Integer(port),
                                                new Integer(maxConnections),
                                                InetAddress.getByName(host) });
-
         } catch (final UnknownHostException uhe) {
+          final String msg =
+            "Failed to open HTTPS Server Socket on " + host + ":" + port
+                + " reason: " + uhe.toString() +". Trying on *:" +port;
+          if (log.doWarn()) {
+            log.warn(msg, uhe);
+          }
           socket =
             (ServerSocket) create2
                 .invoke(factory, new Object[] { new Integer(port),
                                                new Integer(maxConnections) });
         }
-
       } catch (final Exception ex) {
-        log.error("creating socket ", ex);
+        final String msg =
+          "Failed to open HTTPS Server Socket on " + host + ":" + port
+              + " reason: " + ex.toString();
+        if (log.doWarn()) {
+          log.warn(msg, ex);
+        }
       }
-
     }
 
     if (socket != null) {
@@ -265,9 +277,11 @@ public class SocketListener
           sslSockClass.getMethod("setNeedClientAuth",
                                  new Class[] { boolean.class });
         auth.invoke(socket, new Object[] { requireClientAuth });
-
       } catch (final Exception exc) {
-        log.error(exc.toString());
+        final String msg =
+          "Failed to configure client authentification for HTTPS server on "
+              + host + ":" + port + " reason: " + exc.getMessage();
+        log.error(msg, exc);
       }
     }
 
@@ -275,7 +289,8 @@ public class SocketListener
       try {
         init();
       } catch (final Exception e) {
-        log.error("Can not initialize", e);
+        log.error("Failed to initialize HTTPS server on " + host + ":" + port
+                  + " reason: " + e.getMessage(), e);
         socket = null;
       }
     }
@@ -319,7 +334,7 @@ public class SocketListener
       if (isSecure) {
         // Make sure that the service property port.https is
         // correct. Only needed for https, since init() is called
-        // asynchroneous in that case.
+        // asynchronous in that case.
         httpServer.doHttpReg();
       }
     }
