@@ -46,6 +46,10 @@ Http 4.0.0
  - The methods javax.servlet.Request.getLocale() and
    javax.servlet.Reuqest.getLocales() now returns data based on the
    Accept-Language header in the request.
+ - Improve error messages when the configured server socket is
+   in use.
+ - Add description for all properties in the Http-configuration to
+   the metadata.xml file describing the configuration.
 
 
 ----------------------------------------------
