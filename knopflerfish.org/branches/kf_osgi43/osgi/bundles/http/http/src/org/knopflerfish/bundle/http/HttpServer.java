@@ -64,6 +64,8 @@ public class HttpServer
 
   private final SocketListener httpsSocketListener;
 
+  private final LogRef log;
+
   private ServiceRegistration<?> httpReg = null;
 
   private BundleContext bc = null;
@@ -74,6 +76,7 @@ public class HttpServer
                     final LogRef log)
   {
     this.bc = bc;
+    this.log = log;
     this.httpConfig = httpConfig;
     registrations = new Registrations();
 
@@ -135,7 +138,12 @@ public class HttpServer
       httpReg = null;
     }
     if (transactionManager != null) {
-      transactionManager.destroy();
+      try {
+        transactionManager.destroy();
+      } catch (final IllegalThreadStateException itse) {
+        log.warn("All HTTP transaction threads did not terminate; "
+                 + "unable to destroy transaction manager thread group.", itse);
+      }
     }
     if (sessionManager != null) {
       sessionManager.destroy();

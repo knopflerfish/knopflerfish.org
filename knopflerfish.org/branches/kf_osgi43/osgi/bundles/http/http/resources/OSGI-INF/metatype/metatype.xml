@@ -2,7 +2,8 @@
 
 <MetaData xmlns="http://www.osgi.org/xmlns/metatype/v1.0.0">
 
-  <OCD id="1.1.1.1" name="OCD for factory.HttpServer">
+  <OCD id="org.knopflerfish.bundle.http.ocd.HttpServer"
+       name="OCD for factory.HttpServer">
     <AD name="http.enabled"
 	description="If true the HttpServer will try to open a socket for HTTP client."
 	type="Boolean"
@@ -63,7 +64,7 @@
      pid="org.knopflerfish.bundle.http.factory.HttpServer"
      factoryPid="org.knopflerfish.bundle.http.factory.HttpServer" 
      bundle="ignored" >
-    <Object ocdref="1.1.1.1" >
+    <Object ocdref="org.knopflerfish.bundle.http.ocd.HttpServer" >
     </Object>
   </Designate>
 
