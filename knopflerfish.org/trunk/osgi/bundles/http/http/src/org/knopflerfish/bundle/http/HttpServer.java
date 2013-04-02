@@ -134,6 +134,9 @@ public class HttpServer {
             httpReg.unregister();
             httpReg = null;
         }
+        if (transactionManager != null) {
+            transactionManager.destroy();
+        }
         if (sessionManager != null) {
             sessionManager.destroy();
         }
@@ -164,11 +167,11 @@ public class HttpServer {
    public Registrations getRegistrations() {
       return registrations;
    }
-   
+
    public TransactionManager getTransactionManager() {
       return transactionManager;
    }
-   
+
    public boolean isHttpOpen() {
       return httpSocketListener.isOpen();
    }
@@ -176,5 +179,5 @@ public class HttpServer {
    public boolean isHttpsOpen() {
       return httpsSocketListener.isOpen();
    }
-   
+
 } // HttpServer
