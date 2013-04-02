@@ -165,7 +165,7 @@ public class HttpSessionManager
       List<HttpSessionImpl> sessionList = null;
       // Must create a copy to avoid concurrent modification of the sessions map.
       synchronized (sessions) {
-        sessionList = new ArrayList<HttpSessionImpl>(sessions.values());;
+        sessionList = new ArrayList<HttpSessionImpl>(sessions.values());
       }
 
       for (final HttpSessionImpl session : sessionList) {

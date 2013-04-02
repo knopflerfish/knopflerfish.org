@@ -109,8 +109,7 @@ public class SocketListener
       throws ConfigurationException
   {
     // the following if statements prevents unnecessary calls to init
-    // (nothing
-    // changed)
+    // (when nothing changed)
     if (isSecure == httpConfig.isSecure() && (requireClientAuth != null)
         && (requireClientAuth.booleanValue() == httpConfig.requireClientAuth())
         && port == httpConfig.getPort() && httpConfig.getHost().equals(host)
