@@ -29,9 +29,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 === Services (Compendium) ===
 
 
-* HTTP 3.1.4
+* HTTP 3.1.5
+  - When all of the transaction threads can not be terminated on
+    shut-down of the http bundle, we can not destroy the transaction
+    manager thread group.
 
-  - Fixed a reaource leask in the TransactionManager class.
+  HTTP 3.1.4
+
+  - Fixed a resource leaks in the TransactionManager class.
     See https://sourceforge.net/p/gatespace/bugs/175/
 
   HTTP 3.1.3
