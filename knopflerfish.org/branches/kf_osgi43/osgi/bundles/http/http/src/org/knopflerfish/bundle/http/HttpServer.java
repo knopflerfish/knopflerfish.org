@@ -134,6 +134,9 @@ public class HttpServer
       httpReg.unregister();
       httpReg = null;
     }
+    if (transactionManager != null) {
+      transactionManager.destroy();
+    }
     if (sessionManager != null) {
       sessionManager.destroy();
     }
