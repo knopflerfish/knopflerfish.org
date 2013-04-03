@@ -44,6 +44,7 @@ import org.osgi.service.packageadmin.RequiredBundle;
  * Implementation for required bundle interface.
  *
  */
+@SuppressWarnings("deprecation")
 public class RequiredBundleImpl implements RequiredBundle
 {
 

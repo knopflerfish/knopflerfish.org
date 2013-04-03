@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -322,15 +323,52 @@ class Archive implements FileArchive {
 
 
   @Override
-  public boolean exists(String path, boolean dirs) {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean exists(String path, boolean onlyDirs) {
+    if (path.equals("")) {
+      return true;
+    }
+    if (onlyDirs) {
+      if (!path.endsWith("/")) {
+        path = path + "/";
+      }
+      for (String k : content.keySet()) {
+        if (k.startsWith(path)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return content.containsKey(path);
+    }
   }
 
 
   @Override
   public Set<String> listDir(String path) {
-    // TODO Auto-generated method stub
+    Set<String> res = new HashSet<String>();
+    if (path.length() > 0 && !path.endsWith("/")) {
+      path = path + "/";
+    }
+    for (String k : content.keySet()) {
+      String e = matchPath(path, k);
+      if (e != null) {
+        res.add(e);
+      }
+    }
+    return res;
+  }
+
+
+  private String matchPath(String basePath, String path) {
+    final int len = basePath.length();
+    if (path.length() > len && path.startsWith(basePath)) {
+      int i = path.indexOf('/', len);
+      if (i == -1) {
+        return path.substring(len);
+      } else {
+        return path.substring(len, i + 1);
+      }
+    }
     return null;
   }
 

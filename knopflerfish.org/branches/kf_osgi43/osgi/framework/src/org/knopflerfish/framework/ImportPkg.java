@@ -63,8 +63,12 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
    */
   static final String RESOLUTION_DYNAMIC = "dynamic";
 
+  @SuppressWarnings("deprecation")
+  private static final String PACKAGE_SPECIFICATION_VERSION = Constants.PACKAGE_SPECIFICATION_VERSION;
+
   // To maintain the creation order in the osgi.wiring.package name space.
   static private int importPkgCount = 0;
+
   final int orderal = ++importPkgCount;
 
   final String name;
@@ -129,12 +133,12 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     final String versionStr = (String) he.getAttributes()
         .remove(Constants.VERSION_ATTRIBUTE);
     final String specVersionStr = (String) he.getAttributes()
-        .remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+        .remove(PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.packageRange = new VersionRange(specVersionStr);
       if (versionStr != null && !this.packageRange.equals(new VersionRange(versionStr))) {
         throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
-                                           " and " + Constants.PACKAGE_SPECIFICATION_VERSION +
+                                           " and " + PACKAGE_SPECIFICATION_VERSION +
                                            " are specified, but differs");
       }
     } else if (versionStr != null) {

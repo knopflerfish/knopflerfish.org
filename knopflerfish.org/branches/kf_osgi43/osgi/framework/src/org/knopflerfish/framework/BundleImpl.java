@@ -42,7 +42,6 @@ import java.security.Permission;
 import java.security.PermissionCollection;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;

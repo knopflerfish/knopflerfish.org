@@ -388,7 +388,8 @@ class BundleArchiveImpl implements BundleArchive {
    * @return An array of certificates or null.
    */
   public ArrayList<List<X509Certificate>> getCertificateChains(boolean onlyTrusted) {
-    throw new RuntimeException("NYI");
+    // TODO
+    return null;
   }
 
 
@@ -397,6 +398,7 @@ class BundleArchiveImpl implements BundleArchive {
    *
    */
   public void trustCertificateChain(List<X509Certificate> trustedChain) {
+    // TODO
     throw new RuntimeException("NYI");
   }
 

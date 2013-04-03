@@ -56,14 +56,23 @@ public class BundleNameVersionCapability implements BundleCapability {
   }
 
   public Map<String, String> getDirectives() {
-    return Collections.unmodifiableMap(gen.symbolicNameParameters.getDirectives());
+    if (gen.symbolicNameParameters != null) {
+      return Collections.unmodifiableMap(gen.symbolicNameParameters.getDirectives());
+    }
+    @SuppressWarnings("unchecked")
+    Map<String, String> res = Collections.EMPTY_MAP;
+    return res;
   }
 
   public Map<String, Object> getAttributes() {
-    final Map<String,Object> res = new HashMap<String, Object>(gen.symbolicNameParameters.getAttributes());
-
-    res.put(namespace, gen.symbolicName);
-    res.put(Constants.BUNDLE_VERSION_ATTRIBUTE, gen.version);
+    final Map<String,Object> res = new HashMap<String, Object>();
+    if (gen.symbolicNameParameters != null) {
+      res.putAll(gen.symbolicNameParameters.getAttributes());
+    }
+    if (gen.symbolicName != null) {
+      res.put(namespace, gen.symbolicName);
+      res.put(Constants.BUNDLE_VERSION_ATTRIBUTE, gen.version);
+    }
     return Collections.unmodifiableMap(res);
   }
 

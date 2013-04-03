@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Vector;
 
+import org.knopflerfish.framework.permissions.PermissionsHandle;
 import org.osgi.framework.AdaptPermission;
 import org.osgi.framework.AdminPermission;
 import org.osgi.framework.Bundle;
@@ -73,11 +74,8 @@ import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServicePermission;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
-
-import org.knopflerfish.framework.permissions.PermissionsHandle;
 
 class SecurePermissionOps
   extends PermissionOps

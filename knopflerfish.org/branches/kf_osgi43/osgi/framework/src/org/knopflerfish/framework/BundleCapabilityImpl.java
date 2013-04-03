@@ -33,20 +33,16 @@
  */
 package org.knopflerfish.framework;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
-import org.osgi.framework.Bundle;
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Constants;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
-
-import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Implementation of bundle capability for generic capabilities specified in the
@@ -59,7 +55,6 @@ public class BundleCapabilityImpl implements BundleCapability {
   private final Map<String,Object> attributes;
   private final Map<String,String> directives;
   private Vector<BundleWireImpl> wires = new Vector<BundleWireImpl>(2);
-  private boolean hasPermission = true;
 
   /**
    * Creates a {@link BundleCapability} from one entry of the Bundle-Capability

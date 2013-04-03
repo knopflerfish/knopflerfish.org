@@ -53,7 +53,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -70,9 +69,6 @@ import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
-
-import org.osgi.framework.Constants;
 
 import org.knopflerfish.framework.AutoManifest;
 import org.knopflerfish.framework.BundleGeneration;
@@ -81,6 +77,7 @@ import org.knopflerfish.framework.FileArchive;
 import org.knopflerfish.framework.FileTree;
 import org.knopflerfish.framework.Util;
 import org.knopflerfish.framework.Util.HeaderEntry;
+import org.osgi.framework.Constants;
 
 /**
  * JAR file handling.
@@ -740,7 +737,7 @@ public class Archive implements FileArchive {
     }
     try {
       if (jar != null) {
-        if (!path.endsWith("/")) {
+        if (path.length() > 0 && !path.endsWith("/")) {
           path = path + "/";
         }
         if (subJar != null) {
@@ -802,7 +799,7 @@ public class Archive implements FileArchive {
 
   private String matchPath(String basePath, String path) {
     final int len = basePath.length();
-    if (path.startsWith(basePath) && path.length() > len) {
+    if (path.length() > len && path.startsWith(basePath)) {
       int i = path.indexOf('/', len);
       if (i == -1) {
         return path.substring(len);

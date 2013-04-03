@@ -76,6 +76,7 @@ import org.osgi.service.packageadmin.RequiredBundle;
  * @author Philippe Laporte
  * @author Mats-Ola Persson
  */
+@SuppressWarnings("deprecation")
 public class PackageAdminImpl implements PackageAdmin {
 
   final static String SPEC_VERSION = "1.2";
@@ -402,7 +403,6 @@ public class PackageAdminImpl implements PackageAdmin {
     }
   }
 
-  @SuppressWarnings("deprecation")
   public RequiredBundle[] getRequiredBundles(String symbolicName) {
     List<BundleGeneration> bgs = fwCtx.bundles.getBundleGenerations(symbolicName);
     final ArrayList<RequiredBundleImpl> res = new ArrayList<RequiredBundleImpl>();
@@ -488,7 +488,6 @@ public class PackageAdminImpl implements PackageAdmin {
     }
   }
 
-  @SuppressWarnings("deprecation")
   public int getBundleType(Bundle bundle) {
     final BundleGeneration bg = ((BundleImpl)bundle).current();
     return bg.isFragment() && !bg.isExtension() ? BUNDLE_TYPE_FRAGMENT : 0;

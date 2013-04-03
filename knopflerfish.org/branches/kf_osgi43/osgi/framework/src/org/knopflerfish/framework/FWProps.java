@@ -222,6 +222,9 @@ public class FWProps {
     }
   }
 
+  @SuppressWarnings("deprecation")
+  private static final String FRAMEWORK_EXECUTIONENVIRONMENT = Constants.FRAMEWORK_EXECUTIONENVIRONMENT;
+
   /**
    * Is it safe to use double-checked locking or not. It is safe if JSR 133 is
    * included in the running JRE. I.e., for Java SE if version is 1.5 or higher.
@@ -342,7 +345,7 @@ public class FWProps {
                         Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");
 
-    if (!props.containsKey(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)) {
+    if (!props.containsKey(FRAMEWORK_EXECUTIONENVIRONMENT)) {
       final StringBuffer ee = new StringBuffer();
       // Always allow ee minimum
       ee.append("OSGi/Minimum-1.0");
@@ -355,7 +358,7 @@ public class FWProps {
           ee.append(i);
         }
       }
-      props.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee.toString());
+      props.put(FRAMEWORK_EXECUTIONENVIRONMENT, ee.toString());
     }
 
     // The actual value is created in SytemBundle.

@@ -50,7 +50,6 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.hooks.service.EventHook;
 import org.osgi.framework.hooks.service.EventListenerHook;
 import org.osgi.framework.hooks.service.FindHook;
 import org.osgi.framework.hooks.service.ListenerHook;
@@ -63,6 +62,7 @@ import org.osgi.util.tracker.ServiceTrackerCustomizer;
  * and ServiceListenerState
  *
  */
+@SuppressWarnings("deprecation")
 class ServiceHooks {
 
   final private FrameworkContext fwCtx;
@@ -194,8 +194,8 @@ class ServiceHooks {
                                    final Collection<ServiceListenerEntry> receivers) {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    final List<ServiceRegistrationImpl<EventHook>> eventHooks
-      = (List) fwCtx.services.get(EventHook.class.getName());
+    final List<ServiceRegistrationImpl<org.osgi.framework.hooks.service.EventHook>> eventHooks
+      = (List) fwCtx.services.get(org.osgi.framework.hooks.service.EventHook.class.getName());
 
     if (eventHooks != null) {
       final HashSet<BundleContext> ctxs = new HashSet<BundleContext>();
@@ -206,9 +206,9 @@ class ServiceHooks {
       final RemoveOnlyCollection<BundleContext> filtered
         = new RemoveOnlyCollection<BundleContext>(ctxs);
 
-      for (final ServiceRegistrationImpl<EventHook> sregi : eventHooks) {
-        final ServiceReferenceImpl<EventHook> sr = sregi.reference;
-        final EventHook eh = sr.getService(fwCtx.systemBundle);
+      for (final ServiceRegistrationImpl<org.osgi.framework.hooks.service.EventHook> sregi : eventHooks) {
+        final ServiceReferenceImpl<org.osgi.framework.hooks.service.EventHook> sr = sregi.reference;
+        final org.osgi.framework.hooks.service.EventHook eh = sr.getService(fwCtx.systemBundle);
         if (eh != null) {
           try {
             eh.event(evt, filtered);

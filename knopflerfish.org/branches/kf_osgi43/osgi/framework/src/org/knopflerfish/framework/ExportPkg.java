@@ -43,14 +43,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.framework.Bundle;
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
-
-import org.knopflerfish.framework.Util.HeaderEntry;
 
 
 /**
@@ -61,6 +59,9 @@ import org.knopflerfish.framework.Util.HeaderEntry;
 class ExportPkg
   implements BundleCapability, Comparable<ExportPkg>
 {
+  @SuppressWarnings("deprecation")
+  private static final String PACKAGE_SPECIFICATION_VERSION = Constants.PACKAGE_SPECIFICATION_VERSION;
+
   // To maintain the creation order in the osgi.wiring.package name space.
   static private int exportPkgCount = 0;
   final int orderal = ++exportPkgCount;
@@ -74,7 +75,6 @@ class ExportPkg
   final Version version;
   final Map<String,Object> attributes;
   boolean zombie = false;
-  private boolean hasPermission = true;
 
   // Link to pkg entry
   Pkg pkg = null;
@@ -100,12 +100,12 @@ class ExportPkg
     final String versionStr = (String) he.getAttributes()
         .remove(Constants.VERSION_ATTRIBUTE);
     final String specVersionStr = (String) he.getAttributes()
-        .remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+        .remove(PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.version = new Version(specVersionStr);
       if (versionStr != null && !this.version.equals(new Version(versionStr))) {
         throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
-                                           " and " + Constants.PACKAGE_SPECIFICATION_VERSION +
+                                           " and " + PACKAGE_SPECIFICATION_VERSION +
                                            " are specified, and differs");
       }
     } else if (versionStr != null) {
@@ -315,7 +315,7 @@ class ExportPkg
    */
   public String pkgString() {
     if (version != Version.emptyVersion) {
-      return name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION + "=" + version;
+      return name + ";" + PACKAGE_SPECIFICATION_VERSION + "=" + version;
     } else {
       return name;
     }

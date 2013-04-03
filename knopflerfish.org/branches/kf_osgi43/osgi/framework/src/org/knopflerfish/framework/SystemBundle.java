@@ -67,9 +67,7 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
-import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.permissionadmin.PermissionAdmin;
-import org.osgi.service.startlevel.StartLevel;
 import org.osgi.util.tracker.ServiceTracker;
 
 import org.knopflerfish.framework.permissions.ConditionalPermissionAdminImpl;
@@ -327,6 +325,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Bundle#getHeaders
    */
+  @SuppressWarnings("deprecation")
   @Override
   public Dictionary<String, String> getHeaders(String locale) {
     secure.checkMetadataAdminPerm(this);
@@ -616,6 +615,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Add all built-in system packages to a stringbuffer.
    */
+  @SuppressWarnings("deprecation")
   private void addSystemPackages(StringBuffer sp) {
     if (sp.length() > 0 && ',' != sp.charAt(sp.length() - 1)) {
       sp.append(",");
@@ -631,7 +631,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         + FrameworkContext.HOOKS_VERSION);
 
     // Set up packageadmin package
-    name = PackageAdmin.class.getName();
+    name = org.osgi.service.packageadmin.PackageAdmin.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
         + PackageAdminImpl.SPEC_VERSION);
@@ -655,7 +655,7 @@ public class SystemBundle extends BundleImpl implements Framework {
         + ConditionalPermissionAdminImpl.SPEC_VERSION);
 
     // Set up startlevel service package
-    name = StartLevel.class.getName();
+    name = org.osgi.service.startlevel.StartLevel.class.getName();
     name = name.substring(0, name.lastIndexOf('.'));
     sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
         + StartLevelController.SPEC_VERSION);
@@ -778,6 +778,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   {
     final Map<String, SortedSet<Version>> eeNameVersions
       = new HashMap<String, SortedSet<Version>>();
+    @SuppressWarnings("deprecation")
     final String fwEE = fwCtx.props
         .getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 

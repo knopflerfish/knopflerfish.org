@@ -1166,24 +1166,27 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
 
   boolean bsnAttrMatch(Map<String, Object> attributes) {
-    final Map<String, Object> attr = symbolicNameParameters.getAttributes();
-    final String mandatory = symbolicNameParameters.getDirectives().get(Constants.MANDATORY_DIRECTIVE);
-    HashSet<String> mAttr = new HashSet<String>();
-    if (mandatory != null) {
-      String [] split = Util.splitwords(mandatory, ",");
-      for (String e : split) {
-        mAttr.add(e.trim());
+    if (symbolicNameParameters != null) {
+      final Map<String, Object> attr = symbolicNameParameters.getAttributes();
+      final String mandatory = symbolicNameParameters.getDirectives().get(Constants.MANDATORY_DIRECTIVE);
+      HashSet<String> mAttr = new HashSet<String>();
+      if (mandatory != null) {
+        String [] split = Util.splitwords(mandatory, ",");
+        for (String e : split) {
+          mAttr.add(e.trim());
+        }
       }
-    }
-    for (Entry<String, Object> e : attributes.entrySet()) {
-      final String key = e.getKey();
-      if (e.getValue().equals(attr.get(key))) {
-        mAttr.remove(key);
-      } else {
-        return false;
+      for (Entry<String, Object> e : attributes.entrySet()) {
+        final String key = e.getKey();
+        if (e.getValue().equals(attr.get(key))) {
+          mAttr.remove(key);
+        } else {
+          return false;
+        }
       }
+      return mAttr.isEmpty();
     }
-    return mAttr.isEmpty();
+    return true;
   }
 
 

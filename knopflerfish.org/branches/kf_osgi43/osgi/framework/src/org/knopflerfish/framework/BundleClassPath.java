@@ -34,7 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,13 +43,12 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
-
-import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Bundle Class Path handler.

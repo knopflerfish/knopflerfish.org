@@ -53,8 +53,6 @@ import java.util.Vector;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.BundleReference;
-import org.osgi.framework.Constants;
-import org.osgi.framework.wiring.BundleWiring;
 
 /**
  * Classloader for bundle JAR files.
@@ -761,15 +759,10 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         final ClassLoader cl = pbp.getClassLoader();
         if (!local || cl == this) {
           if (isSystemBundle(pbp.bg.bundle)) {
-            // TODO, should resources be handle?
-            if (action == classSearch) {
-              try {
-                return cl.loadClass(name);
-              } catch (final ClassNotFoundException e) {
-                return null;
-              }
+            answer = frameworkSearchFor(cl, name, path, action);
+            if (!recurse) {
+              return answer;
             }
-            // TBD, continue!?
           } else {
             final BundleClassLoader bcl = (BundleClassLoader) cl;
             // Second check avoids a loop when a required bundle imports a
@@ -804,20 +797,25 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
           }
           visited.add(this);
           for (final BundleGeneration pbg : pl) {
-            final BundleClassLoader cl = (BundleClassLoader) pbg.getClassLoader();
-            if (cl != null && !visited.contains(cl)) {
-              if (debug.classLoader) {
-                debug.println(this + " Required bundle search: " + path + " from #"
-                              + pbg.bundle.id);
-              }
-              answer = secure.callSearchFor(cl, name, pkg, path, action, options,
-                                            requestor, visited);
-              if (answer != null) {
-                if (list || recurse) {
-                  break;
-                } else {
-                  return answer;
+            final ClassLoader cl = pbg.getClassLoader();
+            if (cl instanceof BundleClassLoader) {
+              final BundleClassLoader bcl = (BundleClassLoader)cl;
+              if (bcl != null && !visited.contains(bcl)) {
+                if (debug.classLoader) {
+                  debug.println(this + " Required bundle search: " + path + " from #"
+                                + pbg.bundle.id);
                 }
+                answer = secure.callSearchFor(bcl, name, pkg, path, action, options,
+                                              requestor, visited);
+              }
+            } else {
+              answer = frameworkSearchFor(cl, name, path, action);
+            }
+            if (answer != null) {
+              if (list || recurse) {
+                break;
+              } else {
+                return answer;
               }
             }
           }
@@ -908,6 +906,34 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         debug.println(this + " No dynamic import: " + path);
       }
     }
+    return null;
+  }
+
+  /**
+   * Get resources/classes from the framework.
+   * Rewrite this since this solution will leak
+   * resources that aren't bootdelegated.
+   * 
+   * @param cl
+   * @param name
+   * @param path
+   * @param action
+   * @return
+   */
+  private Object frameworkSearchFor(final ClassLoader cl, String name, String path,
+                                    SearchAction action) {
+    if (action == classSearch) {
+      try {
+        return cl.loadClass(name);
+      } catch (final ClassNotFoundException e) {
+      }
+    } else if (action == resourceSearch) {
+      try {
+        return cl.getResources(path);
+      } catch (IOException e) {
+      }
+    }
+    // TODO, listSearch?
     return null;
   }
 

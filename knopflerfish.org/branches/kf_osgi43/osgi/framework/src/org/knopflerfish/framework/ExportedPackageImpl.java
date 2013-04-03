@@ -59,6 +59,7 @@ import org.osgi.service.packageadmin.PackageAdmin;
  * old values, isRemovalPending() returns true, and getExportingBundle()
  * and getImportingBundles() return null.
  */
+@SuppressWarnings("deprecation")
 public class ExportedPackageImpl implements ExportedPackage {
 
   final private ExportPkg pkg;

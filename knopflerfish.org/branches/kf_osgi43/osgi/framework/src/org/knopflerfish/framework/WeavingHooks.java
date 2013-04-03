@@ -35,10 +35,8 @@
 package org.knopflerfish.framework;
 
 import java.security.ProtectionDomain;
-import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
@@ -348,7 +346,7 @@ class WeavingHooks {
 
     @Override
     public Iterator<E> iterator() {
-      return new DynamicListIterator(parent, org.listIterator());
+      return new DynamicListIterator<E>(parent, org.listIterator());
     }
 
 
@@ -360,13 +358,13 @@ class WeavingHooks {
 
     @Override
     public ListIterator<E> listIterator() {
-      return new DynamicListIterator(parent, org.listIterator());
+      return new DynamicListIterator<E>(parent, org.listIterator());
     }
 
 
     @Override
     public ListIterator<E> listIterator(int index) {
-      return new DynamicListIterator(parent, org.listIterator(index));
+      return new DynamicListIterator<E>(parent, org.listIterator(index));
     }
 
 

@@ -34,11 +34,12 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.io.DataInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.security.AllPermission;
@@ -49,10 +50,9 @@ import java.security.UnresolvedPermission;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
-import org.osgi.service.permissionadmin.PermissionInfo;
-
 import org.knopflerfish.framework.Debug;
 import org.knopflerfish.framework.FrameworkContext;
+import org.osgi.service.permissionadmin.PermissionInfo;
 
 
 /**
@@ -79,12 +79,12 @@ class PermissionInfoPermissions extends PermissionCollection {
    */
   PermissionInfoPermissions(FrameworkContext fw,
                             File root,
-                            InputStream pinfoStream) {
+                            InputStream ps) {
     framework = fw;
     debug = fw.debug;
     dataRoot = root;
     try {
-      final DataInputStream dis = new DataInputStream(pinfoStream);
+      final BufferedReader dis = new BufferedReader(new InputStreamReader(ps));
       String l;
       final ArrayList<PermissionInfo> tmp = new ArrayList<PermissionInfo>();
       while ((l = dis.readLine()) != null) {
@@ -105,7 +105,7 @@ class PermissionInfoPermissions extends PermissionCollection {
       // TODO, handle this error
     } finally {
       try {
-        pinfoStream.close();
+        ps.close();
       } catch (final IOException _ignore) { }
     }
     if (pinfo != null) {
