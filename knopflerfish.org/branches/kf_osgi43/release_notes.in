@@ -77,6 +77,7 @@ Desktop 4.0.0
  - Added additional overlay images in the Bundle Icon view to indicate 
    the following bundle states: RESOLVED, STARTING and STOPPING.
 
+
 Framework Commands 4.0.0
  - New command 'capability' that presents both provided and required
    capabilities for the current bundle revision of a bundle.
