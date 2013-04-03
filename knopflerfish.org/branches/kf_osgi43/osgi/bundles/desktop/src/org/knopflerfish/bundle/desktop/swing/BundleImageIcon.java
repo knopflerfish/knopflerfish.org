@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,28 +85,21 @@ public class BundleImageIcon extends ImageIcon {
 
     if(activeIcon == null) {
       activeIcon      =
-        // Activator.desktop.startIcon;
-        new ImageIcon(getClass().getResource("/player_play_14x14.png"));
+	new ImageIcon(getClass().getResource("/overlay_active.png"));
 
+      // No overlay for bundles in installed state
       installedIcon   = null;
-      //        new ImageIcon(getClass().getResource("/overlay_installed.gif"));
 
       resolvedIcon = 
-        //new ImageIcon(getClass().getResource("/player_resolved_14x14.png"));
-        new ImageIcon(getClass().getResource("/player_resolved2_14x14.png"));
-      //        new ImageIcon(getClass().getResource("/overlay_resolved.gif"));
+        new ImageIcon(getClass().getResource("/overlay_resolved.png"));
 
       startingIcon    = 
-        new ImageIcon(getClass().getResource("/overlay_starting_14x14.png"));
-      //        new ImageIcon(getClass().getResource("/overlay_starting.gif"));
+        new ImageIcon(getClass().getResource("/overlay_starting.png"));
 
       stoppingIcon    =
-        new ImageIcon(getClass().getResource("/player_stopping_14x14.png"));
-      //        new ImageIcon(getClass().getResource("/overlay_stopping.gif"));
+        new ImageIcon(getClass().getResource("/overlay_stopping.png"));
 
       uninstalledIcon = null;
-      //        new ImageIcon(getClass().getResource("/overlay_uninstalled.gif"));
-
     }
   }
 

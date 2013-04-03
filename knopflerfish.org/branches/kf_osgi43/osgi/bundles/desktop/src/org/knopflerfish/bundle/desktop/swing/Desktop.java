@@ -169,8 +169,8 @@ public class Desktop implements BundleListener, FrameworkListener,
   JTabbedPane detailPanel;
   JTabbedPane consolePanel;
 
-  final static ImageIcon emptyIcon = new ImageIcon(
-      Desktop.class.getResource("/empty.gif"));
+  //final static ImageIcon emptyIcon = new ImageIcon(
+  // Desktop.class.getResource("/empty.gif"));
   final static Icon updateIcon = new ImageIcon(
       Desktop.class.getResource("/update.png"));
   final static Icon startIcon = new ImageIcon(
