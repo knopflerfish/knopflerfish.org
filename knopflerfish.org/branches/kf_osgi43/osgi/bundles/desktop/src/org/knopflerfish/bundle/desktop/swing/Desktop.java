@@ -2827,9 +2827,13 @@ public class Desktop implements BundleListener, FrameworkListener,
   public void showVersion() {
     final BundleContext bc = Activator.getBC();
     final String version = bc.getBundle().getHeaders().get("Bundle-Version");
+    String copyright = bc.getBundle().getHeaders().get("Bundle-Copyright");
+    if (copyright == null)
+      copyright = "";
     final String txt = Strings.fmt("str_abouttext", version,
-        bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_VENDOR), bc
-            .getBundle(0).getHeaders().get("Bundle-Version"));
+				   bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_VENDOR), 
+				   bc.getBundle(0).getHeaders().get("Bundle-Version"),
+				   copyright);
 
     final ImageIcon icon = new ImageIcon(getClass().getResource("/kf_300x170.png"));
 

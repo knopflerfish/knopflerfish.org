@@ -158,12 +158,9 @@ public class Strings {
           put("str_about", "About");
           put("str_abouttext",
               "Knopflerfish OSGi desktop, version $(1)\n" +
-              "Framework: $(2) $(3)\n" +
-              "(c) 2003-2010 Knopflerfish.\n\n" +
-              "See\n" +
-              "  http://www.knopflerfish.org\n" +
-              "for more information" +
-              "\n\n" +
+              "Framework: $(2) $(3)\n\n" +
+              "$(4)\n\n" +
+              "See http://www.knopflerfish.org for more information.\n\n" +
               "This release uses icons from Tango Desktop\n" +
               "Project released to the public domain, see\n" +
               "http://tango.freedesktop.org/Tango_Desktop_Project"
@@ -255,6 +252,10 @@ public class Strings {
                    arg3 != null ? arg3.toString() : "null");
   }
 
+  public static String fmt(String key, Object arg1, Object arg2, Object arg3, Object arg4) {
+    return replace(fmt(key, arg1, arg2, arg3), "$(4)",
+                   arg4 != null ? arg4.toString() : "null");
+  }
 
 /**
    * Replace occurrences of substrings.
