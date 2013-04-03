@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,56 +34,77 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
-import org.osgi.util.tracker.*;
-import java.util.*;
-import org.knopflerfish.service.desktop.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.border.*;
-import java.io.*;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
-import org.knopflerfish.util.metatype.*;
-import org.osgi.service.metatype.*;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.metatype.AttributeDefinition;
+import org.osgi.service.metatype.ObjectClassDefinition;
 
-public class JCMService extends JPanel {
+import org.knopflerfish.util.metatype.AD;
+
+public class JCMService
+  extends JPanel
+{
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   ObjectClassDefinition ocd;
-  String	designatedPid;
-  JPanel    main;
+  String designatedPid;
+  JPanel main;
 
-  boolean   isService = true;
-  boolean   isFactory = false;
+  boolean isService = true;
+  boolean isFactory = false;
 
-  JPanel    propPane;
-  JPanel    mainPanel;
+  JPanel propPane;
+  JPanel mainPanel;
 
   // String -> AttributeDefinition
-  Map props = new HashMap();
-  String    factoryPid;
+  Map<String, JCMProp> props = new HashMap<String, JCMProp>();
+  String factoryPid;
 
-  public JCMService() {
+  public JCMService()
+  {
     super(new BorderLayout());
 
     main = new JPanel(new BorderLayout());
     add(main, BorderLayout.CENTER);
   }
 
-
-  void setServiceOCD(String pid, ObjectClassDefinition ocd) {
+  void setServiceOCD(String pid, ObjectClassDefinition ocd)
+  {
     this.ocd = ocd;
     this.designatedPid = pid;
-    isService  = ocd != null;
-    isFactory  =false;
+    isService = ocd != null;
+    isFactory = false;
     lastPID = null;
     updateOCD();
 
   }
 
-  void setFactoryOCD(String pid, ObjectClassDefinition ocd) {
+  void setFactoryOCD(String pid, ObjectClassDefinition ocd)
+  {
     this.ocd = ocd;
     this.designatedPid = pid;
     isService = false;
@@ -92,209 +113,213 @@ public class JCMService extends JPanel {
     updateOCD();
   }
 
-  void updateOCD() {
+  void updateOCD()
+  {
 
     main.removeAll();
 
     props.clear();
-    factoryPid  = null;
+    factoryPid = null;
 
-    if(ocd != null) {
+    if (ocd != null) {
       main.setBorder(JCMInfo.makeBorder(this, designatedPid));
-      
+
       mainPanel = new JPanel(new BorderLayout());
-      
+
       propPane = new JPanel();
-      BoxLayout box = new BoxLayout(propPane, BoxLayout.Y_AXIS);
+      final BoxLayout box = new BoxLayout(propPane, BoxLayout.Y_AXIS);
       propPane.setLayout(box);
-      
-      Dictionary configProps = null;
-      
+
+      Dictionary<String, Object> configProps = null;
+
       try {
-	Configuration conf = CMDisplayer.getConfig(designatedPid);
-	configProps = conf.getProperties();
-	//	System.out.println("using conf values");
-	
-      } catch (Exception e) {
-	configProps = new Hashtable();
-	//	System.out.println("using default values");
+        final Configuration conf = CMDisplayer.getConfig(designatedPid);
+        configProps = conf.getProperties();
+        // System.out.println("using conf values");
+
+      } catch (final Exception e) {
+        configProps = new Hashtable<String, Object>();
+        // System.out.println("using default values");
       }
 
       JButton facdelButton = null;
 
+      final AttributeDefinition[] reqAttrs =
+        ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
 
-      AttributeDefinition[] reqAttrs 
-	= ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
+      final AttributeDefinition[] optAttrs =
+        ocd.getAttributeDefinitions(ObjectClassDefinition.OPTIONAL);
 
-      AttributeDefinition[] optAttrs
-	= ocd.getAttributeDefinitions(ObjectClassDefinition.OPTIONAL);
-      
       addAttribs(propPane, reqAttrs, configProps, "");
-      
-      if(reqAttrs != null && reqAttrs.length > 0) {
-	if(optAttrs != null && optAttrs.length > 0) {
-	  //
-	}
+
+      if (reqAttrs != null && reqAttrs.length > 0) {
+        if (optAttrs != null && optAttrs.length > 0) {
+          //
+        }
       }
-      
+
       addAttribs(propPane, optAttrs, configProps, " (optional)");
 
-      JPanel propOuter = new JPanel(new BorderLayout());
+      final JPanel propOuter = new JPanel(new BorderLayout());
       propOuter.add(propPane, BorderLayout.NORTH);
       propOuter.add(new JPanel(), BorderLayout.CENTER);
 
-      JScrollPane scroll = new JScrollPane(propOuter);
+      final JScrollPane scroll = new JScrollPane(propOuter);
 
       scroll.setPreferredSize(propPane.getPreferredSize());
 
-      JPanel topPanel = new JPanel(new BorderLayout());
+      final JPanel topPanel = new JPanel(new BorderLayout());
 
+      final JPanel ctrlPanel = new JPanel(new FlowLayout());
 
-      JPanel ctrlPanel = new JPanel(new FlowLayout());
-
-      JButton applyButton = new JButton("Apply");
+      final JButton applyButton = new JButton("Apply");
       applyButton.addActionListener(new ActionListener() {
-	  public void actionPerformed(ActionEvent ev) {
-	    applyConfig(designatedPid);
-	  }
-	});
-      applyButton.setToolTipText("Applies and stores the configuration changes");
+        public void actionPerformed(ActionEvent ev)
+        {
+          applyConfig(designatedPid);
+        }
+      });
+      applyButton
+          .setToolTipText("Applies and stores the configuration changes");
 
-      
-      if(isFactory) {
-	Configuration[] configs = null;
-	try {
-	  configs = 
-	    CMDisplayer.getCA().listConfigurations("(service.factoryPid=" + 
-						   designatedPid + ")");
-	} catch (Exception e) {
-	}
-	
-	JButton newButton   = new JButton("New");
-	newButton.setToolTipText("Create a new factory configuration");
-	
-	newButton.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent ev) {
-	      newFactoryConfig(designatedPid);
-	    }
-	  });
-	ctrlPanel.add(newButton);
-	
-	if(configs != null) { 
-	  
-	  JButton facapplyButton   = new JButton("Apply");
-	  facapplyButton.setToolTipText("Applies the currect changes to the factory config");
-	  facapplyButton.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent ev) {
-		applyFactoryConfig(factoryPid);
-	      }
-	    });
-	  
-	  
+      if (isFactory) {
+        Configuration[] configs = null;
+        try {
+          configs =
+            CMDisplayer.getCA().listConfigurations("(service.factoryPid="
+                                                       + designatedPid + ")");
+        } catch (final Exception e) {
+        }
 
-	  String[] fpids = new String[configs.length];
-	  for(int i = 0; i < configs.length; i++) {
-	    fpids[i] = configs[i].getPid();
-	  }
-	  final JComboBox fbox = new JComboBox(fpids);
-	  fbox.addActionListener(new ActionListener() {	  
-	      public void actionPerformed(ActionEvent ev) {	    
-		int ix = fbox.getSelectedIndex();
-		if(ix == -1) {
-		  return;
-		} else {
-		  String pid = (String)fbox.getSelectedItem();
-		  showFactoryConfig(pid);
-		}
-	      }
-	    });
+        final JButton newButton = new JButton("New");
+        newButton.setToolTipText("Create a new factory configuration");
 
-	  facdelButton = new JButton("Delete");
-	  facdelButton.setToolTipText("Delete the selected factory configuration");
-	  facdelButton.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent ev) {
-		if(factoryPid == null) {
-		  factoryPid = (String)fbox.getSelectedItem();
-		}
-		deleteFactoryPid(factoryPid);
-	      }
-	    });
-	  
-	  ctrlPanel.add(facdelButton);
-	
-	  ctrlPanel.add(facapplyButton);
-	  ctrlPanel.add(fbox);
+        newButton.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev)
+          {
+            newFactoryConfig(designatedPid);
+          }
+        });
+        ctrlPanel.add(newButton);
 
+        if (configs != null) {
 
-	  if(lastPID != null) {
-	    fbox.setSelectedItem(lastPID);
-	    showFactoryConfig(lastPID);
-	  }
-	}
+          final JButton facapplyButton = new JButton("Apply");
+          facapplyButton
+              .setToolTipText("Applies the currect changes to the factory config");
+          facapplyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev)
+            {
+              applyFactoryConfig(factoryPid);
+            }
+          });
+
+          final String[] fpids = new String[configs.length];
+          for (int i = 0; i < configs.length; i++) {
+            fpids[i] = configs[i].getPid();
+          }
+          final JComboBox fbox = new JComboBox(fpids);
+          fbox.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev)
+            {
+              final int ix = fbox.getSelectedIndex();
+              if (ix == -1) {
+                return;
+              } else {
+                final String pid = (String) fbox.getSelectedItem();
+                showFactoryConfig(pid);
+              }
+            }
+          });
+
+          facdelButton = new JButton("Delete");
+          facdelButton
+              .setToolTipText("Delete the selected factory configuration");
+          facdelButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev)
+            {
+              if (factoryPid == null) {
+                factoryPid = (String) fbox.getSelectedItem();
+              }
+              deleteFactoryPid(factoryPid);
+            }
+          });
+
+          ctrlPanel.add(facdelButton);
+
+          ctrlPanel.add(facapplyButton);
+          ctrlPanel.add(fbox);
+
+          if (lastPID != null) {
+            fbox.setSelectedItem(lastPID);
+            showFactoryConfig(lastPID);
+          }
+        }
       } else {
-	if(CMDisplayer.configExists(designatedPid)) {
-	  JButton delButton   = new JButton("Delete");
-	  delButton.setToolTipText("Delete configuration");
-	  delButton.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent ev) {
-		deleteConfig(designatedPid);
-	      }
-	    });
-	  ctrlPanel.add(applyButton);
-	  ctrlPanel.add(delButton);
-	  
-	} else {
-	  JButton createButton   = new JButton("Create");
-	  createButton.setToolTipText("Create configuration from values below");
-	  createButton.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent ev) {
-		createConfig(designatedPid);
-	      }
-	    });
+        if (CMDisplayer.configExists(designatedPid)) {
+          final JButton delButton = new JButton("Delete");
+          delButton.setToolTipText("Delete configuration");
+          delButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev)
+            {
+              deleteConfig(designatedPid);
+            }
+          });
+          ctrlPanel.add(applyButton);
+          ctrlPanel.add(delButton);
 
-	  JLabel createInfo = new JLabel("Create from values below");
-	  ctrlPanel.add(createButton);
-	  ctrlPanel.add(createInfo);
-	}
+        } else {
+          final JButton createButton = new JButton("Create");
+          createButton.setToolTipText("Create configuration from values below");
+          createButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev)
+            {
+              createConfig(designatedPid);
+            }
+          });
+
+          final JLabel createInfo = new JLabel("Create from values below");
+          ctrlPanel.add(createButton);
+          ctrlPanel.add(createInfo);
+        }
       }
-      
-      //      ctrlPanel.add(new JLabel(designatedPid), BorderLayout.CENTER);
-      
+
+      // ctrlPanel.add(new JLabel(designatedPid), BorderLayout.CENTER);
+
       scroll.setBorder(null);
       mainPanel.add(scroll, BorderLayout.CENTER);
-      
+
       topPanel.add(ctrlPanel, BorderLayout.WEST);
 
-      JPanel icons = new JPanel(new FlowLayout());
-      
+      final JPanel icons = new JPanel(new FlowLayout());
 
       JLabel iconLabel = null;
 
       InputStream iconStream = null;
       try {
-	iconStream = ocd.getIcon(16);
-	if(iconStream != null) {
-	  try {
-	    ImageIcon icon = new ImageIcon(loadStream(iconStream));
-	    iconLabel = new JLabel(icon);
-	    icons.add(iconLabel);
-	  } catch (Exception e) {
-	    Activator.log.error("Failed to load icon", e);
-	  }
-	}
-      } catch (Exception e) {
-	Activator.log.error("Failed to get icon stream", e);
+        iconStream = ocd.getIcon(16);
+        if (iconStream != null) {
+          try {
+            final ImageIcon icon = new ImageIcon(loadStream(iconStream));
+            iconLabel = new JLabel(icon);
+            icons.add(iconLabel);
+          } catch (final Exception e) {
+            Activator.log.error("Failed to load icon", e);
+          }
+        }
+      } catch (final Exception e) {
+        Activator.log.error("Failed to get icon stream", e);
       }
 
-      String desc = ocd.getDescription();
-      if(desc != null && !"".equals(desc)) {
-	JLabel infoLabel = new JLabel(CMDisplayer.infoIcon);
-	String tt = "<html>" + ocd.getDescription() + "</html>";
-	infoLabel.setToolTipText(tt);
-	icons.add(infoLabel);
-	if(iconLabel != null) {
-	  iconLabel.setToolTipText(tt);
-	}
+      final String desc = ocd.getDescription();
+      if (desc != null && !"".equals(desc)) {
+        final JLabel infoLabel = new JLabel(CMDisplayer.infoIcon);
+        final String tt = "<html>" + desc + "</html>";
+        infoLabel.setToolTipText(tt);
+        icons.add(infoLabel);
+        if (iconLabel != null) {
+          iconLabel.setToolTipText(tt);
+        }
       }
 
       topPanel.add(icons, BorderLayout.EAST);
@@ -302,49 +327,52 @@ public class JCMService extends JPanel {
       main.add(topPanel, BorderLayout.NORTH);
       main.add(mainPanel, BorderLayout.CENTER);
     }
-    
+
     invalidate();
     revalidate();
     repaint();
   }
 
-  void addAttribs(JComponent propPane, 
-		  AttributeDefinition[] ads,
-		  Dictionary configProps,
-		  String info) {
-    for(int i = 0; ads != null && i < ads.length; i++) {
-      AttributeDefinition ad = ads[i];
-      
+  void addAttribs(JComponent propPane,
+                  AttributeDefinition[] ads,
+                  Dictionary<String, Object> configProps,
+                  String info)
+  {
+    for (int i = 0; ads != null && i < ads.length; i++) {
+      final AttributeDefinition ad = ads[i];
+
       JLabelled item = null;
-      
+
       try {
-	JCMProp jcmProp = new JCMProp(ad, configProps);
-	
-	props.put(ad.getID(), jcmProp);
-	
-	String className = AD.getClass(ad.getType()).getName();
-	
-	if(ad.getCardinality() < 0) {
-	  className = "Vector of " + className;
-	} else if(ad.getCardinality() > 0) {
-	  className = className + "[]";
-	}
-	item = 
-	  new JLabelled(ad.getName(), 
-			"<b>" + ad.getName() + "</b>" + info + "<br>" + 
-			ad.getDescription() +  "<br>" + 
-			" (" + className + ")",
-			jcmProp,
-			100);
-	
-      } catch (Exception e) {
-	Activator.log.error("Failed to create ui for " + ad, e);
-	item = 
-	  new JLabelled(ad.getName(), 
-			ad.getDescription(),
-			new JLabel(e.getMessage()),
-			100);
-	
+        final JCMProp jcmProp = new JCMProp(ad, configProps);
+
+        props.put(ad.getID(), jcmProp);
+
+        String className = AD.getClass(ad.getType()).getName();
+
+        if (ad.getCardinality() < 0) {
+          className = "Vector of " + className;
+        } else if (ad.getCardinality() > 0) {
+          className = className + "[]";
+        }
+        item =
+          new JLabelled(ad.getName(),
+                        "<table width=\"400px\">"
+                            + "<tr><th align=\"left\">"
+                            + ad.getName()
+                            + "</th></tr>"
+                            + (!info.isEmpty() ? ("<tr><td align=\"right\">"
+                                                  + info + "") : "</td></tr>")
+                            + "<tr><td>" + ad.getDescription() + "</td></tr>"
+                            + "<tr><td align=\"left\">(" + className
+                            + ")</td></tr>" + "</table>", jcmProp, 100);
+
+      } catch (final Exception e) {
+        Activator.log.error("Failed to create ui for " + ad, e);
+        item =
+          new JLabelled(ad.getName(), ad.getDescription(),
+                        new JLabel(e.getMessage()), 100);
+
       }
       propPane.add(item);
     }
@@ -353,173 +381,176 @@ public class JCMService extends JPanel {
   /**
    * Load a stream into a byte array.
    */
-  byte [] loadStream(InputStream is) throws IOException {
-    int     bufSize = 1024 * 2;
-    byte [] buf     = new byte[bufSize];
+  byte[] loadStream(InputStream is)
+      throws IOException
+  {
+    final int bufSize = 1024 * 2;
+    final byte[] buf = new byte[bufSize];
 
-    ByteArrayOutputStream bout = new ByteArrayOutputStream();
-    BufferedInputStream   in   = null;
+    final ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    BufferedInputStream in = null;
     try {
       in = new BufferedInputStream(is);
       int n;
       while ((n = in.read(buf)) > 0) {
-	bout.write(buf, 0, n);
+        bout.write(buf, 0, n);
       }
       return bout.toByteArray();
     } finally {
-      try { in.close(); } catch (Exception ignored) { } 
+      try {
+        in.close();
+      } catch (final Exception ignored) {
+      }
     }
   }
 
-  void showFactoryConfig(String pid) {
-    //    System.out.println("showFactoryConfig " + pid);
-    
+  void showFactoryConfig(String pid)
+  {
+    // System.out.println("showFactoryConfig " + pid);
+
     try {
-      Configuration conf = 
-	CMDisplayer.getCA().getConfiguration(pid, null);
+      final Configuration conf =
+        CMDisplayer.getCA().getConfiguration(pid, null);
 
       setProps(conf.getProperties());
       factoryPid = pid;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("show factory failed pid=" + pid, e);
     }
   }
-  
-  void deleteFactoryPid(String pid) {
-    //    System.out.println("deleteFactoryConfig " + pid);
+
+  void deleteFactoryPid(String pid)
+  {
+    // System.out.println("deleteFactoryConfig " + pid);
     try {
-      Configuration conf = CMDisplayer.getCA()
-	.getConfiguration(pid, null);
+      final Configuration conf =
+        CMDisplayer.getCA().getConfiguration(pid, null);
       conf.delete();
       lastPID = null;
       updateOCD();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("delete factory failed pid=" + pid, e);
 
     }
   }
 
-  void applyFactoryConfig(String pid) {
-    //    System.out.println("applyFactoryConfig " + pid);
+  void applyFactoryConfig(String pid)
+  {
+    // System.out.println("applyFactoryConfig " + pid);
     try {
-      Dictionary props = getProps();
-      
-      //      System.out.println("props=" + props);
+      final Dictionary<String, Object> props = getProps();
+
+      // System.out.println("props=" + props);
       try {
-	Configuration conf = CMDisplayer.getCA()
-	  .getConfiguration(pid, null);
-	conf.update(props);
-	lastPID = conf.getPid();
-	updateOCD();
-      } catch (Exception e) {
-	Activator.log.error("apply factory failed pid=" + pid, e);
+        final Configuration conf =
+          CMDisplayer.getCA().getConfiguration(pid, null);
+        conf.update(props);
+        lastPID = conf.getPid();
+        updateOCD();
+      } catch (final Exception e) {
+        Activator.log.error("apply factory failed pid=" + pid, e);
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("failed to get props pid=" + pid, e);
     }
   }
 
-
-  void newFactoryConfig(String pid) {
-    //    System.out.println("newFactoryConfig " + pid);
+  void newFactoryConfig(String pid)
+  {
+    // System.out.println("newFactoryConfig " + pid);
 
     try {
-      Dictionary props = getProps();
-      
-      //      System.out.println("props=" + props);
+      final Dictionary<String, Object> props = getProps();
+
+      // System.out.println("props=" + props);
       try {
-	Configuration conf = 
-	  CMDisplayer.getCA().createFactoryConfiguration(pid, null);
-	lastPID = conf.getPid();
-	conf.update(props);
-	updateOCD();
-      } catch (Exception e) {
-	showError("new factory failed pid=" + pid, e);
+        final Configuration conf =
+          CMDisplayer.getCA().createFactoryConfiguration(pid, null);
+        lastPID = conf.getPid();
+        conf.update(props);
+        updateOCD();
+      } catch (final Exception e) {
+        showError("new factory failed pid=" + pid, e);
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("failed to get props pid=" + pid, e);
     }
   }
-  
-  void deleteConfig(String pid) {
-    //    System.out.println("deleteConfig " + pid);
+
+  void deleteConfig(String pid)
+  {
+    // System.out.println("deleteConfig " + pid);
     lastPID = null;
     try {
-      Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
+      final Configuration conf =
+        CMDisplayer.getCA().getConfiguration(pid, null);
       conf.delete();
       updateOCD();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       showError("Delete failed pid=" + pid, e);
 
     }
   }
 
-  void showError(String msg, Throwable t) {
+  void showError(String msg, Throwable t)
+  {
     Activator.log.error(msg, t);
-    JOptionPane.showMessageDialog(this,
-				  msg + "\n" + 
-				  t.toString(),
-				  msg,
-				  JOptionPane.ERROR_MESSAGE);
+    JOptionPane.showMessageDialog(this, msg + "\n" + t.toString(), msg,
+                                  JOptionPane.ERROR_MESSAGE);
   }
 
-  void createConfig(String pid) {
-    //    System.out.println("createConfig " + pid);
-
+  void createConfig(String pid)
+  {
     try {
-      Dictionary props = getProps();
-      
-      //      System.out.println("props=" + props);
+      final Dictionary<String, Object> props = getProps();
+
       try {
-	Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
-	conf.update(props);
-	lastPID = pid;
-	updateOCD();
-      } catch (Exception e) {
-	Activator.log.error("Failed to create/update pid=" + pid, e);
+        final Configuration conf =
+          CMDisplayer.getCA().getConfiguration(pid, null);
+        conf.update(props);
+        lastPID = pid;
+        updateOCD();
+      } catch (final Exception e) {
+        Activator.log.error("Failed to create/update pid=" + pid, e);
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("Failed to get props for pid=" + pid, e);
     }
   }
 
   String lastPID = null;
 
-  void applyConfig(String pid) {
-    //System.out.println("applyConfig " + pid);
+  void applyConfig(String pid)
+  {
     try {
-      Dictionary props = getProps();
-      
-      //      System.out.println("props=" + props);
+      final Dictionary<String, Object> props = getProps();
+
       try {
-	Configuration conf = CMDisplayer.getCA().getConfiguration(pid, null);
-	conf.update(props);
-	lastPID = pid;
-	updateOCD();
-      } catch (Exception e) {
-	Activator.log.error("Failed to apply/update pid=" + pid, e);
+        final Configuration conf =
+          CMDisplayer.getCA().getConfiguration(pid, null);
+        conf.update(props);
+        lastPID = pid;
+        updateOCD();
+      } catch (final Exception e) {
+        Activator.log.error("Failed to apply/update pid=" + pid, e);
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("Failed to get props for pid=" + pid, e);
     }
   }
 
-  void setProps(Dictionary in) {
-
-    //    System.out.println("setProps " + in);
-
-    int errCount = 0;
-    for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
-      String  name    = (String)it.next();
-      JCMProp jcmProp = (JCMProp)props.get(name);
+  void setProps(Dictionary<String, Object> in)
+  {
+    for (final Object element : props.keySet()) {
+      final String name = (String) element;
+      final JCMProp jcmProp = props.get(name);
       try {
-	Object val      = in.get(name);
+        final Object val = in.get(name);
 
-	jcmProp.setValue(val);
-	jcmProp.setErr(null);
-      } catch (Exception e) {
-	errCount++;
-	jcmProp.setErr(e.getMessage());
+        jcmProp.setValue(val);
+        jcmProp.setErr(null);
+      } catch (final Exception e) {
+        jcmProp.setErr(e.getMessage());
       }
     }
 
@@ -529,23 +560,24 @@ public class JCMService extends JPanel {
 
   }
 
-  Dictionary getProps() {
-    Hashtable out = new Hashtable();
+  Dictionary<String, Object> getProps()
+  {
+    final Hashtable<String, Object> out = new Hashtable<String, Object>();
 
     int errCount = 0;
-    for(Iterator it = props.keySet().iterator(); it.hasNext(); ) {
-      String  name    = (String)it.next();
-      JCMProp jcmProp = (JCMProp)props.get(name);
+    for (final Object element : props.keySet()) {
+      final String name = (String) element;
+      final JCMProp jcmProp = props.get(name);
       try {
-	Object val      = jcmProp.getValue();
-	
-	out.put(name, val);
-	jcmProp.setErr(null);
-      } catch (Exception e) {
-	errCount++;
-	jcmProp.setErr(e.getMessage());
-	//	System.out.println(name + ": " + e);
-	Activator.log.error("Failed to convert value in " + name, e); 
+        final Object val = jcmProp.getValue();
+
+        out.put(name, val);
+        jcmProp.setErr(null);
+      } catch (final Exception e) {
+        errCount++;
+        jcmProp.setErr(e.getMessage());
+        // System.out.println(name + ": " + e);
+        Activator.log.error("Failed to convert value in " + name, e);
       }
     }
 
@@ -553,8 +585,9 @@ public class JCMService extends JPanel {
     mainPanel.revalidate();
     mainPanel.repaint();
 
-    if(errCount > 0) {
-      throw new IllegalArgumentException("Failed to convert " + errCount + " values");
+    if (errCount > 0) {
+      throw new IllegalArgumentException("Failed to convert " + errCount
+                                         + " values");
     }
     return out;
   }

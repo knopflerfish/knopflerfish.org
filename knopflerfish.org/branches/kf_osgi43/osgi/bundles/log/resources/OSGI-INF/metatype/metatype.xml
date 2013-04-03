@@ -2,59 +2,70 @@
 
 <MetaData xmlns="http://www.osgi.org/xmlns/metatype/v1.1.0">
 
-  <OCD id="1.1.1.1" name="OCD for LogConfig">
+  <OCD id="org.knopflerfish.bundle.log.ocd.LogConfig"
+       name="OCD for LogConfig">
     <AD name="default.level"
 	type="String"
 	id="default.level"
-        description="Set the default log level, when not set for specific bundles."
+        description="The default log level, used for bundles that has not been assigned a specific log level."
 	default="info">
       <Option label="debug"   value="debug"/>
       <Option label="info"    value="info"/>
       <Option label="warning" value="warning"/>
       <Option label="error"   value="error"/>
     </AD>
-    <AD name="bundle.log.level"
+    <AD id="bundle.log.level"
+	name="bundle.log.level"
 	type="String"
         cardinality="-100"
-	id="bundle.log.level" />
+	description="Each item is a bundle and a log level separated by a ';'. The bundle part is either a bundle location string, the bundle symbolic name or the bundle name."/>
     <AD name="file"
 	type="Boolean"
 	id="file"
-	default="false"/>
+	default="false"
+	description="Write filtered log entries to file."/>
     <AD name="file.dir"
 	type="String"
 	id="file.dir"
-	default="" />
+	default=""
+	description="Path to the directory to write log file to."/>
     <AD name="file.flush"
 	type="Boolean"
 	id="file.flush"
-	default="true"/>
+	default="true"
+	description="Flush the log file to disc after every new log entry."/>
     <AD name="file.size"
 	type="Integer"
 	id="file.size"
-	default="20000" />
+	default="20000"
+	description="The maximum size of a log file."/>
     <AD name="file.generations"
 	type="Integer"
 	id="file.generations"
-	default="4" />
+	default="4"
+	description="The number of files used by the cyclic log."/>
     <AD name="timestamp.pattern"
 	type="String"
 	id="timestamp.pattern"
-	default="yyyyMMdd HH:mm:ss" />
+	default="yyyyMMdd HH:mm:ss"
+	description="Formating instruction for the time stamp in the log file and on standar out. See java.util.SimpleDateFormat for a description of the pattern."
+	/>
     <AD name="memory.size"
 	type="Integer"
 	id="memory.size"
-	default="250" />
+	default="250"
+	description="Number of log entries to keep in memory. These are the entries that the LogReaderService will return."/>
     <AD name="log.out"
 	type="Boolean"
 	id="log.out"
-	default="false" />
+	default="false"
+	description="Write log entires to System.out when they are logged."/>
   </OCD>
 
   <Designate 
      pid="org.knopflerfish.bundle.log.LogConfig"
      bundle="ignored" >
-    <Object ocdref="1.1.1.1" >
+    <Object ocdref="org.knopflerfish.bundle.log.ocd.LogConfig" >
     </Object>
   </Designate>
 

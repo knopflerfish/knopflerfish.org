@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,37 +34,43 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-public class JLabelled extends JPanel {
+public class JLabelled
+  extends JPanel
+{
 
-  public JLabelled(String text, 
-		   String tooltip,
-		   JComponent main, 
-		   int labelWidth) {
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+
+  public JLabelled(String text, String tooltip, JComponent main, int labelWidth)
+  {
     super(new BorderLayout());
 
     // Shorten text to last part after a dot
     // if it's too long
-    FontMetrics fm = main.getFontMetrics(main.getFont());
-    if(fm != null) {
+    final FontMetrics fm = main.getFontMetrics(main.getFont());
+    if (fm != null) {
       int ix;
-      while(-1 != (ix = text.indexOf(".")) 
-	    && fm.stringWidth(text) > labelWidth) {
-	text = text.substring(ix + 1);
+      while (-1 != (ix = text.indexOf("."))
+             && fm.stringWidth(text) > labelWidth) {
+        text = text.substring(ix + 1);
       }
     }
 
-    JLabel label = new JLabel(text);
-    Dimension size = label.getPreferredSize();
+    final JLabel label = new JLabel(text);
+    final Dimension size = label.getPreferredSize();
     label.setPreferredSize(new Dimension(labelWidth, size.height + 2));
 
-    if(tooltip != null && !"".equals(tooltip)) {
+    if (tooltip != null && !"".equals(tooltip)) {
       label.setToolTipText("<html>" + tooltip + "</html>");
     }
 

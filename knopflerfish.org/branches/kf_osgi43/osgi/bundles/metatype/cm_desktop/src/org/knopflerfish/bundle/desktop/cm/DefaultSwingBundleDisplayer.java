@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,66 +34,67 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import org.osgi.framework.*;
+import java.util.Dictionary;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
 
-import org.knopflerfish.service.desktop.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.Icon;
+import javax.swing.JComponent;
 
-import java.util.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 
 public abstract class DefaultSwingBundleDisplayer
-  implements 
-    SwingBundleDisplayer,
-    BundleSelectionListener
+  implements SwingBundleDisplayer, BundleSelectionListener
 {
 
-  String               name;
-  String               desc;
-  boolean              bDetail;
+  String name;
+  String desc;
+  boolean bDetail;
 
-  BundleContext        bc;
-  boolean              bAlive = false;
+  BundleContext bc;
+  boolean bAlive = false;
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
-  ServiceRegistration  reg  = null;
+  ServiceRegistration<SwingBundleDisplayer> reg = null;
 
   boolean bUseListeners = true;
 
-  public DefaultSwingBundleDisplayer(BundleContext bc,
-				     String        name,
-				     String        desc,
-				     boolean       bDetail) {
-    this.bc      = bc;
-    this.name    = name;
-    this.desc    = desc;
+  public DefaultSwingBundleDisplayer(BundleContext bc, String name,
+                                     String desc, boolean bDetail)
+  {
+    this.bc = bc;
+    this.name = name;
+    this.desc = desc;
     this.bDetail = bDetail;
   }
 
-
-  public void register() {
-    if(reg != null) {
+  public void register()
+  {
+    if (reg != null) {
       return;
     }
 
     open();
-    
-    Hashtable props = new Hashtable();
-    props.put(SwingBundleDisplayer.PROP_NAME,        getName());
+
+    final Dictionary<String, Object> props = new Hashtable<String, Object>();
+    props.put(SwingBundleDisplayer.PROP_NAME, getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
-    props.put(SwingBundleDisplayer.PROP_ISDETAIL,    
-	      isDetail() 
-	      ? Boolean.TRUE 
-	      : Boolean.FALSE);
-    
-    reg = bc.registerService(SwingBundleDisplayer.class.getName(),
-			     this,
-			     props);
+    props.put(SwingBundleDisplayer.PROP_ISDETAIL, isDetail()
+      ? Boolean.TRUE
+      : Boolean.FALSE);
+
+    reg = bc.registerService(SwingBundleDisplayer.class, this, props);
   }
 
-  public void unregister() {
-    if(reg == null) {
+  public void unregister()
+  {
+    if (reg == null) {
       return;
     }
 
@@ -101,96 +102,113 @@ public abstract class DefaultSwingBundleDisplayer
     reg = null;
   }
 
-  public String getName() {
+  public String getName()
+  {
     return name;
   }
 
-  public String getDescription() {
+  public String getDescription()
+  {
     return desc;
   }
-  public boolean isDetail() {
+
+  public boolean isDetail()
+  {
     return bDetail;
   }
 
   public abstract JComponent newJComponent();
 
-  public void open() {
+  public void open()
+  {
     bAlive = true;
 
     bundleSelModel.addBundleSelectionListener(this);
+    // Initialize bundle selection.
+    valueChanged(0);
 
   }
 
-
-
-  public void close() {
+  public void close()
+  {
     bAlive = false;
 
-    if(bundleSelModel != null) {
-      bundleSelModel.removeBundleSelectionListener(this); 
+    if (bundleSelModel != null) {
+      bundleSelModel.removeBundleSelectionListener(this);
     }
 
     closeComponents();
   }
 
-  public void valueChanged(long bid) {
-    //    System.out.println(getClass().getName() + ".valueChanged " + (b != null ? ("#" + b.getBundleId()) : "null"));
-    //    repaintComponents();
+  // BundleSectionListener callback.
+  public void valueChanged(long bid)
+  {
+    // Normally overridden by subclass that does the actual work.
   }
 
-  public BundleSelectionModel getBundleSelectionModel() {
+  public BundleSelectionModel getBundleSelectionModel()
+  {
     return bundleSelModel;
   }
 
-  public void setBundleSelectionModel(BundleSelectionModel model) {
-    if(bundleSelModel != null) {
-      bundleSelModel.removeBundleSelectionListener(this); 
+  public void setBundleSelectionModel(BundleSelectionModel model)
+  {
+    if (bundleSelModel != null) {
+      bundleSelModel.removeBundleSelectionListener(this);
     }
     bundleSelModel = model;
     bundleSelModel.addBundleSelectionListener(this);
   }
 
-  Set components = new HashSet();
+  Set<JComponent> components = new HashSet<JComponent>();
 
-  public JComponent createJComponent() {
-    JComponent comp = newJComponent();
+  public JComponent createJComponent()
+  {
+    final JComponent comp = newJComponent();
     components.add(comp);
 
     return comp;
   }
 
-  public void  disposeJComponent(JComponent comp) {
+  public void disposeJComponent(JComponent comp)
+  {
     components.remove(comp);
   }
 
-  void closeComponents() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
+  void closeComponents()
+  {
+    for (final Object element : components) {
+      final JComponent comp = (JComponent) element;
       closeComponent(comp);
     }
   }
 
-  void closeComponent(JComponent comp) {
-    // Should be overridden 
+  void closeComponent(JComponent comp)
+  {
+    // Should be overridden
   }
 
-  void repaintComponents() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
+  void repaintComponents()
+  {
+    for (final Object element : components) {
+      final JComponent comp = (JComponent) element;
       comp.invalidate();
       comp.repaint();
     }
   }
 
-  public Icon       getLargeIcon() {
+  public Icon getLargeIcon()
+  {
     return null;
   }
 
-  public Icon       getSmallIcon() {
+  public Icon getSmallIcon()
+  {
     return null;
   }
 
-  public void       setTargetBundleContext(BundleContext bc) {
+  public void setTargetBundleContext(BundleContext bc)
+  {
     // NYI
   }
 }

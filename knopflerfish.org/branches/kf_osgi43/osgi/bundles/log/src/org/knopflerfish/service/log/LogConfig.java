@@ -125,7 +125,7 @@ public interface LogConfig {
   public boolean getFlush();
 
   /**
-   * Define the format of the timestamp used when presenting log
+   * Define the format of the time-stamp used when presenting log
    * entries. I.e., in the file log and to <code>System.out</code>.
    *
    * @param pattern Date time pattern as defined in
