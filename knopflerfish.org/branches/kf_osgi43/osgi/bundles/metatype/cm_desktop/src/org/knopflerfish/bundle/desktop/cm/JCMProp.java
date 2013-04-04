@@ -145,13 +145,19 @@ public class JCMProp
 
   public void setValue(Object obj)
   {
+    String s = null;
+    if (ad.getCardinality() == 0) {
+      s = AD.toString(obj != null ? obj : ad.getDefaultValue());
+    } else {
+      // done in constructor for JVector
+    }
+
     if (comp instanceof JVector) {
       final JVector jv = (JVector) comp;
       jv.setValue(obj);
     } else if (comp instanceof JNumber) {
-      ((JNumber) comp).setValue(AD.parse(obj.toString(), 0, ad.getType()));
+      ((JNumber) comp).setValue(AD.parse(s, 0, ad.getType()));
     } else {
-      final String s = AD.toString(obj);
       if (comp instanceof JTextField) {
         final JTextField text = (JTextField) comp;
         text.setText(s);
@@ -162,7 +168,7 @@ public class JCMProp
         final JComboBox cb = (JComboBox) comp;
         final String[] opts = ad.getOptionValues();
         for (int i = 0; i < opts.length; i++) {
-          if (opts[i].equals(obj)) {
+          if (opts[i].equals(s)) {
             cb.setSelectedIndex(i);
             return;
           }

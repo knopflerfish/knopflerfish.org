@@ -45,7 +45,6 @@ import java.net.URL;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
@@ -107,66 +106,49 @@ public class JCMInfo
 
   private void renderBundleWithMetadata(Bundle bundle)
   {
-    servicePIDBox = null;
-    factoryPIDBox = null;
-
     final String[] servicePIDs = mti.getPids();
-
-    if (servicePIDs != null && servicePIDs.length > 0) {
-      servicePIDBox = new JComboBox(servicePIDs);
-      servicePIDBox.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev)
-        {
-          final int ix = servicePIDBox.getSelectedIndex();
-          if (ix == -1) {
-            return;
-          } else {
-            final String pid = (String) servicePIDBox.getSelectedItem();
-            setServiceOCD(pid);
-          }
+    servicePIDBox = new JComboBox(servicePIDs);
+    servicePIDBox.setEnabled(servicePIDs != null && servicePIDs.length > 0);
+    servicePIDBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev)
+      {
+        final int ix = servicePIDBox.getSelectedIndex();
+        if (ix == -1) {
+          return;
+        } else {
+          final String pid = (String) servicePIDBox.getSelectedItem();
+          setServiceOCD(pid);
         }
-      });
-    }
+      }
+    });
 
     final String[] factoryPIDs = mti.getFactoryPids();
-
-    if (factoryPIDs != null && factoryPIDs.length > 0) {
-      factoryPIDBox = new JComboBox(factoryPIDs);
-      factoryPIDBox.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev)
-        {
-          final int ix = factoryPIDBox.getSelectedIndex();
-          if (ix == -1) {
-            return;
-          } else {
-            final String pid = (String) factoryPIDBox.getSelectedItem();
-            setFactoryOCD(pid);
-          }
+    factoryPIDBox = new JComboBox(factoryPIDs);
+    factoryPIDBox.setEnabled(factoryPIDs != null && factoryPIDs.length > 0);
+    factoryPIDBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev)
+      {
+        final int ix = factoryPIDBox.getSelectedIndex();
+        if (ix == -1) {
+          return;
+        } else {
+          final String pid = (String) factoryPIDBox.getSelectedItem();
+          setFactoryOCD(pid);
         }
-      });
-    }
+      }
+    });
 
     final JPanel upperBox = new JPanel(new GridLayout(0, 1));
-
+    upperBox.add(new JLabelled("PIDs", "PIDs representing ManagedServices",
+                               servicePIDBox, 100));
+    upperBox.add(new JLabelled("Factory PIDs",
+                               "PIDs representing ManagedServiceFactories",
+                               factoryPIDBox, 100));
     String title = getBundleSelectedHeader(bundle);
     if (mti instanceof MTP) {
-      title = title + " (" + ((MTP) mti).getId() +")";
+      title = title + " (" + ((MTP) mti).getId() + ")";
     }
     upperBox.setBorder(makeBorder(this, title));
-
-    if (servicePIDBox != null) {
-      upperBox.add(new JLabelled("PIDs",
-                                 "PIDs representing ManagedServices",
-                                 servicePIDBox, 100));
-    }
-    if (factoryPIDBox != null) {
-      upperBox.add(new JLabelled("Factory PIDs",
-                                 "PIDs representing ManagedServiceFactories",
-                                 factoryPIDBox, 100));
-    }
-    if (servicePIDBox == null && factoryPIDBox == null) {
-      upperBox.add(new JLabel("No PIDs or Factory PIDs defined."));
-    }
     main.add(upperBox, BorderLayout.NORTH);
 
     // Set either the first service or the first factory as displayed
@@ -177,7 +159,8 @@ public class JCMInfo
       main.add(jcmService, BorderLayout.CENTER);
       setFactoryOCD(factoryPIDs[0]);
     } else {
-      // Neither service nor factory found in provider
+      // Neither service PID nor factory PID found in provider; leave the rest
+      // of the main-panel empty.
     }
   }
 

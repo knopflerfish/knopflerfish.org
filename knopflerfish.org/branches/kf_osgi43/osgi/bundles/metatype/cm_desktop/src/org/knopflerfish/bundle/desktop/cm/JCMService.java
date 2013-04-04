@@ -46,6 +46,8 @@ import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeSet;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -66,6 +68,7 @@ import org.knopflerfish.util.metatype.AD;
 public class JCMService
   extends JPanel
 {
+  private static final String FACTORY_PID_DEFAULTS = " - Default Values -";
   /**
    *
    */
@@ -115,49 +118,31 @@ public class JCMService
 
   void updateOCD()
   {
-
     main.removeAll();
-
     props.clear();
     factoryPid = null;
 
     if (ocd != null) {
       main.setBorder(JCMInfo.makeBorder(this, designatedPid));
 
+      Dictionary<String, Object> configProps = null;
+      try {
+        final Configuration conf = CMDisplayer.getConfig(designatedPid);
+        configProps = conf.getProperties();
+      } catch (final Exception e) {
+        configProps = new Hashtable<String, Object>();
+      }
+
       mainPanel = new JPanel(new BorderLayout());
 
       propPane = new JPanel();
       final BoxLayout box = new BoxLayout(propPane, BoxLayout.Y_AXIS);
       propPane.setLayout(box);
-
-      Dictionary<String, Object> configProps = null;
-
-      try {
-        final Configuration conf = CMDisplayer.getConfig(designatedPid);
-        configProps = conf.getProperties();
-        // System.out.println("using conf values");
-
-      } catch (final Exception e) {
-        configProps = new Hashtable<String, Object>();
-        // System.out.println("using default values");
-      }
-
-      JButton facdelButton = null;
-
       final AttributeDefinition[] reqAttrs =
         ocd.getAttributeDefinitions(ObjectClassDefinition.REQUIRED);
-
       final AttributeDefinition[] optAttrs =
         ocd.getAttributeDefinitions(ObjectClassDefinition.OPTIONAL);
-
       addAttribs(propPane, reqAttrs, configProps, "");
-
-      if (reqAttrs != null && reqAttrs.length > 0) {
-        if (optAttrs != null && optAttrs.length > 0) {
-          //
-        }
-      }
-
       addAttribs(propPane, optAttrs, configProps, " (optional)");
 
       final JPanel propOuter = new JPanel(new BorderLayout());
@@ -165,7 +150,6 @@ public class JCMService
       propOuter.add(new JPanel(), BorderLayout.CENTER);
 
       final JScrollPane scroll = new JScrollPane(propOuter);
-
       scroll.setPreferredSize(propPane.getPreferredSize());
 
       final JPanel topPanel = new JPanel(new BorderLayout());
@@ -183,6 +167,7 @@ public class JCMService
           .setToolTipText("Applies and stores the configuration changes");
 
       if (isFactory) {
+        // Controls for a factory configuration
         Configuration[] configs = null;
         try {
           configs =
@@ -192,70 +177,73 @@ public class JCMService
         }
 
         final JButton newButton = new JButton("New");
-        newButton.setToolTipText("Create a new factory configuration");
+        final JButton facapplyButton = new JButton("Apply");
+        final JButton facdelButton = new JButton("Delete");
 
+        final TreeSet<String> fpids = new TreeSet<String>();
+        fpids.add(FACTORY_PID_DEFAULTS);
+        for (int i = 0; configs != null && i < configs.length; i++) {
+          fpids.add(configs[i].getPid());
+        }
+        final JComboBox fbox = new JComboBox(fpids.toArray());
+        fbox.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev)
+          {
+            final int ix = fbox.getSelectedIndex();
+            if (ix == -1) {
+              return;
+            } else {
+              final String pid = (String) fbox.getSelectedItem();
+              final boolean exists = !FACTORY_PID_DEFAULTS.equals(pid);
+              facapplyButton.setEnabled(exists);
+              facdelButton.setEnabled(exists);
+              showFactoryConfig(pid);
+            }
+          }
+        });
+
+        newButton.setToolTipText("Create a new factory configuration");
         newButton.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev)
           {
             newFactoryConfig(designatedPid);
           }
         });
+
+        facapplyButton
+            .setToolTipText("Applies the currect changes to the factory config");
+        facapplyButton.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev)
+          {
+            applyFactoryConfig(factoryPid);
+          }
+        });
+
+        facdelButton
+            .setToolTipText("Delete the selected factory configuration");
+        facdelButton.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev)
+          {
+            if (factoryPid == null) {
+              factoryPid = (String) fbox.getSelectedItem();
+            }
+            deleteFactoryPid(factoryPid);
+          }
+        });
+
         ctrlPanel.add(newButton);
+        ctrlPanel.add(facdelButton);
+        ctrlPanel.add(facapplyButton);
+        ctrlPanel.add(fbox);
 
-        if (configs != null) {
-
-          final JButton facapplyButton = new JButton("Apply");
-          facapplyButton
-              .setToolTipText("Applies the currect changes to the factory config");
-          facapplyButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev)
-            {
-              applyFactoryConfig(factoryPid);
-            }
-          });
-
-          final String[] fpids = new String[configs.length];
-          for (int i = 0; i < configs.length; i++) {
-            fpids[i] = configs[i].getPid();
-          }
-          final JComboBox fbox = new JComboBox(fpids);
-          fbox.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev)
-            {
-              final int ix = fbox.getSelectedIndex();
-              if (ix == -1) {
-                return;
-              } else {
-                final String pid = (String) fbox.getSelectedItem();
-                showFactoryConfig(pid);
-              }
-            }
-          });
-
-          facdelButton = new JButton("Delete");
-          facdelButton
-              .setToolTipText("Delete the selected factory configuration");
-          facdelButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev)
-            {
-              if (factoryPid == null) {
-                factoryPid = (String) fbox.getSelectedItem();
-              }
-              deleteFactoryPid(factoryPid);
-            }
-          });
-
-          ctrlPanel.add(facdelButton);
-
-          ctrlPanel.add(facapplyButton);
-          ctrlPanel.add(fbox);
-
-          if (lastPID != null) {
-            fbox.setSelectedItem(lastPID);
-            showFactoryConfig(lastPID);
-          }
+        if (lastPID != null) {
+          fbox.setSelectedItem(lastPID);
+          showFactoryConfig(lastPID);
+        } else {
+          fbox.setSelectedIndex(fbox.getModel().getSize()-1);
         }
       } else {
+        // Controls for a non-factory configuration
         if (CMDisplayer.configExists(designatedPid)) {
           final JButton delButton = new JButton("Delete");
           delButton.setToolTipText("Delete configuration");
@@ -288,13 +276,9 @@ public class JCMService
 
       scroll.setBorder(null);
       mainPanel.add(scroll, BorderLayout.CENTER);
-
       topPanel.add(ctrlPanel, BorderLayout.WEST);
-
       final JPanel icons = new JPanel(new FlowLayout());
-
       JLabel iconLabel = null;
-
       InputStream iconStream = null;
       try {
         iconStream = ocd.getIcon(16);
@@ -338,41 +322,46 @@ public class JCMService
                   Dictionary<String, Object> configProps,
                   String info)
   {
-    for (int i = 0; ads != null && i < ads.length; i++) {
-      final AttributeDefinition ad = ads[i];
-
+    for (final AttributeDefinition ad : ads) {
       JLabelled item = null;
-
       try {
         final JCMProp jcmProp = new JCMProp(ad, configProps);
-
         props.put(ad.getID(), jcmProp);
 
         String className = AD.getClass(ad.getType()).getName();
-
         if (ad.getCardinality() < 0) {
           className = "Vector of " + className;
         } else if (ad.getCardinality() > 0) {
           className = className + "[]";
         }
-        item =
-          new JLabelled(ad.getName(),
-                        "<table width=\"400px\">"
-                            + "<tr><th align=\"left\">"
-                            + ad.getName()
-                            + "</th></tr>"
-                            + (!info.isEmpty() ? ("<tr><td align=\"right\">"
-                                                  + info + "") : "</td></tr>")
-                            + "<tr><td>" + ad.getDescription() + "</td></tr>"
-                            + "<tr><td align=\"left\">(" + className
-                            + ")</td></tr>" + "</table>", jcmProp, 100);
 
+        final StringBuffer toolTip = new StringBuffer(200);
+        toolTip.append("<table width=\"400px\">");
+        toolTip.append("<tr><th align=\"left\">");
+        toolTip.append(ad.getName());
+        toolTip.append("</th></tr>");
+        if (!info.isEmpty()) {
+          toolTip.append("<tr><td align=\"right\">");
+          toolTip.append(info);
+          toolTip.append("</td></tr>");
+        }
+        if (ad.getDescription() != null && !ad.getDescription().isEmpty()) {
+          toolTip.append("<tr><td>");
+          toolTip.append(ad.getDescription());
+          toolTip.append("</td></tr>");
+        }
+        toolTip.append("<tr><td align=\"left\">(");
+        toolTip.append(className);
+        toolTip.append(")</td></tr>");
+        toolTip.append("</table>");
+
+        item =
+          new JLabelled(ad.getName(), toolTip.toString(), jcmProp, 100);
       } catch (final Exception e) {
-        Activator.log.error("Failed to create ui for " + ad, e);
+        final String msg = "Failed to create ui for " + ad;
+        Activator.log.error(msg, e);
         item =
-          new JLabelled(ad.getName(), ad.getDescription(),
-                        new JLabel(e.getMessage()), 100);
-
+          new JLabelled(ad.getName(), msg, new JLabel(e.getMessage()), 100);
       }
       propPane.add(item);
     }
@@ -406,16 +395,20 @@ public class JCMService
 
   void showFactoryConfig(String pid)
   {
-    // System.out.println("showFactoryConfig " + pid);
+    if (FACTORY_PID_DEFAULTS.equals(pid)) {
+      setProps(new Hashtable<String, Object>());
+      factoryPid = null;
+      // TODO: Enable/disable controls
+    } else {
+      try {
+        final Configuration conf =
+          CMDisplayer.getCA().getConfiguration(pid, null);
 
-    try {
-      final Configuration conf =
-        CMDisplayer.getCA().getConfiguration(pid, null);
-
-      setProps(conf.getProperties());
-      factoryPid = pid;
-    } catch (final Exception e) {
-      Activator.log.error("show factory failed pid=" + pid, e);
+        setProps(conf.getProperties());
+        factoryPid = pid;
+      } catch (final Exception e) {
+        Activator.log.error("show factory failed pid=" + pid, e);
+      }
     }
   }
 
@@ -541,14 +534,12 @@ public class JCMService
 
   void setProps(Dictionary<String, Object> in)
   {
-    for (final Object element : props.keySet()) {
-      final String name = (String) element;
-      final JCMProp jcmProp = props.get(name);
+    for (final Entry<String,JCMProp> entry : props.entrySet()) {
+      final String name = entry.getKey();
+      final JCMProp jcmProp = entry.getValue();
       try {
-        final Object val = in.get(name);
-
-        jcmProp.setValue(val);
         jcmProp.setErr(null);
+        jcmProp.setValue(in.get(name));
       } catch (final Exception e) {
         jcmProp.setErr(e.getMessage());
       }
