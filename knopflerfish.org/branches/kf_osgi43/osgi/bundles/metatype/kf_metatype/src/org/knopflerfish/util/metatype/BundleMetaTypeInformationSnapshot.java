@@ -40,6 +40,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -68,9 +70,9 @@ class BundleMetaTypeInformationSnapshot
   private final Bundle bundle;
   final List<String> pids = new ArrayList<String>();
   final List<String> factoryPids = new ArrayList<String>();
-  final List<String> locales = new ArrayList<String>();
-  final Map<String, MetaTypeInformation> idToMti =
-    new HashMap<String, MetaTypeInformation>();
+  final Set<String> locales = new TreeSet<String>();
+  final Map<String, MetaTypeProvider> idToMtp =
+    new HashMap<String, MetaTypeProvider>();
 
   public static BundleMetaTypeInformationSnapshot extractMetatypeInformation(BundleContext bc,
                                                                              Bundle b)
@@ -104,20 +106,30 @@ class BundleMetaTypeInformationSnapshot
     Object s = null;
     try {
       s = bc.getService(sr);
-      if (!(s instanceof MetaTypeProvider)
-          && !(s instanceof MetaTypeInformation)) {
+      if (!(s instanceof MetaTypeProvider)) {
         return;
       }
-      final MetaTypeInformation mti = (MetaTypeInformation) s;
-      addSrPropertiesToArrayListAndMapIds(sr,
-                                          new String[] {
-                                                        Constants.SERVICE_PID,
-                                                        MetaTypeProvider.METATYPE_PID },
-                                          pids, mti);
-      addSrPropertiesToArrayListAndMapIds(sr,
-                                          new String[] { MetaTypeProvider.METATYPE_FACTORY_PID },
-                                          factoryPids, mti);
-      final String[] ls = ((MetaTypeProvider) s).getLocales();
+      final MetaTypeProvider mtp = (MetaTypeProvider) s;
+
+      final List<String> pidProps = new ArrayList<String>();
+      final List<String> fpidProps = new ArrayList<String>();
+      if(s instanceof ManagedService){
+        pidProps.add(Constants.SERVICE_PID);
+        pidProps.add(MetaTypeProvider.METATYPE_PID);
+        fpidProps.add(MetaTypeProvider.METATYPE_FACTORY_PID);
+      } else if (s instanceof ManagedServiceFactory) {
+        pidProps.add(MetaTypeProvider.METATYPE_PID);
+        fpidProps.add(Constants.SERVICE_PID);
+        fpidProps.add(MetaTypeProvider.METATYPE_FACTORY_PID);
+      } else {
+        // MetaTypeProvide service
+        pidProps.add(MetaTypeProvider.METATYPE_PID);
+        fpidProps.add(MetaTypeProvider.METATYPE_FACTORY_PID);
+      }
+      addSrPropertiesToListAndMapIds(sr, pidProps, pids, mtp);
+      addSrPropertiesToListAndMapIds(sr, fpidProps, factoryPids, mtp);
+
+      final String[] ls = mtp.getLocales();
       if (ls != null && ls.length > 0) {
         locales.addAll(Arrays.asList(ls));
       }
@@ -130,14 +142,9 @@ class BundleMetaTypeInformationSnapshot
 
   public ObjectClassDefinition getObjectClassDefinition(String id, String locale)
   {
-    final Object o = idToMti.get(id);
-    if (o instanceof MetaTypeProvider) {
-      return ((MetaTypeProvider) o).getObjectClassDefinition(id, locale);
-    } else if (o instanceof MetaTypeInformation) {
-      return ((MetaTypeInformation) o).getObjectClassDefinition(id, locale);
-    } else {
-      return null;
-    }
+    final MetaTypeProvider mtp = idToMtp.get(id);
+
+    return mtp != null ? mtp.getObjectClassDefinition(id, locale) : null;
   }
 
   public String[] getLocales()
@@ -160,45 +167,45 @@ class BundleMetaTypeInformationSnapshot
     return bundle;
   }
 
-  private static String[] toStringArray(List<String> al)
+  private static String[] toStringArray(Collection<String> al)
   {
     return al.toArray(new String[al.size()]);
   }
 
-  private void addSrPropertiesToArrayListAndMapIds(ServiceReference<?> sr,
-                                                   String[] ps,
-                                                   List<String> al,
-                                                   MetaTypeInformation mti)
+  private void addSrPropertiesToListAndMapIds(ServiceReference<?> sr,
+                                              Collection<String> keys,
+                                              List<String> al,
+                                              MetaTypeProvider mtp)
   {
-    for (final String element : ps) {
-      final Object o = sr.getProperty(element);
+    for (final String key : keys) {
+      final Object o = sr.getProperty(key);
       if (o == null) {
         continue;
       } else if (o instanceof String) {
         final String s = (String) o;
         al.add(s);
-        idToMti.put(s, mti);
+        idToMtp.put(s, mtp);
       } else if (o instanceof String[]) {
         final List<String> c = Arrays.asList((String[]) o);
         al.addAll(c);
-        mapAllIds(c, mti);
+        mapAllIds(c, mtp);
       } else if (o instanceof Collection) {
         @SuppressWarnings("unchecked")
-        final
-        Collection<? extends String> sc = (Collection<? extends String>) o;
+        final Collection<? extends String> sc =
+          (Collection<? extends String>) o;
         al.addAll(sc);
-        mapAllIds(sc, mti);
+        mapAllIds(sc, mtp);
       } else {
         continue;
       }
     }
   }
 
-  private void mapAllIds(Collection<? extends String> c, MetaTypeInformation mti)
+  private void mapAllIds(Collection<? extends String> c, MetaTypeProvider mtp)
   {
     final Iterator<? extends String> i = c.iterator();
     while (i.hasNext()) {
-      idToMti.put(i.next(), mti);
+      idToMtp.put(i.next(), mtp);
     }
   }
 }
