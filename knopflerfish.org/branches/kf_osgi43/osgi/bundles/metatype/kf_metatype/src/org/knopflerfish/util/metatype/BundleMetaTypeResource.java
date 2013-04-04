@@ -247,30 +247,28 @@ class MetaData
     }
 
     url =
-      bundle.findEntries(locBaseDir, localizationFileBaseName + "_" + locale
-                                     + ".properties", false);
+      findEntries(locBaseDir, localizationFileBaseName + "_" + locale
+                              + ".properties");
     if (url == null) {
       underscore = locale.lastIndexOf('_');
       if (underscore > 0) {
         locale = locale.substring(0, underscore - 1);
       }
       url =
-        bundle.findEntries(locBaseDir, localizationFileBaseName + "_" + locale
-                                       + ".properties", false);
+        findEntries(locBaseDir, localizationFileBaseName + "_" + locale
+                                + ".properties");
       if (url == null) {
         underscore = locale.lastIndexOf('_');
         if (underscore > 0) {
           locale = locale.substring(0, underscore - 1);
         }
         url =
-          bundle.findEntries(locBaseDir, localizationFileBaseName + "_"
-                                         + locale + ".properties", false);
+          findEntries(locBaseDir, localizationFileBaseName + "_" + locale
+                                  + ".properties");
       }
       // lastly
       if (url == null) {
-        url =
-          bundle.findEntries(locBaseDir, localizationFileBaseName
-                                         + ".properties", false);
+        url = findEntries(locBaseDir, localizationFileBaseName + ".properties");
       }
     }
 
@@ -348,7 +346,7 @@ class MetaData
                 }
                 value = res;
               } else {
-                value = Boolean.valueOf((String) ae.values.elementAt(0));
+                value = Boolean.valueOf(ae.values.elementAt(0));
               }
               break;
             case AttributeDefinition.BYTE:
@@ -367,7 +365,7 @@ class MetaData
                 }
                 value = res;
               } else {
-                value = Byte.valueOf((String) ae.values.elementAt(0));
+                value = Byte.valueOf(ae.values.elementAt(0));
               }
               break;
             case AttributeDefinition.DOUBLE:
@@ -386,7 +384,7 @@ class MetaData
                 }
                 value = res;
               } else {
-                value = Double.valueOf((String) ae.values.elementAt(0));
+                value = Double.valueOf(ae.values.elementAt(0));
               }
               break;
             case AttributeDefinition.FLOAT:
@@ -405,7 +403,7 @@ class MetaData
                 }
                 value = res;
               } else {
-                value = Float.valueOf((String) ae.values.elementAt(0));
+                value = Float.valueOf(ae.values.elementAt(0));
               }
               break;
             case AttributeDefinition.INTEGER:
@@ -424,7 +422,7 @@ class MetaData
                 }
                 value = res;
               } else {
-                value = Integer.valueOf((String) ae.values.elementAt(0));
+                value = Integer.valueOf(ae.values.elementAt(0));
               }
               break;
             case AttributeDefinition.LONG:
@@ -443,7 +441,7 @@ class MetaData
                 }
                 value = res;
               } else {
-                value = Long.valueOf((String) ae.values.elementAt(0));
+                value = Long.valueOf(ae.values.elementAt(0));
               }
               break;
             case AttributeDefinition.SHORT:
@@ -462,7 +460,7 @@ class MetaData
                 }
                 value = res;
               } else {
-                value = Short.valueOf((String) ae.values.elementAt(0));
+                value = Short.valueOf(ae.values.elementAt(0));
               }
               break;
             case AttributeDefinition.CHARACTER:
@@ -484,7 +482,7 @@ class MetaData
                 value = res;
               } else {
                 value =
-                  new Character(((String) ae.values.elementAt(0)).charAt(0));
+                  new Character(ae.values.elementAt(0).charAt(0));
               }
               break;
             }
@@ -554,12 +552,12 @@ class MetaData
     //final String x = Locale.getDefault().toString();
     final Vector<String> localesV = new Vector<String>();
 
-    final Enumeration<?> localizationFiles =
-      bundle.findEntries(locBaseDir, localizationFileBaseName + "*.properties",
-                         false);
+    final Enumeration<URL> localizationFiles =
+      findEntries(locBaseDir, localizationFileBaseName, ".properties");
+
     if (localizationFiles != null) {
       while (localizationFiles.hasMoreElements()) {
-        final URL url = (URL) localizationFiles.nextElement();
+        final URL url = localizationFiles.nextElement();
         String fileName = url.getFile().substring(15);
         if (fileName.length() == (localizationFileBaseName + ".properties")
             .length()) {
@@ -574,6 +572,67 @@ class MetaData
       }
       locales = localesV.toArray(new String[localesV.size()]);
     }
+  }
+
+  // Find files in the bundle without triggering resolve of it.
+  private Enumeration<URL> findEntries(String baseDir, String fileName) {
+    Enumeration<URL> res;
+    if (bundle.getState() == Bundle.INSTALLED) {
+      final Enumeration<String> p = bundle.getEntryPaths(baseDir);
+      if (p != null) {
+        final Vector<URL> tmp = new Vector<URL>();
+        while (p.hasMoreElements()) {
+          final String path = p.nextElement();
+          final int lastSlash = path.lastIndexOf('/');
+          if (lastSlash > 0) {
+            final String name = path.substring(lastSlash) + 1;
+            if (name.equals(fileName)) {
+              tmp.addElement(bundle.getEntry(path));
+            }
+          }
+        }
+        res = tmp.elements();
+      } else {
+        res = null;
+      }
+    } else {
+      res =
+        bundle.findEntries(locBaseDir, fileName, false);
+    }
+    return res;
+  }
+
+  // Find files in the bundle without triggering resolve of it.
+  private Enumeration<URL> findEntries(String baseDir,
+                                       String fileNamePrefix,
+                                       String fileNameSuffix)
+  {
+    Enumeration<URL> res;
+    if (bundle.getState() == Bundle.INSTALLED) {
+      final Enumeration<String> p = bundle.getEntryPaths(baseDir);
+      if (p != null) {
+        final Vector<URL> tmp = new Vector<URL>();
+        while (p.hasMoreElements()) {
+          final String path = p.nextElement();
+          final int lastSlash = path.lastIndexOf('/');
+          if (lastSlash > 0) {
+            final String name = path.substring(lastSlash) + 1;
+            if (name.startsWith(fileNamePrefix)
+                && name.endsWith(fileNameSuffix)) {
+              tmp.addElement(bundle.getEntry(path));
+            }
+          }
+        }
+        res = tmp.elements();
+      } else {
+        res = null;
+      }
+    } else {
+      res =
+        bundle.findEntries(locBaseDir, fileNamePrefix + "*" + fileNameSuffix,
+                           false);
+    }
+    return res;
   }
 
   private Properties loadLocaleEntries(URL url)
