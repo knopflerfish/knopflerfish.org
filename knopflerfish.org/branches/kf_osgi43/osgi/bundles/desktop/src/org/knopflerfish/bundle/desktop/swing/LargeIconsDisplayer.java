@@ -54,7 +54,6 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +63,7 @@ import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
@@ -72,6 +72,7 @@ import javax.swing.InputMap;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -97,13 +98,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     super(bc, NAME, "Large icon display of bundles", false);
   }
 
+  @Override
   public void bundleChanged(final BundleEvent ev) {
     super.bundleChanged(ev);
 
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
-            JLargeIcons comp = (JLargeIcons) it.next();
+          for (final JComponent jComponent : components) {
+            final JLargeIcons comp = (JLargeIcons) jComponent;
             switch(ev.getType()) {
             case BundleEvent.INSTALLED:
               comp.addBundle(ev.getBundle());
@@ -122,14 +124,15 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       });
   }
 
+  @Override
   public void showBundle(final Bundle b) {
     // Must post to EDT since this shall be done after the addition of
     // the bundles component, which in turn is triggered by another
     // job posted to the EDT.
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
-            final JLargeIcons comp = (JLargeIcons)it.next();
+          for (final JComponent jComponent : components) {
+            final JLargeIcons comp = (JLargeIcons)jComponent;
             comp.showBundle(b);
           }
         }
@@ -137,12 +140,16 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
   }
 
 
+  @Override
   public JComponent newJComponent() {
     return new JLargeIcons();
   }
 
 
   class JLargeIcons extends JPanel {
+    private final String CLIENT_PROPERTY_BID = LargeIconsDisplayer.class
+        .getName() + ".bid";
+
     private static final long serialVersionUID = 1L;
 
     Map<Long, JLabel>         bundleMap = new TreeMap<Long, JLabel>();
@@ -177,8 +184,12 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
           JComponent cNew = null;
           final int columns = grid.getColumns();
           int delta = dir;
-          if (-2==delta) delta = -columns;
-          if (2==delta)  delta = columns;
+          if (-2==delta) {
+            delta = -columns;
+          }
+          if (2==delta) {
+            delta = columns;
+          }
 
           if (0<=bid) {
             final JComponent cOld = getBundleComponent(bid);
@@ -186,7 +197,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
             for (int i=0; i<comps.length; i++) {
               if (cOld==comps[i]) {
                 int iNew = i+delta;
-                if (iNew>=comps.length || iNew<0) iNew = i;
+                if (iNew>=comps.length || iNew<0) {
+                  iNew = i;
+                }
                 cNew = (JComponent) comps[iNew];
               }
             }
@@ -194,10 +207,8 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
             cNew = getBundleComponent(0L);
           }
           Long newBid = null;
-          if (null!=cNew) {
-            newBid = (Long)
-              cNew.getClientProperty(LargeIconsDisplayer.class.getName()
-                                     +".bid");
+          if (null != cNew) {
+            newBid = (Long) cNew.getClientProperty(CLIENT_PROPERTY_BID);
           }
           if (null!=newBid) {
             if (0<=bid) { // De-select old.
@@ -224,10 +235,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       {
         final List<Long> selectedBundleIds = new ArrayList<Long>();
         final Component[] comps = panel.getComponents();
-        final String bidKey = LargeIconsDisplayer.class.getName() +".bid";
-        for (int i=0; i<comps.length; i++) {
-          final JComponent comp = (JComponent) comps[i];
-          final Long bidL = (Long) comp.getClientProperty(bidKey);
+        for (final Component comp2 : comps) {
+          final JComponent comp = (JComponent) comp2;
+          final Long bidL = (Long) comp.getClientProperty(CLIENT_PROPERTY_BID);
           if (null!=bidL) {
             selectedBundleIds.add(bidL);
           }
@@ -235,6 +245,101 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         bundleSelModel.setSelected(selectedBundleIds, true);
       }
     }
+
+    final Action resolveBundleAction = new AbstractAction(
+        Strings.get("item_resolvebundle"), null) {
+      private static final long serialVersionUID = 1L;
+
+      public void actionPerformed(ActionEvent ev)
+      {
+        final Component invoker = contextPopupMenu.getInvoker();
+        if (invoker instanceof JComponent) {
+          final JComponent jinvoker = (JComponent) invoker;
+          final Long bid =
+            (Long) jinvoker.getClientProperty(CLIENT_PROPERTY_BID);
+          if (bid != null) {
+            final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+            Desktop.theDesktop.resolveBundles(new Bundle[] { bundle });
+          }
+        }
+      }
+    };
+
+    final Action startBundleAction = new AbstractAction(
+        Strings.get("item_startbundle"), Desktop.startIcon) {
+      private static final long serialVersionUID = 1L;
+
+      public void actionPerformed(ActionEvent ev)
+      {
+        final Component invoker = contextPopupMenu.getInvoker();
+        if (invoker instanceof JComponent) {
+          final JComponent jinvoker = (JComponent) invoker;
+          final Long bid =
+            (Long) jinvoker.getClientProperty(CLIENT_PROPERTY_BID);
+          if (bid != null) {
+            final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+            Desktop.theDesktop.startBundles(new Bundle[] { bundle });
+          }
+        }
+      }
+    };
+
+    final Action stopBundleAction = new AbstractAction(
+        Strings.get("item_stopbundle"), Desktop.stopIcon) {
+      private static final long serialVersionUID = 1L;
+
+      public void actionPerformed(ActionEvent ev)
+      {
+        final Component invoker = contextPopupMenu.getInvoker();
+        if (invoker instanceof JComponent) {
+          final JComponent jinvoker = (JComponent) invoker;
+          final Long bid =
+            (Long) jinvoker.getClientProperty(CLIENT_PROPERTY_BID);
+          if (bid != null) {
+            final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+            Desktop.theDesktop.stopBundles(new Bundle[] { bundle });
+          }
+        }
+      }
+    };
+
+    final Action updateBundleAction = new AbstractAction(
+        Strings.get("item_updatebundle"), Desktop.updateIcon) {
+      private static final long serialVersionUID = 1L;
+
+      public void actionPerformed(ActionEvent ev)
+      {
+        final Component invoker = contextPopupMenu.getInvoker();
+        if (invoker instanceof JComponent) {
+          final JComponent jinvoker = (JComponent) invoker;
+          final Long bid =
+            (Long) jinvoker.getClientProperty(CLIENT_PROPERTY_BID);
+          if (bid != null) {
+            final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+            Desktop.theDesktop.updateBundles(new Bundle[] { bundle });
+          }
+        }
+      }
+    };
+
+    final Action uninstallBundleAction = new AbstractAction(
+        Strings.get("item_uninstallbundle"), Desktop.uninstallIcon) {
+      private static final long serialVersionUID = 1L;
+
+      public void actionPerformed(ActionEvent ev)
+      {
+        final Component invoker = contextPopupMenu.getInvoker();
+        if (invoker instanceof JComponent) {
+          final JComponent jinvoker = (JComponent) invoker;
+          final Long bid =
+            (Long) jinvoker.getClientProperty(CLIENT_PROPERTY_BID);
+          if (bid != null) {
+            final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+            Desktop.theDesktop.uninstallBundles(new Bundle[] { bundle });
+          }
+        }
+      }
+    };
 
     public JLargeIcons() {
       setLayout(new BorderLayout());
@@ -246,7 +351,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       panel.setBackground(SystemColor.text);
       panel.setFocusable(true);
 
-      ActionMap actionMap = panel.getActionMap();
+      final ActionMap actionMap = panel.getActionMap();
       actionMap.put(moveSelUpAction,    new MoveSelectionAction(-2));
       actionMap.put(moveSelDownAction,  new MoveSelectionAction(2));
       actionMap.put(moveSelLeftAction,  new MoveSelectionAction(-1));
@@ -278,7 +383,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       contextPopupMenu = new JPopupMenu();
 
-      ButtonGroup       group         = new ButtonGroup();
+      final ButtonGroup       group         = new ButtonGroup();
 
       loadPrefs();
 
@@ -318,22 +423,56 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       contextPopupMenu.add(item);
       group.add(item);
 
+      contextPopupMenu.addSeparator();
+      contextPopupMenu.add(new JMenuItem(resolveBundleAction));
+      contextPopupMenu.add(new JMenuItem(startBundleAction));
+      contextPopupMenu.add(new JMenuItem(stopBundleAction));
+      contextPopupMenu.add(new JMenuItem(updateBundleAction));
+      contextPopupMenu.add(new JMenuItem(uninstallBundleAction));
+
       contextMenuListener = new MouseAdapter() {
-          public void mousePressed(MouseEvent e) {
-            maybeShowPopup(e);
-          }
-          public void mouseReleased(MouseEvent e) {
-            maybeShowPopup(e);
-          }
-          private void maybeShowPopup(MouseEvent e) {
-            if(contextPopupMenu != null &&
-               (e.isPopupTrigger() ||
-                ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0))) {
-              Component comp = e.getComponent();
-              contextPopupMenu.show(comp, e.getX(), e.getY());
+        @Override
+        public void mousePressed(MouseEvent e)
+        {
+          maybeShowPopup(e);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e)
+        {
+          maybeShowPopup(e);
+        }
+
+        private void maybeShowPopup(MouseEvent e)
+        {
+          if (isPopupTrigger(e)) {
+            final Component comp = e.getComponent();
+            resolveBundleAction.setEnabled(false);
+            startBundleAction.setEnabled(false);
+            stopBundleAction.setEnabled(false);
+            updateBundleAction.setEnabled(false);
+            uninstallBundleAction.setEnabled(false);
+
+            if (comp instanceof JComponent) {
+              final JComponent jcomp = (JComponent) comp;
+              final Long bid =
+                (Long) jcomp.getClientProperty(CLIENT_PROPERTY_BID);
+              if (bid != null) {
+                final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+                resolveBundleAction
+                    .setEnabled((bundle.getState() & Bundle.INSTALLED) != 0);
+                startBundleAction
+                    .setEnabled((bundle.getState() & (Bundle.INSTALLED | Bundle.RESOLVED)) != 0);
+                stopBundleAction
+                    .setEnabled((bundle.getState() & (Bundle.ACTIVE | Bundle.STARTING)) != 0);
+                updateBundleAction.setEnabled(true);
+                uninstallBundleAction.setEnabled(true);
+              }
             }
+            contextPopupMenu.show(comp, e.getX(), e.getY());
           }
-        };
+        }
+      };
 
       panel.addMouseListener(contextMenuListener);
 
@@ -342,6 +481,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
           private static final long serialVersionUID = 1L;
           int oldW = -1;
           int oldH = -1;
+          @Override
           public void setBounds(int x, int y, int w, int h) {
             super.setBounds(x, y, w, h);
 
@@ -353,10 +493,11 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
             }
           }
 
+          @Override
           public void paintComponent(Graphics g) {
             super.paintComponent(g);
             if(compToShow != null) {
-              JComponent c = compToShow;
+              final JComponent c = compToShow;
               final Rectangle cBounds = c.getBounds();
               scroll.getViewport().scrollRectToVisible(cBounds);
               compToShow = null;
@@ -387,6 +528,17 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       add(scroll, BorderLayout.CENTER);
     }
 
+    /**
+     * Check if a mouse event should pop-up the context pop-up menu or not.
+     * @param e The event to check.
+     * @return true if this event should trigger the pop-up menu.
+     */
+    boolean isPopupTrigger(MouseEvent e) {
+      return contextPopupMenu != null &&
+          (e.isPopupTrigger() ||
+           ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0));
+      }
+
     public void showBundle(final Bundle b) {
       if(SwingUtilities.isEventDispatchThread()) {
         showBundle0(b);
@@ -401,7 +553,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
     volatile JComponent compToShow = null;
     public void showBundle0(final Bundle b) {
-      JComponent c = getBundleComponent(b);
+      final JComponent c = getBundleComponent(b);
       if(c != null) {
         compToShow = c;
         revalidate();
@@ -427,19 +579,22 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       final long bid = b.getBundleId();
 
       if(null == getBundleComponent(b)) {
-        JLabel c = new JLabel(Util.getBundleName(b),
+        final JLabel c = new JLabel(Util.getBundleName(b),
                               bundleIcon,
                               SwingConstants.CENTER) {
             private static final long serialVersionUID = 1L;
             {
               addMouseListener(new MouseAdapter() {
-                  public void mousePressed(MouseEvent ev) {
-                    final int mask
-                      = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+                  @Override
+                public void mousePressed(MouseEvent ev)
+                {
+                  if (!isPopupTrigger(ev)) {
+                    final int mask =
+                      Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
-                    if((ev.getModifiers() & mask) != 0) {
-                      bundleSelModel
-                        .setSelected(bid, !bundleSelModel.isSelected(bid));
+                    if ((ev.getModifiers() & mask) != 0) {
+                      bundleSelModel.setSelected(bid, !bundleSelModel
+                          .isSelected(bid));
                     } else {
                       bundleSelModel.clearSelection();
                       bundleSelModel.setSelected(bid, true);
@@ -447,41 +602,45 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
                     setBackground(getBackground());
                     panel.requestFocus();
                   }
-                });
+                }
+              });
               addMouseListener(contextMenuListener);
               setBorder(null);
               setOpaque(true);
               setBackground(Color.yellow);
-              putClientProperty(LargeIconsDisplayer.class.getName()+".bid",
-                                new Long(bid));
+              putClientProperty(CLIENT_PROPERTY_BID, new Long(bid));
             }
 
+            @Override
             public boolean isBackgroundSet() { return true;}
+            @Override
             public Color   getBackground() {
               try {
-                boolean bSel = bundleSelModel != null
+                final boolean bSel = bundleSelModel != null
                   ? bundleSelModel.isSelected(b.getBundleId())
                   : false;
 
                 return bSel
                   ? SystemColor.textHighlight
                   : JLargeIcons.this.getBackground();
-              } catch (Exception e) {
+              } catch (final Exception e) {
                 return Color.black;
               }
             }
 
+            @Override
             public boolean isForegroundSet() { return true; }
+            @Override
             public Color   getForeground() {
               try {
-                boolean bSel = bundleSelModel != null
+                final boolean bSel = bundleSelModel != null
                   ? bundleSelModel.isSelected(b.getBundleId())
                   : false;
 
                 return bSel
                   ? SystemColor.textHighlightText
                   : JLargeIcons.this.getForeground();
-              } catch (Exception e) {
+              } catch (final Exception e) {
                 return Color.black;
               }
             }
@@ -523,15 +682,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       panel.removeAll();
 
-      Set<Long> set = new TreeSet<Long>(iconComparator);
+      final Set<Long> set = new TreeSet<Long>(iconComparator);
       set.addAll(bundleMap.keySet());
 
       int w = 0; // Width of widest icon
       int h = 0; // Height of higest icon
-      for(Iterator<Long> it = set.iterator(); it.hasNext(); ) {
-        Long      bid = it.next();
-        JComponent c   = bundleMap.get(bid);
-        Dimension size = c.getPreferredSize();
+      for (final Long bid : set) {
+        final JComponent c   = bundleMap.get(bid);
+        final Dimension size = c.getPreferredSize();
         w = Math.max(w, size.width);
         h = Math.max(h, size.height);
       }
@@ -560,8 +718,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         grid.setRows(0);
       }
 
-      for(Iterator<Long> it = set.iterator(); it.hasNext(); ) {
-        final Long bid = it.next();
+      for (final Long bid : set) {
         final Component c = bundleMap.get(bid);
         panel.add(c);
       }
@@ -601,7 +758,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     Map<Bundle, BundleImageIcon> icons = new HashMap<Bundle, BundleImageIcon>();
 
     public void updateBundleComp(Bundle b) {
-      JLabel c = (JLabel)getBundleComponent(b);
+      final JLabel c = (JLabel)getBundleComponent(b);
 
       if(c == null) {
         addBundle(b);
@@ -610,7 +767,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       c.setToolTipText(Util.bundleInfo(b));
 
-      Icon icon = Util.getBundleIcon(b);
+      final Icon icon = Util.getBundleIcon(b);
 
       c.setIcon(icon);
 
@@ -640,7 +797,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
         prefs.put(PREFS_KEY_SORT, sortOrder);
         prefs.flush();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         errCount++;
         if(errCount < maxErr) {
           Activator.log.warn("Failed to store prefs for Large Icons Displayer: "
@@ -670,7 +827,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
           // Default sort order is bundle id
           iconComparator = null;
         }
-      } catch (Exception e) {
+      } catch (final Exception e) {
         errCount++;
         if(errCount < maxErr) {
           Activator.log.warn("Failed to load prefs for Large Icons Displayer: "
@@ -683,9 +840,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
   static Comparator<Long> nameComparator = new Comparator<Long>() {
       public int compare(Long l1, Long l2) {
-        Bundle b1 =
+        final Bundle b1 =
           Activator.getTargetBC_getBundle(l1.longValue());
-        Bundle b2 =
+        final Bundle b2 =
           Activator.getTargetBC_getBundle(l2.longValue());
 
         if(b1 == b2) {
@@ -718,14 +875,14 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
       if (b2 == null) {
         return 1;
       }
-      long bidDiff = b1.getBundleId() - b2.getBundleId();
-      int bidRes = bidDiff < 0 ? -1 : (bidDiff == 0 ? 0 : 1);
+      final long bidDiff = b1.getBundleId() - b2.getBundleId();
+      final int bidRes = bidDiff < 0 ? -1 : (bidDiff == 0 ? 0 : 1);
 
       final BundleStartLevel bsl1 = b1.adapt(BundleStartLevel.class);
       final BundleStartLevel bsl2 = b2.adapt(BundleStartLevel.class);
       if (bsl1 != null && bsl2 != null) {
-        int sl1 = bsl1.getStartLevel();
-        int sl2 = bsl2.getStartLevel();
+        final int sl1 = bsl1.getStartLevel();
+        final int sl2 = bsl2.getStartLevel();
         return sl1 == sl2 ? bidRes : sl1 - sl2;
       }
       return bidRes;

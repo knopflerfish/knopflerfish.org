@@ -100,6 +100,12 @@ public class Strings {
           put("item_updatebundles",     "Update Selected Bundles");
           put("item_uninstallbundles",  "Uninstall Selected Bundles");
 
+          put("item_resolvebundle",    "Resolve Bundle ");
+          put("item_startbundle",      "Start Bundle ");
+          put("item_stopbundle",       "Stop Bundle ");
+          put("item_updatebundle",     "Update Bundle ");
+          put("item_uninstallbundle",  "Uninstall Bundle ");
+
           put("menu_remotefw",          "Remote framework...");
           put("remote_connect_msg",     "Enter address to remote framework");
           put("remote_connect_title",   "Connect to remote framework");

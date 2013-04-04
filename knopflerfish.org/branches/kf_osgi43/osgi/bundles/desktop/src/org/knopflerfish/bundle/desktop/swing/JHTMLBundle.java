@@ -312,7 +312,9 @@ public abstract class JHTMLBundle extends JPanel
   {
     final BundleRevision rev = b.adapt(BundleRevision.class);
     final boolean isFragment =
-      (rev.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0;
+      rev != null
+        ? (rev.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0
+        : false;
 
     return "#" + b.getBundleId() + "  " + Util.getBundleName(b)
            + (isFragment ? "  (fragment)" : "");
