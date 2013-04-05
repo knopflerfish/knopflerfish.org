@@ -63,6 +63,22 @@ The removed bundles are: axis-osgi, axis2-osgi, ksoap-osgi,
 ksoap_commandgroup, ksoap_remotefw, soap_desktop, soap_remotefw,
 soapclient and soapobject.
 
+CM-Desktop 4.0.0
+ - The displayer always shows the combo boxes for PIDs and factory
+   PIDs (they are disabled when the bundle does not provide meta data
+   for any PID of that type) in its top part.
+ - The sub-panel showing details for a factory PID always shows all
+   the controls (New, Delete, Apply, PID selector), those not
+   applicable are disabled.
+ - The PID selector combo box in the factory PID sub-panel contains a
+   choice that is labeled "- Default Values -" when this is selected
+   the properties below will be set to the default values according
+   the meta type information for the current factory PID.
+ - When selecting the CM-displayer for a bundle that only defines
+   factory PIDs the factory PID sub-panel will be initialized to show
+   the last (lexicographically) instance for the factory PID.
+
+
 Desktop 4.0.0
  - A new "Wiring" displayer has been added that presents information
    from new wiring API. This displayer replaces the "Package"
@@ -76,6 +92,9 @@ Desktop 4.0.0
    list using a smaller, weaker font.
  - Added additional overlay images in the Bundle Icon view to indicate 
    the following bundle states: RESOLVED, STARTING and STOPPING.
+ - Added bundle life-cycle operations (resolve, start, stop, update,
+   uninstall) to the pop-up menu in the bundle icon displayer (top
+   left part of the main window).
 
 
 Framework Commands 4.0.0
@@ -85,10 +104,10 @@ Framework Commands 4.0.0
    wiring of a bundle.
 
 LogCommands 4.0.0
- - Calling the comamnd "logconfig memory <int>" did not change the
+ - Calling the command "logconfig memory <int>" did not change the
    memory limit, but calling "logconfig memory -c <int>" did.  Now
    both calls changes the limit on the number of log entries that are
-   keept in memory as expected.
+   kept in memory as expected.
 
 
 
