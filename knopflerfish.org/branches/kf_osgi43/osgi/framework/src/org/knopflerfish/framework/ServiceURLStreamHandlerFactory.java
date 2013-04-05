@@ -109,7 +109,7 @@ public class ServiceURLStreamHandlerFactory
       debug.println("createURLStreamHandler protocol=" + protocol);
     }
 
-    synchronized(handlers) {
+    synchronized (handlers) {
 
       // Check for
       // 1. JVM classpath handlers

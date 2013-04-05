@@ -263,7 +263,7 @@ public class PermissionsWrapper extends PermissionCollection {
       }
       return systemPermissions;
     } else {
-      synchronized(this) {
+      synchronized (this) {
         return getPerms0();
       }
     }

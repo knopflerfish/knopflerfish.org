@@ -210,7 +210,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   /**
    * Attach this to a Pkg object which indicate that it is a valid importer.
    */
-  synchronized void attachPkg(Pkg p) {
+  void attachPkg(Pkg p) {
     pkg = p;
   }
 
@@ -218,7 +218,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   /**
    * Detach this from a Pkg object which indicate that it is no longer valid.
    */
-  synchronized void detachPkg() {
+  void detachPkg() {
     pkg = null;
     provider = null;
   }

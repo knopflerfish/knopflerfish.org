@@ -46,11 +46,11 @@ class Pkg {
 
   final String pkg;
 
-  ArrayList<ExportPkg> exporters = new ArrayList<ExportPkg>(1);
+  final ArrayList<ExportPkg> exporters = new ArrayList<ExportPkg>(1);
 
-  ArrayList<ImportPkg> importers = new ArrayList<ImportPkg>();
+  final ArrayList<ImportPkg> importers = new ArrayList<ImportPkg>();
 
-  ArrayList<ExportPkg> providers = new ArrayList<ExportPkg>(1);
+  final ArrayList<ExportPkg> providers = new ArrayList<ExportPkg>(1);
 
 
   /**

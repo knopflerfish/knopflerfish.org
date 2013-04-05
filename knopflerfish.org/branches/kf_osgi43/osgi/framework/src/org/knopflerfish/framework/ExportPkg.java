@@ -164,7 +164,7 @@ class ExportPkg
   /**
    * Attach this to a Pkg object which indicate that it is exported.
    */
-  synchronized void attachPkg(Pkg p) {
+  void attachPkg(Pkg p) {
     pkg = p;
   }
 
@@ -172,7 +172,7 @@ class ExportPkg
   /**
    * Detach this from a Pkg object which indicate that it is no longer exported.
    */
-  synchronized void detachPkg() {
+  void detachPkg() {
     pkg = null;
     zombie = false;
   }
@@ -220,10 +220,11 @@ class ExportPkg
    *
    * @return True if pkg exports the package.
    */
-  synchronized boolean isProvider() {
-    if (pkg != null) {
-      synchronized (pkg) {
-        return pkg.providers.contains(this) || bpkgs.isRequired();
+  boolean isProvider() {
+    final Pkg p = pkg;
+    if (p != null) {
+      synchronized (p) {
+        return p.providers.contains(this) || bpkgs.isRequired();
       }
     }
     return false;
@@ -238,11 +239,12 @@ class ExportPkg
    *
    * @return True if pkg exports the package.
    */
-  synchronized boolean isExported() {
+  boolean isExported() {
+    final BundlePackages bp = bpkgs;
     if (checkPermission() && pkg != null &&
-        ((bpkgs.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
-      final BundlePackages bp = bpkgs.getProviderBundlePackages(name);
-      return bp == null || bp.bg.bundle == bpkgs.bg.bundle;
+        ((bp.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
+      final BundlePackages pbp = bp.getProviderBundlePackages(name);
+      return pbp == null || pbp.bg.bundle == bpkgs.bg.bundle;
     }
     return false;
   }
@@ -254,11 +256,12 @@ class ExportPkg
    * @param pkg Package.
    * @return List of bundles importing, null export is not active.
    */
-  synchronized List<ImportPkg> getPackageImporters() {
-    if (pkg != null) {
+  List<ImportPkg> getPackageImporters() {
+    final Pkg p = pkg;
+    if (p != null) {
       final List<ImportPkg> res = new ArrayList<ImportPkg>();
-      synchronized (pkg) {
-        for (final ImportPkg ip : pkg.importers) {
+      synchronized (p) {
+        for (final ImportPkg ip : p.importers) {
           if (ip.provider == this && ip.bpkgs != bpkgs) {
             res.add(ip);
           }

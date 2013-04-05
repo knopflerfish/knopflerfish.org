@@ -290,15 +290,17 @@ class BundlePackages {
   synchronized boolean unregisterPackages(boolean force) {
     if (registered) {
       if (bg.bundle.fwCtx.resolver.unregisterCapabilities(capabilities, getExports(), getImports(), force)) {
-        okImports = null;
         registered = false;
-        for (List<BundleRequirementImpl> lbr : bg.getOtherRequirements().values()) {
-          for (BundleRequirementImpl br : lbr) {
-            br.resetWire();
+        if (okImports != null) {
+          okImports = null;
+          for (List<BundleRequirementImpl> lbr : bg.getOtherRequirements().values()) {
+            for (BundleRequirementImpl br : lbr) {
+              br.resetWire();
+            }
           }
+          unRequireBundles();
+          detachFragments();
         }
-        unRequireBundles();
-        detachFragments();
       } else {
         return false;
       }

@@ -101,11 +101,11 @@ class BundleHooks {
     final List<ServiceRegistrationImpl<?>> eventHooks
       = fwCtx.services.get(EventHook.class.getName());
 
-    synchronized(fwCtx.listeners.syncBundleListeners) {
+    synchronized (fwCtx.listeners.syncBundleListeners) {
       syncBundleListeners.addAll(fwCtx.listeners.syncBundleListeners);
     }
 
-    synchronized(fwCtx.listeners.bundleListeners) {
+    synchronized (fwCtx.listeners.bundleListeners) {
       if(bundleListeners != null) {
         bundleListeners.addAll(fwCtx.listeners.bundleListeners);
       }

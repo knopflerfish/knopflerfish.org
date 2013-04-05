@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,7 +116,7 @@ public class ClassPatcher {
   }
 
   static public ClassPatcher getInstance(Bundle b) {
-    synchronized(patchers) {
+    synchronized (patchers) {
       ClassPatcher cp = (ClassPatcher)patchers.get(b);
       if(cp == null) {
         cp = new ClassPatcher(b);

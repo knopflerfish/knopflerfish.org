@@ -436,7 +436,7 @@ public class StartLevelController
       if (fwCtx.debug.startlevel) {
         fwCtx.debug.println("syncstartlevel: " + bs);
       }
-      synchronized(lock) {
+      synchronized (lock) {
         synchronized (fwCtx.resolver) {
           if (bs.getStartLevel() <= currentLevel) {
             final BundleGeneration current = bs.current();

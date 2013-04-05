@@ -49,6 +49,7 @@ import java.util.List;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 
 /**
@@ -206,7 +207,7 @@ public class Bundles {
    * @return BundleImpl representing bundle or null
    *         if bundle was not found.
    */
-  public Bundle getBundle(long id) {
+  Bundle getBundle(long id) {
     checkIllegalState();
     synchronized (bundles) {
       for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
@@ -227,7 +228,7 @@ public class Bundles {
    * @return BundleImpl representing bundle or null
    *         if bundle was not found.
    */
-  public Bundle getBundle(String location) {
+  Bundle getBundle(String location) {
     checkIllegalState();
     return bundles.get(location);
   }
@@ -242,6 +243,10 @@ public class Bundles {
    */
   BundleImpl getBundle(String name, Version version) {
     checkIllegalState();
+    if (Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(name)
+        && version.equals(fwCtx.systemBundle.getVersion())) {
+      return fwCtx.systemBundle;
+    }
     synchronized (bundles) {
       for (final Enumeration<BundleImpl> e = bundles.elements(); e.hasMoreElements();) {
         final BundleImpl b = e.nextElement();
@@ -276,6 +281,9 @@ public class Bundles {
    */
   List<BundleGeneration> getBundleGenerations(String name) {
     final ArrayList<BundleGeneration> res = new ArrayList<BundleGeneration>();
+    if (Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(name)) {
+      res.add(fwCtx.systemBundle.current());
+    }
     synchronized (bundles) {
       for (final BundleImpl b : bundles.values()) {
         if (name == null || name.equals(b.getSymbolicName())) {
