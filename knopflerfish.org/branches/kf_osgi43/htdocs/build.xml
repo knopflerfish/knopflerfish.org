@@ -36,7 +36,7 @@
 	      location="${distrib.dir}/release_notes.txt"/>
     <property name="LICENSE.txt"    location="${distrib.dir}/LICENSE.txt"/>
 
-    <property name="htdocs.distname" value="Knopflerfish OSGi"/>
+    <property name="htdocs.distname" value="Knopflerfish OSGi, version ${version} - "/>
     <property name="base.url"
 	      value="http://www.knopflerfish.org/releases"/>
 
@@ -106,13 +106,13 @@
               disable="CHANGELOG"/>
 
     <property name="release_notes.file"
-	      location="${distrib.dir}/release_notes.html"/>
+	      location="${knopflerfish.dir}/release_notes.in.html"/>
     <makehtml description="Release notes for this release of ${htdocs.distname}"
               title="${htdocs.distname} Release Notes"
               template="${template.html}"
               outdir="${htdocs.out}"
               tofile="release_notes.html"
-              fromfile="${release_notes.file}"
+              fromfile="${knopflerfish.dir}/release_notes.in.html"
               disable="CHANGELOG"/>
 
     <makehtml description="The contents of the ${htdocs.distname} distribution"

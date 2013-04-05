@@ -370,3 +370,18 @@ tt {
     font-family: Monaco, Courier;
     font-size: 0.9em;
 }
+
+
+.note_group {
+    margin: 1.5em 0 0.5em 0;
+}
+
+.note_name {
+    font-weight: bold;
+    color:#333333;
+}
+
+.note_item {
+    display: list-item;
+    margin: 0.5em 0 0.5em 2em;
+}
