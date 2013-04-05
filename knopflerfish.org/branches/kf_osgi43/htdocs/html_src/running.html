@@ -130,7 +130,18 @@ The Knopflerfish SDK includes the following .xargs files by default
 	Initial start vs restart
       </a>.
       <p>
-	Generated from template.xargs.in (only present in a full source file installation).
+	Generated from template.xargs.in (only present in a full
+	source file installation).
+      </p>
+    </dd>
+    <dt>headless.xargs</dt>
+    <dd>
+      Initial or bootstrap start to use when running the JVM is
+      running in headless mode. Same set of bundles as in init.xargs
+      except that bundles requiring AWT has been commented out.
+      <p>
+	Generated from template.xargs.in (only present in a full
+	source file installation) with "$(AWT)" set to '#'.
       </p>
     </dd>
     <dt>minimal.xargs</dt>

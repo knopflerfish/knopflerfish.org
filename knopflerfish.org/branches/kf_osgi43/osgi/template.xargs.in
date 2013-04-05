@@ -18,7 +18,7 @@
 -install @component_all-N.N.N.jar@
 -install @event_all-N.N.N.jar@
 -install @prefs_all-N.N.N.jar@
--istart @trayicon_fw-N.N.N.jar@
+$(AWT)-istart @trayicon_fw-N.N.N.jar@
 
 
 ## Some library bundles
@@ -29,7 +29,7 @@
 -install @kxml-N.N.N.jar@
 
 # The Bundle repo commands and desktop plugin
--install @bundlerepository_all-N.N.N.jar@
+$(AWT)-install @bundlerepository_all-N.N.N.jar@
 
 ## More basic KF bundles
 -initlevel 3
@@ -51,8 +51,8 @@
 -install @consoletelnet-N.N.N.jar@
 
 -initlevel 6
--install @remotefw_api-N.N.N.jar@
--install @desktop_all-N.N.N.jar@
+$(AWT)-install @remotefw_api-N.N.N.jar@
+$(AWT)-install @desktop_all-N.N.N.jar@
 
 
 -initlevel 7
@@ -75,13 +75,13 @@ $(OS_ARGS)
 -start @prefs_all-N.N.N.jar@
 -start @device_all-N.N.N.jar@
 -start @useradmin_all-N.N.N.jar@
--start @bundlerepository_all-N.N.N.jar@
+$(AWT)-start @bundlerepository_all-N.N.N.jar@
 -start @consoletty-N.N.N.jar@
 -start @consoletelnet-N.N.N.jar@
 -start @frameworkcommands-N.N.N.jar@
 -start @logcommands-N.N.N.jar@
 -start @cm_cmd-N.N.N.jar@
 -start @scrcommands-N.N.N.jar@
--start @desktop_all-N.N.N.jar@
+$(AWT)-start @desktop_all-N.N.N.jar@
 -start @http_all-N.N.N.jar@
 -start @httproot-N.N.N.jar@

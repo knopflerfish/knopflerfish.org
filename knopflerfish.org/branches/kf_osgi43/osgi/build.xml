@@ -91,6 +91,7 @@
 
 
   <target name="xargs" depends="init,bundle_tasks">
+    <antcall target="headless_xargs"/>
     <antcall target="minimal_xargs"/>
     <antcall target="init_xargs"/>
     <antcall target="remote_xargs"/>
@@ -104,6 +105,16 @@
 	   baseDir="${xargs.base.dir}"
 	   gosgJars="${gosg.jars}"
 	   testJars="${test_jars}"
+	   outDir="${root.out.dir}/xargs"/>
+  </target>
+
+  <target name="headless_xargs">
+    <xargs template="template.xargs.in"
+	   xargs="${xargs.out.dir}/headless.xargs"
+	   baseDir="${xargs.base.dir}"
+	   gosgJars="${gosg.jars}"
+	   testJars="${test_jars}"
+	   headless="true"
 	   outDir="${root.out.dir}/xargs"/>
   </target>
 
@@ -143,13 +154,6 @@
 	   xargs="${osgi.dir}/bundles_examples/cpa/init.xargs"
 	   baseDir="${xargs.base.dir}"
 	   gosgJars="${gosg.jars};file:example_jars/"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
-
-    <xargs template="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"
-	   xargs="${osgi.dir}/bundles/remotefw/doc/client.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
 	   testJars="${test_jars}"
 	   outDir="${root.out.dir}/xargs"/>
   </target>
@@ -468,6 +472,7 @@
   <delete dir="${root.out.dir}"/>
   <delete dir="jars"/>
   <delete dir="${ant.dir}/classes"/>
+  <delete file="headless.xargs"/>
   <delete file="minimal.xargs"/>
   <delete file="remote-init.xargs"/>
   <delete file="init.xargs"/>
