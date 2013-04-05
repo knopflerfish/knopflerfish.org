@@ -57,6 +57,7 @@ import javax.swing.table.TableModel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
+import org.osgi.framework.Constants;
 import org.osgi.framework.startlevel.BundleStartLevel;
 
 
@@ -67,7 +68,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
 
   public TableDisplayer(BundleContext bc) {
-    super(bc, "Details", "Table view of bundles", false);
+    super(bc, "Table", "Table view of bundles", false);
 
     model = new BundleTableModel2();
     rowSM = new BundleTableRowSelectionModel();
@@ -183,20 +184,22 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       SwingUtilities.invokeLater(new Runnable() {
           public void run() {
             totalWidth = 0;
-            setColWidth(COL_ID,         15);
-            setColWidth(COL_NAME,       80);
-            setColWidth(COL_STATE,      40);
-            setColWidth(COL_STARTLEVEL, 20);
-            setColWidth(COL_DESC,       100);
-            setColWidth(COL_LOCATION,   80);
-            setColWidth(COL_VENDOR,     60);
+            setColWidth(COL_ID,         15,  25);
+            setColWidth(COL_NAME,       80, 300);
+            setColWidth(COL_STATE,      40,  60);
+            setColWidth(COL_STARTLEVEL, 15,  25);
+            setColWidth(COL_DESC,       100,300);
+            setColWidth(COL_LOCATION,   80, 200);
+            setColWidth(COL_VENDOR,     60, 300);
+            setColWidth(COL_VERSION,    45, 100);
+            setColWidth(COL_SYMBOLIC_NAME, 80, 300);
           }
         });
     }
 
     int totalWidth = 0;
 
-    void setColWidth(int col, int w) {
+    void setColWidth(int col, int w, int m) {
       try {
         final TableModel  model  = table.getModel();
         final TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
@@ -230,11 +233,13 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
   public static final int COL_STARTLEVEL = 1;
   public static final int COL_NAME       = 2;
   public static final int COL_STATE      = 3;
-  public static final int COL_LOCATION   = 4;
-  public static final int COL_DESC       = 5;
-  public static final int COL_VENDOR     = 6;
+  public static final int COL_SYMBOLIC_NAME = 4;
+  public static final int COL_VERSION    = 5;
+  public static final int COL_LOCATION   = 6;
+  public static final int COL_DESC       = 7;
+  public static final int COL_VENDOR     = 8;
 
-  public static int COL_COUNT   = 7;
+  public static int COL_COUNT   = 9;
 
   class BundleTableModel2 extends AbstractTableModel {
     private static final long serialVersionUID = 1L;
@@ -295,6 +300,8 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       case COL_NAME:       return "Name";
       case COL_DESC:       return "Description";
       case COL_VENDOR:     return "Vendor";
+      case COL_SYMBOLIC_NAME: return "Symbolic Name";
+      case COL_VERSION:    return "Version";
       default:             return "";
       }
     }
@@ -314,6 +321,8 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
         case COL_DESC:
         case COL_NAME:
         case COL_VENDOR:
+        case COL_SYMBOLIC_NAME:
+        case COL_VERSION:
           tt = Util.bundleInfo(b);
           break;
         default:
@@ -354,11 +363,15 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
           }
         }
       case COL_DESC:
-        return Util.getHeader(b, "Bundle-Description");
+        return Util.getHeader(b, Constants.BUNDLE_DESCRIPTION);
       case COL_NAME:
-        return Util.getHeader(b, "Bundle-Name");
+        return Util.getHeader(b, Constants.BUNDLE_NAME);
       case COL_VENDOR:
-        return Util.getHeader(b, "Bundle-Vendor");
+        return Util.getHeader(b, Constants.BUNDLE_VENDOR);
+      case COL_SYMBOLIC_NAME:
+        return b.getSymbolicName();
+      case COL_VERSION:
+        return b.getVersion();
       default:
         return null;
       }
