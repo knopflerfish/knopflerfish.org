@@ -177,6 +177,8 @@ public class Desktop implements BundleListener, FrameworkListener,
       Desktop.class.getResource("/player_play.png"));
   final static Icon stopIcon = new ImageIcon(
       Desktop.class.getResource("/player_stop.png"));
+  final static Icon resolveIcon = new ImageIcon(
+    Desktop.class.getResource("/bundle-action-resolve.png"));
 
   final static ImageIcon uninstallIcon = new ImageIcon(
       Desktop.class.getResource("/player_eject.png"));
@@ -676,8 +678,8 @@ public class Desktop implements BundleListener, FrameworkListener,
   };
 
   final Action actionResolveBundles = new AbstractAction(
-      Strings.get("menu_resolvebundles")) {
-    private static final long serialVersionUID = 1L;
+    Strings.get("menu_resolvebundles"), resolveIcon) {
+      private static final long serialVersionUID = 1L;
     {
       putValue(SHORT_DESCRIPTION, Strings.get("menu_resolvebundles.descr"));
     }
@@ -687,6 +689,7 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
   };
 
+  JButton toolResolveBundles;
   JButton toolStartBundles;
   JButton toolStopBundles;
   JButton toolUpdateBundles;
@@ -702,6 +705,7 @@ public class Desktop implements BundleListener, FrameworkListener,
       private static final long serialVersionUID = 1L;
 
       {
+
         add(toolStartBundles = new JButton(openIcon) {
           private static final long serialVersionUID = 1L;
           {
@@ -751,6 +755,7 @@ public class Desktop implements BundleListener, FrameworkListener,
         });
         // add(new JToolBar.Separator());
 
+        add(new JToolbarButton(actionResolveBundles));
         add(new JToolbarButton(actionStartBundles));
         add(new JToolbarButton(actionStopBundles));
         add(new JToolbarButton(actionUpdateBundles));
@@ -1100,6 +1105,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     final boolean bEnabled = bl.length > 0;
 
+    // TODO, setEnabled based on state of selected bundles
+    actionResolveBundles.setEnabled(bEnabled);
     actionStartBundles.setEnabled(bEnabled);
     actionStopBundles.setEnabled(bEnabled);
     actionUninstallBundles.setEnabled(bEnabled);

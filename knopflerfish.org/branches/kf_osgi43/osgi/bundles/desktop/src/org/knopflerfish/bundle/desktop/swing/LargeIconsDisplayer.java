@@ -89,13 +89,13 @@ import org.osgi.framework.startlevel.BundleStartLevel;
 
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
-  public static final String NAME = "Large Icons";
+  public static final String NAME = "Icons";
   public static final String PREFS_KEY_SORT = "sort";
   public static final String SORT_ORDER_PROPERTY
     = "org.knopflerfish.desktop.display.large_icons.sort";
 
   public LargeIconsDisplayer(BundleContext bc) {
-    super(bc, NAME, "Large icon display of bundles", false);
+    super(bc, NAME, "Icon display of bundles", false);
   }
 
   @Override
