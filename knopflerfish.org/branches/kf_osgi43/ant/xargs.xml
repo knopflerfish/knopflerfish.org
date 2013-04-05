@@ -49,6 +49,7 @@
       <property name="xargs.os.args" value=""/>
 
       <mkdir dir="@{outDir}"/>
+      <local name="bundleVersionFilter"/>
       <property name="bundleVersionFilter"
 		location="@{outDir}/bundleVersionsXargs.props"/>
       <delete file="${bundleVersionFilter}"/>
@@ -59,6 +60,7 @@
 	<bundles/>
       </bundle_locator>
 
+      <local name="do.cpa.test"/>
       <condition property="do.cpa.test" value="" else="#">
 	<and>
           <isset property="openssl_exist"/>
@@ -67,6 +69,7 @@
 	</and>
       </condition>
 
+      <local name="headless"/>
       <condition property="headless" value="#" else="">
           <equals arg1="@{headless}" arg2="true"/>
       </condition>
