@@ -164,11 +164,13 @@ public class BundleRequirementImpl
 
 
   void resetWire() {
+    ((BundleCapabilityImpl)wire.getCapability()).removeWire(this.wire);
     this.wire = null;
   }
 
 
   void setWire(BundleWireImpl wire) {
+    ((BundleCapabilityImpl)wire.getCapability()).addWire(wire);
     this.wire = wire;
   }
 

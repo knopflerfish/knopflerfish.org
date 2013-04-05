@@ -138,6 +138,10 @@ public class BundleCapabilityImpl implements BundleCapability {
     }
   }
 
+  void removeWire(BundleWireImpl wire) {
+    wires.remove(wire);
+  }
+
   void removeWires() {
     wires.clear();
   }

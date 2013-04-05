@@ -875,12 +875,15 @@ class Resolver {
    * tempResolved, tempProvider and tempBlackList are updated. Bundle must be in
    * installed state.
    *
-   * @param b Bundle to be checked.
+   * @param bg BundleGeneration to be checked.
    * @param ep ExportPkg that must be exported by bundle.
    * @return true if resolvable otherwise false.
    * @throws BundleException Resolver hook throw an exception.
    */
   private boolean checkResolve(BundleGeneration bg, ExportPkg ep) throws BundleException {
+    if (tempResolved.contains(bg)) {
+      return true;
+    }
     if (checkBundleSingleton(bg) == null) {
       @SuppressWarnings("unchecked")
       final HashSet<BundleGeneration> oldTempResolved = (HashSet<BundleGeneration>)tempResolved.clone();
@@ -1313,7 +1316,6 @@ class Resolver {
    */
   private void registerNewWires() {
     for (final BundleWireImpl bw : tempWires) {
-      ((BundleCapabilityImpl)bw.getCapability()).addWire(bw);
       ((BundleRequirementImpl)bw.getRequirement()).setWire(bw);
     }
   }
