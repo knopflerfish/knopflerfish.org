@@ -1115,27 +1115,27 @@ public class Desktop implements BundleListener, FrameworkListener,
     if (levelMenuLabel != null) {
       levelMenuLabel.setText(Strings.get("startlevel.noSel"));
       noStartLevelSelected.setSelected(true);
-    }
 
-    final Set<Integer> levels = new HashSet<Integer>();
-    final Set<Long> bids = new HashSet<Long>();
-    for (final Bundle element : bl) {
-      final BundleStartLevel bsl = element.adapt(BundleStartLevel.class);
-      if (bsl != null) {
-        try {
-          final Integer lvl = new Integer(bsl.getStartLevel());
-          levels.add(lvl);
-          bids.add(new Long(element.getBundleId()));
-        } catch (final Exception e) {
+      final Set<Integer> levels = new HashSet<Integer>();
+      final Set<Long> bids = new HashSet<Long>();
+      for (final Bundle element : bl) {
+        final BundleStartLevel bsl = element.adapt(BundleStartLevel.class);
+        if (bsl != null) {
+          try {
+            final Integer lvl = new Integer(bsl.getStartLevel());
+            levels.add(lvl);
+            bids.add(new Long(element.getBundleId()));
+          } catch (final Exception e) {
+          }
         }
       }
-    }
-    levelMenuLabel.setText("Bundle " + bids);
-    if (1 == levels.size()) {
-      final Integer level = levels.iterator().next();
-      final AbstractButton jrb = levelCheckBoxes.get(level);
-      if (null != jrb) {
-        jrb.setSelected(true);
+      levelMenuLabel.setText("Bundle " + bids);
+      if (1 == levels.size()) {
+        final Integer level = levels.iterator().next();
+        final AbstractButton jrb = levelCheckBoxes.get(level);
+        if (null != jrb) {
+          jrb.setSelected(true);
+        }
       }
     }
   }
@@ -2828,10 +2828,11 @@ public class Desktop implements BundleListener, FrameworkListener,
     final BundleContext bc = Activator.getBC();
     final String version = bc.getBundle().getHeaders().get("Bundle-Version");
     String copyright = bc.getBundle().getHeaders().get("Bundle-Copyright");
-    if (copyright == null)
+    if (copyright == null) {
       copyright = "";
+    }
     final String txt = Strings.fmt("str_abouttext", version,
-				   bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_VENDOR), 
+				   bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_VENDOR),
 				   bc.getBundle(0).getHeaders().get("Bundle-Version"),
 				   copyright);
 

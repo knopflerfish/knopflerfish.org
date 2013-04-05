@@ -73,11 +73,13 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     rowSM = new BundleTableRowSelectionModel();
   }
 
+  @Override
   public JComponent newJComponent() {
     return new JBundleTable();
   }
 
 
+  @Override
   public void bundleChanged(BundleEvent ev) {
     final Bundle cBundle = null!=ev ? ev.getBundle() : null;
     final long cBid = null!=cBundle ? cBundle.getBundleId() : -1;
@@ -111,6 +113,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     valueChanged(-1);
   }
 
+  @Override
   public void valueChanged(long bid) {
     try {
       bInValueChanged = true;
@@ -150,6 +153,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       table = new JTable() {
           private static final long serialVersionUID = 1L;
 
+          @Override
           public Color getGridColor() {
             return getBackground().darker();
           }
@@ -161,7 +165,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       //      Dimension size = new Dimension(500, 300);
       //      scroll.setPreferredSize(size);
 
-      DefaultTableCellRenderer rightAlign =
+      final DefaultTableCellRenderer rightAlign =
         new DefaultTableCellRenderer();
 
       rightAlign.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -170,7 +174,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
       setColumnWidth();
 
-      JScrollPane scroll = new JScrollPane(table);
+      final JScrollPane scroll = new JScrollPane(table);
       add(scroll, BorderLayout.CENTER);
     }
 
@@ -194,17 +198,17 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
     void setColWidth(int col, int w) {
       try {
-        TableModel  model  = table.getModel();
-        TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
+        final TableModel  model  = table.getModel();
+        final TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
 
         if(col < model.getColumnCount()) {
-          TableColumn column = table.getColumnModel().getColumn(col);
+          final TableColumn column = table.getColumnModel().getColumn(col);
 
-          Component headerComp =
+          final Component headerComp =
             headerRenderer
             .getTableCellRendererComponent(null, column.getHeaderValue(),
                                            false, false, 0, 0);
-          int headerWidth = headerComp.getPreferredSize().width;
+          final int headerWidth = headerComp.getPreferredSize().width;
 
 
           w = Math.max(headerWidth, w);
@@ -216,7 +220,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
           column.setPreferredWidth(w);
         }
-      } catch (Exception e) {
+      } catch (final Exception e) {
         Activator.log.warn("Failed to set column #" + col + " to width=" + w);
       }
     }
@@ -239,7 +243,9 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     public int getRowFromBID(long bid) {
-      if (-1==bid) return -1;
+      if (-1==bid) {
+        return -1;
+      }
 
       final Bundle[] bl = getBundleArray();
       for(int i = 0; i < bl.length; i++) {
@@ -262,8 +268,9 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       return COL_COUNT;
     }
 
+    @Override
     public Class<?> getColumnClass(int columnIndex) {
-      Object obj = getValueAt(0, columnIndex);
+      final Object obj = getValueAt(0, columnIndex);
       if (obj == null) {
         return Object.class;
       } else {
@@ -272,11 +279,13 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
     }
 
 
+    @Override
     public boolean isCellEditable(int row, int col) {
       return false;
     }
 
 
+    @Override
     public String getColumnName(int col) {
       switch(col) {
       case COL_LOCATION:   return "Location";
@@ -295,7 +304,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
       if(column >= 0 && row >= 0) {
 
-        Bundle b = getBundle(row);
+        final Bundle b = getBundle(row);
 
         switch(column) {
         case COL_ID:
@@ -320,7 +329,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
 
     public Object getValueAt(int row, int column) {
-      Bundle b = getBundle(row);
+      final Bundle b = getBundle(row);
 
       switch(column) {
       case COL_LOCATION:
@@ -335,13 +344,13 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
           if(null != bsl) {
             try {
-              int n = bsl.getStartLevel();
+              final int n = bsl.getStartLevel();
               return Integer.toString(n);
-            } catch (Exception e) {
+            } catch (final Exception e) {
               return "not managed";
             }
           } else {
-            return "no start level service";
+            return "-";
           }
         }
       case COL_DESC:
@@ -368,6 +377,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
     }
 
+    @Override
     public void addSelectionInterval(int index0, int index1)
     {
       if(!bInValueChanged) {
@@ -382,6 +392,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
+    @Override
     public void removeSelectionInterval(int index0, int index1)
     {
       if(!bInValueChanged) {
@@ -396,6 +407,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
+    @Override
     public void setSelectionInterval(int index0, int index1)
     {
       if(!bInValueChanged) {
@@ -413,6 +425,7 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       }
     }
 
+    @Override
     public void clearSelection()
     {
       if(!bInValueChanged) {
