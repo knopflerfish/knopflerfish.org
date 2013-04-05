@@ -1,0 +1,172 @@
+<h1 class="kf">Release Notes Knopflerfish $(VERSION) (OSGi R4 v4.3)</h1>
+<p>
+  First official release (beta) of Knopflerfish 4 available from
+  @DOWNLOAD_URL@
+</p>
+<p>
+  Knopflerfish 4 is an implementation of the "OSGi Service Platform
+  Release 4 Version 4.3". It contains all services specified in the
+  "Core Specification" and most of the non Enterprise Edition related
+  services specified in the "Compendium Specification".
+</p>
+<p>
+  Here follows a breakdown of the most important changes since
+  Knopflerfish 3.5 release that aren't caused by updating KF
+  to "OSGi R4 v4.3".
+</p>
+
+<h2 class="kf">OSGi Core Specification</h2>
+<div class="release_notes">
+  All the Core Specification Services are included and up to date
+  OSGi R4 v4.3 specification. Please consult the "OSGi Service Platform,
+  Core Specification, Release 4 Version 4.3" for more information.
+
+  <div class="note_group">
+    <div class="note_name"> Framework 6.0.0</div>
+    <div class="note_item">
+      Several parts of the framework has been rewritten to handle
+      the new OSGi framework specification and improve stability.
+    </div>
+    <div class="note_item">
+      The Android support has temporarily been dropped. Will probably
+      be restored in the next release.
+    </div>
+  </div>
+</div>
+
+
+<h2 class="kf">OSGi Compendium Specification</h2>
+<div class="release_notes">
+  All the Compendium Specification Services included are updated to
+  implement the OSGi R4 v4.3 specification. Please consult the "OSGi
+  Service Platform, Service Compendium, Release 4 Version 4.3" for more
+  information.
+  <p>
+    The version of these bundles has been set to 4.0.0 and all imported
+    packages has a minimum version in their import statements set to the
+    version of the package defined in the OSGi R4 v4.3 specification.
+  </p>
+  <div class="note_group">
+    <div class="note_name">Http 4.0.0</div>
+    <div class="note_item">
+      The methods javax.servlet.Request.getLocale() and
+      javax.servlet.Reuqest.getLocales() now returns data based on the
+      Accept-Language header in the request.
+    </div>
+    <div class="note_item">
+      Improve error messages when the configured server socket is
+      in use.
+    </div>
+    <div class="note_item">
+      Add description for all properties in the Http-configuration to
+      the metadata.xml file describing the configuration.
+    </div>
+  </div>
+</div>
+
+<h2 class="kf">Knopflerfish Specific</h2>
+<div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name">
+      Deprecation of SOAP bundles
+    </div>
+    <div class="note_item">
+      The SOAP related bundles present in Knopflerfish 3 has been
+      removed since they are deprecated and should be replaced by usage of
+      the Remote Service Admin service from the compendium specification.
+      The removed bundles are: axis-osgi, axis2-osgi, ksoap-osgi,
+      ksoap_commandgroup, ksoap_remotefw, soap_desktop, soap_remotefw,
+      soapclient and soapobject.
+    </div>
+
+  <div class="note_group">
+    <div class="note_name">
+      CM-Desktop 4.0.0
+    </div>
+    <div class="note_item">
+      The displayer always shows the combo boxes for PIDs and factory
+      PIDs (they are disabled when the bundle does not provide meta data
+      for any PID of that type) in its top part.
+    </div>
+    <div class="note_item">
+      The sub-panel showing details for a factory PID always shows all
+      the controls (New, Delete, Apply, PID selector), those not
+      applicable are disabled.
+    </div>
+    <div class="note_item">
+      The PID selector combo box in the factory PID sub-panel contains a
+      choice that is labeled "- Default Values -" when this is selected
+      the properties below will be set to the default values according
+      the meta type information for the current factory PID.
+    </div>
+    <div class="note_item">
+      When selecting the CM-displayer for a bundle that only defines
+      factory PIDs the factory PID sub-panel will be initialized to show
+      the last (lexicographically) instance for the factory PID.
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">
+      Desktop 4.0.0
+    </div>
+    <div class="note_item">
+      A new "Wiring" displayer has been added that presents information
+      from new wiring API. This displayer replaces the "Package"
+      displayer that only showed wiring info for the osgi.wiring.package
+      namespace.
+    </div>
+    <div class="note_item">
+      Use the wiring API to perform refresh and resolve operations.
+    </div>
+    <div class="note_item">
+      Use the start-level API to perform start-level operations.
+    </div>
+    <div class="note_item">
+      Improve layout of the tool-bar by add some glue to the left of the
+      start level label. In the start-level drop-down, emphasis the
+      start-level number and present the bundles on each start level as
+      list using a smaller, weaker font.
+    </div>
+    <div class="note_item">
+      Added additional overlay images in the Bundle Icon view to indicate 
+      the following bundle states: RESOLVED, STARTING and STOPPING.
+    </div>
+    <div class="note_item">
+      Added bundle life-cycle operations (resolve, start, stop, update,
+      uninstall) to the pop-up menu in the bundle icon displayer (top
+      left part of the main window).
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">
+      Framework Commands 4.0.0
+    </div>
+    <div class="note_item">
+      New command 'capability' that presents both provided and required
+      capabilities for the current bundle revision of a bundle.
+    </div>
+    <div class="note_item">
+      New command 'wiring' that lists all active wires for the current
+      wiring of a bundle.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name">
+      LogCommands 4.0.0
+    </div>
+    <div class="note_item">
+      Calling the command "logconfig memory &lt;int&gt;" did not change the
+      memory limit, but calling "logconfig memory -c &lt;int&gt;" did.  Now
+      both calls changes the limit on the number of log entries that are
+      kept in memory as expected.
+    </div>
+  </div>
+</div>
+	  
+<p>
+  Please read on the KF site for more information.<br>
+  <a href="http://www.knopflerfish.org/">http://www.knopflerfish.org/</a>
+</p>
