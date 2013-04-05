@@ -1,10 +1,11 @@
 <h1>Knopflerfish OSGi framework</h1>
 
 <div class="abstract">
-  This is the Knopflerfish framework. An OSGi Release 4 version 4.2
-  compliant framework. It supports all optional framework services,
-  Package Admin, Start Level, Conditional Permission Admin,
-  Permission Admin, URL Handlers and Service Hooks.
+  This is the Knopflerfish framework. An OSGi Release 4 version 4.3
+  compliant framework. It supports all optional and deprecated
+  framework services, Package Admin, Start Level,
+  Conditional Permission Admin, Permission Admin, URL Handlers,
+  Bundle Hook, Resolver Hook, Service Hook and Weaving Hook.
 </div>
 
 <h2>Contents</h2>
@@ -39,8 +40,8 @@ the framework storage directory and configuration files. In these cases
 ...is often enough. 
 </p>
 <p>
-To enable support for new KF2 specific features, such as extension bundles, 
-you can use the "kf2" shell script. Open a terminal and type
+To use features that requires JVM restart, e.g. extension bundles, 
+you can use our example shell start script "kf2". Open a terminal and type
 </p>
 <p>
 <pre class="shell">./kf2</pre>
@@ -190,9 +191,9 @@ following algorithm:
   </li>
 </ol>
 <p>
-The file fwdir/restart.xargs suitable for restarting a framework
-instance is written by the Knopflerfish framework on every startup
-(unless disabled by setting the property
+The file fwdir/fwprops.xargs contains saved properties that is used
+when restarting a framework instance. It is written by the Knopflerfish
+framework on every startup (unless disabled by setting the property
 "org.knopflerfish.framework.write.restart.xargs" to false).
 </p>
 
@@ -297,6 +298,15 @@ OSGi Framework properties should be specified using "-F".
     <td></td>
   </tr>
   <tr>
+	<td>org.osgi.framework.bsnversion</td>
+	<td>
+	  Allow installation of multiple bundles with the same bundle symbolic
+	  name or restrict this. The property can have the following values:
+	  single or multiple.
+	</td>
+    <td>String</td>
+    <td>single</td>	
+  <tr>
     <td>org.osgi.framework.bundle.parent</td>
     <td>
       This property is used to specify what class loader is used for 
@@ -329,8 +339,7 @@ OSGi Framework properties should be specified using "-F".
       the execution environment if this property isn't set.
     </td>
     <td>String</td>
-    <td>Set based on system property java.version, if unknown set
-      to OSGi/Minimum-1.2</td>
+    <td></td>
   </tr>
   <tr>
     <td>org.osgi.framework.language</td>
