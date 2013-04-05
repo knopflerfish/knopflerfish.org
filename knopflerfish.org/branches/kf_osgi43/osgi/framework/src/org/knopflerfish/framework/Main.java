@@ -164,7 +164,7 @@ public class Main
 
   protected void start(String[] args) {
     version = Util.readFrameworkVersion();
-    String tstampYear = Util.readTstampYear();
+    final String tstampYear = Util.readTstampYear();
 
     bootText =
       "Knopflerfish OSGi framework launcher, version " + version + "\n" +
@@ -646,7 +646,9 @@ public class Main
           if (i+1 < args.length) {
             final int n = Integer.parseInt(args[i+1]);
             final FrameworkStartLevel fsl = framework.adapt(FrameworkStartLevel.class);
-            fsl.setInitialBundleStartLevel(n);
+            if (fsl!=null) {
+              fsl.setInitialBundleStartLevel(n);
+            }
             i++;
           } else {
             error("No integer level for initlevel command");
@@ -656,7 +658,9 @@ public class Main
           if (i+1 < args.length) {
             final int n = Integer.parseInt(args[i+1]);
             final FrameworkStartLevel fsl = framework.adapt(FrameworkStartLevel.class);
-            fsl.setStartLevel(n);
+            if (fsl!=null) {
+              fsl.setStartLevel(n);
+            }
             i++;
           } else {
             error("No integer level for startlevel command");
