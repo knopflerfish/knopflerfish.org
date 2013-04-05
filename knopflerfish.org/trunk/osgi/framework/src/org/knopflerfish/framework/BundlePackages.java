@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -241,7 +241,7 @@ class BundlePackages {
         RequireBundle fragReq = (RequireBundle)iter.next();
         boolean match = false;
 
-        if (require != null) {
+        if (host.require != null) {
           // check for conflicts
           for (Iterator iter2 = host.require.iterator(); iter2.hasNext();) {
             RequireBundle req = (RequireBundle)iter2.next();

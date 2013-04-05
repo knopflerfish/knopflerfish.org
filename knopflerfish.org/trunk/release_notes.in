@@ -10,7 +10,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.3.5
+* Framework 5.3.6
+
+  - Fixed require bundle on system bundle. See,
+    http://sourceforge.net/p/gatespace/bugs/173
+
+  Framework 5.3.5
 
   - Time-out added to Bundle.start and Bundle.stop. The time-out
     is enabled by setting the framework property

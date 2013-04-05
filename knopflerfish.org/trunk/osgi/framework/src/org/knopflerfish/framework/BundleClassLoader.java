@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -741,26 +741,21 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     if (pkg != null) {
       pbp = bpkgs.getProviderBundlePackages(pkg);
       if (pbp != null) {
-
+        ClassLoader cl = pbp.getClassLoader();
         if (isSystemBundle(pbp.bg.bundle)) {
-          try {
-            return fwCtx.systemBundle.getClassLoader().loadClass(name);
-          } catch (ClassNotFoundException e) {
-            // TBD, continue!?
-            return null;
-          }
+          return frameworkSearchFor(cl, name, path, action);
         } else {
-          BundleClassLoader cl = (BundleClassLoader)pbp.getClassLoader();
+          BundleClassLoader bcl = (BundleClassLoader)cl;
           // Second check avoids a loop when a required bundle imports a
           // package from its requiring host that it self should
           // provide contents for to the requiring bundle.
-          if (cl != this && (visited == null || (cl != null && !visited.contains(cl)))) {
-            if (cl != null) {
+          if (bcl != this && (visited == null || (bcl != null && !visited.contains(bcl)))) {
+            if (bcl != null) {
               if (debug.classLoader) {
                 debug.println(this + " Import search: " + path + " from #" + pbp.bg.bundle.id);
               }
-              return secure.callSearchFor(cl, name, pkg, path, action, onlyFirst, requestor,
-                  visited);
+              return secure.callSearchFor(bcl, name, pkg, path, action, onlyFirst, requestor,
+                                          visited);
             }
             if (debug.classLoader) {
               debug.println(this + " No import found: " + path);
@@ -779,17 +774,23 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
           for (Iterator pi = pl.iterator(); pi.hasNext();) {
             final BundleGeneration pbg = (BundleGeneration) pi.next();
             if (pbg != null) {
-              BundleClassLoader cl = (BundleClassLoader) pbg.getClassLoader();
-              if (cl != null && !visited.contains(cl)) {
-                if (debug.classLoader) {
-                  debug.println(this + " Required bundle search: " + path + " from #"
-                      + pbg.bundle.id);
+              Object res = null;
+              final ClassLoader cl = pbg.getClassLoader();
+              if (cl instanceof BundleClassLoader) {
+                final BundleClassLoader bcl = (BundleClassLoader)cl;
+                if (bcl != null && !visited.contains(bcl)) {
+                  if (debug.classLoader) {
+                    debug.println(this + " Required bundle search: " + path + " from #"
+                                  + pbg.bundle.id);
+                  }
+                  res = secure.callSearchFor(bcl, name, pkg, path, action, onlyFirst,
+                                             requestor, visited);
                 }
-                Object res = secure.callSearchFor(cl, name, pkg, path, action, onlyFirst,
-                    requestor, visited);
-                if (res != null) {
-                  return res;
-                }
+              } else {
+                res = frameworkSearchFor(cl, name, path, action);
+              }
+              if (res != null) {
+                return res;
               }
             }
           }
@@ -863,6 +864,32 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     return null;
   }
 
+  /**
+   * Get resources/classes from the framework.
+   * Rewrite this since this solution will leak
+   * resources that aren't bootdelegated.
+   * 
+   * @param cl
+   * @param name
+   * @param path
+   * @param action
+   * @return
+   */
+  private Object frameworkSearchFor(final ClassLoader cl, String name, String path,
+                                    SearchAction action) {
+    if (action == classSearch) {
+      try {
+        return cl.loadClass(name);
+      } catch (final ClassNotFoundException e) {
+      }
+    } else if (action == resourceSearch) {
+      try {
+        return cl.getResources(path);
+      } catch (IOException e) {
+      }
+    }
+    return null;
+  }
 
   private static boolean isSystemBundle(BundleImpl bundle) {
     return bundle == bundle.fwCtx.systemBundle;
