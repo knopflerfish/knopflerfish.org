@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -244,11 +244,15 @@ public class Bundles {
    */
   List getBundles(String name) {
     ArrayList res = new ArrayList();
-    synchronized (bundles) {
-      for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
-        BundleImpl b = (BundleImpl)e.nextElement();
-        if (name.equals(b.gen.symbolicName)) {
-          res.add(b);
+    if (Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(name)) {
+      res.add(fwCtx.systemBundle);
+    } else {
+      synchronized (bundles) {
+        for (Enumeration e = bundles.elements(); e.hasMoreElements();) {
+          BundleImpl b = (BundleImpl)e.nextElement();
+          if (name.equals(b.gen.symbolicName)) {
+            res.add(b);
+          }
         }
       }
     }
