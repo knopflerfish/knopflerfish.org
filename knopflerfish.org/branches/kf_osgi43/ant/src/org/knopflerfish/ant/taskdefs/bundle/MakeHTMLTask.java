@@ -379,6 +379,8 @@ public class MakeHTMLTask
                              proj.getProperty("version"));
       content = Util.replace(content, "$(BASE_VERSION)",
                              proj.getProperty("base_version"));
+      content = Util.replace(content, "$(BASE_URL)",
+                             proj.getProperty("base.url"));
       content = Util.replace(content, "$(DISTNAME)",
                              proj.getProperty("distname"));
       content = Util.replace(content, "$(DISTRIB_NAME)",
