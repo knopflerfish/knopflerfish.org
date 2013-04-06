@@ -31,20 +31,56 @@ BODY  {
 }
 
 #header {
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+  height: 65px;
 }
 
 #header_logo {
   background: #0B2229;
-  padding: 7px 0px 0px 15px;
-  height: 65px;
+  /* padding: 7px 0px 0px 15px; */
+  padding: 7px 0 0 15px;
+  float:left;
+}
+
+#header_centerbox {
+    background: #0B2229;
+    height: 65px;
+    width: 400px;
+    float:left;
+    text-align: center;
+}
+
+.header_centerinfo_top {
+    font-size: 0.75em;
+    color: #cccccc;
+    margin: 10px 0px 0px 40px;
+}
+
+.header_centerinfo_bottom {
+    font-size: 1.2em;
+    color: #cccccc;
+    margin: 7px 0px 0px 60px;
+    font-weight: bold;
+}
+    
+#header_rightinfo {
+    background: #0B2229;
+    font-size: 10px;
+    color: #cccccc;
+    padding-top: 10px;
+    padding-right: 20px;
+    text-align: right;
+    margin-left: 0px;
+    height: 65px;
 }
 
 #header_fade {
   height: 10px;
   background-image: url('../images/fadeout_15.png');
   background-repeat: repeat-x;
+  clear:both;
 }
+
 
 #leftmenu {
   margin-left: 10px;
@@ -129,7 +165,7 @@ H1, H1.kf {
     border-color: #802060;
     border-width: 0px 0px 1px 0px;
     padding-bottom: 2px;
-    margin: 1.4em 0 1em 0;
+    margin: 2.0em 0 0.6em 0;
     color: #444444;
 }
 
@@ -247,6 +283,7 @@ PRE.code {
     border-color: #ddddff;
     border-width: 1px;
     background-color: #f7F7FF;
+    padding: 5px 0px 5px 6px;
 }
  
 pre.shell {
