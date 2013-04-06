@@ -1,7 +1,7 @@
 <h1 class="kf">Release Notes Knopflerfish $(VERSION) (OSGi R4 v4.3)</h1>
 <p>
   First official release (beta) of Knopflerfish 4 available from
-  @DOWNLOAD_URL@
+  $(BASE_URL)/$(VERSION)
 </p>
 <p>
   Knopflerfish 4 is an implementation of the "OSGi Service Platform
@@ -9,17 +9,18 @@
   "Core Specification" and most of the non Enterprise Edition related
   services specified in the "Compendium Specification".
 </p>
-<p>
-  Here follows a breakdown of the most important changes since
-  Knopflerfish 3.5 release that aren't caused by updating KF
-  to "OSGi R4 v4.3".
-</p>
 
 <h2 class="kf">OSGi Core Specification</h2>
 <div class="release_notes">
-  All the Core Specification Services are included and up to date
-  OSGi R4 v4.3 specification. Please consult the "OSGi Service Platform,
-  Core Specification, Release 4 Version 4.3" for more information.
+
+  <div class="note_group">
+    <div class="note_name"> OSGi R4 v4.3 specificaiton</div>
+    <div class="note_item">
+      All the Core Specification Services are included and are designed to be compliant with 
+      the OSGi R4 v4.3 specification. Please consult the "OSGi Service Platform,
+      Core Specification, Release 4 Version 4.3" for detailed information.
+    </div>
+  </div>
 
   <div class="note_group">
     <div class="note_name"> Framework 6.0.0</div>
@@ -37,14 +38,20 @@
 
 <h2 class="kf">OSGi Compendium Specification</h2>
 <div class="release_notes">
-  All the Compendium Specification Services included are updated to
-  implement the OSGi R4 v4.3 specification. Please consult the "OSGi
-  Service Platform, Service Compendium, Release 4 Version 4.3" for more
-  information.
-  <p>
-    The version of these bundles has been set to 4.0.0 and all imported
-    packages has a minimum version in their import statements set to the
-    version of the package defined in the OSGi R4 v4.3 specification.
+  <div class="note_group">
+    <div class="note_name"> OSGi R4 v4.3 Specification</div>
+    <div class="note_item">
+      All the Compendium Specification Services included are updated to
+      implement the OSGi R4 v4.3 specification. Please consult the "OSGi
+      Service Platform, Service Compendium, Release 4 Version 4.3" for more
+      information.
+    </div>
+    <div class="note_item">
+      The version of these bundles has been set to 4.0.0 and all imported
+      packages has a minimum version in their import statements set to the
+      version of the package defined in the OSGi R4 v4.3 specification.
+    </div>
+  </div>
   </p>
   <div class="note_group">
     <div class="note_name">Http 4.0.0</div>
