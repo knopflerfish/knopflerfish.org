@@ -361,7 +361,7 @@ public class Util {
         } else if(Util.hasActivator(b)) {
           icon = new BundleImageIcon(b, clazz.getResource("/bundle.png"));
         } else {
-          icon = new BundleImageIcon(b, clazz.getResource("/lib.png"));
+          icon = new BundleImageIcon(b, clazz.getResource("/bundle-lib.png"));
         }
       } catch (final Exception e) {
         Activator.log.error("Failed to load icon, appURL=" + appURL);

@@ -247,7 +247,7 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     final Action resolveBundleAction = new AbstractAction(
-        Strings.get("item_resolvebundle"), null) {
+        Strings.get("item_resolvebundle"), Desktop.resolveIcon) {
       private static final long serialVersionUID = 1L;
 
       public void actionPerformed(ActionEvent ev)
