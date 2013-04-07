@@ -31,12 +31,12 @@ BODY  {
 }
 
 #header {
+  background: #0B2229;
   margin-bottom: 40px;
   height: 65px;
 }
 
 #header_logo {
-  background: #0B2229;
   /* padding: 7px 0px 0px 15px; */
   padding: 7px 0 0 15px;
   float:left;
