@@ -110,6 +110,12 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       model.fireTableRowsDeleted(newBl.length, oldBl.length -1);
     }
 
+    // Update column widths to handle columns with dynamic max-width.
+    for (final JComponent jComp : components) {
+      final JBundleTable table = (JBundleTable) jComp;
+      table.setColumnWidth();
+    }
+
     // Update table selections to match new rows of selected bundles
     valueChanged(-1);
   }
@@ -168,10 +174,10 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
 
       final DefaultTableCellRenderer rightAlign =
         new DefaultTableCellRenderer();
-
       rightAlign.setHorizontalAlignment(SwingConstants.RIGHT);
 
       table.getColumnModel().getColumn(COL_ID).setCellRenderer(rightAlign);
+      table.getColumnModel().getColumn(COL_STARTLEVEL).setCellRenderer(rightAlign);
 
       setColumnWidth();
 
@@ -179,27 +185,45 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
       add(scroll, BorderLayout.CENTER);
     }
 
+    // Avoid scheduling multiple setColumnWidth jobs.
+    private final Object setColumnWidthLock = new Object();
+    private boolean setColumnWidthScheduled = false;
 
-    void setColumnWidth() {
-      SwingUtilities.invokeLater(new Runnable() {
-          public void run() {
-            totalWidth = 0;
-            setColWidth(COL_ID,         15,  25);
-            setColWidth(COL_NAME,       80, 300);
-            setColWidth(COL_STATE,      40,  60);
-            setColWidth(COL_STARTLEVEL, 15,  25);
-            setColWidth(COL_DESC,       100,300);
-            setColWidth(COL_LOCATION,   80, 200);
-            setColWidth(COL_VENDOR,     60, 300);
-            setColWidth(COL_VERSION,    45, 100);
-            setColWidth(COL_SYMBOLIC_NAME, 80, 300);
-          }
-        });
+    void setColumnWidth()
+    {
+      synchronized (setColumnWidthLock) {
+        if (!setColumnWidthScheduled) {
+          SwingUtilities.invokeLater(new Runnable() {
+            public void run()
+            {
+              synchronized (setColumnWidthLock) {
+                setColumnWidthScheduled = false;
+              }
+              setColWidth(COL_ID, 20, 30);
+              setColWidth(COL_NAME, 80, 200);
+              setColWidth(COL_STATE, 40, 60);
+              setColWidth(COL_STARTLEVEL, 20, 30);
+              setColWidth(COL_DESC, 100, 300);
+              setColWidth(COL_LOCATION, 80, 200);
+              setColWidth(COL_VENDOR, 60, 150);
+              setColWidth(COL_VERSION, 45, -1);
+              setColWidth(COL_SYMBOLIC_NAME, 80, -1);
+            }
+          });
+          setColumnWidthScheduled = true;
+        }
+      }
     }
 
-    int totalWidth = 0;
-
-    void setColWidth(int col, int w, int m) {
+    /**
+     * Configure column widths.
+     *
+     * @param col The column to set widths for.
+     * @param w preferred width.
+     * @param max The value -1 means compute the max with based on table contents.
+     */
+    void setColWidth(final int col, final int w, int max) {
+      int pw = w;
       try {
         final TableModel  model  = table.getModel();
         final TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
@@ -212,19 +236,34 @@ public class TableDisplayer extends DefaultSwingBundleDisplayer {
             .getTableCellRendererComponent(null, column.getHeaderValue(),
                                            false, false, 0, 0);
           final int headerWidth = headerComp.getPreferredSize().width;
+          pw = Math.max(headerWidth, pw);
 
-
-          w = Math.max(headerWidth, w);
-
-          totalWidth += w;
+          if (max == -1) {
+            // Set max with to the width of the widest row.
+            max = pw;
+            for (int row = 0; row < model.getRowCount(); row++) {
+              final Object value = model.getValueAt(row, col);
+              final TableCellRenderer cellRenderer =
+                table.getCellRenderer(row, col);
+              final Component rComp =
+                cellRenderer.getTableCellRendererComponent(table, value, false,
+                                                           false, row, col);
+              final int width = rComp.getPreferredSize().width;
+              // Must add 2 to the preferred width to avoid that the renderer
+              // replaces the end of the item with a ".."
+              max = Math.max(width + 2, max);
+            }
+          } else {
+            // Ensure that max width is at least as large as the preferred width.
+            max = Math.max(pw, max);
+          }
 
           column.setMinWidth(10);
-          column.setMaxWidth(300);
-
-          column.setPreferredWidth(w);
+          column.setPreferredWidth(pw);
+          column.setMaxWidth(max);
         }
       } catch (final Exception e) {
-        Activator.log.warn("Failed to set column #" + col + " to width=" + w);
+        Activator.log.warn("Failed to set column #" + col + " to width=" + pw);
       }
     }
   }

@@ -149,11 +149,11 @@ public class Strings {
 
           put("msg_uninstallbundle", "Uninstall bundle");
 
-          put("menu_refreshbundles", "Refresh bundle packages");
+          put("menu_refreshbundles", "Refresh bundles");
           put("menu_refreshbundles.descr",
-              "Refresh packages exported by selected bundles, "
-              +"if no bundle selected refresh all packages that are "
-              +"pending removal.");
+              "Refresh bundles re-wires required capabilites for the selected "
+              +"bundles, if the selection is empty refresh all bundles that "
+              +"are marked as pending removal by the framework.");
 
           put("menu_resolvebundles", "Resolve bundles");
           put("menu_resolvebundles.descr",
