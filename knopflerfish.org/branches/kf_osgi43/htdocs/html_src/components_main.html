@@ -23,8 +23,7 @@ following components:
 
 <p>
   The Knopflerfish&nbsp;4 OSGi framework is implemented in accordance
-  with the OSGi R4&nbsp;v4.3 specification.  <a
-  href="http://www.makewave.com">
+  with the OSGi R4&nbsp;v4.3 specification.  
 </p>
 <p>
   The numbering for the OSGi defined components
@@ -40,14 +39,14 @@ following components:
     </tr>
     <tr>
       <td class="nowrap">2. Security Layer</td>
-      <td class="nowrap"> Stable  </td>
+      <td class="nowrap"> Done  </td>
       <td class="nowrap"> Full  </td>
       <td> The OSGi Security Layer based on the Java2 security mechanism.
       </td>
     </tr>
     <tr>
       <td class="nowrap">3. Module Layer</td>
-      <td> Stable </td>
+      <td> Done </td>
       <td> Full </td>
       <td>
 	The OSGi solution for Java modularization, a.k.a. OSGi bundles.
@@ -56,7 +55,7 @@ following components:
    
     <tr>
       <td>4. Life Cycle Layer </td>
-      <td> Stable </td>
+      <td> Done </td>
       <td> Full </td>
       <td> Function to control the security and life cycle operations of bundles
       </td>
@@ -64,7 +63,7 @@ following components:
 
     <tr>
       <td> 5. Service Layer </td>
-      <td> Stable </td>
+      <td> Done </td>
       <td> Full </td>
       <td> The Service Layer provides a publish, find and bind model trough the service registry.
     </tr>
@@ -73,7 +72,7 @@ following components:
 
     <tr>
       <td class="nowrap"> 7. Bundle Wiring API </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full
       <td> 
 	An API that provides access to the internal Framework package
@@ -84,7 +83,7 @@ following components:
 
     <tr>
       <td class="nowrap"> 8. Start Level API </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full
       <td> 
         An API to control the relative starting and stopping order of
@@ -95,7 +94,7 @@ following components:
 
     <tr>
       <td class="nowrap"> 9. Framework API </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full
       <td> 
         An for bundles to interact with the OSGi Framework.
@@ -107,7 +106,7 @@ following components:
 
     <tr>
       <td class="nowrap"> 50. Conditional Permission Admin </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full </td> 
       <td> Essentially a security policy and permission system for
       OSGi bundles. Supersedes Permission Admin</td>
@@ -115,14 +114,14 @@ following components:
 
     <tr>
       <td class="nowrap"> 51. Permission Admin </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full </td> 
       <td> A permission system for bundles</td>
    </tr>
 
     <tr>
       <td class="nowrap"> 52. URL Handler </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full </td>
       <td> A mechanism to extend the Java run-time with new URL
       schemes and content handlers through bundles </td>
@@ -130,7 +129,7 @@ following components:
 
     <tr>
       <td class="nowrap"> 53. Resolver Hooks </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full </td>
       <td> A set of mechanisms for close interaction with the module
       layer resolving of bundle requirements and capabilities. New
@@ -138,21 +137,21 @@ following components:
     </tr>
     <tr>
       <td class="nowrap"> 54. Bundle Hooks </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full </td>
       <td> A set of mechanisms for controlling visibility of bundles
       for other bundles. New feature in v4.3 </td>
     </tr>
     <tr>
       <td class="nowrap"> 55. Service Hooks </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full </td>
       <td> A set of mechanisms for close interaction with the Service
       Registry. </td>
     </tr>
     <tr>
       <td class="nowrap"> 56. Weaving Hooks </td>
-      <td class="nowrap"> Stable </td>
+      <td class="nowrap"> Done </td>
       <td> Full </td>
       <td> A set of mechanisms for doing byte code weaving of classes
       loaded by a Bundle Class Loader. New feature in v4.3 </td>
@@ -180,17 +179,18 @@ following components:
 
 <p>
   The numbering for the OSGi defined components refer to the OSGi
-  specification chapter numbering.
+  specification chapter numbering. The Changes column indicates if the service / API has been updated in 4.3 compared to 4.2 of the Compendium specification,, in which case the new specification chapter version is stated.
 </p>
 
 <p>
   <table class="kf">
     <tr>
-      <th colspan="4"> <b>Knopflerfish OSGi Bundles - Service Compendium </th>
+      <th colspan="5"> <b>Knopflerfish OSGi Bundles - Service Compendium </th>
     </tr>
 
     <tr>
       <td class="subhead">Specification</td>
+      <td class="subhead">Updates</td>  
       <td class="subhead">Status</td>  
       <td class="subhead nowrap">R4&nbsp;v4.3</td>  
       <td class="subhead nowrap">Description</td>
@@ -198,6 +198,7 @@ following components:
 
     <tr>
       <td> 101. Log </td>
+      <td> No </td>
       <td> Stable </td>
       <td> Full</td>
       <td> A message logger for the OSGi Service Platform. </td>
@@ -205,6 +206,7 @@ following components:
 
     <tr>
       <td> 102. HTTP </td>
+      <td> No </td>
       <td> Stable </td>
       <td> Full</td>
       <td> 
@@ -215,6 +217,7 @@ following components:
 
     <tr>
       <td> 103. Device Access </td>
+      <td> No </td>
       <td> Stable </td>
       <td> Full</td>
       <td> 
@@ -226,14 +229,16 @@ following components:
     
     <tr>
       <td class="nowrap"> 104. Configuration Admin </td>
-      <td> Stable </td>
+      <td> 1.4 </td>
+      <td> Done </td>
       <td> Full</td>
       <td> Service for setting configuration information of OSGi bundles</td>
     </tr>
     
     <tr>
       <td> 105. Meta Type </td>
-      <td> Stable</td>
+      <td> 1.2 </td>
+      <td> Done</td>
       <td> Full</td>
       <td> Service that allow bundle developers to describe attribute
            types in a computer readable form using so-called meta- data.
@@ -242,6 +247,7 @@ following components:
 
     <tr>
       <td> 106. Preferences </td>
+      <td> No </td>
       <td> Stable</td>
       <td> Full</td>
       <td> 
@@ -254,6 +260,7 @@ following components:
 
     <tr>
       <td> 107. User Admin </td>
+      <td> No </td>
       <td> Stable</td>
       <td> Full</td>
       <td> 
@@ -263,6 +270,7 @@ following components:
 
     <tr>
       <td class="kfpro"> 108. Wire Admin</td>
+      <td class="kfpro"> No </td>
       <td class="kfpro"> Stable KF Pro</td>
       <td class="kfpro"> Full</td>
       <td class="kfpro"> 
@@ -272,6 +280,7 @@ following components:
 
     <tr>
       <td> 109. IO Connector </td>
+      <td> No </td>
       <td> Stable </td>
       <td> Full</td>
       <td>
@@ -282,6 +291,7 @@ following components:
 
     <tr>
       <td class="kfpro"> 110. Initial Provisioning </td>
+      <td class="kfpro"> No </td>
       <td class="kfpro"> Stable KF Pro</td>
       <td class="kfpro"> Full</td>
       <td class="kfpro"> Defines how to initially install the
@@ -290,15 +300,17 @@ following components:
 
     <tr>
       <td class="kfpro"> 111. UPnP Device Service </td>
-      <td class="kfpro"> Stable KF Pro</td>
+      <td class="kfpro"> 1.2 </td>
+      <td class="kfpro"> Done KF Pro</td>
       <td class="kfpro"> Full</td>
       <td class="kfpro"> Service for interaction with UPnP devices and
-      Control Points. KF Pro only</td>
+	Control Points. KF Pro only</td>
     </tr>
 
     <tr>
       <td> 112. Declarative Services </td>
-      <td> TODO </td>
+      <td> 1.2 </td>
+      <td> In Progress </td>
       <td> R4 v4.2 only </td>
       <td> Service that defines a declarative model for publishing,
       finding and binding to OSGi services </td>
@@ -306,6 +318,7 @@ following components:
 
     <tr>
       <td> 113. Event Admin </td>
+      <td> 1.3 </td>
       <td> Stable </td>
       <td> Full</td>
       <td> 
@@ -314,12 +327,14 @@ following components:
     </tr>
     <tr>
       <td class="kfpro">114. Deployment Admin</td>
+      <td class="kfpro"> No </td>
       <td class="kfpro"> Stable KF Pro </td>
       <td class="kfpro"> Full</td>
       <td class="kfpro">The Deployment Admin and Device Management
       Tree (DMT) bundle</td>
     <tr>
       <td class="kfpro">115. Auto Configuration</td>
+      <td class="kfpro"> No </td>
       <td class="kfpro"> Stable KF Pro </td>
       <td class="kfpro"> Full</td>
       <td class="kfpro">The auto-configuration resource plug-in for
@@ -327,24 +342,28 @@ following components:
     </tr>
     <tr>
       <td class="kfpro">116. Application Admin</td>
+      <td class="kfpro"> No </td>
       <td class="kfpro"> Stable KF Pro </td>
       <td class="kfpro"> Full</td>
       <td class="kfpro">The Application Admin Service</td>
     </tr>
     <tr>
       <td class="kfpro">117. DMT Admin</td>
+      <td class="kfpro"> 2.0 </td>
       <td class="kfpro"> Stable KF Pro </td>
       <td class="kfpro"> Full</td>
       <td class="kfpro">The Device Management Tree (DMT) Admin bundle.</td>
     </tr>
     <tr>
       <td class="kfpro">119. Monitor Admin</td>
+      <td class="kfpro"> No </td>
       <td class="kfpro"> Stable KF Pro </td>
       <td class="kfpro"> Full</td>
       <td class="kfpro"> The Monitor Admin Service. KF Pro only</td>	 
     </tr>
     <tr>
       <td class="kfpro">120. Foreign Application Access</td>
+      <td class="kfpro"> No </td>
       <td class="kfpro"> Stable KF Pro </td>
       <td class="kfpro"> Full</td>
       <td class="kfpro">A midlet container for Application Admin</td>
@@ -352,19 +371,22 @@ following components:
 
     <tr>
       <td> 701. Tracker Specification</td>
-      <td> Stable </td>
+      <td class="kfpro"> 1.5 </td>
+      <td> Done </td>
       <td> Full</td>
       <td> Utility for Bundle and Service tracking</td>
     </tr>
 
     <tr>
       <td> 702. XML Parser Service </td>
+      <td class="kfpro"> No </td>
       <td> Stable </td>
       <td> Full</td>
       <td> Standardized XML Parser utility</td>
     </tr>
     <tr>
       <td> 703. Position </td>
+      <td class="kfpro"> No </td>
       <td> Stable </td>
       <td> Full</td>
       <td> Utility for handling geographic positions</td>
@@ -372,6 +394,7 @@ following components:
 
     <tr>
       <td> 704. Measurement and State </td>
+      <td class="kfpro"> No </td>
       <td> Stable </td>
       <td> Full</td>
       <td> 
