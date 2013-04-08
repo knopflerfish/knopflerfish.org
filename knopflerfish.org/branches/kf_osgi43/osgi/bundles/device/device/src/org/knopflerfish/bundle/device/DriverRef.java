@@ -48,4 +48,12 @@ public class DriverRef
   ServiceReference<?> sr;
 
   Driver drv;
+
+  @Override
+  public String toString()
+  {
+    return "DriverRef: id=" +id +", ranking=" +ranking +", sr=" +sr;
+  }
+
+
 }

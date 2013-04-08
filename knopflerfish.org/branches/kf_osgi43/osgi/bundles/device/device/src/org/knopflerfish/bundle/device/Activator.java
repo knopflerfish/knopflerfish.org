@@ -119,7 +119,7 @@ public class Activator
 
   private Collection<ServiceReference<DriverLocator>> locatorRefs;
 
-  List<DriverLocator> locators;
+  List<DriverLocator> locators = new ArrayList<DriverLocator>();
 
   private ServiceReference<DriverSelector> selectorRef;
 
@@ -279,14 +279,14 @@ public class Activator
         }
       } catch (final Exception e1) {
       }
-      locatorRefs = null;
-      locators = null;
       try {
-        locatorRefs =
-          bc.getServiceReferences(DriverLocator.class, null);
-        locators = new ArrayList<DriverLocator>();
-        for (final ServiceReference<DriverLocator> locatorSr : locatorRefs) {
-          locators.add(bc.getService(locatorSr));
+        synchronized (locators) {
+          locatorRefs = null;
+          locators.clear();
+          locatorRefs = bc.getServiceReferences(DriverLocator.class, null);
+          for (final ServiceReference<DriverLocator> locatorSr : locatorRefs) {
+            locators.add(bc.getService(locatorSr));
+          }
         }
       } catch (final Exception e1) {
       }
@@ -360,6 +360,15 @@ public class Activator
     }
   }
 
+  private void debug(String msg)
+  {
+    try {
+      log.log(LogService.LOG_DEBUG, msg);
+    } catch (final Exception e) {
+      System.err.println("[Device Manager] debug: " + msg);
+    }
+  }
+
   private void info(String msg)
   {
     try {
@@ -422,39 +431,47 @@ public class Activator
     }
 
     final Dictionary<String, Object> props = collectProperties(dev);
+    debug("handleDevice: " + showDevice(dev) +", props: " +props);
 
-    final Vector /* MatchImpl */<MatchImpl>matches = new Vector<MatchImpl>();
+
+    final Vector <MatchImpl>matches = new Vector<MatchImpl>();
 
     // Populate matches with driver locator recommendations
-    final DriverLocator[] dla = locators.toArray(new DriverLocator[locators.size()]);
-    if (dla != null) {
-      for (final DriverLocator dl : dla) {
-        try {
-          final String[] dria = dl.findDrivers(props);
-          for (final String dri : dria) {
-            MatchImpl m = null;
-            for (int k = 0; k < matches.size(); k++) {
-              m = matches.elementAt(k);
-              if (m.equals(dri)) {
-                break;
-              }
-              m = null;
+    final List<DriverLocator> dls = new ArrayList<DriverLocator>();
+    synchronized (locators) {
+      dls.addAll(locators);
+    }
+    for (final DriverLocator dl : dls) {
+      try {
+        debug("Calling driver locator: " + dl);
+        final String[] dria = dl.findDrivers(props);
+        for (final String dri : dria) {
+          MatchImpl m = null;
+          for (int k = 0; k < matches.size(); k++) {
+            m = matches.elementAt(k);
+            if (m.equals(dri)) {
+              break;
             }
-            if (m == null) {
-              m = new MatchImpl(this, dev, dri);
-              matches.addElement(m);
-            }
-            m.addDriverLocator(dl);
+            m = null;
           }
-        } catch (final Exception e) {
+          if (m == null) {
+            m = new MatchImpl(this, dev, dri);
+            matches.addElement(m);
+          }
+          m.addDriverLocator(dl);
         }
+      } catch (final Exception e) {
       }
     }
+
+    debug("driver locator matches: " + matches);
+
 
     for (;;) {
       // Add current drivers to matches
       for (int i = 0; i < drivers.size(); i++) {
         final DriverRef dr = drivers.elementAt(i);
+        debug("looking at driver ref: " + i +", " +dr);
         MatchImpl m = null;
         for (int k = 0; k < matches.size(); k++) {
           m = matches.elementAt(k);
@@ -466,8 +483,11 @@ public class Activator
         if (m == null) {
           m = new MatchImpl(this, dev, dr);
           matches.addElement(m);
+          debug("added match: " + m);
         }
       }
+
+      debug("candidate matches: " + matches);
 
       int n = 0;
       boolean loading = false;
@@ -675,7 +695,7 @@ public class Activator
     }
   }
 
-  private Dictionary /* String->Object */<String, Object> collectProperties(ServiceReference<?> sr)
+  private Dictionary<String, Object> collectProperties(ServiceReference<?> sr)
   {
     final Dictionary<String, Object> props = new Hashtable<String, Object>();
     final String[] keys = sr.getPropertyKeys();
@@ -819,11 +839,12 @@ public class Activator
     }
     o = sr.getProperty(org.osgi.framework.Constants.SERVICE_ID);
     if (o != null) {
+      sb.append(", sid=");
       sb.append(o);
     }
     final Bundle b = sr.getBundle();
     if (b != null) {
-      sb.append('/');
+      sb.append(", bid=");
       sb.append(b.getBundleId());
     }
     return sb.toString();
@@ -837,7 +858,7 @@ public class Activator
     sb.append(s != null ? s : "driver");
     final Bundle b = sr.getBundle();
     if (b != null) {
-      sb.append('/');
+      sb.append(", bid=");
       sb.append(b.getBundleId());
     }
     return sb.toString();

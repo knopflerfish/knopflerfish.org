@@ -35,6 +35,8 @@
 package org.knopflerfish.bundle.device;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -136,10 +138,12 @@ public class MatchImpl
         }
       }
     } else {
-      final DriverLocator[] locs =
-        act.locators.toArray(new DriverLocator[act.locators.size()]);
-      for (final DriverLocator loc : locs) {
-        if (load1(name, loc)) {
+      final List<DriverLocator> dls = new ArrayList<DriverLocator>();
+      synchronized (act.locators) {
+        dls.addAll(act.locators);
+      }
+      for (final DriverLocator dl : dls) {
+        if (load1(name, dl)) {
           return true;
         }
       }
