@@ -3,22 +3,79 @@
   First official release (beta) of Knopflerfish 4 available from
   $(BASE_URL)/$(VERSION)
 </p>
-<p>
-  Knopflerfish 4 is an implementation of the "OSGi Service Platform
-  Release 4 Version 4.3". It contains all services specified in the
-  "Core Specification" and most of the non Enterprise Edition related
-  services specified in the "Compendium Specification".
-</p>
+  <p>
+    Knopflerfish 4 is an implementation of the "OSGi Service Platform
+    Release 4 Version 4.3". It contains all services specified in the
+    "Core Specification" and most of the non Enterprise Edition related
+    services specified in the "Compendium Specification".
+  </p>
 
-<h2 class="kf">OSGi Core Specification</h2>
+
+<h2 class="kf">OSGi Release 4 Version 4.3 - What is New?</h2>
+<div class="release_notes">
+  <p>
+    Below is a short summary of the most important new features in OSGi 4.3. 
+  </p>
+  <div class="note_group">
+    <div class="note_name"> Generics </div>
+    <div class="note_item">
+      The core OSGi API uses generics which allows for type-safe use of the framework API. 
+      I.e. no more casting. Support for Java 1.4 run-time environments
+      is maintained via the -target jsr14 compiler flag. 
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Capabilites </div>
+    <div class="note_item">
+      In OSGi 4.3 a bundle can declare generic requirements and capabilites through the 
+      <code>Require-Cabability</code> and <code>Provide Capability</code> manifest headers. 
+      These two headers are inspected during the resolving phase of the bundle.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Bundle Wiring API </div>
+    <div class="note_item">
+      The new Wiring API replaces the PackageAdmin service and also
+      provide information how requirements and provided capabilites
+      have been resolved by the framework. 
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Adapt pattern </div>
+    <div class="note_item">
+      OSGi 4.3 introduces an adapt method on the Bundle class. The new
+      method provides specialized access to the Bundle object,
+      creating a certain view of the bundle, without adding additional
+      methods to the bundle class. The adapt patterns is typically
+      used to replace the former StartLevelService by providing a
+      BundleStartLevel object with the start level operations
+      for a bundle. 
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Framework hooks </div>
+    <div class="note_item">
+      A set of hooks have been added with allows bundles to plug-into the framework 
+      for close interaction with the framework. The following hooks exist in 4.3: 
+      <ul>
+	<li>Resolver Hooks</li>
+	<li>Bundle Hooks</li>
+	<li>Service Hooks</li>
+	<li>Weaving Hooks</li>
+    </div>
+  </div>
+</div>
+
+<h2 class="kf">Knopflerfish Framework - OSGi Core Specification</h2>
 <div class="release_notes">
 
   <div class="note_group">
-    <div class="note_name"> OSGi R4 v4.3 specificaiton</div>
+    <div class="note_name"> OSGi R4 v4.3 specification</div>
     <div class="note_item">
-      All the Core Specification Services are included and are designed to be compliant with 
-      the OSGi R4 v4.3 specification. Please consult the "OSGi Service Platform,
-      Core Specification, Release 4 Version 4.3" for detailed information.
+      All the Core Specification Services and API:s are included and are 
+      designed to be compliant with  the OSGi R4 v4.3 specification. 
+      Please refer to the  <a href="components.html">Contents</a> page for a more detailed
+      description of news in 4.3 and KF4 implementation status.
     </div>
   </div>
 
@@ -29,8 +86,7 @@
       the new OSGi framework specification and improve stability.
     </div>
     <div class="note_item">
-      The Android support has temporarily been dropped. Will probably
-      be restored in the next release.
+      The Android support has temporarily been dropped.
     </div>
   </div>
 </div>
@@ -41,10 +97,10 @@
   <div class="note_group">
     <div class="note_name"> OSGi R4 v4.3 Specification</div>
     <div class="note_item">
-      All the Compendium Specification Services included are updated to
-      implement the OSGi R4 v4.3 specification. Please consult the "OSGi
-      Service Platform, Service Compendium, Release 4 Version 4.3" for more
-      information.
+      All Compendium Specification Services included but one are updated to
+      implement the OSGi R4 v4.3 specification. 
+      Please refer to the  <a href="components.html">Contents</a> page for a more detailed
+      description of news in 4.3 and KF4 implementation status.
     </div>
     <div class="note_item">
       The version of these bundles has been set to 4.0.0 and all imported
@@ -179,7 +235,3 @@
   </div>
 </div>
 	  
-<p>
-  Please read on the KF site for more information.<br>
-  <a href="http://www.knopflerfish.org/">http://www.knopflerfish.org/</a>
-</p>
