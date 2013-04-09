@@ -127,6 +127,8 @@ import javax.swing.ToolTipManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -573,58 +575,107 @@ public class Desktop implements BundleListener, FrameworkListener,
   // Assumes that the current Knopflerfish version can be found
   // directly after the text "Knopflerfish " on the first line of the
   // release note at
-  // http://www.knopflerfish.org/releases/current/release_notes.txt
-  void checkUpdate(final boolean bForce) {
+  // http://www.knopflerfish.org/releases/current/release_notes.hmtl
+  void checkUpdate(final boolean bForce)
+  {
     // Run in threads, to avoid startup delay caused by network problems.
     new Thread() {
       @Override
-      public void run() {
+      public void run()
+      {
         try {
           if (bForce) {
-            final Preferences prefs = Preferences.userNodeForPackage(getClass());
+            final Preferences prefs =
+              Preferences.userNodeForPackage(getClass());
             prefs.remove(KEY_UPDATEVERSION);
             prefs.flush();
           }
 
-          final String versionURL = Util.getProperty(
-              "org.knopflerfish.desktop.releasenotesurl",
-              "http://www.knopflerfish.org/releases/current/release_notes.txt");
+          Version releaseVersion = Version.emptyVersion;
+          final Bundle sysBundle = Activator.getBC().getBundle(0);
+          URL url = null;
+          InputStream is = null;
+          try {
+            url = sysBundle.getEntry("/release");
+            if (url == null) {
+              Activator.log.debug("Update check: skipped; framework.jar is "
+                                  + "not from a relase build.");
+              return;
+            }
+            final URLConnection conn = url.openConnection();
+            is = conn.getInputStream();
+            final String releaseString =
+              new String(Util.readStream(is), "UTF-8");
+            releaseVersion = new Version(releaseString);
+          } catch (final Exception e) {
+            Activator.log
+                .warn("Update check: Failed to read release version from "
+                      + url, e);
+          } finally {
+            if (is != null) {
+              is.close();
+            }
+          }
+          Activator.log.debug("Update check: Running on Knopflerfish "
+                              + releaseVersion);
 
-          final URL url = new URL(versionURL);
-          final URLConnection conn = url.openConnection();
-          final InputStream is = conn.getInputStream();
+          final String versionURL =
+            Util.getProperty("org.knopflerfish.desktop.releasenotesurl",
+                             "http://www.knopflerfish.org/releases/current/release_notes.html");
 
-          final String notes = new String(Util.readStream(is), "ISO-8859-1");
+          String notes = null;
+          try {
+            url = new URL(versionURL);
+            final URLConnection conn = url.openConnection();
+            is = conn.getInputStream();
 
-          int ix = notes.indexOf("\n");
-          if (ix != -1) {
-            String line = notes.substring(0, ix);
-            final String keyWord = "Knopflerfish ";
-            ix = line.lastIndexOf(keyWord);
+            notes = new String(Util.readStream(is), "ISO-8859-1");
+          } finally {
+            if (is != null) {
+              is.close();
+            }
+          }
+
+          // Look for the release version, i.e., "Knopflerfish <VERSION> ".
+          final String keyWord = "Knopflerfish ";
+          Version version = null;
+          int start = 0;
+          while (start < notes.length()) {
+            int end = notes.indexOf('\n', start);
+            end = end == -1 ? notes.length() : end;
+            String line = notes.substring(start, end);
+            int ix = line.lastIndexOf(keyWord);
             if (ix != -1) {
               line = line.substring(ix + keyWord.length()).trim();
               ix = line.indexOf(" ");
               if (ix != -1) {
                 line = line.substring(0, ix);
               }
-              final Version version = new Version(line);
-              final Bundle sysBundle = Activator.getBC().getBundle(0);
-              final Version sysVersion = new Version(sysBundle.getHeaders()
-                  .get("Bundle-Version"));
+              try {
+                version = new Version(line);
+                Activator.log
+                    .debug("Update check: Current Knopflerfish version is"
+                           + releaseVersion);
 
-              Activator.log.info("sysVersion=" + sysVersion + ", version="
-                  + version);
-              if (sysVersion.compareTo(version) < 0) {
-                showUpdate(sysVersion, version, notes);
+                if (releaseVersion.compareTo(version) < 0) {
+                  showUpdate(releaseVersion, version, notes);
+                }
+                break;
+              } catch (final Exception e) {
+                final String msg =
+                  "Update check: Invalid version '" + line + "': " + e;
+                Activator.log.debug(msg, e);
               }
-            } else {
-              Activator.log.warn("No version info in " + line);
             }
-          } else {
-            Activator.log.warn("No version line");
+            start = end + 1;
+          }
+          if (version == null) {
+            Activator.log.warn("Update check: "
+                               + "No version found in release notes file:\n"
+                               + notes);
           }
         } catch (final Exception e) {
-          Activator.log.warn("Failed to read update info", e);
+          Activator.log.warn("Update check: Failed to read update info", e);
         }
       }
     }.start();
@@ -2775,12 +2826,25 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
 
     final JTextPane html = new JTextPane();
+    // Should not share editor kit with other text panes.
+    //html.setContentType("text/html");
+    final HTMLEditorKit htmlEditorKit = new HTMLEditorKit();
+    html.setEditorKit(htmlEditorKit);
 
-    html.setContentType("text/html");
+    // NOTE: CSS used here must be compatible with HTLM 3.2 / CSS 1
+    final StyleSheet styleSheet = htmlEditorKit.getStyleSheet();
+    styleSheet.addRule("body {background-color:#DDDDDD;color:#111111;}");
+    styleSheet.addRule("div.note_group {margin-top:1.5em; margin-bottom:0.5em;"
+        +"margin-right:0em; margin-left:0em;}");
+    styleSheet.addRule("div.note_name {margin-top:12px;margin-bottom:3px;"
+        +"font-weight: bold; color:#333333;}");
+    styleSheet.addRule("div.note_item {margin-top:3px;margin-bottom:3px;"
+        +"margin-left:20px; margin-right:20px; color:#222222;}");
+    // Links are not click-able; try to hide them.
+    styleSheet.addRule("a {color:#111111;text-decoration:none;}");
 
     html.setEditable(false);
-
-    html.setText("<pre>\n" + notes + "\n</pre>");
+    html.setText(notes);
 
     final JScrollPane scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(500, 300));
