@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -182,7 +182,7 @@ class BundleThread extends Thread {
     boolean timeout = false;
     boolean uninstall = false;
 
-    long waitUntil = System.currentTimeMillis() + left;
+    long waitUntil = Util.timeMillis() + left;
     do {
       try {
         fwCtx.packages.wait(left);
@@ -193,7 +193,7 @@ class BundleThread extends Thread {
         uninstall = true;
         res = null;
       } else if (left > 0) { // we were waiting with a timeout
-        left = waitUntil - System.currentTimeMillis();
+        left = waitUntil - Util.timeMillis();
         
         // check time-out for Bundle.start and .stop
         if (left <= 0 && ((op == OP_START && b.getState() == Bundle.STARTING)
