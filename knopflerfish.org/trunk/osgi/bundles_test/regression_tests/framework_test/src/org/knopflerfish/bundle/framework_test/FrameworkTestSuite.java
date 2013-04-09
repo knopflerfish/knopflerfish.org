@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2011, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,8 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   Bundle buP1;
   Bundle buP2;
   Bundle buP3;
+
+  Bundle buT;
 
   // Bundles for activation policy handling check
   Bundle buAl;
@@ -161,6 +163,9 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     addTest(new Frame275a());
     addTest(new Frame280a());
     addTest(new Frame285a());
+
+    // Bundle timer test
+    addTest(new Frame290a());
 
     addTest(new Cleanup());
   }
@@ -354,6 +359,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
         buP1 ,
         buP2 ,
         buP3 ,
+        buT ,
         buAl ,
         buAl2 ,
         buAl3 ,
@@ -388,6 +394,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       buP1 = null;
       buP2 = null;
       buP3 = null;
+      buT = null;
       // Activation policy
       buAl = null;
       buAl2 = null;
@@ -1382,7 +1389,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // files or directories are added or removed to / from the top
       // level of the bundle jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number "
-                   +"of elements.", 62, i);
+                   +"of elements.", 63, i);
 
       //another existing directory
       out.println("getEntryPaths(\"/org/knopflerfish/bundle/framework_test\")");
@@ -1400,7 +1407,7 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
       // or directories are added or removed to/from the sub-dir
       // "org/knopflerfish/bundle/framework_test" of the jar-file.
       assertEquals("GetEntryPaths did not retrieve the correct number of "
-                   +"elements.", 139, i);
+                   +"elements.", 141, i);
 
       //existing file, non-directory, ending with slash
       enume = bc.getBundle().getEntryPaths("/bundleA_test-1.0.0.jar/");
@@ -4845,6 +4852,89 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
   }
 
 
+  public final static String [] HELP_FRAME290A =  {
+    "Start bundleT_test that sleeps 3s in start, at the same time",
+    "try to stop the bundle, we should get an exception and the",
+    "bundle should remain started.",
+    "Then stop and start again and at the same time uninstall",
+    "this time the bundle should be uninstalled correctly."
+  };
+
+  class Frame290a extends FWTestCase {
+    public void runTest() throws Throwable {
+      out.println("### framework test bundle :FRAME290A start");
+
+      clearEvents();
+      try {
+        buT = Util.installBundle(bc, "bundleT_test-1.0.0.jar");
+        assertTrue("BundleT_test should be INSTALLED",
+                   buT.getState() == Bundle.INSTALLED);
+      } catch (BundleException bexc) {
+        out.println("Unexpected bundle exception: "+bexc);
+        bexc.printStackTrace();
+        fail("framework test bundle "+ bexc +" :FRAME290A:FAIL");
+      } catch (SecurityException sec) {
+        out.println("Unexpected security exception: "+sec);
+        sec.printStackTrace();
+        fail("framework test bundle "+ sec +" :FRAME290A:FAIL");
+      }
+      Thread t = new BundleTStartThread("First start t in FRAME290A");
+      t.start();
+      for (int i = 0; i < 50; i++) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException ignore) {}
+        if (buT.getState() == Bundle.STARTING) {
+          break;
+        }
+      }
+      assertEquals("BundleT_test should be STARTING",
+                   buT.getState(), Bundle.STARTING);
+      try {
+        buT.stop();
+        fail("framework test bundle stopped without timeout :FRAME290A:FAIL");
+      } catch (BundleException buE) {
+        out.println("BUE: " + buE);
+      }
+      for (int i = 0; i < 8; i++) {
+        try {
+          buT.stop();
+          break;
+        } catch (BundleException buE) {
+          out.println("BUE count " + i);
+        }
+      }
+      assertEquals("BundleT_test should be RESOLVED",
+                   buT.getState(), Bundle.RESOLVED);
+
+      t.join();
+      t = new BundleTStartThread("Second start t in FRAME290A");
+      t.start();
+      for (int i = 0; i < 50; i++) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException ignore) {}
+        if (buT.getState() == Bundle.STARTING) {
+          break;
+        }
+      }
+      assertEquals("BundleT_test should be STARTING",
+                   buT.getState(), Bundle.STARTING);
+      try {
+        buT.uninstall();
+      } catch (BundleException buE) {
+        fail("framework test bundle "+ buE +" :FRAME290A:FAIL");
+      }
+      assertEquals("BundleT_test should be UNINSTALLED",
+                   buT.getState(), Bundle.UNINSTALLED);
+
+      // TODO, Check frameworkEvents !?
+
+      out.println("### framework test bundle :FRAME290A:PASS");
+    }
+  }
+
+
   // General status check functions
   // prevent control characters to be printed
   private String xlateData(byte [] b1) {
@@ -5417,4 +5507,19 @@ public class FrameworkTestSuite extends TestSuite implements FrameworkTest {
     }
   }
 
+  class BundleTStartThread extends Thread {
+
+    BundleTStartThread(String name) {
+      super(name);
+    }
+
+    public void run() {
+      try {
+        buT.start();
+      } catch (BundleException bexc) {
+        out.println("Unexpected bundle exception: "+bexc);
+        bexc.printStackTrace();
+      }
+    }
+  };
 }

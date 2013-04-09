@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 package org.knopflerfish.framework;
 
 import java.io.*;
+import java.lang.reflect.*;
 import java.util.*;
 
 import org.osgi.framework.Constants;
@@ -47,6 +48,8 @@ public class Util {
    */
   static public final String FWDIR_PROP = "org.osgi.framework.dir";
   static public final String FWDIR_DEFAULT = "fwdir";
+
+  static private final Method nanoTimeMethod = getMethod(System.class, "nanoTime", new Class[] { });
 
 
   public static String getFrameworkDir(Map props) {
@@ -779,6 +782,43 @@ public class Util {
       }
       return patSubstr(s, ++si, pat, ++pi);
     }
+  }
+
+  /**
+   * Get method from current classloader
+   */
+  public static Method getMethod(Class c, String name, Class [] args) {
+    Method m = null;
+    while (true) {
+      try {
+        m = c.getDeclaredMethod(name, args);
+        break;
+      } catch (NoSuchMethodException e) {
+        c = c.getSuperclass();
+        if (c == null) {
+          return null;
+        }
+      }
+    }
+    m.setAccessible(true);
+    return m;
+  }
+
+  /**
+   * Use System.nanoTime() if available, otherwise revert to
+   * System.currentTimeMillis(). Return 
+   */
+  public static long timeMillis() {
+    if (nanoTimeMethod != null) {
+      try  {
+        Object res = nanoTimeMethod.invoke(null, new Object[] { });
+        if (res != null) {
+          return ((Long)res).longValue() / 1000000L;
+        }
+      } catch (IllegalAccessException _ignore) { 
+      } catch (InvocationTargetException _ignore) { }
+    }
+    return System.currentTimeMillis();
   }
 
   /**

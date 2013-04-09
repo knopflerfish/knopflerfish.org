@@ -619,8 +619,7 @@ public class BundleImpl implements Bundle {
   void waitOnOperation(Object lock, final String src, boolean longWait) throws BundleException {
     if (operation != IDLE) {
       long left = longWait ? 20000 : 500;
-      // TODO: Don't use currentTimeMillis
-      long waitUntil = System.currentTimeMillis() + left;
+      long waitUntil = Util.timeMillis() + left;
       do {
         try {
           lock.wait(left);
@@ -629,7 +628,7 @@ public class BundleImpl implements Bundle {
           }
         } catch (InterruptedException _ie) {
         }
-        left = waitUntil - System.currentTimeMillis();
+        left = waitUntil - Util.timeMillis();
       } while (left > 0);
       String op;
       switch (operation) {
