@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,15 +74,12 @@ public class ShutdownPanel extends Panel implements Runnable {
   }
 
   public void run() {
-    long t0 = System.currentTimeMillis();
-    long time = 1000;
-
     fzz.kx = 1.0;
     try {
-      while(System.currentTimeMillis() - t0 < time) {
+      for (int i = 0; i < 20; i++) {
         fzz.update();
         fzz.repaint();
-        Thread.sleep(20);
+        Thread.sleep(40);
       }
     } catch (Exception e) {
       e.printStackTrace();

@@ -14,7 +14,28 @@
   </path>
 
   <property name="api.pattern"   value="org/osgi/service/device/*"/>
-  <property name="impl.pattern"  value="org/knopflerfish/bundle/device/*"/>
+  <property name="impl.pattern"  value="org/knopflerfish/bundle/device/**,
+                                        org/knopflerfish/util/*"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+
+    <!-- Reuse the Timer class from the KF util bundle. -->
+    <bundle_locator bundleNames="util">
+      <fileset dir="${jars.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.util}">
+        <patternset>
+          <include name="org/knopflerfish/util/Timer*"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+
+  </target>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 

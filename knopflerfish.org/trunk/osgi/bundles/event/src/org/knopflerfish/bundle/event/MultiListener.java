@@ -36,6 +36,7 @@ package org.knopflerfish.bundle.event;
 
 import org.knopflerfish.service.log.LogRef;
 import org.knopflerfish.service.log.LogService;
+import org.knopflerfish.util.Timer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
@@ -206,10 +207,11 @@ public class MultiListener implements LogListener,
     final long timeout = 60 * 1000;
     if(!thrownByPostEvent.isEmpty()) {
       Iterator entries = thrownByPostEvent.entrySet().iterator();
+      long now = Timer.timeMillis();
       while(entries.hasNext()) {
         Map.Entry timestampedThrowable = (Map.Entry)entries.next();
         long timestamp = ((Long)timestampedThrowable.getValue()).longValue();
-        if(System.currentTimeMillis() > (timestamp + timeout)) {
+        if ((now - timestamp) > timeout) {
           entries.remove();
         }
       }
@@ -282,7 +284,7 @@ public class MultiListener implements LogListener,
       // within a certain time
       // See beginning of this method
       if(thrownByPostEvent.size() < 5) {
-        thrownByPostEvent.put(t, new Long(System.currentTimeMillis()));
+        thrownByPostEvent.put(t, new Long(Timer.timeMillis()));
         if(Activator.log.doError()) {
           Activator.log.error("EXCEPTION in logged(LogEntry logEntry):", t);
         }

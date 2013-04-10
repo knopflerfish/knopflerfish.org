@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,14 @@ import java.security.AccessControlException;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.knopflerfish.util.Timer;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.TopicPermission;
+
 
 /**
  * A wrapper class for events. Connects an event with
@@ -150,9 +153,9 @@ public class InternalAdminEvent {
               handler.handleEventSubjectToFilter(event);
             } else {
               // Deliver with duration warning
-              final long tickStart = System.currentTimeMillis();
+              final long tickStart = Timer.timeMillis();
               handler.handleEventSubjectToFilter(event);
-              final long tickEnd = System.currentTimeMillis();
+              final long tickEnd = Timer.timeMillis();
               if (tickEnd - tickStart > Activator.timeWarning) {
                 log(handler, "Slow eventhandler " + (tickEnd - tickStart)
                     + " ms.");

@@ -14,7 +14,8 @@
   <property name="bundle.build.doc"  value="true"/>
 
   <property name="api.pattern"  value="org/osgi/service/event/**"/>
-  <property name="impl.pattern" value="org/knopflerfish/bundle/**"/>
+  <property name="impl.pattern" value="org/knopflerfish/bundle/event/**,
+                                       org/knopflerfish/util/*"/>
 
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>
@@ -24,7 +25,7 @@
   <property name="bmfa.Bundle-Name"           value="Event-Admin"/>
   <property name="bmfa.Bundle-Description"    value="Event Admin"/>
   <property name="bmfa.Bundle-Category"       value="service"/>
-  <property name="bmfa.Bundle-Version"        value="3.0.8"/>
+  <property name="bmfa.Bundle-Version"        value="3.0.9"/>
   <property name="bmfa.Bundle-APIVendor"      value="OSGi"/>
   <property name="bmfa.Bundle-Vendor"         value="Knopflerfish"/>
   <property name="bmfa.Bundle-DocURL"
@@ -34,6 +35,26 @@
 
   <property name="bmfa.Export-Package"
             value="org.osgi.service.event;version=1.2"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+
+    <!-- Reuse the Timer class from the KF util bundle. -->
+    <bundle_locator bundleNames="util">
+      <fileset dir="${jars.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.util}">
+        <patternset>
+          <include name="org/knopflerfish/util/Timer*"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+
+  </target>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
