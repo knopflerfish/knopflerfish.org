@@ -643,7 +643,8 @@ public class Desktop implements BundleListener, FrameworkListener,
           while (start < notes.length()) {
             int end = notes.indexOf('\n', start);
             end = end == -1 ? notes.length() : end;
-            String line = notes.substring(start, end);
+            final String orgLine = notes.substring(start, end);
+            String line = orgLine;
             int ix = line.lastIndexOf(keyWord);
             if (ix != -1) {
               line = line.substring(ix + keyWord.length()).trim();
@@ -653,9 +654,8 @@ public class Desktop implements BundleListener, FrameworkListener,
               }
               try {
                 version = new Version(line);
-                Activator.log
-                    .debug("Update check: Current Knopflerfish version is"
-                           + releaseVersion);
+                Activator.log.debug("Update check: Found valid version: "
+                                    + version + ", in line '" + orgLine + "'.");
 
                 if (releaseVersion.compareTo(version) < 0) {
                   showUpdate(releaseVersion, version, notes);
@@ -663,7 +663,8 @@ public class Desktop implements BundleListener, FrameworkListener,
                 break;
               } catch (final Exception e) {
                 final String msg =
-                  "Update check: Invalid version '" + line + "': " + e;
+                  "Update check: Invalid version '" + line + "' in line '"
+                      + orgLine + "' " + e;
                 Activator.log.debug(msg, e);
               }
             }
@@ -675,7 +676,7 @@ public class Desktop implements BundleListener, FrameworkListener,
                                + notes);
           }
         } catch (final Exception e) {
-          Activator.log.warn("Update check: Failed to read update info", e);
+          Activator.log.warn("Update check: Failed to read update info; "+e, e);
         }
       }
     }.start();
@@ -2809,8 +2810,8 @@ public class Desktop implements BundleListener, FrameworkListener,
   void showUpdate(Version sysVersion, Version version, String notes) {
     final Preferences prefs = Preferences.userNodeForPackage(getClass());
 
-    Activator.log.info("showUpdate sysVersion=" + sysVersion + ", version="
-        + version);
+    Activator.log.info("Update check: running on " + sysVersion
+                       + ", latest version is " + version);
     try {
       final String prefsVersionS = prefs.get(KEY_UPDATEVERSION, "");
       if (prefsVersionS != null && !"".equals(prefsVersionS)) {
@@ -2833,18 +2834,44 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     // NOTE: CSS used here must be compatible with HTLM 3.2 / CSS 1
     final StyleSheet styleSheet = htmlEditorKit.getStyleSheet();
+    styleSheet.addRule("#mainblock {margin-left: 20px; "
+                       + "padding-right: 15px; "
+                       + "font-family: \"Lucida Grande\", Tahoma, "
+                       + "Lucida Sans, Verdana, Helvetica, sans-serif; "
+                       + "font-size: 10.2px;}");
     styleSheet.addRule("body {background-color:#DDDDDD;color:#111111;}");
     styleSheet.addRule("div.note_group {margin-top:1.5em; margin-bottom:0.5em;"
-        +"margin-right:0em; margin-left:0em;}");
+                       + "margin-right:0em; margin-left:0em;}");
     styleSheet.addRule("div.note_name {margin-top:12px;margin-bottom:3px;"
-        +"font-weight: bold; color:#333333;}");
+                       + "font-weight: bold; color:#333333;}");
     styleSheet.addRule("div.note_item {margin-top:3px;margin-bottom:3px;"
-        +"margin-left:20px; margin-right:20px; color:#222222;}");
+                       + "margin-left:20px; margin-right:20px;"
+                       + "color:#222222;}");
     // Links are not click-able; try to hide them.
     styleSheet.addRule("a {color:#111111;text-decoration:none;}");
+    styleSheet.addRule("#copyright {margin-left: 150px; font-size:8.6px;"
+                       + "color: #000;text-align:right;"
+                       + "padding: 5px 10px 0px 0px;}");
+
+    // Extract the contents of the body element for this presentation
+    final StringBuffer sb = new StringBuffer(notes.length());
+    int ix = notes.indexOf("<body");
+    if (ix > -1) {
+      ix = notes.indexOf('>', ix + 5);
+      if (ix > -1) {
+        final int start = ix + 1;
+        ix = notes.indexOf("</body>", start);
+        if (ix > -1) {
+          sb.append(notes.subSequence(start, ix));
+        }
+      }
+    } else {
+      // <body>...</body> not found use the full string
+      sb.append(notes);
+    }
 
     html.setEditable(false);
-    html.setText(notes);
+    html.setText(sb.toString());
 
     final JScrollPane scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(500, 300));

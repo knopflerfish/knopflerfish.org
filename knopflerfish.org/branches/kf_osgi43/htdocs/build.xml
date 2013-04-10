@@ -32,8 +32,6 @@
     <property name="license.html"   location="${htdocs.hs.dir}/license.html"/>
 
     <property name="changelog.txt"  location="${distrib.dir}/changelog.txt"/>
-    <property name="release_notes.txt"
-	      location="${distrib.dir}/release_notes.txt"/>
     <property name="LICENSE.txt"    location="${distrib.dir}/LICENSE.txt"/>
 
     <property name="htdocs.distname" value="Knopflerfish OSGi, version ${version} - "/>
@@ -56,11 +54,6 @@
    <antcall target="txt2html">
      <param name="fromfile" value="${changelog.txt}"/>
      <param name="tofile"   value="${distrib.dir}/changelog.html"/>
-   </antcall>
-
-   <antcall target="txt2html">
-     <param name="fromfile" value="${release_notes.txt}"/>
-     <param name="tofile"   value="${distrib.dir}/release_notes.html"/>
    </antcall>
 
    <loadfile property="htdocs.license.content" srcFile="${LICENSE.txt}"/>
@@ -107,6 +100,17 @@
 
     <property name="release_notes.file"
 	      location="${knopflerfish.dir}/release_notes.in.html"/>
+    <!-- Standalone HTML version used by the desktop in its update check. -->
+    <!-- Ensure that the text "Knopflerfish <VERSION>" is present on -->
+    <!-- a singel line. -->
+    <makehtml description="Release notes for ${htdocs.distname}"
+              title="${htdocs.distname} Release Notes"
+              template="${htdocs.ht.dir}/release_notes.html"
+              outdir="${distrib.dir}"
+              tofile="release_notes.html"
+              fromfile="${knopflerfish.dir}/release_notes.in.html"
+              disable="CHANGELOG"/>
+    <!-- Version for the local documentation site. -->
     <makehtml description="Release notes for this release of ${htdocs.distname}"
               title="${htdocs.distname} Release Notes"
               template="${template.html}"

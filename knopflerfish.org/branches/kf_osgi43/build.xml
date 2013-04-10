@@ -366,17 +366,6 @@
       <format property="distrib_docs.tstamp.year" pattern="yyyy" locale="en"/>
     </tstamp>
 
-    <!-- The first line in this file is used by the desktop to check -->
-    <!-- for new releases, i.e., do not change its format.           -->
-    <copy file="release_notes.in"
-          tofile="${distrib.dir}/release_notes.txt">
-      <filterset begintoken="@" endtoken="@">
-        <filter token="VERSION"      value="${version}"/>
-        <filter token="DOWNLOAD_URL" value="${base.url}/${version}"/>
-        <filter token="YEAR"         value="${distrib_docs.tstamp.year}"/>
-      </filterset>
-    </copy>
-
     <copy todir="${distrib.dir}">
       <fileset dir=".">
         <include name="README.txt"/>
@@ -458,7 +447,7 @@
         <include name="LICENSE.txt"/>
         <include name="NOTICE.txt"/>
         <include name="README.txt"/>
-        <include name="release_notes.txt"/>
+        <include name="release_notes.html"/>
       </zipfileset>
 
       <zipfileset dir="${distrib.doc.dir}" prefix="docs">
@@ -602,7 +591,7 @@
         <include name="LICENSE.txt"/>
         <include name="NOTICE.txt"/>
         <include name="README.txt"/>
-        <include name="release_notes.txt"/>
+        <include name="release_notes.html"/>
       </zipfileset>
 
       <zipfileset dir="${distrib.dir}" prefix="${distrib_tiny.prefix}">
