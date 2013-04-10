@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
+
+import org.knopflerfish.util.Timer;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
@@ -127,7 +129,7 @@ public class Activator extends Thread implements BundleActivator,
 
     private Hashtable /* Bundle->Long */tempDrivers = new Hashtable(10);
 
-    private long reapTime;
+    private long lastReapTime;
 
     public Activator() {
         super("DeviceManager");
@@ -364,20 +366,21 @@ public class Activator extends Thread implements BundleActivator,
             if (!sleep)
                 continue;
 
-            long now = System.currentTimeMillis();
-            if (now >= reapTime) {
-                reapDrivers();
-                reapTime = now + REAP_INTERVAL;
+            long now = Timer.timeMillis();
+            if (now - lastReapTime > REAP_INTERVAL) {
+                lastReapTime = now;
+                reapDrivers(now);
 
                 // NB: Should also clean out old matches every now
                 // and then based on some kind of LRU scheme
             }
             synchronized (this) {
-                if (!quit)
+                if (!quit) {
                     try {
-                        wait(reapTime - now);
-                    } catch (Exception e) {
+                        wait(now - lastReapTime + REAP_INTERVAL);
+                    } catch (InterruptedException e) {
                     }
+                }
             }
         }
     }
@@ -526,7 +529,7 @@ public class Activator extends Thread implements BundleActivator,
     }
 
     private void updateLife(Bundle b, long t) {
-        tempDrivers.put(b, new Long(System.currentTimeMillis() + t));
+        tempDrivers.put(b, new Long(Timer.timeMillis() + t));
     }
 
     private boolean isUsed(ServiceReference sr) {
@@ -548,8 +551,7 @@ public class Activator extends Thread implements BundleActivator,
         return false;
     }
 
-    private void reapDrivers() {
-        long now = System.currentTimeMillis();
+    private void reapDrivers(long now) {
         Bundle[] ba = bc.getBundles();
         if (ba != null) {
             for (int i = 0; i < ba.length; i++) {
@@ -573,7 +575,7 @@ public class Activator extends Thread implements BundleActivator,
                             updateLife(b, LONG_LIFE);
                         } else if (expire == null) {
                             updateLife(b, SHORT_LIFE);
-                        } else if (expire.longValue() < now) {
+                        } else if (expire.longValue() - now < 0) {
                             info("uninstalling " + b.getLocation());
                             b.uninstall();
                         }

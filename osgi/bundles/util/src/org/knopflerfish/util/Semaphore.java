@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,12 +53,12 @@ public class Semaphore {
    *         closed or if the specified timeout has expired.
    */
   public synchronized Object get(long timeout) {
-    long until = System.currentTimeMillis() + timeout;
+    long start = Timer.timeMillis();
     while (!closed && value == null) {
       try {
-        long t = until - System.currentTimeMillis();
-        if (t >= 0)
-          wait(t);
+        long t = Timer.timeMillis() - start;
+        if (t < timeout)
+          wait(timeout - t);
         else
           return null;
       } catch (InterruptedException ignore) {

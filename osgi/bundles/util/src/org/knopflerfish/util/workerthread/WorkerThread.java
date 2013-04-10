@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,9 @@
  */
 
 package org.knopflerfish.util.workerthread;
+
+import org.knopflerfish.util.Timer;
+
 
 public class WorkerThread extends Thread {
     private boolean quit = false;
@@ -168,11 +171,11 @@ public class WorkerThread extends Thread {
         }
 
         void setDelay(long delayMillis) {
-            runAt = delayMillis + System.currentTimeMillis();
+            runAt = delayMillis + Timer.timeMillis();
         }
 
         long getTimeout() {
-            return runAt - System.currentTimeMillis();
+            return runAt - Timer.timeMillis();
         }
 
     }
@@ -207,7 +210,7 @@ public class WorkerThread extends Thread {
                 return;
             }
             Link al = preFirst.next;
-            while (al != postLast && al.runAt <= l.runAt) {
+            while (al != postLast && al.runAt - l.runAt <= 0) {
                 al = al.next;
             }
             l.insertBefore(al);

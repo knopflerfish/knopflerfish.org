@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,9 @@ import javax.servlet.http.HttpSessionBindingEvent;
 import javax.servlet.http.HttpSessionBindingListener;
 import javax.servlet.http.HttpSessionContext;
 
+import org.knopflerfish.util.Timer;
+
+
 public class HttpSessionImpl implements HttpSession {
 
     // private fields
@@ -57,6 +60,8 @@ public class HttpSessionImpl implements HttpSession {
 
     private long lastAccessedTime = -1;
 
+    private long inactivityTime;
+
     private int maxInactiveInterval = -1;
 
     private final Attributes attributes = new Attributes();
@@ -67,6 +72,7 @@ public class HttpSessionImpl implements HttpSession {
 
         creationTime = System.currentTimeMillis();
         accessedTime = creationTime;
+        inactivityTime = Timer.timeMillis();
 
         id = "session." + count + "." + creationTime;
 
@@ -77,6 +83,7 @@ public class HttpSessionImpl implements HttpSession {
 
         lastAccessedTime = accessedTime;
         accessedTime = System.currentTimeMillis();
+        inactivityTime = Timer.timeMillis();
     }
 
   public ServletContext getServletContext() {
@@ -85,9 +92,8 @@ public class HttpSessionImpl implements HttpSession {
   }
 
     public boolean isExpired() {
-        return invalid
-                || accessedTime + maxInactiveInterval * 1000 < System
-                        .currentTimeMillis();
+        return invalid ||
+          Timer.timeMillis() - inactivityTime >  maxInactiveInterval * 1000;
     }
 
     public void destroy() {

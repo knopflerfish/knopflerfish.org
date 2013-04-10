@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,7 +102,7 @@ public class CachedObject {
      */
     public void set(Object object) {
         this.object = object;
-        creationTime = System.currentTimeMillis();
+        creationTime = Timer.timeMillis();
     }
 
     /**
@@ -113,7 +113,7 @@ public class CachedObject {
      */
     public Object get() {
 
-        long now = System.currentTimeMillis();
+        long now = Timer.timeMillis();
         if (now - creationTime > timeout) {
             flush();
         }
@@ -135,7 +135,7 @@ public class CachedObject {
      */
     public String toString() {
         return object.toString() + ":"
-                + (System.currentTimeMillis() - creationTime);
+                + (Timer.timeMillis() - creationTime);
     }
 
 } // CachedObject
