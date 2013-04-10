@@ -62,9 +62,10 @@ public class JPackageView extends JSoftGraphBundle {
     setLabel(Strings.get("str_packages"));
   }
 
+  @Override
   public Node makeRootNode() {
     if(Activator.desktop != null && Activator.desktop.alive) {
-      Node node = new PackageNode(Activator.desktop.pm, b, 0,
+      final Node node = new PackageNode(Activator.desktop.getPackageManager(), b, 0,
                                   "#" + b.getBundleId());
       return node;
     } else {
@@ -72,9 +73,11 @@ public class JPackageView extends JSoftGraphBundle {
     }
   }
 
+  @Override
   void bundleChanged() {
   }
 
+  @Override
   public void close() {
     super.close();
     pkgTracker.close();

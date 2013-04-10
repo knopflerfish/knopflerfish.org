@@ -95,15 +95,27 @@ public class Strings {
           put("prev_tip",       "Previous tip");
           put("next_tip",       "Next tip");
 
-          put("item_stopbundles",       "Stop Selected Bundles");
+          put("item_resolvebundles",    "Resolve Selected Bundles");
+          put("item_resolvebundles.descr",
+              "Resolves un-resolved selected bundles. If called with no "
+              +"selection, try to resolve all un-resolved bundles.");
           put("item_startbundles",      "Start Selected Bundles");
+          put("item_stopbundles",       "Stop Selected Bundles");
           put("item_updatebundles",     "Update Selected Bundles");
+          put("item_refreshbundles",    "Refresh Selected Bundles");
+          put("item_refreshbundles.descr",
+              "Refresh bundles re-wires required capabilites for the selected "
+              +"bundles, if the selection is empty refresh all bundles that "
+              +"are marked as pending removal by the framework.");
           put("item_uninstallbundles",  "Uninstall Selected Bundles");
 
           put("item_resolvebundle",    "Resolve Bundle ");
           put("item_startbundle",      "Start Bundle ");
           put("item_stopbundle",       "Stop Bundle ");
           put("item_updatebundle",     "Update Bundle ");
+          put("item_refreshbundle",    "Refresh Bundle ");
+          put("item_refreshbundle.descr",
+              "Refresh bundle re-wires required capabilites for the bundle.");
           put("item_uninstallbundle",  "Uninstall Bundle ");
 
           put("menu_remotefw",          "Remote framework...");
@@ -148,17 +160,6 @@ public class Strings {
 
 
           put("msg_uninstallbundle", "Uninstall bundle");
-
-          put("menu_refreshbundles", "Refresh bundles");
-          put("menu_refreshbundles.descr",
-              "Refresh bundles re-wires required capabilites for the selected "
-              +"bundles, if the selection is empty refresh all bundles that "
-              +"are marked as pending removal by the framework.");
-
-          put("menu_resolvebundles", "Resolve bundles");
-          put("menu_resolvebundles.descr",
-              "Resolves un-resolved selected bundles. If called with no "
-              +"selection, try to resolve all un-resolved bundles.");
 
           put("str_fwinfo", "Framework info");
           put("str_about", "About");

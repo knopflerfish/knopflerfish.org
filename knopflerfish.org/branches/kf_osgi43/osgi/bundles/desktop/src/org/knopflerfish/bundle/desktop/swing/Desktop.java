@@ -143,7 +143,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
-import org.osgi.service.packageadmin.PackageAdmin;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
 import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
@@ -160,7 +160,7 @@ import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 public class Desktop implements BundleListener, FrameworkListener,
     DropTargetListener, BundleSelectionListener {
 
-  PackageManager pm;
+  private volatile PackageManager pm;
   JFrame frame;
 
   Container contentPane;
@@ -181,7 +181,8 @@ public class Desktop implements BundleListener, FrameworkListener,
       Desktop.class.getResource("/player_stop.png"));
   final static Icon resolveIcon = new ImageIcon(
     Desktop.class.getResource("/bundle-action-resolve.png"));
-
+  final static Icon refreshIcon =
+    new ImageIcon(Desktop.class.getResource("/bundle-action-refresh.png"));
   final static ImageIcon uninstallIcon = new ImageIcon(
       Desktop.class.getResource("/player_eject.png"));
   final static ImageIcon installIcon = new ImageIcon(
@@ -260,7 +261,6 @@ public class Desktop implements BundleListener, FrameworkListener,
   LookAndFeelMenu lfMenu;
 
   ServiceTracker<SwingBundleDisplayer,SwingBundleDisplayer> dispTracker;
-  ServiceTracker<PackageAdmin,PackageAdmin> pkgTracker;
 
   JButton viewSelection;
 
@@ -301,10 +301,6 @@ public class Desktop implements BundleListener, FrameworkListener,
     if (Activator.isStopped()) {
       return;
     }
-
-    pkgTracker = new ServiceTracker<PackageAdmin, PackageAdmin>(Activator.getTargetBC(),
-        PackageAdmin.class, null);
-    pkgTracker.open();
 
     lfManager = new LFManager();
     lfManager.init();
@@ -429,8 +425,6 @@ public class Desktop implements BundleListener, FrameworkListener,
     // bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     // }
     bundleChanged((BundleEvent) null);
-
-    pm = new PackageManager(pkgTracker);
 
     frame.setJMenuBar(menuBar = makeMenuBar());
 
@@ -717,35 +711,29 @@ public class Desktop implements BundleListener, FrameworkListener,
   };
 
   final Action actionRefreshBundles = new AbstractAction(
-      Strings.get("menu_refreshbundles")) {
+      Strings.get("item_refreshbundles"), refreshIcon) {
     private static final long serialVersionUID = 1L;
     {
       putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, mask));
-      putValue(SHORT_DESCRIPTION, Strings.get("menu_refreshbundles.descr"));
+      putValue(SHORT_DESCRIPTION, Strings.get("item_refreshbundles.descr"));
     }
 
     public void actionPerformed(ActionEvent ev) {
-      refreshBundle(getSelectedBundles());
+      refreshBundles(getSelectedBundles());
     }
   };
 
   final Action actionResolveBundles = new AbstractAction(
-    Strings.get("menu_resolvebundles"), resolveIcon) {
+    Strings.get("item_resolvebundles"), resolveIcon) {
       private static final long serialVersionUID = 1L;
     {
-      putValue(SHORT_DESCRIPTION, Strings.get("menu_resolvebundles.descr"));
+      putValue(SHORT_DESCRIPTION, Strings.get("item_resolvebundles.descr"));
     }
 
     public void actionPerformed(ActionEvent ev) {
       resolveBundles(getSelectedBundles());
     }
   };
-
-  JButton toolResolveBundles;
-  JButton toolStartBundles;
-  JButton toolStopBundles;
-  JButton toolUpdateBundles;
-  JButton toolUninstallBundles;
 
   void setRemote(boolean b) {
     menuRemote.setEnabled(b);
@@ -758,7 +746,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
       {
 
-        add(toolStartBundles = new JButton(openIcon) {
+        add(new JButton(openIcon) {
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
@@ -782,7 +770,7 @@ public class Desktop implements BundleListener, FrameworkListener,
           }
         });
 
-        add(toolStartBundles = new JButton(saveIcon) {
+        add(new JButton(saveIcon) {
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
@@ -805,13 +793,17 @@ public class Desktop implements BundleListener, FrameworkListener,
             setToolTipText(Strings.get("menu_remotefw"));
           }
         });
-        // add(new JToolBar.Separator());
+
+        addSeparator(new Dimension(5, 22));
 
         add(new JToolbarButton(actionResolveBundles));
         add(new JToolbarButton(actionStartBundles));
         add(new JToolbarButton(actionStopBundles));
         add(new JToolbarButton(actionUpdateBundles));
+        add(new JToolbarButton(actionRefreshBundles));
         add(new JToolbarButton(actionUninstallBundles));
+
+        addSeparator(new Dimension(5, 22));
 
         add(viewSelection = makeViewSelectionButton());
 
@@ -1161,8 +1153,9 @@ public class Desktop implements BundleListener, FrameworkListener,
     actionResolveBundles.setEnabled(bEnabled);
     actionStartBundles.setEnabled(bEnabled);
     actionStopBundles.setEnabled(bEnabled);
-    actionUninstallBundles.setEnabled(bEnabled);
     actionUpdateBundles.setEnabled(bEnabled);
+    actionRefreshBundles.setEnabled(bEnabled);
+    actionUninstallBundles.setEnabled(bEnabled);
 
     toolBar.invalidate();
     menuBar.invalidate();
@@ -1305,12 +1298,6 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  JMenuItem itemStopBundles;
-  JMenuItem itemStartBundles;
-  JMenuItem itemUpdateBundles;
-  JMenuItem itemUninstallBundles;
-  JMenuItem itemResolveBundles;
-  JMenuItem itemRefreshBundles;
   JMenu startLevelMenu;
 
   JMenu makeBundleMenu() {
@@ -1319,16 +1306,16 @@ public class Desktop implements BundleListener, FrameworkListener,
       private static final long serialVersionUID = 1L;
 
       {
-        add(itemStopBundles = new JMenuItem(actionStopBundles));
+        add(new JMenuItem(actionStopBundles));
         add(makeStopOptionsMenu());
         addSeparator();
-        add(itemStartBundles = new JMenuItem(actionStartBundles));
+        add(new JMenuItem(actionStartBundles));
         add(makeStartOptionsMenu());
         addSeparator();
-        add(itemUpdateBundles = new JMenuItem(actionUpdateBundles));
-        add(itemUninstallBundles = new JMenuItem(actionUninstallBundles));
-        add(itemResolveBundles = new JMenuItem(actionResolveBundles));
-        add(itemRefreshBundles = new JMenuItem(actionRefreshBundles));
+        add(new JMenuItem(actionResolveBundles));
+        add(new JMenuItem(actionUpdateBundles));
+        add(new JMenuItem(actionRefreshBundles));
+        add(new JMenuItem(actionUninstallBundles));
 
         final FrameworkStartLevel fsl = Activator.getTargetBC().getBundle(0)
             .adapt(FrameworkStartLevel.class);
@@ -2120,27 +2107,14 @@ public class Desktop implements BundleListener, FrameworkListener,
       base = base.substring(0, ix);
     }
 
-    final PackageAdmin pkgAdmin = pkgTracker.getService();
-    if (pkgAdmin == null) {
-      Activator.log.error("No pkg admin available for save");
-      return;
-    }
-
-    final TreeSet<Bundle> pkgClosure = new TreeSet<Bundle>(Util.bundleIdComparator);
+    final TreeSet<Bundle> closure = new TreeSet<Bundle>(Util.bundleIdComparator);
 
     for (final Bundle target : targets) {
-      pkgClosure.addAll(Util.getPackageClosure(pm, target, null));
-    }
-
-    final TreeSet<Bundle> serviceClosure = new TreeSet<Bundle>(Util.bundleIdComparator);
-
-    for (final Bundle target : targets) {
-      serviceClosure.addAll(Util.getServiceClosure(target, null));
+      closure.addAll(Util.getClosure(target, null));
     }
 
     final Set<Bundle> all = new TreeSet<Bundle>(Util.bundleIdComparator);
-    all.addAll(pkgClosure);
-    all.addAll(serviceClosure);
+    all.addAll(closure);
 
     for (final Bundle target : targets) {
       all.add(target);
@@ -2352,6 +2326,13 @@ public class Desktop implements BundleListener, FrameworkListener,
     return res.toArray(new Bundle[res.size()]);
   }
 
+  public synchronized PackageManager getPackageManager() {
+    if (pm == null) {
+      pm = new PackageManager();
+    }
+    return pm;
+  }
+
   void startBundle(final Bundle b) {
     // Must not call start() from the EDT, since that will block the
     // EDT untill the start()-call completes.
@@ -2427,92 +2408,83 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
   }
 
-  void refreshBundle(final Bundle[] b) {
-    final ServiceReference<PackageAdmin> sr = Activator
-        .getTargetBC_getServiceReference(PackageAdmin.class);
+  void refreshBundles(final Bundle[] b)
+  {
+    final Bundle systemBundle = Activator.getTargetBC().getBundle(0);
+    final FrameworkWiring fw = systemBundle.adapt(FrameworkWiring.class);
 
-    if (sr != null) {
-      final PackageAdmin packageAdmin = Activator
-          .getTargetBC_getService(sr);
-
-      if (packageAdmin != null) {
-        final boolean refreshAll = b == null || 0 == b.length;
-        // Must not call refreshPackages() from the EDT, since that
-        // will may the EDT.
-
-        final StringBuffer sb = new StringBuffer("Desktop-RefreshPackages ");
-        if (refreshAll) {
-          sb.append("all packages pending removal");
-        } else {
-          sb.append("bundle packages for ");
-          for (int i = 0; i < b.length; i++) {
-            if (i > 0) {
-              sb.append(", ");
-            }
-            sb.append(b[i].getBundleId());
+    if (fw != null) {
+      final ArrayList<Bundle> bundles = new ArrayList<Bundle>();
+      final boolean refreshAll = b == null || 0 == b.length;
+      final StringBuffer sb = new StringBuffer("Desktop-RefreshPackages ");
+      if (refreshAll) {
+        sb.append("all packages pending removal");
+      } else {
+        sb.append("bundle packages for ");
+        for (int i = 0; i < b.length; i++) {
+          if (i > 0) {
+            sb.append(", ");
           }
+          sb.append(b[i].getBundleId());
+          bundles.add(b[i]);
         }
+      }
 
-        new Thread(sb.toString()) {
-          @Override
-          public void run() {
-            try {
-              packageAdmin.refreshPackages(refreshAll ? null : b);
-            } catch (final Exception e) {
-              showErr(sb.toString() + " failed to refresh bundles: " + e, e);
-            } finally {
-              Activator.getTargetBC().ungetService(sr);
-            }
-          }
-        }.start();
+      final FrameworkListener refreshListener = new FrameworkListener() {
 
+        public void frameworkEvent(FrameworkEvent event)
+        {
+          Activator.log.info(sb.toString() + " DONE.");
+        }
+      };
+
+      try {
+        fw.refreshBundles(bundles, refreshListener);
+      } catch (final Exception e) {
+        showErr(sb.toString() + " failed to refresh bundles: " + e, e);
       }
     }
   }
 
-  void resolveBundles(final Bundle[] b) {
-    final ServiceReference<PackageAdmin> sr
-      = Activator.getTargetBC().getServiceReference(PackageAdmin.class);
+  void resolveBundles(final Bundle[] b)
+  {
+    final Bundle systemBundle = Activator.getTargetBC().getBundle(0);
+    final FrameworkWiring fw = systemBundle.adapt(FrameworkWiring.class);
 
-    if (sr != null) {
-      final PackageAdmin packageAdmin = Activator.getTargetBC()
-          .getService(sr);
+    if (fw != null) {
+      final ArrayList<Bundle> bundles = new ArrayList<Bundle>();
+      final boolean resolveAll = b == null || 0 == b.length;
+      // Must not call resolve() from the EDT, since that will block
+      // the EDT.
 
-      if (packageAdmin != null) {
-        final boolean resolveAll = b == null || 0 == b.length;
-        // Must not call resolve() from the EDT, since that will block
-        // the EDT.
+      final StringBuffer sb = new StringBuffer("Desktop-ResolveBundles: ");
+      if (resolveAll) {
+        sb.append("all bundles needing to be resolved ");
+      } else {
+        sb.append("selected bundle(s) ");
+        for (int i = 0; i < b.length; i++) {
+          if (i > 0) {
+            sb.append(", ");
+          }
+          sb.append(b[i].getBundleId());
+          bundles.add(b[i]);
+        }
+      }
 
-        final StringBuffer sb = new StringBuffer("Desktop-ResolveBundles: ");
-        if (resolveAll) {
-          sb.append("all bundles needing to be resolved ");
-        } else {
-          sb.append("selected bundle(s) ");
-          for (int i = 0; i < b.length; i++) {
-            if (i > 0) {
-              sb.append(", ");
+      new Thread(sb.toString()) {
+        @Override
+        public void run()
+        {
+          try {
+            if (!fw.resolveBundles(bundles)) {
+              showErr(sb.toString() + "; could not resolve all of them.", null);
             }
-            sb.append(b[i].getBundleId());
+          } catch (final Exception e) {
+            showErr(sb.toString() + " failed to resolve bundles: " + e, e);
           }
         }
+      }.start();
 
-        new Thread(sb.toString()) {
-          @Override
-          public void run() {
-            try {
-              if (!packageAdmin.resolveBundles(resolveAll ? null : b)) {
-                showErr(sb.toString() + "; could not resolve all of them.",
-                    null);
-              }
-            } catch (final Exception e) {
-              showErr(sb.toString() + " failed to resolve bundles: " + e, e);
-            } finally {
-              Activator.getTargetBC().ungetService(sr);
-            }
-          }
-        }.start();
-
-      }
     }
   }
 
@@ -2539,7 +2511,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     if (n == 0) {
       // Must not call uninstall() from the EDT, since that will block
-      // the EDT untill the uninstall()-call completes.
+      // the EDT until the uninstall()-call completes.
       new Thread("Desktop-UninstallBundle " + b.getBundleId()) {
         @Override
         public void run() {
@@ -2670,11 +2642,6 @@ public class Desktop implements BundleListener, FrameworkListener,
     if (null != dispTracker) {
       dispTracker.close();
       dispTracker = null;
-    }
-
-    if (null != pkgTracker) {
-      pkgTracker.close();
-      pkgTracker = null;
     }
 
     // Make sure floating windows are closed

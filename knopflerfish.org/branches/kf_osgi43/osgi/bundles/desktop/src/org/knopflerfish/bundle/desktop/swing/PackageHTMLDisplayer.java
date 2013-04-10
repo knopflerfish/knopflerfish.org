@@ -89,7 +89,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
       final Desktop desktop = Activator.desktop;
       if (null!=desktop) {
-        final PackageManager pm = desktop.pm;
+        final PackageManager pm = desktop.getPackageManager();
         if (null!=pm) {
           final PackageAdmin pkgAdmin = pm.getPackageAdmin();
 
@@ -177,7 +177,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     void appendExportedPackages(StringBuffer sb, Bundle b,
                                 boolean useParagraph) {
-      final PackageManager pm = Activator.desktop.pm;
+      final PackageManager pm = Activator.desktop.getPackageManager();
       final Collection<ExportedPackage> pkgs = pm.getExportedPackages(b);
       if (useParagraph) {
         sb.append("<p>");
@@ -227,7 +227,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     void appendImportedPackages(StringBuffer sb, Bundle b,
                                 boolean useParagraph) {
-      final PackageManager pm = Activator.desktop.pm;
+      final PackageManager pm = Activator.desktop.getPackageManager();
       final Collection<ExportedPackage> importedPkgs = pm.getImportedPackages(b);
 
       if (useParagraph) {
@@ -255,7 +255,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
     }
 
     void appendMissingImports(StringBuffer sb, Bundle b) {
-      final PackageManager pm = Activator.desktop.pm;
+      final PackageManager pm = Activator.desktop.getPackageManager();
       final Collection<String> missingImports = pm.getMissingImports(b);
       if(missingImports.size() > 0) {
         sb.append("<p>");
@@ -270,7 +270,7 @@ public class PackageHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
     void appendRequiredPackages(StringBuffer sb, Bundle b,
                                 boolean useParagraph) {
-      final PackageManager pm = Activator.desktop.pm;
+      final PackageManager pm = Activator.desktop.getPackageManager();
       final Collection<ExportedPackage> requiredPkgs = pm.getRequiredPackages(b);
       final Collection<ExportedPackage> importedPkgs = pm.getImportedPackages(b);
 
