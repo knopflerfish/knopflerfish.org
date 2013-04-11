@@ -79,6 +79,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
@@ -2080,6 +2081,9 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
   }
 
+  private final static String STRINGS_PROPERTIES = "strings.properties";
+  private final static String JARUNPACKER_JAR = "jarunpacker.jar";
+
   void doSave(File file, Bundle[] targets) {
     final byte[] buf = new byte[1024 * 5];
 
@@ -2125,25 +2129,23 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     ZipOutputStream out = null;
 
-    final File jarunpackerFile = new File(
-        "../tools/jarunpacker/out/jarunpacker/jarunpacker.jar");
+    final File jarunpackerFile =
+      new File("../tools/jarunpacker/out/jarunpacker/" + JARUNPACKER_JAR);
 
     URL jarunpackerURL = null;
-
     try {
-      jarunpackerURL = getClass().getResource("/jarunpacker.jar");
+      jarunpackerURL = getClass().getResource("/" + JARUNPACKER_JAR);
     } catch (final Exception ignored) {
     }
 
     InputStream jarunpacker_in = null;
-
     try {
       if (file.getName().endsWith(".jar")) {
 
-        if (jarunpackerURL != null) {
-          jarunpacker_in = jarunpackerURL.openStream();
-        } else if (jarunpackerFile.exists()) {
+        if (jarunpackerFile.canRead()) {
           jarunpacker_in = new FileInputStream(jarunpackerFile);
+        } else if (jarunpackerURL != null) {
+          jarunpacker_in = jarunpackerURL.openStream();
         }
 
         if (jarunpacker_in != null) {
@@ -2157,8 +2159,8 @@ public class Desktop implements BundleListener, FrameworkListener,
           sb.append("jarunpacker-opendir: " + base + "\n");
 
           // Convert the string to a input stream
-          final InputStream is = new ByteArrayInputStream(sb.toString().getBytes(
-              "UTF-8"));
+          final InputStream is =
+            new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
           final Manifest mf = new Manifest(is);
 
           out = new JarOutputStream(new FileOutputStream(file), mf);
@@ -2170,6 +2172,9 @@ public class Desktop implements BundleListener, FrameworkListener,
       }
 
       final StringBuffer xargs = new StringBuffer();
+      xargs.append("-Forg.osgi.provisioning.spid=");
+      xargs.append(base);
+      xargs.append("\n");
 
       int levelMax = -1;
 
@@ -2181,18 +2186,13 @@ public class Desktop implements BundleListener, FrameworkListener,
         bid++;
 
         final URL srcURL = new URL(loc);
-
         final String name = Util.shortLocation(loc);
-
         final ZipEntry entry = new ZipEntry(base + "/" + name);
-
         int level = -1;
-
         final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
         if (null!=bsl) {
           level = bsl.getStartLevel();
         }
-
         levelMax = Math.max(level, levelMax);
 
         if (level != -1 && level != lastLevel) {
@@ -2203,7 +2203,6 @@ public class Desktop implements BundleListener, FrameworkListener,
         xargs.append("-install file:" + name + "\n");
 
         out.putNextEntry(entry);
-
         InputStream in = null;
         try {
           in = srcURL.openStream();
@@ -2276,9 +2275,7 @@ public class Desktop implements BundleListener, FrameworkListener,
             }
 
             final ZipEntry destEntry = new ZipEntry(srcEntry.getName());
-
             out.putNextEntry(destEntry);
-
             int n = 0;
             while (-1 != (n = jar_in.read(buf, 0, buf.length))) {
               out.write(buf, 0, n);
@@ -2290,6 +2287,47 @@ public class Desktop implements BundleListener, FrameworkListener,
           } catch (final Exception ignored) {
           }
         }
+
+        // Write resource bundle for the jar unpacker, strings.properties
+        final File stringsFile =
+          new File("../tools/jarunpacker/" + STRINGS_PROPERTIES);
+        URL stringsURL = null;
+        try {
+          stringsURL = getClass().getResource("/" +STRINGS_PROPERTIES);
+        } catch (final Exception ignored) {
+        }
+
+        InputStream strings_in = null;
+        try {
+          if (stringsFile.canRead()) {
+            strings_in = new FileInputStream(stringsFile);
+          } else if (stringsURL != null) {
+            strings_in = stringsURL.openStream();
+          }
+
+          if (strings_in != null) {
+            final Properties strings = new Properties();
+            strings.load(strings_in);
+            strings.setProperty("frame_title", base + " installation");
+            strings.setProperty("page_license_title", "License");
+            strings.setProperty("page_finish_title", "Installing " + base);
+            strings
+                .setProperty("fmt_install_info",
+                             "The framework can be started by running "
+                                 + "<tt>java -jar framework.jar</tt> in the "
+                                 + "installtion directory.");
+            strings.setProperty("comp_size", "");
+
+            entry = new ZipEntry(STRINGS_PROPERTIES);
+            out.putNextEntry(entry);
+            strings.store(out, "jarunpacker strings for " + base);
+          }
+        } finally {
+          if (strings_in != null) {
+            strings_in.close();
+          }
+        }
+        // end of strings.properties
       } else {
         Activator.log.warn("No jarunpacker available");
       }
@@ -2305,9 +2343,15 @@ public class Desktop implements BundleListener, FrameworkListener,
       }
     }
 
-    final String txt = "Saved deploy archive as\n\n" + "  " + file.getAbsolutePath()
-        + "\n\n" + "To run, unpack the archive and run with\n\n"
-        + "  java -jar framwork.jar\n";
+    String canonicalPath = file.getAbsolutePath();
+    try {
+      canonicalPath = file.getCanonicalPath();
+    } catch (final IOException ioe) {
+    }
+    final String txt =
+      "Saved deploy archive as\n\n" + "  " + canonicalPath + "\n\n"
+          + "To unpack the archive double-click on it or run with\n\n"
+          + "  java -jar " + file.getName() + "\n\n";
 
     JOptionPane.showMessageDialog(frame, txt, "Saved deploy archive",
         JOptionPane.INFORMATION_MESSAGE, null);

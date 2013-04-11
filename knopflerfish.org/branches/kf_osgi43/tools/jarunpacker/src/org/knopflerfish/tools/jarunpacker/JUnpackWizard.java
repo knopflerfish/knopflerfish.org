@@ -155,7 +155,7 @@ public class JUnpackWizard extends JWizard {
             }
           } catch (Exception e) {
             System.err.println("no license resource file=" + licName);
-            e.printStackTrace();
+            lic.append("No license specified in the deployment archive.");
           } finally {
             try {  in.close(); } catch (Exception ignored) {  }
           }

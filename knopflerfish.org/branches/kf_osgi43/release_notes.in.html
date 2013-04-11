@@ -180,6 +180,18 @@
       Desktop 4.0.1
     </div>
     <div class="note_item">
+      Add refresh bundles operation to the tool-bar as well as to the
+      pop-up menu in the icons display.
+    </div>
+    <div class="note_item">
+      The closure tab as well as the File-menu save deployment archive
+      now computes the closure of bundles to include correctly. Before
+      it took the union of a capability dependencies closure and a
+      service dependencies closure wich will miss bundles that
+      provides capabilities to service implementor bundles that was
+      not in the original capabilitie closure.
+    </div>
+    <div class="note_item">
       Restored and enhanced the update check functionality that pops
       up a window with the release notes from the current Knopflerfish
       release when the desktop is running on an older Knopflerfish

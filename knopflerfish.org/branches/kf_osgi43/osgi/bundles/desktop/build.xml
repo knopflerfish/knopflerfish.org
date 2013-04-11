@@ -125,9 +125,46 @@
 
   </target>
 
+  <property name="do.bundle.custom.post" value="true"/>
+
   <path id="bundle.compile.path">
   </path>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <!-- The following uses ant.dir and must thus be placed after the -->
+  <!-- import of bundlebuild.xml that defines it.                   -->
+
+  <!-- The save action needs the jarunpacker.jar -->
+  <!-- Add it to the all and impl jars. -->
+  <property name="jarunpacker.dir"
+	    location="${ant.dir}/../tools/jarunpacker"/>
+  <property name="jarunpacker.out.dir"
+	    location="${jarunpacker.dir}/out/jarunpacker"/>
+  <property name="jarunpacker.jar"
+	    location="${jarunpacker.out.dir}/jarunpacker.jar"/>
+  <available property="jarunpacker.exists"
+	     file="${jarunpacker.jar}"/>
+
+  <target name="bundle.custom.post" if="jarunpacker.exists">
+    <jar jarfile="${all.jar}" update="true">
+      <fileset dir="${jarunpacker.out.dir}">
+	<include name="jarunpacker.jar"/>
+      </fileset>
+      <fileset dir="${jarunpacker.dir}">
+	<include name="strings.properties"/>
+      </fileset>
+    </jar>
+    <jar jarfile="${impl.jar}" update="true">
+      <fileset dir="${jarunpacker.out.dir}">
+	<include name="jarunpacker.jar"/>
+      </fileset>
+      <fileset dir="${jarunpacker.dir}">
+	<include name="strings.properties"/>
+      </fileset>
+    </jar>
+  </target>
+
+
 
 </project>
