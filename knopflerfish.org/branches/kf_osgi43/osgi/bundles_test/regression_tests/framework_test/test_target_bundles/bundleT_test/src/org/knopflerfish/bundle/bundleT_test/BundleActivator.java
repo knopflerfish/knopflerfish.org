@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,66 +32,22 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.knopflerfish.util;
+package org.knopflerfish.bundle.bundleT_test;
 
-/**
- * The <code>Semaphore</code> class handles synchronization and waiting for
- * values.
- *
- * @author Johan Agat and Anders Rimen
- */
-public class Semaphore {
-  private Object value = null;
+import org.osgi.framework.*;
 
-  private boolean closed = false;
+/*
+   The start will sleep for 3 secs.
+*/
 
-  /**
-   * Waits up to <code>timeout</code> milliseconds for this Semaphore to
-   * receive a value.
-   *
-   * @return The value of the Semaphore or null if this Semaphore has been
-   *         closed or if the specified timeout has expired.
-   */
-  public synchronized Object get(long timeout) {
-    long start = Timer.timeMillis();
-    while (!closed && value == null) {
-      try {
-        long t = Timer.timeMillis() - start;
-        if (t < timeout)
-          wait(timeout - t);
-        else
-          return null;
-      } catch (InterruptedException ignore) {
-      }
-    }
-    return value;
+public class BundleActivator implements org.osgi.framework.BundleActivator {
+
+  public void start(BundleContext bc) {
+    try {
+      Thread.sleep(3000);
+    } catch (InterruptedException _ignore) { }
   }
 
-  /**
-   * Sets the value of this Semaphore. This will cause all blocked
-   * calls to {@link #get(long)} to return the value. If {@link
-   * #set(Object)} is called several times with a short or no delay
-   * between the calls, the exact value returned by a given blocked
-   * call to {@link #get(long)} is not deterministic.
-   *
-   * @param v The new value.
-   */
-  public synchronized void set(Object v) {
-    if (closed)
-      return;
-    value = v;
-    // setCount++;
-    notifyAll();
+  public void stop(BundleContext bc) {
   }
-
-  public synchronized void reset() {
-    value = null;
-  }
-
-  public synchronized void close() {
-    value = null;
-    closed = true;
-    notifyAll();
-  }
-
 }

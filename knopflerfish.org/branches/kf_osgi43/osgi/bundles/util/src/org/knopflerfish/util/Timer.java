@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,64 +34,63 @@
 
 package org.knopflerfish.util;
 
-/**
- * The <code>Semaphore</code> class handles synchronization and waiting for
- * values.
- *
- * @author Johan Agat and Anders Rimen
- */
-public class Semaphore {
-  private Object value = null;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
-  private boolean closed = false;
+
+/**
+ * Misc static timer utility methods.
+ */
+public class Timer {
+
+  static private Method nanoTimeMethod;
+
+  static {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        nanoTimeMethod = getMethod(System.class, "nanoTime", new Class[] { });
+        return null;
+      }
+    });
+  }
 
   /**
-   * Waits up to <code>timeout</code> milliseconds for this Semaphore to
-   * receive a value.
-   *
-   * @return The value of the Semaphore or null if this Semaphore has been
-   *         closed or if the specified timeout has expired.
+   * Get method from class
    */
-  public synchronized Object get(long timeout) {
-    long start = Timer.timeMillis();
-    while (!closed && value == null) {
+  public static Method getMethod(Class c, String name, Class [] args) {
+    Method m = null;
+    while (true) {
       try {
-        long t = Timer.timeMillis() - start;
-        if (t < timeout)
-          wait(timeout - t);
-        else
+        m = c.getDeclaredMethod(name, args);
+        break;
+      } catch (NoSuchMethodException e) {
+        c = c.getSuperclass();
+        if (c == null) {
           return null;
-      } catch (InterruptedException ignore) {
+        }
       }
     }
-    return value;
+    return m;
   }
 
   /**
-   * Sets the value of this Semaphore. This will cause all blocked
-   * calls to {@link #get(long)} to return the value. If {@link
-   * #set(Object)} is called several times with a short or no delay
-   * between the calls, the exact value returned by a given blocked
-   * call to {@link #get(long)} is not deterministic.
-   *
-   * @param v The new value.
+   * Use System.nanoTime() if available, otherwise revert to
+   * System.currentTimeMillis(). Return time in milliseconds
+   * that can be used for time measurements.
    */
-  public synchronized void set(Object v) {
-    if (closed)
-      return;
-    value = v;
-    // setCount++;
-    notifyAll();
-  }
-
-  public synchronized void reset() {
-    value = null;
-  }
-
-  public synchronized void close() {
-    value = null;
-    closed = true;
-    notifyAll();
+  public static long timeMillis() {
+    if (nanoTimeMethod != null) {
+      try  {
+        Object res = nanoTimeMethod.invoke(null, new Object[] { });
+        if (res != null) {
+          return ((Long)res).longValue() / 1000000L;
+        }
+      } catch (IllegalAccessException _ignore) { 
+      } catch (InvocationTargetException _ignore) { }
+    }
+    return System.currentTimeMillis();
   }
 
 }

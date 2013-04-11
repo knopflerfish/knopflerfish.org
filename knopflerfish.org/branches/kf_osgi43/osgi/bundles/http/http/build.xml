@@ -6,7 +6,6 @@
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
   <property name  = "do.bundle.custom.pre"  value="true"/>
-  <property name  = "do.bundle.custom.post" value="true"/>
 
   <property name = "bundle.build.doc"   value = "true"/>
 
@@ -30,18 +29,24 @@
 
   <!-- want to include the log client w/o duplicating code -->
   <target name="bundle.custom.pre">
-   <mkdir dir="src/org/knopflerfish/service/log"/>
-   <copy todir="src/org/knopflerfish/service/log">
-     <fileset dir="${topdir}/bundles/log/src/org/knopflerfish/service/log" />
-   </copy>
-  </target>
-
-  <!-- need to undo the bundle.custom.pre step and do not want to -->
-  <!-- overwrite clean                                            -->
-  <target name="bundle.custom.post">
-    <delete dir="src/org/knopflerfish/service"
-            quiet="true"
-	    failonerror="false"/>
+    <!-- Reuse KF Log and Timer class from the KF util bundle. -->
+    <bundle_locator bundleNames="log_api, util">
+      <fileset dir="${jars.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.log_api}">
+        <patternset>
+          <include name="org/knopflerfish/service/log/**"/>
+        </patternset>
+      </zipfileset>
+      <zipfileset src="${bap.util}">
+        <patternset>
+          <include name="org/knopflerfish/util/Timer*"/>
+        </patternset>
+      </zipfileset>
+    </copy>
   </target>
 
   <import file="${topdir}/../ant/bundlebuild.xml"/>

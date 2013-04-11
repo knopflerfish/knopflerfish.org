@@ -37,6 +37,8 @@ package org.knopflerfish.bundle.event;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.knopflerfish.util.Timer;
+
 /**
  * This class will queue the events and deliver them to the event
  * handlers in the appropriate order.
@@ -121,9 +123,9 @@ public class QueueHandler extends Thread {
         long duration = 0;
         try {
           synchronized (this) {
-            final long start = System.currentTimeMillis();
+            final long start = Timer.timeMillis();
             wait(Activator.queueHandlerTimeout);
-            final long end = System.currentTimeMillis();
+            final long end = Timer.timeMillis();
             duration = end - start;
           }
         } catch (InterruptedException e) {

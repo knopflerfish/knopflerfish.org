@@ -40,6 +40,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -172,14 +176,18 @@ public class  PrefsStorageFile implements PrefsStorage {
   boolean bDebug = false;
 
   private PrefsStorageFile(final File baseDir) {
-    baseDir.mkdirs();
+    this.baseDir = (File) AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        baseDir.mkdirs();
 
-    if(!baseDir.exists() || !baseDir.isDirectory()) {
-      throw new RuntimeException
-        ("Failed to create root directory for preferences storage: '"
-         +baseDir +"'.");
-    }
-    this.baseDir = baseDir;
+        if(!baseDir.exists() || !baseDir.isDirectory()) {
+          throw new RuntimeException
+          ("Failed to create root directory for preferences storage: '"
+              +baseDir +"'.");
+        }
+        return baseDir;
+      }
+    });
   }
 
   File getNodeDir(String path, boolean bCreate) {
@@ -194,13 +202,18 @@ public class  PrefsStorageFile implements PrefsStorage {
         path = path.substring(1);
       }
       final File file = new File(baseDir, encode(path));
+      final String path2 = path;
       if(bCreate) {
-        file.mkdirs();
-        if(!file.exists() || !file.isDirectory()) {
-          throw new RuntimeException("Failed to create node dir=" +
-                                     file.getAbsolutePath() + " from path " +
-                                     path);
-        }
+        AccessController.doPrivileged(new PrivilegedAction() {
+          public Object run() {
+            file.mkdirs();
+            if(!file.exists() || !file.isDirectory()) {
+              throw new RuntimeException("Failed to create node dir=" +
+                  file.getAbsolutePath() + " from path " + path2);
+            }
+            return null;
+          }
+        });
       }
       return file;
     }
@@ -213,31 +226,39 @@ public class  PrefsStorageFile implements PrefsStorage {
       if(dict != null) {
         return dict;
       }
-      final Properties props = new Properties();
-      InputStream in = null;
+     
       try {
-        final File f = getKeyFile(path);
-        if(f.exists()) {
-          in = new FileInputStream(f);
-          props.load(in);
+        return (Dictionary) AccessController.doPrivileged(new PrivilegedExceptionAction() {
+          public Object run() throws IOException {
+            final Properties props = new Properties();
+            InputStream in = null;
+            try {
+              final File f = getKeyFile(path);
+              if(f.exists()) {
+                in = new FileInputStream(f);
+                props.load(in);
 
-          // We might need to decode some keys
-          final Dictionary<String,String> p2 = new Hashtable<String, String>();
-          for(Enumeration<Object> e = props.keys(); e.hasMoreElements(); ) {
-            final String key        = (String) e.nextElement();
-            final String decodedKey = decode(key);
-            final String val        = (String) props.get(key);
-            p2.put(decodedKey, val);
+                // We might need to decode some keys
+                final Dictionary<String, String> p2 = new Hashtable<String, String>();
+                for(Entry<Object,Object> e : props.entrySet()) {
+                  final String decodedKey = decode((String)e.getKey());
+                  final String val        = (String)e.getValue();
+                  p2.put(decodedKey, val);
+                }
+
+                propsMap.put(path, p2);
+                return p2;
+              } else {
+                throw new IllegalStateException("No keys for path=" + path +
+                                                ", file=" + f.getAbsolutePath());
+              }
+            } finally {
+              try { in.close(); } catch (Exception ignored) {  }
+            }
           }
-
-          propsMap.put(path, p2);
-          return p2;
-        } else {
-          throw new IllegalStateException("No keys for path=" + path +
-                                          ", file=" + f.getAbsolutePath());
-        }
-      } finally {
-        try { in.close(); } catch (Exception ignored) {  }
+        });
+      } catch (PrivilegedActionException pae) {
+        throw (IOException) pae.getCause();
       }
     }
   }
@@ -252,17 +273,26 @@ public class  PrefsStorageFile implements PrefsStorage {
         props.put(encode(key), val);
       }
 
-      OutputStream out = null;
       try {
-        final File f = getKeyFile(path);
-        out = new FileOutputStream(f);
-        props.save(out, "keys for " + path);
-      } catch (IOException e) {
-        e.printStackTrace();
-        throw e;
-      } finally {
-        try { out.close(); } catch (Exception ignored) {
-        }
+        AccessController.doPrivileged(new PrivilegedExceptionAction() {
+          public Object run() throws IOException {
+            OutputStream out = null;
+            try {
+              final File f = getKeyFile(path);
+              out = new FileOutputStream(f);
+              props.save(out, "keys for " + path);
+            } catch (IOException e) {
+              e.printStackTrace();
+              throw e;
+            } finally {
+              try { out.close(); } catch (Exception ignored) {
+              }
+            }
+            return null;
+          }
+        });
+      } catch (PrivilegedActionException pae) {
+        throw (IOException) pae.getCause();
       }
     }
   }
@@ -411,45 +441,56 @@ public class  PrefsStorageFile implements PrefsStorage {
       getNodeDir(path, bCreate);
       final File keyFile = getKeyFile(path);
 
-      if(!keyFile.exists()) {
-        final Dictionary<String, String> props = new Hashtable<String, String>();
-        propsMap.put(path, props);
-        saveProps(path, props);
-      }
+      AccessController.doPrivileged(new PrivilegedExceptionAction() {
+        public Object run() throws Exception {
+          if(!keyFile.exists()) {
+            final Dictionary<String, String> props = new Hashtable<String, String>();
+            propsMap.put(path, props);
+            saveProps(path, props);
+          }
+          return null;
+        }
+      });
 
       pi = new PreferencesImpl(this, path);
       prefs.put(path, pi);
       return pi;
     } catch (Exception e) {
+      if (e instanceof PrivilegedActionException) {
+        e = (Exception) e.getCause();
+      }
       throw new IllegalStateException("getNode " + path + " failed: " + e);
     }
   }
 
   public boolean nodeExists(final String path) {
     synchronized(lock) {
-      boolean b = false;
-
       final File f = getNodeDir(path, false);
-      int ix = path.lastIndexOf('/');
+      final int ix = path.lastIndexOf('/');
 
-      if(ix != -1 && path.length() > 0) {
-        final String last  = decode(path.substring(ix + 1));
-        String fname = f.getAbsolutePath();
+      return ((Boolean) AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          boolean b = false;
+          if(ix != -1 && path.length() > 0) {
+            final String last  = decode(path.substring(ix + 1));
+            String fname = f.getAbsolutePath();
 
-        try {
-          fname = f.getCanonicalPath();
-        } catch (IOException e) {
-          logWarn("failed to get canonical path of " + path, e);
+            try {
+              fname = f.getCanonicalPath();
+            } catch (IOException e) {
+              logWarn("failed to get canonical path of " + path, e);
+            }
+
+            fname = decode(fname);
+            if(fname.endsWith(last)) {
+              b = f.exists();
+            }
+          } else {
+            b = f.exists();
+          }
+          return new Boolean(b);
         }
-
-        fname = decode(fname);
-        if(fname.endsWith(last)) {
-          b = f.exists();
-        }
-      } else {
-        b = f.exists();
-      }
-      return b;
+      })).booleanValue();
     }
   }
 
@@ -500,11 +541,21 @@ public class  PrefsStorageFile implements PrefsStorage {
   }
 
   static void deleteTree(final File f) {
+    AccessController.doPrivileged(new PrivilegedAction() {
+      public Object run() {
+        PrefsStorageFile.deleteTree0(f);
+        return null;
+      }
+    });
+  }
+  
+  // note: needs to be called in privileged action
+  private static void deleteTree0(final File f) {
     if(f.exists()) {
       if(f.isDirectory()) {
         final String[] children = f.list();
         for(int i = 0; i < children.length; i++) {
-          deleteTree(new File(f, children[i]));
+          deleteTree0(new File(f, children[i]));
         }
       }
       f.delete();

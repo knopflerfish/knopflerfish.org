@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2010, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -102,18 +102,7 @@ class DirDeployerImpl implements DirDeployerService {
           log("started scan");
           while(bRun) {
             try {
-              synchronized(config) {
-                long now = System.currentTimeMillis();
-                doScan();
-                long time = System.currentTimeMillis() - now;
-
-                // make sure we don't spend all our time in scanning dirs
-                if(time > config.interval) {
-                  config.interval = Math.max(100, time * 2);
-                  log("increased interval to " + config.interval);
-                }
-              }
-
+              doScan();
               Thread.sleep(Math.max(100, config.interval));
             } catch (Exception e) {
               log("scan failed", e);

@@ -356,7 +356,6 @@ public class FrameworkContext  {
         if (systemUrlStreamHandlerFactory != null) {
           urlStreamHandlerFactory = systemUrlStreamHandlerFactory;
           contentHandlerFactory   = systemContentHandlerFactory;
-          urlStreamHandlerFactory.addFramework(this);
         } else {
           urlStreamHandlerFactory = new ServiceURLStreamHandlerFactory(this);
           contentHandlerFactory   = new ServiceContentHandlerFactory(this);
@@ -475,6 +474,15 @@ public class FrameworkContext  {
 
     resolverHooks = null;
 
+    if(props.REGISTERSERVICEURLHANDLER) {
+      urlStreamHandlerFactory.removeFramework(this);
+      // Since handlers can only be registered once, keep them in this
+      // case.
+    } else {
+      urlStreamHandlerFactory = null;
+      contentHandlerFactory   = null;
+    }
+
     bundles.clear();
     bundles = null;
 
@@ -498,14 +506,6 @@ public class FrameworkContext  {
 
     storage.close();
     storage = null;
-
-    if (props.REGISTERSERVICEURLHANDLER) {
-      // Since handlers can only be registered once, keep them in this
-      // case.
-    } else {
-      urlStreamHandlerFactory = null;
-      contentHandlerFactory   = null;
-    }
 
     perm = new SecurePermissionOps(this);
 

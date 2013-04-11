@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -477,7 +477,6 @@ class DesktopPanel extends Panel implements BundleListener {
                    ypos);
       
       ypos += g.getFont().getSize() + 2;
-      long t1 = System.currentTimeMillis();      
     }
     
     public Dimension preferredSize() {

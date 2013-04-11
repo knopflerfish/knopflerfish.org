@@ -44,6 +44,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -72,6 +74,8 @@ public class Util {
    */
   static public final String FWDIR_PROP = "org.osgi.framework.dir";
   static public final String FWDIR_DEFAULT = "fwdir";
+
+  static private final Method nanoTimeMethod = getMethod(System.class, "nanoTime", new Class[] { });
 
 
   public static String getFrameworkDir(Map<String,String> props) {
@@ -1020,8 +1024,44 @@ public class Util {
   }
 
   /**
-   * Class for tokenizing an attribute string.
-   * @see Util#parseEntries(String, String, boolean, boolean, boolean)
+   * Get method from class
+   */
+  public static Method getMethod(Class c, String name, Class [] args) {
+    Method m = null;
+    while (true) {
+      try {
+        m = c.getDeclaredMethod(name, args);
+        break;
+      } catch (NoSuchMethodException e) {
+        c = c.getSuperclass();
+        if (c == null) {
+          return null;
+        }
+      }
+    }
+    m.setAccessible(true);
+    return m;
+  }
+
+  /**
+   * Use System.nanoTime() if available, otherwise revert to
+   * System.currentTimeMillis(). Return 
+   */
+  public static long timeMillis() {
+    if (nanoTimeMethod != null) {
+      try  {
+        Object res = nanoTimeMethod.invoke(null, new Object[] { });
+        if (res != null) {
+          return ((Long)res).longValue() / 1000000L;
+        }
+      } catch (IllegalAccessException _ignore) { 
+      } catch (InvocationTargetException _ignore) { }
+    }
+    return System.currentTimeMillis();
+  }
+
+  /**
+   * Class for tokenize an attribute string.
    */
   static class AttributeTokenizer {
 

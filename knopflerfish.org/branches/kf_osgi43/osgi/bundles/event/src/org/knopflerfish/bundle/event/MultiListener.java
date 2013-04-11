@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.knopflerfish.util.Timer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
@@ -213,10 +214,11 @@ public class MultiListener
     if(!thrownByPostEvent.isEmpty()) {
       Iterator<Entry<Throwable, Long>> entries
         = thrownByPostEvent.entrySet().iterator();
+      long now = Timer.timeMillis();
       while(entries.hasNext()) {
         Entry<Throwable, Long> timestampedThrowable = entries.next();
         long timestamp = timestampedThrowable.getValue().longValue();
-        if(System.currentTimeMillis() > (timestamp + timeout)) {
+        if ((now - timestamp) > timeout) {
           entries.remove();
         }
       }
@@ -289,7 +291,7 @@ public class MultiListener
       // within a certain time
       // See beginning of this method
       if(thrownByPostEvent.size() < 5) {
-        thrownByPostEvent.put(t, new Long(System.currentTimeMillis()));
+        thrownByPostEvent.put(t, new Long(Timer.timeMillis()));
         if(Activator.log.doError()) {
           Activator.log.error("EXCEPTION in logged(LogEntry logEntry):", t);
         }

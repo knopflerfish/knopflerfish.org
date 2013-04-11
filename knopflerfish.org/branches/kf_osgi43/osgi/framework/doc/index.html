@@ -625,11 +625,31 @@ but "-D" should also work.
     <td>True</td>
   </tr>
   <tr>
+  <tr>
+    <td>org.knopflerfish.framework.bundlethread.timeout</td>
+    <td>
+     Use this proprty to set a limit on how long the framework will wait for a
+     bundle's activator to complete and return from the start and stop methods.
+     If the time-out occurs, the framework will interrupt the BundleThread that
+     is executing the start or stop method and then optionally stop it or lower
+     its priority, see property org.knopflerfish.framework.bundlethread.abort.
+     A BundleException is thrown to indicate that start/stop of the bundle
+     failed.
+
+     If set to a positive integer, the value is used as time-out in seconds.
+     If set to 0, no time out is used and the framework will wait indefinitely
+     for the activator's start and stop methods to complete.
+    </td>
+    <td>Integer</td>
+    <td>0</td>
+  </tr>
+  <tr>
     <td>org.knopflerfish.framework.bundlethread.abort</td>
     <td>
-      If a bundle's start() or stop() method has not returned and the
-      bundle gets uninstalled this property defines how to manage the
-      bundle's start/stop thread. Possible values are:
+      If a bundle's start or stop method time-out (see property
+      org.knopflerfish.framework.bundlethread.timeout) or if the bundle gets
+      uninstalled before the method has returned, this property defines how to
+      manage the bundle's start/stop thread. Possible values are:
       <table class="man_inner">
 	<tr>
 	  <td class="man_inner">"stop"</td>

@@ -31,6 +31,7 @@
 
   <!-- Internal target that calls a specified target in all sub-dirs. -->
   <target name="doAntBuild" depends="setup">
+    <ant target="${the.target}" dir="util"/>
     <ant target="${the.target}" dir="cm/cm"/>
     <ant target="${the.target}" dir="event"/>
     <ant target="${the.target}" dir="threadio"/>
@@ -45,7 +46,6 @@
     <antcall target="build14.${the.target}"/>
 
     <ant target="${the.target}" dir="http"/>
-    <ant target="${the.target}" dir="util"/>
     <ant target="${the.target}" dir="xml"/>
     <ant target="${the.target}" dir="useradmin"/>
     <ant target="${the.target}" dir="component"/>

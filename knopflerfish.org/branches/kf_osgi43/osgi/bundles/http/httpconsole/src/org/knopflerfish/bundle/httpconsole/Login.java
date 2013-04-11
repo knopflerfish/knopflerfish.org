@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@ import java.net.URL;
 import java.io.*;
 import javax.servlet.*;
 import javax.servlet.http.*;
+
+import org.knopflerfish.util.Timer;
 
 import org.osgi.framework.*;
 import org.osgi.service.http.*;
@@ -231,12 +233,12 @@ public class Login {
     }
 
     public void touch() {
-      touchTime = System.currentTimeMillis();
+      touchTime = Timer.timeMillis();
     }
 
     public boolean hasExpired() {
       return
-        (System.currentTimeMillis() - touchTime) > ( 1000 * expirationTime);
+        (Timer.timeMillis() - touchTime) > ( 1000 * expirationTime);
     }
   }
 }

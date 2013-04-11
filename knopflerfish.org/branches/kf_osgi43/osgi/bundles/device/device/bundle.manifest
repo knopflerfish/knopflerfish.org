@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Device-Manager
 Bundle-SymbolicName: org.knopflerfish.bundle.device
-Bundle-Version: 4.0.0
+Bundle-Version: 4.0.1
 Bundle-Description: Device manager
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi

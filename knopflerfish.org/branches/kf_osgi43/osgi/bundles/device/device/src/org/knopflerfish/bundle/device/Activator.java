@@ -43,6 +43,8 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Vector;
 
+import org.knopflerfish.util.Timer;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -136,7 +138,8 @@ public class Activator
 
   private final Hashtable<Bundle, Long> tempDrivers = new Hashtable<Bundle, Long>(10);
 
-  private long reapTime;
+  private long lastReapTime;
+
 
   public Activator()
   {
@@ -405,10 +408,10 @@ public class Activator
         continue;
       }
 
-      final long now = System.currentTimeMillis();
-      if (now >= reapTime) {
-        reapDrivers();
-        reapTime = now + REAP_INTERVAL;
+      final long now = Timer.timeMillis();
+      if (now - lastReapTime >= REAP_INTERVAL) {
+        lastReapTime = now;
+        reapDrivers(now);
 
         // NB: Should also clean out old matches every now
         // and then based on some kind of LRU scheme
@@ -416,7 +419,7 @@ public class Activator
       synchronized (this) {
         if (!quit) {
           try {
-            wait(reapTime - now);
+            wait(REAP_INTERVAL - (now - lastReapTime));
           } catch (final Exception e) {
           }
         }
@@ -587,7 +590,7 @@ public class Activator
 
   private void updateLife(Bundle b, long t)
   {
-    tempDrivers.put(b, new Long(System.currentTimeMillis() + t));
+    tempDrivers.put(b, new Long(Timer.timeMillis() + t));
   }
 
   private boolean isUsed(ServiceReference<?> sr)
@@ -610,9 +613,8 @@ public class Activator
     return false;
   }
 
-  private void reapDrivers()
+  private void reapDrivers(final long now)
   {
-    final long now = System.currentTimeMillis();
     final Bundle[] ba = bc.getBundles();
     if (ba != null) {
       for (final Bundle b : ba) {
@@ -635,7 +637,7 @@ public class Activator
               updateLife(b, LONG_LIFE);
             } else if (expire == null) {
               updateLife(b, SHORT_LIFE);
-            } else if (expire.longValue() < now) {
+                        } else if (expire.longValue() - now < 0) {
               info("uninstalling " + b.getLocation());
               b.uninstall();
             }

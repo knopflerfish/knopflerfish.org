@@ -227,7 +227,7 @@ public class SystemBundle extends BundleImpl implements Framework {
       if (((INSTALLED | RESOLVED) & state) == 0) {
         stopEvent = null;
         while (true) {
-          final long st = System.currentTimeMillis();
+          final long st = Util.timeMillis();
           try {
             lock.wait(timeout);
             if (stopEvent != null) {
@@ -236,7 +236,7 @@ public class SystemBundle extends BundleImpl implements Framework {
           } catch (final InterruptedException _) {
           }
           if (timeout > 0) {
-            timeout = timeout - (System.currentTimeMillis() - st);
+            timeout = timeout - (Util.timeMillis() - st);
             if (timeout <= 0) {
               break;
             }
@@ -1067,22 +1067,14 @@ public class SystemBundle extends BundleImpl implements Framework {
 
   private void addClassPathURL(URL url) throws Exception {
     final ClassLoader cl = getClassLoader();
-    Method m = null;
-    Class<?> c = cl.getClass();
-    while (true) {
-      try {
-        m = c.getDeclaredMethod("addURL", new Class[] { URL.class });
-        break;
-      } catch (final NoSuchMethodException e) {
-        c = c.getSuperclass();
-        if (c == null) {
-          throw e;
-        }
-      }
+    Method m = Util.getMethod(cl.getClass(), "addURL", new Class[] { URL.class });
+    if (m != null) {
+      m.invoke(cl, new Object[] { url });
+    } else {
+      throw new NoSuchMethodException("addURL");
     }
-    m.setAccessible(true);
-    m.invoke(cl, new Object[] { url });
   }
+
 
   /**
    * If the extension has an extension activator header process it.

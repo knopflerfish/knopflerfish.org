@@ -142,8 +142,9 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
-  void removeFramework(FrameworkContext fw) {
+  boolean removeFramework(FrameworkContext fw) {
     framework.remove(fw);
+    return framework.isEmpty();
   }
 
 
