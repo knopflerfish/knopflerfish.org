@@ -81,6 +81,10 @@ public abstract class JHTMLBundle extends JPanel
 {
   private static final long serialVersionUID = 1L;
 
+  protected static final String BG_COLOR_BUNDLE_INFO   = "#ffffff";
+  protected static final String BG_COLOR_BUNDLE_DATA   = "#f8f8f8";
+  protected static final String BG_COLOR_BUNDLE_HEADER = "#eeeeee";
+
   JPanel      panel;
   JTextPane   html;
   JScrollPane scroll;
@@ -393,7 +397,9 @@ public abstract class JHTMLBundle extends JPanel
       setCurrentBID(-1L);
       sb.append("<html>\n");
       sb.append("<table border=\"0\">\n");
-      sb.append("<tr><td bgcolor=\"#eeeeee\">");
+      sb.append("<tr><td bgcolor=\"");
+      sb.append(BG_COLOR_BUNDLE_HEADER);
+      sb.append("\">");
       startFont(sb, "-1");
       sb.append(getNoBundleSelectedHeader());
       stopFont(sb);
@@ -416,24 +422,22 @@ public abstract class JHTMLBundle extends JPanel
 
       setCurrentBID(bl[0].getBundleId());
 
-      for (final Bundle element : bl) {
+      for (final Bundle bundle : bl) {
 
         sb.append("<table border=\"0\" width=\"100%\">\n");
-        sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+        sb.append("<tr><td width=\"100%\" bgcolor=\"");
+        sb.append(BG_COLOR_BUNDLE_HEADER);
+        sb.append("\">");
         startFont(sb, "-1");
-        sb.append(getBundleSelectedHeader(element));
+        sb.append(getBundleSelectedHeader(bundle));
         stopFont(sb);
         sb.append("</td>\n");
         sb.append("</tr>\n");
 
-        sb.append("<tr><td bgcolor=\"#ffffff\">");
-//         long t0 = System.currentTimeMillis();
-        final StringBuffer bi = bundleInfo(element);
-//         long t1 = System.currentTimeMillis();
-//         if(t1 - t0 > 50) {
-//           System.out.println("  " + (t1-t0) + "ms " + getClass().getName());
-//         }
-        sb.append(bi.toString());
+        sb.append("<tr><td bgcolor=\"");
+        sb.append(BG_COLOR_BUNDLE_INFO);
+        sb.append("\">");
+        sb.append(bundleInfo(bundle).toString());
         sb.append("</td>\n");
         sb.append("</tr>\n");
         sb.append("</table>\n");
@@ -483,31 +487,53 @@ public abstract class JHTMLBundle extends JPanel
 
 
   static void appendRow(StringBuffer sb, String c1, String c2) {
-    appendRow(sb, "-2", "", c1, c2);
+    appendRow(sb, null, null, null, c1, c2);
   }
 
+  /**
+   * Generate HTML for one two-column table row.
+   *
+   * @param sb String buffer to append the HTML to.
+   * @param bgColor Back ground color for the row (optional, inherit).
+   * @param size Font size for the columns (optional, "-2").
+   * @param align Horizontal alignment (optional, inherit)
+   * @param label Text in the first column.
+   * @param value Text in the second column.
+   */
   static void appendRow(final StringBuffer sb,
+                        String bgColor,
                         final String size,
                         final String align,
                         final String label,
-                        final String value) {
-    sb.append("<tr><td ");
-    sb.append(align);
+                        final String value)
+  {
+    sb.append("<tr");
+    if (bgColor != null) {
+      sb.append(" style=\"background-color:");
+      sb.append(bgColor);
+      sb.append(";\"");
+    }
+    sb.append("><td ");
+    if (align!=null) {
+      sb.append("align=\"");
+      sb.append(align);
+      sb.append("\"");
+    }
     sb.append(" valign='top'>");
 
-    JHTMLBundle.startFont(sb, size);
+    startFont(sb, size);
     sb.append("<b>");
     sb.append(label);
     sb.append("</b>");
-    JHTMLBundle.stopFont(sb);
+    stopFont(sb);
 
     sb.append("</td><td ");
     sb.append(align);
     sb.append(" valign='top'>");
 
-    JHTMLBundle.startFont(sb, size);
+    startFont(sb, size);
     sb.append(value);
-    JHTMLBundle.stopFont(sb);
+    stopFont(sb);
 
     sb.append("</td></tr>\n");
   }
@@ -518,7 +544,7 @@ public abstract class JHTMLBundle extends JPanel
 
   static void startFont(final StringBuffer sb, final String size) {
     sb.append("<font size=\"");
-    sb.append(size);
+    sb.append(size==null ? "-2" : size);
     sb.append("\" face=\"Verdana, Arial, Helvetica, sans-serif\">");
   }
 

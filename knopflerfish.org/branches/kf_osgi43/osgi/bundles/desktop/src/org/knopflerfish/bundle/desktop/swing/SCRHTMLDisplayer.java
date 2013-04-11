@@ -84,17 +84,17 @@ public class SCRHTMLDisplayer
     = new HashMap<ServiceReference<ScrService>, ScrService>();
 
   ScrService getScrServiceById(final long sid) {
-    for (Entry<ServiceReference<ScrService>,ScrService> entry : scrServices.entrySet()) {
+    for (final Entry<ServiceReference<ScrService>,ScrService> entry : scrServices.entrySet()) {
       final ServiceReference<ScrService> sr = entry.getKey();
       final Long srSid = (Long) sr.getProperty(Constants.SERVICE_ID);
       if (srSid.longValue() == sid) {
-        return (ScrService) entry.getValue();
+        return entry.getValue();
       }
     }
     return null;
   }
 
-  private ServiceTracker<ScrService, ScrService> scrTracker;
+  private final ServiceTracker<ScrService, ScrService> scrTracker;
 
   public ScrService addingService(ServiceReference<ScrService> sr) {
     Activator.log.info("ScrService added.", sr);
@@ -119,6 +119,7 @@ public class SCRHTMLDisplayer
     }
   }
 
+  @Override
   public void open() {
     super.open();
 
@@ -127,6 +128,7 @@ public class SCRHTMLDisplayer
     }
   }
 
+  @Override
   public void close() {
 
     if (scrTracker != null) {
@@ -161,7 +163,7 @@ public class SCRHTMLDisplayer
     /** Component Id of the component the link point to. */
     private long cid = -1;
     /** The component reference that the URL points to (optional). */
-    private String ref;
+    private final String ref;
     /** Search for named component. sid, cid optional when present. */
     private String compName;
     /** True if the URL contains a state change command. */
@@ -196,16 +198,16 @@ public class SCRHTMLDisplayer
             + "' component id is missing.");
       }
       if (params.containsKey(URL_SCR_KEY_SID)) {
-        this.sid = Long.parseLong((String) params.get(URL_SCR_KEY_SID));
+        this.sid = Long.parseLong(params.get(URL_SCR_KEY_SID));
       }
       if (params.containsKey(URL_SCR_KEY_CID)) {
-        this.cid = Long.parseLong((String) params.get(URL_SCR_KEY_CID));
+        this.cid = Long.parseLong(params.get(URL_SCR_KEY_CID));
       }
-      this.ref = (String) params.get(URL_SCR_KEY_REF);
-      this.compName = (String) params.get(URL_SCR_KEY_COMP_NAME);
+      this.ref = params.get(URL_SCR_KEY_REF);
+      this.compName = params.get(URL_SCR_KEY_COMP_NAME);
       this.isCmd = params.containsKey(URL_SCR_KEY_CMD);
       if (this.isCmd) {
-        final String cmd = (String) params.get(URL_SCR_KEY_CMD);
+        final String cmd = params.get(URL_SCR_KEY_CMD);
         this.doEnable = URL_SCR_CMD_ENABLE.equals(cmd);
         this.doDisable = URL_SCR_CMD_DISABLE.equals(cmd);
         this.doRefresh = URL_SCR_CMD_REFRESH.equals(cmd);
@@ -347,7 +349,7 @@ public class SCRHTMLDisplayer
       sb.append("\" value=\"");
       sb.append(URL_SCR_CMD_REFRESH);
       sb.append("\">");
-      for (Entry<String,String> entry : getParams().entrySet()) {
+      for (final Entry<String,String> entry : getParams().entrySet()) {
         sb.append("<input type=\"hidden\" name=\"");
         sb.append(entry.getKey());
         sb.append("\" value=\"");
@@ -363,15 +365,17 @@ public class SCRHTMLDisplayer
   }
 
 
+  @Override
   public JComponent newJComponent() {
     return new JHTML(this);
   }
 
+  @Override
   public void valueChanged(long bid) {
-    Bundle[] bl = Activator.desktop.getSelectedBundles();
+    final Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for (JComponent jcomp : components) {
-      JHTML comp = (JHTML) jcomp;
+    for (final JComponent jcomp : components) {
+      final JHTML comp = (JHTML) jcomp;
       comp.valueChanged(bl);
     }
   }
@@ -384,6 +388,7 @@ public class SCRHTMLDisplayer
     }
 
     // Overridden to show all components when no bundle is selected.
+    @Override
     public void updateView(Bundle[] bl)
     {
       if (!isShowing()) {
@@ -408,6 +413,7 @@ public class SCRHTMLDisplayer
      * Present the components registered for a single bundle.
      * @param b the bundle to present components for.
      */
+    @Override
     public StringBuffer bundleInfo(Bundle b) {
       final StringBuffer sb = new StringBuffer();
 
@@ -445,7 +451,9 @@ public class SCRHTMLDisplayer
 
     // Table heading when not provided by caller.
     if (null == bundle) {
-      sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+      sb.append("<tr><td width=\"100%\" bgcolor=\"");
+      sb.append(JHTMLBundle.BG_COLOR_BUNDLE_HEADER);
+      sb.append("\">");
       JHTMLBundle.startFont(sb, "-1");
       if (compName!=null) {
         sb.append("SCR Components with name '");
@@ -459,14 +467,14 @@ public class SCRHTMLDisplayer
       sb.append("</tr>\n");
     }
 
-    int startPos = sb.length();
+    final int startPos = sb.length();
     boolean compFound = false;
     sb.append("<tr><td width=\"100%\">");
     JHTMLBundle.startFont(sb, "-6");
     startComponentTable(sb);
 
     try {
-      for (Entry<ServiceReference<ScrService>,ScrService> entry : scrServices.entrySet()) {
+      for (final Entry<ServiceReference<ScrService>,ScrService> entry : scrServices.entrySet()) {
         final ServiceReference<ScrService> scrSR = entry.getKey();
         final ScrService scrService = entry.getValue();
         final Component[] components = null!=bundle
@@ -480,7 +488,7 @@ public class SCRHTMLDisplayer
           compFound = true;
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
     stopComponentTable(sb);
@@ -592,7 +600,7 @@ public class SCRHTMLDisplayer
                                  final String compName) {
     Component comp = scr.getComponent(cid);
     if (null==comp && null!=compName) {
-      Component[] comps = scr.getComponents(compName);
+      final Component[] comps = scr.getComponents(compName);
       if (null!=comps) {
         if (comps.length>1) {
           Activator.log.info("Found " + comps.length +" components with name '"
@@ -617,7 +625,7 @@ public class SCRHTMLDisplayer
     try {
       final ScrService scr = getScrServiceById(scrUrl.getSid());
       if (null != scr) {
-        Component comp = getComponent(scr, scrUrl.getCid(),
+        final Component comp = getComponent(scr, scrUrl.getCid(),
                                       scrUrl.getComponentName());
 
         if (null != comp) {
@@ -639,7 +647,9 @@ public class SCRHTMLDisplayer
           sb.append("<html>");
           sb.append("<table border=0 width='100%'>");
 
-          sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+          sb.append("<tr><td width=\"100%\" bgcolor=\"");
+          sb.append(JHTMLBundle.BG_COLOR_BUNDLE_HEADER);
+          sb.append("\">");
           sb.append("Service Component #" + comp.getId());
           if (scrServices.size()>1) {
             sb.append("@");
@@ -696,14 +706,14 @@ public class SCRHTMLDisplayer
       } else {
         sb.append("No SCR service with sid=" + scrUrl.getSid());
       }
-    } catch (Exception e2) {
+    } catch (final Exception e2) {
       e2.printStackTrace();
     }
   }
 
   void appendComponentLine(final StringBuffer sb, final String label,
       final String value) {
-    JHTMLBundle.appendRow(sb, "-1", "align='left'", label, value);
+    JHTMLBundle.appendRow(sb, null, "-1", "left", label, value);
   }
 
   String componentServicesLabel(final Component comp) {
@@ -735,7 +745,7 @@ public class SCRHTMLDisplayer
     sb.append("<table cellpadding='0' cellspacing='5' border='0' width='100%'>\n");
     sb.append("<tr><th align='left' style='padding-left:-5'>Name</th><th align='left'>Value</th></tr>\n");
     final Dictionary<?, ?> props = comp.getProperties();
-    for (Enumeration<?> keys = props.keys(); keys.hasMoreElements();) {
+    for (final Enumeration<?> keys = props.keys(); keys.hasMoreElements();) {
       final String key = (String) keys.nextElement();
       final StringWriter sw = new StringWriter();
       final PrintWriter pr = new PrintWriter(sw);
@@ -777,9 +787,7 @@ public class SCRHTMLDisplayer
       sb.append("<th align='left'>Service</th>");
       sb.append("</tr>");
 
-      for (int i = 0; i < refs.length; i++) {
-        final Reference ref = refs[i];
-
+      for (final Reference ref : refs) {
         sb.append("<tr>");
         sb.append("<td align='left' valign='middle' style='padding-left:-10'>");
         JHTMLBundle.startFont(sb, "-1");
@@ -838,16 +846,18 @@ public class SCRHTMLDisplayer
         if (null != comp) {
           final Reference[] refs = comp.getReferences();
           Reference ref = null;
-          for (int i = 0; i < refs.length; i++) {
-            if (refs[i].getName().equals(scrUrl.getRef())) {
-              ref = refs[i];
+          for (final Reference ref2 : refs) {
+            if (ref2.getName().equals(scrUrl.getRef())) {
+              ref = ref2;
             }
           }
           if (null != ref) {
             sb.append("<html>");
             sb.append("<table border=0 width='100%'>");
 
-            sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+            sb.append("<tr><td width=\"100%\" bgcolor=\"");
+            sb.append(JHTMLBundle.BG_COLOR_BUNDLE_HEADER);
+            sb.append("\">");
             sb.append("Service Component #");
             new ScrUrl(scrUrl.getSid(), comp).scrLink(sb, String.valueOf(comp.getId()));
             sb.append(", <i>");
@@ -908,7 +918,7 @@ public class SCRHTMLDisplayer
       } else {
         sb.append("No SCR service with sid=" + scrUrl.getSid());
       }
-    } catch (Exception e2) {
+    } catch (final Exception e2) {
       e2.printStackTrace();
     }
   }

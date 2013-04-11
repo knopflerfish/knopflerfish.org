@@ -85,6 +85,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleRevisions;
 
 
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
@@ -459,7 +461,13 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               stopBundleAction
                   .setEnabled((state & (Bundle.ACTIVE | Bundle.STARTING)) != 0);
               updateBundleAction.setEnabled(true);
-              refreshBundleAction.setEnabled((state & Bundle.INSTALLED) == 0);
+
+              // Refresh is only needed when there are more than bundle revision
+              // in use.
+              final List<BundleRevision> brevs =
+                bundle.adapt(BundleRevisions.class).getRevisions();
+              refreshBundleAction.setEnabled(brevs.size() > 1);
+
               uninstallBundleAction.setEnabled(true);
             }
             contextPopupMenu.show(comp, e.getX(), e.getY());
