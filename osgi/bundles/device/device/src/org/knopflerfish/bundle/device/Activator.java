@@ -367,7 +367,7 @@ public class Activator extends Thread implements BundleActivator,
                 continue;
 
             long now = Timer.timeMillis();
-            if (now - lastReapTime > REAP_INTERVAL) {
+            if (now - lastReapTime >= REAP_INTERVAL) {
                 lastReapTime = now;
                 reapDrivers(now);
 
@@ -377,7 +377,7 @@ public class Activator extends Thread implements BundleActivator,
             synchronized (this) {
                 if (!quit) {
                     try {
-                        wait(now - lastReapTime + REAP_INTERVAL);
+                      wait(REAP_INTERVAL - (now - lastReapTime));
                     } catch (InterruptedException e) {
                     }
                 }
