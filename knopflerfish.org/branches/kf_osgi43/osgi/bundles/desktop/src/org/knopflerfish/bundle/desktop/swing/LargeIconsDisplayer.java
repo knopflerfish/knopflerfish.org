@@ -454,20 +454,24 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
             final Bundle bundle = getBundle(comp);
             if (bundle != null) {
+              final List<BundleRevision> bRevs =
+                bundle.adapt(BundleRevisions.class).getRevisions();
+              final BundleRevision bRevCur = bRevs.get(0);
+              final boolean isFragment =
+                bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
               final int state = bundle.getState();
+
               resolveBundleAction.setEnabled((state & Bundle.INSTALLED) != 0);
               startBundleAction
-                  .setEnabled((state & (Bundle.INSTALLED | Bundle.RESOLVED)) != 0);
+                  .setEnabled(!isFragment
+                              && ((state & (Bundle.INSTALLED | Bundle.RESOLVED)) != 0));
               stopBundleAction
                   .setEnabled((state & (Bundle.ACTIVE | Bundle.STARTING)) != 0);
               updateBundleAction.setEnabled(true);
 
-              // Refresh is only needed when there are more than bundle revision
-              // in use.
-              final List<BundleRevision> brevs =
-                bundle.adapt(BundleRevisions.class).getRevisions();
-              refreshBundleAction.setEnabled(brevs.size() > 1);
-
+              // Refresh is only needed when there are more than one bundle
+              // revision in use.
+              refreshBundleAction.setEnabled(bRevs.size() > 1);
               uninstallBundleAction.setEnabled(true);
             }
             contextPopupMenu.show(comp, e.getX(), e.getY());

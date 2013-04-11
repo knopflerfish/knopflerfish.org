@@ -78,6 +78,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -144,6 +145,8 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleRevisions;
 import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
@@ -1148,21 +1151,49 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     final Bundle[] bl = getSelectedBundles();
 
-    final boolean bEnabled = bl.length > 0;
+    if (bl.length==0) {
+      actionResolveBundles.setEnabled(false);
+      actionStartBundles.setEnabled(false);
+      actionStopBundles.setEnabled(false);
+      actionUpdateBundles.setEnabled(false);
+      actionRefreshBundles.setEnabled(true);
+      actionUninstallBundles.setEnabled(false);
+    } else {
+      boolean anyResolvable = false;
+      boolean anyStartable = false;
+      boolean anyStoppable = false;
+      boolean anyRefreshable = false;
+      for (final Bundle bundle : bl) {
+        final int state = bundle.getState();
+        final List<BundleRevision> bRevs =
+            bundle.adapt(BundleRevisions.class).getRevisions();
+        final BundleRevision bRevCur = bRevs.get(0);
+        final boolean isFragment =
+            bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
 
-    // TODO, setEnabled based on state of selected bundles
-    actionResolveBundles.setEnabled(bEnabled);
-    actionStartBundles.setEnabled(bEnabled);
-    actionStopBundles.setEnabled(bEnabled);
-    actionUpdateBundles.setEnabled(bEnabled);
-    actionRefreshBundles.setEnabled(bEnabled);
-    actionUninstallBundles.setEnabled(bEnabled);
+        anyResolvable |= (state & Bundle.INSTALLED) != 0;
+        anyStartable |=
+          (!isFragment)
+              && ((state & (Bundle.INSTALLED | Bundle.RESOLVED)) != 0);
+        anyStoppable |= (state & (Bundle.ACTIVE | Bundle.STARTING)) != 0;
+
+        anyRefreshable |= bRevs.size() > 1;
+      }
+      actionResolveBundles.setEnabled(anyResolvable);
+      actionStartBundles.setEnabled(anyStartable);
+      actionStopBundles.setEnabled(anyStoppable);
+      actionRefreshBundles.setEnabled(anyRefreshable);
+
+      // since there are bundles selected update and uninstall are enabled
+      actionUpdateBundles.setEnabled(true);
+      actionUninstallBundles.setEnabled(true);
+    }
 
     toolBar.invalidate();
     menuBar.invalidate();
 
     if (null != startLevelMenu) {
-      startLevelMenu.setEnabled(bEnabled);
+      startLevelMenu.setEnabled(bl.length != 0);
     }
 
     if (levelMenuLabel != null) {
