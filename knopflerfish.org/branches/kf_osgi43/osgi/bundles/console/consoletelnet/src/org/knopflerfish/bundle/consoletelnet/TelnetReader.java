@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,205 +47,217 @@ import java.util.Vector;
 public class TelnetReader
   extends Reader
 {
-    // private InputStreamReader ir;
-    private TelnetSession tels;
+  // private InputStreamReader ir;
+  private final TelnetSession tels;
 
-    private Vector lineBuf; // buffer while a line is being edited
+  private final Vector<Integer> lineBuf; // buffer while a line is being edited
 
-    private char[] readyLine; // buffer for a that has been terminated by CR
-                                // or LF
+  private char[] readyLine; // buffer for a that has been terminated by CR
+                            // or LF
 
-    private int rp; // pointer in read buffer line
+  private int rp; // pointer in read buffer line
 
-    private InputStream is;
+  private final InputStream is;
 
-    private boolean busyWait;
+  private final boolean busyWait;
 
-    private boolean skipLF = false; // Skip next char if LF
+  private boolean skipLF = false; // Skip next char if LF
 
+  public TelnetReader(InputStream is, TelnetSession tels, boolean busyWait)
+  {
+    this.tels = tels;
+    this.is = is;
+    this.busyWait = busyWait;
 
-    public TelnetReader(InputStream is, TelnetSession tels, boolean busyWait) {
-        this.tels = tels;
-        this.is = is;
-        this.busyWait = busyWait;
+    // ir = new InputStreamReader(is);
+    lineBuf = new Vector<Integer>();
+    readyLine = new char[0];
+    rp = 0;
+  }
 
-        // ir = new InputStreamReader(is);
-        lineBuf = new Vector();
-        readyLine = new char[0];
-        rp = 0;
+  @Override
+  public void close()
+      throws IOException
+  {
+    is.close();
+  }
+
+  @Override
+  public boolean ready()
+      throws IOException
+  {
+    // TODO, we should check skipLF
+    return is.available() > 0;
+  }
+
+  /**
+   * Block here until end of line (CR) and then return
+   *
+   * This method provides very limited line editing functionality
+   *
+   * CR -&lt; return from read BS -&lt; back one step in buffer
+   *
+   */
+  @Override
+  public int read(char[] buf, int off, int len)
+      throws IOException
+  {
+    int count = 0;
+    int character;
+    Integer tmp;
+
+    // System.out.println("TelnetReader.read buf=" + buf + ", off=" + off +
+    // ", len=" + len);
+
+    // 1. Check if there still are characters in readyLine ?
+
+    count = chkRdyLine(buf, off, len);
+
+    if (count > 0) {
+      return count;
     }
+    final boolean w1 = true;
+    while (w1) {
+      character = readChar();
 
-    public void close() throws IOException {
-        is.close();
-    }
+      if (character != -1) {
 
-    public boolean ready() throws IOException {
-        // TODO, we should check skipLF
-        return is.available() > 0;
-    }
+        // System.out.println("Char " + String.valueOf(character));
 
-    /**
-     * Block here until end of line (CR) and then return
-     *
-     * This method provides very limited line editing functionality
-     *
-     * CR -&lt; return from read
-     * BS -&lt; back one step in buffer
-     *
-     */
-    public int read(char[] buf, int off, int len) throws IOException {
-        int count = 0;
-        int character;
-        Integer tmp;
+        switch (character) {
 
-        //System.out.println("TelnetReader.read buf=" + buf + ", off=" + off +
-        //", len=" + len);
+        case TCC.BS:
+          // System.out.println("BS");
+          if (lineBuf.size() > 0) {
+            lineBuf.removeElementAt(lineBuf.size() - 1);
+            // tels.echoChar(character);
+            tels.echoChar(' ');
+            tels.echoChar(character);
+          }
+          break;
 
-        // 1. Check if there still are characters in readyLine ?
+        case TCC.CR:
+        case TCC.LF:
+          // System.out.println("CR");
+          lineBuf.addElement(new Integer(character));
+          // tels.echoChar(character);
 
-        count = chkRdyLine(buf, off, len);
+          // transfer from lineBuf to readyLine
 
-        if (count > 0) {
-            return count;
+          readyLine = new char[lineBuf.size()];
+          for (int i = 0; i < lineBuf.size(); i++) {
+            tmp = lineBuf.elementAt(i);
+            character = tmp.intValue();
+            readyLine[i] = (char) character;
+          }
+          rp = 0;
+
+          lineBuf.removeAllElements();
+          count = chkRdyLine(buf, off, len);
+          return count;
+
+        default:
+          // System.out.println("char=" + character);
+          lineBuf.addElement(new Integer(character));
+          // tels.echoChar(character);
         }
-        boolean w1 = true;
-        while (w1) {
-            character = readChar();
+      } else {
+        // The input stream is closed; ignore the buffered data
+        // and return -1 to to tell next layer that the reader
+        // is closed.
+        return -1;
+      }
+    }
+  }
 
-            if (character != -1) {
-
-                //System.out.println("Char " + String.valueOf(character));
-
-                switch (character) {
-
-                case TCC.BS:
-                    // System.out.println("BS");
-                    if (lineBuf.size() > 0) {
-                        lineBuf.removeElementAt(lineBuf.size() - 1);
-                        // tels.echoChar(character);
-                        tels.echoChar(' ');
-                        tels.echoChar(character);
-                    }
-                    break;
-
-                case TCC.CR:
-                case TCC.LF:
-                    // System.out.println("CR");
-                    lineBuf.addElement(new Integer(character));
-                    // tels.echoChar(character);
-
-                    // transfer from lineBuf to readyLine
-
-                    readyLine = new char[lineBuf.size()];
-                    for (int i = 0; i < lineBuf.size(); i++) {
-                        tmp = (Integer) lineBuf.elementAt(i);
-                        character = tmp.intValue();
-                        readyLine[i] = (char) character;
-                    }
-                    rp = 0;
-
-                    lineBuf.removeAllElements();
-                    count = chkRdyLine(buf, off, len);
-                    return count;
-
-                default:
-                    // System.out.println("char=" + character);
-                    lineBuf.addElement(new Integer(character));
-                    // tels.echoChar(character);
-                }
-            } else {
-              // The input stream is closed; ignore the buffered data
-              // and return -1 to to tell next layer that the reader
-              // is closed.
-              return -1;
-            }
+  private int readChar()
+      throws IOException
+  {
+    // System.out.println("TelnetReader.readChar()");
+    int c;
+    while (true) {
+      if (busyWait) {
+        while (is.available() < 1) {
+          try {
+            Thread.sleep(20);
+          } catch (final Exception e) {
+          }
         }
-        return count;
+      }
+      c = is.read();
+      if (c != 0) {
+        if (skipLF) {
+          skipLF = false;
+          if (c == TCC.LF) {
+            continue;
+          }
+        }
+        break;
+      }
     }
 
-    private int readChar() throws IOException {
-        //System.out.println("TelnetReader.readChar()");
-        int c;
-        while (true) {
-            if (busyWait) {
-                while (is.available() < 1) {
-                    try {
-                        Thread.sleep(20);
-                    } catch (Exception e) {
-                    }
-                }
-            }
-            c = is.read();
-            if (c != 0) {
-                if (skipLF) {
-                    skipLF = false;
-                    if (c == TCC.LF) {
-                        continue;
-                    }
-                }
-                break;
-            }
-        }
+    tels.echoChar(c);
 
-        tels.echoChar(c);
-
-        if (c == TCC.CR) {
-          skipLF = true;
-        }
-        return c;
+    if (c == TCC.CR) {
+      skipLF = true;
     }
+    return c;
+  }
 
-    private int chkRdyLine(char[] buf, int off, int len) {
-        int count = 0;
-        if (rp < readyLine.length) {
-            while (count < (len - off)) {
-                buf[off + count] = readyLine[rp++];
-                count++;
-            }
-        }
-        return count;
+  private int chkRdyLine(char[] buf, int off, int len)
+  {
+    int count = 0;
+    if (rp < readyLine.length) {
+      while (count < (len - off)) {
+        buf[off + count] = readyLine[rp++];
+        count++;
+      }
     }
+    return count;
+  }
 
-    /**
-     * * Read input data until CR or LF found;
-     */
+  /**
+   * * Read input data until CR or LF found;
+   */
 
-    public String readLine() throws IOException {
-        Vector buf = new Vector();
-        int character = -2;
+  public String readLine()
+      throws IOException
+  {
+    final Vector<Character> buf = new Vector<Character>();
+    int character = -2;
 
-        // System.out.println("TelnetReader.readLine()");
+    // System.out.println("TelnetReader.readLine()");
 
-        try {
-            while (true) {
-                character = readChar();
-                if (character == TCC.CR) {
-                    break;
-                }
-
-                if (-1==character) {
-                  // The input stream is closed; ignore the buffered
-                  // data and return null to to tell next layer that
-                  // the reader is closed.
-                  return null;
-                }
-                // System.out.println("TelnetReader.readLine() add char " +
-                // character);
-                buf.addElement(new Character((char) character));
-            }
-
-            // Convert to string
-
-            char[] cbuf = new char[buf.size()];
-            for (int i = 0; i < buf.size(); i++) {
-                Character c1 = (Character) buf.elementAt(i);
-                cbuf[i] = c1.charValue();
-            }
-            String s1 = new String(cbuf);
-            return s1;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
+    try {
+      while (true) {
+        character = readChar();
+        if (character == TCC.CR) {
+          break;
         }
+
+        if (-1 == character) {
+          // The input stream is closed; ignore the buffered
+          // data and return null to to tell next layer that
+          // the reader is closed.
+          return null;
+        }
+        // System.out.println("TelnetReader.readLine() add char " +
+        // character);
+        buf.addElement(new Character((char) character));
+      }
+
+      // Convert to string
+
+      final char[] cbuf = new char[buf.size()];
+      for (int i = 0; i < buf.size(); i++) {
+        final Character c1 = buf.elementAt(i);
+        cbuf[i] = c1.charValue();
+      }
+      final String s1 = new String(cbuf);
+      return s1;
+    } catch (final IOException e) {
+      e.printStackTrace();
+      throw e;
     }
+  }
 }

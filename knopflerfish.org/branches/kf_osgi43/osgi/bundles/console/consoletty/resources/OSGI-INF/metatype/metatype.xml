@@ -11,8 +11,7 @@
 	description="Use non-blocking tty access. Some JVM-OS combinations cannot handle blocking access to standard input." />
   </OCD>
 
-  <Designate pid="org.knopflerfish.bundle.consoletty.ConsoleTty"
-	     bundle="ignored">
+  <Designate pid="org.knopflerfish.bundle.consoletty.ConsoleTty">
     <Object ocdref="org.knopflerfish.bundle.consoletty.ocd.ConsoleTty"/>
   </Designate>
 

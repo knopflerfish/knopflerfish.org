@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,8 @@ import java.util.Hashtable;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 
-public class TelnetConfig {
+public class TelnetConfig
+{
 
   // public constants
 
@@ -57,9 +58,15 @@ public class TelnetConfig {
 
   public static final String FORBIDDEN_GROUP_KEY = "forbiddenGroup";
 
+  public static final String BUSYWAIT_KEY = "busywait";
+
+  public static final String DEFAULT_USER_KEY = "defaultUser";
+
+  public static final String DEFAULT_PASSWORD_KEY = "defaultPassword";
+
   // private fields
 
-  private static Dictionary configuration;
+  private static Dictionary<String, Object> configuration;
 
   private static int port = 23;
 
@@ -79,82 +86,85 @@ public class TelnetConfig {
 
   // constructors
 
-  public TelnetConfig(BundleContext bc)
-    throws ConfigurationException
-  {
-    this(bc,null);
-  }
-
-  public TelnetConfig(BundleContext bc, Dictionary configuration)
-    throws ConfigurationException
+  public TelnetConfig(BundleContext bc) throws ConfigurationException
   {
     final String user = bc.getProperty("org.knopflerfish.consoletelnet.user");
-    if (null!=user && 0<user.length()) {
+    if (null != user && 0 < user.length()) {
       defaultUser = user;
     }
 
     final String pswd = bc.getProperty("org.knopflerfish.consoletelnet.pwd");
-    if (null!=pswd && 0<pswd.length()) {
+    if (null != pswd && 0 < pswd.length()) {
       defaultPassword = pswd;
     }
 
     final String bw = bc.getProperty("org.knopflerfish.consoletelnet.busywait");
-    if (null!=bw) {
+    if (null != bw) {
       busyWait = bw.trim().equalsIgnoreCase("true");
     }
 
     final String po = bc.getProperty("org.knopflerfish.consoletelnet.port");
-    if (null!=po && 0<po.length()) {
+    if (null != po && 0 < po.length()) {
       try {
         port = Integer.parseInt(po);
-      } catch (Exception _e) {
+      } catch (final Exception _e) {
       }
     }
 
     final String hp = bc.getProperty("org.knopflerfish.consoletelnet.host");
-    if (null!=hp ) {
+    if (null != hp) {
       host = hp;
     }
 
-
-    TelnetConfig.configuration = TelnetConfig.getDefaultConfig();
+    configuration = TelnetConfig.getDefaultConfig();
     updated(configuration);
   }
 
   // public methods
 
-  public static Dictionary getDefaultConfig() {
+  public static Dictionary<String,Object> getDefaultConfig()
+  {
 
-    final Dictionary config = new Hashtable();
+    final Dictionary<String,Object> config = new Hashtable<String, Object>();
 
-    config.put(TelnetConfig.PORT_KEY, new Integer(port));
-    config.put(TelnetConfig.HOST_KEY, host);
-    config.put(TelnetConfig.UM_KEY, new Boolean(um));
-    config.put(TelnetConfig.REQUIRED_GROUP_KEY, requiredGroup);
-    config.put(TelnetConfig.FORBIDDEN_GROUP_KEY, forbiddenGroup);
+    config.put(PORT_KEY, new Integer(port));
+    config.put(HOST_KEY, host);
+    config.put(UM_KEY, new Boolean(um));
+    config.put(REQUIRED_GROUP_KEY, requiredGroup);
+    config.put(FORBIDDEN_GROUP_KEY, forbiddenGroup);
+    config.put(BUSYWAIT_KEY, busyWait);
+    config.put(DEFAULT_USER_KEY, defaultUser);
+    config.put(DEFAULT_PASSWORD_KEY, defaultPassword);
 
     return config;
   }
 
   // implements ManagedService
 
-  public void updated(Dictionary configuration) throws ConfigurationException {
+  public void updated(Dictionary<String,?> configuration)
+      throws ConfigurationException
+  {
     mergeConfiguration(configuration);
   }
 
-  public void mergeConfiguration(Dictionary configuration)
-    throws ConfigurationException {
+  public void mergeConfiguration(Dictionary<String,?> configuration)
+      throws ConfigurationException
+  {
     if (configuration == null) {
       return;
     }
 
-    Enumeration e = configuration.keys();
+    final Enumeration<String> e = configuration.keys();
     while (e.hasMoreElements()) {
-      String key = (String) e.nextElement();
-      Object value = configuration.get(key);
+      final String key = e.nextElement();
+      final Object value = configuration.get(key);
       try {
         if (key.equals(PORT_KEY)) {
-          port = ((Integer) value).intValue();
+          if (value instanceof Short) {
+            port = ((Short) value).intValue();
+          } else {
+            port = ((Integer) value).intValue();
+          }
           TelnetConfig.configuration.put(key, value);
         } else if (key.equals(HOST_KEY)) {
           host = ((String) value);
@@ -168,30 +178,44 @@ public class TelnetConfig {
         } else if (key.equals(FORBIDDEN_GROUP_KEY)) {
           forbiddenGroup = ((String) value).trim();
           TelnetConfig.configuration.put(key, value);
-        } else
+        } else if (key.equals(BUSYWAIT_KEY)) {
+          busyWait = ((Boolean) value).booleanValue();
           TelnetConfig.configuration.put(key, value);
-      } catch (IndexOutOfBoundsException ioobe) {
+        } else if (key.equals(DEFAULT_USER_KEY)) {
+          defaultUser = ((String) value).trim();
+          TelnetConfig.configuration.put(key, value);
+        } else if (key.equals(DEFAULT_PASSWORD_KEY)) {
+          defaultPassword = ((String) value).trim();
+          TelnetConfig.configuration.put(key, value);
+        } else {
+          TelnetConfig.configuration.put(key, value);
+        }
+      } catch (final IndexOutOfBoundsException ioobe) {
         throw new ConfigurationException(key, "Wrong type");
-      } catch (ClassCastException cce) {
+      } catch (final ClassCastException cce) {
         throw new ConfigurationException(key, "Wrong type: "
-                                         + value.getClass().getName());
+                                              + value.getClass().getName());
       }
     }
   }
 
-  public Dictionary getConfiguration() {
+  public Dictionary<String,Object> getConfiguration()
+  {
     return configuration;
   }
 
-  public String getServerInfo() {
+  public String getServerInfo()
+  {
     return "The Knopflerfish Telnet Console Server";
   }
 
-  public int getPort() {
+  public int getPort()
+  {
     return port;
   }
 
-  public InetAddress getAddress() {
+  public InetAddress getAddress()
+  {
     InetAddress inetAddress = null;
     String addressStr = null;
     try {
@@ -206,27 +230,32 @@ public class TelnetConfig {
       } else {
         inetAddress = null;
       }
-    } catch (ClassCastException cce) {
-      throw new IllegalArgumentException
-        ("Wrong type for " + HOST_KEY +", expected String found '"
-         +configuration.get(HOST_KEY).getClass().getName() +"'.");
-    } catch (UnknownHostException uhe) {
-      throw new IllegalArgumentException
-        ("Cannot resolve " + HOST_KEY +" '" +addressStr +"'.");
+    } catch (final ClassCastException cce) {
+      throw new IllegalArgumentException("Wrong type for "
+                                         + HOST_KEY
+                                         + ", expected String found '"
+                                         + configuration.get(HOST_KEY)
+                                             .getClass().getName() + "'.");
+    } catch (final UnknownHostException uhe) {
+      throw new IllegalArgumentException("Cannot resolve " + HOST_KEY + " '"
+                                         + addressStr + "'.");
     }
 
     return inetAddress;
   }
 
-  public boolean umRequired() {
+  public boolean umRequired()
+  {
     return um;
   }
 
-  public String getRequiredGroup() {
+  public String getRequiredGroup()
+  {
     return requiredGroup;
   }
 
-  public String getForbiddenGroup() {
+  public String getForbiddenGroup()
+  {
     return forbiddenGroup;
   }
 
@@ -237,31 +266,38 @@ public class TelnetConfig {
    * They have only packet visibility
    */
 
-  int getSocketTimeout() {
+  int getSocketTimeout()
+  {
     return 30000;
   }
 
-  int getBacklog() {
+  int getBacklog()
+  {
     return 100;
   }
 
-  String getDefaultUser() {
+  String getDefaultUser()
+  {
     return defaultUser;
   }
 
-  String getDefaultPassword() {
+  String getDefaultPassword()
+  {
     return defaultPassword;
   }
 
-  String getInputPath() {
+  String getInputPath()
+  {
     return "telnet"; // To be defined
   }
 
-  String getAuthorizationMethod() {
+  String getAuthorizationMethod()
+  {
     return "passwd"; // To be defined
   }
 
-  boolean getBusyWait() {
+  boolean getBusyWait()
+  {
     return busyWait;
   }
 

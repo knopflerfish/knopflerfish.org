@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: TTY-Command
 Bundle-SymbolicName: org.knopflerfish.bundle.commandtty
-Bundle-Version: 3.0.0
+Bundle-Version: 4.0.1
 Bundle-Description: Command line system console
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish

@@ -60,12 +60,8 @@
 	default="false" />
   </OCD>
 
-  <Designate 
-     pid="org.knopflerfish.bundle.http.factory.HttpServer"
-     factoryPid="org.knopflerfish.bundle.http.factory.HttpServer" 
-     bundle="ignored" >
-    <Object ocdref="org.knopflerfish.bundle.http.ocd.HttpServer" >
-    </Object>
+  <Designate factoryPid="org.knopflerfish.bundle.http.factory.HttpServer">
+    <Object ocdref="org.knopflerfish.bundle.http.ocd.HttpServer"/>
   </Designate>
 
 </MetaData>

@@ -62,11 +62,8 @@
 	description="Write log entires to System.out when they are logged."/>
   </OCD>
 
-  <Designate 
-     pid="org.knopflerfish.bundle.log.LogConfig"
-     bundle="ignored" >
-    <Object ocdref="org.knopflerfish.bundle.log.ocd.LogConfig" >
-    </Object>
+  <Designate pid="org.knopflerfish.bundle.log.LogConfig">
+    <Object ocdref="org.knopflerfish.bundle.log.ocd.LogConfig"/>
   </Designate>
 
 </MetaData>
