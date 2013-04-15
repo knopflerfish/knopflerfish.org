@@ -513,7 +513,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
         return true;
       }
-      if (fragments != null) {
+      if (isFragmentHost()) {
         if (bundle.fwCtx.debug.resolver) {
           bundle.fwCtx.debug.println("Resolve failed, remove last fragment and retry");
         }
@@ -521,9 +521,6 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
           detached = new ArrayList<BundleGeneration>();
         }
         detached.add(detachLastFragment(true));
-        if (fragments.isEmpty()) {
-          fragments = null;
-        }
       } else {
         break;
       }
@@ -662,7 +659,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   void updateStateFragments() {
     if (fragments != null) {
-      for (final BundleGeneration bundleGeneration : fragments) {
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
+      for (final BundleGeneration bundleGeneration : fix) {
         final BundleImpl fb = bundleGeneration.bundle;
         fb.getUpdatedState(null);
       }
@@ -691,7 +690,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    * Determines whether this bundle is a fragment host or not.
    */
   boolean isFragmentHost() {
-    return fragments != null && fragments.size() > 0;
+    return fragments != null && !fragments.isEmpty();
   }
 
 
@@ -835,7 +834,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     final Vector<URL> res = new Vector<URL>();
     addResourceEntries(res, path, filePattern, recurse);
     if (isFragmentHost()) {
-      for (final BundleGeneration fbg : fragments) {
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
+      for (final BundleGeneration fbg : fix) {
         fbg.addResourceEntries(res, path, filePattern, recurse);
       }
     }
@@ -915,7 +916,6 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     if (res && isFragmentHost()) {
       while (detachLastFragment(false) != null)
         ;
-      fragments = null;
     }
     return res;
   }
@@ -1039,8 +1039,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    */
   private Hashtable<String, String> getLocalizationEntries(String name) {
     Hashtable<String, String> res = archive.getLocalizationEntries(name);
-    if (res == null && fragments != null) {
-      final Vector<BundleGeneration> fix = new Vector<BundleGeneration>(fragments);
+    if (res == null && isFragmentHost()) {
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
       for (final BundleGeneration bg : fix) {
         if (bg.archive != null) {
           res = bg.archive.getLocalizationEntries(name);
@@ -1134,8 +1135,9 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     Map<String, List<BundleRequirementImpl>> res = getDeclaredRequirements();
     if (isFragmentHost()) {
       boolean copied = false;
-      // TODO, do we need to synchronize
-      for (final BundleGeneration fbg : fragments) {
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
+      for (final BundleGeneration fbg : fix) {
         Map<String, List<BundleRequirementImpl>> frm = fbg.getDeclaredRequirements();
         if (!frm.isEmpty()) {
           if (!copied) {

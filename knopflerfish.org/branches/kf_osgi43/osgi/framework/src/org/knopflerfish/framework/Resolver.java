@@ -555,7 +555,9 @@ class Resolver {
           }
         }
         if (bbg.isFragmentHost()) {
-          for (BundleGeneration fbg : bbg.fragments) {
+          @SuppressWarnings("unchecked")
+          final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)bbg.fragments.clone();
+          for (BundleGeneration fbg : fix) {
             // TODO, do we need to examine fragments?
             if (!bundles.contains(fbg.bundle)) {
               moreBundles.add(fbg.bundle);

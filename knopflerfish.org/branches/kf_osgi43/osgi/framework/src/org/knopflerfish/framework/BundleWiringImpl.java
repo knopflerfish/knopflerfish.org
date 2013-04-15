@@ -199,12 +199,11 @@ public class BundleWiringImpl implements BundleWiring {
       }
     }
     if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
-      final Vector<BundleGeneration> frags = gen.fragments;
-      if (frags != null) {
-        synchronized (frags) {
-          for (final BundleGeneration fbg : frags) {
-            res.add(new BundleWireImpl(gen.getHostCapability(), gen, fbg.fragment, fbg));
-          }
+      if (gen.isFragmentHost()) {
+        @SuppressWarnings("unchecked")
+        final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)gen.fragments.clone();
+        for (final BundleGeneration fbg : fix) {
+          res.add(new BundleWireImpl(gen.getHostCapability(), gen, fbg.fragment, fbg));
         }
       }
     }

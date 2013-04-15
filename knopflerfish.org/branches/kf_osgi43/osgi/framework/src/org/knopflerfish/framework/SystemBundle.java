@@ -479,7 +479,8 @@ public class SystemBundle extends BundleImpl implements Framework {
                         Hashtable<String, String> localization_entries,
                         String baseName)
   {
-    final Vector<BundleGeneration> fragments = current().fragments;
+    @SuppressWarnings("unchecked")
+    final Vector<BundleGeneration> fragments = (Vector<BundleGeneration>)current().fragments.clone();
     if (fragments == null) {
       // NYI! read localization from framework.
       // There is no need for this now since it isn't used.
