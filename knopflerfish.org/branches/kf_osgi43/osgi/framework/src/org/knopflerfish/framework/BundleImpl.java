@@ -818,11 +818,10 @@ public class BundleImpl implements Bundle {
       }
     }
 
-    boolean purgeOld;
-
-    boolean saveZombie = false;
+    boolean saveZombie;
     if (oldFragment != null) {
-      if (oldFragment.hasHosts()) {
+      saveZombie = oldFragment.hasHosts();
+      if (saveZombie) {
         if (oldFragment.extension != null) {
           if (oldFragment.extension.equals(Constants.EXTENSION_BOOTCLASSPATH)) {
             fwCtx.systemBundle.bootClassPathHasChanged = true;
@@ -832,20 +831,14 @@ public class BundleImpl implements Bundle {
             bundleGeneration.bpkgs.fragmentIsZombie(this);
           }
         }
-        oldFragment.removeHost(null);
-        purgeOld = false;
-      } else {
-        purgeOld = true;
       }
     } else {
       // Remove this bundle's packages
-      purgeOld = current.unregisterPackages(false);
+      saveZombie = !current.unregisterPackages(false);
 
       // Loose old bundle if no exporting packages left
-      if (purgeOld) {
+      if (!saveZombie) {
         current.closeClassLoader();
-      } else {
-        saveZombie = true;
       }
     }
 
@@ -861,7 +854,7 @@ public class BundleImpl implements Bundle {
     doExportImport();
 
     // Purge old archive
-    if (purgeOld) {
+    if (!saveZombie) {
       oldGen.purge(false);
     }
 
@@ -966,7 +959,6 @@ public class BundleImpl implements Bundle {
             }
             // Fragment in use, save as zombie generation
             saveZombie = true;
-            // TODO? current().fragment.removeHost(null);
           } else {
             doPurge = true;
           }

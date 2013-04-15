@@ -568,17 +568,15 @@ class Resolver {
           }
         }
         if (bbg.isFragment()) {
-          final Vector<BundleGeneration> hosts = bbg.fragment.getHosts();
-          if (hosts != null) {
-            for (BundleGeneration hbg : hosts) {
-              if (!bundles.contains(hbg.bundle)) {
-                moreBundles.add(hbg.bundle);
-                if (framework.debug.resolver) {
-                  framework.debug.println("closure: added fragment host bundle - "
-                                          + hbg.bundle);
-                }
-                bundles.add(hbg.bundle);              
+          final Vector<BundleGeneration> hosts = bbg.getHosts();
+          for (BundleGeneration hbg : hosts) {
+            if (!bundles.contains(hbg.bundle)) {
+              moreBundles.add(hbg.bundle);
+              if (framework.debug.resolver) {
+                framework.debug.println("closure: added fragment host bundle - "
+                                        + hbg.bundle);
               }
+              bundles.add(hbg.bundle);              
             }
           }
         }

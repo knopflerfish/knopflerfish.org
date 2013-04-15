@@ -635,7 +635,7 @@ public class FrameworkContext  {
    *
    */
   void checkOurBundle(Bundle b) {
-    if (this != ((BundleImpl)b).fwCtx) {
+    if (b == null || !(b instanceof BundleImpl) || this != ((BundleImpl)b).fwCtx) {
       throw new IllegalArgumentException("Bundle does not belong to this framework: " + b);
     }
   }

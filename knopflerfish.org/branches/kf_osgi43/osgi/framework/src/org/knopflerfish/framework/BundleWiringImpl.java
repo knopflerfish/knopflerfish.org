@@ -255,8 +255,8 @@ public class BundleWiringImpl implements BundleWiring {
       }
     }
     if ((ns & BundleRevisionImpl.NS_HOST) != 0) {
-      if (gen.fragment != null) {
-        for (final BundleGeneration hbg : gen.fragment.getHosts()) {
+      if (gen.isFragment()) {
+        for (final BundleGeneration hbg : gen.getHosts()) {
           res.add(new BundleWireImpl(hbg.getHostCapability(), hbg, gen.fragment, gen));
         }
       }

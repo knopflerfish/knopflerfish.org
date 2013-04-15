@@ -200,9 +200,6 @@ public class PackageAdminImpl implements PackageAdmin {
     boolean restart = false;
     if (bundles != null) {
       for (int i = 0; i < bundles.length; i++) {
-        if (bundles[i] == null) {
-          throw new NullPointerException("bundle[" + i + "] cannot be null");
-        }
         fwCtx.checkOurBundle(bundles[i]);
         if (((BundleImpl)bundles[i]).extensionNeedsRestart()) {
           restart = true;

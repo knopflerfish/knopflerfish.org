@@ -153,7 +153,7 @@ class Fragment
 
   @SuppressWarnings("unchecked")
   Vector<BundleGeneration> getHosts() {
-    return hosts.isEmpty() ? null : (Vector<BundleGeneration>)hosts.clone();
+    return (Vector<BundleGeneration>)hosts.clone();
   }
 
 
