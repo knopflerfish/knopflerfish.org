@@ -114,11 +114,11 @@ public class WiringHTMLDisplayer
 
     if (wiringUrl.doResolve()) {
       final long bid = wiringUrl.getBid();
-      final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+      final Collection<Bundle> bundles = wiringUrl.getBundles();
       final Bundle systemBundle = Activator.getTargetBC_getBundle(0);
       final FrameworkWiring frameworkWiring =
         systemBundle.adapt(FrameworkWiring.class);
-      frameworkWiring.resolveBundles(Collections.singleton(bundle));
+      frameworkWiring.resolveBundles(bundles);
       valueChanged(bid);
     } else if (wiringUrl.doAskRefresh()) {
       addToHistory = true; // Presentation command that does not change state.
@@ -160,8 +160,11 @@ public class WiringHTMLDisplayer
     for (final Bundle b : bundles) {
       sb.append("&nbsp;&nbsp;#");
       sb.append(b.getBundleId());
-      sb.append("  ");
       Util.bundleLink(sb, b);
+      sb.append("&nbsp;&nbsp;(");
+      final String state = Util.stateName(b.getState());
+      sb.append(state);
+      sb.append(")");
       sb.append("<br>");
     }
     sb.append("</font></td></tr>\n");
@@ -173,15 +176,19 @@ public class WiringHTMLDisplayer
     for (final Bundle b : closure) {
       sb.append("&nbsp;&nbsp;#");
       sb.append(b.getBundleId());
-      sb.append("  ");
+      sb.append("&nbsp;&nbsp;");
       Util.bundleLink(sb, b);
+      sb.append("&nbsp;&nbsp;(");
+      final String state = Util.stateName(b.getState());
+      sb.append(state);
+      sb.append(")");
       sb.append("<br>");
     }
     sb.append("</font></td></tr>\n");
     JHTMLBundle.stopFont(sb);
 
     sb.append("<tr><td bgcolor=\"#ffffff\">");
-    wiringUrl.refreshForm(sb);
+    wiringUrl.refreshForm(sb, bundles);
     sb.append("</td>\n");
     sb.append("</tr>\n");
     sb.append("</table>\n");
@@ -216,6 +223,13 @@ public class WiringHTMLDisplayer
     /** True if the URL is a command to ask to perform refresh of the bundle.*/
     private boolean doAskRefresh = false;
 
+    /**
+     * Mapping from bundle id to bundle object to be able to handle links for
+     * uninstalled bundles.
+     */
+    private static final Map<Long, Bundle> bidToBundle =
+      new HashMap<Long, Bundle>();
+
     public static boolean isWiringLink(URL url) {
       return URL_WIRING_HOST.equals(url.getHost())
           && url.getPath().startsWith(URL_WIRING_PREFIX_PATH);
@@ -248,6 +262,7 @@ public class WiringHTMLDisplayer
     public WiringUrl(final Bundle bundle)
     {
       bid = bundle.getBundleId();
+      bidToBundle.put(bid, bundle);
     }
 
     public long getBid() {
@@ -258,10 +273,20 @@ public class WiringHTMLDisplayer
      * Returns the bundle selected by {@code bid} wrapped in a collection of
      * bundles.
      *
+     * <p>
+     * <em>Note</em>: Calling this method will clear the {@code pidToBundle} map
+     * if the bundle is present in it.
+     *
      * @return a collection of bundles selected by this URL.
      */
-    public Collection<Bundle> getBundles() {
-      final Bundle bundle = Activator.getTargetBC_getBundle(bid);
+    public Collection<Bundle> getBundles()
+    {
+      Bundle bundle = bidToBundle.get(bid);
+      if (bundle != null) {
+        bidToBundle.clear();
+      } else {
+        bundle = Activator.getTargetBC_getBundle(bid);
+      }
       final Collection<Bundle> bundles = Collections.singleton(bundle);
       return bundles;
     }
@@ -316,10 +341,27 @@ public class WiringHTMLDisplayer
       sb.append("</a>");
     }
 
-    public void refreshForm(final StringBuffer sb) {
+    /**
+     * Render a form with a single button, labeled "Refresh" that triggers a
+     * refresh operation.
+     *
+     * @param sb
+     *          The string buffer to write HTML to.
+     * @param bundles
+     *          A singleton set of bundles to initialize the refresh operation
+     *          from.
+     */
+    public void refreshForm(final StringBuffer sb, Collection<Bundle> bundles)
+    {
       doAskRefresh = false;
       doRefresh = true;
       doResolve = false;
+
+      // Handling of uninstalled bundles requires us to keep the bundle object.
+      for (final Bundle b : bundles) {
+        bid = b.getBundleId();
+        bidToBundle.put(bid, b);
+      }
 
       sb.append("<form action=\"");
       appendBaseURL(sb);
