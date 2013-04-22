@@ -43,6 +43,7 @@ package org.knopflerfish.util.metatype;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -165,6 +166,29 @@ public class BundleMetaTypeResource
     while (enume.hasMoreElements()) {
       metaDatas.add(enume.nextElement());
     }
+  }
+
+  @Override
+  public String toString()
+  {
+    final StringBuffer sb = new StringBuffer(200);
+    sb.append("Bundle: #");
+    sb.append(bundle.getBundleId());
+    sb.append('\n');
+
+    sb.append("PIDs: ");
+    sb.append(pids.keySet());
+    sb.append('\n');
+
+    sb.append("factory PIDs: ");
+    sb.append(factoryPids.keySet());
+    sb.append('\n');
+
+    sb.append("locales: ");
+    sb.append(Arrays.asList(locales));
+    sb.append('\n');
+
+    return sb.toString();
   }
 
 }

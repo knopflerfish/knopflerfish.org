@@ -157,9 +157,9 @@ public class Loader
       parser.setReader(reader);
       final XMLElement el = (XMLElement) parser.parse();
       return loadMTP(bundle, url, el);
-    } catch (final Exception e) {
-      e.printStackTrace();
-      throw new IOException("Failed to load " + url + " " + e);
+    } catch (final Throwable t) {
+      throw (IOException) new IOException("Failed to load " + url + " " + t)
+          .initCause(t);
     } finally {
       try {
         in.close();
@@ -205,9 +205,9 @@ public class Loader
         }
       }
       throw new XMLException("No values tag in " + url, el);
-    } catch (final Exception e) {
-      e.printStackTrace();
-      throw new IOException("Failed to load " + url + " " + e);
+    } catch (final Throwable t) {
+      throw (IOException) new IOException("Failed to load " + url + " " + t)
+          .initCause(t);
     } finally {
       try {
         in.close();

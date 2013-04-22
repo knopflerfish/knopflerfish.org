@@ -621,6 +621,10 @@ public class FrameworkCommandGroup
         return val;
       }
 
+      if (Bundle.class.equals(clazz)) {
+        return bc.getBundle(new Long(val).longValue());
+      }
+
       final Constructor<?> cons = clazz
         .getConstructor(new Class[] { String.class });
       final Object r = cons.newInstance(new Object[] { val });

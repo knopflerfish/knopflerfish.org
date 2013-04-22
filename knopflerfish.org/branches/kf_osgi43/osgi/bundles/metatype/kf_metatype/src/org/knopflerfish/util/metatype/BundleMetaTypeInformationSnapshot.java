@@ -208,4 +208,28 @@ class BundleMetaTypeInformationSnapshot
       idToMtp.put(i.next(), mtp);
     }
   }
+
+  @Override
+  public String toString()
+  {
+    final StringBuffer sb = new StringBuffer(200);
+    sb.append("Bundle: #");
+    sb.append(bundle.getBundleId());
+    sb.append('\n');
+
+    sb.append("PIDs: ");
+    sb.append(pids);
+    sb.append('\n');
+
+    sb.append("factory PIDs: ");
+    sb.append(factoryPids);
+    sb.append('\n');
+
+    sb.append("locales: ");
+    sb.append(locales);
+    sb.append('\n');
+
+    return sb.toString();
+  }
+
 }

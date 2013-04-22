@@ -56,10 +56,12 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.metatype.MetaTypeInformation;
+import org.osgi.service.metatype.MetaTypeProvider;
 import org.osgi.service.metatype.MetaTypeService;
 import org.osgi.service.metatype.ObjectClassDefinition;
 import org.osgi.util.tracker.ServiceTracker;
@@ -131,15 +133,22 @@ public class SystemMetatypeProvider
   // Map from PID to OCD
   Map<String, OCD> cmOCDMap = new HashMap<String, OCD>();
 
+  Map<ServiceRegistration<MetaTypeProvider>, MTP> confMtpRegs;
+
   /**
    * Create a SystemMetatypeProvider, using the specified bundle context for
    * listeners.
+   *
+   * @param bc
+   * @param confMtpRegs
    */
-  public SystemMetatypeProvider(BundleContext bc)
+  public SystemMetatypeProvider(BundleContext bc,
+                                Map<ServiceRegistration<MetaTypeProvider>, MTP> confMtpRegs)
   {
     super("system");
     this.bc = bc;
     log = new LogRef(bc);
+    this.confMtpRegs = confMtpRegs;
   }
 
   SynchronousBundleListener bl = null;
@@ -340,7 +349,6 @@ public class SystemMetatypeProvider
         } catch (final Exception e) {
           log.info("Failed to load metatype XML from bundle " + b.getBundleId(),
                    e);
-          // throw e;
         }
       }
 
@@ -367,7 +375,6 @@ public class SystemMetatypeProvider
         } catch (final Exception e) {
           log.info("Failed to load cm defaults XML from bundle "
                        + b.getBundleId(), e);
-          // throw e;
         }
       }
     } // proprietary legacy
@@ -377,8 +384,8 @@ public class SystemMetatypeProvider
   @Override
   public String[] getPids()
   {
+    final Set<String> set = new TreeSet<String>();
     synchronized (providers) {
-      final Set<String> set = new TreeSet<String>();
       for (final Entry<Bundle, MetaTypeInformation> entry : providers.entrySet()) {
         final MetaTypeInformation mti = entry.getValue();
         final String[] pids = mti.getPids();
@@ -386,15 +393,21 @@ public class SystemMetatypeProvider
           set.addAll(Arrays.asList(pids));
         }
       }
-      return MTP.toStringArray(set);
     }
+    synchronized (confMtpRegs) {
+      for (final MTP mtp : confMtpRegs.values()) {
+        set.addAll(mtp.pids);
+      }
+    }
+
+    return MTP.toStringArray(set);
   }
 
   @Override
   public String[] getFactoryPids()
   {
+    final Set<String> set = new TreeSet<String>();
     synchronized (providers) {
-      final Set<String> set = new TreeSet<String>();
       for (final Entry<Bundle, MetaTypeInformation> entry : providers.entrySet()) {
         final MetaTypeInformation mti = entry.getValue();
         final String[] fpids = mti.getFactoryPids();
@@ -402,8 +415,13 @@ public class SystemMetatypeProvider
           set.addAll(Arrays.asList(fpids));
         }
       }
-      return MTP.toStringArray(set);
     }
+    synchronized (confMtpRegs) {
+      for (final MTP mtp : confMtpRegs.values()) {
+        set.addAll(mtp.factoryPids);
+      }
+    }
+    return MTP.toStringArray(set);
   }
 
   @Override
@@ -455,8 +473,18 @@ public class SystemMetatypeProvider
           return mti.getObjectClassDefinition(pid, locale);
         }
       }
-      return null;
     }
+    synchronized (confMtpRegs) {
+      for (final MTP mtp : confMtpRegs.values()) {
+        if (mtp.pids.contains(pid)) {
+          return mtp.getObjectClassDefinition(pid, locale);
+        }
+        if (mtp.factoryPids.contains(pid)) {
+          return mtp.getObjectClassDefinition(pid, locale);
+        }
+      }
+    }
+    return null;
   }
 
   Set<String> getCMServicePIDs()
