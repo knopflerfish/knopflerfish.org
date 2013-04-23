@@ -33,7 +33,7 @@
   <property name="bmfa.Bundle-Description"
 	    value="X10 serial device driver from The Java X10 Project. This bundle is GPL licensed and must contain full source. Other bundles depending on the tjx10 bundle must also be distributed as GPL"/>
   <property name="bmfa.Bundle-Category"  value="driver"/>
-  <property name="bmfa.Bundle-Version"   value="3.0.0"/>
+  <property name="bmfa.Bundle-Version"   value="4.0.0"/>
   <property name="bmfa.Bundle-Classpath" value="."/>
   <property name="bmfa.Bundle-Vendor"    value="The Java X10 Project/Knopflerfih"/>
 
