@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,96 +34,108 @@
 
 package org.knopflerfish.bundle.serial;
 
-import java.util.*;
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.ManagedServiceFactory;
 
 import org.knopflerfish.service.log.LogRef;
 
-class Config implements ManagedServiceFactory {
-  private final static String msfPid=
-    "org.knopflerfish.serialport.factory";
+class Config
+  implements ManagedServiceFactory
+{
+  private final static String msfPid = "org.knopflerfish.serialport.factory";
 
-  private final static String clazz=
-    ManagedServiceFactory.class.getName();
-
-  private final static String PID=
-    "service.pid";
+  private final static String PID = "service.pid";
 
   private BundleContext bc;
   private final LogRef log;
 
-  private ServiceRegistration sreg;
+  private ServiceRegistration<ManagedServiceFactory> sreg;
   private boolean dying;
-  private Dictionary /*String->SPD*/ spds=new Hashtable();
-  
+  private Dictionary<String, SPD> spds = new Hashtable<String, SPD>();
+
   Config(LogRef log)
   {
     this.log = log;
   }
 
-  void start(BundleContext bc) {
-    this.bc=bc;
+  void start(BundleContext bc)
+  {
+    this.bc = bc;
 
-    Dictionary props=new Hashtable();
-    props.put(PID,msfPid);
+    final Dictionary<String, String> props = new Hashtable<String, String>();
+    props.put(PID, msfPid);
 
-    if(dying) return;
-    sreg=bc.registerService(clazz,this,props);
-    synchronized(this) {
-      if(!dying) return;
+    if (dying) {
+      return;
+    }
+    sreg = bc.registerService(ManagedServiceFactory.class, this, props);
+    synchronized (this) {
+      if (!dying) {
+        return;
+      }
     }
     stop();
   }
 
-  void stop() {
-    synchronized(this) {
-      if(sreg==null) {
-	dying=true;
-	return;
+  void stop()
+  {
+    synchronized (this) {
+      if (sreg == null) {
+        dying = true;
+        return;
       }
     }
     sreg.unregister();
-    synchronized(this) {
-      for(Enumeration e=spds.elements();e.hasMoreElements();) {
-	SPD s=(SPD)e.nextElement();
-	s.close();
+    synchronized (this) {
+      for (final Enumeration<SPD> e = spds.elements(); e.hasMoreElements();) {
+        final SPD s = e.nextElement();
+        s.close();
       }
-      spds=null;
+      spds = null;
     }
   }
 
-  public synchronized void
-  updated(String pid, Dictionary conf) {
-    String port=(String)conf.get("port");
-    String product=(String)conf.get("product");
-    String revision=(String)conf.get("revision");
+  public synchronized void updated(String pid, Dictionary<String, ?> conf)
+  {
+    final String port = (String) conf.get("port");
+    final String product = (String) conf.get("product");
+    final String revision = (String) conf.get("revision");
 
-    if (log.doDebug())
-      log.debug("Confiured port="+port+
-		", product="+product+
-		", revision="+revision);
-    
+    if (log.doDebug()) {
+      log.debug("Confiured port=" + port + ", product=" + product
+                + ", revision=" + revision);
+    }
+
     deleted(pid);
-    if(port!=null && product!=null) {
-      SPD spd=new SPD();
+    if (port != null && product != null) {
+      final SPD spd = new SPD();
       try {
-	spds.put(pid,spd);
-	spd.start(bc,port,product,revision);
-      } catch(Exception e) {
-	if (log.doError())
-	  log.error("Failure starting serial port device", e);
-	spds.remove(pid);	
+        spds.put(pid, spd);
+        spd.start(bc, port, product, revision);
+      } catch (final Exception e) {
+        if (log.doError()) {
+          log.error("Failure starting serial port device", e);
+        }
+        spds.remove(pid);
       }
     }
   }
 
-  public synchronized void deleted(String pid) {
-    SPD spd=(SPD)spds.remove(pid);
-    if(spd!=null) spd.close();
+  public synchronized void deleted(String pid)
+  {
+    final SPD spd = spds.remove(pid);
+    if (spd != null) {
+      spd.close();
+    }
   }
 
-  public String getName() {
+  public String getName()
+  {
     return "Serial port";
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004.2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,23 +34,27 @@
 
 package org.knopflerfish.bundle.serial;
 
-import java.io.*;
-import java.util.*;
-import javax.comm.*;
-import org.osgi.framework.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+
 import org.knopflerfish.service.log.LogRef;
 
-public class Activator implements BundleActivator {
+public class Activator
+  implements BundleActivator
+{
   private Config conf;
   private LogRef log;
 
-  public void start(BundleContext bc) throws Exception {
+  public void start(BundleContext bc)
+      throws Exception
+  {
     log = new LogRef(bc);
-    conf=new Config(log);
+    conf = new Config(log);
     conf.start(bc);
   }
 
-  public void stop(BundleContext bc) {
+  public void stop(BundleContext bc)
+  {
     conf.stop();
   }
 }
