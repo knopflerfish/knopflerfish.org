@@ -46,6 +46,8 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import org.osgi.service.cm.Configuration;
+
 public class CMDataWriter
 {
   public final static String ENCODING = "ISO-8859-1";
@@ -78,7 +80,7 @@ public class CMDataWriter
   static {
     try {
       classBigDecimal = Class.forName("java.math.BigDecimal");
-    } catch (Throwable ignore) {
+    } catch (final Throwable ignore) {
       classBigDecimal = null;
     }
   }
@@ -90,6 +92,25 @@ public class CMDataWriter
                                "<!-- EDITING THIS FILE IS NOT GUARANTEED TO WORK  -->" };
 
   final static String[] POST = { "</cm_data>" };
+
+  public static void writeConfigurations(final Configuration[] cs,
+                                         final PrintWriter w)
+  {
+    writeLines(PRE, w);
+    for (final Configuration cfg : cs) {
+      if (cfg.getFactoryPid() != null) {
+        w.println("<factoryconfiguration factorypid=\"" + cfg.getFactoryPid()
+                  + "\" mode=\"update\">");
+        writeProperties(cfg.getProperties(), w);
+        w.println("</factoryconfiguration>");
+      } else {
+        w.println("<configuration pid=\"" + cfg.getPid() + "\" mode=\"new\">");
+        writeProperties(cfg.getProperties(), w);
+        w.println("</configuration>");
+      }
+    }
+    writeLines(POST, w);
+  }
 
   public static void writeConfiguration(String pid,
                                         Dictionary<String, Object> d,
@@ -117,8 +138,8 @@ public class CMDataWriter
 
   static void writeLines(String[] lines, PrintWriter w)
   {
-    for (int i = 0; i < lines.length; ++i) {
-      w.println(lines[i]);
+    for (final String line : lines) {
+      w.println(line);
     }
   }
 
@@ -129,9 +150,9 @@ public class CMDataWriter
       return;
     }
 
-    Enumeration<String> keys = dictionary.keys();
+    final Enumeration<String> keys = dictionary.keys();
     while (keys.hasMoreElements()) {
-      String key = (String) keys.nextElement();
+      final String key = keys.nextElement();
       w.println("<property name=\"" + escapeIfNeccesary(key) + "\">");
       writeValue(dictionary.get(key), w);
       w.println("</property>");
@@ -144,7 +165,7 @@ public class CMDataWriter
       return;
     }
 
-    Class<? extends Object> valueClass = value.getClass();
+    final Class<? extends Object> valueClass = value.getClass();
     if (valueClass.isArray()) {
       writeArray(value, w);
     } else if (valueClass == Vector.class) {
@@ -158,9 +179,9 @@ public class CMDataWriter
   static private String escapeIfNeccesary(String s)
   {
     if (needsEscaping(s)) {
-      StringBuffer escaped = new StringBuffer();
+      final StringBuffer escaped = new StringBuffer();
       for (int i = 0; i < s.length(); ++i) {
-        char c = s.charAt(i);
+        final char c = s.charAt(i);
         if (c == '&') {
           escaped.append("&amp;");
         } else if (c == '<') {
@@ -188,20 +209,20 @@ public class CMDataWriter
 
   static private void writeArray(Object array, PrintWriter w)
   {
-    Class<?> componentType = array.getClass().getComponentType();
-    int length = Array.getLength(array);
+    final Class<?> componentType = array.getClass().getComponentType();
+    final int length = Array.getLength(array);
 
     w.println("<array length=\"" + length + "\" elementType=\""
               + elementTypeOf(array) + "\">");
 
     if (componentType.isPrimitive()) {
       for (int i = 0; i < length; ++i) {
-        Object o = Array.get(array, i);
+        final Object o = Array.get(array, i);
         writePrimitiveValue(componentType, o, w);
       }
     } else {
       for (int i = 0; i < length; ++i) {
-        Object o = Array.get(array, i);
+        final Object o = Array.get(array, i);
         if (o == null) {
           w.println("<null/>");
         } else {
@@ -215,10 +236,10 @@ public class CMDataWriter
 
   static private void writeVector(Vector<?> vector, PrintWriter w)
   {
-    int length = vector.size();
+    final int length = vector.size();
     w.println("<vector length=\"" + length + "\">");
     for (int i = 0; i < vector.size(); ++i) {
-      Object element = vector.elementAt(i);
+      final Object element = vector.elementAt(i);
       writeValue(element, w);
     }
     w.println("</vector>");
@@ -256,7 +277,7 @@ public class CMDataWriter
 
   static private String typeOf(Object value)
   {
-    Class<? extends Object> c = value.getClass();
+    final Class<? extends Object> c = value.getClass();
     return (String) classToString.get(c);
   }
 
@@ -281,7 +302,7 @@ public class CMDataWriter
 
   static private String primitiveTypeOf(Class<?> type)
   {
-    return (String) primitiveTypeToString.get(type);
+    return primitiveTypeToString.get(type);
   }
 
   private final static Hashtable<Class<?>, String> primitiveTypeToString
@@ -296,4 +317,5 @@ public class CMDataWriter
     primitiveTypeToString.put(Character.TYPE, "char");
     primitiveTypeToString.put(Boolean.TYPE, "boolean");
   }
+
 }
