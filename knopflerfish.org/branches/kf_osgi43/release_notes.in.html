@@ -287,12 +287,41 @@
 
   <div class="note_group">
     <div class="note_name">
+      Directory Deployer 4.0.1
+    </div>
+    <div class="note_item">
+      New configuration option "Use initial start level" which when
+      set to true (default) tells the directory deployer to not assign
+      any start level to the bundle. I.e., the bundle will be assigned
+      the initial start level that can be set up using the
+      startlevel-API.
+    </div>
+    <div class="note_item">
+      The directory deployer will only try to install (start) a bundle
+      once. If it fails users are supposed to update the file with
+      new contents (or touch it to change the time-stamp) to get a new
+      install (start) attempt made.
+    </div>
+    <div class="note_item">
+      If the deployed file is a fragment bundle one attempt to resolve
+      it will be made after installation (and after each update).
+    </div>
+    <div class="note_item">
+      Changed to use normal file-URLs as location when installing
+      bundles from the scanned directories.
+    </div>
+  </div>
+
+
+  <div class="note_group">
+    <div class="note_name">
       Command TTY 4.0.1
     </div>
     <div class="note_item">
       Fixed an error in the metatype document describing the configuration.
     </div>
   </div>
+
 
   <div class="note_group">
     <div class="note_name">

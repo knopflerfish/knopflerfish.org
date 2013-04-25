@@ -31,42 +31,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.knopflerfish.bundle.dirdeployer;
 
-import java.util.Dictionary;
-import java.util.Hashtable;
+import java.io.File;
 
-import org.osgi.framework.BundleActivator;
-import org.osgi.framework.BundleContext;
 
-import org.knopflerfish.service.dirdeployer.DirDeployerService;
-
-public class Activator
-  implements BundleActivator
+interface DeployedFile
 {
-  static BundleContext bc;
 
-  DirDeployerImpl deployer;
+  /**
+   * Get the file object that this deployed file handles.
+   * @return The file that this instance handles.
+   */
+  File getFile();
 
-  public void start(BundleContext bc)
-  {
-    Activator.bc = bc;
+  /**
+   * Installs the file if not already installed.
+   */
+  void installIfNeeded()
+      throws Exception;
 
-    deployer = new DirDeployerImpl();
-    deployer.start();
+  /**
+   * Start the installed file when applicable.
+   */
+  void start()
+      throws Exception;
 
-    final Dictionary<String,Object> props = new Hashtable<String,Object>();
-    bc.registerService(DirDeployerService.class, deployer, props);
+  /**
+   * If the installed file is older than the current one update the installed
+   * file.
+   */
+  void updateIfNeeded()
+      throws Exception;
 
-  }
+  /**
+   * Uninstall the file.
+   * @throws Exception
+   */
+  void uninstall()
+      throws Exception;
 
-  public void stop(BundleContext bc)
-  {
-    deployer.stop();
-    deployer = null;
-
-    Activator.bc = null;
-  }
+  /**
+   * A deployed file should be updated if the file is newer than the
+   * latest update time.
+   */
+  boolean needUpdate();
 
 }

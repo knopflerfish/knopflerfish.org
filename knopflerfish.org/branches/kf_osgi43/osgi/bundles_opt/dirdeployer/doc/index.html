@@ -23,16 +23,16 @@ files are removed, they are uninstalled.
   </li>
 
   <li>
-      New files are installed into the framework.<br> If they are not
-      fragment bundles, they are marked for start at the end of the
-      scan.<br> Files newer than a previously deployed bundle are
-      updated.
+      New files are installed into the framework.<br> At the end of
+      the scan any bundle that was installed will be started according
+      to its activation policy. Any fragment that was installed will
+      be attached to its host (be resolving it).
   </li>
 
   <li>
-      Files that have the same location as an already installed bundle
-      is not installed again, instead, the installed bundle is re-used
-      in the created DeployedFile instance.
+      Updated bundle files (newer than a previously deployed bundle) are
+      not installed again, instead, the installed bundle is updated
+      from the new file.
   </li>
 
   <li>
@@ -43,12 +43,14 @@ files are removed, they are uninstalled.
 
   <li>
       If any bundle update was performed during the scan, perform a
-      refresh packages operation for them using the in the package
-      admin service.
+      refresh bundles operation for them using the in the framework
+      wiring API.
   </li>
 
   <li>
-      Files marked for start are started.
+      Start newly installed bundles that can be started, resolve newly
+      installed fragments. Note that there will only be one start /
+      resolve attempt made for each bundle after an install or update.
   </li>
 
   <li>
@@ -64,20 +66,11 @@ files are removed, they are uninstalled.
 <h2>Configuration</h2>
 
 <p>
-See <a href="$(SVN_REPO_URL)/$(SVN_TAG)/osgi/bundles_opt/dirdeployer/resources/metatype.xml">metatype.xml</a>
+See <a href="$(SVN_REPO_URL)/$(SVN_TAG)/osgi/bundles_opt/dirdeployer/resources/OSGI-INF/metatype/metatype.xml">metatype.xml</a>
 for specification using CM. The same properties as defined by CM are
 also read as default values from framework properties. Thus, the
 bundle can be both configured by CM and using system properties.
 </p>
-<p>
-Quick guide to the metatype.xml format:
-<ul>
- <li>Top level <tt>xsd:complexType</tt> is service PIDs</li>
- <li><tt>xsd:element</tt> is a property</li>
- <li><tt>metatype:values</tt> defines default values</li>
-</ul>
-For details on the metatype format, see <a
-href="http://www.knopflerfish.org/XMLMetatype">http://www.knopflerfish.org/XMLMetatype/</a>
 
 <p>You can set the deployment directory in <tt>metatype.xml</tt> in
 the bundle's resource directory (defaults to <tt>./load</tt>). A
@@ -93,6 +86,7 @@ set the default values for the directory deployer configuration.
     <th>Type</th>
     <th>Default</th>
   </tr>
+
   <tr>
     <td>org.knopflerfish.fileinstall.dir</td>
     <td>
@@ -106,6 +100,7 @@ set the default values for the directory deployer configuration.
     <td>String</td>
     <td>./load</td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.fileinstall.poll</td>
     <td>
@@ -117,22 +112,40 @@ set the default values for the directory deployer configuration.
     <td>long</td>
     <td>1000</td>
   </tr>
+
+  <tr>
+    <td>org.knopflerfish.fileinstall.use.initial.startlevel</td>
+    <td>
+
+	Do not assign any start level to bundles installed by the
+	Directory Deployer. This means that they will use the initial
+	start level set using the FrameworkStartLevel-API.
+
+    </td>
+    <td>boolean</td>
+    <td>true</td>
+  </tr>
+
   <tr>
     <td>org.knopflerfish.fileinstall.startlevel</td>
     <td>
 
-	Bundle start level to assign to all newly installed bundles.
+	Bundle start level to assign to all newly installed
+	bundles. Note that you must set
+	<tt>org.knopflerfish.fileinstall.startlevel</tt> to false for
+	this property to have an effect.
 
     </td>
     <td>int</td>
     <td>The initial bundle startlevel as returned by the StartLeve-service.</td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.fileinstall.uninstallOnStop</td>
     <td>
 
 	If <code>true</code> then the directory deployer will
-        uninstall all bundles that it has installed when it stopps.
+        uninstall all bundles that it has installed when it stops.
 
     </td>
     <td>boolean</td>

@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.knopflerfish.bundle.dirdeployer
 Bundle-Version: 4.0.1
 Bundle-Category: example
 Bundle-Description: Monitors a set of file system directory for bundles
- to deploy
+ and configurations to deploy
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org

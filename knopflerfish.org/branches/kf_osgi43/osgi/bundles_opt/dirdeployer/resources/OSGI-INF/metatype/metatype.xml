@@ -11,6 +11,7 @@
         default="./load"
         description="List of directories to scan for bundles to install."
         />
+
     <AD name="Poll Intervall"
         id="org.knopflerfish.fileinstall.poll"
         type="Long"
@@ -18,17 +19,26 @@
         min="100"
         description="How many milliseconds time to sleep between directory scans."
         />
+
+    <AD name="Use Initial Start Level"
+        id="org.knopflerfish.fileinstall.use.initial.startlevel"
+        type="Boolean"
+        default="true" 
+        description="Do not assign any start level to bundles installed by the dirdeployer. This means that they will use the initial start level set using the FrameworkStartLevel-API."
+        />
+
     <AD name="Start level"
         id="org.knopflerfish.fileinstall.startlevel"
         type="Integer"
         default="10" 
-        description="The start level to assign to bundles installed by the dirdeployer bundle."
+        description="The start level to assign to bundles installed by the dirdeployer bundle when 'Use Initial Start Level' is set to false."
         />
+
     <AD name="Uninstall all on stop"
         id="org.knopflerfish.fileinstall.uninstallOnStop"
         type="Boolean"
-        default="false" 
-        description="If set to true the dirdeployer bundle will uninstall all bundles it has installed when it is stopped." 
+        default="true" 
+        description="When set to true the dirdeployer bundle will uninstall all bundles it has installed when it is stopped." 
         />
   </OCD>
                   

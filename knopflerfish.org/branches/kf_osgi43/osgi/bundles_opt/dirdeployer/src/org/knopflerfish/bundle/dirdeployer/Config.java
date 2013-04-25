@@ -61,6 +61,7 @@ public class Config
   // Property names used both as system properties and as CM properties
   static final String PROP_DIRS = PID + ".dir";
   static final String PROP_INTERVAL = PID + ".poll";
+  static final String PROP_USE_INITIAL_START_LEVEL = PID + ".use.initial.startlevel";
   static final String PROP_STARTLEVEL = PID + ".startlevel";
   static final String PROP_UNINSTALL = PID + ".uninstallOnStop";
 
@@ -74,6 +75,9 @@ public class Config
 
   // if true, uninstall all bundles when scan thread stops
   boolean uninstallOnStop = true;
+
+  // if the initial start level is enough or not.
+  boolean useInitialStartLevel = true;
 
   // start level for installed bundles
   int startLevel = 1;
@@ -115,6 +119,8 @@ public class Config
 
     if (props == null) {
       props = getDefaults();
+    } else {
+      DirDeployerImpl.log("Received a new configuration.");
     }
 
     final Object dirsValue = props.get(PROP_DIRS);
@@ -144,6 +150,11 @@ public class Config
       dirs = new File[0];
     }
 
+    final Boolean uiVal = (Boolean) props.get(PROP_USE_INITIAL_START_LEVEL);
+    if (uiVal != null) {
+      useInitialStartLevel = uiVal.booleanValue();
+    }
+
     final Integer iVal = (Integer) props.get(PROP_STARTLEVEL);
     if (iVal != null) {
       startLevel = iVal.intValue();
@@ -167,6 +178,13 @@ public class Config
 
     final Object dirs = Activator.bc.getProperty(PROP_DIRS);
     props.put(PROP_DIRS, null == dirs ? DEFAULT_DIR : dirs);
+
+    Boolean useInitialStartLevel = Boolean.TRUE;
+    final Object useInitialStartLevelO = Activator.bc.getProperty(PROP_USE_INITIAL_START_LEVEL);
+    if (null != useInitialStartLevelO) {
+      useInitialStartLevel = new Boolean((String) useInitialStartLevelO);
+    }
+    props.put(PROP_USE_INITIAL_START_LEVEL, useInitialStartLevel);
 
     final Object startLevelO = Activator.bc.getProperty(PROP_STARTLEVEL);
     int startLevel = -1;
