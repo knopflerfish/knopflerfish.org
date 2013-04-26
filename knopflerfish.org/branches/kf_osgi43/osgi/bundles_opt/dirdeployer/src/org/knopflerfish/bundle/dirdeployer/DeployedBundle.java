@@ -53,7 +53,7 @@ import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.FrameworkWiring;
 
 /**
- * Utility class to store info about a deployed bundle.
+ * Class that represents a deployed bundle file.
  */
 class DeployedBundle implements DeployedFile
 {

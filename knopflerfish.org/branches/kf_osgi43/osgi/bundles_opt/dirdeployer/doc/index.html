@@ -1,16 +1,21 @@
-<h1>Directory deployer</h1>
+<h1>Directory Deployer</h1>
 
 <p>
-Simple bundle which scans file system directories and
-installs/uninstalls bundles found or removed from these directories.
+A bundle which scans file system directories for files that it can
+install, update or uninstall. The directory deployer bundle handles
+both bundle files and configuration files.  When a file is updated the
+bundle / configuration will be updated and when a file is removed from
+the scaned directory the bundle / configuration will be removed.
 </p>
 
 <p>
-This is a quite useful tool for handle bundle deployment without using any 
-console. Just copy the bundles that should be started to the deploy 
-directory, and the directory deployer will find and start them. When the 
-files are removed, they are uninstalled.
+This is a quite useful tool for handle bundle and configuration
+deployment without using any console. Just copy the file that should
+be installed to the deploy directory, and the directory deployer will
+find and activate them. When the files are removed, they are
+uninstalled.
 </p>
+
 
 <h2>Deploy method</h2>
 
@@ -30,15 +35,16 @@ files are removed, they are uninstalled.
   </li>
 
   <li>
-      Updated bundle files (newer than a previously deployed bundle) are
-      not installed again, instead, the installed bundle is updated
-      from the new file.
+      Updated files (newer than a previously deployed bundle) are not
+      installed again, instead, the installed bundle or configuration
+      is updated from the new file.
   </li>
 
   <li>
-      Check if there are bundle installed by the directory deployer
-      that does not correspond to a file found during the directory
-      scan. If such bundles are found uninstall them.
+      Check if there are bundles or configurations installed by the
+      directory deployer that does not correspond to a file found
+      during the directory scan. If any such bundle or configuration
+      is found uninstall it.
   </li>
 
   <li>
@@ -63,6 +69,33 @@ files are removed, they are uninstalled.
 
 </ol>
 
+<h2>Deployable File Types</h2>
+
+The Directory Deployer supports two types of files:
+
+<ul>
+
+  <li>Bundle jar files. File name must end with <tt>.jar</tt>.
+
+  <li>Configurations in the form of XML-files following the <a
+      href="../cm/cm_data.dtd">cm_data.dtd</a>.  File name must end
+      with <tt>.xml</tt>.
+
+<ul>
+      
+  The most convenient way to create an XML-file for a configuration is
+  to use the console command <tt>configuration export <em>file</em>
+  <em>cfg</em></tt> to export an exisitng configuration. Edit the file
+  to change the configuration values. To create a configuration from
+  scratch one may use the CM-tab in Knopflerfish desktop, it presents
+  a simple GUI based on configuration meta type descriptions provided
+  by configurable bundles. The CM-tab is not visible in the Desktop
+  when starting the default set of bundles, to activate it one must
+  install and start three more bundles: <tt>cm_desktop</tt>,
+  <tt>metatype_api</tt> and <tt>kf_metatype_all</tt>.
+
+
+
 <h2>Configuration</h2>
 
 <p>
@@ -79,6 +112,7 @@ which the framework is started.</p>
 
 The table below describes the framework properties that may be used to
 set the default values for the directory deployer configuration.
+
 <table class="man">
   <tr>
     <th>Name</th>

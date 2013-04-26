@@ -35,6 +35,8 @@
 package org.knopflerfish.bundle.dirdeployer;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,7 +44,10 @@ import java.util.Iterator;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.FrameworkWiring;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
@@ -63,6 +68,8 @@ class DirDeployerImpl
   boolean bRun = false; // flag for stopping scan thread
 
   static ServiceTracker<LogService,LogService> logTracker;
+  static ServiceTracker<ConfigurationAdmin,ConfigurationAdmin> caTracker;
+
   Config config;
 
   public DirDeployerImpl()
@@ -71,6 +78,13 @@ class DirDeployerImpl
       new ServiceTracker<LogService, LogService>(Activator.bc,
                                                  LogService.class, null);
     logTracker.open();
+
+    caTracker =
+      new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
+                                                                 Activator.bc,
+                                                                 ConfigurationAdmin.class,
+                                                                 null);
+    caTracker.open();
 
     // create and register the configuration class
     config = new Config();
@@ -84,12 +98,13 @@ class DirDeployerImpl
   {
     config.register();
     DeployedBundle.loadState();
+    DeployedCMData.loadState();
 
     if (runner != null) {
       return;
     }
 
-    // TODO: When on Java SE 7 we should use java.nio.file.WatchService
+    // TODO: Java SE 7 use java.nio.file.WatchService to avoid polling
     runner = new Thread("Directory deployer") {
       @Override
       public void run()
@@ -136,6 +151,8 @@ class DirDeployerImpl
     }
     runner = null;
     DeployedBundle.clearState();
+    DeployedCMData.clearState();
+    caTracker.close();
     logTracker.close();
   }
 
@@ -187,6 +204,8 @@ class DirDeployerImpl
             } else {
               if (DeployedBundle.isBundleFile(f)) {
                 df = new DeployedBundle(config, f);
+              } else if (DeployedCMData.isCMDataFile(f)) {
+                df = new DeployedCMData(config, f);
               }
               if (df!=null) {
                 deployedFiles.put(df.getFile(), df);
@@ -265,8 +284,46 @@ class DirDeployerImpl
           }
         }
       }
-    }
-  }
+    } // Scan for stray bundles
+
+    // Look for stray deployed configurations:
+    final ConfigurationAdmin ca = caTracker.getService();
+    if (ca != null) {
+      try {
+        final Configuration[] cfgs = ca.listConfigurations(null);
+        if (cfgs != null) {
+          for (final Configuration cfg : cfgs) {
+            final String pid = cfg.getPid();
+            final File f = DeployedCMData.installedCfgs.get(pid);
+            if (f != null) {
+              // Found a configuration deployed by the dir deployer, is it still
+              // active?
+              final DeployedFile df = deployedFiles.get(f);
+              if (df == null) {
+                // This is a stray configuration, since it is currently not
+                // deployed!
+                try {
+                  log("uninstalling stray configuration with pid '" + pid
+                      + "', from '" + f + "'.");
+                  cfg.delete();
+                  DeployedCMData.installedCfgs.remove(pid);
+                  DeployedCMData.saveState();
+                } catch (final Exception ex) {
+                  log("Exception when uninstalling stray configuration with pid '"
+                          + pid + "', location '" + f + "'; " + ex, ex);
+                }
+              }
+            }
+
+          }
+        }
+      } catch (final IOException e) {
+        log("Failed to list configurations: " + e.getMessage(), e);
+      } catch (final InvalidSyntaxException e) {
+        // Will not happen with a null filter.
+      }
+    } // Scan for stray configurations
+  } // scanForStrayFiles()
 
   /**
    * Set to true during a refresh to avoid triggering a second refresh operation
@@ -377,11 +434,39 @@ class DirDeployerImpl
   {
     final int level = t == null ? LogService.LOG_INFO : LogService.LOG_WARNING;
 
+    log(level, msg, t);
+  }
+
+  /**
+   * Log msg to log service on ERROR level if available and to stdout if not
+   * available.
+   *
+   * @param msg
+   *          The message to log.
+   * @param t
+   *          optional throwable to include in the log entry.
+   */
+  static void logErr(String msg, Throwable t)
+  {
+    log(LogService.LOG_ERROR, msg, t);
+  }
+
+  /**
+   * Log msg to log service if available and to stdout if not available.
+   *
+   * @param level The log level to log on.
+   * @param msg The message to log.
+   * @param t optional throwable  to include in the log entry.
+   */
+  static void log(final int level, final String msg, final Throwable t)
+  {
     final LogService log = logTracker != null ? logTracker.getService() : null;
     if (log == null) {
-      System.out.println("[dirdeployer " + level + "] " + msg);
+      final PrintStream out =
+        level == LogService.LOG_ERROR ? System.err : System.out;
+      out.println("[dirdeployer " + level + "] " + msg);
       if (t != null) {
-        t.printStackTrace();
+        t.printStackTrace(out);
       }
     } else {
       log.log(level, msg, t);
