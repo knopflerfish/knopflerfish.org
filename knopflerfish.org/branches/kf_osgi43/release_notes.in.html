@@ -182,6 +182,14 @@
   </div>
 
   <div class="note_group">
+    <div class="note_name">Console 4.0.1</div>
+    <div class="note_item">
+      Added support to Util.showObject(Object) for converting
+      enumerations and collections to strings showing each element.
+    </div>
+  </div>
+
+  <div class="note_group">
     <div class="note_name">
       CM-Desktop 4.0.0
     </div>
@@ -211,6 +219,11 @@
   <div class="note_group">
     <div class="note_name">
       Desktop 4.0.1
+    </div>
+    <div class="note_item">
+      The Log-tab now presents initial log entries obtained by calling
+      the getLog()-method of a LogReaderService in the correct order,
+      i.e., most recent last.
     </div>
     <div class="note_item">
       Bundle life-cycle operations (resolve, start, stop, update,
@@ -334,6 +347,10 @@
       The call command now supports calling methods with parameters of
       type org.osgi.framework.Bundle. Type the bundle id (long) as
       parameter value to the call command.
+    </div>
+    <div class="note_item">
+      The call command now corretly handles calls to methods in super
+      interfaces of an interface that the service object implements.
     </div>
 
     <div class="note_name">

@@ -34,8 +34,11 @@
 
 package org.knopflerfish.bundle.log.window.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 
@@ -48,77 +51,86 @@ import org.osgi.service.log.LogListener;
 import org.osgi.service.log.LogReaderService;
 
 /**
- * Class that listens for all log entries and dispatches them to
- * a LogTableModel.
+ * Class that listens for all log entries and dispatches them to a
+ * LogTableModel.
  */
 public class LogReaderDispatcher
-  implements
-    LogListener,
-    ServiceListener
+  implements LogListener, ServiceListener
 {
 
   BundleContext bc;
   LogTableModel model;
 
-  public LogReaderDispatcher(BundleContext bc,
-                             LogTableModel model) {
-    this.bc    = bc;
+  public LogReaderDispatcher(BundleContext bc, LogTableModel model)
+  {
+    this.bc = bc;
     this.model = model;
   }
 
-  public void open() {
-    String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
+  public void open()
+  {
+    final String filter = "(objectclass=" + LogReaderService.class.getName() + ")";
 
     try {
-      ServiceReference<?> [] srl = bc.getServiceReferences((String) null, filter);
-      for(int i = 0; srl != null && i < srl.length; i++) {
+      final ServiceReference<?>[] srl =
+        bc.getServiceReferences((String) null, filter);
+      for (int i = 0; srl != null && i < srl.length; i++) {
 
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
       bc.addServiceListener(this, filter);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
 
-  Hashtable<ServiceReference<LogReaderService>, LogReaderService> logReaders
-    = new Hashtable<ServiceReference<LogReaderService>, LogReaderService>();
+  Hashtable<ServiceReference<LogReaderService>, LogReaderService> logReaders =
+    new Hashtable<ServiceReference<LogReaderService>, LogReaderService>();
 
-  public void clearAll() {
+  public void clearAll()
+  {
     model.clear();
   }
 
-  public void getAll() {
-    for(LogReaderService lr : logReaders.values()) {
-      for(Enumeration<?> e = lr.getLog(); e.hasMoreElements(); ) {
-        LogEntry entry = (LogEntry) e.nextElement();
-        logged(entry);
+  public void getAll()
+  {
+    // Note that the enumeration of log entries returned by LogReader.getLog()
+    // is in the reverse order (latest entry first).
+    final ArrayList <LogEntry> entries = new ArrayList<LogEntry>();
+    for (final LogReaderService lr : logReaders.values()) {
+      for (@SuppressWarnings("unchecked")
+      final Enumeration<LogEntry> e = lr.getLog(); e.hasMoreElements();) {
+        final LogEntry entry = e.nextElement();
+        entries.add(entry);
       }
     }
+    Collections.reverse(entries);
+    logged(entries);
   }
 
-  public void close() {
+  public void close()
+  {
     bc.removeServiceListener(this);
 
-    for(ServiceReference<LogReaderService> sr : logReaders.keySet()) {
+    for (final ServiceReference<LogReaderService> sr : logReaders.keySet()) {
       serviceChanged(new ServiceEvent(ServiceEvent.UNREGISTERING, sr));
     }
     logReaders.clear();
   }
 
-
-  public void serviceChanged(ServiceEvent ev) {
+  public void serviceChanged(ServiceEvent ev)
+  {
     @SuppressWarnings("unchecked")
-    ServiceReference<LogReaderService> sr
-      = (ServiceReference<LogReaderService>) ev.getServiceReference();
+    final
+    ServiceReference<LogReaderService> sr =
+      (ServiceReference<LogReaderService>) ev.getServiceReference();
 
-    LogReaderService lr =
-      logReaders.containsKey(sr)
-      ? logReaders.get(sr)
-      : (LogReaderService)bc.getService(sr);
+    final LogReaderService lr =
+      logReaders.containsKey(sr) ? logReaders.get(sr) : (LogReaderService) bc
+          .getService(sr);
 
-    if (null!=lr) {
-      switch(ev.getType()) {
+    if (null != lr) {
+      switch (ev.getType()) {
       case ServiceEvent.REGISTERED:
         lr.addLogListener(this);
         logReaders.put(sr, lr);
@@ -137,24 +149,50 @@ public class LogReaderDispatcher
   static long idCount = 0;
 
   /**
-   * Listener method called for each LogEntry created.
-   * As with all event listeners, this method should return to its
-   * caller as soon
-   * as possible.
+   * Listener method called for each LogEntry created. As with all event
+   * listeners, this method should return to its caller as soon as possible.
    *
-   * @param entry A <code>LogEntry</code> object containing log information.
+   * @param entry
+   *          A <code>LogEntry</code> object containing log information.
    * @see LogEntry
    */
-  public void logged(LogEntry entry) {
+  public void logged(LogEntry entry)
+  {
     final ExtLogEntry extEntry = new ExtLogEntry(entry, idCount++);
     SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
+      public void run()
+      {
+        try {
+          model.logged(extEntry);
+        } catch (final Exception e) {
+          e.printStackTrace();
+        }
+      }
+    });
+  }
+
+  /**
+   * Like {@link #logged(LogEntry)} but with a list of entries handled by a
+   * single invoke later call.
+   *
+   * @param entries List of log entries to add to the model.
+   */
+  private void logged(final List<LogEntry> entries)
+  {
+    // Like a call to logged(LogEntry) but with
+    SwingUtilities.invokeLater(new Runnable() {
+      public void run()
+      {
+        for (final LogEntry entry : entries) {
           try {
+            final ExtLogEntry extEntry = new ExtLogEntry(entry, idCount++);
             model.logged(extEntry);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             e.printStackTrace();
           }
         }
-      });
+      }
+    });
   }
+
 }

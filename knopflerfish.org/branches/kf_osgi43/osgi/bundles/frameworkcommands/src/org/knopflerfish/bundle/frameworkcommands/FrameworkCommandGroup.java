@@ -521,8 +521,10 @@ public class FrameworkCommandGroup
       out.println("Call method not accessible (must be public)");
     } catch (final NullPointerException e) {
       out.println("Internal error: " + e);
+      e.printStackTrace(out);
     } catch (final IllegalArgumentException e) {
       out.println("Internal error: " + e);
+      e.printStackTrace(out);
     } catch (final NoSuchMethodException e) {
       out.println("No method '" + method + "' with matching arguments: "
                   + e);
@@ -559,10 +561,14 @@ public class FrameworkCommandGroup
    * @param type  The full name of the class / interface that we are
    *              looking for.
    * @param clazz The class to investigate.
-   * @return class object for the specified type.
+   * @return class object for the specified type or null if not found.
    */
   Class<?> findClass(final String type, final Class<?> clazz)
   {
+    if (clazz == null) {
+      return null;
+    }
+
     if (type.equals(clazz.getName())) {
       return clazz;
     }
@@ -571,6 +577,13 @@ public class FrameworkCommandGroup
     for (final Class<?> clazze : clazzes) {
       if (type.equals(clazze.getName())) {
         return clazze;
+      }
+      final Class<?> superInterfaceClazz = clazze.getSuperclass();
+      if (superInterfaceClazz != null) {
+        final Class<?> res = findClass(type, superInterfaceClazz);
+        if (res != null) {
+          return res;
+        }
       }
     }
     return findClass(type, clazz.getSuperclass());
