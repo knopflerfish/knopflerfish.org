@@ -415,7 +415,7 @@ class DeployedCMData
               config.remove("service.bundleLocation");
 
               final String fpid = (String) config.get(CMDataReader.FACTORY_PID);
-              Configuration cfg;
+              Configuration cfg  = null;
               if (fpid == null) {
                 // Non-factory configuration
                 if (pidList.contains(pid)) {
@@ -444,24 +444,42 @@ class DeployedCMData
                   continue;
                 }
                 pidListFactory.add(pid);
-                final String cmPid = filePidToCmPid.get(getFilePidForPid(pid));
+                String cmPid = filePidToCmPid.get(getFilePidForPid(pid));
+                if (cmPid != null) {
+                  // Get the existing factory configuration instance.
+                  cfg = ca.getConfiguration(cmPid, null);
+                  // Check that fpid matches the factory pid in the
+                  // configuration.
+                  if (!fpid.equals(cfg.getFactoryPid())) {
+                    // Something is wrong; e.g., the old factory cfg instance
+                    // has been deleted by somebody else...
+                    DirDeployerImpl
+                        .log("The factory configuration with instance pid, '"
+                             + cmPid + "' does not belong to the factory pid '"
+                             + fpid + "', its factory pid is '"
+                             + cfg.getFactoryPid()
+                             + "', will create a new configuration.");
+                    cfg = null;
+                    cmPid = null;
+                    filePidToCmPid.remove(getFilePidForPid(pid));
+                  }
+                }
                 if (cmPid == null) {
-                  // New Factory configuration instance
+                  // Create a new Factory configuration instance
                   cfg = ca.createFactoryConfiguration(fpid, null);
                   DirDeployerImpl
                       .log("Created factory config with pid '" + cfg.getPid()
                            + "' for file configuration with service.pid='"
                            + pid + "'.");
                   filePidToCmPid.put(getFilePidForPid(pid), cfg.getPid());
-                } else {
-                  // Get the existing factory configuration instance.
-                  cfg = ca.getConfiguration(cmPid, null);
                 }
               }
 
-              cfg.update(config);
-              pidList.add(cfg.getPid());
-              installedCfgs.put(cfg.getPid(), file);
+              if (cfg != null) {
+                cfg.update(config);
+                pidList.add(cfg.getPid());
+                installedCfgs.put(cfg.getPid(), file);
+              }
             }
 
             // Remove configurations that has been removed from the file
