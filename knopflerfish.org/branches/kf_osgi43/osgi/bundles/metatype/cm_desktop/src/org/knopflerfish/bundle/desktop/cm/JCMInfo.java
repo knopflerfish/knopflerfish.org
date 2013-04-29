@@ -246,6 +246,11 @@ public class JCMInfo
 
     jcmService.setFactoryOCD(pid, ocd);
   }
+
+  void stop()
+  {
+    jcmService.stop();
+  }
 }
 
 class JHTML

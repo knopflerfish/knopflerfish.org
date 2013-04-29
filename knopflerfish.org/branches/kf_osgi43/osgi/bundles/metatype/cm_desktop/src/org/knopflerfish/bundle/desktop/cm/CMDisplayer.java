@@ -212,6 +212,8 @@ public class CMDisplayer
 
     public void stop()
     {
+      jcmInfo.stop();
     }
+
   }
 }

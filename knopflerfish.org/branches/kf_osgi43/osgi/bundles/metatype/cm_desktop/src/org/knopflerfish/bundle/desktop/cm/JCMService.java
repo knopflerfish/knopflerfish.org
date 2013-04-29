@@ -59,7 +59,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationEvent;
+import org.osgi.service.cm.ConfigurationListener;
 import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
@@ -67,6 +70,7 @@ import org.knopflerfish.util.metatype.AD;
 
 public class JCMService
   extends JPanel
+  implements ConfigurationListener
 {
   private static final String FACTORY_PID_DEFAULTS = " - Default Values -";
   /**
@@ -83,9 +87,11 @@ public class JCMService
   JPanel propPane;
   JPanel mainPanel;
 
-  // String -> AttributeDefinition
   Map<String, JCMProp> props = new HashMap<String, JCMProp>();
   String factoryPid;
+
+  ServiceRegistration<ConfigurationListener> srCfgListener;
+
 
   public JCMService()
   {
@@ -93,6 +99,32 @@ public class JCMService
 
     main = new JPanel(new BorderLayout());
     add(main, BorderLayout.CENTER);
+
+    // Listen for configuration changes so that the view can be updated if the
+    // configuration it presents changes in any way.
+    srCfgListener =
+      Activator.bc.registerService(ConfigurationListener.class, this, null);
+  }
+
+  void stop()
+  {
+    // Unregister the configuration listener.
+    srCfgListener.unregister();
+  }
+
+  public void configurationEvent(final ConfigurationEvent event)
+  {
+    Activator.log.info("Configuration changed: pid=" + event.getPid()
+                       + ", fpid=" + event.getFactoryPid() + ", type="
+                       + event.getType());
+    if (event.getPid().equals(designatedPid)) {
+      updateOCD();
+    } else {
+      final String fpid = event.getFactoryPid();
+      if (fpid != null && fpid.equals(designatedPid)) {
+        updateOCD();
+      }
+    }
   }
 
   void setServiceOCD(String pid, ObjectClassDefinition ocd)
@@ -582,4 +614,5 @@ public class JCMService
     }
     return out;
   }
+
 }
