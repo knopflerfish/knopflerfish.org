@@ -5,7 +5,7 @@ A bundle which scans file system directories for files that it can
 install, update or uninstall. The directory deployer bundle handles
 both bundle files and configuration files.  When a file is updated the
 bundle / configuration will be updated and when a file is removed from
-the scaned directory the bundle / configuration will be removed.
+the scanned directory the bundle / configuration will be removed.
 </p>
 
 <p>
@@ -71,47 +71,73 @@ uninstalled.
 
 <h2>Deployable File Types</h2>
 
-The Directory Deployer supports two types of files:
+The Directory Deployer supports deploying of bundles and configurations:
 
 <ul>
 
-  <li>Bundle jar files. File name must end with <tt>.jar</tt>.
+  <li><b><tt>*.jar</tt></b> Bundle jar files.
 
-  <li>Configurations in the form of XML-files following the <a
-      href="../cm/cm_data.dtd">cm_data.dtd</a>.  File name must end
-      with <tt>.xml</tt>.
+  <li><b><tt>*.xml</tt></b> OSGi CM configurations stored in XML-files
+      using the DTD <a href="../cm/cm_data.dtd">cm_data.dtd</a>.
 
 </ul>
       
-  The most convenient way to create an XML-file for a configuration is
-  to use the console command <tt>configuration export <em>file</em>
-  <em>cfg</em></tt> to export an exisitng configuration. Edit the file
-  to change the configuration values. To create a configuration from
-  scratch one may use the CM-tab in Knopflerfish desktop, it presents
-  a simple GUI based on configuration meta type descriptions provided
-  by configurable bundles. The CM-tab is not visible in the Desktop
-  when starting the default set of bundles, to activate it one must
-  install and start three more bundles: <tt>cm_desktop</tt>,
-  <tt>metatype_api</tt> and <tt>kf_metatype_all</tt>.
+<p>
+
+  A sample XML-file with a configuration for the Directory Deployer
+  bundle itself can be <a href="dirdeployer.xml">downloaded here</a>.
+
+</p>
+<p>
+
+  To create a CM configuration from scratch one may use the CM-tab in
+  Knopflerfish desktop, it presents a simple GUI based on
+  configuration meta type descriptions provided by configurable
+  bundles. The CM-tab is not visible in the Desktop when starting with
+  the default set of bundles, to activate it one must install and
+  start three more bundles from the Knopflerfish distribution:
+  <tt>metatype</tt> (OSGi Metatyp APIs), <tt>kf_metatype_all</tt>
+  (Knopflerfish Metatyp Service implementation) and
+  <tt>cm_desktop</tt> (the CM-tab desktop plug in itself).
+
+</p>
+<p>
+
+  To save an existing CM configuration as cm_data XML use a tool like
+  the Knopflerfish console command <tt>configuration export</tt>. See
+  <a href="../cm_cmd/index.html">CM Commands</a> for details.  Avoid
+  writing cm_data XML files by hand since the parser for the
+  <tt>cm_data</tt> XML documents is written for machine generated
+  documents so it does not give usable error messages when something
+  in the XML-document is wrong.
+
+</p>
 
 
 
 <h2>Configuration</h2>
 
 <p>
-See <a href="$(SVN_REPO_URL)/$(SVN_TAG)/osgi/bundles_opt/dirdeployer/resources/OSGI-INF/metatype/metatype.xml">metatype.xml</a>
-for specification using CM. The same properties as defined by CM are
-also read as default values from framework properties. Thus, the
-bundle can be both configured by CM and using system properties.
+
+  See <a
+  href="$(SVN_REPO_URL)/$(SVN_TAG)/osgi/bundles_opt/dirdeployer/resources/OSGI-INF/metatype/metatype.xml">metatype.xml</a>
+  for specification using CM. The same properties as defined by CM are
+  also read as default values from framework properties. Thus, the
+  bundle can be both configured by CM and using system properties.
+
 </p>
+<p>
 
-<p>You can set the deployment directory in <tt>metatype.xml</tt> in
-the bundle's resource directory (defaults to <tt>./load</tt>). A
-relative deployment directory path is relative to the directory from
-which the framework is started.</p>
+  You can set the deployment directory in <tt>metatype.xml</tt> in the
+  bundle's resource directory (defaults to <tt>./load</tt>). A
+  relative deployment directory path is relative to the directory from
+  which the framework is started.
 
-The table below describes the framework properties that may be used to
-set the default values for the directory deployer configuration.
+</p>
+<p>
+
+  The table below describes the framework properties that may be used
+  to set the default values for the directory deployer configuration.
 
 <table class="man">
   <tr>
@@ -151,9 +177,22 @@ set the default values for the directory deployer configuration.
     <td>org.knopflerfish.fileinstall.use.initial.startlevel</td>
     <td>
 
-	Do not assign any start level to bundles installed by the
-	Directory Deployer. This means that they will use the initial
-	start level set using the FrameworkStartLevel-API.
+	<p>
+
+        When this property is true the Directory Deployer will not set
+	any start level for bundles it installs thus those bundles
+	will belong to the default start level (i.e., the current
+	initial start level according to the Framework Start Level
+	API).
+
+	</p><p>
+
+	When this property is false the Directory Deployer will assign
+	the start level given by
+	<tt>org.knopflerfish.fileinstall.startlevel</tt> to the
+	bundles it installs.
+
+	</p>
 
     </td>
     <td>boolean</td>
@@ -171,7 +210,12 @@ set the default values for the directory deployer configuration.
 
     </td>
     <td>int</td>
-    <td>The initial bundle startlevel as returned by the StartLeve-service.</td>
+    <td>
+
+      The initial bundle start level as returned by the
+      StartLevel-API.
+
+    </td>
   </tr>
 
   <tr>
@@ -179,7 +223,8 @@ set the default values for the directory deployer configuration.
     <td>
 
 	If <code>true</code> then the directory deployer will
-        uninstall all bundles that it has installed when it stops.
+        uninstall all bundles and configurations that it has installed
+        when it stops.
 
     </td>
     <td>boolean</td>

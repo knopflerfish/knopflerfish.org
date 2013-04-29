@@ -159,6 +159,9 @@ public class Config
     if (iVal != null) {
       startLevel = iVal.intValue();
     }
+    if (startLevel<1) {
+      startLevel = getFrameworkInitialStartLevel();
+    }
 
     final Long lVal = (Long) props.get(PROP_INTERVAL);
     if (lVal != null) {
@@ -194,16 +197,8 @@ public class Config
       } catch (final NumberFormatException nfe) {
       }
     }
-    if (-1 == startLevel) {
-      // Ask the start level service for the default start level of
-      // bundles
-      final FrameworkStartLevel fsl =
-        Activator.bc.getBundle(0).adapt(FrameworkStartLevel.class);
-      if (null != fsl) {
-        startLevel = fsl.getInitialBundleStartLevel();
-      } else {
-        startLevel = 1; // Fallback to the default initial bundle start level
-      }
+    if (startLevel < 1) {
+      startLevel = getFrameworkInitialStartLevel();
     }
     props.put(PROP_STARTLEVEL, new Integer(startLevel));
 
@@ -225,5 +220,24 @@ public class Config
     props.put(PROP_UNINSTALL, uninstallOnStop);
 
     return props;
+  }
+
+  /**
+   * Ask the start level service for the default start level of bundles
+   *
+   * @return the initial start level.
+   */
+  private int getFrameworkInitialStartLevel()
+  {
+    int startLevel;
+    //
+    final FrameworkStartLevel fsl =
+      Activator.bc.getBundle(0).adapt(FrameworkStartLevel.class);
+    if (null != fsl) {
+      startLevel = fsl.getInitialBundleStartLevel();
+    } else {
+      startLevel = 1; // Fallback to the default initial bundle start level
+    }
+    return startLevel;
   }
 }
