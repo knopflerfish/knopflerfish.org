@@ -747,7 +747,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   void scanForMethods(HashMap<String, ComponentMethod[]> lookFor)
   {
-    final boolean isSCR11 = compDesc.isSCR11();
+    final boolean atleastSCR11 = compDesc.getScrNSminor() > 0;
     Class<?> clazz = componentClass;
     while (clazz != null && !lookFor.isEmpty()) {
       final Method[] methods = clazz.getDeclaredMethods();
@@ -757,7 +757,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
         final ComponentMethod[] cm = lookFor.get(m.getName());
         if (cm != null) {
           for (final ComponentMethod element : cm) {
-            if (element.updateMethod(isSCR11, m, clazz)) {
+            if (element.updateMethod(atleastSCR11, m, clazz)) {
               // Found one candidate, don't look in superclass
               nextLookfor.remove(m.getName());
             }

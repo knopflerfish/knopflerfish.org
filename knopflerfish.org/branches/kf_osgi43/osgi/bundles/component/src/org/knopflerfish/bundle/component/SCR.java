@@ -69,7 +69,7 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.util.tracker.ServiceTracker;
 
 /**
- *
+ * Service Component Runtime
  */
 class SCR implements SynchronousBundleListener, ConfigurationListener
 {
@@ -580,20 +580,23 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param comp Component which config needs to be tracked
    */
   Configuration [] subscribeCMConfig(Component comp) {
-    final String name = comp.compDesc.getName();
-    final Component [] old = configSubscriber.get(name);
+    String id = comp.compDesc.getConfigurationPid();
+    if (id == null) {
+      id = comp.compDesc.getName();
+    }
+    final Component [] old = configSubscriber.get(id);
     if (old != null) {
       final Component [] n = new Component[old.length + 1];
       System.arraycopy(old, 0, n, 0, old.length);
       n[old.length] = comp;
-      configSubscriber.put(name, n);
+      configSubscriber.put(id, n);
     } else {
-      configSubscriber.put(name, new Component [] {comp});
+      configSubscriber.put(id, new Component [] {comp});
     }
 
-    Configuration [] conf = listConfigurations(ConfigurationAdmin.SERVICE_FACTORYPID, name);
+    Configuration [] conf = listConfigurations(ConfigurationAdmin.SERVICE_FACTORYPID, id);
     if (conf == null) {
-      conf = listConfigurations(Constants.SERVICE_PID, name);
+      conf = listConfigurations(Constants.SERVICE_PID, id);
     }
     return conf;
   }
@@ -605,8 +608,11 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    * @param comp Component which config doesn't need to be tracked
    */
   void unsubscribeCMConfig(Component comp) {
-    final String name = comp.compDesc.getName();
-    final Component [] old = configSubscriber.remove(name);
+    String id = comp.compDesc.getConfigurationPid();
+    if (id == null) {
+      id = comp.compDesc.getName();
+    }
+    final Component [] old = configSubscriber.remove(id);
     if (old != null) {
       if (old.length != 1) {
         final Component [] n = new Component[old.length - 1];
@@ -616,7 +622,7 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
             n[j++] = element;
           }
         }
-        configSubscriber.put(name, n);
+        configSubscriber.put(id, n);
       }
     } else {
       Activator.logError("Removed unknown subscriber: " + comp);

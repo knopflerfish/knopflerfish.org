@@ -179,21 +179,15 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
     } else {
       Activator.logDebug("CC.active activate in progress wait, this=" + this
                          + ", activateCount=" + activeCount);
-      if (res.waitForActivation()) {
-        synchronized (this) {
-          // Check that the context is still active
-          if (!res.isActive()) {
-            throw new ComponentException("Waited for component activation that "
-                                         +"was deactivated: " + this);
-          }
+      synchronized (this) {
+        if (res.waitForActivation()) {
           if (incrementActive) {
             activeCount++;
           }
           return res;
         }
-      } else {
-        return activate(usingBundle, incrementActive);
       }
+      return activate(usingBundle, incrementActive);
     }
   }
 
@@ -201,16 +195,12 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
    * Deactivates a component configuration.
    *
    */
-  void deactivate(ComponentContextImpl cci, int reason, boolean disposeIfLast) {
+  void deactivate(ComponentContextImpl cci, int reason, boolean disposeIfLast, boolean checkActive) {
     Activator.logDebug("CC.deactive this=" + this +
                        ", activateCount=" + activeCount);
-    if (!cci.waitForActivation()) {
-      // Deactivate an already deactivated
-      return;
-    }
     boolean last = false;
     synchronized (this) {
-      if (!cci.isActive()) {
+      if (checkActive && !cci.waitForActivation()) {
         // Deactivate an already deactivated
         return;
       }
@@ -276,16 +266,22 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
     synchronized (this) {
       state = STATE_DEACTIVATING;
       ccis = getAllContexts();
+      for (int i = 0; i < ccis.length; i++) {
+        if (!ccis[i].setDeactivating()) {
+          ccis[i] = null;
+        }
+      }
       // Mark all as deactivated?
       activeCount = 0;
     }
     unregisterService();
     if (ccis.length > 0) {
       for (final ComponentContextImpl cci : ccis) {
-        deactivate(cci, reason, true);
+        if (cci != null) {
+          deactivate(cci, reason, true, false);
+        }
       }
     } else {
-      // TODO: Do we need to synchronize this?
       synchronized (this) {
         state = STATE_DEACTIVE;
         notifyAll();
@@ -454,64 +450,38 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
   }
 
   /**
-   * The tracked reference has changed.
    *
    */
-  void refUpdated(ReferenceListener rl,
-                  ServiceReference<?> s,
-                  boolean deleted,
-                  boolean wasSelected)
-  {
-    Activator.logDebug("CC.refUpdate, " + toString() + ", " + rl + ", deleted="
-                       + deleted + ", wasSelected=" + wasSelected);
-    if (state == STATE_ACTIVE) { // TODO check this for FactoryComponents
-      if (rl.isDynamic()) {
-        if (rl.isMultiple()) {
-          if (deleted) {
-            unbindReference(rl, s);
-          } else {
-            bindReference(rl, s);
-          }
-        } else {
-          if (wasSelected) { // Implies deleted
-            final ServiceReference<?> newS = rl.getServiceReference();
-            if (newS != null) {
-              bindReference(rl, newS);
-            }
-            unbindReference(rl, s);
-          } else if (!deleted) {
-            if (s == rl.getServiceReference()) {
-              bindReference(rl, s);
-            }
-          }
-        }
-      } else {
-        // If it is a service we use, stop and check if we should restart
-        if (rl.isMultiple() || wasSelected) {
-          dispose(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
-        }
-      }
-    } else {
-      if (deleted) {
-        synchronized (this) {
-          // Keep service alive if we are deactivating
-          if (!rl.isOptional() || !rl.isDynamic()) {
-            while (state == STATE_DEACTIVATING) {
-              try {
-                wait();
-              } catch (final InterruptedException _ignore) { }
-            }
-          } else {
-            // If we have an dynamic optional reference, unbind it
-            // directly to avoid circular deactivation.
-            if (state == STATE_DEACTIVATING) {
-              unbindReference(rl, s);
-            }
-          }
-        }
-      }
+  void bindReference(ReferenceListener rl, ServiceReference<?> s) {
+    for (final ComponentContextImpl cci : getActiveContexts()) {
+      cci.bind(rl, s);
     }
+  }
 
+  /**
+   *
+   */
+  void unbindReference(ReferenceListener rl, ServiceReference<?> s) {
+    // This is only called for dynamic refs, so we also unbind
+    // services during deactivation
+    for (final ComponentContextImpl cci : getAllContexts()) {
+      cci.unbind(rl, s);
+    }
+  }
+
+  /**
+   *
+   */
+  void updatedReference(ReferenceListener rl, ServiceReference<?> s) {
+    for (final ComponentContextImpl cci : getActiveContexts()) {
+      cci.updated(rl, s);
+    }
+  }
+
+  synchronized void waitForDeactivate() {
+    for (final ComponentContextImpl cci : getAllContexts()) {
+      cci.waitForDeactivation();
+    }
   }
 
   //
@@ -541,7 +511,6 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
     }
   }
 
-
   /**
    * Release service previously gotten via getService.
    *
@@ -562,7 +531,7 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
           }
         }
         if (doDeactivate) {
-          deactivate(cci, Component.KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED, true);
+          deactivate(cci, Component.KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED, true, true);
         }
       }
     }
@@ -644,30 +613,6 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
       for (int i = refs.length - 1; i >= 0; i--) {
         cci.unbind(refs[i].refDesc.name);
       }
-    }
-  }
-
-
-  /**
-   *
-   */
-  private void bindReference(ReferenceListener rl, ServiceReference<?> s) {
-    final ComponentContextImpl [] cci = getActiveContexts();
-    for (final ComponentContextImpl element : cci) {
-      element.bind(rl, s);
-    }
-  }
-
-
-  /**
-   *
-   */
-  private void unbindReference(ReferenceListener rl, ServiceReference<?> s) {
-    // This is only called for dynamic refs, so we also unbind
-    // services during deactivation
-    final ComponentContextImpl [] cci = getAllContexts();
-    for (final ComponentContextImpl element : cci) {
-      element.unbind(rl, s);
     }
   }
 

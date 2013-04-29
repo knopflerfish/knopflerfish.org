@@ -57,6 +57,7 @@ class Reference implements org.apache.felix.scr.Reference
 
   private volatile ComponentMethod bindMethod = null;
   private volatile ComponentMethod unbindMethod = null;
+  private volatile ComponentMethod updatedMethod = null;
   private volatile boolean methodsSet = false;
 
   private ReferenceListener listener = null;
@@ -210,6 +211,10 @@ class Reference implements org.apache.felix.scr.Reference
         unbindMethod = new ComponentMethod(refDesc.unbind, comp, this);
         comp.saveMethod(lookFor, refDesc.unbind, unbindMethod);
       }
+      if (refDesc.updated != null) {
+        updatedMethod = new ComponentMethod(refDesc.updated, comp, this);
+        comp.saveMethod(lookFor, refDesc.updated, updatedMethod);
+      }
       comp.scanForMethods(lookFor);
       methodsSet = true;
     }
@@ -223,6 +228,11 @@ class Reference implements org.apache.felix.scr.Reference
   ComponentMethod getUnbindMethod() {
     assertMethods();
     return unbindMethod;
+  }
+
+  ComponentMethod getUpdatedMethod() {
+    assertMethods();
+    return updatedMethod;
   }
 
 
@@ -277,8 +287,8 @@ class Reference implements org.apache.felix.scr.Reference
         } else {
           // We have multiple listener we need multiple listeners
           factoryListeners = new TreeMap<String, ReferenceListener>();
-          for (final Iterator<String> i = listener.getPids(); i.hasNext(); ) {
-            factoryListeners.put(i.next(), listener);
+          for (String p : listener.getPids()) {
+            factoryListeners.put(p, listener);
           }
           listener = null;
           // NYI, optimize, we don't have to checkTargetChanged again

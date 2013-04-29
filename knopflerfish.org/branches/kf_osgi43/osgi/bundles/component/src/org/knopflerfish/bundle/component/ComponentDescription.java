@@ -58,6 +58,7 @@ public class ComponentDescription {
 
   private final static String SCR_NAMESPACE_V1_0_0_URI = "http://www.osgi.org/xmlns/scr/v1.0.0";
   private final static String SCR_NAMESPACE_V1_1_0_URI = "http://www.osgi.org/xmlns/scr/v1.1.0";
+  private final static String SCR_NAMESPACE_V1_2_0_URI = "http://www.osgi.org/xmlns/scr/v1.2.0";
 
   final Bundle bundle;
   private String implementation;
@@ -73,10 +74,11 @@ public class ComponentDescription {
   private boolean deactivateMethodSet = false;
   private String modifiedMethod = null;
   private int confPolicy = POLICY_OPTIONAL;
+  private String configurationPid = null;
   private Properties properties = new Properties();
   private String [] services = null;
   private ArrayList<ReferenceDescription> references = null;
-  private boolean isSCR11 = false;
+  private int scrNSminor = 0;
 
 
   /**
@@ -91,8 +93,9 @@ public class ComponentDescription {
       if (p.getEventType() == XmlPullParser.START_TAG &&
           "component".equals(p.getName()) &&
           (p.getDepth() == 1 ||
-           SCR_NAMESPACE_V1_0_0_URI.equals(p.getNamespace()) ||
-           SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace()))) {
+           SCR_NAMESPACE_V1_2_0_URI.equals(p.getNamespace()) ||
+           SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace()) ||
+           SCR_NAMESPACE_V1_0_0_URI.equals(p.getNamespace()))) {
         return new ComponentDescription(b, p);
       }
       p.next();
@@ -108,7 +111,11 @@ public class ComponentDescription {
     throws IOException, IllegalXMLException, XmlPullParserException
   {
     this.bundle = b;
-    isSCR11 = SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace());
+    if (SCR_NAMESPACE_V1_2_0_URI.equals(p.getNamespace())) {
+      scrNSminor = 2;
+    } else if (SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace())) {
+      scrNSminor = 1;
+    }
     parseAttributes(p);
 
     for (int e = p.getEventType(); e != XmlPullParser.END_TAG; e = p.getEventType()) {
@@ -172,6 +179,10 @@ public class ComponentDescription {
     return deactivateMethodSet;
   }
 
+  String getConfigurationPid() {
+    return configurationPid;
+  }
+
   boolean isEnabled() {
     return enabled;
   }
@@ -204,8 +215,8 @@ public class ComponentDescription {
     return references;
   }
 
-  boolean isSCR11() {
-    return isSCR11;
+  int getScrNSminor() {
+    return scrNSminor;
   }
 
   boolean isServiceFactory() {
@@ -253,7 +264,7 @@ public class ComponentDescription {
         } else if (p.getAttributeName(i).equals("immediate")) {
           immediate = parseBoolean(p, i);
           immediateSet = true;
-        } else if (isSCR11) {
+        } else if (scrNSminor > 0) {
           if (p.getAttributeName(i).equals("configuration-policy")) {
             String policy = p.getAttributeValue(i);
             if (supportedPolicies[POLICY_OPTIONAL].equals(policy)) {
@@ -273,6 +284,8 @@ public class ComponentDescription {
             deactivateMethodSet = true;
           } else if (p.getAttributeName(i).equals("modified")) {
             modifiedMethod = p.getAttributeValue(i);
+          } else if (scrNSminor > 1 && p.getAttributeName(i).equals("configuration-pid")) {
+            configurationPid = p.getAttributeValue(i);
           } else {
             unrecognizedAttr(p, i);
           }
@@ -283,7 +296,7 @@ public class ComponentDescription {
     } finally {
       p.next();
     }
-    if (componentName == null && !isSCR11) {
+    if (componentName == null && scrNSminor < 1) {
       missingAttr(p, "name");
     }
     if (factory != null) {
@@ -489,9 +502,11 @@ public class ComponentDescription {
     String target = null;
     String bind = null;
     String unbind = null;
+    String updated = null;
     boolean optional = false; // default value
     boolean multiple = false; // default value
     boolean dynamic = false; // default value
+    boolean greedy = false; // default value
 
     for (int i = 0; i < p.getAttributeCount(); i++) {
       final String attrName = p.getAttributeName(i);
@@ -527,6 +542,15 @@ public class ComponentDescription {
         } else {
           invalidValue(p, new String[]{"static", "dynamic"}, i);
         }
+      } else if (scrNSminor > 1 && attrName.equals("policy-option")) {
+        String val = p.getAttributeValue(i);
+        if ("greedy".equals(val)) {
+          greedy = true;
+        } else if ("reluctant".equals(val)) {
+          greedy = false;
+        } else {
+          invalidValue(p, new String[]{"greedy", "reluctant"}, i);
+        }
       } else if (attrName.equals("target")) {
         target = p.getAttributeValue(i);
       } else if (attrName.equals("bind")) {
@@ -535,6 +559,9 @@ public class ComponentDescription {
       } else if (attrName.equals("unbind")) {
         unbind = p.getAttributeValue(i);
         checkValidIdentifier(unbind, "unbind", p);
+      } else if (scrNSminor > 1 && attrName.equals("updated")) {
+        updated = p.getAttributeValue(i);
+        checkValidIdentifier(updated, "updated", p);
       } else {
         unrecognizedAttr(p, i);
       }
@@ -543,7 +570,7 @@ public class ComponentDescription {
       missingAttr(p, "interface");
     }
     if (name == null) {
-      if (isSCR11) {
+      if (scrNSminor > 0) {
         name = interfaceName;
       } else {
         missingAttr(p, "name");
@@ -552,9 +579,9 @@ public class ComponentDescription {
     skip(p);
     ReferenceDescription ref;
     try {
-      ref = new ReferenceDescription(name, interfaceName,
-                                     optional, multiple, dynamic,
-                                     target, bind, unbind);
+      ref = new ReferenceDescription(name, interfaceName, optional,
+                                     multiple, dynamic, greedy, target,
+                                     bind, unbind, updated);
     } catch (InvalidSyntaxException e) {
       throw new IllegalXMLException("Couldn't create filter for reference \"" +
                                     name + "\"", p, e);

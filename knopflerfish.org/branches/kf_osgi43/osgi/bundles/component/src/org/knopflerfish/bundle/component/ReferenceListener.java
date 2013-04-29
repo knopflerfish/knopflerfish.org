@@ -36,8 +36,8 @@ package org.knopflerfish.bundle.component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.osgi.framework.Constants;
@@ -55,6 +55,11 @@ import org.osgi.service.component.ComponentConstants;
  */
 class ReferenceListener implements ServiceListener
 {
+  private static final int NO_OP = 0;
+  private static final int ADD_OP = 1;
+  private static final int DELETE_OP = 2;
+  private static final int UPDATE_OP = 3;
+  
   final Reference ref;
   private final HashMap<ServiceReference<?>, Object>  bound = new HashMap<ServiceReference<?>, Object>();
   private final HashSet<ServiceReference<?>> serviceRefs = new HashSet<ServiceReference<?>>();
@@ -192,8 +197,8 @@ class ReferenceListener implements ServiceListener
   /**
    *
    */
-  Iterator<String> getPids() {
-    return pids != null ? pids.iterator() : null;
+  Set<String> getPids() {
+    return pids;
   }
 
 
@@ -238,6 +243,14 @@ class ReferenceListener implements ServiceListener
 
 
   /**
+   * True if this reference has policy-option=greedy;
+   */
+  private boolean isGreedy() {
+    return ref.refDesc.greedy;
+  }
+
+
+  /**
    * Get CM filter.
    */
   Filter getTargetFilter() {
@@ -258,19 +271,31 @@ class ReferenceListener implements ServiceListener
    */
   ServiceReference<?> getServiceReference() {
     synchronized (serviceRefs) {
-      if (selectedServiceRef == null &&
-          !serviceRefs.isEmpty()) {
-        final Iterator<ServiceReference<?>> i = serviceRefs.iterator();
-        selectedServiceRef = i.next();
-        while (i.hasNext()) {
-          final ServiceReference<?> tst = i.next();
-          if (selectedServiceRef.compareTo(tst) < 0) {
-            selectedServiceRef = tst;
-          }
-        }
+      if (selectedServiceRef == null) {
+        selectedServiceRef = getHighestRankedServiceReference();
       }
     }
     return selectedServiceRef;
+  }
+
+
+  private ServiceReference<?> getHighestRankedServiceReference() {
+    ServiceReference<?> res = null;
+    synchronized (serviceRefs) {
+      for (final ServiceReference<?> tst : serviceRefs) {
+        if (res == null || res.compareTo(tst) < 0) {
+          res = tst;
+        }
+      }
+    }
+    return res;
+  }
+
+
+  void setSelected(ServiceReference<?> s) {
+    synchronized (serviceRefs) {
+      selectedServiceRef = s;
+    }
   }
 
 
@@ -294,6 +319,7 @@ class ReferenceListener implements ServiceListener
     synchronized (serviceRefs) {
       c = serviceRefs.contains(sr) || unbinding.contains(sr);
     }
+    Activator.logDebug("RL.getService " + Activator.srInfo(sr) + " available: " + c);
     return c ? getServiceCheckActivate(sr) : null;
   }
 
@@ -359,14 +385,6 @@ class ReferenceListener implements ServiceListener
     return res.toArray();
   }
 
-  HashSet<ServiceReference<?>> getUnbinding() {
-    synchronized (serviceRefs) {
-      final HashSet<ServiceReference<?>> res = unbinding;
-      unbinding = new HashSet<ServiceReference<?>>();
-      return res;
-    }
-  }
-
   //
   // ServiceListener
   //
@@ -378,10 +396,9 @@ class ReferenceListener implements ServiceListener
     ref.comp.scr.postponeCheckin();
     try {
       do {
-        boolean doAdd;
-        int cnt;
         boolean wasSelected = false;
         ServiceReference<?> s;
+        int op = NO_OP;
         synchronized (serviceRefs) {
           if (sEventQueue.isEmpty()) {
             if (se == null) {
@@ -397,13 +414,14 @@ class ReferenceListener implements ServiceListener
           switch (se.getType()) {
           case ServiceEvent.MODIFIED:
           case ServiceEvent.REGISTERED:
-            if (!serviceRefs.add(s)) {
-              // Service properties just changed,
-              // ignore
-              continue;
+            if (serviceRefs.add(s)) {
+              // TODO check should we always call when != 1?
+              if (serviceRefs.size() != 1 || !ref.refAvailable()) {
+                op = ADD_OP;
+              }
+            } else {
+              op = UPDATE_OP;
             }
-            cnt = serviceRefs.size();
-            doAdd = true;
             break;
           case ServiceEvent.MODIFIED_ENDMATCH:
           case ServiceEvent.UNREGISTERING:
@@ -412,26 +430,34 @@ class ReferenceListener implements ServiceListener
               selectedServiceRef = null;
               wasSelected = true;
             }
-            cnt = serviceRefs.size();
             unbinding.add(s);
-            doAdd = false;
+            if (serviceRefs.size() != 0 || !ref.refUnavailable()) {
+              if (ref.isMultiple() || wasSelected) {
+                op = DELETE_OP;
+              }
+            }
+            if (op != DELETE_OP)  {
+              unbinding.remove(s);
+            }
             break;
           default:
             // To keep compiler happy
             throw new RuntimeException("Internal error");
           }
         }
-        if (doAdd) {
-          if (cnt != 1 || !ref.refAvailable()) {
-            refUpdated(s, false, false);
+        switch (op) {
+        case ADD_OP:
+          refAdded(s);
+          break;
+        case DELETE_OP:
+          refDeleted(s);
+          synchronized (serviceRefs) {
+            unbinding.remove(s);
           }
-        } else {
-          if (cnt != 0 || !ref.refUnavailable()) {
-            refUpdated(s, true, wasSelected);
-            synchronized (serviceRefs) {
-              unbinding.remove(s);
-            }
-          }
+          break;
+        case UPDATE_OP:
+          refUpdated(s);
+          break;
         }
         se = null;
       } while (!sEventQueue.isEmpty());
@@ -489,20 +515,147 @@ class ReferenceListener implements ServiceListener
     }
   }
 
-
+  
   /**
-   * Call refUpdated for component configurations that has bound this reference.
+   * The tracked reference has been added.
+   *
    */
-  private void refUpdated(ServiceReference<?> s, boolean deleted, boolean wasSelected) {
-    final Iterator<String> i = getPids();
-    if (i != null) {
-      while (i.hasNext()) {
-        final ComponentConfiguration cc = ref.comp.compConfigs.get(i.next());
-        if (cc != null) {
-          cc.refUpdated(this, s, deleted, wasSelected);
+  private void refAdded(ServiceReference<?> s)
+  {
+    Activator.logDebug("refAdded, " + toString() + ", " + s);
+    ArrayList<ComponentConfiguration> ccs = getComponentConfigs();
+    if (isDynamic()) {
+      if (isMultiple()) {
+        bindReference(s, ccs);
+      } else {
+        final ServiceReference<?> selected = getServiceReference();
+        if (s == selected) {
+          bindReference(s, ccs);
+        } else if (isGreedy()) {
+          bindReference(s, ccs);
+          unbindReference(selected, ccs);                
+        }
+      }
+    } else {
+      if (isGreedy()) {
+        if (isMultiple() || getServiceReference().compareTo(s) < 0) {
+          reactivate(ccs);
         }
       }
     }
+  }
+
+  /**
+   * The tracked reference has been deleted.
+   *
+   */
+  private void refDeleted(ServiceReference<?> s)
+  {
+    Activator.logDebug("refDeleted, " + toString() + ", " + s);
+    ArrayList<ComponentConfiguration> ccs = getComponentConfigs();
+    if (isDynamic()) {
+      if (isMultiple()) {
+        unbindReference(s, ccs);
+      } else {
+        final ServiceReference<?> newS = getServiceReference();
+        if (newS != null) {
+          bindReference(newS, ccs);
+        }
+        unbindReference(s, ccs);
+      }
+    } else {
+      // If it is a service we use, check what to do
+      reactivate(ccs);
+      // Hold on to service during deactivation
+      for (ComponentConfiguration cc : ccs) {
+        cc.waitForDeactivate();
+      }
+    }
+  }
+
+  /**
+   * The tracked reference has been updated.
+   *
+   */
+  private void refUpdated(ServiceReference<?> s)
+  {
+    Activator.logDebug("refUpdated, " + toString() + ", " + s);
+    ArrayList<ComponentConfiguration> ccs = getComponentConfigs();
+    if (isMultiple()) {
+      updatedReference(s, ccs);
+    } else {
+      ServiceReference<?> selected = getServiceReference();
+      if (selected == s) {
+        if (isGreedy()) {
+          selected = getHighestRankedServiceReference();
+          if (s == selected) {
+            updatedReference(s, ccs);
+          } else {
+            if (isDynamic()) {
+              // Ranked lowered, use new highest ranked
+              setSelected(selected);
+              bindReference(selected, ccs);
+              unbindReference(s, ccs);
+            } else {
+              reactivate(ccs);
+            }
+          }
+        } else {
+          updatedReference(s, ccs);
+        }
+      } else if (isGreedy() && selected.compareTo(s) < 0) {
+        // New ranked higher than selected
+        if (isDynamic()) {
+          setSelected(s);
+          bindReference(s, ccs);
+          unbindReference(selected, ccs);
+        } else {
+          reactivate(ccs);
+        }
+      }
+    }
+  }
+
+  private void bindReference(ServiceReference<?> s, ArrayList<ComponentConfiguration> ccs) {
+    for (ComponentConfiguration cc : ccs) {
+      cc.bindReference(this, s);
+    }
+  }
+
+
+  private void unbindReference(ServiceReference<?> s, ArrayList<ComponentConfiguration> ccs) {
+    for (ComponentConfiguration cc : ccs) {
+      cc.unbindReference(this, s);
+    }
+  }
+
+
+  private void updatedReference(ServiceReference<?> s, ArrayList<ComponentConfiguration> ccs) {
+    for (ComponentConfiguration cc : ccs) {
+      cc.updatedReference(this, s);
+    }
+  }
+
+  private void reactivate(ArrayList<ComponentConfiguration> ccs) {
+    setSelected(null);
+    for (ComponentConfiguration cc : ccs) {
+      cc.dispose(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
+    }
+  }
+
+
+    /**
+   * Call refUpdated for component configurations that has bound this reference.
+   */
+  private ArrayList<ComponentConfiguration> getComponentConfigs() {
+    ArrayList<ComponentConfiguration> res = new ArrayList<ComponentConfiguration>();
+    for (String pid : getPids()) {
+      final ComponentConfiguration cc = ref.comp.compConfigs.get(pid);
+      if (cc != null) {
+        res.add(cc);
+      }
+    }
+    return res;
   }
 
 }

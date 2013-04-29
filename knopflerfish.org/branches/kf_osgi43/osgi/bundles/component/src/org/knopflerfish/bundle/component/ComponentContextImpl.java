@@ -49,12 +49,13 @@ class ComponentContextImpl implements ComponentContext
 {
   final static int ACTIVATING = 0;
   final static int ACTIVE = 1;
-  final static int DEACTIVE = 2;
-  final static int FAILED = 3;
+  final static int DEACTIVATING = 2;
+  final static int DEACTIVE = 3;
+  final static int FAILED = 4;
 
   final private ComponentConfiguration cc;
   final private Bundle usingBundle;
-  final private Thread activatorThread;
+  private Thread activityThread;
   private volatile ComponentInstanceImpl componentInstance = null;
   private volatile int state = ACTIVATING;
   final private HashMap<String, ReferenceListener> boundReferences
@@ -67,7 +68,7 @@ class ComponentContextImpl implements ComponentContext
   ComponentContextImpl(ComponentConfiguration cc, Bundle usingBundle) {
     this.cc = cc;
     this.usingBundle = usingBundle;
-    activatorThread = Thread.currentThread();
+    activityThread = Thread.currentThread();
   }
 
 
@@ -194,7 +195,7 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   void dispose() {
-    cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true);
+    cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true, true);
   }
 
 
@@ -313,6 +314,22 @@ class ComponentContextImpl implements ComponentContext
   }
 
 
+  void updated(ReferenceListener rl, ServiceReference<?> sr) {
+    Activator.logDebug("Check updated service " + Activator.srInfo(sr) + " from " + cc);
+    try {
+      final ComponentMethod m = rl.ref.getUpdatedMethod();
+      if (m != null && !m.isMissing(true)) {
+        try {
+          m.prepare(this, sr, rl).invoke();
+        } catch (final ComponentException _ignore) {
+        }
+      }
+    } catch (final Exception e) {
+      Activator.logDebug("Failed to update service " + Activator.srInfo(sr) + " on " + cc + ", " + e);
+    }
+  }
+
+
   /**
    * Check if we have bound reference to specified service
    */
@@ -342,13 +359,28 @@ class ComponentContextImpl implements ComponentContext
 
 
   /**
-   *
+   * Called  while holding cc lock.
    */
-  void setDeactive() {
-    synchronized (cc) {
-      state = DEACTIVE;
+  boolean setDeactivating() {
+    if (waitForActivation()) {
+      state = DEACTIVATING;
+      activityThread = Thread.currentThread();
+      return true;
+    } else {
+      return false;
     }
   }
+
+
+  /**
+  *
+  */
+ void setDeactive() {
+   synchronized (cc) {
+     state = DEACTIVE;
+     cc.notifyAll();
+   }
+ }
 
 
   /**
@@ -361,16 +393,33 @@ class ComponentContextImpl implements ComponentContext
    * return true, otherwise return false.
    */
   boolean waitForActivation() {
-    synchronized (cc) {
-      while (state == ACTIVATING) {
-        if (activatorThread.equals(Thread.currentThread())) {
-          throw new ComponentException("Circular activate/deactivate detected: " + cc);
-        }
-        try {
-          cc.wait();
-        } catch (final InterruptedException _ignore) { }
+    while (state == ACTIVATING) {
+      if (activityThread.equals(Thread.currentThread())) {
+        throw new ComponentException("Circular activate/deactivate detected: " + cc);
       }
-      return isActive();
+      try {
+        cc.wait();
+      } catch (final InterruptedException _ignore) { }
+    }
+    return isActive();
+  }
+
+  
+  /**
+   * Wait for deactivation of component or return directly
+   * if no deactivation is in progress. Must be called
+   * when holding ComponentConfiguration lock.
+   *
+   */
+  void waitForDeactivation() {
+    while (state == DEACTIVATING) {
+      if (activityThread.equals(Thread.currentThread())) {
+        // Don't deadlock
+        return;
+      }
+      try {
+        cc.wait();
+      } catch (final InterruptedException _ignore) { }
     }
   }
 
