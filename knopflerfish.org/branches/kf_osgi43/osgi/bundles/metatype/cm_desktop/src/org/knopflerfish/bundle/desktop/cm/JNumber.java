@@ -110,7 +110,12 @@ public class JNumber
       slider = new JSlider(0, RANGE);
     }
 
-    text.setPreferredSize(new Dimension(70, 10));
+    // Set the preferred size of test so that 10 digits fits in it.
+    text.setText("0000000000");
+    final Dimension tDimension = text.getPreferredSize();
+    text.setPreferredSize(tDimension);
+    text.setText("");
+
     text.setHorizontalAlignment(SwingConstants.TRAILING);
     add(text, BorderLayout.WEST);
     if (slider != null) {
@@ -155,19 +160,43 @@ public class JNumber
 
   Object getValue()
   {
+    try {
+      switch (ad.getType()) {
+      case AttributeDefinition.INTEGER:
+        return new Integer(text.getText());
+      case AttributeDefinition.LONG:
+        return new Long(text.getText());
+      case AttributeDefinition.SHORT:
+        return new Short(text.getText());
+      case AttributeDefinition.DOUBLE:
+        return new Double(text.getText());
+      case AttributeDefinition.FLOAT:
+        return new Float(text.getText());
+      default:
+        throw new IllegalArgumentException("Unsupported type=" + ad.getType());
+      }
+    } catch (final NumberFormatException nfe) {
+      final String msg = "Invalid " + getTypeName(ad.getType()) +" value '" + text.getText() + "'.";
+      throw (NumberFormatException) new NumberFormatException(msg)
+          .initCause(nfe);
+    }
+  }
+
+  private String getTypeName(int type)
+  {
     switch (ad.getType()) {
     case AttributeDefinition.INTEGER:
-      return new Integer(text.getText());
+      return "integer";
     case AttributeDefinition.LONG:
-      return new Long(text.getText());
+      return "long";
     case AttributeDefinition.SHORT:
-      return new Short(text.getText());
+      return "short";
     case AttributeDefinition.DOUBLE:
-      return new Double(text.getText());
+      return "double";
     case AttributeDefinition.FLOAT:
-      return new Float(text.getText());
+      return "float";
     default:
-      throw new IllegalArgumentException("Unsupported type=" + ad.getType());
+      return "unknown AD type=" + ad.getType();
     }
   }
 

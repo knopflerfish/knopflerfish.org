@@ -40,8 +40,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -54,10 +59,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.Configuration;
@@ -66,33 +73,52 @@ import org.osgi.service.cm.ConfigurationListener;
 import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
+import org.knopflerfish.shared.cm.CMDataReader;
+import org.knopflerfish.shared.cm.CMDataWriter;
 import org.knopflerfish.util.metatype.AD;
 
 public class JCMService
   extends JPanel
   implements ConfigurationListener
 {
+  /** Item label for the default values of a factory configuration. */
   private static final String FACTORY_PID_DEFAULTS = " - Default Values -";
-  /**
-   *
-   */
   private static final long serialVersionUID = 1L;
-  ObjectClassDefinition ocd;
-  String designatedPid;
-  JPanel main;
 
+  /** The currently presented object class definition. */
+  ObjectClassDefinition ocd;
+  /** The currently presented PID. Either a factory PID or a normal PID. */
+  String designatedPid;
+  /** ? */
   boolean isService = true;
+  /** Set to true when the designated PID is a factory PID. */
   boolean isFactory = false;
 
-  JPanel propPane;
+  /** Our main UI component. Hold topPanel and mainPanel. */
+  JPanel main;
+  /** The panel that presents the selected PID. */
   JPanel mainPanel;
+  /** Panel presenting the properties of the configuration. */
+  JPanel propPane;
 
+  /** Current property values to present. */
   Map<String, JCMProp> props = new HashMap<String, JCMProp>();
+
+
+  /**
+   * The pid of the factory configuration instance that is presented, null
+   * otherwise.
+   */
   String factoryPid;
 
+  /** Service registration for our white-board configuration listener. */
   ServiceRegistration<ConfigurationListener> srCfgListener;
 
 
+  /**
+   * Create an instance of this UI. Will register the white-board configuration
+   * changed listener.
+   */
   public JCMService()
   {
     super(new BorderLayout());
@@ -106,17 +132,29 @@ public class JCMService
       Activator.bc.registerService(ConfigurationListener.class, this, null);
   }
 
+  /**
+   * Called when this UI component is no longer wanted. Will unregister the
+   * white-board configuration changed listener.
+   */
   void stop()
   {
     // Unregister the configuration listener.
     srCfgListener.unregister();
   }
 
+  /**
+   * Configuration changed listener call-back. Update the UI if the event is
+   * about the configuration that is currently presented (designated PID matches
+   * the PID or factory PID in the event.
+   *
+   * @param event
+   *          configuration changed event.
+   */
   public void configurationEvent(final ConfigurationEvent event)
   {
-    Activator.log.info("Configuration changed: pid=" + event.getPid()
-                       + ", fpid=" + event.getFactoryPid() + ", type="
-                       + event.getType());
+    Activator.log.debug("Configuration changed: pid=" + event.getPid()
+                        + ", fpid=" + event.getFactoryPid() + ", type="
+                        + event.getType());
     if (event.getPid().equals(designatedPid)) {
       updateOCD();
     } else {
@@ -127,6 +165,16 @@ public class JCMService
     }
   }
 
+  /**
+   * Tell this component to present a configuration with metatype information.
+   *
+   * @param pid
+   *          The PID of the configuration to present.
+   * @param ocd
+   *          The metatype Object Class Definition describing the configuration
+   *          data.
+   * @see #setFactoryOCD(String, ObjectClassDefinition)
+   */
   void setServiceOCD(String pid, ObjectClassDefinition ocd)
   {
     this.ocd = ocd;
@@ -135,9 +183,19 @@ public class JCMService
     isFactory = false;
     lastPID = null;
     updateOCD();
-
   }
 
+  /**
+   * Tell this component to present a factory configuration with metatype
+   * information.
+   *
+   * @param pid
+   *          The factory PID to present configurations for.
+   * @param ocd
+   *          The metatype Object Class Definition describing the configuration
+   *          data.
+   * @see #setServiceOCD(String, ObjectClassDefinition)
+   */
   void setFactoryOCD(String pid, ObjectClassDefinition ocd)
   {
     this.ocd = ocd;
@@ -148,6 +206,10 @@ public class JCMService
     updateOCD();
   }
 
+  /**
+   * Rebuild the UI according to the current Object Class Definition and
+   * designated PID.
+   */
   void updateOCD()
   {
     main.removeAll();
@@ -188,16 +250,6 @@ public class JCMService
 
       final JPanel ctrlPanel = new JPanel(new FlowLayout());
 
-      final JButton applyButton = new JButton("Apply");
-      applyButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev)
-        {
-          applyConfig(designatedPid);
-        }
-      });
-      applyButton
-          .setToolTipText("Applies and stores the configuration changes");
-
       if (isFactory) {
         // Controls for a factory configuration
         Configuration[] configs = null;
@@ -211,6 +263,7 @@ public class JCMService
         final JButton newButton = new JButton("New");
         final JButton facapplyButton = new JButton("Apply");
         final JButton facdelButton = new JButton("Delete");
+        final JButton facExportButton = new JButton("Export...");
 
         final TreeSet<String> fpids = new TreeSet<String>();
         fpids.add(FACTORY_PID_DEFAULTS);
@@ -229,6 +282,7 @@ public class JCMService
               final boolean exists = !FACTORY_PID_DEFAULTS.equals(pid);
               facapplyButton.setEnabled(exists);
               facdelButton.setEnabled(exists);
+              facExportButton.setEnabled(exists);
               showFactoryConfig(pid);
             }
           }
@@ -256,16 +310,24 @@ public class JCMService
         facdelButton.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev)
           {
-            if (factoryPid == null) {
-              factoryPid = (String) fbox.getSelectedItem();
-            }
             deleteFactoryPid(factoryPid);
+          }
+        });
+
+        facExportButton
+            .setToolTipText("Exports the selected factory configuration "
+                            + "instance to an cm_data XML document.");
+        facExportButton.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent ev)
+          {
+            exportConfiguration(factoryPid);
           }
         });
 
         ctrlPanel.add(newButton);
         ctrlPanel.add(facdelButton);
         ctrlPanel.add(facapplyButton);
+        ctrlPanel.add(facExportButton);
         ctrlPanel.add(fbox);
 
         if (lastPID != null) {
@@ -277,6 +339,16 @@ public class JCMService
       } else {
         // Controls for a non-factory configuration
         if (CMDisplayer.configExists(designatedPid)) {
+          final JButton applyButton = new JButton("Apply");
+          applyButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev)
+            {
+              applyConfig(designatedPid);
+            }
+          });
+          applyButton
+              .setToolTipText("Applies and stores the configuration changes");
+
           final JButton delButton = new JButton("Delete");
           delButton.setToolTipText("Delete configuration");
           delButton.addActionListener(new ActionListener() {
@@ -285,8 +357,20 @@ public class JCMService
               deleteConfig(designatedPid);
             }
           });
+
+          final JButton exportButton = new JButton("Export...");
+          exportButton.setToolTipText("Exports the selected configuration "
+                                      + "to a cm_data XML document.");
+          exportButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent ev)
+            {
+              exportConfiguration(designatedPid);
+            }
+          });
+
           ctrlPanel.add(applyButton);
           ctrlPanel.add(delButton);
+          ctrlPanel.add(exportButton);
 
         } else {
           final JButton createButton = new JButton("Create");
@@ -303,8 +387,6 @@ public class JCMService
           ctrlPanel.add(createInfo);
         }
       }
-
-      // ctrlPanel.add(new JLabel(designatedPid), BorderLayout.CENTER);
 
       scroll.setBorder(null);
       mainPanel.add(scroll, BorderLayout.CENTER);
@@ -349,6 +431,19 @@ public class JCMService
     repaint();
   }
 
+  /**
+   * Populate the properties part of the UI with name, description, editable
+   * value for all provided attribute definitions.
+   *
+   * @param propPane
+   *          The UI component to add row to.
+   * @param ads
+   *          The attribute definitions to present.
+   * @param configProps
+   *          Current values of the attributes.
+   * @param info
+   *          Extra information to add to the tool tip for the attribute label.
+   */
   void addAttribs(JComponent propPane,
                   AttributeDefinition[] ads,
                   Dictionary<String, Object> configProps,
@@ -430,7 +525,6 @@ public class JCMService
     if (FACTORY_PID_DEFAULTS.equals(pid)) {
       setProps(new Hashtable<String, Object>());
       factoryPid = null;
-      // TODO: Enable/disable controls
     } else {
       try {
         final Configuration conf =
@@ -444,6 +538,70 @@ public class JCMService
     }
   }
 
+
+  /**
+   * Saves the specified (factory) configuration in a cm_data XML file.
+   *
+   * @param pid PID of the configuration instance to save.
+   */
+  private void exportConfiguration(String pid)
+  {
+    try {
+      final Configuration cfg = CMDisplayer.getCA().getConfiguration(pid, null);
+
+      final JFileChooser saveFC = new JFileChooser();
+      final File cwd = new File(".");
+      saveFC.setCurrentDirectory(cwd);
+      saveFC.setSelectedFile(new File(cwd, pid + ".xml"));
+      saveFC.setMultiSelectionEnabled(false);
+      final FileFilterImpl filter = new FileFilterImpl();
+      filter.addExtension("xml");
+      filter.setDescription("cm_data");
+      saveFC.setFileFilter(filter);
+      saveFC.setDialogTitle("Export Configuration '" + pid + "'.");
+      saveFC.setApproveButtonText("Save");
+
+      final int returnVal = saveFC.showSaveDialog(SwingUtilities.getRoot(this));
+      if (returnVal == JFileChooser.APPROVE_OPTION) {
+        final File file = saveFC.getSelectedFile();
+        if (file.exists()) {
+          final String msg =
+            "The file '" + file + "' already exists.\n\n" + "Overwrite it?";
+          final String title = "Overwrite '" + file + "'?";
+          final int confirm =
+            JOptionPane.showConfirmDialog(this, msg, title,
+                                          JOptionPane.OK_CANCEL_OPTION);
+          if (confirm != JOptionPane.OK_OPTION) {
+            // Done since not OK to over write the file.
+            return;
+          }
+        }
+        final OutputStream out = new FileOutputStream(file);
+        final OutputStreamWriter ow =
+          new OutputStreamWriter(out, CMDataReader.ENCODING);
+        final PrintWriter pw = new PrintWriter(ow);
+        try {
+          if (cfg.getFactoryPid() != null) {
+            CMDataWriter.writeFactoryConfiguration(cfg.getFactoryPid(),
+                                                   cfg.getPid(),
+                                                   cfg.getProperties(), pw);
+          } else {
+            CMDataWriter.writeConfiguration(cfg.getPid(), cfg.getProperties(),
+                                            pw);
+          }
+        } finally {
+          pw.close();
+        }
+      }
+    } catch (final Exception e) {
+      final String msg =
+        "Export of configuration instance failed, pid=" + pid + ", "
+            + e.getMessage();
+      Activator.log.error(msg, e);
+      showError(msg, e);
+    }
+  }
+
   void deleteFactoryPid(String pid)
   {
     // System.out.println("deleteFactoryConfig " + pid);
@@ -452,7 +610,7 @@ public class JCMService
         CMDisplayer.getCA().getConfiguration(pid, null);
       conf.delete();
       lastPID = null;
-      updateOCD();
+      // This UI will be updated via its configuration event listener.
     } catch (final Exception e) {
       Activator.log.error("delete factory failed pid=" + pid, e);
 
@@ -471,7 +629,7 @@ public class JCMService
           CMDisplayer.getCA().getConfiguration(pid, null);
         conf.update(props);
         lastPID = conf.getPid();
-        updateOCD();
+        // This UI will be updated via its configuration event listener.
       } catch (final Exception e) {
         Activator.log.error("apply factory failed pid=" + pid, e);
       }
@@ -493,7 +651,7 @@ public class JCMService
           CMDisplayer.getCA().createFactoryConfiguration(pid, null);
         lastPID = conf.getPid();
         conf.update(props);
-        updateOCD();
+        // This UI will be updated via its configuration event listener.
       } catch (final Exception e) {
         showError("new factory failed pid=" + pid, e);
       }
@@ -533,8 +691,7 @@ public class JCMService
         final Configuration conf =
           CMDisplayer.getCA().getConfiguration(pid, null);
         conf.update(props);
-        lastPID = pid;
-        updateOCD();
+        // This UI will be updated via its configuration event listener.
       } catch (final Exception e) {
         Activator.log.error("Failed to create/update pid=" + pid, e);
       }
@@ -543,6 +700,8 @@ public class JCMService
     }
   }
 
+  // The PID to select in the factory configuration instance combo box in a call
+  // to updateOCD().
   String lastPID = null;
 
   void applyConfig(String pid)
@@ -554,8 +713,7 @@ public class JCMService
         final Configuration conf =
           CMDisplayer.getCA().getConfiguration(pid, null);
         conf.update(props);
-        lastPID = pid;
-        updateOCD();
+        // This UI will be updated via its configuration event listener.
       } catch (final Exception e) {
         Activator.log.error("Failed to apply/update pid=" + pid, e);
       }
@@ -588,19 +746,19 @@ public class JCMService
     final Hashtable<String, Object> out = new Hashtable<String, Object>();
 
     int errCount = 0;
-    for (final Object element : props.keySet()) {
-      final String name = (String) element;
-      final JCMProp jcmProp = props.get(name);
+    for (final Entry<String, JCMProp> entry : props.entrySet()) {
+      final String name = entry.getKey();
+      final JCMProp jcmProp = entry.getValue();
       try {
         final Object val = jcmProp.getValue();
-
         out.put(name, val);
         jcmProp.setErr(null);
       } catch (final Exception e) {
         errCount++;
         jcmProp.setErr(e.getMessage());
-        // System.out.println(name + ": " + e);
-        Activator.log.error("Failed to convert value in " + name, e);
+        jcmProp.invalidate();
+        Activator.log.error("Failed to convert value for '" + name + "', " + e,
+                            e);
       }
     }
 

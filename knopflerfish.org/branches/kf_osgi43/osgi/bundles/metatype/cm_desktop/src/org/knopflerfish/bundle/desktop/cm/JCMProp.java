@@ -121,7 +121,7 @@ public class JCMProp
       }
     }
 
-    add(comp, BorderLayout.CENTER);
+    add(comp, BorderLayout.NORTH);
     add(err, BorderLayout.SOUTH);
 
     final Object obj = props.get(ad.getID());

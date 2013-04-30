@@ -19,22 +19,23 @@
 <h2 class="kf">OSGi Release 4 Version 4.3 - What is New?</h2>
 <div class="release_notes">
   <p>
-    Below is a short summary of the most important new features in OSGi 4.3. 
+    Below is a short summary of the most important new features in OSGi 4.3.
   </p>
   <div class="note_group">
     <div class="note_name"> Generics </div>
     <div class="note_item">
-      The core OSGi API uses generics which allows for type-safe use of the framework API. 
+      The core OSGi API uses generics which allows for type-safe use of the framework API.
       I.e. no more casting. Support for Java 1.4 run-time environments
-      is maintained via the -target jsr14 compiler flag. 
+      is maintained via the -target jsr14 compiler flag.
     </div>
   </div>
   <div class="note_group">
     <div class="note_name"> Capabilities </div>
     <div class="note_item">
-      In OSGi 4.3 a bundle can declare generic requirements and capabilities through the 
-      <code>Require-Cabability</code> and <code>Provide Capability</code> manifest headers. 
-      These two headers are inspected during the resolving phase of the bundle.
+      In OSGi 4.3 a bundle can declare generic requirements and
+      capabilities through the <code>Require-Capability</code> and
+      <code>Provide Capability</code> manifest headers.  These two
+      headers are inspected during the resolving phase of the bundle.
     </div>
   </div>
   <div class="note_group">
@@ -42,7 +43,7 @@
     <div class="note_item">
       The new Wiring API replaces the PackageAdmin service and also
       provide information how requirements and provided capabilities
-      have been resolved by the framework. 
+      have been resolved by the framework.
     </div>
   </div>
   <div class="note_group">
@@ -54,19 +55,19 @@
       methods to the bundle class. The adapt patterns is typically
       used to replace the former StartLevelService by providing a
       BundleStartLevel object with the start level operations
-      for a bundle. 
+      for a bundle.
     </div>
   </div>
   <div class="note_group">
     <div class="note_name"> Framework hooks </div>
     <div class="note_item">
-      A set of hooks have been added with allows bundles to plug-into the framework 
-      for close interaction with the framework. The following hooks exist in 4.3: 
+      A set of hooks have been added with allows bundles to plug-into the framework
+      for close interaction with the framework. The following hooks exist in 4.3:
       <ul>
-	<li>Resolver Hooks</li>
-	<li>Bundle Hooks</li>
-	<li>Service Hooks</li>
-	<li>Weaving Hooks</li>
+        <li>Resolver Hooks</li>
+        <li>Bundle Hooks</li>
+        <li>Service Hooks</li>
+        <li>Weaving Hooks</li>
     </div>
   </div>
 </div>
@@ -77,8 +78,8 @@
   <div class="note_group">
     <div class="note_name"> OSGi R4 v4.3 specification</div>
     <div class="note_item">
-      All the Core Specification Services and API:s are included and are 
-      designed to be compliant with  the OSGi R4 v4.3 specification. 
+      All the Core Specification Services and API:s are included and are
+      designed to be compliant with  the OSGi R4 v4.3 specification.
       Please refer to the  <a href="components.html">Contents</a> page for a more detailed
       description of news in 4.3 and KF4 implementation status.
     </div>
@@ -103,7 +104,7 @@
     <div class="note_name"> OSGi R4 v4.3 Specification</div>
     <div class="note_item">
       All Compendium Specification Services included but one are updated to
-      implement the OSGi R4 v4.3 specification. 
+      implement the OSGi R4 v4.3 specification.
       Please refer to the  <a href="components.html">Contents</a> page for a more detailed
       description of news in 4.3 and KF4 implementation status.
     </div>
@@ -118,14 +119,14 @@
     <div class="note_name">cm 4.0.1</div>
     <div class="note_item">
       Added a method that save a list of configurations as XML to
-      <tt>org.knopflerfish.shared.cm</tt> 
+      <tt>org.knopflerfish.shared.cm</tt>
     </div>
   </div>
 
   <div class="note_group">
     <div class="note_name">Http 4.0.1</div>
     <div class="note_item">
-      Fixed an error in the metatype document describing the HTTP
+      Fixed an error in the meta type document describing the HTTP
       configuration.
     </div>
 
@@ -149,10 +150,10 @@
     <div class="note_name">KF-ML- Metatype 4.0.1</div>
     <div class="note_item">
       Replaced the document describing the configuration metadata
-      with a new one that uses the OSGi specified metatype schema.
+      with a new one that uses the OSGi specified meta type schema.
     </div>
     <div class="note_item">
-      Improved support for mixing legacy KF-Metatype and OSGi metatype.
+      Improved support for mixing legacy KF-Metatype and OSGi meta type.
     </div>
 </div>
 
@@ -176,7 +177,7 @@
   <div class="note_group">
     <div class="note_name">CM-Commands 4.0.1</div>
     <div class="note_item">
-      Added export command that exports all matching conifgurations as
+      Added export command that exports all matching configurations as
       an XML-document.
     </div>
   </div>
@@ -192,6 +193,11 @@
   <div class="note_group">
     <div class="note_name">
       CM-Desktop 4.0.0
+    </div>
+    <div class="note_item">
+      Added <tt>Export...</tt> button that exports the currently
+      showing configuration as a cm_data XML document suitable for use
+      together with the Directory Deployer bundle.
     </div>
     <div class="note_item">
       The displayer always shows the combo boxes for PIDs and factory
@@ -216,8 +222,12 @@
     </div>
     <div class="note_item">
       The CM-displayer now uses a configuration listener to know when
-      the conifguration it shows is changed and then update its
+      the configuration it shows is changed and then update its
       presentation.
+    </div>
+    <div class="note_item">
+      Fixed the layout when there was an active error message for a
+      numeric configuration property.
     </div>
   </div>
 
@@ -255,13 +265,13 @@
       The closure tab as well as the File-menu save deployment archive
       now computes the closure of bundles to include correctly. Before
       it took the union of a capability dependencies closure and a
-      service dependencies closure wich will miss bundles that
+      service dependencies closure which will miss bundles that
       provides capabilities to service implementor bundles that was
-      not in the original capabilitie closure.
+      not in the original capabilities closure.
     </div>
     <div class="note_item">
       The "refresh"-link in the Wiring tab now works for wired
-      providers / requirers that has been uninstalled.
+      providers / requires that has been uninstalled.
     </div>
     <div class="note_item">
       Restored and enhanced the update check functionality that pops
@@ -292,7 +302,7 @@
       list using a smaller, weaker font.
     </div>
     <div class="note_item">
-      Added additional overlay images in the Bundle Icon view to indicate 
+      Added additional overlay images in the Bundle Icon view to indicate
       the following bundle states: RESOLVED, STARTING and STOPPING.
     </div>
     <div class="note_item">
@@ -344,7 +354,7 @@
       Command TTY 4.0.1
     </div>
     <div class="note_item">
-      Fixed an error in the metatype document describing the configuration.
+      Fixed an error in the meta-type document describing the configuration.
     </div>
   </div>
 
@@ -359,7 +369,7 @@
       parameter value to the call command.
     </div>
     <div class="note_item">
-      The call command now corretly handles calls to methods in super
+      The call command now correctly handles calls to methods in super
       interfaces of an interface that the service object implements.
     </div>
 
@@ -381,7 +391,7 @@
       Log Service 4.0.1
     </div>
     <div class="note_item">
-      Fixed an error in the metatype document describing the configuration.
+      Fixed an error in the meta type document describing the configuration.
     </div>
   </div>
 
@@ -403,8 +413,8 @@
       Directory Deployer 4.0.1
     </div>
     <div class="note_item">
-      Replaced the document describing the configuration metadata
-      with a new one that uses the OSGi specified metatype schema.
+      Replaced the document describing the configuration meta data
+      with a new one that uses the OSGi specified meta type schema.
     </div>
     <div class="note_item">
       Updated user the Wiring and Starlevel APIs.
@@ -417,7 +427,7 @@
     </div>
     <div class="note_item">
       Replaced the document describing the configuration metadata
-      with a new one that uses the OSGi specified metatype schema.
+      with a new one that uses the OSGi specified meta type schema.
     </div>
     <div class="note_item">
       Added a number of properties to the configuration metadata:
@@ -434,9 +444,8 @@
       TTY-Console 4.0.1
     </div>
     <div class="note_item">
-      Fixed an error in the metatype document describing the configuration.
+      Fixed an error in the meta type document describing the configuration.
     </div>
   </div>
 
 </div>
-	  
