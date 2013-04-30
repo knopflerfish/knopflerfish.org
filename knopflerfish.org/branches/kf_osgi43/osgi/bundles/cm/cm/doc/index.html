@@ -59,28 +59,33 @@
 </p>
 
 <p>
-  This XML-format is used by the import and export commands provided
-  by the <a href="../cm_cmd/index.html">cm_commands</a> console
-  command bundle.  It is also supported by the <a
-  href="../dirdeployer/index.html">dirdeployer</a> bundle.
+
+  The cm_data XML-format is used by the import and export commands
+  provided by the <a href="../cm_cmd/index.html">cm_commands</a>
+  console command bundle.  It is also supported by the <a
+  href="../dirdeployer/index.html">Directory Deployer</a> bundle.
+
 </p>
 
 <p>
   Limitations that are not specified <tt>cm_data.dtd</tt>: <ul>
 
-    <li>The mode attribute on configurations shall allways be set to
-        "new" when using this DTD.
-
-    <li>The mode attribute on factory configurations shall allways be
-        set to "update" when using this DTD.
+    <li>The mode attribute on configurations and factory
+        configurations is deprecated and not used. If present in the
+        XML-document set the value to "new" for ordinary configuration
+        and "update" for factory configuration instances.
 
     <li>Properties with a value of type array must have an element
-        type that is eiter a primitive value or one of the types
-        defined by the TYPE entity.
+        type that is either a primitive value or one of the types
+        defined by the TYPE entity. Make sure that the length
+        attribute on the array element is correct, otherwise the
+        parsing will fail with strange error messages.
 
     <li>Properties with a value of type Vector must have all element
         of the same type and that type must be one of the types
-        defined by the TYPE entity.
+        defined by the TYPE entity. Make sure that the length
+        attribute on the array element is correct, otherwise the
+        parsing will fail with strange error messages.
 
   </ul>
 </p>
