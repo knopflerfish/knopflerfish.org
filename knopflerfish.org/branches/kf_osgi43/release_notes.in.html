@@ -448,4 +448,47 @@
     </div>
   </div>
 
+
+  <div class="note_group">
+    <div class="note_name">
+      Knopflerfish Build System
+    </div>
+    <div class="note_item">
+
+      The "API"-variant of a bundle contains the bundles API.
+
+      <p/>
+
+      The "IMPL"-variant of a bundle contains the implementation, but
+      not API. It may export packages that are not part of the
+      official API, selected by the property
+      <tt>impl-api.pattern</tt>.
+
+      <p/>
+
+      The "ALL"-variant of a bundle contains both the API and the
+      implementation. It may also export additional packages, often
+      those packages that it imports (to make the bundle
+      self-contained). These extra packages are selected by the
+      property <tt>all-api.pattern</tt>.
+
+      <p/>
+
+      There is also a property, <tt>all.pattern</tt> that can be used
+      to select additional contents for the "ALL"-variant of the
+      bundle.
+
+    </div>
+
+    <div class="note_item">
+
+      Added support for generation of maven source artifacts for all
+      variants of the bundle. This is controlled by the ant property
+      named <tt>bundle.build.source.jar</tt>.
+
+    </div>
+
+  </div>
+
+
 </div>

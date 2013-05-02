@@ -33,7 +33,10 @@
 		   org.osgi.service.url;version=1.0,
 		   org.osgi.service.condpermadmin;version=1.1"/>
 
-  <property name="jarfile"      location="${topdir}/${ant.project.name}.jar"/>
+  <property name="jarfile"
+	    location="${topdir}/${ant.project.name}.jar"/>
+  <property name="source.jarfile"
+	    location="${topdir}/${ant.project.name}-source.jar"/>
 
   <import file="${ant.dir}/android.xml"/>
 
@@ -72,7 +75,7 @@
   </path>
 
   <!-- targets -->
-  <target name="all" depends="jar">
+  <target name="all" depends="jar, source.jar">
   </target>
 
   <target name="compile">
@@ -194,7 +197,17 @@
     </jar>  
 
     <antcall target="add_dex"/>
-  </target>  
+  </target>
+
+  <target name="source.jar" if="bundle.build.source.jar">
+    <jar basedir="${src.dir}"
+         jarfile="${source.jarfile}"
+         includes="**/*.java"
+         excludes="**/package-info.java"
+         manifestencoding="UTF-8">
+    </jar>
+  </target>
+
 
   <!-- Helper taget that adds Android dex data to framework.jar. -->
   <target name="add_dex" if="android.exists">

@@ -13,7 +13,13 @@
             value = "org/osgi/service/http/**"/>
 
   <property name  = "impl.pattern"
-            value = "org/knopflerfish/**"/>
+            value = "org/knopflerfish/bundle/**,
+		     org/knopflerfish/util/*"/>
+
+  <property name  = "all-api.pattern"
+            value = "org/knopflerfish/service/**"/>
+
+
 
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
@@ -32,6 +38,8 @@
     <!-- Reuse KF Log and Timer class from the KF util bundle. -->
     <bundle_locator bundleNames="log_api, util">
       <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
         <include name="**/*.jar"/>
       </fileset>
     </bundle_locator>

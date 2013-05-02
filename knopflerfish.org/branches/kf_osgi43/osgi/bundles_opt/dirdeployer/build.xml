@@ -17,11 +17,11 @@
   <property name="api.pattern"
             value="org/knopflerfish/service/**"/>
 
-  <property name="impl-api.pattern"
-            value="org/knopflerfish/shared/cm/**"/>
-
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>
+
+  <property name="all-api.pattern"
+            value="org/knopflerfish/shared/cm/**"/>
 
 
   <path id="bundle.compile.path">
@@ -34,6 +34,8 @@
     <!-- Embedd the the cm_data-XML parser from the CM shared pkg. -->
     <bundle_locator bundleNames="cm_all">
       <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
         <include name="**/*.jar"/>
       </fileset>
     </bundle_locator>

@@ -1188,9 +1188,7 @@ be present at all in the manifest, not even as a zero-length string.
   <td>
       Path pattern string that must match all private (implementation
       specific) Java packages in the source tree that shall be
-      included in the bundle but not exported. All Java packages on the
-      bundle class path that does not match the api.pattern are
-      inlcuded in the bundle as private packages.
+      included in the bundle but not exported.
 
       <p/>
 
@@ -1209,6 +1207,46 @@ be present at all in the manifest, not even as a zero-length string.
       not in the "API"-variant of the bundle. Typically used when the
       implementation part of the bundle needs to export implementation
       specific Java packages that is not part of the bundles API.
+  </td>
+ </tr>
+
+ <tr>
+  <td>all.pattern</td>
+  <td>
+
+      Path pattern string that must match additional private
+      (implementation specific) Java packages in the source tree that
+      shall be included in the all-variant of the bundle but not
+      exported.
+
+      <p/>
+
+      The "ALL"-variant of the bundle will contain classes that
+      matches any of the api.pattern, impl.pattern, impl-api.pattern,
+      all.pattern and all-api.pattern.
+
+  </td>
+ </tr>
+
+ <tr>
+  <td>all-api.pattern</td>
+  <td>
+
+      Path pattern string that must match additional Java packages
+      that shall be included in and exported from the "ALL" variant of
+      the the bundle but not in the "API"-variant or "IMPL"-variant of
+      the bundle. Typically used to make a self contained
+      "ALL"-variant of the bundle that exports all Java-packages that
+      the "IMPL"-variant needs.
+
+      <p/>
+
+      The "ALL"-variant of the bundle will export classes in packages
+      that are matched by one of api.pattern, impl-api.pattern and
+      all-api.pattern. It will contain all classes that are matched by
+      any of api.pattern, impl-api.pattern, impl-pattern,
+      all-api.pattern and all.pattern.
+
   </td>
  </tr>
 

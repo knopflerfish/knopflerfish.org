@@ -362,6 +362,8 @@ public class BundleMvnAntTask extends Task {
 
         addLicense(mvnDeployBundle, ba, prefix2);
         addDependencies(mvnDeployBundle, ba, prefix2);
+        addSourceAttachment(mvnDeployBundle, ba, prefix2);
+        addJavadocAttachment(mvnDeployBundle, ba, prefix2);
 
         // Put the end of the target-element on a separate line
         target.appendChild(doc.createTextNode("\n"+prefix1));
@@ -857,6 +859,102 @@ public class BundleMvnAntTask extends Task {
       }
     }
   }
+
+  /**
+   * Add attachement element for the source artifact if present.
+   *
+   * <pre>
+   * &lt;attach file="${basedir}/target/my-project-1.0-sources.jar"
+   *            type="jar"
+   *            classifier="sources"&gt;
+   * </pre>
+   *
+   * @param el
+   *          element to add the attachment to.
+   * @param ba
+   *          The bundle archive to add a source artifact for.
+   * @param prefix
+   *          Whitespace to add before the new element.
+   */
+  private void addSourceAttachment(final Element el,
+                                   final BundleArchive ba,
+                                   final String prefix)
+  {
+    String sourcePath = ba.file.getAbsolutePath();
+    // Remove ".jar" suffix.
+    sourcePath = sourcePath.substring(0,sourcePath.length()-4);
+    sourcePath = sourcePath +"-source.jar";
+    final File sourceFile = new File(sourcePath);
+
+    if (sourceFile.exists()) {
+      final Document doc = el.getOwnerDocument();
+      final String prefix1 = prefix + "  ";
+      final String prefix2 = prefix1 + "  ";
+      final Element sourceAttachment = doc.createElement("source-attachment");
+
+      el.appendChild(doc.createTextNode("\n"+prefix1));
+      el.appendChild(sourceAttachment);
+      el.appendChild(doc.createTextNode("\n"+prefix));
+
+      final Element attach = doc.createElement("attach");
+      sourceAttachment.appendChild(doc.createTextNode("\n"+prefix2));
+      sourceAttachment.appendChild(attach);
+      sourceAttachment.appendChild(doc.createTextNode("\n"+prefix1));
+
+      attach.setAttribute("file", sourcePath);
+      attach.setAttribute("type", "jar");
+      attach.setAttribute("classifier", "sources");
+    }
+  }
+
+
+  /**
+   * Add attachement element for the javadoc artifact if present.
+   *
+   * <pre>
+   *  &lt;attach file="${basedir}/target/my-project-1.0-javadoc.jar"
+   *             type="jar"
+   *             classifier="javadoc"/&gt;
+   * </pre>
+   *
+   * @param el
+   *          element to add the attachment to.
+   * @param ba
+   *          The bundle archive to add a source artifact for.
+   * @param prefix
+   *          Whitespace to add before the new element.
+   */
+  private void addJavadocAttachment(final Element el,
+                                    final BundleArchive ba,
+                                    final String prefix)
+  {
+    String javadocPath = ba.file.getAbsolutePath();
+    // Remove ".jar" suffix.
+    javadocPath = javadocPath.substring(0, javadocPath.length()-4);
+    javadocPath = javadocPath +"-javadoc.jar";
+
+    final File javadocFile = new File(javadocPath);
+    if (javadocFile.exists()) {
+      final Document doc = el.getOwnerDocument();
+      final String prefix1 = prefix + "  ";
+      final String prefix2 = prefix1 + "  ";
+      final Element javadocAttachment = doc.createElement("javadoc-attachment");
+
+      el.appendChild(doc.createTextNode("\n"+prefix1));
+      el.appendChild(javadocAttachment);
+      el.appendChild(doc.createTextNode("\n"+prefix));
+
+      final Element attach = doc.createElement("attach");
+      javadocAttachment.appendChild(doc.createTextNode("\n"+prefix2));
+      javadocAttachment.appendChild(attach);
+      javadocAttachment.appendChild(doc.createTextNode("\n"+prefix1));
+
+      attach.setAttribute("file", javadocPath);
+      attach.setAttribute("type", "jar");
+      attach.setAttribute("classifier", "javadoc");
+    }
+  }
+
 
   /**
    * Sort map entries that consists of a bundle archive as key and a

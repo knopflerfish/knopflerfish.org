@@ -10,16 +10,19 @@
   <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
 
   <property name="api.pattern"
-	    value="org/knopflerfish/service/desktop/**,
-		   org/knopflerfish/service/console/**"/> 
+	    value="org/knopflerfish/service/desktop/**"/> 
   <property name="impl.pattern"
 	    value="org/knopflerfish/bundle/**"/> 
+  <property name="all-api.pattern"
+	    value="org/knopflerfish/service/console/**"/> 
 
   <property name="do.bundle.custom.pre" value="true"/>
   <!-- Embedd the KF console API. -->
   <target name="bundle.custom.pre">
     <bundle_locator bundleNames="console_api">
       <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
 	<include name="**/*.jar"/>
       </fileset>
     </bundle_locator>

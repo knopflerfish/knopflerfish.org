@@ -13,15 +13,22 @@
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
 
-  <property name="impl.pattern"
-            value="org/knopflerfish/bundle/**/*,
-                   org/**,
-                   fr/**,
-                   kxml/**"/>
   <property name="api.pattern"
-            value="org/ungoverned/osgi/service/bundlerepository/**,
-                   org/knopflerfish/service/console/*,
-                   org/kxml/**"/>
+            value="org/ungoverned/osgi/service/bundlerepository/**"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/osgi/bundle/**/*,
+                   org/ungoverned/osgi/bundle/**,
+                   fr/imag/adele/metadataparser/**,
+                   kxml/sax/**,
+		   org/kxml/**"/>
+
+  <property name="all-api.pattern"
+            value="org/knopflerfish/service/console/**"/>
+
+  <property name="all.pattern"
+            value="org/knopflerfish/service/console/*"/>
+
 
   <property name="do.bundle.custom.pre" value="true"/>
 
@@ -29,6 +36,8 @@
   <target name="bundle.custom.pre">
     <bundle_locator bundleNames="console_api">
       <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
         <include name="**/*.jar"/>
       </fileset>
     </bundle_locator>

@@ -7,9 +7,15 @@
 
   <property name="bundle.build.doc" value="true"/>
 
-  <property name="api.pattern"      value="org/osgi/service/cm/**"/>
-  <property name="impl.pattern"     value="org/knopflerfish/bundle/**"/>
-  <property name="impl-api.pattern" value="org/knopflerfish/shared/cm/**"/>
+  <property name="api.pattern"
+	    value="org/osgi/service/cm/**"/>
+
+  <property name="impl-api.pattern"
+	    value="org/knopflerfish/shared/cm/**"/>
+
+  <property name="impl.pattern"
+	    value="org/knopflerfish/bundle/**"/>
+
   
   <!-- Build for OSGi Minimum Execution Environment. -->
   <property name="bundle.compile.EE" value="ee.minimum"/>

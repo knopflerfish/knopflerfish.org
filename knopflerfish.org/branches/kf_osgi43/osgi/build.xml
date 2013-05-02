@@ -126,7 +126,9 @@
 	   testJars="${test_jars}"
 	   outDir="${root.out.dir}/xargs">
       <bundles>
-	<fileset dir="${jars.dir}" includes="**/*.jar"/>
+	<fileset dir="${jars.dir}"
+		 excludes="**/*-source.jar,**/*-javdoc.jar"
+		 includes="**/*.jar"/>
       </bundles>
     </xargs>
   </target>

@@ -22,5 +22,6 @@ Import-Package: org.osgi.framework; version="[1.6,2)",
  javax.servlet; version="[2.5,2.6)",
  javax.servlet.http; version="[2.5,2.6)",
  javax.net.ssl; resolution:=optional,
- org.knopflerfish.service.console;resolution:=optional
+ org.knopflerfish.service.console;resolution:=optional,
+ org.knopflerfish.service.log; version="[1.2,3)"
 

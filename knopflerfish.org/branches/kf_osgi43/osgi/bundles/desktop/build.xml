@@ -16,16 +16,19 @@
   <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
 
   <property name="api.pattern"
-            value="org/knopflerfish/service/**,
-                   org/knopflerfish/util/**,
-                   org/knopflerfish/shared/cm/**,
-                   org/osgi/service/**,
-                   org/apache/felix/scr/**"/> 
+            value="org/knopflerfish/service/desktop/**"/> 
 
   <property name="impl.pattern"
-            value="org/knopflerfish/**,
-                   org/osgi/service/**,
-                   apple/**"/> 
+            value="org/knopflerfish/bundle/desktop/**,
+		   org/knopflerfish/bundle/log/window/impl/**,
+		   org/knopflerfish/framework/**"/> 
+
+  <property name="all-api.pattern"
+            value="org/apache/felix/scr/**,
+		   org/knopflerfish/service/**,
+		   org/knopflerfish/shared/cm/**,
+                   org/knopflerfish/util/**,
+                   org/osgi/service/**"/> 
 
   <property name="do.bundle.custom.pre" value="true"/>
 
@@ -41,6 +44,8 @@
                                  prefs_api,
                                  component_api">
       <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
         <include name="**/*.jar"/>
       </fileset>
     </bundle_locator>

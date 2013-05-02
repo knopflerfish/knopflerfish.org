@@ -146,10 +146,14 @@
 
     <!-- Note: This will build the bundle_tasks.jar -->
     <ant dir="${osgi.dir}/framework" inheritall="false">
-      <property name="jarfile" location="${distrib.osgi.dir}/framework.jar"/>
+      <property name="jarfile"
+		location="${distrib.osgi.dir}/framework.jar"/>
       <property name="version" value="${version}"/>
       <property name="root.out.dir" location="${distrib.tmp.dir}"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
+      <property name="bundle.build.source.jar" value="true"/>
+      <property name="source.jarfile"
+		location="${distrib.osgi.dir}/framework-source.jar"/>
     </ant>
   </target>
 
@@ -164,6 +168,7 @@
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="bundle.build.source.jar" value="true"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
@@ -179,6 +184,7 @@
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="bundle.build.source.jar" value="true"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
@@ -196,6 +202,7 @@
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
+      <property name="bundle.build.source.jar" value="true"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
@@ -456,6 +463,7 @@
       </zipfileset>
 
       <zipfileset dir="${distrib.osgi.dir}" prefix="osgi">
+        <exclude name="jars*/**/*-source.jar"/>
         <include name="**/*"/>
       </zipfileset>
 
