@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <project name="framework" default="all">
-  
+
   <!-- build properties -->
   <property name="topdir"       location=".."/>
   <property name="osgi.dir"     location="${topdir}"/>
@@ -10,6 +10,7 @@
   <property name="root.out.dir" location="${topdir}/out"/>
   <property name="outdir"       location="${root.out.dir}/${ant.project.name}"/>
   <property name="classout"     location="${outdir}/classes"/>
+  <property name="javadoc.out.dir" location="${outdir}/javadoc"/>
   <property name="docs.dir"     location="${root.out.dir}/doc"/>
   <property name="outdocdir"    location="${docs.dir}/${ant.project.name}"/>
   <!-- Location of templates used by the framework_doc-target. -->
@@ -18,25 +19,27 @@
 
   <property name="fw.impl.version"   value="6.0.1"/>
   <property name="fw.export-package"
-	    value="org.osgi.framework;version=1.6,
-		   org.osgi.framework.launch;version=1.0,
-		   org.osgi.framework.hooks.service;version=1.1,
-		   org.osgi.framework.hooks.bundle;version=1.0,
-		   org.osgi.framework.hooks.weaving;version=1.0,
-		   org.osgi.framework.hooks.resolver;version=1.0,
-		   org.osgi.framework.startlevel;version=1.0,
-		   org.osgi.framework.wiring;version=1.0,
-		   org.osgi.service.packageadmin;version=1.2,
-		   org.osgi.service.permissionadmin;version=1.2,
-		   org.osgi.util.tracker;version=1.5,
-		   org.osgi.service.startlevel;version=1.1,
-		   org.osgi.service.url;version=1.0,
-		   org.osgi.service.condpermadmin;version=1.1"/>
+            value="org.osgi.framework;version=1.6,
+                   org.osgi.framework.launch;version=1.0,
+                   org.osgi.framework.hooks.service;version=1.1,
+                   org.osgi.framework.hooks.bundle;version=1.0,
+                   org.osgi.framework.hooks.weaving;version=1.0,
+                   org.osgi.framework.hooks.resolver;version=1.0,
+                   org.osgi.framework.startlevel;version=1.0,
+                   org.osgi.framework.wiring;version=1.0,
+                   org.osgi.service.packageadmin;version=1.2,
+                   org.osgi.service.permissionadmin;version=1.2,
+                   org.osgi.util.tracker;version=1.5,
+                   org.osgi.service.startlevel;version=1.1,
+                   org.osgi.service.url;version=1.0,
+                   org.osgi.service.condpermadmin;version=1.1"/>
 
   <property name="jarfile"
-	    location="${topdir}/${ant.project.name}.jar"/>
+            location="${topdir}/${ant.project.name}.jar"/>
   <property name="source.jarfile"
-	    location="${topdir}/${ant.project.name}-source.jar"/>
+            location="${topdir}/${ant.project.name}-source.jar"/>
+  <property name="javadoc.jarfile"
+            location="${topdir}/${ant.project.name}-javadoc.jar"/>
 
   <import file="${ant.dir}/android.xml"/>
 
@@ -55,7 +58,7 @@
   <!-- Currently this are classes that references:                    -->
   <!--        java.security.cert                                      -->
   <property name="nonFoundationSrcs"
-	    value="org/knopflerfish/framework/validator/JKSValidator.java"/>
+            value="org/knopflerfish/framework/validator/JKSValidator.java"/>
 
   <path id="ee.minimum.path">
     <pathelement location="${osgi.dir}/ee/ee.minimum.jar"/>
@@ -75,7 +78,7 @@
   </path>
 
   <!-- targets -->
-  <target name="all" depends="jar, source.jar">
+  <target name="all" depends="jar, source.jar, javadoc.jar">
   </target>
 
   <target name="compile">
@@ -83,16 +86,16 @@
     <antcall target="compile_compact"/>
   </target>
 
-  <target name        = "compile_full" 
+  <target name        = "compile_full"
           unless      = "compact"
           description = "compiles all java sources">
     <mkdir dir="${classout}"/>
 
-    <javac destdir           = "${classout}" 
-           srcdir            = "${src.dir}" 
+    <javac destdir           = "${classout}"
+           srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-	   includejavaruntime= "false"
+           includejavaruntime= "false"
            includes          = "**/*.java"
            excludes          = "${nonFoundationSrcs},**/package-info.java"
            target            = "${javac.target}"
@@ -102,11 +105,11 @@
            >
     </javac>
     <!-- Non foundation compliant part (uses java.security.cert) -->
-    <javac destdir           = "${classout}" 
-           srcdir            = "${src.dir}" 
+    <javac destdir           = "${classout}"
+           srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-	   includejavaruntime= "false"
+           includejavaruntime= "false"
            includes          = "${nonFoundationSrcs}"
            excludes          = "**/package-info.java"
            target            = "${javac.target}"
@@ -121,11 +124,11 @@
           description="compiles with file storage only">
     <mkdir dir="${classout}"/>
 
-    <javac destdir           = "${classout}" 
-           srcdir            = "${src.dir}" 
+    <javac destdir           = "${classout}"
+           srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-	   includejavaruntime= "false"
+           includejavaruntime= "false"
            includes          = "**/*.java"
            excludes          = "${nonFoundationSrcs},org/knopflerfish/framework/bundlestorage/memory/*.java,**/package-info.java"
            target            = "${javac.target}"
@@ -135,11 +138,11 @@
            >
     </javac>
     <!-- Non foundation compliant part (uses java.security.cert) -->
-    <javac destdir           = "${classout}" 
-           srcdir            = "${src.dir}" 
+    <javac destdir           = "${classout}"
+           srcdir            = "${src.dir}"
            debug             = "on"
            includeantruntime = "false"
-	   includejavaruntime= "false"
+           includejavaruntime= "false"
            includes          = "${nonFoundationSrcs}"
            excludes          = "**/package-info.java"
            target            = "${javac.target}"
@@ -151,7 +154,7 @@
 
   <target name="jar" depends="compile" description="build jar">
     <tstamp>
-      <format property="framework.tstamp" 
+      <format property="framework.tstamp"
               pattern="'Build' EE MMMM d yyyy, HH:mm:ss"
               locale="en"/>
     </tstamp>
@@ -161,13 +164,13 @@
     <echo message="${fw.impl.version}"  file="resources/version"/>
     <delete file="resources/tstamp"/>
     <echo message="${framework.tstamp}" file="resources/tstamp"/>
-    
+
     <condition property="version.isset">
       <isset property="version"/>
     </condition>
 
     <antcall target="writerelease"/>
-    
+
     <delete file="${classout}/classes.dex"/>
 
     <jar basedir="${classout}"
@@ -194,7 +197,7 @@
         <attribute name="Build-Date"             value="${framework.tstamp}"/>
         <attribute name="SplashScreen-Image"     value="kfsplash.gif"/>
       </manifest>
-    </jar>  
+    </jar>
 
     <antcall target="add_dex"/>
   </target>
@@ -204,6 +207,49 @@
          jarfile="${source.jarfile}"
          includes="**/*.java"
          excludes="**/package-info.java"
+         manifestencoding="UTF-8">
+    </jar>
+  </target>
+
+
+  <target name="javadoc.jar" if="bundle.build.javadoc.jar">
+    <mkdir dir="${javadoc.out.dir}"/>
+
+    <property name="javadoc.header"
+              value="Knopflerfish OSGi Framework ${fw.impl.version}"/>
+
+    <property name="javadoc.footer"
+              value="Knopflerfish OSGi ${version}"/>
+
+    <property name="javadoc.windowtitle"
+              value="${javadoc.header} javadoc"/>
+
+    <property name="javadoc.doctitle"
+              value="${javadoc.header} API documentation"/>
+
+    <javadoc header="${javadoc.header}"
+             footer="${javadoc.footer}"
+             windowtitle="${javadoc.windowtitle}"
+             doctitle="${javadoc.doctitle}"
+             destdir="${javadoc.out.dir}"
+             classpathref="compile.path">
+      <!-- Custome tags used by OSGi -->
+      <tag name="ThreadSafe"    scope="all" description="ThreadSafe"/>
+      <tag name="NotThreadSafe" scope="all" description="NotThreadSafe"/>
+      <tag name="Immutable"     scope="all" description="Immutable"/>
+      <tag name="security"      scope="all" description="Required Permissions"/>
+      <tag name="noimplement"   scope="all"
+           description="Consumers of this API must not implement this interface"/>
+      <packageset dir="${src.dir}">
+        <include name="org/osgi/**"/>
+        <exclude name="org/knopflerfish/**"/>
+      </packageset>
+
+    </javadoc>
+
+    <jar basedir="${javadoc.out.dir}"
+         jarfile="${javadoc.jarfile}"
+         includes="**"
          manifestencoding="UTF-8">
     </jar>
   </target>

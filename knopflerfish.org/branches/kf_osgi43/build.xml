@@ -154,6 +154,9 @@
       <property name="bundle.build.source.jar" value="true"/>
       <property name="source.jarfile"
 		location="${distrib.osgi.dir}/framework-source.jar"/>
+      <property name="bundle.build.javadoc.jar" value="true"/>
+      <property name="javadoc.jarfile"
+		location="${distrib.osgi.dir}/framework-javadoc.jar"/>
     </ant>
   </target>
 
@@ -464,6 +467,7 @@
 
       <zipfileset dir="${distrib.osgi.dir}" prefix="osgi">
         <exclude name="jars*/**/*-source.jar"/>
+        <exclude name="jars*/**/*-javadoc.jar"/>
         <include name="**/*"/>
       </zipfileset>
 
