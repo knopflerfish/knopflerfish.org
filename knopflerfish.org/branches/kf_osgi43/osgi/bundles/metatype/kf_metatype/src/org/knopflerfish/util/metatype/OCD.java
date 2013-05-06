@@ -56,8 +56,7 @@ import org.osgi.service.metatype.AttributeDefinition;
 import org.osgi.service.metatype.ObjectClassDefinition;
 
 /**
- * Implementation of the ObjectClassDefinition interface.
- *
+ * Implementation of the {@link ObjectClassDefinition} interface.
  */
 public class OCD
   implements ObjectClassDefinition
@@ -78,7 +77,7 @@ public class OCD
   int maxInstances = 1;
 
   /**
-   * Create a new, empty ObjectClassDefinition.
+   * Create a new, empty {@link ObjectClassDefinition}.
    *
    * @param id
    *          unique ID of the definition.

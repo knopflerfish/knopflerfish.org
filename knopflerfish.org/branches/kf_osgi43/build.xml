@@ -171,7 +171,8 @@
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
-      <property name="bundle.build.source.jar" value="true"/>
+      <property name="bundle.build.source.jar"   value="true"/>
+      <property name="bundle.build.javadoc.jar"  value="true"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
@@ -187,7 +188,8 @@
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
-      <property name="bundle.build.source.jar" value="true"/>
+      <property name="bundle.build.source.jar"   value="true"/>
+      <property name="bundle.build.javadoc.jar"  value="true"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>
@@ -205,7 +207,8 @@
       <property name="exported.file" location="${distrib.exported.file}"/>
       <property name="sources.file"  location="${distrib.sources.file}"/>
       <property name="root.out.dir"  location="${distrib.tmp.dir}"/>
-      <property name="bundle.build.source.jar" value="true"/>
+      <property name="bundle.build.source.jar"   value="true"/>
+      <property name="bundle.build.javadoc.jar"  value="true"/>
       <property name="bmfa.Knopflerfish-Version" value="${version}"/>
     </ant>
   </target>

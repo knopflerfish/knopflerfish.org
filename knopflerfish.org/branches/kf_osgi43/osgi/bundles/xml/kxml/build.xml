@@ -29,7 +29,8 @@
   </target>
 
   <path id="bundle.compile.path">
-    <!-- No external dependencies -->
+    <!-- Only needed for javadoc due to the bundle.custom.pre above. -->
+    <pathelement location="${proj.dir}/lib/xmlpull_1_1_3_1.jar"/>
   </path>
 
 

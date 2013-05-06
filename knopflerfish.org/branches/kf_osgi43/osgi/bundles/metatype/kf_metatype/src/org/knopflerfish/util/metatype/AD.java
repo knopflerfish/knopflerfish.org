@@ -49,7 +49,7 @@ import org.osgi.service.metatype.ObjectClassDefinition;
 import org.knopflerfish.util.Text;
 
 /**
- * Implementation calss for AttributeDefinition.
+ * Implementation class for {@link AttributeDefinition}.
  *
  * <p>
  * This class contains get and parse methods for operations related to

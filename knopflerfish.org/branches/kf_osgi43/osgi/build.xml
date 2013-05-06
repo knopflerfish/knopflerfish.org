@@ -60,7 +60,7 @@
   </target>
 
   <target name="bundles_opt" depends="init">
-   <fail unless="dir.bundles_opt.present" 
+   <fail unless="dir.bundles_opt.present"
          message="The directory for optional bundles, bundles_opt, is missing. Please download Knopflerfish_opt_&lt;version&gt;.jar and install it in the same directory as Knopflerfish_osgi_&lt;version&gt;.jar"/>
     <ant dir="bundles_opt"  target="all"/>
     <antcall target="xargs"/>
@@ -72,7 +72,7 @@
     <ant dir="bundles_test" target="all"
          inheritAll="false" inheritRefs="false">
       <!-- No need to build the bundles tasks in this case. -->
-      <property name="bundle_tasks.built" value="true"/> 
+      <property name="bundle_tasks.built" value="true"/>
     </ant>
     <antcall target="xargs"/>
   </target>
@@ -82,7 +82,7 @@
   </target>
 
   <target name="bundles_examples" depends="init">
-   <fail unless="dir.bundles_examples.present" 
+   <fail unless="dir.bundles_examples.present"
          message="The directory for example bundles, bundles_examples, is missing."/>
     <ant dir="bundles_examples"  target="all"/>
     <antcall target="xargs"/>
@@ -240,28 +240,9 @@
     <bundle_javadoc_helper exportPkgsFile="${exported.file}"
                            pkgPropertyName="javadoc.packages"/>
 
-    <!-- Packages to exclude from javadoc (no source available). -->
-    <property name="javadoc.excludepackages"
-              value="org.w3c.dom,
-                     org.w3c.dom.bootstrap,
-                     org.w3c.dom.css,
-                     org.w3c.dom.events,
-                     org.w3c.dom.html,
-                     org.w3c.dom.ls,
-                     org.w3c.dom.ranges,
-                     org.w3c.dom.stylesheets,
-                     org.w3c.dom.traversal,
-                     org.w3c.dom.views,
-                     org.w3c.dom.xpath,
-                     org.xml.sax,
-                     org.xml.sax.ext,
-                     org.xml.sax.helpers,
-		     org.xmlpull.v1
-                     "/>
-
     <property name="javadoc.header"
               value="Knopflerfish OSGi ${version}"/>
-    
+
     <property name="javadoc.footer"
               value="${javadoc.header}"/>
 
@@ -277,8 +258,7 @@
 	     doctitle="${javadoc.doctitle}"
              destdir="${javadoc.out.dir}"
              packagenames="${javadoc.packages}"
-	     sourcepathref="sources.path"
-             excludepackagenames="${javadoc.excludepackages}">           
+	     sourcepathref="sources.path">
       <!-- Custome tags used by OSGi -->
       <tag name="ThreadSafe"    scope="all" description="ThreadSafe"/>
       <tag name="NotThreadSafe" scope="all" description="NotThreadSafe"/>
@@ -510,7 +490,7 @@
     <antcall target="clean"/>
     <antcall target="all"/>
  </target>
- 
+
 
  <target name="bundle_doc"
          description="Builds bundle specific docs">
@@ -518,5 +498,5 @@
    <ant dir="bundles"	   target="bundle_doc"/>
    <ant dir="bundles_opt"  target="bundle_doc"/>
  </target>
- 
+
 </project>

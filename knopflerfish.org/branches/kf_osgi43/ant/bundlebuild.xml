@@ -54,7 +54,7 @@
 
 
   <!-- ************************************************************ -->
-  <!-- Properties configuring javac settings.                       -->  
+  <!-- Properties configuring javac settings.                       -->
   <!-- ************************************************************ -->
 
   <!-- Android dx.jar requires 1.5 target -->
@@ -66,8 +66,8 @@
 
   <!-- The bundle Execution Environment to use when compiling.       -->
   <!-- The value is the id of a path that will be used as boot class -->
-  <!-- path during the compilation.                                  --> 
-  <!-- Predefined values: ee.minimum ee.foundation                   --> 
+  <!-- path during the compilation.                                  -->
+  <!-- Predefined values: ee.minimum ee.foundation                   -->
   <!-- Used but currently undefined EE:s: ee.JavaSE_1.4, ee.JavaSE_1.5   -->
   <property name="bundle.compile.EE" value="ee.minimum"/>
 
@@ -112,7 +112,7 @@
 
 
   <!-- ************************************************************ -->
-  <!-- Properties configuring bundle contents and manifest.         -->  
+  <!-- Properties configuring bundle contents and manifest.         -->
   <!-- ************************************************************ -->
 
   <!-- Shall source code be included into the bundle jar or not. -->
@@ -250,6 +250,9 @@
   <!-- Where to store compiler output. -->
   <property name="classes.out.dir"     location="${outdir}/classes"/>
 
+  <!-- Where the javadoc for exported packages goes. -->
+  <property name="javadoc.out.dir" location="${outdir}/javadoc"/>
+
   <!-- If lib-variant of bundle shall be built or not. -->
   <property name="bundle.build.lib"    value="false"/>
 
@@ -268,6 +271,8 @@
   <!-- Shall a separate source jar (for maven) be built or not. -->
   <property name="bundle.build.source.jar" value="false"/>
 
+  <!-- Shall a separate javadoc jar (for maven) be built or not. -->
+  <property name="bundle.build.javadoc.jar" value="false"/>
 
   <!-- Bundles that both export packages and provides implementations -->
   <!-- shall have the implicitImport flag set in the bundleinfo task. -->
@@ -396,7 +401,7 @@
     <property name="bmfa.Bundle-UUID"
               value="${domain.reverse}:${ant.project.name}:${bmfa.Bundle-Version}"/>
     <property name="bundle.jar.base.name"
-	      value="${jardir}/${ant.project.name}"/>
+              value="${jardir}/${ant.project.name}"/>
 
     <property name="impl.suffix"
               value="${impl.suffix.name}-${bmfa.Bundle-Version}"/>
@@ -404,6 +409,8 @@
               location="${bundle.jar.base.name}${impl.suffix}.jar"/>
     <property name="impl-source.jar"
               location="${bundle.jar.base.name}${impl.suffix}-source.jar"/>
+    <property name="impl-javadoc.jar"
+              location="${bundle.jar.base.name}${impl.suffix}-javadoc.jar"/>
 
     <property name="api.suffix"
               value="${api.suffix.name}-${bmfa.Bundle-Version}"/>
@@ -411,6 +418,8 @@
               location="${bundle.jar.base.name}${api.suffix}.jar"/>
     <property name="api-source.jar"
               location="${bundle.jar.base.name}${api.suffix}-source.jar"/>
+    <property name="api-javadoc.jar"
+              location="${bundle.jar.base.name}${api.suffix}-javadoc.jar"/>
 
     <property name="lib.suffix"
               value="${lib.suffix.name}-${bmfa.Bundle-Version}"/>
@@ -418,6 +427,8 @@
               location="${bundle.jar.base.name}${lib.suffix}.jar"/>
     <property name="lib-source.jar"
               location="${bundle.jar.base.name}${lib.suffix}-source.jar"/>
+    <property name="lib-javadoc.jar"
+              location="${bundle.jar.base.name}${lib.suffix}-javadoc.jar"/>
 
     <property name="all.suffix"
               value="${all.suffix.name}-${bmfa.Bundle-Version}"/>
@@ -425,6 +436,8 @@
               location="${bundle.jar.base.name}${all.suffix}.jar"/>
     <property name="all-source.jar"
               location="${bundle.jar.base.name}${all.suffix}-source.jar"/>
+    <property name="all-javadoc.jar"
+              location="${bundle.jar.base.name}${all.suffix}-javadoc.jar"/>
 
     <path id="bundle.api.path">
       <pathelement location="${api.jar}"/>
@@ -511,10 +524,10 @@
           if="src.dir.exists">
     <bundlebuild_compile
        includes="${api.pattern},
-		 ${impl-api.pattern},
-		 ${impl.pattern},
-		 ${all-api.pattern},
-		 ${all.pattern}"/>
+                 ${impl-api.pattern},
+                 ${impl.pattern},
+                 ${all-api.pattern},
+                 ${all.pattern}"/>
   </target>
 
   <target name="compile_api"
@@ -744,12 +757,35 @@
       <antcall target="add_src" inheritRefs="true">
         <param name="add.src.jarfile"  value="@{jar}"/>
       </antcall>
-      <antcall target="save_javadoc_data" inheritRefs="true">
-        <param name="manifest.file"  value="${outdir}/@{kind}.mf"/>
+
+      <!-- Java packages with source code exported by this bundle. -->
+      <local name="javadoc.src.packages"/>
+      <!-- Does any of the exported pkgs have source code to process= -->
+      <local name="pkgSrcAvail"/>
+      <!-- Add all packages exported by the compiled bundle. -->
+      <bundle_javadoc_helper exportPkgsValue="${@{exports}}"
+                             srcDir="${src.dir}"
+                             pkgWithSourcePropertyName="javadoc.src.packages"
+                             pkgSrcAvailPropertyName="pkgSrcAvail"/>
+      <antcall target="create_javadoc.jar" inheritRefs="true">
+        <param name="pkgSrcAvail" value="${pkgSrcAvail}"/>
+        <param name="sourcepath"  value="${src.dir}"/>
+        <param name="pkgs"        value="${javadoc.src.packages}"/>
+        <param name="jar"         value="${@{kind}-javadoc.jar}"/>
       </antcall>
+
+      <!-- Save info for the release javadoc covering all bundles. -->
+      <!-- Reuses the outcome of the analysis done above for the -->
+      <!-- bundle local javadoc. -->
+      <antcall target="save_javadoc_data" inheritRefs="true">
+        <param name="pkgs"        value="${javadoc.src.packages}"/>
+        <param name="pkgSrcAvail" value="${pkgSrcAvail}"/>
+      </antcall>
+
       <antcall target="add_dex" inheritRefs="true">
         <param name="jarfile" value="@{jar}"/>
       </antcall>
+
     </sequential>
   </macrodef>
 
@@ -758,7 +794,7 @@
   <macrodef name="bundlebuild_pack_source"
             description="Packs a source jar for a bundle project">
     <attribute name="includes"
-               description="Pattern selecting what to inlcude from src.dir"/>
+               description="Pattern selecting what to include from src.dir"/>
     <attribute name="jar"
                description="Name of the jar-file to create."/>
     <element name="extraContents"
@@ -781,8 +817,87 @@
     </sequential>
   </macrodef>
 
+  <!-- ======================== PACK JAVADOC ========================== -->
+  <macrodef name="bundlebuild_pack_javadoc"
+            description="Packs a javadoc jar with the API classes for a bundle project">
+    <attribute name="sourcepath"
+               description="The root directory of the source tree to document."/>
+    <attribute name="pkgs"
+               description="Comma separated list of packages to include."/>
+    <attribute name="jar"
+               description="Name of the jar-file to create."/>
+
+    <sequential>
+      <local name="jar.name"/>
+      <basename property="jar.name" file="@{jar}" suffix=".jar"/>
+      <local name="javadoc.out.dir.local"/>
+      <property name="javadoc.out.dir.local"
+                location="${javadoc.out.dir}/${jar.name}"/>
+      <mkdir dir="${javadoc.out.dir.local}"/>
+
+      <local name="javadoc.header"/>
+      <property name="javadoc.header"
+                value="Knopflerfish OSGi bundle ${bmfa.Bundle-Name} ${bmfa.Bundle-Version}"/>
+
+      <local name="javadoc.footer"/>
+      <property name="javadoc.footer"
+                value="Knopflerfish OSGi ${version}"/>
+
+      <local name="javadoc.windowtitle"/>
+      <property name="javadoc.windowtitle"
+                value="${javadoc.header} javadoc"/>
+
+      <local name="javadoc.doctitle"/>
+      <property name="javadoc.doctitle"
+                value="${javadoc.header} API documentation"/>
 
 
+      <javadoc sourcepath="@{sourcepath}"
+               packagenames="@{pkgs}"
+               header="${javadoc.header}"
+               footer="${javadoc.footer}"
+               windowtitle="${javadoc.windowtitle}"
+               doctitle="${javadoc.doctitle}"
+               destdir="${javadoc.out.dir.local}"
+               classpathref="bundle.path.Expanded"
+               >
+        <!-- Custome tags used by OSGi -->
+        <tag name="ThreadSafe"    scope="all" description="ThreadSafe"/>
+        <tag name="NotThreadSafe" scope="all" description="NotThreadSafe"/>
+        <tag name="Immutable"     scope="all" description="Immutable"/>
+        <tag name="security"      scope="all" description="Required Permissions"/>
+        <tag name="noimplement"   scope="all"
+             description="Consumers of this API must not implement this interface"/>
+      </javadoc>
+
+      <jar basedir="${javadoc.out.dir.local}"
+           jarfile="@{jar}"
+           includes="**"
+           manifestencoding="UTF-8">
+      </jar>
+    </sequential>
+  </macrodef>
+
+  <target name="check_do_create_javadoc.jar">
+    <!-- Build javadoc jar when source code for exported pkgs -->
+    <!-- exists and ${bundle.build.javadoc.jar} is set to true. -->
+    <condition property="do_create_javadoc.jar">
+      <and>
+        <equals arg1="${bundle.build.javadoc.jar}" arg2="true"/>
+        <equals arg1="${pkgSrcAvail}"              arg2="true"/>
+      </and>
+    </condition>
+  </target>
+  <target name="create_javadoc.jar"
+          depends="init, check_do_create_javadoc.jar"
+          if="do_create_javadoc.jar">
+    <bundlebuild_pack_javadoc sourcepath="${sourcepath}"
+                              pkgs="${pkgs}"
+                              jar="${jar}"/>
+  </target>
+
+
+  
   <!-- ============================= IMPL =============================== -->
   <!-- Bundle with all private classes, activator and resources. -->
   <target name="jar_impl"
@@ -814,6 +929,7 @@
        jar="${impl-source.jar}"
        includes="${impl.pattern},${impl-api.pattern}"/>
   </target>
+
 
 
   <!-- ============================= API =============================== -->
@@ -890,10 +1006,10 @@
        activator="bmfa.Bundle-Activator"
        activator-default="${bundle.emptystring}"
        includes-exports="${api.pattern},
-			 ${impl-api.pattern},
-			 ${all-api.pattern}"
+                         ${impl-api.pattern},
+                         ${all-api.pattern}"
        includes-impls="${impl.pattern},
-		       ${all.pattern}">
+                       ${all.pattern}">
       <extraContents>
         <antcall target="add_resources" inheritRefs="true">
           <param name="add.resource.jarfile"  value="${all.jar}"/>
@@ -908,10 +1024,10 @@
     <bundlebuild_pack_source
        jar="${all-source.jar}"
        includes="${api.pattern},
-		 ${impl-api.pattern},
-		 ${impl.pattern},
-		 ${all-api.pattern},
-		 ${all.pattern}"/>
+                 ${impl-api.pattern},
+                 ${impl.pattern},
+                 ${all-api.pattern},
+                 ${all.pattern}"/>
   </target>
 
 
@@ -942,24 +1058,24 @@
 
 
   <!-- Should only add items to ${source.files} and ${exported.files} -->
-  <!-- when ${generate.javadoc.data} is set to "true" -->
-  <condition property="do_generate_javadoc_data">
-    <equals arg1="${generate.javadoc.data}"  arg2="true"/>
-  </condition>
-  <target name="save_javadoc_data" if="do_generate_javadoc_data">
+  <!-- when ${generate.javadoc.data} is set to "true" and there are   -->
+  <!-- source files to process. -->
+  <target name="check_do_generate_javadoc_data">
+    <condition property="do_generate_javadoc_data">
+      <and>
+        <equals arg1="${generate.javadoc.data}" arg2="true"/>
+        <equals arg1="${pkgSrcAvail}"           arg2="true"/>
+      </and>
+    </condition>
+  </target>
+  <target name="save_javadoc_data"
+          depends="check_do_generate_javadoc_data"
+          if="do_generate_javadoc_data">
     <echo message="save_javadoc: to:${sources.file} src:${src.dir} "/>
     <echo file="${sources.file}" append="true"
           message="${src.dir}${line.separator}"/>
-    <!-- Load the generated manifest file (${manifest.file}) to get the -->
-    <!-- actual export-package value used. -->
-    <property name="save_javadoc_bmfa.Export-Package"
-              value="${bundle.emptystring}"/>
-    <bundlemanifest mode="templateOnly"
-                    attributePropertyPrefix="save_javadoc_bmfa."
-                    templateFile="${manifest.file}">
-    </bundlemanifest>
     <echo file="${exported.file}" append="true"
-          message="${save_javadoc_bmfa.Export-Package}${line.separator}"/>
+          message="${pkgs}${line.separator}"/>
   </target>
 
   <import file="${ant.dir}/console_interactions.xml"/>
