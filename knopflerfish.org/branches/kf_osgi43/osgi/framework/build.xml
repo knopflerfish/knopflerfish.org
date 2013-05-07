@@ -78,7 +78,8 @@
   </path>
 
   <!-- targets -->
-  <target name="all" depends="jar, source.jar, javadoc.jar">
+  <target name="all"
+          depends="jar, source.jar, save_javadoc_data, javadoc.jar">
   </target>
 
   <target name="compile">
@@ -211,6 +212,14 @@
     </jar>
   </target>
 
+  <target name="save_javadoc_data"
+          if="generate.javadoc.data">
+    <echo message="save_javadoc: to:${sources.file} src:${src.dir} "/>
+    <echo file="${sources.file}" append="true"
+          message="${src.dir}${line.separator}"/>
+    <echo file="${exported.file}" append="true"
+          message="${fw.export-package}${line.separator}"/>
+  </target>
 
   <target name="javadoc.jar" if="bundle.build.javadoc.jar">
     <mkdir dir="${javadoc.out.dir}"/>

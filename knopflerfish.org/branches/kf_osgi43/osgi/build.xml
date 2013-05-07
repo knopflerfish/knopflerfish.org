@@ -26,7 +26,7 @@
   <property name="xargs.base.dir" location="."/>
   <property name="junit.out.dir"  location="junit_grunt"/>
   <property name="test.dir"
-	    location="${osgi.dir}/bundles_test/regression_tests"/>
+            location="${osgi.dir}/bundles_test/regression_tests"/>
   <property name="test_jars"      value="$$$${user.dir}/test_jars"/>
   <property name="test.gosg.jars" value="file:jars/;file:test_jars/"/>
 
@@ -67,7 +67,7 @@
   </target>
 
   <target name="bundles_test"
-	  depends="init,bundles_test_missing,bundles_test_present" />
+          depends="init,bundles_test_missing,bundles_test_present" />
   <target name="bundles_test_present" if="dir.bundles_test.present">
     <ant dir="bundles_test" target="all"
          inheritAll="false" inheritRefs="false">
@@ -78,7 +78,7 @@
   </target>
   <target name="bundles_test_missing" unless="dir.bundles_test.present">
    <echo level="warning"
-	 message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
+         message="The directory for regression test bundles, bundles_test, is missing, skipping test bundles. To build test bundles use subversion to check out the complete knopflerfish.org tree."/>
   </target>
 
   <target name="bundles_examples" depends="init">
@@ -101,34 +101,34 @@
 
   <target name="minimal_xargs">
     <xargs template="minimal.xargs.in"
-	   xargs="${xargs.out.dir}/minimal.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${xargs.out.dir}/minimal.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${gosg.jars}"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs"/>
   </target>
 
   <target name="headless_xargs">
     <xargs template="template.xargs.in"
-	   xargs="${xargs.out.dir}/headless.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   headless="true"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${xargs.out.dir}/headless.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${gosg.jars}"
+           testJars="${test_jars}"
+           headless="true"
+           outDir="${root.out.dir}/xargs"/>
   </target>
 
   <target name="remote_xargs">
     <xargs template="template.xargs.in"
-	   xargs="${xargs.out.dir}/remote-init.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${base.url}/${version}/osgi/jars/"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs">
+           xargs="${xargs.out.dir}/remote-init.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${base.url}/${version}/osgi/jars/"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs">
       <bundles>
-	<fileset dir="${jars.dir}"
-		 excludes="**/*-source.jar,**/*-javdoc.jar"
-		 includes="**/*.jar"/>
+        <fileset dir="${jars.dir}"
+                 excludes="**/*-source.jar,**/*-javdoc.jar"
+                 includes="**/*.jar"/>
       </bundles>
     </xargs>
   </target>
@@ -136,107 +136,90 @@
   <target name="remotefw_xargs">
     <!-- xargs files that are part of the remote-framework documentation.-->
     <xargs template="${osgi.dir}/bundles/remotefw/doc/server.xargs.in"
-	   xargs="${osgi.dir}/bundles/remotefw/doc/server.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${osgi.dir}/bundles/remotefw/doc/server.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${gosg.jars}"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs"/>
 
     <xargs template="${osgi.dir}/bundles/remotefw/doc/client.xargs.in"
-	   xargs="${osgi.dir}/bundles/remotefw/doc/client.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${osgi.dir}/bundles/remotefw/doc/client.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${gosg.jars}"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs"/>
   </target>
 
   <target name="examples_cpa_xargs">
     <!-- xargs files that are part of the CPA example.-->
     <xargs template="${osgi.dir}/bundles_examples/cpa/init.xargs.in"
-	   xargs="${osgi.dir}/bundles_examples/cpa/init.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars};file:example_jars/"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${osgi.dir}/bundles_examples/cpa/init.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${gosg.jars};file:example_jars/"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs"/>
   </target>
 
   <target name="init_xargs">
     <xargs template="template.xargs.in"
-	   xargs="${xargs.out.dir}/init.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${xargs.out.dir}/init.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${gosg.jars}"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs"/>
   </target>
 
   <target name="test_xargs" depends="check_openssl">
     <xargs template="init-tests.xargs.in"
-	   xargs="${xargs.out.dir}/init-tests.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${test.gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${xargs.out.dir}/init-tests.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${test.gosg.jars}"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs"/>
 
     <xargs template="${test.dir}/restart_test/test-restart1.xargs.in"
-	   xargs="${xargs.out.dir}/test-restart1.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${test.gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${xargs.out.dir}/test-restart1.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${test.gosg.jars}"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs"/>
 
     <xargs template="${test.dir}/restart_test/test-restart2.xargs.in"
-	   xargs="${xargs.out.dir}/test-restart2.xargs"
-	   baseDir="${xargs.base.dir}"
-	   gosgJars="${test.gosg.jars}"
-	   testJars="${test_jars}"
-	   outDir="${root.out.dir}/xargs"/>
+           xargs="${xargs.out.dir}/test-restart2.xargs"
+           baseDir="${xargs.base.dir}"
+           gosgJars="${test.gosg.jars}"
+           testJars="${test_jars}"
+           outDir="${root.out.dir}/xargs"/>
   </target>
 
   <target name="javadoc"
-	  description="Create javadoc for all exported packages"
-	  depends="bundle_tasks">
+          description="Create javadoc for all exported packages"
+          depends="bundle_tasks">
     <fail message="You must build the 'default' or 'all' targets to create the list of exported package before you can generate javadoc.">
       <condition>
-	<not>
-	  <and>
-	    <available file="${sources.file}"/>
-	    <available file="${exported.file}"/>
-	  </and>
-	</not>
+        <not>
+          <and>
+            <available file="${sources.file}"/>
+            <available file="${exported.file}"/>
+          </and>
+        </not>
       </condition>
     </fail>
 
     <mkdir dir="${javadoc.out.dir}"/>
 
     <!-- Explicit list of non-bundle source tree roots. -->
-    <property name="framework.dir" location="${osgi.dir}/framework"/>
     <path id="sources.path">
-      <pathelement location="${framework.dir}/src"/>
       <pathelement location="${ant.dir}/src"/>
     </path>
-    <!-- Add in source roots for all compiled bundles. -->
+    <!-- Add in source roots for the framework and all compiled bundles. -->
     <bundle_javadoc_helper srcRootsFile="${sources.file}"
                            srcPathId="sources.path"/>
 
     <!-- Explicit list of non-bundle exported packages to include. -->
     <property name="javadoc.packages"
-              value="org.knopflerfish.ant.taskdefs.bundle,
-                     org.osgi.framework,
-		     org.osgi.framework.hooks.bundle,
-		     org.osgi.framework.hooks.resolver,
-		     org.osgi.framework.hooks.service,
-		     org.osgi.framework.hooks.weaving,
-		     org.osgi.framework.launch,
-		     org.osgi.framework.startlevel,
-		     org.osgi.framework.wiring,
-                     org.osgi.service.condpermadmin,
-                     org.osgi.service.packageadmin,
-                     org.osgi.service.permissionadmin,
-                     org.osgi.service.startlevel,
-                     org.osgi.service.url,
-                     org.osgi.util.tracker,
-                     "/>
-    <!-- Add all packages exported by the compiled bundles. -->
+              value="org.knopflerfish.ant.taskdefs.bundle"/>
+    <!-- Add all packages exported by the framework and compiled bundles. -->
     <bundle_javadoc_helper exportPkgsFile="${exported.file}"
                            pkgPropertyName="javadoc.packages"/>
 
@@ -254,35 +237,35 @@
 
     <javadoc header="${javadoc.header}"
              footer="${javadoc.footer}"
-	     windowtitle="${javadoc.windowtitle}"
-	     doctitle="${javadoc.doctitle}"
+             windowtitle="${javadoc.windowtitle}"
+             doctitle="${javadoc.doctitle}"
              destdir="${javadoc.out.dir}"
              packagenames="${javadoc.packages}"
-	     sourcepathref="sources.path">
+             sourcepathref="sources.path">
       <!-- Custome tags used by OSGi -->
       <tag name="ThreadSafe"    scope="all" description="ThreadSafe"/>
       <tag name="NotThreadSafe" scope="all" description="NotThreadSafe"/>
       <tag name="Immutable"     scope="all" description="Immutable"/>
       <tag name="security"      scope="all" description="Required Permissions"/>
       <tag name="noimplement"   scope="all"
-	   description="Consumers of this API must not implement this interface"/>
+           description="Consumers of this API must not implement this interface"/>
       <classpath>
-	<fileset dir="${ant.home}/lib/">
-	  <include name="**/*.jar"/>
-	  <exclude name="bindex.jar"/>
-	</fileset>
-	<fileset dir="${ant.dir}/lib/">
-	  <include name="**/*.jar"/>
-	  <exclude name="bindex.jar"/>
-	</fileset>
-	<!-- Make embedded jars available -->
-	<pathelement location="${osgi.dir}/bundles/io/io/resources/javax.microedition.io.jar"/>
-	<pathelement location="${osgi.dir}/bundles/metatype/kf_metatype/resources/nanoxml-2.2.1.jar"/>
-	<pathelement location="${osgi.dir}/bundles/xml/kxml/lib/xmlpull_1_1_3_1.jar"/>
-	<pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-core.jar"/>
-	<pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-ext.jar"/>
-	<pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
-	<pathelement location="${osgi.dir}/bundles_opt/serial/comm-win32/resources/comm.jar"/>
+        <fileset dir="${ant.home}/lib/">
+          <include name="**/*.jar"/>
+          <exclude name="bindex.jar"/>
+        </fileset>
+        <fileset dir="${ant.dir}/lib/">
+          <include name="**/*.jar"/>
+          <exclude name="bindex.jar"/>
+        </fileset>
+        <!-- Make embedded jars available -->
+        <pathelement location="${osgi.dir}/bundles/io/io/resources/javax.microedition.io.jar"/>
+        <pathelement location="${osgi.dir}/bundles/metatype/kf_metatype/resources/nanoxml-2.2.1.jar"/>
+        <pathelement location="${osgi.dir}/bundles/xml/kxml/lib/xmlpull_1_1_3_1.jar"/>
+        <pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-core.jar"/>
+        <pathelement location="${osgi.dir}/bundles_opt/jini/jinidriver/resources/lib/jini-ext.jar"/>
+        <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+        <pathelement location="${osgi.dir}/bundles_opt/serial/comm-win32/resources/comm.jar"/>
       </classpath>
     </javadoc>
 
@@ -291,8 +274,8 @@
     <!-- top-level index.html supports this; if not add script.        -->
     <condition property="javadoc.seach.support">
       <resourcecontains
-	 resource="${javadoc.out.dir}/index.html"
-	 substring="SCRIPT"/>
+         resource="${javadoc.out.dir}/index.html"
+         substring="SCRIPT"/>
     </condition>
     <antcall target="javadocSearchFix"/>
   </target>
@@ -316,9 +299,9 @@
 </HEAD>
 ]]></replacevalue>
       <replacefilter token='FRAMESET cols="20%,80%"'
-	             value='FRAMESET cols="20%,80%" title="" onLoad="top.loadFrames()"'/>
+                     value='FRAMESET cols="20%,80%" title="" onLoad="top.loadFrames()"'/>
       <replacefilter token='FRAMESET rows="30%,70%"'
-		     value='FRAMESET rows="30%,70%" title="" onLoad="top.loadFrames()"'/>
+                     value='FRAMESET rows="30%,70%" title="" onLoad="top.loadFrames()"'/>
     </replace>
   </target>
 
@@ -356,7 +339,7 @@
 
  <target name="run-kf-tests"
          description="Builds then executes the KF testsuite."
-	 depends="clean,all">
+         depends="clean,all">
    <antcall target="run-kf-tests-bare"/>
  </target>
 
@@ -372,7 +355,7 @@
 
  <target name="run-kf-tests-secure"
          description="Builds then executes the KF testsuite with security enabled."
-	 depends="clean,all">
+         depends="clean,all">
    <antcall target="run-kf-tests-secure-bare"/>
  </target>
 
@@ -397,9 +380,9 @@
    <echo message="${run.test.msg}"/>
    <mkdir dir="${junit.out.dir}"/>
    <java fork="true"
-	 dir="${run.test.dir}"
-	 output="${junit.out.dir}/out.txt"
-	 append="${run.test.append}"
+         dir="${run.test.dir}"
+         output="${junit.out.dir}/out.txt"
+         append="${run.test.append}"
          jar="${run.test.dir}/framework.jar">
      <arg value="-Forg.osgi.framework.storage=${junit.out.dir}/test_fwdir"/>
      <arg value="-Forg.knopflerfish.junit_runner.outdir=${junit.out.dir}"/>
@@ -412,9 +395,9 @@
    <echo message="${run.test.msg}"/>
    <mkdir dir="${junit.out.dir}"/>
    <java fork="true"
-	 dir="${run.test.dir}"
-	 output="${junit.out.dir}/out.txt"
-	 append="${run.test.append}"
+         dir="${run.test.dir}"
+         output="${junit.out.dir}/out.txt"
+         append="${run.test.append}"
          jar="${run.test.dir}/framework.jar">
      <arg value="-Forg.osgi.framework.security=osgi"/>
      <arg value="-Forg.osgi.framework.storage=${junit.out.dir}/test_fwdir"/>
@@ -448,8 +431,8 @@
 
 
  <target name="clean"
-	 description="Removes all generated files and directories."
-	 depends="init,clean_bundles_test">
+         description="Removes all generated files and directories."
+         depends="init,clean_bundles_test">
   <delete file="framework.jar"/>
   <delete dir="${root.out.dir}"/>
   <delete dir="jars"/>
@@ -494,8 +477,8 @@
 
  <target name="bundle_doc"
          description="Builds bundle specific docs">
-   <ant dir="framework"	   target="framework_doc"/>
-   <ant dir="bundles"	   target="bundle_doc"/>
+   <ant dir="framework"    target="framework_doc"/>
+   <ant dir="bundles"      target="bundle_doc"/>
    <ant dir="bundles_opt"  target="bundle_doc"/>
  </target>
 
