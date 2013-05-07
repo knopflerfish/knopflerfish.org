@@ -321,6 +321,9 @@
         <include name="**/*.jar"/>
       </fileset>
     </bundleMvnAnt>
+
+    <!-- Time to execute the generated build file. -->
+    <ant dir="${distrib.tmp.dir}" antfile="toMvn.xml"/>
   </target>
 
   <target name="distrib_bundle_doc" depends="bundle_tasks">
