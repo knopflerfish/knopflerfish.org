@@ -464,9 +464,15 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               resolveBundleAction.setEnabled((state & Bundle.INSTALLED) != 0);
               startBundleAction
                   .setEnabled(!isFragment
-                              && ((state & (Bundle.INSTALLED | Bundle.RESOLVED)) != 0));
+                              && ((state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0));
+              // Stopping a bundle that is not active may be useful since it
+              // changes the saved target state in the framework. I.e., if the
+              // bundle is not active due to start-level but marked as a bundle
+              // to start then calling stop will remove that mark so that the
+              // bundle will not be started when its startlevel has been
+              // reached.
               stopBundleAction
-                  .setEnabled((state & (Bundle.ACTIVE | Bundle.STARTING)) != 0);
+                  .setEnabled((state & (Bundle.UNINSTALLED)) == 0);
               updateBundleAction.setEnabled(true);
 
               // Refresh is only needed when there are more than one bundle
