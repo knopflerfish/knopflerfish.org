@@ -620,7 +620,7 @@ class Resolver {
           }
         }
         if (!foundUses) {
-          checkUses(ep);
+          checkUses(ep.uses, ep, ep.bpkgs);
         }
       } while (i.hasNext());
       return true;
@@ -732,7 +732,7 @@ class Resolver {
             continue;
           }
           final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
-          if (checkUses(ep)) {
+          if (checkUses(ep.uses, ep, ep.bpkgs)) {
             provider = ep;
             break;
           } else {
@@ -812,7 +812,7 @@ class Resolver {
       }
       if (ep.bpkgs.bg.bundle.state != Bundle.INSTALLED) {
         final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
-        if (checkUses(ep)) {
+        if (checkUses(ep.uses, ep, ep.bpkgs)) {
           if (framework.debug.resolver) {
             framework.debug.println("pickProvider: " + ip +
                                     " - got resolved provider - " + ep);
@@ -839,7 +839,7 @@ class Resolver {
           return ep;
         } else if (ep.zombie) {
           final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
-          if (checkUses(ep)) {
+          if (checkUses(ep.uses, ep, ep.bpkgs)) {
             if (framework.debug.resolver) {
               framework.debug.println("pickProvider: " + ip +
                                       " - got zombie provider - " + ep);
@@ -926,35 +926,20 @@ class Resolver {
    * @param pkg Exported package to check
    * @return True if we checked all packages without collision.
    */
-  private boolean checkUses(ExportPkg pkg) {
-    Iterator<String> ui = null;
-    String next_uses = null;
+  private boolean checkUses(Set<String> uses, BundleCapability bc, BundlePackages bpkgs) {
     if (framework.debug.resolver) {
-      framework.debug.println("checkUses: check if packages used by " + pkg + " is okay.");
-    }
-    if (pkg.uses != null) {
-      ui = pkg.uses.iterator();
-      if (ui.hasNext()) {
-        next_uses = ui.next();
-      }
+      framework.debug.println("checkUses: check if packages used by " + bc + " is okay.");
     }
     if (framework.debug.resolver) {
-      framework.debug.println("checkUses: provider with bpkgs=" + pkg.bpkgs);
+      framework.debug.println("checkUses: provider with bpkgs=" + bpkgs);
     }
-    final Iterator<ImportPkg> i = pkg.bpkgs.getActiveImports();
+    final Iterator<ImportPkg> i = bpkgs.getActiveImports();
     if (i != null) {
       final ArrayList<ExportPkg> checkList = new ArrayList<ExportPkg>();
       while (i.hasNext()) {
         final ImportPkg ip = i.next();
-        if (ui != null) {
-          if (next_uses == null || !ip.pkg.pkg.equals(next_uses)) {
-            continue;
-          }
-          if (ui.hasNext()) {
-            next_uses = ui.next();
-          } else {
-            next_uses = null;
-          }
+        if (uses != null && !uses.contains(ip.pkg.pkg)) {
+          continue;
         }
         final ExportPkg ep = tempProvider.get(ip.pkg.pkg);
         if (framework.debug.resolver) {
@@ -972,13 +957,13 @@ class Resolver {
         }
       }
       for (final ExportPkg exportPkg : checkList) {
-        if (!checkUses(exportPkg)) {
+        if (!checkUses(exportPkg.uses, exportPkg, exportPkg.bpkgs)) {
           return false;
         }
       }
     }
     if (framework.debug.resolver) {
-      framework.debug.println("checkUses: package " + pkg + " is okay.");
+      framework.debug.println("checkUses: " + bc + " is okay.");
     }
     return true;
   }
@@ -1085,20 +1070,18 @@ class Resolver {
         List<BundleCapabilityImpl> bcs = capabilities.getCapabilities(namespace);
         BundleWireImpl found = null;
         if (bcs != null) {
-          bcs = new LinkedList<BundleCapabilityImpl>(bcs);
-          for (Iterator<BundleCapabilityImpl> ibc = bcs.iterator(); ibc.hasNext();) {
-            final BundleCapabilityImpl bc = ibc.next();
-            if (!br.matches(bc) || !bc.checkPermission() || !(reqPerm || framework.perm.hasRequirePermission(br, bc))) {
-              ibc.remove();
+          List<BundleCapabilityImpl> mbcs = new LinkedList<BundleCapabilityImpl>();
+          for (BundleCapabilityImpl bc : bcs) {
+            if (br.matches(bc) && bc.checkPermission() && (reqPerm || framework.perm.hasRequirePermission(br, bc))) {
+              mbcs.add(bc);
             }
           }
           if (framework.resolverHooks.hasHooks()) {
-            bcs = new LinkedList<BundleCapabilityImpl>(bcs);
-            framework.resolverHooks.filterMatches(br, (Collection<? extends BundleCapability>) bcs);
+            framework.resolverHooks.filterMatches(br, (Collection<? extends BundleCapability>) mbcs);
           }
           List<BundleCapabilityImpl> matches = new ArrayList<BundleCapabilityImpl>();
           int n_active = 0;
-          for (BundleCapabilityImpl bc : bcs) {
+          for (BundleCapabilityImpl bc : mbcs) {
             BundleGeneration bcbg = bc.getBundleGeneration();
             if (bcbg.isCurrent()) {
               // Select active or soon active first
@@ -1131,6 +1114,10 @@ class Resolver {
                 }
               } else {
                 // Check uses
+                Set<String> uses = bc.getUses();
+                if (uses != null && !checkUses(uses, bc, bc.getBundleGeneration().bpkgs)) {
+                  continue;
+                }
               }
             }
             found = new BundleWireImpl(bc, bcbg, br, bg);
@@ -1189,7 +1176,7 @@ class Resolver {
             ok = bg2;
             for (final Iterator<ExportPkg> epi = bg2.bpkgs.getExports(); epi.hasNext();) {
               final ExportPkg ep = epi.next();
-              if (!checkUses(ep)) {
+              if (!checkUses(ep.uses, ep, ep.bpkgs)) {
                 tempProvider = oldTempProvider;
                 tempBlackList.add(ep);
                 ok = null;

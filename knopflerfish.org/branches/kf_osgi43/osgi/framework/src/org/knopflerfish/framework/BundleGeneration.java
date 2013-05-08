@@ -435,6 +435,10 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   }
 
 
+  public String toString() {
+    return "BundleGeneration[bid=" + bundle.id + ", gen=" + generation + "]";
+  }
+
   //
   // Package methods
   //
