@@ -44,7 +44,7 @@ package org.knopflerfish.bundle.desktop.swing;
  * can be reallocated. As requests are made of the sorter (like
  * getValueAt(row, col) it redirects them to its model via the mapping
  * array. That way the TableSorter appears to hold another copy of the table
- * with the rows in a different order. The sorting algorthm used is stable
+ * with the rows in a different order. The sorting algorithm used is stable
  * which means that it does not move around rows when its comparison
  * function returns 0 to denote that they are equivalent.
  *
@@ -60,15 +60,36 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 
-
 public class TableSorter
   extends TableMap
 {
+  /**
+   * Table models implementing this interface will be called after rows has been
+   * re-arranged but before firing the table changed event that tells the JTable
+   * to update its presentation.
+   *
+   * <p/>
+   *
+   * A table view that wants to present a row-selection based on some external
+   * selection model should implement this and in the first call to its
+   * {@link ListSelectionModel#clearSelection()} after the call to
+   * {@link #rowsRearranged()} restore the selection from the external selection
+   * model.
+   */
+  public interface TableRowRearrangementAware
+  {
+    /**
+     * Called to notify that the rows in the model have been re-arranged.
+     */
+    void rowsRearranged();
+  }
+
   private static final long serialVersionUID = 1L;
 
   int indexes[];
@@ -86,6 +107,7 @@ public class TableSorter
     setModel(model);
   }
 
+  @Override
   public void setModel(TableModel model)
   {
     super.setModel(model);
@@ -94,13 +116,13 @@ public class TableSorter
 
   public int compareRowsByColumn(int row1, int row2, int column)
   {
-    Class<?> type = model.getColumnClass(column);
-    TableModel data = model;
+    final Class<?> type = model.getColumnClass(column);
+    final TableModel data = model;
 
     // Check for nulls.
 
-    Object o1 = data.getValueAt(row1, column);
-    Object o2 = data.getValueAt(row2, column);
+    final Object o1 = data.getValueAt(row1, column);
+    final Object o2 = data.getValueAt(row2, column);
 
     // If both values are null, return 0.
     if (o1 == null && o2 == null) {
@@ -112,7 +134,7 @@ public class TableSorter
     }
 
     /*
-     * We copy all returned values from the getValue call in case an optimised
+     * We copy all returned values from the getValue call in case an optimized
      * model is reusing one object to return many values. The Number subclasses
      * in the JDK are immutable and so will not be used in this way but other
      * subclasses of Number might want to do this to save space and avoid
@@ -120,10 +142,10 @@ public class TableSorter
      */
 
     if (type.getSuperclass() == java.lang.Number.class) {
-      Number n1 = (Number) data.getValueAt(row1, column);
-      double d1 = n1.doubleValue();
-      Number n2 = (Number) data.getValueAt(row2, column);
-      double d2 = n2.doubleValue();
+      final Number n1 = (Number) data.getValueAt(row1, column);
+      final double d1 = n1.doubleValue();
+      final Number n2 = (Number) data.getValueAt(row2, column);
+      final double d2 = n2.doubleValue();
 
       if (d1 < d2) {
         return -1;
@@ -133,10 +155,10 @@ public class TableSorter
         return 0;
       }
     } else if (type == java.util.Date.class) {
-      Date d1 = (Date) data.getValueAt(row1, column);
-      long n1 = d1.getTime();
-      Date d2 = (Date) data.getValueAt(row2, column);
-      long n2 = d2.getTime();
+      final Date d1 = (Date) data.getValueAt(row1, column);
+      final long n1 = d1.getTime();
+      final Date d2 = (Date) data.getValueAt(row2, column);
+      final long n2 = d2.getTime();
 
       if (n1 < n2) {
         return -1;
@@ -146,9 +168,9 @@ public class TableSorter
         return 0;
       }
     } else if (type == String.class) {
-      String s1 = (String) data.getValueAt(row1, column);
-      String s2 = (String) data.getValueAt(row2, column);
-      int result = s1.compareTo(s2);
+      final String s1 = (String) data.getValueAt(row1, column);
+      final String s2 = (String) data.getValueAt(row2, column);
+      final int result = s1.compareTo(s2);
 
       if (result < 0) {
         return -1;
@@ -158,10 +180,10 @@ public class TableSorter
         return 0;
       }
     } else if (type == Boolean.class) {
-      Boolean bool1 = (Boolean) data.getValueAt(row1, column);
-      boolean b1 = bool1.booleanValue();
-      Boolean bool2 = (Boolean) data.getValueAt(row2, column);
-      boolean b2 = bool2.booleanValue();
+      final Boolean bool1 = (Boolean) data.getValueAt(row1, column);
+      final boolean b1 = bool1.booleanValue();
+      final Boolean bool2 = (Boolean) data.getValueAt(row2, column);
+      final boolean b2 = bool2.booleanValue();
 
       if (b1 == b2) {
         return 0;
@@ -171,11 +193,11 @@ public class TableSorter
         return -1;
       }
     } else {
-      Object v1 = data.getValueAt(row1, column);
-      String s1 = v1.toString();
-      Object v2 = data.getValueAt(row2, column);
-      String s2 = v2.toString();
-      int result = s1.compareTo(s2);
+      final Object v1 = data.getValueAt(row1, column);
+      final String s1 = v1.toString();
+      final Object v2 = data.getValueAt(row2, column);
+      final String s2 = v2.toString();
+      final int result = s1.compareTo(s2);
 
       if (result < 0) {
         return -1;
@@ -191,8 +213,8 @@ public class TableSorter
   {
     compares++;
     for (int level = 0; level < sortingColumns.size(); level++) {
-      Integer column = sortingColumns.get(level);
-      int result = compareRowsByColumn(row1, row2, column.intValue());
+      final Integer column = sortingColumns.get(level);
+      final int result = compareRowsByColumn(row1, row2, column.intValue());
       if (result != 0) {
         return ascending ? result : -result;
       }
@@ -202,7 +224,7 @@ public class TableSorter
 
   public void reallocateIndexes()
   {
-    int rowCount = model.getRowCount();
+    final int rowCount = model.getRowCount();
 
     // Set up a new array of indexes with the right number of elements
     // for the new data model.
@@ -214,6 +236,7 @@ public class TableSorter
     }
   }
 
+  @Override
   public void tableChanged(TableModelEvent e)
   {
     reallocateIndexes();
@@ -235,7 +258,7 @@ public class TableSorter
     compares = 0;
     // n2sort();
     // qsort(0, indexes.length-1);
-    shuttlesort((int[]) indexes.clone(), indexes, 0, indexes.length);
+    shuttlesort(indexes.clone(), indexes, 0, indexes.length);
   }
 
   public void n2sort()
@@ -261,7 +284,7 @@ public class TableSorter
     if (high - low < 2) {
       return;
     }
-    int middle = (low + high) / 2;
+    final int middle = (low + high) / 2;
     shuttlesort(to, from, low, middle);
     shuttlesort(to, from, middle, high);
 
@@ -303,7 +326,7 @@ public class TableSorter
 
   public void swap(int i, int j)
   {
-    int tmp = indexes[i];
+    final int tmp = indexes[i];
     indexes[i] = indexes[j];
     indexes[j] = tmp;
   }
@@ -311,18 +334,21 @@ public class TableSorter
   // The mapping only affects the contents of the data rows.
   // Pass all requests to these rows through the mapping array: "indexes".
 
+  @Override
   public Object getValueAt(int aRow, int aColumn)
   {
     checkModel();
     return model.getValueAt(indexes[aRow], aColumn);
   }
 
+  @Override
   public void setValueAt(Object aValue, int aRow, int aColumn)
   {
     checkModel();
     model.setValueAt(aValue, indexes[aRow], aColumn);
   }
 
+  @Override
   public boolean isCellEditable(int row, int column)
   {
     return model.isCellEditable(indexes[row], column);
@@ -339,6 +365,10 @@ public class TableSorter
     sortingColumns.clear();
     sortingColumns.add(new Integer(column));
     sort(this);
+    if (model instanceof TableRowRearrangementAware) {
+      final TableRowRearrangementAware bm = (TableRowRearrangementAware) model;
+      bm.rowsRearranged();
+    }
     super.tableChanged(new TableModelEvent(this));
   }
 
@@ -350,20 +380,21 @@ public class TableSorter
     final TableSorter sorter = this;
     final JTable tableView = table;
     tableView.setColumnSelectionAllowed(false);
-    MouseAdapter listMouseListener = new MouseAdapter() {
+    final MouseAdapter listMouseListener = new MouseAdapter() {
+      @Override
       public void mouseClicked(MouseEvent e)
       {
-        TableColumnModel columnModel = tableView.getColumnModel();
-        int viewColumn = columnModel.getColumnIndexAtX(e.getX());
-        int column = tableView.convertColumnIndexToModel(viewColumn);
+        final TableColumnModel columnModel = tableView.getColumnModel();
+        final int viewColumn = columnModel.getColumnIndexAtX(e.getX());
+        final int column = tableView.convertColumnIndexToModel(viewColumn);
         if (e.getClickCount() == 1 && column != -1) {
-          int shiftPressed = e.getModifiers() & InputEvent.SHIFT_MASK;
-          boolean ascending = (shiftPressed == 0);
+          final int shiftPressed = e.getModifiers() & InputEvent.SHIFT_MASK;
+          final boolean ascending = (shiftPressed == 0);
           sorter.sortByColumn(column, ascending);
         }
       }
     };
-    JTableHeader th = tableView.getTableHeader();
+    final JTableHeader th = tableView.getTableHeader();
     th.addMouseListener(listMouseListener);
   }
 }
