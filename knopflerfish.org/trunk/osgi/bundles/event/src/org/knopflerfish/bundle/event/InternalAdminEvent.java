@@ -129,10 +129,10 @@ public class InternalAdminEvent {
   private void log(TrackedEventHandler handler, String txt)
   {
     ServiceReference sr = handler.getServiceReference();
-    Bundle  b = sr.getBundle();
-    String binfo = (sr != null) ?
-      "  bundle.id=" + sr.getBundle().getBundleId() + "  bundle.name="
-      + sr.getBundle().getSymbolicName() :
+    Bundle b = sr.getBundle();
+    String binfo = (b != null) ?
+      "  bundle.id=" + b.getBundleId() + "  bundle.name="
+      + b.getSymbolicName() :
       " No bundle info";
     Activator.log.error(txt + "  Service.id="
                         + sr.getProperty(Constants.SERVICE_ID) + binfo +
