@@ -152,7 +152,7 @@ import org.osgi.service.url.URLConstants;
         }
       }
     } catch (final Exception e) {
-      // TBD, handle differently!? this should not happen.
+      // TODO, handle differently!? this should not happen.
       throw new IllegalArgumentException("Could not register url handler: " + e);
     }
   }

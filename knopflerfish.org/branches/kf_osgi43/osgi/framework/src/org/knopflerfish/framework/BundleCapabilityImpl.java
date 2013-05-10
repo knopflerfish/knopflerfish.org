@@ -157,7 +157,6 @@ public class BundleCapabilityImpl implements BundleCapability {
    * @return true if we have provide permission
    */
   boolean checkPermission() {
-    // TODO cache result?
     return gen.bundle.fwCtx.perm.hasProvidePermission(this);
   }
 
@@ -166,7 +165,8 @@ public class BundleCapabilityImpl implements BundleCapability {
       return Util.parseEnumeration(Constants.USES_DIRECTIVE,
                                    directives.get(Constants.USES_DIRECTIVE));
     } catch (IllegalArgumentException iae) {
-      // TODO, report this
+      final BundleImpl b = gen.bundle;
+      b.fwCtx.listeners.frameworkError(b, iae);
     }
     return null;
   }

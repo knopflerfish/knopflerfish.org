@@ -1026,7 +1026,7 @@ public class Util {
   /**
    * Get method from class
    */
-  public static Method getMethod(Class c, String name, Class [] args) {
+  public static Method getMethod(Class<?> c, String name, Class<?> [] args) {
     Method m = null;
     while (true) {
       try {

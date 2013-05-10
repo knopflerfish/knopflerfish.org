@@ -169,7 +169,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
     synchronized (eventLock) {
       if (available) {
         Set<ServiceListenerEntry> before;
-        // TBD, optimize the locking of services
+        // TODO, optimize the locking of services
         synchronized (fwCtx.services) {
           synchronized (properties) {
             // NYI! Optimize the MODIFIED_ENDMATCH code

@@ -35,7 +35,6 @@
 package org.knopflerfish.framework;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,7 +47,6 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
-import org.osgi.framework.wiring.BundleWire;
 
 
 /**
@@ -279,11 +277,6 @@ class ExportPkg
    * @return true if we have export permission
    */
   boolean checkPermission() {
-    // TODO? cache permission when we have resolved and while resolving
-//    if (bpkgs.bg.bundle.state == Bundle.INSTALLED) {
-//      hasPermission = bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
-//    }
-//    return hasPermission;
     return bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
   }
 
@@ -382,12 +375,6 @@ class ExportPkg
 
   public BundleRevision getRevision() {
     return bpkgs.bg.bundleRevision;
-  }
-
-
-  Collection<? extends BundleWire> getBundleWires() {
-    // TODO Auto-generated method stub
-    return null;
   }
 
 

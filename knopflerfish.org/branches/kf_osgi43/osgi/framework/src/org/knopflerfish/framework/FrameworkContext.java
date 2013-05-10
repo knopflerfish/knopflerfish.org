@@ -584,7 +584,7 @@ public class FrameworkContext  {
 
 
   private String getUUID() {
-    // TODO, set this to something meaningful
+    // TODO, set this to something meaningful?
     final String sid = Integer.toHexString(id * 65536 + initCount);
     final String baseUUID = "4e524769-3136-4b46-6000-00000000";
     return baseUUID.substring(0, baseUUID.length() - sid.length()) + sid;

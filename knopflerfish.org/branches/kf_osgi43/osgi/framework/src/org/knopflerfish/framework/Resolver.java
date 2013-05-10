@@ -356,6 +356,7 @@ class Resolver {
     // resolved bundles. Check that it is true!
     while (tempResolved != null) {
       if (tempResolved.contains(bg)) {
+        // TODO, is it okay to return here? Perhaps it will cause duplicates.
         return null;
       }
       // Not true, wait before starting new resolve process.
@@ -558,7 +559,6 @@ class Resolver {
           @SuppressWarnings("unchecked")
           final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)bbg.fragments.clone();
           for (BundleGeneration fbg : fix) {
-            // TODO, do we need to examine fragments?
             if (!bundles.contains(fbg.bundle)) {
               moreBundles.add(fbg.bundle);
               if (framework.debug.resolver) {
@@ -653,7 +653,6 @@ class Resolver {
    */
   private Collection<ExportPkg> getPackagesProvidedBy(BundlePackages bpkgs) {
     final ArrayList<ExportPkg> res = new ArrayList<ExportPkg>();
-    // TODO Improve the speed here!
     for (final Iterator<ExportPkg> i = bpkgs.getExports(); i.hasNext();) {
       final ExportPkg ep = i.next();
       if (ep.pkg.providers.contains(ep)) {
@@ -695,7 +694,6 @@ class Resolver {
       framework.resolverHooks.filterMatches((BundleRequirement)ip,
                                             (Collection<? extends BundleCapability>) possibleProvider);
       provider = tempProvider.get(ip.name);
-      // TODO, new with resolver hook when do check collision with rejected provider
       if (provider != null) {
         if (framework.debug.resolver) {
           framework.debug.println("resolvePackages: " + ip.name
@@ -978,14 +976,12 @@ class Resolver {
    * @throws BundleException Resolver hook throw an exception.
    */
   private BundleGeneration checkBundleSingleton(BundleGeneration bg) throws BundleException {
-    // TODO More speed?
     if (bg.symbolicName != null && bg.singleton) {
       if (framework.debug.resolver) {
         framework.debug.println("checkBundleSingleton: check singleton bundle " + bg);
       }
       final List<BundleGeneration> bl = framework.bundles.getBundleGenerations(bg.symbolicName);
       if (bl.size() > 1) {
-        // TODO shouldn't we check no singletons?
         if (framework.resolverHooks.hasHooks()) {
           final BundleCapability bc = bg.getBundleCapability();
           Collection<BundleCapability> candidates = new LinkedList<BundleCapability>();
@@ -1056,7 +1052,6 @@ class Resolver {
    * @throws BundleException Resolver hook throw an exception.
    */
   private String checkBundleRequirements(BundleGeneration bg) throws BundleException {
-    // TODO, Handle fragment requirements
     for (Entry<String, List<BundleRequirementImpl>> e : bg.getOtherRequirements().entrySet()) {
       String namespace = e.getKey(); 
       for (BundleRequirementImpl br : e.getValue()) {
@@ -1279,7 +1274,7 @@ class Resolver {
                         + ep);
                   }
                 } else {
-                  // TBD, should we resolve when this happens!?
+                  // TODO, should we resolve when this happens!?
                   framework.listeners.frameworkError(bg.bundle,
                        new Exception("registerNewProviders: Warning! Internal wire for, " + ip +
                                      ", does not match exported. " + ep));

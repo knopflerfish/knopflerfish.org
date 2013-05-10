@@ -561,7 +561,7 @@ class Listeners {
         if (activeListeners != null) {
           synchronized (activeListeners) {
             while (activeListeners.containsKey(ae.le)) {
-              // TBD, implement detection of hanging listeners?
+              // TODO, implement detection of hanging listeners?
               try {
                 activeListeners.wait();
               } catch (final InterruptedException ignore) { }

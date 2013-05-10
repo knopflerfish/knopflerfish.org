@@ -56,7 +56,6 @@ public class FrameworkWiringImpl implements FrameworkWiring {
   }
 
   public void refreshBundles(Collection<Bundle> bundles, FrameworkListener... listeners) {
-    // TODO, Check system bundle resolve permission
     final Bundle[] bs = bundles != null ?
                   bundles.toArray(new Bundle[bundles.size()]) :
                   null;
@@ -64,7 +63,6 @@ public class FrameworkWiringImpl implements FrameworkWiring {
   }
 
   public boolean resolveBundles(Collection<Bundle> bundles) {
-    // TODO, Check system bundle resolve permission
     final Bundle[] bs = bundles != null ?
                   bundles.toArray(new Bundle[bundles.size()]) :
                   null;

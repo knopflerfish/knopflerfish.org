@@ -738,7 +738,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
     BundlePackages pbp;
     Iterator<ExportPkg> ep;
 
-    // TBD! Should this be an action method
+    // TODO, Should this be an action method
     if (action == classSearch && requestor != this) {
       final Class<?> c = findLoadedClass(name);
       if (c != null) {
@@ -932,8 +932,10 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         return cl.getResources(path);
       } catch (IOException e) {
       }
+    } else if (action == listSearch) {
+      // TODO, listSearch
+      throw new UnsupportedOperationException("listResources not available on system bundle");
     }
-    // TODO, listSearch?
     return null;
   }
 

@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
@@ -81,7 +82,7 @@ public class ResolverHooks {
               ServiceReference<ResolverHookFactory> reference) {
             return new TrackedResolverHookFactory(
                 (ResolverHookFactory) fwCtx.systemBundle.bundleContext
-                    .getService(reference));
+                    .getService(reference), reference.getBundle());
           }
 
           public void modifiedService(ServiceReference<ResolverHookFactory> reference,
@@ -126,7 +127,8 @@ public class ResolverHooks {
               active.add(rhf);
             }
           } catch (RuntimeException re) {
-            throw new BundleException("Resolver hook throw an exception",
+            throw new BundleException("Resolver hook throw an exception, bid="
+                                      + rhf.bundle.getBundleId(),
                                       BundleException.REJECTED_BY_HOOK, re);
           } finally {
             unblockResolveForHooks();
@@ -153,8 +155,7 @@ public class ResolverHooks {
             try {
               rh.end();
             } catch (RuntimeException re) {
-              // TODO should we get hook bundle
-              fwCtx.listeners.frameworkWarning(fwCtx.systemBundle, re);
+              fwCtx.listeners.frameworkWarning(rhf.bundle, re);
             }
           }
         }
@@ -178,7 +179,8 @@ public class ResolverHooks {
           try {
             rh.filterMatches(requirement, c);
           } catch (RuntimeException re) {
-            throw new BundleException("Resolver hook throw an exception",
+            throw new BundleException("Resolver hook throw an exception, bid="
+                                      + rhf.bundle.getBundleId(),
                                       BundleException.REJECTED_BY_HOOK, re);
           }
         }
@@ -211,7 +213,8 @@ public class ResolverHooks {
             try {
               rh.filterResolvable(c);
             } catch (RuntimeException re) {
-              throw new BundleException("Resolver hook throw an exception",
+              throw new BundleException("Resolver hook throw an exception, bid="
+                                      + rhf.bundle.getBundleId(),
                                         BundleException.REJECTED_BY_HOOK, re);
             }
           }
@@ -237,7 +240,8 @@ public class ResolverHooks {
           try {
             rh.filterSingletonCollisions(singleton, c);
           } catch (RuntimeException re) {
-            throw new BundleException("Resolver hook throw an exception",
+            throw new BundleException("Resolver hook throw an exception, bid="
+                                      + rhf.bundle.getBundleId(),
                                       BundleException.REJECTED_BY_HOOK, re);
           }
         }
@@ -283,10 +287,12 @@ public class ResolverHooks {
   static class TrackedResolverHookFactory
   {
     final ResolverHookFactory tracked;
+    final Bundle bundle;
     private ResolverHook resolverHook = null;
   
-    TrackedResolverHookFactory(ResolverHookFactory tracked) {
+    TrackedResolverHookFactory(ResolverHookFactory tracked, Bundle bundle) {
       this.tracked = tracked;
+      this.bundle = bundle;
     }
   
     boolean begin(final Collection<BundleRevision> triggers) {

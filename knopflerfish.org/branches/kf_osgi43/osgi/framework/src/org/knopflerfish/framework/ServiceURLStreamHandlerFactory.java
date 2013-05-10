@@ -164,7 +164,7 @@ public class ServiceURLStreamHandlerFactory
    * @param fw Framework context for framework to add.
    */
   void addFramework(FrameworkContext fw) {
-    // TBD, should we check that property "java.protocol.handler.pkgs" is equal?
+    // TODO, should we check that property "java.protocol.handler.pkgs" is equal?
     bundleHandler.addFramework(fw);
     framework.add(fw);
   }

@@ -80,7 +80,6 @@ public class BundleNameVersionCapability implements BundleCapability {
     return gen.bundleRevision;
   }
 
-
   public int hashCode() {
     final int prime = 31;
     int result = 1;
@@ -89,8 +88,6 @@ public class BundleNameVersionCapability implements BundleCapability {
     return result;
   }
 
-  // TODO, should we be equal when gen's are different
-  // but the directives and attributes are the same.
   public boolean equals(Object obj) {
     if (this == obj)
       return true;

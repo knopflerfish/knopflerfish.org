@@ -235,7 +235,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     generation = (prev != null ? prev.generation : -1) + 1;
     archive = ba;
     checkCertificates();
-    // TBD, v2Manifest unnecessary to cache?
+    // TODO, v2Manifest unnecessary to cache?
     final String mv = archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION);
     v2Manifest = mv != null && mv.trim().equals("2");
     List<HeaderEntry> hes = Util
@@ -271,7 +271,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       singleton = "true".equals(he.getDirectives().get(Constants.SINGLETON_DIRECTIVE));
       final String tmp = he.getDirectives().get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
       attachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
-      // TBD! Should we allow update to same version?
+      // TODO! Should we allow update to same version?
       if (bundle.fwCtx.bsnversionSingle) {
         final BundleImpl snb = b.fwCtx.bundles.getBundle(symbolicName, version);
         if (snb != null && snb != bundle) {
@@ -505,7 +505,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     while (true) {
       if (bpkgs.resolvePackages()) {
         if (detached != null) {
-          // TBD should we report fragment that failed to attach
+          // TODO should we report fragment that failed to attach
           for (int i = detached.size() - 2; i >= 0; i--) {
             final BundleGeneration bg = detached.get(i);
             if (bg.bundle.attachToFragmentHost(this)) {
@@ -727,7 +727,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       return null;
     }
     final Hashtable<String, String> localization_entries = new Hashtable<String, String>();
-    // TBD, should we do like this and allow mixed locales?
+    // TODO, should we do like this and allow mixed locales?
     if (baseName == null) {
       baseName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
     }

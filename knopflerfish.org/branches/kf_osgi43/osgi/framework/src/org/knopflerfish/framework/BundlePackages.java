@@ -319,7 +319,6 @@ class BundlePackages {
   boolean resolvePackages() throws BundleException {
     failReason = bg.bundle.fwCtx.resolver.resolve(bg, getImports());
     if (failReason == null) {
-      // TBD, Perhaps we should use complete size here
       okImports = new ArrayList<ImportPkg>(imports.size());
       for (final Iterator<ImportPkg> i = getImports(); i.hasNext();) {
         final ImportPkg ip = i.next();
@@ -375,9 +374,6 @@ class BundlePackages {
    */
   synchronized Set<String> getSubProvider(String pkg) {
     Set<String> res = new HashSet<String>();
-    if (bg.bundle instanceof SystemBundle) {
-      // TODO handle system bundle
-    }
     if (pkg.length() > 0) {
       pkg = pkg + ".";
     }
