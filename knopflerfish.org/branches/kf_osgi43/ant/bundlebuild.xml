@@ -541,13 +541,9 @@
 
   <target name="jars" description="Compile all jars">
     <antcall target="jar_api"             inheritRefs="true"/>
-    <antcall target="jar_api_source.jar"  inheritRefs="true"/>
     <antcall target="jar_lib"             inheritRefs="true"/>
-    <antcall target="jar_lib_source.jar"  inheritRefs="true"/>
     <antcall target="jar_impl"            inheritRefs="true"/>
-    <antcall target="jar_impl_source.jar" inheritRefs="true"/>
     <antcall target="jar_all"             inheritRefs="true"/>
-    <antcall target="jar_all_source.jar"  inheritRefs="true"/>
   </target>
 
   <!-- set up build conditions -->
@@ -561,25 +557,11 @@
     <condition property="do_build_lib">
       <equals arg1="${bundle.build.lib}"  arg2="true"/>
     </condition>
-    <condition property="do_build_lib_source.jar">
-      <and>
-        <isset property="do_build_lib"/>
-        <isset property="src.dir.exists"/>
-        <equals arg1="${bundle.build.source.jar}" arg2="true"/>
-      </and>
-    </condition>
 
     <condition property="do_build_api" value="true">
       <and>
         <equals arg1="${bundle.build.api}"  arg2="true"/>
         <isset property="api.pattern"/>
-      </and>
-    </condition>
-    <condition property="do_build_api_source.jar">
-      <and>
-        <isset property="do_build_api"/>
-        <isset property="src.dir.exists"/>
-        <equals arg1="${bundle.build.source.jar}" arg2="true"/>
       </and>
     </condition>
 
@@ -590,13 +572,6 @@
           <isset property="impl.pattern"/>
           <isset property="impl-api.pattern"/>
         </or>
-      </and>
-    </condition>
-    <condition property="do_build_impl_source.jar">
-      <and>
-        <isset property="do_build_impl"/>
-        <isset property="src.dir.exists"/>
-        <equals arg1="${bundle.build.source.jar}" arg2="true"/>
       </and>
     </condition>
 
@@ -610,13 +585,6 @@
           <isset property="all.pattern"/>
           <isset property="all-api.pattern"/>
         </or>
-      </and>
-    </condition>
-    <condition property="do_build_all_source.jar" value="true">
-      <and>
-        <isset property="do_build_all"/>
-        <isset property="src.dir.exists"/>
-        <equals arg1="${bundle.build.source.jar}" arg2="true"/>
       </and>
     </condition>
 
@@ -754,10 +722,19 @@
       <!-- Add extra contents to the bundle jar -->
       <extraContents/>
 
+      <!-- ** Add bundle sources to OSGI-INF/src ** -->
       <antcall target="add_src" inheritRefs="true">
-        <param name="add.src.jarfile"  value="@{jar}"/>
+        <param name="add.src.jarfile" value="@{jar}"/>
       </antcall>
 
+      <!-- ** Create AID-source.jar attachment for the aritfact. ** -->
+      <antcall target="create_source.jar" inheritRefs="true">
+        <param name="includes" value="@{includes-impls},@{includes-exports}"/>
+        <param name="jar"      value="${@{kind}-source.jar}"/>
+      </antcall>
+
+      <!-- ** Create AID-javadoc.jar attachment for the aritfact. ** -->
+      <!-- ** Will document all exported packages.                ** -->
       <!-- Java packages with source code exported by this bundle. -->
       <local name="javadoc.src.packages"/>
       <!-- Does any of the exported pkgs have source code to process= -->
@@ -790,34 +767,31 @@
   </macrodef>
 
 
-  <!-- ========================= PACK SOURCE =========================== -->
-  <macrodef name="bundlebuild_pack_source"
-            description="Packs a source jar for a bundle project">
-    <attribute name="includes"
-               description="Pattern selecting what to include from src.dir"/>
-    <attribute name="jar"
-               description="Name of the jar-file to create."/>
-    <element name="extraContents"
-             optional="true"
-             description="Place holder element called when the jar has been created, normally used to add more contents to the jar-file."/>
+  <!-- ==================== PACK SOURCE ATTACHMENT ====================== -->
+  <target name="check_do_create_source.jar">
+    <!-- Build source jar when source code exists and -->
+    <!-- ${bundle.build.source.jar} is set to true. -->
+    <condition property="do_create_source.jar">
+      <and>
+        <equals arg1="${bundle.build.source.jar}" arg2="true"/>
+        <equals arg1="${src.dir.exists}"          arg2="true"/>
+      </and>
+    </condition>
+  </target>
+  <target name="create_source.jar"
+          depends="init, check_do_create_source.jar"
+          if="do_create_source.jar">
+    <mkdir dir="${jars.dir}"/>
 
-    <sequential>
-      <mkdir dir="${jars.dir}"/>
+    <jar basedir="${src.dir}"
+         jarfile="${jar}"
+         includes="${includes}"
+         excludes="**/package-info.java"
+         manifestencoding="UTF-8">
+    </jar>
+  </target>
 
-      <jar basedir="${src.dir}"
-           jarfile="@{jar}"
-           includes="@{includes}"
-           excludes="**/package-info.java"
-           manifestencoding="UTF-8">
-      </jar>
-
-      <!-- Add extra contents to the bundle jar -->
-      <extraContents/>
-
-    </sequential>
-  </macrodef>
-
-  <!-- ======================== PACK JAVADOC ========================== -->
+  <!-- =================== PACK JAVADOC ATTACHMENT ===================== -->
   <macrodef name="bundlebuild_pack_javadoc"
             description="Packs a javadoc jar with the API classes for a bundle project">
     <attribute name="sourcepath"
@@ -922,14 +896,6 @@
     </bundlebuild_pack_bundle>
   </target>
 
-  <target name="jar_impl_source.jar"
-          depends="init"
-          if="do_build_impl_source.jar">
-    <bundlebuild_pack_source
-       jar="${impl-source.jar}"
-       includes="${impl.pattern},${impl-api.pattern}"/>
-  </target>
-
 
 
   <!-- ============================= API =============================== -->
@@ -949,13 +915,6 @@
        includes-exports="${api.pattern}"/>
   </target>
 
-  <target name="jar_api_source.jar"
-          depends="init"
-          if="do_build_api_source.jar">
-    <bundlebuild_pack_source
-       jar="${api-source.jar}"
-       includes="${api.pattern}"/>
-  </target>
 
 
   <!-- ============================= LIB =============================== -->
@@ -979,14 +938,6 @@
         </antcall>
       </extraContents>
     </bundlebuild_pack_bundle>
-  </target>
-
-  <target name="jar_lib_source.jar"
-          depends="init"
-          if="do_build_lib_source.jar">
-    <bundlebuild_pack_source
-       jar="${lib-source.jar}"
-       includes="${api.pattern}"/>
   </target>
 
 
@@ -1017,19 +968,6 @@
       </extraContents>
     </bundlebuild_pack_bundle>
   </target>
-
-  <target name="jar_all_source.jar"
-          depends="init"
-          if="do_build_all_source.jar">
-    <bundlebuild_pack_source
-       jar="${all-source.jar}"
-       includes="${api.pattern},
-                 ${impl-api.pattern},
-                 ${impl.pattern},
-                 ${all-api.pattern},
-                 ${all.pattern}"/>
-  </target>
-
 
 
 
