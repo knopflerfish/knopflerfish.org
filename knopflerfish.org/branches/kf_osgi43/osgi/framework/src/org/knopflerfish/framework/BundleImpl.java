@@ -440,7 +440,7 @@ public class BundleImpl implements Bundle {
     // if start was aborted (uninstall or timeout), make sure
     // finalizeActivation() has finished before checking aborted/state
     synchronized (fwCtx.resolver) {
-      if (Thread.currentThread() != bundleThread) {
+      if (!isBundleThread(Thread.currentThread())) {
         // newer BundleThread instance has been active for this BundleImpl,
         // end thread execution 
         throw new RuntimeException("Aborted bundle thread ending execution");
@@ -1866,13 +1866,19 @@ public class BundleImpl implements Bundle {
     return generations.size() > 1;
   }
 
+  boolean isBundleThread(Thread t) {
+    return bundleThread == t;
+  }
+
+
+  void resetBundleThread() {
+    bundleThread = null;
+  }
+
+
   //
   // Private methods
   //
-
-  /**
-   * Create new bundle revision
-   */
 
   /**
    * Register all our import and export packages.

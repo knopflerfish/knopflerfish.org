@@ -207,8 +207,8 @@ class Resolver {
     final Pkg p = packages.get(ip.name);
     if (p != null) {
       // Wait for other resolve operations to
-      // TODO, handle potential dead-lock if called from SynchronousBundleListener.
       while (tempResolved != null) {
+        checkThread();
         try {
           wait();
         } catch (final InterruptedException _ignore) { }
@@ -354,17 +354,18 @@ class Resolver {
     }
     // If we enter with tempResolved set, it means that we already have
     // resolved bundles. Check that it is true!
-    while (tempResolved != null) {
-      if (tempResolved.contains(bg)) {
-        // TODO, is it okay to return here? Perhaps it will cause duplicates.
+    if (tempResolved != null) {
+      if (tempResolved.remove(bg)) {
         return null;
       }
       // Not true, wait before starting new resolve process.
-      // TODO, handle potential dead-lock if called from SynchronousBundleListener.
-      try {
-        wait();
-      } catch (final InterruptedException _ignore) { }
-    }
+      checkThread();
+      do {
+ 	     try {
+  	      wait();
+    	  } catch (final InterruptedException _ignore) { }
+      } while (tempResolved != null);
+   	}
 
     tempResolved = new HashSet<BundleGeneration>();
     try {
@@ -400,8 +401,8 @@ class Resolver {
         if (br == null) {
           List<ImportPkg> failed = resolvePackages(pkgs);
           if (failed.size() == 0) {
-            registerNewProviders(bg.bundle);
             registerNewWires();
+            registerNewProviders(bg.bundle);
             res = null;
           } else {
             StringBuffer r = new StringBuffer(
@@ -1238,6 +1239,7 @@ class Resolver {
         }
       }
     }
+    List<BundleImpl> resolve = new ArrayList<BundleImpl>(tempResolved.size());
     for (final BundleGeneration bg : tempResolved) {
       if (!bg.bpkgs.isActive()) {
         for (final Iterator<ImportPkg> bi = bg.bpkgs.getImports(); bi.hasNext();) {
@@ -1262,7 +1264,7 @@ class Resolver {
               }
             }
           } else {
-            // NYI! This check is already done, we should cache result
+            // TODO! This check is already done, we should cache result
             if (ip.checkAttributes(ep) && ip.checkPermission(ep)) {
               ip.provider = ep;
             } else {
@@ -1284,11 +1286,14 @@ class Resolver {
           }
         }
         if (bg.bundle != bundle) {
-          if (bg.bundle.getUpdatedState(null) == Bundle.INSTALLED) {
-            framework.listeners.frameworkError(bg.bundle,
-                new Exception("registerNewProviders: InternalError!"));
-          }
+          resolve.add(bg.bundle);
         }
+      }
+    }
+    for (final BundleImpl b : resolve) {
+      if (b.getUpdatedState(null) == Bundle.INSTALLED) {
+        framework.listeners.frameworkError(b,
+          new Exception("registerNewProviders: InternalError!"));
       }
     }
   }
@@ -1299,6 +1304,22 @@ class Resolver {
   private void registerNewWires() {
     for (final BundleWireImpl bw : tempWires) {
       ((BundleRequirementImpl)bw.getRequirement()).setWire(bw);
+    }
+  }
+
+  /**
+   * Check if current thread is a bundle thread involved in
+   * resolve operation, if so abort to avoid deadlock.
+   * @throws BundleException 
+   *  
+   */
+  private void checkThread() throws BundleException {
+    Thread t = Thread.currentThread();
+    for (BundleGeneration bg : tempResolved) {
+      if (bg.bundle.isBundleThread(t)) {
+		    throw new BundleException("Can not resolve a bundle inside current BundleListener." +
+                                  "Will cause a dead-lock. BID=" + bg.bundle.id);
+      }
     }
   }
 

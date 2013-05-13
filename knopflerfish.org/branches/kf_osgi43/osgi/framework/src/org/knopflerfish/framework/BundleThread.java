@@ -198,7 +198,7 @@ class BundleThread extends Thread {
       lock.notifyAll();
     }
 
-    // timeout for waiting on op to finish can be set for start/stopp
+    // timeout for waiting on op to finish can be set for start/stop
     long left = 0;
     if (op == OP_START || op == OP_STOP) {
       b.aborted = null; // clear aborted status
@@ -286,16 +286,23 @@ class BundleThread extends Thread {
       res = new BundleException("Bundle#" + b.id + " " + opType + " failed",
                                 BundleException.STATECHANGE_ERROR,
                                 new Exception(reason));
+	    b.resetBundleThread();
       return res;
     } else {
       synchronized (fwCtx.bundleThreads) {
         fwCtx.bundleThreads.addFirst(this);
         if (op != operation) {
-          // NYI! Handle when operation has changed.
+          // TODO! Handle when operation has changed.
           // i.e. uninstall during operation?
         }
+		    b.resetBundleThread();
         return res;
       }
     }
   }
+
+  boolean isExecutingBundleChanged() {
+    return operation == OP_BUNDLE_EVENT;
+  }
+
 }
