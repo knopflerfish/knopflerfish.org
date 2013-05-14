@@ -78,15 +78,6 @@ import org.osgi.framework.wiring.BundleWiring;
 public class BundleImpl implements Bundle {
 
   /**
-   * Union of flags allowing bundle package access.
-   * <p>
-   * Value is
-   * <tt>Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING</tt>
-   * </p>
-   */
-  final static int RESOLVED_FLAGS = RESOLVED | STARTING | ACTIVE | STOPPING;
-
-  /**
    * Framework for bundle.
    */
   final FrameworkContext fwCtx;
@@ -1250,7 +1241,7 @@ public class BundleImpl implements Bundle {
               }
             }
             if (current.isFragment()) {
-              final List<BundleGeneration> hosts = current.fragment.targets(fwCtx);
+              final List<BundleGeneration> hosts = current.fragment.targets();
               if (!hosts.isEmpty()) {
                 for (final BundleGeneration host : hosts) {
                   if (!host.bpkgs.isActive()) {
@@ -1921,6 +1912,18 @@ public class BundleImpl implements Bundle {
     if (state == UNINSTALLED) {
       throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
+  }
+
+
+  /**
+   * State is resolved, allowing bundle package access.
+   * <p>
+   * State is
+   * <tt>Bundle.RESOLVED | Bundle.STARTING | Bundle.ACTIVE | Bundle.STOPPING</tt>
+   * </p>
+   */
+  boolean isResolved() {
+    return (state & (RESOLVED | STARTING | ACTIVE | STOPPING)) != 0;
   }
 
 }

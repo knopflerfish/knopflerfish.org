@@ -169,10 +169,10 @@ class Fragment
            && bg.bsnAttrMatch(attributes);
   }
 
-  List<BundleGeneration> targets(final FrameworkContext fwCtx)
+  List<BundleGeneration> targets()
   {
-    final List<BundleGeneration> lbg = fwCtx.bundles.getBundles(hostName,
-                                                                versionRange);
+    final List<BundleGeneration> lbg = gen.bundle.fwCtx.bundles.getBundles(hostName,
+                                                                           versionRange);
     for (Iterator<BundleGeneration> i = lbg.iterator(); i.hasNext();) {
       final BundleGeneration tbg = i.next();
       if (tbg.attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER) ||

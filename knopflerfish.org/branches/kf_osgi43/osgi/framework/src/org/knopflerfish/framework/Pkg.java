@@ -138,7 +138,7 @@ class Pkg {
       // See if there are any resolved exporters.
       for (final ExportPkg exportPkg : exporters) {
         final ExportPkg ep = exportPkg;
-        if ((ep.bpkgs.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
+        if (ep.bpkgs.bg.bundle.isResolved()) {
           if (best == null || best.version.compareTo(ep.version) < 0) {
             best = ep;
           }

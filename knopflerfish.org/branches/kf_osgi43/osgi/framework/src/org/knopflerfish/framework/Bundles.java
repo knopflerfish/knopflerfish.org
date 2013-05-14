@@ -362,6 +362,25 @@ public class Bundles {
 
 
   /**
+   * Get unattached fragments that has a resolved host.
+   *
+   * @return A Bundle array with bundles.
+   */
+  void getUnattachedBundles(Collection<Bundle> res) {
+    synchronized (bundles) {
+      for (BundleImpl b : bundles.values()) {
+        if (b.getState() == Bundle.INSTALLED) {
+          final BundleGeneration curr = b.current();
+          if (curr.isFragment() && curr.getResolvedHosts().size() > 0) {
+            res.add(b);
+          }
+        }
+      }
+    }
+  }
+
+
+  /**
    * Check if any extension bundle needs a framework restart.
    *
    * @return A Bundle array with bundles.

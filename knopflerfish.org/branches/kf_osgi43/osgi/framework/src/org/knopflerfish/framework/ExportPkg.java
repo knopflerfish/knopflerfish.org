@@ -240,7 +240,7 @@ class ExportPkg
   boolean isExported() {
     final BundlePackages bp = bpkgs;
     if (checkPermission() && pkg != null &&
-        ((bp.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
+        (bp.bg.bundle.isResolved() || zombie)) {
       final BundlePackages pbp = bp.getProviderBundlePackages(name);
       return pbp == null || pbp.bg.bundle == bpkgs.bg.bundle;
     }

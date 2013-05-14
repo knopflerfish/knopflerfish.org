@@ -592,7 +592,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       throw new IllegalStateException("Bundle does not allow fragments to attach");
     }
     if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME)
-        && (bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
+        && bundle.isResolved()) {
       throw new IllegalStateException("Bundle does not allow fragments to attach dynamically");
     }
     if (!bundle.fwCtx.resolverHooks.filterMatches(fragmentBundle.fragment,
@@ -1204,6 +1204,18 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   void clearWiring() {
     bundleRevision.clearWiring();
+  }
+
+
+  Set<BundleImpl> getResolvedHosts() {
+    Set<BundleImpl> res = new HashSet<BundleImpl>();
+    List<BundleGeneration> tgts = fragment.targets();
+    for (BundleGeneration t : tgts) {
+      if (t.bundle.isResolved()) {
+        res.add(t.bundle);
+      }
+    }
+    return res;
   }
 
 }

@@ -404,9 +404,7 @@ public class PackageAdminImpl implements PackageAdmin {
     List<BundleGeneration> bgs = fwCtx.bundles.getBundleGenerations(symbolicName);
     final ArrayList<RequiredBundleImpl> res = new ArrayList<RequiredBundleImpl>();
     for (final BundleGeneration bg : bgs) {
-      if (((bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0
-           || bg.bundle.getRequiredBy().size() > 0)// Required, updated but not
-                                           // re-resolved
+      if ((bg.bundle.isResolved() || bg.bundle.getRequiredBy().size() > 0)
           && !bg.isFragment()) {
         res.add(new RequiredBundleImpl(bg.bpkgs));
       }

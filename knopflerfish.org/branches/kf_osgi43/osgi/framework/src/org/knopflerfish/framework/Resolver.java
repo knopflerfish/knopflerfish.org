@@ -493,6 +493,7 @@ class Resolver {
         framework.debug.println("getZombieAffected: check - null");
       }
       framework.bundles.getRemovalPendingBundles(affected);
+      framework.bundles.getUnattachedBundles(affected);
     } else {
       for (final Bundle bundle : bundles) {
         final BundleImpl tmp = (BundleImpl)bundle;
@@ -571,15 +572,14 @@ class Resolver {
           }
         }
         if (bbg.isFragment()) {
-          final Vector<BundleGeneration> hosts = bbg.getHosts();
-          for (BundleGeneration hbg : hosts) {
-            if (!bundles.contains(hbg.bundle)) {
-              moreBundles.add(hbg.bundle);
+          final Set<BundleImpl> hosts = bbg.getResolvedHosts();
+          for (BundleImpl hb : hosts) {
+            if (!bundles.contains(hb)) {
+              moreBundles.add(hb);
               if (framework.debug.resolver) {
-                framework.debug.println("closure: added fragment host bundle - "
-                                        + hbg.bundle);
+                framework.debug.println("closure: added fragment host bundle - " + hb);
               }
-              bundles.add(hbg.bundle);              
+              bundles.add(hb);
             }
           }
         }
