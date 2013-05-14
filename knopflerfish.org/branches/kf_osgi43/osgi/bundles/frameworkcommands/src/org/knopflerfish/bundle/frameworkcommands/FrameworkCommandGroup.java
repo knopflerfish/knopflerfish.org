@@ -77,6 +77,7 @@ import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleRevisions;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.framework.wiring.FrameworkWiring;
@@ -1136,6 +1137,61 @@ public class FrameworkCommandGroup
     if (!found) {
       out.println("ERROR! No matching bundle");
       return 1;
+    }
+    return 0;
+  }
+
+  //
+  // Pending command
+  //
+
+  public final static String USAGE_PENDING = "[-i] [-l]";
+
+  public final static String[] HELP_PENDING = new String[] {
+    "Show the bundles that have non-current, in use bundle wirings",
+    "-i         Sort on bundle id",
+    "-l         Long format show all details" };
+
+  public int cmdPending(Dictionary<String, ?> opts,
+                        Reader in,
+                        PrintWriter out,
+                        Session session)
+  {
+    final boolean doDetailed = opts.get("-l") != null;
+    final Bundle systemBundle = bc.getBundle(0);
+    final FrameworkWiring frameworkWiring =
+        systemBundle.adapt(FrameworkWiring.class);
+
+    Collection<Bundle> bundles = frameworkWiring.getRemovalPendingBundles();
+    if (bundles.isEmpty()) {
+      out.println("No removal pending.");
+    } else {
+      Bundle[] barr = bundles.toArray(new Bundle[bundles.size()]);
+      if (opts.get("-i") != null) {
+        Util.sortBundlesId(barr);
+      }
+      for (final Bundle element : barr) {
+        out.println("Bundle: " + showBundle(element));
+        if (doDetailed) {
+          out.print("  Reason: ");
+          final BundleRevisions brs = element.adapt(BundleRevisions.class);
+          final List<BundleRevision> revs = brs.getRevisions();
+          if (revs.isEmpty()) {
+            out.println("Bundle became unused during command execution.");
+          } else {
+              switch (revs.get(0).getBundle().getState()) {
+              case Bundle.INSTALLED:
+                out.println("Bundle has been updated.");
+                break;
+              case Bundle.UNINSTALLED:
+                out.println("Bundle has been uninstalled.");
+                break;
+              default:
+                out.println("Bundle has been updated and resolved.");
+            }
+          }
+        }
+      }
     }
     return 0;
   }

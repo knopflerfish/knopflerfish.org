@@ -1386,9 +1386,6 @@ public class BundleImpl implements Bundle {
    * Purge any old files and data associated with this bundle.
    */
   void purge() {
-    if (state == UNINSTALLED) {
-      fwCtx.bundles.remove(location);
-    }
     fwCtx.bundles.removeZombie(this);
     Vector<BundleGeneration> old;
     synchronized (generations) {
