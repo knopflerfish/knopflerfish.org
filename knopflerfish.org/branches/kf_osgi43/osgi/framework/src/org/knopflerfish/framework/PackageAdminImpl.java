@@ -245,7 +245,6 @@ public class PackageAdminImpl implements PackageAdmin {
     if (fwCtx.debug.resolver) {
       fwCtx.debug.println("PackageAdminImpl.refreshPackages() starting");
     }
-    // TODO send framework error events to fl
 
     final ArrayList<BundleImpl> startList = new ArrayList<BundleImpl>();
     BundleImpl [] bi;
@@ -266,7 +265,7 @@ public class PackageAdminImpl implements PackageAdmin {
             bi[bx].waitOnOperation(fwCtx.resolver, "PackageAdmin.refreshPackages", false);
             final Exception be = bi[bx].stop0();
             if (be != null) {
-              fwCtx.listeners.frameworkError(bi[bx], be, fl);
+              fwCtx.listeners.frameworkError(bi[bx], be);
             }
           } catch (final BundleException ignore) {
             // Wait failed, we will try again
@@ -293,12 +292,12 @@ public class PackageAdminImpl implements PackageAdmin {
                 fwCtx.debug
                     .println("PackageAdminImpl.refreshPackages() timeout on bundle stop, retry...");
               }
-              fwCtx.listeners.frameworkWarning(bi[bx], we, fl);
+              fwCtx.listeners.frameworkWarning(bi[bx], we);
             }
           }
           be = bi[bx].stop0();
           if (be != null) {
-            fwCtx.listeners.frameworkError(bi[bx], be, fl);
+            fwCtx.listeners.frameworkError(bi[bx], be);
           }
           if (nextStart != bi[bx]) {
             startList.add(startPos + 1, bi[bx]);
@@ -324,7 +323,7 @@ public class PackageAdminImpl implements PackageAdmin {
     }
 
     // Restart previously active bundles in normal start order
-    startBundles(startList, fl);
+    startBundles(startList);
     final FrameworkEvent fe = new FrameworkEvent(FrameworkEvent.PACKAGES_REFRESHED,
                                            fwCtx.systemBundle, null);
     fwCtx.listeners.frameworkEvent(fe, fl);
@@ -340,7 +339,7 @@ public class PackageAdminImpl implements PackageAdmin {
    *
    * @param slist Bundles to start.
    */
-  private void startBundles(List<BundleImpl> slist, FrameworkListener...fl) {
+  private void startBundles(List<BundleImpl> slist) {
     // Sort in start order
     // Resolve first to avoid dead lock
     BundleImpl [] triggers = slist.toArray(new BundleImpl[slist.size()]);
@@ -353,7 +352,7 @@ public class PackageAdminImpl implements PackageAdmin {
         try {
           rb.start();
         } catch (final BundleException be) {
-          rb.fwCtx.listeners.frameworkError(rb, be, fl);
+          rb.fwCtx.listeners.frameworkError(rb, be);
         }
       }
     }

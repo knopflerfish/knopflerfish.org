@@ -908,6 +908,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     if (archive != null) {
       archive.purge();
     }
+    clearWiring();
   }
 
 

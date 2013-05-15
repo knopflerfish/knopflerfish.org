@@ -53,6 +53,7 @@ public class BundleRequirementImpl
 
   private final BundleGeneration gen;
   private final String nameSpace;
+  private final Map<String, Object> attributes;
   private final Map<String,String> directives;
   private final Filter filter;
   private BundleWireImpl wire = null;
@@ -99,8 +100,7 @@ public class BundleRequirementImpl
       filter = null;
     }
     directives = Collections.unmodifiableMap(he.getDirectives());
-    
-    // TODO, warn about defined attributes
+    attributes = Collections.unmodifiableMap(he.getAttributes());
   }
 
 
@@ -116,10 +116,9 @@ public class BundleRequirementImpl
   }
 
 
-  @SuppressWarnings("unchecked")
   public Map<String, Object> getAttributes()
   {
-    return Collections.EMPTY_MAP;
+    return attributes;
   }
 
 

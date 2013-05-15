@@ -718,7 +718,7 @@ public class Main
           break;
         case FrameworkEvent.STOPPED_BOOTCLASSPATH_MODIFIED:
           // A manual FW restart with new boot class path is needed.
-          return; // TODO
+          return;
         case FrameworkEvent.ERROR:
           // Stop failed or other error, give up.
           error("Fatal framework error, terminating.",

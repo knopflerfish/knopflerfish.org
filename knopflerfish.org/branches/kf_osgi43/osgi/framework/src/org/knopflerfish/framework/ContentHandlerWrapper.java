@@ -53,7 +53,8 @@ import org.osgi.service.url.URLConstants;
  * Each instance of ContentHandlerWrapper  tracks ContentHandlers
  * for a named MIME type and selects the best from all available services.
  * </p>
- */public class ContentHandlerWrapper
+ */
+public class ContentHandlerWrapper
   extends ContentHandler
 {
 

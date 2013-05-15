@@ -51,7 +51,6 @@ public class Capabilities {
 
 
   List<BundleCapabilityImpl> getCapabilities(String namespace) {
-    // TODO make sure that capabilities are priority order?
     return namespaceCapabilties.get(namespace);
   }
 

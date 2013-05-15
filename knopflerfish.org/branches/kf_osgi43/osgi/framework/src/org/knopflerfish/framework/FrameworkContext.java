@@ -584,9 +584,9 @@ public class FrameworkContext  {
 
 
   private String getUUID() {
-    // TODO, set this to something meaningful?
+    // We use a "pseudo" random UUID (Version 4).
     final String sid = Integer.toHexString(id * 65536 + initCount);
-    final String baseUUID = "4e524769-3136-4b46-6000-00000000";
+    final String baseUUID = "4e524769-3136-4b46-8000-00000000";
     return baseUUID.substring(0, baseUUID.length() - sid.length()) + sid;
   }
 

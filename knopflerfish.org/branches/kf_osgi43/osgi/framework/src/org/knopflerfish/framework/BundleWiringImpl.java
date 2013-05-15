@@ -70,12 +70,7 @@ public class BundleWiringImpl implements BundleWiring {
 
 
   public boolean isInUse() {
-    if (this == bundleRevision.getWiring()) {
-      // TODO, perhaps we should clear wiring when it becomes unused
-      // so that we don't need this test.
-      return bundleRevision.bundle.usesBundleGeneration(bundleRevision.gen);
-    }
-    return false;
+    return this == bundleRevision.getWiring();
   }
 
 

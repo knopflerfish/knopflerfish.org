@@ -58,7 +58,7 @@ import org.osgi.framework.BundleReference;
  * Classloader for bundle JAR files.
  * 
  * @author Jan Stein, Philippe Laporte, Mats-Ola Persson, Gunna Ekolin
- * @author Vilmos Nebehaj (Android applicatin support)
+ * @author Vilmos Nebehaj (Android application support)
  */
 final public class BundleClassLoader extends ClassLoader implements BundleReference {
 
