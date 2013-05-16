@@ -1225,20 +1225,30 @@ public class Desktop
     } else {
       boolean anyResolvable = false;
       boolean anyStartable = false;
+      boolean anyStoppable = false;
       boolean anyRefreshable = false;
       for (final Bundle bundle : bl) {
         final int state = bundle.getState();
         final List<BundleRevision> bRevs =
           bundle.adapt(BundleRevisions.class).getRevisions();
         final BundleRevision bRevCur = bRevs.get(0);
+        final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
         final boolean isFragment =
           bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
 
         anyResolvable |= (state & Bundle.INSTALLED) != 0;
+
+        // A non-fragment can be started if not already persistently started or
+        // if no start level service and in state installed, resolved, starting
         anyStartable |=
           (!isFragment)
-              && ((state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0);
+              && ((bsl != null && !bsl.isPersistentlyStarted())
+                  || (bsl == null && (state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0));
 
+        anyStoppable |=
+          (!isFragment)
+              && ( (bsl != null && bsl.isPersistentlyStarted()) ||
+                   ((state & (Bundle.STARTING | Bundle.ACTIVE)) != 0) );
         anyRefreshable |= bRevs.size() > 1;
       }
       actionResolveBundles.setEnabled(anyResolvable);
@@ -1246,7 +1256,7 @@ public class Desktop
       actionRefreshBundles.setEnabled(anyRefreshable);
 
       // since there are bundles selected stop, update and uninstall are enabled
-      actionStopBundles.setEnabled(true);
+      actionStopBundles.setEnabled(anyStoppable);
       actionUpdateBundles.setEnabled(true);
       actionUninstallBundles.setEnabled(true);
     }
@@ -2549,6 +2559,12 @@ public class Desktop
 
   void startBundle(final Bundle b)
   {
+    // Fragments can not be started
+    final BundleRevision br = b.adapt(BundleRevision.class);
+    if ((br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0) {
+      return;
+    }
+
     // Must not call start() from the EDT, since that will block the
     // EDT until the start()-call completes.
     new Thread("Desktop-StartBundle " + b.getBundleId()) {
@@ -2557,6 +2573,7 @@ public class Desktop
       {
         try {
           b.start(getStartOptions());
+          updateBundleViewSelections();
         } catch (final Exception e) {
           showErr("Failed to start bundle " + Util.getBundleName(b) + ": " + e,
                   e);
@@ -2599,6 +2616,12 @@ public class Desktop
 
   void stopBundle(final Bundle b)
   {
+    // Fragments can not be stopped
+    final BundleRevision br = b.adapt(BundleRevision.class);
+    if ((br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0) {
+      return;
+    }
+
     // Special handling needed when stopping the desktop itself.
     final boolean stoppingSelf =
       b.getBundleId() == 0
@@ -2627,6 +2650,7 @@ public class Desktop
         {
           try {
             b.stop(getStopOptions());
+            updateBundleViewSelections();
           } catch (final Exception e) {
             showErr("Failed to stop bundle " + Util.getBundleName(b) + ": " + e,
                     e);

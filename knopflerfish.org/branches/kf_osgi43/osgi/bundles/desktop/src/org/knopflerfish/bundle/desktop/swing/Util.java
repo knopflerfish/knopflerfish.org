@@ -75,6 +75,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWire;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -337,11 +338,25 @@ public class Util
   static public String bundleInfo(Bundle b)
   {
     final StringBuffer sb = new StringBuffer();
+    final BundleRevision br = b.adapt(BundleRevision.class);
+    final boolean isFragment =
+      (br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0;
 
     sb.append("<html>");
-    sb.append(" Id: " + b.getBundleId() + "<br>");
-    sb.append(" Name: " + Util.getBundleName(b) + "<br>");
-    sb.append(" State: " + Util.stateName(b.getState()) + "<br>");
+    sb.append(" Id: ");
+    sb.append(b.getBundleId());
+    if (isFragment) {
+      sb.append(" (fragment)");
+    }
+    sb.append("<br>");
+
+    sb.append(" Name: ");
+    sb.append(Util.getBundleName(b));
+    sb.append("<br>");
+
+    sb.append(" State: ");
+    sb.append(Util.stateName(b.getState()));
+    sb.append("<br>");
 
     final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
     if (bsl != null) {
@@ -352,6 +367,11 @@ public class Util
         sb.append("not managed");
       }
       sb.append("<br>");
+
+      if (bsl.isPersistentlyStarted()) {
+        sb.append(" Persitently started");
+        sb.append("<br>");
+      }
     }
 
     sb.append("</html>");

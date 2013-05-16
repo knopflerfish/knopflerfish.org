@@ -255,15 +255,9 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
 
       public void actionPerformed(ActionEvent ev)
       {
-        final Component invoker = contextPopupMenu.getInvoker();
-        if (invoker instanceof JComponent) {
-          final JComponent jinvoker = (JComponent) invoker;
-          final Long bid =
-            (Long) jinvoker.getClientProperty(CLIENT_PROPERTY_BID);
-          if (bid != null) {
-            final Bundle bundle = Activator.getTargetBC_getBundle(bid);
-            Desktop.theDesktop.resolveBundles(new Bundle[] { bundle });
-          }
+        final Bundle bundle = getBundlePopuMenuInvokedFor();
+        if (bundle != null) {
+          Desktop.theDesktop.resolveBundles(new Bundle[] { bundle });
         }
       }
     };
@@ -459,20 +453,17 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
               final BundleRevision bRevCur = bRevs.get(0);
               final boolean isFragment =
                 bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
+              final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
               final int state = bundle.getState();
 
               resolveBundleAction.setEnabled((state & Bundle.INSTALLED) != 0);
               startBundleAction
                   .setEnabled(!isFragment
-                              && ((state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0));
-              // Stopping a bundle that is not active may be useful since it
-              // changes the saved target state in the framework. I.e., if the
-              // bundle is not active due to start-level but marked as a bundle
-              // to start then calling stop will remove that mark so that the
-              // bundle will not be started when its startlevel has been
-              // reached.
+                              && ((bsl != null && !bsl.isPersistentlyStarted())
+                                  || (bsl == null && (state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0)));
               stopBundleAction
-                  .setEnabled((state & (Bundle.UNINSTALLED)) == 0);
+                  .setEnabled((bsl != null && bsl.isPersistentlyStarted())
+                              || (state & (Bundle.STARTING | Bundle.ACTIVE)) != 0);
               updateBundleAction.setEnabled(true);
 
               // Refresh is only needed when there are more than one bundle
