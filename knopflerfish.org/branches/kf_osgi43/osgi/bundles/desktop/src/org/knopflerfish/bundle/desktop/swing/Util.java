@@ -339,8 +339,8 @@ public class Util
   {
     final StringBuffer sb = new StringBuffer();
     final BundleRevision br = b.adapt(BundleRevision.class);
-    final boolean isFragment =
-      (br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0;
+    final boolean isFragment = br != null &&
+      ((br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0);
 
     sb.append("<html>");
     sb.append(" Id: ");
@@ -363,15 +363,13 @@ public class Util
       sb.append(" Start level: ");
       try {
         sb.append(bsl.getStartLevel());
+        if (bsl.isPersistentlyStarted()) {
+          sb.append(", persistently started");
+        }
       } catch (final IllegalArgumentException e) {
         sb.append("not managed");
       }
       sb.append("<br>");
-
-      if (bsl.isPersistentlyStarted()) {
-        sb.append(" Persitently started");
-        sb.append("<br>");
-      }
     }
 
     sb.append("</html>");

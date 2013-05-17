@@ -664,6 +664,20 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
                 return Color.black;
               }
             }
+
+
+            @Override
+            public String getToolTipText()
+            {
+              if (getClientProperty(TOOL_TIP_TEXT_KEY) != null) {
+                // If a tool tip text is set, return an up to date version of
+                // the text since we do not have events that can be used to
+                // trigger update of the text for some parts of the text.
+                // E.g., the start level and the persistently started property.
+                return Util.bundleInfo(b);
+              }
+              return null;
+            }
           };
 
 

@@ -278,6 +278,9 @@ public class ManifestHTMLDisplayer
         String level = "";
         try {
           level = Integer.toString(bsl.getStartLevel());
+          if (bsl.isPersistentlyStarted()) {
+            level += ", persistently started";
+          }
         } catch (final IllegalArgumentException e) {
           level = "not managed";
         }

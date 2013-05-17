@@ -243,7 +243,7 @@
     <div class="note_item">
       The Log-tab now presents initial log entries obtained by calling
       the getLog()-method of a LogReaderService in the correct order,
-      i.e., most recent last.
+      i.e., oldest first.
     </div>
     <div class="note_item">
       Bundle life-cycle operations (resolve, start, stop, update,
@@ -260,6 +260,10 @@
       of the manifest. The bundle state line now includes the text
       "pending refresh" for bundles that has more than one bundle
       revision in use, i.e, bundles that needs to be refreshed.
+      The start level line now contains the text "persistently
+      started" for bundles that are persistently started. I.e., for
+      bundles that will be started again when the framework itself is
+      restarted.
     </div>
     <div class="note_item">
       The closure tab as well as the File-menu save deployment archive
@@ -284,18 +288,24 @@
       window). Click on the column header to sort rows based on the
       column values, shift-click for reverse order.
     </div>
+    <div class="note_item">
+      The tool tip text for bundle icons in the icons display is now
+      always up to date. The start-level line of the text will
+      contain the text "persistently started" if the bundle is
+      persistently started.
+    </div>
 
     <div class="note_name">
       Desktop 4.0.0
     </div>
     <div class="note_item">
-      A new "Wiring" displayer has been added that presents information
-      from new wiring API. This displayer replaces the "Package"
-      displayer that only showed wiring info for the osgi.wiring.package
-      namespace.
+      A new "Wiring" displayer has been added that presents
+      information from new wiring API. This displayer replaces the
+      "Package" displayer that only showed wiring info for the
+      osgi.wiring.package namespace.
     </div>
     <div class="note_item">
-      Use the wiring API to perform refresh and resolve operations.
+      Uses the wiring API to perform refresh and resolve operations.
     </div>
     <div class="note_item">
       Use the start-level API to perform start-level operations.
