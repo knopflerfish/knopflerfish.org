@@ -91,6 +91,9 @@ class BundlePackages {
   /* Reason we failed to resolve */
   private String failReason = null;
 
+  /* Ordering of dynamic imports */
+  private int nextDynId = 0;
+
   final static String EMPTY_STRING = "";
 
 
@@ -436,6 +439,7 @@ class BundlePackages {
           final ExportPkg ep = fwCtx.resolver.registerDynamicImport(nip);
           if (ep != null) {
             nip.provider = ep;
+            nip.dynId = ++nextDynId;
             okImports.add(-ii - 1, nip);
             res = ep.bpkgs;
             break;
@@ -793,12 +797,11 @@ class BundlePackages {
   }
 
 
-  synchronized List<ExportPkg> getActiveChildProviders(ImportPkg ip) {
-    List<ExportPkg> res = new ArrayList<ExportPkg>();
+  synchronized List<ImportPkg> getActiveChildImports(ImportPkg ip) {
+    List<ImportPkg> res = new ArrayList<ImportPkg>();
     for (ImportPkg oip : okImports) {
       if (oip.parent == ip) {
-        // TODO, insert first to avoid bug in TCK
-        res.add(0, oip.provider);
+        res.add(oip);
       }
     }
     return res;

@@ -37,9 +37,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import org.osgi.framework.Bundle;
@@ -256,18 +258,32 @@ public class BundleWiringImpl implements BundleWiring {
       }
     }
     if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
-      for (final ImportPkg ip : gen.bpkgs.getPackageRequirements()) {
+      TreeSet<ImportPkg> dynamic = new TreeSet<ImportPkg>(
+          new Comparator<ImportPkg>() {
+            @Override
+            public int compare(ImportPkg o1, ImportPkg o2) {
+              return o1.dynId - o2.dynId;
+            }
+          });
+     for (final ImportPkg ip : gen.bpkgs.getPackageRequirements()) {
         ExportPkg ep = ip.provider;
-        if (ip.provider != null) {
+        if (ep != null) {
           res.add(new BundleWireImpl(ep, ep.bpkgs.bg, ip, gen));
         } else {
           // Must be dynamic import or fragment
-          for (ExportPkg cep : gen.bpkgs.getActiveChildProviders(ip)) {
-            res.add(new BundleWireImpl(cep, cep.bpkgs.bg, ip, gen));
+          for (ImportPkg cip : gen.bpkgs.getActiveChildImports(ip)) {
+            // Add dynamic imports in bind order
+            if (ip.isDynamic()) {
+              dynamic.add(cip);
+            } else {
+              res.add(new BundleWireImpl(cip.provider, cip.provider.bpkgs.bg, ip, gen));
+            }
           }
         }
       }
-
+      for (ImportPkg cip : dynamic) {
+        res.add(new BundleWireImpl(cip.provider, cip.provider.bpkgs.bg, cip.parent, gen));
+      }
     }
     if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
       List<BundleWireImpl> other = gen.getRequirementWires();

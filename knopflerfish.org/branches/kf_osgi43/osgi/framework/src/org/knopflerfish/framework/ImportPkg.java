@@ -88,6 +88,9 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   // Link to interal exporter ok to use
   ExportPkg internalOk = null;
 
+  // Ordering of dynamic imports
+  int dynId = 0;
+
 
   /**
    * Create an import package entry from manifest parser data.
