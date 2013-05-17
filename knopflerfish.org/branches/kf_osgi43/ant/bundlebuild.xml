@@ -57,11 +57,7 @@
   <!-- Properties configuring javac settings.                       -->
   <!-- ************************************************************ -->
 
-  <!-- Android dx.jar requires 1.5 target -->
-  <condition property="javac.target"  value="1.5" else="jsr14">
-    <istrue value="${android.exists}"/>
-  </condition>
-
+  <property name="javac.target"       value="jsr14"/>
   <property name="javac.source"       value="1.5"/>
 
   <!-- The bundle Execution Environment to use when compiling.       -->

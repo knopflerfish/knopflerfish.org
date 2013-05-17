@@ -43,11 +43,8 @@
 
   <import file="${ant.dir}/android.xml"/>
 
-  <!-- Android dx.jar requires 1.5 target and source -->
-  <condition property="javac.target"  value="1.5" else="jsr14">
-    <istrue value="${android.exists}"/>
-  </condition>
-  <property name="javac.source" value="1.5"/>
+  <property name="javac.target"       value="jsr14"/>
+  <property name="javac.source"       value="1.5"/>
 
   <property name="src.dir" location="src"/>
 
