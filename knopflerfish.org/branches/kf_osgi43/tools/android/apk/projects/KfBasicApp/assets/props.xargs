@@ -1,0 +1,8 @@
+# Property file for Knopflerfish framework on android.
+#
+# Add framework (-F) and system (-D) properties here.
+
+-Forg.knopflerfish.consoletelnet.port=2323
+-Forg.osgi.service.http.port=1080
+-Forg.knopflerfish.log.file=true
+-Forg.knopflerfish.log.level=INFO

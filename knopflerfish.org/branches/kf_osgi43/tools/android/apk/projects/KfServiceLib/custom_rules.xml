@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="KfServiceLib custom" default="help">
+
+  <property name="kf.ant.dir"
+            location="../../../../../ant"/>
+  <property name="osgi.dir"
+            location="${kf.ant.dir}/../osgi"/>
+  <property name="kf.version"
+            value="4.0.0"/>
+  <property name="libs.dir"
+            location="libs"/>
+
+  <target name="-pre-build" depends="framework_compile"/>
+
+  <!-- Build framework.jar to libs folder (do not dexify). -->
+  <target name="framework_compile">
+    <echo message="java.source is ${javac.source}"/>
+    <mkdir dir="${libs.dir}"/>
+
+    <ant dir="${kf.ant.dir}" antFile="bundletasks.xml" target="bundle_tasks">
+      <property name="version"      value="${kf.version}"/>
+    </ant>
+
+    <ant dir="${osgi.dir}/framework" inheritall="false">
+      <property name="version"      value="${kf.version}"/>
+      <property name="jarfile"      location="${libs.dir}/framework.jar"/>
+      <property name="root.out.dir" location="${out.absolute.dir}"/>
+    </ant>
+  </target>
+
+</project>

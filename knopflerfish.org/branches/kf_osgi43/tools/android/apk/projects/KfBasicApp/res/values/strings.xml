@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Knopflerfish</string>
+    <string name="welcome">Welcome to Knopflerfish!</string>
+    <string name="button_start">Start</string>
+    <string name="button_start_init">Start (init)</string>
+    <string name="button_shutdown">Shutdown</string>
+    <string name="link1">Http Root at http://127.0.0.1:1080</string>
+    <string name="link2">Http Console at http://127.0.0.1:1080/servlet/console</string>
+    
+</resources>
