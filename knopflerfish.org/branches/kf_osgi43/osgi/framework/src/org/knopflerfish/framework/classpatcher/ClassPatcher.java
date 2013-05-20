@@ -51,7 +51,6 @@ import java.io.OutputStream;
 
 import java.net.URL;
 
-import org.knopflerfish.framework.BundleClassLoader;
 import org.knopflerfish.framework.FWProps;
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.LDAPExpr;

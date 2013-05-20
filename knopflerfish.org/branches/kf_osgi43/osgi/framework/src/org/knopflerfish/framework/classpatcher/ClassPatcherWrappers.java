@@ -34,9 +34,6 @@
 
 package org.knopflerfish.framework.classpatcher;
 
-import org.knopflerfish.framework.BundleClassLoader;
-import org.knopflerfish.framework.BundleImpl;
-import org.knopflerfish.framework.Main;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.wiring.BundleWiring;
 
@@ -81,8 +78,8 @@ public class ClassPatcherWrappers {
       throw new IllegalStateException("Undefined bid=" + bid);
     }
     BundleWiring bw = b.adapt(BundleWiring.class);
-    if (b == null) {
-      throw new IllegalStateException("Undefined bid=" + bid);
+    if (bw == null) {
+      throw new RuntimeException("Unable to adapt Bundle to a BundleWiring" + bid);
     }
     return bw.getClassLoader();
   }
