@@ -49,7 +49,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
-import org.knopflerfish.framework.classpatcher.ClassPatcherActivator;
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
 
@@ -113,11 +112,6 @@ public class FrameworkContext  {
    */
   WeavingHooks weavingHooks;
 
-  /**
-   * Class Patching Feature
-   */
-
-  ClassPatcherActivator classPatcher;
 
   /**
    * All capabilities, exported and imported packages in this framework.
@@ -425,13 +419,6 @@ public class FrameworkContext  {
     serviceHooks.open();
     resolverHooks.open();
     weavingHooks.open();
-
-    classPatcher = new ClassPatcherActivator(this);
-    try {
-      // classPatcher.start(this.systemBundle.getBundleContext());
-    } catch (final Exception e) {
-      log("Failed to start ClassPatcher", e);
-    }
 
     perm.registerService();
 
