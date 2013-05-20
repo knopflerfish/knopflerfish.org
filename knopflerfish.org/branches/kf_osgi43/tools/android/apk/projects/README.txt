@@ -15,3 +15,9 @@ starting/stopping the service from KfServiceLib when the user pushes
 buttons in a simple Android view. This project can be used as a template
 for creating new Knopflerfish Android instances (defining bundles to
 install/start and including customized Android views).
+
+When compiling Knopflerfish bundles for the Android Application
+projects, APIs are loaded from the standard Knopflerfish 'jars'
+directory. Thus it is necessary to do a top level build of
+knopflerfish.org before building Android Application projects.
+

@@ -12,8 +12,13 @@
 -->
 
 <project name="KfBasicApp custom" default="help">
+  <dirname  property="kf.basicapp.dir"
+           file="${ant.file.KfBasicApp custom}"/>
 
-  <import file="../../../ant/apk_custom.xml"/>
+  <property name="assets.jars.dir"
+            location="${kf.basicapp.dir}/assets/jars"/>
+
+  <import file="${kf.basicapp.dir}/../../../ant/apk_custom.xml"/>
 
   <!-- list of filelists -->
   <filelist id="level.1.bundles.api" dir="${osgi.dir}/bundles">

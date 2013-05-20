@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2011-2011, KNOPFLERFISH project
+   ** Copyright (c) 2011-2013, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,13 @@
                 property="temp.dir"/>
       <mkdir dir="${temp.dir}"/>
       <property name="temp.dex" location="${temp.dir}/classes.dex"/>
+
+      <exec executable="${android.tool.aapt}" dir="${temp.dir}">
+        <arg value="remove"/>     
+        <arg value="-f"/>
+        <arg value="@{jarfile}"/>
+        <arg value="classes.dex"/>
+      </exec>
 
       <java fork="true" jar="${android.tool.dx}">
         <arg value="--dex"/>

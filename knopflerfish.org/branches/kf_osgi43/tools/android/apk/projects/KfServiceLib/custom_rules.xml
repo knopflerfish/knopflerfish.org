@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="KfServiceLib custom" default="help">
 
+  <dirname  property="kf.servicelib.dir"
+           file="${ant.file.KfServiceLib custom}"/>
+
   <property name="kf.ant.dir"
-            location="../../../../../ant"/>
+            location="${kf.servicelib.dir}/../../../../../ant"/>
   <property name="osgi.dir"
             location="${kf.ant.dir}/../osgi"/>
   <property name="kf.version"
             value="4.0.0"/>
   <property name="libs.dir"
-            location="libs"/>
+            location="${kf.servicelib.dir}/libs"/>
 
   <target name="-pre-build" depends="framework_compile"/>
 

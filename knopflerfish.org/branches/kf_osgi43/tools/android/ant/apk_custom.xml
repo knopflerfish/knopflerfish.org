@@ -4,18 +4,17 @@
        framework and a set of bundles, hidden here and imported by
        custom_rules.xml in order to keep that file less cluttered -->
 
-<project name="Android APK Custom" default="help">
+<project name="apk.custom" default="help">
+  <dirname  property="apk.custom.dir" file="${ant.file.apk.custom}"/>
 
   <property name="kf.ant.dir"
-            location="../../../../../ant"/>
+            location="${apk.custom.dir}/../../../ant"/>
   <property name="osgi.dir"
             location="${kf.ant.dir}/../osgi"/>
   <property name="kf.version"
             value="4.0.0"/>
-  <property name="assets.jars.dir"
-            location="assets/jars"/>
   <property name="servicelib.dir"
-            location="../KfServiceLib"/>
+            location="${android.library.reference.1}"/>
   <available property="framework.jar.exists"
              file="${servicelib.dir}/libs/framework.jar"/>  
 
