@@ -70,25 +70,10 @@ class ServiceHooks {
 
   boolean bOpen;
 
-  // TDOD: OSGI43 Temporary solution while OSGi CT fail and don't clean up properly
-  private static final HashSet<String> ignore = new HashSet<String>();
-  static {
-    ignore.add("org.osgi.test.cases.framework.junit.lifecycle.TestBundleControl");
-    ignore.add("org.osgi.util.tracker.ServiceTracker$Tracked");
-    ignore.add("aQute.launcher.Launcher");
-  }
-  private static boolean ignoreSLE(ServiceListenerEntry sle) {
-    return ignore.contains(sle.listener.getClass().getName());
-  }
-
   ServiceHooks(FrameworkContext fwCtx) {
     this.fwCtx = fwCtx;
   }
 
-
-  /**
-   *
-   */
   synchronized void open() {
     if(fwCtx.debug.hooks) {
       fwCtx.debug.println("opening hooks");
@@ -103,10 +88,6 @@ class ServiceHooks {
            try {
              Collection<ServiceListenerEntry> c = getServiceCollection();
              final ArrayList<ServiceListenerEntry> tmp = new ArrayList<ServiceListenerEntry>();
-             for(final ServiceListenerEntry sle : c) {
-               if(ignoreSLE(sle)) continue;
-               tmp.add(sle);
-             }
              c = tmp;
              @SuppressWarnings({ "rawtypes", "unchecked" })
              final Collection<ListenerInfo> li = (Collection) c;
@@ -235,10 +216,6 @@ class ServiceHooks {
         = new HashMap<BundleContext, Collection<ListenerInfo>>();
 
       for (final ServiceListenerEntry sle : receivers) {
-        if(ignoreSLE(sle)) {
-          // TODO: OSGI43 Temporary hack to work around poor clean up in test suite
-          continue;
-        }
         if(!listeners.containsKey(sle.getBundleContext())) {
           listeners.put(sle.getBundleContext(), new ArrayList<ListenerInfo>());
         }
@@ -287,10 +264,6 @@ class ServiceHooks {
    */
   void handleServiceListenerReg(ServiceListenerEntry sle) {
     if(!isOpen() || listenerHookTracker.size() == 0) {
-      return;
-    }
-    if(ignoreSLE(sle)) {
-      // TODO: OSGI43 Temporary hack to work around poor clean up in test suite
       return;
     }
 
