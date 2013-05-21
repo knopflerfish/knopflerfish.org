@@ -399,7 +399,7 @@ class Resolver {
     tempRequired = new HashMap<RequireBundle, BundlePackages>();
     tempWires = new ArrayList<BundleWireImpl>();
     try {
-      do {
+      while (true) {
         tempCollision = null;
         res = checkBundleRequirements(bg);
         if (res == null) {
@@ -425,9 +425,10 @@ class Resolver {
           tempProvider.clear();
           tempRequired.clear();
           tempWires.clear();
-          continue;
+        } else {
+          break;
         }
-      } while (false);
+      }
     } finally {
       tempResolved = null;
       tempProvider = null;

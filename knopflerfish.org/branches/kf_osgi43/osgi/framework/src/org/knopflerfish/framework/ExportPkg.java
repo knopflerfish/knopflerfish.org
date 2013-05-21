@@ -94,13 +94,12 @@ class ExportPkg
         .getDirectives().get(Constants.EXCLUDE_DIRECTIVE));
     final String versionStr = (String) he.getAttributes()
         .remove(Constants.VERSION_ATTRIBUTE);
-    final String specVersionStr = (String) he.getAttributes()
-        .remove(Constants.VERSION_ATTRIBUTE);
+    @SuppressWarnings("deprecation")
+    final String SPEC_VERSION = Constants.PACKAGE_SPECIFICATION_VERSION;
+    final String specVersionStr = (String) he.getAttributes().remove(SPEC_VERSION);
     if (specVersionStr != null) {
       this.version = new Version(specVersionStr);
       if (versionStr != null && !this.version.equals(new Version(versionStr))) {
-        @SuppressWarnings("deprecation")
-        final String SPEC_VERSION = Constants.PACKAGE_SPECIFICATION_VERSION;
         throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
                                            " and " + SPEC_VERSION  +
                                            " are specified, and differs");
