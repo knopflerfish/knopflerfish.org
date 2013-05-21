@@ -57,9 +57,6 @@ import org.osgi.framework.wiring.BundleRevision;
 class ExportPkg
   implements BundleCapability, Comparable<ExportPkg>
 {
-  @SuppressWarnings("deprecation")
-  private static final String PACKAGE_SPECIFICATION_VERSION = Constants.PACKAGE_SPECIFICATION_VERSION;
-
   // To maintain the creation order in the osgi.wiring.package name space.
   static private int exportPkgCount = 0;
   final int orderal = ++exportPkgCount;
@@ -98,12 +95,14 @@ class ExportPkg
     final String versionStr = (String) he.getAttributes()
         .remove(Constants.VERSION_ATTRIBUTE);
     final String specVersionStr = (String) he.getAttributes()
-        .remove(PACKAGE_SPECIFICATION_VERSION);
+        .remove(Constants.VERSION_ATTRIBUTE);
     if (specVersionStr != null) {
       this.version = new Version(specVersionStr);
       if (versionStr != null && !this.version.equals(new Version(versionStr))) {
+        @SuppressWarnings("deprecation")
+        final String SPEC_VERSION = Constants.PACKAGE_SPECIFICATION_VERSION;
         throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
-                                           " and " + PACKAGE_SPECIFICATION_VERSION +
+                                           " and " + SPEC_VERSION  +
                                            " are specified, and differs");
       }
     } else if (versionStr != null) {
@@ -311,7 +310,7 @@ class ExportPkg
    */
   public String pkgString() {
     if (version != Version.emptyVersion) {
-      return name + ";" + PACKAGE_SPECIFICATION_VERSION + "=" + version;
+      return name + ";" + Constants.VERSION_ATTRIBUTE + "=" + version;
     } else {
       return name;
     }
@@ -326,12 +325,12 @@ class ExportPkg
   @Override
   public String toString() {
     final StringBuffer sb = new StringBuffer(pkgString());
-    sb.append('(');
+    sb.append(' ');
     if (zombie) {
-      sb.append("zombie, ");
+      sb.append("Zombie");
     }
-    sb.append(bpkgs.toString());
-    sb.append(')');
+    sb.append("Bundle");
+    sb.append(bpkgs.bundleGenInfo());
     return sb.toString();
   }
 

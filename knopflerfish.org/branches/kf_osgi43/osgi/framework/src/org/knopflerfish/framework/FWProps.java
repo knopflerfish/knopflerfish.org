@@ -154,6 +154,11 @@ public class FWProps {
    */
   public final static String FALSE = "false";
 
+  /**
+   * Common new line string.
+   */
+  public static final String NL = System.getProperty("line.separator");
+
   // If set to true, use strict rules for loading classes from the
   // boot class loader. If false, accept class loading from the boot
   // class path from classes themselves on the boot class, but which

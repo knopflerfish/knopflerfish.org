@@ -253,10 +253,10 @@ public class FragmentTestSuite extends TestSuite implements FrameworkTest {
       }
 
       /* It is not specificly specified if we should api 1 or 2,
-         but the intention seems to be 2 and no fragment */
-      assertTrue("Fragment should NOT be resolved", buB.getState() == Bundle.INSTALLED);
-      assertTrue("Exporter 1.0 should NOT be resolved", buC.getState() == Bundle.INSTALLED);
-      assertTrue("Exporter 2.0 should be resolved", buD.getState() == Bundle.RESOLVED);
+         but since it says that we should attach if we can resolve, we go with 1 */
+      assertTrue("Fragment should be resolved", buB.getState() == Bundle.RESOLVED);
+      assertTrue("Exporter 1.0 should be resolved", buC.getState() == Bundle.RESOLVED);
+      assertTrue("Exporter 2.0 should NOT be resolved", buD.getState() == Bundle.INSTALLED);
       
       out.println("### framework test bundle :FRAME520A:PASS");
     }

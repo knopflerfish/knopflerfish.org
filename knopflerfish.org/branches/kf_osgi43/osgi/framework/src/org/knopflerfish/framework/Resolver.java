@@ -114,6 +114,10 @@ class Resolver {
    */
   private ArrayList<BundleWireImpl> tempWires = null;
 
+  /**
+   * Temporary to keep track exports that causes colliding imports. 
+   */
+  private ExportPkg tempCollision;
 
   /* Statistics to check need for tempBlackList */
   int tempBlackListChecks = 0;
@@ -223,9 +227,7 @@ class Resolver {
       final List<ImportPkg> pkgs = Collections.singletonList(ip);
       p.addImporter(ip);
       try {
-        final List<ImportPkg> r = resolvePackages(pkgs.iterator());
-        tempBlackList = null;
-        if (r.size() == 0) {
+        if (resolvePackages(pkgs.iterator(), null)) {
           registerNewProviders(ip.bpkgs.bg.bundle);
           res = tempProvider.get(ip.name);
           ip.provider = res;
@@ -236,6 +238,7 @@ class Resolver {
         p.removeImporter(ip);
         throw be;
       } finally {
+        tempBlackList = null;
         tempProvider = null;
         tempRequired = null;
         tempResolved = null;
@@ -347,7 +350,7 @@ class Resolver {
    * @return String with reason for failure or null if all were resolved.
    * @throws BundleException Resolver hook complaint.
    */
-  synchronized String resolve(BundleGeneration bg, Iterator<ImportPkg> pkgs) throws BundleException {
+  synchronized String resolve(BundleGeneration bg, BundlePackages importBpkgs) throws BundleException {
     String res = null;
     if (framework.debug.resolver) {
       framework.debug.println("resolve: " + bg);
@@ -390,37 +393,41 @@ class Resolver {
       return res;
     }
     
+    HashSet<ExportPkg> baseTempBlackList = new HashSet<ExportPkg>();
+    tempBlackList = new HashSet<ExportPkg>();
     tempProvider = new HashMap<String, ExportPkg>();
     tempRequired = new HashMap<RequireBundle, BundlePackages>();
-    tempBlackList = new HashSet<ExportPkg>();
     tempWires = new ArrayList<BundleWireImpl>();
     try {
-      final String breq = checkBundleRequirements(bg);
-      if (breq == null) {
-        String br = checkRequireBundle(bg);
-        if (br == null) {
-          List<ImportPkg> failed = resolvePackages(pkgs);
-          if (failed.size() == 0) {
-            registerNewWires();
-            registerNewProviders(bg.bundle);
-            res = null;
-          } else {
-            StringBuffer r = new StringBuffer(
-                "missing package(s) or can not resolve all of the them: ");
-            final Iterator<ImportPkg> mi = failed.iterator();
-            r.append(mi.next().pkgString());
-            while (mi.hasNext()) {
-              r.append(", ");
-              r.append(mi.next().pkgString());
+      do {
+        tempCollision = null;
+        res = checkBundleRequirements(bg);
+        if (res == null) {
+          res = checkRequireBundle(bg);
+          if (res == null) {
+            StringBuffer failReason = new StringBuffer(
+                "Missing package(s) or can not resolve all of the them:");
+            if (resolvePackages(importBpkgs.getImports(), failReason)) {
+              registerNewWires();
+              registerNewProviders(bg.bundle);
+              res = null;
+            } else {
+              res = failReason.toString();
             }
-            res = r.toString();
           }
-        } else {
-          res = "Failed to resolve required bundle or host: " + br;
         }
-      } else {
-        res = "Failed to fulfill requirement: " + breq;
-      }
+        if (res != null && tempCollision != null) {
+          baseTempBlackList.add(tempCollision);
+          tempResolved.clear();
+          tempResolved.add(bg);
+          tempBlackList.clear();
+          tempBlackList.addAll(baseTempBlackList);
+          tempProvider.clear();
+          tempRequired.clear();
+          tempWires.clear();
+          continue;
+        }
+      } while (false);
     } finally {
       tempResolved = null;
       tempProvider = null;
@@ -668,12 +675,15 @@ class Resolver {
    * Check if a bundle has all its package dependencies resolved.
    *
    * @param pkgs List of packages to be resolved.
-   * @return List of packages not resolvable.
+   * @param failReason If not null, puts resolve fail message here.
+   * @return True if all packages resolvable, otherwise false.
    * @throws BundleException Resolver hook throw an exception.
    */
-  private List<ImportPkg> resolvePackages(Iterator<ImportPkg> pkgs) throws BundleException {
-    final ArrayList<ImportPkg> res = new ArrayList<ImportPkg>();
-
+  private boolean resolvePackages(Iterator<ImportPkg> pkgs, StringBuffer failReason)
+      throws BundleException {
+    StringBuffer pkgFail = failReason != null ? new StringBuffer() : null;
+    boolean res = true;
+    tempCollision = null;
     while (pkgs.hasNext()) {
       ExportPkg provider = null;
       final ImportPkg ip = pkgs.next();
@@ -689,11 +699,23 @@ class Resolver {
         if (ip.checkAttributes(ep)) {
           if (ip.bpkgs == ep.bpkgs || ip.checkPermission(ep)) {
             possibleProvider.add(ep);
+          } else if (pkgFail != null) {
+            newFailReason(pkgFail, "No import permission", ep);
           }
+        } else if (pkgFail != null) {
+          newFailReason(pkgFail, "Attributes don't match", ep);
+        }
+      }
+      if (pkgFail != null) {
+        if (possibleProvider.isEmpty() && pkgFail.length() == 0) {
+          pkgFail.append("No providers found.");
         }
       }
       framework.resolverHooks.filterMatches((BundleRequirement)ip,
                                             (Collection<? extends BundleCapability>) possibleProvider);
+      if (pkgFail != null && pkgFail.length() == 0 && possibleProvider.isEmpty()) {
+        pkgFail.append("Resolver hooks filtered all possible providers");
+      }
       provider = tempProvider.get(ip.name);
       if (provider != null) {
         if (framework.debug.resolver) {
@@ -702,29 +724,31 @@ class Resolver {
                                   + provider);
         }
         if (!possibleProvider.contains(provider)) {
+          String r = "provider not used, rejected by constraints or resolver hooks - "
+                     + provider;
           if (framework.debug.resolver) {
             framework.debug.println("resolvePackages: " + ip.name
-                                    + " - provider not used, rejected by constraints or resolver hooks - "
-                                    + provider);
+                                    + " - " + r);
           }
-          provider = null;
-        } else if (provider.zombie && provider.bpkgs.bg.bundle.state == Bundle.UNINSTALLED) {
-          if (framework.debug.resolver) {
-            framework.debug.println("resolvePackages: " + ip.name +
-                                    " - provider not used since it is an uninstalled zombie - "
-                                    + provider);
+          if (possibleProvider.isEmpty()) {
+            provider = null;
+          } else {
+            // Try with different provider
+            tempCollision = provider;
+            return false;
           }
-          provider = null;
         }
       } else {
         for (ExportPkg ep : ip.pkg.providers) {
           if (!possibleProvider.contains(ep)) {
             continue;
           }
-          tempBlackListChecks++;
           if (tempBlackList.contains(ep)) {
             possibleProvider.remove(ep);
             tempBlackListHits++;
+            if (pkgFail != null) {
+              newFailReason(pkgFail, "Collied with previous selection", ep);
+            }
             continue;
           }
           if (ep.zombie) {
@@ -738,10 +762,13 @@ class Resolver {
             tempProvider = oldTempProvider;
             tempBlackList.add(ep);
             possibleProvider.remove(ep);
+            if (pkgFail != null) {
+              newFailReason(pkgFail, "Provider rejected because of uses directive ", ep);
+            }
           }
         }
         if (provider == null) {
-          provider = pickProvider(ip, possibleProvider);
+          provider = pickProvider(ip, possibleProvider, pkgFail);
         }
         if (provider != null) {
           tempProvider.put(ip.pkg.pkg, provider);
@@ -749,12 +776,21 @@ class Resolver {
       }
       if (provider == null) {
         if (ip.mustBeResolved()) {
-          res.add(ip);
+          res = false;
+          if (failReason != null) {
+            failReason.append(FWProps.NL);
+            failReason.append(ip.pkgString());
+            failReason.append(" -- ");
+            failReason.append(pkgFail);
+          }
         } else {
           if (framework.debug.resolver) {
             framework.debug.println("resolvePackages: Ok, no provider for optional " + ip.name);
           }
         }
+      }
+      if (pkgFail != null) {
+        pkgFail.setLength(0);
       }
     }
     return res;
@@ -774,8 +810,9 @@ class Resolver {
    * @return Package entry that can provide.
    * @throws BundleException Resolver hook throw an exception.
    */
-  private ExportPkg pickProvider(ImportPkg ip, List<ExportPkg> possibleProvider)
-      throws BundleException {
+  private ExportPkg pickProvider(ImportPkg ip, List<ExportPkg> possibleProvider,
+                                 StringBuffer failReason)
+                                     throws BundleException {
     if (framework.debug.resolver) {
       framework.debug.println("pickProvider: for - " + ip);
     }
@@ -786,27 +823,24 @@ class Resolver {
       if (tempBlackList.contains(ep)) {
         tempBlackListHits++;
         i.remove();
+        if (failReason != null) {
+          newFailReason(failReason, "Collied with previous selection", ep);
+        }
         continue;
       }
-      // TODO optimize this, check could already be checked.
-      if (!ip.checkPermission(ep)) {
-        if (ip.bpkgs == ep.bpkgs) {
-          if (framework.debug.resolver) {
-            framework.debug.println("pickProvider: internal wire ok for - " + ep);
-          }
-          ip.internalOk = ep;
-        }
+      if (ip.bpkgs == ep.bpkgs) {
         if (framework.debug.resolver) {
-          framework.debug.println("pickProvider: no import permission for - " + ep);
+          framework.debug.println("pickProvider: internal wire ok for - " + ep);
         }
-        i.remove();
-        continue;
-      }
-      if (!ep.checkPermission()) {
+        ip.internalOk = ep;
+      } else if (!ep.checkPermission()) {
         if (framework.debug.resolver) {
           framework.debug.println("pickProvider: no export permission for - " + ep);
         }
         i.remove();
+        if (failReason != null) {
+          newFailReason(failReason, "No export permission for", ep);
+        }
         continue;
       }
       if (ep.bpkgs.bg.bundle.state != Bundle.INSTALLED) {
@@ -821,6 +855,9 @@ class Resolver {
           tempProvider = oldTempProvider;
           tempBlackList.add(ep);
           i.remove();
+          if (failReason != null) {
+            newFailReason(failReason, "Uses directive block", ep);
+          }
           continue;
         }
       }
@@ -847,10 +884,14 @@ class Resolver {
           }
           tempProvider = oldTempProvider;
           tempBlackList.add(ep);
+          if (failReason != null) {
+            newFailReason(failReason, "Uses directive block", ep);
+          }
           iep.remove();
         }
       }
     }
+    ExportPkg savedCollision = null;
     for (final ExportPkg ep : possibleProvider) {
       if (framework.debug.resolver) {
         framework.debug.println("pickProvider: check possible provider - " + ep);
@@ -861,11 +902,35 @@ class Resolver {
         }
         return ep;
       }
+      if (tempCollision != null  && savedCollision  == null) {
+        // Save collision so that we can backtrack and try to avoid collision
+        // if we don't find a provider.
+        savedCollision = tempCollision;
+      }
+      if (failReason != null) {
+        newFailReason(failReason, "Could not resolve exporting bundle", ep);
+      }
     }
     if (framework.debug.resolver) {
       framework.debug.println("pickProvider: " + ip + " - found no provider");
     }
+    if (savedCollision != null) {
+      tempCollision = savedCollision;
+    }
     return null;
+  }
+
+
+  private void newFailReason(StringBuffer failReason, String string, ExportPkg ep) {
+    if (failReason.length() > 0) {
+      failReason.append(" || ");
+    }
+    failReason.append(string);
+    if (ep != null) {
+      failReason.append(" - ");
+      failReason.append(ep);
+    }
+    failReason.append(".");
   }
 
 
@@ -884,34 +949,46 @@ class Resolver {
       return true;
     }
     if (checkBundleSingleton(bg) == null) {
-      @SuppressWarnings("unchecked")
-      final HashSet<BundleGeneration> oldTempResolved = (HashSet<BundleGeneration>)tempResolved.clone();
-      if (!addTempResolved(bg)) {
-        return false;
-      }
-      final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
-      @SuppressWarnings("unchecked")
-      final HashMap<RequireBundle, BundlePackages> oldTempRequired = (HashMap<RequireBundle, BundlePackages>)tempRequired.clone();
-      @SuppressWarnings("unchecked")
-      final HashSet<ExportPkg> oldTempBlackList = (HashSet<ExportPkg>)tempBlackList.clone();
-      final int oldTempWiresSize = tempWires.size();
-      if (ep != null) {
-        tempProvider.put(ep.pkg.pkg, ep);
-      }
-      final String breq = checkBundleRequirements(bg);
-      if (breq == null) {
-        if (checkRequireBundle(bg) == null) {
-          final List<ImportPkg> r = resolvePackages(bg.bpkgs.getImports());
-          if (r.size() == 0) {
-            return true;
+      boolean retry;
+      final HashSet<ExportPkg> collisions = new HashSet<ExportPkg>();
+      do {
+        retry = false;
+        @SuppressWarnings("unchecked")
+        final HashSet<BundleGeneration> oldTempResolved = (HashSet<BundleGeneration>)tempResolved.clone();
+        if (!addTempResolved(bg)) {
+          return false;
+        }
+        final HashMap<String, ExportPkg> oldTempProvider = tempProviderClone();
+        @SuppressWarnings("unchecked")
+        final HashMap<RequireBundle, BundlePackages> oldTempRequired = (HashMap<RequireBundle, BundlePackages>)tempRequired.clone();
+        @SuppressWarnings("unchecked")
+        final HashSet<ExportPkg> oldTempBlackList = (HashSet<ExportPkg>)tempBlackList.clone();
+        tempBlackList.addAll(collisions);
+        final int oldTempWiresSize = tempWires.size();
+        if (ep != null) {
+          tempProvider.put(ep.pkg.pkg, ep);
+        }
+        final String breq = checkBundleRequirements(bg);
+        if (breq == null) {
+          if (checkRequireBundle(bg) == null) {
+            if (resolvePackages(bg.bpkgs.getImports(), null)) {
+              return true;
+            }
+            if (tempCollision != null) {
+              if (!oldTempProvider.containsValue(tempCollision)) {
+                collisions.add(tempCollision);
+                retry = true;
+                tempCollision = null;
+              }
+            }
           }
         }
-      }
-      tempResolved = oldTempResolved;
-      tempProvider = oldTempProvider;
-      tempRequired = oldTempRequired;
-      tempBlackList = oldTempBlackList;
-      tempWires.subList(oldTempWiresSize, tempWires.size()).clear();
+        tempResolved = oldTempResolved;
+        tempProvider = oldTempProvider;
+        tempRequired = oldTempRequired;
+        tempBlackList = oldTempBlackList;
+        tempWires.subList(oldTempWiresSize, tempWires.size()).clear();
+      } while (retry);
     }
     return false;
   }
@@ -1147,7 +1224,7 @@ class Resolver {
         framework.debug.println("checkRequireBundle: check requiring bundle " + bg);
       }
       if (!framework.perm.okRequireBundlePerm(bg.bundle)) {
-        return bg.symbolicName;
+        return "No permission to require bundle: " + bg.symbolicName;
       }
       final HashMap<RequireBundle, BundlePackages> res = new HashMap<RequireBundle, BundlePackages>();
       do {
@@ -1198,7 +1275,7 @@ class Resolver {
           if (framework.debug.resolver) {
             framework.debug.println("checkRequireBundle: failed to satisfy: " + br.name);
           }
-          return br.name;
+          return "Failed to resolve required bundle: " + br.name;
         }
       } while (i.hasNext());
       tempRequired.putAll(res);

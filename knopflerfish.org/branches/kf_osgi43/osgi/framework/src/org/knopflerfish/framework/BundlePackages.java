@@ -320,7 +320,7 @@ class BundlePackages {
    * @throws BundleException Resolver hook complaint.
    */
   boolean resolvePackages() throws BundleException {
-    failReason = bg.bundle.fwCtx.resolver.resolve(bg, getImports());
+    failReason = bg.bundle.fwCtx.resolver.resolve(bg, this);
     if (failReason == null) {
       okImports = new ArrayList<ImportPkg>(imports.size());
       for (final Iterator<ImportPkg> i = getImports(); i.hasNext();) {
@@ -896,7 +896,7 @@ class BundlePackages {
     nfbpkgs.registerPackages();
     if (resolvedHost) {
       try {
-        failReason = bg.bundle.fwCtx.resolver.resolve(bg, nfbpkgs.getImports());
+        failReason = bg.bundle.fwCtx.resolver.resolve(bg, nfbpkgs);
       } catch (BundleException be) {
         nfbpkgs.unregisterPackages(true);
         throw be;
@@ -979,13 +979,18 @@ class BundlePackages {
 
 
   /**
-   * Return a string representing this objet
+   * Return a string representing this object
    *
    * @return A message string.
    */
   @Override
   public String toString() {
-    return "BundlePackages(id=" + bg.bundle.id + ",gen=" + bg.generation + ")";
+    return "BundlePackages" + bundleGenInfo();
+  }
+
+
+  String bundleGenInfo() {
+    return "[id=" + bg.bundle.id + ",gen=" + bg.generation + "]";
   }
 
 
