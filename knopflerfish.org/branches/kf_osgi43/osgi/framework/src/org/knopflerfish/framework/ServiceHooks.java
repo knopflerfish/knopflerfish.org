@@ -87,8 +87,6 @@ class ServiceHooks {
            final ListenerHook lh = fwCtx.systemBundle.bundleContext.getService(reference);
            try {
              Collection<ServiceListenerEntry> c = getServiceCollection();
-             final ArrayList<ServiceListenerEntry> tmp = new ArrayList<ServiceListenerEntry>();
-             c = tmp;
              @SuppressWarnings({ "rawtypes", "unchecked" })
              final Collection<ListenerInfo> li = (Collection) c;
              lh.added(li);
