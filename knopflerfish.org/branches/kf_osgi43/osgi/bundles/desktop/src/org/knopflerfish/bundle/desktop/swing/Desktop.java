@@ -77,6 +77,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -2302,9 +2303,6 @@ public class Desktop
       all.add(target);
     }
 
-    // remove system bundle.
-    all.remove(Activator.getTargetBC().getBundle(0));
-
     ZipOutputStream out = null;
 
     final File jarunpackerFile =
@@ -2318,6 +2316,16 @@ public class Desktop
 
     InputStream jarunpacker_in = null;
     try {
+      // Remove system bundle and check if we have uninstalled bundles.
+      for (Iterator<Bundle> i = all.iterator(); i.hasNext();) {
+        Bundle target = i.next();
+        if (target.getBundleId() == 0) {
+          i.remove();
+        } else if (target.getState() == Bundle.UNINSTALLED) {
+          throw new IllegalStateException("Can not save when closure contains UNINSTALLED bundles");
+        }
+      }
+
       if (file.getName().endsWith(".jar")) {
 
         if (jarunpackerFile.canRead()) {
@@ -2514,6 +2522,7 @@ public class Desktop
     } catch (final Exception e) {
       showErr("Failed to write to " + file, e);
       Activator.log.error("Failed to write to " + file, e);
+      return;
     } finally {
       try {
         out.close();

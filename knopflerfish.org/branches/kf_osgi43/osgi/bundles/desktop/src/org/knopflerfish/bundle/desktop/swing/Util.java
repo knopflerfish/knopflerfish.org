@@ -654,6 +654,9 @@ public class Util
     }
 
     final Set<Bundle> closure = new TreeSet<Bundle>(Util.bundleIdComparator);
+    if (target.getState() == Bundle.UNINSTALLED) {
+      return closure;
+    }
 
     final BundleWiring bw = target.adapt(BundleWiring.class);
     for (final BundleWire w : bw.getRequiredWires(null)) {
@@ -758,6 +761,7 @@ public class Util
     return sb;
   }
 
+  @SuppressWarnings("deprecation")
   public static final String[] FWPROPS =
     new String[] { Constants.FRAMEWORK_VENDOR, Constants.FRAMEWORK_VERSION,
                   Constants.FRAMEWORK_LANGUAGE, Constants.FRAMEWORK_OS_NAME,

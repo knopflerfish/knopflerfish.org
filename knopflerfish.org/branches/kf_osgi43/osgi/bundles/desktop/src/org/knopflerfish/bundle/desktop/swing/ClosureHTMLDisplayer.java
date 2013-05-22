@@ -144,16 +144,33 @@ public class ClosureHTMLDisplayer
         new TreeSet<Bundle>(Util.bundleIdComparator);
 
       for (final Bundle target : targets) {
-        closure.addAll(Util.getClosure(target, null));
+        int state = target.getState();
+        if (state != Bundle.INSTALLED && state != Bundle.UNINSTALLED ) {
+          closure.addAll(Util.getClosure(target, null));
+        } else {
+          sb.append("Bundle #");
+          sb.append(target.getBundleId());
+          sb.append(" is in ");
+          sb.append(state == Bundle.INSTALLED ? "INSTALLED" : "UNINSTALLED");
+          sb.append(" state, closure not available");
+          return sb;
+        }
       }
 
+      boolean containsUninstalled = false;
       if (closure.size() == 0) {
         sb.append("No dependencies");
       } else {
         sb.append("<b>Dependencies via capabilities and services</b><br>");
         for (final Bundle depB : closure) {
           sb.append("&nbsp;&nbsp;");
-          Util.bundleLink(sb, depB);
+          if (depB.getState() != Bundle.UNINSTALLED) {
+            Util.bundleLink(sb, depB);
+          } else {
+            sb.append("<b>UNINSTALLED</b>, ");
+            sb.append(Util.getBundleName(depB));
+            containsUninstalled  = true;
+          }
           sb.append("<br>");
         }
       }
@@ -163,20 +180,26 @@ public class ClosureHTMLDisplayer
       // Add xarsg info if we seem to be running knopflerfish
       if (targets.length > 0
           && (-1 != targets[0].getClass().getName().indexOf("knopflerfish"))) {
+        if (!containsUninstalled) {
+          final String xargs =
+              Util.getXARGS(null, closure).toString();
+          sb.append("<hr>");
+          startFont(sb);
+          sb.append("<b>Suggested startup .xargs file</b><br>\n");
+          sb.append("</font>");
 
-        final String xargs =
-          Util.getXARGS(null, closure).toString();
-        sb.append("<hr>");
-        startFont(sb);
-        sb.append("<b>Suggested startup .xargs file</b><br>\n");
-        sb.append("</font>");
-
-        sb.append("<pre>");
-        sb.append("<font size=\"-2\">");
-        // sb.append(Text.replace(xargs, "\n", "<br>"));
-        sb.append(xargs);
-        sb.append("</font>");
-        sb.append("</pre>");
+          sb.append("<pre>");
+          sb.append("<font size=\"-2\">");
+          // sb.append(Text.replace(xargs, "\n", "<br>"));
+          sb.append(xargs);
+          sb.append("</font>");
+          sb.append("</pre>");
+        } else {
+          sb.append("<hr>");
+          startFont(sb);
+          sb.append("<b>Suggested startup .xargs not available when closure contains uninstalled bundles</b><br>\n");
+          sb.append("</font>");         
+        }
       }
 
       sb.append("</font>");
