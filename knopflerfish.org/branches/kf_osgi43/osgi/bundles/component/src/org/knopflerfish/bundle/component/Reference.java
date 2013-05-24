@@ -383,14 +383,29 @@ class Reference implements org.apache.felix.scr.Reference
    */
   Filter getTarget(Dictionary<?, Object> d, String src)
   {
-    final String res = (String) d.get(refDesc.name + ".target");
-    if (res != null) {
-      try {
-        return FrameworkUtil.createFilter(res);
-      } catch (final InvalidSyntaxException ise) {
+    final Object prop = d.get(refDesc.name + ".target");
+    if (prop != null) {
+      String res = null;
+      if (prop instanceof String) {
+        res = (String) prop;
+      } else if (prop instanceof String []) {
+        String [] propArray = (String []) prop;
+        if (propArray.length == 1) {
+          res = propArray[0];
+        }
+      }
+      if (res != null) {
+        try {
+          return FrameworkUtil.createFilter(res);
+        } catch (final InvalidSyntaxException ise) {
+          Activator.logError(comp.bc,
+                             "Failed to parse target property. Source is " + src,
+                             ise);
+        }
+      } else {
         Activator.logError(comp.bc,
-                           "Failed to parse target property. Source is " + src,
-                           ise);
+                           "Target property is no a single string. Source is " + src,
+                           null);
       }
     }
     return null;
