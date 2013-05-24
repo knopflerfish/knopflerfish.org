@@ -83,7 +83,10 @@
 
   <!-- adds 'META-INF/services/org.osgi.framework.launch' (it is
        not included from framework.jar when it is added to the .apk) -->
+
+  <!-- unsure if signing works when framework is 'pathed'
   <target name="-post-package" depends="framework_services"/>
+  -->
   <target name="framework_services">
     <jar jarfile="${out.packaged.file}" update="true">
       <zipfileset dir="${osgi.dir}/framework/resources"

@@ -7,15 +7,24 @@ import org.osgi.framework.launch.Framework;
 
 import android.app.Service;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
-import android.widget.Toast;
 
 public class Knopflerfish extends Service {
   public static final String ACTION_INIT = "org.knopflerfish.android.action.INIT";
+  public static final String MSG = "msg";
 
+  public enum Msg { STARTING, STARTED, NOP, NOT_STARTED, STOPPED, NOT_STOPPED };
+  
   private Framework fw;
   private Object fwLock = new Object();
+  
+  private Messenger messenger; // messenger for starting activity
+                               // should be list of messengers???
   
   public Knopflerfish() {
 	}
@@ -23,17 +32,23 @@ public class Knopflerfish extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, final int startId) {
 	  
+	  Bundle bundle = intent.getExtras();
+	  if (bundle != null) {
+	    messenger = (Messenger) bundle.get("messenger");
+	  }
+    
     synchronized (fwLock) {
       if (fw == null) {
         try {
+          //sendMessage(StartResult.STARTING);
           // intent == null if restarted by the system -> start without init
           String action = intent != null ? intent.getAction() : null;
 
-          showToast("Starting framework.");
           fw = KfApk.newFramework(getStorage(),
                                   ACTION_INIT.equals(action),
                                   this.getAssets());
           if (fw != null) {
+            sendMessage(Msg.STARTED);
             new Thread(new Runnable() {
               public void run() {
                 KfApk.waitForStop(fw); // does not return until shutdown
@@ -42,20 +57,33 @@ public class Knopflerfish extends Service {
             },"KF wait for stop").start();
           } else {
             // framework did not init/start
+            sendMessage(Msg.NOT_STARTED);
           }
         } catch (IOException ioe) {
+          sendMessage(Msg.NOT_STARTED);
           Log.e(getClass().getName(), "Error starting framework", ioe);          
-          showToast("Error starting framework!");
         }
       } else {
         // no op start-command
-        showToast("Framework is already running.");
+        sendMessage(Msg.NOP);
       }
     }
     return Service.START_STICKY; 
  	};
 	
-	
+ 	private void sendMessage(Msg res) {
+ 	  Bundle data = new Bundle();
+ 	  data.putSerializable(MSG, res);
+ 	  if (messenger != null) {
+ 	    Message msg = Message.obtain();
+ 	    msg.setData(data);
+ 	    try {
+ 	      messenger.send(msg);
+ 	    } catch (RemoteException e) {}
+ 	  }
+ 	}
+ 	
+ 	
 	@Override
 	public void onDestroy() {
 	  synchronized (fwLock) {
@@ -64,10 +92,10 @@ public class Knopflerfish extends Service {
 	      try {
 	        fw.stop();
 	        fw = null;
-	        showToast("Framework was shut down.");
+          sendMessage(Msg.STOPPED);
 	      } catch (BundleException be) {
 	        Log.e(getClass().getName(), "Error shutting down framework", be);
-	        showToast("Error shutting down framework!");
+          sendMessage(Msg.NOT_STOPPED);
 	      }
 	    } else {
 	      // Shut down after failed start?
@@ -80,10 +108,6 @@ public class Knopflerfish extends Service {
 		return null;
 	}
 	
-	private void showToast(String msg) {
-	  Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
-	}
-
 	private String getStorage() {
 	  return getApplication().getFilesDir().getAbsolutePath();
 	}
