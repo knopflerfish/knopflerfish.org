@@ -239,9 +239,9 @@ public class Main
 
 
   public FrameworkFactory getFrameworkFactory() {
+    String factoryClassName = FrameworkFactoryImpl.class.getName();
     try {
       final String factoryS = new String(Util.readResource("/META-INF/services/org.osgi.framework.launch.FrameworkFactory"), "UTF-8");
-      String factoryClassName = FrameworkFactoryImpl.class.getName();
       final String[] w = Util.splitwords(factoryS, "\n\r");
       for(int i = 0; i < w.length; i++) {
         if(w[i].length() > 0 && !w[i].startsWith("#")) {
@@ -250,11 +250,11 @@ public class Main
         }
       }
 
-      return getFrameworkFactory(factoryClassName);
     } catch (final Exception e) {
-      error("failed to getFrameworkFactory", e);
-      throw new RuntimeException("failed to getFrameworkFactory: " + e);
+      // META-INF/services may be lost when putting framework in Android .apk
+      println("failed to get FrameworkFactory, using default", 6, e);
     }
+    return getFrameworkFactory(factoryClassName);
   }
 
 
