@@ -195,7 +195,7 @@ class ComponentContextImpl implements ComponentContext
    *
    */
   void dispose() {
-    cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true, true);
+    cc.deactivate(this, ComponentConstants.DEACTIVATION_REASON_DISPOSED, true, true, true);
   }
 
 

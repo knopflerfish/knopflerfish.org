@@ -272,7 +272,7 @@ class ReferenceListener implements ServiceListener
   ServiceReference<?> getServiceReference() {
     synchronized (serviceRefs) {
       if (selectedServiceRef == null) {
-        selectedServiceRef = getHighestRankedServiceReference();
+        setSelected(getHighestRankedServiceReference());
       }
     }
     return selectedServiceRef;
@@ -427,7 +427,6 @@ class ReferenceListener implements ServiceListener
           case ServiceEvent.UNREGISTERING:
             serviceRefs.remove(s);
             if  (selectedServiceRef == s) {
-              selectedServiceRef = null;
               wasSelected = true;
             }
             unbinding.add(s);
@@ -438,6 +437,7 @@ class ReferenceListener implements ServiceListener
             }
             if (op != DELETE_OP)  {
               unbinding.remove(s);
+              setSelected(null);
             }
             break;
           default:
@@ -554,6 +554,7 @@ class ReferenceListener implements ServiceListener
     Activator.logDebug("refDeleted, " + toString() + ", " + s);
     ArrayList<ComponentConfiguration> ccs = getComponentConfigs();
     if (isDynamic()) {
+      setSelected(null);
       if (isMultiple()) {
         unbindReference(s, ccs);
       } else {
@@ -637,9 +638,12 @@ class ReferenceListener implements ServiceListener
   }
 
   private void reactivate(ArrayList<ComponentConfiguration> ccs) {
+    for (ComponentConfiguration cc : ccs) {
+      cc.dispose(ComponentConstants.DEACTIVATION_REASON_REFERENCE, false);
+    }
     setSelected(null);
     for (ComponentConfiguration cc : ccs) {
-      cc.dispose(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
+      cc.remove(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
     }
   }
 

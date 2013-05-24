@@ -111,7 +111,7 @@ class FactoryComponent extends Component
       return cci.getComponentInstance();
     } else {
       // Make sure it is disposed, perhaps we should "lock" protect this code instead
-      cc.dispose(KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING);
+      cc.dispose(KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING, true);
       throw new ComponentException("Factory is/has been deactivated");
     }
   }

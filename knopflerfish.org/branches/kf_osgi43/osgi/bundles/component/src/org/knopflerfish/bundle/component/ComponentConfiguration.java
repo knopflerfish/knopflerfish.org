@@ -195,7 +195,7 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
    * Deactivates a component configuration.
    *
    */
-  void deactivate(ComponentContextImpl cci, int reason, boolean disposeIfLast, boolean checkActive) {
+  void deactivate(ComponentContextImpl cci, int reason, boolean disposeIfLast, boolean checkActive, boolean removeCompConfig) {
     Activator.logDebug("CC.deactive this=" + this +
                        ", activateCount=" + activeCount);
     boolean last = false;
@@ -246,8 +246,10 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
         state = STATE_DEACTIVE;
         notifyAll();
       }
-      // TODO: Do we need to synchronize this?
-      component.removeComponentConfiguration(this, reason);
+      if (removeCompConfig) {
+        // TODO: Do we need to synchronize this?
+        remove(reason);
+      }
     }
   }
 
@@ -256,7 +258,7 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
    * Dispose of this component configuration.
    *
    */
-  void dispose(int reason) {
+  void dispose(int reason, boolean removeCompConfig) {
     if (unregisterInProgress) {
       // We are already disposing
       return;
@@ -278,7 +280,7 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
     if (ccis.length > 0) {
       for (final ComponentContextImpl cci : ccis) {
         if (cci != null) {
-          deactivate(cci, reason, true, false);
+          deactivate(cci, reason, true, false, removeCompConfig);
         }
       }
     } else {
@@ -286,7 +288,9 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
         state = STATE_DEACTIVE;
         notifyAll();
       }
-      component.removeComponentConfiguration(this, reason);
+      if (removeCompConfig) {
+        remove(reason);
+      }
     }
   }
 
@@ -445,7 +449,7 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
       }
       modifyService();
     } else {
-      dispose(disposeReason);
+      dispose(disposeReason, true);
     }
   }
 
@@ -531,7 +535,7 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
           }
         }
         if (doDeactivate) {
-          deactivate(cci, Component.KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED, true, true);
+          deactivate(cci, Component.KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATED, true, true, true);
         }
       }
     }
@@ -614,6 +618,11 @@ public class ComponentConfiguration implements ServiceFactory<Object> {
         cci.unbind(refs[i].refDesc.name);
       }
     }
+  }
+
+
+  void remove(int reason) {
+    component.removeComponentConfiguration(this, reason);
   }
 
 }

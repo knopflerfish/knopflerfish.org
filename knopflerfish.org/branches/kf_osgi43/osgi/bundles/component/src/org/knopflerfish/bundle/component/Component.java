@@ -668,7 +668,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
   private void disposeComponentConfigs(int reason) {
     final ArrayList<ComponentConfiguration> cl = new ArrayList<ComponentConfiguration>(compConfigs.values());
     for (final ComponentConfiguration componentConfiguration : cl) {
-      componentConfiguration.dispose(reason);
+      componentConfiguration.dispose(reason, true);
     }
   }
 
