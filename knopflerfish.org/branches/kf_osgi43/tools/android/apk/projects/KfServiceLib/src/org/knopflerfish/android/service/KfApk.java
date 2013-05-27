@@ -51,6 +51,7 @@ public class KfApk {
   protected final static String FWDIR = "fwdir";
   protected final static String RUNLEVEL = "runlevel";
   
+  protected static Map<String,String> config;
   /**
    * Create a new framework, initialize and start it. If the init
    * parameter is true, or if there is no stored framework state, bundle
@@ -75,7 +76,7 @@ public class KfApk {
                                        AssetManager am)
       throws IOException
   {
-    Map<String,String> config = getConfiguration(am);
+    config = getConfiguration(am);
     String fwDir = localStorage + File.separator + FWDIR;
     config.put(Constants.FRAMEWORK_STORAGE, fwDir);
 
@@ -110,7 +111,17 @@ public class KfApk {
     return fw;
   }
   
-
+  /**
+   * Get the framework properties that was read from the props.xargs
+   * assets file.
+   * 
+   * @return a map with framework properties, or null if the framework
+   * has not been started yet.
+   */
+  public static Map<String,String> getFrameworkProperties() {
+    return config;
+  }
+  
   /**
    * Method that can be used to wait for a started framework to be
    * shut down.

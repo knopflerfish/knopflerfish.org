@@ -13,8 +13,9 @@
   <property name="libs.dir"
             location="${kf.servicelib.dir}/libs"/>
 
+  
   <target name="-pre-build" depends="framework_compile"/>
-
+  
   <!-- Build framework.jar to libs folder (do not dexify). -->
   <target name="framework_compile">
     <echo message="java.source is ${javac.source}"/>

@@ -1,6 +1,7 @@
 package org.knopflerfish.android.service;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.osgi.framework.BundleException;
 import org.osgi.framework.launch.Framework;
@@ -17,6 +18,7 @@ import android.util.Log;
 public class Knopflerfish extends Service {
   public static final String ACTION_INIT = "org.knopflerfish.android.action.INIT";
   public static final String MSG = "msg";
+  public static final String EXTRA = "extra";
 
   public enum Msg { STARTING, STARTED, NOP, NOT_STARTED, STOPPED, NOT_STOPPED };
   
@@ -48,7 +50,7 @@ public class Knopflerfish extends Service {
                                   ACTION_INIT.equals(action),
                                   this.getAssets());
           if (fw != null) {
-            sendMessage(Msg.STARTED);
+            sendMessage(Msg.STARTED, (Serializable) KfApk.getFrameworkProperties());
             new Thread(new Runnable() {
               public void run() {
                 KfApk.waitForStop(fw); // does not return until shutdown
@@ -71,10 +73,17 @@ public class Knopflerfish extends Service {
     return Service.START_STICKY; 
  	};
 	
- 	private void sendMessage(Msg res) {
- 	  Bundle data = new Bundle();
- 	  data.putSerializable(MSG, res);
+  private void sendMessage(Msg res) {
+    sendMessage(res, null);
+  }
+
+    private void sendMessage(Msg res, Serializable extra) {
  	  if (messenger != null) {
+ 	    Bundle data = new Bundle();
+ 	    data.putSerializable(MSG, res);
+ 	    if (extra != null) {
+ 	      data.putSerializable(EXTRA, extra);
+ 	    }
  	    Message msg = Message.obtain();
  	    msg.setData(data);
  	    try {
