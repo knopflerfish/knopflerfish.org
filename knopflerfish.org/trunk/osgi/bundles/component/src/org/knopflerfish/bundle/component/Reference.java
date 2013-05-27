@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -362,12 +362,29 @@ class Reference implements org.apache.felix.scr.Reference
    * string is malformed return null.
    */
   Filter getTarget(Dictionary d, String src) {
-    String res = (String)d.get(refDesc.name + ".target");
-    if (res != null) {
-      try {
-        return FrameworkUtil.createFilter(res);
-      } catch (InvalidSyntaxException ise) {
-        Activator.logError(comp.bc, "Failed to parse target property. Source is " + src, ise);
+    final Object prop = d.get(refDesc.name + ".target");
+    if (prop != null) {
+      String res = null;
+      if (prop instanceof String) {
+        res = (String) prop;
+      } else if (prop instanceof String []) {
+        String [] propArray = (String []) prop;
+        if (propArray.length == 1) {
+          res = propArray[0];
+        }
+      }
+      if (res != null) {
+        try {
+          return FrameworkUtil.createFilter(res);
+        } catch (final InvalidSyntaxException ise) {
+          Activator.logError(comp.bc,
+                             "Failed to parse target property. Source is " + src,
+                             ise);
+        }
+      } else {
+        Activator.logError(comp.bc,
+                           "Target property is no a single string. Source is " + src,
+                           null);
       }
     }
     return null;

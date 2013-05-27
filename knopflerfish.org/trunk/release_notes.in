@@ -90,6 +90,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     enabled. 
 
 
+* SCR(component) 3.1.15
+
+  - Fixed so that we can handle target filter properties that are
+    string arrays with one element.
+
+
 === Misc (KF specific, start scripts, build system etc) ===
 
 * Desktop-AWT 3.0.1
