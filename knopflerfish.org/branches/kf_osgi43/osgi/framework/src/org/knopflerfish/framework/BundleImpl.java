@@ -1215,90 +1215,82 @@ public class BundleImpl implements Bundle {
    * @return Bundles state
    */
   int getUpdatedState(BundleImpl [] triggers) {
-    if (fwCtx.props.isDoubleCheckedLockingSafe) {
-      if (state == INSTALLED) {
-        updateState(triggers);
-      }
-    } else {
-      updateState(triggers);
-    }
-    return state;
-  }
-
-  private void updateState(BundleImpl [] triggers) {
-    try {
-      synchronized (fwCtx.resolver) {
-        waitOnOperation(fwCtx.resolver, "Bundle.resolve", true);
-        if (state == INSTALLED) {
-          final BundleGeneration current = current();
-          if (triggers != null) {
-            fwCtx.resolverHooks.beginResolve(triggers);
-          }
-          @SuppressWarnings("deprecation")
-          final
-          String ee = current.archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-          if (ee != null) {
-            if (fwCtx.debug.resolver) {
-              fwCtx.debug.println("bundle #" + current.archive.getBundleId() + " has EE=" + ee);
+    if (state == INSTALLED) {
+      try {
+        synchronized (fwCtx.resolver) {
+          waitOnOperation(fwCtx.resolver, "Bundle.resolve", true);
+          if (state == INSTALLED) {
+            final BundleGeneration current = current();
+            if (triggers != null) {
+              fwCtx.resolverHooks.beginResolve(triggers);
             }
-            if (!fwCtx.isValidEE(ee)) {
-              throw new BundleException("Bundle#" + id +
-                                        ", unable to resolve: Execution environment '"
-                                        + ee + "' is not supported",
-                                        BundleException.RESOLVE_ERROR);
+            @SuppressWarnings("deprecation")
+            final
+            String ee = current.archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
+            if (ee != null) {
+              if (fwCtx.debug.resolver) {
+                fwCtx.debug.println("bundle #" + current.archive.getBundleId() + " has EE=" + ee);
+              }
+              if (!fwCtx.isValidEE(ee)) {
+                throw new BundleException("Bundle#" + id +
+                                          ", unable to resolve: Execution environment '"
+                                          + ee + "' is not supported",
+                                          BundleException.RESOLVE_ERROR);
+              }
             }
-          }
-          if (current.isFragment()) {
-            final List<BundleGeneration> hosts = current.fragment.targets();
-            if (!hosts.isEmpty()) {
-              for (final BundleGeneration host : hosts) {
-                if (!host.bpkgs.isActive()) {
-                  // Try resolve our host
-                  // NYI! Detect circular attach
-                  host.bundle.getUpdatedState(null);
-                } else {
-                  if (!current.fragment.isHost(host)) {
-                    attachToFragmentHost(host);
+            if (current.isFragment()) {
+              final List<BundleGeneration> hosts = current.fragment.targets();
+              if (!hosts.isEmpty()) {
+                for (final BundleGeneration host : hosts) {
+                  if (!host.bpkgs.isActive()) {
+                    // Try resolve our host
+                    // NYI! Detect circular attach
+                    host.bundle.getUpdatedState(null);
+                  } else {
+                    if (!current.fragment.isHost(host)) {
+                      attachToFragmentHost(host);
+                    }
                   }
                 }
+                if (state == INSTALLED && current.fragment.hasHosts()) {
+                  current.setWired();
+                  state = RESOLVED;
+                  operation = RESOLVING;
+                  bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
+                  operation = IDLE;
+                }
               }
-              if (state == INSTALLED && current.fragment.hasHosts()) {
+            } else {
+              if (current.resolvePackages()) {
                 current.setWired();
                 state = RESOLVED;
                 operation = RESOLVING;
+                current.updateStateFragments();
                 bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
                 operation = IDLE;
+              } else {
+                String reason = current.bpkgs.getResolveFailReason();
+                throw new BundleException("Bundle#" + id + ", unable to resolve: "
+                    + reason,
+                    reason == Resolver.RESOLVER_HOOK_VETO ?
+                                                           BundleException.REJECTED_BY_HOOK :
+                                                             BundleException.RESOLVE_ERROR);
               }
             }
-          } else {
-            if (current.resolvePackages()) {
-              current.setWired();
-              state = RESOLVED;
-              operation = RESOLVING;
-              current.updateStateFragments();
-              bundleThread().bundleChanged(new BundleEvent(BundleEvent.RESOLVED, this));
-              operation = IDLE;
-            } else {
-              String reason = current.bpkgs.getResolveFailReason();
-              throw new BundleException("Bundle#" + id + ", unable to resolve: "
-                  + reason,
-                  reason == Resolver.RESOLVER_HOOK_VETO ?
-                                                         BundleException.REJECTED_BY_HOOK :
-                                                           BundleException.RESOLVE_ERROR);
+            if (triggers != null && triggers.length == 1) {
+              fwCtx.resolverHooks.endResolve(triggers);
             }
           }
-          if (triggers != null && triggers.length == 1) {
-            fwCtx.resolverHooks.endResolve(triggers);
-          }
         }
+      } catch (final BundleException be) {
+        if (triggers != null && triggers.length == 1) {
+          fwCtx.resolverHooks.endResolve(triggers);
+        }
+        resolveFailException = be;
+        fwCtx.listeners.frameworkError(this, be);
       }
-    } catch (final BundleException be) {
-      if (triggers != null && triggers.length == 1) {
-        fwCtx.resolverHooks.endResolve(triggers);
-      }
-      resolveFailException = be;
-      fwCtx.listeners.frameworkError(this, be);
     }
+    return state;
   }
 
 
