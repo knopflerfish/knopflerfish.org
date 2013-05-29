@@ -110,6 +110,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     removed use of System.currentTimeMillis().
 
 
+* ksoap_remotefw 3.0.4
+
+  - Add support for service properties that are of type Set to the
+    remoting.
+
+
 * Util 2.1.0
 
   - Use System.nanoTime() when available to avoid
