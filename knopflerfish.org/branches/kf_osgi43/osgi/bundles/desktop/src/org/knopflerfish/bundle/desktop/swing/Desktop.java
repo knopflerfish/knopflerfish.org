@@ -847,9 +847,7 @@ public class Desktop
 
         add(viewSelection = makeViewSelectionButton());
 
-        final FrameworkStartLevel fsl =
-          Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
-
+        final FrameworkStartLevel fsl = getFrameworkStartLevel();
         if (null == fsl) {
           add(new JLabel(Strings.get("nostartlevel.label")));
         } else {
@@ -863,8 +861,7 @@ public class Desktop
 
   JComponent makeStartLevelSelector()
   {
-    final FrameworkStartLevel fsl =
-      Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
 
     Activator.log.debug("has start level service");
 
@@ -941,8 +938,7 @@ public class Desktop
   {
     final int level = levelBox.getSelectedIndex() + levelMin;
 
-    final FrameworkStartLevel fsl =
-      Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
 
     if (fsl != null) {
       if (fsl.getStartLevel() == level) {
@@ -1069,8 +1065,7 @@ public class Desktop
 
   void updateLevelItems()
   {
-    final FrameworkStartLevel fsl =
-      Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
     if (fsl == null) {
       // No start level service present.
       return;
@@ -1135,9 +1130,7 @@ public class Desktop
       @Override
       public void run()
       {
-        final FrameworkStartLevel fsl =
-          Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
-
+        final FrameworkStartLevel fsl = getFrameworkStartLevel();
         if (null != fsl) {
           fsl.setStartLevel(level);
         }
@@ -1148,9 +1141,7 @@ public class Desktop
 
   void updateStartLevel()
   {
-    final FrameworkStartLevel fsl =
-      Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
-
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
     if (fsl == null) {
       return;
     }
@@ -1224,42 +1215,25 @@ public class Desktop
       actionRefreshBundles.setEnabled(true);
       actionUninstallBundles.setEnabled(false);
     } else {
+      // since there are bundles selected update and uninstall are enabled
+      actionUpdateBundles.setEnabled(true);
+      actionUninstallBundles.setEnabled(true);
+
       boolean anyResolvable = false;
       boolean anyStartable = false;
       boolean anyStoppable = false;
       boolean anyRefreshable = false;
+
       for (final Bundle bundle : bl) {
-        final int state = bundle.getState();
-        final List<BundleRevision> bRevs =
-          bundle.adapt(BundleRevisions.class).getRevisions();
-        final BundleRevision bRevCur = bRevs.get(0);
-        final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
-        final boolean isFragment =
-          bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
-
-        anyResolvable |= (state & Bundle.INSTALLED) != 0;
-
-        // A non-fragment can be started if not already persistently started or
-        // if no start level service and in state installed, resolved, starting
-        anyStartable |=
-          (!isFragment)
-              && ((bsl != null && !bsl.isPersistentlyStarted())
-                  || (bsl == null && (state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0));
-
-        anyStoppable |=
-          (!isFragment)
-              && ( (bsl != null && bsl.isPersistentlyStarted()) ||
-                   ((state & (Bundle.STARTING | Bundle.ACTIVE)) != 0) );
-        anyRefreshable |= bRevs.size() > 1;
+        anyResolvable |= resolveBundlePossible(bundle);
+        anyStartable |= startBundlePossible(bundle);
+        anyStoppable |= stopBundlePossible(bundle);
+        anyRefreshable |= refreshBundleNeeded(bundle);
       }
       actionResolveBundles.setEnabled(anyResolvable);
       actionStartBundles.setEnabled(anyStartable);
-      actionRefreshBundles.setEnabled(anyRefreshable);
-
-      // since there are bundles selected stop, update and uninstall are enabled
       actionStopBundles.setEnabled(anyStoppable);
-      actionUpdateBundles.setEnabled(true);
-      actionUninstallBundles.setEnabled(true);
+      actionRefreshBundles.setEnabled(anyRefreshable);
     }
 
     toolBar.invalidate();
@@ -1295,6 +1269,19 @@ public class Desktop
         }
       }
     }
+  }
+
+  FrameworkStartLevel getFrameworkStartLevel()
+  {
+    final Bundle systemBundle = Activator.getTargetBC_getBundle(0L);
+    final FrameworkStartLevel fsl = systemBundle.adapt(FrameworkStartLevel.class);
+    return fsl;
+  }
+
+  int getCurrentStartLevel()
+  {
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
+    return fsl != null ? fsl.getStartLevel() : 1;
   }
 
   int divloc = 0;
@@ -1431,8 +1418,7 @@ public class Desktop
         add(new JMenuItem(actionRefreshBundles));
         add(new JMenuItem(actionUninstallBundles));
 
-        final FrameworkStartLevel fsl =
-          Activator.getTargetBC().getBundle(0).adapt(FrameworkStartLevel.class);
+        final FrameworkStartLevel fsl = getFrameworkStartLevel();
         if (fsl != null) {
           add(startLevelMenu = makeStartLevelMenu());
         }
@@ -2317,8 +2303,8 @@ public class Desktop
     InputStream jarunpacker_in = null;
     try {
       // Remove system bundle and check if we have uninstalled bundles.
-      for (Iterator<Bundle> i = all.iterator(); i.hasNext();) {
-        Bundle target = i.next();
+      for (final Iterator<Bundle> i = all.iterator(); i.hasNext();) {
+        final Bundle target = i.next();
         if (target.getBundleId() == 0) {
           i.remove();
         } else if (target.getState() == Bundle.UNINSTALLED) {
@@ -2566,6 +2552,49 @@ public class Desktop
     return pm;
   }
 
+  /**
+   * Determine if the given bundle can and needs to be started.
+   *
+   * <ol>
+   * <li>A fragment bundle must never be started.
+   * <li>If no start-level support is present in the framework then any bundle
+   * in state installed, resolved or starting can be started.
+   * <li>A bundle that is not persistently started can be started.
+   * <li>A bundle that is persistently started and in any of the states
+   * installed, resolved, starting and assigned to a start level that is lower
+   * or equal to the current start level can be started.
+   * </ol>
+   *
+   * @param bundle
+   *          the bundle to check.
+   * @return {@code true} if the bundle needs to be started.
+   */
+  boolean startBundlePossible(final Bundle bundle)
+  {
+    final BundleRevision bRevCur = bundle.adapt(BundleRevision.class);
+    final boolean isFragment =
+      bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
+
+    if (isFragment) {
+      return false;
+    }
+
+    final int state = bundle.getState();
+    final boolean startable =
+      (state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0;
+
+    final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
+    if (bsl == null) {
+      return startable;
+    }
+
+    if (!bsl.isPersistentlyStarted()) {
+      return true;
+    }
+
+    return startable && bsl.getStartLevel() <= getCurrentStartLevel();
+  }
+
   void startBundle(final Bundle b)
   {
     // Fragments can not be started
@@ -2623,6 +2652,46 @@ public class Desktop
     }
   }
 
+  /**
+   * Determine if the given bundle can and needs to be stopped.
+   *
+   * <ol>
+   * <li>A fragment bundle must never be stopped.
+   * <li>If no start-level support is present in the framework then any bundle
+   * in state starting, active can be stopped.
+   * <li>A bundle that is persistently started can be stopped.
+   * </ol>
+   *
+   * @param bundle
+   *          the bundle to check.
+   * @return {@code true} if the bundle needs to be stopped.
+   */
+  boolean stopBundlePossible(final Bundle bundle)
+  {
+    final BundleRevision bRevCur = bundle.adapt(BundleRevision.class);
+    final boolean isFragment =
+      bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
+
+    if (isFragment) {
+      return false;
+    }
+
+    final int state = bundle.getState();
+    final boolean stoppable =
+      (state & (Bundle.STARTING | Bundle.ACTIVE)) != 0;
+
+    final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
+    if (bsl == null) {
+      return stoppable;
+    }
+
+    if (bsl.isPersistentlyStarted()) {
+      return true;
+    }
+
+    return stoppable && bsl.getStartLevel() > getCurrentStartLevel();
+  }
+
   void stopBundle(final Bundle b)
   {
     // Fragments can not be stopped
@@ -2669,6 +2738,46 @@ public class Desktop
     }
   }
 
+
+  /**
+   * Determine if the given bundle needs to be refreshed.
+   *
+   * <ol>
+   * <li>A bundle with no bundle revisions does not need a refreshed. The bundle
+   * has been uninstalled and does not have any active wires since there are no
+   * bundle revisions.
+   * <li>A bundle with more than one bundle revision needs to be refreshed.
+   * <li>A fragment bundle can always be refreshed, since the refresh operation
+   * will attach it to any matching host that it has not yet been attached to.
+   * </ol>
+   *
+   * @param bundle
+   *          the bundle to check.
+   * @return {@code true} if the bundle needs to be refreshed.
+   */
+  boolean refreshBundleNeeded(final Bundle bundle)
+  {
+    final List<BundleRevision> bRevs =
+      bundle.adapt(BundleRevisions.class).getRevisions();
+
+    if (bRevs.isEmpty()) {
+      // Uninstalled bundle with no active bundle revision.
+      return false;
+    }
+
+    final BundleRevision bRevCur = bRevs.get(0);
+    final boolean isFragment =
+      bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
+
+    if (isFragment) {
+      // A fragment may attach to new hosts as the result of a refresh.
+      return true;
+    }
+
+    // Are there any old bundle revisions pending deletion?
+    return bRevs.size() > 1;
+  }
+
   void refreshBundles(final Bundle[] b)
   {
     final Bundle systemBundle = Activator.getTargetBC().getBundle(0);
@@ -2705,6 +2814,23 @@ public class Desktop
         showErr(sb.toString() + " failed to refresh bundles: " + e, e);
       }
     }
+  }
+
+  /**
+   * Determine if the given bundle can and needs to be resolved.
+   *
+   * <ol>
+   * <li>A bundle in state installed can be resolved.
+   * </ol>
+   *
+   * @param bundle
+   *          the bundle to check.
+   * @return {@code true} if the bundle needs to be resolved.
+   */
+  boolean resolveBundlePossible(final Bundle bundle)
+  {
+    final int state = bundle.getState();
+    return (state & Bundle.INSTALLED) != 0;
   }
 
   void resolveBundles(final Bundle[] b)

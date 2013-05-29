@@ -85,8 +85,6 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.startlevel.BundleStartLevel;
-import org.osgi.framework.wiring.BundleRevision;
-import org.osgi.framework.wiring.BundleRevisions;
 
 
 public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
@@ -439,37 +437,23 @@ public class LargeIconsDisplayer extends DefaultSwingBundleDisplayer {
         {
           if (isPopupTrigger(e)) {
             final Component comp = e.getComponent();
-            resolveBundleAction.setEnabled(false);
-            startBundleAction.setEnabled(false);
-            stopBundleAction.setEnabled(false);
-            updateBundleAction.setEnabled(false);
-            refreshBundleAction.setEnabled(false);
-            uninstallBundleAction.setEnabled(false);
 
             final Bundle bundle = getBundle(comp);
             if (bundle != null) {
-              final List<BundleRevision> bRevs =
-                bundle.adapt(BundleRevisions.class).getRevisions();
-              final BundleRevision bRevCur = bRevs.get(0);
-              final boolean isFragment =
-                bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
-              final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
-              final int state = bundle.getState();
-
-              resolveBundleAction.setEnabled((state & Bundle.INSTALLED) != 0);
-              startBundleAction
-                  .setEnabled(!isFragment
-                              && ((bsl != null && !bsl.isPersistentlyStarted())
-                                  || (bsl == null && (state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0)));
-              stopBundleAction
-                  .setEnabled((bsl != null && bsl.isPersistentlyStarted())
-                              || (state & (Bundle.STARTING | Bundle.ACTIVE)) != 0);
+              final Desktop d = Desktop.theDesktop;
+              resolveBundleAction.setEnabled(d.resolveBundlePossible(bundle));
+              startBundleAction.setEnabled(d.startBundlePossible(bundle));
+              stopBundleAction.setEnabled(d.stopBundlePossible(bundle));
               updateBundleAction.setEnabled(true);
-
-              // Refresh is only needed when there are more than one bundle
-              // revision in use.
-              refreshBundleAction.setEnabled(bRevs.size() > 1);
+              refreshBundleAction.setEnabled(d.refreshBundleNeeded(bundle));
               uninstallBundleAction.setEnabled(true);
+            } else {
+              resolveBundleAction.setEnabled(false);
+              startBundleAction.setEnabled(false);
+              stopBundleAction.setEnabled(false);
+              updateBundleAction.setEnabled(false);
+              refreshBundleAction.setEnabled(false);
+              uninstallBundleAction.setEnabled(false);
             }
             contextPopupMenu.show(comp, e.getX(), e.getY());
           }
