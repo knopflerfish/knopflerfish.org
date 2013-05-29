@@ -439,13 +439,11 @@ public class RemoteFWServer implements RemoteFW {
         String key = keys[i1];
         Object val = srl[0].getProperty(keys[i1]);
         if (val instanceof Vector) {
-          for (int i2=0; i2<((Vector) val).size(); i2++) {
-            if (((Vector) val).elementAt(i2) instanceof Object[]) {
-              ((Vector) val).setElementAt(arrayToVector((Object[]) ((Vector) val).elementAt(i2)), i2);
-            }
-          }
+          val = vectorToVector((Vector) val);
         } else if (val instanceof Object[]) {
           val = arrayToVector((Object[]) val);
+        } else if (val instanceof Set) {
+          val = setToVector((Set) val);
         }
         //  Object strVal = Util.encodeAsString(val);
         result.addElement(key);
@@ -466,8 +464,46 @@ public class RemoteFWServer implements RemoteFW {
     for (int i=0; i<vala.length; i++) {
       if (vala[i] instanceof Object[]) {
         valv.addElement(arrayToVector((Object[]) vala[i]));
+      } else if (vala[i] instanceof Vector) {
+        valv.addElement(vectorToVector((Vector) vala[i]));
+      } else if (vala[i] instanceof Set) {
+        valv.addElement(setToVector((Set) vala[i]));
       } else {
         valv.addElement(vala[i]);
+      }
+    }
+    return valv;
+  }
+
+  private Vector vectorToVector(Vector val) {
+    Vector valv = new Vector();
+    for (int i=0; i<val.size(); i++) {
+      final Object v = val.elementAt(i);
+      if (v instanceof Object[]) {
+        valv.addElement(arrayToVector((Object[]) v));
+      } else if (v instanceof Vector) {
+        valv.addElement(vectorToVector((Vector) v));
+      } else if (v instanceof Set) {
+        valv.addElement(setToVector((Set) v));
+      } else {
+        valv.addElement(v);
+      }
+    }
+    return valv;
+  }
+
+  private Vector setToVector(Set vals) {
+    Vector valv = new Vector();
+    for (Iterator it = vals.iterator(); it.hasNext();) {
+      final Object v = it.next();
+      if (v instanceof Object[]) {
+        valv.addElement(arrayToVector((Object[]) v));
+      } else if (v instanceof Vector) {
+        valv.addElement(vectorToVector((Vector) v));
+      } else if (v instanceof Set) {
+        valv.addElement(setToVector((Set) v));
+      } else {
+        valv.addElement(v);
       }
     }
     return valv;
