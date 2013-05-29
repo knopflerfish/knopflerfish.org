@@ -8,90 +8,78 @@ import org.osgi.framework.launch.Framework;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Message;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.util.Log;
 
 public class Knopflerfish extends Service {
   public static final String ACTION_INIT = "org.knopflerfish.android.action.INIT";
   public static final String MSG = "msg";
-  public static final String EXTRA = "extra";
+  public static final String FW_PROPS = "fwProps";
 
   public enum Msg { STARTING, STARTED, NOP, NOT_STARTED, STOPPED, NOT_STOPPED };
   
   private Framework fw;
   private Object fwLock = new Object();
   
-  private Messenger messenger; // messenger for starting activity
-                               // should be list of messengers???
-  
-  public Knopflerfish() {
-	}
-
 	@Override
 	public int onStartCommand(Intent intent, int flags, final int startId) {
-	  
-	  Bundle bundle = intent.getExtras();
-	  if (bundle != null) {
-	    messenger = (Messenger) bundle.get("messenger");
-	  }
-    
-    synchronized (fwLock) {
-      if (fw == null) {
-        try {
-          //sendMessage(StartResult.STARTING);
-          // intent == null if restarted by the system -> start without init
-          String action = intent != null ? intent.getAction() : null;
+	  // intent == null if restarted by the system -> start without init
+	  final String action = intent != null ? intent.getAction() : null;
+	  new Thread(new Runnable() {
+	    public void run() {
+	      synchronized (fwLock) {
+	        if (fw == null) {
+	          sendMessage(Msg.STARTING);
+	          try {
+	            fw = KfApk.newFramework(getStorage(),
+	                                    ACTION_INIT.equals(action),
+	                                    Knopflerfish.this.getAssets());
+	            if (fw != null) {
+                sendMessage(Msg.STARTED,
+                            (Serializable) KfApk.getFrameworkProperties());               
+	            } else {
+                // framework did not init/start
+                sendMessage(Msg.NOT_STARTED);
+                stopSelf();
+                return;
+	            }
+            } catch (IOException ioe) {
+              sendMessage(Msg.NOT_STARTED);
+              Log.e(getClass().getName(), "Error starting framework", ioe);          
+              stopSelf();
+              return;
+	          }
+	        } else {
+	          // no op start
+            sendMessage(Msg.NOP,
+                        (Serializable) KfApk.getFrameworkProperties());               
+	          return;
+	        }
+	      }
 
-          fw = KfApk.newFramework(getStorage(),
-                                  ACTION_INIT.equals(action),
-                                  this.getAssets());
-          if (fw != null) {
-            sendMessage(Msg.STARTED, (Serializable) KfApk.getFrameworkProperties());
-            new Thread(new Runnable() {
-              public void run() {
-                KfApk.waitForStop(fw); // does not return until shutdown
-                stopSelf();            // shut down, stop service                //TODO: only stop if shut down from the inside?
-              }
-            },"KF wait for stop").start();
-          } else {
-            // framework did not init/start
-            sendMessage(Msg.NOT_STARTED);
-          }
-        } catch (IOException ioe) {
-          sendMessage(Msg.NOT_STARTED);
-          Log.e(getClass().getName(), "Error starting framework", ioe);          
-        }
-      } else {
-        // no op start-command
-        sendMessage(Msg.NOP);
-      }
-    }
-    return Service.START_STICKY; 
- 	};
+	      Framework fw_ = fw;
+	      if (fw_ != null) {
+	        KfApk.waitForStop(fw_); // does not return until shutdown
+	        stopSelf(); // shut down (then stop service) or stop():ed
+	      }
+	    }
+	  },"KF starter-waiter").start();
+
+	  return Service.START_STICKY; 
+	};
 	
   private void sendMessage(Msg res) {
     sendMessage(res, null);
   }
 
-    private void sendMessage(Msg res, Serializable extra) {
- 	  if (messenger != null) {
- 	    Bundle data = new Bundle();
- 	    data.putSerializable(MSG, res);
- 	    if (extra != null) {
- 	      data.putSerializable(EXTRA, extra);
- 	    }
- 	    Message msg = Message.obtain();
- 	    msg.setData(data);
- 	    try {
- 	      messenger.send(msg);
- 	    } catch (RemoteException e) {}
- 	  }
- 	}
- 	
+  private void sendMessage(Msg res, Serializable fwProps) {
+    Intent i = new Intent(getClass().getName());
+    i.putExtra(MSG, res);
+    if (fwProps != null) {
+      i.putExtra(FW_PROPS, fwProps);
+    }
+    sendBroadcast(i);
+  } 	
  	
 	@Override
 	public void onDestroy() {
@@ -107,7 +95,7 @@ public class Knopflerfish extends Service {
           sendMessage(Msg.NOT_STOPPED);
 	      }
 	    } else {
-	      // Shut down after failed start?
+	      // stopService after failed start?
 	    }
     }
 	}
