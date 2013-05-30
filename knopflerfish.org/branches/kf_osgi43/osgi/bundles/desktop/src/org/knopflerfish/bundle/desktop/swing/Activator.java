@@ -314,6 +314,7 @@ public class Activator
 
   public void start(final BundleContext bc) {
     Activator.setBC(bc);
+    stopped = false;
 
     try {
       // try to move Mac OS menu bar

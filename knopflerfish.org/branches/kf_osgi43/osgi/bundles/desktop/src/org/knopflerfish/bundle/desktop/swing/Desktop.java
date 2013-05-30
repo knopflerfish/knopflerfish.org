@@ -3075,7 +3075,7 @@ public class Desktop
     // If running on Mac OS, remove eawt Application handlers.
     if (bMacOS) {
       try {
-        OSXAdapter.clearApplicationListeners();
+        OSXAdapter.clearApplicationHandlers();
       } catch (final Exception e) {
         Activator.log.warn("Error while using the OSXAdapter", e);
         bMacOS = false;
