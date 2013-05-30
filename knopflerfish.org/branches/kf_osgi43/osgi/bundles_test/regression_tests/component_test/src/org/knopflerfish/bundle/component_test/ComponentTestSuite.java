@@ -63,6 +63,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test4());
     addTest(new Test5());
     addTest(new Test6());
+    addTest(new Test7());
   }
 
   public void bump(int count) {
@@ -477,7 +478,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
          assertNotNull("Could not get service object for E1", e1);
 
          // Check that no E2 instance have been injected into e1 yet.
-         Method getE2Method = e1.getClass().getMethod("getE2", (Class[]) null);
+         Method getE2Method = e1.getClass().getMethod("getE2", null);
          assertNull("No E2 service yet",
                     getE2Method.invoke(e1, new Object[]{}));
          System.out.println("Initially no E2 service bound to E1.");
@@ -601,8 +602,8 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
            assertNotNull("Could not get service object "+i, s);
 
            // Call the service method to double check.
-           final Method getMethod = s.getClass().getMethod("get",
-                                                           (Class[]) null);
+           final Method getMethod = s.getClass().getMethod("get", null);
+
            final String v = (String) getMethod.invoke(s, new Object[]{});
            assertEquals("s.get(" +i +")", "C"+(i+1), v);
          }
@@ -924,6 +925,76 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
           } catch (BundleException be) {
             be.printStackTrace();
             fail("Test6: got uninstall exception " + be);
+          }
+        }
+      }
+    }
+  }
+
+  private class Test7 extends FWTestCase  {
+
+    /**
+     * Test setup: Dynamic ComponentX optional references ComponentY,
+     *             Dynamic ComponentY static reference ComponentZ
+     *             Dynamic ComponentZ static reference ComponentX
+     * before: no components are started.
+     * action: Get ComponentX service
+     * after: all components are activated
+     *
+     * then:
+     *
+     * before: all components are activated
+     * action: disable componentZ
+     * after: only X should be active
+     *
+     * then:
+     *
+     * before: only X active
+     * action: enable componentY
+     * after: all components are deactivated
+     *
+     */
+
+    public void runTest() {
+      Bundle c1 = null;
+      try {
+        c1 = Util.installBundle(bc, "componentU_test-1.0.0.jar");
+        c1.start();
+
+        Thread.sleep(1000);
+
+        ServiceReference ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentX");
+        assertNull("Should not get serviceRef X", ref);
+
+        
+        ServiceRegistration reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+
+        Thread.sleep(1000);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentX");
+        assertNotNull("Should get serviceRef X", ref);
+        org.knopflerfish.service.componentU_test.ComponentX x =
+          (org.knopflerfish.service.componentU_test.ComponentX)bc.getService(ref);
+        assertNotNull("Should get service X", x);
+        assertEquals("Should have been bind(Y) bumped", 1, x.getBindYStatus().intValue());
+        assertEquals("Should have been bind(Z) bumped", 1, x.getBindZStatus().intValue());
+
+        reg.unregister();
+
+        Thread.sleep(1000);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentX");
+        assertNull("Should not get serviceRef X", ref);
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test7: got unexpected exception " + e);
+      } finally {
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test7: got uninstall exception " + be);
           }
         }
       }
