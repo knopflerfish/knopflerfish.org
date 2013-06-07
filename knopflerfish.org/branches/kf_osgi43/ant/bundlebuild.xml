@@ -59,6 +59,7 @@
 
   <property name="javac.target"       value="jsr14"/>
   <property name="javac.source"       value="1.5"/>
+  <property name="javac.encoding"     value="${file.encoding}"/>
 
   <!-- The bundle Execution Environment to use when compiling.       -->
   <!-- The value is the id of a path that will be used as boot class -->
@@ -499,6 +500,7 @@
              srcdir="${src.dir}"
              target="${javac.target}"
              source="${javac.source}"
+	     encoding="${javac.encoding}"
              classpathref="bundle.path.Expanded"
              bootclasspathref="${bundle.bootclasspath.ref}"
              includes="@{includes}"
