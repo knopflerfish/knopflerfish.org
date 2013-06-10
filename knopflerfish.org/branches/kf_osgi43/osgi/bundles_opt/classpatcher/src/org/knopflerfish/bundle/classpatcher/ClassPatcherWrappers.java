@@ -60,7 +60,7 @@ public class ClassPatcherWrappers {
   public static void systemExitWrapper(int code, long bid, Object context) {
     Activator.println("CP.systemExit code=" + code + ", bid=" + bid + ", context=" + context);
     try {
-      // NYI, we only handle framwork start via Main.
+      // NYI, we only handle framework start via Main.
       Bundle b = getBundle(bid);
       Activator.println("stopping " + b);
       b.stop();
@@ -118,7 +118,7 @@ public class ClassPatcherWrappers {
    * calls.
    * 
    * <p>
-   * First, try the supplied class loader. If this failes, try the bundle class
+   * First, try the supplied class loader. If this fails, try the bundle class
    * loader instead.
    * </p>
    */

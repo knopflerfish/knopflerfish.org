@@ -873,15 +873,9 @@ but "-D" should also work.
   <tr>
     <td>org.knopflerfish.framework.patch</td>
     <td>
-      If true AND the class org.objectweb.asm.ClassReader is available
-      (by putting the asm-3.2.jar library on the system class path), enable
-      run time class patching.
-      Example:
-<pre class="shell">
-> java -cp framework.jar:asm-3.2.jar \
-    org.knopflerfish.framework.Main \
-    -Forg.knopflerfish.framework.patch=true\   
-</pre>
+      If true AND once the classpatcher_all-N.N.N.jar bundle is installed and started,
+      run time class patching will be enabled for all classes loaded afterwards. 
+
     </td>
     <td>Boolean</td>
     <td>False</td>
