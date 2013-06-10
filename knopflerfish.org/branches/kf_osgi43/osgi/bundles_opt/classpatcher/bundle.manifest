@@ -10,6 +10,7 @@ Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/classpatcher/
 Bundle-Activator: org.knopflerfish.bundle.classpatcher.Activator
+Bundle-Classpath: .,asm-3.2.jar
 Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Import-Package: org.osgi.framework; version="[1.6,2)",
  org.osgi.framework.hooks.weaving; version="[1.0,2)",
