@@ -94,6 +94,11 @@
     <div class="note_item">
       The Android support has temporarily been dropped.
     </div>
+    <div class="note_item">
+      Support for class patching using ASM has been moved out of 
+      the framework into a separate classpatcher bundle that
+      implements a Weaving Hooks.
+    </div>
   </div>
 </div>
 
@@ -470,7 +475,16 @@
     </div>
   </div>
 
-
+  <div class="note_group">
+    <div class="note_name">Class Patcher 1.0.0</div>
+    <div class="note_item">
+      This bundle contains the support for class patching using ASM that
+      was previously implemented in the framework. It is implemented as
+      a Weaving Hooks. The configuration properties remain the same in
+      order to be backward compatible.
+    </div>
+  </div>
+  
   <div class="note_group">
     <div class="note_name">
       Knopflerfish Build System
