@@ -10,7 +10,7 @@ bundles from the assets/jars folder of the calling Android application.
 The Lib project should be a dependency for App projects.
 
 KfBasicApp is an Android Application project that builds a small set of
-bundles to its .apk assets/jars folder. It contails classes for
+bundles to its .apk assets/jars folder. It contains classes for
 starting/stopping the service from KfServiceLib when the user pushes
 buttons in a simple Android view. This project can be used as a template
 for creating new Knopflerfish Android instances (defining bundles to
