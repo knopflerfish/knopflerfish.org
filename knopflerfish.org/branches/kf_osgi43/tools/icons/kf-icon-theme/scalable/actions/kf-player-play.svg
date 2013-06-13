@@ -14,9 +14,9 @@
    height="48px"
    id="svg147627"
    version="1.1"
-   inkscape:version="0.47 r22583"
+   inkscape:version="0.48.1 r9760"
    sodipodi:docname="kf-player-play.svg"
-   inkscape:export-filename="/Users/cl/work/kf3/osgi/bundles_opt/desktop_awt/resources/player_play_14x14.png"
+   inkscape:export-filename="/Users/cl/w3/kf_osgi43/osgi/bundles/desktop/resources/overlay_starting_14x14.png"
    inkscape:export-xdpi="26.25"
    inkscape:export-ydpi="26.25">
   <defs
@@ -265,8 +265,8 @@
      inkscape:document-units="px"
      inkscape:window-width="1562"
      inkscape:window-height="867"
-     inkscape:window-x="0"
-     inkscape:window-y="59"
+     inkscape:window-x="173"
+     inkscape:window-y="290"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata147632">
@@ -460,7 +460,7 @@
        y="0.98093128" />
     <path
        sodipodi:type="star"
-       style="fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:#000400;stroke-opacity:1"
+       style="fill:#aa0000;fill-opacity:1;fill-rule:nonzero;stroke:#000400;stroke-opacity:1"
        id="path147639-9"
        sodipodi:sides="3"
        sodipodi:cx="8.4285717"
