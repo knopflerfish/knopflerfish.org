@@ -8,12 +8,12 @@
   Second official release (beta) of Knopflerfish 4 available from
   $(BASE_URL)/$(VERSION)
 </p>
-  <p>
-    Knopflerfish 4 is an implementation of the "OSGi Service Platform
-    Release 4 Version 4.3". It contains all services specified in the
-    "Core Specification" and most of the non Enterprise Edition related
-    services specified in the "Compendium Specification".
-  </p>
+<p>
+  Knopflerfish 4 is an implementation of the "OSGi Service Platform
+  Release 4 Version 4.3". It contains all services specified in the
+  "Core Specification" and most of the non Enterprise Edition related
+  services specified in the "Compendium Specification".
+</p>
 <p>
   The Release Notes include all new features & changes for Knopflerfish 4. Changes
   in the beta-2 release are marked with <em>(beta-2)</em> in order to more clearly see
@@ -177,14 +177,11 @@
       Improved support for mixing legacy KF-Metatype and OSGi meta type.
     </div>
   </div>
-
+  
 </div>
 
-
-
-<h2 class="kf">Knopflerfish Specific</h2>
+<h2 class="kf">Knopflerfish Services</h2>
 <div class="release_notes">
-
   <div class="note_group">
     <div class="note_name">
       Deprecation of SOAP bundles
@@ -198,307 +195,310 @@
       soapclient and soapobject.
     </div>
 
-  <div class="note_group">
-    <div class="note_name">Class Patcher 1.0.0 (beta-2)</div>
-    <div class="note_item">
-      This bundle contains the support for class patching using ASM that
-      was previously implemented in the framework. It is implemented as
-      a Weaving Hooks. The configuration properties remain the same in
-      order to be backward compatible.
+    <div class="note_group">
+      <div class="note_name">Class Patcher 1.0.0 (beta-2)</div>
+      <div class="note_item">
+	This bundle contains the support for class patching using ASM that
+	was previously implemented in the framework. It is implemented as
+	a Weaving Hooks. The configuration properties remain the same in
+	order to be backward compatible.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">CM-Commands 4.0.1 (beta-2)</div>
+      <div class="note_item">
+	Added export command that exports all matching configurations as
+	an XML-document.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	CM-Desktop 4.0.0 (beta-2)
+      </div>
+      <div class="note_item">
+	Added <tt>Export...</tt> button that exports the currently
+	showing configuration as a cm_data XML document suitable for use
+	together with the Directory Deployer bundle.
+      </div>
+      <div class="note_item">
+	The displayer always shows the combo boxes for PIDs and factory
+	PIDs (they are disabled when the bundle does not provide meta data
+	for any PID of that type) in its top part.
+      </div>
+      <div class="note_item">
+	The sub-panel showing details for a factory PID always shows all
+	the controls (New, Delete, Apply, PID selector), those not
+	applicable are disabled.
+      </div>
+      <div class="note_item">
+	The PID selector combo box in the factory PID sub-panel contains a
+	choice that is labeled "- Default Values -" when this is selected
+	the properties below will be set to the default values according
+	the meta type information for the current factory PID.
+      </div>
+      <div class="note_item">
+	When selecting the CM-displayer for a bundle that only defines
+	factory PIDs the factory PID sub-panel will be initialized to show
+	the last (lexicographically) instance for the factory PID.
+      </div>
+      <div class="note_item">
+	The CM-displayer now uses a configuration listener to know when
+	the configuration it shows is changed and then update its
+	presentation.
+      </div>
+      <div class="note_item">
+	Fixed the layout when there was an active error message for a
+	numeric configuration property.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Command TTY 4.0.1 (beta-2)
+      </div>
+      <div class="note_item">
+	Fixed an error in the meta-type document describing the configuration.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">Console 4.0.1 (beta-2)</div>
+      <div class="note_item">
+	Added support to Util.showObject(Object) for converting
+	enumerations and collections to strings showing each element.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Desktop 4.0.1  (beta-2)
+      </div>
+      <div class="note_item">
+	Restored the functionality of the "Cancel" button in the quit
+	dialog on Mac OS X. This was broken by changes in Apples EAWT
+	packages. The new implementation requires Java Update 8 or later
+	for Mac OS 10.5, Java Update 3 for Mac OS 10.6, or Mac OS 10.7
+	or later to be fully functional.
+      </div>
+      <div class="note_item">
+	The navigation buttons (backward / forward) at the bottom of the
+	services-tab was not activated when pressing one of the service
+	links.
+      </div>
+      <div class="note_item">
+	The Log-tab now presents initial log entries obtained by calling
+	the getLog()-method of a LogReaderService in the correct order,
+	i.e., oldest first.
+      </div>
+      <div class="note_item">
+	Bundle life-cycle operations (resolve, start, stop, update,
+	refresh, uninstall) in the menu and in the tool-bar are now
+	enabled based on the states of the selected bundles.
+      </div>
+      <div class="note_item">
+	Add refresh bundles operation to the tool-bar as well as to the
+	pop-up menu in the icons display.
+      </div>
+      <div class="note_item">
+	The topmost lines in the manifest view have been given a
+	different background color to emphasize that they are not part
+	of the manifest. The bundle state line now includes the text
+	"pending refresh" for bundles that has more than one bundle
+	revision in use, i.e, bundles that needs to be refreshed.
+	The start level line now contains the text "persistently
+	started" for bundles that are persistently started. I.e., for
+	bundles that will be started again when the framework itself is
+	restarted.
+      </div>
+      <div class="note_item">
+	The closure tab as well as the File-menu save deployment archive
+	now computes the closure of bundles to include correctly. Before
+	it took the union of a capability dependencies closure and a
+	service dependencies closure which will miss bundles that
+	provides capabilities to service implementor bundles that was
+	not in the original capabilities closure.
+      </div>
+      <div class="note_item">
+	The "refresh"-link in the Wiring tab now works for wired
+	providers / requires that has been uninstalled.
+      </div>
+      <div class="note_item">
+	Restored and enhanced the update check functionality that pops
+	up a window with the release notes from the current Knopflerfish
+	release when the desktop is running on an older Knopflerfish
+	release.
+      </div>
+      <div class="note_item">
+	Added sorting to the "Table" view (the top left side of the main
+	window). Click on the column header to sort rows based on the
+	column values, shift-click for reverse order.
+      </div>
+      <div class="note_item">
+	The tool tip text for bundle icons in the icons display is now
+	always up to date. The start-level line of the text will
+	contain the text "persistently started" if the bundle is
+	persistently started.
+      </div>
+
+      <div class="note_name">
+	Desktop 4.0.0
+      </div>
+      <div class="note_item">
+	A new "Wiring" displayer has been added that presents
+	information from new wiring API. This displayer replaces the
+	"Package" displayer that only showed wiring info for the
+	osgi.wiring.package namespace.
+      </div>
+      <div class="note_item">
+	Uses the wiring API to perform refresh and resolve operations.
+      </div>
+      <div class="note_item">
+	Use the start-level API to perform start-level operations.
+      </div>
+      <div class="note_item">
+	Improve layout of the tool-bar by add some glue to the left of the
+	start level label. In the start-level drop-down, emphasis the
+	start-level number and present the bundles on each start level as
+	list using a smaller, weaker font.
+      </div>
+      <div class="note_item">
+	Added additional overlay images in the Bundle Icon view to indicate
+	the following bundle states: RESOLVED, STARTING and STOPPING.
+      </div>
+      <div class="note_item">
+	Added bundle life-cycle operations (resolve, start, stop, update,
+	uninstall) to the pop-up menu in the bundle icon displayer (top
+	left part of the main window).
+      </div>
+      <div class="note_item">
+	Renamed the "Details" view (the top left side of the main
+	window) to "Table" view and added columns for the bundle version
+	and bundle symbolic name to it.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Directory Deployer 4.0.1 (beta-2)
+      </div>
+      <div class="note_item">
+	Deployment of XML-files with OSGi configurations is now supported.
+      </div>
+      <div class="note_item">
+	New configuration option "Use initial start level" which when
+	set to true (default) tells the directory deployer to not assign
+	any start level to the bundle. I.e., the bundle will be assigned
+	the initial start level that can be set up using the
+	startlevel-API.
+      </div>
+      <div class="note_item">
+	The directory deployer will only try to install (start) a bundle
+	once. If it fails users are supposed to update the file with
+	new contents (or touch it to change the time-stamp) to get a new
+	install (start) attempt made.
+      </div>
+      <div class="note_item">
+	If the deployed file is a fragment bundle one attempt to resolve
+	it will be made after installation (and after each update).
+      </div>
+      <div class="note_item">
+	Changed to use normal file-URLs as location when installing
+	bundles from the scanned directories.
+      </div>
+      <div class="note_item">
+	Replaced the document describing the configuration meta data
+	with a new one that uses the OSGi specified meta type schema.
+      </div>
+      <div class="note_item">
+	Updated user the Wiring and Starlevel APIs.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Framework Commands 4.0.1 (beta-2)
+      </div>
+      <div class="note_item">
+	The call command now supports calling methods with parameters of
+	type org.osgi.framework.Bundle. Type the bundle id (long) as
+	parameter value to the call command.
+      </div>
+      <div class="note_item">
+	The call command now correctly handles calls to methods in super
+	interfaces of an interface that the service object implements.
+      </div>
+      <div class="note_item">
+	New command 'pending' that lists bundles that have pending updates.
+      </div>
+
+      <div class="note_name">
+	Framework Commands 4.0.0
+      </div>
+      <div class="note_item">
+	New command 'capability' that presents both provided and required
+	capabilities for the current bundle revision of a bundle.
+      </div>
+      <div class="note_item">
+	New command 'wiring' that lists all active wires for the current
+	wiring of a bundle.
+      </div>
+    </div>
+
+
+    <div class="note_group">
+      <div class="note_name">
+	Log Commands 4.0.0
+      </div>
+      <div class="note_item">
+	Calling the command "logconfig memory &lt;int&gt;" did not change the
+	memory limit, but calling "logconfig memory -c &lt;int&gt;" did.  Now
+	both calls changes the limit on the number of log entries that are
+	kept in memory as expected.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Log Service 4.0.1  (beta-2)
+      </div>
+      <div class="note_item">
+	Fixed an error in the meta type document describing the configuration.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Telnet-Console 4.0.1  (beta-2)
+      </div>
+      <div class="note_item">
+	Replaced the document describing the configuration metadata
+	with a new one that uses the OSGi specified meta type schema.
+      </div>
+      <div class="note_item">
+	Added a number of properties to the configuration metadata:
+	<tt>defaultUser, defaultPassword, busywait, um, requiredGroup,
+	  forbiddenGroup</tt>.
+      </div>
+      <div class="note_item">
+	Added an icon to the bundle (same icon as for the tty-console).
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	TTY-Console 4.0.1  (beta-2)
+      </div>
+      <div class="note_item">
+	Fixed an error in the meta type document describing the configuration.
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="note_group">
-    <div class="note_name">CM-Commands 4.0.1 (beta-2)</div>
-    <div class="note_item">
-      Added export command that exports all matching configurations as
-      an XML-document.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">
-      CM-Desktop 4.0.0 (beta-2)
-    </div>
-    <div class="note_item">
-      Added <tt>Export...</tt> button that exports the currently
-      showing configuration as a cm_data XML document suitable for use
-      together with the Directory Deployer bundle.
-    </div>
-    <div class="note_item">
-      The displayer always shows the combo boxes for PIDs and factory
-      PIDs (they are disabled when the bundle does not provide meta data
-      for any PID of that type) in its top part.
-    </div>
-    <div class="note_item">
-      The sub-panel showing details for a factory PID always shows all
-      the controls (New, Delete, Apply, PID selector), those not
-      applicable are disabled.
-    </div>
-    <div class="note_item">
-      The PID selector combo box in the factory PID sub-panel contains a
-      choice that is labeled "- Default Values -" when this is selected
-      the properties below will be set to the default values according
-      the meta type information for the current factory PID.
-    </div>
-    <div class="note_item">
-      When selecting the CM-displayer for a bundle that only defines
-      factory PIDs the factory PID sub-panel will be initialized to show
-      the last (lexicographically) instance for the factory PID.
-    </div>
-    <div class="note_item">
-      The CM-displayer now uses a configuration listener to know when
-      the configuration it shows is changed and then update its
-      presentation.
-    </div>
-    <div class="note_item">
-      Fixed the layout when there was an active error message for a
-      numeric configuration property.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">
-      Command TTY 4.0.1 (beta-2)
-    </div>
-    <div class="note_item">
-      Fixed an error in the meta-type document describing the configuration.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">Console 4.0.1 (beta-2)</div>
-    <div class="note_item">
-      Added support to Util.showObject(Object) for converting
-      enumerations and collections to strings showing each element.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">
-      Desktop 4.0.1  (beta-2)
-    </div>
-    <div class="note_item">
-      Restored the functionality of the "Cancel" button in the quit
-      dialog on Mac OS X. This was broken by changes in Apples EAWT
-      packages. The new implementation requires Java Update 8 or later
-      for Mac OS 10.5, Java Update 3 for Mac OS 10.6, or Mac OS 10.7
-      or later to be fully functional.
-    </div>
-    <div class="note_item">
-      The navigation buttons (backward / forward) at the bottom of the
-      services-tab was not activated when pressing one of the service
-      links.
-    </div>
-    <div class="note_item">
-      The Log-tab now presents initial log entries obtained by calling
-      the getLog()-method of a LogReaderService in the correct order,
-      i.e., oldest first.
-    </div>
-    <div class="note_item">
-      Bundle life-cycle operations (resolve, start, stop, update,
-      refresh, uninstall) in the menu and in the tool-bar are now
-      enabled based on the states of the selected bundles.
-    </div>
-    <div class="note_item">
-      Add refresh bundles operation to the tool-bar as well as to the
-      pop-up menu in the icons display.
-    </div>
-    <div class="note_item">
-      The topmost lines in the manifest view have been given a
-      different background color to emphasize that they are not part
-      of the manifest. The bundle state line now includes the text
-      "pending refresh" for bundles that has more than one bundle
-      revision in use, i.e, bundles that needs to be refreshed.
-      The start level line now contains the text "persistently
-      started" for bundles that are persistently started. I.e., for
-      bundles that will be started again when the framework itself is
-      restarted.
-    </div>
-    <div class="note_item">
-      The closure tab as well as the File-menu save deployment archive
-      now computes the closure of bundles to include correctly. Before
-      it took the union of a capability dependencies closure and a
-      service dependencies closure which will miss bundles that
-      provides capabilities to service implementor bundles that was
-      not in the original capabilities closure.
-    </div>
-    <div class="note_item">
-      The "refresh"-link in the Wiring tab now works for wired
-      providers / requires that has been uninstalled.
-    </div>
-    <div class="note_item">
-      Restored and enhanced the update check functionality that pops
-      up a window with the release notes from the current Knopflerfish
-      release when the desktop is running on an older Knopflerfish
-      release.
-    </div>
-    <div class="note_item">
-      Added sorting to the "Table" view (the top left side of the main
-      window). Click on the column header to sort rows based on the
-      column values, shift-click for reverse order.
-    </div>
-    <div class="note_item">
-      The tool tip text for bundle icons in the icons display is now
-      always up to date. The start-level line of the text will
-      contain the text "persistently started" if the bundle is
-      persistently started.
-    </div>
-
-    <div class="note_name">
-      Desktop 4.0.0
-    </div>
-    <div class="note_item">
-      A new "Wiring" displayer has been added that presents
-      information from new wiring API. This displayer replaces the
-      "Package" displayer that only showed wiring info for the
-      osgi.wiring.package namespace.
-    </div>
-    <div class="note_item">
-      Uses the wiring API to perform refresh and resolve operations.
-    </div>
-    <div class="note_item">
-      Use the start-level API to perform start-level operations.
-    </div>
-    <div class="note_item">
-      Improve layout of the tool-bar by add some glue to the left of the
-      start level label. In the start-level drop-down, emphasis the
-      start-level number and present the bundles on each start level as
-      list using a smaller, weaker font.
-    </div>
-    <div class="note_item">
-      Added additional overlay images in the Bundle Icon view to indicate
-      the following bundle states: RESOLVED, STARTING and STOPPING.
-    </div>
-    <div class="note_item">
-      Added bundle life-cycle operations (resolve, start, stop, update,
-      uninstall) to the pop-up menu in the bundle icon displayer (top
-      left part of the main window).
-    </div>
-    <div class="note_item">
-      Renamed the "Details" view (the top left side of the main
-      window) to "Table" view and added columns for the bundle version
-      and bundle symbolic name to it.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">
-      Directory Deployer 4.0.1 (beta-2)
-    </div>
-    <div class="note_item">
-      Deployment of XML-files with OSGi configurations is now supported.
-    </div>
-    <div class="note_item">
-      New configuration option "Use initial start level" which when
-      set to true (default) tells the directory deployer to not assign
-      any start level to the bundle. I.e., the bundle will be assigned
-      the initial start level that can be set up using the
-      startlevel-API.
-    </div>
-    <div class="note_item">
-      The directory deployer will only try to install (start) a bundle
-      once. If it fails users are supposed to update the file with
-      new contents (or touch it to change the time-stamp) to get a new
-      install (start) attempt made.
-    </div>
-    <div class="note_item">
-      If the deployed file is a fragment bundle one attempt to resolve
-      it will be made after installation (and after each update).
-    </div>
-    <div class="note_item">
-      Changed to use normal file-URLs as location when installing
-      bundles from the scanned directories.
-    </div>
-    <div class="note_item">
-      Replaced the document describing the configuration meta data
-      with a new one that uses the OSGi specified meta type schema.
-    </div>
-    <div class="note_item">
-      Updated user the Wiring and Starlevel APIs.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">
-      Framework Commands 4.0.1 (beta-2)
-    </div>
-    <div class="note_item">
-      The call command now supports calling methods with parameters of
-      type org.osgi.framework.Bundle. Type the bundle id (long) as
-      parameter value to the call command.
-    </div>
-    <div class="note_item">
-      The call command now correctly handles calls to methods in super
-      interfaces of an interface that the service object implements.
-    </div>
-    <div class="note_item">
-      New command 'pending' that lists bundles that have pending updates.
-    </div>
-
-    <div class="note_name">
-      Framework Commands 4.0.0
-    </div>
-    <div class="note_item">
-      New command 'capability' that presents both provided and required
-      capabilities for the current bundle revision of a bundle.
-    </div>
-    <div class="note_item">
-      New command 'wiring' that lists all active wires for the current
-      wiring of a bundle.
-    </div>
-  </div>
-
-
-  <div class="note_group">
-    <div class="note_name">
-      Log Commands 4.0.0
-    </div>
-    <div class="note_item">
-      Calling the command "logconfig memory &lt;int&gt;" did not change the
-      memory limit, but calling "logconfig memory -c &lt;int&gt;" did.  Now
-      both calls changes the limit on the number of log entries that are
-      kept in memory as expected.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">
-      Log Service 4.0.1  (beta-2)
-    </div>
-    <div class="note_item">
-      Fixed an error in the meta type document describing the configuration.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">
-      Telnet-Console 4.0.1  (beta-2)
-    </div>
-    <div class="note_item">
-      Replaced the document describing the configuration metadata
-      with a new one that uses the OSGi specified meta type schema.
-    </div>
-    <div class="note_item">
-      Added a number of properties to the configuration metadata:
-      <tt>defaultUser, defaultPassword, busywait, um, requiredGroup,
-      forbiddenGroup</tt>.
-    </div>
-    <div class="note_item">
-      Added an icon to the bundle (same icon as for the tty-console).
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">
-      TTY-Console 4.0.1  (beta-2)
-    </div>
-    <div class="note_item">
-      Fixed an error in the meta type document describing the configuration.
-    </div>
-  </div>
-
-  
+<h2 class="kf">Misc, start scripts, build system etc </h2>
+<div class="release_notes">
   <div class="note_group">
     <div class="note_name">
       Knopflerfish Build System  (beta-2)
@@ -558,7 +558,6 @@
       and started) and then browse the local Knopflerfish HTTP root or
       console.
     </div>
-      
-   </div>
+  </div>
 
 </div>
