@@ -16,6 +16,13 @@ buttons in a simple Android view. This project can be used as a template
 for creating new Knopflerfish Android instances (defining bundles to
 install/start and including customized Android views).
 
+To build a debug .apk that includes the KfBasicApp application and the
+KfServiceLib library, enter the KfBasicApp application directory and
+do "ant debug".
+
+To change the set of bundles that will be included, add/delete/modify
+file lists in the "custom_rules.xml" Ant file.
+
 When compiling Knopflerfish bundles for the Android Application
 projects, APIs are loaded from the standard Knopflerfish 'jars'
 directory. Thus it is necessary to do a top level build of
