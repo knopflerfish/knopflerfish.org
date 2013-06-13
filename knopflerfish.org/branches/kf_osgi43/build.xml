@@ -294,8 +294,8 @@
                 repositoryURL="${svn.repo.url}/${svn.tag}/">
       <fileset dir="${distrib.osgi.dir}/jars">
         <include name="**/*.jar"/>
-	<exclude name="**/*-source.jar"/>
-	<exclude name="**/*-javadoc.jar"/>
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
       </fileset>
       <!-- Include framework.jar to get a provider of org.osgi.framework. -->
       <fileset dir="${distrib.osgi.dir}">
@@ -477,8 +477,8 @@
       </zipfileset>
 
       <zipfileset dir="${distrib.osgi.dir}" prefix="osgi">
-        <exclude name="jars*/**/*-source.jar"/>
-        <exclude name="jars*/**/*-javadoc.jar"/>
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
         <include name="**/*"/>
       </zipfileset>
 
