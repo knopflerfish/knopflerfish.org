@@ -90,18 +90,23 @@
   </div>
 
   <div class="note_group">
-    <div class="note_name"> Framework 6.0.0</div>
+    <div class="note_name"> Framework 6.0.1 (beta-2)</div>
     <div class="note_item">
       Several parts of the framework has been rewritten to handle
       the new OSGi framework specification and improve stability.
     </div>
     <div class="note_item">
-      The Android support has temporarily been dropped.
-    </div>
-    <div class="note_item">
       Support for class patching using ASM has been moved out of 
       the framework into a separate classpatcher bundle that
       implements a Weaving Hooks.
+    </div>
+    <div class="note_item">
+      In beta-2 the Android support has been restored and
+      improved.
+    </div>
+    <div class="note_item">
+      In beta-2 several fixes has been made, mainly concerning
+      capabilities and fragments.
     </div>
   </div>
 </div>
@@ -129,6 +134,13 @@
     <div class="note_item">
       Added a method that save a list of configurations as XML to
       <tt>org.knopflerfish.shared.cm</tt>
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">component(SCR) 4.0.1 (beta-2)</div>
+    <div class="note_item">
+      Updated so that all 4.3 features now works.
     </div>
   </div>
 
@@ -164,7 +176,10 @@
     <div class="note_item">
       Improved support for mixing legacy KF-Metatype and OSGi meta type.
     </div>
+  </div>
+
 </div>
+
 
 
 <h2 class="kf">Knopflerfish Specific</h2>
@@ -416,6 +431,9 @@
     <div class="note_item">
       The call command now correctly handles calls to methods in super
       interfaces of an interface that the service object implements.
+    </div>
+    <div class="note_item">
+      New command 'pending' that lists bundles that have pending updates.
     </div>
 
     <div class="note_name">
