@@ -184,18 +184,20 @@
     </div>
 
   <div class="note_group">
-    <div class="note_name">CM-Commands 4.0.1 (beta-2)</div>
+    <div class="note_name">Class Patcher 1.0.0 (beta-2)</div>
     <div class="note_item">
-      Added export command that exports all matching configurations as
-      an XML-document.
+      This bundle contains the support for class patching using ASM that
+      was previously implemented in the framework. It is implemented as
+      a Weaving Hooks. The configuration properties remain the same in
+      order to be backward compatible.
     </div>
   </div>
 
   <div class="note_group">
-    <div class="note_name">Console 4.0.1 (beta-2)</div>
+    <div class="note_name">CM-Commands 4.0.1 (beta-2)</div>
     <div class="note_item">
-      Added support to Util.showObject(Object) for converting
-      enumerations and collections to strings showing each element.
+      Added export command that exports all matching configurations as
+      an XML-document.
     </div>
   </div>
 
@@ -237,6 +239,23 @@
     <div class="note_item">
       Fixed the layout when there was an active error message for a
       numeric configuration property.
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">
+      Command TTY 4.0.1 (beta-2)
+    </div>
+    <div class="note_item">
+      Fixed an error in the meta-type document describing the configuration.
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">Console 4.0.1 (beta-2)</div>
+    <div class="note_item">
+      Added support to Util.showObject(Object) for converting
+      enumerations and collections to strings showing each element.
     </div>
   </div>
 
@@ -348,7 +367,6 @@
     </div>
   </div>
 
-
   <div class="note_group">
     <div class="note_name">
       Directory Deployer 4.0.1 (beta-2)
@@ -377,18 +395,14 @@
       Changed to use normal file-URLs as location when installing
       bundles from the scanned directories.
     </div>
-  </div>
-
-
-  <div class="note_group">
-    <div class="note_name">
-      Command TTY 4.0.1 (beta-2)
+    <div class="note_item">
+      Replaced the document describing the configuration meta data
+      with a new one that uses the OSGi specified meta type schema.
     </div>
     <div class="note_item">
-      Fixed an error in the meta-type document describing the configuration.
+      Updated user the Wiring and Starlevel APIs.
     </div>
   </div>
-
 
   <div class="note_group">
     <div class="note_name">
@@ -417,18 +431,10 @@
     </div>
   </div>
 
-  <div class="note_group">
-    <div class="note_name">
-      Log Service 4.0.1  (beta-2)
-    </div>
-    <div class="note_item">
-      Fixed an error in the meta type document describing the configuration.
-    </div>
-  </div>
 
   <div class="note_group">
     <div class="note_name">
-      LogCommands 4.0.0
+      Log Commands 4.0.0
     </div>
     <div class="note_item">
       Calling the command "logconfig memory &lt;int&gt;" did not change the
@@ -438,17 +444,12 @@
     </div>
   </div>
 
-
   <div class="note_group">
     <div class="note_name">
-      Directory Deployer 4.0.1  (beta-2)
+      Log Service 4.0.1  (beta-2)
     </div>
     <div class="note_item">
-      Replaced the document describing the configuration meta data
-      with a new one that uses the OSGi specified meta type schema.
-    </div>
-    <div class="note_item">
-      Updated user the Wiring and Starlevel APIs.
+      Fixed an error in the meta type document describing the configuration.
     </div>
   </div>
 
@@ -479,15 +480,6 @@
     </div>
   </div>
 
-  <div class="note_group">
-    <div class="note_name">Class Patcher 1.0.0 (beta-2)</div>
-    <div class="note_item">
-      This bundle contains the support for class patching using ASM that
-      was previously implemented in the framework. It is implemented as
-      a Weaving Hooks. The configuration properties remain the same in
-      order to be backward compatible.
-    </div>
-  </div>
   
   <div class="note_group">
     <div class="note_name">
@@ -527,7 +519,6 @@
       named <tt>bundle.build.source.jar</tt>.
 
     </div>
-
   </div>
 
   <div class="note_group">
