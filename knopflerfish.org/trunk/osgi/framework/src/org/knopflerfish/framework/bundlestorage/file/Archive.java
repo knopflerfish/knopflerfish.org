@@ -1118,7 +1118,7 @@ public class Archive implements FileArchive {
         continue;
       }
       String name = je.getName();
-      if (saveDir != null && !startsWith(name, OSGI_OPT_DIR)) {
+      if (saveDir != null && !startsWithIgnoreCase(name, OSGI_OPT_DIR)) {
         StringTokenizer st = new StringTokenizer(name, "/");
         File f = new File(saveDir, st.nextToken());
         while (st.hasMoreTokens()) {
@@ -1155,7 +1155,7 @@ public class Archive implements FileArchive {
   /**
    * 
    */
-  private boolean startsWith(final String name, final String prefix) {
+  private boolean startsWithIgnoreCase(final String name, final String prefix) {
     if (name.length() < prefix.length()) {
       for (int i = 0; i < prefix.length(); i++) {
         if (Character.toUpperCase(name.charAt(i)) != prefix.charAt(i)) {
