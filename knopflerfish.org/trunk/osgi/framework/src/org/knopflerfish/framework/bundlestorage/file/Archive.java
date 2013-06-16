@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -239,7 +239,7 @@ public class Archive implements FileArchive {
           }
         }
         if (verify) {
-          checkCertificates(verifiedEntries, true);
+          checkCertificates(verifiedEntries);
         }
         jar = null;
       }
@@ -1118,7 +1118,7 @@ public class Archive implements FileArchive {
         continue;
       }
       String name = je.getName();
-      if (saveDir != null && !name.startsWith(OSGI_OPT_DIR)) {
+      if (saveDir != null && !startsWith(name, OSGI_OPT_DIR)) {
         StringTokenizer st = new StringTokenizer(name, "/");
         File f = new File(saveDir, st.nextToken());
         while (st.hasMoreTokens()) {
@@ -1131,9 +1131,6 @@ public class Archive implements FileArchive {
         loadFile(null, ji);
       }
       ji.closeEntry();
-      if (name.startsWith(META_INF_DIR)) {
-        continue;
-      }
       if (verify) {
         Certificate[] c = je.getCertificates();
         if (c != null) {
@@ -1156,6 +1153,21 @@ public class Archive implements FileArchive {
 
 
   /**
+   * 
+   */
+  private boolean startsWith(final String name, final String prefix) {
+    if (name.length() < prefix.length()) {
+      for (int i = 0; i < prefix.length(); i++) {
+        if (Character.toUpperCase(name.charAt(i)) != prefix.charAt(i)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
    * Go through jar file and check signatures.
    */
   private void processSignedJar(File file) throws IOException {
@@ -1175,7 +1187,7 @@ public class Archive implements FileArchive {
           break;
         }
       }
-      checkCertificates(count, true);
+      checkCertificates(count);
     } finally {
       if (ji != null) {
         ji.close();
@@ -1190,21 +1202,10 @@ public class Archive implements FileArchive {
    * Check that all entries in the bundle is signed.
    * 
    */
-  private void checkCertificates(int filesVerified, boolean complete) {
+  private void checkCertificates(int filesVerified) {
     // TBD! Does manifest.getEntries contain more than signers?
     if (filesVerified > 0) {
-      int mentries;
-      if (complete) {
-        mentries = manifest.getEntries().size();
-      } else {
-        mentries = 0;
-        for (Iterator i = manifest.getEntries().keySet().iterator(); i.hasNext();) {
-          String name = (String)i.next();
-          if (!name.startsWith(OSGI_OPT_DIR)) {
-            mentries++;
-          }
-        }
-      }
+      int mentries = manifest.getEntries().size();
       if (mentries != filesVerified) {
         certs = null;
         System.err.println("All entries in bundle not completly signed (" + mentries + " != "
