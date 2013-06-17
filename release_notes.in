@@ -10,7 +10,23 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.3.8
+* Framework 5.3.9
+
+  - Added framework property for work-around for bug
+    JarInputStream in Oracle class library (found in
+    java6 version 1.6.0_45).
+    This bug causes the JarInputStream to miss picking
+    up certificates for file under the "META-INF"
+    directory if they directly follow the META-INF
+    signature related files. This causes KF to mark
+    the bundle as not completly signed.
+    To avoid set following framework property to "true":
+    org.knopflerfish.framework.bundlestorage.file.jar_verifier_bug
+   
+  - Fixed faulty filtering of META-INF in previous
+    check-in/version.
+
+  Framework 5.3.8
 
   - Missed counting some files under META-INF when checking
     if a bundle was properly signed. This resulted in a

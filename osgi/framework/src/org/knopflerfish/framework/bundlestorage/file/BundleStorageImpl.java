@@ -54,7 +54,9 @@ public class BundleStorageImpl implements BundleStorage {
   public final static String TRUSTED_PROP =
     "org.knopflerfish.framework.bundlestorage.file.trusted";
   public final static String UNPACK_PROP =
-  "org.knopflerfish.framework.bundlestorage.file.unpack";
+    "org.knopflerfish.framework.bundlestorage.file.unpack";
+  public final static String JAR_VERIFIER_BUG_PROP =
+    "org.knopflerfish.framework.bundlestorage.file.jar_verifier_bug";
 
   /**
    * Controls if we should try to unpack bundles with sub-jars and
@@ -88,6 +90,11 @@ public class BundleStorageImpl implements BundleStorage {
    * Is current OS a Windows OS.
    */
   boolean isWindows;
+
+  /**
+   * Is JarVerifier bug present.
+   */
+  boolean jarVerifierBug;
 
   /**
    * Top directory for storing all jar data for bundles.
@@ -316,6 +323,7 @@ public class BundleStorageImpl implements BundleStorage {
     props.setPropertyDefault(REFERENCE_PROP, FWProps.FALSE);
     props.setPropertyDefault(TRUSTED_PROP, FWProps.TRUE);
     props.setPropertyDefault(UNPACK_PROP, FWProps.TRUE);
+    props.setPropertyDefault(JAR_VERIFIER_BUG_PROP, FWProps.FALSE);
     alwaysUnpack = props.getBooleanProperty(ALWAYS_UNPACK_PROP);
     fileReference = props.getBooleanProperty(REFERENCE_PROP);
     trustedStorage = props.getBooleanProperty(TRUSTED_PROP);
@@ -323,6 +331,7 @@ public class BundleStorageImpl implements BundleStorage {
     execPermCmd = props.getProperty(Constants.FRAMEWORK_EXECPERMISSION).trim();
     checkSigned = props.getBooleanProperty(FWProps.BUNDLESTORAGE_CHECKSIGNED_PROP);
     isWindows = props.getProperty(Constants.FRAMEWORK_OS_NAME).startsWith("Windows");
+    jarVerifierBug = props.getBooleanProperty(JAR_VERIFIER_BUG_PROP);
   }
 
 

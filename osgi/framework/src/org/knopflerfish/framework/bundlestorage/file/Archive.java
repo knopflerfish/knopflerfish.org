@@ -1131,10 +1131,39 @@ public class Archive implements FileArchive {
         loadFile(null, ji);
       }
       ji.closeEntry();
+      if (startsWithIgnoreCase(name, META_INF_DIR)) {
+        String sub = name.substring(META_INF_DIR.length());
+        if (sub.indexOf('/') == -1) {
+          if (startsWithIgnoreCase(sub, "SIG-")) {
+            continue;
+          }
+          int idx = sub.lastIndexOf('.');
+          if (idx != -1) {
+            sub = sub.substring(idx + 1);
+            if (sub.equalsIgnoreCase("DSA") ||
+                sub.equalsIgnoreCase("RSA") ||
+                sub.equalsIgnoreCase("SF")) {
+              continue;
+            }
+          }
+        }
+        if (ba.storage.jarVerifierBug) {
+          // There is a bug in Oracles java library.
+          // JavaInputStream will verify files in
+          // META-INF if they directly follow the META-INF
+          // signature related files.
+          if (certs == null) {
+            certs = new Certificate[0];
+            verify = false;
+          } else if (certs.length == 0) {
+            verify = false;
+          }
+        }
+      }
       if (verify) {
         Certificate[] c = je.getCertificates();
         if (c != null) {
-          if (certs != null) {
+          if (certs != null && certs.length > 0) {
             // TBD, perhaps we should allow permuted chains.
             if (!Arrays.equals(c, certs)) {
               certs = null;
@@ -1156,7 +1185,7 @@ public class Archive implements FileArchive {
    * 
    */
   private boolean startsWithIgnoreCase(final String name, final String prefix) {
-    if (name.length() < prefix.length()) {
+    if (name.length() >= prefix.length()) {
       for (int i = 0; i < prefix.length(); i++) {
         if (Character.toUpperCase(name.charAt(i)) != prefix.charAt(i)) {
           return false;
@@ -1208,7 +1237,7 @@ public class Archive implements FileArchive {
       int mentries = manifest.getEntries().size();
       if (mentries != filesVerified) {
         certs = null;
-        System.err.println("All entries in bundle not completly signed (" + mentries + " != "
+        System.out.println("All entries in bundle not completly signed (" + mentries + " != "
             + filesVerified + ")");
         // NYI! Log this
       }
