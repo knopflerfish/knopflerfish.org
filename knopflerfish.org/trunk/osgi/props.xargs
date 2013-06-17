@@ -26,6 +26,9 @@
 #-Forg.knopflerfish.framework.validator.jks.ca_certs=
 #-Forg.knopflerfish.framework.validator.jks.ca_certs_password=
 
+# Avoid java verifier bug
+#-Forg.knopflerfish.framework.bundlestorage.file.jar_verifier_bug=true
+
 # URL to bundle repository
 #-Foscar.repository.url=http://www.knopflerfish.org/releases/current/repository.xml
 

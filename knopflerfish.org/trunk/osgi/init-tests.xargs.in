@@ -39,6 +39,9 @@
 -Forg.knopflerfish.framework.validator.jks.ca_certs=$(TESTJARS)/test.castore
 -Forg.knopflerfish.framework.validator.jks.ca_certs_password=catest
 
+# Avoid java verifier bug
+-Forg.knopflerfish.framework.bundlestorage.file.jar_verifier_bug=true
+
 # Comma-separated list of packges exported by system classloader
 -Forg.osgi.framework.system.packages.extra=
 

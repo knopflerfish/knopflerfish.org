@@ -573,6 +573,19 @@ but "-D" should also work.
     <td>False</td>
   </tr>
   <tr>
+    <td>org.knopflerfish.framework.bundlestorage.file.jar_verifier_bug</td>
+    <td>
+     There is a bug when using file bundle storage, certificate and Oracle
+     JRE (Java 6). This bug causes the JarInputStream to miss picking up
+     certificates for file under the "META-INF" directory if they directly
+     follow the META-INF signature related files. This causes KF to mark
+     the bundle as not completly signed. To ignore problem set property
+     to true.
+    </td>
+    <td>Boolean</td>
+    <td>False</td>
+  </tr>
+  <tr>
     <td>org.knopflerfish.framework.bundlestorage.file.reference</td>
     <td>
      When using file bundle storage, file: URLs can optionally
