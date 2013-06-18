@@ -228,18 +228,12 @@ public class Archive implements FileArchive {
           }
         }
         boolean verify = ba.storage.checkSigned;
-        int verifiedEntries = 0;
         while (processNextJarEntry(ji, verify, file)) {
           if (verify) {
-            if (isArchiveSigned()) {
-              verifiedEntries++;
-            } else {
+            if (!isArchiveSigned()) {
               verify = false;
             }
           }
-        }
-        if (verify) {
-          checkCertificates(verifiedEntries);
         }
         jar = null;
       }
@@ -1205,41 +1199,19 @@ public class Archive implements FileArchive {
     try {
       BufferedInputStream bis = new BufferedInputStream(fis);
       ji = new JarInputStream(bis);
-      int count = 0;
 
       manifest = ji.getManifest();
 
       while (processNextJarEntry(ji, true, null)) {
-        if (isArchiveSigned()) {
-          count++;
-        } else {
+        if (!isArchiveSigned()) {
           break;
         }
       }
-      checkCertificates(count);
     } finally {
       if (ji != null) {
         ji.close();
       } else {
         fis.close();
-      }
-    }
-  }
-
-
-  /**
-   * Check that all entries in the bundle is signed.
-   * 
-   */
-  private void checkCertificates(int filesVerified) {
-    // TBD! Does manifest.getEntries contain more than signers?
-    if (filesVerified > 0) {
-      int mentries = manifest.getEntries().size();
-      if (mentries != filesVerified) {
-        certs = null;
-        System.out.println("All entries in bundle not completly signed (" + mentries + " != "
-            + filesVerified + ")");
-        // NYI! Log this
       }
     }
   }
