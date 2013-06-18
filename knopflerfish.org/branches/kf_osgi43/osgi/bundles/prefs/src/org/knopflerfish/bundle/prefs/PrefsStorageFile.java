@@ -226,7 +226,7 @@ public class  PrefsStorageFile implements PrefsStorage {
       if(dict != null) {
         return dict;
       }
-     
+
       try {
         return (Dictionary) AccessController.doPrivileged(new PrivilegedExceptionAction() {
           public Object run() throws IOException {
@@ -240,7 +240,7 @@ public class  PrefsStorageFile implements PrefsStorage {
 
                 // We might need to decode some keys
                 final Dictionary<String, String> p2 = new Hashtable<String, String>();
-                for(Entry<Object,Object> e : props.entrySet()) {
+                for(final Entry<Object,Object> e : props.entrySet()) {
                   final String decodedKey = decode((String)e.getKey());
                   final String val        = (String)e.getValue();
                   p2.put(decodedKey, val);
@@ -253,11 +253,11 @@ public class  PrefsStorageFile implements PrefsStorage {
                                                 ", file=" + f.getAbsolutePath());
               }
             } finally {
-              try { in.close(); } catch (Exception ignored) {  }
+              try { in.close(); } catch (final Exception ignored) {  }
             }
           }
         });
-      } catch (PrivilegedActionException pae) {
+      } catch (final PrivilegedActionException pae) {
         throw (IOException) pae.getCause();
       }
     }
@@ -267,7 +267,7 @@ public class  PrefsStorageFile implements PrefsStorage {
     synchronized(lock) {
 
       final Properties props = new Properties();
-      for(Enumeration<String> e = p.keys(); e.hasMoreElements(); ) {
+      for(final Enumeration<String> e = p.keys(); e.hasMoreElements(); ) {
         final String key = e.nextElement();
         final Object val = p.get(key);
         props.put(encode(key), val);
@@ -281,17 +281,17 @@ public class  PrefsStorageFile implements PrefsStorage {
               final File f = getKeyFile(path);
               out = new FileOutputStream(f);
               props.save(out, "keys for " + path);
-            } catch (IOException e) {
+            } catch (final IOException e) {
               e.printStackTrace();
               throw e;
             } finally {
-              try { out.close(); } catch (Exception ignored) {
+              try { out.close(); } catch (final Exception ignored) {
               }
             }
             return null;
           }
         });
-      } catch (PrivilegedActionException pae) {
+      } catch (final PrivilegedActionException pae) {
         throw (IOException) pae.getCause();
       }
     }
@@ -306,7 +306,7 @@ public class  PrefsStorageFile implements PrefsStorage {
 
       // System.out.println("dirty " + path);
       //      saveProps(path, p);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       logWarn("Failed to put path=" + path +", key=" + key + ", val=" + val,
               e);
     }
@@ -331,7 +331,7 @@ public class  PrefsStorageFile implements PrefsStorage {
         final String[] f2 = new String[v.size()];
         v.copyInto(f2);
         return f2;
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new IllegalStateException("Failed to get children from '"
                                         + path + "'");
       }
@@ -344,11 +344,11 @@ public class  PrefsStorageFile implements PrefsStorage {
       final String[]   keys  = new String[props.size()];
 
       int i = 0;
-      for(Enumeration<String> e = props.keys(); e.hasMoreElements(); ) {
+      for(final Enumeration<String> e = props.keys(); e.hasMoreElements(); ) {
         keys[i++] = e.nextElement();
       }
       return keys;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       return new String[0];
     }
   }
@@ -361,7 +361,7 @@ public class  PrefsStorageFile implements PrefsStorage {
 
         return val != null ? val : def;
 
-      } catch (IOException e) {
+      } catch (final IOException e) {
         logWarn("Failed to read " + path + ", key=" + key, e);
         return def;
       }
@@ -376,7 +376,7 @@ public class  PrefsStorageFile implements PrefsStorage {
         propsMap.put(path, props);
         dirtySet.add(path);
         //        saveProps(path, props);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         logWarn("Failed to clear " + path, e);
       }
     }
@@ -390,7 +390,7 @@ public class  PrefsStorageFile implements PrefsStorage {
         propsMap.put(path, props);
         dirtySet.add(path);
         //        saveProps(path, props);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         logWarn("Failed to remove " + path + ", key=" + key, e);
       }
     }
@@ -418,7 +418,7 @@ public class  PrefsStorageFile implements PrefsStorage {
 
         final File f = getNodeDir(path, false);
         deleteTree(f);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         e.printStackTrace();
         logWarn("Failed to remove node " + path, e);
       }
@@ -477,7 +477,7 @@ public class  PrefsStorageFile implements PrefsStorage {
 
             try {
               fname = f.getCanonicalPath();
-            } catch (IOException e) {
+            } catch (final IOException e) {
               logWarn("failed to get canonical path of " + path, e);
             }
 
@@ -501,14 +501,13 @@ public class  PrefsStorageFile implements PrefsStorage {
       // allways save all dirty nodes to the storage
       synchronized(dirtySet) {
         // System.out.println("flushing " + dirtySet.size() + " items");
-        for(Iterator<String> it = dirtySet.iterator(); it.hasNext();) {
-          final String p = it.next();
+        for (final String p : dirtySet) {
           final Dictionary<String, String> props = propsMap.get(p);
           if(props != null) {
             //              System.out.println("flush '" + p + "'");
             try {
               saveProps(p, props);
-            } catch (Exception e) {
+            } catch (final Exception e) {
               final String msg = "Failed to flush, baseDir="
                 +baseDir +"; "+e;
               throw new BackingStoreException(msg);
@@ -548,14 +547,14 @@ public class  PrefsStorageFile implements PrefsStorage {
       }
     });
   }
-  
+
   // note: needs to be called in privileged action
   private static void deleteTree0(final File f) {
     if(f.exists()) {
       if(f.isDirectory()) {
         final String[] children = f.list();
-        for(int i = 0; i < children.length; i++) {
-          deleteTree0(new File(f, children[i]));
+        for (final String element : children) {
+          deleteTree0(new File(f, element));
         }
       }
       f.delete();

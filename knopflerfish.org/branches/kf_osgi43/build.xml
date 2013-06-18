@@ -278,7 +278,6 @@
 
   <target name="distrib_jardocs" depends="bundle_tasks">
     <mkdir dir="${distrib.jardocs.dir}"/>
-    <!-- The javadoc directory must exists when running this target. -->
     <mkdir dir="${distrib.javadoc.dir}"/>
 
     <property name="bundle.list.header"
