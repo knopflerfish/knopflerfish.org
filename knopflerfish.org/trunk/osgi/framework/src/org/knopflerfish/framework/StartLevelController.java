@@ -304,12 +304,13 @@ public class StartLevelController
       for (int i = 0; i < set.size(); i++) {
         BundleImpl bs = (BundleImpl)set.elementAt(i);
         try {
-          if (bs.gen.archive.getAutostartSetting()!=-1) {
+          BundleArchive archive = bs.gen.archive;
+          if (archive != null && archive.getAutostartSetting()!=-1) {
             if (fwCtx.debug.startlevel) {
               fwCtx.debug.println("startlevel: start " + bs);
             }
             int startOptions = Bundle.START_TRANSIENT;
-            if (isBundleActivationPolicyUsed(bs.gen.archive)) {
+            if (isBundleActivationPolicyUsed(archive)) {
               startOptions |= Bundle.START_ACTIVATION_POLICY;
             }
             bs.start(startOptions);
