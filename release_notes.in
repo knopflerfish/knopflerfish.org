@@ -10,7 +10,13 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
 
 === Framework (Core) ===
 
-* Framework 5.3.10
+* Framework 5.3.11
+
+  - Fixed race condition in start-level controller that
+    causes a NPE if you uninstall a bundle on the
+    same start-level during bundle start.
+
+  Framework 5.3.10
 
   - Removed faulty redundant check, when checking that
     all component were signed.
