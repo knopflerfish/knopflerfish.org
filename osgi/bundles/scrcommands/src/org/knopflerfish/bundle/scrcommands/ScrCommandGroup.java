@@ -291,7 +291,7 @@ public class ScrCommandGroup extends CommandGroupAdapter {
           Component [] cs = scr.getComponents(b[i]);
           if (cs != null) {
             for (int j = 0; j < cs.length; j++) {
-              if (isSatisfied(cs[i])) {
+              if (isSatisfied(cs[j])) {
                 if (!showSatisfied) {
                   continue;
                 }
