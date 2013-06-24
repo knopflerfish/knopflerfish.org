@@ -85,7 +85,7 @@ class BundleHooks {
           try {
             fh.find(bc, filtered);
           } catch (final Exception e) {
-            fwCtx.listeners.frameworkError(bc,
+            fwCtx.frameworkError(bc,
                 new BundleException("Failed to call find Bundle FindHook  #" +
                                     sr.getProperty(Constants.SERVICE_ID), e));
           }

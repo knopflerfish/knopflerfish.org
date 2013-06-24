@@ -447,7 +447,7 @@ class BundlePackages {
         }
       }
     } catch (BundleException be) {
-      fwCtx.listeners.frameworkError(bg.bundle, be);
+      fwCtx.frameworkError(bg.bundle, be);
     }
     if (trigger != null) {
       fwCtx.resolverHooks.endResolve(trigger);      

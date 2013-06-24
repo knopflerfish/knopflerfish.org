@@ -155,7 +155,7 @@ public class ResolverHooks {
             try {
               rh.end();
             } catch (RuntimeException re) {
-              fwCtx.listeners.frameworkWarning(rhf.bundle, re);
+              fwCtx.frameworkWarning(rhf.bundle, re);
             }
           }
         }

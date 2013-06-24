@@ -338,7 +338,7 @@ public class StartLevelController
         } catch (final IllegalStateException ignore) {
           // Tried to start an uninstalled bundle, skip
         } catch (final Exception e) {
-          fwCtx.listeners.frameworkError(bs, e);
+          fwCtx.frameworkError(bs, e);
         }
       }
     }
@@ -376,7 +376,7 @@ public class StartLevelController
             try {
               bs.stop(Bundle.STOP_TRANSIENT);
             } catch (final Throwable t) {
-              fwCtx.listeners.frameworkError(bs, t);
+              fwCtx.frameworkError(bs, t);
             }
           }
         }
@@ -462,7 +462,7 @@ public class StartLevelController
         }
       }
     } catch (final Throwable t) {
-      fwCtx.listeners.frameworkError(bs, t);
+      fwCtx.frameworkError(bs, t);
     }
   }
 

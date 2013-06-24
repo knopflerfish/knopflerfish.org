@@ -105,6 +105,9 @@ class BundleArchiveImpl implements BundleArchive
   private ArrayList<List<X509Certificate>> untrustedCerts = null;
 
   private boolean checkCerts = true;
+  
+  private ArrayList<Exception> warnings = null;
+
 
   /**
    * Construct new bundle archive.
@@ -294,6 +297,12 @@ class BundleArchiveImpl implements BundleArchive
    */
   public void setBundleGeneration(BundleGeneration bg) {
     bundleGeneration = bg;
+    if (warnings != null) {
+      for (Exception w : warnings) {
+        frameworkWarning(w);
+      }
+      warnings = null;
+    }
   }
 
 
@@ -493,32 +502,20 @@ class BundleArchiveImpl implements BundleArchive
     archive.close();
   }
 
+  void frameworkWarning(Exception warn) {
+    if (bundleGeneration != null) {
+      storage.framework.frameworkWarning(bundleGeneration, warn);
+    } else {
+      if (warnings == null) {
+        warnings = new ArrayList<Exception>();
+      }
+      warnings.add(warn);
+    }
+  }
+
   //
   // Private methods
   //
-
-  /**
-   * Read content of file as a string.
-   *
-   * @param f File to read from
-   * @return contents of the file as a single String
-   */
-  private String getContent(String f) {
-    DataInputStream in = null;
-    try {
-      in = new DataInputStream(new FileInputStream(new File(bundleDir, f)));
-      return in.readUTF();
-    } catch (final IOException ignore) {
-    } finally {
-      if (in != null) {
-        try {
-          in.close();
-        } catch (final IOException ignore) { }
-      }
-    }
-    return null;
-  }
-
 
   /**
    * Statically check if a directory contains info that a bundle
@@ -563,6 +560,32 @@ class BundleArchiveImpl implements BundleArchive
     return null;
   }
 
+
+  //
+  // Private methods
+  //
+  
+  /**
+   * Read content of file as a string.
+   *
+   * @param f File to read from
+   * @return contents of the file as a single String
+   */
+  private String getContent(String f) {
+    DataInputStream in = null;
+    try {
+      in = new DataInputStream(new FileInputStream(new File(bundleDir, f)));
+      return in.readUTF();
+    } catch (final IOException ignore) {
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (final IOException ignore) { }
+      }
+    }
+    return null;
+  }
 
   /**
    * Write string to named file.

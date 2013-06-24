@@ -307,15 +307,13 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
       try {
         s = sBundle.fwCtx.perm.callGetService(this, b);
         if (s == null) {
-          sBundle.fwCtx.listeners.frameworkWarning
-            (sBundle,
+          sBundle.fwCtx.frameworkWarning(sBundle,
              new ServiceException("ServiceFactory produced null",
                                   ServiceException.FACTORY_ERROR));
         }
       } catch (final Throwable pe) {
-        sBundle.fwCtx.listeners.frameworkError
-          (sBundle,
-           new ServiceException("ServiceFactory throw an exception",
+        sBundle.fwCtx.frameworkError(sBundle,
+            new ServiceException("ServiceFactory throw an exception",
                                 ServiceException.FACTORY_EXCEPTION, pe));
       }
       if (s != null) {
@@ -323,11 +321,10 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
         for (final String classe : classes) {
           final String cls = classe;
           if (!sBundle.fwCtx.services.checkServiceClass(s, cls)) {
-            sBundle.fwCtx.listeners.frameworkError
-              (sBundle,
-               new ServiceException("ServiceFactory produced an object " +
-                                    "that did not implement: " + cls,
-                                    ServiceException.FACTORY_ERROR));
+            sBundle.fwCtx.frameworkError(sBundle,
+                new ServiceException("ServiceFactory produced an object " +
+                                     "that did not implement: " + cls,
+                                     ServiceException.FACTORY_ERROR));
             s = null;
             break;
           }
@@ -381,7 +378,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
       try {
         sBundle.fwCtx.perm.callUngetService(this, b, s);
       } catch (final Throwable e) {
-        sBundle.fwCtx.listeners.frameworkError(sBundle, e);
+        sBundle.fwCtx.frameworkError(sBundle, e);
       }
       return null;
     } else {
@@ -466,7 +463,7 @@ public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
         try {
           sBundle.fwCtx.perm.callUngetService(this, b, serviceToRemove);
         } catch (final Throwable e) {
-          sBundle.fwCtx.listeners.frameworkError(sBundle, e);
+          sBundle.fwCtx.frameworkError(sBundle, e);
         }
       }
     }

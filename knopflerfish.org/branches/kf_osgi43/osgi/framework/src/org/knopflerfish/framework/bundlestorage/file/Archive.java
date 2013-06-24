@@ -275,7 +275,7 @@ public class Archive implements FileArchive {
           }
         }
         if (verify) {
-          checkCertificates(verifiedEntries, true);
+          checkCertificates(verifiedEntries);
         }
         jar = null;
       }
@@ -657,7 +657,6 @@ public class Archive implements FileArchive {
   }
 
 
-  // TODO not extensively tested
   public Enumeration<String> findResourcesPath(String path) {
     if (bClosed) {
       return null;
@@ -1343,7 +1342,7 @@ public class Archive implements FileArchive {
         continue;
       }
       final String name = je.getName();
-      if (saveDir != null && !name.startsWith(OSGI_OPT_DIR)) {
+      if (saveDir != null && !startsWithIgnoreCase(name, OSGI_OPT_DIR)) {
         final StringTokenizer st = new StringTokenizer(name, "/");
         File f = new File(saveDir, st.nextToken());
         while (st.hasMoreTokens()) {
@@ -1356,13 +1355,39 @@ public class Archive implements FileArchive {
         loadFile(null, ji);
       }
       ji.closeEntry();
-      if (name.startsWith(META_INF_DIR)) {
-        continue;
+      if (startsWithIgnoreCase(name, META_INF_DIR)) {
+        String sub = name.substring(META_INF_DIR.length());
+        if (sub.indexOf('/') == -1) {
+          if (startsWithIgnoreCase(sub, "SIG-")) {
+            continue;
+          }
+          int idx = sub.lastIndexOf('.');
+          if (idx != -1) {
+            sub = sub.substring(idx + 1);
+            if (sub.equalsIgnoreCase("DSA") ||
+                sub.equalsIgnoreCase("RSA") ||
+                sub.equalsIgnoreCase("SF")) {
+              continue;
+            }
+          }
+        }
+        if (ba.storage.jarVerifierBug) {
+          // There is a bug in Oracles java library.
+          // JavaInputStream will verify files in
+          // META-INF if they directly follow the META-INF
+          // signature related files.
+          if (certs == null) {
+            certs = new Certificate[0];
+            verify = false;
+          } else if (certs.length == 0) {
+            verify = false;
+          }
+        }
       }
       if (verify) {
         final Certificate[] c = je.getCertificates();
         if (c != null) {
-          if (certs != null) {
+          if (certs != null && certs.length > 0) {
             // TBD, perhaps we should allow permuted chains.
             if (!Arrays.equals(c, certs)) {
               certs = null;
@@ -1372,6 +1397,29 @@ public class Archive implements FileArchive {
           }
         } else {
           certs = null;
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+
+  /**
+   * Check if <code>name</code> start with <code>prefix</code> ignoring
+   * case of letters.
+   * 
+   * @param name String to check
+   * @param prefix Prefix string, must be in upper case.
+   * 
+   * @return <code>true</code> if name start with prefix, otherwise
+   *         <code>false</code>
+   */
+  private boolean startsWithIgnoreCase(final String name, final String prefix) {
+    if (name.length() >= prefix.length()) {
+      for (int i = 0; i < prefix.length(); i++) {
+        if (Character.toUpperCase(name.charAt(i)) != prefix.charAt(i)) {
+          return false;
         }
       }
       return true;
@@ -1400,7 +1448,7 @@ public class Archive implements FileArchive {
           break;
         }
       }
-      checkCertificates(count, true);
+      checkCertificates(count);
     } finally {
       if (ji != null) {
         ji.close();
@@ -1412,30 +1460,23 @@ public class Archive implements FileArchive {
 
 
   /**
-   * Check that all entries in the bundle is signed.
    *
    */
-  private void checkCertificates(int filesVerified, boolean complete) {
-    // TBD! Does manifest.getEntries contain more than signers?
+  private void checkCertificates(int filesVerified) {
     if (filesVerified > 0) {
-      int mentries;
-      if (complete) {
-        mentries = manifest.getEntries().size();
-      } else {
-        mentries = 0;
-        for (final String string : manifest.getEntries().keySet()) {
-          final String name = string;
-          if (!name.startsWith(OSGI_OPT_DIR)) {
-            mentries++;
-          }
+      Exception warn = null;
+      if (certs != null) {
+        if (certs.length > 0) {
+          // TODO, check that we have all entries in .SF file
+          return;
+        } else {
+          warn = new IOException("Only contained META-INF entries with no certs due to JRE bug. Entries found " + filesVerified);          
         }
+      } else {
+        warn = new IOException("All entries in bundle not completly signed, scan aborted");
       }
-      if (mentries != filesVerified) {
-        certs = null;
-        System.err.println("All entries in bundle not completly signed (" + mentries + " != "
-            + filesVerified + ")");
-        // NYI! Log this
-      }
+      certs = null;
+      ba.frameworkWarning(warn);
     }
   }
 
@@ -1443,7 +1484,7 @@ public class Archive implements FileArchive {
   /**
    *
    */
-  public void saveCertificates() throws IOException {
+  private void saveCertificates() throws IOException {
     final File f = new File(getPath() + CERTS_SUFFIX);
     if (certs != null) {
       try {
@@ -1453,7 +1494,7 @@ public class Archive implements FileArchive {
         }
         fos.close();
       } catch (final CertificateEncodingException e) {
-        // NYI! Log or fail
+        ba.frameworkWarning(e);
       }
     }
   }
@@ -1474,11 +1515,11 @@ public class Archive implements FileArchive {
           certs = new Certificate[c.size()];
           certs = c.toArray(certs);
         }
-      } catch (final CertificateException ioe) {
-        // NYI! Log or fail
+      } catch (final CertificateException e) {
+        ba.frameworkWarning(e);
       }
     }
-    // NYI! load certificates from both trusted and untrusted storage.
+    // TODO, load certificates from both trusted and untrusted storage!?
   }
 
 

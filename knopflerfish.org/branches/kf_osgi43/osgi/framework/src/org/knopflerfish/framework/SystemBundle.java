@@ -205,7 +205,7 @@ public class SystemBundle extends BundleImpl implements Framework {
           }
           b.start(option);
         } catch (final BundleException be) {
-          fwCtx.listeners.frameworkError(b, be);
+          fwCtx.frameworkError(b, be);
         }
       }
     }
@@ -1007,7 +1007,7 @@ public class SystemBundle extends BundleImpl implements Framework {
           b.stop(Bundle.STOP_TRANSIENT);
         }
       } catch (final BundleException be) {
-        fwCtx.listeners.frameworkError(b, be);
+        fwCtx.frameworkError(b, be);
       }
     }
 

@@ -43,7 +43,6 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import org.osgi.framework.AllServiceListener;
-import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
@@ -100,7 +99,7 @@ class Listeners {
    */
   private PermissionOps secure;
 
-  FrameworkContext framework;
+  FrameworkContext fwCtx;
 
   boolean nocacheldap;
 
@@ -108,7 +107,7 @@ class Listeners {
 
 
   Listeners(FrameworkContext framework, PermissionOps perm) {
-    this.framework = framework;
+    this.fwCtx = framework;
     secure = perm;
     nocacheldap = framework.props.getBooleanProperty(FWProps.LDAP_NOCACHE_PROP);
     serviceListeners = new ServiceListenerState(this);
@@ -142,7 +141,7 @@ class Listeners {
     frameworkListeners.clear();
     serviceListeners.clear();
     secure = null;
-    framework = null;
+    fwCtx = null;
   }
 
 
@@ -260,49 +259,6 @@ class Listeners {
   }
 
 
-  /**
-   * Convenience method for throwing framework error event.
-   *
-   * @param b Bundle which caused the error.
-   * @param t Throwable generated.
-   */
-  void frameworkError(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
-    frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, t), oneTimeListeners);
-  }
-
-
-  /**
-   * Convenience method for throwing framework error event.
-   *
-   * @param bc BundleContext for bundle which caused the error.
-   * @param t Throwable generated.
-   */
-  void frameworkError(BundleContextImpl bc, Throwable t, FrameworkListener... oneTimeListeners) {
-    frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bc.bundle, t), oneTimeListeners);
-  }
-
-
-  /**
-   * Convenience method for throwing framework info event.
-   *
-   * @param b Bundle which caused the throwable.
-   * @param t Throwable generated.
-   */
-  void frameworkInfo(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
-    frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t), oneTimeListeners);
-  }
-
-
-  /**
-   * Convenience method for throwing framework warning event.
-   *
-   * @param b Bundle which caused the throwable.
-   * @param t Throwable generated.
-   */
-  void frameworkWarning(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
-    frameworkEvent(new FrameworkEvent(FrameworkEvent.WARNING, b, t), oneTimeListeners);
-  }
-
 
   /**
    * Receive notification that a bundle has had a change occur in its lifecycle.
@@ -323,7 +279,7 @@ class Listeners {
       filteredBundleListeners = new HashSet<ListenerEntry>();
     }
 
-    framework.bundleHooks.filterBundleEventReceivers(
+    fwCtx.bundleHooks.filterBundleEventReceivers(
         evt,
         filteredSyncBundleListeners,
         filteredBundleListeners);
@@ -354,28 +310,28 @@ class Listeners {
    * @see org.osgi.framework.FrameworkListener#frameworkEvent
    */
   void frameworkEvent(final FrameworkEvent evt, FrameworkListener... oneTimeListeners) {
-    if (framework.debug.errors) {
+    if (fwCtx.debug.errors) {
       if (evt.getType() == FrameworkEvent.ERROR) {
-        framework.debug.println("errors - FrameworkErrorEvent bundle #" +
+        fwCtx.debug.println("errors - FrameworkErrorEvent bundle #" +
                                 evt.getBundle().getBundleId());
-        framework.debug.printStackTrace("errors - FrameworkErrorEvent throwable: ",
+        fwCtx.debug.printStackTrace("errors - FrameworkErrorEvent throwable: ",
                                         evt.getThrowable());
       }
     }
-    if (framework.debug.warnings) {
+    if (fwCtx.debug.warnings) {
       if (evt.getType() == FrameworkEvent.WARNING) {
-        framework.debug.println("warnings - FrameworkErrorEvent bundle #" +
+        fwCtx.debug.println("warnings - FrameworkErrorEvent bundle #" +
                                 evt.getBundle().getBundleId());
-        framework.debug.printStackTrace("warnings - FrameworkErrorEvent throwable: ",
+        fwCtx.debug.printStackTrace("warnings - FrameworkErrorEvent throwable: ",
                                         evt.getThrowable());
       }
     }
-    if (framework.debug.startlevel) {
+    if (fwCtx.debug.startlevel) {
       if (evt.getType() == FrameworkEvent.STARTLEVEL_CHANGED) {
-        framework.debug
+        fwCtx.debug
             .println("startlevel: FrameworkEvent Startlevel Changed");
       } else if (evt.getType() == FrameworkEvent.STARTED) {
-        framework.debug.println("startlevel: FrameworkEvent Started");
+        fwCtx.debug.println("startlevel: FrameworkEvent Started");
       }
     }
 
@@ -430,7 +386,7 @@ class Listeners {
       }
     }
 
-    framework.serviceHooks.filterServiceEventReceivers(evt, receivers);
+    fwCtx.serviceHooks.filterServiceEventReceivers(evt, receivers);
 
     for (final ServiceListenerEntry l : receivers) {
       try {
@@ -445,7 +401,7 @@ class Listeners {
             try {
               ((ServiceListener)l.listener).serviceChanged(evt);
             } catch (final Throwable pe) {
-              frameworkError(l.bc, pe);
+              fwCtx.frameworkError(l.bc, pe);
             }
             break;
           }
@@ -454,8 +410,8 @@ class Listeners {
         // Bundle got UNINSTALLED, skip it
       }
     }
-    if (framework.debug.ldap) {
-      framework.debug.println("Notified " + n + " listeners");
+    if (fwCtx.debug.ldap) {
+      fwCtx.debug.println("Notified " + n + " listeners");
     }
   }
 
@@ -497,7 +453,7 @@ class Listeners {
     try {
       ((BundleListener)le.listener).bundleChanged(evt);
     } catch (final Throwable pe) {
-      frameworkError(le.bc, pe);
+      fwCtx.frameworkError(le.bc, pe);
     }
   }
 
@@ -511,7 +467,7 @@ class Listeners {
     } catch (final Exception pe) {
       // Don't report Error events again, since probably would go into an infinite loop.
       if (evt.getType() != FrameworkEvent.ERROR) {
-        frameworkError(le.bc, pe);
+        fwCtx.frameworkError(le.bc, pe);
       }
     }
   }
@@ -537,7 +493,7 @@ class Listeners {
   private class AsyncEventThread extends Thread {
 
     AsyncEventThread(int i) {
-      super(framework.threadGroup, "AsyncEventThread#" + i);
+      super(fwCtx.threadGroup, "AsyncEventThread#" + i);
     }
 
 

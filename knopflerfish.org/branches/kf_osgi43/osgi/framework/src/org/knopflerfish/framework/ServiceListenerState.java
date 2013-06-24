@@ -115,7 +115,7 @@ class ServiceListenerState {
       remove(bc, listener);
     }
     serviceSet.add(sle);
-    listeners.framework.serviceHooks.handleServiceListenerReg(sle);
+    listeners.fwCtx.serviceHooks.handleServiceListenerReg(sle);
     checkSimple(sle);
   }
 
@@ -130,7 +130,7 @@ class ServiceListenerState {
       final ServiceListenerEntry sle = it.next();
       if (sle.bc == bc && sle.listener == listener) {
         sle.setRemoved(true);
-        listeners.framework.serviceHooks.handleServiceListenerUnreg(sle);
+        listeners.fwCtx.serviceHooks.handleServiceListenerUnreg(sle);
         removeFromCache(sle);
         it.remove();
         break;
@@ -193,7 +193,7 @@ class ServiceListenerState {
         entries.add(sle);
       }
     }
-    listeners.framework.serviceHooks.handleServiceListenerUnreg(Collections.unmodifiableList(entries));
+    listeners.fwCtx.serviceHooks.handleServiceListenerUnreg(Collections.unmodifiableList(entries));
   }
 
 
@@ -220,8 +220,8 @@ class ServiceListenerState {
           }
         }
       } else {
-        if (listeners.framework.debug.ldap) {
-          listeners.framework.debug.println("Too complicated filter: " + sle.ldap);
+        if (listeners.fwCtx.debug.ldap) {
+          listeners.fwCtx.debug.println("Too complicated filter: " + sle.ldap);
         }
         complicatedListeners.add(sle);
       }
@@ -245,8 +245,8 @@ class ServiceListenerState {
       }
       ++n;
     }
-    if (listeners.framework.debug.ldap) {
-      listeners.framework.debug.println("Added " + set.size() + " out of " + n +
+    if (listeners.fwCtx.debug.ldap) {
+      listeners.fwCtx.debug.println("Added " + set.size() + " out of " + n +
                                         " listeners with complicated filters");
     }
     // Check the cache
@@ -285,13 +285,13 @@ class ServiceListenerState {
   private void addToSet(Set<ServiceListenerEntry> set, int cache_ix, Object val) {
     final List<ServiceListenerEntry> l = cache[cache_ix].get(val);
     if (l != null) {
-      if (listeners.framework.debug.ldap) {
-        listeners.framework.debug.println(hashedKeys[cache_ix] + " matches " + l.size());
+      if (listeners.fwCtx.debug.ldap) {
+        listeners.fwCtx.debug.println(hashedKeys[cache_ix] + " matches " + l.size());
       }
       set.addAll(l);
     } else {
-      if (listeners.framework.debug.ldap) {
-        listeners.framework.debug.println(hashedKeys[cache_ix] + " matches none");
+      if (listeners.fwCtx.debug.ldap) {
+        listeners.fwCtx.debug.println(hashedKeys[cache_ix] + " matches none");
       }
     }
   }

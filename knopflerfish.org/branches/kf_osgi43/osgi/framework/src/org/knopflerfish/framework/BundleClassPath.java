@@ -280,7 +280,7 @@ public class BundleClassPath {
             debug.println(this + "- Added path entry: " + a);
           }
         } else {
-          fwCtx.listeners.frameworkWarning(ba.getBundleGeneration().bundle,
+          fwCtx.frameworkWarning(ba.getBundleGeneration().bundle,
               new IllegalArgumentException(Constants.BUNDLE_CLASSPATH + " entry " + path
                   + " not found in bundle"));
           if (debug.classLoader) {

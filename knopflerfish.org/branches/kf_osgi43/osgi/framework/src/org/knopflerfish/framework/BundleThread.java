@@ -150,7 +150,7 @@ class BundleThread extends Thread {
             break;
           }
         } catch (final Throwable t) {
-          fwCtx.listeners.frameworkError(bundle, t);
+          fwCtx.frameworkError(bundle, t);
         }
         operation = OP_IDLE;
         res = tmpres;

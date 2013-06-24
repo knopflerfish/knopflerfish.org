@@ -689,8 +689,8 @@ class Resolver {
       ExportPkg provider = null;
       final ImportPkg ip = pkgs.next();
       if (ip.provider != null) {
-        framework.listeners.frameworkError(ip.bpkgs.bg.bundle,
-                                           new Exception("resolvePackages: InternalError1!"));
+        framework.frameworkError(ip.bpkgs.bg.bundle,
+            new Exception("resolvePackages: InternalError1!"));
       }
       if (framework.debug.resolver) {
         framework.debug.println("resolvePackages: check - " + ip.pkgString());
@@ -1355,7 +1355,7 @@ class Resolver {
                   }
                 } else {
                   // TODO, should we resolve when this happens!?
-                  framework.listeners.frameworkError(bg.bundle,
+                  framework.frameworkError(bg.bundle,
                        new Exception("registerNewProviders: Warning! Internal wire for, " + ip +
                                      ", does not match exported. " + ep));
                 }
@@ -1370,8 +1370,8 @@ class Resolver {
     }
     for (final BundleImpl b : resolve) {
       if (b.getUpdatedState(null) == Bundle.INSTALLED) {
-        framework.listeners.frameworkError(b,
-          new Exception("registerNewProviders: InternalError!"));
+        framework.frameworkError(b,
+            new Exception("registerNewProviders: InternalError!"));
       }
     }
   }

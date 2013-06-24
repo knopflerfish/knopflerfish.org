@@ -365,7 +365,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
           try {
             secure.callFinalizeActivation(b);
           } catch (final BundleException e) {
-            fwCtx.listeners.frameworkError(b, e);
+            fwCtx.frameworkError(b, e);
           }
         } else {
           // add bundle to list of bundles to activate when the
@@ -669,7 +669,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
           try {
             tmp.finalizeActivation();
           } catch (final BundleException e) {
-            fwCtx.listeners.frameworkError(tmp, e);
+            fwCtx.frameworkError(tmp, e);
           }
         }
       }
@@ -870,7 +870,7 @@ final public class BundleClassLoader extends ClassLoader implements BundleRefere
         // ClassFormatErrors are thrown that doesn't seem to be in the spec
         throw cfe;
       } catch (final IOException ioe) {
-        fwCtx.listeners.frameworkError(bpkgs.bg.bundle, ioe);
+        fwCtx.frameworkError(bpkgs.bg.bundle, ioe);
         return null;
       }
     }

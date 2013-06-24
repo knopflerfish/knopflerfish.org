@@ -156,7 +156,7 @@ class ServiceHooks {
           try {
             fh.find(bc, service, filter, allServices, filtered);
           } catch (final Exception e) {
-            fwCtx.listeners.frameworkError(bc,
+            fwCtx.frameworkError(bc,
                 new BundleException("Failed to call find hook  #" +
                                     sr.getProperty(Constants.SERVICE_ID), e));
           }

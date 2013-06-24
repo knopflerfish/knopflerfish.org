@@ -47,6 +47,8 @@ import java.util.Set;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
@@ -690,14 +692,14 @@ public class FrameworkContext  {
             bootDelegationPatterns.add(key.substring(0, key.length() - 1));
           }
           else if (key.endsWith(".")) {
-            listeners.frameworkError(systemBundle, new IllegalArgumentException
-                                     (Constants.FRAMEWORK_BOOTDELEGATION
-                                      +" entry ends with '.': " +key));
+            frameworkError(systemBundle, new IllegalArgumentException
+                           (Constants.FRAMEWORK_BOOTDELEGATION
+                            +" entry ends with '.': " +key));
           }
           else if (key.indexOf("*") != - 1) {
-            listeners.frameworkError(systemBundle, new IllegalArgumentException
-                                     (Constants.FRAMEWORK_BOOTDELEGATION
-                                      +" entry contains a '*': " + key));
+            frameworkError(systemBundle, new IllegalArgumentException
+                           (Constants.FRAMEWORK_BOOTDELEGATION
+                            +" entry contains a '*': " + key));
           }
           else {
             bootDelegationPatterns.add(key);
@@ -815,6 +817,61 @@ public class FrameworkContext  {
     for (final ExtensionContext extCtx : extCtxs) {
       extCtx.bundleClassLoaderClosed(bcl);
     }
+  }
+
+
+  /**
+   * Convenience method for throwing framework error event.
+   *
+   * @param b Bundle which caused the error.
+   * @param t Throwable generated.
+   */
+  public void frameworkError(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, t), oneTimeListeners);
+  }
+
+
+  /**
+   * Convenience method for throwing framework error event.
+   *
+   * @param bc BundleContext for bundle which caused the error.
+   * @param t Throwable generated.
+   */
+  public void frameworkError(BundleContextImpl bc, Throwable t, FrameworkListener... oneTimeListeners) {
+    listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bc.bundle, t), oneTimeListeners);
+  }
+
+
+  /**
+   * Convenience method for throwing framework info event.
+   *
+   * @param b Bundle which caused the throwable.
+   * @param t Throwable generated.
+   */
+  public void frameworkInfo(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t), oneTimeListeners);
+  }
+
+
+  /**
+   * Convenience method for throwing framework warning event.
+   *
+   * @param b Bundle which caused the throwable.
+   * @param t Throwable generated.
+   */
+  public void frameworkWarning(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.WARNING, b, t), oneTimeListeners);
+  }
+
+
+  /**
+   * Convenience method for throwing framework warning event.
+   *
+   * @param b Bundle which caused the throwable.
+   * @param t Throwable generated.
+   */
+  public void frameworkWarning(BundleGeneration bg, Throwable t, FrameworkListener... oneTimeListeners) {
+    frameworkWarning(bg.bundle, t, oneTimeListeners);
   }
 
 

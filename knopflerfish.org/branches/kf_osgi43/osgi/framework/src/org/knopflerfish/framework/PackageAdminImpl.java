@@ -265,7 +265,7 @@ public class PackageAdminImpl implements PackageAdmin {
             bi[bx].waitOnOperation(fwCtx.resolver, "PackageAdmin.refreshPackages", false);
             final Exception be = bi[bx].stop0();
             if (be != null) {
-              fwCtx.listeners.frameworkError(bi[bx], be);
+              fwCtx.frameworkError(bi[bx], be);
             }
           } catch (final BundleException ignore) {
             // Wait failed, we will try again
@@ -292,12 +292,12 @@ public class PackageAdminImpl implements PackageAdmin {
                 fwCtx.debug
                     .println("PackageAdminImpl.refreshPackages() timeout on bundle stop, retry...");
               }
-              fwCtx.listeners.frameworkWarning(bi[bx], we);
+              fwCtx.frameworkWarning(bi[bx], we);
             }
           }
           be = bi[bx].stop0();
           if (be != null) {
-            fwCtx.listeners.frameworkError(bi[bx], be);
+            fwCtx.frameworkError(bi[bx], be);
           }
           if (nextStart != bi[bx]) {
             startList.add(startPos + 1, bi[bx]);
@@ -352,7 +352,7 @@ public class PackageAdminImpl implements PackageAdmin {
         try {
           rb.start();
         } catch (final BundleException be) {
-          rb.fwCtx.listeners.frameworkError(rb, be);
+          rb.fwCtx.frameworkError(rb, be);
         }
       }
     }

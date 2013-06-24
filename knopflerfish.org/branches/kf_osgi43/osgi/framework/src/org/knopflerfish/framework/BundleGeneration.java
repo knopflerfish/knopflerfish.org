@@ -360,7 +360,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         }
       }
     } catch (final Exception exc) {
-      b.fwCtx.listeners.frameworkError(b, exc);
+      b.fwCtx.frameworkError(b, exc);
     }
     archive.setBundleGeneration(this);
     long lastModified = prev != null ? 0 : archive.getLastModified();
@@ -464,7 +464,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       try {
         archive.setLastModified(timeStamp);
       } catch (final IOException ioe) {
-        bundle.fwCtx.listeners.frameworkError(bundle, ioe);
+        bundle.fwCtx.frameworkError(bundle, ioe);
       }
     }
   }

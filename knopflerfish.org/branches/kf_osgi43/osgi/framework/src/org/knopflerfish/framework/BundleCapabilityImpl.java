@@ -166,7 +166,7 @@ public class BundleCapabilityImpl implements BundleCapability {
                                    directives.get(Constants.USES_DIRECTIVE));
     } catch (IllegalArgumentException iae) {
       final BundleImpl b = gen.bundle;
-      b.fwCtx.listeners.frameworkError(b, iae);
+      b.fwCtx.frameworkError(b, iae);
     }
     return null;
   }

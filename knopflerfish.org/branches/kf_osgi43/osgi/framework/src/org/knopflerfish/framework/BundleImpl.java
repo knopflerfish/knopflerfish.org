@@ -799,7 +799,7 @@ public class BundleImpl implements Bundle {
         try {
           start();
         } catch (final BundleException be) {
-          fwCtx.listeners.frameworkError(this, be);
+          fwCtx.frameworkError(this, be);
         }
       }
       if (e instanceof BundleException) {
@@ -861,7 +861,7 @@ public class BundleImpl implements Bundle {
       try {
         start();
       } catch (final BundleException be) {
-        fwCtx.listeners.frameworkError(this, be);
+        fwCtx.frameworkError(this, be);
       }
     }
   }
@@ -910,7 +910,7 @@ public class BundleImpl implements Bundle {
         }
         operation = UNINSTALLING;
         if (exception != null) {
-          fwCtx.listeners.frameworkError(this, exception);
+          fwCtx.frameworkError(this, exception);
         }
         // Fall through
       case RESOLVED:
@@ -927,7 +927,7 @@ public class BundleImpl implements Bundle {
               bundleContext = null;
             }
             operation = UNINSTALLING;
-            fwCtx.listeners.frameworkError(this, be);
+            fwCtx.frameworkError(this, be);
           }
         }
         if (state == UNINSTALLED) {
@@ -986,7 +986,7 @@ public class BundleImpl implements Bundle {
         operation = IDLE;
         if (bundleDir != null) {
           if (bundleDir.exists() && !bundleDir.delete()) {
-            fwCtx.listeners.frameworkError(this,
+            fwCtx.frameworkError(this,
                 new IOException("Failed to delete bundle data"));
           }
           bundleDir = null;
@@ -1287,7 +1287,7 @@ public class BundleImpl implements Bundle {
           fwCtx.resolverHooks.endResolve(triggers);
         }
         resolveFailException = be;
-        fwCtx.listeners.frameworkError(this, be);
+        fwCtx.frameworkError(this, be);
       }
     }
     return state;
@@ -1312,7 +1312,7 @@ public class BundleImpl implements Bundle {
       } catch (final BundleException be) {
         throw be;
       } catch (final Exception e) {
-        fwCtx.listeners.frameworkWarning(this, e);
+        fwCtx.frameworkWarning(this, e);
       }
     }
     return false;
@@ -1513,7 +1513,7 @@ public class BundleImpl implements Bundle {
         ba.setAutostartSetting(setting);
       }
     } catch (final IOException e) {
-      fwCtx.listeners.frameworkError(this, e);
+      fwCtx.frameworkError(this, e);
     }
   }
 
@@ -1555,7 +1555,7 @@ public class BundleImpl implements Bundle {
       try {
         ba.setStartLevel(n);
       } catch (final Exception e) {
-        fwCtx.listeners.frameworkError(this, new BundleException(
+        fwCtx.frameworkError(this, new BundleException(
             "Failed to set start level on #" + id, e));
       }
     }

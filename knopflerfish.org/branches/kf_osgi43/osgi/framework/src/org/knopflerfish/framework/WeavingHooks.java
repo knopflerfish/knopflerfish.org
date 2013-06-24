@@ -114,14 +114,14 @@ class WeavingHooks {
         try {
           twh.weave(wc);
         } catch (final WeavingException we) {
-          fwCtx.listeners.frameworkError(twh.reference.getBundle(), we);
+          fwCtx.frameworkError(twh.reference.getBundle(), we);
           final ClassFormatError cfe = new ClassFormatError(
               "WeavingException thrown: " + we.getMessage() + " by hook "
                   + twh.getClass().getName());
           cfe.initCause(we);
           throw cfe;
         } catch (final Throwable t) {
-          fwCtx.listeners.frameworkError(twh.reference.getBundle(), t);
+          fwCtx.frameworkError(twh.reference.getBundle(), t);
           twh.blacklist();
           final ClassFormatError cfe = new ClassFormatError("Exception throw: " + t
               + " while calling hook " + twh.getClass().getName());
