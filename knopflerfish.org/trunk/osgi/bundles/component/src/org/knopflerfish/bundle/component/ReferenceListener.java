@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,21 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.TreeSet;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.cm.Configuration;
 import org.osgi.service.component.ComponentConstants;
 
 
@@ -45,14 +56,18 @@ import org.osgi.service.component.ComponentConstants;
  */
 class ReferenceListener implements ServiceListener
 {
+  private static final int NO_OP = 0;
+  private static final int ADD_OP = 1;
+  private static final int DELETE_OP = 2;
+  
   final Reference ref;
-  private HashMap /* ServiceReference -> Object */  bound = new HashMap();
-  private HashSet /* ServiceReference */ serviceRefs = new HashSet();
+  private final HashMap /* ServiceReference -> Object */ bound = new HashMap();
+  private final HashSet /* ServiceReference */ serviceRefs = new HashSet();
   private HashSet /* ServiceReference */ unbinding = new HashSet();
   private ServiceReference selectedServiceRef = null;
-  private TreeSet pids = new TreeSet();
+  private final TreeSet /* String */ pids = new TreeSet();
   private Filter cmTarget;
-  private LinkedList sEventQueue = new LinkedList();
+  private final LinkedList /* ServiceEvent */ sEventQueue = new LinkedList();
 
 
   /**
@@ -95,17 +110,17 @@ class ReferenceListener implements ServiceListener
     } else {
       cmTarget = null;
     }
-    String filter = getFilter();
+    final String filter = getFilter();
     Activator.logDebug("Start listening, ref=" + getName() + " with filter=" + filter);
     ref.comp.bc.removeServiceListener(this);
     synchronized (serviceRefs) {
-      HashSet oldServiceRefs = (HashSet)serviceRefs.clone();
+      final HashSet oldServiceRefs = (HashSet)serviceRefs.clone();
       serviceRefs.clear();
       ServiceReference [] srs;
       try {
         ref.comp.bc.addServiceListener(this, filter);
-        srs = ref.comp.bc.getServiceReferences(null, filter);
-      } catch (InvalidSyntaxException ise) {
+        srs = ref.comp.bc.getServiceReferences((String)null, filter);
+      } catch (final InvalidSyntaxException ise) {
         throw new RuntimeException("Should not occur, Filter already checked");
       }
       if (srs != null) {
@@ -114,7 +129,7 @@ class ReferenceListener implements ServiceListener
           if (oldServiceRefs.remove(srs[i])) {
             serviceRefs.add(srs[i]);
           } else {
-            ServiceEvent e = new ServiceEvent(ServiceEvent.REGISTERED, srs[i]);
+            final ServiceEvent e = new ServiceEvent(ServiceEvent.REGISTERED, srs[i]);
             if (best == null || best.compareTo(srs[i]) < 0) {
               best = srs[i];
               sEventQueue.addFirst(e);
@@ -138,7 +153,7 @@ class ReferenceListener implements ServiceListener
    *
    */
   boolean checkTargetChanged(Configuration config) {
-    Filter f = ref.getTarget(config.getProperties(), "CM pid = " + config.getPid());
+    final Filter f = ref.getTarget(config.getProperties(), "CM pid = " + config.getPid());
     if (f != null) {
       return !f.equals(cmTarget);
     } else {
@@ -246,19 +261,32 @@ class ReferenceListener implements ServiceListener
    */
   ServiceReference getServiceReference() {
     synchronized (serviceRefs) {
-      if (selectedServiceRef == null &&
-          !serviceRefs.isEmpty()) {
-        Iterator i = serviceRefs.iterator();
-        selectedServiceRef = (ServiceReference)i.next();
-        while (i.hasNext()) {
-          ServiceReference tst = (ServiceReference)i.next();
-          if (selectedServiceRef.compareTo(tst) < 0) {
-            selectedServiceRef = tst;
-          }
-        }
+      if (selectedServiceRef == null) {
+        setSelected(getHighestRankedServiceReference());
       }
     }
     return selectedServiceRef;
+  }
+
+
+  private ServiceReference getHighestRankedServiceReference() {
+    ServiceReference res = null;
+    synchronized (serviceRefs) {
+      for (Iterator i = serviceRefs.iterator(); i.hasNext(); ) {
+        ServiceReference tst = (ServiceReference)i.next();
+        if (res == null || res.compareTo(tst) < 0) {
+          res = tst;
+        }
+      }
+    }
+    return res;
+  }
+
+
+  void setSelected(ServiceReference s) {
+    synchronized (serviceRefs) {
+      selectedServiceRef = s;
+    }
   }
 
 
@@ -266,7 +294,7 @@ class ReferenceListener implements ServiceListener
    * Get highest ranked service.
    */
   Object getService() {
-    ServiceReference sr = getServiceReference();
+    final ServiceReference sr = getServiceReference();
     if (sr != null) {
       return getServiceCheckActivate(sr);
     }
@@ -282,20 +310,21 @@ class ReferenceListener implements ServiceListener
     synchronized (serviceRefs) {
       c = serviceRefs.contains(sr) || unbinding.contains(sr);
     }
+    Activator.logDebug("RL.getService " + Activator.srInfo(sr) + " available: " + c);
     return c ? getServiceCheckActivate(sr) : null;
   }
 
 
   ServiceReference [] getServiceReferences() {
     synchronized (serviceRefs) {
-      return (ServiceReference [])serviceRefs.toArray(new ServiceReference[serviceRefs.size()]);
+      return (ServiceReference[])serviceRefs.toArray(new ServiceReference[serviceRefs.size()]);
     }
   }
 
 
   ServiceReference [] getBoundServiceReferences() {
     synchronized (bound) {
-      return (ServiceReference [])bound.keySet().toArray(new ServiceReference[bound.size()]);
+      return (ServiceReference[])bound.keySet().toArray(new ServiceReference[bound.size()]);
     }
   }
 
@@ -318,7 +347,7 @@ class ReferenceListener implements ServiceListener
 
   boolean doUnbound(ServiceReference sr) {
     synchronized (bound) {
-      return bound.containsKey(sr);  
+      return bound.containsKey(sr);
     }
   }
 
@@ -337,23 +366,14 @@ class ReferenceListener implements ServiceListener
   /**
    * Get all services.
    */
-  Object [] getServices() {
-
-    ServiceReference [] srs = getServiceReferences();
-    ArrayList res = new ArrayList(srs.length);
+  Object[] getServices()
+  {
+    final ServiceReference [] srs = getServiceReferences();
+    final ArrayList res = new ArrayList(srs.length);
     for (int i = 0; i < srs.length; i++) {
       res.add(getServiceCheckActivate(srs[i]));
     }
     return res.toArray();
-  }
-
-
-  HashSet getUnbinding() {
-    synchronized (serviceRefs) {
-      HashSet res = unbinding;
-      unbinding = new HashSet();
-      return res;
-    }
   }
 
   //
@@ -367,10 +387,9 @@ class ReferenceListener implements ServiceListener
     ref.comp.scr.postponeCheckin();
     try {
       do {
-        boolean doAdd;
-        int cnt;
         boolean wasSelected = false;
         ServiceReference s;
+        int op = NO_OP;
         synchronized (serviceRefs) {
           if (sEventQueue.isEmpty()) {
             if (se == null) {
@@ -386,41 +405,45 @@ class ReferenceListener implements ServiceListener
           switch (se.getType()) {
           case ServiceEvent.MODIFIED:
           case ServiceEvent.REGISTERED:
-            if (!serviceRefs.add(s)) {
-              // Service properties just changed,
-              // ignore
-              continue;
+            if (serviceRefs.add(s)) {
+              // TODO check should we always call when != 1?
+              if (serviceRefs.size() != 1 || !ref.refAvailable()) {
+                op = ADD_OP;
+              }
             }
-            cnt = serviceRefs.size();
-            doAdd = true;
             break;
           case ServiceEvent.MODIFIED_ENDMATCH:
           case ServiceEvent.UNREGISTERING:
             serviceRefs.remove(s);
             if  (selectedServiceRef == s) {
-              selectedServiceRef = null;
               wasSelected = true;
             }
-            cnt = serviceRefs.size();
             unbinding.add(s);
-            doAdd = false;
+            if (serviceRefs.size() != 0 || !ref.refUnavailable()) {
+              if (ref.isMultiple() || wasSelected) {
+                op = DELETE_OP;
+              }
+            }
+            if (op != DELETE_OP)  {
+              unbinding.remove(s);
+              setSelected(null);
+            }
             break;
           default:
             // To keep compiler happy
             throw new RuntimeException("Internal error");
           }
         }
-        if (doAdd) {
-          if (cnt != 1 || !ref.refAvailable()) {
-            refUpdated(s, false, false);
+        switch (op) {
+        case ADD_OP:
+          refAdded(s);
+          break;
+        case DELETE_OP:
+          refDeleted(s);
+          synchronized (serviceRefs) {
+            unbinding.remove(s);
           }
-        } else {
-          if (cnt != 0 || !ref.refUnavailable()) {
-            refUpdated(s, true, wasSelected);
-            synchronized (serviceRefs) {
-              unbinding.remove(s);
-            }
-          }
+          break;
         }
         se = null;
       } while (!sEventQueue.isEmpty());
@@ -440,14 +463,14 @@ class ReferenceListener implements ServiceListener
   private Object getServiceCheckActivate(ServiceReference sr) {
     Object s = getBound(sr);
     if (s == null) {
-      Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
+      final Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
       if (o != null && o instanceof String) {
-        Component [] cs = ref.comp.scr.getComponent((String)o);
+        final Component [] cs = ref.comp.scr.getComponent((String)o);
         if (cs != null) {
           ref.comp.scr.postponeCheckin();
           try {
             for (int i = 0; i < cs.length; i++) {
-              ComponentConfiguration cc = cs[i].getComponentConfiguration(sr);
+              final ComponentConfiguration cc = cs[i].getComponentConfiguration(sr);
               if (cc != null) {
                 cc.activate(ref.comp.bc.getBundle(), false);
                 break;
@@ -469,7 +492,7 @@ class ReferenceListener implements ServiceListener
    * Get filter string for finding this reference.
    */
   private String getFilter() {
-    Filter target = getTargetFilter();
+    final Filter target = getTargetFilter();
     if (target != null) {
       return "(&(" + Constants.OBJECTCLASS + "=" +
         ref.refDesc.interfaceName +")" + target.toString() + ")";
@@ -478,20 +501,96 @@ class ReferenceListener implements ServiceListener
     }
   }
 
-
+  
   /**
-   * Call refUpdated for component configurations that has bound this reference.
+   * The tracked reference has been added.
+   *
    */
-  private void refUpdated(ServiceReference s, boolean deleted, boolean wasSelected) {
-    Iterator i = getPids();
-    if (i != null) {
-      while (i.hasNext()) {
-        ComponentConfiguration cc = (ComponentConfiguration)ref.comp.compConfigs.get(i.next());
-        if (cc != null) {
-          cc.refUpdated(this, s, deleted, wasSelected);
+  private void refAdded(ServiceReference s)
+  {
+    Activator.logDebug("refAdded, " + toString() + ", " + s);
+    ArrayList ccs = getComponentConfigs();
+    if (isDynamic()) {
+      if (isMultiple()) {
+        bindReference(s, ccs);
+      } else {
+        final ServiceReference selected = getServiceReference();
+        if (s == selected) {
+          bindReference(s, ccs);
         }
       }
     }
+  }
+
+  /**
+   * The tracked reference has been deleted.
+   *
+   */
+  private void refDeleted(ServiceReference s)
+  {
+    Activator.logDebug("refDeleted, " + toString() + ", " + s);
+    ArrayList ccs = getComponentConfigs();
+    if (isDynamic()) {
+      setSelected(null);
+      if (isMultiple()) {
+        unbindReference(s, ccs);
+      } else {
+        final ServiceReference newS = getServiceReference();
+        if (newS != null) {
+          bindReference(newS, ccs);
+        }
+        unbindReference(s, ccs);
+      }
+    } else {
+      // If it is a service we use, check what to do
+      reactivate(ccs);
+      // Hold on to service during deactivation
+      for (Iterator i = ccs.iterator(); i.hasNext(); ) {
+        ((ComponentConfiguration) i.next()).waitForDeactivate();
+      }
+    }
+  }
+
+  private void bindReference(ServiceReference s, ArrayList ccs) {
+    for (Iterator i = ccs.iterator(); i.hasNext(); ) {
+      ((ComponentConfiguration)i.next()).bindReference(this, s);
+    }
+  }
+
+
+  private void unbindReference(ServiceReference s, ArrayList ccs) {
+    for (Iterator i = ccs.iterator(); i.hasNext(); ) {
+      ((ComponentConfiguration)i.next()).unbindReference(this, s);
+    }
+  }
+
+
+  private void reactivate(ArrayList ccs) {
+    for (Iterator i = ccs.iterator(); i.hasNext(); ) {
+      final ComponentConfiguration cc = (ComponentConfiguration)i.next();
+      cc.dispose(ComponentConstants.DEACTIVATION_REASON_REFERENCE, false);
+    }
+    setSelected(null);
+    for (Iterator i = ccs.iterator(); i.hasNext(); ) {
+      final ComponentConfiguration cc = (ComponentConfiguration)i.next();
+      cc.remove(ComponentConstants.DEACTIVATION_REASON_REFERENCE);
+    }
+  }
+
+
+    /**
+   * Call refUpdated for component configurations that has bound this reference.
+   */
+  private ArrayList getComponentConfigs() {
+    ArrayList res = new ArrayList();
+    for (Iterator i = getPids(); i.hasNext(); ) {
+      final ComponentConfiguration cc =
+        (ComponentConfiguration)ref.comp.compConfigs.get(i.next());
+      if (cc != null) {
+        res.add(cc);
+      }
+    }
+    return res;
   }
 
 }

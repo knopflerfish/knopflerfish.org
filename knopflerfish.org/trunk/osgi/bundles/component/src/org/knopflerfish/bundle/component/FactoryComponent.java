@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,7 +104,7 @@ class FactoryComponent extends Component
       return cci.getComponentInstance();
     } else {
       // Make sure it is disposed, perhaps we should "lock" protect this code instead
-      cc.dispose(KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING);
+      cc.dispose(KF_DEACTIVATION_REASON_COMPONENT_DEACTIVATING, true);
       throw new ComponentException("Factory is/has been deactivated");
     }
   }
