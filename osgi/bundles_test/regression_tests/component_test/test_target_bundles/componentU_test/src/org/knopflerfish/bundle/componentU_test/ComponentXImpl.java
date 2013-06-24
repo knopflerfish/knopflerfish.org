@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2013, KNOPFLERFISH project
+ * Copyright (c) 2013-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,45 +31,69 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.knopflerfish.bundle.component;
+package org.knopflerfish.bundle.componentU_test;
 
-import org.osgi.service.component.*;
+import org.knopflerfish.service.componentU_test.ComponentX;
+import org.knopflerfish.service.componentU_test.ComponentY;
+import org.knopflerfish.service.componentU_test.ComponentZ;
 
+import org.osgi.service.component.ComponentContext;
 
-class ImmediateComponent extends Component {
+public class ComponentXImpl
+  implements ComponentX
+{
+  private Integer yStatus = new Integer(0);
+  private Integer zStatus = new Integer(0);
+  private ComponentY y;
+  private ComponentZ z;
+  private ComponentContext cc = null;
 
-  ImmediateComponent(SCR scr, ComponentDescription cd) {
-    super(scr, cd);
+  void activate(ComponentContext cc)
+  {
+    this.cc = cc;
+    System.out.println("XImpl: activate");
   }
 
-
-  public String toString() {
-    return "Immediate component: " + compDesc.getName();
+  void deactivate(ComponentContext cc)
+  {
+    this.cc = null;
+    System.out.println("XImpl: deactivate");
   }
 
+  public void setY(ComponentY y)
+  {
+    this.y = y;
+    yStatus = new Integer(yStatus.intValue() + 1);
+    System.out.println("XImpl: binding Y, " +y);
+  }
+  public void unsetY(ComponentY y)
+  {
+    this.y = null;
+    yStatus = new Integer(yStatus.intValue() + 100);
+    System.out.println("XImpl: unbinding Y, " +y);
+  }
 
-  /**
-   * Immediate component satisfied, create a component configuration
-   * for each CM pid available or a single component configuration
-   * if no CM data is available. Register component service if
-   * there is one and activate component configurations.
-   *
-   */
-  void subclassSatisfied() {
-    Activator.logInfo(bc, "Satisfied: " + toString());
-    ComponentConfiguration [] cc = newComponentConfiguration();
-    for (int i = 0; i < cc.length; i++) {
-      cc[i].registerService();
-      scr.postponeCheckin();
-      try {
-        cc[i].activate(null, true);
-      } catch (ComponentException _ignore) {
-        // Error messages are logged by the activate method
-        cc[i].dispose(KF_DEACTIVATION_REASON_ACTIVATION_FAILED, true);
-      } finally {
-        scr.postponeCheckout();
-      }
-    }
+  public void setZ(ComponentZ z)
+  {
+    this.z = z;
+    zStatus = new Integer(zStatus.intValue() + 1);
+    System.out.println("XImpl: binding Z, " +z);
+  }
+  public void unsetZ(ComponentZ z)
+  {
+    this.z = null;
+    zStatus = new Integer(zStatus.intValue() + 100);
+    System.out.println("XImpl: unbinding Z, " +z);
+  }
+
+  public Integer getBindYStatus()
+  {
+    return this.yStatus;
+  }
+
+  public Integer getBindZStatus()
+  {
+    return this.zStatus;
   }
 
 }

@@ -985,6 +985,12 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentX");
         assertNull("Should not get serviceRef X", ref);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentY");
+        assertNull("Should not get serviceRef Y", ref);
+
+        ref = bc.getServiceReference("org.knopflerfish.service.componentU_test.ComponentZ");
+        assertNull("Should not get serviceRef Z", ref);
       } catch (Exception e) {
         e.printStackTrace();
         fail("Test7: got unexpected exception " + e);
