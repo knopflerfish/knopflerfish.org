@@ -298,8 +298,8 @@ public class ScrCommandGroup
         if (b[i] != null) {
           final Component[] cs = scr.getComponents(b[i]);
           if (cs != null) {
-            for (final Component element : cs) {
-              if (isSatisfied(cs[i])) {
+            for (final Component c : cs) {
+              if (isSatisfied(c)) {
                 if (!showSatisfied) {
                   continue;
                 }
@@ -308,7 +308,7 @@ public class ScrCommandGroup
                   continue;
                 }
               }
-              comps.add(element);
+              comps.add(c);
             }
           }
         }
