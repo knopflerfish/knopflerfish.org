@@ -100,7 +100,7 @@ class ComponentContextImpl implements ComponentContext
   public Object locateService(String name) {
     final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
-      return rl.getService();
+      return rl.getService(this);
     }
     return null;
   }
@@ -114,7 +114,7 @@ class ComponentContextImpl implements ComponentContext
   {
     final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
-      return rl.getService(sRef);
+      return rl.getService(sRef, this);
     }
     return null;
   }
@@ -125,7 +125,7 @@ class ComponentContextImpl implements ComponentContext
   public Object[] locateServices(String name) {
     final ReferenceListener rl = boundReferences.get(name);
     if (rl != null) {
-      return rl.getServices();
+      return rl.getServices(this);
     }
     return null;
   }
@@ -205,9 +205,9 @@ class ComponentContextImpl implements ComponentContext
   boolean bind(ReferenceListener rl) {
     if (rl.isMultiple()) {
       int cnt = 0;
-      final ServiceReference<?> [] sr = rl.getServiceReferences();
-      for (final ServiceReference<?> element : sr) {
-        if (bind(rl, element)) {
+      final ServiceReference<?> [] srs = rl.getServiceReferences();
+      for (final ServiceReference<?> sr : srs) {
+        if (bind(rl, sr)) {
           cnt++;
         }
       }
@@ -235,12 +235,12 @@ class ComponentContextImpl implements ComponentContext
         }
         final ComponentMethod.Operation bindOp = m.prepare(this, s, rl);
         // Mark service as bound even if isn't fetched in bind method.
-        rl.bound(s, null);
+        rl.bound(s, null, this);
         boundReferences.put(rl.getName(), rl);
         ce = bindOp.invoke();
       } else {
         // Get service so that it is bound in correct order
-        if (null != rl.getService(s)) {
+        if (null != rl.getService(s, this)) {
           boundReferences.put(rl.getName(), rl);
         } else {
           throw new IllegalStateException("Retry");
@@ -271,7 +271,7 @@ class ComponentContextImpl implements ComponentContext
     } catch (final Exception e) {
       Activator.logDebug("Failed to bind service " + Activator.srInfo(s) + " to " + cc + ", " + e);
     }
-    rl.unbound(s);
+    rl.unbound(s, this);
     return false;
   }
 
@@ -285,9 +285,8 @@ class ComponentContextImpl implements ComponentContext
     if (rl == null) {
       return;
     }
-    final ServiceReference<?> [] sr = rl.getBoundServiceReferences();
-    for (final ServiceReference<?> element : sr) {
-      unbind(rl, element);
+    for (final ServiceReference<?> sr : rl.getBoundServiceReferences(this)) {
+      unbind(rl, sr);
     }
   }
 
@@ -297,7 +296,7 @@ class ComponentContextImpl implements ComponentContext
    */
   void unbind(ReferenceListener rl, ServiceReference<?> sr) {
     Activator.logDebug("Check unbind service " + Activator.srInfo(sr) + " from " + cc);
-    if (rl.doUnbound(sr)) {
+    if (rl.doUnbound(sr, this)) {
       try {
         final ComponentMethod m = rl.ref.getUnbindMethod();
         if (m != null && !m.isMissing(true)) {
@@ -307,7 +306,7 @@ class ComponentContextImpl implements ComponentContext
           }
         }
       } finally {
-        rl.unbound(sr);
+        rl.unbound(sr, this);
         Activator.logDebug("Unbound service " + Activator.srInfo(sr) + " from " + cc);
       }
     }

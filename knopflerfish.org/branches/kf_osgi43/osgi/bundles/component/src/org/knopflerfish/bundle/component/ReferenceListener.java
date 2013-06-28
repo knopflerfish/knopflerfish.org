@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -68,6 +69,8 @@ class ReferenceListener implements ServiceListener
   private final TreeSet<String> pids = new TreeSet<String>();
   private Filter cmTarget;
   private final LinkedList<ServiceEvent> sEventQueue = new LinkedList<ServiceEvent>();
+  private HashMap<ServiceReference<?>, HashSet<ComponentContextImpl>> cciBound =
+      new HashMap<ServiceReference<?>, HashSet<ComponentContextImpl>>();
 
 
   /**
@@ -302,10 +305,10 @@ class ReferenceListener implements ServiceListener
   /**
    * Get highest ranked service.
    */
-  Object getService() {
+  Object getService(ComponentContextImpl cci) {
     final ServiceReference<?> sr = getServiceReference();
     if (sr != null) {
-      return getServiceCheckActivate(sr);
+      return getServiceCheckActivate(sr, cci);
     }
     return null;
   }
@@ -314,13 +317,13 @@ class ReferenceListener implements ServiceListener
   /**
    * Get service if it belongs to this reference.
    */
-  Object getService(ServiceReference<?> sr) {
+  Object getService(ServiceReference<?> sr, ComponentContextImpl cci) {
     boolean c;
     synchronized (serviceRefs) {
       c = serviceRefs.contains(sr) || unbinding.contains(sr);
     }
     Activator.logDebug("RL.getService " + Activator.srInfo(sr) + " available: " + c);
-    return c ? getServiceCheckActivate(sr) : null;
+    return c ? getServiceCheckActivate(sr, cci) : null;
   }
 
 
@@ -333,16 +336,36 @@ class ReferenceListener implements ServiceListener
 
   ServiceReference<?> [] getBoundServiceReferences() {
     synchronized (bound) {
-      return bound.keySet().toArray(new ServiceReference[bound.size()]);
+      Set<ServiceReference<?>> srs = bound.keySet();
+      return srs.isEmpty() ? null : srs.toArray(new ServiceReference<?> [srs.size()]);
     }
   }
 
 
-  void bound(ServiceReference<?> sr, Object s) {
+  ArrayList<ServiceReference<?>> getBoundServiceReferences(ComponentContextImpl cci) {
+    ArrayList<ServiceReference<?>> res = new ArrayList<ServiceReference<?>>();
     synchronized (bound) {
-      if (bound.get(sr) == null) {
+      for (Entry<ServiceReference<?>, HashSet<ComponentContextImpl>> e : cciBound.entrySet()) {
+        if (e.getValue().contains(cci)) {
+          res.add(e.getKey());
+        }
+      }
+    }
+    return res;
+  }
+
+
+  void bound(ServiceReference<?> sr, Object s, ComponentContextImpl cci) {
+    synchronized (bound) {
+      HashSet<ComponentContextImpl> ccis = cciBound.get(sr);
+      if (ccis == null) {
+        ccis = new HashSet<ComponentContextImpl>();
+        cciBound.put(sr, ccis);
+        bound.put(sr, s);
+      } else if (s != null && bound.get(sr) == null) {
         bound.put(sr, s);
       }
+      ccis.add(cci);
     }
   }
 
@@ -354,17 +377,25 @@ class ReferenceListener implements ServiceListener
   }
 
 
-  boolean doUnbound(ServiceReference<?> sr) {
+  boolean doUnbound(ServiceReference<?> sr, ComponentContextImpl cci) {
     synchronized (bound) {
-      return bound.containsKey(sr);
+      HashSet<ComponentContextImpl> ccis = cciBound.get(sr);
+      return ccis != null && ccis.contains(cci);
     }
   }
 
 
-  void unbound(ServiceReference<?> sr) {
-    Object s;
+  void unbound(ServiceReference<?> sr, ComponentContextImpl cci) {
+    Object s = null;
     synchronized (bound) {
-      s = bound.remove(sr);
+      HashSet<ComponentContextImpl> ccis = cciBound.get(sr);
+      if (ccis != null) {
+        ccis.remove(cci);
+        if  (ccis.isEmpty()) {
+          cciBound.remove(sr);
+          s = bound.remove(sr);
+        }
+      }
     }
     if (s != null) {
       ref.comp.bc.ungetService(sr);
@@ -375,12 +406,12 @@ class ReferenceListener implements ServiceListener
   /**
    * Get all services.
    */
-  Object[] getServices()
+  Object[] getServices(ComponentContextImpl cci)
   {
     final ServiceReference<?>[] srs = getServiceReferences();
     final ArrayList<Object> res = new ArrayList<Object>(srs.length);
     for (final ServiceReference<?> sr : srs) {
-      res.add(getServiceCheckActivate(sr));
+      res.add(getServiceCheckActivate(sr, cci));
     }
     return res.toArray();
   }
@@ -474,7 +505,7 @@ class ReferenceListener implements ServiceListener
    * Get service, but activate before so that we will
    * get any ComponentExceptions.
    */
-  private Object getServiceCheckActivate(ServiceReference<?> sr) {
+  private Object getServiceCheckActivate(ServiceReference<?> sr, ComponentContextImpl cci) {
     Object s = getBound(sr);
     if (s == null) {
       final Object o = sr.getProperty(ComponentConstants.COMPONENT_NAME);
@@ -496,8 +527,8 @@ class ReferenceListener implements ServiceListener
         }
       }
       s = ref.comp.bc.getService(sr);
-      bound(sr, s);
     }
+    bound(sr, s, cci);
     return s;
   }
 
@@ -654,9 +685,11 @@ class ReferenceListener implements ServiceListener
   private ArrayList<ComponentConfiguration> getComponentConfigs() {
     ArrayList<ComponentConfiguration> res = new ArrayList<ComponentConfiguration>();
     for (String pid : getPids()) {
-      final ComponentConfiguration cc = ref.comp.compConfigs.get(pid);
-      if (cc != null) {
-        res.add(cc);
+      final ComponentConfiguration [] componentConfigurations = ref.comp.compConfigs.get(pid);
+      if (componentConfigurations != null) {
+        for (final ComponentConfiguration cc : componentConfigurations) {
+          res.add(cc);
+        }
       }
     }
     return res;

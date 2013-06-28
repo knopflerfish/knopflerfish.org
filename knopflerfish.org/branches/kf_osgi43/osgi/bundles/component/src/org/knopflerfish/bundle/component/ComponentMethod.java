@@ -279,7 +279,7 @@ class ComponentMethod
       } else {
         try {
           // TODO think about exceptions and circular activations
-          args[i] = rl.getService(s);
+          args[i] = rl.getService(s, cci);
           if (args[i] == null) {
             Activator.logDebug("Got null service argument for " + method +
                                " in " + instance.getClass() +  " for component " +

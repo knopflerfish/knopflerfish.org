@@ -108,9 +108,6 @@ class Reference implements org.apache.felix.scr.Reference
     ServiceReference<?>[] res = null;
     if (l != null)  {
       res = l.getBoundServiceReferences();
-      if (res.length == 0) {
-        res = null;
-      }
     }
     return res;
   }

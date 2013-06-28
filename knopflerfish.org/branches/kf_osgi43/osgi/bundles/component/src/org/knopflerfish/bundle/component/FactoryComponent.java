@@ -98,7 +98,14 @@ class FactoryComponent extends Component
     if (!isSatisfied()) {
       throw new ComponentException("Factory is not satisfied");
     }
-    final ComponentConfiguration cc = newComponentConfiguration(compDesc.getName(), instanceProps);
+    String cmPid;
+    if (cmDicts != null && !cmDicts.isEmpty()) {
+      // Factory components only have one pid
+      cmPid = cmDicts.keySet().iterator().next();
+    } else {
+      cmPid = NO_PID;
+    }
+    final ComponentConfiguration cc = newComponentConfiguration(cmPid, instanceProps);
     scr.postponeCheckin();
     ComponentContextImpl cci;
     try {
@@ -134,8 +141,10 @@ class FactoryComponent extends Component
       // First mandatory config, remove constraint
       resolvedConstraint();
     } else {
-      for (final ComponentConfiguration componentConfiguration : compConfigs.values()) {
-        componentConfiguration.cmConfigUpdated(pid, d);
+      for (final ComponentConfiguration [] componentConfigurations : compConfigs.values()) {
+        for (final ComponentConfiguration cc : componentConfigurations) {
+          cc.cmConfigUpdated(pid, d);
+        }
       }
     }
   }
@@ -148,8 +157,10 @@ class FactoryComponent extends Component
   void cmConfigDeleted(String pid) {
     cmDicts.remove(pid);
     Activator.logDebug("cmConfigDeleted for pid = " + pid);
-    for (final ComponentConfiguration componentConfiguration : compConfigs.values()) {
-      componentConfiguration.cmConfigUpdated(pid, null);
+    for (final ComponentConfiguration [] componentConfigurations : compConfigs.values()) {
+      for (final ComponentConfiguration cc : componentConfigurations) {
+        cc.cmConfigUpdated(pid, null);
+      }
     }
     if (!cmConfigOptional) {
       unresolvedConstraint(ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_DELETED);
