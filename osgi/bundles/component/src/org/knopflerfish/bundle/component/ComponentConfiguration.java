@@ -46,7 +46,7 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentException;
 
 
-public class ComponentConfiguration implements ServiceFactory {
+public class ComponentConfiguration implements ServiceFactory, Comparable {
 
   final static int STATE_ACTIVATING = 0;
   final static int STATE_REGISTERED = 1;
@@ -55,6 +55,8 @@ public class ComponentConfiguration implements ServiceFactory {
   final static int STATE_DEACTIVE = 4;
 
   final Component component;
+  final int id;
+
   private PropertyDictionary ccProps = null;
   private Dictionary /* String -> Object */ sProps = null;
   private String cmPid = null;
@@ -66,6 +68,9 @@ public class ComponentConfiguration implements ServiceFactory {
   private volatile boolean unregisterInProgress = false;
   private volatile int activeCount = 0;
   private volatile int state = STATE_ACTIVATING;
+
+  private volatile static int count = 0;
+  private static Object countLock = new Object();
 
   /**
    *
@@ -82,6 +87,9 @@ public class ComponentConfiguration implements ServiceFactory {
     this.sProps = sProps;
     this.instanceProps = instanceProps;
     factoryContexts = c.compDesc.isServiceFactory() ? new Hashtable() : null;
+    synchronized (countLock) {
+      this.id = count++;
+    }
     Activator.logDebug("Created " + toString());
   }
 
@@ -421,7 +429,7 @@ public class ComponentConfiguration implements ServiceFactory {
     Activator.logDebug("CC.cmConfigUpdated, " + toString() + ", pid=" + pid
                        + ", activeCount=" + activeCount);
     int disposeReason = -1;
-    ComponentContextImpl[] cci = null;
+    ComponentContextImpl[] ccis = null;
     synchronized (this) {
       cmPid = pid;
       cmDict = dict;
@@ -436,15 +444,15 @@ public class ComponentConfiguration implements ServiceFactory {
           // Dispose when we have no modify method
           disposeReason = ComponentConstants.DEACTIVATION_REASON_CONFIGURATION_MODIFIED;
         } else {
-          cci = getActiveContexts();
+          ccis = getActiveContexts();
         }
       } else {
         return;
       }
     }
-    if (cci != null) {
-      for (int i = 0; i < cci.length; i++) {
-        component.modifiedMethod.invoke(cci[i]);
+    if (ccis != null) {
+      for (int i = 0; i < ccis.length; i++) {
+        component.modifiedMethod.invoke(ccis[i]);
       }
       modifyService();
     } else {
@@ -613,6 +621,10 @@ public class ComponentConfiguration implements ServiceFactory {
 
   void remove(int reason) {
     component.removeComponentConfiguration(this, reason);
+  }
+
+  public int compareTo(Object o) {
+    return id - ((ComponentConfiguration)o).id;
   }
 
 }

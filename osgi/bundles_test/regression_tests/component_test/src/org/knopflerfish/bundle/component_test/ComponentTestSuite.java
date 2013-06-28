@@ -64,6 +64,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test5());
     addTest(new Test6());
     addTest(new Test7());
+    addTest(new Test8());
   }
 
   public void bump(int count) {
@@ -934,23 +935,17 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
   private class Test7 extends FWTestCase  {
 
     /**
-     * Test setup: Dynamic ComponentX optional references ComponentY,
-     *             Dynamic ComponentY static reference ComponentZ
-     *             Dynamic ComponentZ static reference ComponentX
+     * Test setup: Immediate ComponentX references required ComponentY, ComponentZ, TestService
+     *             Dynamic ComponentY
+     *             Dynamic ComponentZ dynamic required reference ComponentY
      * before: no components are started.
-     * action: Get ComponentX service
+     * action: Register TestService
      * after: all components are activated
      *
      * then:
      *
      * before: all components are activated
-     * action: disable componentZ
-     * after: only X should be active
-     *
-     * then:
-     *
-     * before: only X active
-     * action: enable componentY
+     * action: Unregister TestService
      * after: all components are deactivated
      *
      */
@@ -995,6 +990,126 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
           } catch (Exception be) {
             be.printStackTrace();
             fail("Test7: got uninstall exception " + be);
+          }
+        }
+      }
+    }
+  }
+
+  private class Test8 extends FWTestCase  {
+
+    /**
+     * Test setup: Factory ComponentX references required ComponentY, TestService
+     *             Delayed ComponentY
+     *
+     * before: All components are satisfied.
+     * action: Get ComponentFactory and create 2 instances
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Register TestService, check that both factory instances gets bound
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Unregister TestService, check that both factory instances gets unbound
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Register TestService, check that both factory instances gets bound
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Dispose of one factory instance, check that only that factory instance gets unbound
+     * after: all components are activated and we have 1 factory instances
+     *
+     * before: all components are activated and we have 1 factory instances
+     * action: Dispose of last factory instance, check that only that factory instance gets unbound
+     * after: all components are activated and we have no factory instances
+     *
+     * before: all components are activated and we have no factory instances
+     * action: Unregister TestService, check that no factory unbind is called
+     * before: all components are activated and we have no factory instances
+     *
+     */
+
+    public void runTest() {
+      Bundle c1 = null;
+      try {
+        c1 = Util.installBundle(bc, "componentF_test-1.0.0.jar");
+        c1.start();
+
+        Thread.sleep(1000);
+
+        ServiceReference ref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentX");
+        assertNull("Should not get serviceRef X", ref);
+
+        ServiceReference yref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentY");
+        assertNotNull("Should get serviceRef Y", yref);
+        org.knopflerfish.service.componentF_test.ComponentY y =
+            (org.knopflerfish.service.componentF_test.ComponentY)bc.getService(yref);
+
+        assertEquals("No test calls", 0, y.getTestStatus());
+
+        ServiceReference [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
+            "(&(component.name=componentF_test.factory)(component.factory=componentF_test.X))");
+        assertTrue("Should get one serviceRef factory", refs != null && refs.length == 1);
+        ComponentFactory cf = (ComponentFactory) bc.getService(refs[0]);
+        assertNotNull("Should get ComponentFactory", cf);
+
+        Hashtable dict = new Hashtable();
+        dict.put("base", new Integer(1));
+        ComponentInstance ci1 = cf.newInstance(dict);
+        dict.put("base", new Integer(10));
+        ComponentInstance ci2 = cf.newInstance(dict);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentF_test.ComponentX", null);
+        assertNotNull("Should get serviceRef X", refs);
+        assertEquals("Should get two serviceRef X", 2, refs.length);
+        org.knopflerfish.service.componentF_test.ComponentX x =
+          (org.knopflerfish.service.componentF_test.ComponentX)bc.getService(refs[0]);
+        assertEquals("X1 should have been bind(Y) bumped", 1, x.getBindYStatus());
+        x = (org.knopflerfish.service.componentF_test.ComponentX)bc.getService(refs[1]);
+        assertEquals("X2 should have been bind(Y) bumped", 1, x.getBindYStatus());
+
+        assertEquals("Still no test calls", 0, y.getTestStatus());
+
+        ServiceRegistration reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        Thread.sleep(200);
+
+        assertEquals("Should have been 2*bind(Test) bumped", 11, y.getTestStatus());
+
+        reg.unregister();
+        Thread.sleep(200);
+
+        assertEquals("Should have been 2*unbind(Test) bumped", 11011, y.getTestStatus());
+        
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        Thread.sleep(200);
+
+        assertEquals("Should have another 2*bind(Test) bumped", 11022, y.getTestStatus());
+
+        ci1.dispose();
+
+        assertEquals("Should have first instance unbind(Test) bumped", 12022, y.getTestStatus());
+
+        reg.unregister();
+        Thread.sleep(200);
+
+        assertEquals("Should have second instance unbind(Test) bumped", 22022, y.getTestStatus());
+        
+        ci2.dispose();
+        
+        assertEquals("Should have nothing bumped", 22022, y.getTestStatus());
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test8: got unexpected exception " + e);
+      } finally {
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test8: got uninstall exception " + be);
           }
         }
       }
