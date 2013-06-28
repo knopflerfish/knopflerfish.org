@@ -999,19 +999,36 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
   private class Test8 extends FWTestCase  {
 
     /**
-     * Test setup: Factory ComponentX references required ComponentY, ComponentZ
-     *             Dynamic ComponentY
-     *             Dynamic ComponentZ dynamic required reference ComponentY
-     * before: no components are started.
-     * action: Register TestService
-     * after: all components are activated
+     * Test setup: Factory ComponentX references required ComponentY, TestService
+     *             Delayed ComponentY
      *
-     * then:
+     * before: All components are satisfied.
+     * action: Get ComponentFactory and create 2 instances
+     * after: all components are activated and we have 2 factory instances
      *
-     * before: all components are activated
-     * action: Unregister TestService
-     * after: all components are deactivated
+     * before: all components are activated and we have 2 factory instances
+     * action: Register TestService, check that both factory instances gets bound
+     * after: all components are activated and we have 2 factory instances
      *
+     * before: all components are activated and we have 2 factory instances
+     * action: Unregister TestService, check that both factory instances gets unbound
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Register TestService, check that both factory instances gets bound
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Dispose of one factory instance, check that only that factory instance gets unbound
+     * after: all components are activated and we have 1 factory instances
+     *
+     * before: all components are activated and we have 1 factory instances
+     * action: Dispose of last factory instance, check that only that factory instance gets unbound
+     * after: all components are activated and we have no factory instances
+     *
+     * before: all components are activated and we have no factory instances
+     * action: Unregister TestService, check that no factory unbind is called
+     * before: all components are activated and we have no factory instances
      */
 
     public void runTest() {
