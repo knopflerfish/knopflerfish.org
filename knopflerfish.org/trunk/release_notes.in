@@ -123,7 +123,12 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     enabled. 
 
 
-* SCR(component) 3.1.16
+* SCR(component) 3.1.17
+
+  - Fixed so that bind and unbind is called for all references
+    for all factory component instances.
+
+  SCR(component) 3.1.16
 
   - Fixed a problem that caused delayed components to deadlock
     during deactivation.  

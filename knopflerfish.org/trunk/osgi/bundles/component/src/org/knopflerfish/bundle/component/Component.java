@@ -497,9 +497,9 @@ public abstract class Component implements org.apache.felix.scr.Component {
     if (sp != null) {
       sp.remove(pid);
     }
-    ComponentConfiguration cc;
+    ComponentConfiguration [] cc;
     synchronized (lock) {
-      cc = (ComponentConfiguration)compConfigs.remove(NO_PID);
+      cc = (ComponentConfiguration [])compConfigs.remove(NO_PID);
       if (refs != null) {
         for (int i = 0; i < refs.length; i++) {
           // TODO do we need to move this outside synchronized
@@ -512,12 +512,12 @@ public abstract class Component implements org.apache.felix.scr.Component {
         // changes when update it
         compConfigs.put(pid, cc);
       } else {
-        cc = (ComponentConfiguration)compConfigs.get(pid);
+        cc = (ComponentConfiguration [])compConfigs.get(pid);
       }
     }
     if (cc != null) {
       // We have an updated config, check it
-      cc.cmConfigUpdated(pid, c.getProperties());
+      cc[0].cmConfigUpdated(pid, c.getProperties());
     } else if (first) {
       resolvedConstraint();
     } else if (unresolvedConstraints == 0) {
@@ -538,7 +538,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
     if (sp != null) {
       sp.remove(pid);
     }
-    ComponentConfiguration cc;
+    ComponentConfiguration [] cc;
     synchronized (lock) {
       if (refs != null) {
         for (int i = 0; i < refs.length; i++) {
@@ -555,10 +555,10 @@ public abstract class Component implements org.apache.felix.scr.Component {
         }
       }
       // We remove cc here since cmConfigUpdate loses old pid info
-      cc = (ComponentConfiguration)compConfigs.remove(pid);
+      cc = (ComponentConfiguration [])compConfigs.remove(pid);
     }
     if (cc != null) {
-      cc.cmConfigUpdated(NO_PID, null);
+      cc[0].cmConfigUpdated(NO_PID, null);
     }
   }
 
@@ -640,7 +640,25 @@ public abstract class Component implements org.apache.felix.scr.Component {
     Dictionary sd = servProps != null ? (Dictionary)servProps.get(cmPid) : null;
     ComponentConfiguration cc = new ComponentConfiguration(this, cmPid, cmDict,
                                                            sd, instanceProps);
-    compConfigs.put(cc.getCMPid(), cc);
+    synchronized (compConfigs) {
+      ComponentConfiguration [] next;
+      ComponentConfiguration [] old = (ComponentConfiguration [])compConfigs.get(cc.getCMPid());
+      
+      if (old != null) {
+        next = new ComponentConfiguration [old.length + 1];
+        int i = -1 - Arrays.binarySearch(old, cc);
+        if (i > 0) {
+          System.arraycopy(old, 0, next, 0, i);
+        }
+        if (i < old.length) {
+          System.arraycopy(old, i, next, i+1, old.length - i);
+        }
+        next[i] = cc;
+      } else {
+        next = new ComponentConfiguration [] { cc };
+      }
+      compConfigs.put(cc.getCMPid(), next);
+    }
     return cc;
   }
 
@@ -651,7 +669,10 @@ public abstract class Component implements org.apache.felix.scr.Component {
   private void disposeComponentConfigs(int reason) {
     ArrayList cl = new ArrayList(compConfigs.values());
     for (Iterator i = cl.iterator(); i.hasNext(); ) {
-      ((ComponentConfiguration)i.next()).dispose(reason, true);
+      ComponentConfiguration [] ccs = (ComponentConfiguration [])i.next();
+      for (int j = 0; j < ccs.length; j++) {
+        ccs[j].dispose(reason, true);
+      }
     }
   }
 
@@ -660,7 +681,21 @@ public abstract class Component implements org.apache.felix.scr.Component {
    * Remove mapping for ComponentConfiguration to this Component.
    */
   void removeComponentConfiguration(ComponentConfiguration cc, int reason) {
-    compConfigs.remove(cc.getCMPid());
+    synchronized (compConfigs) {
+      ComponentConfiguration [] ccs =
+        (ComponentConfiguration [])compConfigs.remove(cc.getCMPid());
+      if (ccs != null && ccs.length > 1) {
+        int i = Arrays.binarySearch(ccs, cc);
+        ComponentConfiguration [] next = new ComponentConfiguration [ccs.length - 1];
+        if (i > 0) {
+          System.arraycopy(ccs, 0, next, 0, i);
+        }
+        if (i < next.length) {
+          System.arraycopy(ccs, i + 1, next, i, next.length - i);
+        }
+        compConfigs.put(cc.getCMPid(), next);
+      }
+    }
     Activator.logDebug("Component Config removed, check if still satisfied: " + getName() + ", " + state);
     if (isSatisfied() &&
         (reason == ComponentConstants.DEACTIVATION_REASON_REFERENCE ||
@@ -681,9 +716,11 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   ComponentConfiguration getComponentConfiguration(ServiceReference sr) {
     for (Iterator i = compConfigs.values().iterator(); i.hasNext(); ) {
-      ComponentConfiguration cc = (ComponentConfiguration)i.next();
-      if (cc.getServiceReference() == sr) {
-        return cc;
+      ComponentConfiguration [] ccs = (ComponentConfiguration [])i.next();
+      for (int j = 0; j < ccs.length; j++) {
+        if (ccs[j].getServiceReference() == sr) {
+          return ccs[j];
+        }
       }
     }
     return null;
@@ -823,7 +860,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   private ComponentConfiguration getFirstComponentConfiguration() {
     Iterator cci = compConfigs.values().iterator();
-    return cci.hasNext() ? (ComponentConfiguration)cci.next() : null;
+    return cci.hasNext() ? ((ComponentConfiguration [])cci.next())[0] : null;
   }
 
   /**

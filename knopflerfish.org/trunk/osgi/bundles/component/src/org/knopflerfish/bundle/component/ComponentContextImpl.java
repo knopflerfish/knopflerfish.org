@@ -33,8 +33,10 @@
  */
 package org.knopflerfish.bundle.component;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -98,7 +100,7 @@ class ComponentContextImpl implements ComponentContext
   public Object locateService(String name) {
     final ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
     if (rl != null) {
-      return rl.getService();
+      return rl.getService(this);
     }
     return null;
   }
@@ -110,7 +112,7 @@ class ComponentContextImpl implements ComponentContext
   public Object locateService(String name, ServiceReference sRef) {
     final ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
     if (rl != null) {
-      return rl.getService(sRef);
+      return rl.getService(sRef, this);
     }
     return null;
   }
@@ -121,7 +123,7 @@ class ComponentContextImpl implements ComponentContext
   public Object[] locateServices(String name) {
     final ReferenceListener rl = (ReferenceListener)boundReferences.get(name);
     if (rl != null) {
-      return rl.getServices();
+      return rl.getServices(this);
     }
     return null;
   }
@@ -231,12 +233,12 @@ class ComponentContextImpl implements ComponentContext
         }
         final ComponentMethod.Operation bindOp = m.prepare(this, s, rl);
         // Mark service as bound even if isn't fetched in bind method.
-        rl.bound(s, null);
+        rl.bound(s, null, this);
         boundReferences.put(rl.getName(), rl);
         ce = bindOp.invoke();
       } else {
         // Get service so that it is bound in correct order
-        if (null != rl.getService(s)) {
+        if (null != rl.getService(s, this)) {
           boundReferences.put(rl.getName(), rl);
         } else {
           throw new IllegalStateException("Retry");
@@ -267,7 +269,7 @@ class ComponentContextImpl implements ComponentContext
     } catch (final Exception e) {
       Activator.logDebug("Failed to bind service " + Activator.srInfo(s) + " to " + cc + ", " + e);
     }
-    rl.unbound(s);
+    rl.unbound(s, this);
     return false;
   }
 
@@ -281,9 +283,9 @@ class ComponentContextImpl implements ComponentContext
     if (rl == null) {
       return;
     }
-    final ServiceReference [] sr = rl.getBoundServiceReferences();
-    for (int i = 0; i < sr.length; i++) {
-      unbind(rl, sr[i]);
+    ArrayList srs = rl.getBoundServiceReferences(this);
+    for (Iterator i = srs.iterator(); i.hasNext(); ) {
+      unbind(rl, (ServiceReference)i.next());
     }
   }
 
@@ -293,7 +295,7 @@ class ComponentContextImpl implements ComponentContext
    */
   void unbind(ReferenceListener rl, ServiceReference sr) {
     Activator.logDebug("Check unbind service " + Activator.srInfo(sr) + " from " + cc);
-    if (rl.doUnbound(sr)) {
+    if (rl.doUnbound(sr, this)) {
       try {
         final ComponentMethod m = rl.ref.getUnbindMethod();
         if (m != null && !m.isMissing(true)) {
@@ -303,7 +305,7 @@ class ComponentContextImpl implements ComponentContext
           }
         }
       } finally {
-        rl.unbound(sr);
+        rl.unbound(sr, this);
         Activator.logDebug("Unbound service " + Activator.srInfo(sr) + " from " + cc);
       }
     }
