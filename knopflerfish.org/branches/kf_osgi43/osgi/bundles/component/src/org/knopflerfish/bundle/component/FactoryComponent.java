@@ -109,7 +109,7 @@ class FactoryComponent extends Component
     scr.postponeCheckin();
     ComponentContextImpl cci;
     try {
-      cci = cc.activate(null, false);
+      cci = cc.activate(null, true);
     } finally {
       scr.postponeCheckout();
     }

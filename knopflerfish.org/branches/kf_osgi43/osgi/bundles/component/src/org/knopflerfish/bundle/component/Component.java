@@ -519,7 +519,7 @@ public abstract class Component implements org.apache.felix.scr.Component {
         for (final Reference ref : refs) {
           // TODO do we need to move this outside synchronized
           // Not FactoryComponent so only one compConfig.
-          ref.update(c, cc != null && cc[0] != null);
+          ref.update(c, cc != null);
         }
       }
       if (cc != null) {

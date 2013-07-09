@@ -65,6 +65,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
     addTest(new Test6());
     addTest(new Test7());
     addTest(new Test8());
+    addTest(new Test9());
   }
 
   public void bump(int count) {
@@ -1028,7 +1029,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
      *
      * before: all components are activated and we have no factory instances
      * action: Unregister TestService, check that no factory unbind is called
-     * before: all components are activated and we have no factory instances
+     * after: all components are activated and we have no factory instances
      */
 
     public void runTest() {
@@ -1109,6 +1110,131 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
           } catch (Exception be) {
             be.printStackTrace();
             fail("Test8: got uninstall exception " + be);
+          }
+        }
+      }
+    }
+  }
+
+  private class Test9 extends FWTestCase  {
+
+    /**
+     * Test setup: Factory ComponentX references required ComponentY,
+     *             Delayed ComponentZ dynamically references optional ComponentXs
+     *
+     * before: All components are satisfied.
+     * action: Get ComponentZ, ComponentFactory and create 1 instances, check that new factory instance gets bound
+     * after: all components are activated and we have 1 factory instances
+     *
+     * before: all components are activated and we have 1 factory instances
+     * action: Create one more factory instance, check that new factory instance gets bound
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Disable ComponentZ, check that ComponentZ is deactivated and factory instances gets unbound
+     * after: ComponentX and ComponentZ are activated and we have 2 factory instances
+     *
+     * before: ComponentX and ComponentZ are activated and we have 2 factory instances
+     * action: Enable ComponentZ, check that we get new ComponentZ and that both factory instances gets bound
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Create one more factory instance, check that new factory instance gets bound
+     * after: all components are activated and we have 3 factory instances
+     *
+     * before: all components are activated and we have 3 factory instances
+     * action: Dispose one factory instance, check that only that factory instance gets unbound
+     * after: all components are activated and we have 2 factory instances
+     *
+     * before: all components are activated and we have 2 factory instances
+     * action: Dispose last factory instance, check that factory instances gets unbound
+     * after: all components are activated and we have no factory instances
+     */
+
+    public void runTest() {
+      Bundle c1 = null;
+      try {
+        c1 = Util.installBundle(bc, "componentF_test-1.0.0.jar");
+        c1.start();
+
+        Thread.sleep(1000);
+
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentX");
+        assertNull("Should not get serviceRef X", ref);
+
+        ServiceReference<?> zref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentZ");
+        assertNotNull("Should get serviceRef Z", zref);
+        org.knopflerfish.service.componentF_test.ComponentZ z =
+            (org.knopflerfish.service.componentF_test.ComponentZ)bc.getService(zref);
+
+        assertEquals("No test calls", 0, z.getXStatus());
+
+        ServiceReference<?> [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
+            "(&(component.name=componentF_test.factory)(component.factory=componentF_test.X))");
+        assertTrue("Should get one serviceRef factory", refs != null && refs.length == 1);
+        ComponentFactory cf = (ComponentFactory) bc.getService(refs[0]);
+        assertNotNull("Should get ComponentFactory", cf);
+
+        Hashtable<String, Integer> dict = new Hashtable<String, Integer>();
+        dict.put("base", new Integer(1));
+        ComponentInstance ci1 = cf.newInstance(dict);
+
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentF_test.ComponentX", null);
+        assertNotNull("Should get serviceRef X", refs);
+        assertEquals("Should get one serviceRef X", 1, refs.length);
+        org.knopflerfish.service.componentF_test.ComponentX x =
+            (org.knopflerfish.service.componentF_test.ComponentX)bc.getService(refs[0]);
+        assertNotNull("Should get X service", x);
+
+        assertEquals("One bind call", 1, z.getXStatus());
+
+        dict.put("base", new Integer(10));
+        ComponentInstance ci2 = cf.newInstance(dict);
+
+        assertEquals("One more bind call", 11, z.getXStatus());
+
+        x.disableZ();
+        
+        assertEquals("Two unbind calls", 11011, z.getXStatus());
+
+        zref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentZ");
+        assertNull("Should not get serviceRef X", ref);
+        
+        x.enableZ();
+
+        zref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentZ");
+        assertNotNull("Should get serviceRef Z", zref);
+        org.knopflerfish.service.componentF_test.ComponentZ znew =
+            (org.knopflerfish.service.componentF_test.ComponentZ)bc.getService(zref);
+
+        assertNotSame("Should get a new service", z, znew);
+
+        assertEquals("Two bind calls", 11, znew.getXStatus());
+        
+        dict.put("base", new Integer(100));
+        ComponentInstance ci3 = cf.newInstance(dict);
+
+        assertEquals("One more bind call", 111, znew.getXStatus());
+
+        ci1.dispose();
+
+        assertEquals("One unbind call", 1111, znew.getXStatus());
+
+        ci2.dispose();
+        ci3.dispose();
+
+        assertEquals("All unbind calls", 111111, znew.getXStatus());
+        assertEquals("No calls to old z", 11011, z.getXStatus());
+      } catch (Exception e) {
+        e.printStackTrace();
+        fail("Test9: got unexpected exception " + e);
+      } finally {
+        if (c1 != null) {
+          try {
+            c1.uninstall();
+          } catch (Exception be) {
+            be.printStackTrace();
+            fail("Test9: got uninstall exception " + be);
           }
         }
       }

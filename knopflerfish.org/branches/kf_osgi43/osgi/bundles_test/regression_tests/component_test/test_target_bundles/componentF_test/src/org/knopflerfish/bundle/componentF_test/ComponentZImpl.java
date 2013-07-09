@@ -36,85 +36,38 @@ package org.knopflerfish.bundle.componentF_test;
 import java.util.Map;
 
 import org.knopflerfish.service.componentF_test.ComponentX;
-import org.knopflerfish.service.componentF_test.ComponentY;
-import org.knopflerfish.service.component_test.TestService;
+import org.knopflerfish.service.componentF_test.ComponentZ;
 import org.osgi.service.component.ComponentContext;
 
-public class ComponentXImpl
-  implements ComponentX
-{
-  private int yStatus = 0;
-  private ComponentY y;
-  private int base = 0;
-  private ComponentContext cc = null;
+public class ComponentZImpl implements ComponentZ {
 
-  void activate(ComponentContext cc, Map<String, ?> props)
+  private int xStatus = 0;
+
+  void activate(Map<String, ?> props)
   {
-    this.cc = cc;
-    base = ((Integer)props.get("base")).intValue();
-    System.out.println("XImpl: activate");
+    System.out.println("ZImpl: activate");
   }
 
   void deactivate(ComponentContext cc)
   {
-    this.cc = null;
-    System.out.println("XImpl: deactivate");
+    System.out.println("ZImpl: deactivate");
   }
 
-  public void setY(ComponentY y)
+  public void setX(ComponentX x)
   {
-    this.y = y;
-    yStatus += 1;
-    System.out.println("XImpl: binding Y, " +y);
-  }
-  public void unsetY(ComponentY y)
-  {
-    this.y = null;
-    yStatus += 1000;
-    System.out.println("XImpl: unbinding Y, " +y);
+    xStatus += x.getBase();
+    System.out.println("ZImpl: binding X, " +x);
   }
 
-  public void setTest(TestService t)
+  public void unsetX(ComponentX x)
   {
-    y.testCall(base);
-    System.out.println("XImpl: binding TestService, " +t);
-  }
-  public void unsetTest(TestService t)
-  {
-    y.testCall(1000 * base);
-    System.out.println("XImpl: unbinding TestService, " +t);
+    xStatus += 1000 * x.getBase();
+    System.out.println("ZImpl: unbinding X, " +x);
   }
 
   @Override
-  public int getBase()
-  {
-    return this.base;
-  }
-
-  @Override
-  public int getBindYStatus()
-  {
-    return this.yStatus;
-  }
-
-  @Override
-  public void disableZ() {
-    if (cc != null) {
-      System.out.println("XImpl: disable Z!");
-      cc.disableComponent("componentF_test.Z");
-    } else {
-      System.out.println("XImpl: failed to disable");
-    }
-  }
-
-  @Override
-  public void enableZ() {
-    if (cc != null) {
-      System.out.println("XImpl: enable Z!");
-      cc.enableComponent("componentF_test.Z");
-    } else {
-      System.out.println("XImpl: failed to enable");
-    }
+  public int getXStatus() {
+    return xStatus;
   }
 
 }
