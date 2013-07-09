@@ -34,9 +34,6 @@
 package org.knopflerfish.service.componentF_test;
 
 
-public interface ComponentX {
-  int getBase();
-  int getBindYStatus();
-  void disableZ();
-  void enableZ();
+public interface ComponentZ {
+  int getXStatus();
 }

@@ -31,12 +31,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.knopflerfish.service.componentF_test;
+package org.knopflerfish.bundle.componentF_test;
 
+import java.util.Map;
 
-public interface ComponentX {
-  int getBase();
-  int getBindYStatus();
-  void disableZ();
-  void enableZ();
+import org.knopflerfish.service.componentF_test.ComponentX;
+import org.knopflerfish.service.componentF_test.ComponentZ;
+import org.osgi.service.component.ComponentContext;
+
+public class ComponentZImpl implements ComponentZ {
+
+  private int xStatus = 0;
+
+  void activate(Map props)
+  {
+    System.out.println("ZImpl: activate");
+  }
+
+  void deactivate(ComponentContext cc)
+  {
+    System.out.println("ZImpl: deactivate");
+  }
+
+  public void setX(ComponentX x)
+  {
+    xStatus += x.getBase();
+    System.out.println("ZImpl: binding X, " +x);
+  }
+
+  public void unsetX(ComponentX x)
+  {
+    xStatus += 1000 * x.getBase();
+    System.out.println("ZImpl: unbinding X, " +x);
+  }
+
+  public int getXStatus() {
+    return xStatus;
+  }
+
 }

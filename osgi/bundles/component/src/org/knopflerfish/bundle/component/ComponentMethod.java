@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -316,6 +316,24 @@ class ComponentMethod
         String msg = "Could not invoke \"" + method + "\" in: " + instance.getClass();
         Activator.logError(comp.bc, msg, e);
         return new ComponentException(msg, e);
+      } catch (IllegalArgumentException e) {
+        StringBuffer msg = new StringBuffer();
+        msg.append("Wrong arguments to \"");
+        msg.append(method);
+        msg.append("\" in: ");
+        msg.append(instance.getClass());
+        msg.append(". Got argument classes, [ ");
+        Class [] ac = new Class[args.length];
+        for (int i = 0; i < ac.length; i++) {
+          if (i > 0) {
+            msg.append(", ");
+          }
+          msg.append(args[i].getClass().getName());
+        }
+        msg.append(" ]");
+        final String m = msg.toString();
+        Activator.logError(comp.bc, m, e);
+        return new ComponentException(m, e);
       } catch (InvocationTargetException e) {
         String msg = "exception";
         Throwable cause = e.getTargetException();

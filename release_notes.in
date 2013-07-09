@@ -123,7 +123,14 @@ Release Notes Knopflerfish @VERSION@ (OSGi R4 v4.2)
     enabled. 
 
 
-* SCR(component) 3.1.17
+* SCR(component) 3.1.18
+
+  - Added error message when we get mismatch on bind, modify and
+    unbind calls.
+  - Don't deactivate factory components when last consumer ungets
+    service.
+
+  SCR(component) 3.1.17
 
   - Fixed so that bind and unbind is called for all references
     for all factory component instances.

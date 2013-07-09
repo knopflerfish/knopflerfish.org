@@ -37,4 +37,22 @@
     </service>
   </component>
 
+  <!-- An delayed component that will publish an Y service when instanciated -->
+  <component name="componentF_test.Z"
+             immediate="false"
+             xmlns="http://www.osgi.org/xmlns/scr/v1.1.0" >
+    <implementation
+       class="org.knopflerfish.bundle.componentF_test.ComponentZImpl"/>
+    <service>
+      <provide
+         interface="org.knopflerfish.service.componentF_test.ComponentZ"/>
+    </service>
+    <reference name="componentX_test.Test"
+               interface="org.knopflerfish.service.componentF_test.ComponentX"
+               cardinality="0..n"
+               policy="dynamic"
+               bind="setX"
+               unbind="unsetX"/>
+  </component>
+
 </root>
