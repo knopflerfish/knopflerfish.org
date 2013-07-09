@@ -46,15 +46,18 @@ public class ComponentXImpl
   private int yStatus = 0;
   private ComponentY y;
   private int base = 0;
+  private ComponentContext cc = null;
 
-  void activate(Map props)
+  void activate(ComponentContext cc, Map props)
   {
+    this.cc = cc;
     base = ((Integer)props.get("base")).intValue();
     System.out.println("XImpl: activate");
   }
 
   void deactivate(ComponentContext cc)
   {
+    this.cc = null;
     System.out.println("XImpl: deactivate");
   }
 
@@ -64,6 +67,7 @@ public class ComponentXImpl
     yStatus += 1;
     System.out.println("XImpl: binding Y, " +y);
   }
+
   public void unsetY(ComponentY y)
   {
     this.y = null;
@@ -76,15 +80,39 @@ public class ComponentXImpl
     y.testCall(base);
     System.out.println("XImpl: binding TestService, " +t);
   }
+
   public void unsetTest(TestService t)
   {
     y.testCall(1000 * base);
     System.out.println("XImpl: unbinding TestService, " +t);
   }
 
+  public int getBase()
+  {
+    return this.base;
+  }
+
   public int getBindYStatus()
   {
     return this.yStatus;
+  }
+
+  public void disableZ() {
+    if (cc != null) {
+      System.out.println("XImpl: disable Z!");
+      cc.disableComponent("componentF_test.Z");
+    } else {
+      System.out.println("XImpl: failed to disable");
+    }
+  }
+
+  public void enableZ() {
+    if (cc != null) {
+      System.out.println("XImpl: enable Z!");
+      cc.enableComponent("componentF_test.Z");
+    } else {
+      System.out.println("XImpl: failed to enable");
+    }
   }
 
 }
