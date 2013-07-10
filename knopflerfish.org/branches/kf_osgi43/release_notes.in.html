@@ -5,7 +5,7 @@
 
 <h1 class="kf">Release Notes Knopflerfish $(VERSION) (OSGi R4 v4.3)</h1>
 <p>
-  Second official release (beta) of Knopflerfish 4 available from
+  First official release Knopflerfish 4 available from
   $(BASE_URL)/$(VERSION)
 </p>
 <p>
@@ -15,9 +15,8 @@
   services specified in the "Compendium Specification".
 </p>
 <p>
-  The Release Notes include all new features & changes for Knopflerfish 4. Changes
-  in the beta-2 release are marked with <em>(beta-2)</em> in order to more clearly see
-  the changes between the beta-1 and beta-2 releases.
+  The Release Notes include all new features & changes for
+  Knopflerfish 4.
 </p>
 
 <h2 class="kf">OSGi Release 4 Version 4.3 - What is New?</h2>
@@ -82,32 +81,24 @@
   <div class="note_group">
     <div class="note_name"> OSGi R4 v4.3 specification</div>
     <div class="note_item">
-      All the Core Specification Services and API:s are included and are
-      designed to be compliant with  the OSGi R4 v4.3 specification.
-      Please refer to the  <a href="components.html">Contents</a> page for a more detailed
+      All the Core Specification Services and API:s are included and
+      are designed to be compliant with the OSGi R4 v4.3
+      specification.  Please refer to the <a
+      href="components.html">Contents</a> page for a more detailed
       description of news in 4.3 and KF4 implementation status.
     </div>
   </div>
 
   <div class="note_group">
-    <div class="note_name"> Framework 6.0.1 (beta-2)</div>
-    <div class="note_item">
-      Support for class patching using ASM has been moved out of 
-      the framework into a separate classpatcher bundle that
-      implements a Weaving Hooks.
-    </div>
-    <div class="note_item">
-      In beta-2 the Android support has been restored and
-      improved.
-    </div>
-    <div class="note_item">
-      In beta-2 several fixes has been made, mainly concerning
-      capabilities and fragments.
-    </div>
-    <div class="note_name"> Framework 6.0.0</div>
+    <div class="note_name"> Framework 6.0.2</div>
     <div class="note_item">
       Several parts of the framework has been rewritten to handle
       the new OSGi framework specification and improve stability.
+    </div>
+    <div class="note_item">
+      Support for class patching using ASM has been moved out of 
+      the framework into a separate classpatcher bundle that
+      implements uses a Weaving Hooks to do the patching.
     </div>
   </div>
 </div>
@@ -118,41 +109,35 @@
   <div class="note_group">
     <div class="note_name"> OSGi R4 v4.3 Specification</div>
     <div class="note_item">
-      All Compendium Specification Services included but one are updated to
+      All Compendium Specification Services included are updated to
       implement the OSGi R4 v4.3 specification.
-      Please refer to the  <a href="components.html">Contents</a> page for a more detailed
-      description of news in 4.3 and KF4 implementation status.
+      Please refer to the  <a href="components.html">Contents</a> page
+      for a more detailed description of news in 4.3 and KF4
+      implementation status. 
     </div>
     <div class="note_item">
-      The version of these bundles has been set to 4.0.0 and all imported
-      packages has a minimum version in their import statements set to the
-      version of the package defined in the OSGi R4 v4.3 specification.
+      The major field of the version of these bundles is set to 4. All
+      imported packages has a minimum version in their import
+      statements set to the version of the package defined in the OSGi
+      R4 v4.3 specification.
+    </div>
+    <div class="note_item">
+      The list of OSGi compendium specified bundles below only lists
+      those bundles that has changes in addition to what is required
+      by the move to the OSGi R4 v4.3 specification.
     </div>
   </div>
 
   <div class="note_group">
-    <div class="note_name">cm 4.0.1 (beta-2)</div>
+    <div class="note_name">cm 4.0.1</div>
     <div class="note_item">
-      Added a method that save a list of configurations as XML to
+      Added a method that saves a list of configurations as XML to
       <tt>org.knopflerfish.shared.cm</tt>
     </div>
   </div>
 
   <div class="note_group">
-    <div class="note_name">component(SCR) 4.0.1 (beta-2)</div>
-    <div class="note_item">
-      Updated so that all 4.3 features now works.
-    </div>
-  </div>
-
-  <div class="note_group">
-    <div class="note_name">Http 4.0.1 (beta-2)</div>
-    <div class="note_item">
-      Fixed an error in the meta type document describing the HTTP
-      configuration.
-    </div>
-
-    <div class="note_name">Http 4.0.0</div>
+    <div class="note_name">Http 4.0.1</div>
     <div class="note_item">
       The methods javax.servlet.Request.getLocale() and
       javax.servlet.Reuqest.getLocales() now returns data based on the
@@ -163,19 +148,20 @@
       in use.
     </div>
     <div class="note_item">
-      Add description for all properties in the Http-configuration to
-      the metadata.xml file describing the configuration.
+      Updated the configuration metadata so that it contains all
+      properties in the Http-configuration.
     </div>
   </div>
 
   <div class="note_group">
-    <div class="note_name">KF-ML- Metatype 4.0.1 (beta-2)</div>
+    <div class="note_name">KF-XML- Metatype 4.0.1</div>
     <div class="note_item">
       Replaced the document describing the configuration metadata
       with a new one that uses the OSGi specified meta type schema.
     </div>
     <div class="note_item">
-      Improved support for mixing legacy KF-Metatype and OSGi meta type.
+      Improved support for mixing legacy KF-Metatype and OSGi meta
+      type.
     </div>
   </div>
   
@@ -197,7 +183,7 @@
     </div>
 
     <div class="note_group">
-      <div class="note_name">Class Patcher 1.0.0 (beta-2)</div>
+      <div class="note_name">Class Patcher 1.0.0</div>
       <div class="note_item">
 	This bundle contains the support for class patching using ASM that
 	was previously implemented in the framework. It is implemented as
@@ -207,7 +193,7 @@
     </div>
 
     <div class="note_group">
-      <div class="note_name">CM-Commands 4.0.1 (beta-2)</div>
+      <div class="note_name">CM-Commands 4.0.1</div>
       <div class="note_item">
 	Added export command that exports all matching configurations as
 	an XML-document.
@@ -216,7 +202,7 @@
 
     <div class="note_group">
       <div class="note_name">
-	CM-Desktop 4.0.0 (beta-2)
+	CM-Desktop 4.0.0
       </div>
       <div class="note_item">
 	Added <tt>Export...</tt> button that exports the currently
@@ -257,15 +243,16 @@
 
     <div class="note_group">
       <div class="note_name">
-	Command TTY 4.0.1 (beta-2)
+	Command TTY 4.0.1
       </div>
       <div class="note_item">
-	Fixed an error in the meta-type document describing the configuration.
+	Fixed an error in the meta-type document describing the
+        configuration.
       </div>
     </div>
 
     <div class="note_group">
-      <div class="note_name">Console 4.0.1 (beta-2)</div>
+      <div class="note_name">Console 4.0.1</div>
       <div class="note_item">
 	Added support to Util.showObject(Object) for converting
 	enumerations and collections to strings showing each element.
@@ -274,77 +261,7 @@
 
     <div class="note_group">
       <div class="note_name">
-	Desktop 4.0.1  (beta-2)
-      </div>
-      <div class="note_item">
-	Restored the functionality of the "Cancel" button in the quit
-	dialog on Mac OS X. This was broken by changes in Apples EAWT
-	packages. The new implementation requires Java Update 8 or later
-	for Mac OS 10.5, Java Update 3 for Mac OS 10.6, or Mac OS 10.7
-	or later to be fully functional.
-      </div>
-      <div class="note_item">
-	The navigation buttons (backward / forward) at the bottom of the
-	services-tab was not activated when pressing one of the service
-	links.
-      </div>
-      <div class="note_item">
-	The Log-tab now presents initial log entries obtained by calling
-	the getLog()-method of a LogReaderService in the correct order,
-	i.e., oldest first.
-      </div>
-      <div class="note_item">
-	Bundle life-cycle operations (resolve, start, stop, update,
-	refresh, uninstall) in the menu and in the tool-bar are now
-	enabled based on the states of the selected bundles.
-      </div>
-      <div class="note_item">
-	Add refresh bundles operation to the tool-bar as well as to the
-	pop-up menu in the icons display.
-      </div>
-      <div class="note_item">
-	The topmost lines in the manifest view have been given a
-	different background color to emphasize that they are not part
-	of the manifest. The bundle state line now includes the text
-	"pending refresh" for bundles that has more than one bundle
-	revision in use, i.e, bundles that needs to be refreshed.
-	The start level line now contains the text "persistently
-	started" for bundles that are persistently started. I.e., for
-	bundles that will be started again when the framework itself is
-	restarted.
-      </div>
-      <div class="note_item">
-	The closure tab as well as the File-menu save deployment archive
-	now computes the closure of bundles to include correctly. Before
-	it took the union of a capability dependencies closure and a
-	service dependencies closure which will miss bundles that
-	provides capabilities to service implementor bundles that was
-	not in the original capabilities closure.
-      </div>
-      <div class="note_item">
-	The "refresh"-link in the Wiring tab now works for wired
-	providers / requires that has been uninstalled.
-      </div>
-      <div class="note_item">
-	Restored and enhanced the update check functionality that pops
-	up a window with the release notes from the current Knopflerfish
-	release when the desktop is running on an older Knopflerfish
-	release.
-      </div>
-      <div class="note_item">
-	Added sorting to the "Table" view (the top left side of the main
-	window). Click on the column header to sort rows based on the
-	column values, shift-click for reverse order.
-      </div>
-      <div class="note_item">
-	The tool tip text for bundle icons in the icons display is now
-	always up to date. The start-level line of the text will
-	contain the text "persistently started" if the bundle is
-	persistently started.
-      </div>
-
-      <div class="note_name">
-	Desktop 4.0.0
+	Desktop 4.0.1
       </div>
       <div class="note_item">
 	A new "Wiring" displayer has been added that presents
@@ -374,18 +291,82 @@
 	left part of the main window).
       </div>
       <div class="note_item">
+	Bundle life-cycle operations (resolve, start, stop, update,
+	refresh, uninstall) in the menu, in the pop-up menu and in the
+	tool-bar are now enabled based on the states of the selected
+	bundles.
+      </div>
+      <div class="note_item">
 	Renamed the "Details" view (the top left side of the main
 	window) to "Table" view and added columns for the bundle version
 	and bundle symbolic name to it.
+      </div>
+      <div class="note_item">
+	Restored the functionality of the "Cancel" button in the quit
+	dialog on Mac OS X. This was broken by changes in Apples EAWT
+	packages. The new implementation requires Java Update 8 or later
+	for Mac OS 10.5, Java Update 3 for Mac OS 10.6, or Mac OS 10.7
+	or later to be fully functional.
+      </div>
+      <div class="note_item">
+	The navigation buttons (backward / forward) at the bottom of the
+	services-tab was not activated when pressing one of the service
+	links.
+      </div>
+      <div class="note_item">
+	The Log-tab now presents initial log entries obtained by calling
+	the getLog()-method of a LogReaderService in the correct order,
+	i.e., oldest first.
+      </div>
+      <div class="note_item">
+	Add refresh bundles operation to the tool-bar as well as to the
+	pop-up menu in the icons display.
+      </div>
+      <div class="note_item">
+	The topmost lines in the manifest view have been given a
+	different background color to emphasize that they are not part
+	of the manifest. The bundle state line now includes the text
+	"pending refresh" for bundles that has more than one bundle
+	revision in use, i.e, bundles that needs to be refreshed.
+	The start level line now contains the text "persistently
+	started" for bundles that are persistently started. I.e., for
+	bundles that will be started again when the framework itself is
+	restarted.
+      </div>
+      <div class="note_item">
+	The closure tab as well as the File-menu save deployment archive
+	now computes the closure of bundles to include correctly. Before
+	it took the union of a capability dependencies closure and a
+	service dependencies closure which will miss bundles that
+	provides capabilities to service implementor bundles that was
+	not in the original capabilities closure.
+      </div>
+      <div class="note_item">
+	Restored and enhanced the update check functionality that pops
+	up a window with the release notes from the current Knopflerfish
+	release when the desktop is running on an older Knopflerfish
+	release.
+      </div>
+      <div class="note_item">
+	Added sorting to the "Table" view (the top left side of the main
+	window). Click on the column header to sort rows based on the
+	column values, shift-click for reverse order.
+      </div>
+      <div class="note_item">
+	The tool tip text for bundle icons in the icons display is now
+	always up to date. The start-level line of the text will
+	contain the text "persistently started" if the bundle is
+	persistently started.
       </div>
     </div>
 
     <div class="note_group">
       <div class="note_name">
-	Directory Deployer 4.0.1 (beta-2)
+	Directory Deployer 4.0.1
       </div>
       <div class="note_item">
-	Deployment of XML-files with OSGi configurations is now supported.
+	Deployment of XML-files with OSGi configurations is now
+        supported.
       </div>
       <div class="note_item">
 	New configuration option "Use initial start level" which when
@@ -412,38 +393,33 @@
 	Replaced the document describing the configuration meta data
 	with a new one that uses the OSGi specified meta type schema.
       </div>
-      <div class="note_item">
-	Updated user the Wiring and Starlevel APIs.
-      </div>
     </div>
 
     <div class="note_group">
       <div class="note_name">
-	Framework Commands 4.0.1 (beta-2)
+	Framework Commands 4.0.1
       </div>
       <div class="note_item">
-	The call command now supports calling methods with parameters of
-	type org.osgi.framework.Bundle. Type the bundle id (long) as
-	parameter value to the call command.
+	New command 'capability' that presents both provided and
+	required capabilities for the current bundle revision of a
+	bundle.
       </div>
       <div class="note_item">
-	The call command now correctly handles calls to methods in super
-	interfaces of an interface that the service object implements.
+	New command 'wiring' that lists all active wires for the
+	current wiring of a bundle.
       </div>
       <div class="note_item">
-	New command 'pending' that lists bundles that have pending updates.
-      </div>
-
-      <div class="note_name">
-	Framework Commands 4.0.0
+	New command 'pending' that lists bundles that have pending
+	updates.
       </div>
       <div class="note_item">
-	New command 'capability' that presents both provided and required
-	capabilities for the current bundle revision of a bundle.
+	The call command now supports calling methods with parameters
+	of type org.osgi.framework.Bundle. Type the bundle id (long)
+	as parameter value to the call command.
       </div>
       <div class="note_item">
-	New command 'wiring' that lists all active wires for the current
-	wiring of a bundle.
+	The call command now correctly handles calls to methods in
+        interfaces of an interface that the service object implements.
       </div>
     </div>
 
@@ -462,16 +438,17 @@
 
     <div class="note_group">
       <div class="note_name">
-	Log Service 4.0.1  (beta-2)
+	Log Service 4.0.1
       </div>
       <div class="note_item">
-	Fixed an error in the meta type document describing the configuration.
+	Fixed an error in the meta type document describing the
+	configuration.
       </div>
     </div>
 
     <div class="note_group">
       <div class="note_name">
-	Telnet-Console 4.0.1  (beta-2)
+	Telnet-Console 4.0.1
       </div>
       <div class="note_item">
 	Replaced the document describing the configuration metadata
@@ -489,20 +466,22 @@
 
     <div class="note_group">
       <div class="note_name">
-	TTY-Console 4.0.1  (beta-2)
+	TTY-Console 4.0.1
       </div>
       <div class="note_item">
-	Fixed an error in the meta type document describing the configuration.
+	Fixed an error in the meta type document describing the
+	configuration.
       </div>
     </div>
   </div>
 </div>
 
+
 <h2 class="kf">Misc, start scripts, build system etc </h2>
 <div class="release_notes">
   <div class="note_group">
     <div class="note_name">
-      Knopflerfish Build System  (beta-2)
+      Knopflerfish Build System
     </div>
     <div class="note_item">
 
@@ -538,11 +517,22 @@
       named <tt>bundle.build.source.jar</tt>.
 
     </div>
+
+    <div class="note_item">
+
+      Added support for generation of maven javadoc artifacts for all
+      variants of the bundle. This is controlled by the ant property
+      named <tt>bundle.build.javadoc.jar</tt>. A javadoc artifact is
+      only built for bundles that has a public API, i.e., bundles that
+      exports at least one package since the javadoc artifact only
+      documents the exported packages.
+
+    </div>
   </div>
 
   <div class="note_group">
     <div class="note_name">
-      Android .apk Support  (beta-2)
+      Android .apk Support
     </div>
     <div class="note_item">
 
