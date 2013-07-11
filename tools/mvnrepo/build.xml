@@ -75,13 +75,17 @@
           depends="clean,bundle_tasks"
           description="Creates a new maven2-repository with a temporary name.">
 
-    <toMavenRepo version="2.3.3" repo="${tmp.mvn2.repo.dir}"/>
-    <toMavenRepo version="2.4.0" repo="${tmp.mvn2.repo.dir}"/>
-    <toMavenRepo version="3.0.0" repo="${tmp.mvn2.repo.dir}"/>
-    <toMavenRepo version="3.1.0" repo="${tmp.mvn2.repo.dir}"/>
-    <toMavenRepo version="3.2.0" repo="${tmp.mvn2.repo.dir}"/>
-    <toMavenRepo version="3.3.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="4.0.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.6.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.5.0" repo="${tmp.mvn2.repo.dir}"/>
     <toMavenRepo version="3.4.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.3.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.2.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.1.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="3.0.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="2.4.0" repo="${tmp.mvn2.repo.dir}"/>
+    <toMavenRepo version="2.3.3" repo="${tmp.mvn2.repo.dir}"/>
+
 
   </target>
 
