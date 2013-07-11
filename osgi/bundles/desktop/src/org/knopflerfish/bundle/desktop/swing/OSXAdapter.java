@@ -40,7 +40,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import com.apple.eawt.QuitResponse;
 
 // Modified version of sample code: apple.dts.samplecode.osxadapter.OSXAdapter
 /**
@@ -433,7 +432,8 @@ public class OSXAdapter implements InvocationHandler {
   }
 
   /**
-   * Call the {@link QuitResponse#cancelQuit()}-method in the given object.
+   * Call the {@code QuitResponse.cancelQuit()}-method in the given
+   * object.
    *
    * @param object
    *          quite response object to call cancel on.
