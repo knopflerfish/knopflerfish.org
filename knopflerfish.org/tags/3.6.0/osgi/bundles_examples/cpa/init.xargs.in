@@ -1,0 +1,33 @@
+#
+# Generated from bundles_examples/cpa/init.xargs.in
+# Knopflerfish release $(VERSION)
+#
+
+# load common properties
+-xargs props.xargs
+
+# Semicolon seprated list of base URLs for searching (completing)
+# bundle URLs in "-install URL" command line options and in the console.
+-Forg.knopflerfish.gosg.jars=file:jars/;file:examples_jars/
+
+# CPA admin bundle, started before anything else
+-initlevel 1
+-istart @cpaexample_admin-N.N.N.jar@
+
+-launch
+
+# basic KF bundles
+-initlevel 2
+-install @cm_api-N.N.N.jar@
+-istart @log_all-N.N.N.jar@
+-istart @console_all-N.N.N.jar@
+-istart @consoletty-N.N.N.jar@
+-istart @frameworkcommands-N.N.N.jar@
+-istart @logcommands-N.N.N.jar@
+
+# bundle to test and test bundle
+-initlevel 3
+-install file:/opt/kf/totest/@cpaexample_user_all-N.N.N.jar@
+-install file:/opt/kf/totest/@cpaexample_caller-N.N.N.jar@
+
+-startlevel 3

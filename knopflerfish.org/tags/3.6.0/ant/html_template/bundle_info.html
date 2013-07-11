@@ -1,0 +1,110 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <link href="${relpathup}style.css" rel="stylesheet" type="text/css">
+  <title>${FILE}</title>
+  <script type="text/javascript">
+    function windowTitle() {
+      if (location.href.indexOf('is-external=true') == -1) {
+        parent.document.title=document.title;
+      }
+    }
+  </script>
+</head>
+
+<body onload="windowTitle();">
+
+<h2>${FILE}</h2>
+
+<p>
+<a href="${jarRelPath}">download</a> (${FILEINFO})
+</p>
+
+<table width="100%">
+ <tr>
+  <td class="mfheader" colspan=2>OSGi manifest attributes</td>
+ </tr>
+
+ <tr>
+  <td>Bundle-Name</td>
+  <td>${Bundle-Name}</td>
+ </tr>
+ <tr>
+  <td>Bundle-SymbolicName</td>
+  <td>${Bundle-SymbolicName}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Version</td>
+  <td>${Bundle-Version}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Description</td>
+  <td>${Bundle-Description}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Vendor</td>
+  <td>${Bundle-Vendor}</td>
+ </tr>
+ <tr>
+  <td>Bundle-ContactAddress</td>
+  <td>${Bundle-ContactAddress}</td>
+ </tr>
+ <tr>
+  <td>Bundle-DocURL</td>
+  <td><a target="_top" href="${Bundle-DocURL}">${Bundle-DocURL}</a></td>
+ </tr>
+ <tr>
+  <td>Bundle-ManifestVersion</td>
+  <td>${Bundle-ManifestVersion}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Activator</td>
+  <td>${Bundle-Activator}</td>
+ </tr>
+ <tr>
+  <td>Bundle-Classpath</td>
+  <td>${Bundle-Classpath}</td>
+ </tr>
+
+ <tr>
+  <td>Export-Package</td>
+  <td>${Export-Package}</td>
+ </tr>
+ <tr>
+  <td>Import-Package</td>
+  <td>${Import-Package}</td>
+ </tr>
+ <tr>
+  <td>Dynamic-ImportPackage</td>
+  <td>${DynamicImport-Package}</td>
+ </tr>
+
+
+ <tr>
+  <td  class="mfheader" colspan=2>Other manifest attributes</td>
+ </tr>
+
+ ${MF.UNHANDLED}
+
+</table>
+
+
+<h4>Depends on</h4>
+<table>
+${depends.list}
+</table>
+
+<h4>Other bundles depending on this bundle</h4>
+<table>
+${depending.list}
+</table>
+
+
+<a name="source"></a>
+<h4>Bundle source</h4>
+${sources.list}
+
+</body>
+</html>
+
+

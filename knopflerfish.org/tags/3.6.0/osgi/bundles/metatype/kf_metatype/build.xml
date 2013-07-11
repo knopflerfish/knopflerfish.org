@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="kf_metatype" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.kf_metatype}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/util/metatype/**,
+		   net/n3/nanoxml/**"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/metatype/**"/>
+
+  <property name="bundle.build.lib"  value="true"/>
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.impl" value="false"/>
+  <property name="bundle.build.all"  value="true"/>
+
+
+  <path id="bundle.compile.path">
+    <pathelement location="cm_api-N.N.N.jar"/>
+    <pathelement location="util-N.N.N.jar"/>
+    <pathelement location="log_api-N.N.N.jar"/>
+    <pathelement location="kxml-N.N.N.jar"/>
+    <pathelement location="metatype-N.N.N.jar"/>
+    <pathelement location="resources/nanoxml-2.2.1.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

@@ -1,0 +1,11 @@
+Bundle-Name: bundleN3_test
+Bundle-SymbolicName: bundleN3_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for deprecated arm native code
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Bundle-NativeCode: foo ; osname = Linux ; osname = MacOSX ;
+                   osname = SunOS ; osname = VxWork ; osname = Win32 ; 
+                   processor = arm

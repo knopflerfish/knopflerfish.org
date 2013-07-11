@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="dirdeployer" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.dirdeployer}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name = "ee.check.foundation"   value = "true"/>
+
+  <property name = "bundle.build.api"      value = "true"/>
+  <property name = "bundle.build.impl"     value = "false"/>
+  <property name = "bundle.build.lib"      value = "false"/>
+  <property name = "bundle.build.all"      value = "true"/>
+  <property name = "bundle.build.doc"      value = "true"/>
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/**"/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/service/**"/>
+
+
+  <path id="bundle.compile.path">
+    <pathelement location="log_api-N.N.N.jar"/>  
+    <pathelement location="cm_api-N.N.N.jar"/>  
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

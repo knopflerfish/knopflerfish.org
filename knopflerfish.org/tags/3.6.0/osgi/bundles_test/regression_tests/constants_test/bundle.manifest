@@ -1,0 +1,10 @@
+Bundle-Name: constants_test
+Bundle-SymbolicName: constants_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework constants
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.constants_test.Activator
+Bundle-Category: test
+Import-Package: junit.framework,org.osgi.framework

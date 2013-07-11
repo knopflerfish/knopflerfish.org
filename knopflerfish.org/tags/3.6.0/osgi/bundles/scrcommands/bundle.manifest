@@ -1,0 +1,19 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ScrCommands
+Bundle-SymbolicName: org.knopflerfish.bundle.scrcommands
+Bundle-Version: 1.1.1
+Bundle-Description: Provides SCR admin commands for the Knopflerfish console
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=scrcommands/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/scrcommands/
+Bundle-Category: service
+Bundle-Icon: icon.png;size=32
+Import-Package: org.knopflerfish.service.console; version="[2.1,3)",
+ org.apache.felix.scr; version="[1.4,2)",
+ org.osgi.framework; version="[1,2)",
+ org.osgi.service.component; version="[1,2)"
+Service-Component: OSGI-INF/service.xml

@@ -1,0 +1,47 @@
+<h1>Framework Commands</h1>
+<div class="abstract">
+  The Knopflerfish framework console bundle
+</div>
+
+<h2>Description</h2>
+
+The Framework commands bundle includes a rich set of commands through which the Knopflerfish framework can be controlled. This includes bundle management (install, start, stop etc), OSGi service information, to package and permission management.
+
+<h2>Framework Command Group</h2>
+The console command group is <b>framework</b>
+<p>
+The available commands are:
+<pre class="code">
+  addpermission [-help] -b #bundle# | -d | -l #location# <type> [<name> [<actions>]] - Add permissions to bundle
+  bundles [-help] [-1] [-i] [-l] [-s] [-t] [<bundle>] ... - List bundles
+  call [-help] [-f #filter#] <interface> <method> [<args>] ... - Call a method with zero or more java.lang.String
+  certificates [-help] [ -i ] <bundle> ... - List certificates for bundles
+  closure [-help] <bundle> - Display the closure for a bundle
+  condpermission [-help] [<name>] ... - Get conditional permissions
+  deletepermission [-help] [-r] -b #bundle# | -d | -l #location# <type> <name> <actions> - Delete permissions from a bundle
+  findbundles [-help] <symbolic name> - Find bundles with a given symbolic name
+  headers [-help] [-i] [-l #locale#] <bundle> ... - Show bundle header values
+  install [-help] [-s] <location> ... - Install one or more bundles
+  package [-help] [-l] -b | -p [<selection>] ... - Show java package information
+  permissions [-help] [-d] [<selection>] ... - Show permission information
+  refresh [-help] [<bundle>] ... - Refresh all exported java packages belong to specified bundle
+  resolve [-help] [<bundle>] ... - Resolve one or more bundles
+  services [-help] [-i] [-l] [-sid #id#] [-f #filter#] [-r] [-u] [<bundle>] ... - List registered services
+  setcondpermission [-help] [-name #name] <conditional_permission_info>... - Set conditional permission
+  start [-help] [-t] [-e] <bundle> ... - Persistently start one or more bundles according to their 
+  stop [-help] [-t] <bundle> ... - Persitently stop one or more bundles
+  showstate [-help] [<pid>] ... - Show the state of a service, if the service provides state information
+  shutdown [-help] [<exit code>] - Shutdown framework
+  threads [-help] [-a] - Display threads within this framework
+  uninstall [-help] <bundle> ... - Uninstall one or more bundles
+  update [-help] <bundle> ... - Update one or more bundles
+  fromupdate [-help] <bundle> <url> - Update a bundle from a specific URL
+  frominstall [-help] <url> [<location>] - Install a bundle with a specific location from an URL
+  startlevel [-help] [<level>] - Shows or sets the global startlevel
+  cd [-help] [-reset] [-a] [<base URL>] ... - Shows or sets the base URLs used to complete bundle location
+  bundlelevel [-help] <level> [<bundle>] ... - Set startlevel(s) for bundles
+  property [-help] [-s] [-f] [<property>] ... - Lists Framework and System properties with values.
+</pre>
+
+<h2>See Also</h2>
+<a href="../console/index.html">Console</a>

@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: provisioning
+Bundle-SymbolicName: org.knopflerfish.bundle.provisioning
+Bundle-Version: 3.0.0
+Bundle-Category: API
+Bundle-Description: Initial Provisioning
+Bundle-Vendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/provisioning/
+Export-Package: org.osgi.service.provisioning;version=1.2.0
+Import-Package: org.osgi.framework

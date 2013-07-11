@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: basicdriverlocator
+Bundle-SymbolicName: org.knopflerfish.bundle.basicdriverlocator
+Bundle-Version: 3.0.0
+Bundle-Description: Basic device driver locator
+Bundle-Vendor: Knopflerfish
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/device/basicdriverlocator/
+Bundle-Activator: org.knopflerfish.bundle.basicdriverlocator.Activator
+Bundle-Category: service
+Import-Package: org.osgi.framework,
+ org.knopflerfish.service.log,
+ org.osgi.service.device

@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: xml
+Bundle-SymbolicName: org.knopflerfish.bundle.xml
+Bundle-Version: 3.0.1
+Bundle-Category: API
+Bundle-Description: XML
+Bundle-Vendor: OSGi
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?docpage=xml/index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/xml/xml/
+Export-Package: org.osgi.util.xml; version=1.0.1
+Import-Package: javax.xml.parsers, org.osgi.framework

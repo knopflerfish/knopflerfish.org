@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Connection-Factories
+Bundle-SymbolicName: org.knopflerfish.bundle.connectors
+Bundle-Version: 2.0.1
+Bundle-Description: OSGi IO http, socket and datagram-receive Connectors
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/io/connectors/
+Bundle-Activator: org.knopflerfish.bundle.connectors.Activator
+Import-Package: javax.microedition.io,
+ org.osgi.framework,
+ org.osgi.service.io

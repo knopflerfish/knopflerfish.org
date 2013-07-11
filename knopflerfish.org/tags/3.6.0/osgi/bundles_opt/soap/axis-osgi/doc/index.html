@@ -1,0 +1,88 @@
+<h1>Axis OSGi</h1>
+
+<div class="abstract">
+This is an OSGi bundlification of a standard Axis server.
+</div>
+
+<p> The bundle is part of the <a href="../soap/index.html#axis1">The
+Knopflerfish Axis 1</a> package.  </p>
+
+
+<h2>Description</h2>
+
+<p> The standard Axis server is designed to be running in a servlet
+version 2.3 environment, while the OSGi HTTP service is based on a
+servlet 2.1 environment. It should be noted that no modifications have
+been made to any of the Axis classes, so all code specific to the OSGi
+port is made as pure "extensions". In addition to the bundlification
+of the Axis server the axis-osgi bundle offers the ability to export
+services, registered on the OSGi framework service registry, as SOAP
+services. It should be noted that for this to work the exported
+objects must not expose any data types not supported by SOAP (as of
+Knopflerfish 2.0.5 bean mappings are used for non-standard SOAP types
+to relax this restriction). In order to export a service object as a
+SOAP service, the only thing needed is to set a property named
+"SOAP.service.name" on the registered service. As a convenience
+<tt>org.knopflerfish.service.axis.AxisAdmin.SOAP_SERVICE_NAME</tt> is
+a String constant that holds this name. The property value should be
+of type java.lang.String and its value will be used as the name of the
+exposed SOAP service.</p>
+
+<p> The set of service methods exported from a service with the
+<tt>SOAP.service.name</tt> property set can be controlled via another
+service property named, <tt>SOAP.service.methods</tt>. If not set, or
+set to the value <tt>*</tt> then <b>all</b> methods in the registered
+classes are exposed as web service methods. If set to a string with
+space separated method names, only those methods will be exposed as
+web service methods. As a convenience
+<tt>org.knopflerfish.service.axis.AxisAdmin.SOAP_SERVICE_METHODS</tt>
+is a String constant that holds this service property name.  </p>
+
+<p> The initial SOAP configuration of the Axis server is given by the
+file "/axis/server-config.wsdd". In case you want to add some services
+or for some other reason modify the initial configuration, this is
+where to do it.</p>
+
+<p>Web Services exported by the axis-osgi bundle will have URLs on the
+form:</p>
+<pre>
+   http://localhost:8080/axis/services/<i>&lt;SOAP_SERVICE_NAME&gt;</i>
+</pre>
+
+<p> To view the WSDL for a specific Web Service visit the URL: </p>
+<pre>
+   http://localhost:8080/axis/services/<i>&lt;SOAP_SERVICE_NAME&gt;?wsdl</i>
+</pre>
+
+<p> To explore all web services provided by the axis-osgi bundle the
+following URL may be used. </p>
+
+<pre>
+   http://localhost:8080/axis/services
+</pre>
+
+
+<p> The code to make all this work consist of just a few quite small
+classes (not counting all Axis classes) so it is quite easy to get an
+overview of the porting effort. However it took some time
+experimenting and studying the Axis code to make this work, so some of
+the code may be harder to understand.</p>
+
+<p> Note that the axis-osgi bundle depends on the commons-logging
+bundle to be installed an started. Further if your JRE does not
+support an XML parser you need to provide that as well (e.g Xerces).
+</p>
+
+<p> The axis-osgi.jar file is quite large, due to the contained
+axis.jar (and other contained jars). Some of the Axis classes may be
+left out, e.g. client related classes, in case you will not run any
+Axis clients on your OSGi framework, WSDL related classes in case you
+give up the ability for the server to generate WSDL for the SOAP
+services. These kind of optimizations have not been performed, but is
+probably possible to perform in case it becomes critical to reduce the
+required memory footprint.  </p>
+
+
+<h2>See Also</h2>
+<a href="../soap/index.html">SOAP - WebServices</a>
+
