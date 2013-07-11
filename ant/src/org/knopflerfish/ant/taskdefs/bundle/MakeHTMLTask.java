@@ -377,14 +377,22 @@ public class MakeHTMLTask
                              System.getProperty("user.name"));
       content = Util.replace(content, "$(VERSION)",
                              proj.getProperty("version"));
+      content = Util.replace(content, "$(VERSION_PREV)",
+                             proj.getProperty("version.previous"));
+      content = Util.replace(content, "$(KF_VERSION)",
+                             proj.getProperty("kf_version"));
       content = Util.replace(content, "$(BASE_VERSION)",
                              proj.getProperty("base_version"));
+      content = Util.replace(content, "$(BASE_URL)",
+                             proj.getProperty("base.url"));
       content = Util.replace(content, "$(DISTNAME)",
                              proj.getProperty("distname"));
       content = Util.replace(content, "$(DISTRIB_NAME)",
                              proj.getProperty("distrib.name"));
       content = Util.replace(content, "$(RELEASE_NAME)",
                              proj.getProperty("release.name"));
+      content = Util.replace(content, "$(RELEASE_DATE)",
+                             proj.getProperty("release.date"));
       content = Util.replace(content, "$(MESSAGE)",
                              proj.getProperty("release"));
       content = Util.replace(content, "$(BUNDLE_LIST)", bundleList);

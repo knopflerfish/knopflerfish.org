@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,6 @@ import org.osgi.service.cm.ConfigurationAdmin;
  * CM bundle activator implementation
  * 
  * @author Per Gustafson
- * @version $Revision: 1.1.1.1 $
  */
 
 public class Activator implements BundleActivator {
@@ -58,7 +57,7 @@ public class Activator implements BundleActivator {
 
     static LogRef log;
 
-    static ServiceRegistration serviceRegistration;
+    static ServiceRegistration<ConfigurationAdmin> serviceRegistration;
 
     static ConfigurationAdminFactory configAdminFactory = null;
 
@@ -87,11 +86,13 @@ public class Activator implements BundleActivator {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void createAndRegisterConfigurationAdminFactory() {
         throwIfBundleContextIsNull();
         configAdminFactory = new ConfigurationAdminFactory(getStoreDir());
-        serviceRegistration = bc.registerService(ConfigurationAdmin.class.getName(),
-                                                 configAdminFactory, null);
+        serviceRegistration = (ServiceRegistration<ConfigurationAdmin>)
+            bc.registerService(ConfigurationAdmin.class.getName(),
+                               configAdminFactory, null);
     }
 
     private void unregisterConfigurationAdminFactory() {

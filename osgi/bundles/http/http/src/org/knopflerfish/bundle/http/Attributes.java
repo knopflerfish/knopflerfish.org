@@ -38,35 +38,42 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-public class Attributes {
+public class Attributes
+{
 
-    // private fields
+  // private fields
 
-    private final Dictionary attributes = new Hashtable();
+  private final Dictionary<String, Object> attributes =
+    new Hashtable<String, Object>();
 
-    // public methods
+  // public methods
 
-    public Object getAttribute(String name) {
-        return attributes.get(name);
+  public Object getAttribute(String name)
+  {
+    return attributes.get(name);
+  }
+
+  public Enumeration<String> getAttributeNames()
+  {
+    return attributes.keys();
+  }
+
+  public void setAttribute(String name, Object value)
+  {
+    attributes.put(name, value);
+  }
+
+  public Object removeAttribute(String name)
+  {
+    return attributes.remove(name);
+  }
+
+  public void removeAll()
+  {
+    final Enumeration<String> e = attributes.keys();
+    while (e.hasMoreElements()) {
+      attributes.remove(e.nextElement());
     }
-
-    public Enumeration getAttributeNames() {
-        return attributes.keys();
-    }
-
-    public void setAttribute(String name, Object value) {
-        attributes.put(name, value);
-    }
-
-    public Object removeAttribute(String name) {
-        return attributes.remove(name);
-    }
-
-    public void removeAll() {
-
-        Enumeration e = attributes.keys();
-        while (e.hasMoreElements())
-            attributes.remove(e.nextElement());
-    }
+  }
 
 } // Attributes

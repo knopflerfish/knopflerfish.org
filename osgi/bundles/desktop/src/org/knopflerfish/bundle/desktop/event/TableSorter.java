@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,8 +37,9 @@ package org.knopflerfish.bundle.desktop.event;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.Vector;
+import java.util.List;
 
 import javax.swing.JTable;
 import javax.swing.event.TableModelEvent;
@@ -50,7 +51,7 @@ public class TableSorter extends TableMap {
     private static final long serialVersionUID = 1L;
     
     int             indexes[];
-    Vector          sortingColumns = new Vector();
+    List<Integer> sortingColumns = new ArrayList<Integer>();
     boolean         ascending = true;
     int compares;
 
@@ -68,7 +69,7 @@ public class TableSorter extends TableMap {
     }
 
     public int compareRowsByColumn(int row1, int row2, int column) {
-        Class type = model.getColumnClass(column);
+        Class<?> type = model.getColumnClass(column);
         TableModel data = model;
 
         // Check for nulls.
@@ -87,7 +88,7 @@ public class TableSorter extends TableMap {
 
         /*
          * We copy all returned values from the getValue call in case
-         * an optimised model is reusing one object to return many
+         * an optimized model is reusing one object to return many
          * values.  The Number subclasses in the JDK are immutable and
          * so will not be used in this way but other subclasses of
          * Number might want to do this to save space and avoid
@@ -176,7 +177,7 @@ public class TableSorter extends TableMap {
     public int compare(int row1, int row2) {
         compares++;
         for (int level = 0; level < sortingColumns.size(); level++) {
-            Integer column = (Integer)sortingColumns.elementAt(level);
+            Integer column = sortingColumns.get(level);
             int result = compareRowsByColumn(row1, row2, column.intValue());
             if (result != 0) {
                 return ascending ? result : -result;
@@ -192,7 +193,7 @@ public class TableSorter extends TableMap {
         // for the new data model.
         indexes = new int[rowCount];
 
-        // Initialise with the identity mapping.
+        // Initialize with the identity mapping.
         for (int row = 0; row < rowCount; row++) {
             indexes[row] = row;
         }
@@ -254,12 +255,12 @@ public class TableSorter extends TableMap {
         ordered.  If so, no further comparisons are needed; the
         sub-array can just be copied.  The array must be copied rather
         than assigned otherwise sister calls in the recursion might
-        get out of sinc.  When the number of elements is three they
+        get out of sync.  When the number of elements is three they
         are partitioned so that the first set, [low, mid), has one
         element and and the second, [mid, high), has two. We skip the
-        optimisation when the number of elements is three or less as
+        optimization when the number of elements is three or less as
         the first compare in the normal merge will produce the same
-        sequence of steps. This optimisation seems to be worthwhile
+        sequence of steps. This optimization seems to be worthwhile
         for partially ordered lists but some analysis is needed to
         find out how the performance drops to Nlog(N) as the initial
         order diminishes - it may drop very quickly.  */
@@ -308,8 +309,8 @@ public class TableSorter extends TableMap {
 
     public void sortByColumn(int column, boolean ascending) {
         this.ascending = ascending;
-        sortingColumns.removeAllElements();
-        sortingColumns.addElement(new Integer(column));
+        sortingColumns.clear();
+        sortingColumns.add(new Integer(column));
         sort(this);
         super.tableChanged(new TableModelEvent(this)); 
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,8 +59,8 @@ public class FilterEventTableModel
   Object lock = new Object();
 
   EventTableModel model;
-  Set           bundles         = new HashSet();
-  ArrayList     filteredEntries = new ArrayList();
+  Set<Bundle> bundles = new HashSet<Bundle>();
+  ArrayList<Event> filteredEntries = new ArrayList<Event>();
 
   public FilterEventTableModel(EventTableModel model) {
     super();
@@ -86,7 +86,7 @@ public class FilterEventTableModel
   public void setDispatcher(EventReaderDispatcher dispatcher) {
     model.setDispatcher(dispatcher);
   }
-  public Class getColumnClass(int c) {
+  public Class<?> getColumnClass(int c) {
     return model.getColumnClass(c);
   }
 
@@ -114,8 +114,8 @@ public class FilterEventTableModel
         return true;
       }
 
-      for(Iterator it = bundles.iterator(); it.hasNext();) {
-        Bundle b = (Bundle)it.next();
+      for(Iterator<Bundle> it = bundles.iterator(); it.hasNext();) {
+        Bundle b = it.next();
         if((Util.getBundle(e) != null) &&
            (b.getBundleId() == Util.getBundle(e).getBundleId())) {
           return true;
@@ -132,7 +132,7 @@ public class FilterEventTableModel
     }
   }
 
-  public java.util.List getEntries() {
+  public java.util.List<Event> getEntries() {
     synchronized(lock) {
       return filteredEntries;
     }
@@ -153,7 +153,7 @@ public class FilterEventTableModel
 
   public Event getEntry(int row) {
     synchronized(lock) {
-      Event e = (Event)filteredEntries.get(row);
+      Event e = filteredEntries.get(row);
 
       return e;
     }
@@ -164,8 +164,7 @@ public class FilterEventTableModel
     synchronized(lock) {
       filteredEntries.clear();
 
-      for(Iterator it = model.getEntries().iterator(); it.hasNext(); ) {
-        Event e = (Event)it.next();
+      for(Event e : model.getEntries()) {
         if(isValidEntry(e)) {
           filteredEntries.add(e);
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,16 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.xmlpull.v1.*;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 
 /**
  *
  */
 public class IllegalXMLException extends XmlPullParserException {
+
+  private static final long serialVersionUID = 1L;
 
   public IllegalXMLException(String msg, XmlPullParser parser) {
     super(msg, parser, null);

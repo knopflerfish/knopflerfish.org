@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2009, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,14 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.io.*;
-import java.security.*;
-import java.util.*;
+import java.io.InputStream;
+import java.security.PermissionCollection;
+import java.security.Policy;
+import java.util.Hashtable;
+import java.util.Iterator;
 
 import org.osgi.framework.Bundle;
+
 import org.knopflerfish.framework.FrameworkContext;
 
 
@@ -49,11 +52,12 @@ public class PermissionsHandle {
 
   FrameworkContext framework;
 
-  private PermissionInfoStorage pinfos;
-  private ConditionalPermissionInfoStorage cpinfos;
-  private Hashtable /* Long -> PermissionCollection */ pcCache = new Hashtable();
-  private PermissionAdminImpl pa;
-  private ConditionalPermissionAdminImpl cpa;
+  private final PermissionInfoStorage pinfos;
+  private final ConditionalPermissionInfoStorage cpinfos;
+  private final Hashtable<Long, PermissionsWrapper> pcCache
+    = new Hashtable<Long, PermissionsWrapper>();
+  private final PermissionAdminImpl pa;
+  private final ConditionalPermissionAdminImpl cpa;
 
 
   /**
@@ -92,7 +96,7 @@ public class PermissionsHandle {
   /**
    * Gets the permissionCollection assigned to the bundle with the specified id.
    * The collection contains the configured permissions for the bundle location
-   * plus implict gratnet permissions (i.e FilePermission for the data area).
+   * plus implicit granted permissions (i.e FilePermission for the data area).
    *
    * @param bid The bundle id whose permissions are to be returned.
    *
@@ -101,7 +105,7 @@ public class PermissionsHandle {
    * any permissions or does not yet exist.
    */
   public PermissionCollection getPermissionCollection(Long bid) {
-    return (PermissionCollection)pcCache.get(bid);
+    return pcCache.get(bid);
   }
 
 
@@ -119,9 +123,9 @@ public class PermissionsHandle {
   public  PermissionCollection createPermissionCollection(String loc,
                                                           Bundle b,
                                                           InputStream localPerms) {
-    Long bid = new Long(b.getBundleId());
+    final Long bid = new Long(b.getBundleId());
     // Need to lock cond.perm. changes, when adding a new PermissionsWrapper
-    PermissionCollection pc;
+    PermissionsWrapper pc;
     synchronized (cpinfos) {
       pc = new PermissionsWrapper(framework, pinfos, cpinfos, loc, b, localPerms);
       pcCache.put(bid, pc);
@@ -148,11 +152,11 @@ public class PermissionsHandle {
   }
 
   /**
-   * Get itertor over all active PermissionWrappers.
+   * Get iterator over all active PermissionWrappers.
    *
    * @return Iterator of PermissionWrappers
    */
-  Iterator getPermissionWrappers() {
+  Iterator<PermissionsWrapper> getPermissionWrappers() {
     return pcCache.values().iterator();
   }
 

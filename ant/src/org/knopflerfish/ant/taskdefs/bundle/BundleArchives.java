@@ -608,8 +608,11 @@ public class BundleArchives {
     public int compareTo(Object o) {
       BundleArchive other = (BundleArchive) o;
       // The bsn may be null for pre OSGi R4 bundles!
-      String objName = this.bsn != null ? this.bsn : this.name;
-      String otherName = other.bsn != null ? other.bsn : other.name;
+      String objName = this.bsn != null
+        ? this.bsn : (this.name != null ? this.name : this.bundleName);
+
+      String otherName = other.bsn != null
+        ? other.bsn : (other.name != null ? other.name : other.bundleName);
 
       int res = objName.compareTo(otherName);
       return res != 0 ? res : this.version.compareTo(other.version);

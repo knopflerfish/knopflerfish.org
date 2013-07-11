@@ -34,15 +34,23 @@
 
 package org.knopflerfish.framework;
 
-import java.lang.reflect.*;
-import java.net.*;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.startlevel.StartLevel;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
 
-// NYI, make these imports dynamic!
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
 
@@ -59,7 +67,7 @@ public class FrameworkContext  {
   /**
    * Specification version for this framework.
    */
-  static final String SPEC_VERSION = "1.5";
+  static final String SPEC_VERSION = "1.6";
 
   /**
    * Specification version for org.osgi.framework.launch
@@ -69,7 +77,7 @@ public class FrameworkContext  {
   /**
    * Specification version for org.osgi.framework.hooks.service
    */
-  static final String HOOKS_VERSION = "1.0";
+  static final String HOOKS_VERSION = "1.1";
 
   /**
    * Debug handle.
@@ -89,12 +97,28 @@ public class FrameworkContext  {
   /**
    * All service hooks.
    */
-  Hooks hooks;
+  ServiceHooks serviceHooks;
 
   /**
-   * All exported and imported packages in this framework.
+   * All bundle hooks.
    */
-  Packages packages;
+  BundleHooks bundleHooks;
+
+  /**
+   * All resolver hooks.
+   */
+  ResolverHooks resolverHooks;
+
+  /**
+   * All weaving hooks.
+   */
+  WeavingHooks weavingHooks;
+
+
+  /**
+   * All capabilities, exported and imported packages in this framework.
+   */
+  Resolver resolver;
 
   /**
    * All registered services in this framework.
@@ -119,7 +143,7 @@ public class FrameworkContext  {
   /**
    * Bundle Validator
    */
-  List /* Validator */ validator = null;
+  List<Validator> validator = null;
 
   /**
    * Private Bundle Data Storage
@@ -127,7 +151,7 @@ public class FrameworkContext  {
   FileTree dataStorage /*= null*/;
 
   /**
-   * The start level controler.
+   * The start level controller.
    */
   StartLevelController startLevelController;
 
@@ -144,7 +168,7 @@ public class FrameworkContext  {
   /**
    * Patterns from the boot delegation property.
    */
-  ArrayList /* String */ bootDelegationPatterns;
+  ArrayList<String> bootDelegationPatterns;
   boolean bootDelegationUsed /*= false*/;
 
   /**
@@ -162,13 +186,18 @@ public class FrameworkContext  {
    * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
    * Used and updated by isValidEE()
    */
-  private Set    eeCacheSet = new HashSet();
+  private final Set<String>    eeCacheSet = new HashSet<String>();
   private String eeCache = null;
 
   /**
    * Framework id.
    */
   final int id;
+
+  /**
+   * Framework init count.
+   */
+  int initCount = 0;
 
   /**
    * Framework properties.
@@ -183,7 +212,12 @@ public class FrameworkContext  {
   /**
    * Threads for running listeners and activators
    */
-  LinkedList bundleThreads;
+  LinkedList<BundleThread> bundleThreads;
+
+  /**
+   * Package admin handle
+   */
+  PackageAdminImpl packageAdmin = null;
 
   /**
    * Factory for handling service-based URLs
@@ -211,11 +245,14 @@ public class FrameworkContext  {
   static int smUse = 0;
 
 
+  boolean bsnversionSingle;
+
+
   /**
    * Contruct a framework context
    *
    */
-  FrameworkContext(Map initProps)  {
+  FrameworkContext(Map<String, String> initProps)  {
     synchronized (globalFwLock) {
       id = globalId++;
     }
@@ -234,11 +271,11 @@ public class FrameworkContext  {
    */
   public ClassLoader getClassLoader(String clazz) {
     if (clazz != null) {
-      int pos = clazz.lastIndexOf('.');
+      final int pos = clazz.lastIndexOf('.');
       if (pos != -1) {
-        Pkg p = packages.getPkg(clazz.substring(0, pos));
+        final Pkg p = resolver.getPkg(clazz.substring(0, pos));
         if (p != null) {
-          ExportPkg ep = p.getBestProvider();
+          final ExportPkg ep = p.getBestProvider();
           if (ep != null) {
             return ep.bpkgs.bg.getClassLoader();
           }
@@ -256,6 +293,7 @@ public class FrameworkContext  {
   void init()
   {
     log("initializing");
+    initCount++;
 
     if (firstInit && Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT
         .equals(props.getProperty(Constants.FRAMEWORK_STORAGE_CLEAN))) {
@@ -273,29 +311,32 @@ public class FrameworkContext  {
     }
     perm.init();
 
-    String v = props.getProperty(FWProps.VALIDATOR_PROP);
+    final String v = props.getProperty(FWProps.VALIDATOR_PROP);
     if (!v.equalsIgnoreCase("none") && !v.equalsIgnoreCase("null")) {
-      validator = new ArrayList();
+      validator = new ArrayList<Validator>();
       for (int start = 0; start < v.length(); ) {
         int end = v.indexOf(',', start);
         if (end == -1) {
           end = v.length();
         }
-        String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
+        final String vs = "org.knopflerfish.framework.validator." + v.substring(start, end).trim();
         try {
-          Class vi = Class.forName(vs);
-          Constructor vc = vi.getConstructor(new Class[] { FrameworkContext.class });
-          validator.add((Validator)vc.newInstance(new Object[] { this }));
-        } catch (InvocationTargetException ite) {
+          @SuppressWarnings("unchecked")
+          final
+          Class<? extends Validator> vi = (Class<? extends Validator>) Class.forName(vs);
+          final Constructor<? extends Validator> vc =
+              vi.getConstructor(new Class[] { FrameworkContext.class });
+          validator.add(vc.newInstance(new Object[] { this }));
+        } catch (final InvocationTargetException ite) {
           // NYI, log error from validator
           System.err.println("Construct of " + vs + " failed: " + ite.getTargetException());
-        } catch (NoSuchMethodException e) {
+        } catch (final NoSuchMethodException e) {
           // If no validator, probably stripped framework
           throw new RuntimeException(vs + ", found no such Validator", e);
-        } catch (NoClassDefFoundError ncdfe) {
+        } catch (final NoClassDefFoundError ncdfe) {
           // Validator uses class not supported by JVM ignore
           throw new RuntimeException(vs + ", Validator not supported by JVM", ncdfe);
-        } catch (Exception e) {
+        } catch (final Exception e) {
           throw new RuntimeException(vs + ", failed to construct Validator", e);
         }
         start = end + 1;
@@ -319,7 +360,7 @@ public class FrameworkContext  {
             URLConnection.setContentHandlerFactory(contentHandlerFactory);
             systemContentHandlerFactory   = contentHandlerFactory;
             systemUrlStreamHandlerFactory = urlStreamHandlerFactory;
-          } catch (Throwable e) {
+          } catch (final Throwable e) {
             debug.printStackTrace
               ("Cannot set global URL handlers, "
                +"continuing without OSGi service URL handler (" +e +")", e);
@@ -331,14 +372,23 @@ public class FrameworkContext  {
       }
     }
 
-    String storageClass = "org.knopflerfish.framework.bundlestorage." +
+    props.props.put(Constants.FRAMEWORK_UUID, getUUID());
+
+    bsnversionSingle = Constants.FRAMEWORK_BSNVERSION_SINGLE
+        .equals(props.getProperty(Constants.FRAMEWORK_BSNVERSION));
+
+    final String storageClass = "org.knopflerfish.framework.bundlestorage." +
       props.getProperty(FWProps.BUNDLESTORAGE_PROP) + ".BundleStorageImpl";
     try {
-      Class storageImpl = Class.forName(storageClass);
+      @SuppressWarnings("unchecked")
+      final
+      Class<? extends BundleStorage> storageImpl =
+          (Class<? extends BundleStorage>) Class.forName(storageClass);
 
-      Constructor cons = storageImpl.getConstructor(new Class[] { FrameworkContext.class });
-      storage = (BundleStorage) cons.newInstance(new Object[] { this });
-    } catch (Exception e) {
+      final Constructor<? extends BundleStorage> cons =
+          storageImpl.getConstructor(new Class[] { FrameworkContext.class });
+      storage = cons.newInstance(new Object[] { this });
+    } catch (final Exception e) {
       Throwable cause = e;
       if (e instanceof InvocationTargetException) {
         // Use the nested exception as cause in this case.
@@ -349,29 +399,38 @@ public class FrameworkContext  {
     }
     dataStorage = Util.getFileStorage(this, "data");
 
-    bundleThreads = new LinkedList();
+    BundleThread.checkWarnStopActionNotSupported(this);
+    bundleThreads = new LinkedList<BundleThread>();
 
-    packages  = new Packages(this);
+    resolver  = new Resolver(this);
     listeners = new Listeners(this, perm);
     services  = new Services(this, perm);
 
     // Add this framework to the bundle URL handle
     urlStreamHandlerFactory.addFramework(this);
 
+    serviceHooks = new ServiceHooks(this);
+    bundleHooks = new BundleHooks(this);
+    resolverHooks = new ResolverHooks(this);
+    weavingHooks = new WeavingHooks(this);
+
     systemBundle.initSystemBundle();
 
-    bundles           = new Bundles(this);
+    bundles = new Bundles(this);
 
-    hooks             = new Hooks(this);
-    hooks.open();
-
+    serviceHooks.open();
+    resolverHooks.open();
+    weavingHooks.open();
 
     perm.registerService();
 
-    String[] classes = new String [] { PackageAdmin.class.getName() };
+    packageAdmin = new PackageAdminImpl(this);
+    @SuppressWarnings("deprecation")
+    final
+    String[] classes = new String [] { org.osgi.service.packageadmin.PackageAdmin.class.getName() };
     services.register(systemBundle,
                       classes,
-                      new PackageAdminImpl(this),
+                      packageAdmin,
                       null);
 
     registerStartLevel();
@@ -383,8 +442,7 @@ public class FrameworkContext  {
     log("Installed bundles:");
     // Use the ordering in the bundle storage to get a sorted list of bundles.
     final BundleArchive [] allBAs = storage.getAllBundleArchives();
-    for (int i = 0; i<allBAs.length; i++) {
-      final BundleArchive ba = allBAs[i];
+    for (final BundleArchive ba : allBAs) {
       final Bundle b = bundles.getBundle(ba.getBundleLocation());
       log(" #" +b.getBundleId() +" " +b.getSymbolicName() +":"
           +b.getVersion() +" location:" +b.getLocation());
@@ -402,6 +460,8 @@ public class FrameworkContext  {
     startLevelController = null;
 
     systemBundle.uninitSystemBundle();
+
+    resolverHooks = null;
 
     if(props.REGISTERSERVICEURLHANDLER) {
       urlStreamHandlerFactory.removeFramework(this);
@@ -421,12 +481,12 @@ public class FrameworkContext  {
     listeners.clear();
     listeners = null;
 
-    packages.clear();
-    packages = null;
+    resolver.clear();
+    resolver = null;
 
     synchronized (bundleThreads) {
       while (!bundleThreads.isEmpty()) {
-        ((BundleThread)bundleThreads.remove(0)).quit();
+        bundleThreads.remove(0).quit();
       }
     }
     bundleThreads = null;
@@ -496,19 +556,27 @@ public class FrameworkContext  {
    *
    */
   private void deleteFWDir() {
-    String d = Util.getFrameworkDir(this);
+    final String d = Util.getFrameworkDir(this);
 
-    FileTree dir = (d != null) ? new FileTree(d) : null;
+    final FileTree dir = (d != null) ? new FileTree(d) : null;
     if (dir != null) {
       if(dir.exists()) {
         log("deleting old framework directory.");
-        boolean bOK = dir.delete();
+        final boolean bOK = dir.delete();
         if(!bOK) {
           debug.println("Failed to remove existing fwdir "
                               +dir.getAbsolutePath());
         }
       }
     }
+  }
+
+
+  private String getUUID() {
+    // We use a "pseudo" random UUID (Version 4).
+    final String sid = Integer.toHexString(id * 65536 + initCount);
+    final String baseUUID = "4e524769-3136-4b46-8000-00000000";
+    return baseUUID.substring(0, baseUUID.length() - sid.length()) + sid;
   }
 
 
@@ -528,8 +596,11 @@ public class FrameworkContext  {
       // This is done after framework has been launched.
       startLevelController.restoreState();
 
+      @SuppressWarnings("deprecation")
+      final
+      String [] clsName = new String [] { org.osgi.service.startlevel.StartLevel.class.getName() };
       services.register(systemBundle,
-                        new String [] { StartLevel.class.getName() },
+                        clsName,
                         startLevelController,
                         null);
     }
@@ -553,7 +624,7 @@ public class FrameworkContext  {
    *
    */
   void checkOurBundle(Bundle b) {
-    if (this != ((BundleImpl)b).fwCtx) {
+    if (b == null || !(b instanceof BundleImpl) || this != ((BundleImpl)b).fwCtx) {
       throw new IllegalArgumentException("Bundle does not belong to this framework: " + b);
     }
   }
@@ -569,7 +640,8 @@ public class FrameworkContext  {
       return true;
     }
 
-    String fwEE = props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
+    @SuppressWarnings("deprecation")
+    final String fwEE = props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
 
     if(fwEE == null) {
       // If EE is not set, allow everything
@@ -577,16 +649,16 @@ public class FrameworkContext  {
     } else if (!fwEE.equals(eeCache)) {
       eeCacheSet.clear();
 
-      String[] l = Util.splitwords(fwEE, ",");
-      for(int i = 0 ; i < l.length; i++) {
-        eeCacheSet.add(l[i]);
+      final String[] l = Util.splitwords(fwEE, ",");
+      for (final String element : l) {
+        eeCacheSet.add(element);
       }
       eeCache = fwEE;
     }
 
-    String[] eel   = Util.splitwords(ee, ",");
-    for(int i = 0 ; i < eel.length; i++) {
-      if(eeCacheSet.contains(eel[i])) {
+    final String[] eel   = Util.splitwords(ee, ",");
+    for (final String element : eel) {
+      if(eeCacheSet.contains(element)) {
         return true;
       }
     }
@@ -595,7 +667,7 @@ public class FrameworkContext  {
 
 
   /**
-   * Parse bootdelegation pattern property.
+   * Parse boot-delegation pattern property.
    *
    */
   void buildBootDelegationPatterns() {
@@ -603,16 +675,14 @@ public class FrameworkContext  {
       = props.getProperty(Constants.FRAMEWORK_BOOTDELEGATION);
 
     bootDelegationUsed = bootDelegationString.length() > 0;
-    bootDelegationPatterns = new ArrayList(1);
+    bootDelegationPatterns = new ArrayList<String>(1);
 
     if (bootDelegationUsed) {
       try {
-        Iterator i = Util.parseEntries(Constants.FRAMEWORK_BOOTDELEGATION,
-                                       bootDelegationString,
-                                       true, true, false);
-        while (i.hasNext()) {
-          Map e = (Map)i.next();
-          String key = (String)e.get("$key");
+        for (final HeaderEntry he : Util
+            .parseManifestHeader(Constants.FRAMEWORK_BOOTDELEGATION,
+                                 bootDelegationString, true, true, false)) {
+          final String key = he.getKey();
           if (key.equals("*")) {
             bootDelegationPatterns = null;
             //in case funny person puts a * amongst other things
@@ -622,21 +692,21 @@ public class FrameworkContext  {
             bootDelegationPatterns.add(key.substring(0, key.length() - 1));
           }
           else if (key.endsWith(".")) {
-            listeners.frameworkError(systemBundle, new IllegalArgumentException
-                                     (Constants.FRAMEWORK_BOOTDELEGATION
-                                      +" entry ends with '.': " +key));
+            frameworkError(systemBundle, new IllegalArgumentException
+                           (Constants.FRAMEWORK_BOOTDELEGATION
+                            +" entry ends with '.': " +key));
           }
           else if (key.indexOf("*") != - 1) {
-            listeners.frameworkError(systemBundle, new IllegalArgumentException
-                                     (Constants.FRAMEWORK_BOOTDELEGATION
-                                      +" entry contains a '*': " + key));
+            frameworkError(systemBundle, new IllegalArgumentException
+                           (Constants.FRAMEWORK_BOOTDELEGATION
+                            +" entry contains a '*': " + key));
           }
           else {
             bootDelegationPatterns.add(key);
           }
         }
       }
-      catch (IllegalArgumentException e) {
+      catch (final IllegalArgumentException e) {
         debug.printStackTrace("Failed to parse " +
                               Constants.FRAMEWORK_BOOTDELEGATION, e);
       }
@@ -672,8 +742,7 @@ public class FrameworkContext  {
     final int pos = className.lastIndexOf('.');
     if (pos != -1) {
       final String classPackage = className.substring(0, pos);
-      for (Iterator i = bootDelegationPatterns.iterator(); i.hasNext(); ) {
-        String ps = (String)i.next();
+      for (final String ps : bootDelegationPatterns) {
         if ((ps.endsWith(".") &&
              classPackage.regionMatches(0, ps, 0, ps.length() - 1)) ||
             classPackage.equals(ps)) {
@@ -713,7 +782,7 @@ public class FrameworkContext  {
    * The list of active {@link ExtensionContext} instances for attached
    * extensions with an ExtensionActivator.
    */
-  private final List extCtxs = new ArrayList();
+  private final List<ExtensionContext> extCtxs = new ArrayList<ExtensionContext>();
 
   /**
    * Create a new {@link ExtensionContext} instances for the specified
@@ -733,8 +802,7 @@ public class FrameworkContext  {
    * @param bcl the new bundle class loader to inform about.
    */
   void bundleClassLoaderCreated(final BundleClassLoader bcl) {
-    for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
-      final ExtensionContext extCtx = (ExtensionContext) it.next();
+    for (final ExtensionContext extCtx : extCtxs) {
       extCtx.bundleClassLoaderCreated(bcl);
     }
   }
@@ -746,10 +814,64 @@ public class FrameworkContext  {
    * @param bcl the closed down bundle class loader to inform about.
    */
   void bundleClassLoaderClosed(final BundleClassLoader bcl) {
-    for (Iterator it = extCtxs.iterator(); it.hasNext(); ) {
-      final ExtensionContext extCtx = (ExtensionContext) it.next();
+    for (final ExtensionContext extCtx : extCtxs) {
       extCtx.bundleClassLoaderClosed(bcl);
     }
+  }
+
+
+  /**
+   * Convenience method for throwing framework error event.
+   *
+   * @param b Bundle which caused the error.
+   * @param t Throwable generated.
+   */
+  public void frameworkError(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, b, t), oneTimeListeners);
+  }
+
+
+  /**
+   * Convenience method for throwing framework error event.
+   *
+   * @param bc BundleContext for bundle which caused the error.
+   * @param t Throwable generated.
+   */
+  public void frameworkError(BundleContextImpl bc, Throwable t, FrameworkListener... oneTimeListeners) {
+    listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.ERROR, bc.bundle, t), oneTimeListeners);
+  }
+
+
+  /**
+   * Convenience method for throwing framework info event.
+   *
+   * @param b Bundle which caused the throwable.
+   * @param t Throwable generated.
+   */
+  public void frameworkInfo(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.INFO, b, t), oneTimeListeners);
+  }
+
+
+  /**
+   * Convenience method for throwing framework warning event.
+   *
+   * @param b Bundle which caused the throwable.
+   * @param t Throwable generated.
+   */
+  public void frameworkWarning(Bundle b, Throwable t, FrameworkListener... oneTimeListeners) {
+    listeners.frameworkEvent(new FrameworkEvent(FrameworkEvent.WARNING, b, t), oneTimeListeners);
+  }
+
+
+  /**
+   * Convenience method for throwing framework warning event.
+   *
+   * @param b Bundle which caused the throwable.
+   * @param t Throwable generated.
+   */
+  public void frameworkWarning(BundleGeneration bg, Throwable t, FrameworkListener... oneTimeListeners) {
+    frameworkWarning(bg.bundle, t, oneTimeListeners);
   }
 
 

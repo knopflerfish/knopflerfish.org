@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,10 +41,14 @@ import java.net.URL;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.JComponent;
+
+import org.apache.felix.scr.Component;
+import org.apache.felix.scr.Reference;
+import org.apache.felix.scr.ScrService;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -53,13 +57,9 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import org.apache.felix.scr.Component;
-import org.apache.felix.scr.Reference;
-import org.apache.felix.scr.ScrService;
-
-public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
-    ServiceTrackerCustomizer, JHTMLBundleLinkHandler
-
+public class SCRHTMLDisplayer
+  extends DefaultSwingBundleDisplayer
+  implements ServiceTrackerCustomizer<ScrService,ScrService>, JHTMLBundleLinkHandler
 {
 
   public SCRHTMLDisplayer(BundleContext bc) {
@@ -71,43 +71,47 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
 
     // Remote framework is not supported.
     scrTracker = Activator.getBC().equals(Activator.getTargetBC())
-      ? new ServiceTracker(Activator.getBC(), ScrService.class.getName(), this)
-      : null;
+      ? new ServiceTracker<ScrService,ScrService>(Activator.getBC(),
+                                                  ScrService.class, this)
+        : null;
   }
 
   /**
    * Mapping <tt>ServiceReference -&gt; ScrService</tt> holding all available
    * ScrServices.
    */
-  final Map scrServices = new HashMap();
+  final Map<ServiceReference<ScrService>,ScrService> scrServices
+    = new HashMap<ServiceReference<ScrService>, ScrService>();
 
   ScrService getScrServiceById(final long sid) {
-    for (Iterator it = scrServices.entrySet().iterator(); it.hasNext();) {
-      final Map.Entry entry = (Map.Entry) it.next();
-      final ServiceReference sr = (ServiceReference) entry.getKey();
+    for (final Entry<ServiceReference<ScrService>,ScrService> entry : scrServices.entrySet()) {
+      final ServiceReference<ScrService> sr = entry.getKey();
       final Long srSid = (Long) sr.getProperty(Constants.SERVICE_ID);
       if (srSid.longValue() == sid) {
-        return (ScrService) entry.getValue();
+        return entry.getValue();
       }
     }
     return null;
   }
 
-  private ServiceTracker scrTracker;
+  private final ServiceTracker<ScrService, ScrService> scrTracker;
 
-  public Object addingService(ServiceReference sr) {
+  public ScrService addingService(ServiceReference<ScrService> sr) {
     Activator.log.info("ScrService added.", sr);
-    final Object scrService = Activator.getBC().getService(sr);
+    final ScrService scrService = Activator.getBC().getService(sr);
     if (scrService != null) {
       scrServices.put(sr, scrService);
     }
     return scrService;
   }
 
-  public void modifiedService(ServiceReference sr, Object service) {
+  public void modifiedService(ServiceReference<ScrService> sr,
+                              ScrService service)
+  {
   }
 
-  public void removedService(ServiceReference sr, Object service) {
+  public void removedService(ServiceReference<ScrService> sr, ScrService service)
+  {
     if (null != scrServices.remove(sr)) {
       if (Activator.log != null) {
         Activator.log.info("ScrService removed.", sr);
@@ -115,6 +119,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     }
   }
 
+  @Override
   public void open() {
     super.open();
 
@@ -123,6 +128,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     }
   }
 
+  @Override
   public void close() {
 
     if (scrTracker != null) {
@@ -157,7 +163,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     /** Component Id of the component the link point to. */
     private long cid = -1;
     /** The component reference that the URL points to (optional). */
-    private String ref;
+    private final String ref;
     /** Search for named component. sid, cid optional when present. */
     private String compName;
     /** True if the URL contains a state change command. */
@@ -180,7 +186,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
             + "http://" + URL_SCR_HOST + URL_SCR_PREFIX_PATH);
       }
 
-      final Map params = Util.paramsFromURL(url);
+      final Map<String, String> params = Util.paramsFromURL(url);
       if (!params.containsKey(URL_SCR_KEY_SID)
           && !params.containsKey(URL_SCR_KEY_COMP_NAME)) {
         throw new RuntimeException("Invalid service component URL '" + url
@@ -192,23 +198,25 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
             + "' component id is missing.");
       }
       if (params.containsKey(URL_SCR_KEY_SID)) {
-        this.sid = Long.parseLong((String) params.get(URL_SCR_KEY_SID));
+        this.sid = Long.parseLong(params.get(URL_SCR_KEY_SID));
       }
       if (params.containsKey(URL_SCR_KEY_CID)) {
-        this.cid = Long.parseLong((String) params.get(URL_SCR_KEY_CID));
+        this.cid = Long.parseLong(params.get(URL_SCR_KEY_CID));
       }
-      this.ref = (String) params.get(URL_SCR_KEY_REF);
-      this.compName = (String) params.get(URL_SCR_KEY_COMP_NAME);
+      this.ref = params.get(URL_SCR_KEY_REF);
+      this.compName = params.get(URL_SCR_KEY_COMP_NAME);
       this.isCmd = params.containsKey(URL_SCR_KEY_CMD);
       if (this.isCmd) {
-        final String cmd = (String) params.get(URL_SCR_KEY_CMD);
+        final String cmd = params.get(URL_SCR_KEY_CMD);
         this.doEnable = URL_SCR_CMD_ENABLE.equals(cmd);
         this.doDisable = URL_SCR_CMD_DISABLE.equals(cmd);
         this.doRefresh = URL_SCR_CMD_REFRESH.equals(cmd);
       }
     }
 
-    public ScrUrl(final ServiceReference scrSR, final Component component) {
+    public ScrUrl(final ServiceReference<ScrService> scrSR,
+                  final Component component)
+    {
       this.sid = ((Long) scrSR.getProperty(Constants.SERVICE_ID)).longValue();
       this.cid = component.getId();
       // Include component name to handle components with id=-1 or changed id
@@ -287,8 +295,8 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       sb.append(URL_SCR_PREFIX_PATH);
     }
 
-    private Map getParams() {
-      final Map params = new HashMap();
+    private Map<String, String> getParams() {
+      final Map<String, String> params = new HashMap<String, String>();
       if (compName!=null) {
         // If componentName set no other params are needed.
         params.put(URL_SCR_KEY_COMP_NAME, compName);
@@ -341,9 +349,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       sb.append("\" value=\"");
       sb.append(URL_SCR_CMD_REFRESH);
       sb.append("\">");
-      final Map params = getParams();
-      for (Iterator it = params.entrySet().iterator(); it.hasNext();) {
-        final Map.Entry entry = (Map.Entry) it.next();
+      for (final Entry<String,String> entry : getParams().entrySet()) {
         sb.append("<input type=\"hidden\" name=\"");
         sb.append(entry.getKey());
         sb.append("\" value=\"");
@@ -359,15 +365,17 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
   }
 
 
+  @Override
   public JComponent newJComponent() {
     return new JHTML(this);
   }
 
+  @Override
   public void valueChanged(long bid) {
-    Bundle[] bl = Activator.desktop.getSelectedBundles();
+    final Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for (Iterator it = components.iterator(); it.hasNext();) {
-      JHTML comp = (JHTML) it.next();
+    for (final JComponent jcomp : components) {
+      final JHTML comp = (JHTML) jcomp;
       comp.valueChanged(bl);
     }
   }
@@ -380,6 +388,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     }
 
     // Overridden to show all components when no bundle is selected.
+    @Override
     public void updateView(Bundle[] bl)
     {
       if (!isShowing()) {
@@ -404,6 +413,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
      * Present the components registered for a single bundle.
      * @param b the bundle to present components for.
      */
+    @Override
     public StringBuffer bundleInfo(Bundle b) {
       final StringBuffer sb = new StringBuffer();
 
@@ -441,7 +451,9 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
 
     // Table heading when not provided by caller.
     if (null == bundle) {
-      sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+      sb.append("<tr><td width=\"100%\" bgcolor=\"");
+      sb.append(JHTMLBundle.BG_COLOR_BUNDLE_HEADER);
+      sb.append("\">");
       JHTMLBundle.startFont(sb, "-1");
       if (compName!=null) {
         sb.append("SCR Components with name '");
@@ -455,17 +467,16 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       sb.append("</tr>\n");
     }
 
-    int startPos = sb.length();
+    final int startPos = sb.length();
     boolean compFound = false;
     sb.append("<tr><td width=\"100%\">");
     JHTMLBundle.startFont(sb, "-6");
     startComponentTable(sb);
 
     try {
-      for (Iterator it = scrServices.entrySet().iterator(); it.hasNext();) {
-        final Map.Entry entry = (Map.Entry) it.next();
-        final ServiceReference scrSR = (ServiceReference) entry.getKey();
-        final ScrService scrService = (ScrService) entry.getValue();
+      for (final Entry<ServiceReference<ScrService>,ScrService> entry : scrServices.entrySet()) {
+        final ServiceReference<ScrService> scrSR = entry.getKey();
+        final ScrService scrService = entry.getValue();
         final Component[] components = null!=bundle
             ? scrService.getComponents(bundle)
             : ((null!=compName) ? scrService.getComponents(compName)
@@ -477,7 +488,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
           compFound = true;
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
     stopComponentTable(sb);
@@ -485,7 +496,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     sb.append("</td>\n");
     sb.append("</tr>\n");
     if(!compFound) {
-      // No componets; remove component table.
+      // No components; remove component table.
       sb.setLength(startPos);
     }
 
@@ -502,7 +513,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
   }
 
   void appendComponentRow(final StringBuffer sb,
-                          final ServiceReference scrSR,
+                          final ServiceReference<ScrService> scrSR,
                           final Component component) {
     final ScrUrl scrUrl = new ScrUrl(scrSR, component);
 
@@ -589,7 +600,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
                                  final String compName) {
     Component comp = scr.getComponent(cid);
     if (null==comp && null!=compName) {
-      Component[] comps = scr.getComponents(compName);
+      final Component[] comps = scr.getComponents(compName);
       if (null!=comps) {
         if (comps.length>1) {
           Activator.log.info("Found " + comps.length +" components with name '"
@@ -614,7 +625,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     try {
       final ScrService scr = getScrServiceById(scrUrl.getSid());
       if (null != scr) {
-        Component comp = getComponent(scr, scrUrl.getCid(),
+        final Component comp = getComponent(scr, scrUrl.getCid(),
                                       scrUrl.getComponentName());
 
         if (null != comp) {
@@ -636,7 +647,9 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
           sb.append("<html>");
           sb.append("<table border=0 width='100%'>");
 
-          sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+          sb.append("<tr><td width=\"100%\" bgcolor=\"");
+          sb.append(JHTMLBundle.BG_COLOR_BUNDLE_HEADER);
+          sb.append("\">");
           sb.append("Service Component #" + comp.getId());
           if (scrServices.size()>1) {
             sb.append("@");
@@ -693,14 +706,14 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       } else {
         sb.append("No SCR service with sid=" + scrUrl.getSid());
       }
-    } catch (Exception e2) {
+    } catch (final Exception e2) {
       e2.printStackTrace();
     }
   }
 
   void appendComponentLine(final StringBuffer sb, final String label,
       final String value) {
-    JHTMLBundle.appendRow(sb, "-1", "align='left'", label, value);
+    JHTMLBundle.appendRow(sb, null, "-1", "left", label, value);
   }
 
   String componentServicesLabel(final Component comp) {
@@ -731,8 +744,8 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
     // cellspacing:5 is compensated by cellpadding-left:-5 to left-justify table
     sb.append("<table cellpadding='0' cellspacing='5' border='0' width='100%'>\n");
     sb.append("<tr><th align='left' style='padding-left:-5'>Name</th><th align='left'>Value</th></tr>\n");
-    final Dictionary props = comp.getProperties();
-    for (Enumeration keys = props.keys(); keys.hasMoreElements();) {
+    final Dictionary<?, ?> props = comp.getProperties();
+    for (final Enumeration<?> keys = props.keys(); keys.hasMoreElements();) {
       final String key = (String) keys.nextElement();
       final StringWriter sw = new StringWriter();
       final PrintWriter pr = new PrintWriter(sw);
@@ -774,9 +787,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       sb.append("<th align='left'>Service</th>");
       sb.append("</tr>");
 
-      for (int i = 0; i < refs.length; i++) {
-        final Reference ref = refs[i];
-
+      for (final Reference ref : refs) {
         sb.append("<tr>");
         sb.append("<td align='left' valign='middle' style='padding-left:-10'>");
         JHTMLBundle.startFont(sb, "-1");
@@ -835,16 +846,18 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
         if (null != comp) {
           final Reference[] refs = comp.getReferences();
           Reference ref = null;
-          for (int i = 0; i < refs.length; i++) {
-            if (refs[i].getName().equals(scrUrl.getRef())) {
-              ref = refs[i];
+          for (final Reference ref2 : refs) {
+            if (ref2.getName().equals(scrUrl.getRef())) {
+              ref = ref2;
             }
           }
           if (null != ref) {
             sb.append("<html>");
             sb.append("<table border=0 width='100%'>");
 
-            sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+            sb.append("<tr><td width=\"100%\" bgcolor=\"");
+            sb.append(JHTMLBundle.BG_COLOR_BUNDLE_HEADER);
+            sb.append("\">");
             sb.append("Service Component #");
             new ScrUrl(scrUrl.getSid(), comp).scrLink(sb, String.valueOf(comp.getId()));
             sb.append(", <i>");
@@ -866,7 +879,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
 
             appendComponentLine(sb, "&nbsp;", "&nbsp;");
 
-            final ServiceReference[] services = ref.getServiceReferences();
+            final ServiceReference<?>[] services = ref.getServiceReferences();
             final String servicesLabel = ref.isMultiple() ? "Bound services"
                 : "Bound service";
             if (null == services) {
@@ -877,7 +890,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
                 if (i > 0) {
                   serviceSb.append(", ");
                 }
-                final ServiceReference service = services[i];
+                final ServiceReference<?> service = services[i];
                 final Long serviceId = (Long) service
                     .getProperty(Constants.SERVICE_ID);
                 serviceSb.append("#");
@@ -905,7 +918,7 @@ public class SCRHTMLDisplayer extends DefaultSwingBundleDisplayer implements
       } else {
         sb.append("No SCR service with sid=" + scrUrl.getSid());
       }
-    } catch (Exception e2) {
+    } catch (final Exception e2) {
       e2.printStackTrace();
     }
   }

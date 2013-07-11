@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +38,9 @@ import org.knopflerfish.bundle.desktop.swing.Util;
 import org.osgi.framework.ServiceReference;
 
 public class ServiceLink extends DefaultLink {
-  ServiceReference sr;
+  ServiceReference<?> sr;
 
-  public ServiceLink(ServiceReference sr, 
+  public ServiceLink(ServiceReference<?> sr, 
                      Node from,
                      Node to,
                      int depth,

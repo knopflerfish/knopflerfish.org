@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ final public class ListenerEventQueue implements Runnable {
   /**
    ** The queue of events.
    **/
-  private Vector queue = new Vector();
+  private Vector<ListenerEvent> queue = new Vector<ListenerEvent>();
 
   /**
    * The bundle context
@@ -67,7 +67,7 @@ final public class ListenerEventQueue implements Runnable {
   private boolean quit = false;
 
   /**
-   ** Construct an UpdateQueue given a  
+   ** Construct an UpdateQueue given a
    ** BundleContext.
    **
    ** @param bc The BundleContext to use.
@@ -84,11 +84,11 @@ final public class ListenerEventQueue implements Runnable {
       ListenerEvent update = dequeue();
       if (update == null) {
         return;
-      } 
+      }
       else {
         try {
           update.sendEvent(bc);
-					
+
         } catch (Throwable t) {
           Activator.log.error("[CM] Error while sending event", t);
         }
@@ -105,7 +105,7 @@ final public class ListenerEventQueue implements Runnable {
   public synchronized void enqueue(ListenerEvent update) {
     if (update == null || quit) {
       return;
-    }	
+    }
     queue.addElement(update);
     attachNewThreadIfNeccesary();
     notifyAll();
@@ -113,7 +113,7 @@ final public class ListenerEventQueue implements Runnable {
 
   /**
    ** Get and remove the next entry from the queue.
-   ** 
+   **
    ** If the queue is empty this method waits until an
    ** entry is available.
    **
@@ -130,7 +130,7 @@ final public class ListenerEventQueue implements Runnable {
       detachCurrentThread();
       return null;
     } else {
-      ListenerEvent u = (ListenerEvent) queue.elementAt(0);
+      ListenerEvent u = queue.elementAt(0);
       queue.removeElementAt(0);
       return u;
     }

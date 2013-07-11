@@ -5,8 +5,11 @@
 
 <project name="xargs" basedir=".">
 
+  <!-- Users of this macro should call the check_openssl target before
+       calling this macro to ensure that the property openssl_exists
+       is correctly set. -->
   <macrodef name="xargs"
-	    description="Generates xargs-file from templare.">
+	    description="Generates xargs-file from template.">
     <attribute name="template"
 	       description="Location of the template xargs file to use."/>
     <attribute name="xargs"
@@ -23,6 +26,9 @@
     <attribute name="xargsOsTemplate"
 	       description="Location of file with replacement for $(OS_ARGS)."
 	       default=""/>
+    <attribute name="headless"
+	       description="If set to 'true' then $(AWT) is replaced with the comment char otherwise it is replaced with an empty string."
+	       default="false"/>
     <attribute name="outDir"
 	       description="Directory to place intermediate build files in."
 	       default="out"/>
@@ -43,6 +49,7 @@
       <property name="xargs.os.args" value=""/>
 
       <mkdir dir="@{outDir}"/>
+      <local name="bundleVersionFilter"/>
       <property name="bundleVersionFilter"
 		location="@{outDir}/bundleVersionsXargs.props"/>
       <delete file="${bundleVersionFilter}"/>
@@ -53,7 +60,7 @@
 	<bundles/>
       </bundle_locator>
 
-      <antcall target="check_openssl"/>
+      <local name="do.cpa.test"/>
       <condition property="do.cpa.test" value="" else="#">
 	<and>
           <isset property="openssl_exist"/>
@@ -62,14 +69,20 @@
 	</and>
       </condition>
 
+      <local name="headless"/>
+      <condition property="headless" value="#" else="">
+          <equals arg1="@{headless}" arg2="true"/>
+      </condition>
+
       <copy file="@{template}" tofile="@{xargs}"/>
       <replace file="@{xargs}"
                replacefilterfile="${bundleVersionFilter}">
-	<replacefilter token="$(GOSG_JARS)"       value="@{gosgJars}"/>
-	<replacefilter token="$(TESTJARS)"        value="@{testJars}"/>
-	<replacefilter token="$(VERSION)"         value="${version}"/>
-	<replacefilter token="$(OS_ARGS)"         value="${xargs.os.args}"/>
-	<replacefilter token="$(DO_CPA_TEST)"     value="${do.cpa.test}"/>
+	<replacefilter token="$(GOSG_JARS)"    value="@{gosgJars}"/>
+	<replacefilter token="$(TESTJARS)"     value="@{testJars}"/>
+	<replacefilter token="$(VERSION)"      value="${version}"/>
+	<replacefilter token="$(OS_ARGS)"      value="${xargs.os.args}"/>
+	<replacefilter token="$(DO_CPA_TEST)"  value="${do.cpa.test}"/>
+	<replacefilter token="$(AWT)"          value="${headless}"/>
 	<replacefilters/>
       </replace>
     </sequential>

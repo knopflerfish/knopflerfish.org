@@ -11,6 +11,11 @@
   <property name="bundle.build.all"  value="true"/>
   <property name="bundle.build.doc"  value="true"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
+  <property name="bundle.extraimports"   value="sun.io"/>
+
   <property name="api.pattern"
 	    value="javax/xml/*,
 		   javax/xml/datatype/*,
@@ -65,6 +70,11 @@
   <property name="impl.pattern" value="**" />
 
   <path id="bundle.compile.path">
+    <!-- Use the embedded xml-apis.jar as source for the javax.xml APIs   -->
+    <!-- since they are not part of the OSGi Minimum EE.            -->
+    <!-- OK since those packages are imported and thus not expected -->
+    <!-- to be part of the EE.                                      -->
+    <pathelement location="${proj.dir}/resources/xml-apis.jar"/>
   </path>
 
   <property name="all.suffix.name" value=""/>

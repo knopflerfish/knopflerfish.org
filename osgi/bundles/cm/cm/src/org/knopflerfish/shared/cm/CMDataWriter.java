@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,233 +46,276 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
 
-public class CMDataWriter {
-    public final static String ENCODING = "ISO-8859-1";
+import org.osgi.service.cm.Configuration;
 
-    // Element names
-    public final static String CONFIGURATION = "configuration";
+public class CMDataWriter
+{
+  public final static String ENCODING = "ISO-8859-1";
 
-    public final static String FACTORY_CONFIGURATION = "factoryconfiguration";
+  // Element names
+  public final static String CONFIGURATION = "configuration";
 
-    public final static String PROPERTY = "property";
+  public final static String FACTORY_CONFIGURATION = "factoryconfiguration";
 
-    public final static String VECTOR = "vector";
+  public final static String PROPERTY = "property";
 
-    public final static String ARRAY = "array";
+  public final static String VECTOR = "vector";
 
-    public final static String VALUE = "value";
+  public final static String ARRAY = "array";
 
-    public final static String PRIMITIVE_VALUE = "primitiveValue";
+  public final static String VALUE = "value";
 
-    // Attribute names
-    public final static String NAME = "name";
+  public final static String PRIMITIVE_VALUE = "primitiveValue";
 
-    public final static String TYPE = "type";
+  // Attribute names
+  public final static String NAME = "name";
 
-    public final static String LENGTH = "length";
+  public final static String TYPE = "type";
 
-    public final static String ELEMENT_TYPE = "elementType";
+  public final static String LENGTH = "length";
 
-    private static Class classBigDecimal = null;
-    static {
-        try {
-            classBigDecimal = Class.forName("java.math.BigDecimal");
-        } catch (Throwable ignore) {
-            classBigDecimal = null;
-        }
+  public final static String ELEMENT_TYPE = "elementType";
+
+  private static Class<?> classBigDecimal = null;
+  static {
+    try {
+      classBigDecimal = Class.forName("java.math.BigDecimal");
+    } catch (final Throwable ignore) {
+      classBigDecimal = null;
     }
+  }
 
-    final static String[] PRE = {
-            "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>",
-            "<!DOCTYPE cm_data PUBLIC '-//Gatespace//DTD cm_data 0.1//EN' 'cm_data.dtd'>",
-            "<cm_data version=\"0.1\">",
-            "<!-- EDITING THIS FILE IS NOT GUARANTEED TO WORK  -->" };
+  final static String[] PRE = {
+                               "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>",
+                               "<!DOCTYPE cm_data PUBLIC '-//Gatespace//DTD cm_data 0.1//EN' 'cm_data.dtd'>",
+                               "<cm_data version=\"0.1\">",
+                               "<!-- EDITING THIS FILE IS NOT GUARANTEED TO WORK  -->" };
 
-    final static String[] POST = { "</cm_data>" };
+  final static String[] POST = { "</cm_data>" };
 
-    public static void writeConfiguration(String pid, Dictionary d,
-            PrintWriter w) {
-        writeLines(PRE, w);
-        w.println("<configuration pid=\"" + pid + "\" mode=\"new\">");
-        writeProperties(d, w);
-        w.println("</configuration>");
-        writeLines(POST, w);
-    }
-
-    public static void writeFactoryConfiguration(String fpid, String pid,
-            Dictionary d, PrintWriter w) {
-        writeLines(PRE, w);
-        w.println("<factoryconfiguration factorypid=\"" + fpid
-                + "\" mode=\"update\">");
-        writeProperties(d, w);
+  public static void writeConfigurations(final Configuration[] cs,
+                                         final PrintWriter w)
+  {
+    writeLines(PRE, w);
+    for (final Configuration cfg : cs) {
+      if (cfg.getFactoryPid() != null) {
+        w.println("<factoryconfiguration factorypid=\"" + cfg.getFactoryPid()
+                  + "\" mode=\"update\">");
+        writeProperties(cfg.getProperties(), w);
         w.println("</factoryconfiguration>");
-        writeLines(POST, w);
+      } else {
+        w.println("<configuration pid=\"" + cfg.getPid() + "\" mode=\"new\">");
+        writeProperties(cfg.getProperties(), w);
+        w.println("</configuration>");
+      }
+    }
+    writeLines(POST, w);
+  }
+
+  public static void writeConfiguration(String pid,
+                                        Dictionary<String, Object> d,
+                                        PrintWriter w)
+  {
+    writeLines(PRE, w);
+    w.println("<configuration pid=\"" + pid + "\" mode=\"new\">");
+    writeProperties(d, w);
+    w.println("</configuration>");
+    writeLines(POST, w);
+  }
+
+  public static void writeFactoryConfiguration(String fpid,
+                                               String pid,
+                                               Dictionary<String, Object> d,
+                                               PrintWriter w)
+  {
+    writeLines(PRE, w);
+    w.println("<factoryconfiguration factorypid=\"" + fpid
+              + "\" mode=\"update\">");
+    writeProperties(d, w);
+    w.println("</factoryconfiguration>");
+    writeLines(POST, w);
+  }
+
+  static void writeLines(String[] lines, PrintWriter w)
+  {
+    for (final String line : lines) {
+      w.println(line);
+    }
+  }
+
+  static void writeProperties(Dictionary<String, Object> dictionary,
+                              PrintWriter w)
+  {
+    if (dictionary == null) {
+      return;
     }
 
-    static void writeLines(String[] lines, PrintWriter w) {
-        for (int i = 0; i < lines.length; ++i) {
-            w.println(lines[i]);
-        }
+    final Enumeration<String> keys = dictionary.keys();
+    while (keys.hasMoreElements()) {
+      final String key = keys.nextElement();
+      w.println("<property name=\"" + escapeIfNeccesary(key) + "\">");
+      writeValue(dictionary.get(key), w);
+      w.println("</property>");
+    }
+  }
+
+  static private void writeValue(Object value, PrintWriter w)
+  {
+    if (value == null) {
+      return;
     }
 
-    static void writeProperties(Dictionary dictionary, PrintWriter w) {
-        if (dictionary == null) {
-            return;
-        }
-
-        Enumeration keys = dictionary.keys();
-        while (keys.hasMoreElements()) {
-            String key = (String) keys.nextElement();
-            w.println("<property name=\"" + escapeIfNeccesary(key) + "\">");
-            writeValue(dictionary.get(key), w);
-            w.println("</property>");
-        }
+    final Class<? extends Object> valueClass = value.getClass();
+    if (valueClass.isArray()) {
+      writeArray(value, w);
+    } else if (valueClass == Vector.class) {
+      writeVector((Vector<?>) value, w);
+    } else {
+      w.println("<value type=\"" + typeOf(value) + "\">"
+                + escapeIfNeccesary(value.toString()) + "</value>");
     }
+  }
 
-    static private void writeValue(Object value, PrintWriter w) {
-        if (value == null) {
-            return;
-        }
-
-        Class valueClass = value.getClass();
-        if (valueClass.isArray()) {
-            writeArray(value, w);
-        } else if (valueClass == Vector.class) {
-            writeVector((Vector) value, w);
+  static private String escapeIfNeccesary(String s)
+  {
+    if (needsEscaping(s)) {
+      final StringBuffer escaped = new StringBuffer();
+      for (int i = 0; i < s.length(); ++i) {
+        final char c = s.charAt(i);
+        if (c == '&') {
+          escaped.append("&amp;");
+        } else if (c == '<') {
+          escaped.append("&lt;");
+        } else if (c == '>') {
+          escaped.append("&gt;");
+        } else if (c == '\'') {
+          escaped.append("&apos;");
+        } else if (c == '\"') {
+          escaped.append("&quot;");
         } else {
-            w.println("<value type=\"" + typeOf(value) + "\">"
-                    + escapeIfNeccesary(value.toString()) + "</value>");
+          escaped.append(c);
         }
+      }
+      return escaped.toString();
     }
+    return s;
+  }
 
-    static private String escapeIfNeccesary(String s) {
-        if (needsEscaping(s)) {
-            StringBuffer escaped = new StringBuffer();
-            for (int i = 0; i < s.length(); ++i) {
-                char c = s.charAt(i);
-                if (c == '&') {
-                    escaped.append("&amp;");
-                } else if (c == '<') {
-                    escaped.append("&lt;");
-                } else if (c == '>') {
-                    escaped.append("&gt;");
-                } else if (c == '\'') {
-                    escaped.append("&apos;");
-                } else if (c == '\"') {
-                    escaped.append("&quot;");
-                } else {
-                    escaped.append(c);
-                }
-            }
-            return escaped.toString();
-        }
-        return s;
-    }
+  static private boolean needsEscaping(String s)
+  {
+    return s.indexOf('&') != -1 || s.indexOf('<') != -1 || s.indexOf('>') != -1
+           || s.indexOf('\'') != -1 || s.indexOf('\"') != -1;
+  }
 
-    static private boolean needsEscaping(String s) {
-        return s.indexOf('&') != -1 || s.indexOf('<') != -1
-                || s.indexOf('>') != -1 || s.indexOf('\'') != -1
-                || s.indexOf('\"') != -1;
-    }
+  static private void writeArray(Object array, PrintWriter w)
+  {
+    final Class<?> componentType = array.getClass().getComponentType();
+    final int length = Array.getLength(array);
 
-    static private void writeArray(Object array, PrintWriter w) {
-        Class componentType = array.getClass().getComponentType();
-        int length = Array.getLength(array);
+    w.println("<array length=\"" + length + "\" elementType=\""
+              + elementTypeOf(array) + "\">");
 
-        w.println("<array length=\"" + length + "\" elementType=\""
-                + elementTypeOf(array) + "\">");
-
-        if (componentType.isPrimitive()) {
-            for (int i = 0; i < length; ++i) {
-                Object o = Array.get(array, i);
-                writePrimitiveValue(componentType, o, w);
-            }
+    if (componentType.isPrimitive()) {
+      for (int i = 0; i < length; ++i) {
+        final Object o = Array.get(array, i);
+        writePrimitiveValue(componentType, o, w);
+      }
+    } else {
+      for (int i = 0; i < length; ++i) {
+        final Object o = Array.get(array, i);
+        if (o == null) {
+          w.println("<null/>");
         } else {
-            for (int i = 0; i < length; ++i) {
-                Object o = Array.get(array, i);
-                if (o == null) {
-                    w.println("<null/>");
-                } else {
-                    writeValue(o, w);
-                }
-            }
+          writeValue(o, w);
         }
-
-        w.println("</array>");
+      }
     }
 
-    static private void writeVector(Vector vector, PrintWriter w) {
-        int length = vector.size();
-        w.println("<vector length=\"" + length + "\">");
-        for (int i = 0; i < vector.size(); ++i) {
-            Object element = vector.elementAt(i);
-            writeValue(element, w);
-        }
-        w.println("</vector>");
-    }
+    w.println("</array>");
+  }
 
-    static private void writePrimitiveValue(Class type, Object value,
-            PrintWriter w) {
-        w.println("<primitiveValue type=\"" + primitiveTypeOf(type) + "\">");
-        w.println(escapeIfNeccesary(value.toString()));
-        w.println("</primitiveValue>");
+  static private void writeVector(Vector<?> vector, PrintWriter w)
+  {
+    final int length = vector.size();
+    w.println("<vector length=\"" + length + "\">");
+    for (int i = 0; i < vector.size(); ++i) {
+      final Object element = vector.elementAt(i);
+      writeValue(element, w);
     }
+    w.println("</vector>");
+  }
 
-    static private String elementTypeOf(Object array) {
-        String elementType = "";
-        Class c = array.getClass().getComponentType();
-        while (c.isArray()) {
-            elementType = elementType + "[]";
-            c = c.getComponentType();
-        }
-        if (c.isPrimitive()) {
-            elementType = primitiveTypeOf(c) + elementType;
-        } else {
-            elementType = typeOf(c) + elementType;
-        }
-        return elementType;
-    }
+  static private void writePrimitiveValue(Class<?> type,
+                                          Object value,
+                                          PrintWriter w)
+  {
+    w.println("<primitiveValue type=\"" + primitiveTypeOf(type) + "\">");
+    w.println(escapeIfNeccesary(value.toString()));
+    w.println("</primitiveValue>");
+  }
 
-    static private String typeOf(Class c) {
-        return (String) classToString.get(c);
+  static private String elementTypeOf(Object array)
+  {
+    String elementType = "";
+    Class<?> c = array.getClass().getComponentType();
+    while (c.isArray()) {
+      elementType = elementType + "[]";
+      c = c.getComponentType();
     }
+    if (c.isPrimitive()) {
+      elementType = primitiveTypeOf(c) + elementType;
+    } else {
+      elementType = typeOf(c) + elementType;
+    }
+    return elementType;
+  }
 
-    static private String typeOf(Object value) {
-        Class c = value.getClass();
-        return (String) classToString.get(c);
-    }
+  static private String typeOf(Class<?> c)
+  {
+    return (String) classToString.get(c);
+  }
 
-    private final static Hashtable classToString = new Hashtable();
-    static {
-        classToString.put(Vector.class, "Vector");
-        classToString.put(Integer.class, "Integer");
-        classToString.put(Short.class, "Short");
-        classToString.put(Long.class, "Long");
-        classToString.put(String.class, "String");
-        classToString.put(Float.class, "Float");
-        classToString.put(Double.class, "Double");
-        classToString.put(Byte.class, "Byte");
-        classToString.put(BigInteger.class, "BigInteger");
-        classToString.put(Character.class, "Character");
-        classToString.put(Boolean.class, "Boolean");
-        if (classBigDecimal != null) {
-            classToString.put(classBigDecimal, "BigDecimal");
-        }
-    }
+  static private String typeOf(Object value)
+  {
+    final Class<? extends Object> c = value.getClass();
+    return (String) classToString.get(c);
+  }
 
-    static private String primitiveTypeOf(Class type) {
-        return (String) primitiveTypeToString.get(type);
+  private final static Hashtable<Class<?>, Object> classToString
+    = new Hashtable<Class<?>, Object>();
+  static {
+    classToString.put(Vector.class, "Vector");
+    classToString.put(Integer.class, "Integer");
+    classToString.put(Short.class, "Short");
+    classToString.put(Long.class, "Long");
+    classToString.put(String.class, "String");
+    classToString.put(Float.class, "Float");
+    classToString.put(Double.class, "Double");
+    classToString.put(Byte.class, "Byte");
+    classToString.put(BigInteger.class, "BigInteger");
+    classToString.put(Character.class, "Character");
+    classToString.put(Boolean.class, "Boolean");
+    if (classBigDecimal != null) {
+      classToString.put(classBigDecimal, "BigDecimal");
     }
+  }
 
-    private final static Hashtable primitiveTypeToString = new Hashtable();
-    static {
-        primitiveTypeToString.put(Integer.TYPE, "int");
-        primitiveTypeToString.put(Short.TYPE, "short");
-        primitiveTypeToString.put(Long.TYPE, "long");
-        primitiveTypeToString.put(Float.TYPE, "float");
-        primitiveTypeToString.put(Double.TYPE, "double");
-        primitiveTypeToString.put(Byte.TYPE, "byte");
-        primitiveTypeToString.put(Character.TYPE, "char");
-        primitiveTypeToString.put(Boolean.TYPE, "boolean");
-    }
+  static private String primitiveTypeOf(Class<?> type)
+  {
+    return primitiveTypeToString.get(type);
+  }
+
+  private final static Hashtable<Class<?>, String> primitiveTypeToString
+    = new Hashtable<Class<?>, String>();
+  static {
+    primitiveTypeToString.put(Integer.TYPE, "int");
+    primitiveTypeToString.put(Short.TYPE, "short");
+    primitiveTypeToString.put(Long.TYPE, "long");
+    primitiveTypeToString.put(Float.TYPE, "float");
+    primitiveTypeToString.put(Double.TYPE, "double");
+    primitiveTypeToString.put(Byte.TYPE, "byte");
+    primitiveTypeToString.put(Character.TYPE, "char");
+    primitiveTypeToString.put(Boolean.TYPE, "boolean");
+  }
+
 }

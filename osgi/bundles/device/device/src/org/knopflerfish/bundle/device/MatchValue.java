@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,17 @@ package org.knopflerfish.bundle.device;
 
 import org.osgi.framework.ServiceReference;
 
-public class MatchValue {
-    MatchValue next;
+public class MatchValue
+{
+  MatchValue next;
 
-    Integer key;
+  Integer key;
 
-    String drvid;
+  String drvid;
 
-    String pid;
+  String pid;
 
-    ServiceReference dev;
+  ServiceReference<?> dev;
 
-    int match;
+  int match;
 }

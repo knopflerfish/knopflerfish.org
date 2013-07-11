@@ -34,125 +34,143 @@
 
 package org.knopflerfish.bundle.dirdeployer;
 
-import java.util.*;
-import java.io.*;
-import java.net.*;
-import org.osgi.framework.*;
-import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.startlevel.StartLevel;
-import org.osgi.service.log.LogService;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 
-import org.knopflerfish.service.dirdeployer.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.wiring.FrameworkWiring;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.log.LogService;
+import org.osgi.util.tracker.ServiceTracker;
+
+import org.knopflerfish.service.dirdeployer.DirDeployerService;
 
 /**
- * Implementation of <tt>DirDeployerService</tt> which
- * scans a set of directories regularly on a thread.
- *
+ * Implementation of <tt>DirDeployerService</tt> which scans a set of
+ * directories for files to deploy regularly on a thread.
  */
-class DirDeployerImpl implements DirDeployerService {
+class DirDeployerImpl
+  implements DirDeployerService, FrameworkListener
+{
 
-  /**
-   * The prefix used for the bundle location of all bundles installed
-   * by the dir deployer. Must not be "file:" or some other known
-   * URL-protocol since it is used to identify bundles installed by
-   * the dir deployer so that bundles removed from any of the scanned
-   * directories while the framework is stopped can be detected and
-   * un-installed on the next start-up.
-   */
-  final static String LOCATION_PREFIX = "dirdeployer:";
+  final HashMap<File, DeployedFile> deployedFiles =
+    new HashMap<File, DeployedFile>();
 
+  Thread runner = null; // scan thread
+  boolean bRun = false; // flag for stopping scan thread
 
-  // File -> DeployedFile
-  final HashMap  deployedFiles = new HashMap();
+  static ServiceTracker<LogService,LogService> logTracker;
+  static ServiceTracker<ConfigurationAdmin,ConfigurationAdmin> caTracker;
 
-  Thread         runner = null;    // scan thread
-  boolean        bRun   = false;   // flag for stopping scan thread
-  // List with bundles that has been updated, if non-empty a package
-  // admin refresh call is needed.
-  final List updatedBundles = new ArrayList();
+  Config config;
 
-  ServiceTracker logTracker;
-  Config         config;
+  public DirDeployerImpl()
+  {
+    logTracker =
+      new ServiceTracker<LogService, LogService>(Activator.bc,
+                                                 LogService.class, null);
+    logTracker.open();
 
-  public DirDeployerImpl() {
+    caTracker =
+      new ServiceTracker<ConfigurationAdmin, ConfigurationAdmin>(
+                                                                 Activator.bc,
+                                                                 ConfigurationAdmin.class,
+                                                                 null);
+    caTracker.open();
 
     // create and register the configuration class
     config = new Config();
-
-    logTracker = new ServiceTracker(Activator.bc,
-                                    LogService.class.getName(),
-                                    null);
-    logTracker.open();
   }
 
   /**
-   * Start the scanner thread if not already started. Also register
-   * the config object.
+   * Start the scanner thread if not already started. Also register the
+   * {@code config} object.
    */
-  void start() {
+  void start()
+  {
     config.register();
+    DeployedBundle.loadState();
+    DeployedCMData.loadState();
 
-    if(runner != null) {
+    if (runner != null) {
       return;
     }
 
+    // TODO: Java SE 7 use java.nio.file.WatchService to avoid polling
     runner = new Thread("Directory deployer") {
-        public void run() {
-          log("started scan");
-          while(bRun) {
-            try {
-              doScan();
-              Thread.sleep(Math.max(100, config.interval));
-            } catch (Exception e) {
-              log("scan failed", e);
-            }
-          }
-          log("stopped scan");
-
-          if(config.uninstallOnStop) {
-            uninstallAll();
+      @Override
+      public void run()
+      {
+        log("started scaning of " +Arrays.asList(config.dirs));
+        while (bRun) {
+          try {
+            doScan();
+            Thread.sleep(Math.max(100, config.interval));
+          } catch (final InterruptedException ie) {
+            log("scaning interrupted");
+          } catch (final Exception e) {
+            log("scan failed: " +e.getMessage(), e);
           }
         }
-      };
+        log("stopped scaning");
+
+        if (config.uninstallOnStop) {
+          uninstallAll();
+        }
+      }
+    };
     bRun = true;
     runner.start();
   }
 
-
   /**
-   * Stop the scanner thread if not already stopped. Also unregister the
-   * config object.
+   * Stop the scanner thread if not already stopped. Also unregister the config
+   * object.
    */
-  void stop() {
+  void stop()
+  {
     config.unregister();
 
-    if(runner == null) {
+    if (runner == null) {
       return;
     }
 
     try {
       bRun = false;
+      runner.interrupt();
       runner.join(config.interval * 2);
-    } catch (Exception ignored) {
+    } catch (final Exception ignored) {
     }
     runner = null;
+    DeployedBundle.clearState();
+    DeployedCMData.clearState();
+    caTracker.close();
+    logTracker.close();
   }
 
   /**
    * Scan for new, updated and lost files.
    */
-  void doScan() {
+  void doScan()
+  {
 
-    synchronized(config) {
-      for(int i = 0; i < config.dirs.length; i++) {
-        scanForNewFiles(config.dirs[i]);
+    synchronized (config) {
+      for (final File dir : config.dirs) {
+        scanForNewFiles(dir);
       }
     }
 
     scanForLostFiles();
-    scanForStrayBundles();
-    refreshPackages();
+    scanForStrayFiles();
+    refreshUpdatedBundles();
     startDelayed();
   }
 
@@ -160,45 +178,41 @@ class DirDeployerImpl implements DirDeployerService {
    * Scan a directory for new/updated files.
    *
    * <p>
-   * Check if any new files have appeared or
-   * if any already deployed files has been replaced with newer
-   * files.
+   * Check if any new files have appeared or if any already deployed files has
+   * been replaced with newer files.
    * </p>
    *
    * <p>
-   * New files are installed (and marked for delayed start if they are
-   * not fragment bundles). Files newer than a previously deployed
-   * bundle are updated.
-   * </p>
-   *
-   * <p>
-   * Files that have the same location as an already installed bundle
-   * is not installed again, instead, the installed bundle is re-used
-   * in the created DeployedFile instance.
+   * New files are installed and marked for delayed start if that is applicable.
+   * Files newer than a previously deployed files are updated.
    * </p>
    */
-  void scanForNewFiles(File dir) {
-    synchronized(deployedFiles) {
-      //      log("scanForNewFiles " + dir);
+  void scanForNewFiles(final File dir)
+  {
+    synchronized (deployedFiles) {
+      // log("scanForNewFiles " + dir);
 
-      if(dir != null && dir.exists() && dir.isDirectory()) {
-        String[] files = dir.list();
+      if (dir != null && dir.exists() && dir.isDirectory()) {
+        final String[] files = dir.list();
 
-        for(int i = 0; i < files.length; i++) {
+        for (final String file : files) {
           try {
-            File f = new File(dir, files[i]);
-            if(isBundleFile(f)) {
-              DeployedFile dp = (DeployedFile) deployedFiles.get(f);
-              if(dp != null) {
-                dp.updateIfNeeded();
-              } else {
-                dp = new DeployedFile(f);
-
-                deployedFiles.put(f, dp);
-                dp.installIfNeeded();
+            final File f = new File(dir, file);
+            DeployedFile df = deployedFiles.get(f);
+            if (df!=null) {
+              df.updateIfNeeded();
+            } else {
+              if (DeployedBundle.isBundleFile(f)) {
+                df = new DeployedBundle(config, f);
+              } else if (DeployedCMData.isCMDataFile(f)) {
+                df = new DeployedCMData(config, f);
+              }
+              if (df!=null) {
+                deployedFiles.put(df.getFile(), df);
+                df.installIfNeeded();
               }
             }
-          } catch (Exception e) {
+          } catch (final Exception e) {
             log("scan failed", e);
           }
         }
@@ -206,165 +220,194 @@ class DirDeployerImpl implements DirDeployerService {
     }
   }
 
-
   /**
-   * Check if any files has been removed from any of the scanned
-   * dirs, If so, uninstall
-   * them and remove from deployed map.
+   * Check if any files has been removed from any of the scanned dirs, If so,
+   * uninstall them and remove from deployed map.
    */
-  void scanForLostFiles() {
-    synchronized(deployedFiles) {
+  void scanForLostFiles()
+  {
+    synchronized (deployedFiles) {
       // check, uninstall and copy to removed vector as
       // necessary
-      for (Iterator it = deployedFiles.entrySet().iterator(); it.hasNext();) {
-        final Map.Entry entry = (Map.Entry) it.next();
-        final File f = (File) entry.getKey();
-        if(!f.exists() || !isInScannedDirs(f)) {
+      for (final Iterator<DeployedFile> it =
+        deployedFiles.values().iterator(); it.hasNext();) {
+        final DeployedFile df = it.next();
+        final File f = df.getFile();
+        if (!f.exists() || !isInScannedDirs(f)) {
           try {
-            DeployedFile dp = (DeployedFile) entry.getValue();
-            log("uninstalling since file is removed "+dp);
-            dp.uninstall();
+            log("uninstalling since file is removed " + df);
+            df.uninstall();
             it.remove();
-          } catch (Exception ex) {
-            ex.printStackTrace();
+          } catch (final Exception ex) {
+            log("Failed to unininstall " +df +": "+ ex.getMessage(), ex);
           }
         }
       }
     }
   }
 
-
   /**
-   * Check if any of the currently installed bundles that has been
-   * installed by the dirdeployer does not correspond to a file in the
-   * scanned directories. If so uninstall the bundle.
+   * Check if any of the currently installed files that has been installed by
+   * the dir deployer does not correspond to a file in the scanned directories.
+   * If so uninstall the file.
+   *
+   * <p>
+   * Stray files appears for at least two reasons:
+   * <ul>
+   * <li>The file was removed from one of the scanned directories while the dir
+   * deployer bundles is not running.
+   * <li>The directory that the file was found in was removed from the list of
+   * scanned directories by a configuration update.
+   * </ul>
+   * </p>
    */
-  void scanForStrayBundles() {
-    final Bundle[] bl = Activator.bc.getBundles();
-    for(int i = 0; i < bl.length; i++) {
-      final Bundle bundle = bl[i];
-      final String location = bundle.getLocation();
-      if(location.startsWith(LOCATION_PREFIX)) {
-        try {
-          final String filePath = location.substring(LOCATION_PREFIX.length());
-          final File f = new File(filePath);
-          final DeployedFile dp = (DeployedFile) deployedFiles.get(f);
-          if (null==dp) {
-            // Found a stray bundle; uninstall it.
-            log("uninstalling stray bundle not in deploy dirs, "+f);
+  void scanForStrayFiles()
+  {
+    // Look for stray deployed bundles:
+    for (final Bundle bundle : Activator.bc.getBundles()) {
+      final File f = DeployedBundle.installedBundles.get(bundle.getBundleId());
+      if (f != null) {
+        // Found a bundle deployed by the dir deployer, is it still active?
+        final DeployedFile df = deployedFiles.get(f);
+        if (df == null) {
+          // This is a stray bundle, since it has not been deployed this run.
+          try {
+            log("uninstalling stray bundle #" + bundle.getBundleId()
+                + " not in deploy dirs, location '" + f + "'.");
             bundle.uninstall();
+            DeployedBundle.installedBundles.remove(bundle.getBundleId());
+            DeployedBundle.saveState();
+          } catch (final Exception ex) {
+            log("Exception when uninstalling stray bundle #"
+                    + bundle.getBundleId() + ", location '" + f + "'; " + ex,
+                ex);
           }
-        } catch (Exception ex) {
-          log("Exception during scan for stray bundles: bundle "
-              +bundle.getBundleId() +" with location '" +location +"'; " +ex,
-              ex);
         }
       }
-    }
-  }
+    } // Scan for stray bundles
 
-
-  /**
-   * Call <tt>PackageAdmin.refreshPackages()</tt> when needed.
-   */
-  void refreshPackages()
-  {
-    if (0<updatedBundles.size()) {
-      synchronized(updatedBundles) {
-        log("Bundles has been updated; refreshing "+updatedBundles);
-
-        final PackageAdmin pkgAdmin = (PackageAdmin)
-          Activator.packageAdminTracker.getService();
-
-        final Bundle[] bundles = (Bundle[])
-          updatedBundles.toArray(new Bundle[updatedBundles.size()]);
-        pkgAdmin.refreshPackages(bundles);
-        // Refresh request sent, clear before reliasing monitor.
-        updatedBundles.clear();
-        // Wait for the package refresh to finish.
-        try {
-          updatedBundles.wait();
-          log("refresh completed");
-        } catch (InterruptedException ie) {
-          log("refresh interrupted", ie);
-        }
-      }
-    }
-  }
-  // Called by the activator when a PACKAGES_REFRESHED event is recieved.
-  void refreshPackagesDone()
-  {
-    synchronized(updatedBundles) {
-      updatedBundles.notifyAll();
-    }
-  }
-
-  /**
-   * Start bundles marked that shall be started but is not yet.
-   */
-  void startDelayed() {
-    for (Iterator it = deployedFiles.values().iterator(); it.hasNext();) {
-      final DeployedFile dp = (DeployedFile) it.next();
+    // Look for stray deployed configurations:
+    final ConfigurationAdmin ca = caTracker.getService();
+    if (ca != null) {
       try {
-        dp.start();
-      } catch (Exception ex) {
-        log("Failed to start "+dp +"; "+ex, ex);
+        final Configuration[] cfgs = ca.listConfigurations(null);
+        if (cfgs != null) {
+          for (final Configuration cfg : cfgs) {
+            final String pid = cfg.getPid();
+            final File f = DeployedCMData.installedCfgs.get(pid);
+            if (f != null) {
+              // Found a configuration deployed by the dir deployer, is it still
+              // active?
+              final DeployedFile df = deployedFiles.get(f);
+              if (df == null) {
+                // This is a stray configuration, since it is currently not
+                // deployed!
+                try {
+                  log("uninstalling stray configuration with pid '" + pid
+                      + "', from '" + f + "'.");
+                  cfg.delete();
+                  DeployedCMData.installedCfgs.remove(pid);
+                  DeployedCMData.saveState();
+                } catch (final Exception ex) {
+                  log("Exception when uninstalling stray configuration with pid '"
+                          + pid + "', location '" + f + "'; " + ex, ex);
+                }
+              }
+            }
+
+          }
+        }
+      } catch (final IOException e) {
+        log("Failed to list configurations: " + e.getMessage(), e);
+      } catch (final InvalidSyntaxException e) {
+        // Will not happen with a null filter.
+      }
+    } // Scan for stray configurations
+  } // scanForStrayFiles()
+
+  /**
+   * Set to true during a refresh to avoid triggering a second refresh operation
+   * while one is already running.
+   */
+  boolean refreshRunning = false;
+
+  /**
+   * Do a refresh bundles operation on all bundles that has been updated since
+   * the last call.
+   */
+  void refreshUpdatedBundles()
+  {
+    if (!refreshRunning && DeployedBundle.updatedBundles.size() > 0) {
+      synchronized (DeployedBundle.updatedBundles) {
+        log("Bundles has been updated; refreshing "
+            + DeployedBundle.updatedBundles);
+        refreshRunning = true;
+
+        final FrameworkWiring fw =
+          Activator.bc.getBundle(0).adapt(FrameworkWiring.class);
+        fw.refreshBundles(DeployedBundle.updatedBundles, this);
+        // Refresh request sent, clear before releasing monitor.
+        DeployedBundle.updatedBundles.clear();
+      }
+    }
+  }
+
+  // Called by the framework when the refresh bundles operation is done.
+  public void frameworkEvent(FrameworkEvent event)
+  {
+    if (FrameworkEvent.PACKAGES_REFRESHED == event.getType()) {
+      log("refresh bundles completed");
+      refreshRunning = false;
+      // We need to run another refresh bundles here to handle updates during
+      // the previous refresh.
+      refreshUpdatedBundles();
+    }
+  }
+
+  /**
+   * Start installed files marked for start but not yet started.
+   */
+  void startDelayed()
+  {
+    for (final DeployedFile df : deployedFiles.values()) {
+      try {
+        df.start();
+      } catch (final Exception ex) {
+        log("Failed to start " + df + "; " + ex.getMessage(), ex);
       }
     }
   }
 
   /**
-   * Uninstall all deployed bundles and clear deploy map
+   * Uninstall all deployed files and clear the deploy map
    */
-  void uninstallAll() {
-    synchronized(deployedFiles) {
-      for (Iterator it = deployedFiles.values().iterator(); it.hasNext();) {
-        final DeployedFile dp = (DeployedFile) it.next();
+  void uninstallAll()
+  {
+    synchronized (deployedFiles) {
+      for (final DeployedFile df : deployedFiles.values()) {
         try {
-          log("uninstall "+dp);
-          dp.uninstall();
-        } catch (Exception ex) {
-          log("Failed to uinstall "+dp +"; "+ex, ex);
+          log("uninstalling " + df);
+          df.uninstall();
+        } catch (final Exception ex) {
+          log("Failed to uinstall " + df + "; " + ex.getMessage(), ex);
         }
-        it.remove();
       }
       deployedFiles.clear();
     }
   }
 
   /**
-   * Same as <tt>log(msg, null)</tt>
-   */
-  void log(String s) {
-    log(s, null);
-  }
-
-  /**
-   * Log msg to log service if available and to stdout if
-   * not available.
-   */
-  void log(String msg, Throwable t) {
-    int level = t == null ? LogService.LOG_INFO : LogService.LOG_WARNING;
-
-    LogService log = (LogService)logTracker.getService();
-    if(log == null) {
-      System.out.println("[dirdeployer " + level + "] " + msg);
-      if(t != null) {
-        t.printStackTrace();
-      }
-    } else {
-      log.log(level, msg, t);
-    }
-  }
-
-
-  /**
    * Check if a file is in one of the scanned dirs
+   *
+   * @param f The file to check.
+   * @return {@code true} if {@code f} is in one of the scanned directories.
    */
-  boolean isInScannedDirs(File f) {
-    synchronized(config) {
-      for(int i = 0; i < config.dirs.length; i++) {
-        if(config.dirs[i].equals(new File(f.getParent()))) {
+  boolean isInScannedDirs(File f)
+  {
+    final File fDir = new File(f.getParent());
+    synchronized (config) {
+      for (final File dir : config.dirs) {
+        if (dir.equals(fDir)) {
           return true;
         }
       }
@@ -373,134 +416,61 @@ class DirDeployerImpl implements DirDeployerService {
   }
 
   /**
-   * Check if a file seems to be a bundle jar file.
+   * Same as {@code log(s, null)}.
+   * @param s the message to log.
    */
-  static boolean isBundleFile(File f) {
-    return f.toString().toLowerCase().endsWith(".jar");
+  static void log(String s)
+  {
+    log(s, null);
   }
 
   /**
-   * Utility class to store info about a deployed bundle.
+   * Log msg to log service if available and to stdout if not available.
+   *
+   * @param msg The message to log.
+   * @param t optional throwable  to include in the log entry.
    */
-  class DeployedFile {
-    final String  location;
-    final File    file;
-    Bundle  bundle;
-    long    lastUpdate     = -1;
-    boolean start = false;
+  static void log(String msg, Throwable t)
+  {
+    final int level = t == null ? LogService.LOG_INFO : LogService.LOG_WARNING;
 
-    /**
-     * Create a deployedfile instance from a specified file.
-     *
-     * @throws RuntimeException if the specified does not exists
-     */
-    public DeployedFile(File f) {
-      if(!f.exists()) {
-        throw new RuntimeException("No file " + f);
+    log(level, msg, t);
+  }
+
+  /**
+   * Log msg to log service on ERROR level if available and to stdout if not
+   * available.
+   *
+   * @param msg
+   *          The message to log.
+   * @param t
+   *          optional throwable to include in the log entry.
+   */
+  static void logErr(String msg, Throwable t)
+  {
+    log(LogService.LOG_ERROR, msg, t);
+  }
+
+  /**
+   * Log msg to log service if available and to stdout if not available.
+   *
+   * @param level The log level to log on.
+   * @param msg The message to log.
+   * @param t optional throwable  to include in the log entry.
+   */
+  static void log(final int level, final String msg, final Throwable t)
+  {
+    final LogService log = logTracker != null ? logTracker.getService() : null;
+    if (log == null) {
+      final PrintStream out =
+        level == LogService.LOG_ERROR ? System.err : System.out;
+      out.println("[dirdeployer " + level + "] " + msg);
+      if (t != null) {
+        t.printStackTrace(out);
       }
-      this.file = f;
-
-      // location URL to be used for for installing bundle
-      location  = LOCATION_PREFIX + file.getPath();
-    }
-
-    /**
-     * Check if deployed file is installed, if not install it.
-     *
-     * <p>
-     * If the location for this DeployFile already is installed
-     * in the framework, re-use the installed Bundle instance,
-     * otherwise install using <tt>BundleContext.installBundle</tt>
-     */
-    public void installIfNeeded() throws BundleException {
-      final Bundle[] bl = Activator.bc.getBundles();
-      for(int i = 0; i < bl.length; i++) {
-        if(location.equals(bl[i].getLocation())) {
-          bundle = bl[i];
-          log("already installed " + this);
-        }
-      }
-      if(bundle == null) {
-        InputStream is = null;
-        try {
-          is = new FileInputStream(file);
-          bundle = Activator.bc.installBundle(location, is);
-
-          // Set bundle start level if possible
-          StartLevel sl = (StartLevel)
-            Activator.startLevelTracker.getService();
-          sl.setBundleStartLevel(bundle, config.startLevel);
-
-          log("installed " + this);
-        } catch (Exception ioe) {
-          log("Failed to install " + this +"; "+ioe, ioe);
-        } finally {
-          if (null!=is) try { is.close(); } catch (IOException ioe) {}
-        }
-      }
-
-      // Check if this bundle shall be started or not.
-      if (null!=bundle) {
-        start = null==bundle.getHeaders().get(Constants.FRAGMENT_HOST);
-      }
-    }
-
-    public void start() throws BundleException {
-      if (null!=bundle) {
-        final int state = bundle.getState();
-        if (start && (Bundle.INSTALLED==state || Bundle.RESOLVED==state)) {
-          log("starting " + this);
-          bundle.start();
-        }
-      }
-    }
-
-    public void updateIfNeeded() throws BundleException {
-      if (needUpdate()) {
-        log("update " + this);
-        InputStream is = null;
-        try {
-          is = new FileInputStream(file);
-          bundle.update(is);
-          synchronized(updatedBundles) {
-            updatedBundles.add(bundle);
-          }
-
-          // Check if the updated bundle shall be started or not.
-          start = null==bundle.getHeaders().get(Constants.FRAGMENT_HOST);
-        } catch (IOException ioe) {
-        } finally {
-          if (null!=is) try { is.close(); } catch (IOException ioe) {}
-        }
-      }
-    }
-
-    public void uninstall() throws BundleException {
-      if (bundle!=null) {
-        if (Bundle.UNINSTALLED!=bundle.getState()) {
-          log("uninstall " + this);
-          bundle.uninstall();
-        }
-        bundle = null;
-      }
-    }
-
-    /**
-     * A deployed bundle should be updated if the bundle file
-     * is newer than tha latest update time.
-     */
-    public boolean needUpdate() {
-      return file.lastModified() > (bundle==null ? -1
-                                    : bundle.getLastModified());
-    }
-
-
-    public String toString() {
-      return
-        "DeployedFile[" +
-        "location=" + location +
-        ", bundle=" + bundle +
-        "]";
+    } else {
+      log.log(level, msg, t);
     }
   }
+
 }

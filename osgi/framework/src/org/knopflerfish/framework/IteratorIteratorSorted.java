@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,22 +42,26 @@ import java.util.*;
  *
  * @author Jan Stein
  */
-public class IteratorIteratorSorted implements Iterator
+public class IteratorIteratorSorted<A> implements Iterator<A>
 {
 
-  final private Iterator [] iter;
-  final private Object [] top;
-  final private Util.Comparator comp;
+  final private Iterator<A> [] iter;
+  final private A [] top;
+  final private Util.Comparator<A,A> comp;
   int size;
 
-  public  IteratorIteratorSorted(List ilist, Util.Comparator comp) {
+  public  IteratorIteratorSorted(List<Iterator<A>> ilist, Util.Comparator<A,A> comp) {
     this.comp = comp;
     size = ilist.size();
-    iter = new Iterator [size + 1];
-    top = new Object [size + 1];
+    @SuppressWarnings("unchecked")
+    Iterator<A> [] iters = new Iterator [size + 1];
+    iter = iters;
+    @SuppressWarnings("unchecked")
+    A[] topA = (A[]) new Object[size + 1];
+    top = topA;
     int pos = 1;
-    for (Iterator i = ilist.iterator(); i.hasNext(); ) {
-      Iterator si = (Iterator)i.next();
+    for (Iterator<Iterator<A>> i = ilist.iterator(); i.hasNext(); ) {
+      Iterator<A> si = i.next();
       if (si.hasNext()) {
         top[pos] = si.next();
         iter[pos++] = si;
@@ -79,9 +83,9 @@ public class IteratorIteratorSorted implements Iterator
     throw new UnsupportedOperationException();
   }
 
-  public Object next() {
+  public A next() {
     if (hasNext()) {
-      Object res = top[1];
+      A res = top[1];
       if (iter[1].hasNext()) {
         top[1] = iter[1].next();
       } else {
@@ -98,8 +102,8 @@ public class IteratorIteratorSorted implements Iterator
    * Balance heap.
    */
   private void balance(int current) {
-    Object tmp = top[current];
-    Iterator itmp = iter[current];
+    A tmp = top[current];
+    Iterator<A> itmp = iter[current];
 
     int child;
     while (current * 2 <= size) {

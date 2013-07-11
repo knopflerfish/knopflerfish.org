@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -66,13 +66,14 @@ import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+
 import org.knopflerfish.bundle.desktop.swing.graph.BundleNode;
 import org.knopflerfish.bundle.desktop.swing.graph.Node;
 import org.knopflerfish.service.desktop.BundleSelectionListener;
 import org.knopflerfish.service.desktop.BundleSelectionModel;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
 public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
   ButtonModel autorefreshModel = new JToggleButton.ToggleButtonModel();
@@ -85,12 +86,13 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
 
 
+  @Override
   public void bundleChanged(final BundleEvent ev) {
     super.bundleChanged(ev);
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          for(Iterator it = components.iterator(); it.hasNext(); ) {
-            JMainBundles comp = (JMainBundles)it.next();
+          for (final JComponent jComponent : components) {
+            final JMainBundles comp = (JMainBundles)jComponent;
             switch(ev.getType()) {
             case BundleEvent.INSTALLED:
               comp.addBundle(ev.getBundle());
@@ -109,18 +111,21 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       });
   }
 
+  @Override
   public void showBundle(Bundle b) {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JMainBundles comp = (JMainBundles)it.next();
+    for (final JComponent jComponent : components) {
+      final JMainBundles comp = (JMainBundles)jComponent;
       comp.bundleHistory.addBundle(b);
       comp.setBundle(b);
     }
   }
 
+  @Override
   public JComponent newJComponent() {
     return new JMainBundles();
   }
 
+  @Override
   public void  disposeJComponent(JComponent comp) {
     if(comp instanceof JMainBundles) {
       ((JMainBundles)comp).close();
@@ -128,6 +133,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     super.disposeJComponent(comp);
   }
 
+  @Override
   public void valueChanged(long bid) {
     super.valueChanged(bid);
   }
@@ -142,7 +148,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       public void    setSelected(long bid, boolean bSelected) {
         bundleSelModel.setSelected(bid, bSelected);
       }
-      public void    setSelected(java.util.List bids, boolean bSelected)
+      public void    setSelected(List<Long> bids, boolean bSelected)
       {
         bundleSelModel.setSelected(bids, bSelected);
       }
@@ -166,7 +172,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
     JPanel panel;
 
-    Set views = new LinkedHashSet();
+    Set<JSoftGraphBundle> views = new LinkedHashSet<JSoftGraphBundle>();
     // JSoftGraphBundle serviceView = null;
     // JSoftGraphBundle packageView = null;
 
@@ -176,9 +182,11 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     JCheckBoxMenuItem autorefreshCB;
 
     MouseAdapter contextMenuListener = new MouseAdapter() {
+        @Override
         public void mousePressed(MouseEvent e) {
           maybeShowPopup(e);
         }
+        @Override
         public void mouseReleased(MouseEvent e) {
           maybeShowPopup(e);
         }
@@ -187,29 +195,29 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
              ((e.getModifiers() & InputEvent.BUTTON2_MASK) != 0) ||
              e.getButton() > 1) {
             contextPopupMenu = makePopup();
-            Component comp = e.getComponent();
+            final Component comp = e.getComponent();
             contextPopupMenu.show(comp, e.getX(), e.getY());
           }
         }
       };
 
     JPopupMenu makePopup() {
-      JPopupMenu     menu    = new JPopupMenu();
+      final JPopupMenu     menu    = new JPopupMenu();
 
 
-      Map            bundles = new TreeMap();
+      final Map<Long, Bundle>            bundles = new TreeMap<Long, Bundle>();
       final Bundle[] bl      = Activator.getBundles();
 
-      Bundle[] selbl = Activator.desktop.getSelectedBundles();
+      final Bundle[] selbl = Activator.desktop.getSelectedBundles();
       if(selbl != null && selbl.length > 0) {
-        Bundle b = selbl[0];
-        JMenuItem item = makeBundleItem(b, "#" + b.getBundleId() + " " + Util.getBundleName(b));
+        final Bundle b = selbl[0];
+        final JMenuItem item = makeBundleItem(b, "#" + makeBundleItemText(b));
         menu.add(item);
         menu.add(new JPopupMenu.Separator());
       }
 
       {
-        JMenuItem item = new JMenuItem("New window");
+        final JMenuItem item = new JMenuItem("New window");
 
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent ev) {
@@ -225,6 +233,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       menu.add(new JMenuItem(Activator.desktop.actionStartBundles));
       menu.add(new JMenuItem(Activator.desktop.actionUpdateBundles));
       menu.add(new JMenuItem(Activator.desktop.actionUninstallBundles));
+      menu.add(new JMenuItem(Activator.desktop.actionResolveBundles));
       menu.add(new JMenuItem(Activator.desktop.actionRefreshBundles));
 
       menu.add(new JPopupMenu.Separator());
@@ -232,14 +241,13 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       autorefreshCB = new JCheckBoxMenuItem("Automatic view refresh", true);
       autorefreshCB.setModel(autorefreshModel);
 
-      JMenuItem refreshItem = new JMenuItem("Refresh view");
+      final JMenuItem refreshItem = new JMenuItem("Refresh view");
       refreshItem.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
             if(Activator.desktop != null &&
-               Activator.desktop.pm != null) {
-              Activator.desktop.pm.refresh();
-              for(Iterator it = views.iterator(); it.hasNext(); ) {
-                JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+               Activator.desktop.getPackageManager() != null) {
+              Activator.desktop.getPackageManager().refresh();
+              for (final JSoftGraphBundle view : views) {
                 view.startFade();
               }
             }
@@ -257,26 +265,22 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       }
 
 
-      Map buckets = Activator.desktop.makeBundleBuckets();
+      final Map<String, Collection<Bundle>> buckets = Activator.desktop.makeBundleBuckets();
 
-      for(Iterator it = buckets.keySet().iterator(); it.hasNext(); ) {
-        Object key = it.next();
-        Object val = buckets.get(key);
-        if(val instanceof Collection) {
-          Collection bucket = (Collection)val;
-          JMenu subMenu = new JMenu(key.toString());
-          for(Iterator it2 = bucket.iterator(); it2.hasNext(); ) {
-            Bundle bundle = (Bundle)it2.next();
-            JMenuItem item = makeBundleItem(bundle, null);
+      for (final String key : buckets.keySet()) {
+        final Collection<Bundle> bucket = buckets.get(key);
+        if(bucket.size()>1) {
+          final JMenu subMenu = new JMenu(key);
+          for (final Bundle bundle : bucket) {
+            final JMenuItem item = makeBundleItem(bundle);
             subMenu.add(item);
           }
           menu.add(subMenu);
-        } else if(val instanceof Bundle) {
-          Bundle bundle = (Bundle)val;
-          JMenuItem item = makeBundleItem(bundle, null);
+        } else if(bucket.size()==1) {
+          final Bundle bundle = bucket.iterator().next();
+          final String text = key + " - " + makeBundleItemText(bundle);
+          final JMenuItem item = makeBundleItem(bundle, text);
           menu.add(item);
-        } else {
-          throw new RuntimeException("Unknown object=" + val);
         }
       }
 
@@ -287,15 +291,23 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       return autorefreshCB == null || autorefreshCB.isSelected();
     }
 
-    JMenuItem makeBundleItem(final Bundle bundle, String txt) {
-      JMenuItem item = new JMenuItem(txt != null
-                                     ? txt
-                                     : (bundle.getBundleId() + " " + Util.getBundleName(bundle)));
+    String makeBundleItemText(final Bundle bundle)
+    {
+      return Util.getBundleName(bundle) + " #" + bundle.getBundleId();
+    }
+
+    JMenuItem makeBundleItem(final Bundle bundle)
+    {
+      return makeBundleItem(bundle, makeBundleItemText(bundle));
+    }
+
+    JMenuItem makeBundleItem(final Bundle bundle, String txt)
+    {
+      final JMenuItem item = new JMenuItem(txt);
 
       item.addActionListener(new ActionListener() {
           public void actionPerformed(ActionEvent ev) {
-            for(Iterator it = views.iterator(); it.hasNext(); ) {
-              JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+            for (final JSoftGraphBundle view : views) {
               view.setBundle(bundle);
             }
             bundleHistory.addBundle(bundle);
@@ -308,11 +320,10 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
     JFrame frame;
 
-    Set windows = new HashSet();
+    Set<JMainBundles> windows = new HashSet<JMainBundles>();
 
     public void close() {
-      for(Iterator it = windows.iterator(); it.hasNext(); ) {
-        JMainBundles comp = (JMainBundles)it.next();
+      for (final JMainBundles comp : windows) {
         comp.close();
       }
       windows.clear();
@@ -331,7 +342,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
     void addWindow() {
       Bundle newB;
-      Bundle[] bl = Activator.desktop.getSelectedBundles();
+      final Bundle[] bl = Activator.desktop.getSelectedBundles();
       if(bl != null && bl.length > 0) {
         newB = bl[0];
       } else {
@@ -341,6 +352,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       comp.frame = new JFrame(makeTitle(newB));
       comp.frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       comp.frame.addWindowListener(new WindowAdapter() {
+          @Override
           public void windowClosing(WindowEvent e) {
             comp.close();
           }
@@ -359,7 +371,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       setLayout(new BorderLayout());
       panel = new JPanel(new BorderLayout());
 
-      JButton newButton = new JButton("+") {
+      final JButton newButton = new JButton("+") {
         private static final long serialVersionUID = 1L;
         {
           addActionListener(new ActionListener() {
@@ -375,19 +387,19 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
       bundleHistory = new JBundleHistory(bc, null, bsmProxy, 10, 40) {
           private static final long serialVersionUID = 1L;
+          @Override
           void bundleClicked(Bundle b) {
-            for(Iterator it = views.iterator(); it.hasNext(); ) {
-              JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+            for (final JSoftGraphBundle view : views) {
               setBundle(b);
               view.setBundle(b);
             }
           }
 
+          @Override
           void bundleSelected(Bundle b) {
             bsmProxy.clearSelection();
             bsmProxy.setSelected(b.getBundleId(), true);
-            for(Iterator it = views.iterator(); it.hasNext(); ) {
-              JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+            for (final JSoftGraphBundle view : views) {
               view.repaint();
             }
 
@@ -397,14 +409,14 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       final JSoftGraphBundle view1 = new JServiceView(this, bc, b, bsmProxy) {
           private static final long serialVersionUID = 1L;
 
+          @Override
           public void nodeClicked(Node node, MouseEvent ev) {
             super.nodeClicked(node, ev);
             if(node instanceof BundleNode) {
-              BundleNode bn = (BundleNode)node;
+              final BundleNode bn = (BundleNode)node;
               bundleHistory.addBundle(bn.getBundle());
               setBundle(bn.getBundle());
-              for(Iterator it = views.iterator(); it.hasNext(); ) {
-                JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+              for (final JSoftGraphBundle view : views) {
                 if(view != this) {
                   view.setBundle(bn.getBundle());
                 }
@@ -419,14 +431,14 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       final JSoftGraphBundle view2 = new JPackageView(this, bc, b, bsmProxy) {
           private static final long serialVersionUID = 1L;
 
+          @Override
           public void nodeClicked(Node node, MouseEvent ev) {
             super.nodeClicked(node, ev);
             if(node instanceof BundleNode) {
-              BundleNode bn = (BundleNode)node;
+              final BundleNode bn = (BundleNode)node;
               bundleHistory.addBundle(bn.getBundle());
               setBundle(bn.getBundle());
-              for(Iterator it = views.iterator(); it.hasNext(); ) {
-                JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+              for (final JSoftGraphBundle view : views) {
                 if(view != this) {
                   view.setBundle(bn.getBundle());
                 }
@@ -443,11 +455,10 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
 
       bundleHistory.setBackground(view1.bottomColor);
-      JPanel vp = new JPanel();
+      final JPanel vp = new JPanel();
       vp.setLayout(new BoxLayout(vp, BoxLayout.X_AXIS));
 
-      for(Iterator it = views.iterator(); it.hasNext(); ) {
-        JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+      for (final JSoftGraphBundle view : views) {
         vp.add(view);
       }
 
@@ -473,8 +484,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     void setBundle(Bundle b) {
       bundle = b;
       setTitle(b);
-      for(Iterator it = views.iterator(); it.hasNext(); ) {
-        JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+      for (final JSoftGraphBundle view : views) {
         view.setBundle(b);
       }
     }
@@ -483,7 +493,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
       Container comp = this;
       while(null != comp) {
         if(comp instanceof JFrame) {
-          JFrame frame = (JFrame)comp;
+          final JFrame frame = (JFrame)comp;
           if(frame != Activator.desktop.frame) {
             frame.setTitle(makeTitle(b));
           }
@@ -502,7 +512,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
     public void removeBundle(Bundle b) {
       if(b.equals(bundle)) {
         if(bundleHistory.removeBundle(b)) {
-          Bundle last = bundleHistory.getLastBundle();
+          final Bundle last = bundleHistory.getLastBundle();
           if(last != null) {
             setBundle(last);
           }
@@ -512,8 +522,7 @@ public class GraphDisplayer extends DefaultSwingBundleDisplayer {
 
     // Bundle selection has changed
     public void valueChanged(long bid) {
-      for(Iterator it = views.iterator(); it.hasNext(); ) {
-        JSoftGraphBundle view = (JSoftGraphBundle)it.next();
+      for (final JSoftGraphBundle view : views) {
         view.repaint();
       }
     }

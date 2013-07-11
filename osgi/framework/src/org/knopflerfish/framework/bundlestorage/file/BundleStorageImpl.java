@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,19 @@
 
 package org.knopflerfish.framework.bundlestorage.file;
 
-import org.knopflerfish.framework.*;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import org.osgi.framework.Constants;
-import java.io.*;
-import java.util.*;
+
+import org.knopflerfish.framework.BundleArchive;
+import org.knopflerfish.framework.BundleStorage;
+import org.knopflerfish.framework.FWProps;
+import org.knopflerfish.framework.FileTree;
+import org.knopflerfish.framework.FrameworkContext;
+import org.knopflerfish.framework.Util;
 
 
 /**
@@ -109,7 +118,7 @@ public class BundleStorageImpl implements BundleStorage {
   /**
    * Bundle id sorted list of all active bundle archives.
    */
-  private ArrayList /* BundleArchive */ archives = new ArrayList();
+  private final ArrayList<BundleArchive> archives = new ArrayList<BundleArchive>();
 
   /**
    * Framework handle.
@@ -136,37 +145,37 @@ public class BundleStorageImpl implements BundleStorage {
       throw new RuntimeException("No bundle storage area available!");
     }
     // Restore all saved bundles
-    String [] list = bundlesDir.list();
+    final String [] list = bundlesDir.list();
     for (int i = 0; list != null & i < list.length; i++) {
       long id;
       try {
         id = Long.parseLong(list[i]);
-      } catch (NumberFormatException e) {
+      } catch (final NumberFormatException e) {
         continue;
       }
       if (id == 0) {
         System.err.println("Saved bundle with illegal id 0 is ignored.");
       }
-      int pos = find(id);
-      if (pos < archives.size() && ((BundleArchive)archives.get(pos)).getBundleId() == id) {
+      final int pos = find(id);
+      if (pos < archives.size() && archives.get(pos).getBundleId() == id) {
         System.err.println("There are two bundle directories with id: " + id);
         break;
       }
-      FileTree dir = new FileTree(bundlesDir, list[i]);
+      final FileTree dir = new FileTree(bundlesDir, list[i]);
       if (dir.isDirectory()) {
         try {
-          boolean bUninstalled = BundleArchiveImpl.isUninstalled(dir);
+          final boolean bUninstalled = BundleArchiveImpl.isUninstalled(dir);
           if(bUninstalled) {
             // silently remove any bundle marked as uninstalled
             dir.delete();
           } else {
-            BundleArchive ba = new BundleArchiveImpl(this, dir, id);
+            final BundleArchive ba = new BundleArchiveImpl(this, dir, id);
             archives.add(pos, ba);
           }
           if (id >= nextFreeId) {
             nextFreeId = id + 1;
           }
-        } catch (Exception e) {
+        } catch (final Exception e) {
           dir.delete();
           System.err.println("Removed corrupt bundle dir (" + e.getMessage() + "): " + dir);
         }
@@ -185,18 +194,18 @@ public class BundleStorageImpl implements BundleStorage {
   public BundleArchive insertBundleJar(String location, InputStream is)
     throws Exception
   {
-    long id = nextFreeId++;
-    FileTree dir = new FileTree(bundlesDir, String.valueOf(id));
+    final long id = nextFreeId++;
+    final FileTree dir = new FileTree(bundlesDir, String.valueOf(id));
     if (dir.exists()) {
       // remove any old garbage
       dir.delete();
     }
     dir.mkdir();
     try {
-      BundleArchive ba = new BundleArchiveImpl(this, dir, is, location, id);
+      final BundleArchive ba = new BundleArchiveImpl(this, dir, is, location, id);
       archives.add(ba);
       return ba;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       dir.delete();
       throw e;
     }
@@ -231,7 +240,7 @@ public class BundleStorageImpl implements BundleStorage {
     throws Exception
   {
     int pos;
-    long id = oldBA.getBundleId();
+    final long id = oldBA.getBundleId();
     synchronized (archives) {
       pos = find(id);
       if (pos >= archives.size() || archives.get(pos) != oldBA) {
@@ -249,7 +258,7 @@ public class BundleStorageImpl implements BundleStorage {
    */
   public BundleArchive [] getAllBundleArchives() {
     synchronized (archives) {
-      return (BundleArchive [])archives.toArray(new BundleArchive[archives.size()]);
+      return archives.toArray(new BundleArchive[archives.size()]);
     }
   }
 
@@ -260,10 +269,9 @@ public class BundleStorageImpl implements BundleStorage {
    *
    * @return Private copy of a List with bundle id's.
    */
-  public List getStartOnLaunchBundles() {
-    ArrayList res = new ArrayList();
-    for (Iterator i = archives.iterator(); i.hasNext(); ) {
-      BundleArchive ba = (BundleArchive)i.next();
+  public List<String> getStartOnLaunchBundles() {
+    final ArrayList<String> res = new ArrayList<String>();
+    for (final BundleArchive ba : archives) {
       if (ba.getAutostartSetting()!=-1) {
         res.add(ba.getBundleLocation());
       }
@@ -278,8 +286,8 @@ public class BundleStorageImpl implements BundleStorage {
    */
   public void close()
   {
-    for (Iterator i = archives.iterator(); i.hasNext(); ) {
-      BundleArchive ba = (BundleArchive) i.next();
+    for (final Iterator<BundleArchive> i = archives.iterator(); i.hasNext(); ) {
+      final BundleArchive ba = i.next();
       ba.close();
       i.remove();
     }
@@ -299,7 +307,7 @@ public class BundleStorageImpl implements BundleStorage {
    */
   boolean removeArchive(BundleArchive ba) {
     synchronized (archives) {
-      int pos = find(ba.getBundleId());
+      final int pos = find(ba.getBundleId());
       if (pos < archives.size() && archives.get(pos) == ba) {
         archives.remove(pos);
         return true;
@@ -332,7 +340,7 @@ public class BundleStorageImpl implements BundleStorage {
     checkSigned = props.getBooleanProperty(FWProps.BUNDLESTORAGE_CHECKSIGNED_PROP);
     isWindows = props.getProperty(Constants.FRAMEWORK_OS_NAME).startsWith("Windows");
     jarVerifierBug = props.getBooleanProperty(JAR_VERIFIER_BUG_PROP);
-  }
+   }
 
 
   /**
@@ -347,7 +355,7 @@ public class BundleStorageImpl implements BundleStorage {
     int x = 0;
     while (lb < ub) {
       x = (lb + ub) / 2;
-      long xid = ((BundleArchive)archives.get(x)).getBundleId();
+      final long xid = archives.get(x).getBundleId();
       if (id == xid) {
         return x;
       } else if (id < xid) {
@@ -356,7 +364,7 @@ public class BundleStorageImpl implements BundleStorage {
         lb = x+1;
       }
     }
-    if (lb < archives.size() && ((BundleArchive)archives.get(lb)).getBundleId() < id) {
+    if (lb < archives.size() && archives.get(lb).getBundleId() < id) {
       return lb + 1;
     }
     return lb;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,8 @@ import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
@@ -71,12 +73,15 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
@@ -91,6 +96,7 @@ import java.util.zip.ZipOutputStream;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
@@ -124,12 +130,9 @@ import javax.swing.ToolTipManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 
-import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
-import org.knopflerfish.service.desktop.BundleSelectionListener;
-import org.knopflerfish.service.desktop.BundleSelectionModel;
-import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
-import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -141,19 +144,30 @@ import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.startlevel.StartLevel;
+import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleRevisions;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.util.tracker.ServiceTracker;
 
+import org.knopflerfish.bundle.desktop.swing.console.ConsoleSwing;
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SwingBundleDisplayer;
+
 /**
- * The big one. This class displays the main desktop frame, menues, console and
+ * The big one. This class displays the main desktop frame, menus, console and
  * listens for all registered <tt>SwingBundleDisplayer</tt> services. These are
  * used to create JComponents, which are attached to the main panels.
  */
-public class Desktop implements BundleListener, FrameworkListener,
-    DropTargetListener, BundleSelectionListener {
+public class Desktop
+  implements BundleListener, FrameworkListener, DropTargetListener,
+  BundleSelectionListener
+{
 
-  PackageManager pm;
+  private volatile PackageManager pm;
   JFrame frame;
 
   Container contentPane;
@@ -164,19 +178,23 @@ public class Desktop implements BundleListener, FrameworkListener,
   JTabbedPane detailPanel;
   JTabbedPane consolePanel;
 
-  final static ImageIcon emptyIcon = new ImageIcon(
-      Desktop.class.getResource("/empty.gif"));
+  // final static ImageIcon emptyIcon = new ImageIcon(
+  // Desktop.class.getResource("/empty.gif"));
   final static Icon updateIcon = new ImageIcon(
-      Desktop.class.getResource("/update.png"));
-  final static Icon startIcon = new ImageIcon(
-      Desktop.class.getResource("/player_play.png"));
-  final static Icon stopIcon = new ImageIcon(
-      Desktop.class.getResource("/player_stop.png"));
-
-  final static ImageIcon uninstallIcon = new ImageIcon(
-      Desktop.class.getResource("/player_eject.png"));
-  final static ImageIcon installIcon = new ImageIcon(
-      Desktop.class.getResource("/player_install.png"));
+                                               Desktop.class
+                                                   .getResource("/update.png"));
+  final static Icon startIcon =
+    new ImageIcon(Desktop.class.getResource("/player_play.png"));
+  final static Icon stopIcon =
+    new ImageIcon(Desktop.class.getResource("/player_stop.png"));
+  final static Icon resolveIcon =
+    new ImageIcon(Desktop.class.getResource("/bundle-action-resolve.png"));
+  final static Icon refreshIcon =
+    new ImageIcon(Desktop.class.getResource("/bundle-action-refresh.png"));
+  final static ImageIcon uninstallIcon =
+    new ImageIcon(Desktop.class.getResource("/player_eject.png"));
+  final static ImageIcon installIcon =
+    new ImageIcon(Desktop.class.getResource("/player_install.png"));
 
   /*
    * REMOVED final static ImageIcon magPlusIcon = new
@@ -191,40 +209,41 @@ public class Desktop implements BundleListener, FrameworkListener,
   // final static ImageIcon reloadIcon
   // = new ImageIcon(Desktop.class.getResource("/reload_green.png"));
 
-  final static ImageIcon arrowUpIcon = new ImageIcon(
-      Desktop.class.getResource("/1uparrow.png"));
+  final static ImageIcon arrowUpIcon =
+    new ImageIcon(Desktop.class.getResource("/1uparrow.png"));
 
-  final static ImageIcon arrowDownIcon = new ImageIcon(
-      Desktop.class.getResource("/1downarrow.png"));
+  final static ImageIcon arrowDownIcon =
+    new ImageIcon(Desktop.class.getResource("/1downarrow.png"));
 
-  final static ImageIcon arrowUp2Icon = new ImageIcon(
-      Desktop.class.getResource("/2uparrow.png"));
-  final static ImageIcon arrowDown2Icon = new ImageIcon(
-      Desktop.class.getResource("/2downarrow.png"));
+  final static ImageIcon arrowUp2Icon =
+    new ImageIcon(Desktop.class.getResource("/2uparrow.png"));
+  final static ImageIcon arrowDown2Icon =
+    new ImageIcon(Desktop.class.getResource("/2downarrow.png"));
 
-  final static ImageIcon viewIcon = new ImageIcon(
-      Desktop.class.getResource("/view_select.png"));
+  final static ImageIcon viewIcon =
+    new ImageIcon(Desktop.class.getResource("/view_select.png"));
 
-  final static ImageIcon openIcon = new ImageIcon(
-      Desktop.class.getResource("/open.png"));
-  final static ImageIcon openURLIcon = new ImageIcon(
-      Desktop.class.getResource("/bundle_small.png"));
-  final static ImageIcon saveIcon = new ImageIcon(
-      Desktop.class.getResource("/save.png"));
+  final static ImageIcon openIcon =
+    new ImageIcon(Desktop.class.getResource("/open.png"));
+  final static ImageIcon openURLIcon =
+    new ImageIcon(Desktop.class.getResource("/bundle_small.png"));
+  final static ImageIcon saveIcon =
+    new ImageIcon(Desktop.class.getResource("/save.png"));
 
-  final static ImageIcon prevIcon = new ImageIcon(
-      Desktop.class.getResource("/player_prev.png"));
-  final static ImageIcon nextIcon = new ImageIcon(
-      Desktop.class.getResource("/player_next.png"));
-  final static ImageIcon connectIcon = new ImageIcon(
-      Desktop.class.getResource("/connect.png"));
-  final static ImageIcon connectIconLarge = new ImageIcon(
-      Desktop.class.getResource("/connect48x48.png"));
+  final static ImageIcon prevIcon =
+    new ImageIcon(Desktop.class.getResource("/player_prev.png"));
+  final static ImageIcon nextIcon =
+    new ImageIcon(Desktop.class.getResource("/player_next.png"));
+  final static ImageIcon connectIcon =
+    new ImageIcon(Desktop.class.getResource("/connect.png"));
+  final static ImageIcon connectIconLarge =
+    new ImageIcon(Desktop.class.getResource("/connect48x48.png"));
 
   final static ImageIcon tipIcon = new ImageIcon(
-      Desktop.class.getResource("/idea.png"));
-  final static ImageIcon floatIcon = new ImageIcon(
-      Desktop.class.getResource("/float.png"));
+                                                 Desktop.class
+                                                     .getResource("/idea.png"));
+  final static ImageIcon floatIcon =
+    new ImageIcon(Desktop.class.getResource("/float.png"));
 
   final static int mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
@@ -250,21 +269,20 @@ public class Desktop implements BundleListener, FrameworkListener,
   LFManager lfManager;
   LookAndFeelMenu lfMenu;
 
-  ServiceTracker dispTracker;
-  ServiceTracker slTracker;
-  ServiceTracker pkgTracker;
+  ServiceTracker<SwingBundleDisplayer, SwingBundleDisplayer> dispTracker;
 
   JButton viewSelection;
 
   static Desktop theDesktop;
 
-  Set sizesavers = new HashSet();
+  Set<SizeSaver> sizesavers = new HashSet<SizeSaver>();
 
   // Check that we are on Mac OS X. This is crucial to loading and
   // using the OSXAdapter class.
   public static boolean bMacOS = OSXAdapter.isMacOSX();
 
-  public Desktop() {
+  public Desktop()
+  {
     theDesktop = this;
   }
 
@@ -273,32 +291,28 @@ public class Desktop implements BundleListener, FrameworkListener,
    * displays is constant. O/w we would end up with a UI where menu item changes
    * place from time to time.
    */
-  private Comparator referenceComparator = new Comparator() {
-    public int compare(Object obj1, Object obj2) {
-      ServiceReference ref1 = (ServiceReference) obj1;
-      ServiceReference ref2 = (ServiceReference) obj2;
-      Long l1 = (Long) ref1.getProperty(Constants.SERVICE_ID);
-      Long l2 = (Long) ref2.getProperty(Constants.SERVICE_ID);
-      return l1.compareTo(l2);
-    }
-  };
+  private final Comparator<ServiceReference<?>> referenceComparator =
+    new Comparator<ServiceReference<?>>() {
+      public int compare(ServiceReference<?> ref1, ServiceReference<?> ref2)
+      {
+        final Long l1 = (Long) ref1.getProperty(Constants.SERVICE_ID);
+        final Long l2 = (Long) ref2.getProperty(Constants.SERVICE_ID);
+        return l1.compareTo(l2);
+      }
+    };
 
-  Map displayMap = new TreeMap(referenceComparator);
-  Map menuMap = new HashMap();
-  Map detailMap = new HashMap();
+  Map<ServiceReference<?>, SwingBundleDisplayer> displayMap =
+    new TreeMap<ServiceReference<?>, SwingBundleDisplayer>(referenceComparator);
+  Map<ServiceReference<?>, JMenuItem> menuMap =
+    new HashMap<ServiceReference<?>, JMenuItem>();
+  Map<ServiceReference<?>, SwingBundleDisplayer> detailMap =
+    new HashMap<ServiceReference<?>, SwingBundleDisplayer>();
 
-  public void start() {
+  public void start()
+  {
     if (Activator.isStopped()) {
       return;
     }
-
-    slTracker = new ServiceTracker(Activator.getTargetBC(),
-        StartLevel.class.getName(), null);
-    slTracker.open();
-
-    pkgTracker = new ServiceTracker(Activator.getTargetBC(),
-        PackageAdmin.class.getName(), null);
-    pkgTracker.open();
 
     lfManager = new LFManager();
     lfManager.init();
@@ -309,7 +323,7 @@ public class Desktop implements BundleListener, FrameworkListener,
     toolBar = makeToolBar();
     statusBar = new StatusBar("");
 
-    String rName = Activator.remoteHost;
+    final String rName = Activator.remoteHost;
     String spid = Activator.getBC().getProperty("org.osgi.provisioning.spid");
 
     if (spid == null) {
@@ -318,7 +332,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     try {
       ToolTipManager.sharedInstance().setInitialDelay(50);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.warn("Failed to change tooltip manager", e);
     }
 
@@ -326,7 +340,9 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
     frame.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
+      @Override
+      public void windowClosing(WindowEvent e)
+      {
         stopFramework();
       }
     });
@@ -336,10 +352,13 @@ public class Desktop implements BundleListener, FrameworkListener,
     if (bMacOS) {
       try {
         OSXAdapter.setQuitHandler(this,
-            getClass().getDeclaredMethod("stopFramework", (Class[]) null));
-        OSXAdapter.setAboutHandler(this,
-            getClass().getDeclaredMethod("showVersion", (Class[]) null));
-      } catch (Exception e) {
+                                  getClass().getDeclaredMethod("stopFramework",
+                                                               (Class[]) null));
+        OSXAdapter
+            .setAboutHandler(this,
+                             getClass().getDeclaredMethod("showVersion",
+                                                          (Class[]) null));
+      } catch (final Exception e) {
         Activator.log.warn("Error while loading the OSXAdapter", e);
         bMacOS = false;
       }
@@ -366,10 +385,10 @@ public class Desktop implements BundleListener, FrameworkListener,
     detailPanel.setBorder(null);
 
     detailPanel.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-        for (Iterator it = detailMap.keySet().iterator(); it.hasNext();) {
-          ServiceReference sr = (ServiceReference) it.next();
-          Object obj = detailMap.get(sr);
+      public void stateChanged(ChangeEvent e)
+      {
+        for (final ServiceReference<?> sr : detailMap.keySet()) {
+          final Object obj = detailMap.get(sr);
 
           if (obj instanceof DefaultSwingBundleDisplayer) {
 
@@ -384,25 +403,25 @@ public class Desktop implements BundleListener, FrameworkListener,
     contentPane.add(toolBar, BorderLayout.NORTH);
     contentPane.add(statusBar, BorderLayout.SOUTH);
 
-    splitPaneHoriz = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, bundlePanel,
-        detailPanel);
+    splitPaneHoriz =
+      new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, bundlePanel, detailPanel);
 
     ss = new SizeSaver("splitPaneHoriz", null, // new Dimension(700, 400),
-        350);
+                       350);
     ss.attach(splitPaneHoriz);
     sizesavers.add(ss);
     // splitPaneHoriz.setDividerLocation(bundlePanel.getPreferredSize().width);
 
     splitPaneHoriz.setOneTouchExpandable(false);
 
-    JFloatable consoleWrapper = new JFloatable(consoleSwing.getJComponent(),
-        "Console");
+    final JFloatable consoleWrapper =
+      new JFloatable(consoleSwing.getJComponent(), "Console");
 
-    splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPaneHoriz,
-        consoleWrapper);
+    splitPane =
+      new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPaneHoriz, consoleWrapper);
 
     ss = new SizeSaver("splitPaneVertical", null, // new Dimension(800, 600),
-        300);
+                       300);
     ss.attach(splitPane);
     sizesavers.add(ss);
 
@@ -412,7 +431,7 @@ public class Desktop implements BundleListener, FrameworkListener,
     contentPane.add(splitPane, BorderLayout.CENTER);
 
     new DropTarget(contentPane, DnDConstants.ACTION_COPY_OR_MOVE, // actions
-        this, true);
+                   this, true);
 
     alive = true;
 
@@ -423,8 +442,6 @@ public class Desktop implements BundleListener, FrameworkListener,
     // bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
     // }
     bundleChanged((BundleEvent) null);
-
-    pm = new PackageManager(pkgTracker);
 
     frame.setJMenuBar(menuBar = makeMenuBar());
 
@@ -445,113 +462,124 @@ public class Desktop implements BundleListener, FrameworkListener,
     // "(" + SwingBundleDisplayer.PROP_ISDETAIL + "=false" + ")" +
     // ")";
 
-    String dispFilter = "(" + Constants.OBJECTCLASS + "="
-        + SwingBundleDisplayer.class.getName() + ")";
+    final String dispFilter =
+      "(" + Constants.OBJECTCLASS + "=" + SwingBundleDisplayer.class.getName()
+          + ")";
 
     try {
-      dispTracker = new ServiceTracker(Activator.getBC(), Activator.getBC()
-          .createFilter(dispFilter), null) {
-        public Object addingService(final ServiceReference sr) {
-          final SwingBundleDisplayer disp = (SwingBundleDisplayer) super
-              .addingService(sr);
+      dispTracker =
+        new ServiceTracker<SwingBundleDisplayer, SwingBundleDisplayer>(
+            Activator.getBC(), Activator.getBC().createFilter(dispFilter), null) {
+          @Override
+          public SwingBundleDisplayer addingService(final ServiceReference<SwingBundleDisplayer> sr)
+          {
+            final SwingBundleDisplayer disp = super.addingService(sr);
 
-          SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
+            SwingUtilities.invokeLater(new Runnable() {
+              public void run()
+              {
 
-              Icon icon = disp.getSmallIcon();
+                final Icon icon = disp.getSmallIcon();
 
-              String name = Util.getStringProp(sr,
-                  SwingBundleDisplayer.PROP_NAME, disp.getClass().getName());
-              String desc = Util.getStringProp(sr,
-                  SwingBundleDisplayer.PROP_DESCRIPTION, "");
+                final String name =
+                  Util.getStringProp(sr, SwingBundleDisplayer.PROP_NAME, disp
+                      .getClass().getName());
+                final String desc =
+                  Util.getStringProp(sr, SwingBundleDisplayer.PROP_DESCRIPTION,
+                                     "");
 
-              boolean bDetail = Util.getBooleanProp(sr,
-                  SwingBundleDisplayer.PROP_ISDETAIL, false);
+                final boolean bDetail =
+                  Util.getBooleanProp(sr, SwingBundleDisplayer.PROP_ISDETAIL,
+                                      false);
 
-              JComponent comp = disp.createJComponent();
+                final JComponent comp = disp.createJComponent();
 
-              JFloatable wrapper = new JFloatable(comp, name);
+                final JFloatable wrapper = new JFloatable(comp, name);
 
-              // floating windows shouldn't be closed when
-              // the tabbed pane swaps components
-              wrapper.setAutoClose(false);
+                // floating windows shouldn't be closed when
+                // the tabbed pane swaps components
+                wrapper.setAutoClose(false);
 
-              disp.setBundleSelectionModel(bundleSelModel);
+                disp.setBundleSelectionModel(bundleSelModel);
 
-              if (bDetail) {
-                detailMap.put(sr, disp);
+                if (bDetail) {
+                  detailMap.put(sr, disp);
 
-                // JPanel wrapper2 = new JPanel(new BorderLayout());
-                // wrapper2.add(wrapper, BorderLayout.CENTER);
+                  // JPanel wrapper2 = new JPanel(new BorderLayout());
+                  // wrapper2.add(wrapper, BorderLayout.CENTER);
 
-                detailPanel.addTab(name, icon, wrapper, desc);
-              } else {
-                displayMap.put(sr, disp);
+                  detailPanel.addTab(name, icon, wrapper, desc);
+                } else {
+                  displayMap.put(sr, disp);
 
-                bundlePanel.addTab(name, wrapper);
-
-                makeViewPopupMenu();
-
-                viewMenu = makeViewMenu(viewMenu);
-              }
-
-            }
-          });
-          return disp;
-        }
-
-        public void removedService(final ServiceReference sr,
-            final Object service) {
-          final SwingBundleDisplayer disp = (SwingBundleDisplayer) service;
-          SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-              String name = Util.getStringProp(sr,
-                  SwingBundleDisplayer.PROP_NAME, disp.getClass().getName());
-              boolean bDetail = Util.getBooleanProp(sr,
-                  SwingBundleDisplayer.PROP_ISDETAIL, false);
-
-              if (bDetail) {
-                Component comp = null;
-                if (null != detailPanel) {
-                  for (int i = 0; i < detailPanel.getTabCount(); i++) {
-                    if (detailPanel.getTitleAt(i).equals(name)) {
-                      comp = detailPanel.getComponentAt(i);
-                    }
-                  }
-                  if (comp != null) {
-                    // Make sure floating windows are closed
-                    if (comp instanceof JFloatable) {
-                      ((JFloatable) comp).setAutoClose(true);
-                      ((JFloatable) comp).doUnfloat();
-                    }
-                    detailPanel.remove(comp);
-                    detailMap.remove(sr);
-                  }
-                }
-              } else {
-                if (bundlePanel != null) {
-                  Component comp = bundlePanel.getTab(name);
-                  if (comp != null) {
-                    if (comp instanceof JFloatable) {
-                      ((JFloatable) comp).setAutoClose(true);
-                      ((JFloatable) comp).doUnfloat();
-                    }
-                  }
-
-                  displayMap.remove(sr);
-                  bundlePanel.removeTab(name);
+                  bundlePanel.addTab(name, wrapper);
 
                   makeViewPopupMenu();
+
                   viewMenu = makeViewMenu(viewMenu);
                 }
+
               }
-            }
-          });
-          super.removedService(sr, service);
-        }
-      };
+            });
+            return disp;
+          }
+
+          @Override
+          public void removedService(final ServiceReference<SwingBundleDisplayer> sr,
+                                     final SwingBundleDisplayer disp)
+          {
+            SwingUtilities.invokeLater(new Runnable() {
+              public void run()
+              {
+                final String name =
+                  Util.getStringProp(sr, SwingBundleDisplayer.PROP_NAME, disp
+                      .getClass().getName());
+                final boolean bDetail =
+                  Util.getBooleanProp(sr, SwingBundleDisplayer.PROP_ISDETAIL,
+                                      false);
+
+                if (bDetail) {
+                  Component comp = null;
+                  if (null != detailPanel) {
+                    for (int i = 0; i < detailPanel.getTabCount(); i++) {
+                      if (detailPanel.getTitleAt(i).equals(name)) {
+                        comp = detailPanel.getComponentAt(i);
+                      }
+                    }
+                    if (comp != null) {
+                      // Make sure floating windows are closed
+                      if (comp instanceof JFloatable) {
+                        ((JFloatable) comp).setAutoClose(true);
+                        ((JFloatable) comp).doUnfloat();
+                      }
+                      detailPanel.remove(comp);
+                      detailMap.remove(sr);
+                    }
+                  }
+                } else {
+                  if (bundlePanel != null) {
+                    final Component comp = bundlePanel.getTab(name);
+                    if (comp != null) {
+                      if (comp instanceof JFloatable) {
+                        ((JFloatable) comp).setAutoClose(true);
+                        ((JFloatable) comp).doUnfloat();
+                      }
+                    }
+
+                    displayMap.remove(sr);
+                    bundlePanel.removeTab(name);
+
+                    makeViewPopupMenu();
+                    viewMenu = makeViewMenu(viewMenu);
+                  }
+                }
+              }
+            });
+            super.removedService(sr, disp);
+          }
+        };
       dispTracker.open();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("Failed to create tracker", e);
     }
 
@@ -568,57 +596,109 @@ public class Desktop implements BundleListener, FrameworkListener,
   // Assumes that the current Knopflerfish version can be found
   // directly after the text "Knopflerfish " on the first line of the
   // release note at
-  // http://www.knopflerfish.org/releases/current/release_notes.txt
-  void checkUpdate(final boolean bForce) {
+  // http://www.knopflerfish.org/releases/current/release_notes.hmtl
+  void checkUpdate(final boolean bForce)
+  {
     // Run in threads, to avoid startup delay caused by network problems.
     new Thread() {
-      public void run() {
+      @Override
+      public void run()
+      {
         try {
           if (bForce) {
-            Preferences prefs = Preferences.userNodeForPackage(getClass());
+            final Preferences prefs =
+              Preferences.userNodeForPackage(getClass());
             prefs.remove(KEY_UPDATEVERSION);
             prefs.flush();
           }
 
-          String versionURL = Util.getProperty(
-              "org.knopflerfish.desktop.releasenotesurl",
-              "http://www.knopflerfish.org/releases/current/release_notes.txt");
+          Version releaseVersion = Version.emptyVersion;
+          final Bundle sysBundle = Activator.getBC().getBundle(0);
+          URL url = null;
+          InputStream is = null;
+          try {
+            url = sysBundle.getEntry("/release");
+            if (url == null) {
+              Activator.log.debug("Update check: skipped; framework.jar is "
+                                  + "not from a relase build.");
+              return;
+            }
+            final URLConnection conn = url.openConnection();
+            is = conn.getInputStream();
+            final String releaseString =
+              new String(Util.readStream(is), "UTF-8");
+            releaseVersion = new Version(releaseString);
+          } catch (final Exception e) {
+            Activator.log
+                .warn("Update check: Failed to read release version from "
+                      + url, e);
+          } finally {
+            if (is != null) {
+              is.close();
+            }
+          }
+          Activator.log.debug("Update check: Running on Knopflerfish "
+                              + releaseVersion);
 
-          URL url = new URL(versionURL);
-          URLConnection conn = url.openConnection();
-          InputStream is = conn.getInputStream();
+          final String versionURL =
+            Util.getProperty("org.knopflerfish.desktop.releasenotesurl",
+                             "http://www.knopflerfish.org/releases/current/release_notes.html");
 
-          String notes = new String(Util.readStream(is), "ISO-8859-1");
+          String notes = null;
+          try {
+            url = new URL(versionURL);
+            final URLConnection conn = url.openConnection();
+            is = conn.getInputStream();
 
-          int ix = notes.indexOf("\n");
-          if (ix != -1) {
-            String line = notes.substring(0, ix);
-            final String keyWord = "Knopflerfish ";
-            ix = line.lastIndexOf(keyWord);
+            notes = new String(Util.readStream(is), "ISO-8859-1");
+          } finally {
+            if (is != null) {
+              is.close();
+            }
+          }
+
+          // Look for the release version, i.e., "Knopflerfish <VERSION> ".
+          final String keyWord = "Knopflerfish ";
+          Version version = null;
+          int start = 0;
+          while (start < notes.length()) {
+            int end = notes.indexOf('\n', start);
+            end = end == -1 ? notes.length() : end;
+            final String orgLine = notes.substring(start, end);
+            String line = orgLine;
+            int ix = line.lastIndexOf(keyWord);
             if (ix != -1) {
               line = line.substring(ix + keyWord.length()).trim();
               ix = line.indexOf(" ");
               if (ix != -1) {
                 line = line.substring(0, ix);
               }
-              Version version = new Version(line);
-              Bundle sysBundle = Activator.getBC().getBundle(0);
-              Version sysVersion = new Version((String) sysBundle.getHeaders()
-                  .get("Bundle-Version"));
+              try {
+                version = new Version(line);
+                Activator.log.debug("Update check: Found valid version: "
+                                    + version + ", in line '" + orgLine + "'.");
 
-              Activator.log.info("sysVersion=" + sysVersion + ", version="
-                  + version);
-              if (sysVersion.compareTo(version) < 0) {
-                showUpdate(sysVersion, version, notes);
+                if (releaseVersion.compareTo(version) < 0) {
+                  showUpdate(releaseVersion, version, notes);
+                }
+                break;
+              } catch (final Exception e) {
+                final String msg =
+                  "Update check: Invalid version '" + line + "' in line '"
+                      + orgLine + "' " + e;
+                Activator.log.debug(msg, e);
               }
-            } else {
-              Activator.log.warn("No version info in " + line);
             }
-          } else {
-            Activator.log.warn("No version line");
+            start = end + 1;
           }
-        } catch (Exception e) {
-          Activator.log.warn("Failed to read update info", e);
+          if (version == null) {
+            Activator.log.warn("Update check: "
+                               + "No version found in release notes file:\n"
+                               + notes);
+          }
+        } catch (final Exception e) {
+          Activator.log.warn("Update check: Failed to read update info; " + e,
+                             e);
         }
       }
     }.start();
@@ -628,7 +708,8 @@ public class Desktop implements BundleListener, FrameworkListener,
       Strings.get("item_startbundles"), startIcon) {
     private static final long serialVersionUID = 1L;
 
-    public void actionPerformed(ActionEvent ev) {
+    public void actionPerformed(ActionEvent ev)
+    {
       startBundles(getSelectedBundles());
     }
   };
@@ -636,7 +717,8 @@ public class Desktop implements BundleListener, FrameworkListener,
       Strings.get("item_stopbundles"), stopIcon) {
     private static final long serialVersionUID = 1L;
 
-    public void actionPerformed(ActionEvent ev) {
+    public void actionPerformed(ActionEvent ev)
+    {
       stopBundles(getSelectedBundles());
     }
   };
@@ -644,7 +726,8 @@ public class Desktop implements BundleListener, FrameworkListener,
       Strings.get("item_updatebundles"), updateIcon) {
     private static final long serialVersionUID = 1L;
 
-    public void actionPerformed(ActionEvent ev) {
+    public void actionPerformed(ActionEvent ev)
+    {
       updateBundles(getSelectedBundles());
     }
   };
@@ -653,56 +736,58 @@ public class Desktop implements BundleListener, FrameworkListener,
       Strings.get("item_uninstallbundles"), uninstallIcon) {
     private static final long serialVersionUID = 1L;
 
-    public void actionPerformed(ActionEvent ev) {
+    public void actionPerformed(ActionEvent ev)
+    {
       uninstallBundles(getSelectedBundles());
     }
   };
 
   final Action actionRefreshBundles = new AbstractAction(
-      Strings.get("menu_refreshbundles")) {
+      Strings.get("item_refreshbundles"), refreshIcon) {
     private static final long serialVersionUID = 1L;
     {
       putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_R, mask));
-      putValue(SHORT_DESCRIPTION, Strings.get("menu_refreshbundles.descr"));
+      putValue(SHORT_DESCRIPTION, Strings.get("item_refreshbundles.descr"));
     }
 
-    public void actionPerformed(ActionEvent ev) {
-      refreshBundle(getSelectedBundles());
+    public void actionPerformed(ActionEvent ev)
+    {
+      refreshBundles(getSelectedBundles());
     }
   };
 
   final Action actionResolveBundles = new AbstractAction(
-      Strings.get("menu_resolvebundles")) {
+      Strings.get("item_resolvebundles"), resolveIcon) {
     private static final long serialVersionUID = 1L;
     {
-      putValue(SHORT_DESCRIPTION, Strings.get("menu_resolvebundles.descr"));
+      putValue(SHORT_DESCRIPTION, Strings.get("item_resolvebundles.descr"));
     }
 
-    public void actionPerformed(ActionEvent ev) {
+    public void actionPerformed(ActionEvent ev)
+    {
       resolveBundles(getSelectedBundles());
     }
   };
 
-  JButton toolStartBundles;
-  JButton toolStopBundles;
-  JButton toolUpdateBundles;
-  JButton toolUninstallBundles;
-
-  void setRemote(boolean b) {
+  void setRemote(boolean b)
+  {
     menuRemote.setEnabled(b);
     buttonRemote.setEnabled(b);
   }
 
-  JToolBar makeToolBar() {
+  JToolBar makeToolBar()
+  {
     return new JToolBar() {
       private static final long serialVersionUID = 1L;
 
       {
-        add(toolStartBundles = new JButton(openIcon) {
+
+        add(new JButton(openIcon) {
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 addBundle();
               }
             });
@@ -714,7 +799,8 @@ public class Desktop implements BundleListener, FrameworkListener,
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 addBundleURL();
               }
             });
@@ -722,11 +808,12 @@ public class Desktop implements BundleListener, FrameworkListener,
           }
         });
 
-        add(toolStartBundles = new JButton(saveIcon) {
+        add(new JButton(saveIcon) {
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 save();
               }
             });
@@ -738,25 +825,30 @@ public class Desktop implements BundleListener, FrameworkListener,
           private static final long serialVersionUID = 1L;
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 doConnect();
               }
             });
             setToolTipText(Strings.get("menu_remotefw"));
           }
         });
-        // add(new JToolBar.Separator());
 
+        addSeparator(new Dimension(5, 22));
+
+        add(new JToolbarButton(actionResolveBundles));
         add(new JToolbarButton(actionStartBundles));
         add(new JToolbarButton(actionStopBundles));
         add(new JToolbarButton(actionUpdateBundles));
+        add(new JToolbarButton(actionRefreshBundles));
         add(new JToolbarButton(actionUninstallBundles));
+
+        addSeparator(new Dimension(5, 22));
 
         add(viewSelection = makeViewSelectionButton());
 
-        StartLevel sls = (StartLevel) slTracker.getService();
-
-        if (null == sls) {
+        final FrameworkStartLevel fsl = getFrameworkStartLevel();
+        if (null == fsl) {
           add(new JLabel(Strings.get("nostartlevel.label")));
         } else {
           add(makeStartLevelSelector());
@@ -767,40 +859,53 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  JComponent makeStartLevelSelector() {
-    StartLevel sls = (StartLevel) slTracker.getService();
+  JComponent makeStartLevelSelector()
+  {
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
 
     Activator.log.debug("has start level service");
 
-    JPanel panel = new JPanel();
+    levelPanel = Box.createHorizontalBox();
+    levelPanel.add(Box.createHorizontalGlue());
+    levelPanel.add(Box.createHorizontalStrut(LEVEL_STRUT_WIDTH));
 
-    panel.add(new JLabel(Strings.get("startlevel.label")));
-
+    levelLabel = new JLabel(Strings.get("startlevel.label"));
+    levelLabel.setToolTipText(Strings.get("startlevel.label.descr"));
     levelBox = new JComboBox();
+
+    levelLabel.setLabelFor(levelBox);
+
+    levelPanel.add(levelLabel);
+    levelPanel.add(levelBox);
 
     updateLevelItems();
 
-    levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
+    levelBox.setSelectedIndex(fsl.getStartLevel() - levelMin);
 
     levelBox.addActionListener(new ActionListener() {
 
-      public void actionPerformed(ActionEvent ev) {
+      public void actionPerformed(ActionEvent ev)
+      {
 
         if (levelBox.getSelectedIndex() == -1) {
           return;
         }
 
-        // Delay actual setting to avoid flipping thru
-        // levels quickly.
+        // Delay actual setting to avoid flipping through levels quickly.
         SwingUtilities.invokeLater(new Runnable() {
-          public void run() {
-            Thread t = new Thread() {
-              public void run() {
+          public void run()
+          {
+            final Thread t = new Thread() {
+              @Override
+              public void run()
+              {
                 try {
                   Thread.sleep(500);
                   setFWStartLevel();
-                } catch (Exception e) {
-                  Activator.log.error("Failed to set start level");
+                } catch (final Exception e) {
+                  if (Activator.log != null) {
+                    Activator.log.error("Failed to set start level", e);
+                  }
                 }
               }
             };
@@ -810,38 +915,57 @@ public class Desktop implements BundleListener, FrameworkListener,
       }
     });
 
-    panel.add(levelBox);
+    // To ensure that the level box contents is correct we must rebuild it when
+    // it gains focus since there are no events that tells when a bundles start
+    // level has been changed.
+    levelBox.addFocusListener(new FocusListener() {
 
-    return panel;
+      public void focusLost(FocusEvent e)
+      {
+      }
+
+      public void focusGained(FocusEvent e)
+      {
+        updateStartLevel();
+      }
+    });
+
+    return levelPanel;
 
   }
 
-  void setFWStartLevel() {
-    int level = levelBox.getSelectedIndex() + levelMin;
+  void setFWStartLevel()
+  {
+    final int level = levelBox.getSelectedIndex() + levelMin;
 
-    StartLevel sls = (StartLevel) slTracker.getService();
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
 
-    if (sls != null) {
-      if (sls.getStartLevel() == level) {
+    if (fsl != null) {
+      if (fsl.getStartLevel() == level) {
         return;
       }
     }
 
     int myLevel = level;
     try {
-      myLevel = sls.getBundleStartLevel(Activator.getTargetBC().getBundle());
-    } catch (IllegalArgumentException ignored) {
+      myLevel =
+        Activator.getTargetBC().getBundle().adapt(BundleStartLevel.class)
+            .getStartLevel();
+    } catch (final IllegalArgumentException ignored) {
     }
 
     boolean bOK = true;
 
     if (level < myLevel) {
       bOK = false;
-      Object[] options = { Strings.get("yes"), Strings.get("cancel") };
+      final Object[] options = { Strings.get("yes"), Strings.get("cancel") };
 
-      int n = JOptionPane.showOptionDialog(frame, Strings.get("q_stopdesktop"),
-          Strings.get("msg_stopdesktop"), JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+      final int n =
+        JOptionPane.showOptionDialog(frame, Strings.get("q_stopdesktop"),
+                                     Strings.get("msg_stopdesktop"),
+                                     JOptionPane.YES_NO_OPTION,
+                                     JOptionPane.QUESTION_MESSAGE, null,
+                                     options, options[1]);
       if (n == 0) {
         bOK = true;
       }
@@ -849,30 +973,36 @@ public class Desktop implements BundleListener, FrameworkListener,
     if (bOK) {
       setStartLevel(level);
     } else {
-      if (sls != null) {
-        levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
+      if (fsl != null) {
+        levelBox.setSelectedIndex(fsl.getStartLevel() - levelMin);
       }
     }
   }
 
-  JButton makeViewSelectionButton() {
+  JButton makeViewSelectionButton()
+  {
     // view selection button
-    JButton viewButton = new JButton(viewIcon);
+    final JButton viewButton = new JButton(viewIcon);
 
     makeViewPopupMenu();
 
     viewButton.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+      public void mousePressed(MouseEvent e)
+      {
         showPopup(e);
       }
 
-      public void mouseReleased(MouseEvent e) {
+      @Override
+      public void mouseReleased(MouseEvent e)
+      {
         showPopup(e);
       }
 
-      private void showPopup(MouseEvent e) {
+      private void showPopup(MouseEvent e)
+      {
         if (viewPopupMenu != null) {
-          Component comp = e.getComponent();
+          final Component comp = e.getComponent();
           viewPopupMenu.show(comp, 0, comp.getSize().height);
         }
       }
@@ -885,19 +1015,20 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   JPopupMenu viewPopupMenu;
 
-  void makeViewPopupMenu() {
+  void makeViewPopupMenu()
+  {
 
     viewPopupMenu = new JPopupMenu();
     menuMap.clear();
 
-    for (Iterator it = displayMap.keySet().iterator(); it.hasNext();) {
-      final ServiceReference sr = (ServiceReference) it.next();
-      final String key = (String) sr
-          .getProperty(SwingBundleDisplayer.PROP_NAME);
+    for (final ServiceReference<?> sr : displayMap.keySet()) {
+      final String key =
+        (String) sr.getProperty(SwingBundleDisplayer.PROP_NAME);
 
-      JMenuItem item = new JMenuItem(key);
+      final JMenuItem item = new JMenuItem(key);
       item.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent ev) {
+        public void actionPerformed(ActionEvent ev)
+        {
           bundlePanelShowTab(sr);
         }
       });
@@ -905,21 +1036,25 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
   }
 
-  void bundlePanelShowTab(String name) {
-    ServiceReference[] sr;
+  void bundlePanelShowTab(String name)
+  {
+    ServiceReference<?>[] sr;
     try {
-      sr = Activator.getBC().getServiceReferences(
-          SwingBundleDisplayer.class.getName(),
-          "(" + SwingBundleDisplayer.PROP_NAME + "=" + name + ")");
+      sr =
+        Activator.getBC()
+            .getServiceReferences(SwingBundleDisplayer.class.getName(),
+                                  "(" + SwingBundleDisplayer.PROP_NAME + "="
+                                      + name + ")");
       if (sr != null) {
         bundlePanelShowTab(sr[0]);
       }
-    } catch (InvalidSyntaxException e) {
+    } catch (final InvalidSyntaxException e) {
       throw new RuntimeException(e.getMessage());
     }
   }
 
-  void bundlePanelShowTab(ServiceReference sr) {
+  void bundlePanelShowTab(ServiceReference<?> sr)
+  {
     final String key = (String) sr.getProperty(SwingBundleDisplayer.PROP_NAME);
     bundlePanel.showTab(key);
     final JRadioButtonMenuItem item = (JRadioButtonMenuItem) menuMap.get(sr);
@@ -928,170 +1063,231 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
   }
 
-  void updateLevelItems() {
-    StartLevel sls = (StartLevel) slTracker.getService();
-
-    if (sls != null) {
-      levelMax = Math.max(levelMax, sls.getStartLevel());
+  void updateLevelItems()
+  {
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
+    if (fsl == null) {
+      // No start level service present.
+      return;
     }
+    levelMax = Math.max(levelMax, fsl.getStartLevel());
     levelItems = new String[levelMax - levelMin + 1];
 
-    Bundle[] bundles = Activator.getTargetBC().getBundles();
-
-    for (int i = levelMin; i <= levelMax; i++) {
-      StringBuffer sb = new StringBuffer();
-      int level = i;
-      for (int j = 0; j < bundles.length; j++) {
-        try {
-          if (sls != null && sls.getBundleStartLevel(bundles[j]) == level) {
-            if (sb.length() > 0) {
-              sb.append(", ");
-            }
-            String name = Util.getBundleName(bundles[j]);
-            // Text.replace(Util.shortLocation(bundles[j].getLocation()),
-            // ".jar", "");
-            sb.append(name);
+    final Bundle[] bundles = Activator.getTargetBC().getBundles();
+    final StringBuffer sb = new StringBuffer();
+    for (final Bundle bundle : bundles) {
+      final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
+      if (bsl != null) {
+        final int ix = bsl.getStartLevel() - levelMin;
+        if (0 <= ix && ix < levelItems.length) {
+          sb.setLength(0);
+          if (levelItems[ix] != null) {
+            sb.append(levelItems[ix]);
           }
-        } catch (IllegalArgumentException e) {
+          if (sb.length() > 0) {
+            sb.append(", ");
+          }
+          final String name = Util.getBundleName(bundle);
+          sb.append(name);
+          levelItems[ix] = sb.toString();
         }
       }
-      String txt = sb.toString();
-      int maxLen = 50;
-      if (txt.length() > maxLen) {
-        txt = txt.substring(0, maxLen) + "...";
+    }
+
+    final int maxItemLen = 70;
+    for (int level = levelMin; level <= levelMax; level++) {
+      sb.setLength(0);
+      final String levelBundles = levelItems[level - levelMin];
+      sb.append("<html><b>");
+      sb.append(level);
+      sb.append("</b><font size=\"-2\" color=\"#666666\">");
+      if (levelBundles != null) {
+        sb.append("<font size=\"-2\">&nbsp;[");
+        if (levelBundles.length() > maxItemLen) {
+          sb.append(levelBundles.subSequence(0, maxItemLen));
+          sb.append("...");
+        } else {
+          sb.append(levelBundles);
+        }
+        sb.append("]</font>");
       }
-      levelItems[i - levelMin] = i + " " + txt;
+      sb.append("</html>");
+      levelItems[level - levelMin] = sb.toString();
     }
 
     if (levelBox != null) {
-      DefaultComboBoxModel model = new DefaultComboBoxModel(levelItems);
+      final DefaultComboBoxModel model = new DefaultComboBoxModel(levelItems);
       levelBox.setModel(model);
+      // Avoid a lot of whitespace to the right of any "..."
+      levelBox.setMaximumSize(levelBox.getPreferredSize());
     }
   }
 
-  void setStartLevel(final int level) {
+  void setStartLevel(final int level)
+  {
 
-    Thread t = new Thread() {
-      public void run() {
-        StartLevel sls = (StartLevel) slTracker.getService();
-
-        if (null != sls) {
-          sls.setStartLevel(level);
+    final Thread t = new Thread() {
+      @Override
+      public void run()
+      {
+        final FrameworkStartLevel fsl = getFrameworkStartLevel();
+        if (null != fsl) {
+          fsl.setStartLevel(level);
         }
       }
     };
     t.start();
   }
 
-  void updateStartLevel() {
-    if (slTracker == null) {
-      return;
-    }
-
-    StartLevel sls = (StartLevel) slTracker.getService();
-
-    if (sls == null) {
+  void updateStartLevel()
+  {
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
+    if (fsl == null) {
       return;
     }
 
     updateLevelItems();
     if (levelBox != null) {
-      levelBox.setSelectedIndex(sls.getStartLevel() - levelMin);
+      levelBox.setSelectedIndex(fsl.getStartLevel() - levelMin);
     }
     updateBundleViewSelections();
   }
 
   // items handling start level stuff. Only used if a StartLevel
   // service is available at startup
-  Object[] levelItems;
+  Box levelPanel = null;
+  JLabel levelLabel = null;
   JComboBox levelBox = null;
+  String[] levelItems;
   int levelMin = 1;
   int levelMax = 20;
+  private static final int LEVEL_STRUT_WIDTH = 13;
 
   int baActive = 0;
   int baInstalled = 0;
   int other = 0;
   Bundle[] bl = new Bundle[0];
 
-  boolean stopActive() {
+  boolean stopActive()
+  {
     return baActive == bl.length || baActive + other == bl.length;
   }
 
-  boolean startActive() {
+  boolean startActive()
+  {
     return baInstalled == bl.length || baInstalled + other == bl.length;
   }
 
-  public void setSelected(Bundle b) {
+  public void setSelected(Bundle b)
+  {
     bundleSelModel.clearSelection();
     ensureSelected(b);
   }
 
-  public void ensureSelected(Bundle b) {
+  public void ensureSelected(Bundle b)
+  {
     bundleSelModel.setSelected(b.getBundleId(), true);
     updateStatusBar();
   }
 
-  public void toggleSelected(Bundle b) {
+  public void toggleSelected(Bundle b)
+  {
     bundleSelModel.setSelected(b.getBundleId(),
-        !bundleSelModel.isSelected(b.getBundleId()));
+                               !bundleSelModel.isSelected(b.getBundleId()));
     updateStatusBar();
   }
 
-  public boolean isSelected(Bundle b) {
+  public boolean isSelected(Bundle b)
+  {
     return bundleSelModel.isSelected(b.getBundleId());
   }
 
-  void updateBundleViewSelections() {
+  void updateBundleViewSelections()
+  {
 
-    Bundle[] bl = getSelectedBundles();
+    final Bundle[] bl = getSelectedBundles();
 
-    // displayHTML.selectionUpdated(bl);
+    if (bl.length == 0) {
+      actionResolveBundles.setEnabled(false);
+      actionStartBundles.setEnabled(false);
+      actionStopBundles.setEnabled(false);
+      actionUpdateBundles.setEnabled(false);
+      actionRefreshBundles.setEnabled(true);
+      actionUninstallBundles.setEnabled(false);
+    } else {
+      // since there are bundles selected update and uninstall are enabled
+      actionUpdateBundles.setEnabled(true);
+      actionUninstallBundles.setEnabled(true);
 
-    boolean bEnabled = bl.length > 0;
+      boolean anyResolvable = false;
+      boolean anyStartable = false;
+      boolean anyStoppable = false;
+      boolean anyRefreshable = false;
 
-    actionStartBundles.setEnabled(bEnabled);
-    actionStopBundles.setEnabled(bEnabled);
-    actionUninstallBundles.setEnabled(bEnabled);
-    actionUpdateBundles.setEnabled(bEnabled);
+      for (final Bundle bundle : bl) {
+        anyResolvable |= resolveBundlePossible(bundle);
+        anyStartable |= startBundlePossible(bundle);
+        anyStoppable |= stopBundlePossible(bundle);
+        anyRefreshable |= refreshBundleNeeded(bundle);
+      }
+      actionResolveBundles.setEnabled(anyResolvable);
+      actionStartBundles.setEnabled(anyStartable);
+      actionStopBundles.setEnabled(anyStoppable);
+      actionRefreshBundles.setEnabled(anyRefreshable);
+    }
 
     toolBar.invalidate();
     menuBar.invalidate();
 
     if (null != startLevelMenu) {
-      startLevelMenu.setEnabled(bEnabled);
+      startLevelMenu.setEnabled(bl.length != 0);
     }
 
     if (levelMenuLabel != null) {
       levelMenuLabel.setText(Strings.get("startlevel.noSel"));
       noStartLevelSelected.setSelected(true);
-    }
 
-    final StartLevel sls = (StartLevel) slTracker.getService();
-    if (null != sls) {
-      final Set levels = new HashSet();
-      final Set bids = new HashSet();
-      for (int i = 0; i < bl.length; i++) {
-        try {
-          // levels.add(new Integer(sls.getBundleStartLevel(bl[i])));
-          final Integer lvl = new Integer(sls.getBundleStartLevel(bl[i]));
-          levels.add(lvl);
-          bids.add(new Long(bl[i].getBundleId()));
-        } catch (Exception e) {
+      final Set<Integer> levels = new HashSet<Integer>();
+      final Set<Long> bids = new HashSet<Long>();
+      for (final Bundle element : bl) {
+        final BundleStartLevel bsl = element.adapt(BundleStartLevel.class);
+        if (bsl != null) {
+          try {
+            final Integer lvl = new Integer(bsl.getStartLevel());
+            levels.add(lvl);
+            bids.add(new Long(element.getBundleId()));
+          } catch (final Exception e) {
+          }
         }
       }
       levelMenuLabel.setText("Bundle " + bids);
       if (1 == levels.size()) {
-        final Integer level = (Integer) levels.iterator().next();
-        final AbstractButton jrb = (AbstractButton) levelCheckBoxes.get(level);
-        if (null != jrb)
+        final Integer level = levels.iterator().next();
+        final AbstractButton jrb = levelCheckBoxes.get(level);
+        if (null != jrb) {
           jrb.setSelected(true);
+        }
       }
     }
   }
 
+  FrameworkStartLevel getFrameworkStartLevel()
+  {
+    final Bundle systemBundle = Activator.getTargetBC_getBundle(0L);
+    final FrameworkStartLevel fsl = systemBundle.adapt(FrameworkStartLevel.class);
+    return fsl;
+  }
+
+  int getCurrentStartLevel()
+  {
+    final FrameworkStartLevel fsl = getFrameworkStartLevel();
+    return fsl != null ? fsl.getStartLevel() : 1;
+  }
+
   int divloc = 0;
 
-  JMenuBar makeMenuBar() {
+  JMenuBar makeMenuBar()
+  {
     return new JMenuBar() {
       private static final long serialVersionUID = 1L;
       {
@@ -1104,14 +1300,16 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  void updateMenus() {
+  void updateMenus()
+  {
     if (editMenu != null) {
       editMenu.removeAll();
       updateEditMenu(editMenu);
     }
   }
 
-  JMenu makeFileMenu() {
+  JMenu makeFileMenu()
+  {
 
     return new JMenu(Strings.get("menu_file")) {
       private static final long serialVersionUID = 1L;
@@ -1125,7 +1323,8 @@ public class Desktop implements BundleListener, FrameworkListener,
             setMnemonic(KeyEvent.VK_O);
 
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 addBundle();
               }
             });
@@ -1139,7 +1338,8 @@ public class Desktop implements BundleListener, FrameworkListener,
             setMnemonic(KeyEvent.VK_U);
 
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 addBundleURL();
               }
             });
@@ -1153,28 +1353,30 @@ public class Desktop implements BundleListener, FrameworkListener,
             setMnemonic(KeyEvent.VK_S);
 
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 save();
               }
             });
           }
         });
 
-        add(menuRemote = new JMenuItem(Strings.get("menu_remotefw"),
-            connectIcon) {
-          private static final long serialVersionUID = 1L;
+        add(menuRemote =
+          new JMenuItem(Strings.get("menu_remotefw"), connectIcon) {
+            private static final long serialVersionUID = 1L;
 
-          {
-            setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, mask));
-            setMnemonic(KeyEvent.VK_F);
+            {
+              setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, mask));
+              setMnemonic(KeyEvent.VK_F);
 
-            addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                doConnect();
-              }
-            });
-          }
-        });
+              addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent ev)
+                {
+                  doConnect();
+                }
+              });
+            }
+          });
 
         if (!bMacOS) {
           add(new JMenuItem("Quit framework...") {
@@ -1184,7 +1386,8 @@ public class Desktop implements BundleListener, FrameworkListener,
               setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, mask));
               setMnemonic(KeyEvent.VK_Q);
               addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent ev) {
+                public void actionPerformed(ActionEvent ev)
+                {
                   stopFramework();
                 }
               });
@@ -1195,50 +1398,46 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  JMenuItem itemStopBundles;
-  JMenuItem itemStartBundles;
-  JMenuItem itemUpdateBundles;
-  JMenuItem itemUninstallBundles;
-  JMenuItem itemResolveBundles;
-  JMenuItem itemRefreshBundles;
   JMenu startLevelMenu;
 
-  JMenu makeBundleMenu() {
+  JMenu makeBundleMenu()
+  {
 
     return new JMenu(Strings.get("menu_bundles")) {
       private static final long serialVersionUID = 1L;
 
       {
-        add(itemStopBundles = new JMenuItem(actionStopBundles));
+        add(new JMenuItem(actionStopBundles));
         add(makeStopOptionsMenu());
         addSeparator();
-        add(itemStartBundles = new JMenuItem(actionStartBundles));
+        add(new JMenuItem(actionStartBundles));
         add(makeStartOptionsMenu());
         addSeparator();
-        add(itemUpdateBundles = new JMenuItem(actionUpdateBundles));
-        add(itemUninstallBundles = new JMenuItem(actionUninstallBundles));
-        add(itemResolveBundles = new JMenuItem(actionResolveBundles));
-        add(itemRefreshBundles = new JMenuItem(actionRefreshBundles));
+        add(new JMenuItem(actionResolveBundles));
+        add(new JMenuItem(actionUpdateBundles));
+        add(new JMenuItem(actionRefreshBundles));
+        add(new JMenuItem(actionUninstallBundles));
 
-        StartLevel sls = (StartLevel) slTracker.getService();
-        if (sls != null) {
+        final FrameworkStartLevel fsl = getFrameworkStartLevel();
+        if (fsl != null) {
           add(startLevelMenu = makeStartLevelMenu());
         }
       }
     };
   }
 
-  // Integer -> AbstractButton
-  Map levelCheckBoxes = new HashMap();
+  Map<Integer, AbstractButton> levelCheckBoxes =
+    new HashMap<Integer, AbstractButton>();
   // Use a menu item here even though a label should suffice, but the
   // MacOSX mapping to native (AWT) menu items requires a menu item to
   // work.
   JMenuItem levelMenuLabel = null;
   // Invisible menu item that when selected represents no selection.
-  final JRadioButtonMenuItem noStartLevelSelected = new JRadioButtonMenuItem(
-      "no selection");
+  final JRadioButtonMenuItem noStartLevelSelected =
+    new JRadioButtonMenuItem("no selection");
 
-  JMenu makeStartLevelMenu() {
+  JMenu makeStartLevelMenu()
+  {
     return new JMenu(Strings.get("menu_startlevel")) {
       private static final long serialVersionUID = 1L;
 
@@ -1251,20 +1450,20 @@ public class Desktop implements BundleListener, FrameworkListener,
         add(new JSeparator());
 
         for (int i = levelMin; i <= levelMax; i++) {
-          final AbstractButton jrb = new JRadioButtonMenuItem(
-              Integer.toString(i));
+          final AbstractButton jrb =
+            new JRadioButtonMenuItem(Integer.toString(i));
           group.add(jrb);
           add(jrb);
           jrb.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-              final StartLevel sls = (StartLevel) slTracker.getService();
-
+            public void actionPerformed(ActionEvent ev)
+            {
               final Bundle[] bl = getSelectedBundles();
-
-              if (null != sls) {
-                final int level = Integer.parseInt(jrb.getText());
-                for (int i = 0; i < bl.length; i++) {
-                  sls.setBundleStartLevel(bl[i], level);
+              final int level = Integer.parseInt(jrb.getText());
+              for (final Bundle element : bl) {
+                final BundleStartLevel bsl =
+                  element.adapt(BundleStartLevel.class);
+                if (null != bsl) {
+                  bsl.setStartLevel(level);
                 }
                 updateBundleViewSelections();
               }
@@ -1279,7 +1478,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   JCheckBoxMenuItem itemStopOptionsTransient;
 
-  JMenu makeStopOptionsMenu() {
+  JMenu makeStopOptionsMenu()
+  {
     return new JMenu(Strings.get("menu_stopOptions")) {
       private static final long serialVersionUID = 1L;
 
@@ -1287,13 +1487,14 @@ public class Desktop implements BundleListener, FrameworkListener,
         setToolTipText(Strings.get("menu_stopOptions.descr"));
 
         final ItemListener itemListener = new ItemListener() {
-          public void itemStateChanged(ItemEvent e) {
+          public void itemStateChanged(ItemEvent e)
+          {
             updateNameOfActionStopBundles();
           }
         };
 
-        itemStopOptionsTransient = new JCheckBoxMenuItem(
-            Strings.get("stop_option_transient"), false);
+        itemStopOptionsTransient =
+          new JCheckBoxMenuItem(Strings.get("stop_option_transient"), false);
         itemStopOptionsTransient.setToolTipText(Strings
             .get("stop_option_transient.descr"));
         itemStopOptionsTransient.addItemListener(itemListener);
@@ -1304,17 +1505,20 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  void updateNameOfActionStopBundles() {
+  void updateNameOfActionStopBundles()
+  {
     final boolean trans = itemStopOptionsTransient.getState();
-    final String name = Strings.get("item_stopbundles") + (trans ? " (" : "")
-        + (trans ? Strings.get("stop_option_transient") : "")
-        + (trans ? ")" : "");
+    final String name =
+      Strings.get("item_stopbundles") + (trans ? " (" : "")
+          + (trans ? Strings.get("stop_option_transient") : "")
+          + (trans ? ")" : "");
 
     actionStopBundles.putValue(Action.NAME, name);
   }
 
   // Get stop option settings from the menu.
-  int getStopOptions() {
+  int getStopOptions()
+  {
     int options = 0;
     if (itemStopOptionsTransient.getState()) {
       options |= Bundle.STOP_TRANSIENT;
@@ -1325,7 +1529,8 @@ public class Desktop implements BundleListener, FrameworkListener,
   JCheckBoxMenuItem itemStartOptionsTransient;
   JCheckBoxMenuItem itemStartOptionsPolicy;
 
-  JMenu makeStartOptionsMenu() {
+  JMenu makeStartOptionsMenu()
+  {
     return new JMenu(Strings.get("menu_startOptions")) {
       private static final long serialVersionUID = 1L;
 
@@ -1333,19 +1538,20 @@ public class Desktop implements BundleListener, FrameworkListener,
         setToolTipText(Strings.get("menu_startOptions.descr"));
 
         final ItemListener itemListener = new ItemListener() {
-          public void itemStateChanged(ItemEvent e) {
+          public void itemStateChanged(ItemEvent e)
+          {
             updateNameOfActionStartBundles();
           }
         };
 
-        itemStartOptionsTransient = new JCheckBoxMenuItem(
-            Strings.get("start_option_transient"), false);
+        itemStartOptionsTransient =
+          new JCheckBoxMenuItem(Strings.get("start_option_transient"), false);
         itemStartOptionsTransient.setToolTipText(Strings
             .get("start_option_transient.descr"));
         itemStartOptionsTransient.addItemListener(itemListener);
 
-        itemStartOptionsPolicy = new JCheckBoxMenuItem(
-            Strings.get("start_option_policy"), true);
+        itemStartOptionsPolicy =
+          new JCheckBoxMenuItem(Strings.get("start_option_policy"), true);
         itemStartOptionsPolicy.setToolTipText(Strings
             .get("start_option_policy.descr"));
         itemStartOptionsPolicy.addItemListener(itemListener);
@@ -1357,20 +1563,23 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  void updateNameOfActionStartBundles() {
-    boolean trans = itemStartOptionsTransient.getState();
-    boolean policy = itemStartOptionsPolicy.getState();
+  void updateNameOfActionStartBundles()
+  {
+    final boolean trans = itemStartOptionsTransient.getState();
+    final boolean policy = itemStartOptionsPolicy.getState();
 
-    final String name = Strings.get("item_startbundles") + " ("
-        + (trans ? Strings.get("start_option_transient") : "")
-        + (trans ? ", " : "")
-        + Strings.get(policy ? "start_option_policy" : "start_option_eager")
-        + ")";
+    final String name =
+      Strings.get("item_startbundles") + " ("
+          + (trans ? Strings.get("start_option_transient") : "")
+          + (trans ? ", " : "")
+          + Strings.get(policy ? "start_option_policy" : "start_option_eager")
+          + ")";
     actionStartBundles.putValue(Action.NAME, name);
   }
 
   // Get start option settings from the menu.
-  int getStartOptions() {
+  int getStartOptions()
+  {
     int options = 0;
     if (itemStartOptionsTransient.getState()) {
       options |= Bundle.START_TRANSIENT;
@@ -1384,9 +1593,11 @@ public class Desktop implements BundleListener, FrameworkListener,
   JMenu viewMenu = null;
   JMenu editMenu = null;
 
-  JMenu makeViewMenu(JMenu oldMenu) {
-    if (consoleSwing == null)
+  JMenu makeViewMenu(JMenu oldMenu)
+  {
+    if (consoleSwing == null) {
       return null; // Desktop already stopped
+    }
 
     JMenu menu;
 
@@ -1404,7 +1615,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
       {
         setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
-            ActionEvent.ALT_MASK));
+                                              ActionEvent.ALT_MASK));
         addActionListener(new SplitAction(splitPane, consoleSwing
             .getJComponent()));
         setState(true);
@@ -1416,7 +1627,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
       {
         setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
-            ActionEvent.ALT_MASK));
+                                              ActionEvent.ALT_MASK));
         addActionListener(new SplitAction(splitPaneHoriz, bundlePanel));
         setState(true);
       }
@@ -1427,7 +1638,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
       {
         setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3,
-            ActionEvent.ALT_MASK));
+                                              ActionEvent.ALT_MASK));
         addActionListener(new SplitAction(splitPaneHoriz, detailPanel));
         setState(true);
       }
@@ -1437,9 +1648,10 @@ public class Desktop implements BundleListener, FrameworkListener,
       private static final long serialVersionUID = 1L;
       {
         setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4,
-            ActionEvent.ALT_MASK));
+                                              ActionEvent.ALT_MASK));
         addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
+          public void actionPerformed(ActionEvent ev)
+          {
             toolBar.setVisible(getState());
           }
         });
@@ -1451,9 +1663,10 @@ public class Desktop implements BundleListener, FrameworkListener,
       private static final long serialVersionUID = 1L;
       {
         setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_5,
-            ActionEvent.ALT_MASK));
+                                              ActionEvent.ALT_MASK));
         addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
+          public void actionPerformed(ActionEvent ev)
+          {
             statusBar.setVisible(getState());
           }
         });
@@ -1466,10 +1679,9 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     int count = 0;
     menuMap.clear();
-    for (Iterator it = displayMap.keySet().iterator(); it.hasNext();) {
-      final ServiceReference sr = (ServiceReference) it.next();
-      final String name = (String) sr
-          .getProperty(SwingBundleDisplayer.PROP_NAME);
+    for (final ServiceReference<?> sr : displayMap.keySet()) {
+      final String name =
+        (String) sr.getProperty(SwingBundleDisplayer.PROP_NAME);
       final int c2 = count++;
 
       menu.add(new JRadioButtonMenuItem(name) {
@@ -1480,7 +1692,8 @@ public class Desktop implements BundleListener, FrameworkListener,
           setMnemonic(KeyEvent.VK_1 + c2);
           menuMap.put(sr, this);
           addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
+            public void actionPerformed(ActionEvent ev)
+            {
               bundlePanelShowTab(sr);
             }
           });
@@ -1502,7 +1715,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   JMenu edlMenu = null;
 
-  JMenu makeErrorDialogMenu() {
+  JMenu makeErrorDialogMenu()
+  {
     return new JMenu(Strings.get("menu_errordialog")) {
       private static final long serialVersionUID = 1L;
 
@@ -1512,60 +1726,73 @@ public class Desktop implements BundleListener, FrameworkListener,
 
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                System.setProperty(
-                    "org.knopflerfish.desktop.dontuseerrordialog",
-                    String.valueOf(!getState()));
+              public void actionPerformed(ActionEvent ev)
+              {
+                System
+                    .setProperty("org.knopflerfish.desktop.dontuseerrordialog",
+                                 String.valueOf(!getState()));
                 edlMenu.setEnabled(getState());
               }
             });
-            setState(!Util.getBooleanProperty(
-                "org.knopflerfish.desktop.dontuseerrordialog", false));
+            setState(!Util
+                .getBooleanProperty("org.knopflerfish.desktop.dontuseerrordialog",
+                                    false));
           }
         });
         edlMenu = new JMenu(Strings.get("menu_errordialoglevel")) {
           private static final long serialVersionUID = 1L;
 
           {
-            ButtonGroup group = new ButtonGroup();
+            final ButtonGroup group = new ButtonGroup();
 
-            AbstractButton jrbn = new JRadioButtonMenuItem(
-                Strings.get("menu_errordialoglevel_normal"));
+            final AbstractButton jrbn =
+              new JRadioButtonMenuItem(
+                                       Strings
+                                           .get("menu_errordialoglevel_normal"));
             group.add(jrbn);
             add(jrbn);
             jrbn.addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                System.setProperty(
-                    "org.knopflerfish.desktop.errordialogfriendliness",
-                    "normal");
+              public void actionPerformed(ActionEvent ev)
+              {
+                System
+                    .setProperty("org.knopflerfish.desktop.errordialogfriendliness",
+                                 "normal");
               }
             });
 
-            AbstractButton jrbm = new JRadioButtonMenuItem(
-                Strings.get("menu_errordialoglevel_more"));
+            final AbstractButton jrbm =
+              new JRadioButtonMenuItem(
+                                       Strings
+                                           .get("menu_errordialoglevel_more"));
             group.add(jrbm);
             add(jrbm);
             jrbm.addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                System.setProperty(
-                    "org.knopflerfish.desktop.errordialogfriendliness", "more");
+              public void actionPerformed(ActionEvent ev)
+              {
+                System
+                    .setProperty("org.knopflerfish.desktop.errordialogfriendliness",
+                                 "more");
               }
             });
 
-            AbstractButton jrba = new JRadioButtonMenuItem(
-                Strings.get("menu_errordialoglevel_advanced"));
+            final AbstractButton jrba =
+              new JRadioButtonMenuItem(
+                                       Strings
+                                           .get("menu_errordialoglevel_advanced"));
             group.add(jrba);
             add(jrba);
             jrba.addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
-                System.setProperty(
-                    "org.knopflerfish.desktop.errordialogfriendliness",
-                    "advanced");
+              public void actionPerformed(ActionEvent ev)
+              {
+                System
+                    .setProperty("org.knopflerfish.desktop.errordialogfriendliness",
+                                 "advanced");
               }
             });
 
-            String curr = Util.getProperty(
-                "org.knopflerfish.desktop.errordialogfriendliness", null);
+            final String curr =
+              Util.getProperty("org.knopflerfish.desktop.errordialogfriendliness",
+                               null);
             if ("more".equals(curr)) {
               group.setSelected(jrbm.getModel(), true);
             } else if ("advanced".equals(curr)) {
@@ -1574,8 +1801,9 @@ public class Desktop implements BundleListener, FrameworkListener,
               group.setSelected(jrbn.getModel(), true);
             }
 
-            setEnabled(!Util.getBooleanProperty(
-                "org.knopflerfish.desktop.dontuseerrordialog", false));
+            setEnabled(!Util
+                .getBooleanProperty("org.knopflerfish.desktop.dontuseerrordialog",
+                                    false));
 
           }
         };
@@ -1584,7 +1812,8 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  JMenu makeHelpMenu() {
+  JMenu makeHelpMenu()
+  {
     return new JMenu(Strings.get("menu_help")) {
       private static final long serialVersionUID = 1L;
 
@@ -1594,7 +1823,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 showVersion();
               }
             });
@@ -1606,7 +1836,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 showTips();
               }
             });
@@ -1620,7 +1851,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 showInfo();
               }
             });
@@ -1632,7 +1864,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
           {
             addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent ev) {
+              public void actionPerformed(ActionEvent ev)
+              {
                 checkUpdate(true);
               }
             });
@@ -1643,59 +1876,62 @@ public class Desktop implements BundleListener, FrameworkListener,
     };
   }
 
-  Map makeBundleBuckets() {
-    Map buckets;
+  Map<String, Collection<Bundle>> makeBundleBuckets()
+  {
+    Map<String, Collection<Bundle>> buckets;
 
-    Bundle[] bl = Activator.getBundles();
-    Map bundles = new HashMap();
+    final Bundle[] bl = Activator.getBundles();
+    final Map<Long, Bundle> bundles = new HashMap<Long, Bundle>();
     for (int i = 0; bl != null && i < bl.length; i++) {
-      Object key = new Long(bl[i].getBundleId());
+      final Long key = new Long(bl[i].getBundleId());
       bundles.put(key, bl[i]);
     }
 
     if (bundles.size() > 12) {
       // make alphabetical submenu grouping
       // if number of bundles is large
-      buckets = new TreeMap();
-      for (Iterator it = bundles.keySet().iterator(); it.hasNext();) {
-        Object key = it.next();
-        Bundle bundle = (Bundle) bundles.get(key);
-        String s = Util.getBundleName(bundle);
-        String f = s.length() > 0 ? s.substring(0, 1).toUpperCase() : "--";
-        Collection bucket = (Collection) buckets.get(f);
+      buckets = new TreeMap<String, Collection<Bundle>>();
+      for (final Long key : bundles.keySet()) {
+        final Bundle bundle = bundles.get(key);
+        final String s = Util.getBundleName(bundle);
+        final String f =
+          s.length() > 0 ? s.substring(0, 1).toUpperCase() : "--";
+        Collection<Bundle> bucket = buckets.get(f);
         if (bucket == null) {
-          bucket = new ArrayList();
+          bucket = new TreeSet<Bundle>(Util.bundleIdComparator);
           buckets.put(f, bucket);
         }
         bucket.add(bundle);
       }
     } else {
-      buckets = new LinkedHashMap();
-      for (Iterator it = bundles.keySet().iterator(); it.hasNext();) {
-        Object key = it.next();
-        Bundle bundle = (Bundle) bundles.get(key);
+      buckets = new LinkedHashMap<String, Collection<Bundle>>();
+      for (final Long key : bundles.keySet()) {
+        final Bundle bundle = bundles.get(key);
 
-        String f = "#" + bundle.getBundleId() + " "
-            + Util.getBundleName(bundle);
-        buckets.put(f, bundle);
+        final String f =
+          "#" + bundle.getBundleId() + " " + Util.getBundleName(bundle);
+        buckets.put(f, Collections.singleton(bundle));
       }
     }
     return buckets;
   }
 
-  JMenu makeEditMenu() {
-    JMenu menu = new JMenu(Strings.get("menu_edit"));
+  JMenu makeEditMenu()
+  {
+    final JMenu menu = new JMenu(Strings.get("menu_edit"));
     updateEditMenu(menu);
     return menu;
   }
 
-  void updateEditMenu(JMenu editMenu) {
+  void updateEditMenu(JMenu editMenu)
+  {
     editMenu.add(new JMenuItem(Strings.get("item_unselectall")) {
       private static final long serialVersionUID = 1L;
 
       {
         addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
+          public void actionPerformed(ActionEvent ev)
+          {
             bundleSelModel.clearSelection();
             contentPane.invalidate();
           }
@@ -1707,7 +1943,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
       {
         addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent ev) {
+          public void actionPerformed(ActionEvent ev)
+          {
             consoleSwing.clearConsole();
           }
         });
@@ -1716,39 +1953,46 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     editMenu.add(new JSeparator());
 
-    JMenu selectMenu = new JMenu("Select bundle");
+    final JMenu selectMenu = new JMenu("Select bundle");
     editMenu.add(selectMenu);
 
-    Map buckets = makeBundleBuckets();
+    final Map<String, Collection<Bundle>> buckets = makeBundleBuckets();
 
-    for (Iterator it = buckets.keySet().iterator(); it.hasNext();) {
-      Object key = it.next();
-      Object val = buckets.get(key);
-      if (val instanceof Collection) {
-        Collection bucket = (Collection) val;
-        JMenu subMenu = new JMenu(key.toString());
-        for (Iterator it2 = bucket.iterator(); it2.hasNext();) {
-          Bundle bundle = (Bundle) it2.next();
-          JMenuItem item = makeSelectBundleItem(bundle);
+    for (final String key : buckets.keySet()) {
+      final Collection<Bundle> bucket = buckets.get(key);
+      if (bucket.size() > 1) {
+        final JMenu subMenu = new JMenu(key.toString());
+        for (final Bundle bundle : bucket) {
+          final JMenuItem item = makeSelectBundleItem(bundle);
           subMenu.add(item);
         }
         selectMenu.add(subMenu);
-      } else if (val instanceof Bundle) {
-        Bundle bundle = (Bundle) val;
-        JMenuItem item = makeSelectBundleItem(bundle);
+      } else if (bucket.size() == 1) {
+        final Bundle bundle = bucket.iterator().next();
+        final String text = key + " - " + makeSelectBundleItemText(bundle);
+        final JMenuItem item = makeSelectBundleItem(bundle, text);
         selectMenu.add(item);
-      } else {
-        throw new RuntimeException("Unknown object=" + val);
       }
     }
   }
 
-  JMenuItem makeSelectBundleItem(final Bundle bundle) {
-    JMenuItem item = new JMenuItem(bundle.getBundleId() + " "
-        + Util.getBundleName(bundle));
+  String makeSelectBundleItemText(final Bundle bundle)
+  {
+    return Util.getBundleName(bundle) + " #" + bundle.getBundleId();
+  }
+
+  JMenuItem makeSelectBundleItem(final Bundle bundle)
+  {
+    return makeSelectBundleItem(bundle, makeSelectBundleItemText(bundle));
+  }
+
+  JMenuItem makeSelectBundleItem(final Bundle bundle, final String txt)
+  {
+    final JMenuItem item = new JMenuItem(txt);
 
     item.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent ev) {
+      public void actionPerformed(ActionEvent ev)
+      {
         bundleSelModel.clearSelection();
         bundleSelModel.setSelected(bundle.getBundleId(), true);
       }
@@ -1759,18 +2003,22 @@ public class Desktop implements BundleListener, FrameworkListener,
   /**
    * Helper command class to show/hide splitpane components
    */
-  class SplitAction implements ActionListener {
+  class SplitAction
+    implements ActionListener
+  {
     int divloc = 0;
     JSplitPane pane;
     JComponent target;
 
-    SplitAction(JSplitPane pane, JComponent target) {
+    SplitAction(JSplitPane pane, JComponent target)
+    {
       this.pane = pane;
       this.target = target;
     }
 
-    public void actionPerformed(ActionEvent ev) {
-      boolean b = target.isVisible();
+    public void actionPerformed(ActionEvent ev)
+    {
+      final boolean b = target.isVisible();
 
       if (b) {
         divloc = pane.getDividerLocation();
@@ -1785,30 +2033,36 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
   }
 
-  public void stopFramework() {
+  public void stopFramework()
+  {
     if (SwingUtilities.isEventDispatchThread()) {
       stopFramework0();
     } else {
       SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
+        public void run()
+        {
           stopFramework0();
         }
       });
     }
   }
 
-  protected void stopFramework0() {
+  protected void stopFramework0()
+  {
 
-    Object[] options = { Strings.get("yes"), Strings.get("cancel") };
+    final Object[] options = { Strings.get("yes"), Strings.get("cancel") };
 
-    int n = JOptionPane.showOptionDialog(frame, Strings.get("q_stopframework"),
-        Strings.get("msg_stopframework"), JOptionPane.YES_NO_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+    final int n =
+      JOptionPane.showOptionDialog(frame, Strings.get("q_stopframework"),
+                                   Strings.get("msg_stopframework"),
+                                   JOptionPane.YES_NO_OPTION,
+                                   JOptionPane.QUESTION_MESSAGE, null, options,
+                                   options[1]);
     if (n == 0) {
       try {
-        Bundle sysBundle = Activator.getBC().getBundle((long) 0);
+        final Bundle sysBundle = Activator.getBC().getBundle(0);
         sysBundle.stop();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         showErr("Failed to stop bundle.", e);
       }
     }
@@ -1816,20 +2070,24 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   String lastBundleLocation = "http://";
 
-  void addBundleURL() {
+  void addBundleURL()
+  {
     try {
-      lastBundleLocation = (String) JOptionPane.showInputDialog(frame,
-          Strings.get("dialog_addbundleurl_msg"),
-          Strings.get("dialog_addbundleurl_title"),
-          JOptionPane.QUESTION_MESSAGE, null, null, lastBundleLocation);
+      lastBundleLocation =
+        (String) JOptionPane
+            .showInputDialog(frame, Strings.get("dialog_addbundleurl_msg"),
+                             Strings.get("dialog_addbundleurl_title"),
+                             JOptionPane.QUESTION_MESSAGE, null, null,
+                             lastBundleLocation);
 
       if (lastBundleLocation != null && !"".equals(lastBundleLocation)) {
-        Bundle b = Activator.getTargetBC().installBundle(lastBundleLocation);
+        final Bundle b =
+          Activator.getTargetBC().installBundle(lastBundleLocation);
         if (Util.doAutostart() && Util.canBeStarted(b)) {
           startBundle(b);
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       showErr(null, e);
     }
   }
@@ -1841,12 +2099,13 @@ public class Desktop implements BundleListener, FrameworkListener,
   /**
    * Open a file dialog and ask for jar files to install as bundles.
    */
-  void addBundle() {
+  void addBundle()
+  {
     if (openFC == null) {
       openFC = new JFileChooser();
       File cwd = new File(Util.getProperty("user.dir", "."));
-      final String jarsProp = Util.getProperty("org.knopflerfish.gosg.jars",
-          null);
+      final String jarsProp =
+        Util.getProperty("org.knopflerfish.gosg.jars", null);
       if (jarsProp != null) {
         final StringTokenizer st = new StringTokenizer(jarsProp, ";");
         while (st.hasMoreTokens()) {
@@ -1864,7 +2123,7 @@ public class Desktop implements BundleListener, FrameworkListener,
       // path on MacOSX!
       openFC.setCurrentDirectory(cwd.getAbsoluteFile());
       openFC.setMultiSelectionEnabled(true);
-      FileFilterImpl filter = new FileFilterImpl();
+      final FileFilterImpl filter = new FileFilterImpl();
       filter.addExtension("jar");
       filter.setDescription("Jar files");
       openFC.setFileFilter(filter);
@@ -1872,46 +2131,48 @@ public class Desktop implements BundleListener, FrameworkListener,
       openFC.setApproveButtonText("Open");
     }
 
-    int returnVal = openFC.showOpenDialog(frame);
+    final int returnVal = openFC.showOpenDialog(frame);
 
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File[] files = openFC.getSelectedFiles();
+      final File[] files = openFC.getSelectedFiles();
 
-      for (int i = 0; i < files.length; i++) {
-        addFile(files[i]);
+      for (final File file : files) {
+        addFile(file);
       }
     }
   }
 
-  void doConnect() {
-    String[] options = new String[Activator.remoteHosts.size()];
+  void doConnect()
+  {
+    final String[] options = new String[Activator.remoteHosts.size()];
     Activator.remoteHosts.copyInto(options);
 
     // The selection comp I want in the dialog
-    JComboBox combo = new JComboBox(options);
+    final JComboBox combo = new JComboBox(options);
     combo.setEditable(true);
 
     // Mindboggling complicate way of creating an option dialog
     // without the auto-generated input field
 
-    JLabel msg = new JLabel(Strings.get("remote_connect_msg"));
-    JPanel panel = new JPanel(new BorderLayout());
+    final JLabel msg = new JLabel(Strings.get("remote_connect_msg"));
+    final JPanel panel = new JPanel(new BorderLayout());
 
     panel.add(combo, BorderLayout.SOUTH);
     panel.add(msg, BorderLayout.NORTH);
 
-    JOptionPane optionPane = new JOptionPane(panel,
-        JOptionPane.QUESTION_MESSAGE);
+    final JOptionPane optionPane =
+      new JOptionPane(panel, JOptionPane.QUESTION_MESSAGE);
     optionPane.setIcon(connectIconLarge);
     optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
     optionPane.setWantsInput(false);
     optionPane.setOptions(new String[] { Strings.get("ok"),
-        Strings.get("cancel"), Strings.get("local"), });
+                                        Strings.get("cancel"),
+                                        Strings.get("local"), });
 
     optionPane.selectInitialValue();
 
-    JDialog dialog = optionPane.createDialog(frame,
-        Strings.get("remote_connect_title"));
+    final JDialog dialog =
+      optionPane.createDialog(frame, Strings.get("remote_connect_title"));
     dialog.setVisible(true);
     dialog.dispose();
 
@@ -1920,7 +2181,7 @@ public class Desktop implements BundleListener, FrameworkListener,
       return;
     }
 
-    String value = (String) optionPane.getValue();
+    final String value = (String) optionPane.getValue();
 
     if (Strings.get("cancel").equals(value)) {
       return;
@@ -1943,12 +2204,13 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   JFileChooser saveFC = null;
 
-  void save() {
+  void save()
+  {
     if (saveFC == null) {
       saveFC = new JFileChooser();
       saveFC.setCurrentDirectory(new File("."));
       saveFC.setMultiSelectionEnabled(false);
-      FileFilterImpl filter = new FileFilterImpl();
+      final FileFilterImpl filter = new FileFilterImpl();
       filter.addExtension("jar");
       filter.addExtension("zip");
       filter.setDescription("Deploy archives");
@@ -1957,9 +2219,9 @@ public class Desktop implements BundleListener, FrameworkListener,
       saveFC.setApproveButtonText("Save");
     }
 
-    Bundle[] targets = getSelectedBundles();
+    final Bundle[] targets = getSelectedBundles();
 
-    StringBuffer title = new StringBuffer();
+    final StringBuffer title = new StringBuffer();
     title.append("Save deploy archive of: ");
 
     for (int i = 0; i < targets.length; i++) {
@@ -1970,17 +2232,21 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
     saveFC.setDialogTitle(title.toString());
 
-    int returnVal = saveFC.showSaveDialog(frame);
+    final int returnVal = saveFC.showSaveDialog(frame);
 
     if (returnVal == JFileChooser.APPROVE_OPTION) {
-      File file = saveFC.getSelectedFile();
+      final File file = saveFC.getSelectedFile();
 
       doSave(file, targets);
     }
   }
 
-  void doSave(File file, Bundle[] targets) {
-    byte[] buf = new byte[1024 * 5];
+  private final static String STRINGS_PROPERTIES = "strings.properties";
+  private final static String JARUNPACKER_JAR = "jarunpacker.jar";
+
+  void doSave(File file, Bundle[] targets)
+  {
+    final byte[] buf = new byte[1024 * 5];
 
     if (file.getName().endsWith(".jar") || file.getName().endsWith(".zip")) {
       // OK
@@ -1989,80 +2255,74 @@ public class Desktop implements BundleListener, FrameworkListener,
     }
 
     if (file.exists()) {
-      Object[] options = { Strings.get("yes"), Strings.get("cancel") };
+      final Object[] options = { Strings.get("yes"), Strings.get("cancel") };
 
-      int n = JOptionPane.showOptionDialog(frame, file.getAbsolutePath() + "\n"
-          + "already exist.\n\n" + "Overwrite file?", "File exists",
-          JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null,
-          options, options[1]);
+      final int n =
+        JOptionPane.showOptionDialog(frame, file.getAbsolutePath() + "\n"
+                                            + "already exist.\n\n"
+                                            + "Overwrite file?", "File exists",
+                                     JOptionPane.YES_NO_OPTION,
+                                     JOptionPane.QUESTION_MESSAGE, null,
+                                     options, options[1]);
       if (n == 1) {
         return;
       }
     }
 
     String base = file.getName();
-    int ix = base.lastIndexOf(".");
+    final int ix = base.lastIndexOf(".");
     if (ix != -1) {
       base = base.substring(0, ix);
     }
 
-    final PackageAdmin pkgAdmin = (PackageAdmin) pkgTracker.getService();
-    if (pkgAdmin == null) {
-      Activator.log.error("No pkg admin available for save");
-      return;
+    final TreeSet<Bundle> closure =
+      new TreeSet<Bundle>(Util.bundleIdComparator);
+
+    for (final Bundle target : targets) {
+      closure.addAll(Util.getClosure(target, null));
     }
 
-    Set pkgClosure = new TreeSet(Util.bundleIdComparator);
+    final Set<Bundle> all = new TreeSet<Bundle>(Util.bundleIdComparator);
+    all.addAll(closure);
 
-    for (int i = 0; i < targets.length; i++) {
-      pkgClosure.addAll(Util.getPackageClosure(pm, targets[i], null));
+    for (final Bundle target : targets) {
+      all.add(target);
     }
-
-    Set serviceClosure = new TreeSet(Util.bundleIdComparator);
-
-    for (int i = 0; i < targets.length; i++) {
-      serviceClosure.addAll(Util.getServiceClosure(targets[i], null));
-    }
-
-    Set all = new TreeSet(Util.bundleIdComparator);
-    all.addAll(pkgClosure);
-    all.addAll(serviceClosure);
-
-    for (int i = 0; i < targets.length; i++) {
-      all.add(targets[i]);
-    }
-
-    // remove system bundle.
-    all.remove(Activator.getTargetBC().getBundle(0));
 
     ZipOutputStream out = null;
 
-    StartLevel sl = (StartLevel) slTracker.getService();
-
-    File jarunpackerFile = new File(
-        "../tools/jarunpacker/out/jarunpacker/jarunpacker.jar");
+    final File jarunpackerFile =
+      new File("../tools/jarunpacker/out/jarunpacker/" + JARUNPACKER_JAR);
 
     URL jarunpackerURL = null;
-
     try {
-      jarunpackerURL = getClass().getResource("/jarunpacker.jar");
-    } catch (Exception ignored) {
+      jarunpackerURL = getClass().getResource("/" + JARUNPACKER_JAR);
+    } catch (final Exception ignored) {
     }
 
     InputStream jarunpacker_in = null;
-
     try {
+      // Remove system bundle and check if we have uninstalled bundles.
+      for (final Iterator<Bundle> i = all.iterator(); i.hasNext();) {
+        final Bundle target = i.next();
+        if (target.getBundleId() == 0) {
+          i.remove();
+        } else if (target.getState() == Bundle.UNINSTALLED) {
+          throw new IllegalStateException("Can not save when closure contains UNINSTALLED bundles");
+        }
+      }
+
       if (file.getName().endsWith(".jar")) {
 
-        if (jarunpackerURL != null) {
-          jarunpacker_in = jarunpackerURL.openStream();
-        } else if (jarunpackerFile.exists()) {
+        if (jarunpackerFile.canRead()) {
           jarunpacker_in = new FileInputStream(jarunpackerFile);
+        } else if (jarunpackerURL != null) {
+          jarunpacker_in = jarunpackerURL.openStream();
         }
 
         if (jarunpacker_in != null) {
           // Construct a string version of a manifest
-          StringBuffer sb = new StringBuffer();
+          final StringBuffer sb = new StringBuffer();
           sb.append("Manifest-Version: 1.0\n");
           sb.append("Main-class: org.knopflerfish.tools.jarunpacker.Main\n");
           sb.append("jarunpacker-optbutton: base\n");
@@ -2071,9 +2331,9 @@ public class Desktop implements BundleListener, FrameworkListener,
           sb.append("jarunpacker-opendir: " + base + "\n");
 
           // Convert the string to a input stream
-          InputStream is = new ByteArrayInputStream(sb.toString().getBytes(
-              "UTF-8"));
-          Manifest mf = new Manifest(is);
+          final InputStream is =
+            new ByteArrayInputStream(sb.toString().getBytes("UTF-8"));
+          final Manifest mf = new Manifest(is);
 
           out = new JarOutputStream(new FileOutputStream(file), mf);
         } else {
@@ -2083,31 +2343,28 @@ public class Desktop implements BundleListener, FrameworkListener,
         out = new ZipOutputStream(new FileOutputStream(file));
       }
 
-      StringBuffer xargs = new StringBuffer();
+      final StringBuffer xargs = new StringBuffer();
+      xargs.append("-Forg.osgi.provisioning.spid=");
+      xargs.append(base);
+      xargs.append("\n");
 
       int levelMax = -1;
 
       int bid = 0;
       int lastLevel = -1;
-      for (Iterator it = all.iterator(); it.hasNext();) {
-        Bundle b = (Bundle) it.next();
-        String loc = b.getLocation();
+      for (final Bundle b : all) {
+        final String loc = b.getLocation();
 
         bid++;
 
-        URL srcURL = new URL(loc);
-
-        String name = Util.shortLocation(loc);
-
-        ZipEntry entry = new ZipEntry(base + "/" + name);
-
+        final URL srcURL = new URL(loc);
+        final String name = Util.shortLocation(loc);
+        final ZipEntry entry = new ZipEntry(base + "/" + name);
         int level = -1;
-
-        try {
-          level = sl.getBundleStartLevel(b);
-        } catch (Exception ignored) {
+        final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
+        if (null != bsl) {
+          level = bsl.getStartLevel();
         }
-
         levelMax = Math.max(level, levelMax);
 
         if (level != -1 && level != lastLevel) {
@@ -2118,7 +2375,6 @@ public class Desktop implements BundleListener, FrameworkListener,
         xargs.append("-install file:" + name + "\n");
 
         out.putNextEntry(entry);
-
         InputStream in = null;
         try {
           in = srcURL.openStream();
@@ -2129,14 +2385,13 @@ public class Desktop implements BundleListener, FrameworkListener,
         } finally {
           try {
             in.close();
-          } catch (Exception ignored) {
+          } catch (final Exception ignored) {
           }
         }
       }
 
       bid = 0;
-      for (Iterator it = all.iterator(); it.hasNext();) {
-        Bundle b = (Bundle) it.next();
+      for (final Bundle b : all) {
         bid++;
 
         if (b.getState() == Bundle.ACTIVE) {
@@ -2157,7 +2412,7 @@ public class Desktop implements BundleListener, FrameworkListener,
 
       InputStream in = null;
 
-      File fwFile = new File("framework.jar");
+      final File fwFile = new File("framework.jar");
       if (fwFile.exists()) {
         try {
           in = new FileInputStream(fwFile);
@@ -2168,7 +2423,7 @@ public class Desktop implements BundleListener, FrameworkListener,
         } finally {
           try {
             in.close();
-          } catch (Exception ignored) {
+          } catch (final Exception ignored) {
           }
         }
       } else {
@@ -2191,10 +2446,8 @@ public class Desktop implements BundleListener, FrameworkListener,
               continue;
             }
 
-            ZipEntry destEntry = new ZipEntry(srcEntry.getName());
-
+            final ZipEntry destEntry = new ZipEntry(srcEntry.getName());
             out.putNextEntry(destEntry);
-
             int n = 0;
             while (-1 != (n = jar_in.read(buf, 0, buf.length))) {
               out.write(buf, 0, n);
@@ -2203,35 +2456,84 @@ public class Desktop implements BundleListener, FrameworkListener,
         } finally {
           try {
             jar_in.close();
-          } catch (Exception ignored) {
+          } catch (final Exception ignored) {
           }
         }
+
+        // Write resource bundle for the jar unpacker, strings.properties
+        final File stringsFile =
+          new File("../tools/jarunpacker/" + STRINGS_PROPERTIES);
+        URL stringsURL = null;
+        try {
+          stringsURL = getClass().getResource("/" + STRINGS_PROPERTIES);
+        } catch (final Exception ignored) {
+        }
+
+        InputStream strings_in = null;
+        try {
+          if (stringsFile.canRead()) {
+            strings_in = new FileInputStream(stringsFile);
+          } else if (stringsURL != null) {
+            strings_in = stringsURL.openStream();
+          }
+
+          if (strings_in != null) {
+            final Properties strings = new Properties();
+            strings.load(strings_in);
+            strings.setProperty("frame_title", base + " installation");
+            strings.setProperty("page_license_title", "License");
+            strings.setProperty("page_finish_title", "Installing " + base);
+            strings
+                .setProperty("fmt_install_info",
+                             "The framework can be started by running "
+                                 + "<tt>java -jar framework.jar</tt> in the "
+                                 + "installtion directory.");
+            strings.setProperty("comp_size", "");
+
+            entry = new ZipEntry(STRINGS_PROPERTIES);
+            out.putNextEntry(entry);
+            strings.store(out, "jarunpacker strings for " + base);
+          }
+        } finally {
+          if (strings_in != null) {
+            strings_in.close();
+          }
+        }
+        // end of strings.properties
       } else {
         Activator.log.warn("No jarunpacker available");
       }
       // end of jarunpacker copy
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       showErr("Failed to write to " + file, e);
       Activator.log.error("Failed to write to " + file, e);
+      return;
     } finally {
       try {
         out.close();
-      } catch (Exception ignored) {
+      } catch (final Exception ignored) {
       }
     }
 
-    String txt = "Saved deploy archive as\n\n" + "  " + file.getAbsolutePath()
-        + "\n\n" + "To run, unpack the archive and run with\n\n"
-        + "  java -jar framwork.jar\n";
+    String canonicalPath = file.getAbsolutePath();
+    try {
+      canonicalPath = file.getCanonicalPath();
+    } catch (final IOException ioe) {
+    }
+    final String txt =
+      "Saved deploy archive as\n\n" + "  " + canonicalPath + "\n\n"
+          + "To unpack the archive double-click on it or run with\n\n"
+          + "  java -jar " + file.getName() + "\n\n";
 
     JOptionPane.showMessageDialog(frame, txt, "Saved deploy archive",
-        JOptionPane.INFORMATION_MESSAGE, null);
+                                  JOptionPane.INFORMATION_MESSAGE, null);
   }
 
-  public Bundle[] getSelectedBundles() {
-    int cnt = null != bundleCache ? bundleCache.length : 0;
-    final ArrayList res = new ArrayList(cnt);
+  public Bundle[] getSelectedBundles()
+  {
+    final int cnt = null != bundleCache ? bundleCache.length : 0;
+    final ArrayList<Bundle> res = new ArrayList<Bundle>(cnt);
 
     for (int i = 0; i < cnt; i++) {
       final Bundle b = bundleCache[i];
@@ -2239,197 +2541,378 @@ public class Desktop implements BundleListener, FrameworkListener,
         res.add(b);
       }
     }
-    return (Bundle[]) res.toArray(new Bundle[res.size()]);
+    return res.toArray(new Bundle[res.size()]);
   }
 
-  void startBundle(final Bundle b) {
+  public synchronized PackageManager getPackageManager()
+  {
+    if (pm == null) {
+      pm = new PackageManager();
+    }
+    return pm;
+  }
+
+  /**
+   * Determine if the given bundle can and needs to be started.
+   *
+   * <ol>
+   * <li>A fragment bundle must never be started.
+   * <li>If no start-level support is present in the framework then any bundle
+   * in state installed, resolved or starting can be started.
+   * <li>A bundle that is not persistently started can be started.
+   * <li>A bundle that is persistently started and in any of the states
+   * installed, resolved, starting and assigned to a start level that is lower
+   * or equal to the current start level can be started.
+   * </ol>
+   *
+   * @param bundle
+   *          the bundle to check.
+   * @return {@code true} if the bundle needs to be started.
+   */
+  boolean startBundlePossible(final Bundle bundle)
+  {
+    final BundleRevision bRevCur = bundle.adapt(BundleRevision.class);
+    final boolean isFragment =
+      bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
+
+    if (isFragment) {
+      return false;
+    }
+
+    final int state = bundle.getState();
+    final boolean startable =
+      (state & (Bundle.INSTALLED | Bundle.RESOLVED | Bundle.STARTING)) != 0;
+
+    final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
+    if (bsl == null) {
+      return startable;
+    }
+
+    if (!bsl.isPersistentlyStarted()) {
+      return true;
+    }
+
+    return startable && bsl.getStartLevel() <= getCurrentStartLevel();
+  }
+
+  void startBundle(final Bundle b)
+  {
+    // Fragments can not be started
+    final BundleRevision br = b.adapt(BundleRevision.class);
+    if ((br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0) {
+      return;
+    }
+
     // Must not call start() from the EDT, since that will block the
-    // EDT untill the start()-call completes.
+    // EDT until the start()-call completes.
     new Thread("Desktop-StartBundle " + b.getBundleId()) {
-      public void run() {
+      @Override
+      public void run()
+      {
         try {
           b.start(getStartOptions());
-        } catch (Exception e) {
+          updateBundleViewSelections();
+        } catch (final Exception e) {
           showErr("Failed to start bundle " + Util.getBundleName(b) + ": " + e,
-              e);
+                  e);
         }
       }
     }.start();
   }
 
-  void stopBundles(Bundle[] bl) {
+  void stopBundles(Bundle[] bl)
+  {
     for (int i = 0; bl != null && i < bl.length; i++) {
-      Bundle b = bl[i];
+      final Bundle b = bl[i];
       stopBundle(b);
     }
   }
 
-  void startBundles(Bundle[] bl) {
+  void startBundles(Bundle[] bl)
+  {
     for (int i = 0; bl != null && i < bl.length; i++) {
-      Bundle b = bl[i];
+      final Bundle b = bl[i];
       startBundle(b);
     }
   }
 
-  void updateBundles(Bundle[] bl) {
+  void updateBundles(Bundle[] bl)
+  {
     for (int i = 0; bl != null && i < bl.length; i++) {
-      Bundle b = bl[i];
+      final Bundle b = bl[i];
       updateBundle(b);
     }
   }
 
-  void uninstallBundles(Bundle[] bl) {
+  void uninstallBundles(Bundle[] bl)
+  {
     for (int i = 0; bl != null && i < bl.length; i++) {
-      Bundle b = bl[i];
+      final Bundle b = bl[i];
       uninstallBundle(b, true);
     }
   }
 
-  void stopBundle(final Bundle b) {
+  /**
+   * Determine if the given bundle can and needs to be stopped.
+   *
+   * <ol>
+   * <li>A fragment bundle must never be stopped.
+   * <li>If no start-level support is present in the framework then any bundle
+   * in state starting, active can be stopped.
+   * <li>A bundle that is persistently started can be stopped.
+   * </ol>
+   *
+   * @param bundle
+   *          the bundle to check.
+   * @return {@code true} if the bundle needs to be stopped.
+   */
+  boolean stopBundlePossible(final Bundle bundle)
+  {
+    final BundleRevision bRevCur = bundle.adapt(BundleRevision.class);
+    final boolean isFragment =
+      bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
+
+    if (isFragment) {
+      return false;
+    }
+
+    final int state = bundle.getState();
+    final boolean stoppable =
+      (state & (Bundle.STARTING | Bundle.ACTIVE)) != 0;
+
+    final BundleStartLevel bsl = bundle.adapt(BundleStartLevel.class);
+    if (bsl == null) {
+      return stoppable;
+    }
+
+    if (bsl.isPersistentlyStarted()) {
+      return true;
+    }
+
+    return stoppable && bsl.getStartLevel() > getCurrentStartLevel();
+  }
+
+  void stopBundle(final Bundle b)
+  {
+    // Fragments can not be stopped
+    final BundleRevision br = b.adapt(BundleRevision.class);
+    if ((br.getTypes() & BundleRevision.TYPE_FRAGMENT) != 0) {
+      return;
+    }
+
     // Special handling needed when stopping the desktop itself.
-    final boolean stoppingSelf = b.getBundleId() == 0
-        || b.getBundleId() == Activator.getTargetBC().getBundle().getBundleId();
+    final boolean stoppingSelf =
+      b.getBundleId() == 0
+          || b.getBundleId() == Activator.getTargetBC().getBundle()
+              .getBundleId();
 
     int n = 0;
     if (stoppingSelf) {
       final Object[] options = { Strings.get("yes"), Strings.get("no") };
-      n = JOptionPane.showOptionDialog(frame,
-          Strings.fmt("fmt_q_stopdesktop", Util.getBundleName(b)),
-          Strings.get("yes"), JOptionPane.YES_NO_OPTION,
-          JOptionPane.QUESTION_MESSAGE, null, options, options[1]);
+      n =
+        JOptionPane.showOptionDialog(frame,
+                                     Strings.fmt("fmt_q_stopdesktop",
+                                                 Util.getBundleName(b)),
+                                     Strings.get("yes"),
+                                     JOptionPane.YES_NO_OPTION,
+                                     JOptionPane.QUESTION_MESSAGE, null,
+                                     options, options[1]);
     }
 
     if (n == 0) {
       // Must not call stop() from the EDT, since that will block the
       // EDT untill the stop()-call completes.
       new Thread("Desktop-StopBundle " + b.getBundleId()) {
-        public void run() {
+        @Override
+        public void run()
+        {
           try {
             b.stop(getStopOptions());
-          } catch (Exception e) {
-            showErr(
-                "Failed to stop bundle " + Util.getBundleName(b) + ": " + e, e);
+            updateBundleViewSelections();
+          } catch (final Exception e) {
+            showErr("Failed to stop bundle " + Util.getBundleName(b) + ": " + e,
+                    e);
           }
         }
       }.start();
     }
   }
 
-  void refreshBundle(final Bundle[] b) {
-    final ServiceReference sr = Activator
-        .getTargetBC_getServiceReference(PackageAdmin.class.getName());
 
-    if (sr != null) {
-      final PackageAdmin packageAdmin = (PackageAdmin) Activator
-          .getTargetBC_getService(sr);
+  /**
+   * Determine if the given bundle needs to be refreshed.
+   *
+   * <ol>
+   * <li>A bundle with no bundle revisions does not need a refreshed. The bundle
+   * has been uninstalled and does not have any active wires since there are no
+   * bundle revisions.
+   * <li>A bundle with more than one bundle revision needs to be refreshed.
+   * <li>A fragment bundle can always be refreshed, since the refresh operation
+   * will attach it to any matching host that it has not yet been attached to.
+   * </ol>
+   *
+   * @param bundle
+   *          the bundle to check.
+   * @return {@code true} if the bundle needs to be refreshed.
+   */
+  boolean refreshBundleNeeded(final Bundle bundle)
+  {
+    final List<BundleRevision> bRevs =
+      bundle.adapt(BundleRevisions.class).getRevisions();
 
-      if (packageAdmin != null) {
-        final boolean refreshAll = b == null || 0 == b.length;
-        // Must not call refreshPackages() from the EDT, since that
-        // will may the EDT.
+    if (bRevs.isEmpty()) {
+      // Uninstalled bundle with no active bundle revision.
+      return false;
+    }
 
-        final StringBuffer sb = new StringBuffer("Desktop-RefreshPackages ");
-        if (refreshAll) {
-          sb.append("all packages pending removal");
-        } else {
-          sb.append("bundle packages for ");
-          for (int i = 0; i < b.length; i++) {
-            if (i > 0) {
-              sb.append(", ");
-            }
-            sb.append(b[i].getBundleId());
+    final BundleRevision bRevCur = bRevs.get(0);
+    final boolean isFragment =
+      bRevCur.getTypes() == BundleRevision.TYPE_FRAGMENT;
+
+    if (isFragment) {
+      // A fragment may attach to new hosts as the result of a refresh.
+      return true;
+    }
+
+    // Are there any old bundle revisions pending deletion?
+    return bRevs.size() > 1;
+  }
+
+  void refreshBundles(final Bundle[] b)
+  {
+    final Bundle systemBundle = Activator.getTargetBC().getBundle(0);
+    final FrameworkWiring fw = systemBundle.adapt(FrameworkWiring.class);
+
+    if (fw != null) {
+      final ArrayList<Bundle> bundles = new ArrayList<Bundle>();
+      final boolean refreshAll = b == null || 0 == b.length;
+      final StringBuffer sb = new StringBuffer("Desktop-RefreshPackages ");
+      if (refreshAll) {
+        sb.append("all packages pending removal");
+      } else {
+        sb.append("bundle packages for ");
+        for (int i = 0; i < b.length; i++) {
+          if (i > 0) {
+            sb.append(", ");
           }
+          sb.append(b[i].getBundleId());
+          bundles.add(b[i]);
         }
+      }
 
-        new Thread(sb.toString()) {
-          public void run() {
-            try {
-              packageAdmin.refreshPackages(refreshAll ? null : b);
-            } catch (Exception e) {
-              showErr(sb.toString() + " failed to refresh bundles: " + e, e);
-            } finally {
-              Activator.getTargetBC().ungetService(sr);
-            }
-          }
-        }.start();
+      final FrameworkListener refreshListener = new FrameworkListener() {
 
+        public void frameworkEvent(FrameworkEvent event)
+        {
+          Activator.log.info(sb.toString() + " DONE.");
+        }
+      };
+
+      try {
+        fw.refreshBundles(bundles, refreshListener);
+      } catch (final Exception e) {
+        showErr(sb.toString() + " failed to refresh bundles: " + e, e);
       }
     }
   }
 
-  void resolveBundles(final Bundle[] b) {
-    final ServiceReference sr = Activator.getTargetBC().getServiceReference(
-        PackageAdmin.class.getName());
+  /**
+   * Determine if the given bundle can and needs to be resolved.
+   *
+   * <ol>
+   * <li>A bundle in state installed can be resolved.
+   * </ol>
+   *
+   * @param bundle
+   *          the bundle to check.
+   * @return {@code true} if the bundle needs to be resolved.
+   */
+  boolean resolveBundlePossible(final Bundle bundle)
+  {
+    final int state = bundle.getState();
+    return (state & Bundle.INSTALLED) != 0;
+  }
 
-    if (sr != null) {
-      final PackageAdmin packageAdmin = (PackageAdmin) Activator.getTargetBC()
-          .getService(sr);
+  void resolveBundles(final Bundle[] b)
+  {
+    final Bundle systemBundle = Activator.getTargetBC().getBundle(0);
+    final FrameworkWiring fw = systemBundle.adapt(FrameworkWiring.class);
 
-      if (packageAdmin != null) {
-        final boolean resolveAll = b == null || 0 == b.length;
-        // Must not call resolve() from the EDT, since that will block
-        // the EDT.
+    if (fw != null) {
+      final ArrayList<Bundle> bundles = new ArrayList<Bundle>();
+      final boolean resolveAll = b == null || 0 == b.length;
+      // Must not call resolve() from the EDT, since that will block
+      // the EDT.
 
-        final StringBuffer sb = new StringBuffer("Desktop-ResolveBundles: ");
-        if (resolveAll) {
-          sb.append("all bundles needing to be resolved ");
-        } else {
-          sb.append("selected bundle(s) ");
-          for (int i = 0; i < b.length; i++) {
-            if (i > 0) {
-              sb.append(", ");
+      final StringBuffer sb = new StringBuffer("Desktop-ResolveBundles: ");
+      if (resolveAll) {
+        sb.append("all bundles needing to be resolved ");
+      } else {
+        sb.append("selected bundle(s) ");
+        for (int i = 0; i < b.length; i++) {
+          if (i > 0) {
+            sb.append(", ");
+          }
+          sb.append(b[i].getBundleId());
+          bundles.add(b[i]);
+        }
+      }
+
+      new Thread(sb.toString()) {
+        @Override
+        public void run()
+        {
+          try {
+            if (!fw.resolveBundles(bundles)) {
+              showErr(sb.toString() + "; could not resolve all of them.", null);
             }
-            sb.append(b[i].getBundleId());
+          } catch (final Exception e) {
+            showErr(sb.toString() + " failed to resolve bundles: " + e, e);
           }
         }
+      }.start();
 
-        new Thread(sb.toString()) {
-          public void run() {
-            try {
-              if (!packageAdmin.resolveBundles(resolveAll ? null : b)) {
-                showErr(sb.toString() + "; could not resolve all of them.",
-                    null);
-              }
-            } catch (Exception e) {
-              showErr(sb.toString() + " failed to resolve bundles: " + e, e);
-            } finally {
-              Activator.getTargetBC().ungetService(sr);
-            }
-          }
-        }.start();
-
-      }
     }
   }
 
-  void updateBundle(final Bundle b) {
+  void updateBundle(final Bundle b)
+  {
     new Thread("Desktop-UpdateBundle " + b.getBundleId()) {
-      public void run() {
+      @Override
+      public void run()
+      {
         try {
           b.update();
-        } catch (Exception e) {
-          showErr(
-              "Failed to update bundle " + Util.getBundleName(b) + ": " + e, e);
+        } catch (final Exception e) {
+          showErr("Failed to update bundle " + Util.getBundleName(b) + ": " + e,
+                  e);
         }
       }
     }.start();
   }
 
-  boolean uninstallBundle(final Bundle b, boolean bAsk) {
-    Object[] options = { Strings.get("yes"), Strings.get("no") };
-    int n = bAsk ? JOptionPane.showOptionDialog(frame,
-        Strings.fmt("q_uninstallbundle", Util.getBundleName(b)),
-        Strings.get("msg_uninstallbundle"), JOptionPane.YES_NO_OPTION,
-        JOptionPane.QUESTION_MESSAGE, null, options, options[1]) : 0;
+  boolean uninstallBundle(final Bundle b, boolean bAsk)
+  {
+    final Object[] options = { Strings.get("yes"), Strings.get("no") };
+    final int n =
+      bAsk ? JOptionPane.showOptionDialog(frame,
+                                          Strings.fmt("q_uninstallbundle",
+                                                      Util.getBundleName(b)),
+                                          Strings.get("msg_uninstallbundle"),
+                                          JOptionPane.YES_NO_OPTION,
+                                          JOptionPane.QUESTION_MESSAGE, null,
+                                          options, options[1]) : 0;
 
     if (n == 0) {
       // Must not call uninstall() from the EDT, since that will block
-      // the EDT untill the uninstall()-call completes.
+      // the EDT until the uninstall()-call completes.
       new Thread("Desktop-UninstallBundle " + b.getBundleId()) {
-        public void run() {
+        @Override
+        public void run()
+        {
           try {
             b.uninstall();
-          } catch (Exception e) {
+          } catch (final Exception e) {
             showErr("failed to uninstall bundle " + Util.getBundleName(b), e);
           }
         }
@@ -2438,16 +2921,17 @@ public class Desktop implements BundleListener, FrameworkListener,
     return false;
   }
 
-  void showErr(String msg, Exception e) {
+  void showErr(String msg, Exception e)
+  {
     Throwable t = e;
     if (null != t) {
       while (t instanceof BundleException
-          && ((BundleException) t).getNestedException() != null) {
+             && ((BundleException) t).getNestedException() != null) {
         t = ((BundleException) t).getNestedException();
       }
     }
     if (Util.getBooleanProperty("org.knopflerfish.desktop.dontuseerrordialog",
-        false)) {
+                                false)) {
       if (msg != null && !"".equals(msg)) {
         System.out.println(msg);
       }
@@ -2460,67 +2944,74 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   // DropTargetListener
-  public void drop(DropTargetDropEvent e) {
+  public void drop(DropTargetDropEvent e)
+  {
 
     // This code is f***ing unbelievable.
     // How is anyone supposed to create it from scratch?
     try {
-      Transferable tr = e.getTransferable();
+      final Transferable tr = e.getTransferable();
 
       if (e.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
         e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-        java.util.List files = (java.util.List) tr
-            .getTransferData(DataFlavor.javaFileListFlavor);
-        for (Iterator it = files.iterator(); it.hasNext();) {
-          File file = (File) it.next();
+        final java.util.List<?> files =
+          (java.util.List<?>) tr.getTransferData(DataFlavor.javaFileListFlavor);
+        for (final Object name : files) {
+          final File file = (File) name;
           addFile(file);
         }
         e.dropComplete(true);
       } else if (e.isDataFlavorSupported(DataFlavor.stringFlavor)) {
         e.acceptDrop(DnDConstants.ACTION_COPY_OR_MOVE);
-        String filename = (String) tr.getTransferData(DataFlavor.stringFlavor);
+        final String filename =
+          (String) tr.getTransferData(DataFlavor.stringFlavor);
 
         addFile(new File(filename));
         e.dropComplete(true);
       } else {
         // Reject drop
       }
-    } catch (IOException ioe) {
+    } catch (final IOException ioe) {
       showErr(null, ioe);
-    } catch (UnsupportedFlavorException ufe) {
+    } catch (final UnsupportedFlavorException ufe) {
       showErr("Unsupported data type", ufe);
     }
   }
 
   // DropTargetListener
-  public void dragEnter(DropTargetDragEvent e) {
+  public void dragEnter(DropTargetDragEvent e)
+  {
     // System.out.println("dragEnter " + e);
   }
 
   // DropTargetListener
-  public void dragExit(DropTargetEvent e) {
+  public void dragExit(DropTargetEvent e)
+  {
     // System.out.println("dragExit " + e);
   }
 
   // DropTargetListener
-  public void dragOver(DropTargetDragEvent e) {
+  public void dragOver(DropTargetDragEvent e)
+  {
     // System.out.println("dragOver " + e);
   }
 
   // DropTargetListener
-  public void dropActionChanged(DropTargetDragEvent e) {
+  public void dropActionChanged(DropTargetDragEvent e)
+  {
     // System.out.println("dropActionChanged " + e);
   }
 
-  void addFile(File file) {
+  void addFile(File file)
+  {
     try {
-      String location = "file:" + file.getAbsolutePath();
-      Bundle b = Activator.getTargetBC().installBundle(location);
+      final String location = "file:" + file.getAbsolutePath();
+      final Bundle b = Activator.getTargetBC().installBundle(location);
 
       if (Util.doAutostart() && Util.canBeStarted(b)) {
         startBundle(b);
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (file.getName().toUpperCase().endsWith(".JAR")) {
         showErr("Failed to open bundle.", e);
       } else {
@@ -2530,17 +3021,18 @@ public class Desktop implements BundleListener, FrameworkListener,
   }
 
   // try to show a bundle in displayers
-  public void showBundle(Bundle b) {
-    Object[] disps = dispTracker.getServices();
+  public void showBundle(Bundle b)
+  {
+    final Object[] disps = dispTracker.getServices();
     for (int i = 0; disps != null && i < disps.length; i++) {
-      SwingBundleDisplayer disp = (SwingBundleDisplayer) disps[i];
+      final SwingBundleDisplayer disp = (SwingBundleDisplayer) disps[i];
       disp.showBundle(b);
     }
   }
 
-  public void stop() {
-    for (Iterator it = sizesavers.iterator(); it.hasNext();) {
-      SizeSaver ss = (SizeSaver) it.next();
+  public void stop()
+  {
+    for (final SizeSaver ss : sizesavers) {
       ss.detach();
     }
     sizesavers.clear();
@@ -2552,25 +3044,15 @@ public class Desktop implements BundleListener, FrameworkListener,
 
     alive = false;
 
-    if (null != slTracker) {
-      slTracker.close();
-      slTracker = null;
-    }
-
     if (null != dispTracker) {
       dispTracker.close();
       dispTracker = null;
     }
 
-    if (null != pkgTracker) {
-      pkgTracker.close();
-      pkgTracker = null;
-    }
-
     // Make sure floating windows are closed
     if (null != detailPanel) {
       for (int i = 0; i < detailPanel.getTabCount(); i++) {
-        Component comp = detailPanel.getComponentAt(i);
+        final Component comp = detailPanel.getComponentAt(i);
         if (comp instanceof JFloatable) {
           ((JFloatable) comp).setAutoClose(true);
         }
@@ -2593,8 +3075,8 @@ public class Desktop implements BundleListener, FrameworkListener,
     // If running on Mac OS, remove eawt Application handlers.
     if (bMacOS) {
       try {
-        OSXAdapter.clearApplicationListeners();
-      } catch (Exception e) {
+        OSXAdapter.clearApplicationHandlers();
+      } catch (final Exception e) {
         Activator.log.warn("Error while using the OSXAdapter", e);
         bMacOS = false;
       }
@@ -2602,7 +3084,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   }
 
-  public void valueChanged(long bid) {
+  public void valueChanged(long bid)
+  {
     if (!alive) {
       return;
     }
@@ -2610,7 +3093,8 @@ public class Desktop implements BundleListener, FrameworkListener,
     updateBundleViewSelections();
   }
 
-  public void frameworkEvent(FrameworkEvent ev) {
+  public void frameworkEvent(FrameworkEvent ev)
+  {
     if (!alive) {
       return;
     }
@@ -2623,7 +3107,8 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   volatile Bundle[] bundleCache;
 
-  public void bundleChanged(final BundleEvent ev) {
+  public void bundleChanged(final BundleEvent ev)
+  {
     if (!alive) {
       return;
     }
@@ -2634,13 +3119,18 @@ public class Desktop implements BundleListener, FrameworkListener,
     // framework all work must be done on a separate thread to avoid
     // dead-locks.
     final Bundle bundle = null != ev ? ev.getBundle() : null;
-    final String threadName = "Desktop.bundleChanged("
-        + (null == ev ? ""
-            : (Util.bundleEventName(ev.getType()) + ", " + (null == bundle ? "*"
-                : String.valueOf(bundle.getBundleId())))) + ")";
+    final String threadName =
+      "Desktop.bundleChanged("
+          + (null == ev
+            ? ""
+            : (Util.bundleEventName(ev.getType()) + ", " + (null == bundle
+              ? "*"
+              : String.valueOf(bundle.getBundleId())))) + ")";
 
     final Thread bct = new Thread(threadName) {
-      public void run() {
+      @Override
+      public void run()
+      {
         if (null != ev) {
           if (BundleEvent.UPDATED == ev.getType()) {
             // An updated bundle may have changed icon...
@@ -2654,7 +3144,8 @@ public class Desktop implements BundleListener, FrameworkListener,
         bundleCache = Activator.getBundles();
 
         SwingUtilities.invokeLater(new Runnable() {
-          public void run() {
+          public void run()
+          {
             if (ev != null && BundleEvent.INSTALLED == ev.getType()) {
               // Select bundle when installed
               setSelected(bundle);
@@ -2666,7 +3157,8 @@ public class Desktop implements BundleListener, FrameworkListener,
                 // Trigger a selection change notification to tell
                 // displayers to update their contents
                 if (bundleSelModel instanceof DefaultBundleSelectionModel) {
-                  final DefaultBundleSelectionModel dbsm = (DefaultBundleSelectionModel) bundleSelModel;
+                  final DefaultBundleSelectionModel dbsm =
+                    (DefaultBundleSelectionModel) bundleSelModel;
                   dbsm.fireChange(bundle.getBundleId());
                 }
               }
@@ -2682,12 +3174,14 @@ public class Desktop implements BundleListener, FrameworkListener,
     bct.start();
   }
 
-  void updateStatusBar() {
+  void updateStatusBar()
+  {
   }
 
   JTips tips = null;
 
-  void showTips() {
+  void showTips()
+  {
     if (tips == null) {
       tips = new JTips("/tips.html");
     }
@@ -2696,38 +3190,79 @@ public class Desktop implements BundleListener, FrameworkListener,
 
   static final String KEY_UPDATEVERSION = "updateVersion";
 
-  void showUpdate(Version sysVersion, Version version, String notes) {
-    Preferences prefs = Preferences.userNodeForPackage(getClass());
+  void showUpdate(Version sysVersion, Version version, String notes)
+  {
+    final Preferences prefs = Preferences.userNodeForPackage(getClass());
 
-    Activator.log.info("showUpdate sysVersion=" + sysVersion + ", version="
-        + version);
+    Activator.log.info("Update check: running on " + sysVersion
+                       + ", latest version is " + version);
     try {
-      String prefsVersionS = prefs.get(KEY_UPDATEVERSION, "");
+      final String prefsVersionS = prefs.get(KEY_UPDATEVERSION, "");
       if (prefsVersionS != null && !"".equals(prefsVersionS)) {
-        Version prefsVersion = new Version(prefsVersionS);
+        final Version prefsVersion = new Version(prefsVersionS);
         Activator.log.info("prefsVersion=" + prefsVersion);
         if (prefsVersion.compareTo(version) >= 0) {
           Activator.log.info("skip showUpdate " + version);
           return;
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.warn("Failed to compare prefs version", e);
     }
 
-    JTextPane html = new JTextPane();
+    final JTextPane html = new JTextPane();
+    // Should not share editor kit with other text panes.
+    // html.setContentType("text/html");
+    final HTMLEditorKit htmlEditorKit = new HTMLEditorKit();
+    html.setEditorKit(htmlEditorKit);
 
-    html.setContentType("text/html");
+    // NOTE: CSS used here must be compatible with HTLM 3.2 / CSS 1
+    final StyleSheet styleSheet = htmlEditorKit.getStyleSheet();
+    styleSheet.addRule("#mainblock {margin-left: 20px; "
+                       + "padding-right: 15px; "
+                       + "font-family: \"Lucida Grande\", Tahoma, "
+                       + "Lucida Sans, Verdana, Helvetica, sans-serif; "
+                       + "font-size: 10.2px;}");
+    styleSheet.addRule("body {background-color:#DDDDDD;color:#111111;}");
+    styleSheet.addRule("div.note_group {margin-top:1.5em; margin-bottom:0.5em;"
+                       + "margin-right:0em; margin-left:0em;}");
+    styleSheet.addRule("div.note_name {margin-top:12px;margin-bottom:3px;"
+                       + "font-weight: bold; color:#333333;}");
+    styleSheet.addRule("div.note_item {margin-top:3px;margin-bottom:3px;"
+                       + "margin-left:20px; margin-right:20px;"
+                       + "color:#222222;}");
+    // Links are not click-able; try to hide them.
+    styleSheet.addRule("a {color:#111111;text-decoration:none;}");
+    styleSheet.addRule("#copyright {margin-left: 150px; font-size:8.6px;"
+                       + "color: #000;text-align:right;"
+                       + "padding: 5px 10px 0px 0px;}");
+
+    // Extract the contents of the body element for this presentation
+    final StringBuffer sb = new StringBuffer(notes.length());
+    int ix = notes.indexOf("<body");
+    if (ix > -1) {
+      ix = notes.indexOf('>', ix + 5);
+      if (ix > -1) {
+        final int start = ix + 1;
+        ix = notes.indexOf("</body>", start);
+        if (ix > -1) {
+          sb.append(notes.subSequence(start, ix));
+        }
+      }
+    } else {
+      // <body>...</body> not found use the full string
+      sb.append(notes);
+    }
 
     html.setEditable(false);
-
-    html.setText("<pre>\n" + notes + "\n</pre>");
+    html.setText(sb.toString());
 
     final JScrollPane scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(500, 300));
     SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        JViewport vp = scroll.getViewport();
+      public void run()
+      {
+        final JViewport vp = scroll.getViewport();
         if (vp != null) {
           vp.setViewPosition(new Point(0, 0));
           scroll.setViewport(vp);
@@ -2736,19 +3271,20 @@ public class Desktop implements BundleListener, FrameworkListener,
     });
 
     JOptionPane.showMessageDialog(frame, scroll, "Update available",
-        JOptionPane.INFORMATION_MESSAGE, null);
+                                  JOptionPane.INFORMATION_MESSAGE, null);
 
     try {
       prefs.put(KEY_UPDATEVERSION, version.toString());
       Activator.log.info("saved version " + version);
       prefs.flush();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.warn("Failed to store prefs", e);
     }
   }
 
-  void showInfo() {
-    JTextPane html = new JTextPane();
+  void showInfo()
+  {
+    final JTextPane html = new JTextPane();
 
     html.setContentType("text/html");
 
@@ -2759,8 +3295,9 @@ public class Desktop implements BundleListener, FrameworkListener,
     final JScrollPane scroll = new JScrollPane(html);
     scroll.setPreferredSize(new Dimension(420, 300));
     SwingUtilities.invokeLater(new Runnable() {
-      public void run() {
-        JViewport vp = scroll.getViewport();
+      public void run()
+      {
+        final JViewport vp = scroll.getViewport();
         if (vp != null) {
           vp.setViewPosition(new Point(0, 0));
           scroll.setViewport(vp);
@@ -2769,32 +3306,42 @@ public class Desktop implements BundleListener, FrameworkListener,
     });
 
     JOptionPane.showMessageDialog(frame, scroll, "Framework info",
-        JOptionPane.INFORMATION_MESSAGE, null);
+                                  JOptionPane.INFORMATION_MESSAGE, null);
   }
 
-  public void showVersion() {
-    BundleContext bc = Activator.getBC();
-    String version = (String) bc.getBundle().getHeaders().get("Bundle-Version");
-    String txt = Strings.fmt("str_abouttext", version,
-        bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_VENDOR), bc
-            .getBundle(0).getHeaders().get("Bundle-Version"));
+  public void showVersion()
+  {
+    final BundleContext bc = Activator.getBC();
+    final String version = bc.getBundle().getHeaders().get("Bundle-Version");
+    String copyright = bc.getBundle().getHeaders().get("Bundle-Copyright");
+    if (copyright == null) {
+      copyright = "";
+    }
+    final String txt =
+      Strings
+          .fmt("str_abouttext", version,
+               bc.getProperty(org.osgi.framework.Constants.FRAMEWORK_VENDOR),
+               bc.getBundle(0).getHeaders().get("Bundle-Version"), copyright);
 
-    ImageIcon icon = new ImageIcon(getClass().getResource("/kf_300x170.png"));
+    final ImageIcon icon =
+      new ImageIcon(getClass().getResource("/kf_300x170.png"));
 
     JOptionPane.showMessageDialog(frame, txt, Strings.get("str_about"),
-        JOptionPane.INFORMATION_MESSAGE, icon);
+                                  JOptionPane.INFORMATION_MESSAGE, icon);
   }
 
-  public void setIcon(JFrame frame, String baseName) {
+  public void setIcon(JFrame frame, String baseName)
+  {
     // Frame icon
-    final String iconName1 = baseName
-        + (Util.isWindows() ? "16x16.png" : "32x32.png");
+    final String iconName1 =
+      baseName + (Util.isWindows() ? "16x16.png" : "32x32.png");
     // Max OS X dock icon
     final String iconName2 = baseName + "128x128.png";
     final MediaTracker tracker = new MediaTracker(frame);
     try {
-      final URL[] urls = new URL[] { getClass().getResource(iconName1),
-          getClass().getResource(iconName2) };
+      final URL[] urls =
+        new URL[] { getClass().getResource(iconName1),
+                   getClass().getResource(iconName2) };
 
       final Image[] images = new Image[urls.length];
       for (int i = 0; i < urls.length; i++) {
@@ -2805,21 +3352,23 @@ public class Desktop implements BundleListener, FrameworkListener,
       }
       tracker.waitForID(0);
 
-      if (null != images[0])
+      if (null != images[0]) {
         frame.setIconImage(images[0]);
+      }
       // Set the dock icon.
       if (null != images[1] && bMacOS) {
         try {
           OSXAdapter.setDockIconImage(images[1]);
-        } catch (Exception e) {
+        } catch (final Exception e) {
           Activator.log.warn("Error while loading the OSXAdapter", e);
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
     }
   }
 
-  public Icon getBundleEventIcon(int type) {
+  public Icon getBundleEventIcon(int type)
+  {
     switch (type) {
     case BundleEvent.INSTALLED:
       return installIcon;

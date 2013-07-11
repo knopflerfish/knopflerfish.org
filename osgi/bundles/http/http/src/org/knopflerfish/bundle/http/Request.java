@@ -38,10 +38,12 @@ import java.io.InputStream;
 
 import javax.servlet.http.HttpServletRequest;
 
-interface Request extends HttpServletRequest {
+interface Request
+  extends HttpServletRequest
+{
 
-    // public methods
+  // public methods
 
-    public InputStream getRawInputStream();
+  public InputStream getRawInputStream();
 
 } // Request

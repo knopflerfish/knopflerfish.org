@@ -14,19 +14,35 @@
   do, for complete   details on parameters, use help on each command
   in the console.  
 
+<p>
+  The Knopflerfish CM implementation provides a legacy XML DTD, <a
+  href="cm_data.dtd">cm_data.dtd</a>, that specifies one format for
+  storing configurations as XML-documents. The Java package
+  <tt>org.knopflerfish.shared.cm</tt> contains helper classes for
+  writing and reading this XML format.
+</p>
+
+<p>
+  The import and export commands works with XML-documents following
+  the <a href="../cm/cm_data.dtd">cm_data.dtd</a>. See <a
+  href="../cm/index.html#cm_data.dtd">cm</a> for a description of
+  this format.
+</p>
+
+
   <pre class="code">
 Available configuration commands:
-  list [-help] [<selection>] ... - List the pids of existing configurations.
-  show [-help] [<selection>] ... - Show the saved versions of configurations.
-  create [-help] [-f] <pid> - Create a configuration and open it for editing.
-  delete [-help] <selection> - Delete an existing configuration.
-  edit [-help] <selection> - Edit an existing configuration.
+  create [-help] [-f] &lt;pid&gt; - Create a configuration and open it for editing.
   current [-help]  - Show the currently open configuration.
+  delete [-help] &lt;selection&gt; - Delete an existing configuration.
+  edit [-help] &lt;selection&gt; - Edit an existing configuration.
+  export [-help] &lt;file&gt;] [&lt;selection&gt;] ... - Export configurations in xml format to file.
+  import [-help] &lt;url&gt; - Import configuration data from xml file at url.
+  list [-help] [&lt;selection&gt;] ... - List the pids of existing configurations.
   save [-help] [-force] - Save the currently open configuration in the CM.
-  set [-help] <property> <value> [<type>] - Set a property in the currently open configuration.
-  unset [-help] <property> - Remove a property from the currently open configuration.
-  import [-help] <url> - Import configuration data from xml file at url.
-configuration> 
+  set [-help] &lt;property&gt; &lt;value&gt; [&lt;type&gt;] - Set a property in the currently open configuration.
+  show [-help] [&lt;selection&gt;] ... - Show the saved versions of configurations.
+  unset [-help] &lt;property&gt; - Remove a property from the currently open configuration.
 </pre>
     
 

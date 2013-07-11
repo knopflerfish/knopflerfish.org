@@ -105,7 +105,7 @@ public class JUnitCommandGroup extends CommandGroupAdapter
 	")";
       
       ServiceReference[] srl = 
-	Activator.bc.getServiceReferences(null, filter);
+	Activator.bc.getServiceReferences((String)null, filter);
       
       if(srl == null || srl.length == 0) {
 	out.println("No Test services found");

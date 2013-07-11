@@ -35,8 +35,10 @@
 package org.knopflerfish.framework.bundlestorage;
 
 
-import java.security.cert.*;
-import java.util.*;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -52,21 +54,23 @@ public class Util {
    * add returned in failed list.
    *
    */
-  public static ArrayList getCertificateChains(Certificate [] c, List failed) {
+  public static ArrayList<List<X509Certificate>> getCertificateChains(Certificate[] c,
+                                                                      ArrayList<Certificate> failed)
+  {
     if (c == null) {
       return null;
     }
-    ArrayList res = new ArrayList(3);
-    ArrayList chain = new ArrayList(3);
+    final ArrayList<List<X509Certificate>> res = new ArrayList<List<X509Certificate>>(3);
+    ArrayList<X509Certificate> chain = new ArrayList<X509Certificate>(3);
     int i = 0;
     while (i < c.length) {
       if (c[i] instanceof X509Certificate) {
-        X509Certificate cert = (X509Certificate) c[i++];
+        final X509Certificate cert = (X509Certificate) c[i++];
         // TBD, can we use == and do we need to check uniqID?
         chain.add(cert);
         if (cert.getIssuerX500Principal().equals(cert.getSubjectX500Principal())) {
           res.add(chain);
-          chain = new ArrayList(3);
+          chain = new ArrayList<X509Certificate>(3);
         }
       } else {
         // Unsupported type

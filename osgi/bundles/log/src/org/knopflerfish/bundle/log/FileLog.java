@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -238,7 +237,7 @@ public final class FileLog implements LogListener {
     if (log != null) {
       String s = le.toString();
       if (logSize + s.length() > configuration.getFileSize()) {
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
               log.close();
               saveOldGen();
@@ -264,10 +263,10 @@ public final class FileLog implements LogListener {
    *            The LogEntries which have been written to memory before a
    *            configuration has been received.
    */
-  synchronized void saveMemEntries(Enumeration logEntries) {
+  synchronized void saveMemEntries(Enumeration<LogEntry> logEntries) {
     // The log entires in the enumeration are in the wrong order,
     // i.e., latest first and oldest last thus we must reverse them.
-    List entries = new ArrayList();
+    List<LogEntry> entries = new ArrayList<LogEntry>();
     while (logEntries.hasMoreElements()) {
       entries.add(logEntries.nextElement());
     }

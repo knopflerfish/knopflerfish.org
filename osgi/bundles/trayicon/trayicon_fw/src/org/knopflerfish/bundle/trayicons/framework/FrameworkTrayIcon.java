@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2010, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,156 +34,178 @@
 
 package org.knopflerfish.bundle.trayicons.framework;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
-import java.lang.Class;
-
-import org.osgi.framework.*;
-import org.osgi.util.tracker.*;
-import org.osgi.service.startlevel.*;
-
-import java.awt.event.*;
-// import java.awt.TrayIcon;
-import java.awt.Toolkit;
-
-import java.awt.PopupMenu;
-import java.awt.Menu;
-import java.awt.MenuItem;
 import java.awt.CheckboxMenuItem;
 import java.awt.Image;
+import java.awt.Menu;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
-import java.io.File;
-import org.knopflerfish.service.log.LogRef;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 
-public class FrameworkTrayIcon {
+// import java.awt.TrayIcon;
 
-  ServiceTracker      slsTracker;
+public class FrameworkTrayIcon
+{
+  final FrameworkStartLevel frameworkStartLevel;
   CheckboxMenuItem[] slsItems = new CheckboxMenuItem[22];
   static Object trayIcon;
   static Object systemTray;
-  static Class trayIconClass;
-  static Class systemTrayClass;
+  static Class<?> trayIconClass;
+  static Class<?> systemTrayClass;
   static FrameworkTrayIcon frameworkTrayIcon;
 
-  public FrameworkTrayIcon() throws UnsupportedOperationException {
+  public FrameworkTrayIcon() throws UnsupportedOperationException
+  {
     final StringBuffer toolTipText = new StringBuffer("Knopflerfish OSGi");
-    final String servicePlatformId
-      = Activator.bc.getProperty("org.osgi.provisioning.spid");
-    if (null!=servicePlatformId && 0<servicePlatformId.length()) {
+    final String servicePlatformId =
+      Activator.bc.getProperty("org.osgi.provisioning.spid");
+    if (null != servicePlatformId && 0 < servicePlatformId.length()) {
       toolTipText.append(" (").append(servicePlatformId).append(")");
     }
 
     try {
       trayIconClass = Class.forName("java.awt.TrayIcon");
-      Constructor con = trayIconClass.getDeclaredConstructor(new Class[] {Image.class, String.class});
-      trayIcon = con.newInstance(new Object[] {
-          Toolkit.getDefaultToolkit().getImage(FrameworkTrayIcon.class.getResource(getIconForOS())),
-          toolTipText.toString()});
+      final Constructor<?> con =
+        trayIconClass.getDeclaredConstructor(new Class[] { Image.class,
+                                                          String.class });
+      trayIcon =
+        con.newInstance(new Object[] {
+                                      Toolkit
+                                          .getDefaultToolkit()
+                                          .getImage(FrameworkTrayIcon.class
+                                                        .getResource(getIconForOS())),
+                                      toolTipText.toString() });
 
-      Method m = trayIconClass.getDeclaredMethod("setPopupMenu", new Class[] {PopupMenu.class});
-      m.invoke(trayIcon, new Object[] {makeMenu()});
+      final Method m =
+        trayIconClass.getDeclaredMethod("setPopupMenu",
+                                        new Class[] { PopupMenu.class });
+      m.invoke(trayIcon, new Object[] { makeMenu() });
 
-      slsTracker = new ServiceTracker(Activator.bc,
-                                      StartLevel.class.getName(), null);
-      slsTracker.open();
-
+      frameworkStartLevel =
+        Activator.bc.getBundle(0L).adapt(FrameworkStartLevel.class);
 
       updateStartLevelItems();
 
       Activator.bc.addFrameworkListener(new FrameworkListener() {
-          public void frameworkEvent(FrameworkEvent ev) {
-            if(FrameworkEvent.STARTLEVEL_CHANGED  == ev.getType() ||
-               FrameworkEvent.STARTED  == ev.getType()) {
-              updateStartLevelItems();
-            }
+        public void frameworkEvent(FrameworkEvent ev)
+        {
+          if (FrameworkEvent.STARTLEVEL_CHANGED == ev.getType()
+              || FrameworkEvent.STARTED == ev.getType()) {
+            updateStartLevelItems();
           }
-        });
-    }
-    catch (Exception e) {
-      Activator.log.error("Failed to create FrameworkTrayIcon: "+e, e);
+        }
+      });
+    } catch (final Exception e) {
+      Activator.log.error("Failed to create FrameworkTrayIcon: " + e, e);
       throw new UnsupportedOperationException(e.getMessage());
     }
   }
 
-  public static FrameworkTrayIcon getFrameworkTrayIcon() throws UnsupportedOperationException {
-    if (frameworkTrayIcon != null)
+  public static FrameworkTrayIcon getFrameworkTrayIcon()
+      throws UnsupportedOperationException
+  {
+    if (frameworkTrayIcon != null) {
       return frameworkTrayIcon;
+    }
 
     try {
       if (systemTray == null) {
-        systemTrayClass  = Class.forName("java.awt.SystemTray");
-        Method m = systemTrayClass.getDeclaredMethod("isSupported", null);
-        Boolean is_supported = (Boolean)m.invoke(null, null);
-        if (!is_supported.booleanValue())
+        systemTrayClass = Class.forName("java.awt.SystemTray");
+        Method m =
+          systemTrayClass.getDeclaredMethod("isSupported", (Class[]) null);
+        final Boolean is_supported = (Boolean) m.invoke(null, (Object[]) null);
+        if (!is_supported.booleanValue()) {
           throw new UnsupportedOperationException("System Tray not supported");
+        }
 
-        m = systemTrayClass.getDeclaredMethod("getSystemTray", null);
-        systemTray = m.invoke(null,null);
+        m = systemTrayClass.getDeclaredMethod("getSystemTray", (Class[]) null);
+        systemTray = m.invoke(null, (Object[]) null);
         frameworkTrayIcon = new FrameworkTrayIcon();
         return frameworkTrayIcon;
       }
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (final UnsupportedOperationException e) {
       throw e;
-    }
-    catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("Error in SystemTray invokation: " + e);
       throw new UnsupportedOperationException(e.getMessage());
     }
     return null; // dummy
   }
 
-
-  void show() {
+  void show()
+  {
     Activator.log.info("Showing tray icon");
     try {
-      Method m = systemTrayClass.getMethod("add", new Class[] {trayIconClass});
-      m.invoke(systemTray, new Object[] {trayIcon});
-    }
-    catch (Exception e){
+      final Method m =
+        systemTrayClass.getMethod("add", new Class[] { trayIconClass });
+      m.invoke(systemTray, new Object[] { trayIcon });
+    } catch (final Exception e) {
       Activator.log.error("Failed to add TrayIcon to SystemTray", e);
     }
   }
 
-  void close() {
+  void close()
+  {
     try {
       Activator.log.info("Removing tray icon");
-      Method m = systemTrayClass.getMethod("remove", new Class[] {trayIconClass});
-      m.invoke(systemTray, new Object[] {trayIcon});
-    }
-    catch (Exception e){
+      final Method m =
+        systemTrayClass.getMethod("remove", new Class[] { trayIconClass });
+      m.invoke(systemTray, new Object[] { trayIcon });
+    } catch (final Exception e) {
       Activator.log.error("Failed to remove TrayIcon from SystemTray", e);
     }
 
-    slsTracker.close();
     // unregister();
   }
 
-  PopupMenu makeMenu() {
+  PopupMenu makeMenu()
+  {
     final PopupMenu popup = new PopupMenu();
 
     popup.add(new MenuItem("Shutdown framework") {
-        {
-          addActionListener(new ActionListener() {
-              public void actionPerformed(ActionEvent e) {
-                shutdown();
-              }
-            });
-        }
-      });
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1L;
+
+      {
+        addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e)
+          {
+            shutdown();
+          }
+        });
+      }
+    });
 
     final Menu slsMenu = new Menu("Start level");
-    for(int i = 1; i < slsItems.length-1; i++) {
+    for (int i = 1; i < slsItems.length - 1; i++) {
       final int level = i;
       slsItems[i] = new CheckboxMenuItem("" + i) {
-          {
-            addItemListener(new ItemListener() {
-                public void itemStateChanged(ItemEvent e) {
-                  setStartLevel(level);
-                }
-              });
-          }
-        };
+        /**
+         *
+         */
+        private static final long serialVersionUID = 1L;
+
+        {
+          addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e)
+            {
+              setStartLevel(level);
+            }
+          });
+        }
+      };
 
       slsMenu.add(slsItems[i]);
     }
@@ -192,54 +214,55 @@ public class FrameworkTrayIcon {
     return popup;
   }
 
-
-  void updateStartLevelItems() {
-    StartLevel sls = (StartLevel)slsTracker.getService();
-    if(sls == null) {
+  void updateStartLevelItems()
+  {
+    if (frameworkStartLevel == null) {
       Activator.log.warn("No start level service found");
       return;
     }
 
-    int level = sls.getStartLevel();
+    final int level = frameworkStartLevel.getStartLevel();
 
-    for(int i = 1; i < slsItems.length-1; i++) {
+    for (int i = 1; i < slsItems.length - 1; i++) {
       slsItems[i].setState(level == i);
     }
   }
 
-
-  void setStartLevel(int n) {
-    StartLevel sls = (StartLevel)slsTracker.getService();
-    if(sls == null) {
+  void setStartLevel(int n)
+  {
+    if (frameworkStartLevel == null) {
       Activator.log.warn("No start level service found");
       return;
     }
-    sls.setStartLevel(n);
+    frameworkStartLevel.setStartLevel(n);
   }
 
-  void shutdown() {
+  void shutdown()
+  {
     try {
-      Bundle systemBundle = Activator.bc.getBundle(0);
+      final Bundle systemBundle = Activator.bc.getBundle(0);
       systemBundle.stop();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("Failed to shutdown", e);
     }
   }
 
   static String getProperty(String key, String def)
   {
-    String sValue = Activator.bc.getProperty(key);
-    if (null!=sValue && 0<sValue.length()) {
+    final String sValue = Activator.bc.getProperty(key);
+    if (null != sValue && 0 < sValue.length()) {
       return sValue;
     }
     return def;
   }
 
-  static String getIconForOS() {
-    if (System.getProperty("os.name", "").toLowerCase().startsWith("mac os x"))
+  static String getIconForOS()
+  {
+    if (System.getProperty("os.name", "").toLowerCase().startsWith("mac os x")) {
       return "/kfbones-rev-tr-22x22.png";
-    else
+    } else {
       return "/kf_16x16.png";
+    }
   }
 
 }

@@ -26,7 +26,7 @@ framework.jar file in the osgi directory.
 </p>
 <p>
   The SDK installation starts a default set of bundles, including the 
-  <a href="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=desktop/index.html">
+  <a href="bundledoc/index.html?docpage=desktop/index.html">
     Knopflerfish OSGi Desktop bundle
   </a> and other utilities. 
 </p>
@@ -39,7 +39,7 @@ The Knopflerfish framework can be further controlled by:
 
 For a complete description of all framework feature please refer to
 the 
-<a href="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html">
+<a href="bundledoc/index.html?docpage=framework/index.html">
   framework bundle documentation
 </a>.
 
@@ -53,11 +53,11 @@ be supplied. To get help on the framework options, run the framework with the he
 This prints a help screen (exact contents is version dependent).
 
 <pre class="shell">
- java -jar framework.jar -help
-Knopflerfish OSGi framework, version 5.0.0
-Copyright 2003-2010 Knopflerfish. All Rights Reserved.
-
+java -jar framework.jar -help
+Knopflerfish OSGi framework launcher, version 6.0.0.0001
+Copyright 2003-2013 Knopflerfish. All Rights Reserved.
 See http://www.knopflerfish.org for more information.
+
  Usage:  java [properties] org.knopflerfish.framework.Main [options]
       or java [properties] -jar framework.jar [options]
       or ./kf2 [options] [-- [properties]]  [--- [extra]] (*)
@@ -78,7 +78,7 @@ See http://www.knopflerfish.org for more information.
                   framework instance.
    -ff FF         Specify the name of the FrameworkFactory to use when
                   creating the framework instance.
-   -init          Start an empty platform (i.e., clear old persistent data).
+   -init          Start an empty platform (i.e., clear old presistent data).
    -launch        Launch framework (i.e., start it).
    -shutdown mSEC Shutdown framework, timeout in milliseconds.
 
@@ -97,7 +97,7 @@ See http://www.knopflerfish.org for more information.
    -startlevel N  Set the beginning start level of the Start Level service
 
  Extra: (Only applicable when using ./kf2)
-   -java PATH     Use this JVM (Default=java)
+   -java PATH	  Use this JVM (Default=java)
 
 
  The default directory used for storing bundle data is  "fwdir".
@@ -126,11 +126,22 @@ The Knopflerfish SDK includes the following .xargs files by default
     <dd>
       Initial or bootstrap start. Also used as default if no other
       xargs argument is given. See also 
-      <a href="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html#init_restart">
+      <a href="bundledoc/index.html?docpage=framework/index.html#init_restart">
 	Initial start vs restart
       </a>.
       <p>
-	Generated from template.xargs.in (only present in a full source file installation).
+	Generated from template.xargs.in (only present in a full
+	source file installation).
+      </p>
+    </dd>
+    <dt>headless.xargs</dt>
+    <dd>
+      Initial or bootstrap start to use when running the JVM is
+      running in headless mode. Same set of bundles as in init.xargs
+      except that bundles requiring AWT has been commented out.
+      <p>
+	Generated from template.xargs.in (only present in a full
+	source file installation) with "$(AWT)" set to '#'.
       </p>
     </dd>
     <dt>minimal.xargs</dt>
@@ -163,11 +174,6 @@ The Knopflerfish SDK includes the following .xargs files by default
       xargs file for the Knopflerfish test suite. Normally invoked
       via an ant target.
     </dd>
-    <dt>soapcline_adb_test.xargs</dt>
-    <dd>
-      xargs file for the Knopflerfish test suite. Normally invoked
-      via an ant target.
-    </dd>
   </dl>    
 </div>
 
@@ -175,12 +181,12 @@ The Knopflerfish SDK includes the following .xargs files by default
 <h2 class="kf">Framework and System Properties</h2>
 <p>
   The behavior of Knopflerfish can be further controlled by specifying
-  framework and system properties that are either specified by OSGi or Knopflerfish
-  specific. The framework and system properties are described in detail in the 
-  <a href="http://www.knopflerfish.org/releases/current/docs/bundledoc/index.html?docpage=framework/index.html">
-    framework bundle documentation
-  </a>.
+  framework and system properties that are either specified by OSGi or
+  Knopflerfish specific. The framework and system properties are
+  described in detail in the <a
+  href="bundledoc/index.html?docpage=framework/index.html">
+  framework bundle documentation </a>.
 </p>
 <p>
-  There is a default properties setting in the <tt>props.xargs</tt> file.
+  There is a default properties setting in the <code>props.xargs</code> file.
 </p>

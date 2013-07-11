@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003, 2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,128 +37,132 @@ package org.knopflerfish.bundle.ssl.j2sp;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
+import org.osgi.service.cm.ConfigurationException;
+import org.osgi.service.cm.ManagedServiceFactory;
+
 import org.knopflerfish.service.log.LogRef;
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
 
 /**
  * Standard bundle activator, which registers a managed service factory
- * @see SslServiceFactory.
- * Based on the HTTP Service design, this class is also in charge of 
- * triggering the creation of a default SslServerSocketFactory if nothing
- * else is present. 
+ *
+ * @see SslServiceFactory. Based on the HTTP Service design, this class is also
+ *      in charge of triggering the creation of a default SslServerSocketFactory
+ *      if nothing else is present.
  */
-public class Activator implements org.osgi.framework.BundleActivator
+public class Activator
+  implements org.osgi.framework.BundleActivator
 {
-    //public final LogClient m_log = new LogClient();
-    protected LogRef m_log;
-    
-    private BundleContext m_bc;
-    
-    ServiceRegistration m_reg;
-    SslServiceFactory m_factory;
+  // public final LogClient m_log = new LogClient();
+  protected LogRef m_log;
 
+  private BundleContext m_bc;
 
-	/**
-	 * 
+  ServiceRegistration<ManagedServiceFactory> m_reg;
+  SslServiceFactory m_factory;
+
+  /**
+	 *
 	 */
-	public Activator()
-	{
-		super();
-	}
+  public Activator()
+  {
+    super();
+  }
 
-	/* (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
-	 */
-	public void start(BundleContext bc) throws Exception
-	{
-        
-        m_bc = bc;
-        m_log = new LogRef(m_bc);
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
+   */
+  public void start(BundleContext bc)
+      throws Exception
+  {
 
-        m_factory = new SslServiceFactory(m_bc, m_log);
+    m_bc = bc;
+    m_log = new LogRef(m_bc);
 
-        Dictionary parameters = new Hashtable();
-        parameters.put("service.pid", SslServiceFactory.PID);
-        m_reg = bc.registerService(ManagedServiceFactory.class.getName(),
-                                           m_factory,
-                                           parameters);
+    m_factory = new SslServiceFactory(m_bc, m_log);
 
-        ServiceReference adminRef = null;
-        try 
-        {
-            ConfigurationAdmin admin = null;
-            Configuration[] configs = null;
-            try 
-            {
-                adminRef = bc.getServiceReference(ConfigurationAdmin.class.getName());
+    final Dictionary<String, Object> parameters =
+      new Hashtable<String, Object>();
+    parameters.put("service.pid", SslServiceFactory.PID);
+    m_reg =
+      bc.registerService(ManagedServiceFactory.class, m_factory, parameters);
 
-                // Potential start order problem!
-                if(adminRef != null) 
-                {
-                    admin = (ConfigurationAdmin) bc.getService(adminRef);
-                    String filter =
-                    "(&(service.m_factoryPid=" + SslServiceFactory.PID + ")" +
-                    "(|(service.bundleLocation=" + bc.getBundle().getLocation() + ")" +
-                    "(service.bundleLocation=NULL)" +
-                    "(!(service.bundleLocation=*))))";
-                    configs = admin.listConfigurations(filter);
-                 }
-            } catch (Exception e) 
-            {
-                if (m_log.doDebug()) m_log.debug("Exception when trying to get CM", e);
-            }
-            
-            if (admin == null) 
-            {
-                if (m_log.doInfo()) 
-                    m_log.info("No CM present, using default configuration");
-                
-                m_factory.updated(SslServiceWrapper.DEFAULT_SERVICE_PID,
-                                      SslServiceWrapper.getDefaultConfig());
-            } else 
-            {
-                if (configs == null || configs.length == 0) 
-                {
-                    if (m_log.doInfo()) 
-                        m_log.info("No configuration present, creating default configuration");
+    ServiceReference<ConfigurationAdmin> adminRef = null;
+    try {
+      ConfigurationAdmin admin = null;
+      Configuration[] configs = null;
+      try {
+        adminRef = bc.getServiceReference(ConfigurationAdmin.class);
 
-                    m_factory.updated(SslServiceFactory.PID,
-                        SslServiceWrapper.getDefaultConfig());
-                }
-            }
-        
-        } catch (ConfigurationException ce) 
-        {
-            m_log.error("Configuration error", ce);
-            
-        } finally 
-        {
-            if (adminRef != null)
-            {
-                m_bc.ungetService(adminRef);
-            }
+        // Potential start order problem!
+        if (adminRef != null) {
+          admin = bc.getService(adminRef);
+          final String filter =
+            "(&(service.m_factoryPid=" + SslServiceFactory.PID + ")"
+                + "(|(service.bundleLocation=" + bc.getBundle().getLocation()
+                + ")" + "(service.bundleLocation=NULL)"
+                + "(!(service.bundleLocation=*))))";
+          configs = admin.listConfigurations(filter);
         }
+      } catch (final Exception e) {
+        if (m_log.doDebug()) {
+          m_log.debug("Exception when trying to get CM", e);
+        }
+      }
+
+      if (admin == null) {
+        if (m_log.doInfo()) {
+          m_log.info("No CM present, using default configuration");
+        }
+
+        m_factory.updated(SslServiceWrapper.DEFAULT_SERVICE_PID,
+                          SslServiceWrapper.getDefaultConfig());
+      } else {
+        if (configs == null || configs.length == 0) {
+          if (m_log.doInfo()) {
+            m_log
+                .info("No configuration present, creating default configuration");
+          }
+
+          m_factory.updated(SslServiceFactory.PID,
+                            SslServiceWrapper.getDefaultConfig());
+        }
+      }
+
+    } catch (final ConfigurationException ce) {
+      m_log.error("Configuration error", ce);
+
+    } finally {
+      if (adminRef != null) {
+        m_bc.ungetService(adminRef);
+      }
     }
+  }
 
-
-	/* (non-Javadoc)
-	 * @see org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
-	 */
-	public void stop(BundleContext arg0) throws Exception
-	{
-        if (m_reg != null)
-        {
-        	m_reg.unregister();
-        }
-        if (m_factory != null)
-        {
-        	m_factory.destroy();
-        }
-        m_log.close();
-        m_log = null;
-	}
-   
-
+  /*
+   * (non-Javadoc)
+   *
+   * @see
+   * org.osgi.framework.BundleActivator#stop(org.osgi.framework.BundleContext)
+   */
+  public void stop(BundleContext arg0)
+      throws Exception
+  {
+    if (m_reg != null) {
+      m_reg.unregister();
+    }
+    if (m_factory != null) {
+      m_factory.destroy();
+    }
+    m_log.close();
+    m_log = null;
+  }
 
 }

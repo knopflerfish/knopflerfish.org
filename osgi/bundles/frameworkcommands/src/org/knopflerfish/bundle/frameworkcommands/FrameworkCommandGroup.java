@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -48,17 +48,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
-import java.security.CodeSource;
 import java.security.PrivilegedAction;
 import java.security.cert.Certificate;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -72,10 +72,17 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRequirement;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleRevisions;
+import org.osgi.framework.wiring.BundleWire;
+import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.framework.wiring.FrameworkWiring;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.packageadmin.RequiredBundle;
-import org.osgi.service.startlevel.StartLevel;
 
 import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
@@ -96,7 +103,6 @@ public class FrameworkCommandGroup
 
   private final PackageAdmin packageAdmin;
   private final PermissionAdminHelper permissionAdminHelper;
-  private final StartLevel startLevel;
 
   /**
    * The default directories for bundle jar files.
@@ -109,7 +115,7 @@ public class FrameworkCommandGroup
    *
    * </p>
    */
-  private List/*<URL>*/ baseURLs = new ArrayList();
+  private final List<URL> baseURLs = new ArrayList<URL>();
 
 
   FrameworkCommandGroup(BundleContext bc) {
@@ -119,18 +125,15 @@ public class FrameworkCommandGroup
     // all of these services are framework singleton internal services
     // thus, we take a shortcut and skip the service tracking
 
-    ServiceReference sr = bc.getServiceReference(PackageAdmin.class
+    final ServiceReference<?> sr = bc.getServiceReference(PackageAdmin.class
                                                  .getName());
     packageAdmin = null==sr ? null : (PackageAdmin) bc.getService(sr);
 
     permissionAdminHelper = initPermissionAdminHelper();
 
-    sr = bc.getServiceReference(StartLevel.class.getName());
-    startLevel = null==sr ? null : (StartLevel) bc.getService(sr);
-
     try {
       setupJars();
-    } catch (MalformedURLException mfe) {
+    } catch (final MalformedURLException mfe) {
     }
   }
 
@@ -138,9 +141,9 @@ public class FrameworkCommandGroup
     // Try to see if we can create the PermissionAdminHelper object.
     try {
       return new PermissionAdminHelperImpl(bc);
-    } catch (Exception ex) {
+    } catch (final Exception ex) {
       //log.error("Failed to create permissionAdminHelper: " + ex, ex);
-    } catch (LinkageError ce) {
+    } catch (final LinkageError ce) {
       //log.info("There is no PermissionAdmin service available.", ce);
     }
     return null;
@@ -170,10 +173,10 @@ public class FrameworkCommandGroup
       baseURLs.clear();
     }
 
-    for (int i=0; i<prefixes.length; i++) {
+    for (final String prefixe : prefixes) {
       try {
-        baseURLs.add(new URL(prefixes[i]));
-      } catch (MalformedURLException mfe) {
+        baseURLs.add(new URL(prefixe));
+      } catch (final MalformedURLException mfe) {
         if (null==firstMFE){
           firstMFE = mfe;
         }
@@ -196,9 +199,7 @@ public class FrameworkCommandGroup
     final int ic = location.indexOf(":");
     if (ic < 2 || ic > location.indexOf("/")) {
       // URL wihtout protocol complete it.
-      for (Iterator it=baseURLs.iterator(); it.hasNext(); ) {
-        final URL baseURL = (URL) it.next();
-
+      for (final URL baseURL : baseURLs) {
         try {
           final URL url = new URL(baseURL, location);
           if ("file".equals(url.getProtocol())) {
@@ -221,13 +222,14 @@ public class FrameworkCommandGroup
             try {
               is = url.openStream();
             } finally {
-              if (is != null)
+              if (is != null) {
                 is.close();
+              }
             }
           }
           location = url.toString();
           break; // Found.
-        } catch (Exception _e) {
+        } catch (final Exception _e) {
         }
       }
     }
@@ -249,7 +251,7 @@ public class FrameworkCommandGroup
     "<type>        Permission type", "<name>        Permission name",
     "<actions>     Permission actions" };
 
-  public int cmdAddpermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdAddpermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                               Session session) {
     if (permissionAdminHelper == null) {
       out.println("Permission Admin service is not available");
@@ -276,19 +278,19 @@ public class FrameworkCommandGroup
     "<bundle> Name or id of bundle"
   };
 
-  public int cmdBundles(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdBundles(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
-    Bundle[] b = getBundles((String[]) opts.get("bundle"),
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"),
                             opts.get("-i") != null,
                             opts.get("-s") != null,
                             opts.get("-t") != null);
-    boolean verbose = (opts.get("-l") != null);
-    boolean oneColumn = (opts.get("-1") != null);
+    final boolean verbose = (opts.get("-l") != null);
+    final boolean oneColumn = (opts.get("-1") != null);
 
-    Vector tmp = new Vector();
-    for (int i = 0; i < b.length; i++) {
-      if (b[i] != null) {
-        tmp.add(b[i]);
+    final Vector<Bundle> tmp = new Vector<Bundle>();
+    for (final Bundle element : b) {
+      if (element != null) {
+        tmp.add(element);
       }
     }
 
@@ -296,7 +298,7 @@ public class FrameworkCommandGroup
       out.println("ERROR! No matching bundle");
       return 1;
     } else {
-      printBundles(out, (Bundle[])tmp.toArray(new Bundle[tmp.size()]), verbose, oneColumn);
+      printBundles(out, tmp.toArray(new Bundle[tmp.size()]), verbose, oneColumn);
       return 0;
     }
   }
@@ -308,7 +310,7 @@ public class FrameworkCommandGroup
     if (verbose) {
       lastModified = new String[b.length];
       int longestLM = 0;
-      SimpleDateFormat dateFormat = new SimpleDateFormat();
+      final SimpleDateFormat dateFormat = new SimpleDateFormat();
       for (int i = 0; i < b.length; i++) { // Or just look at the first one...
         lastModified[i] = dateFormat.format(new Date(b[i].getLastModified()));
         if (lastModified[i].length() > longestLM) {
@@ -317,7 +319,7 @@ public class FrameworkCommandGroup
       }
       String lmHeader = "modified";
       if (longestLM > lmHeader.length()) {
-        String blank = "                                    ";
+        final String blank = "                                    ";
         lmHeader += blank.substring(blank.length() - (longestLM - lmHeader.length()));
       }
       out.println("   id  level/state  " + lmHeader + "  location");
@@ -329,11 +331,11 @@ public class FrameworkCommandGroup
     for (int i = 0; i < b.length; i++) {
       String level = null;
       try {
-        level = "" + startLevel.getBundleStartLevel(b[i]);
+        level = String.valueOf(b[i].adapt(BundleStartLevel.class).getStartLevel());
         if (level.length() < 2) {
           level = " " + level;
         }
-      } catch (Exception e) {
+      } catch (final Exception e) {
         // no start level set.
       }
 
@@ -346,13 +348,13 @@ public class FrameworkCommandGroup
                     + "  " + b[i].getLocation()
                     + getBundleSpeciality(b[i]));
       } else {
-        String s = Util.showId(b[i]) + showState(b[i])
+        final String s = Util.showId(b[i]) + showState(b[i])
           + Util.shortName(b[i]) + getBundleSpeciality(b[i]);
         if ((i & 1) == 0 && !oneColumn) {
           out.print(s);
-          int l = 40 - s.length();
+          final int l = 40 - s.length();
           if (l > 0) {
-            String blank = "                                    ";
+            final String blank = "                                    ";
             out.print(blank.substring(blank.length() - l));
           }
           needNl = true;
@@ -367,30 +369,39 @@ public class FrameworkCommandGroup
     }
   }
 
-  private String getBundleSpeciality(Bundle bundle) {
-    if (packageAdmin == null) {
-      return "";
-    }
-    StringBuffer sb = new StringBuffer();
-    Bundle[] fragments = packageAdmin.getFragments(bundle);
-    if (fragments != null && fragments.length > 0) {
-      sb.append("h:"); // host
-      for (int i=0; i<fragments.length;i++){
-        if (i>0) sb.append(",");
-        sb.append(fragments[i].getBundleId());
-      }
-    }
-    Bundle[] hosts = packageAdmin.getHosts(bundle);
-    if (hosts != null && hosts.length > 0) {
-      sb.append("f:"); // fragment
-      for (int i=0; i<hosts.length;i++){
-        if (i>0) sb.append(",");
-        sb.append(hosts[i].getBundleId());
-      }
-    }
-    return sb.length()>0 ? (" (" +sb.toString() + ")" ) : "";
-  }
+  private String getBundleSpeciality(Bundle bundle)
+  {
+    final StringBuffer sb = new StringBuffer();
+    final BundleWiring bw = bundle.adapt(BundleWiring.class);
 
+    if (bw != null) {
+      // Host bundle with attached fragments.
+      final List<BundleWire> pws =
+        bw.getProvidedWires(BundleRevision.HOST_NAMESPACE);
+      if (!pws.isEmpty()) {
+        sb.append("h:");
+        for (final BundleWire w : pws) {
+          sb.append(w.getRequirement().getRevision().getBundle().getBundleId());
+          sb.append(",");
+        }
+        sb.setLength(sb.length() - 1); // Remove trailing ','
+      }
+
+      // Fragment attached to hosts.
+      final List<BundleWire> rws =
+        bw.getRequiredWires(BundleRevision.HOST_NAMESPACE);
+      if (!rws.isEmpty()) {
+        sb.append("f:");
+        for (final BundleWire w : rws) {
+          sb.append(w.getProviderWiring().getRevision().getBundle()
+              .getBundleId());
+          sb.append(",");
+        }
+        sb.setLength(sb.length() - 1); // Remove trailing ','
+      }
+    }
+    return sb.length() > 0 ? (" (" + sb.toString() + ")") : "";
+  }
 
   //
   // Call command
@@ -411,7 +422,7 @@ public class FrameworkCommandGroup
     "            will be attempted to created as the",
     "            specified type", };
 
-  public int cmdCall(final Dictionary opts,
+  public int cmdCall(final Dictionary<String,?> opts,
                      final Reader in,
                      final PrintWriter out,
                      final Session session)
@@ -422,10 +433,10 @@ public class FrameworkCommandGroup
     final String filter = null==filterArg
       ? null
       : "(&(objectClass=" +si +")" +filterArg +")";
-    final ServiceReference sr = (ServiceReference) AccessController
-      .doPrivileged(new PrivilegedAction() {
-          public Object run() {
-            ServiceReference res = null;
+    final ServiceReference<?> sr = AccessController
+      .doPrivileged(new PrivilegedAction<ServiceReference<?>>() {
+          public ServiceReference<?> run() {
+            ServiceReference<?> res = null;
             if (null==filter) {
               res = bc.getServiceReference(si);
               if (null==res) {
@@ -433,7 +444,7 @@ public class FrameworkCommandGroup
               }
             } else {
               try {
-                ServiceReference[] srs = bc.getServiceReferences(si,filter);
+                final ServiceReference<?>[] srs = bc.getServiceReferences(si,filter);
                 if (null==srs) {
                   out.println("No service that matches the filter '"
                               +filter +"'.");
@@ -443,7 +454,7 @@ public class FrameworkCommandGroup
                   out.println("Multiple service matches the filter '"
                               +filter +"' please narrow it down.");
                 }
-              } catch (InvalidSyntaxException ise) {
+              } catch (final InvalidSyntaxException ise) {
                 out.println("Invalid filter '" +filter +"': "
                             +ise.getMessage());
               }
@@ -454,7 +465,7 @@ public class FrameworkCommandGroup
     if (sr == null) {
       return 1;
     }
-    Object s = AccessController.doPrivileged(new PrivilegedAction() {
+    final Object s = AccessController.doPrivileged(new PrivilegedAction<Object>() {
         public Object run() {
           return bc.getService(sr);
         }
@@ -464,8 +475,8 @@ public class FrameworkCommandGroup
       return 1;
     }
 
-    String method = (String) opts.get("method");
-    Class[] parameterTypes = null;
+    final String method = (String) opts.get("method");
+    Class<?>[] parameterTypes = null;
     Object[] methodArgs = null;
     String[] args = (String[]) opts.get("args");
     if (args == null) {
@@ -485,7 +496,7 @@ public class FrameworkCommandGroup
       for (int i = 0; i < args.length; i++) {
         String val = args[i];
         String className = String.class.getName();
-        int ix = val.indexOf("::");
+        final int ix = val.indexOf("::");
         if (ix != -1) {
           className = val.substring(ix + 2);
           val = val.substring(0, ix);
@@ -504,16 +515,18 @@ public class FrameworkCommandGroup
 
       out.println("Result: " + Util.showObject(m.invoke(s, methodArgs)));
       res = 0;
-    } catch (InvocationTargetException e) {
+    } catch (final InvocationTargetException e) {
       out.println("Exception thrown by call");
       e.getTargetException().printStackTrace(out);
-    } catch (IllegalAccessException e) {
+    } catch (final IllegalAccessException e) {
       out.println("Call method not accessible (must be public)");
-    } catch (NullPointerException e) {
+    } catch (final NullPointerException e) {
       out.println("Internal error: " + e);
-    } catch (IllegalArgumentException e) {
+      e.printStackTrace(out);
+    } catch (final IllegalArgumentException e) {
       out.println("Internal error: " + e);
-    } catch (NoSuchMethodException e) {
+      e.printStackTrace(out);
+    } catch (final NoSuchMethodException e) {
       out.println("No method '" + method + "' with matching arguments: "
                   + e);
     }
@@ -522,7 +535,7 @@ public class FrameworkCommandGroup
     return res;
   }
 
-  Class getClass(String className) {
+  Class<?> getClass(String className) {
     try {
       if ("int".equals(className)) {
         return Integer.TYPE;
@@ -538,7 +551,7 @@ public class FrameworkCommandGroup
         className = "java.lang." + className;
       }
       return Class.forName(className);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new IllegalArgumentException("Unknown class " + className);
     }
   }
@@ -549,45 +562,62 @@ public class FrameworkCommandGroup
    * @param type  The full name of the class / interface that we are
    *              looking for.
    * @param clazz The class to investigate.
-   * @return class object for the specified type.
+   * @return class object for the specified type or null if not found.
    */
-  Class findClass(final String type, final Class clazz)
+  Class<?> findClass(final String type, final Class<?> clazz)
   {
-    if (type.equals(clazz.getName())) return clazz;
+    if (clazz == null) {
+      return null;
+    }
 
-    Class[] clazzes = clazz.getInterfaces();
-    for (int i=0; i<clazzes.length; i++) {
-      if (type.equals(clazzes[i].getName())) return clazzes[i];
+    if (type.equals(clazz.getName())) {
+      return clazz;
+    }
+
+    final Class<?>[] clazzes = clazz.getInterfaces();
+    for (final Class<?> clazze : clazzes) {
+      if (type.equals(clazze.getName())) {
+        return clazze;
+      }
+      final Class<?> superInterfaceClazz = clazze.getSuperclass();
+      if (superInterfaceClazz != null) {
+        final Class<?> res = findClass(type, superInterfaceClazz);
+        if (res != null) {
+          return res;
+        }
+      }
     }
     return findClass(type, clazz.getSuperclass());
   }
 
   Method findMethod(final String si,
-                    final Class clazz,
+                    final Class<?> clazz,
                     final String name,
                     final int nArgs)
   {
-    Class ifClass = findClass(si, clazz);
+    Class<?> ifClass = findClass(si, clazz);
     // Fallback to use the original class if the one given by si was not found.
-    if (null==ifClass) ifClass = clazz;
+    if (null==ifClass) {
+      ifClass = clazz;
+    }
 
-    Method[] methods = ifClass.getMethods();
-    Vector v = new Vector();
-    for (int i = 0; i < methods.length; i++) {
-      if (methods[i].getName().equals(name)
-          && methods[i].getParameterTypes().length == nArgs) {
-        v.addElement(methods[i]);
+    final Method[] methods = ifClass.getMethods();
+    final Vector<Method> v = new Vector<Method>();
+    for (final Method method : methods) {
+      if (method.getName().equals(name)
+          && method.getParameterTypes().length == nArgs) {
+        v.addElement(method);
       }
     }
     if (v.size() == 1) {
-      return (Method) v.elementAt(0);
+      return v.elementAt(0);
     }
     return null;
   }
 
   Object makeObject(String val, String className) {
     try {
-      Class clazz = getClass(className);
+      final Class<?> clazz = getClass(className);
 
       if (clazz == Integer.TYPE) {
         return new Integer(val);
@@ -605,11 +635,15 @@ public class FrameworkCommandGroup
         return val;
       }
 
-      Constructor cons = clazz
+      if (Bundle.class.equals(clazz)) {
+        return bc.getBundle(new Long(val).longValue());
+      }
+
+      final Constructor<?> cons = clazz
         .getConstructor(new Class[] { String.class });
-      Object r = cons.newInstance(new Object[] { val });
+      final Object r = cons.newInstance(new Object[] { val });
       return r;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new IllegalArgumentException("makeObject(" + val + ", "
                                          + className + "): " + e);
     }
@@ -627,18 +661,20 @@ public class FrameworkCommandGroup
     "-i           Sort on bundle id",
     "<bundle>     Name or id of bundle" };
 
-  public int cmdCertificates(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdCertificates(Dictionary<String,?> opts, Reader in, PrintWriter out,
                               Session session) {
-    Bundle[] b = getBundles((String[]) opts.get("bundle"),
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"),
                             opts.get("-i") != null);
     boolean match = false;
-    for (int i = 0; i < b.length; i++) {
-      if (b[i] != null) {
+    for (final Bundle element : b) {
+      if (element != null) {
         try {
           boolean found = false;
-          Method m = b[i].getClass().getMethod("getCertificates", null);
-          Certificate [] cs = (Certificate [])m.invoke(b[i], null);
-          out.println("Bundle: " + showBundle(b[i]));
+          final Method m = element.getClass().getMethod("getCertificates",
+                                               (Class[]) null);
+          final Certificate [] cs = (Certificate []) m.invoke(element,
+                                                        (Object[]) null);
+          out.println("Bundle: " + showBundle(element));
           if (cs != null) {
             for (int j = 0; j < cs.length; j++) {
               out.println("Certificate " + j + ":");
@@ -649,7 +685,7 @@ public class FrameworkCommandGroup
           if (!found) {
             out.println("  Not a signed bundle.");
           }
-        } catch (Exception e) {
+        } catch (final Exception e) {
           out.println("This command only works on a Knopflefish framework");
           return 1;
         }
@@ -674,17 +710,18 @@ public class FrameworkCommandGroup
     "Display the closure for a bundle",
     "<bundle> - Name or id of bundle" };
 
-  public int cmdClosure(Dictionary opts, Reader in, PrintWriter out,
-                        Session session) {
+  public int cmdClosure(Dictionary<String, ?> opts,
+                        Reader in,
+                        PrintWriter out,
+                        Session session)
+  {
+    final Bundle systemBundle = bc.getBundle(0);
+    final FrameworkWiring frameworkWiring =
+      systemBundle.adapt(FrameworkWiring.class);
 
-    if (packageAdmin == null) {
-      out.println("Package Admin service is not available");
-      return 1;
-    }
-
-    String bname = (String) opts.get("bundle");
+    final String bname = (String) opts.get("bundle");
     Bundle[] bl = getBundles(new String[] { bname }, true);
-    Bundle bundle = bl[0];
+    final Bundle bundle = bl[0];
     if (bundle == null) {
       out.println("ERROR! No matching bundle for '" + bname + "'");
       return 1;
@@ -692,36 +729,24 @@ public class FrameworkCommandGroup
 
     bl = getBundles(null, false, false, false);
 
-    // Package
+    // Wiring
+    final Collection<Bundle> wbs =
+      frameworkWiring.getDependencyClosure(Collections.singleton(bundle));
 
-    Vector pkgClosure = new Vector();
-    // This is O(n2) at least, possibly O(n3). Should be improved
-    for(int b = 0; b < bl.length; b++) {
-      ExportedPackage[] pkgs = packageAdmin.getExportedPackages(bl[b]);
-      if (pkgs == null) continue;
-      for(int p = 0; p < pkgs.length; p++) {
-        Bundle[] bl2 = pkgs[p].getImportingBundles();
-        if (bl2 == null) continue;
-        for(int ib = 0; ib < bl2.length;  ib++) {
-          if(bl2[ib].getBundleId() == bundle.getBundleId() && !pkgClosure.contains(bl[b])) {
-            pkgClosure.add(bl[b]);
-          }
-        }
-      }
-    }
-    pkgClosure.remove(bundle);
-    if (pkgClosure.size() == 0) {
-      out.println("No package dependencies");
+    if (wbs.isEmpty()) {
+      out.println("No wiring dependencies");
     } else {
-      out.println("Static dependencies via packages:");
-      Bundle[] bundles = (Bundle[]) pkgClosure.toArray(new Bundle[pkgClosure.size()]);
+      wbs.remove(bundle);
+      out.println("Static dependencies via wires:");
+      final Bundle[] bundles = wbs.toArray(new Bundle[wbs.size()]);
+      Util.sortBundlesId(bundles);
       printBundles(out, bundles, false, true);
     }
 
     // Service
 
-    Vector serviceClosure = new Vector();
-    ServiceReference[] srl = bundle.getServicesInUse();
+    final Vector<Bundle> serviceClosure = new Vector<Bundle>();
+    final ServiceReference<?>[] srl = bundle.getServicesInUse();
     for (int i = 0; srl != null && i < srl.length; i++) {
       if (!serviceClosure.contains(srl[i].getBundle())) {
         serviceClosure.add(srl[i].getBundle());
@@ -732,67 +757,7 @@ public class FrameworkCommandGroup
       out.println("No service dependencies");
     } else {
       out.println("Runtime dependencies via services:");
-      Bundle[] bundles = (Bundle[]) serviceClosure.toArray(new Bundle[serviceClosure.size()]);
-      printBundles(out, bundles, false, true);
-    }
-
-    // Fragment
-
-    Bundle[] fragmentBundles = packageAdmin.getFragments(bundle);
-    if (fragmentBundles == null) {
-      out.println("No fragments");
-    } else {
-      out.println("Fragments:");
-      printBundles(out, fragmentBundles, false, true);
-    }
-
-    // Host
-
-    Bundle[] hostBundles = packageAdmin.getHosts(bundle);
-    if (hostBundles == null) {
-      out.println("No hosts");
-    } else {
-      out.println("Hosts:");
-      printBundles(out, hostBundles, false, true);
-    }
-
-    // Required
-
-    Vector required = new Vector();
-    Vector requiredBy = new Vector();
-
-    try { // untested code
-      RequiredBundle[] requiredBundles = packageAdmin.getRequiredBundles(null);
-      if (requiredBundles != null) {
-        for (int reqd = 0; reqd < requiredBundles.length; reqd++) {
-          Bundle[] requiringBundles = requiredBundles[reqd].getRequiringBundles();
-          if (requiringBundles == null) continue;
-          if (requiredBundles[reqd].getBundle().equals(bundle)) {
-            for (int ring = 0; ring < requiringBundles.length; ring++) {
-              requiredBy.add(requiringBundles[ring]);
-            }
-          } else {
-            for (int ring = 0; ring < requiringBundles.length; ring++) {
-              if (requiringBundles[ring].equals(bundle)) {
-                required.add(requiredBundles[reqd].getBundle());
-              }
-            }
-          }
-        }
-      }
-    } catch (Throwable ignored) {}
-    if (required.size() == 0) {
-      out.println("No required bundles");
-    } else {
-      out.println("Required bundles:");
-      Bundle[] bundles = (Bundle[]) required.toArray(new Bundle[required.size()]);
-      printBundles(out, bundles, false, true);
-    }
-    if (requiredBy.size() == 0) {
-      out.println("No requiring bundles");
-    } else {
-      out.println("Requiring bundles:");
-      Bundle[] bundles = (Bundle[]) requiredBy.toArray(new Bundle[requiredBy.size()]);
+      final Bundle[] bundles = serviceClosure.toArray(new Bundle[serviceClosure.size()]);
       printBundles(out, bundles, false, true);
     }
 
@@ -811,7 +776,7 @@ public class FrameworkCommandGroup
     "Get conditional permissions",
     "<name>               Name of conditional permission" };
 
-  public int cmdCondpermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdCondpermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                                Session session) {
     if (permissionAdminHelper == null) {
       out.println("Conditional Permission Admin service is not available");
@@ -839,7 +804,7 @@ public class FrameworkCommandGroup
     "<name>        Permission name (*, match all)",
     "<actions>     Permission actions (*, match all)" };
 
-  public int cmdDeletepermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdDeletepermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                                  Session session) {
     if (permissionAdminHelper == null) {
       out.println("Permission Admin service is not available");
@@ -859,14 +824,14 @@ public class FrameworkCommandGroup
     "Find bundles with a given symbolic name",
     "<symbolic name>  Symbolic name" };
 
-  public int cmdFindbundles(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdFindbundles(Dictionary<String,?> opts, Reader in, PrintWriter out,
                             Session session) {
     if (packageAdmin == null) {
       out.println("Package Admin service is not available");
       return 1;
     }
-    String symbolicName = (String) opts.get("symbolic name");
-    Bundle[] bundles = packageAdmin.getBundles(symbolicName, null);
+    final String symbolicName = (String) opts.get("symbolic name");
+    final Bundle[] bundles = packageAdmin.getBundles(symbolicName, null);
     if (bundles == null) {
       out.println("No bundles found.");
     } else {
@@ -887,21 +852,23 @@ public class FrameworkCommandGroup
     "-l #locale#  Get localized headers for a given locale",
     "<bundle>     Name or id of bundle" };
 
-  public int cmdHeaders(Dictionary opts, Reader in, PrintWriter out,
-                        Session session) {
-    Bundle[] b = getBundles((String[]) opts.get("bundle"),
+  public int cmdHeaders(Dictionary<String, ?> opts,
+                        Reader in,
+                        PrintWriter out,
+                        Session session)
+  {
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"),
                             opts.get("-i") != null);
-    String locale = (String) opts.get("-l");
+    final String locale = (String) opts.get("-l");
     boolean found = false;
-    for (int i = 0; i < b.length; i++) {
-      if (b[i] != null) {
-        out.println("Bundle: " + showBundle(b[i]));
-        Dictionary d = (locale == null ? b[i].getHeaders()
-                        : b[i].getHeaders(locale));
-        for (Enumeration e = d.keys(); e.hasMoreElements();) {
-          String key = (String) e.nextElement();
-          out.println("  " + key + " = "
-                      + Util.showObject(d.get(key)));
+    for (final Bundle element : b) {
+      if (element != null) {
+        out.println("Bundle: " + showBundle(element));
+        final Dictionary<String, String> d = (locale == null ? element.getHeaders()
+            : element.getHeaders(locale));
+        for (final Enumeration<String> e = d.keys(); e.hasMoreElements();) {
+          final String key = e.nextElement();
+          out.println("  " + key + " = " + Util.showObject(d.get(key)));
         }
         found = true;
       }
@@ -925,25 +892,26 @@ public class FrameworkCommandGroup
     "Note: The base URLs used to complete partial URLs may be set using the cd command"
   };
 
-  public int cmdInstall(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdInstall(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
-    String[] loc = (String[]) opts.get("location");
+    final String[] loc = (String[]) opts.get("location");
     String url = null;
     try {
-      for (int i = 0; i < loc.length; i++) {
-        url = completeLocation(loc[i]);
-        Bundle b = bc.installBundle(url);
+      for (final String element : loc) {
+        url = completeLocation(element);
+        final Bundle b = bc.installBundle(url);
         out.println("Installed: " + showBundle(b));
         if (opts.get("-s") != null) {
           b.start(Bundle.START_ACTIVATION_POLICY);
           out.println("Started: " + showBundle(b));
         }
       }
-    } catch (BundleException e) {
+    } catch (final BundleException e) {
       Throwable t = e;
       while (t instanceof BundleException
-             && ((BundleException) t).getNestedException() != null)
+             && ((BundleException) t).getNestedException() != null) {
         t = ((BundleException) t).getNestedException();
+      }
       if (t instanceof FileNotFoundException) {
         out.println("Couldn't install/start bundle: URL not found: "
                     + url);
@@ -969,7 +937,7 @@ public class FrameworkCommandGroup
     "-b   Display using bytes",
     "-m   Display using megabytes" };
 
-  public int cmdMeminfo(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdMeminfo(Dictionary<String,?> opts, Reader in, PrintWriter out,
                          Session session) {
     if (opts.get("-gc") != null) {
       System.gc();
@@ -984,7 +952,7 @@ public class FrameworkCommandGroup
       d = d * 1024;
       unit = "MB";
     }
-    Runtime r = Runtime.getRuntime();
+    final Runtime r = Runtime.getRuntime();
     out.println("Total: " + (r.totalMemory() + d/2) / d
         + "  Free: " + (r.freeMemory() + d/2) / d
         + "  Max: " + (r.maxMemory() + d/2) / d + "  (" + unit + ")");
@@ -1006,31 +974,31 @@ public class FrameworkCommandGroup
     "-p         Only look at selected packages",
     "<selection>  Package or bundle" };
 
-  public int cmdPackage(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdPackage(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
     if (packageAdmin == null) {
       out.println("Package Admin service is not available");
       return 1;
     }
-    boolean verbose = opts.get("-l") != null;
+    final boolean verbose = opts.get("-l") != null;
     ExportedPackage[] epkgs;
-    String[] selection = (String[]) opts.get("selection");
+    final String[] selection = (String[]) opts.get("selection");
     if (opts.get("-b") != null) {
-      Bundle[] b = getBundles(selection, false);
+      final Bundle[] b = getBundles(selection, false);
       epkgs = new ExportedPackage[0];
-      for (int i = 0; i < b.length; i++) {
-        if (b[i] != null) {
-          ExportedPackage[] e = packageAdmin
-            .getExportedPackages(b[i]);
+      for (final Bundle element : b) {
+        if (element != null) {
+          final ExportedPackage[] e = packageAdmin
+            .getExportedPackages(element);
           if (e != null) {
             if (verbose) {
-              ExportedPackage[] ne = new ExportedPackage[e.length
+              final ExportedPackage[] ne = new ExportedPackage[e.length
                                                          + epkgs.length];
               System.arraycopy(epkgs, 0, ne, 0, epkgs.length);
               System.arraycopy(e, 0, ne, epkgs.length, e.length);
               epkgs = ne;
             } else {
-              out.println("Exported by " + showBundle(b[i]));
+              out.println("Exported by " + showBundle(element));
               out.println("   Package: " + e[0].getName());
               for (int j = 1; j < e.length; j++) {
                 out.println("            " + e[j].getName());
@@ -1056,7 +1024,7 @@ public class FrameworkCommandGroup
     for (int i = 0; i < epkgs.length; i++) {
       if (epkgs[i] != null) {
         out.print("Package: " + epkgs[i].getName());
-        Bundle b = epkgs[i].getExportingBundle();
+        final Bundle b = epkgs[i].getExportingBundle();
         if (verbose) {
           out.println();
           out.println("   specification version: "
@@ -1064,7 +1032,7 @@ public class FrameworkCommandGroup
           out.println("   removal pending: "
                       + epkgs[i].isRemovalPending());
           out.println("   exporting bundle: " + showBundle(b));
-          Bundle[] ib = epkgs[i].getImportingBundles();
+          final Bundle[] ib = epkgs[i].getImportingBundles();
           if (ib != null && ib.length > 0) {
             out.println("   importing bundle: "
                         + showBundle(ib[0]));
@@ -1088,6 +1056,247 @@ public class FrameworkCommandGroup
   }
 
   //
+  // Capability command
+  //
+
+  public final static String USAGE_CAPABILITY = "[-d] [-i] [-l] [-r] [-p] [<bundle>] ...";
+
+  public final static String[] HELP_CAPABILITY = new String[] {
+    "Show information about active capablities in the current wiring for a bundle",
+    "-d         Show declared capabilities",
+    "-i         Sort on bundle id",
+    "-l         Long format show all details",
+    "-r         Only show required capabilites",
+    "-p         Only provided capabilites",
+    "<bundle>   The selected bundle" };
+
+  public int cmdCapability(Dictionary<String, ?> opts,
+                           Reader in,
+                           PrintWriter out,
+                           Session session)
+  {
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"),
+                            opts.get("-i") != null);
+    final boolean doRequirements = opts.get("-r")!=null;
+    final boolean doProvides = opts.get("-p")!=null;
+    final boolean doDetailed = opts.get("-l")!=null;
+    final boolean doDeclared = opts.get("-d")!=null;
+
+    boolean found = false;
+    for (final Bundle element : b) {
+      if (element != null) {
+        out.println("Bundle: " + showBundle(element));
+        found = true;
+        final BundleRevision rev = element.adapt(BundleRevision.class);
+        final BundleWiring wiring = rev.getWiring();
+        if (!doDeclared && wiring == null) {
+          out.println("  Bundle is unresolved, only declared capabilites are available.");
+        } else {
+          final String prefix = doDeclared ? "  Declared " : "  ";
+
+          if (doRequirements || !doProvides) {
+            out.print(prefix);
+            out.println("Requirements: ");
+            final List<BundleRequirement> reqs = doDeclared
+              ? rev.getDeclaredRequirements(null)
+              : rev.getWiring().getRequirements(null);
+            for (final BundleRequirement req : reqs) {
+              out.print("    ");
+              out.print(req.getNamespace());
+              out.print("  ");
+              if (!doDetailed) {
+                final String f = req.getDirectives().get(Constants.FILTER_DIRECTIVE);
+                out.println(f != null ? f : "NO FILTER");
+              } else {
+                out.println(req.getDirectives());
+              }
+            }
+          }
+
+          if (doProvides || !doRequirements) {
+            out.print(prefix);
+            out.println("Capabilites: ");
+            final List<BundleCapability> caps = doDeclared
+              ? rev.getDeclaredCapabilities(null)
+              : rev.getWiring().getCapabilities(null);
+            for (final BundleCapability bc : caps) {
+              out.print("    ");
+              out.print(bc.getNamespace());
+              out.print("  ");
+              out.print(bc.getAttributes());
+              if (doDetailed) {
+                out.print(" ");
+                out.print(bc.getDirectives());
+              }
+              out.println();
+            }
+          }
+        }
+      }
+    }
+    if (!found) {
+      out.println("ERROR! No matching bundle");
+      return 1;
+    }
+    return 0;
+  }
+
+  //
+  // Pending command
+  //
+
+  public final static String USAGE_PENDING = "[-i] [-l]";
+
+  public final static String[] HELP_PENDING = new String[] {
+    "Show the bundles that have non-current, in use bundle wirings",
+    "-i         Sort on bundle id",
+    "-l         Long format show all details" };
+
+  public int cmdPending(Dictionary<String, ?> opts,
+                        Reader in,
+                        PrintWriter out,
+                        Session session)
+  {
+    final boolean doDetailed = opts.get("-l") != null;
+    final Bundle systemBundle = bc.getBundle(0);
+    final FrameworkWiring frameworkWiring =
+        systemBundle.adapt(FrameworkWiring.class);
+
+    Collection<Bundle> bundles = frameworkWiring.getRemovalPendingBundles();
+    if (bundles.isEmpty()) {
+      out.println("No removal pending.");
+    } else {
+      Bundle[] barr = bundles.toArray(new Bundle[bundles.size()]);
+      if (opts.get("-i") != null) {
+        Util.sortBundlesId(barr);
+      }
+      for (final Bundle element : barr) {
+        out.println("Bundle: " + showBundle(element));
+        if (doDetailed) {
+          out.print("  Reason: ");
+          final BundleRevisions brs = element.adapt(BundleRevisions.class);
+          final List<BundleRevision> revs = brs.getRevisions();
+          if (revs.isEmpty()) {
+            out.println("Bundle became unused during command execution.");
+          } else {
+              switch (revs.get(0).getBundle().getState()) {
+              case Bundle.INSTALLED:
+                out.println("Bundle has been updated.");
+                break;
+              case Bundle.UNINSTALLED:
+                out.println("Bundle has been uninstalled.");
+                break;
+              default:
+                out.println("Bundle has been updated and resolved.");
+            }
+          }
+        }
+      }
+    }
+    return 0;
+  }
+
+  //
+  // Wiring command
+  //
+
+  public final static String USAGE_WIRING = "[-i] [-l] [-r] [-p] [<bundle>] ...";
+
+  public final static String[] HELP_WIRING = new String[] {
+    "Show information about active wires in the current wiring for a bundle",
+    "-i         Sort on bundle id",
+    "-l         Long format show all details",
+    "-r         Only show wires for required capabilites",
+    "-p         Only show wires for provided capabilites",
+    "<bundle>   The selected bundle" };
+
+  public int cmdWiring(Dictionary<String, ?> opts,
+                       Reader in,
+                       PrintWriter out,
+                       Session session)
+  {
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"),
+                            opts.get("-i") != null);
+    final boolean doRequirements = opts.get("-r")!=null;
+    final boolean doProvides = opts.get("-p")!=null;
+    final boolean doDetailed = opts.get("-l")!=null;
+
+    boolean found = false;
+    for (final Bundle element : b) {
+      if (element != null) {
+        out.println("Bundle: " + showBundle(element));
+        found = true;
+        final BundleRevision rev = element.adapt(BundleRevision.class);
+        final BundleWiring wiring = rev.getWiring();
+        if (wiring == null) {
+          out.println("  Bundle is unresolved, no wires are defined.");
+        } else {
+
+          if (doRequirements || !doProvides) {
+            out.println("  Required Wires: ");
+            BundleRequirement prevReq = null;
+            for (final BundleWire w : wiring.getRequiredWires(null)) {
+              final BundleRequirement req = w.getRequirement();
+              final BundleCapability cap = w.getCapability();
+              if (!req.equals(prevReq)) {
+                out.print("    ");
+                out.print(req.getNamespace());
+                out.print("  ");
+                if (!doDetailed) {
+                  final String f = req.getDirectives()
+                      .get(Constants.FILTER_DIRECTIVE);
+                  out.println(f != null ? f : "NO FILTER");
+                } else {
+                  out.println(req.getDirectives());
+                }
+              }
+              final BundleRevision provider = w.getProviderWiring().getRevision();
+              out.print("      ");
+              out.print(showBundle(provider.getBundle()));
+              out.print(" - ");
+              out.println(cap.getAttributes());
+              prevReq = req;
+            }
+          }
+
+          if (doProvides || !doRequirements) {
+            out.println("  Provided Wires: ");
+            BundleCapability  prevCap = null;
+            for (final BundleWire w : wiring.getProvidedWires(null)) {
+              final BundleRequirement req = w.getRequirement();
+              final BundleCapability  cap = w.getCapability();
+
+              if (!cap.equals(prevCap)) {
+                out.print("    ");
+                out.print(cap.getNamespace());
+                out.print("  ");
+                out.print(cap.getAttributes());
+                if (doDetailed) {
+                  out.print(" ");
+                  out.print(cap.getDirectives());
+                }
+                out.println();
+              }
+              final BundleRevision requierer = w.getRequirerWiring().getRevision();
+              out.print("      ");
+              out.print(showBundle(requierer.getBundle()));
+              out.print(" - ");
+              out.print(req.getDirectives().get(Constants.FILTER_DIRECTIVE));
+              out.println();
+              prevCap = cap;
+            }
+          }
+        }
+      }
+    }
+    if (!found) {
+      out.println("ERROR! No matching bundle");
+      return 1;
+    }
+    return 0;
+  }
+
+  //
   // Permissions command
   //
 
@@ -1099,7 +1308,7 @@ public class FrameworkCommandGroup
     "-d           Show default permissions",
     "<selection>  Name or id of bundle or an unknown location" };
 
-  public int cmdPermissions(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdPermissions(Dictionary<String,?> opts, Reader in, PrintWriter out,
                             Session session) {
     if (permissionAdminHelper == null) {
       out.println("Permission Admin service is not available");
@@ -1116,34 +1325,32 @@ public class FrameworkCommandGroup
   public final static String USAGE_REFRESH = "[<bundle>] ...";
 
   public final static String[] HELP_REFRESH = new String[] {
-    "Refresh all exported java packages belong to specified bundle",
+    "Refresh all wired capabilities provided by the specified bundle(s)",
     "If no bundle is specified refresh all bundles",
     "<bundle> Name or id of bundle" };
 
-  public int cmdRefresh(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdRefresh(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
-    if (packageAdmin == null) {
-      out.println("Package Admin service is not available");
-      return 1;
-    }
-    String[] bs = (String[]) opts.get("bundle");
+    final Bundle systemBundle = bc.getBundle(0);
+    final FrameworkWiring frameworkWiring =
+      systemBundle.adapt(FrameworkWiring.class);
+
+    final List<Bundle> bundles = new ArrayList<Bundle>();
+    final String[] bs = (String[]) opts.get("bundle");
     if (bs != null) {
-      Bundle[] b = getBundles(bs, true);
-      for (int i = 0; i < b.length; i++) {
-        if (b[i] == null) {
-          Bundle[] nb = new Bundle[i];
-          System.arraycopy(b, 0, nb, 0, nb.length);
-          b = nb;
-          break;
+      final Bundle[] b = getBundles(bs, true);
+      for (final Bundle element : b) {
+        if (element != null) {
+          bundles.add(element);
         }
       }
-      if (b.length == 0) {
+      if (bundles.isEmpty()) {
         out.println("ERROR! No matching bundle");
         return 1;
       }
-      packageAdmin.refreshPackages(b);
+      frameworkWiring.refreshBundles(bundles);
     } else {
-      packageAdmin.refreshPackages(null);
+      frameworkWiring.refreshBundles(null);
     }
     return 0;
   }
@@ -1159,30 +1366,30 @@ public class FrameworkCommandGroup
     "If no bundle is specified resolve all bundles",
     "<bundle> Name or id of bundle" };
 
-  public int cmdResolve(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdResolve(Dictionary<String,?> opts, Reader in, PrintWriter out,
                         Session session) {
-    if (packageAdmin == null) {
-      out.println("Package Admin service is not available");
-      return 1;
-    }
-    String[] bs = (String[]) opts.get("bundle");
+    final Bundle systemBundle = bc.getBundle(0);
+    final FrameworkWiring frameworkWiring =
+      systemBundle.adapt(FrameworkWiring.class);
+
+    final List<Bundle> bundles = new ArrayList<Bundle>();
+    final String[] bs = (String[]) opts.get("bundle");
     Bundle[] b = null;
     if (bs != null) {
       b = getBundles(bs, true);
-      for (int i = 0; i < b.length; i++) {
-        if (b[i] == null) {
-          Bundle[] nb = new Bundle[i];
-          System.arraycopy(b, 0, nb, 0, nb.length);
-          b = nb;
-          break;
+      for (final Bundle element : b) {
+        if (element != null) {
+          bundles.add(element);
         }
       }
       if (b.length == 0) {
         out.println("ERROR! No matching bundle");
         return 1;
       }
+      frameworkWiring.resolveBundles(bundles);
+    } else {
+      frameworkWiring.resolveBundles(null);
     }
-    packageAdmin.resolveBundles(b);
     return 0;
   }
 
@@ -1203,16 +1410,16 @@ public class FrameworkCommandGroup
     "-f #filter# Show all services that matches the specified filter.",
     "<bundle>    Name or id of bundle" };
 
-  public int cmdServices(final Dictionary opts, Reader in,
+  public int cmdServices(final Dictionary<String,?> opts, Reader in,
                          final PrintWriter out, Session session) {
     final Bundle[] b = getBundles((String[]) opts.get("bundle"), opts
                                   .get("-i") != null);
-    Integer res = (Integer) AccessController.doPrivileged(new PrivilegedAction()
+    final Integer res = AccessController.doPrivileged(new PrivilegedAction<Integer>()
       {
-        public Object run() {
-          boolean useDefaultOper = opts.get("-r") == null
+        public Integer run() {
+          final boolean useDefaultOper = opts.get("-r") == null
             && opts.get("-u") == null;
-          ServiceReference[] fs = null;
+          ServiceReference<?>[] fs = null;
           String filter = null;
           if (opts.get("-f") != null) {
             filter = (String) opts.get("-f");
@@ -1229,25 +1436,25 @@ public class FrameworkCommandGroup
           }
           if (filter != null) {
             try {
-              fs = bc.getServiceReferences(null, filter);
+              fs = bc.getServiceReferences((String)null, filter);
               if (null==fs) {
                 out.println("No services matching '"+filter +"'.");
                 return new Integer(0);
               }
-            } catch (InvalidSyntaxException ise) {
+            } catch (final InvalidSyntaxException ise) {
               out.println("Invalid filter '" +filter +"' found: "
                           +ise.getMessage());
               return new Integer(1);
             }
           }
 
-          for (int i = 0; i < b.length; i++) {
-            if (b[i] != null) {
-              final String heading = "Bundle: " + showBundle(b[i]);
+          for (final Bundle element : b) {
+            if (element != null) {
+              final String heading = "Bundle: " + showBundle(element);
               boolean headingPrinted = false;
               if (opts.get("-r") != null || useDefaultOper) {
                 headingPrinted =
-                  showServices(getServicesRegisteredBy(b[i],fs),
+                  showServices(getServicesRegisteredBy(element,fs),
                                out,
                                heading,
                                headingPrinted,
@@ -1256,7 +1463,7 @@ public class FrameworkCommandGroup
               }
               if (opts.get("-u") != null) {
                 headingPrinted =
-                  showServices(getServicesUsedBy(b[i],fs),
+                  showServices(getServicesUsedBy(element,fs),
                                out,
                                heading,
                                headingPrinted,
@@ -1271,42 +1478,44 @@ public class FrameworkCommandGroup
     return res.intValue();
   }
 
-  ServiceReference[] getServicesRegisteredBy(Bundle b,
-                                             ServiceReference[] services)
+  ServiceReference<?>[] getServicesRegisteredBy(Bundle b,
+                                             ServiceReference<?>[] services)
   {
     if (services==null) {
       return b.getRegisteredServices();
     }
     // Filter the given services on registered by.
-    long bid = b.getBundleId();
+    final long bid = b.getBundleId();
     int count = 0;
-    for (int j = 0; j<services.length; j++) {
-      if (bid==services[j].getBundle().getBundleId()) {
+    for (final ServiceReference<?> service : services) {
+      if (bid==service.getBundle().getBundleId()) {
         count++;
       }
     }
-    if (0==count) return null;
-    ServiceReference[] res = new ServiceReference[count];
+    if (0==count) {
+      return null;
+    }
+    final ServiceReference<?>[] res = new ServiceReference<?>[count];
     int ix = 0;
-    for (int j = 0; j<services.length; j++) {
-      if (bid==services[j].getBundle().getBundleId()) {
-        res[ix++] = services[j];
+    for (final ServiceReference<?> service : services) {
+      if (bid==service.getBundle().getBundleId()) {
+        res[ix++] = service;
       }
     }
     return res;
   }
 
-  ServiceReference[] getServicesUsedBy(Bundle b,
-                                       ServiceReference[] services)
+  ServiceReference<?>[] getServicesUsedBy(Bundle b,
+                                       ServiceReference<?>[] services)
   {
     if (null==services) {
       return b.getServicesInUse();
     }
     // Filter the given services on using bundle.
-    long bid = b.getBundleId();
+    final long bid = b.getBundleId();
     int count = 0;
-    for (int j = 0; j<services.length; j++) {
-      Bundle[] usingBundles = services[j].getUsingBundles();
+    for (final ServiceReference<?> service : services) {
+      final Bundle[] usingBundles = service.getUsingBundles();
       for (int k=0; usingBundles!=null && k<usingBundles.length; k++) {
         if (bid==usingBundles[k].getBundleId()) {
           count++;
@@ -1314,14 +1523,16 @@ public class FrameworkCommandGroup
         }
       }
     }
-    if (0==count) return null;
-    ServiceReference[] res = new ServiceReference[count];
+    if (0==count) {
+      return null;
+    }
+    final ServiceReference<?>[] res = new ServiceReference<?>[count];
     int ix = 0;
-    for (int j = 0; j<services.length; j++) {
-      Bundle[] usingBundles = services[j].getUsingBundles();
+    for (final ServiceReference<?> service : services) {
+      final Bundle[] usingBundles = service.getUsingBundles();
       for (int k=0; usingBundles!=null && k<usingBundles.length; k++) {
         if (bid==usingBundles[k].getBundleId()) {
-          res[ix++] = services[j];
+          res[ix++] = service;
           break;
         }
       }
@@ -1329,7 +1540,7 @@ public class FrameworkCommandGroup
     return res;
   }
 
-  boolean showServices(final ServiceReference[] services,
+  boolean showServices(final ServiceReference<?>[] services,
                        final PrintWriter out,
                        final String heading,
                        final boolean headinPrinted,
@@ -1341,13 +1552,13 @@ public class FrameworkCommandGroup
         out.println(heading);
       }
       out.print(title);
-      for (int j = 0; j<services.length; j++) {
-        if (null!=services[j]) {
+      for (final ServiceReference<?> service : services) {
+        if (null!=service) {
           if (detailed) {
             out.print("\n    ");
-            showLongService(services[j], "    ", out);
+            showLongService(service, "    ", out);
           } else {
-            out.print(" "+ Util.showServiceClasses(services[j]));
+            out.print(" "+ Util.showServiceClasses(service));
           }
         }
       }
@@ -1357,12 +1568,12 @@ public class FrameworkCommandGroup
     return false;
   }
 
-  void showLongService(ServiceReference s, String pad, PrintWriter out) {
+  void showLongService(ServiceReference<?> s, String pad, PrintWriter out) {
     out.print(Util.showServiceClasses(s));
-    String[] k = s.getPropertyKeys();
-    for (int i = 0; i < k.length; i++) {
-      out.print("\n  " + pad + k[i] + " = "
-                + Util.showObject(s.getProperty(k[i])));
+    final String[] k = s.getPropertyKeys();
+    for (final String element : k) {
+      out.print("\n  " + pad + element + " = "
+                + Util.showObject(s.getProperty(element)));
     }
   }
 
@@ -1382,7 +1593,7 @@ public class FrameworkCommandGroup
     "Example that grants all bundles installed with a file-url all permissions:",
     "> setcondpermission '[org.osgi.service.condpermadmin.BundleLocationCondition \"file:*\"]' (java.security.AllPermission)" };
 
-  public int cmdSetcondpermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdSetcondpermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                                   Session session) {
     if (permissionAdminHelper == null) {
       out.println("Conditional Permission Admin service is not available");
@@ -1405,7 +1616,7 @@ public class FrameworkCommandGroup
     "<bundle> Name or id of bundle"
   };
 
-  public int cmdStart(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdStart(Dictionary<String,?> opts, Reader in, PrintWriter out,
                       Session session) {
     int startOptions = 0;
     if (opts.get("-t") != null) {
@@ -1415,19 +1626,20 @@ public class FrameworkCommandGroup
       startOptions |= Bundle.START_ACTIVATION_POLICY;
     }
 
-    Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
-    for (int i = 0; i < b.length; i++) {
-      if (b[i] != null) {
+    for (final Bundle element : b) {
+      if (element != null) {
         try {
-          b[i].start(startOptions);
-          out.println("Started: " + showBundle(b[i]));
-        } catch (BundleException e) {
+          element.start(startOptions);
+          out.println("Started: " + showBundle(element));
+        } catch (final BundleException e) {
           Throwable t = e;
           while (t instanceof BundleException
-                 && ((BundleException) t).getNestedException() != null)
+                 && ((BundleException) t).getNestedException() != null) {
             t = ((BundleException) t).getNestedException();
-          out.println("Couldn't start bundle: " + showBundle(b[i])
+          }
+          out.println("Couldn't start bundle: " + showBundle(element)
                       + " (due to: " + t + ")");
           t.printStackTrace(out);
         }
@@ -1451,25 +1663,26 @@ public class FrameworkCommandGroup
     "<bundle> Name or id of bundle"
   };
 
-  public int cmdStop(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdStop(Dictionary<String,?> opts, Reader in, PrintWriter out,
                      Session session) {
     int stopOptions = 0;
     if (opts.get("-t") != null) {
       stopOptions |= Bundle.STOP_TRANSIENT;
     }
 
-    Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
     for (int i = b.length - 1; i >= 0; i--) {
       if (b[i] != null) {
         try {
           b[i].stop(stopOptions);
           out.println("Stopped: " + showBundle(b[i]));
-        } catch (BundleException e) {
+        } catch (final BundleException e) {
           Throwable t = e;
           while (t instanceof BundleException
-                 && ((BundleException) t).getNestedException() != null)
+                 && ((BundleException) t).getNestedException() != null) {
             t = ((BundleException) t).getNestedException();
+          }
           out.println("Couldn't stop bundle: " + showBundle(b[i])
                       + " (due to: " + t + ")");
         }
@@ -1493,18 +1706,19 @@ public class FrameworkCommandGroup
     "Show the state of a service, if the service provides state information",
     "<pid>     The service pid(s) of interest" };
 
-  public int cmdShowstate(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdShowstate(Dictionary<String,?> opts, Reader in, PrintWriter out,
                           Session session) {
-    String[] pids = (String[]) opts.get("pid");
+    final String[] pids = (String[]) opts.get("pid");
     try {
       if (pids != null && pids.length > 0) {
-        for (int i = 0; i < pids.length; i++) {
-          showstate(out, bc.getServiceReferences(null, "(service.id="
-                                                 + pids[i] + ")"));
+        for (final String pid : pids) {
+          showstate(out, bc.getServiceReferences((String)null, "(service.id="
+                                                 + pid + ")"));
         }
-      } else
-        showstate(out, bc.getServiceReferences(null, "(state=*)"));
-    } catch (Exception e) {
+      } else {
+        showstate(out, bc.getServiceReferences((String)null, "(state=*)"));
+      }
+    } catch (final Exception e) {
       out.println("Error: " + e);
     }
     return 0;
@@ -1519,27 +1733,27 @@ public class FrameworkCommandGroup
   public final static String[] HELP_SHUTDOWN = new String[] {
     "Shutdown framework", "-r Restart framework" };
 
-  public int cmdShutdown(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdShutdown(Dictionary<String,?> opts, Reader in, PrintWriter out,
                          Session session) {
 
-    boolean restart = opts.get("-r") != null;
+    final boolean restart = opts.get("-r") != null;
 
-      Bundle sysBundle = bc.getBundle(0);
+      final Bundle sysBundle = bc.getBundle(0);
       if (restart) {
         try {
           sysBundle.update(); // restart the framework
-        } catch (Exception e) {
+        } catch (final Exception e) {
           out.println("Failed to restart the framework " + e);
           return 1;
         }
       } else {
         try {
           sysBundle.stop(); // shut down the framework
-        } catch (Exception e) {
+        } catch (final Exception e) {
           out.println("Failed to stop using system bundle " + e);
           try {
             System.exit(0);
-          } catch (Exception e2) {
+          } catch (final Exception e2) {
             out.println("Failed to exit using system exit " + e2);
             return 1;
           }
@@ -1560,7 +1774,7 @@ public class FrameworkCommandGroup
     "-s     Display stack trace for thread",
     "<name> Names of specific threads, can be a wildcard * at the end" };
 
-  public int cmdThreads(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdThreads(Dictionary<String,?> opts, Reader in, PrintWriter out,
                          Session session) {
     final String [] threadNames = (String [])opts.get("name");
     final boolean showAll = opts.get("-a") != null;
@@ -1579,7 +1793,7 @@ public class FrameworkCommandGroup
     Thread [] threads;
     int count;
     while (true) {
-      int acount = tg.activeCount() + 5;
+      final int acount = tg.activeCount() + 5;
       threads = new Thread[acount];
       count = tg.enumerate(threads);
       if (count < acount) {
@@ -1589,9 +1803,9 @@ public class FrameworkCommandGroup
     int groupCols = tg.getName().length();
     boolean sameGroup = true;
     for (int i = 0; i < count; i++) {
-      ThreadGroup itg = threads[i].getThreadGroup();
+      final ThreadGroup itg = threads[i].getThreadGroup();
       if (!tg.equals(itg)) {
-        int cols = itg.getName().length();
+        final int cols = itg.getName().length();
         if (groupCols < cols) {
           groupCols = cols;
         }
@@ -1600,7 +1814,7 @@ public class FrameworkCommandGroup
     }
     out.print("Pri ");
     if (!sameGroup) {
-      String glabel = "Group                              ";
+      final String glabel = "Group                              ";
       if (groupCols < 4) {
         groupCols = 4;
       }
@@ -1614,18 +1828,18 @@ public class FrameworkCommandGroup
     out.println("Name");
     for (int i = 0; i < count; i++) {
       try {
-        StringBuffer sb = new StringBuffer();
+        final StringBuffer sb = new StringBuffer();
         if (threadNames != null) {
           boolean match = false;
-          for (int j = 0; j < threadNames.length; j++) {
-            String name = threads[i].getName();
-            int last = threadNames[j].length() - 1;
-            if (threadNames[j].indexOf('*') == last && last >= 0) {
-              if (name.startsWith(threadNames[j].substring(0, last))) {
+          for (final String threadName : threadNames) {
+            final String name = threads[i].getName();
+            final int last = threadName.length() - 1;
+            if (threadName.indexOf('*') == last && last >= 0) {
+              if (name.startsWith(threadName.substring(0, last))) {
                 match = true;
                 break;
               }
-            } else if (name.equals(threadNames[j])) {
+            } else if (name.equals(threadName)) {
               match = true;
               break;
             }
@@ -1634,7 +1848,7 @@ public class FrameworkCommandGroup
             continue;
           }
         }
-        int p = threads[i].getPriority();
+        final int p = threads[i].getPriority();
         if (p < 10) {
           sb.append(' ');
         }
@@ -1643,7 +1857,7 @@ public class FrameworkCommandGroup
           sb.append(' ');
         } while (sb.length() < 4);
         if (!sameGroup) {
-          String g = threads[i].getThreadGroup().getName();
+          final String g = threads[i].getThreadGroup().getName();
           sb.append(g);
           int l = g.length();
           do {
@@ -1656,7 +1870,7 @@ public class FrameworkCommandGroup
         if (showStack) {
           out.println(printStackTrace(threads[i]));
         }
-      } catch (NullPointerException _ignore) {
+      } catch (final NullPointerException _ignore) {
         // Handle disappering thread
       }
     }
@@ -1665,19 +1879,20 @@ public class FrameworkCommandGroup
 
   private String printStackTrace(Thread t) {
     try {
-      Method m = t.getClass().getMethod("getStackTrace", null);
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-      StackTraceElement [] st = (StackTraceElement [])m.invoke(t, null);
-      for (int i = 0; i < st.length; i++) {
-        pw.println(" >  " + st[i]);
+      final Method m = t.getClass().getMethod("getStackTrace", (Class[]) null);
+      final StringWriter sw = new StringWriter();
+      final PrintWriter pw = new PrintWriter(sw);
+      final StackTraceElement [] st = (StackTraceElement [])
+        m.invoke(t, (Object[]) null);
+      for (final StackTraceElement element : st) {
+        pw.println(" >  " + element);
       }
       return sw.toString();
-    } catch (IllegalAccessException _ia) {
+    } catch (final IllegalAccessException _ia) {
       return " ** Failed access StackTrace.";
-    } catch (InvocationTargetException _it) {
+    } catch (final InvocationTargetException _it) {
       return " ** Failed to get StackTrace.";
-    } catch (NoSuchMethodException _nsm) {
+    } catch (final NoSuchMethodException _nsm) {
       return " ** java.lang.Thread.getStackTrace() not available.";
     }
   }
@@ -1692,21 +1907,22 @@ public class FrameworkCommandGroup
   public final static String[] HELP_UNINSTALL = new String[] {
     "Uninstall one or more bundles", "<bundle> Name or id of bundle" };
 
-  public int cmdUninstall(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdUninstall(Dictionary<String,?> opts, Reader in, PrintWriter out,
                           Session session) {
-    Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
-    for (int i = 0; i < b.length; i++) {
-      if (b[i] != null) {
+    for (final Bundle element : b) {
+      if (element != null) {
         try {
-          b[i].uninstall();
-          out.println("Uninstalled: " + showBundle(b[i]));
-        } catch (BundleException e) {
+          element.uninstall();
+          out.println("Uninstalled: " + showBundle(element));
+        } catch (final BundleException e) {
           Throwable t = e;
           while (t instanceof BundleException
-                 && ((BundleException) t).getNestedException() != null)
+                 && ((BundleException) t).getNestedException() != null) {
             t = ((BundleException) t).getNestedException();
-          out.println("Couldn't uninstall: " + showBundle(b[i])
+          }
+          out.println("Couldn't uninstall: " + showBundle(element)
                       + " (due to: " + t + ")");
         }
         found = true;
@@ -1731,20 +1947,21 @@ public class FrameworkCommandGroup
     "Note: Use refresh command to force the framework to do a package update",
     "of exported packages used by running bundles." };
 
-  public int cmdUpdate(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdUpdate(Dictionary<String,?> opts, Reader in, PrintWriter out,
                        Session session) {
-    Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
+    final Bundle[] b = getBundles((String[]) opts.get("bundle"), true);
     boolean found = false;
     for (int i = b.length - 1; i >= 0; i--) {
       if (b[i] != null) {
         try {
           b[i].update();
           out.println("Updated: " + showBundle(b[i]));
-        } catch (BundleException e) {
+        } catch (final BundleException e) {
           Throwable t = e;
           while (t instanceof BundleException
-                 && ((BundleException) t).getNestedException() != null)
+                 && ((BundleException) t).getNestedException() != null) {
             t = ((BundleException) t).getNestedException();
+          }
           out.println("Couldn't update: " + showBundle(b[i])
                       + " (due to: " + t + ")");
         }
@@ -1771,32 +1988,33 @@ public class FrameworkCommandGroup
     "Note 2: The base URLs used to complete partial URLs may be set using the cd command"
   };
 
-  public int cmdFromupdate(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdFromupdate(Dictionary<String,?> opts, Reader in, PrintWriter out,
                            Session session) {
-    String bname = (String) opts.get("bundle");
-    Bundle[] bl = getBundles(new String[] { bname }, true);
-    String fromURL = completeLocation((String) opts.get("url"));
+    final String bname = (String) opts.get("bundle");
+    final Bundle[] bl = getBundles(new String[] { bname }, true);
+    final String fromURL = completeLocation((String) opts.get("url"));
 
-    Bundle b = bl[0];
+    final Bundle b = bl[0];
     if (b == null) {
       out.println("ERROR! No matching bundle for '" + bname + "'");
       return 1;
     }
 
     try {
-      URL url = new URL(fromURL);
-      URLConnection conn = url.openConnection();
-      InputStream inStream = conn.getInputStream();
+      final URL url = new URL(fromURL);
+      final URLConnection conn = url.openConnection();
+      final InputStream inStream = conn.getInputStream();
       b.update(inStream);
       out.println("Updated: " + showBundle(b));
-    } catch (BundleException e) {
+    } catch (final BundleException e) {
       Throwable t = e;
       while (t instanceof BundleException
-             && ((BundleException) t).getNestedException() != null)
+             && ((BundleException) t).getNestedException() != null) {
         t = ((BundleException) t).getNestedException();
+      }
       out.println("Couldn't update: " + showBundle(b) + " (due to: " + t
                   + ")");
-    } catch (Exception e) {
+    } catch (final Exception e) {
       out.println("Couldn't update: " + showBundle(b) + " (due to: " + e
                   + ")");
     }
@@ -1815,7 +2033,7 @@ public class FrameworkCommandGroup
     "Note: The base URLs used to complete partial URLs may be set using the cd command"
   };
 
-  public int cmdFrominstall(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdFrominstall(Dictionary<String,?> opts, Reader in, PrintWriter out,
                             Session session) {
     final String fromURL = completeLocation( (String) opts.get("url"));
     String loc = (String) opts.get("location");
@@ -1825,19 +2043,20 @@ public class FrameworkCommandGroup
     }
 
     try {
-      URL url = new URL(fromURL);
-      URLConnection conn = url.openConnection();
-      InputStream inStream = conn.getInputStream();
-      Bundle b = bc.installBundle(loc, inStream);
+      final URL url = new URL(fromURL);
+      final URLConnection conn = url.openConnection();
+      final InputStream inStream = conn.getInputStream();
+      final Bundle b = bc.installBundle(loc, inStream);
       out.println("Installed: " + showBundle(b));
-    } catch (BundleException e) {
+    } catch (final BundleException e) {
       Throwable t = e;
       while (t instanceof BundleException
-             && ((BundleException) t).getNestedException() != null)
+             && ((BundleException) t).getNestedException() != null) {
         t = ((BundleException) t).getNestedException();
+      }
       out.println("Couldn't install: url=" + fromURL + ", location="
                   + loc + " (due to: " + t + ")");
-    } catch (Exception e) {
+    } catch (final Exception e) {
       out.println("Couldn't install: url=" + fromURL + ", location="
                   + loc + " (due to: " + e + ")");
     }
@@ -1849,12 +2068,12 @@ public class FrameworkCommandGroup
   // Private methods
   //
 
-  private void showstate(PrintWriter out, ServiceReference[] srs) {
+  private void showstate(PrintWriter out, ServiceReference<?>[] srs) {
     if (srs != null) {
-      for (int i = 0; i < srs.length; i++) {
-        Object state = srs[i].getProperty("state");
+      for (final ServiceReference<?> sr : srs) {
+        final Object state = sr.getProperty("state");
         if (state != null) {
-          out.println("State for " + srs[i].getProperty("service.id")
+          out.println("State for " + sr.getProperty("service.id")
                       + ":");
           out.println(state.toString());
         }
@@ -1876,7 +2095,7 @@ public class FrameworkCommandGroup
                               boolean sortNumeric,
                               boolean sortStartLevel,
                               boolean sortTime) {
-    Bundle[] b = bc.getBundles();
+    final Bundle[] b = bc.getBundles();
     Util.selectBundles(b, selection);
     if (sortNumeric) {
       Util.sortBundlesId(b);
@@ -1903,22 +2122,16 @@ public class FrameworkCommandGroup
   protected void sortBundlesStartLevel(Bundle[] b) {
     int x = b.length;
 
-    for (int l = x; x > 0;) {
+    for (final int l = x; x > 0;) {
       x = 0;
       int p = Integer.MAX_VALUE;
-      try {
-        p = startLevel.getBundleStartLevel(b[0]);
-      } catch (Exception ignored) {
-      }
+      p = b[0].adapt(BundleStartLevel.class).getStartLevel();
       for (int i = 1; i < l; i++) {
         int n = Integer.MAX_VALUE;
-        try {
-          n = startLevel.getBundleStartLevel(b[i]);
-        } catch (Exception ignored) {
-        }
+        n = b[i].adapt(BundleStartLevel.class).getStartLevel();
         if (p > n) {
           x = i - 1;
-          Bundle t = b[x];
+          final Bundle t = b[x];
           b[x] = b[i];
           b[i] = t;
         } else {
@@ -1929,16 +2142,16 @@ public class FrameworkCommandGroup
   }
 
   public String showState(Bundle bundle) {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
 
     try {
-      StringBuffer s = new StringBuffer
-        (Integer.toString(startLevel.getBundleStartLevel(bundle)));
+      final StringBuffer s = new StringBuffer
+        (String.valueOf(bundle.adapt(BundleStartLevel.class).getStartLevel()));
       while (s.length() < 2) {
         s.insert(0, " ");
       }
       sb.append(s.toString());
-    } catch (Exception ignored) {
+    } catch (final Exception ignored) {
       sb.append("--");
     }
 
@@ -1987,23 +2200,26 @@ public class FrameworkCommandGroup
     "Shows or sets the global startlevel", "[<level>] new start level",
     "          if no <level> is provided, show current level", };
 
-  public int cmdStartlevel(Dictionary opts, Reader in, PrintWriter out,
-                           Session session) {
-
-    String levelStr = (String) opts.get("level");
+  public int cmdStartlevel(Dictionary<String, ?> opts,
+                           Reader in,
+                           PrintWriter out,
+                           Session session)
+  {
+    final FrameworkStartLevel fsl = bc.getBundle(0)
+        .adapt(FrameworkStartLevel.class);
+    final String levelStr = (String) opts.get("level");
 
     try {
       if (levelStr != null) {
-        int level = Integer.parseInt(levelStr);
-        startLevel.setStartLevel(level);
+        final int level = Integer.parseInt(levelStr);
+        fsl.setStartLevel(level);
       } else {
-        out.println("current start level:        "
-                    + startLevel.getStartLevel());
+        out.println("current start level:        " + fsl.getStartLevel());
         out.println("initial bundle start level: "
-                    + startLevel.getInitialBundleStartLevel());
+                    + fsl.getInitialBundleStartLevel());
       }
       return 0;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       out.println("Failed to show/set startlevel=" + levelStr);
       e.printStackTrace(out);
       return -1;
@@ -2022,7 +2238,7 @@ public class FrameworkCommandGroup
     "[-a]           append given base URLs to the current list.",
     "[<base URL>] ... new list of base URLs to be used.", };
 
-  public int cmdCd(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdCd(Dictionary<String,?> opts, Reader in, PrintWriter out,
                    Session session) {
 
     final String[] baseURLsArg = (String[]) opts.get("base URL");
@@ -2033,14 +2249,14 @@ public class FrameworkCommandGroup
         setupJars();
       }
       if (baseURLsArg == null) {
-        for (Iterator it = baseURLs.iterator(); it.hasNext(); ) {
-          out.println(" " + it.next());
+        for (final URL url : baseURLs) {
+          out.println(" " + url);
         }
       } else {
         setupJars(baseURLsArg, append);
       }
       return 0;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       out.println("Failed to cd: "+e);
       e.printStackTrace(out);
       return -1;
@@ -2058,28 +2274,33 @@ public class FrameworkCommandGroup
     "          If bundle list is empty, set initial",
     "          start level for new bundles", };
 
-  public int cmdBundlelevel(Dictionary opts, Reader in, PrintWriter out,
-                            Session session) {
+  public int cmdBundlelevel(Dictionary<String, ?> opts,
+                            Reader in,
+                            PrintWriter out,
+                            Session session)
+  {
+    final FrameworkStartLevel fsl = bc.getBundle(0)
+        .adapt(FrameworkStartLevel.class);
+
     int level = -1;
     try {
       level = Integer.parseInt((String) opts.get("level"));
-      String[] bls = (String[]) opts.get("bundle");
-      Bundle[] bl = getBundles(bls, false, false);
+      final String[] bls = (String[]) opts.get("bundle");
+      final Bundle[] bl = getBundles(bls, false, false);
 
       if (bls == null || bls.length == 0) {
-        startLevel.setInitialBundleStartLevel(level);
+        fsl.setInitialBundleStartLevel(level);
         out.println("initial bundle start level set to " + level);
       } else {
         for (int i = 0; i < bl.length; i++) {
           if (bl[i] != null) {
-            System.out.println("set " + i + " " + bl[i] + " "
-                               + level);
-            startLevel.setBundleStartLevel(bl[i], level);
+            System.out.println("set " + i + " " + bl[i] + " " + level);
+            bl[i].adapt(BundleStartLevel.class).setStartLevel(level);
           }
         }
       }
       return 0;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       out.println("Failed to set bundle startlevel=" + level);
       e.printStackTrace(out);
       return -1;
@@ -2102,7 +2323,7 @@ public class FrameworkCommandGroup
     "                 BundleContext.getProperty().",
     "[<property>] ... Property keys to include in the list.", };
 
-  public int cmdProperty(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdProperty(Dictionary<String,?> opts, Reader in, PrintWriter out,
                          Session session)
   {
     final boolean sysProps = opts.get("-s") != null;
@@ -2110,7 +2331,7 @@ public class FrameworkCommandGroup
     final String[] propNamesA = (String[]) opts.get("property");
 
     try {
-      final Set propNames = new TreeSet();
+      final Set<String> propNames = new TreeSet<String>();
       if (includeFwPros) {
         // -f
         propNames.addAll(getAllFrameworkPropKeys());
@@ -2123,8 +2344,7 @@ public class FrameworkCommandGroup
         propNames.addAll(getAllSystemPropKeys());
       }
 
-      for(Iterator it = propNames.iterator(); it.hasNext();) {
-        final String key = (String) it.next();
+      for (final String key : propNames) {
         final String val = sysProps
           ? (String) System.getProperty(key)
           : (String) bc.getProperty(key);
@@ -2134,7 +2354,7 @@ public class FrameworkCommandGroup
       }
 
       return 0;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       out.println("Failed to print props values: "+e);
       e.printStackTrace(out);
       return -1;
@@ -2144,7 +2364,9 @@ public class FrameworkCommandGroup
   // of all framework property keys.
   public static final String fwPropKeysKey
     = "org.knopflerfish.framework.bundleprops.keys";
-  public static final Set FW_PROP_NAMES = new HashSet() {{
+  public static final Set<String> FW_PROP_NAMES = new HashSet<String>() {
+    private static final long serialVersionUID = 1L;
+  {
     add(Constants.FRAMEWORK_VENDOR);
     add(Constants.FRAMEWORK_VERSION);
     add(Constants.FRAMEWORK_LANGUAGE);
@@ -2167,32 +2389,32 @@ public class FrameworkCommandGroup
     add(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE);
   }};
   // The set of keys for all Framework properties
-  private Set getAllFrameworkPropKeys()
+  private Set<String> getAllFrameworkPropKeys()
   {
-    final HashSet res = new HashSet();
+    final HashSet<String> res = new HashSet<String>();
 
-    // Keys of properites mentioned in the OSGi specification.
+    // Keys of properties mentioned in the OSGi specification.
     res.addAll(FW_PROP_NAMES);
 
-    // All available keys from a property mainained by the
-    // Knopflerfish Framewwork implementation for this purpose.
+    // All available keys from a property maintained by the
+    // Knopflerfish Framework implementation for this purpose.
     final String fwPropKeys = bc.getProperty(fwPropKeysKey);
     if (null!=fwPropKeys) {
       final StringTokenizer st = new StringTokenizer(fwPropKeys,",");
       while (st.hasMoreTokens()) {
-        final String key = ((String) st.nextToken()).trim();
+        final String key = st.nextToken().trim();
         res.add(key);
       }
     }
     return res;
   }
   // The set of keys for all System properties
-  private Set getAllSystemPropKeys()
+  private Set<String> getAllSystemPropKeys()
   {
-    final HashSet res = new HashSet();
+    final HashSet<String> res = new HashSet<String>();
 
     final Properties properties = System.getProperties();
-    for (Enumeration pke = properties.propertyNames(); pke.hasMoreElements();){
+    for (final Enumeration<?> pke = properties.propertyNames(); pke.hasMoreElements();){
       final String key = (String) pke.nextElement();
       res.add(key);
     }

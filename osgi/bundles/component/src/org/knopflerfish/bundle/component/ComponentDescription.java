@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2011, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,16 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.osgi.framework.*;
-
-import org.xmlpull.v1.*;
-
-import java.io.*;
+import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Properties;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.InvalidSyntaxException;
 
 
 /* Immutable Java representation of component description found in xml */
@@ -55,6 +58,7 @@ public class ComponentDescription {
 
   private final static String SCR_NAMESPACE_V1_0_0_URI = "http://www.osgi.org/xmlns/scr/v1.0.0";
   private final static String SCR_NAMESPACE_V1_1_0_URI = "http://www.osgi.org/xmlns/scr/v1.1.0";
+  private final static String SCR_NAMESPACE_V1_2_0_URI = "http://www.osgi.org/xmlns/scr/v1.2.0";
 
   final Bundle bundle;
   private String implementation;
@@ -70,10 +74,11 @@ public class ComponentDescription {
   private boolean deactivateMethodSet = false;
   private String modifiedMethod = null;
   private int confPolicy = POLICY_OPTIONAL;
+  private String configurationPid = null;
   private Properties properties = new Properties();
   private String [] services = null;
-  private ArrayList references = null;
-  private boolean isSCR11 = false;
+  private ArrayList<ReferenceDescription> references = null;
+  private int scrNSminor = 0;
 
 
   /**
@@ -88,8 +93,9 @@ public class ComponentDescription {
       if (p.getEventType() == XmlPullParser.START_TAG &&
           "component".equals(p.getName()) &&
           (p.getDepth() == 1 ||
-           SCR_NAMESPACE_V1_0_0_URI.equals(p.getNamespace()) ||
-           SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace()))) {
+           SCR_NAMESPACE_V1_2_0_URI.equals(p.getNamespace()) ||
+           SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace()) ||
+           SCR_NAMESPACE_V1_0_0_URI.equals(p.getNamespace()))) {
         return new ComponentDescription(b, p);
       }
       p.next();
@@ -105,7 +111,11 @@ public class ComponentDescription {
     throws IOException, IllegalXMLException, XmlPullParserException
   {
     this.bundle = b;
-    isSCR11 = SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace());
+    if (SCR_NAMESPACE_V1_2_0_URI.equals(p.getNamespace())) {
+      scrNSminor = 2;
+    } else if (SCR_NAMESPACE_V1_1_0_URI.equals(p.getNamespace())) {
+      scrNSminor = 1;
+    }
     parseAttributes(p);
 
     for (int e = p.getEventType(); e != XmlPullParser.END_TAG; e = p.getEventType()) {
@@ -169,6 +179,10 @@ public class ComponentDescription {
     return deactivateMethodSet;
   }
 
+  String getConfigurationPid() {
+    return configurationPid;
+  }
+
   boolean isEnabled() {
     return enabled;
   }
@@ -197,12 +211,12 @@ public class ComponentDescription {
     return properties;
   }
 
-  ArrayList getReferences() {
+  ArrayList<ReferenceDescription> getReferences() {
     return references;
   }
 
-  boolean isSCR11() {
-    return isSCR11;
+  int getScrNSminor() {
+    return scrNSminor;
   }
 
   boolean isServiceFactory() {
@@ -250,7 +264,7 @@ public class ComponentDescription {
         } else if (p.getAttributeName(i).equals("immediate")) {
           immediate = parseBoolean(p, i);
           immediateSet = true;
-        } else if (isSCR11) {
+        } else if (scrNSminor > 0) {
           if (p.getAttributeName(i).equals("configuration-policy")) {
             String policy = p.getAttributeValue(i);
             if (supportedPolicies[POLICY_OPTIONAL].equals(policy)) {
@@ -270,6 +284,8 @@ public class ComponentDescription {
             deactivateMethodSet = true;
           } else if (p.getAttributeName(i).equals("modified")) {
             modifiedMethod = p.getAttributeValue(i);
+          } else if (scrNSminor > 1 && p.getAttributeName(i).equals("configuration-pid")) {
+            configurationPid = p.getAttributeValue(i);
           } else {
             unrecognizedAttr(p, i);
           }
@@ -280,7 +296,7 @@ public class ComponentDescription {
     } finally {
       p.next();
     }
-    if (componentName == null && !isSCR11) {
+    if (componentName == null && scrNSminor < 1) {
       missingAttr(p, "name");
     }
     if (factory != null) {
@@ -351,7 +367,7 @@ public class ComponentDescription {
     String name = null;
     Object val = null;
     boolean isArray = true; // If the property values is an array or not
-    ArrayList /* String */ values = new ArrayList();
+    ArrayList<String> values = new ArrayList<String>();
 
     for (int i = 0; i < p.getAttributeCount(); i++) {
       if (p.getAttributeName(i).equals("name")) {
@@ -410,55 +426,55 @@ public class ComponentDescription {
       val = isArray ?  values.toArray(new String[len]) : values.get(0);
     } else if ("Boolean".equals(type)) {
       if (!isArray) {
-        val = Boolean.valueOf((String)values.get(0));
+        val = Boolean.valueOf(values.get(0));
       } else {
         boolean[] array = new boolean[len];
         for (int i=0; i<len; i++) {
-          array[i] = Boolean.valueOf((String)values.get(i)).booleanValue();
+          array[i] = Boolean.valueOf(values.get(i)).booleanValue();
         }
         val = array;
       }
     } else if ("Byte".equals(type)) {
       byte[] array = new byte[len];
       for (int i=0; i<len; i++) {
-        array[i] = Byte.parseByte((String)values.get(i));
+        array[i] = Byte.parseByte(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Byte(array[0]);
     } else if ("Character".equals(type)) {
       char[] array = new char[len];
       for (int i=0; i<len; i++) {
-        array[i] = ((String)values.get(i)).charAt(0);
+        array[i] = values.get(i).charAt(0);
         // Should we complain when more than one character
       }
       val = isArray ? (Object) array : (Object) new Character(array[0]);
     } else if ("Double".equals(type)) {
       double[] array = new double[len];
       for (int i=0; i<len; i++) {
-        array[i] = Double.parseDouble((String)values.get(i));
+        array[i] = Double.parseDouble(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Double(array[0]);
     } else if ("Float".equals(type)) {
       float[] array = new float[len];
       for (int i=0; i<len; i++) {
-        array[i] = Float.parseFloat((String)values.get(i));
+        array[i] = Float.parseFloat(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Float(array[0]);
     } else if ("Integer".equals(type)) {
       int[] array = new int[len];
       for (int i=0; i<len; i++) {
-        array[i] = Integer.parseInt((String)values.get(i));
+        array[i] = Integer.parseInt(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Integer(array[0]);
     } else if ("Long".equals(type)) {
       long[] array = new long[len];
       for (int i=0; i<len; i++) {
-        array[i] = Long.parseLong((String)values.get(i));
+        array[i] = Long.parseLong(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Long(array[0]);
     } else if ("Short".equals(type)) {
       short[] array = new short[len];
       for (int i=0; i<len; i++) {
-        array[i] = Short.parseShort((String)values.get(i));
+        array[i] = Short.parseShort(values.get(i));
       }
       val = isArray ? (Object) array : (Object) new Short(array[0]);
     } else {
@@ -486,9 +502,11 @@ public class ComponentDescription {
     String target = null;
     String bind = null;
     String unbind = null;
+    String updated = null;
     boolean optional = false; // default value
     boolean multiple = false; // default value
     boolean dynamic = false; // default value
+    boolean greedy = false; // default value
 
     for (int i = 0; i < p.getAttributeCount(); i++) {
       final String attrName = p.getAttributeName(i);
@@ -524,6 +542,15 @@ public class ComponentDescription {
         } else {
           invalidValue(p, new String[]{"static", "dynamic"}, i);
         }
+      } else if (scrNSminor > 1 && attrName.equals("policy-option")) {
+        String val = p.getAttributeValue(i);
+        if ("greedy".equals(val)) {
+          greedy = true;
+        } else if ("reluctant".equals(val)) {
+          greedy = false;
+        } else {
+          invalidValue(p, new String[]{"greedy", "reluctant"}, i);
+        }
       } else if (attrName.equals("target")) {
         target = p.getAttributeValue(i);
       } else if (attrName.equals("bind")) {
@@ -532,6 +559,9 @@ public class ComponentDescription {
       } else if (attrName.equals("unbind")) {
         unbind = p.getAttributeValue(i);
         checkValidIdentifier(unbind, "unbind", p);
+      } else if (scrNSminor > 1 && attrName.equals("updated")) {
+        updated = p.getAttributeValue(i);
+        checkValidIdentifier(updated, "updated", p);
       } else {
         unrecognizedAttr(p, i);
       }
@@ -540,7 +570,7 @@ public class ComponentDescription {
       missingAttr(p, "interface");
     }
     if (name == null) {
-      if (isSCR11) {
+      if (scrNSminor > 0) {
         name = interfaceName;
       } else {
         missingAttr(p, "name");
@@ -549,15 +579,15 @@ public class ComponentDescription {
     skip(p);
     ReferenceDescription ref;
     try {
-      ref = new ReferenceDescription(name, interfaceName,
-                                     optional, multiple, dynamic,
-                                     target, bind, unbind);
+      ref = new ReferenceDescription(name, interfaceName, optional,
+                                     multiple, dynamic, greedy, target,
+                                     bind, unbind, updated);
     } catch (InvalidSyntaxException e) {
       throw new IllegalXMLException("Couldn't create filter for reference \"" +
                                     name + "\"", p, e);
     }
     if (references == null) {
-      references = new ArrayList();
+      references = new ArrayList<ReferenceDescription>();
     }
     references.add(ref);
   }
@@ -571,13 +601,14 @@ public class ComponentDescription {
              </service>
    */
   private void parseService(XmlPullParser p)
-    throws IOException, IllegalXMLException, XmlPullParserException
+      throws IOException, IllegalXMLException, XmlPullParserException
   {
     if (services != null) {
-      throw new IllegalXMLException("More than one service-tag in component: \"" +
-                                    componentName + "\"", p);
+      throw new IllegalXMLException(
+                                    "More than one service-tag in component: \""
+                                        + componentName + "\"", p);
     }
-    ArrayList sl = new ArrayList();
+    ArrayList<String> sl = new ArrayList<String>();
     if (!immediateSet) {
       immediate = false;
     }
@@ -585,20 +616,22 @@ public class ComponentDescription {
     for (int i = 0; i < p.getAttributeCount(); i++) {
       if (p.getAttributeName(i).equals("servicefactory")) {
         isServiceFactory = parseBoolean(p, i);
-	if (isServiceFactory) {
-	  if (factory != null) {
-            throw new IllegalXMLException("Attribute servicefactory in service-tag "+
-                                          "cannot be set to \"true\" when component "+
-                                          "is a factory component.", p);
+        if (isServiceFactory) {
+          if (factory != null) {
+            throw new IllegalXMLException(
+                                          "Attribute servicefactory in service-tag "
+                                              + "cannot be set to \"true\" when component "
+                                              + "is a factory component.", p);
           }
           if (immediate) {
-            throw new IllegalXMLException("Attribute servicefactory in service-tag "+
-                                          "cannot be set to \"true\" when component "+
-                                          "is an immediate component.", p);
-	  }
-	}
+            throw new IllegalXMLException(
+                                          "Attribute servicefactory in service-tag "
+                                              + "cannot be set to \"true\" when component "
+                                              + "is an immediate component.", p);
+          }
+        }
       } else {
-	unrecognizedAttr(p, i);
+        unrecognizedAttr(p, i);
       }
     }
     int event = p.next();
@@ -613,9 +646,9 @@ public class ComponentDescription {
           if (p.getAttributeName(i).equals("interface")) {
             interfaceName = p.getAttributeValue(i);
           } else {
-            throw new IllegalXMLException("Unrecognized attribute \"" +
-                                          p.getAttributeName(i) +
-                                          "\" in provide-tag", p);
+            throw new IllegalXMLException("Unrecognized attribute \""
+                                          + p.getAttributeName(i)
+                                          + "\" in provide-tag", p);
           }
         }
         if (interfaceName == null) {
@@ -629,11 +662,12 @@ public class ComponentDescription {
     p.next();
     /* check if required attributes has been set */
     if (sl.isEmpty()) {
-      throw new IllegalXMLException("Service-tag did not contain a proper provide-tag.", p);
+      throw new IllegalXMLException(
+                                    "Service-tag did not contain a proper provide-tag.",
+                                    p);
     }
-    services = (String [])sl.toArray(new String [sl.size()]);
+    services = sl.toArray(new String[sl.size()]);
   }
-
 
   /**
    *

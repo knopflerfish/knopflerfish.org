@@ -7,6 +7,7 @@
   <li><a href="#runtime">Creating a Dalvik KF run-time</a>
   <li><a href="#install">Installing KF on the Android Emulator</a>
   <li><a href="#run">Running KF under Dalvik</a>
+  <li><a href="#projects">Android projects</a>
 </ol>
 
 
@@ -160,4 +161,27 @@
   </pre>
   You then need to set the property to false, so that the bundle jars
   are copied into the "fwdir".
-</P>
+</p>
+
+<a name="projects"></a>
+<h2 class="kf">Android Projects</h2>
+<p>
+  The latest version of KF added the <tt>apk</tt> directory
+  to <tt>tools/android</tt>. Here you can find two Android projects
+  that can be used to build an Android <tt>.apk</tt> containing
+  Knopflerfish, see the README.txt file in the <tt>projects</tt>
+  directory for more information.
+</p>
+<p>
+  <img src="images/android_app.png" border="0" alt="Android
+  application" />
+</p>
+<p>
+  These projects are built using a combination of KF and the Android ant
+  tasks. Bundles that you include in your <tt>.apk</tt> will be dexified
+  as described above and DEX files for <tt>framework.jar</tt> and Java
+  classes included in the projects will be automatically created by the
+  build system. 
+</p>
+
+

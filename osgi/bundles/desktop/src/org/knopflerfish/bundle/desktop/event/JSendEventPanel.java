@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-201, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -120,8 +120,7 @@ public class JSendEventPanel extends JPanel  {
     JButton clearButton = new JButton("Clear");
     clearButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          data[0].clear();
-          data[1].clear();
+          data.clear();
           ((AbstractTableModel)propTable.getModel()).fireTableDataChanged();
         }
       });
@@ -129,8 +128,7 @@ public class JSendEventPanel extends JPanel  {
     JButton addButton = new JButton("Add property");
     addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          data[0].add("");
-          data[1].add("");
+          data.add(new RowData("", ""));
           ((AbstractTableModel)propTable.getModel()).fireTableDataChanged();
         }
       });
@@ -185,26 +183,33 @@ public class JSendEventPanel extends JPanel  {
     this.templateEvent = ev;
   }
 
-  ArrayList[] data;
+  static class RowData {
+    String name;
+    Object value;
+    
+    public RowData(String name, Object value) {
+      this.name = name;
+      this.value = value;
+    }
+  }
+  ArrayList<RowData> data;
 
   void makeModel(Event template) {
 
-    data = new ArrayList[] { new ArrayList(), new ArrayList() };
+    data = new ArrayList<RowData>();
     int extraRowCount = 10;
 
     if(template != null) {
       String[] names = template.getPropertyNames();
       for(int i = 0; i < names.length; i++) {
-        data[0].add(names[i]);
-        data[1].add(template.getProperty(names[i]));
+        data.add(new RowData(names[i], template.getProperty(names[i])));
       }
       extraRowCount = 3;
       topicC.setSelectedItem(template.getTopic());
     }
     // add some empty data
     for(int i = 0; i < extraRowCount; i++) {
-      data[0].add("");
-      data[1].add("");
+      data.add(new RowData("", ""));
     }
 
     AbstractTableModel model = new AbstractTableModel() {
@@ -219,12 +224,14 @@ public class JSendEventPanel extends JPanel  {
         }
 
         public int getColumnCount() { return 2; }
-        public int getRowCount() { return data[0].size();}
+        public int getRowCount() { return data.size();}
         public Object getValueAt(int row, int col) {
-          return data[col].get(row);
+          final RowData rd = data.get(row);
+          return col==0 ? rd.name :rd.value;
         }
         public void setValueAt(Object val, int row, int col) {
-          Object oldVal = data[col].get(row);
+          RowData rd = data.get(row);
+          Object oldVal = col==0 ? rd.name : rd.value;
           if(oldVal != null && val != null) {
             if(oldVal.getClass() != val.getClass()) {
               try {
@@ -236,7 +243,11 @@ public class JSendEventPanel extends JPanel  {
               }
             }
           }
-          data[col].set(row, val);
+          if (0==col) {
+            rd.name = val.toString();
+          } else {
+            rd.value = val;
+          }
         }
       };
 
@@ -248,7 +259,7 @@ public class JSendEventPanel extends JPanel  {
 
   void doSend() {
     String topic = (String)topicC.getSelectedItem();
-    Hashtable props = new Hashtable();
+    Dictionary<String,Object> props = new Hashtable<String, Object>();
 
 
     for(int i = 0; i < propTable.getRowCount(); i++) {
@@ -265,13 +276,13 @@ public class JSendEventPanel extends JPanel  {
     props.put("timestamp.generated", new Long(System.currentTimeMillis()));
 
     org.osgi.service.event.Event ev =
-      new org.osgi.service.event.Event(topic, (Dictionary) props);
+      new org.osgi.service.event.Event(topic, props);
 
 
-    ServiceReference sr = Activator.getBC().getServiceReference(EventAdmin.class.getName());
+    ServiceReference<EventAdmin> sr = Activator.getBC().getServiceReference(EventAdmin.class);
     if(sr != null) {
       try {
-        EventAdmin ea = (EventAdmin)Activator.getBC().getService(sr);
+        EventAdmin ea = Activator.getBC().getService(sr);
         ea.postEvent(ev);
       } finally {
         Activator.getBC().ungetService(sr);

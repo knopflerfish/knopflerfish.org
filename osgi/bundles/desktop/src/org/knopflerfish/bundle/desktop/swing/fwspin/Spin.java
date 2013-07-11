@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,6 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
@@ -61,7 +60,6 @@ import java.util.Vector;
 
 import javax.swing.JPanel;
 
-import org.knopflerfish.bundle.desktop.swing.Activator;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleListener;
@@ -71,6 +69,8 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
+
+import org.knopflerfish.bundle.desktop.swing.Activator;
 
 /**
  * @author Erik Wistrand
@@ -102,9 +102,9 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   double deltaA = Math.PI * 1.5;
   double aStep  = Math.PI * 2 / 120;
 
-  Map bundles  = new TreeMap();
-  Map services = new HashMap();
-  Map active   = new HashMap();
+  Map<Long, BX> bundles  = new TreeMap<Long, BX>();
+  Map<ServiceReference<?>, SX> services = new HashMap<ServiceReference<?>, SX>();
+  Map<SpinItem, SpinItem> active   = new HashMap<SpinItem, SpinItem>();
 
   Object paintLock = services;
 
@@ -126,18 +126,6 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   public Spin() {
     super();
 
-    /*
-    System.out.println("made spin");
-    addFocusListener(new FocusAdapter() {
-        public void focusGained(FocusEvent e) {
-          System.out.println("got focus");
-        }
-        public void focusLost(FocusEvent e) {
-          System.out.println("lost focus");
-        }
-      });
-    */
-
     Bundle[] bl = Activator.getTargetBC_getBundles();
     for(int i = 0; bl != null && i < bl.length; i++) {
       bundleChanged(new BundleEvent(BundleEvent.INSTALLED, bl[i]));
@@ -145,7 +133,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     Activator.getTargetBC().addBundleListener(this);
 
     try {
-      ServiceReference [] srl = Activator.getTargetBC_getServiceReferences();
+      ServiceReference<?>[] srl = Activator.getTargetBC_getServiceReferences();
       for(int i = 0; srl != null && i < srl.length; i++) {
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
@@ -353,7 +341,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     repaint();
   }
 
-  Vector depVector   = null;
+  Vector<? extends SpinItem> depVector   = null;
   int    depPos      = 0;
   SpinItem depActive = null;
 
@@ -365,7 +353,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     }
     if(depVector != null && depVector.size() > 0) {
       depPos = (depPos + 1) % depVector.size();
-      depActive = (SpinItem)depVector.elementAt(depPos);
+      depActive = depVector.elementAt(depPos);
       repaint();
     }
   }
@@ -374,9 +362,8 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     active.clear();
     SpinItem hit = null;
     if(searchString.length() > 0) {
-      for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
-        Long key      = (Long)it.next();
-        SpinItem   item = (SpinItem)bundles.get(key);
+      for (Long key : bundles.keySet()) {
+        SpinItem   item = bundles.get(key);
 
         if(item.toString().toLowerCase().startsWith(searchString)) {
           active.put(item, item);
@@ -441,9 +428,8 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
     SpinItem nearest = null;
 
-    for(Iterator it = services.keySet().iterator(); it.hasNext(); ) {
-      Object key      = it.next();
-      SpinItem   item = (SpinItem)services.get(key);
+    for(ServiceReference<?> key : services.keySet()) {
+      final SpinItem   item = services.get(key);
 
       double dx = x - item.getSX();
       double dy = y - item.getSY();
@@ -455,9 +441,8 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       }
     }
 
-    for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
-      Long key      = (Long)it.next();
-      SpinItem   item = (SpinItem)bundles.get(key);
+    for(Long key : bundles.keySet()) {
+      final SpinItem   item = bundles.get(key);
 
       double dx = x - item.getSX();
       double dy = y - item.getSY();
@@ -495,7 +480,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   public void bundleChanged(BundleEvent ev) {
     Long    id = new Long(ev.getBundle().getBundleId());
     synchronized(bundles) {
-      BX bx = (BX)bundles.get(id);
+      BX bx = bundles.get(id);
 
       switch(ev.getType()) {
       case BundleEvent.INSTALLED:
@@ -520,12 +505,12 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
   public void serviceChanged(ServiceEvent ev) {
     synchronized(services) {
-      ServiceReference sr       = ev.getServiceReference();
-      String[]         objClass = (String[]) sr.getProperty(Constants.OBJECTCLASS);
-      boolean          bRelease = true;
-      SX               sx       = (SX)services.get(sr);
+      ServiceReference<?> sr = ev.getServiceReference();
+      String[] objClass = (String[]) sr.getProperty(Constants.OBJECTCLASS);
+      boolean bRelease = true;
+      SX sx = services.get(sr);
 
-      boolean          isPAdmin = false;
+      boolean isPAdmin = false;
       if (objClass !=  null) {
         for (int i=0; i<objClass.length; i++) {
           if (PackageAdmin.class.getName().equals(objClass[i])) {
@@ -580,9 +565,8 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       int n = bundles.size();
       int cx = size.width / 2;
       int cy = size.height / 2;
-      for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
-        Long    id = (Long)it.next();
-        BX bx = (BX)bundles.get(id);
+      for(Long    id : bundles.keySet()) {
+        final BX bx = bundles.get(id);
 
         double a = deltaA + i * Math.PI * 2 / n;
 
@@ -602,11 +586,10 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       int cx = size.width  / 2;
       int cy = size.height / 2;
 
-      for(Iterator it = services.keySet().iterator(); it.hasNext(); ) {
-        ServiceReference   sr = (ServiceReference)it.next();
-        SX                 sx = (SX)services.get(sr);
+      for(ServiceReference<?> sr : services.keySet()) {
+        final SX sx = services.get(sr);
 
-        BX bx = (BX)bundles.get(sx.bid);
+        BX bx = bundles.get(sx.bid);
         if(bx == null) {
           System.out.println("No bundle for " + sx);
           continue;
@@ -672,7 +655,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     return sb.toString();
   }
 
-  void getDeps(StringBuffer sb, Hashtable lines, SpinItem item, int level) {
+  void getDeps(StringBuffer sb, Hashtable<String, String> lines, SpinItem item, int level) {
     if(item == null) return;
 
     String line = item.toString();
@@ -686,15 +669,13 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       sb.append(s + item.toString() + "\n");
       lines.put(line, line);
     }
-    Vector v = item.getNext(SpinItem.DIR_FROM);
+    Vector<? extends SpinItem> v = item.getNext(SpinItem.DIR_FROM);
     if(v != null) {
       if(level > 3 && v.size() > 0) {
         sb.append(indent(level) + "...\n");
         return;
       }
-      for(int i = 0; i < v.size(); i++) {
-        SpinItem next = (SpinItem)v.elementAt(i);
-
+      for(SpinItem next : v) {
         getDeps(sb, lines, next, level + 1);
       }
     }
@@ -706,7 +687,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
     if(item == null) return;
 
     StringBuffer sb = new StringBuffer();
-    getDeps(sb, new Hashtable(), item, 0);
+    getDeps(sb, new Hashtable<String, String>(), item, 0);
 
 
     String name = "";
@@ -820,9 +801,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       bxNeedRecalc = false;
     }
     synchronized(bundles) {
-      for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
-        Long    id = (Long)it.next();
-        BX bx = (BX)bundles.get(id);
+      for(BX bx : bundles.values()) {
         bx.paint(g);
       }
     }
@@ -844,14 +823,10 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   void zoom() {
     toScreen(center);
 
-    for(Iterator it = bundles.keySet().iterator(); it.hasNext(); ) {
-      Long    id = (Long)it.next();
-      BX bx = (BX)bundles.get(id);
+    for(BX bx : bundles.values()) {
       toScreen(bx);
     }
-    for(Iterator it = services.keySet().iterator(); it.hasNext(); ) {
-      ServiceReference   sr = (ServiceReference)it.next();
-      SX                 sx = (SX)services.get(sr);
+    for(SX sx : services.values()) {
       toScreen(sx);
     }
   }
@@ -863,9 +838,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
       sxNeedRecalc = false;
     }
     synchronized(services) {
-      for(Iterator it = services.keySet().iterator(); it.hasNext(); ) {
-        ServiceReference   sr = (ServiceReference)it.next();
-        SX                 sx = (SX)services.get(sr);
+      for(SX sx : services.values()) {
         sx.paint(g);
       }
     }
@@ -1122,7 +1095,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   }
 
   BX getBX(Long id) {
-    return (BX)bundles.get(id);
+    return bundles.get(id);
   }
 
   BX getBX(long id) {
@@ -1130,11 +1103,10 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
   }
 
   SX getSX(long id) {
-    for(Iterator it = services.keySet().iterator(); it.hasNext(); ) {
-      ServiceReference   sr = (ServiceReference)it.next();
-      SX                 sx = (SX)services.get(sr);
+    for(ServiceReference<?> sr : services.keySet()) {
+      SX sx = services.get(sr);
 
-      Long sid = (Long)sr.getProperty("service.id");
+      Long sid = (Long) sr.getProperty("service.id");
       if(sid.longValue() == id) {
         return sx;
       }
@@ -1152,7 +1124,7 @@ public class Spin extends JPanel implements Runnable, BundleListener, ServiceLis
 
 
 class SX extends SpinItem {
-  ServiceReference sr;
+  ServiceReference<?> sr;
   String className;
   String name;
   Long   bid;
@@ -1161,7 +1133,7 @@ class SX extends SpinItem {
 
   Spin spin;
 
-  public SX(Spin spin, ServiceReference sr) {
+  public SX(Spin spin, ServiceReference<?> sr) {
     this.sr = sr;
     this.spin = spin;
 
@@ -1217,9 +1189,9 @@ class SX extends SpinItem {
                   .8, 300, 300);
   }
 
-  Vector getNext(int dir) {
+  Vector<? extends SpinItem> getNext(int dir) {
 
-    TreeMap map = new TreeMap();
+    TreeMap<Long, BX> map = new TreeMap<Long, BX>();
 
     if((dir & SpinItem.DIR_FROM) != 0) {
       Bundle[] bl = sr.getUsingBundles();
@@ -1231,10 +1203,9 @@ class SX extends SpinItem {
       }
     }
 
-    Vector v = new Vector();
-    for(Iterator it = map.keySet().iterator(); it.hasNext(); ) {
-      Long key      = (Long)it.next();
-      BX   bx       = (BX)map.get(key);
+    Vector<BX> v = new Vector<BX>();
+    for(Long key : map.keySet()) {
+      BX bx = map.get(key);
       v.addElement(bx);
     }
     return v;
@@ -1315,9 +1286,9 @@ class BX extends SpinItem {
   }
 
 
-  Vector getNext(int dir) {
+  Vector<? extends SpinItem> getNext(int dir) {
 
-    Map map = new TreeMap();
+    Map<Long, BX> map = new TreeMap<Long, BX>();
 
     if(spin.pkgAdmin != null) {
 
@@ -1336,9 +1307,8 @@ class BX extends SpinItem {
       }
 
       if((dir & SpinItem.DIR_FROM) != 0) {
-        for(Iterator it = spin.bundles.keySet().iterator(); it.hasNext(); ) {
-          Long key      = (Long)it.next();
-          BX   bx       = (BX)spin.bundles.get(key);
+        for(Long key : spin.bundles.keySet()) {
+          BX bx = spin.bundles.get(key);
 
           exp = spin.pkgAdmin.getExportedPackages(bx.b);
           boolean done = false;
@@ -1357,10 +1327,9 @@ class BX extends SpinItem {
 
     map.remove(new Long(b.getBundleId()));
 
-    Vector v = new Vector();
-    for(Iterator it = map.keySet().iterator(); it.hasNext(); ) {
-      Long key      = (Long)it.next();
-      BX   bx       = (BX)map.get(key);
+    Vector<BX> v = new Vector<BX>();
+    for(Long key : map.keySet()) {
+      BX bx = map.get(key);
       v.addElement(bx);
     }
 
@@ -1387,9 +1356,8 @@ class BX extends SpinItem {
 
     g.setColor(importsFromColor);
 
-    for(Iterator it = spin.bundles.keySet().iterator(); it.hasNext(); ) {
-      Long key      = (Long)it.next();
-      BX   bx       = (BX)spin.bundles.get(key);
+    for(Long key : spin.bundles.keySet()) {
+      final BX bx = spin.bundles.get(key);
 
       exp = spin.pkgAdmin.getExportedPackages(bx.b);
       boolean done = false;
@@ -1412,11 +1380,11 @@ class BX extends SpinItem {
 
     sb.append(b.getLocation() + ", id=" + b.getBundleId() + "\n");
 
-    Dictionary headers = b.getHeaders();
+    Dictionary<String, String> headers = b.getHeaders();
 
-    for(Enumeration e = headers.keys(); e.hasMoreElements(); ) {
-      String key = (String)e.nextElement();
-      String val = (String)headers.get(key);
+    for(Enumeration<String> e = headers.keys(); e.hasMoreElements(); ) {
+      final String key = e.nextElement();
+      final String val = (String)headers.get(key);
 
       sb.append(key + ": " + val + "\n");
     }

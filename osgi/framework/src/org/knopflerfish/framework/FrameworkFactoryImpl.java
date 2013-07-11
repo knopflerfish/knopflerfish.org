@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,18 @@
 
 package org.knopflerfish.framework;
 
-import org.osgi.framework.launch.*;
-
 import java.util.Map;
+
+import org.osgi.framework.launch.Framework;
+import org.osgi.framework.launch.FrameworkFactory;
 
 public class FrameworkFactoryImpl implements FrameworkFactory {
 
   public FrameworkFactoryImpl() {
   }
 
-  public Framework newFramework(Map configuration) {
-    FrameworkContext ctx = new FrameworkContext(configuration);
+  public Framework newFramework(Map<String, String> configuration) {
+    final FrameworkContext ctx = new FrameworkContext(configuration);
 
     return ctx.systemBundle;
   }

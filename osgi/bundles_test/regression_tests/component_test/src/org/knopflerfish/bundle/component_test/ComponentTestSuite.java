@@ -1029,8 +1029,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
      *
      * before: all components are activated and we have no factory instances
      * action: Unregister TestService, check that no factory unbind is called
-     * before: all components are activated and we have no factory instances
-     *
+     * after: all components are activated and we have no factory instances
      */
 
     public void runTest() {
@@ -1041,23 +1040,23 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         Thread.sleep(1000);
 
-        ServiceReference ref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentX");
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentX");
         assertNull("Should not get serviceRef X", ref);
 
-        ServiceReference yref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentY");
+        ServiceReference<?> yref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentY");
         assertNotNull("Should get serviceRef Y", yref);
         org.knopflerfish.service.componentF_test.ComponentY y =
             (org.knopflerfish.service.componentF_test.ComponentY)bc.getService(yref);
 
         assertEquals("No test calls", 0, y.getTestStatus());
 
-        ServiceReference [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
+        ServiceReference<?> [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
             "(&(component.name=componentF_test.factory)(component.factory=componentF_test.X))");
         assertTrue("Should get one serviceRef factory", refs != null && refs.length == 1);
         ComponentFactory cf = (ComponentFactory) bc.getService(refs[0]);
         assertNotNull("Should get ComponentFactory", cf);
 
-        Hashtable dict = new Hashtable();
+        Hashtable<String, Integer> dict = new Hashtable<String, Integer>();
         dict.put("base", new Integer(1));
         ComponentInstance ci1 = cf.newInstance(dict);
         dict.put("base", new Integer(10));
@@ -1074,7 +1073,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         assertEquals("Still no test calls", 0, y.getTestStatus());
 
-        ServiceRegistration reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        ServiceRegistration<?> reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,String>());
         Thread.sleep(200);
 
         assertEquals("Should have been 2*bind(Test) bumped", 11, y.getTestStatus());
@@ -1084,7 +1083,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         assertEquals("Should have been 2*unbind(Test) bumped", 11011, y.getTestStatus());
         
-        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable());
+        reg = bc.registerService(TestService.class.getName(), new TestService(), new Hashtable<String,String>());
         Thread.sleep(200);
 
         assertEquals("Should have another 2*bind(Test) bumped", 11022, y.getTestStatus());
@@ -1107,8 +1106,7 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
       } finally {
         if (c1 != null) {
           try {
-            // Only stop, used in next test
-            c1.stop();
+            c1.uninstall();
           } catch (Exception be) {
             be.printStackTrace();
             fail("Test8: got uninstall exception " + be);
@@ -1161,23 +1159,23 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
 
         Thread.sleep(1000);
 
-        ServiceReference ref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentX");
+        ServiceReference<?> ref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentX");
         assertNull("Should not get serviceRef X", ref);
 
-        ServiceReference zref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentZ");
+        ServiceReference<?> zref = bc.getServiceReference("org.knopflerfish.service.componentF_test.ComponentZ");
         assertNotNull("Should get serviceRef Z", zref);
         org.knopflerfish.service.componentF_test.ComponentZ z =
             (org.knopflerfish.service.componentF_test.ComponentZ)bc.getService(zref);
 
         assertEquals("No test calls", 0, z.getXStatus());
 
-        ServiceReference [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
+        ServiceReference<?> [] refs = bc.getServiceReferences(ComponentFactory.class.getName(),
             "(&(component.name=componentF_test.factory)(component.factory=componentF_test.X))");
         assertTrue("Should get one serviceRef factory", refs != null && refs.length == 1);
         ComponentFactory cf = (ComponentFactory) bc.getService(refs[0]);
         assertNotNull("Should get ComponentFactory", cf);
 
-        Hashtable dict = new Hashtable();
+        Hashtable<String, Integer> dict = new Hashtable<String, Integer>();
         dict.put("base", new Integer(1));
         ComponentInstance ci1 = cf.newInstance(dict);
 

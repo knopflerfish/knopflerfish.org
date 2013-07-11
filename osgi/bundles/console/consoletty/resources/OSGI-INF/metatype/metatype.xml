@@ -2,7 +2,8 @@
 
 <MetaData xmlns="http://www.osgi.org/xmlns/metatype/v1.0.0">
 
-  <OCD id="1.1.1.2" name="OCD for ConsoleTty" >
+  <OCD id="org.knopflerfish.bundle.consoletty.ocd.ConsoleTty"
+       name="OCD for ConsoleTty Configuration" >
     <AD name="nonblocking"
 	id="nonblocking"
 	type="Boolean"
@@ -10,9 +11,8 @@
 	description="Use non-blocking tty access. Some JVM-OS combinations cannot handle blocking access to standard input." />
   </OCD>
 
-  <Designate pid="org.knopflerfish.bundle.consoletty.ConsoleTty"
-	     bundle="ignored">
-    <Object ocdref="1.1.1.2"/>
+  <Designate pid="org.knopflerfish.bundle.consoletty.ConsoleTty">
+    <Object ocdref="org.knopflerfish.bundle.consoletty.ocd.ConsoleTty"/>
   </Designate>
 
 </MetaData>

@@ -10,19 +10,25 @@
   <property name="bundle.build.all"  value="true"/>
   <property name="bundle.build.lib"  value="false"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="api.pattern"
-            value="org/apache/commons/logging/*,
-                   org/knopflerfish/service/log/*,
-                   org/osgi/service/log/*"/>
+            value="org/apache/commons/logging/*"/>
   <property name="impl.pattern"
             value="org/apache/commons/logging/impl/**,
                    org/knopflerfish/bundle/**"/>
+  <property name="all-api.pattern"
+            value="org/knopflerfish/service/log/*,
+                   org/osgi/service/log/*"/>
 
   <property name="do.bundle.custom.pre" value="true"/>
   <!-- Embedd the KF log API. -->
   <target name="bundle.custom.pre">
     <bundle_locator bundleNames="log_api">
       <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
         <include name="**/*.jar"/>
       </fileset>
     </bundle_locator>

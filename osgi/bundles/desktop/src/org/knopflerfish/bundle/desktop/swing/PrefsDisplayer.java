@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.awt.BorderLayout;
-import java.util.Iterator;
 import java.util.prefs.AbstractPreferences;
 import java.util.prefs.Preferences;
 
@@ -43,18 +42,19 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import org.knopflerfish.bundle.desktop.prefs.JPrefsEditor;
-import org.knopflerfish.bundle.desktop.prefs.MountedPreferences;
-import org.knopflerfish.bundle.desktop.prefs.OSGiBundlesPreferences;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.prefs.PreferencesService;
 import org.osgi.util.tracker.ServiceTracker;
 
+import org.knopflerfish.bundle.desktop.prefs.JPrefsEditor;
+import org.knopflerfish.bundle.desktop.prefs.MountedPreferences;
+import org.knopflerfish.bundle.desktop.prefs.OSGiBundlesPreferences;
+
 public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
 
-  ServiceTracker psTracker;
+  ServiceTracker<PreferencesService,PreferencesService> psTracker;
 
   public PrefsDisplayer(BundleContext bc) {
     super(bc, "Prefs", "Show preferences", true);
@@ -66,26 +66,28 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
   public void open() {
     super.open();
 
-    psTracker = new ServiceTracker(bc,
-                                   PreferencesService.class.getName(),
-                                   null) {
-        public Object addingService(ServiceReference sr) {
-          Object obj = super.addingService(sr);
-          reinit();
-          return obj;
-        }
-        public void removedService(ServiceReference sr, Object service) {
-          reinit();
-          super.removedService(sr, service);
-        }
-      };
+    psTracker = new ServiceTracker<PreferencesService, PreferencesService>(bc,
+        PreferencesService.class, null) {
+      public PreferencesService addingService(ServiceReference<PreferencesService> sr)
+      {
+        PreferencesService obj = super.addingService(sr);
+        reinit();
+        return obj;
+      }
+
+      public void removedService(ServiceReference<PreferencesService> sr,
+                                 PreferencesService service)
+      {
+        reinit();
+        super.removedService(sr, service);
+      }
+    };
     psTracker.open();
   }
 
-
   public void close() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JPrefs comp = (JPrefs)it.next();
+    for(JComponent jcomp : components) {
+      JPrefs comp = (JPrefs) jcomp;
       comp.close();
     }
     psTracker.close();
@@ -100,8 +102,8 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
   void reinit() {
     SwingUtilities.invokeLater(new Runnable() {
         public void run() {
-          for(Iterator it = components.iterator(); it.hasNext(); ) {
-            JPrefs comp = (JPrefs)it.next();
+          for(JComponent jcomp : components) {
+            JPrefs comp = (JPrefs) jcomp;
             comp.init();
           }
         }
@@ -113,8 +115,8 @@ public class PrefsDisplayer extends DefaultSwingBundleDisplayer {
 
     Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JPrefs comp = (JPrefs)it.next();
+    for(JComponent jcomp : components) {
+      JPrefs comp = (JPrefs) jcomp;
       comp.valueChanged(bl);
     }
   }

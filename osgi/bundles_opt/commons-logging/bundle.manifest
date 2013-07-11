@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Commons-Logging
 Bundle-SymbolicName: org.knopflerfish.bundle.commons-logging
-Bundle-Version: 2.0.0.kf3
+Bundle-Version: 2.0.0.kf4-001
 Bundle-Category: lib
 Bundle-Description: Apache Commons logging. Publishced under Apache Li
  cense. See http://www.apache.org/licenses/LICENSE-2.0
@@ -15,6 +15,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles_opt/commons-logging/
 Bundle-Classpath: .
 Bundle-Activator: org.knopflerfish.bundle.commons.logging.Activator
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Export-Package: org.osgi.service.log,
  org.knopflerfish.service.log,
  org.apache.commons.logging; version=1.0.3

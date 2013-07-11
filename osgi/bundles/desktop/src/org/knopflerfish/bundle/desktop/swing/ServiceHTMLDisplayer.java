@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.JComponent;
@@ -50,80 +49,89 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 
-
-public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
-                                  implements JHTMLBundleLinkHandler
+public class ServiceHTMLDisplayer
+  extends DefaultSwingBundleDisplayer
+  implements JHTMLBundleLinkHandler
 {
 
-  public ServiceHTMLDisplayer(BundleContext bc) {
+  public ServiceHTMLDisplayer(BundleContext bc)
+  {
     super(bc, "Services", "Shows bundle services", true);
 
-    bUseListeners          = true;
-    bUpdateOnBundleChange  = true;
+    bUseListeners = true;
+    bUpdateOnBundleChange = true;
     bUpdateOnServiceChange = true;
   }
 
-  //-------------------------------- Service URL ------------------------------
+  // -------------------------------- Service URL ------------------------------
   /**
    * Helper class that handles links to OSGi services.
    * <p>
-   * The URL will look like:
-   * <code>http://desktop/service?sid=<SID></code>.
+   * The URL will look like: <code>http://desktop/service?sid=<SID></code>.
    * </p>
    */
-  public static class ServiceUrl {
+  public static class ServiceUrl
+  {
     public static final String URL_SERVICE_HOST = "desktop";
     public static final String URL_SERVICE_PREFIX_PATH = "/service";
     public static final String URL_SERVICE_KEY_SID = "sid";
 
     /** Service Id of the Service the link references. */
-    private long sid;
+    private final long sid;
 
-    public static boolean isServiceLink(URL url) {
+    public static boolean isServiceLink(URL url)
+    {
       return URL_SERVICE_HOST.equals(url.getHost())
-          && url.getPath().startsWith(URL_SERVICE_PREFIX_PATH);
+             && url.getPath().startsWith(URL_SERVICE_PREFIX_PATH);
     }
 
-    public ServiceUrl(URL url) {
-      if(!isServiceLink(url)) {
-        throw new RuntimeException("URL '" + url + "' does not start with " +
-                                   "http://" +URL_SERVICE_HOST
+    public ServiceUrl(URL url)
+    {
+      if (!isServiceLink(url)) {
+        throw new RuntimeException("URL '" + url + "' does not start with "
+                                   + "http://" + URL_SERVICE_HOST
                                    + URL_SERVICE_PREFIX_PATH);
       }
 
-      final Map params = Util.paramsFromURL(url);
+      final Map<String, String> params = Util.paramsFromURL(url);
       if (!params.containsKey(URL_SERVICE_KEY_SID)) {
         throw new RuntimeException("Invalid bundle service URL '" + url
                                    + "' service id is missing.");
       }
-      this.sid = Long.parseLong((String) params.get(URL_SERVICE_KEY_SID));
+      this.sid = Long.parseLong(params.get(URL_SERVICE_KEY_SID));
     }
 
-    public ServiceUrl(final ServiceReference sr) {
+    public ServiceUrl(final ServiceReference<?> sr)
+    {
       this.sid = ((Long) sr.getProperty(Constants.SERVICE_ID)).longValue();
     }
 
-    public ServiceUrl(final Long serviceId) {
+    public ServiceUrl(final Long serviceId)
+    {
       this.sid = serviceId.longValue();
     }
 
-    public long getSid() {
+    public long getSid()
+    {
       return sid;
     }
 
-    private void appendBaseURL(final StringBuffer sb) {
+    private void appendBaseURL(final StringBuffer sb)
+    {
       sb.append("http://");
       sb.append(URL_SERVICE_HOST);
       sb.append(URL_SERVICE_PREFIX_PATH);
     }
 
-    private Map getParams() {
-      final Map params = new HashMap();
+    private Map<String, String> getParams()
+    {
+      final Map<String, String> params = new HashMap<String, String>();
       params.put(URL_SERVICE_KEY_SID, String.valueOf(sid));
       return params;
     }
 
-    public void serviceLink(final StringBuffer sb, final String text) {
+    public void serviceLink(final StringBuffer sb, final String text)
+    {
       sb.append("<a href=\"");
       appendBaseURL(sb);
       Util.appendParams(sb, getParams());
@@ -132,34 +140,42 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
       sb.append("</a>");
     }
   }
-  //-------------------------------- Service URL ------------------------------
 
-  public JComponent newJComponent() {
+  // -------------------------------- Service URL ------------------------------
+
+  @Override
+  public JComponent newJComponent()
+  {
     return new JHTML(this);
   }
 
-  public void valueChanged(long bid) {
-    Bundle[] bl = Activator.desktop.getSelectedBundles();
+  @Override
+  public void valueChanged(long bid)
+  {
+    final Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JHTML comp = (JHTML)it.next();
+    for (final JComponent jcomp : components) {
+      final JHTML comp = (JHTML) jcomp;
       comp.valueChanged(bl);
     }
   }
-  public boolean renderUrl(final URL url, final StringBuffer sb) {
+
+  public boolean renderUrl(final URL url, final StringBuffer sb)
+  {
     final ServiceUrl serviceUrl = new ServiceUrl(url);
 
     appendServiceHTML(sb, serviceUrl.getSid());
 
-    return false;
+    return true;
   }
 
-  void appendServiceHTML(final StringBuffer sb, final long sid) {
+  void appendServiceHTML(final StringBuffer sb, final long sid)
+  {
     try {
       final String filter = "(" + Constants.SERVICE_ID + "=" + sid + ")";
-      final ServiceReference[] srl =
+      final ServiceReference<?>[] srl =
         Activator.getTargetBC_getServiceReferences(null, filter);
-      if(srl != null && srl.length == 1) {
+      if (srl != null && srl.length == 1) {
         sb.append("<html>");
         sb.append("<table border=0>");
 
@@ -173,16 +189,15 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
         sb.append("</tr>\n");
         sb.append("</table>");
 
-
         JHTMLBundle.startFont(sb);
         sb.append("<b>Properties</b>");
         JHTMLBundle.stopFont(sb);
         sb.append("<table cellpadding=\"0\" cellspacing=\"1\" border=\"0\">");
-        String[] keys = srl[0].getPropertyKeys();
-        for(int i = 0; keys != null && i < keys.length; i++) {
+        final String[] keys = srl[0].getPropertyKeys();
+        for (int i = 0; keys != null && i < keys.length; i++) {
 
-          StringWriter sw = new StringWriter();
-          PrintWriter  pr = new PrintWriter(sw);
+          final StringWriter sw = new StringWriter();
+          final PrintWriter pr = new PrintWriter(sw);
 
           Util.printObject(pr, srl[0].getProperty(keys[i]));
 
@@ -203,9 +218,10 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
 
         try {
           formatServiceObject(sb, srl[0]);
-        } catch (Exception e) {
+        } catch (final Exception e) {
           sb.append("Failed to format service object: " + e);
-          Activator.log.warn("Failed to format service object: " +e, srl[0], e);
+          Activator.log
+              .warn("Failed to format service object: " + e, srl[0], e);
         }
 
         sb.append("</html>");
@@ -213,21 +229,21 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
       } else {
         sb.append("No service with sid=" + sid);
       }
-    } catch (Exception e2) {
+    } catch (final Exception e2) {
       e2.printStackTrace();
     }
   }
 
-
-  void formatServiceObject(final StringBuffer sb, final ServiceReference sr) {
+  void formatServiceObject(final StringBuffer sb, final ServiceReference<?> sr)
+  {
     final String[] names = (String[]) sr.getProperty(Constants.OBJECTCLASS);
 
     JHTMLBundle.startFont(sb);
     sb.append("<b>Implemented interfaces</b>");
     sb.append("<br>");
-    for(int i = 0; i < names.length; i++) {
+    for (int i = 0; i < names.length; i++) {
       sb.append(names[i]);
-      if(i < names.length -1) {
+      if (i < names.length - 1) {
         sb.append(", ");
       }
     }
@@ -238,22 +254,22 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
     sb.append("<b>Methods</b>");
 
     sb.append("<table>");
-    for (int i=0; i<names.length; i++) {
+    for (final String name2 : names) {
       try {
-        Class clazz = sr.getBundle().loadClass(names[i]);
-        if (null==clazz) {
+        final Class<?> clazz = sr.getBundle().loadClass(name2);
+        if (null == clazz) {
           sb.append("<tr><td colspan=\"3\" valign=\"top\" bgcolor=\"#eeeeee\">");
           JHTMLBundle.startFont(sb);
-          sb.append("Class not found: ").append(names[i]);
+          sb.append("Class not found: ").append(name2);
           JHTMLBundle.stopFont(sb);
           sb.append("</td></tr>");
         } else {
           formatClass(sb, clazz);
         }
-      } catch (ClassNotFoundException e) {
+      } catch (final ClassNotFoundException e) {
         sb.append("<tr><td colspan=\"3\" valign=\"top\" bgcolor=\"#eeeeee\">");
         JHTMLBundle.startFont(sb);
-        sb.append("Class not found: ").append(names[i]);
+        sb.append("Class not found: ").append(name2);
         JHTMLBundle.stopFont(sb);
         sb.append("</td></tr>");
       }
@@ -261,8 +277,9 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
     sb.append("</table>");
   }
 
-  void formatClass(final StringBuffer sb, final Class clazz) {
-    Method[] methods = clazz.getDeclaredMethods();
+  void formatClass(final StringBuffer sb, final Class<?> clazz)
+  {
+    final Method[] methods = clazz.getDeclaredMethods();
 
     sb.append("<tr>");
     sb.append("<td colspan=\"4\" valign=\"top\" bgcolor=\"#eeeeee\">");
@@ -271,11 +288,11 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
     JHTMLBundle.stopFont(sb);
     sb.append("</td></tr>");
 
-    for(int i = 0; i < methods.length; i++) {
-      if(!Modifier.isPublic(methods[i].getModifiers())) {
+    for (int i = 0; i < methods.length; i++) {
+      if (!Modifier.isPublic(methods[i].getModifiers())) {
         continue;
       }
-      Class[] params = methods[i].getParameterTypes();
+      final Class<?>[] params = methods[i].getParameterTypes();
       sb.append("<tr>");
 
       sb.append("<td valign=\"top\" colspan=\"3\">");
@@ -286,9 +303,9 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
       sb.append(methods[i].getName());
 
       sb.append("(");
-      for(int j = 0; j < params.length; j++) {
+      for (int j = 0; j < params.length; j++) {
         sb.append(className(params[j].getName()));
-        if(j < params.length - 1) {
+        if (j < params.length - 1) {
           sb.append(",&nbsp;");
         }
       }
@@ -300,44 +317,50 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
     }
   }
 
-  String className(String name) {
-    if(name.startsWith("[L") && name.endsWith(";")) {
+  String className(String name)
+  {
+    if (name.startsWith("[L") && name.endsWith(";")) {
       name = name.substring(2, name.length() - 1) + "[]";
     }
 
-    if(name.startsWith("java.lang.")) {
+    if (name.startsWith("java.lang.")) {
       name = name.substring(10);
     }
 
     return name;
   }
 
-  class JHTML extends JHTMLBundle {
+  class JHTML
+    extends JHTMLBundle
+  {
     private static final long serialVersionUID = 1L;
 
-    JHTML(DefaultSwingBundleDisplayer displayer) {
+    JHTML(DefaultSwingBundleDisplayer displayer)
+    {
       super(displayer);
     }
 
-    public StringBuffer  bundleInfo(Bundle b) {
-      StringBuffer sb = new StringBuffer();
+    @Override
+    public StringBuffer bundleInfo(Bundle b)
+    {
+      final StringBuffer sb = new StringBuffer();
 
       try {
-        final ServiceReference[] srl
-          = Activator.getTargetBC_getServiceReferences();
+        final ServiceReference<?>[] srl =
+          Activator.getTargetBC_getServiceReferences();
         int nExport = 0;
         int nImport = 0;
-        for(int i = 0; srl != null && i < srl.length; i++) {
+        for (int i = 0; srl != null && i < srl.length; i++) {
           final Bundle srlb = srl[i].getBundle();
-          if (null==srlb) { // Skip unregistered service.
+          if (null == srlb) { // Skip unregistered service.
             continue;
           }
-          if(srlb.getBundleId() == b.getBundleId()) {
+          if (srlb.getBundleId() == b.getBundleId()) {
             nExport++;
           }
-          Bundle[] bl = srl[i].getUsingBundles();
-          for(int j = 0; bl != null && j < bl.length; j++) {
-            if(bl[j].getBundleId() == b.getBundleId()) {
+          final Bundle[] bl = srl[i].getUsingBundles();
+          for (int j = 0; bl != null && j < bl.length; j++) {
+            if (bl[j].getBundleId() == b.getBundleId()) {
               nImport++;
             }
           }
@@ -345,26 +368,29 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
 
         startFont(sb);
 
-        if(nExport > 0) {
+        if (nExport > 0) {
           sb.append("<b>Exported services</b>");
 
-          for(int i = 0; srl != null && i < srl.length; i++) {
-            Bundle srlb = srl[i].getBundle();
-            if(null!=srlb && srlb.getBundleId() == b.getBundleId()) {
-              String[] cl = (String[])srl[i].getProperty(Constants.OBJECTCLASS);
-              Bundle[] bl = srl[i].getUsingBundles();
+          for (int i = 0; srl != null && i < srl.length; i++) {
+            final Bundle srlb = srl[i].getBundle();
+            if (null != srlb && srlb.getBundleId() == b.getBundleId()) {
+              final String[] cl =
+                (String[]) srl[i].getProperty(Constants.OBJECTCLASS);
+              final Bundle[] bl = srl[i].getUsingBundles();
 
-              for(int j = 0; j < cl.length; j++) {
+              for (final String element : cl) {
                 sb.append("<br>");
                 sb.append("#");
-                new ServiceUrl(srl[i]).serviceLink(sb, srl[i].getProperty(Constants.SERVICE_ID).toString());
+                new ServiceUrl(srl[i])
+                    .serviceLink(sb, srl[i].getProperty(Constants.SERVICE_ID)
+                        .toString());
                 sb.append(" ");
-                sb.append(cl[j]);
+                sb.append(element);
               }
 
-              if(bl != null && bl.length > 0) {
-                //            sb.append("<b>Used by</b><br>");
-                for(int j = 0; bl != null && j < bl.length; j++) {
+              if (bl != null && bl.length > 0) {
+                // sb.append("<b>Used by</b><br>");
+                for (int j = 0; bl != null && j < bl.length; j++) {
                   sb.append("<br>");
                   sb.append("&nbsp;&nbsp;");
                   Util.bundleLink(sb, bl[j]);
@@ -374,19 +400,22 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
           }
         }
 
-        if(nImport > 0) {
+        if (nImport > 0) {
           sb.append("<br><b>Imported services</b>");
-          for(int i = 0; srl != null && i < srl.length; i++) {
-            Bundle[] bl = srl[i].getUsingBundles();
-            for(int j = 0; bl != null && j < bl.length; j++) {
-              if(bl[j].getBundleId() == b.getBundleId()) {
-                String[] cl = (String[])srl[i].getProperty(Constants.OBJECTCLASS);
-                for(int k = 0; k < cl.length; k++) {
+          for (int i = 0; srl != null && i < srl.length; i++) {
+            final Bundle[] bl = srl[i].getUsingBundles();
+            for (int j = 0; bl != null && j < bl.length; j++) {
+              if (bl[j].getBundleId() == b.getBundleId()) {
+                final String[] cl =
+                  (String[]) srl[i].getProperty(Constants.OBJECTCLASS);
+                for (final String element : cl) {
                   sb.append("<br>");
                   sb.append("#");
-                  new ServiceUrl(srl[i]).serviceLink(sb, srl[i].getProperty(Constants.SERVICE_ID).toString());
+                  new ServiceUrl(srl[i])
+                      .serviceLink(sb, srl[i].getProperty(Constants.SERVICE_ID)
+                          .toString());
                   sb.append(" ");
-                  sb.append(cl[k]);
+                  sb.append(element);
                 }
                 sb.append("<br>");
                 sb.append("&nbsp;&nbsp;");
@@ -396,7 +425,7 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
           }
         }
         sb.append("</font>");
-      } catch (Exception e) {
+      } catch (final Exception e) {
         e.printStackTrace();
       }
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
@@ -407,7 +436,8 @@ public class ServiceHTMLDisplayer extends DefaultSwingBundleDisplayer
 
   }
 
-  public boolean canRenderUrl(final URL url) {
+  public boolean canRenderUrl(final URL url)
+  {
     return ServiceUrl.isServiceLink(url);
   }
 

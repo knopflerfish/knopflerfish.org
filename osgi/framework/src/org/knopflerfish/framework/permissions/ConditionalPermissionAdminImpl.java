@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,16 +35,35 @@
 package org.knopflerfish.framework.permissions;
 
 
+import java.io.File;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URL;
-import java.security.*;
-import java.security.cert.*;
-import java.util.*;
+import java.security.AccessControlContext;
+import java.security.PermissionCollection;
+import java.security.Principal;
+import java.security.ProtectionDomain;
+import java.security.PublicKey;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
+import org.osgi.service.condpermadmin.ConditionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
+import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
-import org.osgi.service.condpermadmin.*;
 
 import org.knopflerfish.framework.FrameworkContext;
 import org.knopflerfish.framework.Util;
@@ -52,15 +71,15 @@ import org.knopflerfish.framework.Util;
 /**
  * Framework service to administer Conditional Permissions. Conditional
  * Permissions can be added to, retrieved from, and removed from the framework.
- * 
+ *
  */
 public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmin {
 
   public final static String SPEC_VERSION = "1.1.0";
 
-  private ConditionalPermissionInfoStorage cpis;
+  private final ConditionalPermissionInfoStorage cpis;
 
-  private PermissionInfoStorage pis;
+  private final PermissionInfoStorage pis;
 
   final private FrameworkContext framework;
 
@@ -83,10 +102,10 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
 
   /**
    * Create a new Conditional Permission Info.
-   * 
+   *
    * The Conditional Permission Info will be given a unique, never reused
    * name.
-   * 
+   *
    * @param conds The Conditions that need to be satisfied to enable the
    *        corresponding Permissions.
    * @param perms The Permissions that are enable when the corresponding
@@ -101,20 +120,20 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
     return cpis.put(null, conds, perms);
   }
 
-  
+
   /**
    * Set or create a Conditional Permission Info with a specified name.
-   * 
-   * If the specified name is <code>null</code>, a new Conditional
+   *
+   * If the specified name is {@code null}, a new Conditional
    * Permission Info must be created and will be given a unique, never reused
    * name. If there is currently no Conditional Permission Info with the
    * specified name, a new Conditional Permission Info must be created with
    * the specified name. Otherwise, the Conditional Permission Info with the
    * specified name must be updated with the specified Conditions and
    * Permissions.
-   * 
+   *
    * @param name The name of the Conditional Permission Info, or
-   *        <code>null</code>.
+   *        {@code null}.
    * @param conds The Conditions that need to be satisfied to enable the
    *        corresponding Permissions.
    * @param perms The Permissions that are enable when the corresponding
@@ -135,18 +154,18 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
    * Conditional Permission Admin. Calling
    * {@link ConditionalPermissionInfo#delete()} will remove the Conditional
    * Permission Info from Conditional Permission Admin.
-   * 
+   *
    * @return An enumeration of the Conditional Permission Infos that are
    *         currently managed by Conditional Permission Admin.
    */
-  public Enumeration getConditionalPermissionInfos() {
+  public Enumeration<ConditionalPermissionInfo> getConditionalPermissionInfos() {
     return cpis.getAllEnumeration();
   }
 
 
   /**
    * Return the Conditional Permission Info with the specified name.
-   * 
+   *
    * @param name The name of the Conditional Permission Info to be returned.
    * @return The Conditional Permission Info with the specified name.
    */
@@ -158,7 +177,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
   /**
    * Returns the Access Control Context that corresponds to the specified
    * signers.
-   * 
+   *
    * @param signers The signers for which to return an Access Control Context.
    * @return An <code>AccessControlContext</code> that has the Permissions
    *         associated with the signer.
@@ -186,11 +205,11 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
    *
    * @see org.osgi.service.condpermadmin.ConditionalPermissionAdmin#newConditionalPermissionInfo()
    */
-  public ConditionalPermissionInfo
-      newConditionalPermissionInfo(String name,
-                                   ConditionInfo conditions[],
-                                   PermissionInfo permissions[],
-                                   String access) {
+  public ConditionalPermissionInfo newConditionalPermissionInfo(String name,
+                                                                ConditionInfo conditions[],
+                                                                PermissionInfo permissions[],
+                                                                String access)
+  {
     if (ConditionalPermissionInfo.ALLOW.equalsIgnoreCase(access)) {
       access = ConditionalPermissionInfo.ALLOW;
     } else if (ConditionalPermissionInfo.DENY.equalsIgnoreCase(access)) {
@@ -217,20 +236,22 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
     return new ConditionalPermissionInfoImpl(cpis, encoded, framework);
   }
 
-    
+
   /**
    * Dummy Bundle class only used for getAccessControlContext().
    */
   static class DummyBundle implements Bundle {
 
-    private HashMap signerMap = new HashMap();
+    private final HashMap<X509Certificate,List<X509Certificate>> signerMap
+      = new HashMap<X509Certificate, List<X509Certificate>>();
 
     DummyBundle(String [] signers) {
-      for (int i = 0; i < signers.length; i++) {
-        String [] chain = Util.splitwords(signers[i], ";");
-        ArrayList tmp = new ArrayList(chain.length);
-        for (int j = 0; j < chain.length; j++) {
-          tmp.add(new X509Dummy(chain[j]));
+      for (final String signer : signers) {
+        final String [] chain = Util.splitwords(signer, ";");
+        final ArrayList<X509Certificate> tmp
+          = new ArrayList<X509Certificate>(chain.length);
+        for (final String element : chain) {
+          tmp.add(new X509Dummy(element));
         }
         signerMap.put(tmp.get(0), tmp);
       }
@@ -269,7 +290,7 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       throw new IllegalStateException("Bundle is uninstalled");
     }
 
-    public Dictionary getHeaders() {
+    public Dictionary<String, String> getHeaders() {
       return getHeaders(null);
     }
 
@@ -281,11 +302,11 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       return "";
     }
 
-    public ServiceReference[] getRegisteredServices() {
+    public ServiceReference<?>[] getRegisteredServices() {
       throw new IllegalStateException("Bundle is uninstalled");
     }
 
-    public ServiceReference[] getServicesInUse() {
+    public ServiceReference<?>[] getServicesInUse() {
       throw new IllegalStateException("Bundle is uninstalled");
     }
 
@@ -309,17 +330,30 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       return 0;
     }
 
-    public Map getSignerCertificates(int signersType) {
-      return (Map)signerMap.clone();
+    public Map<X509Certificate, List<X509Certificate>>
+      getSignerCertificates(int signersType)
+    {
+      @SuppressWarnings("unchecked")
+      final Map<X509Certificate, List<X509Certificate>> res
+        = (Map<X509Certificate, List<X509Certificate>>) signerMap.clone();
+      return res;
     }
 
     public Version getVersion() {
       return Version.emptyVersion;
     }
 
-    public Enumeration findEntries(String path,
-                                   String filePattern,
-                                   boolean recurse)
+    public <A> A adapt(Class<A> type) {
+      return null;
+    }
+
+    public File getDataFile(String filename) {
+      throw new IllegalStateException("Bundle is uninstalled");
+    }
+
+    public Enumeration<URL> findEntries(String path,
+                                        String filePattern,
+                                        boolean recurse)
     {
       throw new IllegalStateException("Bundle is uninstalled");
     }
@@ -328,20 +362,24 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       throw new IllegalStateException("Bundle is uninstalled");
     }
 
-    public Enumeration getEntryPaths(String path) {
+    public Enumeration<String> getEntryPaths(String path) {
       throw new IllegalStateException("Bundle is uninstalled");
     }
 
-    public Dictionary getHeaders(String locale) {
-      return new Hashtable();
+    public Dictionary<String, String> getHeaders(String locale) {
+      return new Hashtable<String, String>();
     }
 
-    public Enumeration getResources(String name) {
+    public Enumeration<URL> getResources(String name) {
       throw new IllegalStateException("Bundle is uninstalled");
     }
 
-    public Class loadClass(final String name) {
+    public Class<?> loadClass(final String name) {
       throw new IllegalStateException("Bundle is uninstalled");
+    }
+
+    public int compareTo(Bundle bundle) {
+      return 0;
     }
   }
 
@@ -357,87 +395,109 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       subject = new PrincipalDummy(dn);
     }
 
-    public void checkValidity() { 
-    }   
-
-    public void checkValidity(Date date) { 
+    @Override
+    public void checkValidity() {
     }
 
+    @Override
+    public void checkValidity(Date date) {
+    }
+
+    @Override
     public int getVersion() {
       return 1;
     }
 
+    @Override
     public BigInteger getSerialNumber() {
       return null;
     }
 
+    @Override
     public Principal getIssuerDN() {
       return null;
     }
 
+    @Override
     public Principal getSubjectDN() {
       return subject;
     }
 
+    @Override
     public Date getNotBefore() {
       return null;
     }
 
+    @Override
     public Date getNotAfter() {
       return null;
     }
 
+    @Override
     public byte[] getTBSCertificate() {
       return null;
     }
 
+    @Override
     public byte[] getSignature() {
       return null;
     }
 
+    @Override
     public String getSigAlgName() {
       return null;
     }
 
+    @Override
     public String getSigAlgOID() {
       return null;
     }
 
+    @Override
     public byte[] getSigAlgParams() {
       return null;
     }
 
+    @Override
     public boolean[] getIssuerUniqueID() {
       return null;
     }
 
+    @Override
     public boolean[] getSubjectUniqueID() {
       return null;
     }
 
+    @Override
     public boolean[] getKeyUsage() {
       return null;
     }
 
+    @Override
     public int getBasicConstraints() {
       return 0;
     }
 
+    @Override
     public byte [] getEncoded() {
       return null;
     }
 
+    @Override
     public PublicKey getPublicKey() {
       return null;
     }
 
+    @Override
     public String toString() {
       return "X509Dummy, " + subject.getName();
     }
 
+    @Override
     public void verify(PublicKey k) {
     }
 
+    @Override
     public void verify(PublicKey k, String p) {
     }
 
@@ -445,11 +505,11 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       return null;
     }
 
-    public Set getCriticalExtensionOIDs() {
+    public Set<String> getCriticalExtensionOIDs() {
       return null;
     }
 
-    public Set getNonCriticalExtensionOIDs() {
+    public Set<String> getNonCriticalExtensionOIDs() {
       return null;
     }
 
@@ -457,10 +517,12 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       return false;
     }
 
+    @Override
     public boolean equals(Object o) {
       return subject.equals(o);
     }
 
+    @Override
     public int hashCode() {
       return subject.hashCode();
     }
@@ -477,8 +539,8 @@ public class ConditionalPermissionAdminImpl implements ConditionalPermissionAdmi
       name = dn;
     }
 
-    public String getName() { 
+    public String getName() {
       return name;
-    }   
+    }
   }
 }

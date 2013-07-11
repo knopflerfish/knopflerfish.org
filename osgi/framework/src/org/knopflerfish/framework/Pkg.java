@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.ArrayList;
 
 
 /**
@@ -46,11 +46,11 @@ class Pkg {
 
   final String pkg;
 
-  ArrayList /* ExportPkg */ exporters = new ArrayList(1);
+  final ArrayList<ExportPkg> exporters = new ArrayList<ExportPkg>(1);
 
-  ArrayList /* ImportPkg */ importers = new ArrayList();
+  final ArrayList<ImportPkg> importers = new ArrayList<ImportPkg>();
 
-  ArrayList /* ExportPkg */ providers = new ArrayList(1);
+  final ArrayList<ExportPkg> providers = new ArrayList<ExportPkg>(1);
 
 
   /**
@@ -67,7 +67,7 @@ class Pkg {
    * @param pe ExportPkg to add.
    */
   synchronized void addExporter(ExportPkg ep) {
-    int i = Math.abs(Util.binarySearch(exporters, epComp, ep) + 1);
+    final int i = Math.abs(Util.binarySearch(exporters, epComp, ep) + 1);
     exporters.add(i, ep);
     ep.attachPkg(this);
   }
@@ -93,7 +93,7 @@ class Pkg {
    * @param pe ImportPkg to add.
    */
   synchronized void addImporter(ImportPkg ip) {
-    int i = Math.abs(Util.binarySearch(importers, ipComp, ip) + 1);
+    final int i = Math.abs(Util.binarySearch(importers, ipComp, ip) + 1);
     importers.add(i, ip);
     ip.attachPkg(this);
   }
@@ -117,7 +117,7 @@ class Pkg {
    * @param pe ExportPkg to add.
    */
   synchronized void addProvider(ExportPkg ep) {
-    int i = Util.binarySearch(providers, epComp, ep);
+    final int i = Util.binarySearch(providers, epComp, ep);
     if (i < 0) {
       providers.add(-i - 1, ep);
     }
@@ -132,13 +132,13 @@ class Pkg {
    */
   synchronized ExportPkg getBestProvider() {
     if (!providers.isEmpty()) {
-      return (ExportPkg)providers.get(0);
+      return providers.get(0);
     } else {
       ExportPkg best = null;
       // See if there are any resolved exporters.
-      for (Iterator i = exporters.iterator(); i.hasNext(); ) {
-        ExportPkg ep = (ExportPkg)i.next();
-        if ((ep.bpkgs.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
+      for (final ExportPkg exportPkg : exporters) {
+        final ExportPkg ep = exportPkg;
+        if (ep.bpkgs.bg.bundle.isResolved()) {
           if (best == null || best.version.compareTo(ep.version) < 0) {
             best = ep;
           }
@@ -159,13 +159,14 @@ class Pkg {
   }
 
 
+  @Override
   public String toString() {
     return toString(2);
   }
 
 
   public String toString(int level) {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
     sb.append("Pkg[");
 
     if(level > 0) {
@@ -183,57 +184,58 @@ class Pkg {
   }
 
 
-  static final Util.Comparator epComp = new Util.Comparator() {
-      /**
-       * Version compare two ExportPkg objects. If same version, order according
-       * to bundle id, lowest first.
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if object is not a ExportPkg object.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-	ExportPkg a = (ExportPkg)oa;
-	ExportPkg b = (ExportPkg)ob;
-	int d = a.version.compareTo(b.version);
-	if (d == 0) {
-	  long ld = b.bpkgs.bg.bundle.id - a.bpkgs.bg.bundle.id;
-	  if (ld < 0)
-	    d = -1;
-	  else if (ld > 0)
-	    d = 1;
-	}
-	return d;
+  static final Util.Comparator<ExportPkg, ExportPkg> epComp = new Util.Comparator<ExportPkg, ExportPkg>() {
+    /**
+     * Version compare two ExportPkg objects. If same version, order according
+     * to bundle id, lowest first.
+     *
+     * @param a
+     *          ExportPkg to compare.
+     * @param b
+     *          ExportPkg to compare.
+     * @return Return 0 if equals, negative if first object is less than second
+     *         object and positive if first object is larger then second object.
+     */
+    public int compare(ExportPkg a, ExportPkg b)
+    {
+      int d = a.version.compareTo(b.version);
+      if (d == 0) {
+        final long ld = b.bpkgs.bg.bundle.id - a.bpkgs.bg.bundle.id;
+        if (ld < 0)
+          d = -1;
+        else if (ld > 0)
+          d = 1;
       }
-    };
+      return d;
+    }
+  };
 
-  static final Util.Comparator ipComp = new Util.Comparator() {
-      /**
-       * Version compare two ImportPkg objects. If same version, order according
-       * to bundle id, lowest first.
-       *
-       * @param oa Object to compare.
-       * @param ob Object to compare.
-       * @return Return 0 if equals, negative if first object is less than second
-       *         object and positive if first object is larger then second object.
-       * @exception ClassCastException if object is not a ImportPkg object.
-       */
-      public int compare(Object oa, Object ob) throws ClassCastException {
-	ImportPkg a = (ImportPkg)oa;
-	ImportPkg b = (ImportPkg)ob;
-	int d = a.packageRange.compareTo(b.packageRange);
-	if (d == 0) {
-	  long ld = b.bpkgs.bg.bundle.id - a.bpkgs.bg.bundle.id;
-	  if (ld < 0)
-	    d = -1;
-	  else if (ld > 0)
-	    d = 1;
-	}
-	return d;
+  static final Util.Comparator<ImportPkg, ImportPkg> ipComp = new Util.Comparator<ImportPkg, ImportPkg>() {
+    /**
+     * Version compare two ImportPkg objects. If same version, order according
+     * to bundle id, lowest first.
+     *
+     * @param a
+     *          ImportPkg to compare.
+     * @param b
+     *          ImportPkg to compare.
+     * @return Return 0 if equals, negative if first object is less than second
+     *         object and positive if first object is larger then second object.
+     * @exception ClassCastException
+     *              if object is not a ImportPkg object.
+     */
+    public int compare(ImportPkg a, ImportPkg b)
+    {
+      int d = a.packageRange.compareTo(b.packageRange);
+      if (d == 0) {
+        final long ld = b.bpkgs.bg.bundle.id - a.bpkgs.bg.bundle.id;
+        if (ld < 0)
+          d = -1;
+        else if (ld > 0)
+          d = 1;
       }
-    };
-
+      return d;
+    }
+  };
 
 }

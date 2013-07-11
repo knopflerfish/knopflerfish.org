@@ -79,5 +79,5 @@ public interface RemoteFramework  {
    * @throws IllegalArgumentException if bc is not a context returned 
    *                                  from <tt>connect</tt>
    */
-  public Map getSystemProperties(BundleContext bc);
+  public Map<String, String> getSystemProperties(BundleContext bc);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,8 @@ public class OSGiBundlesPreferences
   protected Bundle[] bl;
 
   // String -> OSGiBundlesPreference
-  protected Map      childNodes = new LinkedHashMap();
+  protected Map<String, OSGiBundlePreferences> childNodes
+    = new LinkedHashMap<String, OSGiBundlePreferences>();
   protected String[] childNames;
 
   public OSGiBundlesPreferences(Bundle[] bl) {
@@ -70,9 +71,9 @@ public class OSGiBundlesPreferences
   }
 
   public void close() {
-    for(Iterator it = childNodes.keySet().iterator(); it.hasNext(); ) {
-      String                name = (String)it.next();
-      OSGiBundlePreferences node = (OSGiBundlePreferences)childNodes.get(name);
+    for(Iterator<String> it = childNodes.keySet().iterator(); it.hasNext(); ) {
+      String                name = it.next();
+      OSGiBundlePreferences node = childNodes.get(name);
       node.close();
     }
   }

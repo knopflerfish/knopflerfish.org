@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,8 +46,9 @@ import java.util.Hashtable;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpUtils;
 
-public class RequestBase extends HeaderBase {
-
+public class RequestBase
+  extends HeaderBase
+{
   // private constants
 
   // The URL to use as context when parsing the request URI.
@@ -55,7 +56,7 @@ public class RequestBase extends HeaderBase {
   static {
     try {
       BASE_HTTP_URL = new URL("http://localhost/");
-    } catch (MalformedURLException _mfue) {
+    } catch (final MalformedURLException _mfue) {
       // Should not happen!
     }
   }
@@ -72,7 +73,8 @@ public class RequestBase extends HeaderBase {
 
   protected static final String HTTP_1_1_PROTOCOL = "HTTP/1.1";
 
-  protected static final String FORM_MIME_TYPE = "application/x-www-form-urlencoded";
+  protected static final String FORM_MIME_TYPE =
+    "application/x-www-form-urlencoded";
 
   // private fields
 
@@ -90,24 +92,25 @@ public class RequestBase extends HeaderBase {
   // The session id parameter of the request URI
   private String sessionIdParameter = null;
 
-  private Hashtable queryParameters = null;
+  private Hashtable<String, String[]> queryParameters = null;
 
-  private Hashtable parameters = null;
+  private Hashtable<String, String[]> parameters = null;
 
   private ServletInputStreamImpl body = null;
 
   // constructors
 
-  RequestBase() {
+  RequestBase()
+  {
   }
 
   // public methods
 
   public void init(InputStream is, HttpConfigWrapper httpConfig)
-    throws HttpException, IOException
+      throws HttpException, IOException
   {
-    ServletInputStreamImpl in
-      = new ServletInputStreamImpl(new BufferedInputStream(is));
+    final ServletInputStreamImpl in =
+      new ServletInputStreamImpl(new BufferedInputStream(is));
 
     parseRequestLine(in);
     super.init(in, httpConfig);
@@ -115,8 +118,9 @@ public class RequestBase extends HeaderBase {
     body = in;
   }
 
-  public void destroy() {
-
+  @Override
+  public void destroy()
+  {
     method = null;
     protocol = null;
     uri = null;
@@ -131,46 +135,55 @@ public class RequestBase extends HeaderBase {
     super.destroy();
   }
 
-  public String getMethod() {
+  public String getMethod()
+  {
     return method;
   }
 
-  public String getURI() {
+  public String getURI()
+  {
     return uri;
   }
 
-  public String getProtocol() {
+  public String getProtocol()
+  {
     return protocol;
   }
 
-  public String getQueryString() {
+  public String getQueryString()
+  {
     return queryString;
   }
 
-  public Hashtable getQueryParameters() {
-
-    if (queryParameters == null)
+  public Hashtable<String, String[]> getQueryParameters()
+  {
+    if (queryParameters == null) {
       queryParameters = parseQueryString();
+    }
 
     return queryParameters;
   }
 
-  public String getSessionIdParameter() {
+  public String getSessionIdParameter()
+  {
     return sessionIdParameter;
   }
 
-  public ServletInputStreamImpl getBody() {
+  public ServletInputStreamImpl getBody()
+  {
     return body;
   }
 
-  void setBody(ServletInputStreamImpl newBody) {
+  void setBody(ServletInputStreamImpl newBody)
+  {
     this.body = newBody;
   }
 
-  public Hashtable getParameters() {
-
-    if (parameters == null)
+  public Hashtable<String, String[]> getParameters()
+  {
+    if (parameters == null) {
       parameters = parseParameters();
+    }
 
     return parameters;
   }
@@ -178,31 +191,33 @@ public class RequestBase extends HeaderBase {
   // private methods
 
   private void parseRequestLine(ServletInputStreamImpl in)
-    throws HttpException, IOException {
-
+      throws HttpException, IOException
+  {
     String line;
     int index;
 
     // parse method
     line = in.readLine();
     index = line.indexOf(' ');
-    if (index == -1)
+    if (index == -1) {
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
+    }
     method = line.substring(0, index).toUpperCase();
 
     // get uri
     line = line.substring(index + 1);
     index = line.indexOf(' ');
-    if (index == -1 || index == 0)
+    if (index == -1 || index == 0) {
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
+    }
     uri = line.substring(0, index);
-    
+
     // get protocol
     protocol = line.substring(index + 1).trim();
 
     // Parse the uri string. It may be '*', absoluteURI, abs_path,
     // authority. Proxies are allowed to send requests with an
-    // aboslute URI on the request line, clients should only send
+    // absolute URI on the request line, clients should only send
     // requests with an absolute path. Currently we only support
     // absoluteURI and abs_path.
     try {
@@ -213,67 +228,70 @@ public class RequestBase extends HeaderBase {
         // (which is not OK but still happens in the real world)
         uri = "http:" + uri; // add schema to help URL constructor
       }
-      URL url = new URL(BASE_HTTP_URL, uri);
+      final URL url = new URL(BASE_HTTP_URL, uri);
       uri = url.getPath();
-      int sessionPos = uri.lastIndexOf(HttpUtil.SESSION_PARAMETER_KEY);
-      if (-1<sessionPos) {
-        sessionIdParameter = uri
-          .substring(sessionPos+HttpUtil.SESSION_PARAMETER_KEY.length());
+      final int sessionPos = uri.lastIndexOf(HttpUtil.SESSION_PARAMETER_KEY);
+      if (-1 < sessionPos) {
+        sessionIdParameter =
+          uri.substring(sessionPos + HttpUtil.SESSION_PARAMETER_KEY.length());
         uri = uri.substring(0, sessionPos);
       }
       queryString = url.getQuery();
-    } catch (MalformedURLException mue) {
+    } catch (final MalformedURLException mue) {
       Activator.log.warn("Could not make URI from request path", mue);
       throw new HttpException(HttpServletResponse.SC_BAD_REQUEST,
                               mue.getMessage());
     }
   }
 
-  private Hashtable parseQueryString() {
-
+  private Hashtable<String, String[]> parseQueryString()
+  {
     if (queryString != null) {
       try {
-        return HttpUtils.parseQueryString(queryString);
-      } catch (IllegalArgumentException ignore) {
+        @SuppressWarnings("unchecked")
+        final Hashtable<String, String[]> res =
+          HttpUtils.parseQueryString(queryString);
+        return res;
+      } catch (final IllegalArgumentException ignore) {
       }
     }
 
-    return new Hashtable();
+    return new Hashtable<String, String[]>();
   }
 
-  private Hashtable parseParameters() {
+  private Hashtable<String, String[]> parseParameters()
+  {
+    final Hashtable<String, String[]> parameters = getQueryParameters();
+    final String contentType = getContentType();
 
-    Hashtable parameters = getQueryParameters();
-    String contentType = getContentType();
-
-    if (POST_METHOD.equals(method)
-        && null!=contentType && contentType.startsWith(FORM_MIME_TYPE)) {
+    if (POST_METHOD.equals(method) && null != contentType
+        && contentType.startsWith(FORM_MIME_TYPE)) {
       // Check that the input stream has not been touched
 
       // Can not use HttpUtils.parsePostData() here since it
       // does not honor the character encoding.
       byte[] bodyBytes = null;
       try {
-        int length = getContentLength();
-        InputStream in = getBody();
+        final int length = getContentLength();
+        final InputStream in = getBody();
         bodyBytes = new byte[length];
         int offset = 0;
 
         do {
-          int readLength = in.read( bodyBytes, offset, length-offset);
-          if (readLength<=0) {
+          final int readLength = in.read(bodyBytes, offset, length - offset);
+          if (readLength <= 0) {
             // Bytes are missing, skip.
             throw new IOException("Body data to shoort!");
           }
           offset += readLength;
-        } while (length-offset>0);
-      } catch (IOException ioe) {
+        } while (length - offset > 0);
+      } catch (final IOException ioe) {
         return parameters;
       }
       String paramData = null;
       try {
         paramData = new String(bodyBytes, getCharacterEncoding());
-      } catch (UnsupportedEncodingException usee) {
+      } catch (final UnsupportedEncodingException usee) {
         // Fallback to use the default character encoding.
         paramData = new String(bodyBytes);
       }
@@ -282,22 +300,25 @@ public class RequestBase extends HeaderBase {
       // way should not be needed, since the body may contain UTF-8
       // chars as long as the correct character encoding has been used
       // for the post.
-      Hashtable p = HttpUtils.parseQueryString(paramData);
-      // Merge posted paramters with URL parameters.
-      Enumeration e = p.keys();
+      @SuppressWarnings("unchecked")
+      final Hashtable<String, String[]> p = HttpUtils.parseQueryString(paramData);
+      // Merge posted parameters with URL parameters.
+      final Enumeration<String> e = p.keys();
       while (e.hasMoreElements()) {
-        String key = (String) e.nextElement();
-        String[] val = (String[]) p.get(key);
+        final String key = e.nextElement();
+        final String[] val = p.get(key);
         String[] valArray;
-        String oldVals[] = (String[]) parameters.get(key);
+        final String oldVals[] = parameters.get(key);
         if (oldVals == null) {
           valArray = val;
         } else {
           valArray = new String[oldVals.length + val.length];
-          for (int i = 0; i < val.length; i++)
+          for (int i = 0; i < val.length; i++) {
             valArray[i] = val[i];
-          for (int i = 0; i < oldVals.length; i++)
+          }
+          for (int i = 0; i < oldVals.length; i++) {
             valArray[val.length + i] = oldVals[i];
+          }
         }
         parameters.put(key, valArray);
       }

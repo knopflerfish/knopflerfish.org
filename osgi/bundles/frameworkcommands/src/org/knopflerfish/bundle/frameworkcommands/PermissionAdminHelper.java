@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import java.util.Dictionary;
 import org.knopflerfish.service.console.Session;
 
 /**
- * Interface hiding the depndency to the {@link PermissionAdmin}
+ * Interface hiding the dependency to the {@link PermissionAdmin}
  * service for framework console commands interacting with the
  * deprecated, optional {@link PermissionAdmin} service.
  *
@@ -54,7 +54,7 @@ public interface PermissionAdminHelper
   // Addpermission command
   //
 
-  int cmdAddpermission(Dictionary opts,
+  int cmdAddpermission(Dictionary<String,?> opts,
                        Reader in,
                        PrintWriter out,
                        Session session);
@@ -63,7 +63,7 @@ public interface PermissionAdminHelper
   // Deletepermission command
   //
 
-  int cmdDeletepermission(Dictionary opts,
+  int cmdDeletepermission(Dictionary<String,?> opts,
                           Reader in,
                           PrintWriter out,
                           Session session);
@@ -72,7 +72,7 @@ public interface PermissionAdminHelper
   // Permissions command
   //
 
-  int cmdPermissions(Dictionary opts,
+  int cmdPermissions(Dictionary<String,?> opts,
                      Reader in,
                      PrintWriter out,
                      Session session);
@@ -81,7 +81,7 @@ public interface PermissionAdminHelper
   // CondPermission command
   //
 
-  int cmdCondpermission(Dictionary opts,
+  int cmdCondpermission(Dictionary<String,?> opts,
                         Reader in,
                         PrintWriter out,
                         Session session);
@@ -90,7 +90,7 @@ public interface PermissionAdminHelper
   // SetCondPermission command
   //
 
-  int cmdSetcondpermission(Dictionary opts,
+  int cmdSetcondpermission(Dictionary<String,?> opts,
                            Reader in,
                            PrintWriter out,
                            Session session);

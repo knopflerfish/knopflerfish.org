@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2010, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,21 +34,23 @@
 
 package org.knopflerfish.framework;
 
-import org.osgi.framework.Bundle;
-import org.osgi.service.packageadmin.RequiredBundle;
-import org.osgi.framework.Version;
 import java.util.List;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
+import org.osgi.service.packageadmin.RequiredBundle;
 
 /**
  * Implementation for required bundle interface.
  *
  */
+@SuppressWarnings("deprecation")
 public class RequiredBundleImpl implements RequiredBundle
 {
 
   /**
    */
-  private BundlePackages bpkgs;
+  private final BundlePackages bpkgs;
 
   /**
    *
@@ -76,7 +78,7 @@ public class RequiredBundleImpl implements RequiredBundle
    */
   public Bundle getBundle() {
     if (bpkgs.isRegistered()) {
-      return (Bundle)bpkgs.bg.bundle;
+      return bpkgs.bg.bundle;
     } else {
       return null;
     }
@@ -97,10 +99,10 @@ public class RequiredBundleImpl implements RequiredBundle
    */
   public Bundle[] getRequiringBundles() {
     if (bpkgs.isRegistered()) {
-      List rl = bpkgs.bg.bundle.getRequiredBy();
-      Bundle[] res = new Bundle[rl.size()];
+      final List<BundlePackages> rl = bpkgs.bg.bundle.getRequiredBy();
+      final Bundle[] res = new Bundle[rl.size()];
       for (int i = rl.size() - 1; i >= 0; i--) {
-        res[i] = ((BundlePackages)rl.get(i)).bg.bundle;
+        res[i] = rl.get(i).bg.bundle;
       }
       return res;
     }
@@ -129,7 +131,7 @@ public class RequiredBundleImpl implements RequiredBundle
    *         become stale; <code>false</code> otherwise.
    */
   public boolean isRemovalPending() {
-    return bpkgs.bg.bundle.gen != bpkgs.bg;
+    return !bpkgs.bg.isCurrent();
   }
 
 }

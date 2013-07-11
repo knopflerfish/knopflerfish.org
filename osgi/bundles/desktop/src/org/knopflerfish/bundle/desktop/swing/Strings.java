@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,9 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Utility class for string localization.
@@ -45,7 +46,7 @@ import java.util.List;
  * <pre>
  * button_xx      String for xx to be placed on a graphical button
  * menu_xx        String for xx to be placed in a window menu
- * tooltip_xx     String for tooltip xx text
+ * tooltip_xx     String for tool-tip xx text
  * str_xx         Generic string for xx
  * </pre>
  */
@@ -54,13 +55,13 @@ public class Strings {
   /**
    * Lookup table for strings.
    */
-  private static Hashtable strings;
+  private static Map<String, String> strings;
 
   /**
-   * Initialize strings hashtable.
+   * Initialize strings map.
    */
   static {
-    strings = new Hashtable() {
+    strings = new HashMap<String, String>() {
         private static final long serialVersionUID = 1L;
         {
           put("frame_title",       "Knopflerfish OSGi desktop ($(2) $(1))");
@@ -94,10 +95,28 @@ public class Strings {
           put("prev_tip",       "Previous tip");
           put("next_tip",       "Next tip");
 
-          put("item_stopbundles",       "Stop Selected Bundles");
+          put("item_resolvebundles",    "Resolve Selected Bundles");
+          put("item_resolvebundles.descr",
+              "Resolves un-resolved selected bundles. If called with no "
+              +"selection, try to resolve all un-resolved bundles.");
           put("item_startbundles",      "Start Selected Bundles");
+          put("item_stopbundles",       "Stop Selected Bundles");
           put("item_updatebundles",     "Update Selected Bundles");
+          put("item_refreshbundles",    "Refresh Selected Bundles");
+          put("item_refreshbundles.descr",
+              "Refresh bundles re-wires required capabilites for the selected "
+              +"bundles, if the selection is empty refresh all bundles that "
+              +"are marked as pending removal by the framework.");
           put("item_uninstallbundles",  "Uninstall Selected Bundles");
+
+          put("item_resolvebundle",    "Resolve Bundle ");
+          put("item_startbundle",      "Start Bundle ");
+          put("item_stopbundle",       "Stop Bundle ");
+          put("item_updatebundle",     "Update Bundle ");
+          put("item_refreshbundle",    "Refresh Bundle ");
+          put("item_refreshbundle.descr",
+              "Refresh bundle re-wires required capabilites for the bundle.");
+          put("item_uninstallbundle",  "Uninstall Bundle ");
 
           put("menu_remotefw",          "Remote framework...");
           put("remote_connect_msg",     "Enter address to remote framework");
@@ -142,27 +161,13 @@ public class Strings {
 
           put("msg_uninstallbundle", "Uninstall bundle");
 
-          put("menu_refreshbundles", "Refresh bundle packages");
-          put("menu_refreshbundles.descr",
-              "Refresh packages exported by selected bundles, "
-              +"if no bundle selected refresh all packages that are "
-              +"pending removal.");
-
-          put("menu_resolvebundles", "Resolve Selected Bundles");
-          put("menu_resolvebundles.descr",
-              "Resolves the selected bundles. If called with no selection, "
-              +"try to resolve all un-resolved bundles.");
-
           put("str_fwinfo", "Framework info");
           put("str_about", "About");
           put("str_abouttext",
               "Knopflerfish OSGi desktop, version $(1)\n" +
-              "Framework: $(2) $(3)\n" +
-              "(c) 2003-2010 Knopflerfish.\n\n" +
-              "See\n" +
-              "  http://www.knopflerfish.org\n" +
-              "for more information" +
-              "\n\n" +
+              "Framework: $(2) $(3)\n\n" +
+              "$(4)\n\n" +
+              "See http://www.knopflerfish.org for more information.\n\n" +
               "This release uses icons from Tango Desktop\n" +
               "Project released to the public domain, see\n" +
               "http://tango.freedesktop.org/Tango_Desktop_Project"
@@ -190,6 +195,7 @@ public class Strings {
               "Stop bundle without marking it as not persistently started.");
 
           put("startlevel.label",     "Start level: ");
+          put("startlevel.label.descr", "Change the active start level of the Framework.");
           put("startlevel.descr",  "Sets startlevel for the selected bundle.");
           put("startlevel.noSel",  "No bundle selected");
           put("menu_startlevel",      "Start level");
@@ -212,7 +218,7 @@ public class Strings {
    */
   public static String get(String key) {
     if(strings.containsKey(key)) {
-      return (String)strings.get(key);
+      return strings.get(key);
     } else {
       return key;
     }
@@ -253,6 +259,10 @@ public class Strings {
                    arg3 != null ? arg3.toString() : "null");
   }
 
+  public static String fmt(String key, Object arg1, Object arg2, Object arg3, Object arg4) {
+    return replace(fmt(key, arg1, arg2, arg3), "$(4)",
+                   arg4 != null ? arg4.toString() : "null");
+  }
 
 /**
    * Replace occurrences of substrings.
@@ -277,30 +287,32 @@ public class Strings {
     }
 
     int ix       = 0;
-    int v1Len    = v1.length();
+    final int v1Len    = v1.length();
     int n        = 0;
 
-    // count number of occurances to be able to correctly size
+    // count number of occurrences to be able to correctly size
     // the resulting output char array
     while(-1 != (ix = s.indexOf(v1, ix))) {
       n++;
       ix += v1Len;
     }
 
-    // No occurances at all, just return source string
+    // No occurrences at all, just return source string
     if(n == 0) {
       return s;
     }
 
     // Set up an output char array of correct size
     int     start  = 0;
-    int     v2Len  = v2.length();
-    char[]  r      = new char[s.length() + n * (v2Len - v1Len)];
+    final int     v2Len  = v2.length();
+    final char[]  r      = new char[s.length() + n * (v2Len - v1Len)];
     int     rPos   = 0;
 
-    // for each occurance, copy v2 where v1 used to be
+    // for each occurrence, copy v2 where v1 used to be
     while(-1 != (ix = s.indexOf(v1, start))) {
-      while(start < ix) r[rPos++] = s.charAt(start++);
+      while(start < ix) {
+        r[rPos++] = s.charAt(start++);
+      }
       for(int j = 0; j < v2Len; j++) {
         r[rPos++] = v2.charAt(j);
       }
@@ -309,7 +321,9 @@ public class Strings {
 
     // ...and add all remaining chars
     ix = s.length();
-    while(start < ix) r[rPos++] = s.charAt(start++);
+    while(start < ix) {
+      r[rPos++] = s.charAt(start++);
+    }
 
     // ..ouch. this hurts.
     return new String(r);
@@ -340,15 +354,15 @@ public class Strings {
   {
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.
-    StringBuffer buf = new StringBuffer();
+    final StringBuffer buf = new StringBuffer();
     int i = 0;
 
     while (i < s.length()) {
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
 
       if (bCit || separators.indexOf(c) == -1) {
         // Build up word until we breaks on either a citation char or
-        // spearator
+        // separator
         if (c == citChar) {
           bCit = !bCit;
           buf.append(c);
@@ -388,18 +402,18 @@ public class Strings {
    *            Citation character used for grouping words with embedded
    *            separators. Typically '"'.
    */
-  public static List/*<String>*/ splitWordSep(final String s,
-                                              final String separators,
-                                              final char citChar)
+  public static List<String> splitWordSep(final String s,
+                                          final String separators,
+                                          final char citChar)
   {
-    final ArrayList res = new ArrayList();
+    final ArrayList<String> res = new ArrayList<String>();
     final StringBuffer buf = new StringBuffer(s.length());
     boolean bCit = false; // true when inside citation chars.
     boolean bSep = false; // true when inside separator chars.
     int i = 0;
 
     while (i < s.length()) {
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
 
       if (bCit || separators.indexOf(c) == -1) {
         // Build up word until we breaks on either a citation char or

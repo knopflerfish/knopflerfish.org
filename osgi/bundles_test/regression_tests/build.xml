@@ -16,8 +16,6 @@
     <ant dir="endurance_test"		target="all"/>
     <ant dir="extension_test"		target="all"/>
     <ant dir="condpermadmin_test"	target="all"/>
-    <ant dir="axis2_soapobject"		target="all"/>
-    <ant dir="axis2_soapclient_adb"	target="all"/>
     <ant dir="preferences_test"         target="all"/>
     <ant dir="startlevel_test"          target="all"/>
   </target>
@@ -36,8 +34,6 @@
       <fileset dir="endurance_test/resources"      includes="*.jar"/>
       <fileset dir="servicetracker_test/resources" includes="*.jar"/>
       <fileset dir="extension_test/resources"      includes="*.jar"/>
-      <fileset dir="axis2_soapclient_adb"          includes="*.xargs"/>
-      <fileset dir="axis2_soapclient_adb/src/org/knopflerfish/client/axis2_soapobject/"/>
       <fileset dir="startlevel_test/resources"     includes="*.jar"/>
     </delete>
   </target>

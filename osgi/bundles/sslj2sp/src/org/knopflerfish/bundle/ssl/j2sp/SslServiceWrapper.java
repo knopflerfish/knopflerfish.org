@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003, 2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,241 +47,219 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocketFactory;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.cm.ConfigurationException;
 
+import org.knopflerfish.service.log.LogRef;
+
 /**
- * This Wrapper class manages basically a sinle SslServerSocketFactory
- * object which will be registered as a service. 
- * It includes keeping track of the object itself, the registration and
- * to update, delete and create this registration based on calls to
- * the update method.
- * 
+ * This Wrapper class manages basically a single SslServerSocketFactory object
+ * which will be registered as a service. It includes keeping track of the
+ * object itself, the registration and to update, delete and create this
+ * registration based on calls to the update method.
+ *
  */
-public class SslServiceWrapper 
+public class SslServiceWrapper
 {
-    protected final static String DEFAULT_SERVICE_PID = 
-        "org.knopflerfish.bundle.ssl.j2sp.DEFAULT";
-    
-    private final static String KEYSTOREPASS_KEY = "keystorepass";
-    private final static String KEYSTORE_KEY = "keystore";
-    private final static String DEFAULT_KEYSTORE_VALUE = "/resources/defaultkeys";
-    private final static String DEFAULT_PASSPHR_VALUE = "defaultpass";
+  protected final static String DEFAULT_SERVICE_PID =
+    "org.knopflerfish.bundle.ssl.j2sp.DEFAULT";
 
-    private Dictionary m_config;
-	private BundleContext m_bc;
-    private LogRef m_log;
-    
-    private ServiceRegistration m_reg;
- 
-    /**
-	 * @param m_bc
-	 * @param m_log
-	 */
-	protected SslServiceWrapper(BundleContext bc, LogRef log) 
-    {
-        m_bc = bc;
-		m_log = log;
-	}
+  private final static String KEYSTOREPASS_KEY = "keystorepass";
+  private final static String KEYSTORE_KEY = "keystore";
+  private final static String DEFAULT_KEYSTORE_VALUE = "/resources/defaultkeys";
+  private final static String DEFAULT_PASSPHR_VALUE = "defaultpass";
 
-	/**
-	 * @param config The latest properties to be used by this service, also used when registering framework.
-     * If this is null, will tell this object to do cleanup! 
-	 * @throws ConfigurationException
-	 */
-	protected void update (Dictionary config) 
-                   throws ConfigurationException
-    {
-        //typically, if we have an m_config, and the passed in config is not
-        //different, no reason to always recreate and reregister the same service.
-        //TODO: later. For now, just always undo it
+  private Dictionary<String, ?> m_config;
+  private final BundleContext m_bc;
+  private final LogRef m_log;
 
-        m_config = config;
-        
-        //First, delete the old registration.
-        if (m_reg != null)
-        {
-        	m_reg.unregister();
-            m_reg = null;
-        }
-        
-        //Stop here in case of cleanup
-        if (m_config == null)
-        {
-            return; 
-        }
-        
-        // create new SSLServerSocketFactory!!!
-        boolean isDefaultConfig = DEFAULT_SERVICE_PID.equals(m_config.get("service.pid"));
-        // Step 1: context
-        SSLContext context = null;
-        try
-        {
-            context = SSLContext.getInstance(ConstsIf.PROT_TLS_V1);
-        
-        } catch (NoSuchAlgorithmException e)
-        {
-            throw new ConfigurationException(
-                        "",
-                        "creating SSLContext: ERROR no such algorithm");
-        }
+  private ServiceRegistration<SSLServerSocketFactory> m_reg;
 
-        
-        //Step 2: obtain a key store instance, type is fixed
-        KeyStore myKeys;
-        try
-        {
-            myKeys = KeyStore.getInstance(ConstsIf.KS_TYPE_JKS);
+  /**
+   * @param m_bc
+   * @param m_log
+   */
+  protected SslServiceWrapper(BundleContext bc, LogRef log)
+  {
+    m_bc = bc;
+    m_log = log;
+  }
 
-        } catch (KeyStoreException e1)
-        {
-            throw new ConfigurationException(
-                        "",
-                        "creating SSLContext: ERROR no such algorithm");
-        }
+  /**
+   * @param config
+   *          The latest properties to be used by this service, also used when
+   *          registering framework. If this is null, will tell this object to
+   *          do cleanup!
+   * @throws ConfigurationException
+   */
+  protected void update(Dictionary<String, ?> config)
+      throws ConfigurationException
+  {
+    // typically, if we have an m_config, and the passed in config is not
+    // different, no reason to always recreate and reregister the same service.
+    // TODO: later. For now, just always undo it
 
-        
-        InputStream is = null;
-        char[] keyPassPhrase = null; 
+    m_config = config;
 
-        if (!isDefaultConfig) 
-        {
-            //Step 3:obtain password phrase for a keystore
-            try
-            {
-                keyPassPhrase = ((String) m_config.get(KEYSTOREPASS_KEY)).toCharArray();
-            
-            } catch (Exception epass) {}
-    
-            //Step 4:obtain input stream for a key store
-            // - if the config admin set it to type byte[], assume it is a keystore itself
-            // - else if it is of type string try to interpret this string as an (absolute) path 
-            //   to a file
-            // - else assume that this is a incomplete configruation we got from the CM Admin, 
-            //   use the default keystore
-    
-            // from CM as byte[] ?
-            if ((keyPassPhrase != null) && (is == null))
-            {        
-                try 
-                {
-                    is = new ByteArrayInputStream((byte[]) m_config.get(KEYSTORE_KEY));
-        
-                } catch (Exception eb) {}
-            }        
-    
-            //from CM as a file pointer ?
-            if ((keyPassPhrase != null) && (is == null))
-            {        
-                try 
-                {
-                    is = new FileInputStream((String) m_config.get(KEYSTORE_KEY));
-                
-                } catch (Exception ef) {}
-            }
-        
-            if ((is == null) &&  m_log.doWarn())
-            {
-                m_log.warn("using default, config is invalid: " + m_config.get("service.pid"));
-            }
-        }
-        
-        // Step 3 & 4 executed now if config is bad or we just use the default config
-        if (is == null)
-        {       
-            try
-            {
-                keyPassPhrase = DEFAULT_PASSPHR_VALUE.toCharArray();
-                is = getClass().getResourceAsStream(DEFAULT_KEYSTORE_VALUE);
-            
-            } catch (Exception edef)
-            {
-            }
-        }
-        
-        // Step 5: load keys into keystore
-        try
-        {
-            myKeys.load(is, keyPassPhrase);
-            
-        } catch (Exception eload)
-        {
-            throw new ConfigurationException(
-                            KEYSTORE_KEY + "," + KEYSTOREPASS_KEY,
-                            "ERROR loading keys !, passphrase " + String.valueOf(keyPassPhrase));
-        }
-        
-        //Step 6: create and initialize KeyManagerFactory
-        KeyManagerFactory kmf;
-        try
-        {
-            kmf = KeyManagerFactory.getInstance(ConstsIf.KM_TYPE_SUN);
-
-        } catch (NoSuchAlgorithmException e4)
-        {
-            throw new ConfigurationException(
-                        "",
-                        "creating KeyManagerFactory: ERROR no such algorithm");
-        }
-        try
-        {
-            kmf.init(myKeys, keyPassPhrase);
-
-        } catch (Exception e5)
-        {
-            throw new ConfigurationException(
-                        "",
-                        "initing kmf: " + e5.getMessage());
-        }
-        
-        //Step 7: initialize context with the key manager factory
-        try
-        {
-            context.init(kmf.getKeyManagers(), null, null);
-
-        } catch (KeyManagementException e6)
-        {
-            throw new ConfigurationException(
-                        "",
-                        "initing SSLContext: " + e6.getMessage());
-        }
-    
-        //Step 8: create SSL Server Socket Factory
-        SSLServerSocketFactory ssl = null;
-        try 
-        {
-			ssl = context.getServerSocketFactory();
-		
-        } catch (Exception e7) 
-        {
-            throw new ConfigurationException(
-                    "",
-                    "creating SSLServerSocketFactory object: " + e7.getMessage());        
-        }
-
-        m_reg = m_bc.registerService(SSLServerSocketFactory.class.getName(),
-                    ssl, m_config);
-        
+    // First, delete the old registration.
+    if (m_reg != null) {
+      m_reg.unregister();
+      m_reg = null;
     }
-        
-    protected static Dictionary getDefaultConfig()
-    {
-        Hashtable properties = new Hashtable();
-        properties.put(Constants.SERVICE_VENDOR, "knopflerfish"); 
-        properties.put(Constants.BUNDLE_NAME, "SSL Java2 Security Provider");
-        properties.put(Constants.BUNDLE_DESCRIPTION, "The default SSL Server Socket factory.");
 
-        properties.put(Constants.SERVICE_PID, SslServiceWrapper.DEFAULT_SERVICE_PID);
+    // Stop here in case of cleanup
+    if (m_config == null) {
+      return;
+    }
 
-        properties.put(KEYSTOREPASS_KEY, DEFAULT_PASSPHR_VALUE);
+    // create new SSLServerSocketFactory!!!
+    final boolean isDefaultConfig =
+      DEFAULT_SERVICE_PID.equals(m_config.get("service.pid"));
+    // Step 1: context
+    SSLContext context = null;
+    try {
+      context = SSLContext.getInstance(ConstsIf.PROT_TLS_V1);
 
-        properties.put(KEYSTORE_KEY, DEFAULT_KEYSTORE_VALUE);
+    } catch (final NoSuchAlgorithmException e) {
+      throw new ConfigurationException("",
+                                       "creating SSLContext: ERROR no such algorithm");
+    }
 
+    // Step 2: obtain a key store instance, type is fixed
+    KeyStore myKeys;
+    try {
+      myKeys = KeyStore.getInstance(ConstsIf.KS_TYPE_JKS);
 
-        return properties;
-    }    
+    } catch (final KeyStoreException e1) {
+      throw new ConfigurationException("",
+                                       "creating SSLContext: ERROR no such algorithm");
+    }
+
+    InputStream is = null;
+    char[] keyPassPhrase = null;
+
+    if (!isDefaultConfig) {
+      // Step 3:obtain password phrase for a keystore
+      try {
+        keyPassPhrase = ((String) m_config.get(KEYSTOREPASS_KEY)).toCharArray();
+
+      } catch (final Exception epass) {
+      }
+
+      // Step 4:obtain input stream for a key store
+      // - if the config admin set it to type byte[], assume it is a keystore
+      // itself
+      // - else if it is of type string try to interpret this string as an
+      // (absolute) path
+      // to a file
+      // - else assume that this is a incomplete configuration we got from the
+      // CM Admin,
+      // use the default keystore
+
+      // from CM as byte[] ?
+      if ((keyPassPhrase != null) && (is == null)) {
+        try {
+          is = new ByteArrayInputStream((byte[]) m_config.get(KEYSTORE_KEY));
+
+        } catch (final Exception eb) {
+        }
+      }
+
+      // from CM as a file pointer ?
+      if ((keyPassPhrase != null) && (is == null)) {
+        try {
+          is = new FileInputStream((String) m_config.get(KEYSTORE_KEY));
+
+        } catch (final Exception ef) {
+        }
+      }
+
+      if ((is == null) && m_log.doWarn()) {
+        m_log.warn("using default, config is invalid: "
+                   + m_config.get("service.pid"));
+      }
+    }
+
+    // Step 3 & 4 executed now if config is bad or we just use the default
+    // config
+    if (is == null) {
+      try {
+        keyPassPhrase = DEFAULT_PASSPHR_VALUE.toCharArray();
+        is = getClass().getResourceAsStream(DEFAULT_KEYSTORE_VALUE);
+
+      } catch (final Exception edef) {
+      }
+    }
+
+    // Step 5: load keys into keystore
+    try {
+      myKeys.load(is, keyPassPhrase);
+
+    } catch (final Exception eload) {
+      throw new ConfigurationException(KEYSTORE_KEY + "," + KEYSTOREPASS_KEY,
+                                       "ERROR loading keys !, passphrase "
+                                           + String.valueOf(keyPassPhrase));
+    }
+
+    // Step 6: create and initialize KeyManagerFactory
+    KeyManagerFactory kmf;
+    try {
+      kmf = KeyManagerFactory.getInstance(ConstsIf.KM_TYPE_SUN);
+
+    } catch (final NoSuchAlgorithmException e4) {
+      throw new ConfigurationException("",
+                                       "creating KeyManagerFactory: ERROR no such algorithm");
+    }
+    try {
+      kmf.init(myKeys, keyPassPhrase);
+
+    } catch (final Exception e5) {
+      throw new ConfigurationException("", "initing kmf: " + e5.getMessage());
+    }
+
+    // Step 7: initialize context with the key manager factory
+    try {
+      context.init(kmf.getKeyManagers(), null, null);
+
+    } catch (final KeyManagementException e6) {
+      throw new ConfigurationException("", "initing SSLContext: "
+                                           + e6.getMessage());
+    }
+
+    // Step 8: create SSL Server Socket Factory
+    SSLServerSocketFactory ssl = null;
+    try {
+      ssl = context.getServerSocketFactory();
+
+    } catch (final Exception e7) {
+      throw new ConfigurationException("",
+                                       "creating SSLServerSocketFactory object: "
+                                           + e7.getMessage());
+    }
+
+    m_reg = m_bc.registerService(SSLServerSocketFactory.class, ssl, m_config);
+
+  }
+
+  protected static Dictionary<String, String> getDefaultConfig()
+  {
+    final Dictionary<String, String> properties =
+      new Hashtable<String, String>();
+    properties.put(Constants.SERVICE_VENDOR, "knopflerfish");
+    properties.put(Constants.BUNDLE_NAME, "SSL Java2 Security Provider");
+    properties.put(Constants.BUNDLE_DESCRIPTION,
+                   "The default SSL Server Socket factory.");
+
+    properties
+        .put(Constants.SERVICE_PID, SslServiceWrapper.DEFAULT_SERVICE_PID);
+
+    properties.put(KEYSTOREPASS_KEY, DEFAULT_PASSPHR_VALUE);
+
+    properties.put(KEYSTORE_KEY, DEFAULT_KEYSTORE_VALUE);
+
+    return properties;
+  }
 
 }

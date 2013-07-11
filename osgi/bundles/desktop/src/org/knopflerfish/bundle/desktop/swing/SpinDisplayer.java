@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,14 +35,14 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import javax.swing.JComponent;
 
-import org.knopflerfish.bundle.desktop.swing.fwspin.Spin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
+
+import org.knopflerfish.bundle.desktop.swing.fwspin.Spin;
 
 public class SpinDisplayer extends DefaultSwingBundleDisplayer {
 
@@ -53,7 +53,7 @@ public class SpinDisplayer extends DefaultSwingBundleDisplayer {
   public void bundleChanged(BundleEvent ev) {
   }
 
-  Set spins = new HashSet();
+  Set<Spin> spins = new HashSet<Spin>();
 
   public JComponent newJComponent() {
     Spin spin =  new Spin();
@@ -64,8 +64,7 @@ public class SpinDisplayer extends DefaultSwingBundleDisplayer {
 
   public void close() {
     super.close();
-    for(Iterator it = spins.iterator(); it.hasNext();) {
-      Spin spin = (Spin)it.next();
+    for(Spin spin : spins) {
       spin.stop();
     }
     spins.clear();

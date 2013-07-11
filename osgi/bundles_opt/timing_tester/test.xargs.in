@@ -12,7 +12,7 @@
 
 -Dorg.knopflerfish.gosg.jars=file:../../jars/
 
--Forg.knopflerfish.framework.debug.packages=false
+-Forg.knopflerfish.framework.debug.resolver=false
 -Forg.knopflerfish.framework.debug.errors=true
 -Forg.knopflerfish.framework.debug.classloader=false
 -Forg.knopflerfish.framework.debug.startlevel=false

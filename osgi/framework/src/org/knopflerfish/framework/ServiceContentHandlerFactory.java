@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,21 @@
 
 package org.knopflerfish.framework;
 
-import java.net.*;
-import org.osgi.service.url.*;
-import java.util.Map;
+import java.net.ContentHandler;
+import java.net.ContentHandlerFactory;
 import java.util.HashMap;
-import org.osgi.framework.*;
+import java.util.Map;
+
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.url.URLConstants;
 
 /**
  * Factory creating ContentHandlers from both built-in
  * handlers and OSGi-registered ContentHandlers
  */
-public class ServiceContentHandlerFactory 
-  implements ContentHandlerFactory 
+public class ServiceContentHandlerFactory
+  implements ContentHandlerFactory
 {
   FrameworkContext framework;
 
@@ -53,13 +56,14 @@ public class ServiceContentHandlerFactory
   String[] jvmPkgs = null;
 
   // String (mimetype) -> ContentHandlerWrapper
-  Map wrapMap   = new HashMap();
+  Map<String, ContentHandlerWrapper> wrapMap
+    = new HashMap<String, ContentHandlerWrapper>();
 
   ServiceContentHandlerFactory(FrameworkContext fw) {
     this.framework = fw;
 
     // Initialize JVM classpath handlers
-    String s = framework.props.getProperty("java.content.handler.pkgs");
+    final String s = framework.props.getProperty("java.content.handler.pkgs");
     if (s != null && s.length() > 0) {
       jvmPkgs = Util.splitwords(s, "|");
       for(int i = 0; i < jvmPkgs.length; i++) {
@@ -70,23 +74,23 @@ public class ServiceContentHandlerFactory
       }
     }
   }
-  
+
   public ContentHandler createContentHandler(String mimetype) {
-    
+
     if(framework.debug.url) {
       framework.debug.println("createContentHandler protocol=" + mimetype);
     }
-    
+
     ContentHandler handler = getJVMClassPathHandler(mimetype);
-    
+
     if(handler != null) {
       if(framework.debug.url) {
 	framework.debug.println("using JVMClassPath handler for " + mimetype);
       }
       return handler;
     }
-    
-        
+
+
     handler = getServiceHandler(mimetype);
 
     if(handler != null) {
@@ -96,7 +100,7 @@ public class ServiceContentHandlerFactory
       }
       return handler;
     }
-    
+
     if(framework.debug.url) {
       framework.debug.println("Using default ContentHandler for " + mimetype);
     }
@@ -107,69 +111,70 @@ public class ServiceContentHandlerFactory
 
   ContentHandler getServiceHandler(String mimetype) {
     try {
-      String filter = "(" + URLConstants.URL_CONTENT_MIMETYPE + "=" + mimetype + ")";
+      final String filter = "(" + URLConstants.URL_CONTENT_MIMETYPE + "=" + mimetype + ")";
       //TODO true or false?
-      ServiceReference[] srl = framework.services
-	.get(ContentHandler.class.getName(), filter, null);
-      
-      if(srl != null && srl.length > 0) {
-	ContentHandlerWrapper wrapper = 
-	  (ContentHandlerWrapper)wrapMap.get(mimetype);
-	
-	if(wrapper == null) {
-	  wrapper =  new ContentHandlerWrapper(framework, mimetype);
-	  wrapMap.put(mimetype, wrapper);
-	}
-	return wrapper;
+      @SuppressWarnings("unchecked")
+      final ServiceReference<ContentHandler>[] srl
+        = (ServiceReference<ContentHandler>[])
+          framework.services.get(ContentHandler.class.getName(), filter, null);
+
+      if (srl != null && srl.length > 0) {
+        ContentHandlerWrapper wrapper = wrapMap.get(mimetype);
+
+        if (wrapper == null) {
+          wrapper = new ContentHandlerWrapper(framework, mimetype);
+          wrapMap.put(mimetype, wrapper);
+        }
+        return wrapper;
       }
-    } catch (InvalidSyntaxException e) {
+    } catch (final InvalidSyntaxException e) {
       throw new RuntimeException("Failed to get service: " + e);
     }
 
     return null;
   }
 
-  
+
 
   ContentHandler getJVMClassPathHandler(String mimetype) {
     if (jvmPkgs != null) {
-      for(int i = 0; i < jvmPkgs.length; i++) {
-        String converted = convertMimetype(mimetype);
+      for (final String jvmPkg : jvmPkgs) {
+        final String converted = convertMimetype(mimetype);
 
-        String className = jvmPkgs[i] + "." + converted + ".Handler";
+        final String className = jvmPkg + "." + converted + ".Handler";
         try {
           if(framework.debug.url) {
             framework.debug.println("JVMClassPathCH - trying ContentHandler class="
                                     + className);
           }
-          Class clazz = Class.forName(className);
-          ContentHandler handler = (ContentHandler)clazz.newInstance();
-	
+          final Class<?> clazz = Class.forName(className);
+          final ContentHandler handler = (ContentHandler)clazz.newInstance();
+
           if(framework.debug.url) {
             framework.debug.println("JVMClassPathCH - created ContentHandler class="
                                     + className);
           }
 
           return handler;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
           if(framework.debug.url) {
             framework.debug.println("JVMClassPathCH - no ContentHandler class " + className);
           }
         }
       }
     }
-    
+
     if(framework.debug.url) {
       framework.debug.println("JVMClassPath - no ContentHandler for " + mimetype);
     }
-    
+
     return null;
   }
 
   // please check this one for correctness
   static String convertMimetype(String s) {
 
-    String bad = ".,:;*-";
+    final String bad = ".,:;*-";
     for(int i = 0; i < bad.length(); i++) {
       s = s.replace(bad.charAt(i), '_');
     }

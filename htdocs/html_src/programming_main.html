@@ -833,40 +833,51 @@ Bundles must be refreshed after an update</td>
 </tr>
   <tr>
     <td valign=top>
-Bundle update does <b>not</b> automatically release all exported packages.
-<p>
-This means that a bundle that has exported any package to another bundle, or
-to the framework itself, needs to be explicitly <b>refreshed</b> before
-classes in those packages are releases.
-</p>
-<p>
-If you happen to have exported the package that your BundleActivator
-resides in, this could mean that the "old" class will be used and not
-the newly installed one.
-</p>
+
+    Bundle update does <b>not</b> automatically release all wired
+    capabilities (exported packages).
+
+    <p>
+    This means that a bundle that has a wire from a provided
+    capability (e.g., exported package) to another bundle requiring
+    that capability needs to be explicitly <b>refreshed</b> before
+    that capability (e.g., classes in the exported package) is
+    released.
+    </p>
+
+    <p>
+    If you happen to have exported the package that your
+    BundleActivator resides in, this could mean that the "old" class
+    will be used and not the newly installed one.
+    </p>
+
     </td>
     <td valign=top>
-Both the console and desktop provides means of calling refresh:
-<p>
-Console:
+
+    Both the console and desktop provides means of calling refresh:
+
+    <p>
+    Console:
 <pre class="shell">
  &gt; /framework refresh
 </pre>
-</p>
-<p>
-Desktop: <br>
-Bundles -&gt; Refresh bundle packages<br>
-or CTRL + R
-</p>
-<p>
+    </p>
 
-Both of these methods uses the <tt>org.osgi.service.PackageAdmin</tt> service
-to refresh packages:
+    <p>
+    Desktop: <br>
+    Bundles -&gt; Refresh bundle packages<br>
+    or CTRL + R<br>
+    or press the refresh link in the wiring displayer on a capability
+    that is pending removal on refresh.
+    </p>
+
+    <p>
+    Both of these methods uses the
+    <tt>org.osgi.wiring.FrameworkWiring</tt> API to refresh bundles:
 <pre class="code">
   // refresh all bundles
-  packageAdmin.refreshPackages(null)
+  frameworkWiring.refreshBundles(null)
 </pre>
-
 
     </td>
   </tr>
@@ -1177,9 +1188,7 @@ be present at all in the manifest, not even as a zero-length string.
   <td>
       Path pattern string that must match all private (implementation
       specific) Java packages in the source tree that shall be
-      included in the bundle but not exported. All Java packages on the
-      bundle class path that does not match the api.pattern are
-      inlcuded in the bundle as private packages.
+      included in the bundle but not exported.
 
       <p/>
 
@@ -1202,9 +1211,56 @@ be present at all in the manifest, not even as a zero-length string.
  </tr>
 
  <tr>
-  <td>ee.check.foundation</td>
-  <td>If set, verify build with CLDC/Foundation standard OSGi profile.
-      <br>Default is unset.
+  <td>all.pattern</td>
+  <td>
+
+      Path pattern string that must match additional private
+      (implementation specific) Java packages in the source tree that
+      shall be included in the all-variant of the bundle but not
+      exported.
+
+      <p/>
+
+      The "ALL"-variant of the bundle will contain classes that
+      matches any of the api.pattern, impl.pattern, impl-api.pattern,
+      all.pattern and all-api.pattern.
+
+  </td>
+ </tr>
+
+ <tr>
+  <td>all-api.pattern</td>
+  <td>
+
+      Path pattern string that must match additional Java packages
+      that shall be included in and exported from the "ALL" variant of
+      the the bundle but not in the "API"-variant or "IMPL"-variant of
+      the bundle. Typically used to make a self contained
+      "ALL"-variant of the bundle that exports all Java-packages that
+      the "IMPL"-variant needs.
+
+      <p/>
+
+      The "ALL"-variant of the bundle will export classes in packages
+      that are matched by one of api.pattern, impl-api.pattern and
+      all-api.pattern. It will contain all classes that are matched by
+      any of api.pattern, impl-api.pattern, impl-pattern,
+      all-api.pattern and all.pattern.
+
+  </td>
+ </tr>
+
+ <tr>
+  <td>bundle.compile.EE</td>
+  <td>
+    The bundle Execution Environment to use when compiling.  The value
+    is the id of a path that will be used as boot class path during
+    the compilation.
+
+    <p/>
+
+    Predefined values: <tt>ee.minimum</tt>, <tt>ee.foundation</tt>.
+    <br>Default is unset.
   </td>
  </tr>
 

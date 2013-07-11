@@ -41,7 +41,7 @@ import org.knopflerfish.util.Timer;
 
 /**
  * This class will queue the events and deliver them to the event
- * handlers in the apropriate order.
+ * handlers in the appropriate order.
  *
  * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson et.all.)
  */
@@ -51,13 +51,14 @@ public class QueueHandler extends Thread {
    * The mapping from key to active QueueHandler instance owned by the
    * EventAdmin service implementation.
    */
-  final private Map queueHandlers;
+  final private Map<Object, QueueHandler> queueHandlers;
 
   /** The key for this queue handler in the map with active queue handlers.*/
   private Object key;
 
   /** The queue with events to be delivered by this thread.*/
-  private LinkedList syncQueue = new LinkedList();
+  private LinkedList<InternalAdminEvent> syncQueue
+    = new LinkedList<InternalAdminEvent>();
 
   /** The state of this queue handler thread.*/
   private boolean running;
@@ -70,7 +71,7 @@ public class QueueHandler extends Thread {
    *
    * @param key The key for this queue handler.
    */
-  public QueueHandler(Map queueHandlers, Object key)
+  public QueueHandler(Map<Object, QueueHandler> queueHandlers, Object key)
   {
     super("EventAdmin-QueueHandler "+key);
 
@@ -110,7 +111,7 @@ public class QueueHandler extends Thread {
       InternalAdminEvent event = null;
       synchronized (this) {
         if (!syncQueue.isEmpty()) {
-          event = ((InternalAdminEvent) syncQueue.removeFirst());
+          event = syncQueue.removeFirst();
         }
       }
       if (event != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,6 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -42,44 +41,50 @@ import javax.swing.JComponent;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.packageadmin.RequiredBundle;
 
+public class ClosureHTMLDisplayer
+  extends DefaultSwingBundleDisplayer
+{
 
-
-public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
-
-  public ClosureHTMLDisplayer(BundleContext bc) {
+  public ClosureHTMLDisplayer(BundleContext bc)
+  {
     super(bc, "Closure", "Shows bundle closure", true);
 
   }
 
-  public JComponent newJComponent() {
+  @Override
+  public JComponent newJComponent()
+  {
     return new JHTML(this);
   }
 
-  public void valueChanged(long bid) {
-    Bundle[] bl = Activator.desktop.getSelectedBundles();
+  @Override
+  public void valueChanged(long bid)
+  {
+    final Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JHTML comp = (JHTML)it.next();
+    for (final JComponent jComponent : components) {
+      final JHTML comp = (JHTML) jComponent;
       comp.valueChanged(bl);
     }
   }
 
-  class JHTML extends JHTMLBundle {
+  class JHTML
+    extends JHTMLBundle
+  {
     private static final long serialVersionUID = 1L;
 
-    JHTML(DefaultSwingBundleDisplayer displayer) {
+    JHTML(DefaultSwingBundleDisplayer displayer)
+    {
       super(displayer);
     }
 
-    public void updateView(Bundle[] bl) {
-      StringBuffer sb = new StringBuffer("<html>\n");
+    @Override
+    public void updateView(Bundle[] bl)
+    {
+      final StringBuffer sb = new StringBuffer("<html>\n");
 
-
-      if(bl == null || bl.length == 0) {
+      if (bl == null || bl.length == 0) {
         setCurrentBID(-1);
 
         sb.append("<html>\n");
@@ -94,9 +99,7 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
 
         startFont(sb);
         sb.append(getNoBundleSelectedText());
-        sb.append("</font>\n" +
-                  "</p>\n" +
-                  "</html>");
+        sb.append("</font>\n" + "</p>\n" + "</html>");
       } else {
 
         setCurrentBID(bl[0].getBundleId());
@@ -104,9 +107,9 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
         sb.append("<table border=0 width=\"100%\">\n");
         sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
         startFont(sb, "-1");
-        for(int i = 0; i < bl.length; i++) {
+        for (int i = 0; i < bl.length; i++) {
           sb.append(getBundleSelectedHeader(bl[i]));
-          if(i < bl.length - 1) {
+          if (i < bl.length - 1) {
             sb.append("<br>");
           }
         }
@@ -126,179 +129,60 @@ public class ClosureHTMLDisplayer extends DefaultSwingBundleDisplayer {
       setHTML(sb.toString());
     }
 
-
-    public StringBuffer  bundleInfo(Bundle target) {
+    @Override
+    public StringBuffer bundleInfo(Bundle target)
+    {
       return new StringBuffer("---- " + target);
     }
 
-    public StringBuffer  bundleInfo(Bundle[] targets) {
-      StringBuffer sb = new StringBuffer();
+    public StringBuffer bundleInfo(Bundle[] targets)
+    {
+      final StringBuffer sb = new StringBuffer();
 
       startFont(sb);
-      ServiceReference sr = Activator
-        .getTargetBC_getServiceReference(PackageAdmin.class.getName());
-      PackageAdmin pkgAdmin
-        = (PackageAdmin) Activator.getTargetBC_getService(sr);
-      if(pkgAdmin == null) {
-        sb.append("No PackageAdmin service found");
+      final Set<Bundle> closure =
+        new TreeSet<Bundle>(Util.bundleIdComparator);
+
+      for (final Bundle target : targets) {
+        int state = target.getState();
+        if (state != Bundle.INSTALLED && state != Bundle.UNINSTALLED ) {
+          closure.addAll(Util.getClosure(target, null));
+        } else {
+          sb.append("Bundle #");
+          sb.append(target.getBundleId());
+          sb.append(" is in ");
+          sb.append(state == Bundle.INSTALLED ? "INSTALLED" : "UNINSTALLED");
+          sb.append(" state, closure not available");
+          return sb;
+        }
+      }
+
+      boolean containsUninstalled = false;
+      if (closure.size() == 0) {
+        sb.append("No dependencies");
       } else {
-
-        Set pkgClosure = new TreeSet(Util.bundleIdComparator);
-
-        for(int i = 0; i < targets.length; i++) {
-          pkgClosure.addAll(Util.getPackageClosure(Activator.desktop.pm,
-                                                   targets[i],
-                                                   null));
-        }
-
-        // remove myself
-        //        pkgClosure.remove(b);
-
-        if(pkgClosure.size() == 0) {
-          sb.append("No package dependencies");
-        } else {
-
-          sb.append("<b>Static dependencies via packages</b><br>");
-          for(Iterator it = pkgClosure.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
-
-            sb.append("&nbsp;&nbsp;");
+        sb.append("<b>Dependencies via capabilities and services</b><br>");
+        for (final Bundle depB : closure) {
+          sb.append("&nbsp;&nbsp;");
+          if (depB.getState() != Bundle.UNINSTALLED) {
             Util.bundleLink(sb, depB);
-            sb.append("<br>");
+          } else {
+            sb.append("<b>UNINSTALLED</b>, ");
+            sb.append(Util.getBundleName(depB));
+            containsUninstalled  = true;
           }
+          sb.append("<br>");
         }
+      }
 
-        sb.append("<br>");
+      sb.append("<br>");
 
-        Set serviceClosure = new TreeSet(Util.bundleIdComparator);
-
-        for(int i = 0; i < targets.length; i++) {
-          serviceClosure.addAll(Util.getServiceClosure(targets[i], null));
-        }
-
-        // remove myself
-        //        serviceClosure.remove(b);
-
-        if(serviceClosure.size() == 0) {
-          sb.append("No service dependencies");
-        } else {
-          sb.append("<b>Runtime dependencies via services</b><br>");
-
-          for(Iterator it = serviceClosure.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
-
-            sb.append("&nbsp;&nbsp;");
-            Util.bundleLink(sb, depB);
-            sb.append("<br>");
-          }
-        }
-
-        sb.append("<br>");
-
-        Set fragments = new TreeSet(Util.bundleIdComparator);
-        for(int i = 0; i < targets.length; i++) {
-          Bundle[] fragmentBundles = pkgAdmin.getFragments(targets[i]);
-          if (fragmentBundles != null) {
-            for (int b = 0; b < fragmentBundles.length; b++) {
-              fragments.add(fragmentBundles[b]);
-            }
-          }
-        }
-        if(fragments.size() == 0) {
-          sb.append("No fragments");
-        } else {
-          sb.append("<b>Fragments</b><br>");
-          for(Iterator it = fragments.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
-            sb.append("&nbsp;&nbsp;");
-            Util.bundleLink(sb, depB);
-            sb.append("<br>");
-          }
-        }
-
-        sb.append("<br>");
-
-        Set hosts = new TreeSet(Util.bundleIdComparator);
-        for(int i = 0; i < targets.length; i++) {
-          Bundle[] hostBundles = pkgAdmin.getHosts(targets[i]);
-          if (hostBundles != null) {
-            for (int b = 0; b < hostBundles.length; b++) {
-              hosts.add(hostBundles[b]);
-            }
-          }
-        }
-        if(hosts.size() == 0) {
-          sb.append("No host");
-        } else {
-          sb.append("<b>Host</b><br>");
-          for(Iterator it = hosts.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
-            sb.append("&nbsp;&nbsp;");
-            Util.bundleLink(sb, depB);
-            sb.append("<br>");
-          }
-        }
-
-        sb.append("<br>");
-
-        Set required = new TreeSet(Util.bundleIdComparator);
-        Set requiredBy = new TreeSet(Util.bundleIdComparator);
-
-try { // untested code
-        RequiredBundle[] requiredBundles = pkgAdmin.getRequiredBundles(null);
-        if (requiredBundles != null) {
-          for (int rb = 0; rb < requiredBundles.length; rb++) {
-            for (int t = 0; t < targets.length; t++) {
-              Bundle[] requiringBundles = requiredBundles[rb].getRequiringBundles();
-              if (requiringBundles != null) {
-                if (requiredBundles[rb].getBundle().equals(targets[t])) {
-                  for (int ring = 0; ring < requiringBundles.length; ring++) {
-                    requiredBy.add(requiringBundles[ring]);
-                  }
-                } else {
-                  for (int ring = 0; ring < requiringBundles.length; ring++) {
-                    if (requiringBundles[ring].equals(targets[t])) {
-                      required.add(requiredBundles[rb].getBundle());
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-} catch (Throwable ignored) {}
-
-        Activator.getTargetBC_ungetService(sr);
-
-        if (required.size() == 0) {
-          sb.append("No required bundles");
-        } else {
-          sb.append("<b>Required bundles</b><br>");
-          for(Iterator it = required.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
-            sb.append("&nbsp;&nbsp;");
-            Util.bundleLink(sb, depB);
-            sb.append("<br>");
-          }
-        }
-        sb.append("<br>");
-        if (requiredBy.size() == 0) {
-          sb.append("No requiring bundles");
-        } else {
-          sb.append("<b>Requiring bundles</b><br>");
-          for(Iterator it = requiredBy.iterator(); it.hasNext();) {
-            Bundle depB = (Bundle)it.next();
-            sb.append("&nbsp;&nbsp;");
-            Util.bundleLink(sb, depB);
-            sb.append("<br>");
-          }
-        }
-
-        // Add xarsg info if we seem to be running knopflerfish
-        if(targets.length > 0 &&
-           (-1 != targets[0].getClass().getName().indexOf("knopflerfish"))) {
-
-          String xargs = Util.getXARGS(null, pkgClosure, serviceClosure).toString();
+      // Add xarsg info if we seem to be running knopflerfish
+      if (targets.length > 0
+          && (-1 != targets[0].getClass().getName().indexOf("knopflerfish"))) {
+        if (!containsUninstalled) {
+          final String xargs =
+              Util.getXARGS(null, closure).toString();
           sb.append("<hr>");
           startFont(sb);
           sb.append("<b>Suggested startup .xargs file</b><br>\n");
@@ -306,12 +190,16 @@ try { // untested code
 
           sb.append("<pre>");
           sb.append("<font size=\"-2\">");
-          //        sb.append(Text.replace(xargs, "\n", "<br>"));
+          // sb.append(Text.replace(xargs, "\n", "<br>"));
           sb.append(xargs);
           sb.append("</font>");
           sb.append("</pre>");
+        } else {
+          sb.append("<hr>");
+          startFont(sb);
+          sb.append("<b>Suggested startup .xargs not available when closure contains uninstalled bundles</b><br>\n");
+          sb.append("</font>");         
         }
-
       }
 
       sb.append("</font>");

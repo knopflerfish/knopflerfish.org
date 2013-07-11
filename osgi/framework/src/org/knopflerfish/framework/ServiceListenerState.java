@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,19 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceListener;
 
 /**
  * Container of all service listeners.
@@ -50,25 +60,27 @@ class ServiceListenerState {
   private final static int OBJECTCLASS_IX = 0;
   private final static int SERVICE_ID_IX  = 1;
   private final static int SERVICE_PID_IX = 2;
-  protected static List hashedKeysV;
+  protected static List<String> hashedKeysV;
 
   /* Service listeners with complicated or empty filters */
-  List complicatedListeners = new ArrayList();
+  List<ServiceListenerEntry> complicatedListeners = new ArrayList<ServiceListenerEntry>();
 
   /* Service listeners with "simple" filters are cached. */
-  Map[] /* [Value -> List(ServiceListenerEntry)] */
-    cache = new HashMap[hashedKeys.length];
+  /* [Value -> List(ServiceListenerEntry)] */
+  @SuppressWarnings("unchecked")
+  Map<Object,List<ServiceListenerEntry>>[] cache
+    = new HashMap[hashedKeys.length];
 
-  Set /* ServiceListenerEntry */ serviceSet = new HashSet();
+  Set<ServiceListenerEntry> serviceSet = new HashSet<ServiceListenerEntry>();
 
   Listeners listeners;
 
   ServiceListenerState(Listeners listeners) {
     this.listeners = listeners;
-    hashedKeysV = new ArrayList();
+    hashedKeysV = new ArrayList<String>();
     for (int i = 0; i < hashedKeys.length; i++) {
       hashedKeysV.add(hashedKeys[i]);
-      cache[i] = new HashMap();
+      cache[i] = new HashMap<Object,List<ServiceListenerEntry>>();
     }
   }
 
@@ -93,14 +105,17 @@ class ServiceListenerState {
    * @exception org.osgi.framework.InvalidSyntaxException
    * If the filter is not a correct LDAP expression.
    */
-  synchronized void add(BundleContextImpl bc, ServiceListener listener, String filter)
-  throws InvalidSyntaxException {
-    ServiceListenerEntry sle = new ServiceListenerEntry(bc, listener, filter);
+  synchronized void add(BundleContextImpl bc,
+                        ServiceListener listener,
+                        String filter)
+      throws InvalidSyntaxException
+  {
+    final ServiceListenerEntry sle = new ServiceListenerEntry(bc, listener, filter);
     if (serviceSet.contains(sle)) {
       remove(bc, listener);
     }
     serviceSet.add(sle);
-    listeners.framework.hooks.handleServiceListenerReg(sle);
+    listeners.fwCtx.serviceHooks.handleServiceListenerReg(sle);
     checkSimple(sle);
   }
 
@@ -111,11 +126,11 @@ class ServiceListenerState {
    * @param listener The service listener to remove.
    */
   synchronized void remove(BundleContextImpl bc, ServiceListener listener) {
-    for (Iterator it = serviceSet.iterator(); it.hasNext();) {
-      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
+    for (final Iterator<ServiceListenerEntry> it = serviceSet.iterator(); it.hasNext();) {
+      final ServiceListenerEntry sle = it.next();
       if (sle.bc == bc && sle.listener == listener) {
         sle.setRemoved(true);
-        listeners.framework.hooks.handleServiceListenerUnreg(sle);
+        listeners.fwCtx.serviceHooks.handleServiceListenerUnreg(sle);
         removeFromCache(sle);
         it.remove();
         break;
@@ -130,12 +145,11 @@ class ServiceListenerState {
   private void removeFromCache(ServiceListenerEntry sle) {
     if (sle.local_cache != null) {
       for (int i = 0; i < hashedKeys.length; i++) {
-        HashMap keymap = (HashMap)cache[i];
-        List l = (List)sle.local_cache[i];
+        final Map<Object, List<ServiceListenerEntry>> keymap = cache[i];
+        final List<Object> l = sle.local_cache[i];
         if (l != null) {
-          for (Iterator it = l.iterator(); it.hasNext();) {
-            Object value = it.next();
-            List sles = (List)keymap.get(value);
+          for (final Object value : l) {
+            final List<ServiceListenerEntry> sles = keymap.get(value);
             if(sles != null) {
               sles.remove(sles.indexOf(sle));
               if (sles.isEmpty()) {
@@ -157,8 +171,8 @@ class ServiceListenerState {
    * @param bc The bundle context to remove listeners for.
    */
   synchronized void removeAll(BundleContextImpl bc) {
-    for (Iterator it = serviceSet.iterator(); it.hasNext();) {
-      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
+    for (final Iterator<ServiceListenerEntry> it = serviceSet.iterator(); it.hasNext();) {
+      final ServiceListenerEntry sle = it.next();
       if (sle.bc == bc) {
         removeFromCache(sle);
         it.remove();
@@ -173,14 +187,13 @@ class ServiceListenerState {
    * @param bundle The bundle to remove listeners for.
    */
   synchronized void hooksBundleStopped(BundleContextImpl bc) {
-    List entries = new ArrayList();
-    for (Iterator it = serviceSet.iterator(); it.hasNext();) {
-      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
+    final List<ServiceListenerEntry> entries = new ArrayList<ServiceListenerEntry>();
+    for (final ServiceListenerEntry sle : serviceSet) {
       if (sle.bc == bc) {
         entries.add(sle);
       }
     }
-    listeners.framework.hooks.handleServiceListenerUnreg(Collections.unmodifiableList(entries));
+    listeners.fwCtx.serviceHooks.handleServiceListenerUnreg(Collections.unmodifiableList(entries));
   }
 
 
@@ -192,23 +205,23 @@ class ServiceListenerState {
     if (sle.ldap == null || listeners.nocacheldap) {
       complicatedListeners.add(sle);
     } else {
-      List[] /* Value */ local_cache = new List[hashedKeys.length];
+      @SuppressWarnings("unchecked")
+      final List<Object>[] local_cache = new List[hashedKeys.length];
       if (sle.ldap.isSimple(hashedKeysV, local_cache, false)) {
         sle.local_cache = local_cache;
         for (int i = 0; i < hashedKeys.length; i++) {
           if (local_cache[i] != null) {
-            for (Iterator it = local_cache[i].iterator(); it.hasNext();) {
-              Object value = it.next();
-              List sles = (List)cache[i].get(value);
+            for (final Object value : local_cache[i]) {
+              List<ServiceListenerEntry> sles = cache[i].get(value);
               if (sles == null)
-                cache[i].put(value, sles = new ArrayList());
+                cache[i].put(value, sles = new ArrayList<ServiceListenerEntry>());
               sles.add(sle);
             }
           }
         }
       } else {
-        if (listeners.framework.debug.ldap) {
-          listeners.framework.debug.println("Too complicated filter: " + sle.ldap);
+        if (listeners.fwCtx.debug.ldap) {
+          listeners.fwCtx.debug.println("Too complicated filter: " + sle.ldap);
         }
         complicatedListeners.add(sle);
       }
@@ -218,45 +231,48 @@ class ServiceListenerState {
   /**
    * Gets the listeners interested in modifications of the service reference
    *
-   * @param The reference related to the event describing the service modification.
+   * @param sr The reference related to the event describing the service modification.
    * @return A set of listeners to notify.
    */
-  synchronized Set getMatchingListeners(ServiceReferenceImpl sr) {
-    Set set = new HashSet();
+  synchronized Set<ServiceListenerEntry> getMatchingListeners(ServiceReferenceImpl<?> sr)
+  {
+    final Set<ServiceListenerEntry> set = new HashSet<ServiceListenerEntry>();
     // Check complicated or empty listener filters
     int n = 0;
-    for (Iterator it = complicatedListeners.iterator(); it.hasNext(); n++) {
-      ServiceListenerEntry sle = (ServiceListenerEntry)it.next();
+    for (final ServiceListenerEntry sle : complicatedListeners) {
       if (sle.ldap == null || sle.ldap.evaluate(sr.getProperties(), false)) {
         set.add(sle);
       }
+      ++n;
     }
-    if (listeners.framework.debug.ldap) {
-      listeners.framework.debug.println("Added " + set.size() + " out of " + n +
+    if (listeners.fwCtx.debug.ldap) {
+      listeners.fwCtx.debug.println("Added " + set.size() + " out of " + n +
                                         " listeners with complicated filters");
     }
     // Check the cache
-    String[] c = (String[])sr.getProperty(Constants.OBJECTCLASS);
-    for (int i = 0; i < c.length; i++) {
-      addToSet(set, OBJECTCLASS_IX, c[i]);
+    final String[] c = (String[])sr.getProperty(Constants.OBJECTCLASS);
+    for (final String element : c) {
+      addToSet(set, OBJECTCLASS_IX, element);
     }
-    Long service_id = (Long)sr.getProperty(Constants.SERVICE_ID);
+    final Long service_id = (Long)sr.getProperty(Constants.SERVICE_ID);
     if (service_id != null) {
       addToSet(set, SERVICE_ID_IX, service_id.toString());
     }
-    Object service_pid = sr.getProperty(Constants.SERVICE_PID);
+    final Object service_pid = sr.getProperty(Constants.SERVICE_PID);
     if (service_pid != null) {
       if (service_pid instanceof String) {
         addToSet(set, SERVICE_PID_IX, service_pid);
       } else if (service_pid instanceof String []) {
-        String [] sa = (String [])service_pid;
-        for (int i = 0; i < sa.length; i++) {
-          addToSet(set, SERVICE_PID_IX, sa[i]);
+        final String [] sa = (String [])service_pid;
+        for (final String element : sa) {
+          addToSet(set, SERVICE_PID_IX, element);
         }
       } else if (service_pid instanceof Collection) {
-        for (Iterator i = ((Collection)service_pid).iterator(); i.hasNext(); ) {
-          // TBD should we report if type isn't a String?
-          addToSet(set, SERVICE_PID_IX, i.next());
+        // TODO should we report if type isn't a String?
+        @SuppressWarnings("unchecked")
+        final Collection<String> pids = (Collection<String>) service_pid;
+        for (final String pid : pids) {
+          addToSet(set, SERVICE_PID_IX, pid);
         }
       }
     }
@@ -266,18 +282,16 @@ class ServiceListenerState {
   /**
    * Add all members of the specified list to the specified set.
    */
-  private void addToSet(Set set, int cache_ix, Object val) {
-    List l = (List)cache[cache_ix].get(val);
+  private void addToSet(Set<ServiceListenerEntry> set, int cache_ix, Object val) {
+    final List<ServiceListenerEntry> l = cache[cache_ix].get(val);
     if (l != null) {
-      if (listeners.framework.debug.ldap) {
-        listeners.framework.debug.println(hashedKeys[cache_ix] + " matches " + l.size());
+      if (listeners.fwCtx.debug.ldap) {
+        listeners.fwCtx.debug.println(hashedKeys[cache_ix] + " matches " + l.size());
       }
-      for (Iterator it = l.iterator(); it.hasNext();) {
-        set.add(it.next());
-      }
+      set.addAll(l);
     } else {
-      if (listeners.framework.debug.ldap) {
-        listeners.framework.debug.println(hashedKeys[cache_ix] + " matches none");
+      if (listeners.fwCtx.debug.ldap) {
+        listeners.fwCtx.debug.println(hashedKeys[cache_ix] + " matches none");
       }
     }
   }

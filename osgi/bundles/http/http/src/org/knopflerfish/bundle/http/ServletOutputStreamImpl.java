@@ -39,26 +39,35 @@ import java.io.OutputStream;
 
 import javax.servlet.ServletOutputStream;
 
-public class ServletOutputStreamImpl extends ServletOutputStream {
+public class ServletOutputStreamImpl
+  extends ServletOutputStream
+{
 
-    // private fields
+  // private fields
 
-    private final OutputStream out;
+  private final OutputStream out;
 
-    // constructors
+  // constructors
 
-    public ServletOutputStreamImpl(final OutputStream out) {
-        this.out = out;
-    }
+  public ServletOutputStreamImpl(final OutputStream out)
+  {
+    this.out = out;
+  }
 
-    // extends ServletOutputStream
+  // extends ServletOutputStream
 
-    public void write(final int b) throws IOException {
-        out.write(b);
-    }
+  @Override
+  public void write(final int b)
+      throws IOException
+  {
+    out.write(b);
+  }
 
-    public void flush() throws IOException {
-        out.flush();
-    }
+  @Override
+  public void flush()
+      throws IOException
+  {
+    out.flush();
+  }
 
 } // ServletOutputStreamImpl

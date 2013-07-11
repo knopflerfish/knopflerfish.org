@@ -20,6 +20,10 @@
 
   <property name="bmfa.Export-Package"        value="com.sun.xml.parser ; version=1.0, com.sun.xml.tree ; version=1.0, com.sun.xml.util ; version=1.0, org.w3c.dom ; version=2.0, org.xml.sax ; version=2.0, org.xml.sax.helpers ; version=2.0, javax.xml.parsers ; version=2.0"/>
 
+  <path id="bundle.compile.path">
+  </path>
+
+
   <import file="${topdir}/../ant/bundlebuild.xml"/>
 
 </project>

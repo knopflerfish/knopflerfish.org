@@ -5,8 +5,6 @@
   <dirname  property="proj.dir" file="${ant.file.sslj2sp}"/>
   <property name="topdir"       location="${proj.dir}/../.."/>
 
-  <property name = "ee.check.foundation"   value = "false"/>
-
   <property name = "do.bundle.custom.pre"  value="true"/>
   <property name = "do.bundle.custom.post" value="true"/>
 
@@ -14,6 +12,11 @@
   <property name = "bundle.build.impl"     value = "true"/>
   <property name = "bundle.build.lib"      value = "false"/>
   <property name = "bundle.build.all"      value = "false"/>
+  <property name = "bundle.build.doc"      value = "true"/>
+
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <!-- Needs javax.net.ssl outside of ee.minimum -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
 
   <property name="impl.pattern"            value="org/knopflerfish/**/*"/>
   <property name="resources.dir"           value="resources"/>

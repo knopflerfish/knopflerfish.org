@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,28 +34,42 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRevision;
 
 
 /**
  * Data structure for export package definitions.
  *
- * @author Jan Stein
+ * @author Jan Stein, Gunnar Ekolin
  */
-class ExportPkg {
+class ExportPkg
+  implements BundleCapability, Comparable<ExportPkg>
+{
+  // To maintain the creation order in the osgi.wiring.package name space.
+  static private int exportPkgCount = 0;
+  final int orderal = ++exportPkgCount;
+
   final String name;
   final BundlePackages bpkgs;
-  final HashSet /* String */ uses;
-  final HashSet /* String */ mandatory;
-  final HashSet /* String */ include;
-  final HashSet /* String */ exclude;
+  final Set<String> uses;
+  final Set<String> mandatory;
+  final Set <String> include;
+  final Set<String> exclude;
   final Version version;
-  final Map attributes;
+  final Map<String,Object> attributes;
   boolean zombie = false;
-  boolean hasPermission = true;
 
   // Link to pkg entry
   Pkg pkg = null;
@@ -63,27 +77,31 @@ class ExportPkg {
   /**
    * Create an export package entry.
    */
-  ExportPkg(String name, Map tokens, BundlePackages b) {
+  ExportPkg(final String name, final HeaderEntry he, final BundlePackages b)
+  {
     this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not export a java.* package");
     }
-    this.uses = Util.parseEnumeration(Constants.USES_DIRECTIVE,
-                                      (String)tokens.remove(Constants.USES_DIRECTIVE));
-    this.mandatory = Util.parseEnumeration(Constants.MANDATORY_DIRECTIVE,
-                                           (String)tokens.remove(Constants.MANDATORY_DIRECTIVE));
-    this.include = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
-                                         (String)tokens.remove(Constants.INCLUDE_DIRECTIVE));
-    this.exclude = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
-                                         (String)tokens.remove(Constants.EXCLUDE_DIRECTIVE));
-    String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
-    String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+    this.uses = Util.parseEnumeration(Constants.USES_DIRECTIVE, he
+        .getDirectives().get(Constants.USES_DIRECTIVE));
+    this.mandatory = Util.parseEnumeration(Constants.MANDATORY_DIRECTIVE, he
+        .getDirectives().get(Constants.MANDATORY_DIRECTIVE));
+    this.include = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE, he
+        .getDirectives().get(Constants.INCLUDE_DIRECTIVE));
+    this.exclude = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE, he
+        .getDirectives().get(Constants.EXCLUDE_DIRECTIVE));
+    final String versionStr = (String) he.getAttributes()
+        .remove(Constants.VERSION_ATTRIBUTE);
+    @SuppressWarnings("deprecation")
+    final String SPEC_VERSION = Constants.PACKAGE_SPECIFICATION_VERSION;
+    final String specVersionStr = (String) he.getAttributes().remove(SPEC_VERSION);
     if (specVersionStr != null) {
       this.version = new Version(specVersionStr);
       if (versionStr != null && !this.version.equals(new Version(versionStr))) {
         throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
-                                           " and " + Constants.PACKAGE_SPECIFICATION_VERSION +
+                                           " and " + SPEC_VERSION  +
                                            " are specified, and differs");
       }
     } else if (versionStr != null) {
@@ -91,25 +109,15 @@ class ExportPkg {
     } else {
       this.version = Version.emptyVersion;
     }
-    if (tokens.containsKey(Constants.BUNDLE_VERSION_ATTRIBUTE)) {
+    if (he.getAttributes().containsKey(Constants.BUNDLE_VERSION_ATTRIBUTE)) {
       throw new IllegalArgumentException("Export definition illegally contains attribute, " +
                                          Constants.BUNDLE_VERSION_ATTRIBUTE);
     }
-    if (tokens.containsKey(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE)) {
+    if (he.getAttributes().containsKey(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE)) {
       throw new IllegalArgumentException("Export definition illegally contains attribute, " +
                                          Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
     }
-    // Remove all meta-data and all directives from the set of tokens.
-    Set directiveNames = (Set) tokens.remove("$directives");
-    if (null!=directiveNames) {
-      for (Iterator dit=directiveNames.iterator(); dit.hasNext();) {
-        tokens.remove((String) dit.next());
-      }
-    }
-    tokens.remove("$key");
-    tokens.remove("$keys");
-
-    this.attributes = tokens;
+    this.attributes = Collections.unmodifiableMap(he.getAttributes());
   }
 
 
@@ -152,7 +160,7 @@ class ExportPkg {
   /**
    * Attach this to a Pkg object which indicate that it is exported.
    */
-  synchronized void attachPkg(Pkg p) {
+  void attachPkg(Pkg p) {
     pkg = p;
   }
 
@@ -160,7 +168,7 @@ class ExportPkg {
   /**
    * Detach this from a Pkg object which indicate that it is no longer exported.
    */
-  synchronized void detachPkg() {
+  void detachPkg() {
     pkg = null;
     zombie = false;
   }
@@ -177,8 +185,8 @@ class ExportPkg {
       if (include != null) {
         // assert fullClassName.startsWith(name)
         clazz = fullClassName.substring(name.length() + 1);
-        for (Iterator i = include.iterator(); i.hasNext(); ) {
-          if (Util.filterMatch((String)i.next(), clazz)) {
+        for (final Iterator<String> i = include.iterator(); i.hasNext(); ) {
+          if (Util.filterMatch(i.next(), clazz)) {
             break;
           }
           if (!i.hasNext()) {
@@ -191,8 +199,8 @@ class ExportPkg {
           // assert fullClassName.startsWith(name)
           clazz = fullClassName.substring(name.length() + 1);
         }
-        for (Iterator i = exclude.iterator(); i.hasNext(); ) {
-          if (Util.filterMatch((String)i.next(), clazz)) {
+        for (final String string : exclude) {
+          if (Util.filterMatch(string, clazz)) {
             ok = false;
             break;
           }
@@ -208,10 +216,11 @@ class ExportPkg {
    *
    * @return True if pkg exports the package.
    */
-  synchronized boolean isProvider() {
-    if (pkg != null) {
-      synchronized (pkg) {
-        return pkg.providers.contains(this) || bpkgs.isRequired();
+  boolean isProvider() {
+    final Pkg p = pkg;
+    if (p != null) {
+      synchronized (p) {
+        return p.providers.contains(this) || bpkgs.isRequired();
       }
     }
     return false;
@@ -226,11 +235,12 @@ class ExportPkg {
    *
    * @return True if pkg exports the package.
    */
-  synchronized boolean isExported() {
+  boolean isExported() {
+    final BundlePackages bp = bpkgs;
     if (checkPermission() && pkg != null &&
-        ((bpkgs.bg.bundle.state & BundleImpl.RESOLVED_FLAGS) != 0 || zombie)) {
-      BundlePackages bp = bpkgs.getProviderBundlePackages(name);
-      return bp == null || bp.bg.bundle == bpkgs.bg.bundle;
+        (bp.bg.bundle.isResolved() || zombie)) {
+      final BundlePackages pbp = bp.getProviderBundlePackages(name);
+      return pbp == null || pbp.bg.bundle == bpkgs.bg.bundle;
     }
     return false;
   }
@@ -240,16 +250,16 @@ class ExportPkg {
    * Get active importers of a package.
    *
    * @param pkg Package.
-   * @return List of bundles importering, null export is not active.
+   * @return List of bundles importing, null export is not active.
    */
-  synchronized Collection getPackageImporters() {
-    if (pkg != null) {
-      Set res = new HashSet();
-      synchronized (pkg) {
-        for (Iterator i = pkg.importers.iterator(); i.hasNext(); ) {
-          ImportPkg ip = (ImportPkg)i.next();
+  List<ImportPkg> getPackageImporters() {
+    final Pkg p = pkg;
+    if (p != null) {
+      final List<ImportPkg> res = new ArrayList<ImportPkg>();
+      synchronized (p) {
+        for (final ImportPkg ip : p.importers) {
           if (ip.provider == this && ip.bpkgs != bpkgs) {
-            res.add(ip.bpkgs.bg.bundle);
+            res.add(ip);
           }
         }
       }
@@ -265,11 +275,7 @@ class ExportPkg {
    * @return true if we have export permission
    */
   boolean checkPermission() {
-    // NYI! cache permission when we have resolved and while resolving
-    if (bpkgs.bg.bundle.state == BundleImpl.INSTALLED) {
-      hasPermission = bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
-    }
-    return hasPermission;
+    return bpkgs.bg.bundle.fwCtx.perm.hasExportPackagePermission(this);
   }
 
 
@@ -285,7 +291,7 @@ class ExportPkg {
     if (null == o) {
       return false;
     }
-    ExportPkg ep = (ExportPkg)o;
+    final ExportPkg ep = (ExportPkg)o;
     return name.equals(ep.name) &&
       version.equals(ep.version) &&
       (uses == null ? ep.uses == null : uses.equals(ep.uses)) &&
@@ -303,7 +309,7 @@ class ExportPkg {
    */
   public String pkgString() {
     if (version != Version.emptyVersion) {
-      return name + ";" + Constants.PACKAGE_SPECIFICATION_VERSION + "=" + version;
+      return name + ";" + Constants.VERSION_ATTRIBUTE + "=" + version;
     } else {
       return name;
     }
@@ -315,15 +321,73 @@ class ExportPkg {
    *
    * @return String.
    */
+  @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer(pkgString());
-    sb.append('(');
+    final StringBuffer sb = new StringBuffer(pkgString());
+    sb.append(' ');
     if (zombie) {
-      sb.append("zombie, ");
+      sb.append("Zombie");
     }
-    sb.append(bpkgs.toString());
-    sb.append(')');
+    sb.append("Bundle");
+    sb.append(bpkgs.bundleGenInfo());
     return sb.toString();
+  }
+
+
+  public String getNamespace() {
+    return BundleRevision.PACKAGE_NAMESPACE;
+  }
+
+
+  public Map<String, String> getDirectives() {
+    final Map<String,String> res = new HashMap<String, String>(1);
+
+    if (uses!=null) {
+      final StringBuffer sb = new StringBuffer(uses.size()*30);
+      for (final String pkg : uses) {
+        if (sb.length()>0) sb.append(',');
+        sb.append(pkg);
+      }
+      res.put(Constants.USES_DIRECTIVE, sb.toString());
+    }
+
+    return res;
+  }
+
+
+  public Map<String, Object> getAttributes() {
+    final Map<String,Object> res
+      = new HashMap<String, Object>(4+attributes.size());
+
+    res.put(BundleRevision.PACKAGE_NAMESPACE, name);
+    res.put(Constants.VERSION_ATTRIBUTE, version);
+
+    res.put(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE, bpkgs.bg.symbolicName);
+    res.put(Constants.BUNDLE_VERSION_ATTRIBUTE, bpkgs.bg.version);
+
+    res.putAll(attributes);
+
+    return Collections.unmodifiableMap(res);
+  }
+
+
+  public BundleRevision getRevision() {
+    return bpkgs.bg.bundleRevision;
+  }
+
+
+  /**
+   * The default ordering is the order in which the {@code ExportPkg}-objects
+   * has been created. I.e., the order they appeared in the {@code Export-Package}
+   * header.
+   *
+   * @param o other object to compare with.
+   * @return Less than zero, zero or greater than zero of this object is smaller
+   *  than, equals to or greater than {@code o}.
+   */
+  public int compareTo(ExportPkg o)
+  {
+    return this.orderal - o.orderal;
   }
 
 }

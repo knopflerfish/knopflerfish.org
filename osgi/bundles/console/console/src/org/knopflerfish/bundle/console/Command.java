@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.knopflerfish.service.console.CommandGroup;
 import org.knopflerfish.service.console.Session;
@@ -54,10 +55,9 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 
 /**
- * Class for command parseing and execution.
+ * Class for command parsing and execution.
  * 
  * @author Jan Stein
- * @version $Revision: 1.1.1.1 $
  */
 public class Command implements ServiceListener, Runnable {
 
@@ -80,7 +80,7 @@ public class Command implements ServiceListener, Runnable {
 
     Session session;
 
-    ServiceReference commandGroupRef;
+    ServiceReference<CommandGroup> commandGroupRef;
 
     Thread thread = null;
 
@@ -103,7 +103,7 @@ public class Command implements ServiceListener, Runnable {
         }
         groupName = group;
         try {
-            AccessController.doPrivileged(new PrivilegedExceptionAction() {
+            AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
                 public Object run() throws IOException {
                     parseCommand(cmd);
                     return null;
@@ -144,19 +144,19 @@ public class Command implements ServiceListener, Runnable {
             if (SessionCommandGroup.NAME.equals(groupName)) {
                 commandGroupRef = null;
             } else {
-                ServiceReference[] refs = null;
+                Collection<ServiceReference<CommandGroup>> refs = null;
                 try {
-                    refs = bc.getServiceReferences(COMMAND_GROUP, "(groupName="
-                            + groupName + ")");
+                    refs = bc.getServiceReferences(CommandGroup.class,
+                                                   "(groupName=" + groupName + ")");
                 } catch (InvalidSyntaxException ignore) {
                 }
-                if (refs == null) {
+                if (refs.isEmpty()) {
                     throw new IOException("No such command group: " + groupName);
                 }
-                commandGroupRef = refs[0];
+                commandGroupRef = refs.iterator().next();
             }
         }
-        ArrayList vargs = new ArrayList();
+        ArrayList<String> vargs = new ArrayList<String>();
         boolean done = false;
         while (!done) {
             if (word != null) {
@@ -207,7 +207,7 @@ public class Command implements ServiceListener, Runnable {
                 }
             }
         }
-        args = (String[]) vargs.toArray(new String[vargs.size()]);
+        args = vargs.toArray(new String[vargs.size()]);
     }
 
     public void runThreaded() {
@@ -223,11 +223,11 @@ public class Command implements ServiceListener, Runnable {
     
     public synchronized void run() {
         bc.addServiceListener(this);
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 CommandGroup cg;
                 if (commandGroupRef != null) {
-                    cg = (CommandGroup) bc.getService(commandGroupRef);
+                    cg = bc.getService(commandGroupRef);
                     if (cg == null) {
                         status = -2;
                         return null;
@@ -272,37 +272,39 @@ public class Command implements ServiceListener, Runnable {
         }
     }
 
-    static ServiceReference matchCommandGroup(BundleContext bc, String word)
-            throws IOException {
-        ServiceReference res = null;
-        ServiceReference[] refs = null;
-        try {
-            refs = bc.getServiceReferences(COMMAND_GROUP, "(groupName=" + word
-                    + "*)");
-        } catch (InvalidSyntaxException ignore) {
-        }
-        if (refs != null) {
-            if (refs.length == 1) {
-                res = refs[0];
-            } else if (refs.length > 1) {
-                for (int i = 0; i < refs.length; i++) {
-                    if (word.equals(refs[i].getProperty("groupName"))) {
-                        res = refs[i];
-                        break;
-                    }
-                }
-            }
-        }
-        if (SessionCommandGroup.NAME.startsWith(word)) {
-            if (refs == null || SessionCommandGroup.NAME.equals(word)) {
-                return null;
-            }
-        } else if (res != null) {
-            return res;
-        } else if (refs == null) {
-            throw new IOException("No such command group: " + word);
-        }
-        throw new IOException("Several command groups starting with: " + word);
+  static ServiceReference<CommandGroup> matchCommandGroup(BundleContext bc,
+                                                          String word)
+      throws IOException
+  {
+    ServiceReference<CommandGroup> res = null;
+    Collection<ServiceReference<CommandGroup>> refs = null;
+    try {
+      refs = bc.getServiceReferences(CommandGroup.class,
+                                     "(groupName=" + word + "*)");
+    } catch (InvalidSyntaxException ignore) {
     }
+    if (refs.size()==1) {
+      // A single match, use it.
+      res = refs.iterator().next();
+    } else {
+      // Multiple matches, check for exact match.
+      for (ServiceReference<CommandGroup> srcg : refs) {
+        if (word.equals(srcg.getProperty("groupName"))) {
+          res = srcg;
+          break;
+        }
+      }
+    }
+    if (SessionCommandGroup.NAME.startsWith(word)) {
+      if (refs.isEmpty() || SessionCommandGroup.NAME.equals(word)) {
+        return null;
+      }
+    } else if (res != null) {
+      return res;
+    } else if (refs.isEmpty()) {
+      throw new IOException("No such command group: " + word);
+    }
+    throw new IOException("Several command groups starting with: " + word);
+  }
 
 }

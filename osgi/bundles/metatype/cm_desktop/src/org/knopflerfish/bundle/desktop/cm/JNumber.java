@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,44 +34,53 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
-import org.osgi.util.tracker.*;
-import java.util.*;
-import org.knopflerfish.service.desktop.*;
-import org.knopflerfish.util.metatype.*;
-import org.osgi.service.metatype.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
+import javax.swing.JPanel;
+import javax.swing.JSlider;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-public class JNumber extends JPanel {
+import org.osgi.service.metatype.AttributeDefinition;
+
+import org.knopflerfish.util.metatype.AD;
+
+public class JNumber
+  extends JPanel
+{
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   Number num;
   AttributeDefinition ad;
 
   JTextField text;
-  JSlider    slider = null;
+  JSlider slider = null;
 
   double max;
   double min;
-  
+
   boolean bUseSlider = false;
 
   static final int RANGE = 1000;
 
-  JNumber(AttributeDefinition _ad) {
+  JNumber(AttributeDefinition _ad)
+  {
     super(new BorderLayout());
-    this.ad       = _ad;
-    
+    this.ad = _ad;
+
     text = new JTextField();
-    if(bUseSlider) {
+    if (bUseSlider) {
       slider = new JSlider();
     }
 
-    switch(ad.getType()) {
+    switch (ad.getType()) {
     case AttributeDefinition.INTEGER:
       min = 0;
       max = 65535;
@@ -96,66 +105,98 @@ public class JNumber extends JPanel {
       throw new IllegalArgumentException("Unsupported type=" + ad.getType());
     }
 
-    text   = new JTextField("");
-    if(bUseSlider) {
+    text = new JTextField("");
+    if (bUseSlider) {
       slider = new JSlider(0, RANGE);
     }
 
-    text.setPreferredSize(new Dimension(50, 10));
-    add(text,   BorderLayout.WEST);
-    if(slider != null) {
+    // Set the preferred size of test so that 10 digits fits in it.
+    text.setText("0000000000");
+    final Dimension tDimension = text.getPreferredSize();
+    text.setPreferredSize(tDimension);
+    text.setText("");
+
+    text.setHorizontalAlignment(SwingConstants.TRAILING);
+    add(text, BorderLayout.WEST);
+    if (slider != null) {
       add(slider, BorderLayout.CENTER);
     }
     text.addActionListener(new ActionListener() {
-	public void actionPerformed(ActionEvent ev) {
-	  Number n = (Number)AD.parse(text.getText(), 0, ad.getType());
-	  setValue(n);
-	}
-      });
+      public void actionPerformed(ActionEvent ev)
+      {
+        final Number n = (Number) AD.parse(text.getText(), 0, ad.getType());
+        setValue(n);
+      }
+    });
 
-    if(slider != null) {
+    if (slider != null) {
       slider.addChangeListener(new ChangeListener() {
-	  public void stateChanged(ChangeEvent e) {
-	    int v = slider.getValue();
-	    switch(ad.getType()) {
-	    case AttributeDefinition.INTEGER:
-	    case AttributeDefinition.SHORT:
-	    case AttributeDefinition.LONG: 
-	      {
-		long val = (long)(min + (max-min) * (double)v / RANGE);
-		text.setText(Long.toString(val));
-	      }
-	      break;
-	    case AttributeDefinition.DOUBLE:
-	    case AttributeDefinition.FLOAT:
-	      {
-		double val = min + (max - min) * (double)v / RANGE;
-		text.setText(Double.toString(val));
-	      }
-	      break;
-	    }
-	  }
-	});
+        public void stateChanged(ChangeEvent e)
+        {
+          final int v = slider.getValue();
+          switch (ad.getType()) {
+          case AttributeDefinition.INTEGER:
+          case AttributeDefinition.SHORT:
+          case AttributeDefinition.LONG: {
+            final long val = (long) (min + (max - min) * v / RANGE);
+            text.setText(Long.toString(val));
+          }
+            break;
+          case AttributeDefinition.DOUBLE:
+          case AttributeDefinition.FLOAT: {
+            final double val = min + (max - min) * v / RANGE;
+            text.setText(Double.toString(val));
+          }
+            break;
+          }
+        }
+      });
     }
   }
-  
-  void syncUI() {
+
+  void syncUI()
+  {
   }
-  
-  Object getValue() {
-    switch(ad.getType()) {
+
+  Object getValue()
+  {
+    try {
+      switch (ad.getType()) {
+      case AttributeDefinition.INTEGER:
+        return new Integer(text.getText());
+      case AttributeDefinition.LONG:
+        return new Long(text.getText());
+      case AttributeDefinition.SHORT:
+        return new Short(text.getText());
+      case AttributeDefinition.DOUBLE:
+        return new Double(text.getText());
+      case AttributeDefinition.FLOAT:
+        return new Float(text.getText());
+      default:
+        throw new IllegalArgumentException("Unsupported type=" + ad.getType());
+      }
+    } catch (final NumberFormatException nfe) {
+      final String msg = "Invalid " + getTypeName(ad.getType()) +" value '" + text.getText() + "'.";
+      throw (NumberFormatException) new NumberFormatException(msg)
+          .initCause(nfe);
+    }
+  }
+
+  private String getTypeName(int type)
+  {
+    switch (ad.getType()) {
     case AttributeDefinition.INTEGER:
-      return new Integer(text.getText());
+      return "integer";
     case AttributeDefinition.LONG:
-      return new Long(text.getText());
+      return "long";
     case AttributeDefinition.SHORT:
-      return new Short(text.getText());
+      return "short";
     case AttributeDefinition.DOUBLE:
-      return new Double(text.getText());
+      return "double";
     case AttributeDefinition.FLOAT:
-      return new Float(text.getText());
+      return "float";
     default:
-      throw new IllegalArgumentException("Unsupported type=" + ad.getType());
+      return "unknown AD type=" + ad.getType();
     }
   }
 
@@ -166,22 +207,21 @@ public class JNumber extends JPanel {
    * If object is null, use default values from AD
    * </p>
    */
-  void setValue(Object obj) {
-    if(obj instanceof Number) {
-      Number n = (Number)obj;
-      double val = n.doubleValue();
+  void setValue(Object obj)
+  {
+    if (obj instanceof Number) {
+      final Number n = (Number) obj;
+      final double val = n.doubleValue();
       // double val = min + (max - min) * (double)v / RANGE;
-      int v = (int)(RANGE * (val - min) / (max - min));
-      if(slider != null) {
-	slider.setValue(v);
+      final int v = (int) (RANGE * (val - min) / (max - min));
+      if (slider != null) {
+        slider.setValue(v);
       }
       text.setText(n.toString());
     } else {
-      throw new IllegalArgumentException("Value is not a Number, is "  + 
-					 obj.getClass().getName() + ", " + obj);
+      throw new IllegalArgumentException("Value is not a Number, is "
+                                         + obj.getClass().getName() + ", "
+                                         + obj);
     }
   }
 }
-
-
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,7 +89,7 @@ public interface LogConfig {
    */
   public void setFilter(String bundleLocation, int filter);
 
-  public HashMap getFilters();
+  public HashMap<String,Integer> getFilters();
 
   /**
    * Property controlling if log entries are written to
@@ -125,7 +125,7 @@ public interface LogConfig {
   public boolean getFlush();
 
   /**
-   * Define the format of the timestamp used when presenting log
+   * Define the format of the time-stamp used when presenting log
    * entries. I.e., in the file log and to <code>System.out</code>.
    *
    * @param pattern Date time pattern as defined in

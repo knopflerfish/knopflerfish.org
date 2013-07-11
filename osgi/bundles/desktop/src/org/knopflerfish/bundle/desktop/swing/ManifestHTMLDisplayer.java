@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,16 +54,21 @@ import javax.swing.JComponent;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
-import org.osgi.service.startlevel.StartLevel;
+import org.osgi.framework.startlevel.BundleStartLevel;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleRevisions;
 
-public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
-                                   implements JHTMLBundleLinkHandler {
+public class ManifestHTMLDisplayer
+  extends DefaultSwingBundleDisplayer
+  implements JHTMLBundleLinkHandler
+{
 
-  public ManifestHTMLDisplayer(BundleContext bc) {
+  public ManifestHTMLDisplayer(BundleContext bc)
+  {
     super(bc, "Manifest", "Shows bundle manifest", true);
   }
 
-  //-------------------------------- Resource URL ------------------------------
+  // --------------------------- Resource URL ----------------------------
   /**
    * Helper class that handles links to bundle resources.
    * <p>
@@ -71,99 +76,112 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
    * <code>http://desktop/resource/<PATH>?bid=<BID>&amp;scr=<isSCR></code>.
    * </p>
    */
-  public static class ResourceUrl {
+  public static class ResourceUrl
+  {
     public static final String URL_RESOURCE_HOST = "desktop";
     public static final String URL_RESOURCE_PREFIX_PATH = "/resource";
     public static final String URL_RESOURCE_KEY_BID = "bid";
     public static final String URL_RESOURCE_KEY_SCR = "scr";
 
     /** Bundle Id of the bundle that owns the resource. */
-    private long bid;
+    private final long bid;
 
     /**
      * Path within the bundle to the resource. File name part may be a pattern
      * according to the rules of the second argument of
      * {@link Bundle#findEntries(String, String, boolean)}.
      */
-    private String path;
+    private final String path;
 
     /**
      * Indicates if the resource is a SCR component-xml file or not.
      */
-    private boolean isScr;
+    private final boolean isScr;
 
     /**
      * Check if the given <code>url</code> is a bundle resource URL or not.
-     * @param url The <code>url</code> to check.
+     *
+     * @param url
+     *          The <code>url</code> to check.
      * @return <code>true</code> if the given <code>url</code> is a bundle
-     * resource URL, <code>false</code> otherwise.
+     *         resource URL, <code>false</code> otherwise.
      */
-    public static boolean isResourceLink(URL url) {
+    public static boolean isResourceLink(URL url)
+    {
       return URL_RESOURCE_HOST.equals(url.getHost())
-          && url.getPath().startsWith(URL_RESOURCE_PREFIX_PATH);
+             && url.getPath().startsWith(URL_RESOURCE_PREFIX_PATH);
     }
 
     /**
      * Create a resource URL from a {@link URL}.
-     * @param url The URL to parse as a resource URL.
+     *
+     * @param url
+     *          The URL to parse as a resource URL.
      */
-    public ResourceUrl(URL url) {
-      if(!isResourceLink(url)) {
-        throw new RuntimeException("URL '" + url + "' does not start with " +
-                                   "http://" +URL_RESOURCE_HOST
+    public ResourceUrl(URL url)
+    {
+      if (!isResourceLink(url)) {
+        throw new RuntimeException("URL '" + url + "' does not start with "
+                                   + "http://" + URL_RESOURCE_HOST
                                    + URL_RESOURCE_PREFIX_PATH);
       }
       this.path = url.getPath().substring(URL_RESOURCE_PREFIX_PATH.length());
 
-      final Map params = Util.paramsFromURL(url);
+      final Map<String, String> params = Util.paramsFromURL(url);
       if (!params.containsKey(URL_RESOURCE_KEY_BID)) {
         throw new RuntimeException("Invalid bundle resource URL '" + url
-            + "' bundle id is missing " + url.toString());
+                                   + "' bundle id is missing " + url.toString());
       }
-      this.bid = Long.parseLong((String) params.get(URL_RESOURCE_KEY_BID));
-      this.isScr = "true".equals((String) params.get(URL_RESOURCE_KEY_SCR));
+      this.bid = Long.parseLong(params.get(URL_RESOURCE_KEY_BID));
+      this.isScr = "true".equals(params.get(URL_RESOURCE_KEY_SCR));
     }
 
-    public ResourceUrl(final Bundle bundle,
-                       final String path,
-                       final boolean isSCR) {
+    public ResourceUrl(final Bundle bundle, final String path,
+                       final boolean isSCR)
+    {
       this.bid = bundle.getBundleId();
       this.path = path;
       this.isScr = isSCR;
     }
 
-    public long getBid() {
+    public long getBid()
+    {
       return bid;
     }
 
     /**
      * @return the full path including file name pattern.
      */
-    public String getFullPath() {
+    public String getFullPath()
+    {
       return path;
     }
 
     /**
      * @return the path without the file name pattern part.
      */
-    public String getPath() {
+    public String getPath()
+    {
       final int i = path.lastIndexOf('/');
-      return i==-1 ? "" : path.substring(0, i);
+      return i == -1 ? "" : path.substring(0, i);
     }
 
     /**
      * @return the file name pattern part of the full path.
      */
-    public String getFilenamePattern() {
+    public String getFilenamePattern()
+    {
       final int i = path.lastIndexOf('/');
-      return i==-1 ? path : path.substring(i+1);
+      return i == -1 ? path : path.substring(i + 1);
     }
 
-    public boolean isSCR() {
+    public boolean isSCR()
+    {
       return isScr;
     }
 
-    private void appendBaseURL(final StringBuffer sb) {
+    private void appendBaseURL(final StringBuffer sb)
+    {
       sb.append("http://");
       sb.append(URL_RESOURCE_HOST);
       sb.append(URL_RESOURCE_PREFIX_PATH);
@@ -171,20 +189,21 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
       sb.append(path);
     }
 
-    private Map getParams() {
-      final Map params = new HashMap();
+    private Map<String, String> getParams()
+    {
+      final HashMap<String, String> params = new HashMap<String, String>();
       params.put(URL_RESOURCE_KEY_BID, String.valueOf(bid));
       params.put(URL_RESOURCE_KEY_SCR, String.valueOf(isScr));
       return params;
     }
 
-
-    public void resourceLink(final StringBuffer sb) {
+    public void resourceLink(final StringBuffer sb)
+    {
       resourceLink(sb, path);
     }
 
-    public void resourceLink(final StringBuffer sb,
-                             final String label) {
+    public void resourceLink(final StringBuffer sb, final String label)
+    {
       sb.append("<a href=\"");
       appendBaseURL(sb);
       Util.appendParams(sb, getParams());
@@ -193,79 +212,107 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
       sb.append("</a>");
     }
   }
-  //-------------------------------- Resource URL ------------------------------
+  // -------------------------- End Resource URL ----------------------------
 
-  public JComponent newJComponent() {
+  @Override
+  public JComponent newJComponent()
+  {
     return new JHTML(this);
   }
 
-  public void valueChanged(long  bid) {
+  @Override
+  public void valueChanged(long bid)
+  {
     final Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      final JHTML comp = (JHTML)it.next();
+    for (final JComponent jComponent : components) {
+      final JHTML comp = (JHTML) jComponent;
       comp.valueChanged(bl);
     }
   }
 
-  class JHTML extends JHTMLBundle {
+  class JHTML
+    extends JHTMLBundle
+  {
     private static final long serialVersionUID = 1L;
 
-    JHTML(DefaultSwingBundleDisplayer displayer) {
+    JHTML(DefaultSwingBundleDisplayer displayer)
+    {
       super(displayer);
     }
 
-    public StringBuffer  bundleInfo(Bundle b) {
-      StringBuffer sb = new StringBuffer();
+    @Override
+    public StringBuffer bundleInfo(Bundle b)
+    {
+      final StringBuffer sb = new StringBuffer();
 
-      Dictionary headers = b.getHeaders();
+      final Dictionary<String, String> headers = b.getHeaders();
 
       sb.append("<table border=0 cellspacing=1 cellpadding=0>\n");
-      appendRow(sb, "Location", "" + b.getLocation());
-      appendRow(sb, "State",    Util.stateName(b.getState()));
-      if (b.getSymbolicName() != null) {
-        appendRow(sb, "Symbolic name", b.getSymbolicName());
-      }
-      appendRow(sb, "Last modified",
-                "" + new SimpleDateFormat().format(new Date(b.getLastModified())));
+      appendRow(sb, BG_COLOR_BUNDLE_DATA, null, null, "Location",
+                "" + b.getLocation());
 
-      StartLevel sls = (StartLevel)Activator.desktop.slTracker.getService();
-      if(sls != null) {
+      final List<BundleRevision> bundleRevisions =
+        b.adapt(BundleRevisions.class).getRevisions();
+      String state = Util.stateName(b.getState());
+      if (bundleRevisions.size() > 1) {
+        state += ", pending refresh.";
+      }
+      appendRow(sb, BG_COLOR_BUNDLE_DATA, null, null, "State", state);
+
+      if (b.getSymbolicName() != null) {
+        appendRow(sb, BG_COLOR_BUNDLE_DATA, null, null, "Symbolic name",
+                  b.getSymbolicName());
+      }
+      appendRow(sb,
+                BG_COLOR_BUNDLE_DATA,
+                null,
+                null,
+                "Last modified",
+                ""
+                    + new SimpleDateFormat().format(new Date(b
+                        .getLastModified())));
+
+      final BundleStartLevel bsl = b.adapt(BundleStartLevel.class);
+      if (bsl != null) {
         String level = "";
         try {
-          level = Integer.toString(sls.getBundleStartLevel(b));
-        } catch (IllegalArgumentException e) {
+          level = Integer.toString(bsl.getStartLevel());
+          if (bsl.isPersistentlyStarted()) {
+            level += ", persistently started";
+          }
+        } catch (final IllegalArgumentException e) {
           level = "not managed";
         }
-        appendRow(sb, "Start level", level);
+        appendRow(sb, BG_COLOR_BUNDLE_DATA, null, null, "Start level", level);
       }
 
       // Spacer for better layout (and separation of non-manifest data):
-      appendRow(sb, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", "");
+      appendRow(sb,
+                "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;",
+                "");
 
-      List headerKeys = new ArrayList(headers.size());
-      for(Enumeration e = headers.keys(); e.hasMoreElements(); ) {
+      final ArrayList<String> headerKeys =
+        new ArrayList<String>(headers.size());
+      for (final Enumeration<String> e = headers.keys(); e.hasMoreElements();) {
         headerKeys.add(e.nextElement());
       }
       Collections.sort(headerKeys);
-      for(Iterator it = headerKeys.iterator(); it.hasNext(); ) {
-        String  key   = (String)it.next();
-        String  value = (String)headers.get(key);
-        if(value != null && !"".equals(value)) {
+      for (final String key : headerKeys) {
+        String value = headers.get(key);
+        if (value != null && !"".equals(value)) {
           value = Strings.replace(value, "<", "&lt;");
           value = Strings.replace(value, ">", "&gt;");
-          if("Import-Package".equals(key) ||
-             "Export-Service".equals(key) ||
-             "Bundle-Classpath".equals(key) ||
-             "Classpath".equals(key) ||
-             "Import-Service".equals(key) ||
-             "Export-Package".equals(key)) {
-            value = Strings.replaceWordSep(value,",", "<br>", '"');
-          } else if("Service-Component".equals(key)) {
+          if ("Import-Package".equals(key) || "Export-Service".equals(key)
+              || "Bundle-Classpath".equals(key) || "Classpath".equals(key)
+              || "Import-Service".equals(key) || "Export-Package".equals(key)) {
+            value = Strings.replaceWordSep(value, ",", "<br>", '"');
+          } else if ("Service-Component".equals(key)) {
             final StringBuffer sb2 = new StringBuffer(30);
-            final List/*<String>*/ patterns = Strings.splitWordSep(value, ",", '"');
-            for (Iterator pit = patterns.iterator(); pit.hasNext();) {
-              final String pattern = ((String) pit.next()).trim();
+            final List<String> patterns = Strings.splitWordSep(value, ",", '"');
+            for (final Iterator<String> pit = patterns.iterator(); pit
+                .hasNext();) {
+              final String pattern = pit.next().trim();
               new ResourceUrl(b, pattern, true).resourceLink(sb2);
               if (pit.hasNext()) {
                 sb2.append(", ");
@@ -273,10 +320,8 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
             }
             value = sb2.toString();
           } else {
-            if(value.startsWith("http:") ||
-               value.startsWith("https:") ||
-               value.startsWith("ftp:") ||
-               value.startsWith("file:")) {
+            if (value.startsWith("http:") || value.startsWith("https:")
+                || value.startsWith("ftp:") || value.startsWith("file:")) {
               value = "<a href=\"" + value + "\">" + value + "</a>";
             }
           }
@@ -288,27 +333,29 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
     }
   }
 
-  public boolean canRenderUrl(final URL url) {
+  public boolean canRenderUrl(final URL url)
+  {
     return ResourceUrl.isResourceLink(url);
   }
 
-  public boolean renderUrl(final URL url, final StringBuffer sb) {
+  public boolean renderUrl(final URL url, final StringBuffer sb)
+  {
     final ResourceUrl resUrl = new ResourceUrl(url);
 
     appendResourceHTML(sb, resUrl);
     return true; // Always OK to add ResourceUrls to history.
   }
 
-  void appendResourceHTML(final StringBuffer sb, final ResourceUrl resUrl) {
+  void appendResourceHTML(final StringBuffer sb, final ResourceUrl resUrl)
+  {
     final Bundle bundle = Activator.getTargetBC_getBundle(resUrl.getBid());
     sb.append("<html>");
     sb.append("<table border=0 width=\"100%\">");
 
-    final Enumeration resEnum = bundle.findEntries(resUrl.getPath(),
-                                                   resUrl.getFilenamePattern(),
-                                                   true);
+    final Enumeration<URL> resEnum =
+      bundle.findEntries(resUrl.getPath(), resUrl.getFilenamePattern(), true);
     while (resEnum.hasMoreElements()) {
-      final URL url = (URL) resEnum.nextElement();
+      final URL url = resEnum.nextElement();
 
       sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
       JHTMLBundle.startFont(sb, "-1");
@@ -333,9 +380,10 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
           // $2 XMLNS prefix part in $1 if present
           // $3 the actual component name
           // $4 " .*>
-          final Pattern p = Pattern.compile(
-              "(&lt;(\\w*?:)?component\\s.*?name\\s*=\\s*\")([^\"]*)(\".*?&gt;)",
-              Pattern.DOTALL);
+          final Pattern p =
+            Pattern
+                .compile("(&lt;(\\w*?:)?component\\s.*?name\\s*=\\s*\")([^\"]*)(\".*?&gt;)",
+                         Pattern.DOTALL);
           final Matcher m = p.matcher(value);
           final StringBuffer sb2 = new StringBuffer();
           while (m.find()) {
@@ -350,9 +398,9 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
           value = sb2.toString();
         }
         sb.append(value);
-      } catch (Exception e) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
+      } catch (final Exception e) {
+        final StringWriter sw = new StringWriter();
+        final PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
         sb.append(sw.toString());
       }
@@ -364,6 +412,5 @@ public class ManifestHTMLDisplayer extends DefaultSwingBundleDisplayer
     sb.append("</table>");
     sb.append("</html>");
   }
-
 
 }

@@ -40,76 +40,92 @@ import java.io.InputStream;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletResponse;
 
-public class ServletInputStreamImpl extends ServletInputStream {
+public class ServletInputStreamImpl
+  extends ServletInputStream
+{
 
-    private boolean isLimited = false;
+  private boolean isLimited = false;
 
-    private volatile int available;
+  private volatile int available;
 
-    private final InputStream is;
+  private final InputStream is;
 
-    private byte[] lineBuffer = null;
+  private byte[] lineBuffer = null;
 
-    private static int limitRequestLine = 8190;
+  private static int limitRequestLine = 8190;
 
-    public ServletInputStreamImpl(final InputStream is) {
-        this(is, -1);
-    }
+  public ServletInputStreamImpl(final InputStream is)
+  {
+    this(is, -1);
+  }
 
-    public ServletInputStreamImpl(final InputStream is, final int available) {
+  public ServletInputStreamImpl(final InputStream is, final int available)
+  {
 
-        this.is = is;
+    this.is = is;
 
-        setLimit(available);
-    }
+    setLimit(available);
+  }
 
-    public void setLimit(int available) {
+  public void setLimit(int available)
+  {
 
-        this.available = available;
-        this.isLimited = available != -1;
-    }
+    this.available = available;
+    this.isLimited = available != -1;
+  }
 
-  public static void setLimitRequestLine(int limit) {
+  public static void setLimitRequestLine(int limit)
+  {
     limitRequestLine = limit;
   }
 
-    public int read() throws IOException {
+  @Override
+  public int read()
+      throws IOException
+  {
 
-        if (isLimited && --available < 0)
-            return -1;
-
-        return is.read();
+    if (isLimited && --available < 0) {
+      return -1;
     }
 
-  public String readLine() throws IOException, HttpException {
+    return is.read();
+  }
 
-        if (lineBuffer == null)
-            lineBuffer = new byte[127];
+  public String readLine()
+      throws IOException, HttpException
+  {
 
-        int count = readLine(lineBuffer, 0, lineBuffer.length);
-        int offset = count;
-
-        while (count > 0 && offset == lineBuffer.length
-                && lineBuffer[offset - 1] != '\n') {
-            // double the size of the buffer
-   	    int newsize = offset*2 + 1;
-	    if (newsize >limitRequestLine) {
-	      throw new HttpException(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE, "Request line length exceeds upper limit");
-	    }
-            byte[] tmp = new byte[newsize];
-            System.arraycopy(lineBuffer, 0, tmp, 0, offset);
-            lineBuffer = tmp;
-            tmp = null;
-
-            count = readLine(lineBuffer, offset, lineBuffer.length - offset);
-            offset += count;
-        }
-
-        if (count == -1)
-            throw new IOException("End of stream reached before CRLF");
-
-        return HttpUtil.newString(lineBuffer, 0, 0, offset - 2); // remove
-                                                                    // CRLF
+    if (lineBuffer == null) {
+      lineBuffer = new byte[127];
     }
+
+    int count = readLine(lineBuffer, 0, lineBuffer.length);
+    int offset = count;
+
+    while (count > 0 && offset == lineBuffer.length
+           && lineBuffer[offset - 1] != '\n') {
+      // double the size of the buffer
+      final int newsize = offset * 2 + 1;
+      if (newsize > limitRequestLine) {
+        throw new HttpException(
+                                HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE,
+                                "Request line length exceeds upper limit");
+      }
+      byte[] tmp = new byte[newsize];
+      System.arraycopy(lineBuffer, 0, tmp, 0, offset);
+      lineBuffer = tmp;
+      tmp = null;
+
+      count = readLine(lineBuffer, offset, lineBuffer.length - offset);
+      offset += count;
+    }
+
+    if (count == -1) {
+      throw new IOException("End of stream reached before CRLF");
+    }
+
+    return HttpUtil.newString(lineBuffer, 0, 0, offset - 2); // remove
+                                                             // CRLF
+  }
 
 } // ServletInputStreamImpl

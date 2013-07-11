@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2012, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,25 @@
 
 package org.knopflerfish.framework;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import org.knopflerfish.framework.Util.HeaderEntry;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.Version;
 
 /**
  * Bundle Class Path handler.
- * 
+ *
  * @author Jan Stein
  */
 public class BundleClassPath {
@@ -54,52 +64,63 @@ public class BundleClassPath {
   /**
    * Archives that we load code from.
    */
-  private ArrayList /* FileArchive */archives = new ArrayList(4);
+  private final ArrayList<FileArchive> archives = new ArrayList<FileArchive>(4);
 
   /**
    *
    */
-  private Map nativeLibs;
+  private Map<String, FileArchive> nativeLibs;
 
   /**
    *
    */
-  private Debug debug;
+  private final Debug debug;
 
   /**
    *
    */
-  private long bid;
+  private final long bid;
 
 
   /**
    * Create class loader for specified bundle.
-   * 
+   *
    * @throws BundleException if native code resolve failed.
    */
-  BundleClassPath(BundleArchive ba, List /* BundleGeneration */frags, FrameworkContext fwCtx)
+  BundleClassPath(BundleArchive ba, List<BundleGeneration> frags, FrameworkContext fwCtx)
       throws BundleException {
     this.fwCtx = fwCtx;
     debug = fwCtx.debug;
     bid = ba.getBundleId();
     checkBundleArchive(ba, frags);
     if (frags != null) {
-      for (Iterator i = frags.iterator(); i.hasNext();) {
-        checkBundleArchive(((BundleGeneration)i.next()).archive, null);
+      for (final BundleGeneration bundleGeneration : frags) {
+        checkBundleArchive(bundleGeneration.archive, null);
       }
     }
     resolveNativeCode(ba, false);
     if (frags != null) {
-      for (Iterator i = frags.iterator(); i.hasNext();) {
-        resolveNativeCode(((BundleGeneration)i.next()).archive, true);
+      for (final BundleGeneration bundleGeneration : frags) {
+        resolveNativeCode(bundleGeneration.archive, true);
       }
     }
   }
 
 
   /**
+   *
+   */
+  BundleClassPath(BundleArchive ba, FrameworkContext fwCtx) {
+    this.fwCtx = fwCtx;
+    debug = fwCtx.debug;
+    bid = ba.getBundleId();
+    checkBundleArchive(ba, null);
+  }
+
+
+  /**
    * @throws BundleException
-   * 
+   *
    */
   void attachFragment(BundleGeneration gen) throws BundleException {
     checkBundleArchive(gen.archive, null);
@@ -109,13 +130,13 @@ public class BundleClassPath {
 
   /**
    * Check if named entry exist in bundle class path. Leading '/' is stripped.
-   * 
+   *
    * @param component Entry to get reference to.
    * @param onlyFirst End search when we find first entry if this is true.
    * @return Vector or entry numbers, or null if it doesn't exist.
    */
-  Vector componentExists(String component, boolean onlyFirst) {
-    Vector v = null;
+  Vector<FileArchive> componentExists(String component, boolean onlyFirst, boolean dirs) {
+    Vector<FileArchive> v = null;
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
@@ -125,32 +146,26 @@ public class BundleClassPath {
     if (0 == component.length()) {
       // The special case asking for "/"
       if (onlyFirst) {
-        v = new Vector(1);
+        v = new Vector<FileArchive>(1);
         v.addElement(archives.get(0));
         if (debug.classLoader) {
           debug.println(this + "compentExists added first top in classpath.");
         }
       } else {
-        v = new Vector(archives);
+        v = new Vector<FileArchive>(archives);
         if (debug.classLoader) {
           debug.println(this + "compentExists added all tops in classpath.");
         }
       }
     } else {
-      for (Iterator i = archives.iterator(); i.hasNext();) {
-        FileArchive fa = (FileArchive)i.next();
-        InputStream ai = fa.getBundleResourceStream(component);
-        if (ai != null) {
+      for (final FileArchive fa : archives) {
+        if (fa.exists(component, dirs)) {
           if (v == null) {
-            v = new Vector();
+            v = new Vector<FileArchive>();
           }
           v.addElement(fa);
           if (debug.classLoader) {
             debug.println(this + "compentExists added: " + fa);
-          }
-          try {
-            ai.close();
-          } catch (IOException ignore) {
           }
           if (onlyFirst) {
             break;
@@ -165,9 +180,9 @@ public class BundleClassPath {
   /**
    * Get an specific InputStream to named entry inside a bundle. Leading '/' is
    * stripped.
-   * 
+   *
    * @param component Entry to get reference to.
-   * @param ix index of sub archives. A postive number is the classpath entry
+   * @param ix index of sub archives. A positive number is the classpath entry
    *          index. 0 means look in the main bundle.
    * @return InputStream to entry or null if it doesn't exist.
    */
@@ -175,13 +190,13 @@ public class BundleClassPath {
     if (component.startsWith("/")) {
       component = component.substring(1);
     }
-    return ((FileArchive)archives.get(ix)).getBundleResourceStream(component);
+    return archives.get(ix).getBundleResourceStream(component);
   }
 
 
   /**
    * Get native library from class path.
-   * 
+   *
    * @param libName Name of Jar file to get.
    * @return A string with the path to the native library.
    */
@@ -194,7 +209,7 @@ public class BundleClassPath {
       if (debug.classLoader) {
         debug.println(this + "getNativeLibrary: try, " + key);
       }
-      FileArchive fa = (FileArchive)nativeLibs.get(key);
+      FileArchive fa = nativeLibs.get(key);
       if (fa == null) {
         // Try other non-default lib-extensions
         final String libExtensions = fwCtx.props
@@ -203,12 +218,12 @@ public class BundleClassPath {
         if (libExtensions.length() > 0 && pos > -1) {
           final String baseKey = key.substring(0, pos + 1);
           final String[] exts = Util.splitwords(libExtensions, ", \t");
-          for (int i = 0; i < exts.length; i++) {
-            key = baseKey + exts[i];
+          for (final String ext : exts) {
+            key = baseKey + ext;
             if (debug.classLoader) {
               debug.println(this + "getNativeLibrary: try, " + key);
             }
-            fa = (FileArchive)nativeLibs.get(key);
+            fa = nativeLibs.get(key);
             if (fa != null) {
               break;
             }
@@ -230,6 +245,7 @@ public class BundleClassPath {
   /**
    *
    */
+  @Override
   public String toString() {
     return "BundleClassPath(#" + bid + ").";
   }
@@ -242,17 +258,17 @@ public class BundleClassPath {
   /**
    *
    */
-  private void checkBundleArchive(BundleArchive ba, List /* BundleImpl */frags) {
-    String bcp = ba.getAttribute(Constants.BUNDLE_CLASSPATH);
+  private void checkBundleArchive(BundleArchive ba, List<BundleGeneration> frags) {
+    final String bcp = ba.getAttribute(Constants.BUNDLE_CLASSPATH);
 
     if (bcp != null) {
-      StringTokenizer st = new StringTokenizer(bcp, ",");
+      final StringTokenizer st = new StringTokenizer(bcp, ",");
       while (st.hasMoreTokens()) {
-        String path = st.nextToken().trim();
+        final String path = st.nextToken().trim();
         FileArchive a = ba.getFileArchive(path);
         if (a == null && frags != null) {
-          for (Iterator i = frags.iterator(); i.hasNext();) {
-            a = ((BundleGeneration)i.next()).archive.getFileArchive(path);
+          for (final BundleGeneration bundleGeneration : frags) {
+            a = bundleGeneration.archive.getFileArchive(path);
             if (a != null) {
               break;
             }
@@ -264,7 +280,7 @@ public class BundleClassPath {
             debug.println(this + "- Added path entry: " + a);
           }
         } else {
-          fwCtx.listeners.frameworkWarning(ba.getBundleGeneration().bundle,
+          fwCtx.frameworkWarning(ba.getBundleGeneration().bundle,
               new IllegalArgumentException(Constants.BUNDLE_CLASSPATH + " entry " + path
                   + " not found in bundle"));
           if (debug.classLoader) {
@@ -280,16 +296,16 @@ public class BundleClassPath {
 
   /**
    * Resolve native code libraries.
-   * 
+   *
    * @throws BundleException if native code resolve failed.
    */
   private void resolveNativeCode(BundleArchive ba, boolean isFrag) throws BundleException {
-    String bnc = ba.getAttribute(Constants.BUNDLE_NATIVECODE);
+    final String bnc = ba.getAttribute(Constants.BUNDLE_NATIVECODE);
     if (bnc != null) {
-      final ArrayList proc = new ArrayList(3);
-      String procP = fwCtx.props.getProperty(Constants.FRAMEWORK_PROCESSOR);
+      final ArrayList<String> proc = new ArrayList<String>(3);
+      final String procP = fwCtx.props.getProperty(Constants.FRAMEWORK_PROCESSOR);
       proc.add(fwCtx.props.getProperty(Constants.FRAMEWORK_PROCESSOR).toLowerCase());
-      String procS = System.getProperty("os.arch").toLowerCase();
+      final String procS = System.getProperty("os.arch").toLowerCase();
       if (!procP.equals(procS)) {
         proc.add(procS);
       }
@@ -297,8 +313,8 @@ public class BundleClassPath {
       if (procP.startsWith("arm_")) {
         proc.add("arm");
       }
-      final ArrayList os = new ArrayList();
-      String osP = fwCtx.props.getProperty(Constants.FRAMEWORK_OS_NAME).toLowerCase();
+      final ArrayList<String> os = new ArrayList<String>();
+      final String osP = fwCtx.props.getProperty(Constants.FRAMEWORK_OS_NAME).toLowerCase();
       os.add(osP);
       String osS = System.getProperty("os.name").toLowerCase();
       if (!osS.equals(osP)) {
@@ -321,23 +337,28 @@ public class BundleClassPath {
       final Version osVer = new Version(fwCtx.props.getProperty(Constants.FRAMEWORK_OS_VERSION));
       final String osLang = fwCtx.props.getProperty(Constants.FRAMEWORK_LANGUAGE);
       boolean optional = false;
-      List best = null;
+      List<String> best = null;
       VersionRange bestVer = null;
       boolean bestLang = false;
 
-      for (Iterator i = Util
-          .parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext();) {
+      final List<HeaderEntry> hes = Util
+          .parseManifestHeader(Constants.BUNDLE_NATIVECODE, bnc, false, false,
+                               false);
+      for (final Iterator<HeaderEntry> heIt = hes.iterator(); heIt.hasNext();) {
+        final HeaderEntry he = heIt.next();
         VersionRange matchVer = null;
         boolean matchLang = false;
-        Map params = (Map)i.next();
 
-        List keys = (List)params.get("$keys");
-        if (keys.size() == 1 && "*".equals(keys.get(0)) && !i.hasNext()) {
+        final
+        List<String> keys = he.getKeys();
+        if (keys.size() == 1 && "*".equals(keys.get(0)) && !heIt.hasNext()) {
           optional = true;
           break;
         }
 
-        List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
+        @SuppressWarnings("unchecked")
+        final
+        List<String> pl = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
         if (pl != null) {
           if (!containsIgnoreCase(proc, pl)) {
             continue;
@@ -347,7 +368,9 @@ public class BundleClassPath {
           continue;
         }
 
-        List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
+        @SuppressWarnings("unchecked")
+        final
+        List<String> ol = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_OSNAME);
         if (ol != null) {
           if (!containsIgnoreCase(os, ol)) {
             continue;
@@ -357,12 +380,14 @@ public class BundleClassPath {
           continue;
         }
 
-        List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
+        @SuppressWarnings("unchecked")
+        final
+        List<String> ver = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_OSVERSION);
         if (ver != null) {
           boolean okVer = false;
-          for (Iterator v = ver.iterator(); v.hasNext();) {
+          for (final String string : ver) {
             // NYI! Handle format Exception
-            matchVer = new VersionRange((String)v.next());
+            matchVer = new VersionRange(string);
             if (matchVer.withinRange(osVer)) {
               okVer = true;
               break;
@@ -373,11 +398,13 @@ public class BundleClassPath {
           }
         }
 
-        List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
+        @SuppressWarnings("unchecked")
+        final
+        List<String> lang = (List<String>) he.getAttributes().get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
         if (lang != null) {
-          for (Iterator l = lang.iterator(); l.hasNext();) {
-            if (osLang.equalsIgnoreCase((String)l.next())) {
-              // Found specfied language version, search no more
+          for (final String string : lang) {
+            if (osLang.equalsIgnoreCase(string)) {
+              // Found specified language version, search no more
               matchLang = true;
               break;
             }
@@ -387,21 +414,25 @@ public class BundleClassPath {
           }
         }
 
-        List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
+        @SuppressWarnings("unchecked")
+        final
+        List<String> sf = (List<String>) he.getAttributes().get(Constants.SELECTION_FILTER_ATTRIBUTE);
         if (sf != null) {
-          String sfs = (String)sf.get(0);
+          final String sfs = sf.get(0);
           if (sf.size() == 1) {
             try {
               if (!(FrameworkUtil.createFilter(sfs)).match(fwCtx.props.getProperties())) {
                 continue;
               }
-            } catch (InvalidSyntaxException ise) {
-              throw new BundleException("Invalid syntax for native code selection filter: "
-                  + sfs, BundleException.NATIVECODE_ERROR, ise);
+            } catch (final InvalidSyntaxException ise) {
+              throw new BundleException("Bundle#" + bid +
+                                        ", Invalid syntax for native code selection filter: "
+                                        + sfs, BundleException.NATIVECODE_ERROR, ise);
             }
           } else {
-            throw new BundleException("Invalid character after native code selection filter: "
-                + sfs, BundleException.NATIVECODE_ERROR);
+            throw new BundleException("Bundle#" + bid +
+                                      ", Invalid character after native code selection filter: "
+                                      + sfs, BundleException.NATIVECODE_ERROR);
           }
         }
 
@@ -412,7 +443,7 @@ public class BundleClassPath {
             if (matchVer == null) {
               continue;
             }
-            int d = bestVer.compareTo(matchVer);
+            final int d = bestVer.compareTo(matchVer);
             if (d == 0) {
               verEqual = true;
             } else if (d > 0) {
@@ -433,19 +464,18 @@ public class BundleClassPath {
         if (optional) {
           return;
         } else {
-          throw new BundleException("No matching native code libraries found for os="
+          throw new BundleException("Bundle#" + bid +
+                                    ", no matching native code libraries found for os="
                                     + os + " version=" + osVer + ", processor="
                                     + proc + " and language=" + osLang + ".",
                                     BundleException.NATIVECODE_ERROR);
         }
       }
-      nativeLibs = new HashMap();
-      bloop: for (Iterator p = best.iterator(); p.hasNext();) {
-        String name = (String)p.next();
-        for (Iterator i = archives.iterator(); i.hasNext();) {
-          FileArchive fa = (FileArchive)i.next();
+      nativeLibs = new HashMap<String, FileArchive>();
+      bloop: for (final String name : best) {
+        for (final FileArchive fa : archives) {
           if (!isFrag || fa.getBundleGeneration().archive == ba) {
-            String key = fa.checkNativeLibrary(name);
+            final String key = fa.checkNativeLibrary(name);
             if (key != null) {
               nativeLibs.put(key, fa);
               if (debug.classLoader) {
@@ -455,8 +485,8 @@ public class BundleClassPath {
             }
           }
         }
-        throw new BundleException("Failed to resolve native code: " + name,
-            BundleException.NATIVECODE_ERROR);
+        throw new BundleException("Bundle#" + bid + ", failed to resolve native code: "
+                                  + name, BundleException.NATIVECODE_ERROR);
       }
     } else {
       // No native code in this bundle
@@ -468,11 +498,11 @@ public class BundleClassPath {
   /**
    * Check if a string exists in a list. Ignore case when comparing.
    */
-  private boolean containsIgnoreCase(List fl, List l) {
-    for (Iterator i = l.iterator(); i.hasNext();) {
-      String s = ((String)i.next()).toLowerCase();
-      for (Iterator j = fl.iterator(); j.hasNext();) {
-        if (Util.filterMatch((String)j.next(), s)) {
+  private boolean containsIgnoreCase(List<String> fl, List<String> l) {
+    for (final String string : l) {
+      final String s = string.toLowerCase();
+      for (final String string2 : fl) {
+        if (Util.filterMatch(string2, s)) {
           return true;
         }
       }

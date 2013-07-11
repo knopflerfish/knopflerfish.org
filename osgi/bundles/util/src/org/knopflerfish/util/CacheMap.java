@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,38 +34,47 @@
 
 package org.knopflerfish.util;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Timeout version of a <code>HashMap</code>.
- * 
+ *
  * <p>
- * Entries in the map have a limited lifelength, and the <code>get</code>
+ * Entries in the map have a limited life-length, and the <code>get</code>
  * method will only return the stored object during a limited time period.
  * </p>
- * 
+ *
  * <p>
- * After the timeout period, thr object will be removed.
+ * After the timeout period, the object will be removed.
  * </p>
- * 
+ *
  * @see CachedObject
  */
-public class CacheMap extends HashMap {
-
+public class CacheMap<K, V>
+  implements Map<K, V>, Serializable
+{
     private static final long serialVersionUID = 1L;
+    private final HashMap<K,CachedObject<V>> map
+      = new HashMap<K, CachedObject<V>>();
 
     // Timeout period in milliseconds for stored objects
     protected long timeout;
 
     /**
      * Create a map with default timeout period.
-     * 
+     *
      * <p>
      * Equivalent to <code>CacheMap(CachedObject.DEFAULT_TIMEOUT)</code>
      * </p>
-     * 
+     *
      * @see CachedObject#DEFAULT_TIMEOUT
      * @see CachedObject
      */
@@ -75,13 +84,13 @@ public class CacheMap extends HashMap {
 
     /**
      * Create a map with a specified timeout period.
-     * 
+     *
      * <p>
      * After an object has been stored in the map using <code>put</code>, it
      * will only be available for <code>timeout</code> milliseconds. After
      * that period, <code>get</code> will return <code>null</code>
      * </p>
-     * 
+     *
      * @param timeout
      *            timeout period in milliseconds for cached objects.
      */
@@ -92,7 +101,7 @@ public class CacheMap extends HashMap {
     /**
      * Get an object from the map. If the object's timeout period has expired,
      * remove it from the map and return <code>null</code>.
-     * 
+     *
      * <p>
      * <b>Note</b>: Since the timeout check is done for each cached object, be
      * careful when looping over a map using iterators or other sequences of
@@ -101,14 +110,14 @@ public class CacheMap extends HashMap {
      * check for <code>null</code> return values from <code>get</code>.
      * </p>
      */
-    public Object get(Object key) {
+    public V get(Object key) {
 
-        CachedObject cache = (CachedObject) super.get(key);
+        CachedObject<V> cache = map.get(key);
 
         if (cache == null) {
             return null;
         }
-        Object obj = cache.get();
+        V obj = cache.get();
         if (obj == null) {
             remove(key);
         }
@@ -127,38 +136,105 @@ public class CacheMap extends HashMap {
      * Store an object in the map. The object's timeout period will start from
      * the current system time.
      */
-    public Object put(Object key, Object value) {
+    public V put(K key, V value) {
 
-        CachedObject cache = (CachedObject) super.get(key);
+        CachedObject<V> cache = map.get(key);
 
         if (cache == null) {
-            super.put(key, new CachedObject(value, timeout));
+            map.put(key, new CachedObject<V>(value, timeout));
             return null;
         }
-        Object old = cache.get();
+        V old = cache.get();
         cache.set(value);
         return old;
     }
 
-    /**
-     * Force timeout check on all items in map and remove all expired keys and
-     * objects.
-     * 
-     * <p>
-     * Normally, the timeout check is only done at <code>get</code> calls, but
-     * if necessary (for example at periodic complete printouts or before loops)
-     * you can (and probably want to) force a timeout check on all cached
-     * objects.
-     * </p>
-     */
-    public void update() {
-        for (Iterator it = entrySet().iterator(); it.hasNext();) {
-            Map.Entry entry = (Map.Entry) it.next();
-            CachedObject cache = (CachedObject) entry.getValue();
-            if (cache.get() == null) {
-                remove(entry.getKey());
-            }
-        }
+  /**
+   * Force timeout check on all items in map and remove all expired keys and
+   * objects.
+   *
+   * <p>
+   * Normally, the timeout check is only done at <code>get</code> calls, but if
+   * necessary (for example at periodic complete printouts or before loops) you
+   * can (and probably want to) force a timeout check on all cached objects.
+   * </p>
+   */
+  public void update()
+  {
+    for (Iterator<Entry<K, CachedObject<V>>> it = map.entrySet().iterator();
+         it.hasNext();) {
+      final Entry<K, CachedObject<V>> entry = it.next();
+      if (entry.getValue().get() == null) {
+        it.remove();
+      }
+    }
+  }
+
+  public int size()
+  {
+    // Note that some elements may be "removed"
+    return map.size();
+  }
+
+  public boolean isEmpty()
+  {
+    // Note that some elements may be "removed"
+    return map.isEmpty();
+  }
+
+  public boolean containsValue(Object value)
+  {
+    if (null != value) {
+      for (CachedObject<V> cache : map.values()) {
+        if (value.equals(cache.get()))
+          return true;
+      }
+    }
+    return false;
+  }
+
+    public V remove(Object key)
+    {
+      CachedObject<V> cache = map.remove(key);
+
+      if (cache == null) {
+          return null;
+      }
+      V obj = cache.get();
+      return obj;
+    }
+
+    public void putAll(Map<? extends K, ? extends V> m)
+    {
+       for (Entry<? extends K, ? extends V> entry : m.entrySet()) {
+         put(entry.getKey(), entry.getValue());
+       }
+    }
+
+    public void clear()
+    {
+      map.clear();
+    }
+
+    public Set<K> keySet()
+    {
+      return new HashSet<K>(map.keySet());
+    }
+
+    public Collection<V> values()
+    {
+      List<V> res = new ArrayList<V>();
+      for (K key : map.keySet()) {
+        V val = get(key);
+        if (null!=val) res.add(val);
+      }
+      return res;
+    }
+
+    public Set<java.util.Map.Entry<K, V>> entrySet()
+    {
+      // Not very useful since map.entrySet() will behave strange!
+      throw new UnsupportedOperationException("entrySet()");
     }
 
 } // CacheMap

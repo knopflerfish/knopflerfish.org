@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,26 +40,24 @@ import java.io.PrintWriter;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
-import org.knopflerfish.service.console.ConsoleService;
-import org.knopflerfish.service.console.Session;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.log.LogService;
 import org.osgi.util.tracker.ServiceTracker;
 
-public class ConsoleSwing
-  implements org.osgi.util.tracker.ServiceTrackerCustomizer
-{
-  final static private String logServiceName     = LogService.class.getName();
-  final static private String consoleServiceName = ConsoleService.class.getName();
+import org.knopflerfish.service.console.ConsoleService;
+import org.knopflerfish.service.console.Session;
 
+public class ConsoleSwing
+  implements org.osgi.util.tracker.ServiceTrackerCustomizer<ConsoleService,ConsoleService>
+{
   static ConsoleSwing theConsoleSwing;
 
   static BundleContext  bc     = null;
   static Config         config = new Config();
   public static SwingIO swingIO  = null;
 
-  ServiceTracker        consoleTracker;
+  ServiceTracker<ConsoleService,ConsoleService> consoleTracker;
   ConsoleService        consoleService = null;
   Session               consoleSession = null;
 
@@ -68,7 +66,7 @@ public class ConsoleSwing
     ConsoleSwing.bc = bc;
     ConsoleSwing.theConsoleSwing = this;
     // Set up service tracker for the console service.
-    consoleTracker = new ServiceTracker(bc, consoleServiceName, this);
+    consoleTracker = new ServiceTracker<ConsoleService,ConsoleService>(bc, ConsoleService.class, this);
   }
 
   public void start() {
@@ -145,11 +143,11 @@ public class ConsoleSwing
    *			  ServiceTrackerCustomizer implementation
    *------------------------------------------------------------------------*/
 
-  public Object addingService(ServiceReference reference) {
+  public ConsoleService addingService(ServiceReference<ConsoleService> reference) {
     if (null==consoleService) {
       log(LogService.LOG_INFO, "New console service selected.");
 
-      consoleService  = (ConsoleService) bc.getService(reference);
+      consoleService  = bc.getService(reference);
 
       if (swingIO==null) swingIO = new SwingIO();
 
@@ -174,10 +172,12 @@ public class ConsoleSwing
     }
   }
 
-  public void modifiedService(ServiceReference reference, Object service) {
+  public void modifiedService(ServiceReference<ConsoleService> reference,
+                              ConsoleService service) {
   }
 
-  public void removedService(ServiceReference reference, Object service) {
+  public void removedService(ServiceReference<ConsoleService> reference,
+                             ConsoleService service) {
     if (consoleService == service) {
       if (null!=consoleSession) {
         log(LogService.LOG_INFO, "Console service closed.");
@@ -194,9 +194,9 @@ public class ConsoleSwing
   }
 
   public static void log(int level, String msg, Exception e) {
-    ServiceReference srLog = bc.getServiceReference(logServiceName);
+    ServiceReference<LogService> srLog = bc.getServiceReference(LogService.class);
     if (srLog != null) {
-      LogService sLog = (LogService)bc.getService(srLog);
+      LogService sLog = bc.getService(srLog);
       if (sLog != null) {
         if(e != null) {
           sLog.log(level, msg, e);

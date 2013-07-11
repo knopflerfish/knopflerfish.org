@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ public class Console {
   int width;
   int height;
 
-  Vector lines = new Vector();
+  Vector<String> lines = new Vector<String>();
 
   public Console(Spin spin) {
     super();
@@ -93,12 +93,12 @@ public class Console {
     }
   }
 
-  void paintBox(Vector lines, Graphics g, Color bgCol, Color fgCol, int x,
+  void paintBox(Vector<String> lines, Graphics g, Color bgCol, Color fgCol, int x,
       int y, double size, int width, int height) {
 
     int maxCols = 0;
     for (int i = 0; i < lines.size(); i++) {
-      String line = (String) lines.elementAt(i);
+      String line = lines.elementAt(i);
       if (line.length() > maxCols) {
         maxCols = line.length();
       }
@@ -119,7 +119,7 @@ public class Console {
     y += font.getSize() + 5;
 
     for (int i = 0; i < lines.size(); i++) {
-      String line = (String) lines.elementAt(i);
+      String line = lines.elementAt(i);
       int ix = line.indexOf("\t");
       if (ix != -1) {
         g.drawString(line.substring(0, ix), x, y);

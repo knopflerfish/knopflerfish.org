@@ -32,6 +32,8 @@
 	      location="${outdir}/${ant.project.name}.props"/>
     <bundle_locator replacefilterfile="${bundleVersionFilterTester}">
       <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
 	<include name="**/*.jar"/>
       </fileset>
     </bundle_locator>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2009, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -187,7 +187,7 @@ public class JUnitServiceImpl implements JUnitService {
 
     try {
       ServiceReference[] srl =
-        Activator.bc.getServiceReferences(null, "(service.pid=" + id + ")");
+        Activator.bc.getServiceReferences((String)null, "(service.pid=" + id + ")");
 
       if(srl == null || srl.length == 0) {
         obj = new TestCase("No id=" + id) {
@@ -432,7 +432,7 @@ public class JUnitServiceImpl implements JUnitService {
     try {
       Method m = target.getClass().getMethod(methodName,
                                              new Class[] { });
-      val = (String)m.invoke(target, null);
+      val = (String) m.invoke(target, (Object[]) null);
     } catch (Exception e) {
       return defVal;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ package org.knopflerfish.framework;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
 import org.osgi.framework.BundleException;
 
 /**
@@ -49,7 +50,7 @@ public class Debug {
    * Thread local storage to prevent recursive debug message
    * in permission checks
    */
-  private ThreadLocal insideDebug;
+  private ThreadLocal<Boolean> insideDebug;
 
 
   /**
@@ -109,16 +110,16 @@ public class Debug {
   boolean ldap;
 
   /**
-   * Report package handling events.
+   * Report resolver handling events.
    */
-  public static String PACKAGES_PROP = "org.knopflerfish.framework.debug.packages";
-  boolean packages;
+  public static String RESOLVER_PROP = "org.knopflerfish.framework.debug.resolver";
+  boolean resolver;
 
   /**
    * Report Class patching handling
    */
   public static String PATCH_PROP = "org.knopflerfish.framework.debug.patch";
-  boolean patch;
+  public boolean patch;
 
   /**
    * Report permission handling
@@ -163,7 +164,7 @@ public class Debug {
     props.setPropertyDefault(FRAMEWORK_PROP, FWProps.FALSE);
     props.setPropertyDefault(HOOKS_PROP, FWProps.FALSE);
     props.setPropertyDefault(LAZY_ACTIVATION_PROP, FWProps.FALSE);
-    props.setPropertyDefault(PACKAGES_PROP, FWProps.FALSE);
+    props.setPropertyDefault(RESOLVER_PROP, FWProps.FALSE);
     props.setPropertyDefault(PATCH_PROP, FWProps.FALSE);
     props.setPropertyDefault(PERMISSIONS_PROP, FWProps.FALSE);
     props.setPropertyDefault(SERVICE_REFERENCE_PROP, FWProps.FALSE);
@@ -177,7 +178,7 @@ public class Debug {
     framework = props.getBooleanProperty(FRAMEWORK_PROP);
     hooks = props.getBooleanProperty(HOOKS_PROP);
     lazy_activation = props.getBooleanProperty(LAZY_ACTIVATION_PROP);
-    packages = props.getBooleanProperty(PACKAGES_PROP);
+    resolver = props.getBooleanProperty(RESOLVER_PROP);
     patch = props.getBooleanProperty(PATCH_PROP);
     permissions = props.getBooleanProperty(PERMISSIONS_PROP);
     service_reference = props.getBooleanProperty(SERVICE_REFERENCE_PROP);
@@ -193,8 +194,9 @@ public class Debug {
   private boolean useDoPrivileged() {
     if (System.getSecurityManager() != null) {
       if (insideDebug == null) {
-        insideDebug = new ThreadLocal() {
-            protected synchronized Object initialValue() {
+        insideDebug = new ThreadLocal<Boolean>() {
+            @Override
+            protected synchronized Boolean initialValue() {
               return new Boolean(false);
             }
           };
@@ -212,15 +214,15 @@ public class Debug {
     insideDebug.set(new Boolean(b));
   }
 
-  
+
   /**
    * Are we already inside a debug print?
    */
   private boolean isInside() {
-    return ((Boolean) (insideDebug.get())).booleanValue();
+    return (insideDebug.get()).booleanValue();
   }
 
-  
+
   /**
    * The actual println implementation.
    *
@@ -231,21 +233,21 @@ public class Debug {
   }
 
   /**
-   * Common println method for debug messages.
+   * Common {@code println()} method for debug messages.
    *
    * @param str the message to print.
    */
   public void println(final String str) {
     if(useDoPrivileged()) {
       // The call to this method can be made from a the framework on
-      // behalf of a bundle that have no permissions at all assinged
+      // behalf of a bundle that have no permissions at all assigned
       // to it.
       //
       // Use doPrivileged() here to protect the Framework from
-      // PrintStream implementations that does not wrapp calls needing
-      // premissions in their own doPrivileged().
+      // PrintStream implementations that does not wrap calls needing
+      // permissions in their own doPrivileged().
       if (!isInside()) {
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
               inside(true);
               println0(str);
@@ -269,7 +271,7 @@ public class Debug {
     System.err.println("## DEBUG: " + str);
     t.printStackTrace();
     if (t instanceof BundleException) {
-      Throwable n = ((BundleException)t).getNestedException();
+      final Throwable n = ((BundleException)t).getNestedException();
       if (n != null) {
         System.err.println("Nested bundle exception:");
         n.printStackTrace();
@@ -286,14 +288,14 @@ public class Debug {
   public void printStackTrace(final String str, final Throwable t) {
     if(useDoPrivileged()) {
       // The call to this method can be made from a the framework on
-      // behalf of a bundle that have no permissions at all assinged
+      // behalf of a bundle that have no permissions at all assigned
       // to it.
       //
       // Use doPrivileged() here to protect the Framework from
-      // PrintStream implementations that does not wrapp calls needing
-      // premissions in their own doPrivileged().
+      // PrintStream implementations that does not wrap calls needing
+      // permissions in their own doPrivileged().
       if (!isInside()) {
-        AccessController.doPrivileged(new PrivilegedAction() {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
               inside(true);
               printStackTrace0(str,t);

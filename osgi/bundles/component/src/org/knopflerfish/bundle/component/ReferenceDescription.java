@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2010, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,9 @@
  */
 package org.knopflerfish.bundle.component;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 
 
 class ReferenceDescription
@@ -43,8 +45,10 @@ class ReferenceDescription
   final boolean optional;
   final boolean multiple;
   final boolean dynamic;
+  final boolean greedy;
   final String bind;
   final String unbind;
+  final String updated;
   final Filter targetFilter;
 
   ReferenceDescription(String name,
@@ -52,9 +56,11 @@ class ReferenceDescription
                        boolean optional,
                        boolean multiple,
                        boolean dynamic,
+                       boolean greedy,
                        String target,
                        String bind,
-                       String unbind)
+                       String unbind,
+                       String updated)
     throws InvalidSyntaxException
   {
     Filter f = (target != null) ? FrameworkUtil.createFilter(target) : null;
@@ -64,8 +70,10 @@ class ReferenceDescription
     this.optional = optional;
     this.multiple = multiple;
     this.dynamic = dynamic;
+    this.greedy = greedy;
     this.bind = bind;
     this.unbind = unbind;
+    this.updated = updated;
   }
 
 }

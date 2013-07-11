@@ -42,7 +42,7 @@ public class Activator implements BundleActivator, BundleTrackerCustomizer {
 
       public void startTest(Test test) {
         try {
-          ServiceReference[] srs = bc.getServiceReferences(null, "(test.name=" + test.getClass().getName() + ")");
+          ServiceReference[] srs = bc.getServiceReferences((String)null, "(test.name=" + test.getClass().getName() + ")");
           if(srs == null || srs.length == 0) {
             return;
           }

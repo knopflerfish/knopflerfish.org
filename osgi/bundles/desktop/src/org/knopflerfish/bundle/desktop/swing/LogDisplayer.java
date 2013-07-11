@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,8 +85,8 @@ public class LogDisplayer extends DefaultSwingBundleDisplayer {
   public void valueChanged(long  bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JLog comp = (JLog)it.next();
+    for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+      JLog comp = (JLog) it.next();
       comp.valueChanged(bl);
     }
   }

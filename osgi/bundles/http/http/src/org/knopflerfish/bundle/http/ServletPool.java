@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,51 +40,60 @@ import java.lang.reflect.Modifier;
 
 import javax.servlet.Servlet;
 
-public class ServletPool extends ObjectPool {
+public class ServletPool
+  extends ObjectPool
+{
 
-    // private fields
+  // private fields
 
-    private Constructor servletConstructor;
+  private Constructor<?> servletConstructor;
 
-    public ServletPool(final Class servletClass) {
+  public ServletPool(final Class<?> servletClass)
+  {
 
-        super(10, 5);
+    super(10, 5);
 
-        init(servletClass);
+    init(servletClass);
+  }
+
+  // private methods
+
+  private void init(final Class<?> servletClass)
+  {
+
+    if (!servletClass.isAssignableFrom(Servlet.class)) {
+      throw new IllegalArgumentException("Class must implement "
+                                         + Servlet.class.getName());
     }
-
-    // private methods
-
-    private void init(final Class servletClass) {
-
-        if (!servletClass.isAssignableFrom(Servlet.class))
-            throw new IllegalArgumentException("Class must implement "
-                    + Servlet.class.getName());
-        try {
-            servletConstructor = servletClass.getConstructor(null);
-        } catch (NoSuchMethodException nsme) {
-            throw new IllegalArgumentException(
-                    "Class must have public default constructor");
-        }
-        if (!Modifier.isPublic(servletConstructor.getModifiers()))
-            throw new IllegalArgumentException(
-                    "Class must have public default constructor");
+    try {
+      servletConstructor = servletClass.getConstructor((Class[]) null);
+    } catch (final NoSuchMethodException nsme) {
+      throw new IllegalArgumentException(
+                                         "Class must have public default constructor");
     }
-
-    // extends ObjectPool
-
-    protected PoolableObject createPoolableObject() {
-
-        try {
-            return new PoolableServletWrapper((Servlet) servletConstructor
-                    .newInstance(null));
-        } catch (InstantiationException e) {
-            return null;
-        } catch (IllegalAccessException e) {
-            return null;
-        } catch (InvocationTargetException e) {
-            return null;
-        }
+    if (!Modifier.isPublic(servletConstructor.getModifiers())) {
+      throw new IllegalArgumentException(
+                                         "Class must have public default constructor");
     }
+  }
+
+  // extends ObjectPool
+
+  @Override
+  protected PoolableObject createPoolableObject()
+  {
+
+    try {
+      return new PoolableServletWrapper(
+                                        (Servlet) servletConstructor
+                                            .newInstance((Object[]) null));
+    } catch (final InstantiationException e) {
+      return null;
+    } catch (final IllegalAccessException e) {
+      return null;
+    } catch (final InvocationTargetException e) {
+      return null;
+    }
+  }
 
 } // ServletPool

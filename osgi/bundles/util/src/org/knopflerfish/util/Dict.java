@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,18 +37,22 @@ package org.knopflerfish.util;
 import java.util.Dictionary;
 
 /**
- * Util methods for dealing with dictionaries.
+ * Utility methods for dealing with dictionaries.
  *
  * @author Gatespace AB
  */
 public class Dict {
 
-  public static String getStringValue(Dictionary dict, String key) {
+  public static String getStringValue(Dictionary<String, ?> dict, String key)
+  {
     Object o = dict.get(key);
     return (o != null && o instanceof String) ? (String) o : null;
   }
 
-  public static String getStringValue(Dictionary dict, String key, String def) {
+  public static String getStringValue(Dictionary<String, ?> dict,
+                                      String key,
+                                      String def)
+  {
     Object o = dict.get(key);
     return (o != null && o instanceof String) ? (String) o : def;
   }

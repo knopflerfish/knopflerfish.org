@@ -74,7 +74,9 @@ public class Alias {
       { "Windows2003", "win*2003", "win32" },
       { "WindowsVista", "win*vista", "win32" },
       { "Windows7", "win*7", "win32" },
-      { "WindowsServer2008", "win*2008", "win32" }
+      { "WindowsServer2008", "win*2008", "win32" },
+      { "Windows8", "win*8", "win32" },
+      { "WindowsServer2012", "win*2012", "win32" }
   };
 
 

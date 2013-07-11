@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2011, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,11 +48,11 @@ import java.util.Set;
  * Implementation of the EventAdmin interface. This is a singleton
  * class and should always be active.
  *
- * The implementation is responsible for track eventhandlers and check
- * their permissions. It will also host two threads sending diffrent
- * types of data. If an eventhandler is subscribed to the published
+ * The implementation is responsible for track event handlers and check
+ * their permissions. It will also host two threads sending different
+ * types of data. If an event handler is subscribed to the published
  * event the EventAdmin service will put the event on one of the two
- * internal sendstacks depending on what type of deliverance the event
+ * internal send-stacks depending on what type of deliverance the event
  * requires.
  *
  * @author Magnus Klack (refactoring by Bj\u00f6rn Andersson)
@@ -60,10 +60,11 @@ import java.util.Set;
 public class EventAdminService
   implements EventAdmin
 {
-  final private Map queueHandlers = new HashMap();
+  final private Map<Object, QueueHandler> queueHandlers
+    = new HashMap<Object, QueueHandler>();
   final private MultiListener ml;
   final private ConfigurationListenerImpl cli;
-  private ServiceRegistration reg;
+  private ServiceRegistration<EventAdmin> reg;
 
   public EventAdminService() {
     ml = new MultiListener();
@@ -90,7 +91,7 @@ public class EventAdminService
         } else {
           final Object key = Activator.useMultipleQueueHandlers
             ? (Object) currentThread : (Object) this;
-          queueHandler = (QueueHandler) queueHandlers.get(key);
+          queueHandler = queueHandlers.get(key);
           if (null==queueHandler) {
             queueHandler = new QueueHandler(queueHandlers, key);
             queueHandler.start();
@@ -125,14 +126,14 @@ public class EventAdminService
     }
   }
 
-  Set getMatchingHandlers(String topic) {
+  Set<TrackedEventHandler> getMatchingHandlers(String topic) {
     return Activator.handlerTracker.getHandlersMatching(topic);
   }
 
   synchronized void start() {
     ml.start();
     cli.start();
-    reg = Activator.bc.registerService(EventAdmin.class.getName(), this, null);
+    reg = Activator.bc.registerService(EventAdmin.class, this, null);
   }
 
   synchronized void stop() {
@@ -142,12 +143,12 @@ public class EventAdminService
     cli.stop();
     ml.stop();
 
-    Set activeQueueHandlers = null;
+    Set<QueueHandler> activeQueueHandlers = null;
     synchronized(queueHandlers) {
-      activeQueueHandlers = new HashSet(queueHandlers.values());
+      activeQueueHandlers = new HashSet<QueueHandler>(queueHandlers.values());
     }
-    for (Iterator it = activeQueueHandlers.iterator(); it.hasNext(); ) {
-      final QueueHandler queueHandler = (QueueHandler) it.next();
+    for (Iterator<QueueHandler> it = activeQueueHandlers.iterator(); it.hasNext(); ) {
+      final QueueHandler queueHandler = it.next();
       queueHandler.stopIt();
     }
   }

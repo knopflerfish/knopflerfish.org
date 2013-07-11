@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,9 +49,8 @@ import java.util.StringTokenizer;
  * 
  * 
  * @author Jan Stein
- * @version $Revision: 1.1.1.1 $
  */
-class Alias extends Hashtable {
+class Alias extends Hashtable<String,String[]> {
 
     private static final long serialVersionUID = 1L;
 
@@ -72,8 +71,8 @@ class Alias extends Hashtable {
     void save(OutputStream out) {
         try {
             Properties props = new Properties();
-            for (Enumeration e = keys(); e.hasMoreElements();) {
-                String k = (String) e.nextElement();
+            for (Enumeration<String> e = keys(); e.hasMoreElements();) {
+                String k = e.nextElement();
                 String[] a = (String[]) get(k);
 
                 StringBuffer sb = new StringBuffer();
@@ -99,7 +98,7 @@ class Alias extends Hashtable {
         try {
             Properties props = new Properties();
             props.load(in);
-            for (Enumeration e = props.keys(); e.hasMoreElements();) {
+            for (Enumeration<?> e = props.keys(); e.hasMoreElements();) {
                 String k = (String) e.nextElement();
                 String args = (String) props.get(k);
 
@@ -153,16 +152,16 @@ class Alias extends Hashtable {
         // shortcuts
         put("fw", new String[] { "/session", "enter", "framework" });
 
-        // backward compability
+        // backward compatibility
         put("log", new String[] { "/log", "show" });
         put("lsb", new String[] { "/framework", "bundles", "-i" });
         put("lss", new String[] { "/framework", "services" });
 
-        // Oscar compatability
+        // Oscar compatibility
         put("exports", new String[] { "/framework", "package", "-b" });
         put("ps", new String[] { "/framework", "bundles", "-i" });
 
-        // JES compatability
+        // JES compatibility
         put("manifest", new String[] { "/framework", "headers" });
     }
 }

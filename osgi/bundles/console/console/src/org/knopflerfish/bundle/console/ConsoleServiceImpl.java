@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ public class ConsoleServiceImpl implements ConsoleService {
 
     public String[] setAlias(final String key, final String[] val) {
         String oldVal[] = (String[]) AccessController
-                .doPrivileged(new PrivilegedAction() {
+                .doPrivileged(new PrivilegedAction<Object>() {
                     public Object run() {
                         return aliases.put(key, val.clone());
                     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,25 +34,40 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.io.*;
-import java.security.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Vector;
 
-import org.osgi.service.condpermadmin.*;
-import org.osgi.service.permissionadmin.*;
-import org.knopflerfish.framework.Util;
+import org.osgi.service.condpermadmin.ConditionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
+import org.osgi.service.permissionadmin.PermissionInfo;
+
 import org.knopflerfish.framework.Debug;
+import org.knopflerfish.framework.Util;
 
 
 class ConditionalPermissionInfoStorage {
 
-  private File condPermDir;
+  private final File condPermDir;
 
   private long lastFile;
 
-  private ArrayList /* ConditionalPermissionInfoImpl */ cpiTable = new ArrayList();
+  private ArrayList<ConditionalPermissionInfoImpl> cpiTable
+    = new ArrayList<ConditionalPermissionInfoImpl>();
 
-  private PermissionsHandle ph;
+  private final PermissionsHandle ph;
 
   private int generation = -1;
 
@@ -76,14 +91,14 @@ class ConditionalPermissionInfoStorage {
 
   /**
    * Get the specified conditional permissions.
-   * 
+   *
    * @param name The name of the Conditional Permission Info to be returned.
    * @return The Conditional Permission Info with the specified name.
    */
   synchronized ConditionalPermissionInfo get(String name) {
-    int i = find(name);
+    final int i = find(name);
     if (i >= 0) {
-      return (ConditionalPermissionInfo)cpiTable.get(i);
+      return cpiTable.get(i);
     }
     return null;
   }
@@ -94,8 +109,8 @@ class ConditionalPermissionInfoStorage {
    *
    * @return Enumeration of Conditional Permission Info objects.
    */
-  synchronized Enumeration getAllEnumeration() {
-    return (new Vector(cpiTable)).elements();
+  synchronized Enumeration<ConditionalPermissionInfo> getAllEnumeration() {
+    return (new Vector<ConditionalPermissionInfo>(cpiTable)).elements();
   }
 
 
@@ -105,7 +120,7 @@ class ConditionalPermissionInfoStorage {
    *
    * @return ArrayList of Conditional Permission Info objects.
    */
-  ArrayList getAll() {
+  ArrayList<ConditionalPermissionInfoImpl> getAll() {
     return cpiTable;
   }
 
@@ -122,7 +137,7 @@ class ConditionalPermissionInfoStorage {
 
   /**
    * Add a new or updated an old specified conditional permission.
-   * 
+   *
    * @param name The name of the Conditional Permission Info to be changed.
    * @param conds The Conditions that need to be satisfied to enable the
    *        corresponding Permissions.
@@ -131,8 +146,10 @@ class ConditionalPermissionInfoStorage {
    * @return The ConditionalPermissionInfo object for the added
    *         conditional permission.
    */
-  synchronized ConditionalPermissionInfo
-  put(String name, ConditionInfo conds[], PermissionInfo perms[]) {
+  synchronized ConditionalPermissionInfo put(String name,
+                                             ConditionInfo conds[],
+                                             PermissionInfo perms[])
+  {
     int oldIx;
     if (name == null) {
       name = uniqueName();
@@ -143,9 +160,10 @@ class ConditionalPermissionInfoStorage {
       oldIx = find(name);
     }
     ConditionalPermissionInfoImpl old;
-    ConditionalPermissionInfoImpl res = new ConditionalPermissionInfoImpl(this, name, conds, perms, ConditionalPermissionInfo.ALLOW, ph.framework);
+    final ConditionalPermissionInfoImpl res
+      = new ConditionalPermissionInfoImpl(this, name, conds, perms, ConditionalPermissionInfo.ALLOW, ph.framework);
     if (oldIx >= 0) {
-      old = (ConditionalPermissionInfoImpl)cpiTable.set(oldIx, res);
+      old = cpiTable.set(oldIx, res);
       updateChangedConditionalPermission(res, oldIx, oldIx);
     } else {
       old = null;
@@ -166,11 +184,11 @@ class ConditionalPermissionInfoStorage {
 
   /**
    * Remove any specified conditional permission with the specified name.
-   * 
+   *
    * @param name The name of the Conditional Permission Info to be changed.
    */
   synchronized void remove(ConditionalPermissionInfoImpl obj) {
-    int pos = cpiTable.indexOf(obj);
+    final int pos = cpiTable.indexOf(obj);
     if (debug.permissions) {
       debug.println("CondPermStorage remove " + obj + ", pos=" + pos);
     }
@@ -188,18 +206,23 @@ class ConditionalPermissionInfoStorage {
 
   /**
    * Commit a new cpi table.
-   * 
-   * @param name The name of the Conditional Permission Info to be changed.
+   *
+   * @param updatedTable The Conditional Permission Info to commit.
+   * @param parentGen generation number of the active table that update is
+   * based on.
    */
-  synchronized boolean commitUpdate(List updatedTable, int parentGen) {
+  synchronized boolean commitUpdate(List<ConditionalPermissionInfo> updatedTable,
+                                    int parentGen)
+  {
     if (parentGen != generation) {
       return false;
     }
-    ArrayList checkTable = new ArrayList(updatedTable);
-    HashSet /* String */ names = new HashSet();
+    final ArrayList<ConditionalPermissionInfo> checkTable
+      = new ArrayList<ConditionalPermissionInfo>(updatedTable);
+    final HashSet<String> names = new HashSet<String>();
     int oi = 0;
-    ConditionalPermissionInfoImpl ocpi = (ConditionalPermissionInfoImpl)(oi < cpiTable.size() ? cpiTable.get(oi) : null);
-    int [] update = new int[cpiTable.size() + checkTable.size()];
+    ConditionalPermissionInfoImpl ocpi = oi < cpiTable.size() ? cpiTable.get(oi) : null;
+    final int [] update = new int[cpiTable.size() + checkTable.size()];
     int ui = 0;
     String uniqueNameBase = Integer.toString(generation, Character.MAX_RADIX) + "_";
     int i = 0;
@@ -207,13 +230,13 @@ class ConditionalPermissionInfoStorage {
       ConditionalPermissionInfoImpl cpi;
       try {
         cpi = (ConditionalPermissionInfoImpl)checkTable.get(i);
-      } catch (ClassCastException _) {
+      } catch (final ClassCastException _) {
         throw new IllegalStateException("Illegal class of element in updated table, index=" + i);
       }
       if (cpi == null) {
         throw new IllegalStateException("Updated table contains null element, index=" + i);
       }
-      String name = cpi.getName();
+      final String name = cpi.getName();
       if (name != null) {
         if (!names.add(name)) {
           throw new IllegalStateException("Updated table contains elements with same name, name=" + name);
@@ -224,7 +247,7 @@ class ConditionalPermissionInfoStorage {
       }
       if (cpi == ocpi) {
         // Update doesn't differ check next
-        ocpi = (ConditionalPermissionInfoImpl)(++oi < cpiTable.size() ? cpiTable.get(oi) : null);
+        ocpi = ++oi < cpiTable.size() ? cpiTable.get(oi) : null;
       } else {
         int removed = 0;
         for (int j = oi + 1; j < cpiTable.size(); j++) {
@@ -239,7 +262,7 @@ class ConditionalPermissionInfoStorage {
           while (oi++ < removed) {
             update[ui++] = -i - 1;
           }
-          ocpi = (ConditionalPermissionInfoImpl)(oi < cpiTable.size() ? cpiTable.get(oi) : null);
+          ocpi = oi < cpiTable.size() ? cpiTable.get(oi) : null;
         } else {
           // New element add it
           update[ui++] = i;
@@ -275,7 +298,7 @@ class ConditionalPermissionInfoStorage {
           ipui = pui;
         }
         while (++ipui < ui) {
-          int iu = update[ipui];
+          final int iu = update[ipui];
           if (iu == -rMatch) {
             remove = u;
             update[ipui] = NOP;
@@ -286,7 +309,7 @@ class ConditionalPermissionInfoStorage {
           }
           break;
         }
-        ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl)checkTable.get(u);
+        final ConditionalPermissionInfoImpl cpi = (ConditionalPermissionInfoImpl)checkTable.get(u);
         if (cpi.getName() == null) {
           cpi.setName(uniqueNameBase + uniqueCounter++);
         }
@@ -317,7 +340,7 @@ class ConditionalPermissionInfoStorage {
 
   /**
    * Get number of ConditionPermissionInfos stored.
-   * 
+   *
    * @return Number of ConditionPermissionInfos objects as an int.
    */
   synchronized int size() {
@@ -345,8 +368,8 @@ class ConditionalPermissionInfoStorage {
    */
   private String uniqueName() {
     String uniqueNameBase = Integer.toString(generation, Character.MAX_RADIX) + "_";
-    for (Iterator i = cpiTable.iterator(); i.hasNext(); ) {
-      String name = ((ConditionalPermissionInfoImpl)i.next()).getName();
+    for (final Object element : cpiTable) {
+      final String name = ((ConditionalPermissionInfoImpl)element).getName();
       while (name.startsWith(uniqueNameBase)) {
         uniqueNameBase += "_";
       }
@@ -360,12 +383,14 @@ class ConditionalPermissionInfoStorage {
    */
   private void updateChangedConditionalPermission(ConditionalPermissionInfoImpl cpi,
                                                   int pos,
-                                                  int removePos) {
-    for (Iterator i = ph.getPermissionWrappers(); i.hasNext();) {
-      ((PermissionsWrapper)i.next()).updateChangedConditionalPermission(cpi, pos, removePos, cpiTable.size());
+                                                  int removePos)
+  {
+    for (final Iterator<PermissionsWrapper> i = ph.getPermissionWrappers(); i
+        .hasNext();) {
+      i.next().updateChangedConditionalPermission(cpi, pos, removePos,
+                                                  cpiTable.size());
     }
   }
-
 
   final static String END_MARKER = "END";
 
@@ -377,27 +402,27 @@ class ConditionalPermissionInfoStorage {
       debug.println("CondPermStorage save " + size() + " cpis, gen=" + generation);
     }
     if (condPermDir != null) {
-      AccessController.doPrivileged(new PrivilegedAction() {
+      AccessController.doPrivileged(new PrivilegedAction<Object>() {
           public Object run() {
             purge();
-            File f = new File(condPermDir, Long.toString(++lastFile));
+            final File f = new File(condPermDir, Long.toString(++lastFile));
             BufferedWriter out = null;
             try {
               out = new BufferedWriter(new FileWriter(f));
               out.write("# Save generation " + generation + " at: " +  System.currentTimeMillis());
               out.newLine();
-              for (Iterator i = cpiTable.iterator(); i.hasNext(); ) {
-                out.write(((ConditionalPermissionInfoImpl)i.next()).toString());
+              for (final Object element : cpiTable) {
+                out.write(((ConditionalPermissionInfoImpl)element).toString());
                 out.newLine();
               }
               out.write(END_MARKER);
               out.newLine();
               out.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
               if (out != null) {
                 try {
                   out.close();
-                } catch (IOException ignore) { }
+                } catch (final IOException ignore) { }
                 f.delete();
               }
               debug.printStackTrace("NYI! Report error", e);
@@ -413,15 +438,15 @@ class ConditionalPermissionInfoStorage {
    * Load all saved conditional permission data.
    */
   private void load() {
-    File[] files = PermUtil.getSortedFiles(condPermDir);
+    final File[] files = PermUtil.getSortedFiles(condPermDir);
     lastFile = -1;
     for (int i = files.length - 1; i >= 0; i--) {
       try {
-        long l = Long.parseLong(files[i].getName());
+        final long l = Long.parseLong(files[i].getName());
         if (l > lastFile) {
           lastFile = l;
         }
-      } catch (Exception ignore) {
+      } catch (final Exception ignore) {
         // Ignore file that isn't a number
         continue;
       }
@@ -440,7 +465,8 @@ class ConditionalPermissionInfoStorage {
    */
   private boolean load(File fh) {
     BufferedReader in = null;
-    ArrayList loadTable = new ArrayList();
+    final ArrayList<ConditionalPermissionInfoImpl> loadTable
+      = new ArrayList<ConditionalPermissionInfoImpl>();
     try {
       in = new BufferedReader(new FileReader(fh));
       for (String l = in.readLine(); l != null; l = in.readLine()) {
@@ -452,16 +478,17 @@ class ConditionalPermissionInfoStorage {
           cpiTable = loadTable;
           return true;
         } else {
-          ConditionalPermissionInfo res = new ConditionalPermissionInfoImpl(this, l, ph.framework);
+          final ConditionalPermissionInfoImpl res
+            = new ConditionalPermissionInfoImpl(this, l, ph.framework);
           loadTable.add(res);
         }
       }
       in.close();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       if (in != null) {
         try {
           in.close();
-        } catch (IOException ignore) { }
+        } catch (final IOException ignore) { }
       }
       debug.printStackTrace("NYI! Report error", e);
     }
@@ -473,7 +500,7 @@ class ConditionalPermissionInfoStorage {
    * Prune unused data files in conditional permission directory.
    */
   private void purge() {
-    File[] files = PermUtil.getSortedFiles(condPermDir);
+    final File[] files = PermUtil.getSortedFiles(condPermDir);
     int okName = 0;
     for (int i = files.length - 1; i >= 0; i--) {
       try {
@@ -481,7 +508,7 @@ class ConditionalPermissionInfoStorage {
         if (++okName > 2) {
           files[i].delete();
         }
-      } catch (Exception ignore) {
+      } catch (final Exception ignore) {
         // Ignore files which aren't a number.
       }
     }

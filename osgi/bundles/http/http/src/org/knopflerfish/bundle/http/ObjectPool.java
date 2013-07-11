@@ -34,61 +34,65 @@
 
 package org.knopflerfish.bundle.http;
 
-public abstract class ObjectPool {
+public abstract class ObjectPool
+{
+  // private fields
 
-    // private fields
+  private final PoolableObject[] pooledObjects;
 
-    private final PoolableObject[] pooledObjects;
+  private int count = 0;
 
-    private int count = 0;
+  // constructors
 
-    // constructors
+  public ObjectPool()
+  {
+    this(10);
+  }
 
-    public ObjectPool() {
-        this(10);
+  public ObjectPool(final int maxInstances)
+  {
+    this(maxInstances, 0);
+  }
+
+  public ObjectPool(final int maxInstances, final int createInstances)
+  {
+    pooledObjects = new PoolableObject[maxInstances];
+
+    count = 0;
+    while (count < createInstances) {
+      put(createPoolableObject());
     }
+  }
 
-    public ObjectPool(final int maxInstances) {
-        this(maxInstances, 0);
+  // protected abstract methods
+
+  protected abstract PoolableObject createPoolableObject();
+
+  // public methods
+
+  public PoolableObject get()
+  {
+    PoolableObject object;
+    synchronized (pooledObjects) {
+      if (count == 0) {
+        object = createPoolableObject();
+      } else {
+        object = pooledObjects[--count];
+      }
     }
+    object.init();
 
-    public ObjectPool(final int maxInstances, final int createInstances) {
+    return object;
+  }
 
-        pooledObjects = new PoolableObject[maxInstances];
-
-        count = 0;
-        while (count < createInstances)
-            put(createPoolableObject());
+  public void put(PoolableObject object)
+  {
+    object.destroy();
+    synchronized (pooledObjects) {
+      if (pooledObjects.length > count) {
+        pooledObjects[count++] = object;
+      }
     }
-
-    // protected abstract methods
-
-    protected abstract PoolableObject createPoolableObject();
-
-    // public methods
-
-    public PoolableObject get() {
-
-        PoolableObject object;
-        synchronized (pooledObjects) {
-            if (count == 0) {
-                object = createPoolableObject();
-            } else {
-                object = pooledObjects[--count];
-            }
-        }
-        object.init();
-
-        return object;
-    }
-
-    public void put(PoolableObject object) {
-
-        object.destroy();
-        synchronized (pooledObjects) {
-            if (pooledObjects.length > count)
-                pooledObjects[count++] = object;
-        }
-    }
+  }
 
 } // ObjectPool

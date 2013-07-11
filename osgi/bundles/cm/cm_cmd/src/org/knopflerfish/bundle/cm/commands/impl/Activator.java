@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,29 +36,33 @@ package org.knopflerfish.bundle.cm.commands.impl;
 
 import java.util.Hashtable;
 
-import org.knopflerfish.service.console.CommandGroup;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
 
+import org.knopflerfish.service.console.CommandGroup;
 
-public class Activator implements BundleActivator {
-    BundleContext bc;
+public class Activator
+  implements BundleActivator
+{
+  BundleContext bc;
 
-    ServiceRegistration sr;
+  ServiceRegistration<CommandGroup> sr;
 
-    public void start(BundleContext bc) {
-        this.bc = bc;
-        CommandGroup cg = new CMCommands(bc);
-        Hashtable props = new Hashtable();
-        props.put("groupName", cg.getGroupName());
-        bc.registerService(CommandGroup.class.getName(), cg, props);
+  public void start(BundleContext bc)
+  {
+    this.bc = bc;
+    final CommandGroup cg = new CMCommands(bc);
+    final Hashtable<String, String> props = new Hashtable<String, String>();
+    props.put("groupName", cg.getGroupName());
+    sr = bc.registerService(CommandGroup.class, cg, props);
+  }
+
+  public void stop(BundleContext bc)
+  {
+    if (sr != null) {
+      sr.unregister();
+      sr = null;
     }
-
-    public void stop(BundleContext bc) {
-        if (sr != null) {
-            sr.unregister();
-            sr = null;
-        }
-    }
+  }
 }

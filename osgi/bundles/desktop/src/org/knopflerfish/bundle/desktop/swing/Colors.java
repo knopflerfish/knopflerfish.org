@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,14 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.awt.Color;
 
 /**
  * color names to set to java colors instances.
  */
-public class Colors extends HashMap {
+public class Colors extends HashMap<String,Color> {
   private static final long serialVersionUID = 1L;
 
   /**
@@ -90,9 +90,9 @@ public class Colors extends HashMap {
   public static String toString(Color c) {
     StringBuffer sb = new StringBuffer();
 
-    for(Iterator it = COLORS.keySet().iterator(); it.hasNext();) {
-      String name = (String)it.next();
-      Color  col  = (Color)COLORS.get(name);
+    for(Iterator<String> it = COLORS.keySet().iterator(); it.hasNext();) {
+      String name = it.next();
+      Color  col  = COLORS.get(name);
       if(col.equals(c)) {
         return name;
       }

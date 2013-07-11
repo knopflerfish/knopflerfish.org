@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +45,9 @@ import java.util.Set;
  */
 public class DefaultBundleSelectionModel implements BundleSelectionModel {
 
-  // Long
-  Set selection = new HashSet();
-
-  // BundleSelectionListener
-  Set listeners = new HashSet();
+  Set<Long> selection = new HashSet<Long>();
+  Set<BundleSelectionListener> listeners
+    = new HashSet<BundleSelectionListener>();
 
   public DefaultBundleSelectionModel() {
 
@@ -68,7 +66,7 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
   public long getSelected()
   {
     return selection.size()>0
-      ? ((Long) selection.iterator().next()).longValue()
+      ? selection.iterator().next().longValue()
       : -1;
   }
 
@@ -85,7 +83,7 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
     fireChange(bid);
   }
 
-  public void    setSelected(List bids, boolean bSelected)
+  public void setSelected(List<Long> bids, boolean bSelected)
   {
     if (null==bids || 0==bids.size()) {
       // Nothing to do!
@@ -122,8 +120,8 @@ public class DefaultBundleSelectionModel implements BundleSelectionModel {
       try {
         if(!bInFireChange) {
           bInFireChange = true;
-          for(Iterator it = listeners.iterator(); it.hasNext();) {
-            BundleSelectionListener l = (BundleSelectionListener)it.next();
+          for(Iterator<BundleSelectionListener> it = listeners.iterator(); it.hasNext();) {
+            BundleSelectionListener l = it.next();
             l.valueChanged(bid);
           }
         } else {

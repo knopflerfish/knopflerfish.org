@@ -41,13 +41,17 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-public class HeaderBase {
+import org.knopflerfish.bundle.http.HttpUtil.ParamQ;
+
+public class HeaderBase
+{
 
   // private constants
 
@@ -67,7 +71,7 @@ public class HeaderBase {
 
   protected static final String LANGUAGE_HEADER_KEY = "Accept-Language";
 
-  protected static final String ACCEPT_ENCODING   = "Accept-Encoding";
+  protected static final String ACCEPT_ENCODING = "Accept-Encoding";
 
   protected static final String CONTENT_ENCODING = "Content-Encoding";
 
@@ -77,16 +81,17 @@ public class HeaderBase {
 
   protected static final String TRANSFER_ENCODING_VALUE_CHUNKED = "chunked";
 
-  //HACK SMA Expect: 100-Continue
+  // HACK SMA Expect: 100-Continue
   protected static final String EXPECT_HEADER_KEY = "expect";
   protected static final String EXPECT_100_CONTINUE_VALUE = "100-Continue";
-  //END HACK
+  // END HACK
 
   // private fields
 
   private HttpConfigWrapper httpConfig;
 
-  private final Dictionary headers = new Hashtable();
+  private final Hashtable<String, Cloneable> headers =
+    new Hashtable<String, Cloneable>();
 
   private String characterEncoding;
 
@@ -94,77 +99,87 @@ public class HeaderBase {
 
   private int contentLength = NO_VALUE;
 
-  private final Dictionary cookies = new Hashtable();
+  private final Hashtable<String, Cloneable> cookies =
+    new Hashtable<String, Cloneable>();
 
-  private final ArrayList locales = new ArrayList(3);
+  private final ArrayList<Locale> locales = new ArrayList<Locale>(3);
 
   // constructors
 
-  HeaderBase() {
+  HeaderBase()
+  {
   }
 
   // public methods
 
   public void init(ServletInputStreamImpl in, HttpConfigWrapper httpConfig)
-    throws HttpException, IOException
+      throws HttpException, IOException
   {
     this.httpConfig = httpConfig;
     parseHeaders(in);
   }
 
-  public void destroy() {
-
-    HttpUtil.removeAll(headers);
+  public void destroy()
+  {
+    headers.clear();
 
     contentType = null;
     contentLength = NO_VALUE;
     characterEncoding = null;
 
-    HttpUtil.removeAll(cookies);
+    cookies.clear();
     locales.clear();
   }
 
-  public String getHeader(String name) {
-
-    ArrayList values = (ArrayList) headers.get(name.toLowerCase());
-    if (values == null)
+  public String getHeader(String name)
+  {
+    final ArrayList<?> values = (ArrayList<?>) headers.get(name.toLowerCase());
+    if (values == null) {
       return null;
-    Iterator i = values.iterator();
-    if (i.hasNext())
+    }
+    final Iterator<?> i = values.iterator();
+    if (i.hasNext()) {
       return (String) i.next();
+    }
     return null;
   }
 
-  public Enumeration getHeaders(String name) {
-
-    ArrayList values = (ArrayList) headers.get(name.toLowerCase());
-    if (values == null)
+  public Enumeration<?> getHeaders(String name)
+  {
+    final ArrayList<?> values =
+      (ArrayList<?>) headers.get(name.toLowerCase());
+    if (values == null) {
       return HttpUtil.EMPTY_ENUMERATION;
+    }
 
     return HttpUtil.enumeration(values);
   }
 
-  public Dictionary getHeaders() {
+  public Dictionary<String, Cloneable> getHeaders()
+  {
     return headers;
   }
 
   public void setCharacterEncoding(String enc)
-    throws UnsupportedEncodingException
+      throws UnsupportedEncodingException
   {
-    if (contentType == null)
+    if (contentType == null) {
       parseContentType();
+    }
 
     // Do a dummy String conversion to trigger exception.
     if (true) {
-      String dummy = new String(new byte[]{ 32,31,32,33 }, enc);
+      final String dummy = new String(new byte[] { 32, 31, 32, 33 }, enc);
       dummy.charAt(0);
     }
     characterEncoding = enc;
   }
 
-  public String getCharacterEncoding() {
-    if (contentType == null)
+  public String getCharacterEncoding()
+  {
+    if (contentType == null) {
       parseContentType();
+    }
 
     if ((characterEncoding == null) || (characterEncoding.length() == 0)) {
       return httpConfig.getDefaultCharacterEncoding();
@@ -172,34 +187,38 @@ public class HeaderBase {
     return characterEncoding;
   }
 
-  public String getContentType() {
-
-    if (contentType == null)
+  public String getContentType()
+  {
+    if (contentType == null) {
       parseContentType();
+    }
 
     return contentType;
   }
 
-  public int getContentLength() {
-
-    if (contentLength == NO_VALUE)
+  public int getContentLength()
+  {
+    if (contentLength == NO_VALUE) {
       contentLength = parseContentLength();
+    }
 
     return contentLength;
   }
 
-  public Dictionary getCookies() {
-
-    if (cookies.isEmpty())
+  public Dictionary<String, Cloneable> getCookies()
+  {
+    if (cookies.isEmpty()) {
       parseCookies();
+    }
 
     return cookies;
   }
 
-  public Enumeration getLocales() {
-
-    if (locales.isEmpty())
+  public Enumeration<Locale> getLocales()
+  {
+    if (locales.isEmpty()) {
       parseLocales();
+    }
 
     return HttpUtil.enumeration(locales);
   }
@@ -207,27 +226,27 @@ public class HeaderBase {
   // private methods
 
   void parseHeaders(ServletInputStreamImpl in)
-    throws HttpException, IOException
+      throws HttpException, IOException
   {
-
     String name = null;
     String value = null;
-    ArrayList values = null;
+    ArrayList<String> values = null;
     final int limit = httpConfig.getLimitRequestHeaders() - 1;
 
     String line = in.readLine();
     while (line != null && line.length() > 0) {
-      
+
       if (headers.size() > limit) {
-	throw new HttpException(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);
+        throw new HttpException(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE);
       }
-      
-      char c = line.charAt(0);
+
+      final char c = line.charAt(0);
       if (c == ' ' || c == '\t') { // continued header value
-	
+
         // check not first line
-        if (!(name != null && value != null && values != null))
+        if (!(name != null && value != null && values != null)) {
           throw new HttpException(HttpServletResponse.SC_BAD_REQUEST);
+        }
 
         // set concatenated header value
         value = value + line.substring(1);
@@ -236,15 +255,19 @@ public class HeaderBase {
 
       } else {
 
-        int index = line.indexOf(": ");
+        final int index = line.indexOf(": ");
 
         // get header name
         name = line.substring(0, index).trim().toLowerCase();
 
         // get header value
-        values = (ArrayList) headers.get(name);
-        if (values == null)
-          values = new ArrayList();
+        @SuppressWarnings("unchecked")
+        final ArrayList<String> newValues =
+          (ArrayList<String>) headers.get(name);
+        values = newValues;
+        if (values == null) {
+          values = new ArrayList<String>();
+        }
 
         // add header value to vector
         value = line.substring(index + 2);
@@ -257,93 +280,136 @@ public class HeaderBase {
     }
   }
 
-  private void parseContentType() {
+  private void parseContentType()
+  {
     contentType = getHeader(CONTENT_TYPE_HEADER_KEY);
-    if (null!=contentType) {
-      StringBuffer sb = new StringBuffer(contentType.length());
+    if (null != contentType) {
+      final StringBuffer sb = new StringBuffer(contentType.length());
       characterEncoding = HttpUtil.parseContentType(contentType, sb);
     }
   }
 
-  private int parseContentLength() {
+  private int parseContentLength()
+  {
 
-    String headerValue = getHeader(CONTENT_LENGTH_HEADER_KEY);
+    final String headerValue = getHeader(CONTENT_LENGTH_HEADER_KEY);
 
-    if (headerValue == null)
+    if (headerValue == null) {
       return -1;
+    }
 
     try {
       return Integer.parseInt(headerValue);
-    } catch (NumberFormatException nfe) {
+    } catch (final NumberFormatException nfe) {
       return -1;
     }
   }
 
-  private void parseCookies() {
+  private void parseCookies()
+  {
 
-    Enumeration cookieEnumeration = getHeaders(COOKIE_HEADER_KEY);
+    final Enumeration<?> cookieEnumeration = getHeaders(COOKIE_HEADER_KEY);
     while (cookieEnumeration.hasMoreElements()) {
-      String cookieString = (String) cookieEnumeration.nextElement();
+      final String cookieString = (String) cookieEnumeration.nextElement();
 
       int version = 0;
       String previousToken = "";
       boolean isValue = false;
       Cookie cookie = null;
 
-      StringTokenizer st = new StringTokenizer(cookieString, "=;,", true);
+      final StringTokenizer st = new StringTokenizer(cookieString, "=;,", true);
       while (st.hasMoreElements()) {
         String token = ((String) st.nextElement()).trim();
 
-        if (token.equals("="))
+        if (token.equals("=")) {
           isValue = true;
-        else if (";,".indexOf(token) != -1)
+        } else if (";,".indexOf(token) != -1) {
           isValue = false;
-        else {
+        } else {
           if (isValue) {
             if (token.charAt(0) == '\"') {
-              int index = token.indexOf('\"', 1);
-              if (index == -1)
+              final int index = token.indexOf('\"', 1);
+              if (index == -1) {
                 break;
+              }
               token = token.substring(1, index);
             }
             if (previousToken.equals("$Version")) {
               try {
                 version = Integer.parseInt(token);
-              } catch (Exception e) {
+              } catch (final Exception e) {
                 break;
               }
             } else if (previousToken.equals("$Path")) {
-              if (cookie == null)
+              if (cookie == null) {
                 break;
+              }
               cookie.setPath(token);
             } else if (previousToken.equals("$Domain")) {
-              if (cookie == null)
+              if (cookie == null) {
                 break;
+              }
               cookie.setDomain(token);
             } else {
               cookie = new Cookie(previousToken, token);
               cookie.setVersion(version);
               cookies.put(cookie.getName(), cookie);
             }
-          } else
+          } else {
             previousToken = token;
+          }
         }
       }
 
     }
   }
 
-  private void parseLocales() {
+  private void parseLocales()
+  {
+    final StringBuffer sb = new StringBuffer();
+    for (final Enumeration<?> e = getHeaders(LANGUAGE_HEADER_KEY); e.hasMoreElements();) {
+      if (sb.length()>0) {
+        sb.append(',');
+      }
+      sb.append(e.nextElement());
+    }
+    final String localeString = sb.toString();
+    final List<ParamQ> params =  HttpUtil.parseAccessHeader(localeString);
 
-    Enumeration localeEnumeration = getHeaders(LANGUAGE_HEADER_KEY);
-    while (localeEnumeration.hasMoreElements()) {
-      String localeString = (String) localeEnumeration.nextElement();
-
-      // NYI: parse locale strings
+    for (final ParamQ pq : params) {
+      int ix = pq.param.indexOf('-');
+      if (ix == -1) {
+        // No country part. Language length should be 2 ISO-639 (or 3 if
+        // ISO-639-3)
+        try {
+          final Locale l = new Locale(pq.param);
+          locales.add(l);
+        } catch (final Exception e) {
+          // Ignore unknown /invalid language tag.
+        }
+      } else if (ix>0) {
+        // Found language, ix should be 2 (ISO-639-2) or 3 (ISO-639-3)
+        final String language = pq.param.substring(0, ix);
+        final String reminder = pq.param.substring(ix + 1);
+        ix = reminder.indexOf('-');
+        if (ix==-1) {
+          // Found country, ix should be 3 (ISO-3166)
+          final String country = reminder;
+          final Locale l = new Locale(language, country);
+          locales.add(l);
+        } else if (ix>0) {
+          // Found country, ix should be 3 (ISO-3166)
+          final String country = reminder.substring(0, ix);
+          final String variant = reminder.substring(ix+1, reminder.length());
+          final Locale l = new Locale(language, country, variant);
+          locales.add(l);
+        }
+      }
     }
 
-    if (locales.size() == 0)
+    if (locales.size() == 0) {
       locales.add(Locale.getDefault());
+    }
   }
 
 } // HeaderBase

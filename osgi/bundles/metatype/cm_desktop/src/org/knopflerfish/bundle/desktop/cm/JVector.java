@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,213 +34,251 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
-import org.osgi.util.tracker.*;
-import java.util.*;
-import org.knopflerfish.service.desktop.*;
-import org.knopflerfish.util.metatype.*;
-import org.osgi.service.metatype.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Vector;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.table.*;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
 
-public class JVector extends JPanel {
-  JTable              table;
-  AbstractTableModel  model;
-  Vector              v;
+import org.osgi.service.metatype.AttributeDefinition;
+
+import org.knopflerfish.util.metatype.AD;
+
+public class JVector
+  extends JPanel
+{
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+  JTable table;
+  AbstractTableModel model;
+  Vector<Object> v;
   AttributeDefinition ad;
-  String              header;
-  int                 maxItems;
+  String header;
+  int maxItems;
 
-  static final int COL_ID   = 0;
+  static final int COL_ID = 0;
   static final int COL_ITEM = 1;
-
 
   JButton addRowButton;
   JButton delRowButton;
 
-  JVector(AttributeDefinition _ad, 
-	  Vector inValues,
-	  String _header,
-	  int maxItems) {
+  JVector(AttributeDefinition _ad, Vector<Object> inValues, String _header, int maxItems)
+  {
     super(new BorderLayout());
-    this.ad       = _ad;
-    this.header   = _header;
+    this.ad = _ad;
+    this.header = _header;
     this.maxItems = maxItems;
 
     // Set to empty vector initially
-    v = new Vector();
+    v = new Vector<Object>();
 
-    model = new  AbstractTableModel() {
-	public int getRowCount() {
-	  return v.size();
-	}
+    model = new AbstractTableModel() {
+      /**
+       *
+       */
+      private static final long serialVersionUID = 1L;
 
-	public String getColumnName(int col) {
-	  switch(col) {
-	  case COL_ITEM: return header;
-	  case COL_ID:   return "#";
-	  default:
-	    throw new IllegalArgumentException("Col to large");
-	  }
-	}
+      public int getRowCount()
+      {
+        return v.size();
+      }
 
-	public Class getColumnClass(int col) {
-	  switch(col) {
-	  case COL_ITEM: return String.class;
-	  case COL_ID: return Integer.class;
-	  default:
-	    throw new IllegalArgumentException("Col to large");
-	  }
-	}
+      @Override
+      public String getColumnName(int col)
+      {
+        switch (col) {
+        case COL_ITEM:
+          return header;
+        case COL_ID:
+          return "#";
+        default:
+          throw new IllegalArgumentException("Col to large");
+        }
+      }
 
-	public boolean isCellEditable(int row, int col) {
-	  switch(col) {
-	  case COL_ITEM: return true;
-	  case COL_ID: return false;
-	  default:
-	    throw new IllegalArgumentException("Col to large");
-	  }
-	}
+      @Override
+      public Class<?> getColumnClass(int col)
+      {
+        switch (col) {
+        case COL_ITEM:
+          return String.class;
+        case COL_ID:
+          return Integer.class;
+        default:
+          throw new IllegalArgumentException("Col to large");
+        }
+      }
 
-	public int getColumnCount() {
-	  return 2;
-	}
+      @Override
+      public boolean isCellEditable(int row, int col)
+      {
+        switch (col) {
+        case COL_ITEM:
+          return true;
+        case COL_ID:
+          return false;
+        default:
+          throw new IllegalArgumentException("Col to large");
+        }
+      }
 
-	public Object getValueAt(int row, int col) {
-	  switch(col) {
-	  case COL_ITEM: 
-	    {
-	      Object val = v.elementAt(row);
-	      String s = val.toString();
-	      
-	      return s;
-	    }
-	  case COL_ID: 
-	    {
-	      return new Integer(row);
-	    }
-	  default:
-	    throw new IllegalArgumentException("Col to large");
-	  }
-	}
-	
-	public void setValueAt(Object val, int row, int col) {
-	  switch(col) {
-	  case COL_ITEM: 
-	    {
-	      String s = val.toString();
-	      
-	      Object obj = AD.parse(s, 0, ad.getType());
-	      v.setElementAt(obj, row);
-	    }
-	    break;
-	  default:
-	    throw new IllegalArgumentException("Col to large");
-	  }
-	}
-      };
-    
+      public int getColumnCount()
+      {
+        return 2;
+      }
+
+      public Object getValueAt(int row, int col)
+      {
+        switch (col) {
+        case COL_ITEM: {
+          final Object val = v.elementAt(row);
+          final String s = val.toString();
+
+          return s;
+        }
+        case COL_ID: {
+          return new Integer(row);
+        }
+        default:
+          throw new IllegalArgumentException("Col to large");
+        }
+      }
+
+      @Override
+      public void setValueAt(Object val, int row, int col)
+      {
+        switch (col) {
+        case COL_ITEM: {
+          final String s = val.toString();
+
+          final Object obj = AD.parse(s, 0, ad.getType());
+          v.setElementAt(obj, row);
+        }
+          break;
+        default:
+          throw new IllegalArgumentException("Col to large");
+        }
+      }
+    };
+
     table = new JTable(model);
 
     setColWidth(COL_ID, 30);
 
-    JScrollPane scroll = new JScrollPane(table);
+    final JScrollPane scroll = new JScrollPane(table);
 
     scroll.setPreferredSize(new Dimension(100, 80));
 
-    JPanel cmds = new JPanel(new BorderLayout());
-    
+    final JPanel cmds = new JPanel(new BorderLayout());
+
     addRowButton = new JButton("Add");
     addRowButton.addActionListener(new ActionListener() {
-	public void actionPerformed(ActionEvent ev) {
-	  addRow();
-	}
-      });
+      public void actionPerformed(ActionEvent ev)
+      {
+        addRow();
+      }
+    });
     addRowButton.setToolTipText("Add a new row to sequence");
 
     delRowButton = new JButton("Delete");
     delRowButton.addActionListener(new ActionListener() {
-	public void actionPerformed(ActionEvent ev) {
-	  deleteRow();
-	}
-      });
-    delRowButton.setToolTipText("Delete the selected (or first) row from sequence");
-    
+      public void actionPerformed(ActionEvent ev)
+      {
+        deleteRow();
+      }
+    });
+    delRowButton
+        .setToolTipText("Delete the selected (or first) row from sequence");
 
-
-    JPanel cmdEast = new JPanel(new FlowLayout());
+    final JPanel cmdEast = new JPanel(new FlowLayout());
 
     cmdEast.add(addRowButton);
     cmdEast.add(delRowButton);
 
     cmds.add(cmdEast, BorderLayout.EAST);
 
-    add(scroll, BorderLayout.CENTER);    
+    add(scroll, BorderLayout.CENTER);
     add(cmds, BorderLayout.SOUTH);
 
     setValue(inValues);
     syncUI();
   }
 
-  void syncUI() {
+  void syncUI()
+  {
     addRowButton.setEnabled(v.size() < maxItems);
   }
 
-  void setColWidth(int col, int w) {
-    TableModel  model  = table.getModel();
-    TableCellRenderer headerRenderer = table.getTableHeader().getDefaultRenderer();
-    
-    if(col < model.getColumnCount()) {
-      TableColumn column = table.getColumnModel().getColumn(col);
-      
-      Component headerComp = 
-	headerRenderer
-	.getTableCellRendererComponent(null, column.getHeaderValue(),
-				       false, false, 0, 0);
-      int headerWidth = headerComp.getPreferredSize().width;
-      
-      
+  void setColWidth(int col, int w)
+  {
+    final TableModel model = table.getModel();
+    final TableCellRenderer headerRenderer =
+      table.getTableHeader().getDefaultRenderer();
+
+    if (col < model.getColumnCount()) {
+      final TableColumn column = table.getColumnModel().getColumn(col);
+
+      final Component headerComp =
+        headerRenderer.getTableCellRendererComponent(null,
+                                                     column.getHeaderValue(),
+                                                     false, false, 0, 0);
+      final int headerWidth = headerComp.getPreferredSize().width;
+
       w = Math.max(headerWidth, w);
-      
-      //      totalWidth += w;
-      
+
+      // totalWidth += w;
+
       column.setMinWidth(10);
       column.setMaxWidth(300);
-      
+
       column.setPreferredWidth(w);
     }
   }
 
-  void setVector(Vector _v) {
-    this.v = _v != null ? (Vector)_v.clone() : new Vector();
+  @SuppressWarnings("unchecked")
+  void setVector(Vector<Object> _v)
+  {
+    this.v = _v != null ? (Vector<Object>) _v.clone() : new Vector<Object>();
 
-    if(v.size() > maxItems) {
-      throw new IllegalArgumentException("Size too large (got " + v.size() + 
-					 ", max=" + maxItems);
+    if (v.size() > maxItems) {
+      throw new IllegalArgumentException("Size too large (got " + v.size()
+                                         + ", max=" + maxItems);
     }
 
     model.fireTableDataChanged();
-    
+
     syncUI();
     invalidate();
     revalidate();
     repaint();
   }
 
-  Vector getVector() {
-    return (Vector)v.clone();
+  @SuppressWarnings("unchecked")
+  Vector<Object> getVector()
+  {
+    return (Vector<Object>) v.clone();
   }
-  
-  Object getArray() {
+
+  Object getArray()
+  {
     return Util.toArray(v, AD.getPrimitiveClass(ad.getType()));
   }
 
-  void setArray(Object array) {
+  void setArray(Object array)
+  {
     setVector(Util.toVector(array));
   }
 
@@ -251,68 +289,69 @@ public class JVector extends JPanel {
    * If object is null, use default values from AD
    * </p>
    */
-  void setValue(Object obj) {
-
-    //    System.out.println("setValue " + ad.getID() + " " + obj);
-    if(obj == null) {
-      Vector def = new Vector();
-      String[] defValues = ad.getDefaultValue();
-      for(int i = 0; i < defValues.length; i++) {
-	def.addElement(AD.parse(defValues[i], 0, ad.getType()));
+  @SuppressWarnings("unchecked")
+  void setValue(Object obj)
+  {
+    if (obj == null) {
+      final Vector<Object> def = new Vector<Object>();
+      final String[] defValues = ad.getDefaultValue();
+      for (final String defValue : defValues) {
+        def.addElement(AD.parse(defValue, 0, ad.getType()));
       }
-      if(ad.getCardinality() < 0) {
-	obj = def;
+      if (ad.getCardinality() < 0) {
+        obj = def;
       } else {
-	obj = Util.toArray(def, AD.getPrimitiveClass(ad.getType()));
+        obj = Util.toArray(def, AD.getPrimitiveClass(ad.getType()));
       }
     }
 
-    if(obj instanceof Vector) {
-      setVector((Vector)obj);
-    } else if(obj.getClass().isArray()) {
+    if (obj instanceof Vector) {
+      setVector((Vector<Object>) obj);
+    } else if (obj.getClass().isArray()) {
       setArray(obj);
     } else {
-      throw new IllegalArgumentException("Object must be vector or array, " + 
-					 "found " + obj.getClass().getName());
+      throw new IllegalArgumentException("Object must be vector or array, "
+                                         + "found " + obj.getClass().getName());
     }
   }
 
-  void addRow() {
-    int row = table.getSelectedRow();
-    String[] def = ad.getDefaultValue();
-    if(def == null) {
-      //System.out.println("No default values in " + ad);
+  void addRow()
+  {
+    //final int row = table.getSelectedRow();
+    final String[] def = ad.getDefaultValue();
+    if (def == null) {
+      // System.out.println("No default values in " + ad);
       return;
     }
 
-    if(def.length == 0) {
-      //System.out.println("Zero default values in " + ad);
+    if (def.length == 0) {
+      // System.out.println("Zero default values in " + ad);
       return;
     }
 
     /*
-    for(int i = 0; def != null && i < def.length; i++) {
-      System.out.println("def[" + i + "]=" + def[i]);
-    }
-    */
+     * for(int i = 0; def != null && i < def.length; i++) {
+     * System.out.println("def[" + i + "]=" + def[i]); }
+     */
     addRow(def[0]);
   }
-  
-  public void addRow(String newVal) {
-    Object obj = AD.parse(newVal, 0, ad.getType());
+
+  public void addRow(String newVal)
+  {
+    final Object obj = AD.parse(newVal, 0, ad.getType());
     v.addElement(obj);
     setVector(v);
   }
-  
-  void deleteRow() {
+
+  void deleteRow()
+  {
     int row = table.getSelectedRow();
-    if(row == -1 && v.size() > 0) {
+    if (row == -1 && v.size() > 0) {
       row = 0;
     }
-    if(row != -1) {
+    if (row != -1) {
       v.removeElementAt(row);
       setVector(v);
     }
   }
 }
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007-2008, KNOPFLERFISH project
+ * Copyright (c) 2007-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,29 +34,26 @@
 
 package org.knopflerfish.util.framework;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.IOException;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
-import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Hashtable;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleActivator;
-import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
-import org.osgi.framework.Version;
 import org.osgi.framework.Filter;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.Version;
 
 import org.knopflerfish.util.Text;
 
@@ -320,17 +317,17 @@ public class ExecutableBundleActivator implements BundleActivator {
                            String stopChoices,
                            String extractNames) throws IOException {
     String startName = null;
-    Collection map = getNativeCode(startChoices);
+    Collection<String> map = getNativeCode(startChoices);
     // debug("startMap=" + map);
     if(map != null && map.size() > 0) {
-      startName = (String)map.iterator().next();
+      startName = map.iterator().next();
     }
 
     String stopName = null;
     map = getNativeCode(stopChoices);
     // debug("stopMap=" + map);
     if(map != null && map.size() > 0) {
-      stopName = (String)map.iterator().next();
+      stopName = map.iterator().next();
     }
 
     initFiles2(startName, stopName, extractNames);
@@ -453,10 +450,9 @@ public class ExecutableBundleActivator implements BundleActivator {
 
   // This is more or less copied from BundleArchiveImpl
   // It should rather be moved to the Util class
-  private Collection getNativeCode(String bnc)   {
+  private Collection<String> getNativeCode(String bnc)   {
     if (bnc != null) {
-      Bundle b = bc.getBundle();
-      Hashtable fwprops = new Hashtable();
+      Hashtable<String, String> fwprops = new Hashtable<String, String>();
       fwprops.put(Constants.FRAMEWORK_PROCESSOR,
                 bc.getProperty(Constants.FRAMEWORK_PROCESSOR));
       fwprops.put(Constants.FRAMEWORK_OS_NAME,
@@ -470,25 +466,25 @@ public class ExecutableBundleActivator implements BundleActivator {
       String  os    = bc.getProperty(Constants.FRAMEWORK_OS_NAME);
       Version osVer = new Version(bc.getProperty(Constants.FRAMEWORK_OS_VERSION));
       String osLang = bc.getProperty(Constants.FRAMEWORK_LANGUAGE);
-      boolean optional = false;
-      List best = null;
+      List<String> best = null;
       VersionRange bestVer = null;
       boolean bestLang = false;
 
       // debug("getNativeCode bnc=" + bnc + ", proc=" + proc + ", os=" + os + ", osVer=" + osVer);
 
-      for (Iterator i = Text.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext(); ) {
+      for (Iterator<Map<String, Object>> i = Text.parseEntries(Constants.BUNDLE_NATIVECODE, bnc, false, false, false); i.hasNext(); ) {
         VersionRange matchVer = null;
         boolean matchLang = false;
-        Map params = (Map)i.next();
+        Map<String, Object> params = i.next();
 
-        List keys = (List)params.get("keys");
+        @SuppressWarnings("unchecked")
+        List<String> keys = (List<String>)params.get("keys");
         if (keys.size() == 1 && "*".equals(keys.get(0)) && !i.hasNext()) {
-          optional = true;
           break;
         }
 
-        List pl = (List)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
+        @SuppressWarnings("unchecked")
+        List<String> pl = (List<String>)params.get(Constants.BUNDLE_NATIVECODE_PROCESSOR);
         if (pl != null) {
           if (!Text.containsIgnoreCase(pl, Alias.unifyProcessor(proc))) {
             continue;
@@ -498,7 +494,8 @@ public class ExecutableBundleActivator implements BundleActivator {
           continue;
         }
 
-        List ol = (List)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
+        @SuppressWarnings("unchecked")
+        List<String> ol = (List<String>)params.get(Constants.BUNDLE_NATIVECODE_OSNAME);
         if (ol != null) {
           if (!Text.containsIgnoreCase(ol, Alias.unifyOsName(os))) {
             continue;
@@ -508,12 +505,13 @@ public class ExecutableBundleActivator implements BundleActivator {
           continue;
         }
 
-        List ver = (List)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
+        @SuppressWarnings("unchecked")
+        List<String> ver = (List<String>)params.get(Constants.BUNDLE_NATIVECODE_OSVERSION);
         if (ver != null) {
           boolean okVer = false;
-          for (Iterator v = ver.iterator(); v.hasNext(); ) {
+          for (Iterator<String> v = ver.iterator(); v.hasNext(); ) {
             // NYI! Handle format Exception
-            matchVer = new VersionRange((String)v.next());
+            matchVer = new VersionRange(v.next());
             if (matchVer.withinRange(osVer)) {
               okVer = true;
               break;
@@ -524,10 +522,11 @@ public class ExecutableBundleActivator implements BundleActivator {
           }
         }
 
-        List lang = (List)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
+        @SuppressWarnings("unchecked")
+        List<String> lang = (List<String>)params.get(Constants.BUNDLE_NATIVECODE_LANGUAGE);
         if (lang != null) {
-          for (Iterator l = lang.iterator(); l.hasNext(); ) {
-            if (osLang.equalsIgnoreCase((String)l.next())) {
+          for (Iterator<String> l = lang.iterator(); l.hasNext(); ) {
+            if (osLang.equalsIgnoreCase(l.next())) {
               // Found specfied language version, search no more
               matchLang = true;
               break;
@@ -538,7 +537,8 @@ public class ExecutableBundleActivator implements BundleActivator {
           }
         }
 
-        List sf = (List)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
+        @SuppressWarnings("unchecked")
+        List<String> sf = (List<String>)params.get(Constants.SELECTION_FILTER_ATTRIBUTE);
         if (sf != null) {
           if (sf.size() == 1) {
             Filter filter = null;

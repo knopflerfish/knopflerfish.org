@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2010, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,17 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.lang.reflect.*;
-import java.security.*;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.security.PermissionCollection;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.osgi.framework.Bundle;
-import org.osgi.service.condpermadmin.*;
+import org.osgi.service.condpermadmin.Condition;
+import org.osgi.service.condpermadmin.ConditionInfo;
+import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.permissionadmin.PermissionInfo;
 
 import org.knopflerfish.framework.Debug;
@@ -48,7 +53,7 @@ import org.knopflerfish.framework.FrameworkContext;
 
 /**
  * A binding of a set of Conditions to a set of Permissions.
- * 
+ *
  */
 class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 {
@@ -66,9 +71,11 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 
   /**
    */
-  ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cpis, String name,
-                                ConditionInfo [] conds, PermissionInfo [] perms,
-                                String access, FrameworkContext fw) {
+  ConditionalPermissionInfoImpl(ConditionalPermissionInfoStorage cpis,
+                                String name, ConditionInfo[] conds,
+                                PermissionInfo[] perms, String access,
+                                FrameworkContext fw)
+  {
     this.cpis = cpis;
     this.name = name;
     conditionInfos = conds;
@@ -88,7 +95,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
     framework = fw;
     debug = fw.debug;
     try {
-      char [] eca = encoded.toCharArray();
+      final char [] eca = encoded.toCharArray();
       int pos = PermUtil.skipWhite(eca, 0);
       if ((eca[pos] == 'A' || eca[pos] == 'a') &&
           (eca[pos+1] == 'L' || eca[pos+1] == 'l') &&
@@ -110,8 +117,8 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       if (eca[pos++] != '{') {
         throw new IllegalArgumentException("Missing open brace");
       }
-      ArrayList cal = new ArrayList();
-      ArrayList pal = new ArrayList();
+      final ArrayList<ConditionInfo> cal = new ArrayList<ConditionInfo>();
+      final ArrayList<PermissionInfo> pal = new ArrayList<PermissionInfo>();
       boolean seenPermInfo = false;
       while (true) {
         pos = PermUtil.skipWhite(eca, pos);
@@ -128,7 +135,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
         } else {
           throw new IllegalArgumentException("Unexpected char '" + c + "' at pos " + pos);
         }
-        int start_pos = pos++;
+        final int start_pos = pos++;
         do {
           c = eca[pos];
           if (c == '"') {
@@ -137,7 +144,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
             pos++;
           }
         } while(c != ec);
-        String info = new String(eca, start_pos, pos - start_pos);
+        final String info = new String(eca, start_pos, pos - start_pos);
         if (c == ']') {
           cal.add(new ConditionInfo(info));
         } else {
@@ -149,7 +156,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       }
       pos = PermUtil.endOfString(eca, pos, eca.length);
       if (pos != -1) {
-        StringBuffer buf = new StringBuffer();
+        final StringBuffer buf = new StringBuffer();
         pos = PermUtil.unquote(eca, pos, buf);
         name = buf.toString();
         if ((pos = PermUtil.endOfString(eca, pos, eca.length)) != -1) {
@@ -159,9 +166,9 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
       } else {
         name = null;
       }
-      conditionInfos = (ConditionInfo [])cal.toArray(new ConditionInfo [cal.size()]);
-      permissionInfos = (PermissionInfo [])pal.toArray(new PermissionInfo [pal.size()]);
-    } catch (ArrayIndexOutOfBoundsException e) {
+      conditionInfos = cal.toArray(new ConditionInfo [cal.size()]);
+      permissionInfos = pal.toArray(new PermissionInfo [pal.size()]);
+    } catch (final ArrayIndexOutOfBoundsException e) {
       throw new IllegalArgumentException("Unexpected end of string");
     }
   }
@@ -171,7 +178,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   /**
    * Returns the Condition Infos for the Conditions that must be satisfied to
    * enable the Permissions.
-   * 
+   *
    * @return The Condition Infos for the Conditions in this Conditional
    *         Permission Info.
    */
@@ -183,7 +190,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   /**
    * Returns the Permission Infos for the Permission in this Conditional
    * Permission Info.
-   * 
+   *
    * @return The Permission Infos for the Permission in this Conditional
    *         Permission Info.
    */
@@ -195,7 +202,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   /**
    * Removes this Conditional Permission Info from the Conditional Permission
    * Admin.
-   * 
+   *
    * @throws SecurityException If the caller does not have
    *         <code>AllPermission</code>.
    */
@@ -209,7 +216,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 
   /**
    * Returns the name of this Conditional Permission Info.
-   * 
+   *
    * @return The name of this Conditional Permission Info.
    */
   public String getName() {
@@ -223,17 +230,17 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 
 
   public String getEncoded() {
-    StringBuffer res = new StringBuffer(access);
+    final StringBuffer res = new StringBuffer(access);
     res.append(" { ");
     if (conditionInfos != null) {
-      for (int i = 0; i < conditionInfos.length; i++) {
-        res.append(conditionInfos[i].getEncoded());
+      for (final ConditionInfo conditionInfo : conditionInfos) {
+        res.append(conditionInfo.getEncoded());
         res.append(' ');
       }
     }
     if (permissionInfos != null) {
-      for (int i = 0; i < permissionInfos.length; i++) {
-        res.append(permissionInfos[i].getEncoded());
+      for (final PermissionInfo permissionInfo : permissionInfos) {
+        res.append(permissionInfo.getEncoded());
         res.append(' ');
       }
     }
@@ -248,8 +255,9 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 
   /**
    * Returns a string representation of this object.
-   * 
+   *
    */
+  @Override
   public String toString() {
     return getEncoded();
   }
@@ -258,6 +266,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   /**
    *
    */
+  @Override
   public final boolean equals(Object obj) {
     if (obj == null) {
       return false;
@@ -265,7 +274,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
     if (obj == this) {
       return true;
     }
-    ConditionalPermissionInfo cpi = (ConditionalPermissionInfo)obj;
+    final ConditionalPermissionInfo cpi = (ConditionalPermissionInfo)obj;
     if (name == null ? cpi.getName() != null : !name.equals(cpi.getName())) {
       return false;
     }
@@ -279,15 +288,16 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
     return access == cpi.getAccessDecision();
   }
 
- 
+
   /**
    *
    */
+  @Override
   public final int hashCode() {
     if (name != null) {
       return name.hashCode();
     }
-    int res = conditionInfos != null && conditionInfos.length > 0
+    final int res = conditionInfos != null && conditionInfos.length > 0
       ? conditionInfos[0].hashCode()
       : 0;
     return res + permissionInfos[0].hashCode();
@@ -297,71 +307,82 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
   // Package methods
   //
 
-  static final Class[] argClasses = new Class[] {Bundle.class, ConditionInfo.class};
+  static final Class<?>[] argClasses = new Class[] {Bundle.class, ConditionInfo.class};
 
   /**
    *
    */
   ConditionalPermission getConditionalPermission(Bundle bundle) {
-    String me = "ConditionalPermissionInfoImpl.getConditionalPermission: ";
+    final String me = "ConditionalPermissionInfoImpl.getConditionalPermission: ";
 
-    ArrayList conds = new ArrayList(conditionInfos.length);
-    for (int i = 0; i < conditionInfos.length; i++) {
-      Class clazz;
-      Condition c;
-      try {
-        clazz = Class.forName(conditionInfos[i].getType(),
-                              true, framework.getClassLoader(null));
-        Constructor cons = null;
-        Method method = null;
+    final ArrayList<Condition> conds
+      = new ArrayList<Condition>(conditionInfos==null ? 0 :conditionInfos.length);
+
+    if (conditionInfos != null) {
+      for (final ConditionInfo conditionInfo : conditionInfos) {
+        Class<?> clazz;
+        Condition c;
         try {
-          method = clazz.getMethod("getCondition", argClasses);
-          if ((method.getModifiers() & Modifier.STATIC) == 0) {
-            method = null;
-          }
-        } catch (NoSuchMethodException ignore) { }
-        if (method != null) {
-          if (debug.permissions) {
-            debug.println(me + "Invoke, " + method + " for bundle " + bundle);
-          }
-          c = (Condition) method.invoke(null, new Object [] {bundle, conditionInfos[i]});
-        } else {
+          clazz = Class.forName(conditionInfo.getType(), true,
+                                framework.getClassLoader(null));
+          Constructor<?> cons = null;
+          Method method = null;
           try {
-            cons = clazz.getConstructor(argClasses);
-          } catch (NoSuchMethodException ignore) { }
-          if (cons != null) {
+            method = clazz.getMethod("getCondition", argClasses);
+            if ((method.getModifiers() & Modifier.STATIC) == 0) {
+              method = null;
+            }
+          } catch (final NoSuchMethodException ignore) {
+          }
+          if (method != null) {
             if (debug.permissions) {
-              debug.println(me + "Construct, " + cons + " for bundle " + bundle);
+              debug.println(me + "Invoke, " + method + " for bundle " + bundle);
             }
-            c = (Condition) cons.newInstance(new Object [] {bundle, conditionInfos[i]});
+            c = (Condition) method.invoke(null, new Object[] { bundle,
+                                                              conditionInfo });
           } else {
-            debug.println("NYI! Log faulty ConditionInfo object!?");
-            continue;
-          }
-        }
-        if (!c.isMutable()) {
-          if (!c.isPostponed() /* || debug.tck401compat */ ) {
-            if (c.isSatisfied()) {
+            try {
+              cons = clazz.getConstructor(argClasses);
+            } catch (final NoSuchMethodException ignore) {
+            }
+            if (cons != null) {
               if (debug.permissions) {
-                debug.println(me + "Immutable condition ok, continue");
+                debug.println(me + "Construct, " + cons + " for bundle "
+                              + bundle);
               }
-              continue;
+              c = (Condition) cons.newInstance(new Object[] { bundle,
+                                                             conditionInfo });
             } else {
-              if (debug.permissions) {
-                debug.println(me + "Immutable condition NOT ok, abort");
-              }
-              return null;
+              debug.println("NYI! Log faulty ConditionInfo object!?");
+              continue;
             }
           }
+          if (!c.isMutable()) {
+            if (!c.isPostponed() /* || debug.tck401compat */) {
+              if (c.isSatisfied()) {
+                if (debug.permissions) {
+                  debug.println(me + "Immutable condition ok, continue");
+                }
+                continue;
+              } else {
+                if (debug.permissions) {
+                  debug.println(me + "Immutable condition NOT ok, abort");
+                }
+                return null;
+              }
+            }
+          }
+          conds.add(c);
+        } catch (final Throwable t) {
+          debug.printStackTrace("NYI! Log failed Condition creation", t);
+          return null;
         }
-        conds.add(c);
-      } catch (Throwable t) {
-        debug.printStackTrace("NYI! Log failed Condition creation", t);
-        return null;
       }
     }
-    return new ConditionalPermission((Condition [])conds.toArray(new Condition[conds.size()]),
-                                     getPermissions(), access, this);
+
+    final Condition[] conditions = conds.toArray(new Condition[conds.size()]);
+
+    return new ConditionalPermission(conditions, getPermissions(), access, this);
   }
 
 
@@ -378,7 +399,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 
   /**
    * Set storage for this Conditional Permission Info.
-   * 
+   *
    */
   void setPermissionInfoStorage(ConditionalPermissionInfoStorage storage) {
     cpis = storage;
@@ -387,7 +408,7 @@ class ConditionalPermissionInfoImpl implements ConditionalPermissionInfo
 
   /**
    * Set the name of this Conditional Permission Info.
-   * 
+   *
    */
   void setName(String newName) {
     name = newName;

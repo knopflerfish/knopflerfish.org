@@ -5,6 +5,10 @@
   <dirname  property="proj.dir" file="${ant.file.desktop_jvm}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
+  <!-- Build for JavaSE 1.4 Execution Environment. -->
+  <!-- Uses java.awt.*, javax.swing.*            -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
+
   <property name  = "impl.pattern"
             value = "org/knopflerfish/bundle/desktop/**"/>
 

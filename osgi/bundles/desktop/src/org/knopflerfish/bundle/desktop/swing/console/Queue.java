@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import java.util.Vector;
  ** (FIFO) queue of objects.
  ** @author Per Lundgren
  */
-public class Queue extends Vector {
+public class Queue<E> extends Vector<E> {
   private static final long serialVersionUID = 1L;
 
   /** @serial */
@@ -69,7 +69,7 @@ public class Queue extends Vector {
    ** @param	item	the item to be inserted.
    ** @exception IndexOutOfBoundsException if maximum queue size is reached.
    */
-  public synchronized void insert(Object item) throws IndexOutOfBoundsException
+  public synchronized void insert(E item) throws IndexOutOfBoundsException
   {
     // Check if queue is full
     if (m_nMaxSize > 0 && size() >= m_nMaxSize)
@@ -86,7 +86,7 @@ public class Queue extends Vector {
    **
    ** @param	item	the item to be inserted.
    */
-  public synchronized void insertFirst(Object item)
+  public synchronized void insertFirst(E item)
   {
     insertElementAt(item, 0);
     notify();
@@ -102,18 +102,19 @@ public class Queue extends Vector {
    ** timeout occurred. To distinguish timeouts, <code>null</code>
    ** items should not be inserted in the queue.
    */
-  public synchronized Object removeWait(float timeout)
+  public synchronized E removeWait(float timeout)
   {
-    Object obj = null;
+    E obj = null;
 
     // If queue is empty wait for object to be inserted
     if (isEmpty() && !queueClosed) {
       try {
-	if (timeout > 0) {
-	  wait(Math.round(timeout * 1000.0f));
-	} else
-	  wait();
-      } catch (InterruptedException e) {}
+        if (timeout > 0) {
+          wait(Math.round(timeout * 1000.0f));
+        } else
+          wait();
+      } catch (InterruptedException e) {
+      }
     }
 
     if (queueClosed) {
@@ -123,7 +124,8 @@ public class Queue extends Vector {
     try {
       obj = firstElement();
       removeElementAt(0);
-    } catch (Exception e) {}
+    } catch (Exception e) {
+    }
 
     return obj;
   }
@@ -136,7 +138,7 @@ public class Queue extends Vector {
    **
    ** @return The first item in the queue.
    */
-  public Object remove()
+  public E remove()
   {
     return removeWait(0);
   }

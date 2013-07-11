@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ package org.knopflerfish.framework;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.Iterator;
 import java.util.List;
 
 import org.osgi.framework.Bundle;
@@ -54,6 +53,7 @@ import org.osgi.framework.ServiceRegistration;
 public class ExtensionContext {
 
   private final FrameworkContext fwCtx;
+  @SuppressWarnings("unused")
   private final BundleGeneration ext;
   private Object activator = null;
 
@@ -68,13 +68,13 @@ public class ExtensionContext {
 
     try {
       // Extension bundles uses the framework class loader...
-      final Class c = getClass().getClassLoader().loadClass(extActivatorName);
+      final Class<?> c = getClass().getClassLoader().loadClass(extActivatorName);
       activator = c.newInstance();
 
       final Method activateMethod
         = c.getMethod("activate", new Class[] { ExtensionContext.class });
       activateMethod.invoke(activator, new Object[] { this } );
-    } catch (Exception e) {
+    } catch (final Exception e) {
       activator = null;
       final String msg = "Failed to activate framework extension "
         +ext.symbolicName + ":" +ext.version;
@@ -84,22 +84,23 @@ public class ExtensionContext {
 
 
   /**
-   * Register a service posssibly implementing multiple interfaces.
+   * Register a service possibly implementing multiple interfaces.
    *
    * @see org.osgi.framework.BundleContext#registerService
    */
-  public ServiceRegistration registerService(String[] clazzes,
-                                             Object service,
-                                             Dictionary properties) {
-    return fwCtx.services.register(fwCtx.systemBundle, clazzes,
-                                   service, properties);
+  public ServiceRegistration<?> registerService(String[] clazzes,
+                                                Object service,
+                                                Dictionary<String, ?> properties)
+  {
+    return fwCtx.services.register(fwCtx.systemBundle, clazzes, service,
+                                   properties);
   }
 
   /**
-   * @return the current bundle class loader for a givne bundle.
+   * @return the current bundle class loader for a given bundle.
    */
   public ClassLoader getClassLoader(Bundle b) {
-    BundleImpl bi = (BundleImpl) b;
+    final BundleImpl bi = (BundleImpl) b;
     return bi.getClassLoader();
   }
 
@@ -117,7 +118,8 @@ public class ExtensionContext {
    * The list of bundle class loader listeners registered for this
    * extension context.
    */
-  private List bclls = new ArrayList();
+  private final List<BundleClassLoaderListener> bclls
+    = new ArrayList<BundleClassLoaderListener>();
 
   /**
    * Register a bundle class loader created listener.
@@ -137,9 +139,7 @@ public class ExtensionContext {
    * @param bcl the newly created bundle class loader.
    */
   void bundleClassLoaderCreated(final BundleClassLoader bcl) {
-    for (Iterator it = bclls.iterator(); it.hasNext(); ) {
-      final BundleClassLoaderListener bcll
-        = (BundleClassLoaderListener) it.next();
+    for (final BundleClassLoaderListener bcll : bclls) {
       bcll.bundleClassLoaderCreated(bcl);
     }
   }
@@ -153,9 +153,7 @@ public class ExtensionContext {
    * @param bcl the closed down bundle class loader.
    */
   void bundleClassLoaderClosed(final BundleClassLoader bcl) {
-    for (Iterator it = bclls.iterator(); it.hasNext(); ) {
-      final BundleClassLoaderListener bcll
-        = (BundleClassLoaderListener) it.next();
+    for (final BundleClassLoaderListener bcll : bclls) {
       bcll.bundleClassLoaderClosed(bcl);
     }
   }

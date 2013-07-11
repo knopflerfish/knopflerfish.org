@@ -34,9 +34,9 @@ public class Element extends Node {
 
     protected String namespace;
     protected String name;
-    protected Vector attributes;
+    protected Vector<String[]> attributes;
     protected Node parent;
-    protected Vector prefixes;
+    protected Vector<String[]> prefixes;
 
     public Element() {
     }
@@ -81,7 +81,7 @@ public class Element extends Node {
     }
 
 	public String getAttributeNamespace (int index) {
-		return ((String []) attributes.elementAt (index)) [0];
+		return attributes.elementAt (index) [0];
 	}
 
 /*	public String getAttributePrefix (int index) {
@@ -89,12 +89,12 @@ public class Element extends Node {
 	}*/
 	
 	public String getAttributeName (int index) {
-		return ((String []) attributes.elementAt (index)) [1];
+		return attributes.elementAt (index) [1];
 	}
 	
 
 	public String getAttributeValue (int index) {
-		return ((String []) attributes.elementAt (index)) [2];
+		return attributes.elementAt (index) [2];
 	}
 	
 	
@@ -163,11 +163,11 @@ public class Element extends Node {
 
 
 	public String getNamespacePrefix (int i) {
-		return ((String []) prefixes.elementAt (i)) [0];
+		return prefixes.elementAt (i) [0];
 	}
 
 	public String getNamespaceUri (int i) {
-		return ((String []) prefixes.elementAt (i)) [1];
+		return prefixes.elementAt (i) [1];
 	}
 
 
@@ -238,13 +238,13 @@ public class Element extends Node {
 
 	public void setAttribute (String namespace, String name, String value) {
 		if (attributes == null) 
-			attributes = new Vector ();
+			attributes = new Vector<String[]> ();
 
 		if (namespace == null) 
 			namespace = "";
 		
         for (int i = attributes.size()-1; i >=0; i--){
-            String[] attribut = (String[]) attributes.elementAt(i);
+            String[] attribut = attributes.elementAt(i);
             if (attribut[0].equals(namespace) &&
 				attribut[1].equals(name)){
 					
@@ -268,7 +268,7 @@ public class Element extends Node {
 	 * prefix */
 
 	public void setPrefix (String prefix, String namespace) {
-		if (prefixes == null) prefixes = new Vector ();
+		if (prefixes == null) prefixes = new Vector<String[]> ();
 		prefixes.addElement (new String [] {prefix, namespace});		
 	}
 

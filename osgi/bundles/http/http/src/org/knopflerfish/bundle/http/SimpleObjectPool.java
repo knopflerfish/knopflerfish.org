@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,67 +38,77 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
-public class SimpleObjectPool extends ObjectPool {
+public class SimpleObjectPool
+  extends ObjectPool
+{
 
-    // private fields
+  // private fields
 
-    private Constructor constructor;
+  private Constructor<?> constructor;
 
-    // constructors
+  // constructors
 
-    public SimpleObjectPool(final Class clazz) {
+  public SimpleObjectPool(final Class<?> clazz)
+  {
 
-        super();
+    super();
 
-        init(clazz);
+    init(clazz);
+  }
+
+  public SimpleObjectPool(final Class<?> clazz, final int maxInstances)
+  {
+
+    super(maxInstances);
+
+    init(clazz);
+  }
+
+  public SimpleObjectPool(final Class<?> clazz, final int maxInstances,
+                          final int createInstances)
+  {
+
+    super(maxInstances, createInstances);
+
+    init(clazz);
+  }
+
+  // private methods
+
+  private void init(final Class<?> clazz)
+  {
+
+    if (!clazz.isAssignableFrom(PoolableObject.class)) {
+      throw new IllegalArgumentException("Class must implement "
+                                         + PoolableObject.class.getName());
     }
-
-    public SimpleObjectPool(final Class clazz, final int maxInstances) {
-
-        super(maxInstances);
-
-        init(clazz);
+    try {
+      constructor = clazz.getConstructor((Class[]) null);
+    } catch (final NoSuchMethodException nsme) {
+      throw new IllegalArgumentException(
+                                         "Class must have public default constructor");
     }
-
-    public SimpleObjectPool(final Class clazz, final int maxInstances,
-            final int createInstances) {
-
-        super(maxInstances, createInstances);
-
-        init(clazz);
+    if (!Modifier.isPublic(constructor.getModifiers())) {
+      throw new IllegalArgumentException(
+                                         "Class must have public default constructor");
     }
+  }
 
-    // private methods
+  // extends ObjectPool
 
-    private void init(final Class clazz) {
+  @Override
+  protected PoolableObject createPoolableObject()
+  {
 
-        if (!clazz.isAssignableFrom(PoolableObject.class))
-            throw new IllegalArgumentException("Class must implement "
-                    + PoolableObject.class.getName());
-        try {
-            constructor = clazz.getConstructor(null);
-        } catch (NoSuchMethodException nsme) {
-            throw new IllegalArgumentException(
-                    "Class must have public default constructor");
-        }
-        if (!Modifier.isPublic(constructor.getModifiers()))
-            throw new IllegalArgumentException(
-                    "Class must have public default constructor");
+    try {
+      return (PoolableObject) constructor.newInstance((Object[]) null);
+    } catch (final InstantiationException e) {
+      return null;
+    } catch (final IllegalAccessException e) {
+      return null;
+    } catch (final InvocationTargetException e) {
+      return null;
     }
-
-    // extends ObjectPool
-
-    protected PoolableObject createPoolableObject() {
-
-        try {
-            return (PoolableObject) constructor.newInstance(null);
-        } catch (InstantiationException e) {
-            return null;
-        } catch (IllegalAccessException e) {
-            return null;
-        } catch (InvocationTargetException e) {
-            return null;
-        }
-    }
+  }
 
 } // SimpleObjectPool

@@ -72,7 +72,7 @@ public class HttpExporter {
     try {
       Activator.bc.addServiceListener(httpListener, filter);
       
-      ServiceReference[] srl = Activator.bc.getServiceReferences(null, filter);
+      ServiceReference[] srl = Activator.bc.getServiceReferences((String)null, filter);
       for(int i = 0; srl != null && i < srl.length; i++) {
 	httpListener.serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED,
 						     srl[i]));

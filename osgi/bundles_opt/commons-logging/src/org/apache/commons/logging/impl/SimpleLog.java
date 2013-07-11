@@ -157,7 +157,7 @@ public class SimpleLog implements Log {
     public static final int LOG_LEVEL_OFF    = (LOG_LEVEL_FATAL + 1);
 
     // ------------------------------------------------------------ Initializer
-    
+
     private static String getStringProperty(String name) {
         String prop = System.getProperty(name);
         return (prop == null) ? simpleLogProps.getProperty(name) : prop;
@@ -210,7 +210,7 @@ public class SimpleLog implements Log {
 
     private String prefix=null;
 
-    
+
     // ------------------------------------------------------------ Constructor
 
     /**
@@ -333,8 +333,8 @@ public class SimpleLog implements Log {
             buf.append(t.toString());
             buf.append(">");
 
-            java.io.StringWriter sw= new java.io.StringWriter(1024); 
-            java.io.PrintWriter pw= new java.io.PrintWriter(sw); 
+            java.io.StringWriter sw= new java.io.StringWriter(1024);
+            java.io.PrintWriter pw= new java.io.PrintWriter(sw);
             t.printStackTrace(pw);
             pw.close();
             buf.append(sw.toString());
@@ -573,7 +573,7 @@ public class SimpleLog implements Log {
     /**
      * Return the thread context class loader if available.
      * Otherwise return null.
-     * 
+     *
      * The thread context class loader is available for JDK 1.2
      * or later, if certain security conditions are met.
      *
@@ -587,11 +587,13 @@ public class SimpleLog implements Log {
         if (classLoader == null) {
             try {
                 // Are we running on a JDK 1.2 or later system?
-                Method method = Thread.class.getMethod("getContextClassLoader", null);
-    
+                Method method = Thread.class.getMethod("getContextClassLoader",
+                                                       (Class[]) null);
+
                 // Get the thread context class loader (if there is one)
                 try {
-                    classLoader = (ClassLoader)method.invoke(Thread.currentThread(), null);
+                  classLoader = (ClassLoader)
+                    method.invoke(Thread.currentThread(), (Object[]) null);
                 } catch (IllegalAccessException e) {
                     ;  // ignore
                 } catch (InvocationTargetException e) {
@@ -599,12 +601,12 @@ public class SimpleLog implements Log {
                      * InvocationTargetException is thrown by 'invoke' when
                      * the method being invoked (getContextClassLoader) throws
                      * an exception.
-                     * 
+                     *
                      * getContextClassLoader() throws SecurityException when
                      * the context class loader isn't an ancestor of the
                      * calling class's class loader, or if security
                      * permissions are restricted.
-                     * 
+                     *
                      * In the first case (not related), we want to ignore and
                      * keep going.  We cannot help but also ignore the second
                      * with the logic below, but other calls elsewhere (to
@@ -625,7 +627,7 @@ public class SimpleLog implements Log {
                 ;  // ignore
             }
         }
-    
+
         if (classLoader == null) {
             classLoader = SimpleLog.class.getClassLoader();
         }
@@ -633,7 +635,7 @@ public class SimpleLog implements Log {
         // Return the selected class loader
         return classLoader;
     }
-    
+
     private static InputStream getResourceAsStream(final String name)
     {
         return (InputStream)AccessController.doPrivileged(
@@ -650,4 +652,3 @@ public class SimpleLog implements Log {
             });
     }
 }
-

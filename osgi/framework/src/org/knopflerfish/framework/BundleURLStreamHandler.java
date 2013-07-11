@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,12 @@
 package org.knopflerfish.framework;
 
 import java.io.IOException;
-import java.net.*;
-import java.util.*;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 
 /**
@@ -52,15 +56,17 @@ public class BundleURLStreamHandler extends URLStreamHandler {
 
   // Currently we only support a single framework instance in the same
   // class-loader context!
-  private ArrayList /* FrameworkContext */ framework = new ArrayList(2);
+  private final ArrayList<FrameworkContext> framework
+    = new ArrayList<FrameworkContext>(2);
 
 
   // TODO, we need a more efficient and cleaner solution here.
 
 
+  @Override
   public URLConnection openConnection(URL u) throws IOException {
-    String h = u.getHost();
-    FrameworkContext fw = getFramework(h);
+    final String h = u.getHost();
+    final FrameworkContext fw = getFramework(h);
     if (fw == null) {
       throw new IOException("Framework associated with URL is not active");
     }
@@ -72,6 +78,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
   }
 
 
+  @Override
   protected void parseURL(URL u, String s, int start, int limit)  {
     String path = u.getPath();
     String host = u.getHost();
@@ -116,13 +123,13 @@ public class BundleURLStreamHandler extends URLStreamHandler {
         int pstart;
         if (sc[pos] != '/') {
           if (path != null) {
-            int dirend = path.lastIndexOf('/') + 1;
+            final int dirend = path.lastIndexOf('/') + 1;
             if (dirend > 0) {
-              int plen = len - pos;
+              final int plen = len - pos;
               pstart = path.startsWith("/") ? 0 : 1;
               len = dirend + plen + pstart;
               if (len > sc.length) {
-                char [] newsc = new char [len];
+                final char [] newsc = new char [len];
                 System.arraycopy(sc, pos, newsc, dirend + pstart, plen);
                 sc = newsc;
               } else if (pos != dirend) {
@@ -200,7 +207,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
     if (id == -1) {
       id = getId(host);
     }
-    FrameworkContext fw = getFramework(host);
+    final FrameworkContext fw = getFramework(host);
     if (fw == null) {
       throw new IllegalArgumentException("Framework associated with URL is not active");
     }
@@ -216,6 +223,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    * fragment in the same file.
    *
    */
+  @Override
   protected boolean equals(URL u1, URL u2) {
     return sameFile(u1, u2);
   }
@@ -225,15 +233,16 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    * Provides the hash calculation
    * @return an <tt>int</tt> suitable for hash table indexing
    */
+  @Override
   protected int hashCode(URL u) {
     int h = 0;
 
     if (PROTOCOL.equals(u.getProtocol())) {
-      String host = u.getHost();
+      final String host = u.getHost();
       if (host != null)
         h = host.hashCode();
 
-      String file = u.getFile();
+      final String file = u.getFile();
       if (file != null)
         h += file.hashCode();
 
@@ -249,8 +258,9 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    * i.e., having the same protocol, host, port, and path.
    * @return true if u1 and u2 refer to the same file
    */
+  @Override
   protected boolean sameFile(URL u1, URL u2) {
-    String p1 = u1.getProtocol();
+    final String p1 = u1.getProtocol();
     if (PROTOCOL.equals(p1)) {
       if (!p1.equals(u2.getProtocol()))
         return false;
@@ -279,9 +289,10 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    * @return    <tt>true</tt> if and only if they
    * are equal, <tt>false</tt> otherwise.
    */
+  @Override
   protected boolean hostsEqual(URL u1, URL u2) {
-    String s1 = u1.getHost();
-    String s2 = u2.getHost();
+    final String s1 = u1.getHost();
+    final String s2 = u2.getHost();
     return (s1 == s2) || (s1 != null && s1.equals(s2));
   }
 
@@ -292,11 +303,12 @@ public class BundleURLStreamHandler extends URLStreamHandler {
    * @param   url   the URL.
    * @return  a string representation of the URL.
    */
+  @Override
   protected String toExternalForm(URL url) {
-    StringBuffer res = new StringBuffer(url.getProtocol());
+    final StringBuffer res = new StringBuffer(url.getProtocol());
     res.append("://");
     res.append(url.getHost());
-    int port = url.getPort();
+    final int port = url.getPort();
     if (port >= 0) {
       res.append(":").append(port);
     }
@@ -305,6 +317,7 @@ public class BundleURLStreamHandler extends URLStreamHandler {
   }
 
 
+  @Override
   protected synchronized InetAddress getHostAddress(URL url) {
     return null;
   }
@@ -337,20 +350,20 @@ public class BundleURLStreamHandler extends URLStreamHandler {
   //
 
   private FrameworkContext getFramework(String host) {
-    Iterator i = framework.iterator();
-    int e = host.indexOf("!");
+    final Iterator<FrameworkContext> i = framework.iterator();
+    final int e = host.indexOf("!");
     int fwId;
     if (e == -1) {
       fwId = 0;
     } else {
       try {
         fwId = Integer.parseInt(host.substring(e + 1));
-      } catch (NumberFormatException _) {
+      } catch (final NumberFormatException _) {
         return null;
       }
     }
     while (i.hasNext()) {
-      FrameworkContext fw = (FrameworkContext)i.next();
+      final FrameworkContext fw = i.next();
       if (fw.id == fwId) {
         return fw;
       }

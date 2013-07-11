@@ -1,0 +1,554 @@
+<!-- The first line in this file is used by the desktop to check -->
+<!-- for new releases, i.e., do not change its format.           -->
+<!-- It must contain the word "Knopflerfish" followed by a space -->
+<!-- and then the version followed by another space.             -->
+
+<h1 class="kf">Release Notes Knopflerfish $(VERSION) (OSGi R4 v4.3)</h1>
+<p>
+  First official release Knopflerfish 4 available from
+  $(BASE_URL)/$(VERSION)
+</p>
+<p>
+  Knopflerfish 4 is an implementation of the "OSGi Service Platform
+  Release 4 Version 4.3". It contains all services specified in the
+  "Core Specification" and most of the non Enterprise Edition related
+  services specified in the "Compendium Specification".
+</p>
+<p>
+  The Release Notes include all new features & changes for
+  Knopflerfish 4.
+</p>
+
+<h2 class="kf">OSGi Release 4 Version 4.3 - What is New?</h2>
+<div class="release_notes">
+  <p>
+    Below is a short summary of the most important new features in OSGi 4.3.
+  </p>
+  <div class="note_group">
+    <div class="note_name"> Generics </div>
+    <div class="note_item">
+      The core OSGi API uses generics which allows for type-safe use of the framework API.
+      I.e. no more casting. Support for Java 1.4 run-time environments
+      is maintained via the -target jsr14 compiler flag.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Capabilities </div>
+    <div class="note_item">
+      In OSGi 4.3 a bundle can declare generic requirements and
+      capabilities through the <code>Require-Capability</code> and
+      <code>Provide Capability</code> manifest headers.  These two
+      headers are inspected during the resolving phase of the bundle.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Bundle Wiring API </div>
+    <div class="note_item">
+      The new Wiring API replaces the PackageAdmin service and also
+      provide information how requirements and provided capabilities
+      have been resolved by the framework.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Adapt pattern </div>
+    <div class="note_item">
+      OSGi 4.3 introduces an adapt method on the Bundle class. The new
+      method provides specialized access to the Bundle object,
+      creating a certain view of the bundle, without adding additional
+      methods to the bundle class. The adapt patterns is typically
+      used to replace the former StartLevelService by providing a
+      BundleStartLevel object with the start level operations
+      for a bundle.
+    </div>
+  </div>
+  <div class="note_group">
+    <div class="note_name"> Framework hooks </div>
+    <div class="note_item">
+      A set of hooks have been added with allows bundles to plug-into the framework
+      for close interaction with the framework. The following hooks exist in 4.3:
+      <ul>
+        <li>Resolver Hooks</li>
+        <li>Bundle Hooks</li>
+        <li>Service Hooks</li>
+        <li>Weaving Hooks</li>
+    </div>
+  </div>
+</div>
+
+<h2 class="kf">Knopflerfish Framework - OSGi Core Specification</h2>
+<div class="release_notes">
+
+  <div class="note_group">
+    <div class="note_name"> OSGi R4 v4.3 specification</div>
+    <div class="note_item">
+      All the Core Specification Services and API:s are included and
+      are designed to be compliant with the OSGi R4 v4.3
+      specification.  Please refer to the <a
+      href="components.html">Contents</a> page for a more detailed
+      description of news in 4.3 and KF4 implementation status.
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name"> Framework 6.0.2</div>
+    <div class="note_item">
+      Several parts of the framework has been rewritten to handle
+      the new OSGi framework specification and improve stability.
+    </div>
+    <div class="note_item">
+      Support for class patching using ASM has been moved out of 
+      the framework into a separate classpatcher bundle that
+      implements uses a Weaving Hooks to do the patching.
+    </div>
+  </div>
+</div>
+
+
+<h2 class="kf">OSGi Compendium Specification</h2>
+<div class="release_notes">
+  <div class="note_group">
+    <div class="note_name"> OSGi R4 v4.3 Specification</div>
+    <div class="note_item">
+      All Compendium Specification Services included are updated to
+      implement the OSGi R4 v4.3 specification.
+      Please refer to the  <a href="components.html">Contents</a> page
+      for a more detailed description of news in 4.3 and KF4
+      implementation status. 
+    </div>
+    <div class="note_item">
+      The major field of the version of these bundles is set to 4. All
+      imported packages has a minimum version in their import
+      statements set to the version of the package defined in the OSGi
+      R4 v4.3 specification.
+    </div>
+    <div class="note_item">
+      The list of OSGi compendium specified bundles below only lists
+      those bundles that has changes in addition to what is required
+      by the move to the OSGi R4 v4.3 specification.
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">cm 4.0.1</div>
+    <div class="note_item">
+      Added a method that saves a list of configurations as XML to
+      <tt>org.knopflerfish.shared.cm</tt>
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">Http 4.0.1</div>
+    <div class="note_item">
+      The methods javax.servlet.Request.getLocale() and
+      javax.servlet.Reuqest.getLocales() now returns data based on the
+      Accept-Language header in the request.
+    </div>
+    <div class="note_item">
+      Improve error messages when the configured server socket is
+      in use.
+    </div>
+    <div class="note_item">
+      Updated the configuration metadata so that it contains all
+      properties in the Http-configuration.
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">KF-XML- Metatype 4.0.1</div>
+    <div class="note_item">
+      Replaced the document describing the configuration metadata
+      with a new one that uses the OSGi specified meta type schema.
+    </div>
+    <div class="note_item">
+      Improved support for mixing legacy KF-Metatype and OSGi meta
+      type.
+    </div>
+  </div>
+  
+</div>
+
+<h2 class="kf">Knopflerfish Services</h2>
+<div class="release_notes">
+  <div class="note_group">
+    <div class="note_name">
+      Deprecation of SOAP bundles
+    </div>
+    <div class="note_item">
+      The SOAP related bundles present in Knopflerfish 3 has been
+      removed since they are deprecated and should be replaced by usage of
+      the Remote Service Admin service from the compendium specification.
+      The removed bundles are: axis-osgi, axis2-osgi, ksoap-osgi,
+      ksoap_commandgroup, ksoap_remotefw, soap_desktop, soap_remotefw,
+      soapclient and soapobject.
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">Class Patcher 1.0.0</div>
+      <div class="note_item">
+	This bundle contains the support for class patching using ASM that
+	was previously implemented in the framework. It is implemented as
+	a Weaving Hooks. The configuration properties remain the same in
+	order to be backward compatible.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">CM-Commands 4.0.1</div>
+      <div class="note_item">
+	Added export command that exports all matching configurations as
+	an XML-document.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	CM-Desktop 4.0.0
+      </div>
+      <div class="note_item">
+	Added <tt>Export...</tt> button that exports the currently
+	showing configuration as a cm_data XML document suitable for use
+	together with the Directory Deployer bundle.
+      </div>
+      <div class="note_item">
+	The displayer always shows the combo boxes for PIDs and factory
+	PIDs (they are disabled when the bundle does not provide meta data
+	for any PID of that type) in its top part.
+      </div>
+      <div class="note_item">
+	The sub-panel showing details for a factory PID always shows all
+	the controls (New, Delete, Apply, PID selector), those not
+	applicable are disabled.
+      </div>
+      <div class="note_item">
+	The PID selector combo box in the factory PID sub-panel contains a
+	choice that is labeled "- Default Values -" when this is selected
+	the properties below will be set to the default values according
+	the meta type information for the current factory PID.
+      </div>
+      <div class="note_item">
+	When selecting the CM-displayer for a bundle that only defines
+	factory PIDs the factory PID sub-panel will be initialized to show
+	the last (lexicographically) instance for the factory PID.
+      </div>
+      <div class="note_item">
+	The CM-displayer now uses a configuration listener to know when
+	the configuration it shows is changed and then update its
+	presentation.
+      </div>
+      <div class="note_item">
+	Fixed the layout when there was an active error message for a
+	numeric configuration property.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Command TTY 4.0.1
+      </div>
+      <div class="note_item">
+	Fixed an error in the meta-type document describing the
+        configuration.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">Console 4.0.1</div>
+      <div class="note_item">
+	Added support to Util.showObject(Object) for converting
+	enumerations and collections to strings showing each element.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Desktop 4.0.1
+      </div>
+      <div class="note_item">
+	A new "Wiring" displayer has been added that presents
+	information from new wiring API. This displayer replaces the
+	"Package" displayer that only showed wiring info for the
+	osgi.wiring.package namespace.
+      </div>
+      <div class="note_item">
+	Uses the wiring API to perform refresh and resolve operations.
+      </div>
+      <div class="note_item">
+	Use the start-level API to perform start-level operations.
+      </div>
+      <div class="note_item">
+	Improve layout of the tool-bar by add some glue to the left of the
+	start level label. In the start-level drop-down, emphasis the
+	start-level number and present the bundles on each start level as
+	list using a smaller, weaker font.
+      </div>
+      <div class="note_item">
+	Added additional overlay images in the Bundle Icon view to indicate
+	the following bundle states: RESOLVED, STARTING and STOPPING.
+      </div>
+      <div class="note_item">
+	Added bundle life-cycle operations (resolve, start, stop, update,
+	uninstall) to the pop-up menu in the bundle icon displayer (top
+	left part of the main window).
+      </div>
+      <div class="note_item">
+	Bundle life-cycle operations (resolve, start, stop, update,
+	refresh, uninstall) in the menu, in the pop-up menu and in the
+	tool-bar are now enabled based on the states of the selected
+	bundles.
+      </div>
+      <div class="note_item">
+	Renamed the "Details" view (the top left side of the main
+	window) to "Table" view and added columns for the bundle version
+	and bundle symbolic name to it.
+      </div>
+      <div class="note_item">
+	Restored the functionality of the "Cancel" button in the quit
+	dialog on Mac OS X. This was broken by changes in Apples EAWT
+	packages. The new implementation requires Java Update 8 or later
+	for Mac OS 10.5, Java Update 3 for Mac OS 10.6, or Mac OS 10.7
+	or later to be fully functional.
+      </div>
+      <div class="note_item">
+	The navigation buttons (backward / forward) at the bottom of the
+	services-tab was not activated when pressing one of the service
+	links.
+      </div>
+      <div class="note_item">
+	The Log-tab now presents initial log entries obtained by calling
+	the getLog()-method of a LogReaderService in the correct order,
+	i.e., oldest first.
+      </div>
+      <div class="note_item">
+	Add refresh bundles operation to the tool-bar as well as to the
+	pop-up menu in the icons display.
+      </div>
+      <div class="note_item">
+	The topmost lines in the manifest view have been given a
+	different background color to emphasize that they are not part
+	of the manifest. The bundle state line now includes the text
+	"pending refresh" for bundles that has more than one bundle
+	revision in use, i.e, bundles that needs to be refreshed.
+	The start level line now contains the text "persistently
+	started" for bundles that are persistently started. I.e., for
+	bundles that will be started again when the framework itself is
+	restarted.
+      </div>
+      <div class="note_item">
+	The closure tab as well as the File-menu save deployment archive
+	now computes the closure of bundles to include correctly. Before
+	it took the union of a capability dependencies closure and a
+	service dependencies closure which will miss bundles that
+	provides capabilities to service implementor bundles that was
+	not in the original capabilities closure.
+      </div>
+      <div class="note_item">
+	Restored and enhanced the update check functionality that pops
+	up a window with the release notes from the current Knopflerfish
+	release when the desktop is running on an older Knopflerfish
+	release.
+      </div>
+      <div class="note_item">
+	Added sorting to the "Table" view (the top left side of the main
+	window). Click on the column header to sort rows based on the
+	column values, shift-click for reverse order.
+      </div>
+      <div class="note_item">
+	The tool tip text for bundle icons in the icons display is now
+	always up to date. The start-level line of the text will
+	contain the text "persistently started" if the bundle is
+	persistently started.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Directory Deployer 4.0.1
+      </div>
+      <div class="note_item">
+	Deployment of XML-files with OSGi configurations is now
+        supported.
+      </div>
+      <div class="note_item">
+	New configuration option "Use initial start level" which when
+	set to true (default) tells the directory deployer to not assign
+	any start level to the bundle. I.e., the bundle will be assigned
+	the initial start level that can be set up using the
+	startlevel-API.
+      </div>
+      <div class="note_item">
+	The directory deployer will only try to install (start) a bundle
+	once. If it fails users are supposed to update the file with
+	new contents (or touch it to change the time-stamp) to get a new
+	install (start) attempt made.
+      </div>
+      <div class="note_item">
+	If the deployed file is a fragment bundle one attempt to resolve
+	it will be made after installation (and after each update).
+      </div>
+      <div class="note_item">
+	Changed to use normal file-URLs as location when installing
+	bundles from the scanned directories.
+      </div>
+      <div class="note_item">
+	Replaced the document describing the configuration meta data
+	with a new one that uses the OSGi specified meta type schema.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Framework Commands 4.0.1
+      </div>
+      <div class="note_item">
+	New command 'capability' that presents both provided and
+	required capabilities for the current bundle revision of a
+	bundle.
+      </div>
+      <div class="note_item">
+	New command 'wiring' that lists all active wires for the
+	current wiring of a bundle.
+      </div>
+      <div class="note_item">
+	New command 'pending' that lists bundles that have pending
+	updates.
+      </div>
+      <div class="note_item">
+	The call command now supports calling methods with parameters
+	of type org.osgi.framework.Bundle. Type the bundle id (long)
+	as parameter value to the call command.
+      </div>
+      <div class="note_item">
+	The call command now correctly handles calls to methods in
+        interfaces of an interface that the service object implements.
+      </div>
+    </div>
+
+
+    <div class="note_group">
+      <div class="note_name">
+	Log Commands 4.0.0
+      </div>
+      <div class="note_item">
+	Calling the command "logconfig memory &lt;int&gt;" did not change the
+	memory limit, but calling "logconfig memory -c &lt;int&gt;" did.  Now
+	both calls changes the limit on the number of log entries that are
+	kept in memory as expected.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Log Service 4.0.1
+      </div>
+      <div class="note_item">
+	Fixed an error in the meta type document describing the
+	configuration.
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	Telnet-Console 4.0.1
+      </div>
+      <div class="note_item">
+	Replaced the document describing the configuration metadata
+	with a new one that uses the OSGi specified meta type schema.
+      </div>
+      <div class="note_item">
+	Added a number of properties to the configuration metadata:
+	<tt>defaultUser, defaultPassword, busywait, um, requiredGroup,
+	  forbiddenGroup</tt>.
+      </div>
+      <div class="note_item">
+	Added an icon to the bundle (same icon as for the tty-console).
+      </div>
+    </div>
+
+    <div class="note_group">
+      <div class="note_name">
+	TTY-Console 4.0.1
+      </div>
+      <div class="note_item">
+	Fixed an error in the meta type document describing the
+	configuration.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<h2 class="kf">Misc, start scripts, build system etc </h2>
+<div class="release_notes">
+  <div class="note_group">
+    <div class="note_name">
+      Knopflerfish Build System
+    </div>
+    <div class="note_item">
+
+      The "API"-variant of a bundle contains the bundles API.
+
+      <p/>
+
+      The "IMPL"-variant of a bundle contains the implementation, but
+      not API. It may export packages that are not part of the
+      official API, selected by the property
+      <tt>impl-api.pattern</tt>.
+
+      <p/>
+
+      The "ALL"-variant of a bundle contains both the API and the
+      implementation. It may also export additional packages, often
+      those packages that it imports (to make the bundle
+      self-contained). These extra packages are selected by the
+      property <tt>all-api.pattern</tt>.
+
+      <p/>
+
+      There is also a property, <tt>all.pattern</tt> that can be used
+      to select additional contents for the "ALL"-variant of the
+      bundle.
+
+    </div>
+
+    <div class="note_item">
+
+      Added support for generation of maven source artifacts for all
+      variants of the bundle. This is controlled by the ant property
+      named <tt>bundle.build.source.jar</tt>.
+
+    </div>
+
+    <div class="note_item">
+
+      Added support for generation of maven javadoc artifacts for all
+      variants of the bundle. This is controlled by the ant property
+      named <tt>bundle.build.javadoc.jar</tt>. A javadoc artifact is
+      only built for bundles that has a public API, i.e., bundles that
+      exports at least one package since the javadoc artifact only
+      documents the exported packages.
+
+    </div>
+  </div>
+
+  <div class="note_group">
+    <div class="note_name">
+      Android .apk Support
+    </div>
+    <div class="note_item">
+
+      Directory <tt>tools/android/apk</tt> has been added. It contains
+      Android projects for the Knopflerfish framework (library project)
+      and an example application, and a build system that allows you to
+      specify the Knopflerfish bundles to package together with
+      framework.jar into an Android .apk file.
+      
+      <p/>
+      
+      The example application has a simple Android View from where the
+      user can launch the framework (included bundles will be installed
+      and started) and then browse the local Knopflerfish HTTP root or
+      console.
+    </div>
+  </div>
+
+</div>

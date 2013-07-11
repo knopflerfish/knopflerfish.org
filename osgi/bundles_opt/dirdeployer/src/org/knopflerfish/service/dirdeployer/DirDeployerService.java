@@ -34,8 +34,8 @@
 
 package org.knopflerfish.service.dirdeployer;
 
-import java.io.File;
 
-public interface DirDeployerService {
-  
+public interface DirDeployerService
+{
+
 }

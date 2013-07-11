@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,126 +39,143 @@
 
 package org.knopflerfish.util.metatype;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import org.osgi.framework.Bundle;
-import org.osgi.service.metatype.*;
-
-import java.util.*;
+import org.osgi.service.metatype.MetaTypeInformation;
+import org.osgi.service.metatype.ObjectClassDefinition;
 
 /**
- * Implementation of the <tt>MetaTypeProvider</tt> interface.
+ * Implementation of the {@link MetaTypeInformation} interface.
  */
-public class MTP implements MetaTypeInformation {
+public class MTP
+  implements MetaTypeInformation, Comparable<MTP>
+{
+  // Mapping from pid/fpid to OCD
+  Map<String, ObjectClassDefinition> ocdMap =
+    new HashMap<String, ObjectClassDefinition>();
 
-  Map ocdMap = new HashMap();
-
-  Set services  = new HashSet();
-  Set factories = new HashSet();
+  Set<String> pids = new HashSet<String>();
+  Set<String> factoryPids = new HashSet<String>();
 
   String id;
-  
-  //when system bundle, not set
+
+  // when system bundle, not set
   private Bundle bundle;
 
-  public MTP(String id) {
+  public MTP(String id)
+  {
     this.id = id;
   }
-  
-  public void addService(String pid, ObjectClassDefinition ocd) {
+
+  public void addService(String pid, ObjectClassDefinition ocd)
+  {
     ocdMap.put(pid, ocd);
-    services.add(pid);
+    pids.add(pid);
   }
 
-  public void addFactory(String pid, ObjectClassDefinition ocd) {
+  public void addFactory(String pid, ObjectClassDefinition ocd)
+  {
     ocdMap.put(pid, ocd);
-    factories.add(pid);
+    factoryPids.add(pid);
   }
 
-
-  static String[] toStringArray(Set set) {
-    String[] sa = new String[set.size()];
-    int i = 0;
-    for(Iterator it = set.iterator(); it.hasNext();) {
-      sa[i++] = it.next().toString();
-    }
-    return sa;
-  }
-  
-  void setBundle(Bundle bundle){
-	  this.bundle = bundle;
-  }
-  
-  public Bundle getBundle() {
-	  return bundle;
+  static String[] toStringArray(Set<String> set)
+  {
+    return set.toArray(new String[set.size()]);
   }
 
-  public String[] getPids() {
-    return toStringArray(services);
+  void setBundle(Bundle bundle)
+  {
+    this.bundle = bundle;
   }
 
-  public String[] getFactoryPids() {
-    return toStringArray(factories);
+  public Bundle getBundle()
+  {
+    return bundle;
   }
 
-  public String[] getLocales() {
+  public String[] getPids()
+  {
+    return toStringArray(pids);
+  }
+
+  public String[] getFactoryPids()
+  {
+    return toStringArray(factoryPids);
+  }
+
+  public String[] getLocales()
+  {
     return null;
   }
 
-  public ObjectClassDefinition getObjectClassDefinition(String pid, String locale) {
+  public ObjectClassDefinition getObjectClassDefinition(String pid,
+                                                        String locale)
+  {
 
-    ObjectClassDefinition  ocd = (ObjectClassDefinition)ocdMap.get(pid);
+    final ObjectClassDefinition ocd = ocdMap.get(pid);
 
     return ocd;
   }
 
-  public String toString() {
+  @Override
+  public String toString()
+  {
     return toString(true);
   }
 
-  public String toString(boolean bFull) {
-    StringBuffer sb = new StringBuffer();
-
+  public String toString(boolean bFull)
+  {
+    final StringBuffer sb = new StringBuffer();
 
     sb.append("MTP[\n");
-    for(Iterator it = ocdMap.keySet().iterator(); it.hasNext();) {
-      String pid = (String)it.next();
-      ObjectClassDefinition ocd = (ObjectClassDefinition)ocdMap.get(pid);
-      if(bFull) {
-	sb.append(pid + "=");
-	sb.append(ocd);
+    for (final Iterator<String> it = ocdMap.keySet().iterator(); it.hasNext();) {
+      final String pid = it.next();
+      final ObjectClassDefinition ocd = ocdMap.get(pid);
+      if (bFull) {
+        sb.append(pid + "=");
+        sb.append(ocd);
       } else {
-	sb.append(pid);
+        sb.append(pid);
       }
-      if(it.hasNext()) {
-	sb.append("\n");
+      if (it.hasNext()) {
+        sb.append("\n");
       }
     }
     sb.append("\n/MTP]");
 
-    
     return sb.toString();
   }
 
-  public String getId() {
+  public String getId()
+  {
     return id;
   }
 
-  public int compareTo(Object other) {
-    return id.compareTo(((MTP)other).id);
+  public int compareTo(MTP o)
+  {
+    return id.compareTo(o.id);
   }
-  
-  public int hashCode() {
+
+  @Override
+  public int hashCode()
+  {
     return id.hashCode();
   }
-  
-  public boolean equals(Object other) {
-    if(other == null || !(other instanceof MTP)) {
+
+  @Override
+  public boolean equals(Object other)
+  {
+    if (other == null || !(other instanceof MTP)) {
       return false;
     }
 
-    return id.equals(((MTP)other).id);
+    return id.equals(((MTP) other).id);
   }
 
-
 }
- 

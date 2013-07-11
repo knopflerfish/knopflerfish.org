@@ -4,22 +4,24 @@ BODY  {
 }
 
 #main {
-  width: 887; 
+  width: 1000; 
   background: #fff;
   border:		1px solid #000;
 	/* 	padding: 10px 50px 10px 50px;  */
   margin: 0px auto;
   /*   position: relative;	 */
-  font-family: Helvetica, sans-serif;
-  font-size: 12px;
+  font-family: Lucida Grande, Tahoma, Helvetica, sans-serif;
+  /* font-size: 12.8px; */
   padding: 0px 0px 0px 0px;
 }
 
 #mainblock {
   margin-left: 210px; 
   padding-right: 15px;
-  font-family: Helvetica, sans-serif;
-  font-size: 12px;
+  font-family: "Lucida Grande", Tahoma, Lucida Sans, Verdana, Helvetica, sans-serif;
+  font-size: 12.8px;
+  font-size: 10pt;
+  font-size: 0.8em;
 }
 
 #mainblock_obr {
@@ -29,20 +31,56 @@ BODY  {
 }
 
 #header {
-  margin-bottom: 30px;
+  background: #0B2229;
+  margin-bottom: 40px;
+  height: 70px;
 }
 
 #header_logo {
-  background: #0B2229;
-  padding: 7px 0px 0px 15px;
-  height: 65px;
+  /* padding: 7px 0px 0px 15px; */
+  padding: 7px 0 0 15px;
+  float:left;
+}
+
+#header_centerbox {
+    background: #0B2229;
+    height: 65px;
+    width: 400px;
+    float:left;
+    text-align: center;
+}
+
+.header_centerinfo_top {
+    font-size: 0.75em;
+    color: #cccccc;
+    margin: 10px 0px 0px 40px;
+}
+
+.header_centerinfo_bottom {
+    font-size: 1.2em;
+    color: #cccccc;
+    margin: 7px 0px 0px 60px;
+    font-weight: bold;
+}
+    
+#header_rightinfo {
+    background: #0B2229;
+    font-size: 10px;
+    color: #cccccc;
+    padding-top: 10px;
+    padding-right: 20px;
+    text-align: right;
+    margin-left: 0px;
+    height: 65px;
 }
 
 #header_fade {
   height: 10px;
   background-image: url('../images/fadeout_15.png');
   background-repeat: repeat-x;
+  clear:both;
 }
+
 
 #leftmenu {
   margin-left: 10px;
@@ -64,8 +102,8 @@ DL.leftmenu2_last {
 }
 
 DT.leftmenu2 {
-  font-family:	Helvetica, sans-serif;
-  font-size:	13px;
+  /* font-family:	Lucida Grande, Helvetica, sans-serif; */
+  font-size:	0.8em;
   font-weight:	bold;
   padding:	0px 0px 0px 0px;
   margin:	0px 0px 0px 0px;
@@ -74,17 +112,17 @@ DT.leftmenu2 {
 
 
 DD.leftmenu2  {
-  font-family:	Helvetica, sans-serif;
-  font-size:	12px;
+    /* font-family:	 Lucida Grande, Tahoma, Helvetica, sans-serif; */
+  font-size:	0.8em;
   padding:	0px 0px 0px 12px;
   margin:	0px 0px 0px 0px;
-  background-image: url('/images/slash_small.jpg');
+  /* background-image: url('/images/slash_small.jpg'); */
   background-repeat: no-repeat;
   background-position: 0 .5em;
 }
 
 DD.leftmenu3  {
-  font-family:	Helvetica, sans-serif;
+  font-family:	 Lucida Grande, Tahoma,Helvetica, sans-serif;
   font-size:	12px;
   padding:	0px 0px 0px 24px;
   margin:	0px 0px 0px 0px;
@@ -94,7 +132,7 @@ DD.leftmenu3  {
 }
 
 DD.leftmenu4  {
-  font-family:	Helvetica, sans-serif;
+  font-family:	 Lucida Grande, Tahoma,Helvetica, sans-serif;
   font-size:	12px;
   padding:	0px 0px 0px 32px;
   margin:	0px 0px 0px 0px;
@@ -120,18 +158,20 @@ DD.leftmenu4  {
 }	  
 
 H1, H1.kf {
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size:20px;
+    font-family: Helvetica Neue, Helvetica, Verdana, Arial, Helvetica, sans-serif;
+    font-size: 2em;
     font-weight:bold;
     border-style: solid;
     border-color: #802060;
     border-width: 0px 0px 1px 0px;
     padding-bottom: 2px;
+    margin: 2.0em 0 0.6em 0;
+    color: #444444;
 }
 
 H2.kf  {
-    font-family: Verdana, Arial, Helvetica, sans-serif;
-    font-size:	14px;
+    font-family: Lucida Grande, Verdana, Arial, Helvetica, sans-serif;
+    font-size:	1.3em;
     font-weight:bold;
     border-style: solid;
     color:		#444444;
@@ -140,7 +180,8 @@ H2.kf  {
     border-width:	1px 0px 1px 0px;
     background-image: url('../images/shortfadeout_20px.png');
     background-repeat: repeat-x;
-    padding:	2px 0px 2px 4px
+    padding:	3px 0px 3px 6px;
+    margin: 1.4em 0 0.8em 0;
 }
 
 H2 {
@@ -230,9 +271,9 @@ A {
 }
 
 PRE {
- font-family: Courier New, Courier;
- font-size:11px;
- color:000000;
+ font-family: Monaco, Courier New, Courier;
+ font-size:12px;
+ color:#000000;
  text-align:left;
  font-weight:normal;
 }
@@ -242,6 +283,7 @@ PRE.code {
     border-color: #ddddff;
     border-width: 1px;
     background-color: #f7F7FF;
+    padding: 5px 0px 5px 6px;
 }
  
 pre.shell {
@@ -249,22 +291,23 @@ pre.shell {
     border-color: #d0d0d0;
     border-width: 1px;
     background-color: #f7f7f7;
+    padding: 5px 0px 5px 6px;
 }
 
 TH {
  text-align: left;
- font-family: Helvetica, sans-serif;
+ font-family:  Lucida Grande, Tahoma,Helvetica, sans-serif;
  font-size: 14px;
 }
 
 TH.fancy {
  text-align: center;
- font-family: Helvetica, sans-serif;
+ font-family:  Lucida Grande, Tahoma,Helvetica, sans-serif;
  font-size: 12px;
 }
 
 TD {
-  font-family: Helvetica, sans-serif;
+  font-family:  Lucida Grande, Tahoma,Helvetica, sans-serif;
   font-size: 12px;
   vertical-align: top;
 }
@@ -353,4 +396,29 @@ table.kf td.kfpro {
     /* background-image: url('../images/knopflerfish_pro.png');*/
     background-repeat: no-repeat;
     background-position: center center;
+}
+
+code {
+    font-family: Monaco, Courier;
+    font-size: 0.9em;
+}
+
+tt {
+    font-family: Monaco, Courier;
+    font-size: 0.9em;
+}
+
+
+.note_group {
+    margin: 1.5em 0 0.5em 0;
+}
+
+.note_name {
+    font-weight: bold;
+    color:#333333;
+}
+
+.note_item {
+    display: list-item;
+    margin: 0.5em 0 0.5em 2em;
 }

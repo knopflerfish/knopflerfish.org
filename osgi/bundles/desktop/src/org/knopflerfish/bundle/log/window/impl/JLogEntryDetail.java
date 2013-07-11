@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -211,8 +212,8 @@ public class JLogEntryDetail extends JPanel {
   void showFirst() {
     if(entry != null && table != null) {
       try {
-        java.util.List entries = table.model.getEntries();
-        ExtLogEntry e = (ExtLogEntry)entries.get(0);
+        List<ExtLogEntry> entries = table.model.getEntries();
+        ExtLogEntry e = entries.get(0);
         if(e != null) {
           setEntry(e);
 
@@ -226,8 +227,8 @@ public class JLogEntryDetail extends JPanel {
   void showLast() {
     if(entry != null && table != null) {
       try {
-        java.util.List entries = table.model.getEntries();
-        ExtLogEntry e = (ExtLogEntry)entries.get(entries.size() - 1);
+        List<ExtLogEntry> entries = table.model.getEntries();
+        ExtLogEntry e = entries.get(entries.size() - 1);
         if(e != null) {
           setEntry(e);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,41 +34,49 @@
 
 package org.knopflerfish.bundle.http;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.http.HttpService;
 
-public class HttpServiceFactory implements ServiceFactory {
+import org.knopflerfish.service.log.LogRef;
 
-    // private fields
+public class HttpServiceFactory
+  implements ServiceFactory<HttpService>
+{
 
-    private final LogRef log;
+  // private fields
 
-    private final Registrations registrations;
+  private final LogRef log;
 
-    private final ServletContextManager contextManager;
+  private final Registrations registrations;
 
-    // constructors
+  private final ServletContextManager contextManager;
 
-    public HttpServiceFactory(final LogRef log,
-            final Registrations registrations,
-            final ServletContextManager contextManager) {
+  // constructors
 
-        this.log = log;
-        this.registrations = registrations;
-        this.contextManager = contextManager;
-    }
+  public HttpServiceFactory(final LogRef log,
+                            final Registrations registrations,
+                            final ServletContextManager contextManager)
+  {
+    this.log = log;
+    this.registrations = registrations;
+    this.contextManager = contextManager;
+  }
 
-    // implements ServiceFactory
+  // implements ServiceFactory
 
-    public Object getService(Bundle bundle, ServiceRegistration serviceReg) {
-        return new HttpServiceImpl(bundle, log, registrations, contextManager);
-    }
+  public HttpService getService(Bundle bundle,
+                                ServiceRegistration<HttpService> serviceReg)
+  {
+    return new HttpServiceImpl(bundle, log, registrations, contextManager);
+  }
 
-    public void ungetService(Bundle bundle, ServiceRegistration serviceReg,
-            Object serviceObject) {
-        ((HttpServiceImpl) serviceObject).unregisterBundle();
-    }
+  public void ungetService(Bundle bundle,
+                           ServiceRegistration<HttpService> serviceReg,
+                           HttpService serviceObject)
+  {
+    ((HttpServiceImpl) serviceObject).unregisterBundle();
+  }
 
 } // HttpServiceFactory

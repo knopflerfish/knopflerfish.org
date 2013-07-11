@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2010, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,32 +34,36 @@
 
 package org.knopflerfish.bundle.dirdeployer;
 
-import java.util.*;
 import java.io.File;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.service.cm.ManagedService;
-import org.osgi.service.startlevel.StartLevel;
 
 /**
  * Configuration class for the directory deployer.
  *
- * This class first initalizes itself with values from
- * system properties. If it is registered as a
- * <tt>ManagedService</tt>, it also handles calls
- * to the <tt>update</tt> method. The <tt>register</tt> method
- * does this registration.
+ * This class first initializes itself with values from system properties. If it
+ * is registered as a <tt>ManagedService</tt>, it also handles calls to the
+ * <tt>update</tt> method. The <tt>register</tt> method does this registration.
  */
-public class Config implements ManagedService {
+public class Config
+  implements ManagedService
+{
 
   // PID string used for service.pid
-  static final String PID             = "org.knopflerfish.fileinstall";
+  static final String PID = "org.knopflerfish.fileinstall";
 
   // Property names used both as system properties and as CM properties
-  static final String PROP_DIRS       = PID +".dir";
-  static final String PROP_INTERVAL   = PID +".poll";
-  static final String PROP_STARTLEVEL = PID +".startlevel";
-  static final String PROP_UNINSTALL  = PID +".uninstallOnStop";
+  static final String PROP_DIRS = PID + ".dir";
+  static final String PROP_INTERVAL = PID + ".poll";
+  static final String PROP_USE_INITIAL_START_LEVEL = PID + ".use.initial.startlevel";
+  static final String PROP_STARTLEVEL = PID + ".startlevel";
+  static final String PROP_UNINSTALL = PID + ".uninstallOnStop";
 
   static final String DEFAULT_DIR = "./load";
 
@@ -67,39 +71,42 @@ public class Config implements ManagedService {
   File[] dirs = new File[0];
 
   // sleep interval for scan thread
-  long      interval = 1000;
+  long interval = 1000;
 
   // if true, uninstall all bundles when scan thread stops
   boolean uninstallOnStop = true;
 
+  // if the initial start level is enough or not.
+  boolean useInitialStartLevel = true;
+
   // start level for installed bundles
-  int     startLevel = 1;
+  int startLevel = 1;
 
   // framework registration
-  ServiceRegistration reg;
+  ServiceRegistration<ManagedService> reg;
 
-  public Config() {
+  public Config()
+  {
     // init with default values
     updated(getDefaults());
   }
 
-
-  void register() {
-    if(reg != null) {
+  void register()
+  {
+    if (reg != null) {
       return;
     }
 
-    Dictionary props = new Hashtable();
+    final Dictionary<String, Object> props = new Hashtable<String, Object>();
     props.put("service.pid", PID);
 
-    reg = Activator.bc.registerService(ManagedService.class.getName(),
-                                       this,
-                                       props);
+    reg = Activator.bc.registerService(ManagedService.class, this, props);
 
   }
 
-  void unregister() {
-    if(reg == null) {
+  void unregister()
+  {
+    if (reg == null) {
       return;
     }
 
@@ -107,87 +114,130 @@ public class Config implements ManagedService {
     reg = null;
   }
 
+  public void updated(Dictionary<String,?> props)
+  {
 
-  public void updated(Dictionary props) {
-
-    if(props == null) {
+    if (props == null) {
       props = getDefaults();
+    } else {
+      DirDeployerImpl.log("Received a new configuration.");
     }
 
-    String dirPaths = (String)props.get(PROP_DIRS);
-    if(dirPaths != null) {
-      StringTokenizer st = new StringTokenizer(dirPaths, ",");
-      dirs = new File[st.countTokens()];
+    final Object dirsValue = props.get(PROP_DIRS);
+    if (dirsValue != null) {
+      if (dirsValue instanceof String) {
+        final String dirPaths = (String) dirsValue;
+        final StringTokenizer st = new StringTokenizer(dirPaths, ",");
+        dirs = new File[st.countTokens()];
 
-      int i = 0;
-      while (st.hasMoreTokens()) {
-        File dir = new File(st.nextToken().trim());
-        dirs[i++] = dir;
+        int i = 0;
+        while (st.hasMoreTokens()) {
+          final File dir = new File(st.nextToken().trim());
+          dirs[i++] = dir;
+        }
+      } else if (dirsValue instanceof Vector<?>) {
+        @SuppressWarnings("unchecked")
+        final
+        Vector<String> dirsPaths = (Vector<String>) dirsValue;
+        dirs = new File[dirsPaths.size()];
+        int i = 0;
+        for (final String string : dirsPaths) {
+          final File dir = new File(string.trim());
+          dirs[i++] = dir;
+        }
       }
     } else {
       dirs = new File[0];
     }
 
-    Integer iVal = (Integer)props.get(PROP_STARTLEVEL);
-    if(iVal != null) {
-      startLevel = iVal.intValue();
+    final Boolean uiVal = (Boolean) props.get(PROP_USE_INITIAL_START_LEVEL);
+    if (uiVal != null) {
+      useInitialStartLevel = uiVal.booleanValue();
     }
 
-    Long lVal = (Long)props.get(PROP_INTERVAL);
-    if(lVal != null) {
+    final Integer iVal = (Integer) props.get(PROP_STARTLEVEL);
+    if (iVal != null) {
+      startLevel = iVal.intValue();
+    }
+    if (startLevel<1) {
+      startLevel = getFrameworkInitialStartLevel();
+    }
+
+    final Long lVal = (Long) props.get(PROP_INTERVAL);
+    if (lVal != null) {
       interval = lVal.longValue();
     }
 
-    Boolean uVal = (Boolean) props.get(PROP_UNINSTALL);
-    if(uVal != null) {
+    final Boolean uVal = (Boolean) props.get(PROP_UNINSTALL);
+    if (uVal != null) {
       uninstallOnStop = uVal.booleanValue();
     }
   }
 
-  Dictionary getDefaults() {
+  Dictionary<String,?> getDefaults()
+  {
 
-    final Dictionary props = new Hashtable();
+    final Dictionary<String,Object> props = new Hashtable<String,Object>();
 
     final Object dirs = Activator.bc.getProperty(PROP_DIRS);
-    props.put(PROP_DIRS, null==dirs ? DEFAULT_DIR : dirs);
+    props.put(PROP_DIRS, null == dirs ? DEFAULT_DIR : dirs);
+
+    Boolean useInitialStartLevel = Boolean.TRUE;
+    final Object useInitialStartLevelO = Activator.bc.getProperty(PROP_USE_INITIAL_START_LEVEL);
+    if (null != useInitialStartLevelO) {
+      useInitialStartLevel = new Boolean((String) useInitialStartLevelO);
+    }
+    props.put(PROP_USE_INITIAL_START_LEVEL, useInitialStartLevel);
 
     final Object startLevelO = Activator.bc.getProperty(PROP_STARTLEVEL);
     int startLevel = -1;
-    if (null!=startLevelO) {
+    if (null != startLevelO) {
       try {
         startLevel = Integer.parseInt((String) startLevelO);
-      } catch (NumberFormatException nfe){
+      } catch (final NumberFormatException nfe) {
       }
     }
-    if (-1==startLevel) {
-      // Ask the start level service for the default start level of
-      // bundles
-      StartLevel sl = (StartLevel) Activator.startLevelTracker.getService();
-      if (null!=sl) {
-        startLevel = sl.getInitialBundleStartLevel();
-      } else {
-        startLevel = 1; // Fallback to the default initial bundle start level
-      }
+    if (startLevel < 1) {
+      startLevel = getFrameworkInitialStartLevel();
     }
     props.put(PROP_STARTLEVEL, new Integer(startLevel));
 
     long intervall = 1000;
     final Object intervallO = Activator.bc.getProperty(PROP_INTERVAL);
-    if (null!=intervallO) {
+    if (null != intervallO) {
       try {
         intervall = Long.parseLong((String) intervallO);
-      } catch (NumberFormatException nfe){
+      } catch (final NumberFormatException nfe) {
       }
     }
     props.put(PROP_INTERVAL, new Long(intervall));
 
     Boolean uninstallOnStop = Boolean.TRUE;
     final Object uninstallOnStopO = Activator.bc.getProperty(PROP_UNINSTALL);
-    if (null!=uninstallOnStopO) {
+    if (null != uninstallOnStopO) {
       uninstallOnStop = new Boolean((String) uninstallOnStopO);
     }
     props.put(PROP_UNINSTALL, uninstallOnStop);
 
     return props;
+  }
+
+  /**
+   * Ask the start level service for the default start level of bundles
+   *
+   * @return the initial start level.
+   */
+  private int getFrameworkInitialStartLevel()
+  {
+    int startLevel;
+    //
+    final FrameworkStartLevel fsl =
+      Activator.bc.getBundle(0).adapt(FrameworkStartLevel.class);
+    if (null != fsl) {
+      startLevel = fsl.getInitialBundleStartLevel();
+    } else {
+      startLevel = 1; // Fallback to the default initial bundle start level
+    }
+    return startLevel;
   }
 }

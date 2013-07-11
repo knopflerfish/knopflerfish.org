@@ -199,7 +199,7 @@ public class XmlCommonHandler implements KXmlSAXHandler {
                     if (method != null)
                         method.invoke(
                             obj,
-                            new String[] {(String) attrib.get(key)});
+                            (Object[]) new String[] {(String) attrib.get(key)});
                 }
 
             }
@@ -261,7 +261,8 @@ public class XmlCommonHandler implements KXmlSAXHandler {
                     // do nothing
                 }
                 if (method != null) {
-                    method.invoke(obj, new String[] { currentText.toString().trim()});
+                    method.invoke(obj,
+                                  (Object[]) new String[] { currentText.toString().trim()});
                 }
             }
         }

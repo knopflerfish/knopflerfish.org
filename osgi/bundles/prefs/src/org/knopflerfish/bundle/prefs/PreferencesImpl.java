@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,12 @@
 
 package org.knopflerfish.bundle.prefs;
 
-import org.osgi.framework.*;
-import org.osgi.service.prefs.*;
-import org.knopflerfish.service.log.LogRef;
+import java.io.IOException;
+
+import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
+
 import org.knopflerfish.util.Base64;
-import java.util.*;
-import java.io.*;
 
 public class PreferencesImpl implements Preferences {
 
@@ -289,6 +289,7 @@ public class PreferencesImpl implements Preferences {
     }
   }
 
+  @Override
   public String toString() {
     return "Preferences[" +
       "path=" + path +
@@ -298,10 +299,12 @@ public class PreferencesImpl implements Preferences {
       "]";
   }
 
+  @Override
   public int hashCode() {
     return path.hashCode();
   }
 
+  @Override
   public boolean equals(Object other) {
     if(other == null || !(other instanceof PreferencesImpl)) {
       return false;

@@ -34,9 +34,20 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Set;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceException;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 
 
 /**
@@ -45,8 +56,13 @@ import org.osgi.framework.*;
  * @see org.osgi.framework.ServiceRegistration
  * @author Jan Stein
  */
-public class ServiceRegistrationImpl implements ServiceRegistration
+public class ServiceRegistrationImpl<S> implements ServiceRegistration<S>
 {
+  /**
+   * Bundle registering this service.
+   */
+  final FrameworkContext fwCtx;
+
   /**
    * Bundle registering this service.
    */
@@ -60,7 +76,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   /**
    * Reference object to this service registration.
    */
-  ServiceReferenceImpl reference;
+  ServiceReferenceImpl<S> reference;
 
   /**
    * Service properties.
@@ -71,28 +87,28 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * Bundles dependent on this service. Integer is used as
    * reference counter, counting number of unbalanced getService().
    */
-  private Hashtable /*Bundle->Integer*/ dependents = new Hashtable();
+  private Hashtable<Bundle,Integer> dependents = new Hashtable<Bundle, Integer>();
 
   /**
    * Object instances that factory has produced.
    */
-  private HashMap /*Bundle->Object*/ serviceInstances = new HashMap();
+  private HashMap<Bundle,S> serviceInstances = new HashMap<Bundle, S>();
 
   /**
    * Unget in progress for bundle in set.
    */
-  private HashSet /*Bundle*/ ungetInProgress = new HashSet();
+  private final HashSet<Bundle> ungetInProgress = new HashSet<Bundle>();
 
   /**
    * Is service available. I.e., if <code>true</code> then holders
-   * of a ServiceReference for the serivice are allowed to get it.
+   * of a ServiceReference for the service are allowed to get it.
    */
   private volatile boolean available;
 
   /**
    * Lock object for synchronous event delivery.
    */
-  private Object eventLock = new Object();
+  private final Object eventLock = new Object();
 
   /**
    * Avoid recursive unregistrations. I.e., if <code>true</code> then
@@ -117,10 +133,11 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * @param props Properties describing service.
    */
   ServiceRegistrationImpl(BundleImpl b, Object s, PropertiesDictionary props) {
+    fwCtx = b.fwCtx;
     bundle = b;
     service = s;
     properties = props;
-    reference = new ServiceReferenceImpl(this);
+    reference = new ServiceReferenceImpl<S>(this);
     available = true;
   }
 
@@ -133,8 +150,8 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    *
    * @see org.osgi.framework.ServiceRegistration#getReference
    */
-  public ServiceReference getReference() {
-    ServiceReference res = reference;
+  public ServiceReference<S> getReference() {
+    final ServiceReference<S> res = reference;
     if (res != null) {
       return res;
     } else {
@@ -148,34 +165,34 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    *
    * @see org.osgi.framework.ServiceRegistration#setProperties
    */
-  public void setProperties(Dictionary props) {
+  public void setProperties(Dictionary<String,?> props) {
     synchronized (eventLock) {
       if (available) {
-        Set before;
-        // TBD, optimize the locking of services
-        synchronized (bundle.fwCtx.services) {
+        Set<ServiceListenerEntry> before;
+        // TODO, optimize the locking of services
+        synchronized (fwCtx.services) {
           synchronized (properties) {
             // NYI! Optimize the MODIFIED_ENDMATCH code
-            Object old_rank = properties.get(Constants.SERVICE_RANKING);
-            before = bundle.fwCtx.listeners.getMatchingServiceListeners(reference);
-            String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
-            Long sid = (Long)properties.get(Constants.SERVICE_ID);
+            final Object old_rank = properties.get(Constants.SERVICE_RANKING);
+            before = fwCtx.listeners.getMatchingServiceListeners(reference);
+            final String[] classes = (String[])properties.get(Constants.OBJECTCLASS);
+            final Long sid = (Long)properties.get(Constants.SERVICE_ID);
             properties = new PropertiesDictionary(props, classes, sid);
-            Object new_rank = properties.get(Constants.SERVICE_RANKING);
+            final Object new_rank = properties.get(Constants.SERVICE_RANKING);
             if (old_rank != new_rank && new_rank instanceof Integer &&
                 !((Integer)new_rank).equals(old_rank)) {
-              bundle.fwCtx.services.updateServiceRegistrationOrder(this, classes);
+              fwCtx.services.updateServiceRegistrationOrder(this, classes);
             }
           }
         }
-        bundle.fwCtx.perm
-          .callServiceChanged(bundle.fwCtx,
-                              bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+        fwCtx.perm
+          .callServiceChanged(fwCtx,
+                              fwCtx.listeners.getMatchingServiceListeners(reference),
                               new ServiceEvent(ServiceEvent.MODIFIED, reference),
                               before);
         if (!before.isEmpty()) {
-          bundle.fwCtx.perm
-            .callServiceChanged(bundle.fwCtx,
+          fwCtx.perm
+            .callServiceChanged(fwCtx,
                                 before,
                                 new ServiceEvent(ServiceEvent.MODIFIED_ENDMATCH, reference),
                                 null);
@@ -199,7 +216,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
 
       if (available) {
         if (null!=bundle) {
-          bundle.fwCtx.services.removeServiceRegistration(this);
+          fwCtx.services.removeServiceRegistration(this);
         }
       } else {
         throw new IllegalStateException("Service is unregistered");
@@ -207,18 +224,18 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     }
 
     if (null!=bundle) {
-      bundle.fwCtx.perm
-        .callServiceChanged(bundle.fwCtx,
-                            bundle.fwCtx.listeners.getMatchingServiceListeners(reference),
+      fwCtx.perm
+        .callServiceChanged(fwCtx,
+                            fwCtx.listeners.getMatchingServiceListeners(reference),
                             new ServiceEvent(ServiceEvent.UNREGISTERING, reference),
                             null);
     }
     synchronized (eventLock) {
       available = false;
-      Bundle [] using = getUsingBundles();
+      final Bundle [] using = getUsingBundles();
       if (using != null) {
-        for (int i = 0; i < using.length; i++) {
-          ungetService(using[i], false);
+        for (final Bundle element : using) {
+          ungetService(element, false);
         }
       }
       synchronized (properties) {
@@ -258,12 +275,12 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * @param bundle requester of service.
    * @return Service requested or null in case of failure.
    */
-  Object getService(Bundle b) {
+  S getService(Bundle b) {
     Integer ref;
     BundleImpl sBundle = null;
     synchronized (properties) {
       if (available) {
-        ref = (Integer)dependents.get(b);
+        ref = dependents.get(b);
         if (service instanceof ServiceFactory) {
           if (ref == null) {
             dependents.put(b, new Integer(0));
@@ -275,39 +292,39 @@ public class ServiceRegistrationImpl implements ServiceRegistration
           }
         } else {
           dependents.put(b, new Integer(ref != null ? ref.intValue() + 1 : 1));
-          return service;
+          @SuppressWarnings("unchecked")
+          final
+          S res = (S) service;
+          return res;
         }
         sBundle = bundle;
       } else {
         return null;
       }
     }
-    Object s = null;
+    S s = null;
     if (ref == null) {
       try {
         s = sBundle.fwCtx.perm.callGetService(this, b);
         if (s == null) {
-          sBundle.fwCtx.listeners.frameworkWarning
-            (sBundle,
+          sBundle.fwCtx.frameworkWarning(sBundle,
              new ServiceException("ServiceFactory produced null",
                                   ServiceException.FACTORY_ERROR));
         }
-      } catch (Throwable pe) {
-        sBundle.fwCtx.listeners.frameworkError
-          (sBundle,
-           new ServiceException("ServiceFactory throw an exception",
+      } catch (final Throwable pe) {
+        sBundle.fwCtx.frameworkError(sBundle,
+            new ServiceException("ServiceFactory throw an exception",
                                 ServiceException.FACTORY_EXCEPTION, pe));
       }
       if (s != null) {
-        String[] classes = (String[])getProperty(Constants.OBJECTCLASS);
-        for (int i = 0; i < classes.length; i++) {
-          final String cls = classes[i];
+        final String[] classes = (String[])getProperty(Constants.OBJECTCLASS);
+        for (final String classe : classes) {
+          final String cls = classe;
           if (!sBundle.fwCtx.services.checkServiceClass(s, cls)) {
-            sBundle.fwCtx.listeners.frameworkError
-              (sBundle,
-               new ServiceException("ServiceFactory produced an object " +
-                                    "that did not implement: " + cls,
-                                    ServiceException.FACTORY_ERROR));
+            sBundle.fwCtx.frameworkError(sBundle,
+                new ServiceException("ServiceFactory produced an object " +
+                                     "that did not implement: " + cls,
+                                     ServiceException.FACTORY_ERROR));
             s = null;
             break;
           }
@@ -335,7 +352,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
           }
           try {
             properties.wait(500);
-          } catch (InterruptedException ie) { }
+          } catch (final InterruptedException ie) { }
           if (dependents == null || !dependents.containsKey(b)) {
             // Service has been returned
             break;
@@ -360,8 +377,8 @@ public class ServiceRegistrationImpl implements ServiceRegistration
     if (recall) {
       try {
         sBundle.fwCtx.perm.callUngetService(this, b, s);
-      } catch (Throwable e) {
-        sBundle.fwCtx.listeners.frameworkError(sBundle, e);
+      } catch (final Throwable e) {
+        sBundle.fwCtx.frameworkError(sBundle, e);
       }
       return null;
     } else {
@@ -370,17 +387,17 @@ public class ServiceRegistrationImpl implements ServiceRegistration
   }
 
   Bundle[] getUsingBundles() {
-    Hashtable d = dependents;
+    final Hashtable<Bundle, Integer> d = dependents;
     if (d != null) {
       synchronized (d) {
         int size = d.size() + ungetInProgress.size();
         if (size > 0) {
-          Bundle[] res =  new Bundle[size];
-          for (Enumeration e = d.keys(); e.hasMoreElements(); ) {
-            res[--size] = (Bundle)e.nextElement();
+          final Bundle[] res =  new Bundle[size];
+          for (final Enumeration<Bundle> e = d.keys(); e.hasMoreElements(); ) {
+            res[--size] = e.nextElement();
           }
-          for (Iterator i = ungetInProgress.iterator(); i.hasNext(); ) {
-            res[--size] = (Bundle)i.next();
+          for (final Bundle b : ungetInProgress) {
+            res[--size] = b;
           }
           return res;
         }
@@ -396,7 +413,7 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * @return true if bundle uses this service
    */
   boolean isUsedByBundle(Bundle b) {
-    Hashtable deps = dependents;
+    final Hashtable<Bundle, Integer> deps = dependents;
     if (deps != null) {
       return deps.containsKey(b);
     } else {
@@ -408,26 +425,26 @@ public class ServiceRegistrationImpl implements ServiceRegistration
    * Unget the service object.
    *
    * @param b Bundle who wants remove service.
-   * @param checkRefCounter If true decrement refence counter and remove service
+   * @param checkRefCounter If true decrement reference counter and remove service
    *                        if we reach zero. If false remove service without
-   *                        checking refence counter.
+   *                        checking reference counter.
    * @return True if service was used, otherwise false.
-   *          
+   *
    */
   boolean ungetService(Bundle b, boolean checkRefCounter) {
-    Object serviceToRemove = null;
-    Hashtable deps;
+    S serviceToRemove = null;
+    Hashtable<Bundle,Integer> deps;
     BundleImpl sBundle;
     synchronized (properties) {
       if (dependents == null) {
         return false;
       }
-      Object countInteger = dependents.get(b);
+      final Object countInteger = dependents.get(b);
       if (countInteger == null) {
         return false;
       }
-  
-      int count = ((Integer) countInteger).intValue();
+
+      final int count = ((Integer) countInteger).intValue();
       if (checkRefCounter && count > 1) {
         dependents.put(b, new Integer(count - 1));
       } else {
@@ -445,8 +462,8 @@ public class ServiceRegistrationImpl implements ServiceRegistration
       if (service instanceof ServiceFactory) {
         try {
           sBundle.fwCtx.perm.callUngetService(this, b, serviceToRemove);
-        } catch (Throwable e) {
-          sBundle.fwCtx.listeners.frameworkError(sBundle, e);
+        } catch (final Throwable e) {
+          sBundle.fwCtx.frameworkError(sBundle, e);
         }
       }
     }

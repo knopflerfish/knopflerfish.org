@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,23 +46,21 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.PushbackReader;
-import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.osgi.framework.Constants;
+import org.osgi.service.cm.ConfigurationAdmin;
+
 import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
-import org.osgi.framework.Constants;
-
-import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * Persistent storage of configuration data
- * 
+ *
  * @author Per Gustafson
- * @version $Revision: 1.1.1.1 $
  */
 
 class ConfigurationStore {
@@ -80,9 +78,10 @@ class ConfigurationStore {
 
     private Properties pidToFileName;
 
-    private Hashtable factoryPidToPids;
+    private Hashtable<String, Object> factoryPidToPids;
 
-    private Hashtable cache = new Hashtable();
+    private Hashtable<String, ConfigurationDictionary> cache
+      = new Hashtable<String, ConfigurationDictionary>();
 
     private CMDataReader cmDataReader = new CMDataReader();
 
@@ -94,17 +93,17 @@ class ConfigurationStore {
         pidToFileName = createAndLoadProperties(pidDataFile);
         factoryPidToPids = loadHashtable(factoryPidDataFile);
         if (factoryPidToPids == null) {
-            factoryPidToPids = new Hashtable();
+            factoryPidToPids = new Hashtable<String, Object>();
         }
     }
 
-    public synchronized Enumeration listPids() {
+    public synchronized Enumeration<Object> listPids() {
         return pidToFileName.keys();
     }
 
     public synchronized ConfigurationDictionary load(String pid)
             throws IOException {
-        String fileName = (String) pidToFileName.get(pid);
+        String fileName = (String) pidToFileName.getProperty(pid);
         if (fileName == null) {
             return null;
         }
@@ -113,13 +112,15 @@ class ConfigurationStore {
 
     public synchronized ConfigurationDictionary[] loadAll(String factoryPid)
             throws IOException {
-        Vector v = (Vector) factoryPidToPids.get(factoryPid);
+        @SuppressWarnings("unchecked")
+        Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
         if (v == null) {
             return null;
         }
-        Vector loaded = new Vector();
+        Vector<ConfigurationDictionary> loaded
+          = new Vector<ConfigurationDictionary>();
         for (int i = 0; i < v.size(); ++i) {
-            ConfigurationDictionary d = load((String) v.elementAt(i));
+            ConfigurationDictionary d = load(v.elementAt(i));
             if (d != null) {
                 loaded.addElement(d);
             }
@@ -130,12 +131,15 @@ class ConfigurationStore {
         return configurations;
     }
 
-    public synchronized void store(String pid, String factoryPid,
-            Dictionary configuration) throws IOException {
-        String fileName = fileNameOf(pid, factoryPid);
+  public synchronized void store(String pid,
+                                 String factoryPid,
+                                 ConfigurationDictionary configuration)
+      throws IOException
+  {
+    String fileName = fileNameOf(pid, factoryPid);
 
-        storeConfigurationDictionary(configuration, fileName);
-    }
+    storeConfigurationDictionary(configuration, fileName);
+  }
 
     public synchronized ConfigurationDictionary delete(String pid)
             throws IOException {
@@ -152,7 +156,8 @@ class ConfigurationStore {
         uncacheConfigurationDictionary(fileName);
         String fpid = (String) d.get(ConfigurationAdmin.SERVICE_FACTORYPID);
         if (fpid != null) {
-            Vector v = (Vector) factoryPidToPids.get(fpid);
+            @SuppressWarnings("unchecked")
+            Vector<String> v = (Vector<String>) factoryPidToPids.get(fpid);
             if (v.removeElement(pid)) {
                 storeHashtable(factoryPidToPids, factoryPidDataFile);
             }
@@ -166,11 +171,12 @@ class ConfigurationStore {
     }
 
     public synchronized void deleteAll(String factoryPid) throws IOException {
-        Vector v = (Vector) factoryPidToPids.get(factoryPid);
+        @SuppressWarnings("unchecked")
+        Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
         if (v == null) {
             return;
         }
-        Enumeration e = v.elements();
+        Enumeration<String> e = v.elements();
         while (e.hasMoreElements()) {
             delete((String) e.nextElement());
         }
@@ -188,7 +194,7 @@ class ConfigurationStore {
             if (is != null) {
                 is.close();
             }
-            suffix = (String) p.get(factoryPid);
+            suffix = p.getProperty(factoryPid);
         }
         if (suffix == null) {
             suffix = new Long(0).toString();
@@ -211,7 +217,7 @@ class ConfigurationStore {
         if (pid == null) {
             return null;
         }
-        String s = (String) pidToFileName.get(pid);
+        String s = pidToFileName.getProperty(pid);
         if (s == null) {
             s = generateNewFileName(pid, factoryPid);
         }
@@ -222,7 +228,7 @@ class ConfigurationStore {
             throws IOException {
         final String lastUsedFileNumber = "lastUsedFileNumber";
 
-        String fileNumber = (String) storeData.get(lastUsedFileNumber);
+        String fileNumber = storeData.getProperty(lastUsedFileNumber);
         if (fileNumber == null) {
             fileNumber = new Long(0).toString();
         } else {
@@ -233,9 +239,10 @@ class ConfigurationStore {
         storeProperties(storeData, storeDataFile);
 
         if (factoryPid != null) {
-            Vector v = (Vector) factoryPidToPids.get(factoryPid);
+            @SuppressWarnings("unchecked")
+            Vector<String> v = (Vector<String>) factoryPidToPids.get(factoryPid);
             if (v == null) {
-                v = new Vector();
+                v = new Vector<String>();
             }
             v.addElement(pid);
             factoryPidToPids.put(factoryPid, v);
@@ -273,7 +280,7 @@ class ConfigurationStore {
     }
 
     // ////////////////////
-    private Hashtable loadHashtable(String fileName) throws IOException {
+    private Hashtable<String, Object> loadHashtable(String fileName) throws IOException {
         if (fileName == null) {
             return null;
         }
@@ -287,7 +294,7 @@ class ConfigurationStore {
                 new InputStreamReader(new FileInputStream(f),
                         CMDataReader.ENCODING), 8192), 8);
 
-        Hashtable h = null;
+        Hashtable<String,Object> h = null;
         try {
             h = cmDataReader.readCMData(r);
         } catch (Exception e) {
@@ -302,7 +309,7 @@ class ConfigurationStore {
         return h;
     }
 
-    private void storeHashtable(Hashtable h, String fileName)
+    private void storeHashtable(Hashtable<String, Object> h, String fileName)
             throws IOException {
         File f = new File(storeDir, fileName);
         PrintWriter w = new PrintWriter(new OutputStreamWriter(
@@ -318,12 +325,12 @@ class ConfigurationStore {
 
     private ConfigurationDictionary getCachedConfigurationDictionary(
             String fileName) {
-        return (ConfigurationDictionary) cache.get(fileName);
+        return cache.get(fileName);
     }
 
     private void readAndCacheConfigurationDictionary(String fileName)
             throws IOException {
-        Hashtable h = loadHashtable(fileName);
+        Hashtable<String, Object> h = loadHashtable(fileName);
         if (h != null) {
             cache.put(fileName, new ConfigurationDictionary(h));
         }
@@ -347,7 +354,7 @@ class ConfigurationStore {
         return d;
     }
 
-    private void storeConfigurationDictionary(Dictionary d, String fileName)
+    private void storeConfigurationDictionary(ConfigurationDictionary d, String fileName)
             throws IOException {
         uncacheConfigurationDictionary(fileName);
         File f = new File(storeDir, fileName);
