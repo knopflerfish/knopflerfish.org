@@ -1,3 +1,272 @@
+2013-07-09 17:21:34 +0200 (Tue, 09 Jul 2013), revision 4036, jan
+SCR fixes. Added error message when we get mismatch on bind, modify and unbind calls. Don't deactivate factory components when last consumer ungets service, added test case for that.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentMethod.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/resources/service.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/bundle/componentF_test/ComponentXImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/bundle/componentF_test/ComponentZImpl.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/service/componentF_test/ComponentX.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/service/componentF_test/ComponentZ.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-06-28 14:03:34 +0200 (Fri, 28 Jun 2013), revision 4034, jan
+Fixed so that bind and unbind is called for all references for all factory component instances.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentMethod.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/resources/service.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/bundle/componentF_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/bundle/componentF_test/ComponentXImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/bundle/componentF_test/ComponentYImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/service/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/service/componentF_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/service/componentF_test/ComponentX.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentF_test/src/org/knopflerfish/service/componentF_test/ComponentY.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-06-24 14:21:23 +0200 (Mon, 24 Jun 2013), revision 4029, jan
+Fixed a problem that caused delayed components to deadlock during deactivation. Added test case for this.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Component.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentConfiguration.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ComponentContextImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/FactoryComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ImmediateComponent.java
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/ReferenceListener.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/src/org/knopflerfish/bundle/component_test/ComponentTestSuite.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/component-api_test/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/ComponentTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/resources/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/resources/service.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/bundle/componentU_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/bundle/componentU_test/ComponentXImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/bundle/componentU_test/ComponentYImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/bundle/componentU_test/ComponentZImpl.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/service/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/service/componentU_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/service/componentU_test/ComponentX.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/service/componentU_test/ComponentY.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentU_test/src/org/knopflerfish/service/componentU_test/ComponentZ.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-06-20 11:03:08 +0200 (Thu, 20 Jun 2013), revision 4028, jan
+Fixed typo that caused  ArrayIndexOutOfBoundsException in "scr list" command.
+U   knopflerfish.org/trunk/osgi/bundles/scrcommands/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/scrcommands/src/org/knopflerfish/bundle/scrcommands/ScrCommandGroup.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-06-19 14:38:11 +0200 (Wed, 19 Jun 2013), revision 4027, jan
+Fixed NPE in framework start-level controller.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/StartLevelController.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-06-18 14:38:25 +0200 (Tue, 18 Jun 2013), revision 4025, jan
+Framework, removed faulty redundant check, when checking that all component were signed.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/doc/index.html
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-06-17 15:48:51 +0200 (Mon, 17 Jun 2013), revision 4024, jan
+Fixed problem in last framework check-in and add framework property to work around Oracle JVM bug.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/doc/index.html
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/BundleStorageImpl.java
+U   knopflerfish.org/trunk/osgi/init-tests.xargs.in
+U   knopflerfish.org/trunk/osgi/props.xargs
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-06-16 16:32:21 +0200 (Sun, 16 Jun 2013), revision 4023, jan
+Changed method name in previous check-in
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+
+2013-06-16 16:27:03 +0200 (Sun, 16 Jun 2013), revision 4022, jan
+Framework missed counting some files under META-INF when checking if a bundle was properly signed. This resulted in a faulty error message.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/bundlestorage/file/Archive.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-06-14 10:38:50 +0200 (Fri, 14 Jun 2013), revision 4020, jan
+Fixed dead link eclipse_plugin
+U   knopflerfish.org/trunk/htdocs/html_templates/template.html
+
+2013-05-29 18:31:51 +0200 (Wed, 29 May 2013), revision 3995, ekolin
+ksoap_remotefw: Add support for service properties of type Set.
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/soap/ksoap_remotefw/src/org/knopflerfish/bundle/soap/remotefw/RemoteFWServer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-05-27 11:58:24 +0200 (Mon, 27 May 2013), revision 3990, jan
+Fixed so that we can handle target filter properties that are string arrays with one element.
+U   knopflerfish.org/trunk/osgi/bundles/component/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/component/src/org/knopflerfish/bundle/component/Reference.java
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/component_test/test_target_bundles/componentA_test/resources/service.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-05-08 14:13:52 +0200 (Wed, 08 May 2013), revision 3953, jan
+Fixed NPE in event bundle caused by typo in log message creation.
+U   knopflerfish.org/trunk/osgi/bundles/event/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/InternalAdminEvent.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-04-11 11:57:33 +0200 (Thu, 11 Apr 2013), revision 3919, jan
+New device bundle, missed a minus in last patch.
+U   knopflerfish.org/trunk/osgi/bundles/device/device/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/device/device/src/org/knopflerfish/bundle/device/Activator.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-04-10 16:57:02 +0200 (Wed, 10 Apr 2013), revision 3916, jan
+Add file missed in last check-in.
+A   knopflerfish.org/trunk/osgi/bundles/util/src/org/knopflerfish/util/Timer.java
+
+2013-04-10 15:27:44 +0200 (Wed, 10 Apr 2013), revision 3915, jan
+Use System.nanoTime() when available to avoid timer problems when correcting system clock, updated device, event, http, util, desktop_awt and dirdeployer.
+U   knopflerfish.org/trunk/osgi/bundles/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/device/device/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/device/device/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/device/device/src/org/knopflerfish/bundle/device/Activator.java
+U   knopflerfish.org/trunk/osgi/bundles/event/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/InternalAdminEvent.java
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/MultiListener.java
+U   knopflerfish.org/trunk/osgi/bundles/event/src/org/knopflerfish/bundle/event/QueueHandler.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpSessionImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/build.xml
+U   knopflerfish.org/trunk/osgi/bundles/http/httpconsole/src/org/knopflerfish/bundle/httpconsole/Login.java
+U   knopflerfish.org/trunk/osgi/bundles/util/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/util/src/org/knopflerfish/util/CachedObject.java
+U   knopflerfish.org/trunk/osgi/bundles/util/src/org/knopflerfish/util/Semaphore.java
+U   knopflerfish.org/trunk/osgi/bundles/util/src/org/knopflerfish/util/workerthread/WorkerThread.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_awt/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_awt/src/org/knopflerfish/bundle/desktopawt/DesktopPanel.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/desktop_awt/src/org/knopflerfish/bundle/desktopawt/ShutdownPanel.java
+U   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles_opt/dirdeployer/src/org/knopflerfish/bundle/dirdeployer/DirDeployerImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-04-09 13:50:29 +0200 (Tue, 09 Apr 2013), revision 3911, jan
+Framework 5.3.7, use System.nanoTime() when available to avoid timer problems when correcting system clock.
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/build.xml
+U   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/src/org/knopflerfish/bundle/framework_test/FrameworkTestSuite.java
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/build.xml
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/bundle.manifest
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/src/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/src/org/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/src/org/knopflerfish/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/src/org/knopflerfish/bundle/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/src/org/knopflerfish/bundle/bundleT_test/
+A   knopflerfish.org/trunk/osgi/bundles_test/regression_tests/framework_test/test_target_bundles/bundleT_test/src/org/knopflerfish/bundle/bundleT_test/BundleActivator.java
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleThread.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/SystemBundle.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Util.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-04-05 11:57:39 +0200 (Fri, 05 Apr 2013), revision 3884, jan
+Framework 5.3.6, fix require bundle on system bundle. And SF bug#172.
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/Bundles.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-04-05 11:29:58 +0200 (Fri, 05 Apr 2013), revision 3882, jan
+Framework 5.3.6, fix require bundle on system bundle. SF bug#173.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleClassLoader.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundlePackages.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-04-02 17:58:37 +0200 (Tue, 02 Apr 2013), revision 3867, ekolin
+Allow memory leak (the transaction manager thread group) when it is not possible to stop all transaction threads at shut-down of the http server bundle.
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-04-02 10:46:32 +0200 (Tue, 02 Apr 2013), revision 3863, ekolin
+Fix memoryleak in HttpService, see https://sourceforge.net/p/gatespace/bugs/175/
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpServer.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-03-21 11:38:59 +0100 (Thu, 21 Mar 2013), revision 3840, ekolin
+Fix Bug 174; HttpService shares SimpleDateFormat objects without using any synchronization.
+U   knopflerfish.org/trunk/osgi/bundles/http/http/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/HttpUtil.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/RequestImpl.java
+U   knopflerfish.org/trunk/osgi/bundles/http/http/src/org/knopflerfish/bundle/http/ResponseImpl.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-03-21 11:30:42 +0100 (Thu, 21 Mar 2013), revision 3839, joek
+updated release notes with changes for version 5.3.5
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-03-21 10:22:25 +0100 (Thu, 21 Mar 2013), revision 3838, joek
+adding time-out to Bundle.start and Bundle.stop, framework version to 5.3.5
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/doc/index.html
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleThread.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/FWProps.java
+
+2013-02-26 14:15:26 +0100 (Tue, 26 Feb 2013), revision 3801, joek
+updated Prefs code that requires permission to use do-privileged actions, version to 3.0.2
+U   knopflerfish.org/trunk/osgi/bundles/prefs/bundle.manifest
+U   knopflerfish.org/trunk/osgi/bundles/prefs/src/org/knopflerfish/bundle/prefs/PrefsStorageFile.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-02-06 17:36:13 +0100 (Wed, 06 Feb 2013), revision 3740, jan
+New framework, fixed data directory for system bundle and fixed uninit bug and synchronization in URLStreamHandlers administration.
+U   knopflerfish.org/trunk/osgi/framework/build.xml
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/BundleImpl.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/FrameworkContext.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/ServiceURLStreamHandlerFactory.java
+U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/URLStreamHandlerWrapper.java
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-01-25 13:49:07 +0100 (Fri, 25 Jan 2013), revision 3618, ekolin
+Table column title shall be "Includes" not "Include".
+U   knopflerfish.org/trunk/htdocs/html_src/components_main.html
+
+2013-01-24 11:42:45 +0100 (Thu, 24 Jan 2013), revision 3617, jan
+Post 3.5.0 release update.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/release_notes.in
+
+2013-01-24 11:32:01 +0100 (Thu, 24 Jan 2013), revision 3615, jan
+Prepare 3.5.0 release.
+U   knopflerfish.org/trunk/build.xml
+U   knopflerfish.org/trunk/changelog.txt
+
 2013-01-24 09:27:05 +0100 (Thu, 24 Jan 2013), revision 3614, jan
 Fixed mutable copies for FrameworkPolicy.getPermissions().
 U   knopflerfish.org/trunk/osgi/framework/src/org/knopflerfish/framework/permissions/FrameworkPolicy.java
