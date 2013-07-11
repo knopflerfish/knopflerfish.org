@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.desktop.swing;
 import java.awt.BorderLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -51,10 +52,6 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import org.knopflerfish.bundle.desktop.event.EventReaderDispatcher;
-import org.knopflerfish.bundle.desktop.event.EventTableModel;
-import org.knopflerfish.bundle.desktop.event.JEventEntryDetail;
-import org.knopflerfish.bundle.desktop.event.JEventPanel;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -62,15 +59,20 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
 
+import org.knopflerfish.bundle.desktop.event.EventReaderDispatcher;
+import org.knopflerfish.bundle.desktop.event.EventTableModel;
+import org.knopflerfish.bundle.desktop.event.JEventEntryDetail;
+import org.knopflerfish.bundle.desktop.event.JEventPanel;
+
 public class EventDisplayer extends DefaultSwingBundleDisplayer {
 
 
   DefaultListModel          allTopics = new DefaultListModel();
   DefaultListModel          allKeys   = new DefaultListModel();
 
-  Set selectedKeys = new LinkedHashSet();
+  Set<String> selectedKeys = new LinkedHashSet<String>();
 
-  Set views = new HashSet();
+  Set<JEvent> views = new HashSet<JEvent>();
 
   public EventDisplayer(BundleContext bc) {
     super(bc, "Events", "Show events", true);
@@ -105,15 +107,15 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
     selectedKeys.add(EventConstants.MESSAGE);
   }
 
-  ServiceRegistration reg = null;
+  ServiceRegistration<EventHandler> reg = null;
 
   public void open() {
     super.open();
 
     if(reg == null) {
-      Hashtable props = new Hashtable();
+      Dictionary<String, String[]> props = new Hashtable<String, String[]>();
       props.put(EventConstants.EVENT_TOPIC,  new String[] { "*" });
-      reg = bc.registerService(EventHandler.class.getName(),
+      reg = bc.registerService(EventHandler.class,
                                eventHandler, props);
     }
   }
@@ -155,8 +157,8 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
       reg = null;
     }
 
-   for(Iterator it = views.iterator(); it.hasNext(); ) {
-      JEvent je = (JEvent)it.next();
+   for(Iterator<JEvent> it = views.iterator(); it.hasNext(); ) {
+      JEvent je = it.next();
       je.close();
     }
     views.clear();
@@ -192,8 +194,8 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
   public void valueChanged(long  bid) {
     Bundle[] bl = Activator.desktop.getSelectedBundles();
 
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JEvent comp = (JEvent)it.next();
+    for(Iterator<JComponent> it = components.iterator(); it.hasNext(); ) {
+      JEvent comp = (JEvent) it.next();
       comp.valueChanged(bl);
     }
   }
@@ -209,7 +211,6 @@ public class EventDisplayer extends DefaultSwingBundleDisplayer {
     EventTableModel       eventModel;
     EventReaderDispatcher eventDispatcher;
     JFrame frame;
-    Set panels = new HashSet();
 
     JEvent() {
       this(null);

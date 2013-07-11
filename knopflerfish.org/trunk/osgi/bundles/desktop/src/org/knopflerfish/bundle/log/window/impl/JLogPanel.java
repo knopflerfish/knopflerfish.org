@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Iterator;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -112,8 +111,7 @@ public class JLogPanel extends JPanel implements ClipboardOwner {
   void copyToClipBoard() {
     StringBuffer sb = new StringBuffer();
 
-    for(Iterator it = model.getEntries().iterator(); it.hasNext();) {
-      ExtLogEntry entry = (ExtLogEntry)it.next();
+    for(ExtLogEntry entry : model.getEntries()) {
       sb.append(entry.toString());
       sb.append("\n");
     }

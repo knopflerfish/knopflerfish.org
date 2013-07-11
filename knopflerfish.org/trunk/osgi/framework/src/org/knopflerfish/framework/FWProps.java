@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2011, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,14 @@
 package org.knopflerfish.framework;
 
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.Locale;
+import java.util.Map;
+import java.util.StringTokenizer;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
 /**
  * This class contains properties used by the framework
@@ -149,6 +154,11 @@ public class FWProps {
    */
   public final static String FALSE = "false";
 
+  /**
+   * Common new line string.
+   */
+  public static final String NL = System.getProperty("line.separator");
+
   // If set to true, use strict rules for loading classes from the
   // boot class loader. If false, accept class loading from the boot
   // class path from classes themselves on the boot class, but which
@@ -163,13 +173,13 @@ public class FWProps {
   /**
    * The properties for this framework instance.
    */
-  protected Map/* <String, String> */props = new Hashtable();
+  protected Map<String, String> props = new Hashtable<String, String>();
 
   /**
    * The default properties for this framework instance. TBD, maybe we should
    * make this JVM global!?
    */
-  protected Map/* <String, String> */props_default = new Hashtable();
+  protected Map<String, String> props_default = new Hashtable<String, String>();
 
   // If set to true, then during the UNREGISTERING event the Listener
   // can use the ServiceReference to receive an instance of the service.
@@ -187,12 +197,15 @@ public class FWProps {
   public static int javaVersionMicro = -1;
 
   static {
-    String javaVersion = System.getProperty("java.version");
+    String javaVersion = System.getProperty("java.specification.version");
+    if (javaVersion == null || javaVersion.length()==0) {
+      javaVersion = System.getProperty("java.version");
+    }
     // Value is on the form M.N.U_P[-xxx] where M,N,U,P are decimal integers
     if (null != javaVersion) {
       int startPos = 0;
       int endPos = 0;
-      int max = javaVersion.length();
+      final int max = javaVersion.length();
       while (endPos < max && Character.isDigit(javaVersion.charAt(endPos))) {
         endPos++;
       }
@@ -215,11 +228,14 @@ public class FWProps {
               javaVersionMicro = Integer.parseInt(javaVersion.substring(startPos, endPos));
             }
           }
-        } catch (NumberFormatException _nfe) {
+        } catch (final NumberFormatException _nfe) {
         }
       }
     }
   }
+
+  @SuppressWarnings("deprecation")
+  private static final String FRAMEWORK_EXECUTIONENVIRONMENT = Constants.FRAMEWORK_EXECUTIONENVIRONMENT;
 
   /**
    * Is it safe to use double-checked locking or not. It is safe if JSR 133 is
@@ -228,7 +244,7 @@ public class FWProps {
   public boolean isDoubleCheckedLockingSafe;
 
 
-  public FWProps(Map initProps, FrameworkContext fwCtx) {
+  public FWProps(Map<String, String> initProps, FrameworkContext fwCtx) {
     // Add explicitly given properties.
     props.putAll(initProps);
 
@@ -252,10 +268,10 @@ public class FWProps {
   /**
    * Retrieve boolean value of the named framework property, with a default
    * value.
-   * 
+   *
    */
   public boolean getBooleanProperty(String key) {
-    String v = getProperty(key);
+    final String v = getProperty(key);
     if (v != null) {
       return TRUE.equalsIgnoreCase(v);
     }
@@ -265,18 +281,18 @@ public class FWProps {
 
   /**
    * Retrieve the value of the named framework property, with a default value.
-   * 
+   *
    */
   public String getProperty(String key) {
     if (KEY_KEYS.equals(key)) {
       return makeKeys();
     }
-    String v = (String)props.get(key);
+    String v = props.get(key);
     if (v == null) {
       v = System.getProperty(key);
       if (v == null) {
         // We know that we don't need to trim the result
-        return (String)props_default.get(key);
+        return props_default.get(key);
       }
     }
     return v.trim();
@@ -302,9 +318,12 @@ public class FWProps {
   }
 
 
-  public Dictionary getProperties() {
-    Hashtable p = new Hashtable(props_default);
-    p.putAll(System.getProperties());
+  public Dictionary<String, String> getProperties() {
+    final Hashtable<String, String> p = new Hashtable<String, String>(props_default);
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    final
+    Hashtable<String,String> sysProps = (Hashtable) System.getProperties();
+    p.putAll(sysProps);
     p.putAll(props);
     p.put(KEY_KEYS, makeKeys());
     return p;
@@ -312,16 +331,16 @@ public class FWProps {
 
 
   protected String makeKeys() {
-    StringBuffer sb = new StringBuffer();
-    for (Iterator it = props.keySet().iterator(); it.hasNext();) {
+    final StringBuffer sb = new StringBuffer();
+    for (final String string : props.keySet()) {
       if (sb.length() > 0) {
         sb.append(',');
       }
-      sb.append(it.next().toString());
+      sb.append(string.toString());
     }
-    for (Iterator it = props_default.keySet().iterator(); it.hasNext();) {
+    for (final String string : props_default.keySet()) {
       sb.append(',');
-      sb.append(it.next().toString());
+      sb.append(string.toString());
     }
     return sb.toString();
   }
@@ -332,12 +351,14 @@ public class FWProps {
    */
   protected void initProperties(FrameworkContext fwCtx) {
     setPropertyIfNotSet(Constants.FRAMEWORK_BOOTDELEGATION, "");
+    setPropertyIfNotSet(Constants.FRAMEWORK_BSNVERSION,
+                        Constants.FRAMEWORK_BSNVERSION_SINGLE);
     setPropertyIfNotSet(Constants.FRAMEWORK_BUNDLE_PARENT,
-        Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
+                        Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");
 
-    if (!props.containsKey(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)) {
-      StringBuffer ee = new StringBuffer();
+    if (!props.containsKey(FRAMEWORK_EXECUTIONENVIRONMENT)) {
+      final StringBuffer ee = new StringBuffer();
       // Always allow ee minimum
       ee.append("OSGi/Minimum-1.0");
       ee.append(",OSGi/Minimum-1.1");
@@ -349,8 +370,12 @@ public class FWProps {
           ee.append(i);
         }
       }
-      props.put(Constants.FRAMEWORK_EXECUTIONENVIRONMENT, ee.toString());
+      props.put(FRAMEWORK_EXECUTIONENVIRONMENT, ee.toString());
     }
+
+    // The actual value is created in SytemBundle.
+    setPropertyIfNotSet(Constants.FRAMEWORK_SYSTEMCAPABILITIES, "");
+    setPropertyIfNotSet(Constants.FRAMEWORK_SYSTEMCAPABILITIES_EXTRA, "");
 
     setPropertyIfNotSet(Constants.FRAMEWORK_LANGUAGE, Locale.getDefault().getLanguage());
     setPropertyIfNotSet(Constants.FRAMEWORK_LIBRARY_EXTENSIONS, "");
@@ -359,7 +384,7 @@ public class FWProps {
         Alias.unifyOsName(System.getProperty("os.name")));
 
     if (!props.containsKey(Constants.FRAMEWORK_OS_VERSION)) {
-      String ver = System.getProperty("os.version");
+      final String ver = System.getProperty("os.version");
       int maj = 0;
       int min = 0;
       int mic = 0;
@@ -367,7 +392,7 @@ public class FWProps {
       if (ver != null) {
         // Convert os.version to a reasonable default
         try {
-          StringTokenizer st = new StringTokenizer(ver.trim(), ".");
+          final StringTokenizer st = new StringTokenizer(ver.trim(), ".");
           maj = Integer.parseInt(st.nextToken());
           if (st.hasMoreTokens()) {
             qual = st.nextToken();
@@ -382,13 +407,13 @@ public class FWProps {
               }
             }
           }
-        } catch (Exception ignore) {
+        } catch (final Exception ignore) {
         }
       }
       Version osVersion;
       try {
         osVersion = new Version(maj, min, mic, qual);
-      } catch (IllegalArgumentException skip) {
+      } catch (final IllegalArgumentException skip) {
         osVersion = new Version(maj, min, mic, null);
       }
       props.put(Constants.FRAMEWORK_OS_VERSION, osVersion.toString());
@@ -405,7 +430,7 @@ public class FWProps {
 
     setPropertyIfNotSet(Constants.FRAMEWORK_STORAGE_CLEAN, "");
 
-    // NYI, fill this with values
+    // The SystemBundle will fill in this later.
     setPropertyIfNotSet(Constants.FRAMEWORK_SYSTEMPACKAGES, "");
 
     setPropertyIfNotSet(Constants.FRAMEWORK_SYSTEMPACKAGES_EXTRA, "");
@@ -421,11 +446,11 @@ public class FWProps {
     props.put(Constants.SUPPORTS_FRAMEWORK_REQUIREBUNDLE, TRUE);
     props.put(Constants.SUPPORTS_FRAMEWORK_FRAGMENT, TRUE);
     // Only first framework support framework extension
-    // NYI! Improve this in the future
-    props.put(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
+    // TODO Improve this in the future
+    setPropertyIfNotSet(Constants.SUPPORTS_FRAMEWORK_EXTENSION,
         getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 0 ? TRUE : FALSE);
     // Only first framework can support bootclasspath extension
-    // NYI! Improve this in the future
+    // TODO Improve this in the future
     setPropertyIfNotSet(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION, FALSE);
     if (getBooleanProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION)
         && !(getClass().getClassLoader() instanceof URLClassLoader && fwCtx.id == 1)) {

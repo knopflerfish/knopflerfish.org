@@ -44,6 +44,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.Event;
+import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.TopicPermission;
 
 
@@ -57,7 +58,7 @@ public class InternalAdminEvent {
 
   private Event event;
 
-  private Set handlers;
+  private Set<TrackedEventHandler> handlers;
   private TimeoutDeliver timeoutDeliver;
 
   /**
@@ -69,7 +70,7 @@ public class InternalAdminEvent {
    *          ServiceReference to the EventHandlers this event should be
    *          delivered to.
    */
-  public InternalAdminEvent(Event event, Set handlers)
+  public InternalAdminEvent(Event event, Set<TrackedEventHandler> handlers)
   {
     this.event = event;
     this.handlers = handlers;
@@ -85,7 +86,7 @@ public class InternalAdminEvent {
     return event;
   }
 
-  public Set getHandlers()
+  public Set<TrackedEventHandler> getHandlers()
   {
     return handlers;
   }
@@ -128,12 +129,11 @@ public class InternalAdminEvent {
 
   private void log(TrackedEventHandler handler, String txt)
   {
-    ServiceReference sr = handler.getServiceReference();
-    Bundle b = sr.getBundle();
+    final ServiceReference<EventHandler> sr = handler.getServiceReference();
+    final Bundle b = sr.getBundle();
     String binfo = (b != null) ?
-      "  bundle.id=" + b.getBundleId() + "  bundle.name="
-      + b.getSymbolicName() :
-      " No bundle info";
+      "  bundle.id=" + b.getBundleId() + "  bundle.name=" + b.getSymbolicName()
+      : " No bundle info";
     Activator.log.error(txt + "  Service.id="
                         + sr.getProperty(Constants.SERVICE_ID) + binfo +
                         " topic=" + event.getTopic(), sr);
@@ -141,10 +141,10 @@ public class InternalAdminEvent {
 
   private void deliverToHandles()
   {
-    Iterator i = handlers.iterator();
+    Iterator<TrackedEventHandler> i = handlers.iterator();
     try {
       while (i.hasNext()) {
-        TrackedEventHandler handler = (TrackedEventHandler) i.next();
+        TrackedEventHandler handler = i.next();
         if (Activator.timeout == 0) {
           // Deliver event without timeout
           try {

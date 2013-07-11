@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,19 +47,19 @@ public class QSort {
     }
 
     /**
-     * Sort a vector with objects compareble using a comparison function.
+     * Sort a vector with objects comparable using a comparison function.
      * 
      * @param a
      *            Vector to sort
      * @param cf
      *            comparison function
      */
-    static public void sort(Vector a, CompareFunc cf) {
+    static public <A> void sort(Vector<Object> a, CompareFunc cf) {
         sort(a, 0, a.size() - 1, cf);
     }
 
     /**
-     * Sort an array with objects compareble using a comparison function.
+     * Sort an array with objects comparable using a comparison function.
      * 
      * @param a
      *            Array to sort
@@ -76,7 +76,7 @@ public class QSort {
      * keys.
      * 
      * @param a
-     *            an array with items compareble using a sort function
+     *            an array with items comparable using a sort function
      * @param lo0
      *            left boundary of array partition
      * @param hi0
@@ -144,7 +144,7 @@ public class QSort {
     /**
      * Vector implementation...exactly as array version above
      */
-    static void sort(Vector a, int lo0, int hi0, CompareFunc cf) {
+    static void sort(Vector<Object> a, int lo0, int hi0, CompareFunc cf) {
         int lo = lo0;
         int hi = hi0;
         Object mid;
@@ -185,7 +185,7 @@ public class QSort {
         a[j] = tmp;
     }
 
-    private static void swap(Vector a, int i, int j) {
+    private static void swap(Vector<Object> a, int i, int j) {
         Object tmp = a.elementAt(i);
         a.setElementAt(a.elementAt(j), i);
         a.setElementAt(tmp, j);

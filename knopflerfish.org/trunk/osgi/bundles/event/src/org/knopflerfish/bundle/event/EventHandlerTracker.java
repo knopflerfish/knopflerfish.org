@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,35 @@
 
 package org.knopflerfish.bundle.event;
 
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Map.Entry;
+import java.util.Set;
+
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.event.EventHandler;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
-import java.util.*;
 
-
-public class EventHandlerTracker implements ServiceTrackerCustomizer {
+public class EventHandlerTracker
+  implements ServiceTrackerCustomizer<EventHandler, TrackedEventHandler>
+{
   private final BundleContext bc;
-  private final ServiceTracker tracker;
-  private final Hashtable topicsToHandlers = new Hashtable();
-  private final Hashtable wildcardsToHandlers = new Hashtable();
+  private final ServiceTracker<EventHandler, TrackedEventHandler> tracker;
+  private final Hashtable<String, Set<TrackedEventHandler>> topicsToHandlers
+    = new Hashtable<String, Set<TrackedEventHandler>>();
+  private final Hashtable<String, Set<TrackedEventHandler>> wildcardsToHandlers
+    = new Hashtable<String, Set<TrackedEventHandler>>();
 
-  public EventHandlerTracker(BundleContext bc) {
+  public EventHandlerTracker(BundleContext bc)
+  {
     this.bc = bc;
-    tracker = new ServiceTracker(bc, EventHandler.class.getName(), this);
+    tracker = new ServiceTracker<EventHandler, TrackedEventHandler>(
+                                                                    bc,
+                                                                    EventHandler.class,
+                                                                    this);
   }
 
   public void open() {
@@ -65,22 +76,25 @@ public class EventHandlerTracker implements ServiceTrackerCustomizer {
   }
 
 
-  public Object addingService(ServiceReference serviceReference) {
-    EventHandler eh = (EventHandler) bc.getService(serviceReference);
-    if(eh != null) {
+  public TrackedEventHandler addingService(ServiceReference<EventHandler> serviceReference)
+  {
+    EventHandler eh = bc.getService(serviceReference);
+    if (eh != null) {
       return TrackedEventHandler.create(this, serviceReference, eh);
     } else {
       return null;
     }
   }
 
-  public void modifiedService(ServiceReference serviceReference, Object o) {
-    TrackedEventHandler teh = (TrackedEventHandler) o;
-    teh.update(serviceReference);  
+  public void modifiedService(ServiceReference<EventHandler> serviceReference,
+                              TrackedEventHandler teh)
+  {
+    teh.update(serviceReference);
   }
 
-  public void removedService(ServiceReference serviceReference, Object o) {
-    TrackedEventHandler teh = (TrackedEventHandler) o;
+  public void removedService(ServiceReference<EventHandler> serviceReference,
+                             TrackedEventHandler teh)
+  {
     teh.destroy();
     bc.ungetService(serviceReference);
   }
@@ -93,23 +107,25 @@ public class EventHandlerTracker implements ServiceTrackerCustomizer {
     addToSetIn(wildcard, teh, wildcardsToHandlers);
   }
 
-  private static void addToSetIn(String key, TrackedEventHandler teh, Hashtable h) {
-    Set s = null;
-    synchronized(h) {
-      s = (Set)h.get(key);
-      if(s == null) {
-        s = new HashSet();
+  private static void addToSetIn(String key,
+                                 TrackedEventHandler teh,
+                                 Hashtable<String, Set<TrackedEventHandler>> h)
+  {
+    Set<TrackedEventHandler> s = null;
+    synchronized (h) {
+      s = h.get(key);
+      if (s == null) {
+        s = new HashSet<TrackedEventHandler>();
         h.put(key, s);
       }
     }
-    synchronized(s) {
+    synchronized (s) {
       s.add(teh);
       teh.referencedIn(s);
     }
   }
 
-
-  private static void addSetMatching(Set result, Set matching) {
+  private static <A> void addSetMatching(Set<A> result, Set<A> matching) {
     if (matching != null) {
       synchronized (matching) {
         result.addAll(matching);
@@ -118,39 +134,38 @@ public class EventHandlerTracker implements ServiceTrackerCustomizer {
   }
 
 
-  public Set getHandlersMatching(String topic) {
-    Set result = new HashSet();
-    addSetMatching(result, (Set)topicsToHandlers.get(topic));
+  public Set<TrackedEventHandler> getHandlersMatching(String topic)
+  {
+    Set<TrackedEventHandler> result = new HashSet<TrackedEventHandler>();
+    addSetMatching(result, topicsToHandlers.get(topic));
     synchronized (wildcardsToHandlers) {
-      Iterator wildcards = wildcardsToHandlers.entrySet().iterator(); 
-      while (wildcards.hasNext()) {
-        Map.Entry we = (Map.Entry)wildcards.next();
-        String wildcard = (String)we.getKey();
+      for (Entry<String, Set<TrackedEventHandler>> entry : wildcardsToHandlers
+          .entrySet()) {
+        String wildcard = entry.getKey();
         if (topic.startsWith(wildcard)) {
-          addSetMatching(result, (Set)we.getValue());
+          addSetMatching(result, entry.getValue());
         }
       }
     }
     return result;
   }
 
-
-  public boolean anyHandlersMatching(String topic) {
-    Set matching = (Set)topicsToHandlers.get(topic);
+  public boolean anyHandlersMatching(String topic)
+  {
+    Set<TrackedEventHandler> matching = topicsToHandlers.get(topic);
     if (matching != null && !matching.isEmpty()) {
       return true;
     }
     synchronized (wildcardsToHandlers) {
-      Iterator wildcards = wildcardsToHandlers.entrySet().iterator(); 
-      while (wildcards.hasNext()) {
-        Map.Entry we = (Map.Entry)wildcards.next();
-        String wildcard = (String)we.getKey();
-        if (topic.startsWith(wildcard)  && !((Set)we.getValue()).isEmpty()) {
+      for (Entry<String, Set<TrackedEventHandler>> entry : wildcardsToHandlers
+          .entrySet()) {
+        String wildcard = entry.getKey();
+        if (topic.startsWith(wildcard) && !entry.getValue().isEmpty()) {
           return true;
         }
       }
     }
     return false;
   }
-    
+
 }

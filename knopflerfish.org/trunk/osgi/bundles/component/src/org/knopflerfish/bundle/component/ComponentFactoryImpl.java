@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,11 @@
 
 package org.knopflerfish.bundle.component;
 
-import java.util.*;
-import org.osgi.framework.*;
+import java.util.Dictionary;
 
-import org.osgi.service.cm.*;
-import org.osgi.service.component.*;
+import org.osgi.service.component.ComponentException;
+import org.osgi.service.component.ComponentFactory;
+import org.osgi.service.component.ComponentInstance;
 
 
 class ComponentFactoryImpl implements ComponentFactory
@@ -56,13 +56,15 @@ class ComponentFactoryImpl implements ComponentFactory
   /**
    *
    */
-  public ComponentInstance newInstance(Dictionary instanceProps) {
-    FactoryComponent fc = factoryComponent;
+  public ComponentInstance newInstance(@SuppressWarnings("rawtypes") Dictionary instanceProps) {
+    final FactoryComponent fc = factoryComponent;
     if (fc != null) {
-      return fc.newInstance(instanceProps);
+      @SuppressWarnings("unchecked")
+      final
+      Dictionary<String, Object> ip = instanceProps;
+      return fc.newInstance(ip);
     }
     throw new ComponentException("Component factory has been disposed");
   }
 
 }
-  

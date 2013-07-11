@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003,2012, KNOPFLERFISH project
+ * Copyright (c) 2003,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -70,7 +71,7 @@ public class JTips extends JPanel {
   JFrame frame = null;
   String title = "Knopflerfish OSGi: tips";
 
-  java.util.List tips = new ArrayList(); // String
+  List<Tip> tips = new ArrayList<Tip>(); // String
 
   static final String sep = "<p>----</p>";
 
@@ -214,7 +215,7 @@ public class JTips extends JPanel {
   void setTip(int ix) {
     tipIx = ix;
 
-    Tip    tip = (Tip)tips.get(tipIx % tips.size());
+    Tip    tip = tips.get(tipIx % tips.size());
     String s = tip.toHTML();
     s   = Text.replace(s, "<img src=\"", "<img src=\"bundle://$(BID)/");
     s   = Text.replace(s, "$(BID)", Long.toString(Activator.getBC().getBundle().getBundleId()));

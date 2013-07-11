@@ -41,21 +41,18 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
-import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.Vector;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpSession;
-
-import java.net.URL;
 
 public class ResponseImpl
   implements Response, PoolableObject
@@ -70,9 +67,10 @@ public class ResponseImpl
 
   private boolean keepAlive = false;
 
-  private final Dictionary headers = new Hashtable();
+  private final Hashtable<String, List<String>> headers =
+    new Hashtable<String, List<String>>();
 
-  private final Vector cookies = new Vector();
+  private final Vector<Cookie> cookies = new Vector<Cookie>();
 
   private RequestImpl request = null;
 
@@ -92,10 +90,11 @@ public class ResponseImpl
 
   // private methods
 
-  private void reset(boolean reset_headers) {
-
-    if (isCommitted())
+  private void reset(boolean reset_headers)
+  {
+    if (isCommitted()) {
       throw new IllegalStateException("Cannot reset committed buffer");
+    }
 
     bodyOut.reset();
 
@@ -103,7 +102,7 @@ public class ResponseImpl
       statusCode = SC_OK;
       statusMsg = null;
 
-      HttpUtil.removeAll(headers);
+      headers.clear();
       cookies.removeAllElements();
 
       contentTypeBare = null;
@@ -116,38 +115,45 @@ public class ResponseImpl
 
   // public methods
 
-  public void init(OutputStream os, final HttpConfigWrapper httpConfig) {
+  public void init(OutputStream os, final HttpConfigWrapper httpConfig)
+  {
     this.init(os, null, httpConfig);
   }
 
-  public void init(OutputStream os, RequestImpl request,
-                   final HttpConfigWrapper httpConfig) {
+  public void init(OutputStream os,
+                   RequestImpl request,
+                   final HttpConfigWrapper httpConfig)
+  {
     this.httpConfig = httpConfig;
     this.request = request;
 
-    if (request != null)
+    if (request != null) {
       keepAlive = request.getKeepAlive();
+    }
 
-    bodyOut = new BodyOutputStream(os, this, httpConfig
-                                   .getDefaultBufferSize());
+    bodyOut = new BodyOutputStream(os, this, httpConfig.getDefaultBufferSize());
   }
 
-  public String getContentType() {
+  public String getContentType()
+  {
     return getHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY);
   }
 
-  public void resetBuffer() {
+  public void resetBuffer()
+  {
     reset(false);
   }
 
-  public boolean getKeepAlive() {
+  public boolean getKeepAlive()
+  {
     return keepAlive;
   }
 
-  public byte[] getHeaders() {
-
-    if (statusMsg == null)
+  public byte[] getHeaders()
+  {
+    if (statusMsg == null) {
       setStatus(statusCode);
+    }
 
     if (keepAlive && containsHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY)) {
       // Connection: Keep-Alive should only be set for HTTP/1.0 clients?
@@ -164,19 +170,22 @@ public class ResponseImpl
 
     // set session cookie
     HttpSession session = null;
-    if (request != null && (session = request.getSession(false)) != null)
+    if (request != null && (session = request.getSession(false)) != null) {
       addCookie(new Cookie(HttpUtil.SESSION_COOKIE_KEY, session.getId()));
+    }
 
     // set cookies
-    Enumeration e_cookies = cookies.elements();
-    while (e_cookies.hasMoreElements())
-      setCookieHeader((Cookie) e_cookies.nextElement());
+    final Enumeration<Cookie> e_cookies = cookies.elements();
+    while (e_cookies.hasMoreElements()) {
+      setCookieHeader(e_cookies.nextElement());
+    }
 
-    StringBuffer head = new StringBuffer(128);
+    final StringBuffer head = new StringBuffer(128);
 
     // append response line
-    head.append(request != null ? request.getProtocol()
-                : RequestBase.HTTP_1_0_PROTOCOL);
+    head.append(request != null
+      ? request.getProtocol()
+      : RequestBase.HTTP_1_0_PROTOCOL);
     head.append(" ");
     head.append(statusCode);
     head.append(" ");
@@ -184,10 +193,10 @@ public class ResponseImpl
     head.append("\r\n");
 
     // append headers
-    Enumeration e = headers.keys();
+    final Enumeration<String> e = headers.keys();
     while (e.hasMoreElements()) {
-      String name = (String) e.nextElement();
-      Iterator values = ((ArrayList) headers.get(name)).iterator();
+      final String name = e.nextElement();
+      final Iterator<?> values = ((ArrayList<?>) headers.get(name)).iterator();
       while (values.hasNext()) {
         head.append(name);
         head.append(": ");
@@ -200,10 +209,11 @@ public class ResponseImpl
     head.append("\r\n");
 
     // return byte buffer
-    int length = head.length();
-    byte[] headBytes = new byte[length];
-    for (int i = 0; i < length; i++)
+    final int length = head.length();
+    final byte[] headBytes = new byte[length];
+    for (int i = 0; i < length; i++) {
       headBytes[i] = (byte) head.charAt(i);
+    }
 
     return headBytes;
   }
@@ -212,83 +222,92 @@ public class ResponseImpl
   // and not thread safe; thus we try to share one instance of each
   // amongst all response object. Also note that RFC2616, 3.3.1 states
   // that all dates in HTTP-headers must be given in GMT.
-  private static final SimpleDateFormat cookieExpiresDateFormatter
-    = new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z");
-  static
-  {
+  private static final SimpleDateFormat cookieExpiresDateFormatter =
+    new SimpleDateFormat("EEE, dd-MMM-yyyy HH:mm:ss z");
+  static {
     cookieExpiresDateFormatter.setTimeZone(TimeZone.getTimeZone("GMT"));
   }
 
-  private static final GregorianCalendar cookieExpiresCalendar
-    = new GregorianCalendar();
-  private void appendCookieExpires(final StringBuffer header,
-                                   final int maxAge)
+  private static final GregorianCalendar cookieExpiresCalendar =
+    new GregorianCalendar();
+
+  private void appendCookieExpires(final StringBuffer header, final int maxAge)
   {
     synchronized (cookieExpiresDateFormatter) {
       cookieExpiresCalendar.setTimeInMillis(System.currentTimeMillis());
       cookieExpiresCalendar.add(Calendar.SECOND, maxAge);
       header.append(";Expires=");
-      header.append(cookieExpiresDateFormatter.format(cookieExpiresCalendar.getTime()));
+      header.append(cookieExpiresDateFormatter.format(cookieExpiresCalendar
+          .getTime()));
     }
   }
 
-  public void setCookieHeader(Cookie cookie) {
-
-    if (cookie == null)
+  public void setCookieHeader(Cookie cookie)
+  {
+    if (cookie == null) {
       return;
+    }
 
-    StringBuffer header = new StringBuffer(32);
+    final StringBuffer header = new StringBuffer(32);
     String attrValue;
     int maxAge;
     header.append(cookie.getName() + "=" + cookie.getValue());
-    if ((attrValue = cookie.getComment()) != null)
+    if ((attrValue = cookie.getComment()) != null) {
       header.append(";Comment=" + attrValue);
-    if ((attrValue = cookie.getDomain()) != null)
+    }
+    if ((attrValue = cookie.getDomain()) != null) {
       header.append(";Domain=" + attrValue);
+    }
     if ((maxAge = cookie.getMaxAge()) != -1) {
       if (maxAge > 0) {
         appendCookieExpires(header, maxAge);
       }
       header.append(";Max-Age=" + maxAge);
     }
-    if ((attrValue = cookie.getPath()) != null)
+    if ((attrValue = cookie.getPath()) != null) {
       header.append(";Path=" + attrValue);
-    else
+    } else {
       header.append(";Path=/");
-    if (cookie.getSecure())
+    }
+    if (cookie.getSecure()) {
       header.append(";Secure");
+    }
     header.append(";Version=" + cookie.getVersion());
 
     setHeader("Set-Cookie", header.toString());
   }
 
-  public void commit() throws IOException {
-
-    if (sos != null)
+  public void commit()
+      throws IOException
+  {
+    if (sos != null) {
       sos.flush();
+    }
 
-    if (pw != null)
+    if (pw != null) {
       pw.flush();
+    }
 
-    if (!containsHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY)
-        && !isCommitted())
+    if (!containsHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY) && !isCommitted()) {
       setContentLength(bodyOut.getBufferByteCount());
+    }
 
     flushBuffer();
   }
 
   // implements PoolableObject
 
-  public void init() {
+  public void init()
+  {
   }
 
-  public void destroy() {
-
+  public void destroy()
+  {
     statusCode = SC_OK;
     statusMsg = null;
     keepAlive = false;
 
-    HttpUtil.removeAll(headers);
+    headers.clear();
     cookies.removeAllElements();
 
     request = null;
@@ -302,69 +321,81 @@ public class ResponseImpl
 
   // implements Response
 
-  public OutputStream getRawOutputStream() {
+  public OutputStream getRawOutputStream()
+  {
     return bodyOut;
   }
 
   // implements HttpServletResponse
 
-  public boolean containsHeader(String name) {
+  public boolean containsHeader(String name)
+  {
     return headers.get(name) != null;
   }
 
-  public void setIntHeader(String name, int value) {
+  public void setIntHeader(String name, int value)
+  {
     setHeader(name, Integer.toString(value));
   }
 
-  public void setDateHeader(String name, long value) {
+  public void setDateHeader(String name, long value)
+  {
     setHeader(name, HttpUtil.formatDate(value));
   }
 
-  public void setHeader(String name, String value) {
-
+  public void setHeader(String name, String value)
+  {
     if (value == null) { // NYI: is this allowed?
-      if (name.equals(HeaderBase.CONTENT_LENGTH_HEADER_KEY))
+      if (name.equals(HeaderBase.CONTENT_LENGTH_HEADER_KEY)) {
         bodyOut.setContentLength(Integer.MAX_VALUE);
+      }
       headers.remove(name);
     } else {
-      if (name.equals(HeaderBase.CONTENT_LENGTH_HEADER_KEY))
+      if (name.equals(HeaderBase.CONTENT_LENGTH_HEADER_KEY)) {
         bodyOut.setContentLength(Integer.parseInt(value));
-      ArrayList values = new ArrayList(5);
+      }
+      final ArrayList<String> values = new ArrayList<String>(5);
       values.add(value);
       headers.put(name, values);
     }
   }
 
-  public String getHeader(String name) {
-    ArrayList values = (ArrayList) headers.get(name);
-    if (null!=values) {
+  public String getHeader(String name)
+  {
+    final ArrayList<?> values = (ArrayList<?>) headers.get(name);
+    if (null != values) {
       return (String) values.get(0);
     }
     return null;
   }
 
-  public void addIntHeader(String name, int value) {
+  public void addIntHeader(String name, int value)
+  {
     addHeader(name, Integer.toString(value));
   }
 
-  public void addDateHeader(String name, long value) {
+  public void addDateHeader(String name, long value)
+  {
     addHeader(name, HttpUtil.formatDate(value));
   }
 
-  public void addHeader(String name, String value) {
-
-    ArrayList values = (ArrayList) headers.get(name);
-    if (values == null)
+  public void addHeader(String name, String value)
+  {
+    final List<String> values = headers.get(name);
+    if (values == null) {
       setHeader(name, value);
-    else if (value != null) // NYI: is this allowed?
+    } else if (value != null) {
       values.add(value);
+    }
   }
 
-  public void addCookie(Cookie cookie) {
+  public void addCookie(Cookie cookie)
+  {
     cookies.addElement(cookie);
   }
 
-  public String encodeRedirectURL(String url) {
+  public String encodeRedirectURL(String url)
+  {
     // Only encodes relative URLs.
     if (url.startsWith("http:") || url.startsWith("https:")) {
       return url;
@@ -373,36 +404,37 @@ public class ResponseImpl
     }
   }
 
-  public String encodeRedirectUrl(String url) {
+  public String encodeRedirectUrl(String url)
+  {
     return encodeRedirectURL(url); // deprecated
   }
 
-  public String encodeURL(String url) {
+  public String encodeURL(String url)
+  {
     // Append session id ";jsessionid=1234" to path of the URL when
     // session is present and client does not support cookies.
     HttpSession session = null;
-    if (request != null
-        && (session = request.getSession(false)) != null
+    if (request != null && (session = request.getSession(false)) != null
         && !request.isRequestedSessionIdFromCookie()) {
       // NYI: Don't add jsessionid to external URLs.
       String path = HttpUtil.toAbsoluteURL(url, request);
-      if (null!=path) {
+      if (null != path) {
         String query = "";
         String ref = "";
 
         final int qPos = path.indexOf("?");
-        if (-1<qPos) {
+        if (-1 < qPos) {
           query = path.substring(qPos);
-          path = path.substring(0,qPos);
+          path = path.substring(0, qPos);
         } else {
           final int hPos = path.indexOf("#");
-          if (-1<hPos) {
+          if (-1 < hPos) {
             ref = path.substring(hPos);
-            path = path.substring(0,hPos);
+            path = path.substring(0, hPos);
           }
         }
         final StringBuffer sb = new StringBuffer(path);
-        if (0<sb.length()) {
+        if (0 < sb.length()) {
           sb.append(HttpUtil.SESSION_PARAMETER_KEY).append(session.getId());
         }
         sb.append(query);
@@ -414,21 +446,27 @@ public class ResponseImpl
     return url; // No rewrite needed.
   }
 
-  public String encodeUrl(String url) {
+  public String encodeUrl(String url)
+  {
     return encodeURL(url); // deprecated
   }
 
-  public void sendError(int statusCode) throws IOException {
+  public void sendError(int statusCode)
+      throws IOException
+  {
     sendError(statusCode, null);
   }
 
-  public void sendError(int statusCode, String statusMsg) throws IOException {
+  public void sendError(int statusCode, String statusMsg)
+      throws IOException
+  {
     reset(false);
 
     setStatus(statusCode, statusMsg);
     setContentType("text/html");
 
-    ServletOutputStream out = new ServletOutputStreamImpl(bodyOut);
+    @SuppressWarnings("resource")
+    final ServletOutputStream out = new ServletOutputStreamImpl(bodyOut);
     out.println("<html>");
     out.println("<head>");
     out.print("<title>");
@@ -449,25 +487,32 @@ public class ResponseImpl
     commit();
   }
 
-  //HACK SMA added the method to handle 100-continue
-  public void sendContinue() throws IOException {
+  // HACK SMA added the method to handle 100-continue
+  public void sendContinue()
+      throws IOException
+  {
     sendError(SC_CONTINUE);
   }
 
-  public void sendRedirect(String url) throws IOException {
+  public void sendRedirect(String url)
+      throws IOException
+  {
 
     setHeader("Location", url);
     sendError(SC_MOVED_TEMPORARILY);
   }
 
-  public void setStatus(int statusCode) {
+  public void setStatus(int statusCode)
+  {
     setStatus(statusCode, null);
   }
 
-  public void setStatus(int statusCode, String statusMsg) { // deprecated
+  public void setStatus(int statusCode, String statusMsg)
+  { // deprecated
 
-    if (statusMsg == null)
+    if (statusMsg == null) {
       statusMsg = HttpUtil.getStatusMessage(statusCode);
+    }
 
     this.statusCode = statusCode;
     this.statusMsg = statusMsg;
@@ -475,7 +520,8 @@ public class ResponseImpl
 
   // implements ServletResponse
 
-  public void setContentLength(int contentLength) {
+  public void setContentLength(int contentLength)
+  {
 
     if (contentLength < 0) {
       setHeader(HeaderBase.CONTENT_LENGTH_HEADER_KEY, null);
@@ -484,107 +530,125 @@ public class ResponseImpl
     }
   }
 
-  public boolean isCommitted() {
+  public boolean isCommitted()
+  {
     return bodyOut.isCommitted();
   }
 
-  public void reset() {
+  public void reset()
+  {
     reset(true);
   }
 
-  public int getBufferSize() {
+  public int getBufferSize()
+  {
     return bodyOut.getBufferSize();
   }
 
-  public void setBufferSize(int size) {
+  public void setBufferSize(int size)
+  {
 
-    if (isCommitted())
-      throw new IllegalStateException(
-                                      "Cannot set size of committed buffer");
+    if (isCommitted()) {
+      throw new IllegalStateException("Cannot set size of committed buffer");
+    }
 
     bodyOut.setBufferSize(size);
   }
 
-  public void flushBuffer() throws IOException {
+  public void flushBuffer()
+      throws IOException
+  {
     bodyOut.flushBuffer();
   }
 
-  public ServletOutputStream getOutputStream() {
+  public ServletOutputStream getOutputStream()
+  {
 
-    if (pw != null)
+    if (pw != null) {
       throw new IllegalStateException("getWriter() already called");
+    }
 
-    if (sos == null)
+    if (sos == null) {
       sos = new ServletOutputStreamImpl(bodyOut);
+    }
 
     return sos;
   }
 
-  public PrintWriter getWriter() throws IOException {
+  public PrintWriter getWriter()
+      throws IOException
+  {
 
-    if (sos != null)
+    if (sos != null) {
       throw new IllegalStateException("getOutputStream() already called");
+    }
 
-    if (pw == null)
-      pw = new PrintWriter(new OutputStreamWriter(bodyOut,
-                                                  getCharacterEncoding()));
+    if (pw == null) {
+      pw =
+        new PrintWriter(new OutputStreamWriter(bodyOut, getCharacterEncoding()));
+    }
 
     return pw;
   }
 
-  public Locale getLocale() {
+  public Locale getLocale()
+  {
     return locale;
   }
 
-  public void setLocale(Locale locale) {
+  public void setLocale(Locale locale)
+  {
     if (isCommitted()) {
       return;
     }
     this.locale = locale;
-    if (null==pw) {
+    if (null == pw) {
       // Set the character encoding to use based on locale here.
       // In a web-app this is determined from the
       // <tt>locale-encoding-mapping-list</tt> element in the
       // deployment descriptor (<tt>web.xml</tt>). Here we need to
       // implement some other mechanism...
-      //setCharacterEncoding(characterEncoding);
+      // setCharacterEncoding(characterEncoding);
     }
-    if (null!=contentTypeBare) {
+    if (null != contentTypeBare) {
       setHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY,
                 HttpUtil.buildContentType(contentTypeBare,
                                           getCharacterEncoding()));
     }
   }
 
-  public void setContentType(String contentType) {
+  public void setContentType(String contentType)
+  {
     if (isCommitted()) {
       return;
     }
-    StringBuffer sb = new StringBuffer(contentType.length());
-    String newCharEncoding = HttpUtil.parseContentType(contentType, sb);
+    final StringBuffer sb = new StringBuffer(contentType.length());
+    final String newCharEncoding = HttpUtil.parseContentType(contentType, sb);
     contentTypeBare = sb.toString();
-    if (null==pw) {
-      if (null!=newCharEncoding) {
+    if (null == pw) {
+      if (null != newCharEncoding) {
         setCharacterEncoding(newCharEncoding);
       }
     }
-    if (null!=contentTypeBare) {
+    if (null != contentTypeBare) {
       setHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY,
                 HttpUtil.buildContentType(contentTypeBare,
                                           getCharacterEncoding()));
     }
   }
 
-  public void setCharacterEncoding(String enc) {
+  public void setCharacterEncoding(String enc)
+  {
     charEncoding = enc;
-    if (null!=contentTypeBare) {
+    if (null != contentTypeBare) {
       setHeader(HeaderBase.CONTENT_TYPE_HEADER_KEY,
                 HttpUtil.buildContentType(contentTypeBare,
                                           getCharacterEncoding()));
     }
   }
 
-  public String getCharacterEncoding() {
+  public String getCharacterEncoding()
+  {
     // Use response specified encoding if present
     // otherwise use default encoding
     // Default encoding can be specified via CM

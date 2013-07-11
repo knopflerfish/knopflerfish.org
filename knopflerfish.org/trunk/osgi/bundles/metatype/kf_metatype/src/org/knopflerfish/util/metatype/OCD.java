@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,20 +39,28 @@
 
 package org.knopflerfish.util.metatype;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.metatype.*;
-
-import org.osgi.service.metatype.*;
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Vector;
+
+import org.osgi.service.metatype.AttributeDefinition;
+import org.osgi.service.metatype.ObjectClassDefinition;
 
 /**
- * Implementation of the ObjectClassDefinition interface.
- *
+ * Implementation of the {@link ObjectClassDefinition} interface.
  */
-public class OCD implements ObjectClassDefinition {
+public class OCD
+  implements ObjectClassDefinition
+{
 
   URL sourceURL;
   String id;
@@ -60,105 +68,107 @@ public class OCD implements ObjectClassDefinition {
   String localized_name;
   String desc;
   String localized_desc;
-  List optAttrs;
-  List reqAttrs;
-  List localized_optAttrs;
-  List localized_reqAttrs;
-  Hashtable icons = new Hashtable();
-  Hashtable localized_icons = null;
-  int  maxInstances = 1;
-
+  List<AD> optAttrs;
+  List<AD> reqAttrs;
+  List<AD> localized_optAttrs;
+  List<AD> localized_reqAttrs;
+  Hashtable<Integer, String> icons = new Hashtable<Integer, String>();
+  Hashtable<Integer, String> localized_icons = null;
+  int maxInstances = 1;
 
   /**
-   * Create a new, empty ObjectClassDefinition.
+   * Create a new, empty {@link ObjectClassDefinition}.
    *
-   * @param id unique ID of the definition.
-   * @param name human-readable name of the definition. If set to
-   *         <tt>null</tt>,
-   *        use <i>id</i> as name.
-   * @param desc human-readable description of the definition
-   * @throws IllegalArgumentException if <i>id</i> is <null> or empty
+   * @param id
+   *          unique ID of the definition.
+   * @param name
+   *          human-readable name of the definition. If set to <tt>null</tt>,
+   *          use <i>id</i> as name.
+   * @param desc
+   *          human-readable description of the definition
+   * @throws IllegalArgumentException
+   *           if <i>id</i> is <null> or empty
    */
-  public OCD(String id,
-             String name,
-             String desc,
-             URL sourceURL) {
+  public OCD(String id, String name, String desc, URL sourceURL)
+  {
 
-    if(id == null || "".equals(id)) {
+    if (id == null || "".equals(id)) {
       throw new IllegalArgumentException("Id must not be null or empty");
     }
 
-    this.id    = id;
-    this.name  = name != null ? name : id;
-    this.desc  = desc;
-    this.optAttrs = new ArrayList();
-    this.reqAttrs = new ArrayList();
-    this.sourceURL  = sourceURL;
+    this.id = id;
+    this.name = name != null ? name : id;
+    this.desc = desc;
+    this.optAttrs = new ArrayList<AD>();
+    this.reqAttrs = new ArrayList<AD>();
+    this.sourceURL = sourceURL;
   }
 
   /**
-   * Creates an OCD with attribute definitions from an existing
-   * dictionary.
+   * Creates an OCD with attribute definitions from an existing dictionary.
    *
-   * @param id unique ID of the definition.
-   * @param name human-readable name of the definition. If set to <tt>null</tt>,
-   *       use <i>id</i> as name.
-   * @param desc human-readable description of the definition
-   * @param props set of key value pairs used for attribute definitions.
-   *        all entries in <i>props</i> will be set as REQUIRED
-   *        atttributes.
-   * @throws IllegalArgumentException if <i>id</i> is <null> or empty
+   * @param id
+   *          unique ID of the definition.
+   * @param name
+   *          human-readable name of the definition. If set to <tt>null</tt>,
+   *          use <i>id</i> as name.
+   * @param desc
+   *          human-readable description of the definition
+   * @param props
+   *          set of key value pairs used for attribute definitions. all entries
+   *          in <i>props</i> will be set as REQUIRED attributes.
+   * @throws IllegalArgumentException
+   *           if <i>id</i> is <null> or empty
    *
    */
-  public OCD(String id,
-             String name,
-             String desc,
-             Dictionary props) {
-    this(id, name, desc, (URL)null);
+  public OCD(String id, String name, String desc, Dictionary<String, ?> props)
+  {
+    this(id, name, desc, (URL) null);
 
-    //    System.out.println("OCD " + id + ", props=" + props);
-    for(Enumeration e = props.keys(); e.hasMoreElements();) {
-      String key = (String)e.nextElement();
-      if("service.pid".equals(key.toLowerCase())) {
+    // System.out.println("OCD " + id + ", props=" + props);
+    for (final Enumeration<String> e = props.keys(); e.hasMoreElements();) {
+      final String key = e.nextElement();
+      if ("service.pid".equals(key.toLowerCase())) {
         continue;
       }
-      if("service.factorypid".equals(key.toLowerCase())) {
+      if ("service.factorypid".equals(key.toLowerCase())) {
         continue;
       }
-      Object val = props.get(key);
+      final Object val = props.get(key);
 
       int card = 0;
-      int type = AD.getType(val);
+      final int type = AD.getType(val);
 
-      if(val instanceof Vector) {
+      if (val instanceof Vector) {
         card = Integer.MIN_VALUE;
-      } else if(val.getClass().isArray()) {
+      } else if (val.getClass().isArray()) {
         card = Integer.MAX_VALUE;
       }
 
-      AD ad = new AD(key, type, card, key,
-                     card == 0
-                     ?  new String[] { AD.toString(val) }
-                     : null);
+      final AD ad =
+        new AD(key, type, card, key, card == 0
+          ? new String[] { AD.toString(val) }
+          : null);
 
-
-      //      System.out.println(" add " + ad);
+      // System.out.println(" add " + ad);
       add(ad, REQUIRED);
     }
 
   }
 
-
-
   /**
    * Add an attribute definition
    *
-   * @param attr definition to add
-   * @param filter either OPTIONAL or REQUIRED
-   * @throws Illegalargumentexception if filter is not OPTIONAL or REQUIRED
+   * @param attr
+   *          definition to add
+   * @param filter
+   *          either OPTIONAL or REQUIRED
+   * @throws Illegalargumentexception
+   *           if filter is not OPTIONAL or REQUIRED
    */
-  public void add(AD attr, int filter) {
-    switch(filter) {
+  public void add(AD attr, int filter)
+  {
+    switch (filter) {
     case OPTIONAL:
       optAttrs.add(attr);
       break;
@@ -170,39 +180,38 @@ public class OCD implements ObjectClassDefinition {
     }
   }
 
-  public AttributeDefinition[] getAttributeDefinitions(int filter) {
-    AttributeDefinition[] attrs = null;
-    switch(filter) {
+  public AttributeDefinition[] getAttributeDefinitions(int filter)
+  {
+    switch (filter) {
     case ALL: {
-      ArrayList all = new ArrayList();
-      if(localized_optAttrs == null){
+      final ArrayList<AD> all = new ArrayList<AD>();
+      if (localized_optAttrs == null) {
         all.addAll(reqAttrs);
         all.addAll(optAttrs);
-      }
-      else{
+      } else {
         all.addAll(localized_reqAttrs);
         all.addAll(localized_optAttrs);
       }
-      AttributeDefinition[] ads = new AttributeDefinition[all.size()];
+      final AttributeDefinition[] ads = new AttributeDefinition[all.size()];
       all.toArray(ads);
       return ads;
     }
     case REQUIRED: {
-      AttributeDefinition[] ads = new AttributeDefinition[reqAttrs.size()];
-      if(localized_reqAttrs == null){
+      final AttributeDefinition[] ads =
+        new AttributeDefinition[reqAttrs.size()];
+      if (localized_reqAttrs == null) {
         reqAttrs.toArray(ads);
-      }
-      else{
+      } else {
         localized_reqAttrs.toArray(ads);
       }
       return ads;
     }
     case OPTIONAL: {
-      AttributeDefinition[] ads = new AttributeDefinition[optAttrs.size()];
-      if(localized_optAttrs == null){
+      final AttributeDefinition[] ads =
+        new AttributeDefinition[optAttrs.size()];
+      if (localized_optAttrs == null) {
         optAttrs.toArray(ads);
-      }
-      else{
+      } else {
         localized_optAttrs.toArray(ads);
       }
       return ads;
@@ -215,27 +224,28 @@ public class OCD implements ObjectClassDefinition {
   /**
    * Get description of OCD.
    */
-  public String getDescription() {
-    if(localized_desc != null){
+  public String getDescription()
+  {
+    if (localized_desc != null) {
       return localized_desc;
-    }
-    else{
+    } else {
       return desc;
     }
   }
 
-
   /**
-   * This code handles multiple icon sizes but the specification
-   * currently only allows on size.
+   * This code handles multiple icon sizes but the specification currently only
+   * allows on size.
    *
-   * @param size Size of icon requested, if size is 0 return largest icon.
+   * @param size
+   *          Size of icon requested, if size is 0 return largest icon.
    */
-  String getIconURL(int size) {
-    Hashtable itab = (localized_icons != null) ? localized_icons : icons;
+  String getIconURL(int size)
+  {
+    final Hashtable<?, ?> itab = (localized_icons != null) ? localized_icons : icons;
     if (size == 0) {
-      for (Enumeration keys = itab.keys(); keys.hasMoreElements(); ) {
-        int i = ((Integer)keys.nextElement()).intValue();
+      for (final Enumeration<?> keys = itab.keys(); keys.hasMoreElements();) {
+        final int i = ((Integer) keys.nextElement()).intValue();
         if (size < i) {
           size = i;
         }
@@ -244,20 +254,24 @@ public class OCD implements ObjectClassDefinition {
     return (String) itab.get(new Integer(size));
   }
 
-
   /**
-   * This code handles multiple icon sizes but the specification
-   * currently only allows on size.
+   * This code handles multiple icon sizes but the specification currently only
+   * allows on size.
    *
-   * @param size Size of icon requested, if size is 0 return largest icon.
+   * @param size
+   *          Size of icon requested, if size is 0 return largest icon.
    */
-  public InputStream getIcon(int size) throws IOException {
+  public InputStream getIcon(int size)
+      throws IOException
+  {
     String url = getIconURL(size);
+    if (url == null) {
+      url = getIconURL(0);
+    }
     if (url != null) {
       if (sourceURL != null) {
         return new URL(new URL(sourceURL, "/"), url).openStream();
-      }
-      else {
+      } else {
         return new URL(url).openStream();
       }
     }
@@ -265,101 +279,103 @@ public class OCD implements ObjectClassDefinition {
   }
 
   /**
-   * Get maximum number of instances. Services return 1, factories
-   * &gt; 1.
+   * Get maximum number of instances. Services return 1, factories &gt; 1.
    */
-  public int getMaxInstances() {
+  public int getMaxInstances()
+  {
     return maxInstances;
   }
 
   /**
    * Set URL to icon
    */
-  public void setIconURL(String url) {
+  public void setIconURL(String url)
+  {
     icons.put(new Integer(Integer.MAX_VALUE), url);
   }
 
-  public void addIcon(int size, String url){
+  public void addIcon(int size, String url)
+  {
     icons.put(new Integer(size), url);
   }
 
-
-  public String getID() {
+  public String getID()
+  {
     return id;
   }
 
-  public String getName() {
-    if(localized_name != null){
+  public String getName()
+  {
+    if (localized_name != null) {
       return localized_name;
-    }
-    else{
+    } else {
       return name;
     }
   }
 
-  void localize(Dictionary dict){
-    if(dict != null){
-      localized_name = localizeName(name, dict);
-      localized_desc = localizeName(desc, dict);
+  void localize(Properties properties)
+  {
+    if (properties != null) {
+      localized_name = localizeName(name, properties);
+      localized_desc = localizeName(desc, properties);
 
-      localized_icons = (Hashtable)icons.clone();
-      for(Iterator it = localized_icons.entrySet().iterator(); it.hasNext(); ) {
-        Map.Entry e = (Map.Entry)it.next();
-        e.setValue(localizeName((String)e.getValue(), dict));
+      localized_icons = new Hashtable<Integer, String>();
+      for (final Entry<Integer, String> entry : icons.entrySet()) {
+        localized_icons.put(entry.getKey(),
+                            localizeName(entry.getValue(), properties));
       }
 
-      localized_reqAttrs = new ArrayList();
-      for(Iterator it = reqAttrs.iterator(); it.hasNext(); ) {
-        AD attr = (AD)it.next();
-        localized_reqAttrs.add(attr.localize(dict));
+      localized_reqAttrs = new ArrayList<AD>();
+      for (final AD attr : reqAttrs) {
+        localized_reqAttrs.add(attr.localize(properties));
       }
 
-      localized_optAttrs = new ArrayList();
-      for(Iterator it = optAttrs.iterator(); it.hasNext(); ) {
-        AD attr = (AD)it.next();
-        localized_optAttrs.add(attr.localize(dict));
+      localized_optAttrs = new ArrayList<AD>();
+      for (final AD attr : optAttrs) {
+        localized_optAttrs.add(attr.localize(properties));
       }
 
     }
   }
 
-  String localizeName(String name, Dictionary dict){
-    if(name.startsWith("%")){
+  String localizeName(String name, Dictionary<?, ?> dict)
+  {
+    if (name.startsWith("%")) {
       String sub;
-      if((sub = (String) dict.get(name.substring(1))) != null){
+      if ((sub = (String) dict.get(name.substring(1))) != null) {
         return sub;
-      }
-      else{
+      } else {
         return name;
       }
     }
     return name;
   }
 
-  /*
-    public String toString() {
-    StringBuffer sb = new StringBuffer();
+  @Override
+  public String toString()
+  {
+    final StringBuffer sb = new StringBuffer();
 
     sb.append("OCD[id=" + id);
     sb.append("\nname=" + name);
     sb.append("\ndesc=" + desc);
     sb.append("\nregAttrs=");
-    for(Iterator it = reqAttrs.iterator(); it.hasNext(); ) {
-    AttributeDefinition attr = (AttributeDefinition)it.next();
-    sb.append(attr);
-    if(it.hasNext()) {
-    sb.append("\n");
-    }
+    for (final Iterator<AD> it = reqAttrs.iterator(); it.hasNext();) {
+      final AttributeDefinition attr = it.next();
+      sb.append(attr);
+      if (it.hasNext()) {
+        sb.append("\n");
+      }
     }
     sb.append("\noptAttrs=");
-    for(Iterator it = optAttrs.iterator(); it.hasNext(); ) {
-    AttributeDefinition attr = (AttributeDefinition)it.next();
-    sb.append(attr);
-    if(it.hasNext()) {
-    sb.append("\n");
-    }
+    for (final Iterator<AD> it = optAttrs.iterator(); it.hasNext();) {
+      final AttributeDefinition attr = it.next();
+      sb.append(attr);
+      if (it.hasNext()) {
+        sb.append("\n");
+      }
     }
     sb.append("\n/OCD]");
     return sb.toString();
-    }*/
+  }
 }

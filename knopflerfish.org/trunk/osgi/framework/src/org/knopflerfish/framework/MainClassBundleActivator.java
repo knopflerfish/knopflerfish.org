@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,11 @@
 
 package org.knopflerfish.framework;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
 
-import org.osgi.framework.*;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
 
 
 /**
@@ -63,25 +65,25 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
 
   String[] argv = new String[] { };
 
-  public MainClassBundleActivator(Class clazz) throws Exception {
+  public MainClassBundleActivator(Class<?> clazz) throws Exception {
     startMethod = clazz.getMethod("main", new Class[] { argv.getClass() });
 
     // Check for optional stop method
     try {
       stopMethod  = clazz.getMethod("stop", new Class[] { });
-    } catch (Exception ignored) {
+    } catch (final Exception ignored) {
     }
   }
 
   public void start(BundleContext bc) throws BundleException {
 
     try {
-      BundleImpl b = (BundleImpl)bc.getBundle();
+      final BundleImpl b = (BundleImpl)bc.getBundle();
       runner = new Thread(b.fwCtx.threadGroup,
                           "start thread for executable jar file, bundle id="
                           + b.getBundleId());
       runner.start();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new BundleException("Failed to start main class",
                                 BundleException.UNSPECIFIED, e);
     }
@@ -91,7 +93,7 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
     if(stopMethod != null) {
       try {
         stopMethod.invoke(null, new Object[] { } );
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new BundleException("Failed to stop main class",
                                   BundleException.UNSPECIFIED, e);
       }
@@ -101,7 +103,7 @@ public class MainClassBundleActivator implements BundleActivator, Runnable {
   public void run() {
     try {
       startMethod.invoke(null, new Object[] { argv } );
-    } catch (Exception e) {
+    } catch (final Exception e) {
       System.err.println("Failed to start executable jar file: " + e);
     }
   }

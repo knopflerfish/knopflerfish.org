@@ -14,12 +14,13 @@
   <property name="bundle.build.impl" value="false"/>
   <property name="bundle.build.doc"  value="false"/>
 
-  <property name="ee.check.foundation" value="false"/>
-
   <!-- Must not explicitly import org.knopflerfish.service.foo -->
   <property name="bundle.stdimports" value="org.knopflerfish.service.foo"/>
 
   <property name="all.suffix.name"  value=""/>
+
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
 
   <property name="impl.pattern"
             value="org/knopflerfish/bundle/**"/>

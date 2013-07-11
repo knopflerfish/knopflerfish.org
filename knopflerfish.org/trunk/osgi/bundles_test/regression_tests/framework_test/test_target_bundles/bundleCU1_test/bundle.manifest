@@ -1,0 +1,13 @@
+Bundle-Name: bundleCU1_test
+Bundle-SymbolicName: bundleCU1_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleCU1_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleCU1_test.BundleActivator
+Bundle-Category: test
+Bundle-UUID: org.knopflerfish:bundleCU1_test:1.0.0:all
+Import-Package: org.osgi.framework
+Require-Capability: org.knopflerfish.test.capability; filter:="(name=CUC2)",
+                    org.knopflerfish.test.capability; filter:="(name=CUC1)"

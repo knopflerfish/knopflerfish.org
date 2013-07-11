@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2010, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,25 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.security.*;
-import java.util.*;
-
-import org.osgi.service.permissionadmin.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FilePermission;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.security.AllPermission;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.security.Permissions;
+import java.security.UnresolvedPermission;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
 import org.knopflerfish.framework.Debug;
 import org.knopflerfish.framework.FrameworkContext;
+import org.osgi.service.permissionadmin.PermissionInfo;
 
 
 /**
@@ -69,14 +79,14 @@ class PermissionInfoPermissions extends PermissionCollection {
    */
   PermissionInfoPermissions(FrameworkContext fw,
                             File root,
-                            InputStream pinfoStream) {
+                            InputStream ps) {
     framework = fw;
     debug = fw.debug;
     dataRoot = root;
     try {
-      DataInputStream dis = new DataInputStream(pinfoStream);
+      final BufferedReader dis = new BufferedReader(new InputStreamReader(ps));
       String l;
-      ArrayList tmp = new ArrayList();
+      final ArrayList<PermissionInfo> tmp = new ArrayList<PermissionInfo>();
       while ((l = dis.readLine()) != null) {
         l = l.trim();
         if (l.startsWith("#") || l.startsWith("//") || l.length() == 0) {
@@ -84,19 +94,19 @@ class PermissionInfoPermissions extends PermissionCollection {
         }
         try {
           tmp.add(new PermissionInfo(l));
-        } catch (Exception e) {
+        } catch (final Exception e) {
           // TODO, handle this error
         }
       }
       if (!tmp.isEmpty()) {
-        pinfo = (PermissionInfo [])tmp.toArray(new PermissionInfo[tmp.size()]);
+        pinfo = tmp.toArray(new PermissionInfo[tmp.size()]);
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       // TODO, handle this error
     } finally {
       try {
-        pinfoStream.close();
-      } catch (IOException _ignore) { }
+        ps.close();
+      } catch (final IOException _ignore) { }
     }
     if (pinfo != null) {
       unresolved = pinfo.length;
@@ -117,7 +127,7 @@ class PermissionInfoPermissions extends PermissionCollection {
     dataRoot = root;
     debug = fw.debug;
     if (pinfo != null) {
-      this.pinfo = (PermissionInfo [])pinfo.clone();
+      this.pinfo = pinfo.clone();
       unresolved = pinfo.length;
     } else {
       unresolved = 0;
@@ -131,6 +141,7 @@ class PermissionInfoPermissions extends PermissionCollection {
   /**
    *
    */
+  @Override
   public void add(Permission permission) {
     throw new UnsupportedOperationException("Readonly");
   }
@@ -139,7 +150,8 @@ class PermissionInfoPermissions extends PermissionCollection {
   /**
    *
    */
-  public Enumeration elements() {
+  @Override
+  public Enumeration<Permission> elements() {
     if (unresolved != 0) {
       resolve();
     }
@@ -150,6 +162,7 @@ class PermissionInfoPermissions extends PermissionCollection {
   /**
    *
    */
+  @Override
   public boolean implies(final Permission permission) {
     if (unresolved != 0) {
       resolve();
@@ -161,6 +174,7 @@ class PermissionInfoPermissions extends PermissionCollection {
   /**
    *
    */
+  @Override
   public boolean isReadOnly() {
     return true;
   }
@@ -169,6 +183,7 @@ class PermissionInfoPermissions extends PermissionCollection {
   /**
    *
    */
+  @Override
   public void setReadOnly() {
   }
 
@@ -185,7 +200,7 @@ class PermissionInfoPermissions extends PermissionCollection {
     }
     for (int i = 0; i < pinfo.length; i++) {
       if (pinfo[i] != null) {
-        Permission p = makePermission(pinfo[i]);
+        final Permission p = makePermission(pinfo[i]);
         if (p != null) {
           pc.add(p);
           unresolved--;
@@ -210,22 +225,22 @@ class PermissionInfoPermissions extends PermissionCollection {
    * @return
    */
   private Permission makePermission(PermissionInfo pi) {
-    String t = pi.getType();
+    final String t = pi.getType();
     if ("java.security.AllPermission".equals(t)) {
       return allPermission;
     }
-    ClassLoader cl = framework.getClassLoader(t);
+    final ClassLoader cl = framework.getClassLoader(t);
     if (cl == null) {
       return null;
     }
-    String a = pi.getActions();
+    final String a = pi.getActions();
     String n = pi.getName();
     try {
-      Class pc = Class.forName(t, true, cl);
-      Constructor c = pc.getConstructor(new Class[] { String.class, String.class });
+      final Class<?> pc = Class.forName(t, true, cl);
+      final Constructor<?> c = pc.getConstructor(new Class[] { String.class, String.class });
       if (FilePermission.class.equals(pc) && !"<<ALL FILES>>".equals(n)) {
         File f = new File(n);
-        // NYI! How should we handle different seperator chars.
+        // NYI! How should we handle different separator chars.
         if (!f.isAbsolute()) {
           if (dataRoot == null) {
             return null;
@@ -235,12 +250,12 @@ class PermissionInfoPermissions extends PermissionCollection {
         n = f.getPath();
       }
       return (Permission) c.newInstance(new Object[] { n, a });
-    } catch (ClassNotFoundException ignore) {
+    } catch (final ClassNotFoundException ignore) {
       return new UnresolvedPermission(t, n, a, null);
-    } catch (NoSuchMethodException ignore) {
-    } catch (InstantiationException ignore) {
-    } catch (IllegalAccessException ignore) {
-    } catch (InvocationTargetException ignore) {
+    } catch (final NoSuchMethodException ignore) {
+    } catch (final InstantiationException ignore) {
+    } catch (final IllegalAccessException ignore) {
+    } catch (final InvocationTargetException ignore) {
     }
     return null;
   }

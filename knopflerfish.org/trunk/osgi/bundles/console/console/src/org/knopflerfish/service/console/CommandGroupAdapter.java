@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,11 +42,9 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
-import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Iterator;
+import java.util.TreeSet;
 
 /**
  * Adapter class for CommandGroup. Simplifies the creations of command groups.
@@ -193,20 +191,26 @@ public abstract class CommandGroupAdapter implements CommandGroup {
      * @return long command group help.
      */
     public String getLongHelp() {
-        StringBuffer res = new StringBuffer();
+        final StringBuffer res = new StringBuffer();
         res.append("Available " + groupName + " commands:\n");
+
+        final TreeSet<String> helpLines = new TreeSet<String>();
         Field[] f = getClass().getFields();
         for (int i = 0; i < f.length; i++) {
             String name = f[i].getName();
             if (name.startsWith("HELP_")) {
                 try {
                     name = name.substring(5).toLowerCase();
-                    DynamicCmd cmd = new DynamicCmd(this, name);
-                    res.append("  " + name + " [-help] " + cmd.usage + " - "
-                            + cmd.help[0] + "\n");
+                    final DynamicCmd cmd = new DynamicCmd(this, name);
+                    final String hl = "  " + name + " [-help] " + cmd.usage + " - "
+                        + cmd.help[0] + "\n";
+                    helpLines.add(hl);
                 } catch (Exception ignore) {
                 }
             }
+        }
+        for (String line : helpLines) {
+          res.append(line);
         }
         return res.toString();
     }
@@ -277,8 +281,8 @@ public abstract class CommandGroupAdapter implements CommandGroup {
      * @exception Exception
      *                Thrown if it fails to parse args or usage
      */
-    public Dictionary getOpt(String[] args, String usage) throws Exception {
-        Hashtable res = new Hashtable();
+    public Dictionary<String,Object> getOpt(String[] args, String usage) throws Exception {
+        Hashtable<String,Object> res = new Hashtable<String,Object>();
         res.put("command", args[0]);
         args[0] = null;
         parseUsage(usage.trim(), 0, args, res, 0);
@@ -290,9 +294,8 @@ public abstract class CommandGroupAdapter implements CommandGroup {
         return res;
     }
 
-  public Map/*<String, String>*/ getCommandNames() {
-    Map map = new LinkedHashMap();
-    StringBuffer res = new StringBuffer();
+  public Map<String, String> getCommandNames() {
+    Map<String, String> map = new LinkedHashMap<String, String>();
     Field[] f = getClass().getFields();
     for (int i = 0; i < f.length; i++) {
       String name = f[i].getName();
@@ -324,7 +327,7 @@ public abstract class CommandGroupAdapter implements CommandGroup {
 
     private final static String LAST = "_L_";
 
-    private int parseUsage(String usage, int pos, String[] args, Hashtable res,
+    private int parseUsage(String usage, int pos, String[] args, Hashtable<String,Object> res,
             int level) throws Exception {
         int ulen = usage.length();
         while (pos < ulen) {
@@ -419,7 +422,7 @@ public abstract class CommandGroupAdapter implements CommandGroup {
                 for (i = 0; i < args.length; i++) {
                     if (args[i] != null) {
                         if (args[i].startsWith("-")) {
-                            // '--' means '-' at begining of args
+                            // '--' means '-' at beginning of args
                             if (args[i].startsWith("--")) {
                                 args[i] = args[i].substring(1);
                             } else {
@@ -451,7 +454,7 @@ public abstract class CommandGroupAdapter implements CommandGroup {
                 if (usage.substring(pos).equals("...")) {
                     String repeat = (String) res.get(LAST);
                     if (repeat != null && res.containsKey(repeat)) {
-                        ArrayList v = new ArrayList();
+                        ArrayList<Object> v = new ArrayList<Object>();
                         do {
                             v.add(res.remove(repeat));
                             parseUsage("<" + repeat + ">]", 0, args, res, 1);
@@ -499,7 +502,7 @@ public abstract class CommandGroupAdapter implements CommandGroup {
 
     public DynamicCmd(CommandGroup cg, String name) throws Exception {
         try {
-            Class cls = cg.getClass();
+            Class<? extends CommandGroup> cls = cg.getClass();
             String hname = "HELP_" + name.toUpperCase();
             Field[] f = cls.getFields();
             int match = -1;

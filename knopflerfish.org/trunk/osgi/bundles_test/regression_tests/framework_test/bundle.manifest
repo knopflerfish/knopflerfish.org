@@ -15,4 +15,5 @@ Import-Package: junit.framework,
  org.knopflerfish.service.framework_test,
  org.osgi.framework,
  org.osgi.service.packageadmin,
- org.osgi.service.permissionadmin
+ org.osgi.service.permissionadmin,
+ org.osgi.framework.wiring

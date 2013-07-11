@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: comm-win32
 Bundle-SymbolicName: org.knopflerfish.bundle.comm-win32
-Bundle-Version: 2.0.1
-Bundle-UUID: org.knopflerfish:comm-win32:2.0.1
+Bundle-Version: 3.0.0
 Bundle-Category: service
 Bundle-Description: Native driver for win32 javax.comm using Sun's COM
  M library
@@ -24,6 +23,7 @@ Bundle-NativeCode: win32com.dll ;
  osname = Windows Vista
 Bundle-Activator: org.knopflerfish.bundle.comm.w32.Activator
 Bundle-Classpath: .,comm.jar
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
 Export-Package: javax.comm;specification-version=2.0
 Import-Package: org.osgi.framework,javax.comm;specification-version=2.0
 

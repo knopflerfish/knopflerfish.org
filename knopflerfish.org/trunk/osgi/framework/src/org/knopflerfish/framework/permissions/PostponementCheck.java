@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,27 +34,33 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.security.*;
-import java.util.*;
+import java.security.AccessControlContext;
+import java.security.Permission;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.HashMap;
+import java.util.List;
 
+import org.osgi.service.condpermadmin.Condition;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 
 import org.knopflerfish.framework.Debug;
 
 
-class PostponementCheck implements PrivilegedAction {
+class PostponementCheck<T> implements PrivilegedAction<T> {
 
-  private AccessControlContext acc;
-  private Permission perm;
-  private ArrayList checkedClasses;
-  private ArrayList ppList = null;
+  private final AccessControlContext acc;
+  private final Permission perm;
+  private ArrayList<Class<? extends Condition>> checkedClasses;
+  private ArrayList<List<ConditionalPermission>> ppList = null;
 
   private Debug debug = null;
 
   /**
    *
    */
-  PostponementCheck(AccessControlContext acc, Permission perm, PostponementCheck previous) {
+  PostponementCheck(AccessControlContext acc, Permission perm, PostponementCheck<?> previous) {
     this.acc = acc;
     this.perm = perm;
     checkedClasses = previous != null ? previous.getCheckedClasses() : null;
@@ -64,9 +70,12 @@ class PostponementCheck implements PrivilegedAction {
   /**
    *
    */
-  ArrayList getCheckedClasses() {
+  ArrayList<Class<? extends Condition>> getCheckedClasses() {
     if (checkedClasses != null) {
-      return (ArrayList)checkedClasses.clone();
+      @SuppressWarnings("unchecked")
+      final ArrayList<Class<? extends Condition>> res
+        = (ArrayList<Class<? extends Condition>>) checkedClasses.clone();
+      return res;
     }
     return null;
   }
@@ -75,9 +84,9 @@ class PostponementCheck implements PrivilegedAction {
   /**
    *
    */
-  public void savePostponement(List postponement, Object debug) {
+  public void savePostponement(List<ConditionalPermission> postponement, Object debug) {
     if (ppList == null) {
-      ppList = new ArrayList(2);
+      ppList = new ArrayList<List<ConditionalPermission>>(2);
       this.debug = (Debug)debug;
     }
     ppList.add(postponement);
@@ -87,7 +96,7 @@ class PostponementCheck implements PrivilegedAction {
   /**
    *
    */
-  public Object run() {
+  public T run() {
     acc.checkPermission(perm);
     checkPostponements();
     return null;
@@ -99,16 +108,17 @@ class PostponementCheck implements PrivilegedAction {
    */
   private void checkPostponements() {
     if (ppList != null) {
-      HashMap condDict = new HashMap();
+      final HashMap<Class<? extends Condition>, Dictionary<Object,Object>> condDict
+        = new HashMap<Class<? extends Condition>, Dictionary<Object,Object>>();
       if (checkedClasses == null) {
-        checkedClasses = new ArrayList();
+        checkedClasses = new ArrayList<Class<? extends Condition>>();
       }
       // Loop through all bundle protection domains found on stack
-      for (Iterator ppi = ppList.iterator(); ppi.hasNext(); ) {
+      for (final List<?> list : ppList) {
         // Loop through all matching ConditionalPermissions
         boolean deny = true;
-        for (Iterator pi = ((List)ppi.next()).iterator(); pi.hasNext(); ) {
-          ConditionalPermission cp = (ConditionalPermission)pi.next();
+        for (final Object name : list) {
+          final ConditionalPermission cp = (ConditionalPermission)name;
           if (!cp.checkPostponedOk(condDict, checkedClasses)) {
             // ConditionPermissional didn't match, check next
             continue;

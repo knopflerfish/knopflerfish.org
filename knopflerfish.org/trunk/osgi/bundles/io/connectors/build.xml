@@ -5,9 +5,11 @@
   <dirname  property="proj.dir" file="${ant.file.connectors}"/>
   <property name="topdir"       location="${proj.dir}/../../.."/>
 
-  <property name = "ee.check.foundation"   value = "false"/>
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
 
-  <property name="impl.pattern" value="org/knopflerfish/bundle/connectors/**" />
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/connectors/**" />
 
   <path id="bundle.compile.path">
    <pathelement location="io_all-N.N.N.jar"/>

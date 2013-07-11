@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,9 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
+import java.util.Dictionary;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -46,10 +46,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
-import org.knopflerfish.service.desktop.BundleSelectionListener;
-import org.knopflerfish.service.desktop.BundleSelectionModel;
-import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
-import org.knopflerfish.service.desktop.SwingBundleDisplayer;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleEvent;
@@ -59,77 +55,76 @@ import org.osgi.framework.ServiceListener;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
+import org.knopflerfish.service.desktop.BundleSelectionListener;
+import org.knopflerfish.service.desktop.BundleSelectionModel;
+import org.knopflerfish.service.desktop.DefaultBundleSelectionModel;
+import org.knopflerfish.service.desktop.SwingBundleDisplayer;
+
 public abstract class DefaultSwingBundleDisplayer
-  implements
-    SwingBundleDisplayer,
-    BundleListener,
-    ServiceListener,
-    BundleSelectionListener
+  implements SwingBundleDisplayer, BundleListener, ServiceListener,
+  BundleSelectionListener
 {
 
-  final String         name;
-  String               desc;
-  boolean              bDetail;
+  final String name;
+  String desc;
+  boolean bDetail;
 
-  boolean              bAlive = false;
+  boolean bAlive = false;
   BundleSelectionModel bundleSelModel = new DefaultBundleSelectionModel();
-  private Bundle[]     bundles;
+  private Bundle[] bundles;
 
-  ServiceRegistration  reg  = null;
+  ServiceRegistration<SwingBundleDisplayer> reg = null;
 
-  boolean bUseListeners           = true;
-  boolean bUpdateOnBundleChange   = false;
-  boolean bUpdateOnServiceChange  = false;
+  boolean bUseListeners = true;
+  boolean bUpdateOnBundleChange = false;
+  boolean bUpdateOnServiceChange = false;
 
   BundleContext bc;
 
-  public DefaultSwingBundleDisplayer(BundleContext bc,
-                                     String        name,
-                                     String        desc,
-                                     boolean       bDetail) {
-    this.bc      = bc;
-    this.name    = name;
-    this.desc    = desc;
+  public DefaultSwingBundleDisplayer(BundleContext bc, String name,
+                                     String desc, boolean bDetail)
+  {
+    this.bc = bc;
+    this.name = name;
+    this.desc = desc;
     this.bDetail = bDetail;
   }
 
+  protected Bundle[] getBundleArray()
+  {
 
-  protected Bundle[] getBundleArray() {
-
-    if(bundles == null) {
+    if (bundles == null) {
       bundles = getAndSortBundles();
     }
 
     return bundles;
   }
 
-  public ServiceRegistration register() {
-    if(reg != null) {
+  public ServiceRegistration<SwingBundleDisplayer> register()
+  {
+    if (reg != null) {
       return reg;
     }
 
     open();
 
-    Hashtable props = new Hashtable();
-    props.put(SwingBundleDisplayer.PROP_NAME,        getName());
+    final Dictionary<String, Object> props = new Hashtable<String, Object>();
+    props.put(SwingBundleDisplayer.PROP_NAME, getName());
     props.put(SwingBundleDisplayer.PROP_DESCRIPTION, getDescription());
-    props.put(SwingBundleDisplayer.PROP_ISDETAIL,
-              isDetail()
-              ? Boolean.TRUE
-              : Boolean.FALSE);
+    props.put(SwingBundleDisplayer.PROP_ISDETAIL, isDetail()
+      ? Boolean.TRUE
+      : Boolean.FALSE);
 
-    reg = Activator.getBC()
-      .registerService(SwingBundleDisplayer.class.getName(),
-                       this,
-                       props);
+    reg =
+      Activator.getBC()
+          .registerService(SwingBundleDisplayer.class, this, props);
 
     return reg;
   }
 
-
-
-  public void unregister() {
-    if(reg == null) {
+  public void unregister()
+  {
+    if (reg == null) {
       return;
     }
 
@@ -138,57 +133,64 @@ public abstract class DefaultSwingBundleDisplayer
     reg = null;
   }
 
-  public String getName() {
+  public String getName()
+  {
     return name;
   }
 
-  public String getDescription() {
+  public String getDescription()
+  {
     return desc;
   }
-  public boolean isDetail() {
+
+  public boolean isDetail()
+  {
     return bDetail;
   }
 
   public abstract JComponent newJComponent();
 
-  public void open() {
+  public void open()
+  {
     bAlive = true;
 
-    if(bUseListeners) {
+    if (bUseListeners) {
       Activator.getTargetBC().addBundleListener(this);
       Activator.getTargetBC().addServiceListener(this);
     }
 
     bundleSelModel.addBundleSelectionListener(this);
 
-    if(bUseListeners) {
+    if (bUseListeners) {
       getAllBundles();
       getAllServices();
     }
   }
 
-
-  void getAllServices() {
+  void getAllServices()
+  {
     try {
-      ServiceReference[] srl = Activator.getTargetBC_getServiceReferences();
-      for(int i = 0; srl != null && i < srl.length; i++) {
+      final ServiceReference<?>[] srl =
+        Activator.getTargetBC_getServiceReferences();
+      for (int i = 0; srl != null && i < srl.length; i++) {
         serviceChanged(new ServiceEvent(ServiceEvent.REGISTERED, srl[i]));
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
 
-  void getAllBundles() {
+  void getAllBundles()
+  {
     try {
-      int delay = 0;
+      final int delay = 0;
 
-      Bundle[] bl = Activator.getBundles();
+      final Bundle[] bl = Activator.getBundles();
 
       // do something reasonable with bundles already installed
-      for(int i = 0; bl != null && i < bl.length; i++) {
+      for (int i = 0; bl != null && i < bl.length; i++) {
         BundleEvent ev = null;
-        switch(bl[i].getState()) {
+        switch (bl[i].getState()) {
         case Bundle.ACTIVE:
           ev = new BundleEvent(BundleEvent.STARTED, bl[i]);
           break;
@@ -197,107 +199,120 @@ public abstract class DefaultSwingBundleDisplayer
           break;
         }
         bundleChanged(ev);
-        if(delay > 0) {
+        if (delay > 0) {
           Thread.sleep(delay);
         }
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
 
-  public void close() {
+  public void close()
+  {
     bAlive = false;
 
-    if(bundleSelModel != null) {
+    if (bundleSelModel != null) {
       bundleSelModel.removeBundleSelectionListener(this);
     }
     Activator.getTargetBC().removeBundleListener(this);
     Activator.getTargetBC().removeServiceListener(this);
 
-    for(Iterator it = components.iterator(); it.hasNext();) {
-      JComponent comp = (JComponent)it.next();
+    for (final JComponent comp : components) {
       disposeJComponent(comp);
     }
     components.clear();
   }
 
+  /**
+   * This field is set to true when entering the {@link #valueChanged(long)}
+   * method and set to false when leaving it. The row selection model uses this
+   * to determine the source of a selection change and do different actions if
+   * the call is caused by a selection in the table UI or if the selection
+   * changed originates from some other place.
+   */
   protected boolean bInValueChanged = false;
 
-  public void valueChangedLazy(long bid) {
+  public void valueChangedLazy(long bid)
+  {
     repaintComponents();
   }
 
   long lastBID = -1;
-  public void valueChanged(long bid) {
+
+  public void valueChanged(long bid)
+  {
     boolean bHasVisible = false;
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
-      if(comp.isShowing()) {
+    for (final JComponent comp : components) {
+      if (comp.isShowing()) {
         bHasVisible = true;
         break;
       }
     }
     lastBID = bid;
 
-    if(bHasVisible) {
+    if (bHasVisible) {
       valueChangedLazy(bid);
     }
   }
 
-  public void setTabSelected() {
+  public void setTabSelected()
+  {
     valueChangedLazy(lastBID);
   }
 
-
   // BundleListener interface, only called when bUseListeners = true
-  public void bundleChanged(BundleEvent ev) {
-    if(!bAlive) {
+  public void bundleChanged(BundleEvent ev)
+  {
+    if (!bAlive) {
       return;
     }
 
     bundles = getAndSortBundles();
 
-    if(bUpdateOnBundleChange) {
+    if (bUpdateOnBundleChange) {
       updateComponents(Activator.desktop.getSelectedBundles());
     }
   }
 
   // ServiceListener interface, only called when bUseListeners = true
-  public void serviceChanged(ServiceEvent ev) {
-    if(!bAlive) {
+  public void serviceChanged(ServiceEvent ev)
+  {
+    if (!bAlive) {
       return;
     }
 
-    if(bUpdateOnServiceChange) {
-      if(Activator.desktop != null) {
+    if (bUpdateOnServiceChange) {
+      if (Activator.desktop != null) {
         updateComponents(Activator.desktop.getSelectedBundles());
       }
     }
 
   }
 
-  void updateComponents(final Bundle[] bl) {
+  void updateComponents(final Bundle[] bl)
+  {
     SwingUtilities.invokeLater(new Runnable() {
-        public void run() {
-          for(Iterator it = components.iterator(); it.hasNext(); ) {
-            JComponent comp = (JComponent)it.next();
-            if(comp.isShowing()) {
-              if(comp instanceof JHTMLBundle) {
-                JHTMLBundle jhtml = (JHTMLBundle)comp;
-                jhtml.valueChanged(bl);
-              }
+      public void run()
+      {
+        for (final JComponent comp : components) {
+          if (comp.isShowing()) {
+            if (comp instanceof JHTMLBundle) {
+              final JHTMLBundle jhtml = (JHTMLBundle) comp;
+              jhtml.valueChanged(bl);
             }
           }
         }
-      });
+      }
+    });
   }
 
-  protected Bundle[] getAndSortBundles() {
-    Bundle[] bl = Activator.getBundles();
-    SortedSet set = new TreeSet(Util.bundleIdComparator);
-    for(int i = 0; i < bl.length; i++) {
-      set.add(bl[i]);
+  protected Bundle[] getAndSortBundles()
+  {
+    final Bundle[] bl = Activator.getBundles();
+    final SortedSet<Bundle> set = new TreeSet<Bundle>(Util.bundleIdComparator);
+    for (final Bundle element : bl) {
+      set.add(element);
     }
 
     set.toArray(bl);
@@ -305,26 +320,25 @@ public abstract class DefaultSwingBundleDisplayer
     return bl;
   }
 
-
-
-  public void setBundleSelectionModel(BundleSelectionModel model) {
-    if(bundleSelModel != null) {
+  public void setBundleSelectionModel(BundleSelectionModel model)
+  {
+    if (bundleSelModel != null) {
       bundleSelModel.removeBundleSelectionListener(this);
     }
     bundleSelModel = model;
     bundleSelModel.addBundleSelectionListener(this);
   }
 
-
-  public BundleSelectionModel getBundleSelectionModel() {
+  public BundleSelectionModel getBundleSelectionModel()
+  {
     return bundleSelModel;
   }
 
+  Set<JComponent> components = new HashSet<JComponent>();
 
-  Set components = new HashSet();
-
-  public JComponent createJComponent() {
-    JComponent comp = newJComponent();
+  public JComponent createJComponent()
+  {
+    final JComponent comp = newJComponent();
     components.add(comp);
 
     getAllBundles();
@@ -332,60 +346,62 @@ public abstract class DefaultSwingBundleDisplayer
     return comp;
   }
 
-  public void  disposeJComponent(JComponent comp) {
+  public void disposeJComponent(JComponent comp)
+  {
     components.remove(comp);
   }
 
-  void repaintComponents() {
-    for(Iterator it = components.iterator(); it.hasNext(); ) {
-      JComponent comp = (JComponent)it.next();
+  void repaintComponents()
+  {
+    for (final JComponent comp : components) {
       comp.invalidate();
       comp.repaint();
     }
   }
 
-
-  public Icon       getLargeIcon() {
+  public Icon getLargeIcon()
+  {
     return null;
   }
 
-  public Icon       getSmallIcon() {
+  public Icon getSmallIcon()
+  {
     return null;
   }
 
-
-  public void       setTargetBundleContext(BundleContext bc) {
+  public void setTargetBundleContext(BundleContext bc)
+  {
     this.bc = bc;
   }
 
-  public void showBundle(Bundle b) {
+  public void showBundle(Bundle b)
+  {
   }
-
 
   public static final String PREFS_NODE_NAME = "SwingBundleDisplayer";
   final int maxErr = 10;
   int errCount = 0;
 
   /**
-   * Get the preferences node to store user settings for this
-   * displayer in.
+   * Get the preferences node to store user settings for this displayer in.
    */
-  public Preferences getPrefs() {
+  public Preferences getPrefs()
+  {
     final Preferences prefsBase = Preferences.userNodeForPackage(getClass());
 
-    String spid  = Activator.getBC().getProperty("org.osgi.provisioning.spid");
-    if(spid == null) {
+    String spid = Activator.getBC().getProperty("org.osgi.provisioning.spid");
+    if (spid == null) {
       spid = "default";
     }
 
-    final String relPath
-      = PREFS_NODE_NAME + "/" + spid + "/" + name.replace('/','_');
+    final String relPath =
+      PREFS_NODE_NAME + "/" + spid + "/" + name.replace('/', '_');
     final Preferences prefs = prefsBase.node(relPath);
     try {
       prefs.sync(); // Get the latest version of the node.
-    } catch (Exception e) {
+    } catch (final Exception e) {
       errCount++;
-      if(errCount < maxErr) {
+      if (errCount < maxErr) {
         Activator.log.warn("Failed to get preferences node " + relPath, e);
       }
     }

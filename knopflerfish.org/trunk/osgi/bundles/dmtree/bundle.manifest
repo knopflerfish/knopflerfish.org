@@ -6,7 +6,7 @@ Bundle-Version: 1.0.2
 Bundle-Category: API
 Bundle-Description: DMT Admin API
 Bundle-Vendor: OSGi
-Bundle-APIVendor: osgi
+Bundle-APIVendor: OSGi
 Bundle-ContactAddress: http://www.knopflerfish.org
 Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html

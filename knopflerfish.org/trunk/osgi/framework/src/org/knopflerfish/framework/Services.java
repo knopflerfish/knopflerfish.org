@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,18 +34,24 @@
 
 package org.knopflerfish.framework;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import org.osgi.framework.*;
-import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.service.permissionadmin.PermissionAdmin;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
+import org.osgi.service.permissionadmin.PermissionAdmin;
 
 
 /**
@@ -58,16 +64,18 @@ class Services {
   /**
    * All registered services in the current framework.
    * Mapping of registered service to class names under which service
-   * is registerd.
+   * is registered.
    */
-  HashMap /* serviceRegistration -> Array of Class Names */ services = new HashMap();
+  HashMap<ServiceRegistrationImpl<?>, String[]> services
+    = new HashMap<ServiceRegistrationImpl<?>, String[]>();
 
   /**
-   * Mapping of classname to registered service.
+   * Mapping of class name to registered service.
    * The List of registered service are order in with highest
    * ranked service first.
    */
-  private HashMap /* String->List(ServiceRegistration) */ classServices = new HashMap();
+  private final HashMap<String,List<ServiceRegistrationImpl<?>>> classServices
+    = new HashMap<String, List<ServiceRegistrationImpl<?>>>();
 
   /**
    * Handle to secure call class.
@@ -101,27 +109,29 @@ class Services {
    * @exception java.lang.IllegalArgumentException If one of the following is true:
    * <ul>
    * <li>The service object is null.</li>
-   * <li>The defining class of the service paramater is not owned by the bundle.</li>
+   * <li>The defining class of the service parameter is not owned by the bundle.</li>
    * <li>The service parameter is not a ServiceFactory and is not an
    * instance of all the named classes in the classes parameter.</li>
    * </ul>
    */
-  ServiceRegistration register(BundleImpl bundle,
-                               String[] classes,
-                               Object service,
-                               Dictionary properties) {
+  @SuppressWarnings("deprecation")
+  ServiceRegistration<?> register(BundleImpl bundle,
+                                  String[] classes,
+                                  Object service,
+                                  Dictionary<String, ?> properties)
+  {
     if (service == null) {
       throw new IllegalArgumentException("Can't register null as a service");
     }
     // Check if service implements claimed classes and that they exist.
-    for (int i = 0; i < classes.length; i++) {
-      String cls = classes[i];
+    for (final String classe : classes) {
+      final String cls = classe;
       if (cls == null) {
         throw new IllegalArgumentException("Can't register as null class");
       }
       secure.checkRegisterServicePerm(cls);
       if (bundle.id != 0) {
-        if (cls.equals(PackageAdmin.class.getName())) {
+        if (cls.equals(org.osgi.service.packageadmin.PackageAdmin.class.getName())) {
           throw new IllegalArgumentException
             ("Registeration of a PackageAdmin service is not allowed");
         }
@@ -142,22 +152,24 @@ class Services {
       }
     }
 
-    ServiceRegistration res =
+    @SuppressWarnings("rawtypes")
+    final ServiceRegistrationImpl<?> res =
       new ServiceRegistrationImpl(bundle, service,
                                   new PropertiesDictionary(properties, classes, null));
     synchronized (this) {
       services.put(res, classes);
-      for (int i = 0; i < classes.length; i++) {
-        ArrayList s = (ArrayList) classServices.get(classes[i]);
+      for (final String clazz : classes) {
+        List<ServiceRegistrationImpl<?>> s
+          = classServices.get(clazz);
         if (s == null) {
-          s = new ArrayList(1);
-          classServices.put(classes[i], s);
+          s = new ArrayList<ServiceRegistrationImpl<?>>(1);
+          classServices.put(clazz, s);
         }
-        int ip = Math.abs(Util.binarySearch(s, sComp, res) + 1);
+        final int ip = Math.abs(Util.binarySearch(s, sComp, res) + 1);
         s.add(ip, res);
       }
     }
-    ServiceReference r = res.getReference();
+    final ServiceReference<?> r = res.getReference();
     bundle.fwCtx.perm
       .callServiceChanged(bundle.fwCtx,
                           bundle.fwCtx.listeners.getMatchingServiceListeners(r),
@@ -168,16 +180,17 @@ class Services {
 
 
   /**
-   * Service ranking changed reorder registered services
+   * Service ranking changed, reorder registered services
    * according to ranking.
    *
    * @param serviceRegistration The serviceRegistration object.
    * @param rank New rank of object.
    */
-  synchronized void updateServiceRegistrationOrder(ServiceRegistrationImpl sr,
-                                                   String[] classes) {
-    for (int i = 0; i < classes.length; i++) {
-      ArrayList s = (ArrayList) classServices.get(classes[i]);
+  synchronized void updateServiceRegistrationOrder(ServiceRegistrationImpl<?> sr,
+                                                   String[] classes)
+  {
+    for (final String clazz : classes) {
+      final List<ServiceRegistrationImpl<?>> s = classServices.get(clazz);
       s.remove(sr);
       s.add(Math.abs(Util.binarySearch(s, sComp, sr) + 1), sr);
     }
@@ -195,9 +208,9 @@ class Services {
    */
   boolean checkServiceClass(Object service, String cls)
   {
-    final Class sc = service.getClass();
+    final Class<?> sc = service.getClass();
     final ClassLoader scl = secure.getClassLoaderOf(sc);
-    Class c = null;
+    Class<?> c = null;
     boolean ok = false;
     try {
       if (scl != null) {
@@ -206,13 +219,13 @@ class Services {
         c = Class.forName(cls);
       }
       ok = c.isInstance(service);
-    } catch (ClassNotFoundException e) {
-      for (Class csc = sc; csc != null; csc = csc.getSuperclass()) {
+    } catch (final ClassNotFoundException e) {
+      for (Class<?> csc = sc; csc != null; csc = csc.getSuperclass()) {
         if (cls.equals(csc.getName())) {
           ok = true;
           break;
         } else {
-          Class [] ic = csc.getInterfaces();
+          final Class<?> [] ic = csc.getInterfaces();
           for (int iic = ic.length - 1; iic >= 0; iic--) {
             if (cls.equals(ic[iic].getName())) {
               ok = true;
@@ -228,16 +241,19 @@ class Services {
 
   /**
    * Get all service implementing a certain class.
-   * Only used internaly by framework.
+   * Only used internally by framework.
    *
    * @param clazz The class name of requested service.
    * @return A sorted list of {@link ServiceRegistrationImpl} objects
    *         or null if no services is available.
    */
-  synchronized ArrayList get(String clazz) {
-    ArrayList v = (ArrayList) classServices.get(clazz);
+  synchronized List<ServiceRegistrationImpl<?>> get(String clazz) {
+    final List<ServiceRegistrationImpl<?>> v = classServices.get(clazz);
     if (v != null) {
-      return (ArrayList)v.clone();
+      @SuppressWarnings({ "rawtypes", "unchecked" })
+      final List<ServiceRegistrationImpl<?>> res
+        = (List<ServiceRegistrationImpl<?>>) ((ArrayList) v).clone();
+      return res;
     }
     return null;
   }
@@ -250,9 +266,9 @@ class Services {
    * @param clazz The class name of requested service.
    * @return A {@link ServiceReference} object.
    */
-  synchronized ServiceReference get(BundleImpl bundle, String clazz) {
+  synchronized ServiceReference<?> get(BundleImpl bundle, String clazz) {
     try {
-      ServiceReference [] srs = get(clazz, null, bundle);
+      final ServiceReference<?>[] srs = get(clazz, null, bundle);
       if (framework.debug.service_reference) {
         framework.debug.println("get service ref " + clazz + " for bundle " + bundle.location
                                 + " = " + (srs != null ? srs[0] : null));
@@ -260,7 +276,7 @@ class Services {
       if (srs != null) {
         return srs[0];
       }
-    } catch (InvalidSyntaxException _never) { }
+    } catch (final InvalidSyntaxException _never) { }
     return null;
   }
 
@@ -278,25 +294,25 @@ class Services {
    * same source for the registration class.
    * @return An array of {@link ServiceReference} object.
    */
-  synchronized ServiceReference[] get(String clazz, String filter, BundleImpl bundle)
+  synchronized ServiceReference<?>[] get(String clazz, String filter, BundleImpl bundle)
     throws InvalidSyntaxException {
-    Iterator s;
+    Iterator<ServiceRegistrationImpl<?>> s;
     LDAPExpr ldap = null;
     if (clazz == null) {
       if (filter != null) {
         ldap = new LDAPExpr(filter);
-        Set matched = ldap.getMatchedObjectClasses();
+        final Set<String> matched = ldap.getMatchedObjectClasses();
         if (matched != null) {
-          ArrayList v = null;
+          List<ServiceRegistrationImpl<?>> v = null;
           boolean vReadOnly = true;;
-          for (Iterator i = matched.iterator(); i.hasNext(); ) {
-            ArrayList cl = (ArrayList) classServices.get(i.next());
+          for (final String match : matched) {
+            final List<ServiceRegistrationImpl<?>> cl = classServices.get(match);
             if (cl != null) {
               if (v == null) {
                 v = cl;
               } else {
                 if (vReadOnly) {
-                  v = new ArrayList(v);
+                  v = new ArrayList<ServiceRegistrationImpl<?>>(v);
                   vReadOnly = false;
                 }
                 v.addAll(cl);
@@ -315,7 +331,7 @@ class Services {
         s = services.keySet().iterator();
       }
     } else {
-      ArrayList v = (ArrayList) classServices.get(clazz);
+      final List<ServiceRegistrationImpl<?>> v = classServices.get(clazz);
       if (v != null) {
         s = v.iterator();
       } else {
@@ -325,16 +341,17 @@ class Services {
         ldap = new LDAPExpr(filter);
       }
     }
-    Collection res = new ArrayList();
+    final Collection<ServiceReference<?>> res
+      = new ArrayList<ServiceReference<?>>();
     while (s.hasNext()) {
-      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)s.next();
-      ServiceReference sri = sr.getReference();
+      final ServiceRegistrationImpl<?> sr = s.next();
+      ServiceReference<?> sri = sr.getReference();
       if (!secure.okGetServicePerms(sri)) {
         continue; //sr not part of returned set
       }
       if (filter == null || ldap.evaluate(sr.getProperties(), false)) {
         if (bundle != null) {
-          String[] classes = (String[]) services.get(sr);
+          final String[] classes = services.get(sr);
           for (int i = 0; i < classes.length; i++) {
             if (!sri.isAssignableTo(bundle, classes[i])){
               sri = null;
@@ -351,15 +368,15 @@ class Services {
       return null;
     } else {
       if (bundle != null) {
-        framework.hooks.filterServiceReferences(bundle.bundleContext,
+        framework.serviceHooks.filterServiceReferences(bundle.bundleContext,
                                                 clazz, filter, false, res);
       } else {
-        framework.hooks.filterServiceReferences(null, clazz, filter, true, res);
+        framework.serviceHooks.filterServiceReferences(null, clazz, filter, true, res);
       }
       if (res.isEmpty()) {
         return null;
       } else {
-        return (ServiceReference [])res.toArray(new ServiceReference [res.size()]);
+        return res.toArray(new ServiceReference [res.size()]);
       }
     }
   }
@@ -370,15 +387,15 @@ class Services {
    *
    * @param sr The ServiceRegistration object that is registered.
    */
-  synchronized void removeServiceRegistration(ServiceRegistrationImpl sr) {
-    String[] classes = (String[]) sr.getProperty(Constants.OBJECTCLASS);
+  synchronized void removeServiceRegistration(ServiceRegistrationImpl<?> sr) {
+    final String[] classes = (String[]) sr.getProperty(Constants.OBJECTCLASS);
     services.remove(sr);
-    for (int i = 0; i < classes.length; i++) {
-      ArrayList s = (ArrayList) classServices.get(classes[i]);
+    for (final String clazz : classes) {
+      final List<ServiceRegistrationImpl<?>> s = classServices.get(clazz);
       if (s.size() > 1) {
         s.remove(sr);
       } else {
-        classServices.remove(classes[i]);
+        classServices.remove(clazz);
       }
     }
   }
@@ -390,10 +407,9 @@ class Services {
    * @param b The bundle
    * @return A set of {@link ServiceRegistration} objects
    */
-  synchronized Set getRegisteredByBundle(Bundle b) {
-    HashSet res = new HashSet();
-    for (Iterator e = services.keySet().iterator(); e.hasNext();) {
-      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
+  synchronized Set<ServiceRegistrationImpl<?>> getRegisteredByBundle(Bundle b) {
+    final HashSet<ServiceRegistrationImpl<?>> res = new HashSet<ServiceRegistrationImpl<?>>();
+    for (final ServiceRegistrationImpl<?> sr : services.keySet()) {
       if (sr.bundle == b) {
         res.add(sr);
       }
@@ -408,10 +424,9 @@ class Services {
    * @param b The bundle
    * @return A set of {@link ServiceRegistration} objects
    */
-  synchronized Set getUsedByBundle(Bundle b) {
-    HashSet res = new HashSet();
-    for (Iterator e = services.keySet().iterator(); e.hasNext();) {
-      ServiceRegistrationImpl sr = (ServiceRegistrationImpl)e.next();
+  synchronized Set<ServiceRegistrationImpl<?>> getUsedByBundle(Bundle b) {
+    final HashSet<ServiceRegistrationImpl<?>> res = new HashSet<ServiceRegistrationImpl<?>>();
+    for (final ServiceRegistrationImpl<?> sr : services.keySet()) {
       if (sr.isUsedByBundle(b)) {
         res.add(sr);
       }
@@ -420,21 +435,22 @@ class Services {
   }
 
 
-  static final Util.Comparator sComp = new Util.Comparator() {
+  static final Util.Comparator<ServiceRegistrationImpl<?>,ServiceRegistrationImpl<?>> sComp
+  = new Util.Comparator<ServiceRegistrationImpl<?>, ServiceRegistrationImpl<?>>() {
       /**
        * Name compare two ServiceRegistrationImpl objects according
        * to the ServiceReference compareTo.
        *
-       * @param oa ServiceRegistrationImpl to compare.
-       * @param ob ServiceRegistrationImpl to compare.
+       * @param a ServiceRegistrationImpl to compare.
+       * @param b ServiceRegistrationImpl to compare.
        * @return Return 0 if equals, negative if first object is less than second
-       *         object and postive if first object is larger then second object.
+       *         object and positive if first object is larger then second object.
        */
-      public int compare(Object oa, Object ob) {
-        ServiceRegistrationImpl a = (ServiceRegistrationImpl)oa;
-        ServiceRegistrationImpl b = (ServiceRegistrationImpl)ob;
-        return a.reference.compareTo(b.reference);
-      }
+    public int compare(ServiceRegistrationImpl<?> a,
+                       ServiceRegistrationImpl<?> b)
+    {
+      return a.reference.compareTo(b.reference);
+    }
     };
 
 }

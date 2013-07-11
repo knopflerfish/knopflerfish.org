@@ -34,16 +34,25 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
+import java.util.ArrayList;
 
-import org.osgi.service.url.*;
-import org.osgi.framework.*;
-
+import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.url.URLConstants;
+import org.osgi.service.url.URLStreamHandlerService;
+import org.osgi.service.url.URLStreamHandlerSetter;
 
 /**
- * Wrapper which delegates an URL protocol to 
+ * Wrapper which delegates an URL protocol to
  * OSGi URLStreamHandlerServices.
  *
  * <p>
@@ -52,15 +61,15 @@ import org.osgi.framework.*;
  * </p>
  */
 public class URLStreamHandlerWrapper
-  extends    URLStreamHandler 
+  extends    URLStreamHandler
   implements URLStreamHandlerSetter
 {
-  ArrayList /* FrameworkContext */ framework = new ArrayList(2);
+  ArrayList<FrameworkContext> framework = new ArrayList<FrameworkContext>(2);
   final String protocol;
   final String filter;
   final ServiceListener serviceListener;
-  
-  private ServiceReference best;
+
+  private ServiceReference<URLStreamHandlerService> best;
   private URLStreamHandlerService bestService;
   private FrameworkContext currentFw;
 
@@ -68,16 +77,17 @@ public class URLStreamHandlerWrapper
 			  final String proto)
   {
     protocol  = proto;
-    filter = "(&(" + Constants.OBJECTCLASS + "=" + 
-      URLStreamHandlerService.class.getName() + ")" + 
-      "(" + URLConstants.URL_HANDLER_PROTOCOL + "=" + protocol + 
+    filter = "(&(" + Constants.OBJECTCLASS + "=" +
+      URLStreamHandlerService.class.getName() + ")" +
+      "(" + URLConstants.URL_HANDLER_PROTOCOL + "=" + protocol +
       "))";
 
     serviceListener = new ServiceListener() {
         synchronized public void serviceChanged(ServiceEvent evt) {
-          ServiceReference ref = 
-            evt.getServiceReference();
-          FrameworkContext fw = ((BundleImpl)ref.getBundle()).fwCtx;
+          @SuppressWarnings("unchecked")
+          final ServiceReference<URLStreamHandlerService> ref =
+            (ServiceReference<URLStreamHandlerService>) evt.getServiceReference();
+          final FrameworkContext fw = ((BundleImpl)ref.getBundle()).fwCtx;
           if (fw == currentFw) {
             switch (evt.getType()) {
             case ServiceEvent.MODIFIED:
@@ -103,7 +113,7 @@ public class URLStreamHandlerWrapper
     framework.add(fw);
     try {
       fw.systemBundle.bundleContext.addServiceListener(serviceListener, filter);
-    } catch (InvalidSyntaxException e) {
+    } catch (final InvalidSyntaxException e) {
       throw new IllegalArgumentException("Protocol name contains illegal characters: " + proto);
     }
 
@@ -125,7 +135,7 @@ public class URLStreamHandlerWrapper
         fw.debug.println("created wrapper for " + protocol + ", filter=" + filter
                          + ", " + toString());
       }
-    } catch (InvalidSyntaxException _no) { }
+    } catch (final InvalidSyntaxException _no) { }
   }
 
 
@@ -144,7 +154,7 @@ public class URLStreamHandlerWrapper
   private URLStreamHandlerService getService() {
     FrameworkContext fw;
     if (framework.size() == 1) {
-      fw = (FrameworkContext)framework.get(0);
+      fw = framework.get(0);
     } else {
       // Get current FrameworkContext
       throw new RuntimeException("NYI - walk stack to get framework");
@@ -152,19 +162,21 @@ public class URLStreamHandlerWrapper
     synchronized (serviceListener) {
       if (best == null) {
         try {
-          ServiceReference[] refs =
-            fw.systemBundle.bundleContext.getServiceReferences(URLStreamHandlerService.class.getName(), filter);
+          @SuppressWarnings("unchecked")
+          final ServiceReference<URLStreamHandlerService>[] refs =
+            (ServiceReference<URLStreamHandlerService>[])
+              fw.systemBundle.bundleContext.getServiceReferences(URLStreamHandlerService.class.getName(), filter);
           if (refs != null) {
             // KF gives us highest ranked first.
             best = refs[0];
           }
-        } catch (InvalidSyntaxException _no) { }
+        } catch (final InvalidSyntaxException _no) { }
       }
       if (best == null) {
         throw new IllegalStateException("null: Lost service for protocol="+ protocol);
       }
       if (bestService == null) {
-        bestService = (URLStreamHandlerService)fw.systemBundle.bundleContext.getService(best);
+        bestService = fw.systemBundle.bundleContext.getService(best);
       }
       if (bestService == null) {
         throw new IllegalStateException("null: Lost service for protocol=" + protocol);
@@ -178,6 +190,7 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
+  @Override
   public boolean equals(URL u1, URL u2) {
     return getService().equals(u1, u2);
   }
@@ -186,6 +199,7 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
+  @Override
   protected int getDefaultPort() {
     return getService().getDefaultPort();
   }
@@ -194,6 +208,7 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
+  @Override
   protected InetAddress getHostAddress(URL u) {
     return getService().getHostAddress(u);
   }
@@ -202,6 +217,7 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
+  @Override
   protected int hashCode(URL u) {
     return getService().hashCode(u);
   }
@@ -210,6 +226,7 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
+  @Override
   protected boolean hostsEqual(URL u1, URL u2) {
     return getService().hostsEqual(u1, u2);
   }
@@ -218,10 +235,11 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
+  @Override
   protected URLConnection openConnection(URL u) throws IOException {
     try {
       return getService().openConnection(u);
-    } catch(IllegalStateException e) {
+    } catch(final IllegalStateException e) {
       throw new MalformedURLException(e.getMessage());
     }
   }
@@ -230,25 +248,28 @@ public class URLStreamHandlerWrapper
   /**
    *
    */
+  @Override
   protected  void parseURL(URL u, String spec, int start, int limit) {
     getService().parseURL(this, u, spec, start, limit);
   }
-    
+
 
   /**
    *
    */
+  @Override
   protected  boolean sameFile(URL u1, URL u2) {
     return getService().sameFile(u1, u2);
   }
 
-  
+
   /**
    * This method is deprecated, but wrap it in the same
    * way as JSDK1.4 wraps it.
    */
+  @Override
   public  void setURL(URL u, String protocol, String host, int port, String file, String ref) {
-    
+
     // parse host as "user:passwd@host"
 
     String authority = null;
@@ -258,20 +279,20 @@ public class URLStreamHandlerWrapper
 
       authority = (port == -1) ? host : host + ":" + port;
 
-      int ix = host.lastIndexOf('@');
+      final int ix = host.lastIndexOf('@');
       if (ix != -1) {
         userInfo = host.substring(0, ix);
         host     = host.substring(ix+1);
       }
     }
-        
+
 
     // Parse query part from file ending with '?'
     String path  = null;
     String query = null;
 
     if (file != null) {
-      int ix = file.lastIndexOf('?');
+      final int ix = file.lastIndexOf('?');
       if (ix != -1) {
         query = file.substring(ix + 1);
         path  = file.substring(0, ix);
@@ -280,33 +301,35 @@ public class URLStreamHandlerWrapper
       }
     }
     setURL(u, protocol, host, port, authority, userInfo, path, query, ref);
-  }    
-
-  public  void setURL(URL    u, 
-		      String protocol,
-		      String host, 
-		      int    port, 
-		      String authority, 
-		      String userInfo, 
-		      String path, 
-		      String query, 
-		      String ref) {
-    super.setURL(u, protocol, host, port, 
-		 authority, userInfo, 
-		 path, query, 
-		 ref);
   }
 
+  @Override
+  public void setURL(URL u,
+                     String protocol,
+                     String host,
+                     int port,
+                     String authority,
+                     String userInfo,
+                     String path,
+                     String query,
+                     String ref)
+  {
+    super
+        .setURL(u, protocol, host, port, authority, userInfo, path, query, ref);
+  }
+
+  @Override
   protected  String toExternalForm(URL u) {
     return getService().toExternalForm(u);
   }
 
+  @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    final StringBuffer sb = new StringBuffer();
 
     sb.append("URLStreamHandlerWrapper[");
 
-    ServiceReference ref = best;
+    final ServiceReference<URLStreamHandlerService> ref = best;
     sb.append("protocol=" + protocol);
     //    sb.append(", size=" + tracker.size());
     if(ref != null) {
@@ -321,7 +344,7 @@ public class URLStreamHandlerWrapper
 
 // 	String[] sa = (String[])srl[i].getProperty(URLConstants.URL_HANDLER_PROTOCOL);
 // 	sb.append(", proto=");
-	
+
 // 	for(int j = 0; j < sa.length; j++) {
 // 	  sb.append(sa[j]);
 // 	  if(j < sa.length - 1) {
@@ -330,7 +353,7 @@ public class URLStreamHandlerWrapper
 // 	}
 // 	sb.append("}");
 //       }
-      
+
     } else {
       sb.append(" no service tracked");
     }
@@ -340,4 +363,4 @@ public class URLStreamHandlerWrapper
     return sb.toString();
   }
 }
-  
+

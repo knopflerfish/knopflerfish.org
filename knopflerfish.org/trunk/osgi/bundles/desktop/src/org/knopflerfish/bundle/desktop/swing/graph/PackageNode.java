@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +49,8 @@ import org.osgi.service.packageadmin.ExportedPackage;
 public class PackageNode
   extends BundleNode
 {
-  Collection inLinks;
-  Collection outLinks;
+  Collection<DefaultLink> inLinks;
+  Collection<DefaultLink> outLinks;
 
   PackageManager pm;
 
@@ -74,15 +74,14 @@ public class PackageNode
   Color baseFragmentColor = new Color(250, 150, 150);
   Color burnFragmentColor = new Color(255, 255, 200);
 
-  public Collection getOutLinks() {
+  public Collection<DefaultLink> getOutLinks() {
     if(outLinks == null) {
       try {
-        outLinks = new ArrayList();
+        outLinks = new ArrayList<DefaultLink>();
 
         Color colA = Util.rgbInterpolate(baseColor, burnColor, (double)depth/3);
-        Collection pkgs = pm.getExportedPackages(b);
-        for(Iterator it = pkgs.iterator(); it.hasNext(); ) {
-          ExportedPackage pkg = (ExportedPackage)it.next();
+        Collection<ExportedPackage> pkgs = pm.getExportedPackages(b);
+        for(ExportedPackage pkg : pkgs) {
           Color col = colA;
           if(pkg.isRemovalPending()) {
             col = Util.rgbInterpolate(colA, Color.black, .5);
@@ -171,8 +170,8 @@ public class PackageNode
             outLinks.add(link);
           }
         }
-        for(Iterator it = outLinks.iterator(); it.hasNext(); ) {
-          DefaultLink link = (DefaultLink)it.next();
+        for(Iterator<DefaultLink> it = outLinks.iterator(); it.hasNext(); ) {
+          DefaultLink link = it.next();
           link.setDetail(outLinks.size() > 20 ? 10 : 0);
         }
       } catch (Exception e) {
@@ -192,19 +191,18 @@ public class PackageNode
 
 
 
-  public Collection getInLinks() {
+  public Collection<DefaultLink> getInLinks() {
     if(inLinks == null) {
       try {
-        inLinks = new ArrayList();
+        inLinks = new ArrayList<DefaultLink>();
 
 
-        Collection importedPkgs = pm.getImportedPackages(b);
+        Collection<ExportedPackage> importedPkgs = pm.getImportedPackages(b);
 
         Color colA = Util.rgbInterpolate(baseColor, burnColor, (double)depth/5);
 
         colA = Util.rgbInterpolate(colA, Color.black, .3);
-        for(Iterator it = importedPkgs.iterator(); it.hasNext(); ) {
-          ExportedPackage pkg = (ExportedPackage)it.next();
+        for(ExportedPackage pkg : importedPkgs) {
           Color col = colA;
           if(pkg.isRemovalPending()) {
             col = Util.rgbInterpolate(col, Color.black, .5);
@@ -287,10 +285,9 @@ public class PackageNode
         if(bMissing) {
           colA = new Color(150, 150, 150);
 
-          Collection missingImports = pm.getMissingImports(b);
+          Collection<String> missingImports = pm.getMissingImports(b);
 
-          for(Iterator it = missingImports.iterator(); it.hasNext(); ) {
-            String pkgName = (String)it.next();
+          for(String pkgName : missingImports) {
             Color col = colA;
             String sId = pkgName;
 
@@ -324,8 +321,8 @@ public class PackageNode
           }
         }
 
-        for(Iterator it = inLinks.iterator(); it.hasNext(); ) {
-          DefaultLink link = (DefaultLink)it.next();
+        for(Iterator<DefaultLink> it = inLinks.iterator(); it.hasNext(); ) {
+          DefaultLink link = it.next();
           link.setDetail(inLinks.size() > 20 ? 10 : 0);
         }
       } catch (Exception e) {

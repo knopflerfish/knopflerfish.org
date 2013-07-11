@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.Collections;
 
-public class DefaultNode implements Node, Comparable {
+public class DefaultNode implements Node, Comparable<DefaultNode> {
   int depth;
   String name;
   Point2D p;
@@ -110,11 +110,11 @@ public class DefaultNode implements Node, Comparable {
     this.z = z;
   }
 
-  public Collection getOutLinks() {
-    return Collections.EMPTY_SET;
+  public Collection<? extends Link> getOutLinks() {
+    return Collections.emptySet();
   }
-  public Collection getInLinks() {
-    return Collections.EMPTY_SET;
+  public Collection<? extends Link> getInLinks() {
+    return Collections.emptySet();
   }
 
   public String getId() {
@@ -152,13 +152,7 @@ public class DefaultNode implements Node, Comparable {
     return id.equals(node.id);
   }
 
-  public int compareTo(Object obj) {
-    if(!(obj instanceof DefaultNode)) {
-      return 1;
-    }
-    
-    DefaultNode node = (DefaultNode)obj;
-    
+  public int compareTo(DefaultNode node) {
     int r = z - node.z;
     if(r == 0) {
       r = id.compareTo(node.id);

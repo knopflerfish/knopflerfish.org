@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -144,5 +144,5 @@ public abstract class SpinItem {
   public static final int DIR_FROM = 1;
   public static final int DIR_TO   = 2;
 
-  Vector getNext(int dir) { return null; };
+  Vector<? extends SpinItem> getNext(int dir) { return null; };
 }

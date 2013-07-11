@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,29 @@
 
 package org.knopflerfish.framework.bundlestorage.file;
 
-import org.knopflerfish.framework.*;
-import org.knopflerfish.framework.bundlestorage.Util;
-import java.io.*;
-import java.security.cert.Certificate;
-import java.util.*;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Properties;
+
+import org.knopflerfish.framework.BundleArchive;
+import org.knopflerfish.framework.BundleGeneration;
+import org.knopflerfish.framework.BundleResourceStream;
+import org.knopflerfish.framework.FileArchive;
+import org.knopflerfish.framework.FileTree;
+import org.knopflerfish.framework.HeaderDictionary;
+import org.knopflerfish.framework.bundlestorage.Util;
 
 /**
  * Interface for managing bundle data.
@@ -65,29 +82,32 @@ class BundleArchiveImpl implements BundleArchive
 
   final BundleStorageImpl storage;
 
-  private Archive archive;
+  private final Archive archive;
 
   private BundleGeneration bundleGeneration = null;
 
-  private long id;
+  private final long id;
 
   final private String location;
 
   private int autostartSetting = -1; // => not started.
 
-  private FileTree bundleDir;
+  private final FileTree bundleDir;
 
-  private ArrayList /* FileArchive */ archives;
+  private ArrayList<Archive> archives;
 
   private int startLevel = -1;
 
   private long lastModified = 0;
 
-  private ArrayList /* List(X509Certificate) */ trustedCerts = null;
+  private ArrayList<List<X509Certificate>> trustedCerts = null;
 
-  private ArrayList /* List(X509Certificate) */ untrustedCerts = null;
+  private ArrayList<List<X509Certificate>> untrustedCerts = null;
 
   private boolean checkCerts = true;
+  
+  private ArrayList<Exception> warnings = null;
+
 
   /**
    * Construct new bundle archive.
@@ -103,7 +123,7 @@ class BundleArchiveImpl implements BundleArchive
     URL source = null;
     try {
       source = new URL(bundleLocation);
-    } catch (Exception e) {
+    } catch (final Exception e) {
     }
     bundleDir        = dir;
     storage          = bundleStorage;
@@ -131,14 +151,14 @@ class BundleArchiveImpl implements BundleArchive
     if (s != null) {
       try {
         rev = Integer.parseInt(s);
-      } catch (NumberFormatException e) { }
+      } catch (final NumberFormatException e) { }
     }
 
     s = getContent(STARTLEVEL_FILE);
     if (s != null) {
       try {
         startLevel = Integer.parseInt(s);
-      } catch (NumberFormatException e) { }
+      } catch (final NumberFormatException e) { }
     }
 
     s = getContent(LAST_MODIFIED_FILE);
@@ -146,14 +166,14 @@ class BundleArchiveImpl implements BundleArchive
         try {
                 lastModified = Long.parseLong(s);
         }
-        catch (NumberFormatException ignore) {}
+        catch (final NumberFormatException ignore) {}
     }
 
     s = getContent(AUTOSTART_FILE);
     if (s != null) {
       try {
         autostartSetting = Integer.parseInt(s);
-      } catch (NumberFormatException ignore) {}
+      } catch (final NumberFormatException ignore) {}
     }
 
     id            = bundleId;
@@ -174,10 +194,10 @@ class BundleArchiveImpl implements BundleArchive
     storage = old.storage;
     id = old.id;
     autostartSetting = old.autostartSetting;
-    int rev = old.archive.getRevision() + 1;
+    final int rev = old.archive.getRevision() + 1;
     URL source = null;
 
-    boolean bReference = (is == null);
+    final boolean bReference = (is == null);
     if(bReference) {
       source = new URL(location);
     }
@@ -213,13 +233,13 @@ class BundleArchiveImpl implements BundleArchive
       return archive;
     }
     if (archives == null) {
-      archives = new ArrayList();
+      archives = new ArrayList<Archive>();
     }
     try {
-      Archive a = new Archive(archive, path, archives.size() + 1);
+      final Archive a = new Archive(archive, path, archives.size() + 1);
       archives.add(a);
       return a;
-    } catch (IOException io) {
+    } catch (final IOException io) {
       // TBD, Where to log this
       return null;
     }
@@ -229,17 +249,23 @@ class BundleArchiveImpl implements BundleArchive
   /**
    * returns the localization entries of this archive.
    */
-  public Hashtable getLocalizationEntries(String localeFile) {
-    BundleResourceStream aif = archive.getBundleResourceStream(localeFile);
+  public Hashtable<String, String> getLocalizationEntries(String localeFile) {
+    final BundleResourceStream aif = archive.getBundleResourceStream(localeFile);
     if (aif != null) {
-      Properties l = new Properties();
+      final Properties l = new Properties();
       try {
         l.load(aif);
-      } catch (IOException _ignore) { }
+      } catch (final IOException _ignore) { }
       try {
         aif.close();
-      } catch (IOException _ignore) { }
-      return l;
+      } catch (final IOException _ignore) { }
+      @SuppressWarnings("rawtypes")
+      final
+      Hashtable ht = l;
+      @SuppressWarnings("unchecked")
+      final
+      Hashtable<String, String> res = ht;
+      return res;
     } else {
       return null;
     }
@@ -270,7 +296,13 @@ class BundleArchiveImpl implements BundleArchive
    * @param BundleGeneration object.
    */
   public void setBundleGeneration(BundleGeneration bg) {
-    bundleGeneration = bg; 
+    bundleGeneration = bg;
+    if (warnings != null) {
+      for (Exception w : warnings) {
+        frameworkWarning(w);
+      }
+      warnings = null;
+    }
   }
 
 
@@ -346,7 +378,7 @@ class BundleArchiveImpl implements BundleArchive
     if (ix == 0) {
       return archive.getBundleResourceStream(component);
     } else {
-      return ((FileArchive)archives.get(ix - 1)).getBundleResourceStream(component);
+      return archives.get(ix - 1).getBundleResourceStream(component);
     }
   }
 
@@ -376,7 +408,7 @@ class BundleArchiveImpl implements BundleArchive
 
   /**
    */
-  public Enumeration findResourcesPath(String path) {
+  public Enumeration<String> findResourcesPath(String path) {
     return archive.findResourcesPath(path);
   }
 
@@ -393,12 +425,12 @@ class BundleArchiveImpl implements BundleArchive
    *
    * @return An array of certificates or null.
    */
-  public ArrayList getCertificateChains(boolean onlyTrusted) {
+  public ArrayList<List<X509Certificate>> getCertificateChains(boolean onlyTrusted) {
     if (checkCerts) {
-      Certificate [] c = archive.getCertificates();
+      final Certificate [] c = archive.getCertificates();
       checkCerts = false;
       if (c != null) {
-        ArrayList failed = new ArrayList();
+        final ArrayList<Certificate> failed = new ArrayList<Certificate>();
         untrustedCerts = Util.getCertificateChains(c, failed);
         if (!failed.isEmpty()) {
           // NYI, log Bundle archive has invalid certificates
@@ -406,15 +438,15 @@ class BundleArchiveImpl implements BundleArchive
         }
       }
     }
-    ArrayList res = trustedCerts;
+    ArrayList<List<X509Certificate>> res = trustedCerts;
     if (!onlyTrusted && untrustedCerts != null) {
       if (res == null) {
         res = untrustedCerts;
       } else {
-        res = new ArrayList(trustedCerts.size() + untrustedCerts.size());
+        res = new ArrayList<List<X509Certificate>>(trustedCerts.size() + untrustedCerts.size());
         res.addAll(trustedCerts);
         res.addAll(untrustedCerts);
-      }        
+      }
     }
     return res;
   }
@@ -424,9 +456,9 @@ class BundleArchiveImpl implements BundleArchive
    * Mark certificate chain as trusted.
    *
    */
-  public void trustCertificateChain(List trustedChain) {
+  public void trustCertificateChain(List<X509Certificate> trustedChain) {
     if (trustedCerts == null) {
-      trustedCerts = new ArrayList(untrustedCerts.size());
+      trustedCerts = new ArrayList<List<X509Certificate>>(untrustedCerts.size());
     }
     trustedCerts.add(trustedChain);
     untrustedCerts.remove(trustedChain);
@@ -462,40 +494,28 @@ class BundleArchiveImpl implements BundleArchive
    */
   public void close() {
     if (archives != null) {
-      for (Iterator i = archives.iterator(); i.hasNext(); ) {
-        ((Archive)i.next()).close();
+      for (final Archive archive2 : archives) {
+        archive2.close();
       }
       archives = null;
     }
     archive.close();
   }
 
+  void frameworkWarning(Exception warn) {
+    if (bundleGeneration != null) {
+      storage.framework.frameworkWarning(bundleGeneration, warn);
+    } else {
+      if (warnings == null) {
+        warnings = new ArrayList<Exception>();
+      }
+      warnings.add(warn);
+    }
+  }
+
   //
   // Private methods
   //
-
-  /**
-   * Read content of file as a string.
-   *
-   * @param f File to read from
-   * @return contents of the file as a single String
-   */
-  private String getContent(String f) {
-    DataInputStream in = null;
-    try {
-      in = new DataInputStream(new FileInputStream(new File(bundleDir, f)));
-      return in.readUTF();
-    } catch (IOException ignore) {
-    } finally {
-      if (in != null) {
-        try {
-          in.close();
-        } catch (IOException ignore) { }
-      }
-    }
-    return null;
-  }
-
 
   /**
    * Statically check if a directory contains info that a bundle
@@ -515,7 +535,7 @@ class BundleArchiveImpl implements BundleArchive
     int n = -1;
     try {
       n = Integer.parseInt(s);
-    } catch (Exception e) {
+    } catch (final Exception e) {
     }
     return n == -2;
   }
@@ -529,17 +549,43 @@ class BundleArchiveImpl implements BundleArchive
     try {
       in = new DataInputStream(new FileInputStream(new File(dir, f)));
       return in.readUTF();
-    } catch (IOException ignore) {
+    } catch (final IOException ignore) {
     } finally {
       if (in != null) {
         try {
           in.close();
-        } catch (IOException ignore) { }
+        } catch (final IOException ignore) { }
       }
     }
     return null;
   }
 
+
+  //
+  // Private methods
+  //
+  
+  /**
+   * Read content of file as a string.
+   *
+   * @param f File to read from
+   * @return contents of the file as a single String
+   */
+  private String getContent(String f) {
+    DataInputStream in = null;
+    try {
+      in = new DataInputStream(new FileInputStream(new File(bundleDir, f)));
+      return in.readUTF();
+    } catch (final IOException ignore) {
+    } finally {
+      if (in != null) {
+        try {
+          in.close();
+        } catch (final IOException ignore) { }
+      }
+    }
+    return null;
+  }
 
   /**
    * Write string to named file.

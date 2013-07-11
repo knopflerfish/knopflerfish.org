@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,79 +34,100 @@
 
 package org.knopflerfish.bundle.serial;
 
-import java.io.*;
-import java.util.*;
-import javax.comm.*;
-import org.osgi.framework.*;
-import org.osgi.service.device.*;
-import org.knopflerfish.service.serial.*;
+import java.io.IOException;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
-class SPD implements SerialPortDevice {
+import javax.comm.CommPortIdentifier;
+import javax.comm.PortInUseException;
+import javax.comm.SerialPort;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.device.Device;
+
+import org.knopflerfish.service.serial.SerialPortDevice;
+
+class SPD
+  implements SerialPortDevice
+{
   private static final int SERIAL_WAIT = 1000;
-  private static final String[] clazzes=new String[] {
-    Device.class.getName(),
-    SerialPortDevice.class.getName()
-  };
+  private static final String[] clazzes = new String[] {
+                                                        Device.class.getName(),
+                                                        SerialPortDevice.class
+                                                            .getName() };
 
-  private ServiceRegistration sreg;
+  private ServiceRegistration<?> sreg;
   private boolean dying;
   private CommPortIdentifier cpi;
   private SerialPort sp;
 
-  void start(BundleContext bc, String port,
-	     String product, String revision) throws Exception {
-    this.sp=sp;
+  void start(BundleContext bc, String port, String product, String revision)
+      throws Exception
+  {
+    cpi = CommPortIdentifier.getPortIdentifier(port);
+    if (cpi == null) {
+      throw new IOException();
+    }
 
-    cpi=CommPortIdentifier.getPortIdentifier(port);
-    if(cpi==null) throw new IOException();
+    final Dictionary<String, Object> props = new Hashtable<String, Object>();
+    props.put("DEVICE_CATEGORY", new String[] { "Serial" });
+    props.put("DEVICE_DESCRIPTION", "Serial device");
+    props.put("org.knopflerfish.service.serial.port", port);
+    props.put("org.knopflerfish.service.serial.product", product);
+    if (revision != null) {
+      props.put("org.knopflerfish.service.serial.revision", revision);
+    }
 
-    Dictionary props=new Hashtable();
-    props.put("DEVICE_CATEGORY",new String[] {"Serial"});
-    props.put("DEVICE_DESCRIPTION","Serial device");
-    props.put("org.knopflerfish.service.serial.port",port);
-    props.put("org.knopflerfish.service.serial.product",product);
-    if (revision != null)
-      props.put("org.knopflerfish.service.serial.revision",revision);
-
-    if(dying) return;
-    sreg=bc.registerService(clazzes,this,props);
-    synchronized(this) {
-      if(!dying) return;
+    if (dying) {
+      return;
+    }
+    sreg = bc.registerService(clazzes, this, props);
+    synchronized (this) {
+      if (!dying) {
+        return;
+      }
     }
     close();
   }
 
-  void close() {
-    synchronized(this) {
-      if(sreg==null) {
-	dying=true;
-	return;
+  void close()
+  {
+    synchronized (this) {
+      if (sreg == null) {
+        dying = true;
+        return;
       }
     }
     sreg.unregister();
-    synchronized(this) {
+    synchronized (this) {
       releaseSerialPort();
-      cpi=null;
+      cpi = null;
     }
   }
 
-  public synchronized SerialPort allocateSerialPort() {
-    if(cpi!=null && sp==null) {
+  public synchronized SerialPort allocateSerialPort()
+  {
+    if (cpi != null && sp == null) {
       try {
-	sp=(SerialPort)cpi.open("serial",SERIAL_WAIT);
-      } catch(PortInUseException e) {}
+        sp = (SerialPort) cpi.open("serial", SERIAL_WAIT);
+      } catch (final PortInUseException e) {
+      }
       return sp;
     } else {
       return null;
     }
   }
 
-  public synchronized void releaseSerialPort() {
-    if(sp!=null) {
+  public synchronized void releaseSerialPort()
+  {
+    if (sp != null) {
       sp.close();
-      sp=null;
+      sp = null;
     }
   }
 
-  public void noDriverFound() {}
+  public void noDriverFound()
+  {
+  }
 }

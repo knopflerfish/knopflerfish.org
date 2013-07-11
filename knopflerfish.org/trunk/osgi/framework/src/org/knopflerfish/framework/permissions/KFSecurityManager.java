@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.security.*;
+import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.Permission;
 import java.util.List;
 
 import org.knopflerfish.framework.Debug;
@@ -43,8 +45,10 @@ import org.knopflerfish.framework.Debug;
 public class KFSecurityManager extends SecurityManager
   implements ConditionalPermissionSecurityManager {
 
-  private final ThreadLocal postponementCheck = new ThreadLocal();
+  private final ThreadLocal<PostponementCheck<?>> postponementCheck
+    = new ThreadLocal<PostponementCheck<?>>();
 
+  @SuppressWarnings("unused")
   private final Debug debug;
 
   public KFSecurityManager(Debug debug) {
@@ -54,12 +58,14 @@ public class KFSecurityManager extends SecurityManager
   /**
    *
    */
+  @Override
   public void checkPermission(Permission perm, Object context) {
     if (!(context instanceof AccessControlContext)) {
       throw new SecurityException("Context not an AccessControlContext");
     }
-    PostponementCheck old = (PostponementCheck) postponementCheck.get();
-    PostponementCheck pc = new PostponementCheck((AccessControlContext) context, perm, old);
+    final PostponementCheck<?> old = postponementCheck.get();
+    final PostponementCheck<?> pc
+      = new PostponementCheck<Object>((AccessControlContext) context, perm, old);
     postponementCheck.set(pc);
     try {
       AccessController.doPrivileged(pc);
@@ -72,13 +78,14 @@ public class KFSecurityManager extends SecurityManager
   /**
    *
    */
+  @Override
   public void checkPermission(Permission perm) {
     checkPermission(perm, getSecurityContext());
   }
 
 
   /**
-   * Is it possible to do postponnnement checks.
+   * Is it possible to do postponement checks.
    * This is only possible if a checkPermission via
    * a ConditionalPermissionSecurityManager is in progress.
    *
@@ -92,8 +99,10 @@ public class KFSecurityManager extends SecurityManager
   /**
    * NYI! Think about security here!
    */
-  public void savePostponement(List postponement, Object debug) {
-    PostponementCheck pc = (PostponementCheck) postponementCheck.get();
+  public void savePostponement(List<ConditionalPermission> postponement,
+                               Object debug)
+  {
+    final PostponementCheck<?> pc = postponementCheck.get();
     pc.savePostponement(postponement, debug);
   }
 

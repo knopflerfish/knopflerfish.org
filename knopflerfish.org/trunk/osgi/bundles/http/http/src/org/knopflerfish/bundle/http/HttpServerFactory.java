@@ -38,115 +38,118 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
-public class HttpServerFactory implements ManagedServiceFactory {
-   
-    final static String DEFAULT_PID = Activator.FACTORY_PID + ".default";
+import org.knopflerfish.service.log.LogRef;
 
-    // private fields
+public class HttpServerFactory
+  implements ManagedServiceFactory
+{
+  final static String DEFAULT_PID = Activator.FACTORY_PID + ".default";
 
-    private final BundleContext bc;
+  // private fields
 
-    private final LogRef log;
+  private final BundleContext bc;
 
-    private final Dictionary servers = new Hashtable();
+  private final LogRef log;
 
-    // constructors
+  private final Dictionary<String, HttpServer> servers =
+    new Hashtable<String, HttpServer>();
 
-    HttpServerFactory(final BundleContext bc, final LogRef log) {
+  // constructors
 
-        this.bc = bc;
-        this.log = log;
+  HttpServerFactory(final BundleContext bc, final LogRef log)
+  {
+    this.bc = bc;
+    this.log = log;
+  }
+
+  // public methods
+
+  public void destroy()
+  {
+    final Enumeration<String> e = servers.keys();
+    while (e.hasMoreElements()) {
+      deleted(e.nextElement());
     }
+  }
 
-    // public methods
+  // implements ManagedServiceFactory
 
-    public void destroy() {
+  Object updateLock = new Object();
 
-        Enumeration e = servers.keys();
-        while (e.hasMoreElements())
-            deleted((String) e.nextElement());
-    }
+  public void updated(String pid, Dictionary<String, ?> configuration)
+      throws ConfigurationException
+  {
+    synchronized (updateLock) {
+      if (log.doDebug()) {
+        log.debug("Updated pid=" + pid);
+      }
 
-    // implements ManagedServiceFactory
-
-    Object updateLock = new Object();
-
-    public void updated(String pid, Dictionary configuration)
-            throws ConfigurationException {
-
-        synchronized (updateLock) {
-            if (log.doDebug()) {
-                log.debug("Updated pid=" + pid);
-            }
-
-            if (DEFAULT_PID.equals(pid) && servers.size() > 0) {
-                if (log.doDebug()) {
-                    log.debug("Skip default since we already have something");
-                }
-                return;
-            }
-
-            // As soon as we get a "non-default"-config, delete default
-            if (!DEFAULT_PID.equals(pid) && (null != servers.get(DEFAULT_PID))) {
-                if (log.doDebug()) {
-                    log
-                            .debug("Overriding default instance with new pid "
-                                    + pid);
-                }
-                deleted(DEFAULT_PID);
-            }
-
-            HttpServer httpServer = (HttpServer) servers.get(pid);
-            if (httpServer == null) {
-                if (log.doDebug()) {
-                    log.debug("create pid=" + pid);
-                }
-                httpServer = new HttpServer(bc,
-                                            new HttpConfig(bc,configuration),
-                                            log);
-                servers.put(pid, httpServer);
-
-                // registration is moved to HttpServer.update()
-            } else {
-                httpServer.getHttpConfig().updated(configuration);
-            }
-
-            // this will setup and possibly register the actual service
-            httpServer.updated();
+      if (DEFAULT_PID.equals(pid) && servers.size() > 0) {
+        if (log.doDebug()) {
+          log.debug("Skip default since we already have something");
         }
-    }
+        return;
+      }
 
-    public void deleted(String pid) {
-
-        HttpServer httpServer = (HttpServer) servers.remove(pid);
-        if (httpServer != null) {
-            if (log.doDebug()) {
-                log.debug("delete pid=" + pid);
-            }
-            httpServer.destroy();
+      // As soon as we get a "non-default"-config, delete default
+      if (!DEFAULT_PID.equals(pid) && (null != servers.get(DEFAULT_PID))) {
+        if (log.doDebug()) {
+          log.debug("Overriding default instance with new pid " + pid);
         }
-    }
+        deleted(DEFAULT_PID);
+      }
 
-    public String getName() {
-        return "Knopflerfish HTTP Service"; // NYI
-    }
+      HttpServer httpServer = servers.get(pid);
+      if (httpServer == null) {
+        if (log.doDebug()) {
+          log.debug("create pid=" + pid);
+        }
+        httpServer = new HttpServer(bc, new HttpConfig(bc, configuration), log);
+        servers.put(pid, httpServer);
 
-  public Enumeration getServerPids() {
+        // registration is moved to HttpServer.update()
+      } else {
+        httpServer.getHttpConfig().updated(configuration);
+      }
+
+      // this will setup and possibly register the actual service
+      httpServer.updated();
+    }
+  }
+
+  public void deleted(String pid)
+  {
+    final HttpServer httpServer = servers.remove(pid);
+    if (httpServer != null) {
+      if (log.doDebug()) {
+        log.debug("delete pid=" + pid);
+      }
+      httpServer.destroy();
+    }
+  }
+
+  public String getName()
+  {
+    return "Knopflerfish HTTP Service"; // NYI
+  }
+
+  public Enumeration<String> getServerPids()
+  {
     return servers.keys();
   }
-  
-  public Enumeration getServers() {
+
+  public Enumeration<HttpServer> getServers()
+  {
     return servers.elements();
   }
 
-  public HttpServer getServer(String pid) {
-    return (HttpServer)servers.get(pid);
+  public HttpServer getServer(String pid)
+  {
+    return servers.get(pid);
   }
-
 
 } // HttpServerFactory

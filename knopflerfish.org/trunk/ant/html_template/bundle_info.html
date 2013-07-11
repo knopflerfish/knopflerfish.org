@@ -79,6 +79,15 @@
   <td>${DynamicImport-Package}</td>
  </tr>
 
+ <tr>
+  <td>Provide-Capability</td>
+  <td>${Provide-Capability}</td>
+ </tr>
+ <tr>
+  <td>Require-Capability</td>
+  <td>${Require-Capability}</td>
+ </tr>
+
 
  <tr>
   <td  class="mfheader" colspan=2>Other manifest attributes</td>
@@ -89,12 +98,37 @@
 </table>
 
 
-<h4>Depends on</h4>
+<h4>Depends on (<tt>osgi.wiring.package</tt>)</h4>
+
+This section lists bundles that can provide one or more of the
+capabilities that is required in the <tt>osgi.wiring.package</tt>
+namespace. Only one provider of each capability is required.
+
+<p>
+
+The first column is the providing bundle and the second column lists
+the sub-set of its provided packages that are required by this bundle.
+
+<p>
+
 <table>
 ${depends.list}
 </table>
 
-<h4>Other bundles depending on this bundle</h4>
+<h4>Other bundles depending on this bundle (<tt>osgi.wiring.package</tt>)</h4>
+
+This section lists bundles that requires one or more of the
+capabilities that is provided in the namespace
+<tt>osgi.wiring.package</tt> by the current bundle.
+
+<p>
+
+The first column is the requiring bundle and the second column lists
+the sub-set of capabilities that this bundle may provide to the
+requiring bundle.
+
+<p>
+
 <table>
 ${depending.list}
 </table>
@@ -102,6 +136,9 @@ ${depending.list}
 
 <a name="source"></a>
 <h4>Bundle source</h4>
+
+Here are links to the source files of this bundle.
+
 ${sources.list}
 
 </body>

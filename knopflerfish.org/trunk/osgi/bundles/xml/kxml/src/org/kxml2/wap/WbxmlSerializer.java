@@ -39,7 +39,7 @@ import org.xmlpull.v1.*;
 public class WbxmlSerializer implements XmlSerializer {
     
 	
-    Hashtable stringTable = new Hashtable();
+    Hashtable<String, Integer> stringTable = new Hashtable<String, Integer>();
     
     OutputStream out;
     
@@ -50,11 +50,11 @@ public class WbxmlSerializer implements XmlSerializer {
     int depth;
     String name;
     String namespace;
-    Vector attributes = new Vector();
+    Vector<String> attributes = new Vector<String>();
     
-    Hashtable attrStartTable = new Hashtable();
-    Hashtable attrValueTable = new Hashtable();
-    Hashtable tagTable = new Hashtable();
+    Hashtable<String, Object> attrStartTable = new Hashtable<String, Object>();
+    Hashtable<String, Object> attrValueTable = new Hashtable<String, Object>();
+    Hashtable<String, Object> tagTable = new Hashtable<String, Object>();
     
     private int attrPage;
     private int tagPage;
@@ -182,7 +182,7 @@ public class WbxmlSerializer implements XmlSerializer {
             
             if (idx == null) {
                 buf.write(Wbxml.LITERAL);
-                writeStrT((String) attributes.elementAt(i), false);
+                writeStrT(attributes.elementAt(i), false);
             }
             else {
                 if(idx[0] != attrPage){
@@ -194,7 +194,7 @@ public class WbxmlSerializer implements XmlSerializer {
             }
             idx = (int[]) attrValueTable.get(attributes.elementAt(++i));
             if (idx == null) {
-                writeStr((String) attributes.elementAt(i));
+                writeStr(attributes.elementAt(i));
             }
             else {
 				if(idx[0] != attrPage){
@@ -430,7 +430,7 @@ public class WbxmlSerializer implements XmlSerializer {
     
     private final void writeStrT(String s, boolean mayPrependSpace) throws IOException {
         
-        Integer idx = (Integer) stringTable.get(s);
+        Integer idx = stringTable.get(s);
         
         if (idx != null) {
             writeInt(buf, idx.intValue());

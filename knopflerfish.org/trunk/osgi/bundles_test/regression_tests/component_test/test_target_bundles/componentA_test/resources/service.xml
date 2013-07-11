@@ -38,14 +38,14 @@
 	interface="org.knopflerfish.bundle.componentA_test.ComponentC"/>
 
   <reference name="TESTSERVICE2"
-        policy="dynamic"
+    policy="dynamic"
 	interface="org.knopflerfish.service.component_test.TestService2"/>
 
   <service>
    <provide interface="org.knopflerfish.bundle.componentA_test.ComponentB"/>
   </service>
 
-  <property name="TESTSERVICE2.target"> (!(block=*)) </property>
+  <property name="TESTSERVICE2.target">(!(block=*))</property>
 
  </component>
 

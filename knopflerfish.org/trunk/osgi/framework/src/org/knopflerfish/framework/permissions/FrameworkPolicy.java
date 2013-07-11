@@ -34,8 +34,15 @@
 
 package org.knopflerfish.framework.permissions;
 
-import java.net.*;
-import java.security.*;
+import java.net.URL;
+import java.security.AccessController;
+import java.security.CodeSource;
+import java.security.Permission;
+import java.security.PermissionCollection;
+import java.security.Permissions;
+import java.security.Policy;
+import java.security.PrivilegedAction;
+import java.security.ProtectionDomain;
 import java.util.Enumeration;
 
 import org.knopflerfish.framework.BundleURLStreamHandler;
@@ -57,7 +64,7 @@ class FrameworkPolicy extends Policy {
   /** The policy to delegate non-bundle permission requests to. */
   private final Policy defaultPolicy;
 
-  private PermissionsHandle ph;
+  private final PermissionsHandle ph;
 
 
   /**
@@ -69,15 +76,16 @@ class FrameworkPolicy extends Policy {
 
 
   // Delegate to the wrapped defaultPolicy for all non-bundle domains.
+  @Override
   public PermissionCollection getPermissions(ProtectionDomain pd) {
     if (null==pd)
       return defaultPolicy.getPermissions(pd);
 
-    CodeSource cs = pd.getCodeSource();
+    final CodeSource cs = pd.getCodeSource();
     if (null==cs)
       return defaultPolicy.getPermissions(pd);
 
-    URL u = cs.getLocation();
+    final URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       return getPermissions(cs);
     } else {
@@ -88,22 +96,23 @@ class FrameworkPolicy extends Policy {
 
   /**
    */
+  @Override
   public PermissionCollection getPermissions(CodeSource cs) {
     if (null==cs) {
       // Not a code source for a bundle, delegate to the default policy
       return defaultPolicy.getPermissions(cs);
     }
 
-    URL u = cs.getLocation();
+    final URL u = cs.getLocation();
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
       try {
-        Long id = new Long(BundleURLStreamHandler.getId(u.getHost()));
+        final Long id = new Long(BundleURLStreamHandler.getId(u.getHost()));
         //return getPermissions(id);
-        PermissionCollection pc = ph.getPermissionCollection(id);
+        final PermissionCollection pc = ph.getPermissionCollection(id);
         if (pc != null) {
           return copy(pc);
         }
-      } catch (NumberFormatException ignore) { }
+      } catch (final NumberFormatException ignore) { }
       return new Permissions();
     } else {
       return defaultPolicy.getPermissions(cs);
@@ -113,9 +122,9 @@ class FrameworkPolicy extends Policy {
 
   private static PermissionCollection copy(PermissionCollection pc) {
     // TODO, provide a copy-on-write collection?!
-    Permissions pc2 = new Permissions();
-    for (Enumeration e = pc.elements(); e.hasMoreElements();) {
-      pc2.add((Permission) e.nextElement());
+    final Permissions pc2 = new Permissions();
+    for (final Enumeration<Permission> e = pc.elements(); e.hasMoreElements();) {
+      pc2.add(e.nextElement());
     }
     return pc2;
   }
@@ -123,16 +132,17 @@ class FrameworkPolicy extends Policy {
 
   /**
    */
+  @Override
   public boolean implies(final ProtectionDomain pd, final Permission p) {
     // NYI! Optimize here for framework.jar + bootclasses?
-    CodeSource cs = null != pd ? pd.getCodeSource() : null;
-    URL u = null != cs ? cs.getLocation() : null;
+    final CodeSource cs = null != pd ? pd.getCodeSource() : null;
+    final URL u = null != cs ? cs.getLocation() : null;
     if (u != null && BundleURLStreamHandler.PROTOCOL.equals(u.getProtocol())) {
-      PermissionCollection pc = getPermissions(cs);
+      final PermissionCollection pc = getPermissions(cs);
       return (pc == null) ? false : pc.implies(p);
     } else {
-      Boolean res = (Boolean)AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
+      final Boolean res = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+          public Boolean run() {
             return new Boolean(defaultPolicy.implies(pd, p));
           }
         });
@@ -143,6 +153,7 @@ class FrameworkPolicy extends Policy {
 
   /**
    */
+  @Override
   public void refresh() {
     // A bundle permissions is allways up to date, but we must
     // propagate to the wrapped defaultPolicy.

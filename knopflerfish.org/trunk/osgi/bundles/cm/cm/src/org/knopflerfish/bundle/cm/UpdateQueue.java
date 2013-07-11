@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,122 +39,114 @@ import java.util.Vector;
 import org.osgi.service.cm.ConfigurationException;
 
 /**
- * * This class is responsible for dispatching configurations * to
- * ManagedService(Factories). * * It is also responsible for calling
- * <code>ConfigurationPlugins</code>. * *
+ * This class is responsible for dispatching configurations to
+ * ManagedService(Factories).
  * 
- * @author Per Gustafson *
+ * It is also responsible for calling <code>ConfigurationPlugins</code>.
+ * 
+ * @author Per Gustafson
  * @version 1.0
  */
 
-final class UpdateQueue implements Runnable {
-    /**
-     * * The PluginManager to use.
-     */
+final class UpdateQueue
+  implements Runnable
+{
+  /**
+   * The PluginManager to use.
+   */
+  private PluginManager pm;
 
-    private PluginManager pm;
+  /**
+   * The thread running this object.
+   */
+  private Thread thread;
 
-    /**
-     * * The thread running this object.
-     */
+  private final Object threadLock = new Object();
 
-    private Thread thread;
+  /**
+   * The queue of updates.
+   */
+  private Vector<Update> queue = new Vector<Update>();
 
-    private final Object threadLock = new Object();
+  UpdateQueue(PluginManager pm)
+  {
+    this.pm = pm;
+  }
 
-    /**
-     * * The queue of updates.
-     */
-
-    private Vector queue = new Vector();
-
-    /**
-     * * Construct an UpdateQueue given a * BundleContext. * *
-     * 
-     * @param tracker
-     *            The BundleContext to use.
-     */
-
-    UpdateQueue(PluginManager pm) {
-        this.pm = pm;
+  public void run()
+  {
+    while (true) {
+      Update update = dequeue();
+      if (update == null) {
+        return;
+      }
+      try {
+        update.doUpdate(pm);
+      } catch (ConfigurationException ce) {
+        Activator.log
+            .error("[CM] Error in configuration for " + update.pid, ce);
+      } catch (Throwable t) {
+        Activator.log.error("[CM] Error while updating " + update.pid, t);
+      }
     }
+  }
 
-    /**
-     * * Overide of Thread.run().
-     */
-
-    public void run() {
-        while (true) {
-            Update update = dequeue();
-            if (update == null) {
-                return;
-            }
-            try {
-                update.doUpdate(pm);
-            } catch (ConfigurationException ce) {
-                Activator.log.error("[CM] Error in configuration for "
-                        + update.pid, ce);
-            } catch (Throwable t) {
-                Activator.log.error("[CM] Error while updating " + update.pid,
-                        t);
-            }
-        }
+  /**
+   * Add an entry to the end of the queue.
+   * 
+   * @param update
+   *          The Update to add to the queue.
+   * @throws java.lang.Exception
+   *           If given a null argument.
+   */
+  public synchronized void enqueue(Update update)
+  {
+    if (update == null) {
+      return;
     }
+    queue.addElement(update);
+    attachNewThreadIfNeccesary();
+    notifyAll();
+  }
 
-    /**
-     * * Add an entry to the end of the queue. * *
-     * 
-     * @param update
-     *            The Update to add to the queue. * *
-     * @throws java.lang.Exception
-     *             If given a null argument.
-     */
-
-    public synchronized void enqueue(Update update) {
-        if (update == null) {
-            return;
-        }
-        queue.addElement(update);
-        attachNewThreadIfNeccesary();
-        notifyAll();
+  /**
+   * Get and remove the next entry from the queue. If the queue is empty this
+   * method waits until an entry is available.
+   * 
+   * @return The Update entry removed from the queue.
+   */
+  private synchronized Update dequeue()
+  {
+    if (queue.isEmpty()) {
+      try {
+        wait(5000);
+      } catch (InterruptedException ignored) {
+      }
     }
-
-    /**
-     * * Get and remove the next entry from the queue. * * If the queue is empty
-     * this method waits until an * entry is available. * *
-     * 
-     * @return The Hashtable entry removed from the queue.
-     */
-
-    private synchronized Update dequeue() {
-        if (queue.isEmpty()) {
-            try {
-                wait(5000);
-            } catch (InterruptedException ignored) {
-            }
-        }
-        if (queue.isEmpty()) {
-            detachCurrentThread();
-            return null;
-        }
-        Update u = (Update) queue.elementAt(0);
-        queue.removeElementAt(0);
-        return u;
+    if (queue.isEmpty()) {
+      detachCurrentThread();
+      return null;
     }
+    Update u = queue.elementAt(0);
+    queue.removeElementAt(0);
+    return u;
+  }
 
-    void attachNewThreadIfNeccesary() {
-        synchronized (threadLock) {
-            if (thread == null) {
-                thread = new Thread(this);
-                thread.setDaemon(true);
-                thread.start();
-            }
-        }
+  void attachNewThreadIfNeccesary()
+  {
+    synchronized (threadLock) {
+      if (thread == null) {
+        thread = new Thread(this);
+        thread.setDaemon(true);
+        thread.start();
+      }
     }
+  }
 
-    void detachCurrentThread() {
-        synchronized (threadLock) {
-            thread = null;
-        }
+  void detachCurrentThread()
+  {
+    synchronized (threadLock) {
+      thread = null;
     }
+  }
 }

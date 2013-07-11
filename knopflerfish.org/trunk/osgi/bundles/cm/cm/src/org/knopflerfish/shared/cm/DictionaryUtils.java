@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,14 +57,14 @@ public final class DictionaryUtils {
    *            The Dictionary to create a copy of.
    * @return A copy of the Dictionary.
    */
-  static public Dictionary copyDictionary(Dictionary in) {
+  static public <K> Dictionary<K,Object> copyDictionary(Dictionary<K,Object> in) {
     if (in == null) {
       return null;
     }
-    Hashtable out = new Hashtable();
-    Enumeration keys = in.keys();
+    Hashtable<K, Object> out = new Hashtable<K, Object>();
+    Enumeration<K> keys = in.keys();
     while (keys.hasMoreElements()) {
-      Object key = keys.nextElement();
+      K key = keys.nextElement();
       out.put(key, copyValue(in.get(key)));
     }
     return out;
@@ -80,10 +80,11 @@ public final class DictionaryUtils {
    *            The first Dictionary to compare.
    * @param second
    *            The second Dictionary to compare.
-   * @return true if both dictonaries are either null or recursively equal.
+   * @return true if both dictionaries are either null or recursively equal.
    */
-  static public boolean dictionariesAreEqual(Dictionary first,
-                                             Dictionary second) {
+  static public <K> boolean dictionariesAreEqual(Dictionary<K, Object> first,
+                                                 Dictionary<K, Object> second)
+  {
     if (bothAreNull(first, second))
       return true;
     if (onlyOneIsNull(first, second))
@@ -92,9 +93,9 @@ public final class DictionaryUtils {
       return false;
 
     boolean result = true;
-    Enumeration keys = first.keys();
+    Enumeration<K> keys = first.keys();
     while (result && keys.hasMoreElements()) {
-      Object key = keys.nextElement();
+      K key = keys.nextElement();
       Object v1 = first.get(key);
       Object v2 = second.get(key);
       result = valuesAreEqual(v1, v2);
@@ -102,30 +103,36 @@ public final class DictionaryUtils {
     return result;
   }
 
-  static public boolean dictionariesAreNotEqual(Dictionary first,
-                                                Dictionary second) {
+  static public <K> boolean dictionariesAreNotEqual(Dictionary<K, Object> first,
+                                                    Dictionary<K, Object> second)
+  {
     return !dictionariesAreEqual(first, second);
   }
 
-  static private Object copyValue(Object in) {
+  static private <V> V copyValue(V in) {
     if (in == null) {
       return null;
     }
     if (in.getClass().isArray()) {
-      return copyArray(in);
+      @SuppressWarnings("unchecked")
+      V copy = (V) copyArray(in);
+      return copy;
     } else if (in instanceof Vector) {
-      return copyVector((Vector) in);
+      Vector<?> v = (Vector<?>) in;
+      @SuppressWarnings("unchecked")
+      V copy = (V) copyVector(v);
+      return copy;
     } else {
       return in;
     }
   }
 
-  static private Vector copyVector(Vector in) {
+  static private <V> Vector<V> copyVector(Vector<V> in) {
     if (in == null) {
       return null;
     }
-    Vector out = new Vector();
-    Enumeration elements = in.elements();
+    Vector<V> out = new Vector<V>();
+    Enumeration<V> elements = in.elements();
     while (elements.hasMoreElements()) {
       out.addElement(copyValue(elements.nextElement()));
     }
@@ -145,7 +152,8 @@ public final class DictionaryUtils {
     return out;
   }
 
-  static private boolean valuesAreEqual(Object first, Object second) {
+  static private boolean valuesAreEqual(Object first, Object second)
+  {
     if (bothAreNull(first, second))
       return true;
     if (onlyOneIsNull(first, second))
@@ -156,13 +164,14 @@ public final class DictionaryUtils {
     if (first.getClass().isArray()) {
       return arraysAreEqual(first, second);
     } else if (first instanceof Vector) {
-      return vectorsAreEqual((Vector) first, (Vector) second);
+      return (second instanceof Vector)
+             && vectorsAreEqual((Vector<?>) first, (Vector<?>) second);
     } else {
       return first.equals(second);
     }
   }
 
-  static private boolean vectorsAreEqual(Vector first, Vector second) {
+  static private boolean vectorsAreEqual(Vector<?> first, Vector<?> second) {
     if (bothAreNull(first, second))
       return true;
     if (onlyOneIsNull(first, second))
@@ -199,11 +208,14 @@ public final class DictionaryUtils {
     return !bothAreNull(first, second) && (first == null || second == null);
   }
 
-  static private boolean sizeIsNotEqual(Dictionary first, Dictionary second) {
+  static private boolean sizeIsNotEqual(Dictionary<?, ?> first,
+                                        Dictionary<?, ?> second)
+  {
     return first.size() != second.size();
   }
 
-  static private boolean sizeIsNotEqual(Vector first, Vector second) {
+  static private boolean sizeIsNotEqual(Vector<?> first, Vector<?> second)
+  {
     return first.size() != second.size();
   }
 

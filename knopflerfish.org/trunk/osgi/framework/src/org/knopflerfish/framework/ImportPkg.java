@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,51 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.osgi.framework.Constants;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRequirement;
+import org.osgi.framework.wiring.BundleRevision;
+
+import org.knopflerfish.framework.Util.HeaderEntry;
 
 /**
  * Data structure for import package definitions.
- * 
- * @author Jan Stein
+ *
+ * @author Jan Stein, Gunnar Ekolin
  */
-class ImportPkg {
+class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
+
+  /**
+   * The value of the resolution directive for dynamically imported packages.
+   */
+  static final String RESOLUTION_DYNAMIC = "dynamic";
+
+  @SuppressWarnings("deprecation")
+  private static final String PACKAGE_SPECIFICATION_VERSION = Constants.PACKAGE_SPECIFICATION_VERSION;
+
+  // To maintain the creation order in the osgi.wiring.package name space.
+  static private int importPkgCount = 0;
+
+  final int orderal = ++importPkgCount;
+
   final String name;
   final BundlePackages bpkgs;
   final String resolution;
   final String bundleSymbolicName;
   final VersionRange packageRange;
   final VersionRange bundleRange;
-  final Map attributes;
+  final Map<String,Object> attributes;
+  final ImportPkg parent;
 
   // Link to pkg entry
   Pkg pkg = null;
@@ -61,37 +88,60 @@ class ImportPkg {
   // Link to interal exporter ok to use
   ExportPkg internalOk = null;
 
+  // Ordering of dynamic imports
+  int dynId = 0;
+
 
   /**
-   * Create an import package entry.
+   * Create an import package entry from manifest parser data.
+   *
+   * @param name the name of the package to be imported.
+   * @param he the parsed import package statement.
+   * @param b back link to the bundle revision owning this import declaration.
+   * @param dynamic Set to true if this is a dynamic import package declaration.
    */
-  ImportPkg(String name, Map tokens, BundlePackages b) {
+  ImportPkg(final String name, final HeaderEntry he, final BundlePackages b,
+            boolean dynamic)
+  {
     this.bpkgs = b;
     this.name = name;
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not import a java.* package");
     }
-    String res = (String)tokens.remove(Constants.RESOLUTION_DIRECTIVE);
-    if (res != null) {
-      if (Constants.RESOLUTION_OPTIONAL.equals(res)) {
-        this.resolution = Constants.RESOLUTION_OPTIONAL;
-      } else if (Constants.RESOLUTION_MANDATORY.equals(res)) {
-        this.resolution = Constants.RESOLUTION_MANDATORY;
-      } else {
-        throw new IllegalArgumentException("Directive " + Constants.RESOLUTION_DIRECTIVE +
-                                           ", unexpected value: " + res);
+    final String res = he.getDirectives().get(Constants.RESOLUTION_DIRECTIVE);
+    if (dynamic) {
+      if (res != null) {
+        throw new IllegalArgumentException("Directives not supported for "
+                                           + "Dynamic-Import, found "
+                                           + Constants.RESOLUTION_DIRECTIVE
+                                           + ":=" +res);
       }
+      this.resolution = RESOLUTION_DYNAMIC;
     } else {
-      this.resolution = Constants.RESOLUTION_MANDATORY;
+      if (res != null) {
+        if (Constants.RESOLUTION_OPTIONAL.equals(res)) {
+          this.resolution = Constants.RESOLUTION_OPTIONAL;
+        } else if (Constants.RESOLUTION_MANDATORY.equals(res)) {
+          this.resolution = Constants.RESOLUTION_MANDATORY;
+        } else {
+          throw new IllegalArgumentException("Directive " + Constants.RESOLUTION_DIRECTIVE +
+                                             ", unexpected value: " + res);
+        }
+      } else {
+        this.resolution = Constants.RESOLUTION_MANDATORY;
+      }
     }
-    this.bundleSymbolicName = (String)tokens.remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
-    String versionStr = (String)tokens.remove(Constants.VERSION_ATTRIBUTE);
-    String specVersionStr = (String)tokens.remove(Constants.PACKAGE_SPECIFICATION_VERSION);
+    this.bundleSymbolicName = (String) he.getAttributes()
+        .remove(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
+    final String versionStr = (String) he.getAttributes()
+        .remove(Constants.VERSION_ATTRIBUTE);
+    final String specVersionStr = (String) he.getAttributes()
+        .remove(PACKAGE_SPECIFICATION_VERSION);
     if (specVersionStr != null) {
       this.packageRange = new VersionRange(specVersionStr);
       if (versionStr != null && !this.packageRange.equals(new VersionRange(versionStr))) {
         throw new IllegalArgumentException("Both " + Constants.VERSION_ATTRIBUTE +
-                                           " and " + Constants.PACKAGE_SPECIFICATION_VERSION +
+                                           " and " + PACKAGE_SPECIFICATION_VERSION +
                                            " are specified, but differs");
       }
     } else if (versionStr != null) {
@@ -99,22 +149,15 @@ class ImportPkg {
     } else {
       this.packageRange = VersionRange.defaultVersionRange;
     }
-    String rangeStr = (String)tokens.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+    final String rangeStr = (String) he.getAttributes()
+        .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     if (rangeStr != null) {
       this.bundleRange = new VersionRange(rangeStr);
     } else {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
-    // Remove all meta-data and all directives from the set of tokens.
-    Set directiveNames = (Set)tokens.remove("$directives");
-    if (null != directiveNames) {
-      for (Iterator dit = directiveNames.iterator(); dit.hasNext();) {
-        tokens.remove((String)dit.next());
-      }
-    }
-    tokens.remove("$key");
-    tokens.remove("$keys");
-    this.attributes = tokens;
+    this.attributes = Collections.unmodifiableMap(he.getAttributes());
+    this.parent = null;
   }
 
 
@@ -129,6 +172,7 @@ class ImportPkg {
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
     this.attributes = ip.attributes;
+    this.parent = ip;
   }
 
 
@@ -143,6 +187,7 @@ class ImportPkg {
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
     this.attributes = ip.attributes;
+    this.parent = ip.parent;
   }
 
 
@@ -161,13 +206,14 @@ class ImportPkg {
     }
     this.bundleRange = VersionRange.defaultVersionRange;
     this.attributes = p.attributes;
+    this.parent = null;
   }
 
 
   /**
    * Attach this to a Pkg object which indicate that it is a valid importer.
    */
-  synchronized void attachPkg(Pkg p) {
+  void attachPkg(Pkg p) {
     pkg = p;
   }
 
@@ -175,15 +221,15 @@ class ImportPkg {
   /**
    * Detach this from a Pkg object which indicate that it is no longer valid.
    */
-  synchronized void detachPkg() {
+  void detachPkg() {
     pkg = null;
     provider = null;
   }
 
 
   /**
-   * Check if version fullfills import package constraints.
-   * 
+   * Check if version fulfills import package constraints.
+   *
    * @param ver Version to compare to.
    * @return Return 0 if equals, negative if this object is less than obj and
    *         positive if this object is larger then obj.
@@ -195,7 +241,7 @@ class ImportPkg {
 
   /**
    * Check that all package attributes match.
-   * 
+   *
    * @param ep Exported package.
    * @return True if okay, otherwise false.
    */
@@ -212,10 +258,9 @@ class ImportPkg {
       return false;
     }
     /* Other attributes */
-    for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
-      Map.Entry e = (Map.Entry)i.next();
-      String a = (String)ep.attributes.get(e.getKey());
-      if (a == null || !a.equals(e.getValue())) {
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
+      final String a = (String) ep.attributes.get(entry.getKey());
+      if (a == null || !a.equals(entry.getValue())) {
         return false;
       }
     }
@@ -225,7 +270,7 @@ class ImportPkg {
 
   /**
    * Check that we have import permission for exported package.
-   * 
+   *
    * @param ep Exported package.
    * @return True if okay, otherwise false.
    */
@@ -236,7 +281,7 @@ class ImportPkg {
 
   /**
    * Check that we can do an internal wire to the exported package.
-   * 
+   *
    * @return True if okay, otherwise false.
    */
   boolean mustBeResolved() {
@@ -245,8 +290,8 @@ class ImportPkg {
 
 
   /**
-   * Check that we intersect specifed ImportPkg.
-   * 
+   * Check that we intersect specified ImportPkg.
+   *
    * @param ip ImportPkg to check.
    * @return True if we overlap, otherwise false.
    */
@@ -257,10 +302,9 @@ class ImportPkg {
     }
 
     // Check that no other attributes conflict
-    for (Iterator i = attributes.entrySet().iterator(); i.hasNext();) {
-      Map.Entry e = (Map.Entry)i.next();
-      String a = (String)ip.attributes.get(e.getKey());
-      if (a != null && !a.equals(e.getValue())) {
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
+      final String a = (String) ip.attributes.get(entry.getKey());
+      if (a != null && !a.equals(entry.getValue())) {
         return false;
       }
     }
@@ -278,7 +322,7 @@ class ImportPkg {
 
   /**
    * String describing package name and specification version, if specified.
-   * 
+   *
    * @return String.
    */
   public String pkgString() {
@@ -293,24 +337,29 @@ class ImportPkg {
 
   /**
    * String describing this object.
-   * 
+   *
    * @return String.
    */
+  @Override
   public String toString() {
     return pkgString() + "(" + bpkgs.bg.bundle + ")";
   }
 
 
+  boolean isDynamic() {
+    return resolution == RESOLUTION_DYNAMIC;
+  }
+
+
   /**
    * Check that we have all mandatory attributes.
-   * 
+   *
    * @param mandatory Collection of mandatory attribute.
    * @return Return true if we have all mandatory attributes, otherwise false.
    */
-  private boolean checkMandatory(Collection mandatory) {
+  private boolean checkMandatory(final Collection<String> mandatory) {
     if (mandatory != null) {
-      for (Iterator i = mandatory.iterator(); i.hasNext();) {
-        String a = (String)i.next();
+      for (final String a : mandatory) {
         if (Constants.VERSION_ATTRIBUTE.equals(a)) {
           if (!packageRange.isSpecified()) {
             return false;
@@ -329,6 +378,125 @@ class ImportPkg {
       }
     }
     return true;
+  }
+
+
+  // BundleRequirement method
+  public String getNamespace() {
+    return BundleRevision.PACKAGE_NAMESPACE;
+  }
+
+
+  // BundleRequirement method
+  public Map<String, String> getDirectives() {
+    final Map<String,String> res = new HashMap<String, String>(4);
+
+    res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
+
+    // For PACKAGE_NAMESPACE effective defaults to resolve and no other value
+    // is allowed so leave it out.
+    // res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
+
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      res.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    return res;
+  }
+
+
+  private Filter toFilter()
+  {
+    final StringBuffer sb = new StringBuffer(80);
+    boolean multipleConditions = false;
+
+    sb.append('(');
+    sb.append(BundleRevision.PACKAGE_NAMESPACE);
+    sb.append('=');
+    sb.append(name);
+    if (name.length()==0 || name.endsWith(".")) {
+      // Dynamic import with wild-card.
+      sb.append('*');
+    }
+    sb.append(')');
+
+    if (packageRange != null) {
+      multipleConditions |= packageRange
+          .appendFilterString(sb, Constants.VERSION_ATTRIBUTE);
+    }
+
+    if (bundleSymbolicName != null) {
+      sb.append('(');
+      sb.append(Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE);
+      sb.append('=');
+      sb.append(bundleSymbolicName);
+      sb.append(')');
+      multipleConditions |= true;
+    }
+
+    if (bundleRange != null) {
+      multipleConditions |= bundleRange
+          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
+    }
+
+    for (final Entry<String,Object> entry : attributes.entrySet()) {
+      sb.append('(');
+      sb.append(entry.getKey());
+      sb.append('=');
+      sb.append(entry.getValue().toString());
+      sb.append(')');
+      multipleConditions |= true;
+    }
+
+    if (multipleConditions) {
+      sb.insert(0, "(&");
+      sb.append(')');
+    }
+    try {
+      return FrameworkUtil.createFilter(sb.toString());
+    } catch (final InvalidSyntaxException _ise) {
+      // Should not happen...
+      System.err.println("createFilter: '" +sb.toString() +"': " +_ise.getMessage());
+      return null;
+    }
+  }
+
+  // BundleRequirement method
+  public Map<String, Object> getAttributes() {
+    @SuppressWarnings("unchecked")
+    final
+    Map<String, Object> res = Collections.EMPTY_MAP;
+    return res;
+  }
+
+
+  // BundleRequirement method
+  public BundleRevision getRevision() {
+    return bpkgs.bg.bundleRevision;
+  }
+
+
+  // BundleRequirement method
+  public boolean matches(BundleCapability capability) {
+    if (BundleRevision.PACKAGE_NAMESPACE.equals(capability.getNamespace())) {
+      return toFilter().matches(capability.getAttributes());
+    }
+    return false;
+  }
+
+
+  /**
+   * The default ordering is the order in which the {@code ImportPkg}-objects
+   * has been created. I.e., the order they appeared in the {@code Import-Package}
+   * header.
+   *
+   * @param o other object to compare with.
+   * @return Less than zero, zero or greater than zero of this object is smaller
+   *  than, equals to or greater than {@code o}.
+   */
+  public int compareTo(ImportPkg o)
+  {
+    return this.orderal - o.orderal;
   }
 
 }

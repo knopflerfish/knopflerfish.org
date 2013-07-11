@@ -38,122 +38,144 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class BodyOutputStream extends BufferedOutputStream {
+public class BodyOutputStream
+  extends BufferedOutputStream
+{
 
-    // private fields
+  // private fields
 
-    private int totalCount = 0;
+  private int totalCount = 0;
 
-    private int maxCount = Integer.MAX_VALUE;
+  private int maxCount = Integer.MAX_VALUE;
 
-    private boolean committed = false;
+  private boolean committed = false;
 
-    private ResponseImpl response = null;
+  private ResponseImpl response = null;
 
-    // constructors
+  // constructors
 
-    BodyOutputStream(OutputStream out, ResponseImpl response, int size) {
+  BodyOutputStream(OutputStream out, ResponseImpl response, int size)
+  {
+    super(out);
 
-        super(out);
+    this.response = response;
 
-        this.response = response;
+    setBufferSize(size);
+  }
 
-        setBufferSize(size);
+  // package methods
+
+  void setContentLength(int contentLength)
+  {
+    if (!committed) {
+      maxCount = contentLength;
+    }
+  }
+
+  int getBufferByteCount()
+  {
+    return count;
+  }
+
+  public synchronized void setBufferSize(int size)
+  {
+    if (totalCount != 0) {
+      throw new IllegalStateException(
+                                      "Buffer size cannot be changed when data has been written");
     }
 
-    // package methods
-
-    void setContentLength(int contentLength) {
-
-        if (!committed)
-            maxCount = contentLength;
+    if (size < 0) {
+      throw new IllegalArgumentException("Buffer size must not be negative: "
+                                         + size);
     }
 
-    int getBufferByteCount() {
-        return count;
+    if (size > buf.length) {
+      buf = new byte[size];
+    }
+  }
+
+  public int getBufferSize()
+  {
+    return buf.length;
+  }
+
+  public synchronized void reset()
+  {
+    totalCount = 0;
+    count = 0;
+  }
+
+  public synchronized boolean isCommitted()
+  {
+    return committed;
+  }
+
+  synchronized void flush(boolean commit)
+      throws IOException
+  {
+    if (commit) {
+      flushBuffer();
     }
 
-    public synchronized void setBufferSize(int size) {
+    out.flush();
+  }
 
-        if (totalCount != 0)
-            throw new IllegalStateException(
-                    "Buffer size cannot be changed when data has been written");
+  // protected methods
 
-        if (size < 0)
-            throw new IllegalArgumentException(
-                    "Buffer size must not be negative: " + size);
-
-        if (size > buf.length)
-            buf = new byte[size];
+  protected void flushBuffer()
+      throws IOException
+  {
+    if (!committed && response != null) {
+      out.write(response.getHeaders());
+      committed = true;
     }
 
-    public int getBufferSize() {
-        return buf.length;
+    out.write(buf, 0, count);
+    count = 0;
+  }
+
+  // extends BufferedOutputStream
+
+  @Override
+  public synchronized void write(int b)
+      throws IOException
+  {
+    if (count >= buf.length) {
+      flushBuffer();
     }
 
-    public synchronized void reset() {
-
-        totalCount = 0;
-        count = 0;
+    if (totalCount++ < maxCount) {
+      buf[count++] = (byte) b;
+    } else {
+      flushBuffer();
     }
+  }
 
-    public synchronized boolean isCommitted() {
-        return committed;
+  @Override
+  public synchronized void write(byte b[], int off, int len)
+      throws IOException
+  {
+    if (len >= buf.length) {
+      flushBuffer();
+      out.write(b, off, len);
+    } else {
+      if (len > buf.length - count) {
+        flushBuffer();
+      }
+      System.arraycopy(b, off, buf, count, len);
+      totalCount += len;
+      count += len;
     }
+  }
 
-    synchronized void flush(boolean commit) throws IOException {
+  @Override
+  public void flush()
+  {
+  }
 
-        if (commit)
-            flushBuffer();
-
-        out.flush();
-    }
-
-    // protected methods
-
-    protected void flushBuffer() throws IOException {
-
-        if (!committed && response != null) {
-            out.write(response.getHeaders());
-            committed = true;
-        }
-
-        out.write(buf, 0, count);
-        count = 0;
-    }
-
-    // extends BufferedOutputStream
-
-    public synchronized void write(int b) throws IOException {
-
-        if (count >= buf.length)
-            flushBuffer();
-
-        if (totalCount++ < maxCount)
-            buf[count++] = (byte) b;
-        else
-            flushBuffer();
-    }
-
-    public synchronized void write(byte b[], int off, int len)
-            throws IOException {
-
-        if (len >= buf.length) {
-            flushBuffer();
-            out.write(b, off, len);
-        } else {
-            if (len > buf.length - count)
-                flushBuffer();
-            System.arraycopy(b, off, buf, count, len);
-            totalCount += len;
-            count += len;
-        }
-    }
-
-    public void flush() {
-    }
-
-    public void close() {
-    }
+  @Override
+  public void close()
+  {
+  }
 
 } // BodyOutputStream

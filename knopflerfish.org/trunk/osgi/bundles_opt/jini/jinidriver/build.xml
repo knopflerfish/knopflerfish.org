@@ -10,6 +10,10 @@
   <property name="bundle.build.all"  value="true"/>
   <property name="bundle.build.lib"  value="false"/>
 
+  <!-- Build for JavaSE 1.4 Execution Environment. -->
+  <!-- Uses java.rmi.*                           -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.4"/>
+
   <property name="api.pattern"
 	    value="net/jini/admin/*,
 		   net/jini/core/discovery/*,

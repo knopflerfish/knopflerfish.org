@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,9 +43,12 @@ class PostponedBind {
 
   final ComponentContextImpl cci;
   final ReferenceListener rl;
-  final ServiceReference sr;
+  final ServiceReference<?> sr;
 
-  PostponedBind(ComponentContextImpl cci, ReferenceListener rl, ServiceReference sr) {
+  PostponedBind(ComponentContextImpl cci,
+                ReferenceListener rl,
+                ServiceReference<?> sr)
+  {
     this.cci = cci;
     this.rl = rl;
     this.sr = sr;
@@ -61,6 +64,7 @@ class PostponedBind {
     }
   }
 
+  @Override
   public String toString() {
     return "Postponed bind, "  + Activator.srInfo(sr);
   }

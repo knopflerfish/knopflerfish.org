@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,15 @@
 
 package org.knopflerfish.framework;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceReference;
 
 /**
  * Implementation of the ServiceReference object.
@@ -45,13 +50,13 @@ import org.osgi.framework.*;
  * @see org.osgi.framework.ServiceReference
  * @author Jan Stein
  */
-public class ServiceReferenceImpl implements ServiceReference
+public class ServiceReferenceImpl<S> implements ServiceReference<S>
 {
 
   /**
    * Link to registration object for this reference.
    */
-  private ServiceRegistrationImpl registration;
+  private final ServiceRegistrationImpl<S> registration;
 
 
   /**
@@ -59,7 +64,7 @@ public class ServiceReferenceImpl implements ServiceReference
    *
    * @param reg ServiceRegistration pointed to be this reference.
    */
-  ServiceReferenceImpl(ServiceRegistrationImpl reg) {
+  ServiceReferenceImpl(ServiceRegistrationImpl<S> reg) {
     registration = reg;
   }
 
@@ -102,9 +107,11 @@ public class ServiceReferenceImpl implements ServiceReference
    *
    * @see org.osgi.framework.ServiceReference
    */
+  @Override
   public boolean equals(Object o) {
     if (o instanceof ServiceReferenceImpl) {
-      return registration == ((ServiceReferenceImpl)o).registration;
+      final ServiceReferenceImpl<?> that = (ServiceReferenceImpl<?>)o;
+      return registration == that.registration;
     }
     return false;
   }
@@ -115,13 +122,13 @@ public class ServiceReferenceImpl implements ServiceReference
    * @see org.osgi.framework.ServiceReference
    */
   public int compareTo(Object obj) {
-    ServiceReference that = (ServiceReference)obj;
+    final ServiceReference<?> that = (ServiceReference<?>)obj;
 
     boolean sameFw = false;
     if (that instanceof ServiceReferenceImpl) {
-      ServiceReferenceImpl thatImpl = (ServiceReferenceImpl) that;
+      final ServiceReferenceImpl<?> thatImpl = (ServiceReferenceImpl<?>) that;
       sameFw
-        = this.registration.bundle.fwCtx == thatImpl.registration.bundle.fwCtx;
+        = this.registration.fwCtx == thatImpl.registration.fwCtx;
     }
     if (!sameFw) {
       throw new IllegalArgumentException("Can not compare service references "
@@ -130,17 +137,17 @@ public class ServiceReferenceImpl implements ServiceReference
                                          +that +").");
     }
 
-    Object ro1 = this.getProperty(Constants.SERVICE_RANKING);
-    Object ro2 = that.getProperty(Constants.SERVICE_RANKING);
-    int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
-    int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
+    final Object ro1 = this.getProperty(Constants.SERVICE_RANKING);
+    final Object ro2 = that.getProperty(Constants.SERVICE_RANKING);
+    final int r1 = (ro1 instanceof Integer) ? ((Integer)ro1).intValue() : 0;
+    final int r2 = (ro2 instanceof Integer) ? ((Integer)ro2).intValue() : 0;
 
     if (r1 != r2) {
       // use ranking if ranking differs
       return r1 < r2 ? -1 : 1;
     } else {
-      Long id1 = (Long)this.getProperty(Constants.SERVICE_ID);
-      Long id2 = (Long)that.getProperty(Constants.SERVICE_ID);
+      final Long id1 = (Long)this.getProperty(Constants.SERVICE_ID);
+      final Long id2 = (Long)that.getProperty(Constants.SERVICE_ID);
 
       // otherwise compare using IDs,
       // is less than if it has a higher ID.
@@ -154,6 +161,7 @@ public class ServiceReferenceImpl implements ServiceReference
    *
    * @see org.osgi.framework.ServiceReference
    */
+  @Override
   public int hashCode() {
     return registration.hashCode();
   }
@@ -187,7 +195,7 @@ public class ServiceReferenceImpl implements ServiceReference
    * @param bundle requester of service.
    * @return Service requested or null in case of failure.
    */
-  Object getService(final BundleImpl bundle) {
+  S getService(final BundleImpl bundle) {
     bundle.fwCtx.perm.checkGetServicePerms(this);
     return registration.getService(bundle);
   }
@@ -220,7 +228,7 @@ public class ServiceReferenceImpl implements ServiceReference
 
   /**
    * Clone object. Handles all service property types
-   * and does this recursivly.
+   * and does this recursively.
    *
    * @param bundle Object to clone.
    * @return Cloned object.
@@ -228,7 +236,7 @@ public class ServiceReferenceImpl implements ServiceReference
   Object cloneObject(Object val) {
     if (val instanceof Object []) {
       val = ((Object [])val).clone();
-      int len = Array.getLength(val);
+      final int len = Array.getLength(val);
       if (len > 0 && Array.get(val, 0).getClass().isArray()) {
         for (int i = 0; i < len; i++) {
           Array.set(val, i, cloneObject(Array.get(val, i)));
@@ -251,7 +259,8 @@ public class ServiceReferenceImpl implements ServiceReference
     } else if (val instanceof short []) {
       val = ((short [])val).clone();
     } else if (val instanceof Vector) {
-      Vector c = (Vector)((Vector)val).clone();
+      @SuppressWarnings({ "rawtypes", "unchecked" })
+      final Vector<Object> c = (Vector)((Vector)val).clone();
       for (int i = 0; i < c.size(); i++) {
         c.setElementAt(cloneObject(c.elementAt(i)), i);
       }
@@ -262,11 +271,11 @@ public class ServiceReferenceImpl implements ServiceReference
 
 
   public boolean isAssignableTo(Bundle bundle, String className) {
-    BundleImpl sBundle = registration.bundle;
+    final BundleImpl sBundle = registration.bundle;
     if (sBundle == null) {
         throw new IllegalStateException("Service is unregistered");
     }
-    FrameworkContext fwCtx = sBundle.fwCtx;
+    final FrameworkContext fwCtx = sBundle.fwCtx;
     if (((BundleImpl)bundle).fwCtx != fwCtx) {
       throw new IllegalArgumentException("Bundle is not from same framework as service");
     }
@@ -274,30 +283,30 @@ public class ServiceReferenceImpl implements ServiceReference
     if (fwCtx.isBootDelegated(className)) {
       return true;
     }
-    int pos = className.lastIndexOf('.');
+    final int pos = className.lastIndexOf('.');
     if (pos != -1) {
       final String name = className.substring(0, pos);
-      final Pkg p = fwCtx.packages.getPkg(name);
+      final Pkg p = fwCtx.resolver.getPkg(name);
       // Is package exported by a bundle
       if (p != null) {
-        final BundlePackages rbp = sBundle.gen.bpkgs;
+        final BundlePackages rbp = sBundle.current().bpkgs;
         final BundlePackages pkgExporter = rbp.getProviderBundlePackages(name);
-        List pkgProvider;
+        List<BundleGeneration> pkgProvider;
         if (pkgExporter == null) {
           // Package not imported by provide, is it required
           pkgProvider = rbp.getRequiredBundleGenerations(name);
         } else {
-          pkgProvider = new ArrayList(1);
+          pkgProvider = new ArrayList<BundleGeneration>(1);
           pkgProvider.add(pkgExporter.bg);
         }
-        final BundlePackages bb = ((BundleImpl)bundle).gen.bpkgs;
+        final BundlePackages bb = ((BundleImpl)bundle).current().bpkgs;
         final BundlePackages bbp = bb.getProviderBundlePackages(name);
-        List pkgConsumer;
+        List<BundleGeneration> pkgConsumer;
         if (bbp == null) {
           // Package not imported by bundle, is it required
           pkgConsumer = bb.getRequiredBundleGenerations(name);
         } else {
-          pkgConsumer = new ArrayList(1);
+          pkgConsumer = new ArrayList<BundleGeneration>(1);
           pkgConsumer.add(bbp.bg);
         }
         if (pkgConsumer == null) {
@@ -313,7 +322,7 @@ public class ServiceReferenceImpl implements ServiceReference
           }
         } else if (pkgProvider == null) {
           // Package not imported by registrar. E.g. proxy registration.
-          Object sService = registration.service;
+          final Object sService = registration.service;
           if (sService == null) {
             throw new IllegalStateException("Service is unregistered");
           }
@@ -326,23 +335,23 @@ public class ServiceReferenceImpl implements ServiceReference
           } else {
             // Use the classloader of bundle to load the class, then check
             // if the service's class is assignable.
-            ClassLoader bCL = bb.getClassLoader();
+            final ClassLoader bCL = bb.getClassLoader();
             if (bCL!=null) {
               try {
-                Class bCls = bCL.loadClass(className);
+                final Class<?> bCls = bCL.loadClass(className);
                 // NYI, Handle Service Factories.
                 return bCls.isAssignableFrom(sService.getClass());
-              } catch (Exception e) {
+              } catch (final Exception e) {
                 // If we can not load, assume that we are just a proxy.
                 return true;
               }
             }
           }
-          // Fallback: Allways Ok when singleton provider of the package
+          // Fallback: Always OK when singleton provider of the package
         } else { // Package imported by both parties
           // Return true if we have same provider as service.
-          for (Iterator i = pkgProvider.iterator(); i.hasNext(); ) {
-            if (pkgConsumer.contains(i.next())) {
+          for (final Object element : pkgProvider) {
+            if (pkgConsumer.contains(element)) {
               return true;
             }
           }

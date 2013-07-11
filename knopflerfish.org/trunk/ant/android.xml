@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-   ** Copyright (c) 2011-2011, KNOPFLERFISH project
+   ** Copyright (c) 2011-2013, KNOPFLERFISH project
    ** All rights reserved.
    **
    ** Redistribution and use in source and binary forms, with or without
@@ -41,25 +41,20 @@
   <!-- Are we building for Dalvik/Android? -->
   <available property="android.exists" file="${ANDROID_HOME}"/>
 
-  <condition property="android.tool.dx"
-             value="${ANDROID_HOME}/platform-tools/lib/dx.jar"
-             else="${ANDROID_HOME}/tools/lib/dx.jar">
-    <available file="${ANDROID_HOME}/platform-tools/lib/dx.jar"/>
-  </condition>
+  <!-- look for dx.jar and aapt in Android sdk -->
+  <first id="first.dx">
+    <fileset dir="${ANDROID_HOME}"
+             includes="**/dx.jar"
+             erroronmissingdir="false"/>
+  </first>
+  <first id="first.aapt">
+    <fileset dir="${ANDROID_HOME}"
+             includes="**/aapt*"
+             erroronmissingdir="false"/>
+  </first>
+  <property name="android.tool.dx" value="${toString:first.dx}" />
+  <property name="android.tool.aapt" value="${toString:first.aapt}" />
 
-  <!-- First look for aapt.exe (on windows), then for aapt -->
-  <condition property="android.tool.aapt"
-             value="${ANDROID_HOME}/platform-tools/aapt.exe">
-    <and>
-      <os family="windows"/>
-      <available file="${ANDROID_HOME}/platform-tools/aapt.exe"/>
-    </and>
-  </condition>
-  <condition property="android.tool.aapt"
-             value="${ANDROID_HOME}/platform-tools/aapt"
-             else="${ANDROID_HOME}/tools/aapt">
-    <available file="${ANDROID_HOME}/platform-tools/aapt"/>
-  </condition>
 
   <macrodef name="add_dex"
             description="Generates xargs-file from templare.">
@@ -74,6 +69,13 @@
                 property="temp.dir"/>
       <mkdir dir="${temp.dir}"/>
       <property name="temp.dex" location="${temp.dir}/classes.dex"/>
+
+      <exec executable="${android.tool.aapt}" dir="${temp.dir}">
+        <arg value="remove"/>     
+        <arg value="-f"/>
+        <arg value="@{jarfile}"/>
+        <arg value="classes.dex"/>
+      </exec>
 
       <java fork="true" jar="${android.tool.dx}">
         <arg value="--dex"/>

@@ -10,7 +10,11 @@
   <property name = "bundle.build.all"   value = "false"/>
   <property name = "bundle.build.doc"   value = "true"/>
 
-  <property name="impl.pattern" value="org/knopflerfish/bundle/cm/**"/> 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
+  <property name="impl.pattern"
+	    value="org/knopflerfish/bundle/cm/**"/> 
 
   <path id="bundle.compile.path">
    <pathelement location="log_api-N.N.N.jar"/>

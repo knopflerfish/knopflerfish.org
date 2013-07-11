@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,10 @@
 
 package org.knopflerfish.bundle.prefs;
 
-import org.osgi.framework.*;
-import org.knopflerfish.service.log.LogRef;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
 
-import org.osgi.service.prefs.*;
+import org.knopflerfish.service.log.LogRef;
 
 
 public class Activator implements BundleActivator {
@@ -47,8 +47,8 @@ public class Activator implements BundleActivator {
   PreferencesServiceFactory prefsFactory;
 
   public void start(BundleContext bc) {
-    this.bc = bc;
-    this.log = new LogRef(bc);
+    Activator.bc = bc;
+    Activator.log = new LogRef(bc);
 
     prefsFactory = new PreferencesServiceFactory();
     prefsFactory.register();
@@ -58,6 +58,6 @@ public class Activator implements BundleActivator {
   public void stop(BundleContext bc) {
     prefsFactory.unregister();
     log = null;
-    this.bc = null;
+    Activator.bc = null;
   }
 }

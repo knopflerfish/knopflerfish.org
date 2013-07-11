@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2012, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,10 @@
 
 package org.knopflerfish.bundle.event;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
+
+import org.knopflerfish.service.log.LogRef;
 
 /**
  * The Activator class is the startup class for the EventHandlerService.

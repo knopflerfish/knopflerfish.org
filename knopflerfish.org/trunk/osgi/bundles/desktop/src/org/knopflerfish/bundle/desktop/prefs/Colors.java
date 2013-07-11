@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import java.awt.Color;
 /**
  * color names to set to java colors instances.
  */
-public class Colors extends Hashtable {
+public class Colors extends Hashtable<String,Color> {
   private static final long serialVersionUID = 1L;
 
   /**
@@ -88,17 +88,15 @@ public class Colors extends Hashtable {
    * Get color name if it exists in lookup map, otherwise #RRGGBB
    */
   public static String toString(Color c) {
-    StringBuffer sb = new StringBuffer();
-    
-    for(Enumeration e = COLORS.keys(); e.hasMoreElements();) {
-      String name = (String)e.nextElement();
-      Color  col  = (Color)COLORS.get(name);
+    for(Enumeration<String> e = COLORS.keys(); e.hasMoreElements();) {
+      final String name = e.nextElement();
+      final Color  col  = COLORS.get(name);
       if(col.equals(c)) {
         return name;
       }
     }
 
-    sb.append("#");
+    final StringBuffer sb = new StringBuffer("#");
     int r = c.getRed();
     int g = c.getGreen();
     int b = c.getBlue();

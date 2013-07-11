@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: TCP-Console
 Bundle-SymbolicName: org.knopflerfish.bundle.consoletcp
-Bundle-Version: 2.0.0
+Bundle-Version: 3.0.0
 Bundle-Description: Console Service Server accepting TCP connection.
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
@@ -11,12 +11,13 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/console/consoletcp/
-Bundle-Activator: org.knopflerfish.bundle.consoletcp.ConsoleTcp
 Bundle-Category: console
-Import-Package: org.osgi.framework,
- org.knopflerfish.service.console,
- org.knopflerfish.service.um.useradmin,
- org.osgi.service.cm,
- org.osgi.service.log,
- org.osgi.service.useradmin
+Bundle-Activator: org.knopflerfish.bundle.consoletcp.ConsoleTcp
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+Import-Package: org.osgi.framework; version="[1.6,2)",
+ org.knopflerfish.service.console; version="[2.1,3)",
+ org.knopflerfish.service.um.useradmin; version="[1.0,2)",
+ org.osgi.service.cm; version="[1.4,2)",
+ org.osgi.service.log; version="[1.3,2)",
+ org.osgi.service.useradmin; version="[1.1,2)"
 

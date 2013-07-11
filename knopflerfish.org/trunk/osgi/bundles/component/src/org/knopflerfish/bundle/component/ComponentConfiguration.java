@@ -46,7 +46,7 @@ import org.osgi.service.component.ComponentConstants;
 import org.osgi.service.component.ComponentException;
 
 
-public class ComponentConfiguration implements ServiceFactory, Comparable {
+public class ComponentConfiguration implements ServiceFactory<Object>, Comparable<ComponentConfiguration> {
 
   final static int STATE_ACTIVATING = 0;
   final static int STATE_REGISTERED = 1;
@@ -58,13 +58,13 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
   final int id;
 
   private PropertyDictionary ccProps = null;
-  private Dictionary /* String -> Object */ sProps = null;
+  private Dictionary<String, Object> sProps = null;
   private String cmPid = null;
-  private Dictionary /* String -> Object */ cmDict = null;
-  private final Dictionary /* String -> Object */ instanceProps;
-  private ServiceRegistration serviceRegistration = null;
+  private Dictionary<String, Object> cmDict = null;
+  private final Dictionary<String, Object> instanceProps;
+  private ServiceRegistration<?> serviceRegistration = null;
   private ComponentContextImpl componentContext = null;
-  private final Hashtable /* Bundle -> ComponentContextImpl */ factoryContexts;
+  private final Hashtable<Bundle, ComponentContextImpl> factoryContexts;
   private volatile boolean unregisterInProgress = false;
   private volatile int activeCount = 0;
   private volatile int state = STATE_ACTIVATING;
@@ -77,16 +77,17 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
    */
   ComponentConfiguration(Component c,
                          String cmPid,
-                         Dictionary cmDict,
-                         Dictionary sProps,
-                         Dictionary instanceProps)
+                         Dictionary<String, Object> cmDict,
+                         Dictionary<String, Object> sProps,
+                         Dictionary<String, Object> instanceProps)
   {
     this.component = c;
     this.cmPid = cmPid;
     this.cmDict = cmDict;
     this.sProps = sProps;
     this.instanceProps = instanceProps;
-    factoryContexts = c.compDesc.isServiceFactory() ? new Hashtable() : null;
+    factoryContexts = c.compDesc.isServiceFactory()
+        ? new Hashtable<Bundle, ComponentContextImpl>() : null;
     synchronized (countLock) {
       this.id = count++;
     }
@@ -96,6 +97,7 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
   /**
    *
    */
+  @Override
   public String toString() {
     return "[ComponentConfiguration, component#" + component.id +
       ", name = " + component.compDesc.getName() + "]";
@@ -110,7 +112,7 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
                                 final boolean incrementActive)
   {
     ComponentContextImpl res;
-    Class cclass = null;
+    Class<?> cclass = null;
     synchronized (this) {
       // Components that use both factory service and CM managed service factory
       // may run into problem with concurrent activation and de-activation of
@@ -128,9 +130,8 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
         } catch (final InterruptedException _ignore) {
         }
       }
-      res = factoryContexts != null ?
-        (ComponentContextImpl)factoryContexts.get(usingBundle) :
-        componentContext;
+      res = factoryContexts != null ? factoryContexts.get(usingBundle)
+          : componentContext;
       if (res == null) {
         state = STATE_ACTIVATING;
         cclass = component.getImplementation();
@@ -285,9 +286,9 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
     }
     unregisterService();
     if (ccis.length > 0) {
-      for (int i = 0; i < ccis.length; i++) {
-        if (ccis[i] != null) {
-          deactivate(ccis[i], reason, true, false, removeCompConfig);
+      for (final ComponentContextImpl cci : ccis) {
+        if (cci != null) {
+          deactivate(cci, reason, true, false, removeCompConfig);
         }
       }
     } else {
@@ -350,7 +351,7 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
     final ComponentDescription cd = component.compDesc;
     final String [] services = cd.getServices();
     if (services != null) {
-      Dictionary sp;
+      Dictionary<String, Object> sp;
       if (sProps != null) {
         sp = sProps;
         sProps = null;
@@ -402,7 +403,7 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
    */
   ComponentContextImpl getContext(Bundle b) {
     final ComponentContextImpl cci = factoryContexts != null ?
-      (ComponentContextImpl)factoryContexts.get(b) : componentContext;
+      factoryContexts.get(b) : componentContext;
     return cci != null && cci.isActive() ? cci : null;
   }
 
@@ -411,7 +412,7 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
    * Get service reference for service registered by this
    * component configuration.
    */
-  ServiceReference getServiceReference() {
+  ServiceReference<?> getServiceReference() {
     if (serviceRegistration != null) {
       return serviceRegistration.getReference();
     }
@@ -424,7 +425,7 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
    * for the component configuration. Also call modified method when its is specified.
    *
    */
-  void cmConfigUpdated(String pid, Dictionary dict)
+  void cmConfigUpdated(String pid, Dictionary<String, Object> dict)
   {
     Activator.logDebug("CC.cmConfigUpdated, " + toString() + ", pid=" + pid
                        + ", activeCount=" + activeCount);
@@ -451,8 +452,8 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
       }
     }
     if (ccis != null) {
-      for (int i = 0; i < ccis.length; i++) {
-        component.modifiedMethod.invoke(ccis[i]);
+      for (final ComponentContextImpl cci : ccis) {
+        component.modifiedMethod.invoke(cci);
       }
       modifyService();
     } else {
@@ -463,29 +464,35 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
   /**
    *
    */
-  void bindReference(ReferenceListener rl, ServiceReference s) {
-    ComponentContextImpl [] cci = getActiveContexts();
-    for (int i = 0; i < cci.length; i++) {
-      cci[i].bind(rl, s);
+  void bindReference(ReferenceListener rl, ServiceReference<?> s) {
+    for (final ComponentContextImpl cci : getActiveContexts()) {
+      cci.bind(rl, s);
     }
   }
 
   /**
    *
    */
-  void unbindReference(ReferenceListener rl, ServiceReference s) {
+  void unbindReference(ReferenceListener rl, ServiceReference<?> s) {
     // This is only called for dynamic refs, so we also unbind
     // services during deactivation
-    ComponentContextImpl [] cci = getActiveContexts();
-    for (int i = 0; i < cci.length; i++) {
-      cci[i].unbind(rl, s);
+    for (final ComponentContextImpl cci : getAllContexts()) {
+      cci.unbind(rl, s);
+    }
+  }
+
+  /**
+   *
+   */
+  void updatedReference(ReferenceListener rl, ServiceReference<?> s) {
+    for (final ComponentContextImpl cci : getActiveContexts()) {
+      cci.updated(rl, s);
     }
   }
 
   synchronized void waitForDeactivate() {
-    ComponentContextImpl [] cci = getActiveContexts();
-    for (int i = 0; i < cci.length; i++) {
-      cci[i].waitForDeactivation();
+    for (final ComponentContextImpl cci : getAllContexts()) {
+      cci.waitForDeactivation();
     }
   }
 
@@ -497,7 +504,8 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
    * Get service registered for component
    *
    */
-  public Object getService(Bundle usingBundle, ServiceRegistration reg) {
+  public Object getService(Bundle usingBundle,
+                           ServiceRegistration<Object> reg) {
     Activator.logDebug("CC.getService(), " + toString() + ", activeCount = " + activeCount);
     component.scr.postponeCheckin();
     try {
@@ -520,7 +528,7 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
    *
    */
   public void ungetService(Bundle usingBundle,
-                           ServiceRegistration reg,
+                           ServiceRegistration<Object> reg,
                            Object obj) {
     if (!unregisterInProgress) {
       Activator.logDebug("CC.ungetService(), " + toString() + ", activeCount = " + activeCount);
@@ -550,10 +558,11 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
   private ComponentContextImpl [] getActiveContexts() {
     ComponentContextImpl [] res;
     if (factoryContexts != null) {
-      final Hashtable snapshot = new Hashtable(factoryContexts);
-      final ArrayList active = new ArrayList(snapshot.size());
-      for (final Enumeration e = snapshot.elements(); e.hasMoreElements(); ) {
-        final ComponentContextImpl cci = (ComponentContextImpl)e.nextElement();
+      final Hashtable<Bundle, ComponentContextImpl> snapshot
+        = new Hashtable<Bundle, ComponentContextImpl>(factoryContexts);
+      final ArrayList<ComponentContextImpl> active = new ArrayList<ComponentContextImpl>(snapshot.size());
+      for (final Enumeration<ComponentContextImpl> e = snapshot.elements(); e.hasMoreElements(); ) {
+        final ComponentContextImpl cci = e.nextElement();
         if (cci.isActive()) {
           active.add(cci);
         }
@@ -574,7 +583,8 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
   private ComponentContextImpl [] getAllContexts() {
     ComponentContextImpl [] res;
     if (factoryContexts != null) {
-      final Hashtable snapshot = new Hashtable(factoryContexts);
+      final Hashtable<Bundle, ComponentContextImpl> snapshot
+        = new Hashtable<Bundle, ComponentContextImpl>(factoryContexts);
       res = new ComponentContextImpl[snapshot.size()];
       snapshot.values().toArray(res);
     } else if (componentContext != null) {
@@ -623,8 +633,10 @@ public class ComponentConfiguration implements ServiceFactory, Comparable {
     component.removeComponentConfiguration(this, reason);
   }
 
-  public int compareTo(Object o) {
-    return id - ((ComponentConfiguration)o).id;
+
+  @Override
+  public int compareTo(ComponentConfiguration o) {
+    return id - o.id;
   }
 
 }

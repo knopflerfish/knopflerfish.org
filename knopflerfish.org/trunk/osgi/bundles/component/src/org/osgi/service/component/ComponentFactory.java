@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2008). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2010). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,15 @@ package org.osgi.service.component;
 import java.util.Dictionary;
 
 /**
- * When a component is declared with the <code>factory</code> attribute on its
- * <code>component</code> element, the Service Component Runtime will register
+ * When a component is declared with the {@code factory} attribute on its
+ * {@code component} element, the Service Component Runtime will register
  * a Component Factory service to allow new component configurations to be
  * created and activated rather than automatically creating and activating
  * component configuration as necessary.
  * 
  * @ThreadSafe
- * @version $Revision: 5654 $
+ * @noimplement
+ * @version $Id: 7ec637e902c10319017d2a7c9e67bc76127dbce4 $
  */
 public interface ComponentFactory {
 	/**
@@ -34,11 +35,11 @@ public interface ComponentFactory {
 	 * may be provided for the component configuration.
 	 * 
 	 * @param properties Additional properties for the component configuration
-	 *        or <code>null</code> if there are no additional properties.
-	 * @return A <code>ComponentInstance</code> object encapsulating the
+	 *        or {@code null} if there are no additional properties.
+	 * @return A {@code ComponentInstance} object encapsulating the
 	 *         component instance of the component configuration. The component
 	 *         configuration has been activated and, if the component specifies
-	 *         a <code>service</code> element, the component instance has been
+	 *         a {@code service} element, the component instance has been
 	 *         registered as a service.
 	 * @throws ComponentException If the Service Component Runtime is unable to
 	 *         activate the component configuration.

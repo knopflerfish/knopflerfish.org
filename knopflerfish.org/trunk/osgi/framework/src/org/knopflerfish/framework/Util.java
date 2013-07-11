@@ -34,16 +34,42 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
 
 import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
 
 public class Util {
 
+  // Type names used for types OSGi attributes in manifest headers.
+  private static final String DOUBLE_TYPE = "Double";
+  private static final String LONG_TYPE = "Long";
+  private static final String LIST_TYPE = "List";
+  private static final String STRING_TYPE = "String";
+  private static final String VERSION_TYPE = "Version";
+
   /**
-   * Pre OSGi 4.2 propetry used by KF, replaced by Constants.FRAMEWORK_STORAGE
+   * Pre OSGi 4.2 property used by KF, replaced by Constants.FRAMEWORK_STORAGE
    * as of OSGi R4 v4.2.
    */
   static public final String FWDIR_PROP = "org.osgi.framework.dir";
@@ -52,10 +78,10 @@ public class Util {
   static private final Method nanoTimeMethod = getMethod(System.class, "nanoTime", new Class[] { });
 
 
-  public static String getFrameworkDir(Map props) {
-    String s = (String)props.get(Constants.FRAMEWORK_STORAGE);
+  public static String getFrameworkDir(Map<String,String> props) {
+    String s = props.get(Constants.FRAMEWORK_STORAGE);
     if (s == null || s.length() == 0) {
-      s = (String)props.get(FWDIR_PROP);
+      s = props.get(FWDIR_PROP);
     }
     if (s == null || s.length() == 0) {
       s = System.getProperty(FWDIR_PROP);
@@ -81,17 +107,17 @@ public class Util {
 
   /**
    * Check for local file storage directory.
-   * 
+   *
    * @param name local directory name.
    * @return A FileTree object of directory or null if no storage is available.
    */
   public static FileTree getFileStorage(FrameworkContext ctx, String name) {
     // See if we have a storage directory
-    String fwdir = getFrameworkDir(ctx);
+    final String fwdir = getFrameworkDir(ctx);
     if (fwdir == null) {
       return null;
     }
-    FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);
+    final FileTree dir = new FileTree((new File(fwdir)).getAbsoluteFile(), name);
     if (dir != null) {
       if (dir.exists()) {
         if (!dir.isDirectory()) {
@@ -110,7 +136,7 @@ public class Util {
   /**
    * Compare to strings formatted as '<int>[.<int>[.<int>]]'. If string is null,
    * then it counts as ZERO.
-   * 
+   *
    * @param ver1 First version string.
    * @param ver2 Second version string.
    * @return Return 0 if equals, -1 if ver1 < ver2 and 1 if ver1 > ver2.
@@ -121,7 +147,7 @@ public class Util {
     int i1, i2;
     while (ver1 != null || ver2 != null) {
       if (ver1 != null) {
-        int d1 = ver1.indexOf(".");
+        final int d1 = ver1.indexOf(".");
         if (d1 == -1) {
           i1 = Integer.parseInt(ver1.trim());
           ver1 = null;
@@ -133,7 +159,7 @@ public class Util {
         i1 = 0;
       }
       if (ver2 != null) {
-        int d2 = ver2.indexOf(".");
+        final int d2 = ver2.indexOf(".");
         if (d2 == -1) {
           i2 = Integer.parseInt(ver2.trim());
           ver2 = null;
@@ -157,26 +183,29 @@ public class Util {
 
   /**
    * Parse strings of format:
-   * 
+   *
    * ENTRY (, ENTRY)*
-   * 
+   *
    * @param d Directive being parsed
    * @param s String to parse
    * @return A HashSet with enumeration or null if enumeration string was null.
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static HashSet parseEnumeration(String d, String s) {
-    HashSet result = new HashSet();
+  public static Set<String> parseEnumeration(String d, String s)
+  {
+    final HashSet<String> result = new HashSet<String>();
     if (s != null) {
-      AttributeTokenizer at = new AttributeTokenizer(s);
+      final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        String key = at.getKey();
+        final String key = at.getKey();
         if (key == null) {
-          throw new IllegalArgumentException("Directive " + d + ", unexpected character at: "
+          throw new IllegalArgumentException("Directive " + d
+                                             + ", unexpected character at: "
                                              + at.getRest());
         }
         if (!at.getEntryEnd()) {
-          throw new IllegalArgumentException("Directive " + d + ", expected end of entry at: "
+          throw new IllegalArgumentException("Directive " + d
+                                             + ", expected end of entry at: "
                                              + at.getRest());
         }
         result.add(key);
@@ -189,79 +218,114 @@ public class Util {
 
 
   /**
-   * Parse strings of format:
-   * 
-   * ENTRY (, ENTRY)* ENTRY = key (; key)* (; PARAM)* PARAM = attribute '='
-   * value PARAM = directive ':=' value
-   * 
-   * @param a Attribute being parsed
-   * @param s String to parse
-   * @param single If true, only allow one key per ENTRY
-   * @param unique Only allow unique parameters for each ENTRY.
-   * @param single_entry If true, only allow one ENTRY is allowed.
-   * @return Iterator(Map(param -> value)) or null if input string is null.
+   * Parse manifest header values on format:
+   * <pre>
+   * ENTRY (',' ENTRY)*
+   * ENTRY = key (';' key)* (';' PARAM)*
+   * PARAM = attribute (':' TYPE)? '=' value
+   * PARAM = directive ':=' value
+   * TYPE = SCALAR | LIST
+   * SCALAR = 'String' | 'Version' | 'Long' | 'Double'
+   * LIST = 'List<' SCALAR '>'
+   * </pre>
+   *
+   * The default attribute value type is 'String'. For list values the 'List'
+   * and its following '<' are treated as separate tokens to comply with the
+   * OSGi TCK.
+   *
+   * The parse result is one {@link HeaderEntry}-instance for each entry.
+   * If {@code single} is true then the entry only contains one key that can be
+   * accesses by calling {@link HeaderEntry#getKey()}.
+   *
+   * If {@code unique} is true the attribute values in the map are scalars
+   * otherwise the values from different attribute definitions with the same
+   * name are wrapped in a {@code List<?>}.
+   *
+   * @param a Name of attribute being parsed, for error messages.
+   * @param s String to parse.
+   * @param single If true, only allow one key per ENTRY.
+   * @param unique Only allow unique attributes for each ENTRY.
+   * @param single_entry If true, only allow one ENTRY in {@code s}.
+   *
+   * @return List of {@link HeaderEntry}-object, one per entry in {@code s}.
+   *
    * @exception IllegalArgumentException If syntax error in input string.
    */
-  public static Iterator parseEntries(String a, String s, boolean single, boolean unique,
-                                      boolean single_entry) {
-    ArrayList result = new ArrayList();
+  public static List<HeaderEntry> parseManifestHeader(String a,
+                                                      String s,
+                                                      boolean single,
+                                                      boolean unique,
+                                                      boolean single_entry)
+  {
+    final List<HeaderEntry> res = new ArrayList<Util.HeaderEntry>();
+
     if (s != null) {
-      AttributeTokenizer at = new AttributeTokenizer(s);
+      final AttributeTokenizer at = new AttributeTokenizer(s);
       do {
-        ArrayList keys = new ArrayList();
-        HashMap params = new HashMap();
-        Set directives = new TreeSet();
-        params.put("$directives", directives); // $ is not allowed in
-                                               // param names...
+        final HeaderEntry he = new HeaderEntry(a, single);
         String key = at.getKey();
         if (key == null) {
-          throw new IllegalArgumentException("Definition, " + a + ", expected key at: "
-              + at.getRest()
-              + ". Key values are terminated by a ';' or a ',' and may not "
-              + "contain ':', '='.");
+          final String msg = "Definition, " + a + ", expected key at: "
+                             + at.getRest() + ". Key values are terminated "
+                             +"by a ';' or a ',' and may not "
+                             + "contain ':', '='.";
+          throw new IllegalArgumentException(msg);
         }
+        he.keys.add(key);
         if (!single) {
-          keys.add(key);
           while ((key = at.getKey()) != null) {
-            keys.add(key);
+            he.keys.add(key);
           }
         }
         String param;
         while ((param = at.getParam()) != null) {
-          List old = (List)params.get(param);
-          boolean is_directive = at.isDirective();
-          if (old != null && unique) {
-            throw new IllegalArgumentException("Definition, " + a + ", duplicate " +
-                                               (is_directive ? "directive" : "attribute") +
-                                               ": " + param);
-          }
-          String value = at.getValue();
-          if (value == null) {
-            throw new IllegalArgumentException("Definition, " + a + ", expected value at: "
-                + at.getRest());
-          }
+          final boolean is_directive = at.isDirective();
           if (is_directive) {
-            // NYI Handle directives and check them
-            // This method has become very ugly, please rewrite.
-            directives.add(param);
-          }
-          if (unique) {
-            params.put(param, value);
-          } else {
-            if (old == null) {
-              old = new ArrayList();
-              params.put(param, old);
+            if (he.directives.containsKey(param)) {
+              final String msg = "Definition, " + a + ", duplicate directive: "
+                    + param;
+              throw new IllegalArgumentException(msg);
             }
-            old.add(value);
+            final String valueStr = at.getValue(false);
+            if (valueStr == null) {
+              final String msg = "Definition, " + a + ", expected value for "
+                  + " directive " + param + " at: " + at.getRest();
+              throw new IllegalArgumentException(msg);
+            }
+            he.directives.put(param, valueStr);
+          } else {
+            // Attribute definition with optional type
+            final Object old = he.attributes.get(param);
+            if (old != null && unique) {
+              final String msg = "Definition, " + a + ", duplicate attribute: "
+                                + param;
+              throw new IllegalArgumentException(msg);
+            }
+            final String paramType = at.getParamType();
+            final boolean keepEscape = paramType != null
+                                       && paramType.startsWith("List");
+            final String valueStr = at.getValue(keepEscape);
+            if (valueStr == null) {
+              final String msg = "Definition, " + a + ", expected value for "
+                  + " attribute " + param + " at: " + at.getRest();
+              throw new IllegalArgumentException(msg);
+            }
+            final Object value = toValue(a, param, paramType, valueStr);
+            if (unique) {
+              he.attributes.put(param, value);
+            } else {
+              @SuppressWarnings("unchecked")
+              List<Object> oldValues = (List<Object>) old;
+              if (oldValues == null) {
+                oldValues = new ArrayList<Object>();
+                he.attributes.put(param, oldValues);
+              }
+              oldValues.add(value);
+            }
           }
         }
         if (at.getEntryEnd()) {
-          if (single) {
-            params.put("$key", key);
-          } else {
-            params.put("$keys", keys);
-          }
-          result.add(params);
+          res.add(he);
         } else {
           throw new IllegalArgumentException("Definition, " + a
               + ", expected end of entry at: " + at.getRest());
@@ -272,22 +336,110 @@ public class Util {
         }
       } while (!at.getEnd());
     }
-    return result.iterator();
+
+    return res;
   }
 
 
   /**
+   * Convert an attribute value from string to the requested type.
+   *
+   * The types supported are described in
+   * {@link #parseEntries(String, String, boolean, boolean, boolean)}.
+   *
+   * @param a Name of attribute being parsed, for error messages.
+   * @param p Name of parameter to assign the value to, for error messages.
+   * @param type the type to convert to.
+   * @param value the value to convert.
+   * @return
+   */
+  private static Object toValue(String a,
+                                String param,
+                                String type,
+                                String value)
+  {
+    Object res;
+
+    type = type == null ? STRING_TYPE : type.intern();
+    if (STRING_TYPE == type) {
+      res = value;
+    } else if (LONG_TYPE == type) {
+      try {
+        res = new Long(value.trim());
+      } catch (final Exception e) {
+        throw (IllegalArgumentException) new
+        IllegalArgumentException("Definition, " +a
+                                 +", expected value of type Long but found '"
+                                 +value +"' for attribute '"
+                                 +param + "'.").initCause(e);
+      }
+    } else if (DOUBLE_TYPE == type) {
+      try {
+        res = new Double(value.trim());
+      } catch (final Exception e) {
+        throw (IllegalArgumentException) new
+        IllegalArgumentException("Definition, " +a
+                                 +", expected value of type Double but found '"
+                                 +value +"' for attribute '"
+                                 +param + "'.").initCause(e);
+      }
+    } else if (VERSION_TYPE == type) {
+      try {
+        res = new Version(value);
+      } catch (final Exception e) {
+        throw (IllegalArgumentException) new
+        IllegalArgumentException("Definition, " +a
+                                 +", expected value of type Version but found '"
+                                 +value +"' for attribute '"
+                                 +param + "'.").initCause(e);
+      }
+    } else if (type.startsWith(LIST_TYPE)) {
+      String elemType = type.substring(LIST_TYPE.length()).trim();
+      // Let "List" without any "<type>" default to "List<String>"
+      if (elemType.length()>0) {
+        if ('<' != elemType.charAt(0)
+            || elemType.charAt(elemType.length() - 1) != '>') {
+          throw new IllegalArgumentException
+            ("Definition, " + a + ", expected List type definition '"
+                + type + "' for attribute '" + param + "'.");
+        }
+        elemType = elemType.substring(1, elemType.length() - 1).trim().intern();
+      }
+      // The default element type is STRING.
+      if (elemType.length()==0) elemType = STRING_TYPE;
+
+      try {
+        final List<String> elements = splitWords(value, ',', STRING_TYPE!=elemType);
+        final List<Object> l = new ArrayList<Object>(elements.size());
+        for (final String elem : elements) {
+          l.add(toValue(a, param, elemType, elem));
+        }
+        res = l;
+      } catch (final Exception e) {
+        throw (IllegalArgumentException) new IllegalArgumentException
+          ("Definition, " + a + ", expected '" + type + "' value but found '"
+              + value + "' for attribute '" + param + "'.").initCause(e);
+      }
+    } else {
+        throw new IllegalArgumentException("Definition, " +a
+                                 +", unknown type '" +type +"' for attribute '"
+                                 +param + "'.");
+    }
+    return res;
+  }
+
+  /**
    * Read a resource into a byte array.
-   * 
+   *
    * @param name resource name to read
    * @return byte array with contents of resource.
    */
   static byte[] readResource(String name) throws IOException {
-    byte[] buf = new byte[1024];
+    final byte[] buf = new byte[1024];
 
-    InputStream in = Util.class.getResourceAsStream(name);
+    final InputStream in = Util.class.getResourceAsStream(name);
     try {
-      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      final ByteArrayOutputStream bout = new ByteArrayOutputStream();
       int n;
       while ((n = in.read(buf)) > 0) {
         bout.write(buf, 0, n);
@@ -296,7 +448,7 @@ public class Util {
     } finally {
       try {
         in.close();
-      } catch (Exception ignored) {
+      } catch (final Exception ignored) {
       }
     }
   }
@@ -304,7 +456,7 @@ public class Util {
 
   /**
    * Read a resource into a String.
-   * 
+   *
    * @param name resource name to read
    * @param defaultValue if no resource is available
    * @param encoding resource encoding
@@ -313,7 +465,7 @@ public class Util {
   static String readResource(String file, String defaultValue, String encoding) {
     try {
       return (new String(readResource(file), encoding)).trim();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       return defaultValue;
     }
   }
@@ -324,6 +476,24 @@ public class Util {
    */
   static String readFrameworkVersion() {
     return readResource("/version", "0.0.0", "UTF-8");
+  }
+
+  /**
+   * Read framework build year from the tstamp-file
+   */
+  static String readTstampYear() {
+    // tstamp format: "Build EE MMMM d yyyy, HH:mm:ss"
+    String year = readResource("/tstamp", "2013", "UTF-8");
+
+    int pos = year.indexOf(',');
+    if (pos>-1) {
+      year = year.substring(0, pos);
+      pos = year.lastIndexOf(' ');
+      if (pos>-1) {
+        year = year.substring(pos+1);
+      }
+    }
+    return year;
   }
 
   /**
@@ -339,7 +509,7 @@ public class Util {
 
   /**
    * Utility method to split a string into words separated by whitespace.
-   * 
+   *
    * <p>
    * Equivalent to <tt>splitwords(s, WHITESPACE)</tt>
    * </p>
@@ -351,7 +521,7 @@ public class Util {
 
   /**
    * Utility method to split a string into words separated by whitespace.
-   * 
+   *
    * <p>
    * Equivalent to <tt>splitwords(s, WHITESPACE, CITCHAR)</tt>
    * </p>
@@ -366,7 +536,7 @@ public class Util {
    * <p>
    * Citation chars may be used to group words with embedded whitespace.
    * </p>
-   * 
+   *
    * @param s String to split.
    * @param whiteSpace whitespace to use for splitting. Any of the characters in
    *          the whiteSpace string are considered whitespace between words and
@@ -379,12 +549,12 @@ public class Util {
                                      String whiteSpace,
                                      char citChar) {
     boolean bCit = false; // true when inside citation chars.
-    Vector v = new Vector(); // (String) individual words after splitting
+    final Vector<String> v = new Vector<String>(); // (String) individual words after splitting
     StringBuffer buf = new StringBuffer();
     int i = 0;
 
     while (i < s.length()) {
-      char c = s.charAt(i);
+      final char c = s.charAt(i);
 
       if (bCit || whiteSpace.indexOf(c) == -1) {
         // Build up word until we breaks on either a citation char or whitespace
@@ -417,7 +587,7 @@ public class Util {
     }
 
     // Copy back into an array
-    String[] r = new String[v.size()];
+    final String[] r = new String[v.size()];
     v.copyInto(r);
 
     return r;
@@ -425,29 +595,91 @@ public class Util {
 
 
   /**
-   * Replace all occurances of a substring with another string.
-   * 
+   * Split a string into words separated by a separator char.
+   *
+   * If the separator char shall be part of a word it must be escaped with a
+   * '\' (\u005C). One level of escaping is consumed by this method.
+   *
+   * @param s String to split.
+   * @param sepChar separator char to split on.
+   * @param trim trim whitespace from the words if {@code true}.
+   *
+   * @return List with the words of the specified string.
+   */
+  public static List<String> splitWords(String s,
+                                        char sepChar,
+                                        boolean trim)
+  {
+    final List<String> res = new ArrayList<String>();
+    final StringBuffer buf = new StringBuffer();
+    int pos = 0;
+    final int length = s.length();
+
+    boolean esc = false;
+    int end = 0;
+    for (; pos < length; pos++) {
+      if (esc) {
+        esc = false;
+        buf.append(s.charAt(pos));
+        end = buf.length();
+      } else {
+        final char c = s.charAt(pos);
+        if (c == '\\') {
+          esc = true;
+        } else if (c == sepChar) {
+          // trim trailing whitespace.
+          if (trim) buf.setLength(end);
+          res.add(buf.toString());
+          buf.setLength(0);
+          end = 0;
+        } else if (Character.isWhitespace(c)) {
+          if (buf.length()>0 || !trim) {
+            buf.append(c);
+          }
+        } else {
+          buf.append(c);
+          end = buf.length();
+        }
+      }
+    }
+    if (esc) {
+      throw new IllegalArgumentException("Value ends on escape character");
+    }
+    // The last element.
+    if (trim) buf.setLength(end);
+    res.add(buf.toString());
+
+    return res;
+  }
+
+
+  /**
+   * Replace all occurrences of a substring with another string.
+   *
    * <p>
    * The returned string will shrink or grow as necessary depending on the
    * lengths of <tt>v1</tt> and <tt>v2</tt>.
    * </p>
-   * 
+   *
    * <p>
    * Implementation note: This method avoids using the standard String
    * manipulation methods to increase execution speed. Using the
    * <tt>replace</tt> method does however include two <tt>new</tt> operations in
    * the case when matches are found.
    * </p>
-   * 
-   * 
-   * @param s Source string.
-   * @param v1 String to be replaced with <code>v2</code>.
-   * @param v2 String replacing <code>v1</code>.
+   *
+   *
+   * @param s
+   *          Source string.
+   * @param v1
+   *          String to be replaced with <code>v2</code>.
+   * @param v2
+   *          String replacing <code>v1</code>.
    * @return Modified string. If any of the input strings are <tt>null</tt>, the
    *         source string <tt>s</tt> will be returned unmodified. If
-   *         <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or no occurances of
-   *         <tt>v1</tt> is found, also return <tt>s</tt> unmodified.
-   * 
+   *         <tt>v1.length == 0</tt>, <tt>v1.equals(v2)</tt> or no occurrences
+   *         of <tt>v1</tt> is found, also return <tt>s</tt> unmodified.
+   *
    * @author Erik Wistrand
    */
   public static String replace(final String s,
@@ -464,7 +696,7 @@ public class Util {
     }
 
     int ix = 0;
-    int v1Len = v1.length();
+    final int v1Len = v1.length();
     int n = 0;
 
     // count number of occurances to be able to correctly size
@@ -481,8 +713,8 @@ public class Util {
 
     // Set up an output char array of correct size
     int start = 0;
-    int v2Len = v2.length();
-    char[] r = new char[s.length() + n * (v2Len - v1Len)];
+    final int v2Len = v2.length();
+    final char[] r = new char[s.length() + n * (v2Len - v1Len)];
     int rPos = 0;
 
     // for each occurance, copy v2 where v1 used to be
@@ -510,12 +742,12 @@ public class Util {
     try {
       in = new DataInputStream(new FileInputStream(f));
       return in.readUTF();
-    } catch (IOException ignore) {
+    } catch (final IOException ignore) {
     } finally {
       if (in != null) {
         try {
           in.close();
-        } catch (IOException ignore) {
+        } catch (final IOException ignore) {
         }
       }
     }
@@ -544,18 +776,24 @@ public class Util {
     }
   }
 
-  public interface Comparator {
-    public int compare(Object a, Object b);
+  /**
+   * Compare two object. Normally both types are the same, but sometimes its
+   * convenient to avoid creating a template object when using the comparator
+   * for lookup. In the latter case {@code B} would be the type of the key used
+   * in a {@code Comparator<A,A>}.
+   */
+  public interface Comparator<A,B> {
+    public int compare(A a, B b);
   }
 
 
   /**
-   * Sort a vector with objects compareble using a comparison function.
-   * 
+   * Sort a vector with objects comparable using a comparison function.
+   *
    * @param a Vector to sort
    * @param cf comparison function
    */
-  static public void sort(List a, Comparator cf, boolean bReverse) {
+  static public <A> void sort(List<A> a, Comparator<A,A> cf, boolean bReverse) {
     sort(a, 0, a.size() - 1, cf, bReverse ? -1 : 1);
   }
 
@@ -563,10 +801,10 @@ public class Util {
   /**
    * Vector QSort implementation.
    */
-  static void sort(List a, int lo0, int hi0, Comparator cf, int k) {
+  static <A> void sort(List<A> a, int lo0, int hi0, Comparator<A,A> cf, int k) {
     int lo = lo0;
     int hi = hi0;
-    Object mid;
+    A mid;
 
     if (hi0 > lo0) {
 
@@ -599,8 +837,8 @@ public class Util {
   }
 
 
-  private static void swap(List a, int i, int j) {
-    Object tmp = a.get(i);
+  private static <A> void swap(List<A> a, int i, int j) {
+    final A tmp = a.get(i);
     a.set(i, a.get(j));
     a.set(j, tmp);
   }
@@ -609,21 +847,22 @@ public class Util {
   /**
    * Do binary search for a package entry in the list with the same version
    * number add the specifies package entry.
-   * 
+   *
    * @param pl Sorted list of package entries to search.
-   * @param p Package entry to search for.
+   * @param c comparator determining the ordering.
+   * @param k The key of the Package entry to search for.
    * @return index of the found entry. If no entry is found, return
-   *         <tt>(-(<i>insertion point</i>) - 1)</tt>. The insertion point is
+   *         {@code (-(<i>insertion point</i>) - 1)}. The insertion point is
    *         defined as the point at which the key would be inserted into the
    *         list.
    */
-  public static int binarySearch(List pl, Comparator c, Object p) {
+  public static <A,B> int binarySearch(List<A> pl, Comparator<A,B> c, B k) {
     int l = 0;
     int u = pl.size() - 1;
 
     while (l <= u) {
-      int m = (l + u) / 2;
-      int v = c.compare(pl.get(m), p);
+      final int m = (l + u) / 2;
+      final int v = c.compare(pl.get(m), k);
       if (v > 0) {
         l = m + 1;
       } else if (v < 0) {
@@ -654,7 +893,7 @@ public class Util {
 
   /**
    * Encode a raw byte array to a Base64 String.
-   * 
+   *
    * @param in Byte array to encode.
    */
   // public static String encode(byte[] in) throws IOException {
@@ -663,7 +902,7 @@ public class Util {
 
   /**
    * Encode a raw byte array to a Base64 String.
-   * 
+   *
    * @param in Byte array to encode.
    * @param len Length of Base64 lines. 0 means no line breaks.
    */
@@ -738,12 +977,12 @@ public class Util {
 
 
   /**
-   * Merges target with the entires in extra. After this method has returned
-   * target will contain all entires in extra that did not exist in target.
+   * Merges target with the entries in extra. After this method has returned
+   * target will contain all entries in extra that did not exist in target.
    */
-  static void mergeDictionaries(Dictionary target, Dictionary extra) {
-    for (Enumeration e = extra.keys(); e.hasMoreElements();) {
-      Object key = e.nextElement();
+  static <A, B> void mergeDictionaries(Dictionary<A, B> target, Dictionary<A,B> extra) {
+    for (final Enumeration<A> e = extra.keys(); e.hasMoreElements();) {
+      final A key = e.nextElement();
       if (target.get(key) == null) {
         target.put(key, extra.get(key));
       }
@@ -752,7 +991,7 @@ public class Util {
 
 
   /**
-   * Check wildcard filter matches the string
+   * Check wild-card filter matches the string
    */
   public static boolean filterMatch(String filter, String s) {
     return patSubstr(s.toCharArray(), 0, filter.toCharArray(), 0);
@@ -785,9 +1024,9 @@ public class Util {
   }
 
   /**
-   * Get method from current classloader
+   * Get method from class
    */
-  public static Method getMethod(Class c, String name, Class [] args) {
+  public static Method getMethod(Class<?> c, String name, Class<?> [] args) {
     Method m = null;
     while (true) {
       try {
@@ -826,29 +1065,34 @@ public class Util {
    */
   static class AttributeTokenizer {
 
-    String s;
+    final String s;
     int length;
     int pos = 0;
 
 
-    AttributeTokenizer(String input) {
+    AttributeTokenizer(final String input) {
       s = input;
       length = s.length();
     }
 
-
-    String getWord() {
+    // get word (non-whitespace chars) up to the next non-quoted
+    // ',', ':', ';', '='
+    String getWord(boolean keepEscapse, boolean valueWord) {
       skipWhite();
       boolean backslash = false;
       boolean quote = false;
-      StringBuffer val = new StringBuffer();
+      final StringBuffer val = new StringBuffer();
       int end = 0;
       loop: for (; pos < length; pos++) {
         if (backslash) {
           backslash = false;
+          if (keepEscapse) {
+            val.append('\\');
+          }
           val.append(s.charAt(pos));
+          end = val.length();
         } else {
-          char c = s.charAt(pos);
+          final char c = s.charAt(pos);
           switch (c) {
           case '"':
             quote = !quote;
@@ -861,7 +1105,7 @@ public class Util {
           case ':':
           case ';':
           case '=':
-            if (!quote) {
+            if (!quote && !(valueWord && c=='=')) {
               break loop;
             }
             // Fall through
@@ -877,9 +1121,8 @@ public class Util {
       if (quote || backslash || end == 0) {
         return null;
       }
-      char[] res = new char[end];
-      val.getChars(0, end, res, 0);
-      return new String(res);
+      val.setLength(end);
+      return val.toString();
     }
 
 
@@ -887,16 +1130,16 @@ public class Util {
       if (pos >= length) {
         return null;
       }
-      int save = pos;
+      final int save = pos;
       if (s.charAt(pos) == ';') {
         pos++;
       }
-      String res = getWord();
+      final String res = getWord(false, false);
       if (res != null) {
         if (pos == length) {
           return res;
         }
-        char c = s.charAt(pos);
+        final char c = s.charAt(pos);
         if (c == ';' || c == ',') {
           return res;
         }
@@ -910,13 +1153,15 @@ public class Util {
       if (pos == length || s.charAt(pos) != ';') {
         return null;
       }
-      int save = pos++;
-      String res = getWord();
+      final int save = pos++;
+      final String res = getWord(false, false);
       if (res != null) {
         if (pos < length && s.charAt(pos) == '=') {
+          // Untyped parameter
           return res;
         }
-        if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos + 1) == '=') {
+        if (pos < length && s.charAt(pos) == ':') {
+          // Typed parameter or directive
           return res;
         }
       }
@@ -926,7 +1171,7 @@ public class Util {
 
 
     boolean isDirective() {
-      if (pos + 1 < length && s.charAt(pos) == ':') {
+      if (pos + 1 < length && s.charAt(pos) == ':' && s.charAt(pos + 1) == '=') {
         pos++;
         return true;
       } else {
@@ -935,13 +1180,33 @@ public class Util {
     }
 
 
+    String getParamType() {
+      if (pos == length || s.charAt(pos) != ':') {
+        return null;
+      }
+      final int save = pos++;
+      final String res = getWord(false, false);
+      if (res != null) {
+        if (pos < length && s.charAt(pos) == '=') {
+          return res;
+        }
+      }
+      pos = save;
+      return null;
+    }
+
+
     String getValue() {
+      return getValue(false);
+    }
+
+    String getValue(boolean keepEscapes) {
       if (s.charAt(pos) != '=') {
         return null;
       }
-      int save = pos++;
+      final int save = pos++;
       skipWhite();
-      String val = getWord();
+      final String val = getWord(keepEscapes, true);
       if (val == null) {
         pos = save;
         return null;
@@ -951,7 +1216,7 @@ public class Util {
 
 
     boolean getEntryEnd() {
-      int save = pos;
+      final int save = pos;
       skipWhite();
       if (pos == length) {
         return true;
@@ -966,7 +1231,7 @@ public class Util {
 
 
     boolean getEnd() {
-      int save = pos;
+      final int save = pos;
       skipWhite();
       if (pos == length) {
         return true;
@@ -978,7 +1243,7 @@ public class Util {
 
 
     String getRest() {
-      String res = s.substring(pos).trim();
+      final String res = s.substring(pos).trim();
       return res.length() == 0 ? "<END OF LINE>" : res;
     }
 
@@ -991,4 +1256,51 @@ public class Util {
       }
     }
   }
+
+  /**
+   * A class that holds the parse result for one entry of a manifest header
+   * following the general OSGi manifest header syntax. See
+   * {@link Util#parseManifestHeader()} for
+   * details on the syntax.
+   */
+  public static class HeaderEntry
+  {
+    final String headerName;
+    final boolean singleKey;
+    final List<String> keys = new ArrayList<String>();
+    final Map<String, Object> attributes = new HashMap<String, Object>();
+    final Map<String, String> directives = new HashMap<String, String>();
+
+    /**
+     * @param singleKey
+     */
+    HeaderEntry(String headerName, boolean singleKey)
+    {
+      this.headerName = headerName;
+      this.singleKey = singleKey;
+    }
+
+    public String getKey()
+    {
+      if  (singleKey)
+        return keys.get(0);
+      throw new IllegalArgumentException("Requesting single key for multi key header clause");
+    }
+
+    public List<String> getKeys()
+    {
+      return keys;
+    }
+
+    public Map<String, Object> getAttributes()
+    {
+      return attributes;
+    }
+
+    public Map<String, String> getDirectives()
+    {
+      return directives;
+    }
+  }
+
 }

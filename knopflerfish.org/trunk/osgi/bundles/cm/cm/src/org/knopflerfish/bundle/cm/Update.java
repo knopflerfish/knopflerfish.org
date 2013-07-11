@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2005, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,68 +39,85 @@ import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.osgi.service.cm.ManagedServiceFactory;
 
-final class Update {
-    final ServiceReference sr;
+final class Update
+{
+  final ServiceReference<?> sr;
 
-    final String pid;
+  final String pid;
 
-    final String factoryPid;
+  final String factoryPid;
 
-    final ConfigurationDictionary configuration;
+  final ConfigurationDictionary configuration;
 
-    ConfigurationDictionary processedConfiguration = null;
+  ConfigurationDictionary processedConfiguration = null;
 
-    public Update(ServiceReference sr, String pid, String factoryPid,
-            ConfigurationDictionary configuration) {
-        this.sr = sr;
-        this.pid = pid;
-        this.factoryPid = factoryPid;
-        this.configuration = configuration;
+  /**
+   * Create an update configuration job.
+   * 
+   * @param sr The target service to be notified
+   * @param pid The PID of the configuration.
+   * @param factoryPid The factory PID for factory configurations.
+   * @param configuration the new configuration to dispatch.
+   */
+  public Update(ServiceReference<?> sr, String pid, String factoryPid,
+      ConfigurationDictionary configuration)
+  {
+    this.sr = sr;
+    this.pid = pid;
+    this.factoryPid = factoryPid;
+    this.configuration = configuration;
+  }
+
+  public void doUpdate(PluginManager pm)
+      throws ConfigurationException
+  {
+    if (sr == null) {
+      return;
     }
-
-    public void doUpdate(PluginManager pm) throws ConfigurationException {
-        if (sr == null) {
-            return;
-        }
-        Object targetService = getTargetService();
-        if (targetService == null) {
-            return;
-        }
-        processedConfiguration = pm
-                .callPluginsAndCreateACopy(sr, configuration);
-        if (factoryPid == null) {
-            update((ManagedService) targetService);
-        } else {
-            update((ManagedServiceFactory) targetService);
-        }
+    Object targetService = getTargetService();
+    if (targetService == null) {
+      return;
     }
-
-    private void update(ManagedService targetService)
-            throws ConfigurationException {
-        if (targetService == null) {
-            return;
-        }
-        targetService.updated(processedConfiguration);
+    processedConfiguration = pm.callPluginsAndCreateACopy(sr, configuration);
+    if (processedConfiguration != null) {
+      processedConfiguration.removeLocation();
     }
-
-    private void update(ManagedServiceFactory targetService)
-            throws ConfigurationException {
-        if (targetService == null) {
-            return;
-        }
-        if (configuration == null) {
-            targetService.deleted(pid);
-        } else if (processedConfiguration == null) {
-            targetService.deleted(pid);
-        } else {
-            targetService.updated(pid, configuration);
-        }
+    if (factoryPid == null) {
+      update((ManagedService) targetService);
+    } else {
+      update((ManagedServiceFactory) targetService);
     }
+  }
 
-    private Object getTargetService() {
-        if (sr == null) {
-            return null;
-        }
-        return Activator.bc.getService(sr);
+  private void update(ManagedService targetService)
+      throws ConfigurationException
+  {
+    if (targetService == null) {
+      return;
     }
+    targetService.updated(processedConfiguration);
+  }
+
+  private void update(ManagedServiceFactory targetService)
+      throws ConfigurationException
+  {
+    if (targetService == null) {
+      return;
+    }
+    if (configuration == null) {
+      targetService.deleted(pid);
+    } else if (processedConfiguration == null) {
+      targetService.deleted(pid);
+    } else {
+      targetService.updated(pid, processedConfiguration);
+    }
+  }
+
+  private Object getTargetService()
+  {
+    if (sr == null) {
+      return null;
+    }
+    return Activator.bc.getService(sr);
+  }
 }

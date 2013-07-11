@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010, KNOPFLERFISH project
+ * Copyright (c) 2005-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ import org.osgi.framework.Version;
  *
  * @author Jan Stein
  */
-public class VersionRange implements Comparable
+public class VersionRange implements Comparable<VersionRange>
 {
   final private Version low;
   final private Version high;
@@ -63,13 +63,13 @@ public class VersionRange implements Comparable
    * @param vr Input string.
    */
   public VersionRange(String vr) throws NumberFormatException {
-    boolean op = vr.startsWith("(");
-    boolean ob = vr.startsWith("[");
+    final boolean op = vr.startsWith("(");
+    final boolean ob = vr.startsWith("[");
 
     if (op || ob) {
-      boolean cp = vr.endsWith(")");
-      boolean cb = vr.endsWith("]");
-      int comma = vr.indexOf(',');
+      final boolean cp = vr.endsWith(")");
+      final boolean cb = vr.endsWith("]");
+      final int comma = vr.indexOf(',');
 
       if (comma > 0 && (cp || cb)) {
         low = new Version(vr.substring(1, comma).trim());
@@ -163,12 +163,12 @@ public class VersionRange implements Comparable
     }
     boolean low_below_high = range.high == null;
     if (!low_below_high) {
-      int c = low.compareTo(range.high);
+      final int c = low.compareTo(range.high);
       low_below_high = c < 0 || (c == 0 && lowIncluded && range.highIncluded);
     }
     boolean high_above_low = high == null;
     if (!high_above_low) {
-      int c = high.compareTo(range.low);
+      final int c = high.compareTo(range.low);
       high_above_low = c > 0 || (c == 0 && highIncluded && range.lowIncluded);
     }
     return low_below_high && high_above_low;
@@ -184,8 +184,7 @@ public class VersionRange implements Comparable
    *         and positive if this object is larger then obj.
    * @exception ClassCastException if object is not a VersionRange object.
    */
-  public int compareTo(Object obj) throws ClassCastException {
-    VersionRange o = (VersionRange)obj;
+  public int compareTo(VersionRange o) {
     return low.compareTo(o.low);
   }
 
@@ -196,26 +195,76 @@ public class VersionRange implements Comparable
    *
    * @return String.
    */
-  public String toString() {
+  @Override
+  public String toString()
+  {
     if (high != null) {
-      StringBuffer res = new StringBuffer();
+      final StringBuffer res = new StringBuffer();
       if (lowIncluded) {
-	res.append('[');
+        res.append('[');
       } else {
-	res.append('(');
+        res.append('(');
       }
       res.append(low.toString());
       res.append(',');
       res.append(high.toString());
       if (highIncluded) {
-	res.append(']');
+        res.append(']');
       } else {
-	res.append(')');
+        res.append(')');
       }
       return res.toString();
     } else {
       return low.toString();
     }
+  }
+
+  /**
+   * Append a filter expression for the lower and upper bound of this version
+   * range to the specified string buffer. Note that this method does not add
+   * the outer {@code and} to the buffer.
+   *
+   * @param sb OSGi filter string to append conditions to.
+   * @param key the name of the attribute to filter on.
+   * @return {@code true} if any condition was appended to the string buffer,
+   * {@code false} otherwise.
+   */
+  boolean appendFilterString(final StringBuffer sb, final String key)
+  {
+    if (this == defaultVersionRange) {
+      // No version requirement to add to the filter.
+      return false;
+    }
+
+    if (!lowIncluded) {
+      sb.append("(!");
+    }
+    sb.append('(');
+    sb.append(key);
+    sb.append(lowIncluded ? '>' : '<');
+    sb.append('=');
+    sb.append(low.toString());
+    sb.append(')');
+    if (!lowIncluded) {
+      sb.append(')');
+    }
+
+    if (high != null) {
+      if (!highIncluded) {
+        sb.append("(!");
+      }
+      sb.append('(');
+      sb.append(key);
+      sb.append(highIncluded ? '<' : '>');
+      sb.append('=');
+      sb.append(high.toString());
+      sb.append(')');
+      if (!highIncluded) {
+        sb.append(')');
+      }
+    }
+
+    return true;
   }
 
 
@@ -225,8 +274,9 @@ public class VersionRange implements Comparable
    * @param obj Package entry to compare to.
    * @return true if equal, otherwise false.
    */
+  @Override
   public boolean equals(Object obj) throws ClassCastException {
-    VersionRange o = (VersionRange)obj;
+    final VersionRange o = (VersionRange)obj;
     if (low.equals(o.low)) {
       if (high != null) {
         return high.equals(o.high)  &&
@@ -245,6 +295,7 @@ public class VersionRange implements Comparable
    *
    * @return int value.
    */
+  @Override
   public int hashCode() {
     if (high != null) {
       return low.hashCode() + high.hashCode();
@@ -252,4 +303,6 @@ public class VersionRange implements Comparable
       return low.hashCode();
     }
   }
+
+
 }

@@ -21,7 +21,8 @@ registers an HttpService instance into the framework.
 </p>
 
 <p>To use HTTPS a bundle providing a <tt>SslServerSocketFactory</tt>
-must be installed.</p>
+must be installed. E.g., <a href="../sslj2sp/index.html">SSL Provider
+&mdash; J2SP</a>.</p>
 
 <p>
 Note: If the server fails to bind to a port, an HttpService will still
@@ -257,18 +258,24 @@ The http bundle accepts Factory configurations on the PID
 
 <dl>
 
-<dt>http.enable</dt>
+<dt>http.enabled</dt>
 <dd>If true, the bundle will start to listen in the http port.</dd>
 
-<dt>https.enable</dt>
+<dt>https.enabled</dt>
 <dd>If true, the bundle will start to listen in the https port. Note:
     This functionality requires that the bundle is able to obtain a
     <tt>SslServerSocketFactory</tt> service instance from the
     frameworks service registry.</dd>
 
-<dt>port (Integer)</dt>
+<dt>port.http (Integer)</dt>
 <dd>This integer property decides the default port for the server instance.
-  The default port is 80.</dd>
+  The default port is 8080.</dd>
+
+
+<dt>port.https (Integer)</dt>
+<dd>This integer property decides the default port for HTTPS requests
+    to the server instance.
+  The default port is 8443.</dd>
 
 
 <dt>host (String)</dt>

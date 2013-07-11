@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.log;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.log.LogService;
 
 /**
  * The LogServiceFactory creates a LogService implementation that will
@@ -44,7 +45,7 @@ import org.osgi.framework.ServiceRegistration;
  * actual log functionality. The reason a Factory is used is that we
  * need the BundleContext of the bundle using the LogService.
  */
-public class LogServiceFactory implements ServiceFactory {
+public class LogServiceFactory implements ServiceFactory<LogService> {
 
     /**
      * A reference to the log reader service factory that implements the log
@@ -56,12 +57,17 @@ public class LogServiceFactory implements ServiceFactory {
         this.lrsf = lrsf;
     }
 
-    public Object getService(Bundle bundle, ServiceRegistration sreg) {
-        return new LogServiceImpl(bundle, lrsf);
-    }
+  public LogService getService(Bundle bundle,
+                               ServiceRegistration<LogService> sreg)
+  {
+    return new LogServiceImpl(bundle, lrsf);
+  }
 
-    public void ungetService(Bundle bundle, ServiceRegistration sreg, Object s) {
-        // Nothing to do here;
-    }
+  public void ungetService(Bundle bundle,
+                           ServiceRegistration<LogService> sreg,
+                           LogService s)
+  {
+    // Nothing to do here;
+  }
 
 }

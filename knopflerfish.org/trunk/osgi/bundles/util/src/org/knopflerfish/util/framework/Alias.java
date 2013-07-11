@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2006, KNOPFLERFISH project
+ * Copyright (c) 2003-2006,2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,10 +73,10 @@ public class Alias {
     { "Win32", "win*" },
   };
 
-  // try tograb the KF framework alias definitions if available
+  // try to grab the KF framework alias definitions if available
   static {
     try {
-      Class clazz = Class.forName("org.knopflerfish.framework.Alias", 
+      Class<?> clazz = Class.forName("org.knopflerfish.framework.Alias", 
                                   false,
                                   ClassLoader.getSystemClassLoader());
       Field f1 = clazz.getField("processorAliases");
@@ -95,8 +95,8 @@ public class Alias {
    * @param name Processor name.
    * @return The unified name.
    */
-  static public ArrayList unifyProcessor(String name) {
-    ArrayList res = new ArrayList(2);
+  static public ArrayList<String> unifyProcessor(String name) {
+    ArrayList<String> res = new ArrayList<String>(2);
     for (int i = 0; i < processorAliases.length; i++) {
       for (int j = 1; j < processorAliases[i].length; j++) {
 	if (name.equalsIgnoreCase(processorAliases[i][j])) {
@@ -116,8 +116,8 @@ public class Alias {
      * @param name OS name.
      * @return The unified name.
      */
-  static public ArrayList unifyOsName(String name) {
-    ArrayList res = new ArrayList(3);
+  static public ArrayList<String> unifyOsName(String name) {
+    ArrayList<String> res = new ArrayList<String>(3);
     String lname = name.toLowerCase();
     for (int i = 0; i < osNameAliases.length; i++) {
       for (int j = 1; j < osNameAliases[i].length; j++) {

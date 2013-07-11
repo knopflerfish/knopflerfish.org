@@ -75,7 +75,7 @@ public class Strings {
 
   static void load() {
 
-    Locale         locale = null;
+    Locale locale = null;
 
     if(rb == null) {
       if(bDebug) {

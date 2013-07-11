@@ -59,11 +59,11 @@ public class SessionImpl extends Thread implements Session {
 
     final BundleContext bc;
 
-    private Dictionary properties = new Hashtable();
+    private Dictionary<String, Object> properties = new Hashtable<String,Object>();
 
-    Vector listeners = new Vector();
+    Vector<SessionListener> listeners = new Vector<SessionListener>();
 
-    Vector cmdline = new Vector();
+    Vector<Command> cmdline = new Vector<Command>();
 
     String currentGroup = "";
 
@@ -133,8 +133,8 @@ public class SessionImpl extends Thread implements Session {
             throw new IllegalStateException("Session is closed");
         }
         synchronized (cmdline) {
-            for (Enumeration e = cmdline.elements(); e.hasMoreElements();) {
-                Command c = (Command) e.nextElement();
+            for (Enumeration<Command> e = cmdline.elements(); e.hasMoreElements();) {
+                Command c = e.nextElement();
                 if (c.thread != null) {
                     c.thread.interrupt();
                 }
@@ -203,8 +203,8 @@ public class SessionImpl extends Thread implements Session {
         readT.close();
         abortCommand();
         closed = true;
-        for (Enumeration e = listeners.elements(); e.hasMoreElements();) {
-            SessionListener l = (SessionListener) e.nextElement();
+        for (Enumeration<SessionListener> e = listeners.elements(); e.hasMoreElements();) {
+            SessionListener l = e.nextElement();
             l.sessionEnd(this);
         }
     }
@@ -240,7 +240,7 @@ public class SessionImpl extends Thread implements Session {
      *
      * @return Property Dictionary.
      */
-    public Dictionary getProperties() {
+    public Dictionary<String, Object> getProperties() {
         return properties;
     }
 
@@ -299,14 +299,14 @@ public class SessionImpl extends Thread implements Session {
                 if (!c.isPiped) {
                     int first = 0;
                     for (int i = 0; i < cmdline.size(); i++) {
-                        c = (Command) cmdline.elementAt(i);
+                        c = cmdline.elementAt(i);
                         c.runThreaded();
                         if (c.isPiped) {
                             continue;
                         }
                         if (c.isBackground) {
                             // Need to close input for this command chain
-                            Command f = (Command) cmdline.elementAt(first);
+                            Command f = cmdline.elementAt(first);
                             f.in = null;
                             first = i + 1;
                             continue;

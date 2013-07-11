@@ -54,10 +54,12 @@ public class ComponentYImpl
     System.out.println("YImpl: deactivate");
   }
 
+  @Override
   public int getTestStatus() {
     return testStatus;
   }
 
+  @Override
   public void testCall(int x) {
     testStatus += x;
   }

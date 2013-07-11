@@ -5,8 +5,8 @@ import java.util.*;
 import java.awt.geom.Point2D;
 
 public interface Node {
-  public Collection getOutLinks();
-  public Collection getInLinks();
+  public Collection<? extends Link> getOutLinks();
+  public Collection<? extends Link> getInLinks();
   public double getSize();
   public int getDepth();
   public void refresh();

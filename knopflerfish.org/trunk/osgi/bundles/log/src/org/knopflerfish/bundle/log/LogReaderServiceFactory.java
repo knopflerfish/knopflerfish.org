@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ package org.knopflerfish.bundle.log;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.text.SimpleDateFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.NoSuchElementException;
@@ -46,6 +45,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceFactory;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.log.LogEntry;
+import org.osgi.service.log.LogReaderService;
 
 /**
  * A LogReaderServiceFactory implements the log functionality.  I.e.,
@@ -53,12 +53,12 @@ import org.osgi.service.log.LogEntry;
  * LogListeners. It does not keep track of subscribers, this is
  * delegated to LogReaderServiceImpl.
  *
- * It uses an instance of FileLog to write log entryes to file if
+ * It uses an instance of FileLog to write log entries to file if
  * that configuration option has been enabled. It also prints log
  * entries on System.out if desired.
  */
 public final class LogReaderServiceFactory
-  implements ServiceFactory
+  implements ServiceFactory<LogReaderService>
 {
   /** Handle to the framework. */
   final BundleContext bc;
@@ -75,7 +75,7 @@ public final class LogReaderServiceFactory
    * LogReaderServiceImpl and the value the Bundle object for the
    * bundle that uses the service.
    */
-  final Hashtable logReaderServicies = new Hashtable();
+  final Hashtable<LogReaderServiceImpl, Bundle> logReaderServicies = new Hashtable<LogReaderServiceImpl, Bundle>();
 
   final LogConfigImpl configuration;
 
@@ -109,7 +109,7 @@ public final class LogReaderServiceFactory
 
   /**
    * The stop method is called by the bundle activator when the log
-   * bundle is stoped. If a <code>fileLog</code> is active shut it
+   * bundle is stopped. If a <code>fileLog</code> is active shut it
    * down.
    */
   void stop() {
@@ -187,7 +187,7 @@ public final class LogReaderServiceFactory
       fileLog = new FileLog(bc, configuration);
       if (oldValue == null) {
         synchronized (history) {
-          fileLog.saveMemEntries(new ArrayEnumeration(history,
+          fileLog.saveMemEntries(new ArrayEnumeration<LogEntry>(history,
                                                       historyInsertionPoint));
         }
       }
@@ -223,13 +223,18 @@ public final class LogReaderServiceFactory
    * Each Bundle gets its own LogReaderServiceImpl, and the
    * LogReaderServiceFactory keeps track of the created LogReaderServices.
    */
-  public Object getService(Bundle bc, ServiceRegistration sd) {
+  public LogReaderService getService(Bundle bc,
+                                     ServiceRegistration<LogReaderService> sd)
+  {
     LogReaderServiceImpl lrsi = new LogReaderServiceImpl(this);
     logReaderServicies.put(lrsi, bc);
     return lrsi;
   }
 
-  public void ungetService(Bundle bc, ServiceRegistration sd, Object s) {
+  public void ungetService(Bundle bc,
+                           ServiceRegistration<LogReaderService> sd,
+                           LogReaderService s)
+  {
     logReaderServicies.remove(s);
   }
 
@@ -251,8 +256,8 @@ public final class LogReaderServiceFactory
   /*
    * Return an enumeration of the historyLength last entries in the log.
    */
-  public Enumeration getLog() {
-    return new ArrayEnumeration(history, historyInsertionPoint);
+  public Enumeration<LogEntry> getLog() {
+    return new ArrayEnumeration<LogEntry>(history, historyInsertionPoint);
   }
 
   /**
@@ -265,9 +270,9 @@ public final class LogReaderServiceFactory
     // The synchronized block below is needed to work around a bug in
     // JDK1.2.2 on Linux (with green threads).
     synchronized (configuration) {
-      Integer res = (Integer) AccessController
-        .doPrivileged(new PrivilegedAction() {
-            public Object run() {
+      Integer res = AccessController
+        .doPrivileged(new PrivilegedAction<Integer>() {
+            public Integer run() {
               return new Integer(getFilterLevel(bundle));
             }
           });
@@ -285,7 +290,7 @@ public final class LogReaderServiceFactory
    * @param le The new LogEntry
    */
   protected void log(final LogEntryImpl le) {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
         public Object run() {
           synchronized(LogReaderServiceFactory.this) {
             if (le.getLevel() <= getFilterLevel(le.getBundle())) {
@@ -302,10 +307,10 @@ public final class LogReaderServiceFactory
               }
             }
           }
-          for (Enumeration e = logReaderServicies.keys();
+          for (Enumeration<LogReaderServiceImpl> e = logReaderServicies.keys();
                e.hasMoreElements();) {
             try {
-              ((LogReaderServiceImpl) e.nextElement()).callback(le);
+              e.nextElement().callback(le);
             } catch (Exception ce) {
               // TBD Log error?
             }
@@ -329,16 +334,16 @@ public final class LogReaderServiceFactory
 
 /*
  * Auxiliary class used to create a Enumeration from an array. The array is
- * cloned to keep the array consistent even if the contents of the orginal array
+ * cloned to keep the array consistent even if the contents of the original array
  * is changed.
  *
  * The elements in the array are not cloned, but they are not changed in the log
  * anyway.
  */
 
-class ArrayEnumeration implements Enumeration {
+class ArrayEnumeration<E> implements Enumeration<E> {
 
-  private Object[] array;
+  private E[] array;
 
   private int pos;
 
@@ -346,8 +351,8 @@ class ArrayEnumeration implements Enumeration {
 
   private boolean more = true;
 
-  public ArrayEnumeration(Object[] a, int start) {
-    this.array = (Object[]) a.clone();
+  public ArrayEnumeration(E[] a, int start) {
+    this.array = (E[]) a.clone();
     endPos = start;
     pos = start;
     nextPos();
@@ -369,9 +374,9 @@ class ArrayEnumeration implements Enumeration {
     return more;
   }
 
-  public Object nextElement() {
+  public E nextElement() {
     if (more) {
-      Object o = array[pos];
+      E o = array[pos];
       if (pos == endPos) {
         more = false;
       } else {

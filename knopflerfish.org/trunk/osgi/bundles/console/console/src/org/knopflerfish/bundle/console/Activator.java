@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2009, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.console;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import org.knopflerfish.service.console.ConsoleService;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -48,24 +49,17 @@ import org.osgi.service.log.LogService;
  * Bundle activator implementation.
  *
  * @author Anders Rimen
- * @version $Revision: 1.1.1.1 $
  */
 public class Activator
   implements BundleActivator
 {
-    static private final String logServiceName
-      = org.osgi.service.log.LogService.class.getName();
-
-    static private final String consoleServiceName
-      = org.knopflerfish.service.console.ConsoleService.class.getName();
-
     BundleContext bc;
 
-    ServiceRegistration consoleReg;
+    ServiceRegistration<ConsoleService> consoleReg;
 
     // The set of active sessions that must be closed when this
     // bundle is stopped.
-    static final ArrayList /*<SessionImpl>*/ sessions = new ArrayList();
+    static final ArrayList<SessionImpl> sessions = new ArrayList<SessionImpl>();
 
     /**
      * Called by the framework when this bundle is started.
@@ -78,7 +72,7 @@ public class Activator
         log(LogService.LOG_INFO, "Starting version "
                 + bc.getBundle().getHeaders().get("Bundle-Version"));
 
-        consoleReg = bc.registerService(consoleServiceName,
+        consoleReg = bc.registerService(ConsoleService.class,
                 new ConsoleServiceImpl(bc), null);
     }
 
@@ -90,8 +84,8 @@ public class Activator
      */
     public void stop(BundleContext bc) {
         log(LogService.LOG_INFO, "Stopping");
-        ArrayList currentSessions = new ArrayList(sessions);
-        for (Iterator it = currentSessions.iterator(); it.hasNext();) {
+        ArrayList<SessionImpl> currentSessions = new ArrayList<SessionImpl>(sessions);
+        for (Iterator<SessionImpl> it = currentSessions.iterator(); it.hasNext();) {
           SessionImpl s = (SessionImpl) it.next();
           s.bundleStopped();
         }
@@ -104,9 +98,9 @@ public class Activator
      * @param msg Log message
      */
     void log(int level, String msg) {
-        ServiceReference srLog = bc.getServiceReference(logServiceName);
+        ServiceReference<LogService> srLog = bc.getServiceReference(LogService.class);
         if (srLog != null) {
-            LogService sLog = (LogService) bc.getService(srLog);
+            LogService sLog = bc.getService(srLog);
             if (sLog != null) {
                 sLog.log(level, msg);
             }

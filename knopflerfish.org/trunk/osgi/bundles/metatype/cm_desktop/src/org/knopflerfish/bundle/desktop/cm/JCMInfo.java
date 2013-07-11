@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,32 +34,54 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
-import org.osgi.util.tracker.*;
-import java.util.*;
-import org.knopflerfish.service.desktop.*;
-
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.event.*;
-import javax.swing.border.*;
-import org.knopflerfish.util.metatype.*;
-import org.osgi.service.metatype.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.net.URL;
 
-public class JCMInfo extends JPanel {
-  MetaTypeInformation mtp;
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.JViewport;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+
+import org.osgi.framework.Bundle;
+import org.osgi.service.metatype.MetaTypeInformation;
+import org.osgi.service.metatype.ObjectClassDefinition;
+
+import org.knopflerfish.util.metatype.MTP;
+
+public class JCMInfo
+  extends JPanel
+{
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
+
+  MetaTypeInformation mti;
 
   JPanel main;
   JCMService jcmService;
 
-  public JCMInfo() {
+  public JCMInfo()
+  {
     super(new BorderLayout());
 
     main = new JPanel(new BorderLayout());
     jcmService = new JCMService();
+    // Initialize presentation as if nothing is selected.
+    setProvider(null, null);
 
     add(main, BorderLayout.CENTER);
   }
@@ -67,221 +89,245 @@ public class JCMInfo extends JPanel {
   JComboBox servicePIDBox = null;
   JComboBox factoryPIDBox = null;
 
-  void setProvider(MetaTypeInformation _mtp, Bundle bundle) {
-    this.mtp = _mtp;
-    
+  void setProvider(MetaTypeInformation _mti, Bundle bundle)
+  {
+    this.mti = _mti;
     main.removeAll();
-
-    if(mtp != null) {
-      servicePIDBox = null;
-      factoryPIDBox = null;
-      
-      String[] servicePIDs = mtp.getPids();
-
-
-      if(servicePIDs != null && servicePIDs.length > 0) {
-	servicePIDBox = new JComboBox(servicePIDs);
-	servicePIDBox.addActionListener(new ActionListener() {	  
-	    public void actionPerformed(ActionEvent ev) {	    
-	      int ix = servicePIDBox.getSelectedIndex();
-	      if(ix == -1) {
-		return;
-	      } else {
-		String pid = (String)servicePIDBox.getSelectedItem();
-		setServiceOCD(pid);
-	      }
-	    }
-	  });
-      }
-      
-      String[] factoryPIDs = mtp.getFactoryPids();
-
-      if(factoryPIDs != null && factoryPIDs.length > 0) {
-	factoryPIDBox = new JComboBox(factoryPIDs);
-	factoryPIDBox.addActionListener(new ActionListener() {	  
-	    public void actionPerformed(ActionEvent ev) {	    
-	      int ix = factoryPIDBox.getSelectedIndex();
-	      if(ix == -1) {
-		return;
-	      } else {
-		String pid = (String)factoryPIDBox.getSelectedItem();
-		setFactoryOCD(pid);
-	      }
-	    }
-	  });
-      }
-      
-      JPanel upperBox = new JPanel(new GridLayout(0, 1));
-      
-      String title = "Available PIDs";
-      if(mtp instanceof MTP) {
-	title = title + " in " + ((MTP)mtp).getId();
-      }
-      upperBox.setBorder(makeBorder(this, title));
-      
-      if(servicePIDBox != null) {
-	upperBox.add(new JLabelled("Services", 
-				   "PIDs representing ManagedServices",
-				   servicePIDBox, 100));
-      }
-      if(factoryPIDBox != null) {
-	upperBox.add(new JLabelled("Factories", 
-				   "PIDs representing ManagedServiceFactories",
-				   factoryPIDBox, 100));
-      }
-      
-      main.add(upperBox,   BorderLayout.NORTH);
-      main.add(jcmService, BorderLayout.CENTER);
-
-      // Set either the first service or the first factory as displayed
-      if(servicePIDs != null && servicePIDs.length > 0) {
-	setServiceOCD(servicePIDs[0]);
-      } else {
-	if(factoryPIDs != null && factoryPIDs.length > 0) {
-	  setFactoryOCD(factoryPIDs[0]);
-	} else {
-	  // Neither service nor factory found in provider
-	}
-      }
+    if (mti != null) {
+      renderBundleWithMetadata(bundle);
     } else {
-      try {
-	StringBuffer sb = new StringBuffer();
-	sb.append("<html>\n");
-	sb.append("<body>\n");
-	sb.append("<table border=0 width=\"100%\">\n");
-	sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
-	Util.startFont(sb, "-1");
-	sb.append(getBundleSelectedHeader(bundle));
-	sb.append("</font>\n");
-	sb.append("</td>\n");
-	sb.append("</tr>\n");
-	sb.append("</table>\n");
-	
-	sb.append("<p>");
-	Util.startFont(sb, "-2");
-	sb.append("No CM metatype found in bundle.<br>");
-	sb.append("<p>See <a href=\"http://www.knopflerfish.org/XMLMetatype/\">http://www.knopflerfish.org/XMLMetatype/</a> for details on how to add metatype and default values.</p>");
-	sb.append("<p>The ");
-	Util.bundleLink(sb, Activator.bc.getBundle(0));
-	sb.append(" shows all available configurations</p>");
-	sb.append("</font>");
-	sb.append("</p>");
-	
-	
-	sb.append("</body>\n");
-	sb.append("</html>\n");
-
-	JHTML jhtml = new JHTML(sb.toString());
-
-	main.add(jhtml, BorderLayout.CENTER);
-	
-      } catch (Exception e) {
-	e.printStackTrace();
-      }
+      final JHTML jhtml = renderBundleWithoutMetadata(bundle);
+      main.add(jhtml, BorderLayout.CENTER);
     }
     invalidate();
     revalidate();
     repaint();
   }
 
-  static Border makeBorder(JComponent comp, String title) {
-    Color borderCol = comp.getBackground().brighter();
-    return BorderFactory
-      .createTitledBorder(BorderFactory
-			  .createMatteBorder(comp.getFont().getSize() + 4,0,0,0, borderCol),
-			  title);
-    
+  private void renderBundleWithMetadata(Bundle bundle)
+  {
+    final String[] servicePIDs = mti.getPids();
+    servicePIDBox = new JComboBox(servicePIDs);
+    servicePIDBox.setEnabled(servicePIDs != null && servicePIDs.length > 0);
+    servicePIDBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev)
+      {
+        final int ix = servicePIDBox.getSelectedIndex();
+        if (ix == -1) {
+          return;
+        } else {
+          final String pid = (String) servicePIDBox.getSelectedItem();
+          setServiceOCD(pid);
+        }
+      }
+    });
+
+    final String[] factoryPIDs = mti.getFactoryPids();
+    factoryPIDBox = new JComboBox(factoryPIDs);
+    factoryPIDBox.setEnabled(factoryPIDs != null && factoryPIDs.length > 0);
+    factoryPIDBox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent ev)
+      {
+        final int ix = factoryPIDBox.getSelectedIndex();
+        if (ix == -1) {
+          return;
+        } else {
+          final String pid = (String) factoryPIDBox.getSelectedItem();
+          setFactoryOCD(pid);
+        }
+      }
+    });
+
+    final JPanel upperBox = new JPanel(new GridLayout(0, 1));
+    upperBox.add(new JLabelled("PIDs", "PIDs representing ManagedServices",
+                               servicePIDBox, 100));
+    upperBox.add(new JLabelled("Factory PIDs",
+                               "PIDs representing ManagedServiceFactories",
+                               factoryPIDBox, 100));
+    String title = getBundleSelectedHeader(bundle);
+    if (mti instanceof MTP) {
+      title = title + " (" + ((MTP) mti).getId() + ")";
+    }
+    upperBox.setBorder(makeBorder(this, title));
+    main.add(upperBox, BorderLayout.NORTH);
+
+    // Set either the first service or the first factory as displayed
+    if (servicePIDs != null && servicePIDs.length > 0) {
+      main.add(jcmService, BorderLayout.CENTER);
+      setServiceOCD(servicePIDs[0]);
+    } else if (factoryPIDs != null && factoryPIDs.length > 0) {
+      main.add(jcmService, BorderLayout.CENTER);
+      setFactoryOCD(factoryPIDs[0]);
+    } else {
+      // Neither service PID nor factory PID found in provider; leave the rest
+      // of the main-panel empty.
+    }
   }
 
-  String getBundleSelectedHeader(Bundle b) {
-    return "#" + b.getBundleId() + "  " +  Util.getBundleName(b);
+  /**
+   * Create a {@link JHTML}-component that presents a bundle without any metadata.
+   * @param bundle The bundle to present. May be {@code null}.
+   * @return component presenting a bundle without metadata.
+   */
+  private JHTML renderBundleWithoutMetadata(Bundle bundle)
+  {
+    final StringBuffer sb = new StringBuffer();
+    sb.append("<html>\n");
+    sb.append("<body>\n");
+    sb.append("<table border=0 width=\"100%\">\n");
+    sb.append("<tr><td width=\"100%\" bgcolor=\"#eeeeee\">");
+    Util.startFont(sb, "-1");
+    sb.append(getBundleSelectedHeader(bundle));
+    sb.append("</font>\n");
+    sb.append("</td>\n");
+    sb.append("</tr>\n");
+    sb.append("</table>\n");
+
+    sb.append("<p>");
+    Util.startFont(sb, "-2");
+    if (bundle==null) {
+      sb.append("Select a bundle in the main view to view CM metatype information for it.<br>");
+    } else {
+      sb.append("No CM metatype found in bundle.<br>");
+      sb.append("See <a href=\"http://www.knopflerfish.org/XMLMetatype/\">http://www.knopflerfish.org/XMLMetatype/</a> for details on how to add metatype and default values.<br>");
+    }
+    sb.append("</font>");
+    sb.append("</p>");
+
+    sb.append("<p>");
+    Util.startFont(sb, "-2");
+    sb.append("Select the ");
+    Util.bundleLink(sb, Activator.bc.getBundle(0));
+    sb.append(" to see all configurations that can be created or edited based on associated metatype information.");
+    sb.append("</font></p>");
+
+    sb.append("<p>");
+    Util.startFont(sb, "-2");
+    sb.append("Select the ");
+    final Bundle cmBundle =
+      CMDisplayer.cmTracker.getServiceReference().getBundle();
+    Util.bundleLink(sb, cmBundle);
+    sb.append(" bundle to see and edit all exisiting configurations.");
+    sb.append("</font></p>");
+
+    sb.append("</body>\n");
+    sb.append("</html>\n");
+
+    return new JHTML(sb.toString());
   }
 
-  void setServiceOCD(String pid) {
+  static Border makeBorder(JComponent comp, String title)
+  {
+    return BorderFactory.createTitledBorder(title);
+  }
+
+  String getBundleSelectedHeader(Bundle b)
+  {
+    if (b==null) {
+      return "No bundle selected";
+    }
+    return "#" + b.getBundleId() + "  " + Util.getBundleName(b);
+  }
+
+  void setServiceOCD(String pid)
+  {
     try {
-      ObjectClassDefinition ocd = 
-	(ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
-      
+      final ObjectClassDefinition ocd = mti.getObjectClassDefinition(pid, null);
+
       jcmService.setServiceOCD(pid, ocd);
-    } catch (Throwable t) {
+    } catch (final Throwable t) {
       Activator.log.error("Failed to set service pid=" + pid, t);
     }
   }
 
-  void setFactoryOCD(String pid) {
-    ObjectClassDefinition ocd = 
-      (ObjectClassDefinition)mtp.getObjectClassDefinition(pid, null);
+  void setFactoryOCD(String pid)
+  {
+    final ObjectClassDefinition ocd = mti.getObjectClassDefinition(pid, null);
 
     jcmService.setFactoryOCD(pid, ocd);
   }
+
+  void stop()
+  {
+    jcmService.stop();
+  }
 }
 
-class JHTML extends JPanel {
+class JHTML
+  extends JPanel
+{
+  /**
+   *
+   */
+  private static final long serialVersionUID = 1L;
   JTextPane html;
   JScrollPane scroll;
 
-  JHTML() {
+  JHTML()
+  {
     this("");
   }
 
-  JHTML(String s) {
+  JHTML(String s)
+  {
     super(new BorderLayout());
 
     html = new JTextPane();
-    html.setEditable(false); // need o set this explicitly to fix swing 1.3 bug
+    html.setEditable(false); // need to set this explicitly to fix swing 1.3 bug
     html.setCaretPosition(0);
     html.setContentType("text/html");
     html.setText(s);
     html.setCaretPosition(0);
 
-    html.addHyperlinkListener(new HyperlinkListener() 
+    html.addHyperlinkListener(new HyperlinkListener() {
+      public void hyperlinkUpdate(HyperlinkEvent ev)
       {
-	public void hyperlinkUpdate(HyperlinkEvent ev) {
-	  if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-	    URL url = ev.getURL();
-	    try {
-	      if(Util.isBundleLink(url)) {
-		long bid = Util.bidFromURL(url);
-		Activator.disp.getBundleSelectionModel().clearSelection();
-		Activator.disp.getBundleSelectionModel().setSelected(bid, true);
-	      } else {
-		Util.openExternalURL(url);
-	      }
-	    } catch (Exception e) {
-	      Activator.log.error("Failed to show " + url, e);
-	    }
-	  }
-	}
-      });
+        if (ev.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+          final URL url = ev.getURL();
+          try {
+            if (Util.isBundleLink(url)) {
+              final long bid = Util.bidFromURL(url);
+              Activator.disp.getBundleSelectionModel().clearSelection();
+              Activator.disp.getBundleSelectionModel().setSelected(bid, true);
+            } else {
+              Util.openExternalURL(url);
+            }
+          } catch (final Exception e) {
+            Activator.log.error("Failed to show " + url, e);
+          }
+        }
+      }
+    });
 
-    scroll = 
-      new JScrollPane(html, 
-		      JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-		      JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-      
+    scroll =
+      new JScrollPane(html, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
     html.setPreferredSize(new Dimension(300, 300));
-    
+
     add(scroll, BorderLayout.CENTER);
   }
-  
-  void setHTML(String s) {
+
+  void setHTML(String s)
+  {
     try {
       html.setText(s);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Activator.log.error("Failed to set html", e);
     }
     SwingUtilities.invokeLater(new Runnable() {
-	public void run() {
-	  try {
-	    JViewport vp = scroll.getViewport();
-	    if(vp != null) {
-	      vp.setViewPosition(new Point(0,0));
-	      scroll.setViewport(vp);
-	    }  
-	  } catch (Exception e) {
-	    Activator.log.error("Failed to set html", e);
-	  }
-	}
-      });
+      public void run()
+      {
+        try {
+          final JViewport vp = scroll.getViewport();
+          if (vp != null) {
+            vp.setViewPosition(new Point(0, 0));
+            scroll.setViewport(vp);
+          }
+        } catch (final Exception e) {
+          Activator.log.error("Failed to set html", e);
+        }
+      }
+    });
   }
 }

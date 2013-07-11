@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,30 +37,35 @@ package org.knopflerfish.framework.permissions;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 
 
 /**
  * Framework service to administer Conditional Permissions. Conditional
  * Permissions can be added to, retrieved from, and removed from the framework.
- * 
+ *
  */
 public class ConditionalPermissionUpdateImpl implements ConditionalPermissionUpdate {
 
   private final ConditionalPermissionInfoStorage storage;
 
-  private final ArrayList cpiTable;
+  private final ArrayList<ConditionalPermissionInfo> cpiTable;
 
   private final int parent;
 
- 
+
   /**
    *
    */
   ConditionalPermissionUpdateImpl(ConditionalPermissionInfoStorage cpis,
-                                  ArrayList org, int generation) {
+                                  ArrayList<ConditionalPermissionInfoImpl> org,
+                                  int generation)
+  {
     storage = cpis;
-    cpiTable = (ArrayList)org.clone();
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    final ArrayList<ConditionalPermissionInfo> clone = (ArrayList) org.clone();
+    cpiTable = clone;
     parent = generation;
   }
 
@@ -68,7 +73,7 @@ public class ConditionalPermissionUpdateImpl implements ConditionalPermissionUpd
   /**
    *
    */
-  public List /* ConditionalPermissionInfo */ getConditionalPermissionInfos() {
+  public List<ConditionalPermissionInfo> getConditionalPermissionInfos() {
     return cpiTable;
   }
 

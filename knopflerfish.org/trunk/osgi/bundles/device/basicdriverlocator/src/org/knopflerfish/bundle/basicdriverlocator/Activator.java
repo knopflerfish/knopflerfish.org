@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,6 @@
 
 package org.knopflerfish.bundle.basicdriverlocator;
 
-import java.util.Properties;
-
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -43,31 +41,31 @@ import org.osgi.service.device.DriverLocator;
 
 /**
  * Creates and registers a DriverLocator Service with basic file lookup.
- * 
  */
-public class Activator implements BundleActivator {
-    BasicDriverLocator basicLocator = null;
+public class Activator
+  implements BundleActivator
+{
+  BasicDriverLocator basicLocator = null;
 
-    ServiceRegistration sr = null;
+  ServiceRegistration<DriverLocator> sr = null;
 
-    /**
-     * Bundle is started by framework.
-     */
-    public void start(BundleContext bc) throws Exception {
+  /**
+   * Bundle is started by framework.
+   */
+  public void start(BundleContext bc)
+      throws Exception
+  {
+    basicLocator = new BasicDriverLocator(bc);
 
-        basicLocator = new BasicDriverLocator(bc);
+    sr = bc.registerService(DriverLocator.class, basicLocator, null);
+  }
 
-        Properties props = new Properties();
-
-        sr = bc.registerService(DriverLocator.class.getName(), basicLocator,
-                props);
-    }
-
-    /**
-     * Bundle is stopped by framework.
-     */
-    public void stop(BundleContext bc) throws Exception {
-
-        // Cleanup of registered service is done automatically by framework.
-    }
+  /**
+   * Bundle is stopped by framework.
+   */
+  public void stop(BundleContext bc)
+      throws Exception
+  {
+    // Cleanup of registered service is done automatically by framework.
+  }
 }

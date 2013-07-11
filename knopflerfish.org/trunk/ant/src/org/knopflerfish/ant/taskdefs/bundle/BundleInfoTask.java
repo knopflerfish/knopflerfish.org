@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -260,51 +260,6 @@ import org.osgi.framework.Version;
  *  </tr>
  *
  *  <tr>
- *   <td valign=top>checkMinimumEE</td>
- *   <td valign=top>
- *       Flag for testing for the Minimum Execution Environment
- *       <p>
- *       If set to "true", the task will check if all used classes
- *       is in the set of the Minimum Execution Environment.
- *       </p>
- *   </td>
- *   <td valign=top>
- *     No.<br>
- *     Default value is "false"
- *   </td>
- *  </tr>
- *
- *  <tr>
- *   <td valign=top>checkSMFEE</td>
- *   <td valign=top>
- *       Flag for testing for the SMF Execution Environment
- *       <p>
- *       If set to "true", the task will check if all used classes
- *       is in the set of the SMF profile Execution Environment.
- *       </p>
- *   </td>
- *   <td valign=top>
- *     No.<br>
- *     Default value is "false"
- *   </td>
- *  </tr>
- *
- *  <tr>
- *   <td valign=top>checkFoundationEE</td>
- *   <td valign=top>
- *       Flag for testing for the Foundation Execution Environment
- *       <p>
- *       If set to "true", the task will check if all used classes
- *       is in the set of the OSGi Foundation Execution Environment.
- *       </p>
- *   </td>
- *   <td valign=top>
- *     No.<br>
- *     Default value is "false"
- *   </td>
- *  </tr>
- *
- *  <tr>
  *   <td valign=top>failOnExports</td>
  *   <td valign=top>
  *       If an error is detected in the given export package header
@@ -462,9 +417,6 @@ public class BundleInfoTask extends Task {
 
   private boolean bPrintClasses      = false;
 
-  private boolean bCheckFoundationEE = false;
-  private boolean bCheckMinimumEE    = false;
-  private boolean bCheckSMFEE        = false;
   private boolean bImplicitImports   = true;
   private boolean bSetActivator      = true;
   private boolean bActivatorOptional = false;
@@ -503,18 +455,6 @@ public class BundleInfoTask extends Task {
 
   public void setPrintClasses(String s) {
     this.bPrintClasses = "true".equals(s);
-  }
-
-  public void setCheckFoundationEE(String s) {
-    this.bCheckFoundationEE = "true".equals(s);
-  }
-
-  public void setCheckMinimumEE(String s) {
-    this.bCheckMinimumEE = "true".equals(s);
-  }
-
-  public void setCheckSMFEE(String s) {
-    this.bCheckSMFEE = "true".equals(s);
   }
 
   public void setFailOnExports(boolean b) {
@@ -976,7 +916,6 @@ public class BundleInfoTask extends Task {
 
     final Set foundationMissing = new TreeSet();
     final Set minimumMissing    = new TreeSet();
-    final Set smfMissing        = new TreeSet();
 
     for(Iterator it = bpInfo.getReferencedClasses().iterator(); it.hasNext();) {
       final String s = (String)it.next();
@@ -986,35 +925,8 @@ public class BundleInfoTask extends Task {
           if(bPrintClasses) {
             System.out.println(s);
           }
-          if(!EE.isFoundation(s)) {
-            if(!isImported(s)) {
-              foundationMissing.add(s);
-            }
-          }
-          if(!EE.isMinimum(s)) {
-            if(!isImported(s)) {
-              minimumMissing.add(s);
-            }
-          }
-          if(!EE.isSMF(s)) {
-            if(!isImported(s)) {
-              smfMissing.add(s);
-            }
-          }
         }
       }
-    }
-
-    if(bCheckFoundationEE) {
-      checkEE(foundationMissing, "foundation");
-    }
-
-    if(bCheckMinimumEE) {
-      checkEE(minimumMissing, "minimum");
-    }
-
-    if(bCheckSMFEE) {
-      checkEE(smfMissing, "SMF");
     }
 
     /* Handle the implicitImport flag. */
@@ -1071,31 +983,6 @@ public class BundleInfoTask extends Task {
       }
     }
   }
-
-  /**
-   * Print check exectuion environment result.
-   *
-   * @param missing
-   *        the set of classes that are used by the bundle but not
-   *        within the execution environment.
-   * @param profileName
-   *        the name of the profile (execution environment) that this
-   *        printout if made for.
-   */
-  private void checkEE(Set missing, String profileName)
-  {
-    if(missing.size() > 0) {
-      System.out.println("Missing " + missing.size() +
-                         " classes from "+ profileName +" profile");
-      } else {
-        System.out.println("Passes " +profileName +" EE");
-      }
-      for(Iterator it = missing.iterator(); it.hasNext();) {
-        final String s = (String)it.next();
-        System.out.println("Not in " +profileName +": " + s);
-      }
-  }
-
 
   private boolean doUses()
   {

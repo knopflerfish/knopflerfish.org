@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003, 2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,102 +37,104 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
-import org.knopflerfish.service.log.LogRef;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
 
+import org.knopflerfish.service.log.LogRef;
+
 /**
- * This class is based on the class HttpServerFactory from Knopflerfish's
- * HTTP Service bundle. 
- * The ManagedServiceFactory approach has been chosen over the managed 
- * Service Approach / using a proxy 
- * - to prevent multiple registrations of the same object with default parameters
- * - to possibly allow several different J2 based SslFactories within the same 
- *   framework.
- * Can be argued if this is really necessary. 
+ * This class is based on the class HttpServerFactory from Knopflerfish's HTTP
+ * Service bundle. The ManagedServiceFactory approach has been chosen over the
+ * managed Service Approach / using a proxy - to prevent multiple registrations
+ * of the same object with default parameters - to possibly allow several
+ * different J2 based SslFactories within the same framework. Can be argued if
+ * this is really necessary.
  */
-public class SslServiceFactory implements ManagedServiceFactory 
+public class SslServiceFactory
+  implements ManagedServiceFactory
 {
-    protected final static String PID = 
-        "org.knopflerfish.bundle.ssl.j2sp";
-    
-    private final BundleContext m_bc;
-    private final LogRef m_log;
+  protected final static String PID = "org.knopflerfish.bundle.ssl.j2sp";
 
-    private final Object m_updateLock = new Object();
-    private final Dictionary m_services = new Hashtable();
-    
-    public SslServiceFactory(BundleContext bc, LogRef log)
-    {
-        m_bc = bc;
-        m_log = log;
+  private final BundleContext m_bc;
+  private final LogRef m_log;
+
+  private final Object m_updateLock = new Object();
+  private final Dictionary<String, SslServiceWrapper> m_services =
+    new Hashtable<String, SslServiceWrapper>();
+
+  public SslServiceFactory(BundleContext bc, LogRef log)
+  {
+    m_bc = bc;
+    m_log = log;
+  }
+
+  public String getName()
+  {
+    return "SSL Java2 Service Provider";
+  }
+
+  // public methods
+
+  public void destroy()
+  {
+
+    final Enumeration<String> e = m_services.keys();
+    while (e.hasMoreElements()) {
+      deleted(e.nextElement());
     }
-    
-	public String getName() 
-    {
-		return "SSL Java2 Service Provider";
-	}
+  }
 
-    // public methods
-
-    public void destroy() 
-    {
-
-        Enumeration e = m_services.keys();
-        while (e.hasMoreElements())
-          deleted((String) e.nextElement());
-    }
-
-    public void updated(String pid, Dictionary configuration)
-          throws ConfigurationException 
-    {
-        synchronized(m_updateLock) 
-        {
-            if(m_log.doDebug()) 
-          	    m_log.debug("Updated pid=" + pid);
-            
-            if(!PID.equals(pid)  && (null != m_services.get(PID))) 
-            {
-            	if(m_log.doDebug()) 
-            		m_log.debug("Overriding default instance with new pid " + pid);
-            	
-            	deleted(PID);
-            }
-        
-            SslServiceWrapper service = (SslServiceWrapper) m_services.get(pid);
-            if (service == null) 
-            {
-            	if(m_log.doDebug()) 
-            	   m_log.debug("create pid=" + pid);
-            	
-                service = new SslServiceWrapper(m_bc, m_log);
-                m_services.put(pid, service);
-    
-            } 
-            
-            service.update(configuration);
-                      
-        }
+  public void updated(String pid, Dictionary<String, ?> configuration)
+      throws ConfigurationException
+  {
+    synchronized (m_updateLock) {
+      if (m_log.doDebug()) {
+        m_log.debug("Updated pid=" + pid);
       }
 
-    /* (non-Javadoc)
-	 * @see org.osgi.service.cm.ManagedServiceFactory#deleted(java.lang.String)
-	 */
-	public void deleted(String pid) 
-    {
-        SslServiceWrapper service = (SslServiceWrapper) m_services.get(pid);
-        if (service != null) 
-        {
-            if(m_log.doDebug()) 
-               m_log.debug("delete pid=" + pid);
-            
-            try 
-            {
-				service.update(null);
-			
-            } catch (ConfigurationException e) {}
+      if (!PID.equals(pid) && (null != m_services.get(PID))) {
+        if (m_log.doDebug()) {
+          m_log.debug("Overriding default instance with new pid " + pid);
         }
+
+        deleted(PID);
+      }
+
+      SslServiceWrapper service = m_services.get(pid);
+      if (service == null) {
+        if (m_log.doDebug()) {
+          m_log.debug("create pid=" + pid);
+        }
+
+        service = new SslServiceWrapper(m_bc, m_log);
+        m_services.put(pid, service);
+
+      }
+
+      service.update(configuration);
     }
+  }
+
+  /*
+   * (non-Javadoc)
+   *
+   * @see org.osgi.service.cm.ManagedServiceFactory#deleted(java.lang.String)
+   */
+  public void deleted(String pid)
+  {
+    final SslServiceWrapper service = m_services.get(pid);
+    if (service != null) {
+      if (m_log.doDebug()) {
+        m_log.debug("delete pid=" + pid);
+      }
+
+      try {
+        service.update(null);
+
+      } catch (final ConfigurationException e) {
+      }
+    }
+  }
 
 }

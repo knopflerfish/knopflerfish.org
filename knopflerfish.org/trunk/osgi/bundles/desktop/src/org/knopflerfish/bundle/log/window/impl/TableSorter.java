@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ public class TableSorter extends TableMap {
     private static final long serialVersionUID = 1L;
     
     int             indexes[];
-    Vector          sortingColumns = new Vector();
+    Vector<Integer>          sortingColumns = new Vector<Integer>();
     boolean         ascending = true;
     int compares;
 
@@ -68,7 +68,7 @@ public class TableSorter extends TableMap {
     }
 
     public int compareRowsByColumn(int row1, int row2, int column) {
-        Class type = model.getColumnClass(column);
+        Class<?> type = model.getColumnClass(column);
         TableModel data = model;
 
         // Check for nulls.
@@ -87,7 +87,7 @@ public class TableSorter extends TableMap {
 
         /*
          * We copy all returned values from the getValue call in case
-         * an optimised model is reusing one object to return many
+         * an optimized model is reusing one object to return many
          * values.  The Number subclasses in the JDK are immutable and
          * so will not be used in this way but other subclasses of
          * Number might want to do this to save space and avoid
@@ -176,7 +176,7 @@ public class TableSorter extends TableMap {
     public int compare(int row1, int row2) {
         compares++;
         for (int level = 0; level < sortingColumns.size(); level++) {
-            Integer column = (Integer)sortingColumns.elementAt(level);
+            Integer column = sortingColumns.elementAt(level);
             int result = compareRowsByColumn(row1, row2, column.intValue());
             if (result != 0) {
                 return ascending ? result : -result;

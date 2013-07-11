@@ -119,8 +119,8 @@
     <javac destdir="${antclasses}"
            classpathref="bundle_tasks.path"
            includeAntRuntime="true"
-           target="1.4"
-           source="1.4"
+           source="1.5"
+           target="jsr14"
            debug="on">
       <src path="${ant.dir}/src"/>
       <!-- org.osgi.framework.Version is used by BundleLocator. -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2012, KNOPFLERFISH project
+ * Copyright (c) 2010-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,34 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-import java.net.*;
-import java.security.*;
-import java.util.*;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.ProtectionDomain;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.ConcurrentModificationException;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import org.knopflerfish.framework.Util.HeaderEntry;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.Constants;
+import org.osgi.framework.Version;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRevision;
 
 /**
  * Bundle generation specific data.
@@ -48,7 +70,7 @@ import org.osgi.framework.*;
  * @author Jan Stein
  */
 
-public class BundleGeneration implements Comparable {
+public class BundleGeneration implements Comparable<BundleGeneration> {
 
   /**
    * Symbolic name system bundle.
@@ -86,6 +108,11 @@ public class BundleGeneration implements Comparable {
   final String symbolicName;
 
   /**
+   * Symbolic name parameters
+   */
+  final HeaderEntry symbolicNameParameters;
+
+  /**
    * Bundle is a singleton.
    */
   final boolean singleton;
@@ -106,11 +133,23 @@ public class BundleGeneration implements Comparable {
   final Fragment fragment;
 
   /**
+   * The bundle requirements from the Require-Capability header.
+   */
+  final Map<String, List<BundleRequirementImpl>> requirements
+    = new HashMap<String, List<BundleRequirementImpl>>();
+
+  /**
+   * The bundle capabilities from the Provide-Capability header.
+   */
+  final Map<String, List<BundleCapabilityImpl>> capabilities
+    = new HashMap<String, List<BundleCapabilityImpl>>();
+
+  /**
    * True when this bundle has its activation policy set to "lazy"
    */
   final boolean lazyActivation;
-  final private HashSet lazyIncludes;
-  final private HashSet lazyExcludes;
+  final private Set<String> lazyIncludes;
+  final private Set<String> lazyExcludes;
 
   /**
    * Time when bundle was last created.
@@ -121,7 +160,7 @@ public class BundleGeneration implements Comparable {
   /**
    * All fragment bundles this bundle hosts.
    */
-  Vector /* BundleGeneration */fragments = null;
+  Vector<BundleGeneration> fragments = null;
 
   /**
    * Stores the raw manifest headers.
@@ -134,24 +173,30 @@ public class BundleGeneration implements Comparable {
   private volatile ClassLoader classLoader;
 
   /**
-   * Bundle protect domain. Will allways be <tt>null</tt> for the system bundle,
-   * methods requireing access to it must be overridden in the SystemBundle
+   * Bundle protect domain. Will always be <tt>null</tt> for the system bundle,
+   * methods requiring access to it must be overridden in the SystemBundle
    * class.
    */
   private ProtectionDomain protectionDomain;
 
+  private BundleClassPath unresolvedBundleClassPath = null;
+
+  final BundleRevisionImpl bundleRevision;
 
   /**
    * Construct a new BundleGeneration for the System Bundle.
    *
    * @param b BundleImpl this bundle data.
+   * @param exportStr The value of the Export-Package header.
+   * @param capabilityStr The value of the Provide-Capability header.
    */
-  BundleGeneration(BundleImpl b, String exportStr) {
+  BundleGeneration(BundleImpl b, String exportStr, String capabilityStr) {
     bundle = b;
     archive = null;
     generation = 0;
     v2Manifest = true;
     symbolicName = KNOPFLERFISH_SYMBOLICNAME;
+    symbolicNameParameters = null;
     singleton = false;
     version = new Version(Util.readFrameworkVersion());
     attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
@@ -162,7 +207,9 @@ public class BundleGeneration implements Comparable {
     lazyExcludes = null;
     timeStamp = System.currentTimeMillis();
     bpkgs = new BundlePackages(this, exportStr);
+    bundleRevision = new BundleRevisionImpl(this);
     classLoader = b.getClassLoader();
+    processCapabilities(capabilityStr);
   }
 
 
@@ -175,26 +222,29 @@ public class BundleGeneration implements Comparable {
    * @param ba Bundle archive with holding the contents of the bundle.
    * @param prev the previous generation of this bundle.
    *
+   * @throws BundleException If we have duplicate symbolicname and version.
+   *
    * @exception IOException If we fail to read and store our JAR bundle or if
    *              the input data is corrupted.
    * @exception SecurityException If we don't have permission to install
    *              extension.
    * @exception IllegalArgumentException Faulty manifest for bundle
    */
-  BundleGeneration(BundleImpl b, BundleArchive ba, BundleGeneration prev) {
+  BundleGeneration(BundleImpl b, BundleArchive ba, BundleGeneration prev) throws BundleException {
     bundle = b;
     generation = (prev != null ? prev.generation : -1) + 1;
     archive = ba;
     checkCertificates();
-    // TBD, v2Manifest unnecessary to cache?
-    String mv = archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION);
+    // TODO, v2Manifest unnecessary to cache?
+    final String mv = archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION);
     v2Manifest = mv != null && mv.trim().equals("2");
-    Iterator i = Util.parseEntries(Constants.BUNDLE_SYMBOLICNAME,
-        archive.getAttribute(Constants.BUNDLE_SYMBOLICNAME), true, true, true);
-    Map e = null;
-    if (i.hasNext()) {
-      e = (Map)i.next();
-      symbolicName = (String)e.get("$key");
+    List<HeaderEntry> hes = Util
+        .parseManifestHeader(Constants.BUNDLE_SYMBOLICNAME, archive
+            .getAttribute(Constants.BUNDLE_SYMBOLICNAME), true, true, true);
+    HeaderEntry he = null;
+    if (!hes.isEmpty()) {
+      he = hes.get(0);
+      symbolicName = he.getKey();
     } else {
       if (v2Manifest) {
         throw new IllegalArgumentException("Bundle has no symbolic name, location="
@@ -203,12 +253,12 @@ public class BundleGeneration implements Comparable {
         symbolicName = null;
       }
     }
-    String mbv = archive.getAttribute(Constants.BUNDLE_VERSION);
+    final String mbv = archive.getAttribute(Constants.BUNDLE_VERSION);
     Version newVer = Version.emptyVersion;
     if (mbv != null) {
       try {
         newVer = new Version(mbv);
-      } catch (Throwable ee) {
+      } catch (final Throwable ee) {
         if (v2Manifest) {
           throw new IllegalArgumentException("Bundle does not specify a valid "
               + Constants.BUNDLE_VERSION + " header. Got exception: " + ee.getMessage());
@@ -217,99 +267,56 @@ public class BundleGeneration implements Comparable {
     }
     version = newVer;
 
-    if (e != null) {
-      singleton = "true".equals((String)e.get(Constants.SINGLETON_DIRECTIVE));
-      BundleImpl snb = b.fwCtx.bundles.getBundle(symbolicName, version);
-      String tmp = (String)e.get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
+    if (he != null) {
+      singleton = "true".equals(he.getDirectives().get(Constants.SINGLETON_DIRECTIVE));
+      final String tmp = he.getDirectives().get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
       attachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
-      // TBD! Should we allow update to same version?
-      if (snb != null && snb != bundle) {
-        throw new IllegalArgumentException("Bundle with same symbolic name and version "
-            + "is already installed (" + symbolicName + ", " + version);
+      // TODO! Should we allow update to same version?
+      if (bundle.fwCtx.bsnversionSingle) {
+        final BundleImpl snb = b.fwCtx.bundles.getBundle(symbolicName, version);
+        if (snb != null && snb != bundle) {
+          throw new BundleException("Bundle#" + b.id +
+                                    ", a bundle with same symbolic name and version "
+                                    + "is already installed (" + symbolicName + ", "
+                                    + version, BundleException.DUPLICATE_BUNDLE_ERROR);
+        }
       }
+      symbolicNameParameters = he;
     } else {
       attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
       singleton = false;
+      symbolicNameParameters = null;
     }
 
-    i = Util.parseEntries(Constants.FRAGMENT_HOST,
-        archive.getAttribute(Constants.FRAGMENT_HOST), true, true, true);
-    if (i.hasNext()) {
-      if (archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
-        throw new IllegalArgumentException("A fragment bundle can not have a Bundle-Activator.");
-      }
-
-      e = (Map)i.next();
-      String extension = (String)e.get(Constants.EXTENSION_DIRECTIVE);
-      String key = (String)e.get("$key");
-
-      if (Constants.EXTENSION_FRAMEWORK.equals(extension)
-          || Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
-        // an extension bundle must target the system bundle.
-        if (!Constants.SYSTEM_BUNDLE_SYMBOLICNAME.equals(key)
-            && !KNOPFLERFISH_SYMBOLICNAME.equals(key)) {
-          throw new IllegalArgumentException("An extension bundle must target "
-              + "the system bundle(" + Constants.SYSTEM_BUNDLE_SYMBOLICNAME + " or "
-              + KNOPFLERFISH_SYMBOLICNAME + ")");
-        }
-
-        if (archive.getAttribute(Constants.IMPORT_PACKAGE) != null
-            || archive.getAttribute(Constants.REQUIRE_BUNDLE) != null
-            || archive.getAttribute(Constants.BUNDLE_NATIVECODE) != null
-            || archive.getAttribute(Constants.DYNAMICIMPORT_PACKAGE) != null
-            || archive.getAttribute(Constants.BUNDLE_ACTIVATOR) != null) {
-          throw new IllegalArgumentException("An extension bundle cannot specify: "
-              + Constants.IMPORT_PACKAGE + ", " + Constants.REQUIRE_BUNDLE + ", "
-              + Constants.BUNDLE_NATIVECODE + ", " + Constants.DYNAMICIMPORT_PACKAGE + " or "
-              + Constants.BUNDLE_ACTIVATOR);
-        }
-
-        if (!bundle.fwCtx.props.getBooleanProperty(Constants.SUPPORTS_FRAMEWORK_EXTENSION)
-            && Constants.EXTENSION_FRAMEWORK.equals(extension)) {
-          throw new UnsupportedOperationException(
-              "Framework extension bundles are not supported "
-                  + "by this framework. Consult the documentation");
-        }
-        if (!bundle.fwCtx.props.getBooleanProperty(Constants.SUPPORTS_BOOTCLASSPATH_EXTENSION)
-            && Constants.EXTENSION_BOOTCLASSPATH.equals(extension)) {
-          throw new UnsupportedOperationException(
-              "Bootclasspath extension bundles are not supported "
-                  + "by this framework. Consult the documentation");
-        }
-      } else {
-        if (extension != null) {
-          throw new IllegalArgumentException("Did not recognize directive "
-              + Constants.EXTENSION_DIRECTIVE + ":=" + extension + ".");
-        }
-      }
-
-      fragment = new Fragment(key, extension,
-          (String)e.get(Constants.BUNDLE_VERSION_ATTRIBUTE));
+    hes = Util.parseManifestHeader(Constants.FRAGMENT_HOST, archive
+        .getAttribute(Constants.FRAGMENT_HOST), true, true, true);
+    if (!hes.isEmpty()) {
+      fragment = new Fragment(this, hes.get(0));
     } else {
       fragment = null;
     }
 
-    i = Util.parseEntries(Constants.BUNDLE_ACTIVATIONPOLICY,
-        archive.getAttribute(Constants.BUNDLE_ACTIVATIONPOLICY), true, true, true);
-    if (i.hasNext()) {
-      e = (Map)i.next();
-      lazyActivation = Constants.ACTIVATION_LAZY.equals(e.get("$key"));
+    hes = Util.parseManifestHeader(Constants.BUNDLE_ACTIVATIONPOLICY, archive
+        .getAttribute(Constants.BUNDLE_ACTIVATIONPOLICY), true, true, true);
+    if (!hes.isEmpty()) {
+      he = hes.get(0);
+      lazyActivation = Constants.ACTIVATION_LAZY.equals(he.getKey());
       if (lazyActivation) {
-        if (e.containsKey(Constants.INCLUDE_DIRECTIVE)) {
+        if (he.getDirectives().containsKey(Constants.INCLUDE_DIRECTIVE)) {
           lazyIncludes = Util.parseEnumeration(Constants.INCLUDE_DIRECTIVE,
-              (String)e.get(Constants.INCLUDE_DIRECTIVE));
+              he.getDirectives().get(Constants.INCLUDE_DIRECTIVE));
         } else {
           lazyIncludes = null;
         }
-        if (e.containsKey(Constants.EXCLUDE_DIRECTIVE)) {
+        if (he.getDirectives().containsKey(Constants.EXCLUDE_DIRECTIVE)) {
           lazyExcludes = Util.parseEnumeration(Constants.EXCLUDE_DIRECTIVE,
-              (String)e.get(Constants.EXCLUDE_DIRECTIVE));
+              he.getDirectives().get(Constants.EXCLUDE_DIRECTIVE));
 
           if (lazyIncludes != null) {
-            for (Iterator excsIter = lazyExcludes.iterator(); excsIter.hasNext();) {
-              String entry = (String)excsIter.next();
+            for (final String entry : lazyExcludes) {
               if (lazyIncludes.contains(entry)) {
-                throw new IllegalArgumentException("Conflicting " + Constants.INCLUDE_DIRECTIVE
+                throw new IllegalArgumentException("Conflicting "
+                    + Constants.INCLUDE_DIRECTIVE
                     + "/" + Constants.EXCLUDE_DIRECTIVE + " entries in "
                     + Constants.BUNDLE_ACTIVATIONPOLICY + ": '" + entry
                     + "' both included and excluded");
@@ -328,6 +335,21 @@ public class BundleGeneration implements Comparable {
       lazyIncludes = null;
       lazyExcludes = null;
     }
+
+    hes = Util.parseManifestHeader(Constants.REQUIRE_CAPABILITY, archive
+        .getAttribute(Constants.REQUIRE_CAPABILITY), true, true, false);
+    for (final HeaderEntry e : hes) {
+      final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
+      List<BundleRequirementImpl> nsReqs = requirements.get(bri.getNamespace());
+      if (null == nsReqs) {
+        nsReqs = new ArrayList<BundleRequirementImpl>();
+        requirements.put(bri.getNamespace(), nsReqs);
+      }
+      nsReqs.add(bri);
+    }
+
+    processCapabilities(archive.getAttribute(Constants.PROVIDE_CAPABILITY));
+
     bpkgs = new BundlePackages(this);
     try {
       if (b.fwCtx.startLevelController == null) {
@@ -337,14 +359,15 @@ public class BundleGeneration implements Comparable {
           archive.setStartLevel(b.fwCtx.startLevelController.getInitialBundleStartLevel());
         }
       }
-    } catch (Exception exc) {
-      b.fwCtx.listeners.frameworkError(b, exc);
+    } catch (final Exception exc) {
+      b.fwCtx.frameworkError(b, exc);
     }
     archive.setBundleGeneration(this);
     long lastModified = prev != null ? 0 : archive.getLastModified();
     if (lastModified == 0) {
       lastModified = System.currentTimeMillis();
     }
+    bundleRevision = new BundleRevisionImpl(this);
     timeStamp = lastModified;
   }
 
@@ -360,10 +383,11 @@ public class BundleGeneration implements Comparable {
     generation = prev.generation + 1;
     v2Manifest = prev.v2Manifest;
     symbolicName = prev.symbolicName;
+    symbolicNameParameters = prev.symbolicNameParameters;
     singleton = prev.singleton;
     version = prev.version;
     attachPolicy = Constants.FRAGMENT_ATTACHMENT_NEVER;
-    fragment = null;
+    fragment = prev.fragment;
     protectionDomain = null;
     lazyActivation = false;
     lazyIncludes = null;
@@ -372,16 +396,35 @@ public class BundleGeneration implements Comparable {
     bpkgs = null;
     cachedRawHeaders = prev.cachedRawHeaders;
     classLoader = null;
+    bundleRevision = null;
   }
 
 
+  private void processCapabilities(String capabilityStr)
+  {
+    if (capabilityStr != null && capabilityStr.length() > 0) {
+      for (final HeaderEntry he : Util
+          .parseManifestHeader(Constants.PROVIDE_CAPABILITY, capabilityStr,
+                               true, true, false)) {
+        final BundleCapabilityImpl bci = new BundleCapabilityImpl(this, he);
+        List<BundleCapabilityImpl> nsCaps = capabilities.get(bci.getNamespace());
+        if (null == nsCaps) {
+          nsCaps = new ArrayList<BundleCapabilityImpl>();
+          capabilities.put(bci.getNamespace(), nsCaps);
+        }
+        nsCaps.add(bci);
+      }
+    }
+  }
+
   /**
-   * Compares this <code>BundleGeneration</code> object to another object. It
-   * compares the bundle identifier value.
+   * Compares this {@code BundleGeneration} object to another
+   * {@code BundleGeneration}. It compares the bundle identifier value.
    *
+   * @param bg the other object to compare this one to.
    */
-  public int compareTo(Object obj) {
-    long diff = bundle.id - ((BundleGeneration)obj).bundle.id;
+  public int compareTo(BundleGeneration bg) {
+    final long diff = bundle.id - bg.bundle.id;
     if (diff < 0) {
       return -1;
     } else if (diff == 0) {
@@ -391,6 +434,10 @@ public class BundleGeneration implements Comparable {
     }
   }
 
+
+  public String toString() {
+    return "BundleGeneration[bid=" + bundle.id + ", gen=" + generation + "]";
+  }
 
   //
   // Package methods
@@ -408,7 +455,7 @@ public class BundleGeneration implements Comparable {
       if (isExtension() && !bundle.secure.okAllPerm(bundle)) {
         throw new IllegalArgumentException("An extension bundle must have AllPermission");
       }
-    } catch (RuntimeException re) {
+    } catch (final RuntimeException re) {
       purgeProtectionDomain();
       throw re;
     }
@@ -416,10 +463,36 @@ public class BundleGeneration implements Comparable {
     if (archive.getLastModified() != timeStamp) {
       try {
         archive.setLastModified(timeStamp);
-      } catch (IOException ioe) {
-        bundle.fwCtx.listeners.frameworkError(bundle, ioe);
+      } catch (final IOException ioe) {
+        bundle.fwCtx.frameworkError(bundle, ioe);
       }
     }
+  }
+
+
+  /**
+   * Get capabilities specified by this bundle generation.
+   *
+   * Returns capabilities declared in the Bundle-Capability manifest header.
+   * <p/>
+   * The key in the map is the {@code name-space} of the capability.
+   */
+  Map<String, List<BundleCapabilityImpl>> getDeclaredCapabilities()
+  {
+    return capabilities;
+  }
+
+
+  /**
+   * Get requirements specified by this bundle generation.
+   *
+   * Returns all requirements declared in the Bundle-Requirement manifest header.
+   * <p/>
+   * The key in the map is the {@code name-space} of the bundle requirement.
+   */
+  Map<String, List<BundleRequirementImpl>> getDeclaredRequirements()
+  {
+    return requirements;
   }
 
 
@@ -427,34 +500,31 @@ public class BundleGeneration implements Comparable {
    *
    */
   boolean resolvePackages() throws BundleException {
-    ArrayList detached = null;
+    ArrayList<BundleGeneration> detached = null;
     attachFragments();
     while (true) {
       if (bpkgs.resolvePackages()) {
         if (detached != null) {
-          // TBD should we report fragment that failed to attach
+          // TODO should we report fragment that failed to attach
           for (int i = detached.size() - 2; i >= 0; i--) {
-            BundleGeneration bg = (BundleGeneration)detached.get(i);
+            final BundleGeneration bg = detached.get(i);
             if (bg.bundle.attachToFragmentHost(this)) {
               fragments.add(bg);
             }
           }
-	}
+        }
         classLoader = bundle.secure.newBundleClassLoader(this);
 
         return true;
       }
-      if (fragments != null) {
-        if (bundle.fwCtx.debug.packages) {
+      if (isFragmentHost()) {
+        if (bundle.fwCtx.debug.resolver) {
           bundle.fwCtx.debug.println("Resolve failed, remove last fragment and retry");
         }
         if (detached == null) {
-          detached = new ArrayList();
+          detached = new ArrayList<BundleGeneration>();
         }
-        detached.add(detachLastFragment());
-        if (fragments.isEmpty()) {
-          fragments = null;
-        }
+        detached.add(detachLastFragment(true));
       } else {
         break;
       }
@@ -497,14 +567,15 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Attaches all relevant fragments to this bundle.
+   * @throws BundleException Resolve hook throw an exception.
    */
-  private void attachFragments() {
+  private void attachFragments() throws BundleException {
     if (!attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
-      Collection hosting = bundle.fwCtx.bundles.getFragmentBundles(bundle);
+      final Collection<BundleGeneration> hosting = bundle.fwCtx.bundles.getFragmentBundles(this);
       if (hosting.size() > 0 && bundle.secure.okHostBundlePerm(bundle)) {
         // retrieve all fragments this bundle host
-        for (Iterator iter = hosting.iterator(); iter.hasNext();) {
-          BundleGeneration fbg = (BundleGeneration)iter.next();
+        for (final BundleGeneration fbg : hosting) {
+          // TODO, do we need to clean in case of BundleException?
           fbg.bundle.attachToFragmentHost(this);
         }
       }
@@ -514,38 +585,43 @@ public class BundleGeneration implements Comparable {
 
   /**
    * Attaches a fragment to this bundle generation.
+   * @throws BundleException 
    */
-  void attachFragment(BundleGeneration fragmentBundle) {
+  void attachFragment(BundleGeneration fragmentBundle) throws BundleException {
     if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER)) {
       throw new IllegalStateException("Bundle does not allow fragments to attach");
     }
     if (attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_RESOLVETIME)
-        && (bundle.state & BundleImpl.RESOLVED_FLAGS) != 0) {
-      throw new IllegalStateException("Bundle does not allow fragments to attach dynamicly");
+        && bundle.isResolved()) {
+      throw new IllegalStateException("Bundle does not allow fragments to attach dynamically");
     }
-
-    String failReason = bpkgs.attachFragment(fragmentBundle.bpkgs);
+    if (!bundle.fwCtx.resolverHooks.filterMatches(fragmentBundle.fragment,
+                                                  new BundleNameVersionCapability(this, BundleRevision.HOST_NAMESPACE))) {
+      throw new IllegalStateException("Resolver hooks vetoed attach to: " + this);      
+    }
+    final String failReason = bpkgs.attachFragment(fragmentBundle.bpkgs);
     if (failReason != null) {
       throw new IllegalStateException("Failed to attach: " + failReason);
     }
     if (classLoader != null && classLoader instanceof BundleClassLoader) {
       try {
         ((BundleClassLoader)classLoader).attachFragment(fragmentBundle);
-      } catch (BundleException be) {
+      } catch (final BundleException be) {
+        // TODO, should we unregister fragment packaaes
         throw new IllegalStateException(be.getMessage());
       }
     }
-    if (bundle.fwCtx.debug.packages) {
+    if (bundle.fwCtx.debug.resolver) {
       bundle.fwCtx.debug.println("Fragment(" + fragmentBundle.bundle + ") attached to host(id="
           + bundle.id + ",gen=" + generation + ")");
     }
     if (fragments == null) {
-      fragments = new Vector();
+      fragments = new Vector<BundleGeneration>();
     }
     int i = 0;
     // TODO: use sorted list!?
     for (; i < fragments.size(); i++) {
-      BundleGeneration b = (BundleGeneration)fragments.get(i);
+      final BundleGeneration b = fragments.get(i);
       if (b.bundle.id > fragmentBundle.bundle.id) {
         break;
       }
@@ -559,20 +635,20 @@ public class BundleGeneration implements Comparable {
    *
    * @return BundleGeneration for fragment removed, otherwise null.
    */
-  private BundleGeneration detachLastFragment() {
-    // NYI! extensions
-    int last = fragments.size() - 1;
+  private BundleGeneration detachLastFragment(boolean unregister) {
+    // TODO, handle extensions
+    final int last = fragments.size() - 1;
     if (last >= 0) {
-      BundleGeneration fbg = (BundleGeneration)fragments.remove(last);
-      bpkgs.detachFragment(fbg);
-      if (bundle.fwCtx.debug.packages) {
+      final BundleGeneration fbg = fragments.remove(last);
+      bpkgs.detachFragmentSynchronized(fbg, unregister);
+      if (bundle.fwCtx.debug.resolver) {
         bundle.fwCtx.debug.println("Fragment(id=" + fbg.bundle.id + ") detached from host(id="
             + bundle.id + ",gen=" + generation + ")");
       }
       if (fbg.bundle.state != Bundle.UNINSTALLED) {
         fbg.fragment.removeHost(this);
         if (!fbg.fragment.hasHosts()) {
-          if (fbg == fbg.bundle.gen) {
+          if (fbg.isCurrent()) {
             fbg.bundle.setStateInstalled(true);
           } else {
             // ... NYI zombie detach
@@ -587,18 +663,21 @@ public class BundleGeneration implements Comparable {
 
   void updateStateFragments() {
     if (fragments != null) {
-      for (Iterator i = fragments.iterator(); i.hasNext();) {
-        BundleImpl fb = ((BundleGeneration)i.next()).bundle;
-        fb.getUpdatedState();
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
+      for (final BundleGeneration bundleGeneration : fix) {
+        final BundleImpl fb = bundleGeneration.bundle;
+        fb.getUpdatedState(null);
       }
     }
   }
 
 
   /**
-   * Checks if this bundle is a fragment
+   * Get hosts if this bundle is a fragment.
+   * Return null if not a fragment.
    */
-  Vector getHosts() {
+  Vector<BundleGeneration> getHosts() {
     return fragment != null ? fragment.getHosts() : null;
   }
 
@@ -615,7 +694,7 @@ public class BundleGeneration implements Comparable {
    * Determines whether this bundle is a fragment host or not.
    */
   boolean isFragmentHost() {
-    return fragments != null && fragments.size() > 0;
+    return fragments != null && !fragments.isEmpty();
   }
 
 
@@ -639,7 +718,7 @@ public class BundleGeneration implements Comparable {
   /**
    * Get locale dictionary for this bundle.
    */
-  private Dictionary getLocaleDictionary(String locale, String baseName) {
+  private Dictionary<String, String> getLocaleDictionary(String locale, String baseName) {
     final String defaultLocale = Locale.getDefault().toString();
 
     if (locale == null) {
@@ -647,28 +726,28 @@ public class BundleGeneration implements Comparable {
     } else if (locale.equals("")) {
       return null;
     }
-    Hashtable localization_entries = new Hashtable();
-    // TBD, should we do like this and allow mixed locales?
+    final Hashtable<String, String> localization_entries = new Hashtable<String, String>();
+    // TODO, should we do like this and allow mixed locales?
     if (baseName == null) {
       baseName = Constants.BUNDLE_LOCALIZATION_DEFAULT_BASENAME;
     }
-    Vector h = getHosts();
+    final Vector<BundleGeneration> h = getHosts();
     if (h != null) {
       BundleGeneration best;
       while (true) {
         try {
           best = null;
-          for (Iterator i = h.iterator(); i.hasNext();) {
-            BundleGeneration bg = (BundleGeneration)i.next();
+          for (final BundleGeneration bundleGeneration : h) {
+            final BundleGeneration bg = bundleGeneration;
             if (best == null || bg.version.compareTo(best.version) > 0) {
               best = bg;
             }
           }
           break;
-        } catch (ConcurrentModificationException ignore) {
+        } catch (final ConcurrentModificationException ignore) {
         }
       }
-      if (best == bundle.fwCtx.systemBundle.gen) {
+      if (best == bundle.fwCtx.systemBundle.current()) {
         bundle.fwCtx.systemBundle.readLocalization("", localization_entries, baseName);
         bundle.fwCtx.systemBundle.readLocalization(defaultLocale, localization_entries,
             baseName);
@@ -702,10 +781,10 @@ public class BundleGeneration implements Comparable {
       return (HeaderDictionary)cachedRawHeaders.clone();
     }
     if (bundle.state != Bundle.UNINSTALLED) {
-      String base = (String)cachedRawHeaders.get(Constants.BUNDLE_LOCALIZATION);
+      final String base = cachedRawHeaders.get(Constants.BUNDLE_LOCALIZATION);
       try {
         return localize(getLocaleDictionary(locale, base));
-      } catch (RuntimeException e) {
+      } catch (final RuntimeException e) {
         // We assume that we got an exception because we got
         // state change during the operation. Check!
         // NYI
@@ -721,25 +800,25 @@ public class BundleGeneration implements Comparable {
   /**
    *
    */
-  void addResourceEntries(Vector res, String path, String pattern, boolean recurse) {
+  void addResourceEntries(Vector<URL> res, String path, String pattern, boolean recurse) {
     if (archive == null) {
       // We are not called as systembundle
       throw new IllegalStateException("Bundle is in UNINSTALLED state");
     }
-    Enumeration e = archive.findResourcesPath(path);
+    final Enumeration<String> e = archive.findResourcesPath(path);
     if (e != null) {
       while (e.hasMoreElements()) {
-        String fp = (String)e.nextElement();
-        boolean isDirectory = fp.endsWith("/");
+        final String fp = e.nextElement();
+        final boolean isDirectory = fp.endsWith("/");
         int searchBackwardFrom = fp.length() - 1;
         if (isDirectory) {
           // Skip last / in case of directories
           searchBackwardFrom = searchBackwardFrom - 1;
         }
-        int l = fp.lastIndexOf('/', searchBackwardFrom);
-        String lastComponentOfPath = fp.substring(l + 1, searchBackwardFrom + 1);
+        final int l = fp.lastIndexOf('/', searchBackwardFrom);
+        final String lastComponentOfPath = fp.substring(l + 1, searchBackwardFrom + 1);
         if (pattern == null || Util.filterMatch(pattern, lastComponentOfPath)) {
-          URL url = getURL(0, fp);
+          final URL url = getURL(0, fp);
           if (url != null) {
             res.add(url);
           }
@@ -755,16 +834,17 @@ public class BundleGeneration implements Comparable {
   /**
    *
    */
-  Enumeration findEntries(String path, String filePattern, boolean recurse) {
-    Vector res = new Vector();
+  Vector<URL> findEntries(String path, String filePattern, boolean recurse) {
+    final Vector<URL> res = new Vector<URL>();
     addResourceEntries(res, path, filePattern, recurse);
     if (isFragmentHost()) {
-      for (Iterator i = fragments.iterator(); i.hasNext();) {
-        BundleGeneration fbg = (BundleGeneration)i.next();
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
+      for (final BundleGeneration fbg : fix) {
         fbg.addResourceEntries(res, path, filePattern, recurse);
       }
     }
-    return res.size() != 0 ? res.elements() : null;
+    return res;
   }
 
 
@@ -773,7 +853,7 @@ public class BundleGeneration implements Comparable {
    */
   URL getURL(int subId, String path) {
     try {
-      StringBuffer u = new StringBuffer(BundleURLStreamHandler.PROTOCOL);
+      final StringBuffer u = new StringBuffer(BundleURLStreamHandler.PROTOCOL);
       u.append("://");
       u.append(bundle.id);
       if (generation > 0) {
@@ -790,7 +870,7 @@ public class BundleGeneration implements Comparable {
       }
       u.append(path);
       return bundle.secure.getBundleURL(bundle.fwCtx, u.toString());
-    } catch (MalformedURLException e) {
+    } catch (final MalformedURLException e) {
       return null;
     }
   }
@@ -804,7 +884,7 @@ public class BundleGeneration implements Comparable {
     if (bundle.fwCtx.debug.classLoader) {
       bundle.fwCtx.debug.println("closeClassLoader: " + bundle + " gen = " + generation);
     }
-    BundleClassLoader tmp = (BundleClassLoader)classLoader;
+    final BundleClassLoader tmp = (BundleClassLoader)classLoader;
     if (tmp != null) {
       classLoader = null;
       tmp.close();
@@ -828,6 +908,7 @@ public class BundleGeneration implements Comparable {
     if (archive != null) {
       archive.purge();
     }
+    clearWiring();
   }
 
 
@@ -836,11 +917,10 @@ public class BundleGeneration implements Comparable {
    *
    */
   boolean unregisterPackages(boolean force) {
-    boolean res = bpkgs.unregisterPackages(force);
+    final boolean res = bpkgs.unregisterPackages(force);
     if (res && isFragmentHost()) {
-      while (detachLastFragment() != null)
+      while (detachLastFragment(false) != null)
         ;
-      fragments = null;
     }
     return res;
   }
@@ -863,17 +943,17 @@ public class BundleGeneration implements Comparable {
    * Check bundle certificates
    */
   private void checkCertificates() {
-    ArrayList cs = archive.getCertificateChains(false);
+    ArrayList<List<X509Certificate>> cs = archive.getCertificateChains(false);
     if (cs != null) {
       if (bundle.fwCtx.validator != null) {
         if (bundle.fwCtx.debug.certificates) {
           bundle.fwCtx.debug.println("Validate certs for bundle #" + archive.getBundleId());
         }
-        cs = (ArrayList)cs.clone();
-        for (Iterator vi = bundle.fwCtx.validator.iterator(); !cs.isEmpty() && vi.hasNext();) {
-          Validator v = (Validator)vi.next();
-          for (Iterator ci = cs.iterator(); ci.hasNext();) {
-            List c = (List)ci.next();
+        cs = new ArrayList<List<X509Certificate>>(cs);
+        for (final Iterator<Validator> vi = bundle.fwCtx.validator.iterator(); !cs.isEmpty() && vi.hasNext();) {
+          final Validator v = vi.next();
+          for (final Iterator<List<X509Certificate>> ci = cs.iterator(); ci.hasNext();) {
+            final List<X509Certificate> c = ci.next();
             if (v.validateCertificateChain(c)) {
               archive.trustCertificateChain(c);
               ci.remove();
@@ -905,16 +985,16 @@ public class BundleGeneration implements Comparable {
    * @param localization_entries A mapping of localization variables to values.
    * @returns a new localized dictionary.
    */
-  private HeaderDictionary localize(final Dictionary localization_entries) {
+  private HeaderDictionary localize(final Dictionary<String, String> localization_entries) {
     final HeaderDictionary localized = (HeaderDictionary)cachedRawHeaders.clone();
     if (localization_entries != null) {
-      for (Enumeration e = localized.keys(); e.hasMoreElements();) {
-        String key = (String)e.nextElement();
-        String unlocalizedEntry = (String)localized.get(key);
+      for (final Enumeration<String> e = localized.keys(); e.hasMoreElements();) {
+        final String key = e.nextElement();
+        final String unlocalizedEntry = localized.get(key);
 
         if (unlocalizedEntry.startsWith("%")) {
-          String k = unlocalizedEntry.substring(1);
-          String val = (String)localization_entries.get(k);
+          final String k = unlocalizedEntry.substring(1);
+          final String val = localization_entries.get(k);
 
           if (val == null) {
             localized.put(key, k);
@@ -938,18 +1018,18 @@ public class BundleGeneration implements Comparable {
    * @param baseName the basename for localization properties, <code>null</code>
    *          will choose OSGi default
    */
-  private void readLocalization(String locale, Hashtable localization_entries, String baseName) {
+  private void readLocalization(String locale, Hashtable<String, String> localization_entries, String baseName) {
     if (!locale.equals("")) {
       locale = "_" + locale;
     }
     while (true) {
-      String l = baseName + locale + ".properties";
-      Hashtable res = getLocalizationEntries(l);
+      final String l = baseName + locale + ".properties";
+      final Hashtable<String, String> res = getLocalizationEntries(l);
       if (res != null) {
         localization_entries.putAll(res);
         break;
       }
-      int pos = locale.lastIndexOf('_');
+      final int pos = locale.lastIndexOf('_');
       if (pos == -1) {
         break;
       }
@@ -962,18 +1042,178 @@ public class BundleGeneration implements Comparable {
    * Find localization files and load.
    *
    */
-  private Hashtable getLocalizationEntries(String name) {
-    Hashtable res = archive.getLocalizationEntries(name);
-    if (res == null && fragments != null) {
-      Vector fix = (Vector)fragments.clone();
-      for (Iterator i = fix.iterator(); i.hasNext();) {
-        BundleGeneration bg = (BundleGeneration)i.next();
+  private Hashtable<String, String> getLocalizationEntries(String name) {
+    Hashtable<String, String> res = archive.getLocalizationEntries(name);
+    if (res == null && isFragmentHost()) {
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
+      for (final BundleGeneration bg : fix) {
         if (bg.archive != null) {
           res = bg.archive.getLocalizationEntries(name);
           if (res != null) {
             break;
           }
         }
+      }
+    }
+    return res;
+  }
+
+
+  boolean isUninstalled() {
+    return bpkgs == null;
+  }
+
+
+  BundleCapability getHostCapability()
+  {
+    if (v2Manifest
+        && !attachPolicy.equals(Constants.FRAGMENT_ATTACHMENT_NEVER) && fragment == null) {
+      return new BundleNameVersionCapability(this,
+                                             BundleRevision.HOST_NAMESPACE);
+    }
+    return null;
+  }
+
+  BundleNameVersionCapability getBundleCapability() {
+    if (v2Manifest && fragment==null) {
+      return new BundleNameVersionCapability(this, BundleRevision.BUNDLE_NAMESPACE);
+    }
+    return null;
+  }
+
+
+  Vector<URL> getBundleClassPathEntries(final String name, final boolean onlyFirst) {
+    BundleClassPath bcp = unresolvedBundleClassPath;
+    if (bcp == null) {
+      bcp = new BundleClassPath(archive, bundle.fwCtx);
+      unresolvedBundleClassPath = bcp;
+    }
+    final Vector<FileArchive> fas = bcp.componentExists(name, onlyFirst, false);
+    if (fas != null) {
+      final Vector<URL> res = new Vector<URL>();
+      for (final FileArchive fa : fas)  {
+        final URL url = fa.getBundleGeneration().getURL(fa.getSubId(), name);
+        if (url != null) {
+          res.addElement(url);
+        } else {
+          // Internal error
+          return null;
+        }
+      }
+      return res;
+    }
+    return null;
+  }
+
+
+  List<BundleWireImpl> getCapabilityWires() {
+    if (bpkgs != null) {
+      List<BundleWireImpl> res = new ArrayList<BundleWireImpl>();
+      for (List<BundleCapabilityImpl> lbc : bpkgs.getOtherCapabilities().values()) {
+        for (BundleCapabilityImpl bc : lbc) {
+          bc.getWires(res);
+        }
+      }
+      return res;
+    } else {
+      return null;
+    }
+  }
+
+
+  List<BundleWireImpl> getRequirementWires() {
+    List<BundleWireImpl> res = new ArrayList<BundleWireImpl>();
+    for (List<BundleRequirementImpl> lbr : getOtherRequirements().values()) {
+      for (BundleRequirementImpl br : lbr) {
+        final BundleWireImpl wire = br.getWire();
+        if (wire != null) {
+          res.add(wire);
+        }
+      }
+    }
+    return res;
+  }
+
+
+  Map<String, List<BundleRequirementImpl>> getOtherRequirements() {
+    Map<String, List<BundleRequirementImpl>> res = getDeclaredRequirements();
+    if (isFragmentHost()) {
+      boolean copied = false;
+      @SuppressWarnings("unchecked")
+      final Vector<BundleGeneration> fix = (Vector<BundleGeneration>)fragments.clone();
+      for (final BundleGeneration fbg : fix) {
+        Map<String, List<BundleRequirementImpl>> frm = fbg.getDeclaredRequirements();
+        if (!frm.isEmpty()) {
+          if (!copied) {
+            res = new HashMap<String, List<BundleRequirementImpl>>(res);
+            copied = true;
+          }
+          for (Entry<String, List<BundleRequirementImpl>> e : frm.entrySet()) {
+            String ns = e.getKey();
+            List<BundleRequirementImpl> p = res.get(ns);
+            if (p != null) {
+              p = new ArrayList<BundleRequirementImpl>(p);
+              p.addAll(e.getValue());
+            } else {
+              p = e.getValue();
+            }
+            res.put(ns, p);
+          }
+        }
+      }
+    }
+    // TODO filter optional
+    return res;
+  }
+
+
+  boolean isCurrent() {
+    return this == bundle.current();
+  }
+
+
+  boolean bsnAttrMatch(Map<String, Object> attributes) {
+    if (symbolicNameParameters != null) {
+      final Map<String, Object> attr = symbolicNameParameters.getAttributes();
+      final String mandatory = symbolicNameParameters.getDirectives().get(Constants.MANDATORY_DIRECTIVE);
+      HashSet<String> mAttr = new HashSet<String>();
+      if (mandatory != null) {
+        String [] split = Util.splitwords(mandatory, ",");
+        for (String e : split) {
+          mAttr.add(e.trim());
+        }
+      }
+      for (Entry<String, Object> e : attributes.entrySet()) {
+        final String key = e.getKey();
+        if (e.getValue().equals(attr.get(key))) {
+          mAttr.remove(key);
+        } else {
+          return false;
+        }
+      }
+      return mAttr.isEmpty();
+    }
+    return true;
+  }
+
+
+  void setWired() {
+    bundleRevision.setWired();
+  }
+
+
+  void clearWiring() {
+    bundleRevision.clearWiring();
+  }
+
+
+  Set<BundleImpl> getResolvedHosts() {
+    Set<BundleImpl> res = new HashSet<BundleImpl>();
+    List<BundleGeneration> tgts = fragment.targets();
+    for (BundleGeneration t : tgts) {
+      if (t.bundle.isResolved()) {
+        res.add(t.bundle);
       }
     }
     return res;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,71 +35,75 @@
 package org.knopflerfish.bundle.desktop.swing;
 
 import java.io.File;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.filechooser.FileFilter;
 
 public class FileFilterImpl extends FileFilter implements java.io.FileFilter {
 
-  private Hashtable filters                    = null;
+  private Map<String, FileFilterImpl> filters
+    = new HashMap<String, FileFilterImpl>();
   private String    description                = null;
   private String    fullDescription            = null;
   private boolean   useExtensionsInDescription = true;
 
   public FileFilterImpl() {
-    this.filters = new Hashtable();
   }
 
-  public boolean accept(File f) {
-    if(f != null) {
-      if(f.isDirectory()) {
-	return true;
+  public boolean accept(File f)
+  {
+    if (f != null) {
+      if (f.isDirectory()) {
+        return true;
       }
-      String extension = getExtension(f);
-      if(extension != null && filters.get(getExtension(f)) != null) {
-	return true;
-      };
+      final String extension = getExtension(f);
+      if (extension != null && filters.get(extension) != null) {
+        return true;
+      }
     }
     return false;
   }
 
-  public String getExtension(File f) {
-    if(f != null) {
-      String filename = f.getName();
+  public String getExtension(File f)
+  {
+    if (f != null) {
+      final String filename = f.getName();
       int i = filename.lastIndexOf('.');
-      if(i>0 && i<filename.length()-1) {
-	return filename.substring(i+1).toLowerCase();
-      };
+      if (i > 0) {
+        return filename.substring(i + 1).toLowerCase();
+      }
     }
     return null;
   }
 
   public void addExtension(String extension) {
-    if(filters == null) {
-      filters = new Hashtable(5);
-    }
     filters.put(extension.toLowerCase(), this);
     fullDescription = null;
   }
 
 
-  public String getDescription() {
-    if(fullDescription == null) {
-      if(description == null || isExtensionListInDescription()) {
-	fullDescription = description==null ? "(" : description + " (";
-	// build the description from the extension list
-	Enumeration extensions = filters.keys();
-	if(extensions != null) {
-	  fullDescription += "." + (String) extensions.nextElement();
-	  while (extensions.hasMoreElements()) {
-	    fullDescription += ", " + (String) extensions.nextElement();
-	  }
-	}
-	fullDescription += ")";
+  public String getDescription()
+  {
+    if (fullDescription == null) {
+      final StringBuffer sb = new StringBuffer();
+      if (description == null || isExtensionListInDescription()) {
+        if (description != null) {
+          sb.append(description).append(" ");
+        }
+        sb.append("(");
+        // build the description from the extension list
+        for (String extension : filters.keySet()) {
+          if (sb.charAt(sb.length()-1) != '(') {
+            sb.append(", ");
+          }
+          sb.append(".").append(extension);
+        }
+        sb.append(")");
       } else {
-	fullDescription = description;
+        sb.append(description);
       }
+      fullDescription = sb.toString();
     }
     return fullDescription;
   }

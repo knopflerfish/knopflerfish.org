@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004, KNOPFLERFISH project
+ * Copyright (c) 2004-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ public class Activator implements BundleActivator {
 
   HttpExporter httpExporter;
   JUnitService junitService;
-  
+
 
   public void start(BundleContext bc) {
     this.bc = bc;
@@ -65,8 +65,8 @@ public class Activator implements BundleActivator {
 
     // register to Knopflerfish console service if possible
     tryObject("org.knopflerfish.bundle.junit.JUnitCommandGroup",
-	      "register");
-    
+              "register");
+
 
   }
 
@@ -82,7 +82,7 @@ public class Activator implements BundleActivator {
     public void error(String msg, Throwable t) {
       System.out.println("ERROR: " + msg);
       if(t != null) {
-	t.printStackTrace();
+        t.printStackTrace();
       }
     }
   }
@@ -99,16 +99,15 @@ public class Activator implements BundleActivator {
     try {
       Class clazz = Class.forName(className);
       Constructor cons = clazz.getConstructor(new Class[] {
-	BundleContext.class 
+        BundleContext.class
       });
       Object obj = cons.newInstance(new Object[] { bc });
-      Method m = clazz.getMethod(methodName, null);
-      m.invoke(obj, null);
+      Method m = clazz.getMethod(methodName, (Class[]) null);
+      m.invoke(obj, (Object[]) null);
 
       //      System.out.println("invoked " + m);
     }  catch (Throwable th) {
       //      System.out.println("No " + className + " available: " + th);
-    }    
+    }
   }
 }
-

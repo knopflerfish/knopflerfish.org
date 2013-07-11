@@ -34,11 +34,18 @@
 
 package org.knopflerfish.framework;
 
-import java.net.*;
-import java.util.*;
+import java.net.URLStreamHandler;
+import java.net.URLStreamHandlerFactory;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Vector;
 
-import org.osgi.framework.*;
-import org.osgi.service.url.*;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.service.url.URLConstants;
+import org.osgi.service.url.URLStreamHandlerService;
 
 
 /**
@@ -48,13 +55,12 @@ import org.osgi.service.url.*;
 public class ServiceURLStreamHandlerFactory
   implements URLStreamHandlerFactory
 {
-  Vector /* FrameworkId -> FrameworkContext */ framework = new Vector(2);
+  Vector<FrameworkContext> framework = new Vector<FrameworkContext>(2);
 
   //
   // Special framework handlers
   //
-  // String protocol -> URLStreamHandler
-  Hashtable handlers = new Hashtable();
+  Hashtable<String, URLStreamHandler> handlers = new Hashtable<String, URLStreamHandler>();
 
   // JVM classpath handlers. Initialized once at startup
   String[] jvmPkgs = null;
@@ -64,8 +70,8 @@ public class ServiceURLStreamHandlerFactory
   // This map is not really necessary since the JVM
   // caches handlers anyway, but it just seems nice to have.
   //
-  // String (protocol) -> URLStreamHandlerWrapper
-  HashMap wrapMap   = new HashMap();
+  HashMap<String, URLStreamHandlerWrapper> wrapMap
+    = new HashMap<String, URLStreamHandlerWrapper>();
 
   //
   BundleURLStreamHandler bundleHandler;
@@ -76,7 +82,7 @@ public class ServiceURLStreamHandlerFactory
 
   ServiceURLStreamHandlerFactory(final FrameworkContext fw) {
     // Initialize JVM classpath packages
-    String s = fw.props.getProperty("java.protocol.handler.pkgs");
+    final String s = fw.props.getProperty("java.protocol.handler.pkgs");
     debug = fw.debug;
     if (s != null) {
       jvmPkgs = Util.splitwords(s, "|");
@@ -107,15 +113,13 @@ public class ServiceURLStreamHandlerFactory
     // 2. Framework built-in handlers
     // 2. OSGi-based handlers
     // 3. system handlers
-
     URLStreamHandler handler = getJVMClassPathHandler(protocol);
-    if(handler != null) {
-      if(debug.url) {
+    if (handler != null) {
+      if (debug.url) {
         debug.println("using JVMClassPath handler for " + protocol);
       }
       return handler;
     }
-
     handler = (URLStreamHandler)handlers.get(protocol);
     if (handler != null) {
       if (debug.url) {
@@ -147,7 +151,7 @@ public class ServiceURLStreamHandlerFactory
    * </p>
    *
    * @param protocol Protocol name.
-   * @param handler Handler for the specified protocl name.
+   * @param handler Handler for the specified protocol name.
    */
   void setURLStreamHandler(String protocol, URLStreamHandler handler) {
     handlers.put(protocol, handler);
@@ -160,7 +164,7 @@ public class ServiceURLStreamHandlerFactory
    * @param fw Framework context for framework to add.
    */
   void addFramework(FrameworkContext fw) {
-    // TBD, should we check that property "java.protocol.handler.pkgs" is equal?
+    // TODO, should we check that property "java.protocol.handler.pkgs" is equal?
     bundleHandler.addFramework(fw);
     framework.add(fw);
   }
@@ -175,9 +179,9 @@ public class ServiceURLStreamHandlerFactory
     framework.remove(fw);
     bundleHandler.removeFramework(fw);
     synchronized (wrapMap) {
-      for (Iterator i = wrapMap.entrySet().iterator(); i.hasNext(); ) {
-        Map.Entry e = (Map.Entry)i.next();
-        if (((URLStreamHandlerWrapper)e.getValue()).removeFramework(fw)) {
+      for (Iterator<Map.Entry<String, URLStreamHandlerWrapper>> i = wrapMap.entrySet().iterator(); i.hasNext(); ) {
+        Map.Entry<String, URLStreamHandlerWrapper> e = i.next();
+        if ((e.getValue()).removeFramework(fw)) {
           i.remove();
         }
       }
@@ -197,17 +201,17 @@ public class ServiceURLStreamHandlerFactory
         "=" + protocol +
         ")";
 //    TODO true or false?
-      for (Iterator i = ((Vector)framework.clone()).iterator(); i.hasNext(); ) {
-        FrameworkContext sfw = (FrameworkContext)i.next();
-
-        ServiceReference[] srl = sfw.services
-          .get(URLStreamHandlerService.class.getName(), filter, null);
+      @SuppressWarnings("unchecked")
+      final Vector<FrameworkContext> sfws = (Vector<FrameworkContext>)framework.clone();
+      for (final FrameworkContext sfw : sfws) {
+        @SuppressWarnings("unchecked")
+        final ServiceReference<URLStreamHandlerService>[] srl
+          = (ServiceReference<URLStreamHandlerService>[]) sfw.services
+            .get(URLStreamHandlerService.class.getName(), filter, null);
 
         if (srl != null && srl.length > 0) {
           synchronized (wrapMap) {
-            URLStreamHandlerWrapper wrapper = (URLStreamHandlerWrapper)
-              wrapMap.get(protocol);
-
+            URLStreamHandlerWrapper wrapper = wrapMap.get(protocol);
             if (wrapper == null) {
               wrapper = new URLStreamHandlerWrapper(sfw, protocol);
               wrapMap.put(protocol, wrapper);
@@ -218,7 +222,7 @@ public class ServiceURLStreamHandlerFactory
           }
         }
       }
-    } catch (InvalidSyntaxException e) {
+    } catch (final InvalidSyntaxException e) {
       throw new RuntimeException("Failed to get service: " + e);
     }
 
@@ -233,21 +237,21 @@ public class ServiceURLStreamHandlerFactory
   private URLStreamHandler getJVMClassPathHandler(final String protocol)
   {
     if (jvmPkgs != null) {
-      for (int i = 0; i < jvmPkgs.length; i++) {
-        String className = jvmPkgs[i] + "." + protocol + ".Handler";
+      for (final String jvmPkg : jvmPkgs) {
+        final String className = jvmPkg + "." + protocol + ".Handler";
         try {
           if (debug.url) {
             debug.println("JVMClassPath - trying URLHandler class=" + className);
           }
-          Class clazz = Class.forName(className);
-          URLStreamHandler handler = (URLStreamHandler)clazz.newInstance();
+          final Class<?> clazz = Class.forName(className);
+          final URLStreamHandler handler = (URLStreamHandler)clazz.newInstance();
 
           if (debug.url) {
             debug.println("JVMClassPath - created URLHandler class=" + className);
           }
 
           return handler;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
           if (debug.url) {
             debug.println("JVMClassPath - no URLHandler class " + className);
           }

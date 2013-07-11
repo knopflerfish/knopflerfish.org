@@ -89,7 +89,7 @@ public class Activator implements BundleActivator {
       // Fetch all registered Demo1 services
       // and test them manually
       ServiceReference[] srl = 
-	bc.getServiceReferences(null, filter);
+	bc.getServiceReferences((String)null, filter);
    
       for(int i = 0; srl != null && i < srl.length; i++) {
 	testService(srl[i]);

@@ -43,7 +43,7 @@ public class ComponentZImpl implements ComponentZ {
 
   private int xStatus = 0;
 
-  void activate(Map props)
+  void activate(Map<String, ?> props)
   {
     System.out.println("ZImpl: activate");
   }
@@ -65,6 +65,7 @@ public class ComponentZImpl implements ComponentZ {
     System.out.println("ZImpl: unbinding X, " +x);
   }
 
+  @Override
   public int getXStatus() {
     return xStatus;
   }

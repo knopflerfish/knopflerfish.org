@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, KNOPFLERFISH project
+ * Copyright (c) 2012-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,8 @@ import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Vector;
 
+import org.knopflerfish.service.console.Session;
+import org.knopflerfish.service.console.Util;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -48,9 +50,6 @@ import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
 import org.osgi.service.condpermadmin.ConditionalPermissionInfo;
 import org.osgi.service.permissionadmin.PermissionAdmin;
 import org.osgi.service.permissionadmin.PermissionInfo;
-
-import org.knopflerfish.service.console.Session;
-import org.knopflerfish.service.console.Util;
 
 /**
  * Implementation of framework console commands interacting with the
@@ -68,26 +67,28 @@ public class PermissionAdminHelperImpl
   private final PermissionAdmin permissionAdmin;
   private final ConditionalPermissionAdmin condPermAdmin;
 
-  PermissionAdminHelperImpl(BundleContext bc) {
+  PermissionAdminHelperImpl(BundleContext bc)
+  {
     this.bc = bc;
 
     // all of these services are framework singleton internal services
     // thus, we take a shortcut and skip the service tracking
-    ServiceReference sr =
-      bc.getServiceReference(PermissionAdmin.class.getName());
-    permissionAdmin = null==sr ? null : (PermissionAdmin) bc.getService(sr);
+    ServiceReference<PermissionAdmin> pasr = bc
+        .getServiceReference(PermissionAdmin.class);
+    permissionAdmin = null == pasr ? null : bc
+        .getService(pasr);
 
-    sr = bc.getServiceReference(ConditionalPermissionAdmin.class.getName());
-    condPermAdmin = null==sr ? null
-      : (ConditionalPermissionAdmin) bc.getService(sr);
+    ServiceReference<ConditionalPermissionAdmin> cpasr = bc
+        .getServiceReference(ConditionalPermissionAdmin.class);
+    condPermAdmin = null == cpasr ? null : bc
+        .getService(cpasr);
   }
-
 
   //
   // Addpermission command
   //
 
-  public int cmdAddpermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdAddpermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                               Session session) {
     if (permissionAdmin == null) {
       out.println("Permission Admin service is not available");
@@ -153,7 +154,7 @@ public class PermissionAdminHelperImpl
   // Deletepermission command
   //
 
-  public int cmdDeletepermission(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdDeletepermission(Dictionary<String,?> opts, Reader in, PrintWriter out,
                                  Session session) {
     if (permissionAdmin == null) {
       out.println("Permission Admin service is not available");
@@ -229,7 +230,7 @@ public class PermissionAdminHelperImpl
   // Permissions command
   //
 
-  public int cmdPermissions(Dictionary opts, Reader in, PrintWriter out,
+  public int cmdPermissions(Dictionary<String,?> opts, Reader in, PrintWriter out,
                             Session session) {
     if (permissionAdmin == null) {
       out.println("Permission Admin service is not available");
@@ -281,7 +282,7 @@ public class PermissionAdminHelperImpl
     return 0;
   }
 
-  public int cmdCondpermission(Dictionary opts,
+  public int cmdCondpermission(Dictionary<String,?> opts,
                                Reader in,
                                PrintWriter out,
                                Session session) {
@@ -290,9 +291,9 @@ public class PermissionAdminHelperImpl
       return 1;
     }
     String [] names = (String []) opts.get("name");
-    Enumeration e;
+    Enumeration<ConditionalPermissionInfo> e;
     if (names != null) {
-      Vector cpis = new Vector();
+      Vector<ConditionalPermissionInfo> cpis = new Vector<ConditionalPermissionInfo>();
       for (int i = 0; i < names.length; i++ ) {
         ConditionalPermissionInfo cpi
           = condPermAdmin.getConditionalPermissionInfo(names[i]);
@@ -314,7 +315,7 @@ public class PermissionAdminHelperImpl
     return 0;
   }
 
-  public int cmdSetcondpermission(Dictionary opts,
+  public int cmdSetcondpermission(Dictionary<String,?> opts,
                                   Reader in,
                                   PrintWriter out,
                                   Session session)
@@ -323,9 +324,8 @@ public class PermissionAdminHelperImpl
       out.println("Conditional Permission Admin service is not available");
       return 1;
     }
-    String loc = null;
-    Vector /* ConditionInfo */ cis = new Vector();
-    Vector /* PermissionInfo */ pis = new Vector();
+    Vector /* ConditionInfo */<ConditionInfo> cis = new Vector<ConditionInfo>();
+    Vector /* PermissionInfo */<PermissionInfo> pis = new Vector<PermissionInfo>();
     String name = (String) opts.get("-name");
     String [] cpis = (String []) opts.get("conditional_permission_info");
     String endChar = null;
@@ -361,8 +361,8 @@ public class PermissionAdminHelperImpl
         return 1;
       }
     }
-    ConditionInfo [] cia = (ConditionInfo []) cis.toArray(new ConditionInfo [cis.size()]);
-    PermissionInfo [] pia = (PermissionInfo []) pis.toArray(new PermissionInfo [pis.size()]);
+    ConditionInfo [] cia = cis.toArray(new ConditionInfo [cis.size()]);
+    PermissionInfo [] pia = pis.toArray(new PermissionInfo [pis.size()]);
     condPermAdmin.setConditionalPermissionInfo(name, cia, pia);
     return 0;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,26 @@
 
 package org.knopflerfish.framework;
 
-import java.io.*;
-
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.List;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.BundleListener;
+import org.osgi.framework.Filter;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceListener;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * Implementation of the BundleContext object.
@@ -93,7 +107,7 @@ public class BundleContextImpl
    */
   public Bundle installBundle(String location) throws BundleException {
     checkValid();
-    return bundle.fwCtx.bundles.install(location, null);
+    return bundle.fwCtx.bundles.install(location, null, bundle);
   }
 
 
@@ -107,12 +121,12 @@ public class BundleContextImpl
   {
     try {
       checkValid();
-      return bundle.fwCtx.bundles.install(location, in);
+      return bundle.fwCtx.bundles.install(location, in, bundle);
     } finally {
       if (in != null) {
         try {
           in.close();
-        } catch (IOException ignore) {}
+        } catch (final IOException ignore) {}
       }
     }
   }
@@ -135,7 +149,7 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundle
    */
   public Bundle getBundle(long id) {
-    return bundle.fwCtx.bundles.getBundle(id);
+    return bundle.fwCtx.bundleHooks.filterBundle(this, bundle.fwCtx.bundles.getBundle(id));
   }
 
 
@@ -145,8 +159,11 @@ public class BundleContextImpl
    * @see org.osgi.framework.BundleContext#getBundles
    */
   public Bundle[] getBundles() {
-    List bl = bundle.fwCtx.bundles.getBundles();
-    return (Bundle[])bl.toArray(new Bundle [bl.size()]);
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    final
+    List<Bundle> bl = (List) bundle.fwCtx.bundles.getBundles();
+    bundle.fwCtx.bundleHooks.filterBundles(this, bl);
+    return bl.toArray(new Bundle [bl.size()]);
   }
 
 
@@ -171,7 +188,7 @@ public class BundleContextImpl
     checkValid();
     try {
       bundle.fwCtx.listeners.addServiceListener(this, listener, null);
-    } catch (InvalidSyntaxException neverHappens) { }
+    } catch (final InvalidSyntaxException neverHappens) { }
   }
 
 
@@ -235,11 +252,12 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#registerService
    */
-  public ServiceRegistration registerService(String[] clazzes,
-                                             Object service,
-                                             Dictionary properties) {
+  public ServiceRegistration<?> registerService(String[] clazzes,
+                                                Object service,
+                                                Dictionary<String, ?> properties)
+  {
     checkValid();
-    String [] classes = (String[]) clazzes.clone();
+    final String [] classes = clazzes.clone();
     return bundle.fwCtx.services.register(bundle, classes, service, properties);
   }
 
@@ -249,11 +267,12 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#registerService
    */
-  public ServiceRegistration registerService(String clazz,
-                                             Object service,
-                                             Dictionary properties) {
+  public ServiceRegistration<?> registerService(String clazz,
+                                                Object service,
+                                                Dictionary<String, ?> properties)
+  {
     checkValid();
-    String [] classes =  new String [] { clazz };
+    final String [] classes =  new String [] { clazz };
     return bundle.fwCtx.services.register(bundle, classes, service, properties);
   }
 
@@ -263,8 +282,9 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#getServiceReferences
    */
-  public ServiceReference[] getServiceReferences(String clazz, String filter)
-    throws InvalidSyntaxException {
+  public ServiceReference<?>[] getServiceReferences(String clazz, String filter)
+      throws InvalidSyntaxException
+  {
     checkValid();
     return bundle.fwCtx.services.get(clazz, filter, bundle);
   }
@@ -274,8 +294,10 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#getAllServiceReferences
    */
-  public ServiceReference[] getAllServiceReferences(String clazz, String filter)
-  throws InvalidSyntaxException {
+  public ServiceReference<?>[] getAllServiceReferences(String clazz,
+                                                       String filter)
+      throws InvalidSyntaxException
+  {
     checkValid();
     return bundle.fwCtx.services.get(clazz, filter, null);
   }
@@ -286,7 +308,8 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#getServiceReference
    */
-  public ServiceReference getServiceReference(String clazz) {
+  public ServiceReference<?> getServiceReference(String clazz)
+  {
     checkValid();
     return bundle.fwCtx.services.get(bundle, clazz);
   }
@@ -297,7 +320,7 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#getService
    */
-  public Object getService(ServiceReference reference) {
+  public <S> S getService(ServiceReference<S> reference) {
     checkValid();
 
     if(reference == null) {
@@ -309,7 +332,8 @@ public class BundleContextImpl
       throw new NullPointerException("null ServiceReference is not valid input to getService()");
     }
 
-    return ((ServiceReferenceImpl)reference).getService(bundle);
+    final ServiceReferenceImpl<S> sri = (ServiceReferenceImpl<S>) reference;
+    return sri.getService(bundle);
   }
 
 
@@ -318,7 +342,7 @@ public class BundleContextImpl
    *
    * @see org.osgi.framework.BundleContext#ungetService
    */
-  public boolean ungetService(ServiceReference reference) {
+  public boolean ungetService(ServiceReference<?> reference) {
     checkValid();
 
     if(reference == null) {
@@ -330,7 +354,7 @@ public class BundleContextImpl
       throw new NullPointerException("null ServiceReference is not valid input to ungetService()");
     }
 
-    return ((ServiceReferenceImpl)reference).ungetService(bundle);
+    return ((ServiceReferenceImpl<?>)reference).ungetService(bundle);
   }
 
 
@@ -342,7 +366,7 @@ public class BundleContextImpl
    */
   public File getDataFile(String filename) {
     checkValid();
-    File dataRoot = bundle.getDataRoot();
+    final File dataRoot = bundle.getDataRoot();
     if (dataRoot != null) {
       if (!dataRoot.exists()) {
         dataRoot.mkdirs();
@@ -369,6 +393,51 @@ public class BundleContextImpl
     checkValid();
     return FrameworkUtil.createFilter(filter);
   }
+
+
+  public <S> ServiceRegistration<S>
+    registerService(Class<S> clazz,
+                    S service,
+                    Dictionary<String, ?> properties)
+  {
+    @SuppressWarnings("unchecked")
+    final ServiceRegistration<S> res = (ServiceRegistration<S>)
+        registerService(clazz == null ? null
+                                      : clazz.getName(),service,properties);
+    return res;
+  }
+
+
+  public <S> ServiceReference<S> getServiceReference(Class<S> clazz)
+  {
+    @SuppressWarnings("unchecked")
+    final ServiceReference<S> res = (ServiceReference<S>)
+        getServiceReference(clazz == null ? null : clazz.getName());
+    return res;
+  }
+
+  public <S> Collection<ServiceReference<S>> getServiceReferences(Class<S> clazz,
+                                                                  String filter)
+      throws InvalidSyntaxException
+  {
+    @SuppressWarnings("unchecked")
+    final ServiceReference<S>[] srs = (ServiceReference[])
+      getServiceReferences(clazz == null ? null : clazz.getName(), filter);
+
+    if(srs == null) {
+      @SuppressWarnings("unchecked")
+      final Collection<ServiceReference<S>> res =
+          Collections.EMPTY_LIST;
+      return res;
+    } else {
+      return Arrays.asList(srs);
+    }
+  }
+
+  public Bundle getBundle(String location) {
+    return bundle.fwCtx.bundles.getBundle(location);
+  }
+
 
   //
   // Package methods

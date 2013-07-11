@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2009, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,21 +40,30 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringTokenizer;
 import java.util.TreeSet;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
+import org.apache.tools.ant.types.FileSet;
 import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.types.Resource;
+import org.apache.tools.ant.types.resources.FileResource;
+import org.apache.tools.ant.types.selectors.FilenameSelector;
+import org.apache.tools.ant.types.selectors.OrSelector;
 
 /**
  * Task that helps building arguments to javadoc.
  *
- * Loads source paths from a file removes duplicates and adds them to
- * a path structure.
+ * <ul>
+ *   <li>Loads source paths from a file removes duplicates and adds them to
+ *       a path structure.
  *
- * Loads export package definitions from a file removes duplicates and
- * OSGi specific annotation, then adds them to a comma separated string.
+ *   <li>Loads export package definitions from a file removes
+ *       duplicates and OSGi specific annotation, then adds them to a
+ *       comma separated string that will be set as the value of a
+ *       named property.
  *
  * <h3>Parameters</h3>
  *
@@ -91,20 +100,82 @@ import org.apache.tools.ant.types.Path;
  *   <td valign=top>No.<br> No default value.</td>
  *  </tr>
  *  <tr>
+ *   <td valign=top>exportPkgsValue</td>
+ *   <td valign=top>A single Export-Package header value to convert.
+ *   </td>
+ *   <td valign=top>No.<br> No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
  *   <td valign=top>pkgPropertyName</td>
  *   <td valign=top>Name of property that the resulting
  *       java package list is appended to.
  *   </td>
  *   <td valign=top>No.<br> No default value.</td>
  *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>srcDir</td>
+ *   <td valign=top>
+ *
+ *     Path to the root of a Java source tree. Used together with
+ *     {@code exportPkgsValue} to check if there are source files
+ *     availble for any of the exported packages. The result is
+ *     assigned to the property named by {@code
+ *     pkgSrcAvailPropertyName}.
+ *
+ *   </td>
+ *   <td valign=top>No.<br> No default value.</td>
+ *  </tr>
+ *  <tr>
+ *   <td valign=top>pkgSrcAvailPropertyName</td>
+ *   <td valign=top>
+ *
+ *      Name of property that will be set to {@code true} if any of
+ *      the packages present in the value of {@code exportPkgsValue}
+ *      has a source file (*.java or packages.html) in the Java source
+ *      tree specified by {@code srcDir}.
+ *
+ *   </td>
+ *   <td valign=top>No.<br> No default value.</td>
+ *  </tr>
+ *
+ *  <tr>
+ *   <td valign=top>pkgWithSourcePropertyName</td>
+ *   <td valign=top>
+ *
+ *     Name of property that will be set to the sub-list of packages
+ *     with source code of the java package list saved in {@code
+ *     pkgPropertyName}.
+ *
+ *   </td>
+ *   <td valign=top>No.<br> No default value.</td>
+ *  </tr>
+ *
  * </table>
  *
  * <h3>Examples</h3>
+ *
+ * Create a comma separated list of package names (without attributes,
+ * and directives) and save the list as the value of the property with
+ * name {@code javadoc.packages}. The package names are read from the
+ * file that is the value of the property {@code exported.file}. This
+ * file contains the value of one Export-Package definition per line.
+ * <pre>
+ * &lt;bundle_javadoc_helper exportPkgsFile="${exported.file}"
+ *                           pkgPropertyName="javadoc.packages"/&gt;
+ * </pre>
+ *
  */
 public class BundleJavadocHelperTask extends Task {
 
   private File   exportPkgsFile;
+  private String exportPkgsValue;
   private String pkgPropertyName;
+
+  private File   srcDir;
+  private String pkgSrcAvailPropertyName;
+  private String pkgWithSourcePropertyName;
 
   private File   srcRootsFile;
   private String srcPropertyName;
@@ -118,7 +189,15 @@ public class BundleJavadocHelperTask extends Task {
    */
   public void setExportPkgsFile(File f) {
     this.exportPkgsFile = f;
-    log("exportPkgsFile="+exportPkgsFile, Project.MSG_INFO);
+    log("exportPkgsFile="+exportPkgsFile, Project.MSG_DEBUG);
+  }
+
+  /**
+   * Set property receiving the export package definition to handle.
+   */
+  public void setExportPkgsValue(String s) {
+    this.exportPkgsValue = s;
+    log("exportPkgsValue="+exportPkgsValue, Project.MSG_DEBUG);
   }
 
   /**
@@ -130,8 +209,49 @@ public class BundleJavadocHelperTask extends Task {
     } else {
       this.pkgPropertyName = s;
     }
-    log("pkgPropertyName=" +this.pkgPropertyName, Project.MSG_INFO);
+    log("pkgPropertyName=" +this.pkgPropertyName, Project.MSG_DEBUG);
   }
+
+  /**
+   * Property receiving the root of the source tree to check for
+   * availability of javadoc source files in when setting {@code
+   * pkgSrcAvailPropertyName}.
+   */
+  public void setSrcDir(File f) {
+    this.srcDir = f;
+    log("srcDir="+srcDir, Project.MSG_DEBUG);
+  }
+
+  /**
+   * Set name of property to be set if there are javadoc source files
+   * for the packages selected by the value of {@code pkgPropertyName}
+   * available in {@code srcDir}.
+   */
+  public void setPkgSrcAvailPropertyName(String s) {
+    if (s!=null && 0==s.length() ) {
+      this.pkgSrcAvailPropertyName = null;
+    } else {
+      this.pkgSrcAvailPropertyName = s;
+    }
+    log("pkgSrcAvailPropertyName=" +this.pkgSrcAvailPropertyName,
+        Project.MSG_DEBUG);
+  }
+
+  /**
+   * Set property receiving the filtered list of exported
+   * packages. I.e., the list of exported packages that has at least
+   * one source file.
+   */
+  public void setPkgWithSourcePropertyName(String s) {
+    if (s!=null && 0==s.length() ) {
+      this.pkgWithSourcePropertyName = null;
+    } else {
+      this.pkgWithSourcePropertyName = s;
+    }
+    log("pkgWithSourcePropertyName=" +this.pkgWithSourcePropertyName,
+        Project.MSG_DEBUG);
+  }
+
 
   /**
    * Set property receiving the file to load source root directory
@@ -168,14 +288,34 @@ public class BundleJavadocHelperTask extends Task {
     log("srcPathId=" +this.srcPathId, Project.MSG_DEBUG);
   }
 
+  /**
+   * The set of java package names for exported packages.
+   */
+  final Set ePkgs = new TreeSet();
+
 
   // Implements Task
   //
   public void execute() throws BuildException {
-    if (null==exportPkgsFile && null!=pkgPropertyName ) {
+    if ((null==exportPkgsFile&&null==exportPkgsValue)
+        && null!=pkgPropertyName ) {
       throw new BuildException
-        ("exportPkgsFile must be set when pkgPropertyName is set.");
+        ("When pkgPropertyName is set, exportPkgsValue or exportPkgsFile "
+         +"must also be set.");
     }
+
+    if (null!=pkgSrcAvailPropertyName && null==srcDir) {
+      throw new BuildException
+        ("When pkgSrcAvailPropertyName is set, srcDir "
+         +"must also be set.");
+    }
+
+    if (null!=pkgWithSourcePropertyName && null==pkgSrcAvailPropertyName) {
+      throw new BuildException
+        ("When pkgWithSourcePropertyName is set, pkgSrcAvailPropertyName "
+         +"must also be set.");
+    }
+
     if (null==srcRootsFile &&
         (null!=srcPropertyName || null!=srcPathId)) {
       throw new BuildException
@@ -184,7 +324,8 @@ public class BundleJavadocHelperTask extends Task {
 
     try {
       processSrcRootsFile();
-      processExportPkgsFile();
+      processExportPkgs();
+      processPkgSrcsAvailable();
     } catch (Exception e) {
       throw new BuildException(e);
     }
@@ -235,37 +376,36 @@ public class BundleJavadocHelperTask extends Task {
     }
   }
 
-  private void processExportPkgsFile()
+  private void processExportPkgs()
     throws FileNotFoundException, IOException
   {
-    if (null==exportPkgsFile) return;
+    // Unconditional process of exportPkgsFile / exportPkgsValue since
+    // result is used by other process-methods.
+    if (exportPkgsFile != null) {
+      BufferedReader in = new BufferedReader(new FileReader(exportPkgsFile));
 
-    BufferedReader in = new BufferedReader(new FileReader(exportPkgsFile));
-    Set pkgs = new TreeSet();
-
-    String line = in.readLine();
-    while (null!=line) {
-      if (!BundleManifestTask.BUNDLE_EMPTY_STRING.equals(line)) {
-        Iterator expIt = Util.parseEntries
-          ("export.package", line.trim(), true, true, false );
-        while (expIt.hasNext()) {
-          Map expEntry = (Map) expIt.next();
-          String exPkg = (String) expEntry.get("$key");
-          pkgs.add(exPkg);
-        }
+      String line = in.readLine();
+      while (null!=line) {
+        handleOneExportPackageLine(line);
+        line = in.readLine();
       }
-      line = in.readLine();
     }
-    Project proj = getProject();
+
+    if (exportPkgsValue != null) {
+      handleOneExportPackageLine(exportPkgsValue);
+    }
+
+
     if (null!=pkgPropertyName) {
+      Project proj = getProject();
       String packagenames = proj.getProperty(pkgPropertyName);
       if (null==packagenames) packagenames = "";
 
       StringBuffer sb
-        = new StringBuffer(packagenames.length() +50*pkgs.size());
+        = new StringBuffer(packagenames.length() +50*ePkgs.size());
       sb.append(packagenames);
 
-      for (Iterator it =pkgs.iterator(); it.hasNext(); ) {
+      for (Iterator it =ePkgs.iterator(); it.hasNext(); ) {
         if (sb.length()>0) sb.append(",");
         sb.append(it.next());
       }
@@ -275,5 +415,77 @@ public class BundleJavadocHelperTask extends Task {
     }
   }
 
+  private void handleOneExportPackageLine(final String line)
+  {
+      if (!BundleManifestTask.BUNDLE_EMPTY_STRING.equals(line)) {
+        Iterator expIt = Util.parseEntries
+          ("export.package", line.trim(), true, true, false );
+        while (expIt.hasNext()) {
+          Map expEntry = (Map) expIt.next();
+          String exPkg = (String) expEntry.get("$key");
+          ePkgs.add(exPkg);
+        }
+      }
+  }
+
+  private void processPkgSrcsAvailable()
+  {
+    // If no srcDir then there are no source files in it.
+    if (srcDir==null || !srcDir.exists()) return;
+
+    final Project proj = getProject();
+
+    final TreeSet pkgNamesWithSource = new TreeSet();
+    boolean pkgSrcAvailable = false;
+
+    for (Iterator it = ePkgs.iterator(); it.hasNext(); ) {
+      final String pkg = (String) it.next();
+
+      final FileSet fileSet = new FileSet();
+      fileSet.setProject(proj);
+      fileSet.setDir(srcDir);
+
+      final OrSelector orSelector = new OrSelector();
+      fileSet.add(orSelector);
+
+      final FilenameSelector fnsJ = new FilenameSelector();
+      fnsJ.setName(pkg.replace('.', File.separatorChar)
+                   + File.separatorChar + "*.java");
+      orSelector.add(fnsJ);
+
+      final FilenameSelector fnsP = new FilenameSelector();
+      fnsP.setName(pkg.replace('.', File.separatorChar)
+                  + File.separatorChar + "package.html");
+      orSelector.add(fnsP);
+
+      log(" Package '" +pkg +"' has sources: " + fileSet.toString(),
+          Project.MSG_DEBUG);
+
+      if (fileSet.size() > 0) {
+        pkgSrcAvailable |= true;
+        pkgNamesWithSource.add(pkg);
+      }
+    }
+
+    if (pkgSrcAvailable) {
+      proj.setProperty(pkgSrcAvailPropertyName, "true");
+      log("Setting property '" +pkgSrcAvailPropertyName +"' -> 'true'",
+          Project.MSG_VERBOSE);
+    }
+
+    if (pkgWithSourcePropertyName != null) {
+      final StringBuffer sb
+        = new StringBuffer(50*pkgNamesWithSource.size());
+
+      for (Iterator it =pkgNamesWithSource.iterator(); it.hasNext(); ) {
+        if (sb.length()>0) sb.append(",");
+        sb.append(it.next());
+      }
+
+      proj.setProperty(pkgWithSourcePropertyName, sb.toString());
+      log("Setting property '" +pkgWithSourcePropertyName +"' -> "
+          + sb.toString(), Project.MSG_VERBOSE);
+    }
+  }
 
 }

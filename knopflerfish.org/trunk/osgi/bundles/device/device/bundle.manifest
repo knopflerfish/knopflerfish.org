@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Device-Manager
 Bundle-SymbolicName: org.knopflerfish.bundle.device
-Bundle-Version: 3.0.2
+Bundle-Version: 4.0.1
 Bundle-Description: Device manager
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: OSGi
@@ -13,7 +13,7 @@ Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/device/device/
 Bundle-Activator: org.knopflerfish.bundle.device.Activator
 Bundle-Category: service
-Import-Package: org.osgi.framework,
- org.osgi.service.device,
- org.osgi.service.log
-Export-Package: org.osgi.service.device; version=1.1
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+Import-Package: org.osgi.framework; version="[1.6,2)",
+ org.osgi.service.device; version="[1.1,1.2)",
+ org.osgi.service.log; version="[1.2,3)"

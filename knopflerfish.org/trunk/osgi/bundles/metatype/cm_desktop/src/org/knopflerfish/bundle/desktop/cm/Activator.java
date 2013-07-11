@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,56 +34,61 @@
 
 package org.knopflerfish.bundle.desktop.cm;
 
-import org.osgi.framework.*;
-import org.osgi.service.cm.*;
-import org.osgi.util.tracker.*;
-import org.knopflerfish.service.log.*;
+import java.util.Dictionary;
+import java.util.Hashtable;
 
-import java.util.*;
-import org.knopflerfish.service.desktop.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.cm.ManagedService;
+import org.osgi.service.cm.ManagedServiceFactory;
+import org.osgi.service.metatype.MetaTypeInformation;
+import org.osgi.util.tracker.ServiceTracker;
 
-import org.knopflerfish.util.metatype.*;
-import org.osgi.service.metatype.*;
+import org.knopflerfish.service.log.LogRef;
+import org.knopflerfish.util.metatype.SystemMetatypeProvider;
 
-public class Activator implements BundleActivator {
+public class Activator
+  implements BundleActivator
+{
 
-  static public LogRef        log;
+  static public LogRef log;
   static public BundleContext bc;
 
-
-
-  static ServiceTracker mtpTracker;
-  //  static SystemMetatypeProvider sysMTP;
+  static ServiceTracker<SystemMetatypeProvider, SystemMetatypeProvider> mtpTracker;
+  // static SystemMetatypeProvider sysMTP;
 
   static CMDisplayer disp;
 
-  public void start(BundleContext _bc) {
-    this.bc  = _bc;
-    this.log = new LogRef(bc);
+  public void start(BundleContext _bc)
+  {
+    Activator.bc = _bc;
+    Activator.log = new LogRef(bc);
 
     // bundle displayers
     disp = new CMDisplayer(bc);
     disp.open();
     disp.register();
 
-    mtpTracker = new ServiceTracker(bc, SystemMetatypeProvider.class.getName(), null);
+    mtpTracker =
+      new ServiceTracker<SystemMetatypeProvider, SystemMetatypeProvider>(
+                                                                         bc,
+                                                                         SystemMetatypeProvider.class,
+                                                                         null);
     mtpTracker.open();
 
     /*
-      try {
-
-
-      test();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    */
+     * try {
+     *
+     *
+     * test(); } catch (Exception e) { e.printStackTrace(); }
+     */
   }
 
-  static MetaTypeInformation getMTP(Bundle b) {
-    SystemMetatypeProvider sysMTP =
-      (SystemMetatypeProvider)mtpTracker.getService();
-    if(sysMTP != null) {
+  static MetaTypeInformation getMTP(Bundle b)
+  {
+    final SystemMetatypeProvider sysMTP = mtpTracker.getService();
+    if (sysMTP != null) {
       return sysMTP.getMTP(b);
     } else {
       log.warn("No SystemMetatypeProvider found");
@@ -91,42 +96,48 @@ public class Activator implements BundleActivator {
     }
   }
 
-  void test() {
-    ManagedService ms = new ManagedService() {
-        public void updated(Dictionary props) {
-          System.out.println("managedservice service got " + props);
-        }
-      };
+  void test()
+  {
+    final ManagedService ms = new ManagedService() {
+      public void updated(Dictionary<String, ?> props)
+      {
+        System.out.println("managedservice service got " + props);
+      }
+    };
 
-    ManagedServiceFactory mf = new ManagedServiceFactory() {
-        public void deleted(java.lang.String pid) {
-          System.out.println("factory deleted " + pid);
-        }
-        public java.lang.String getName() {
-          return "my factory";
-        }
+    final ManagedServiceFactory mf = new ManagedServiceFactory() {
+      public void deleted(java.lang.String pid)
+      {
+        System.out.println("factory deleted " + pid);
+      }
 
-        public void updated(String pid, Dictionary props) {
-          System.out.println("factory updated pid=" + pid +
-                             ", props=" + props);
-        }
-      };
+      public java.lang.String getName()
+      {
+        return "my factory";
+      }
 
-    Hashtable props = new Hashtable();
+      public void updated(String pid, Dictionary<String, ?> props)
+      {
+        System.out.println("factory updated pid=" + pid + ", props=" + props);
+      }
+    };
+
+    Dictionary<String, Object> props = new Hashtable<String, Object>();
     props.put("service.pid", "service1");
     bc.registerService(ManagedService.class.getName(), ms, props);
 
     props.put("service.pid", "testconfig");
     bc.registerService(ManagedService.class.getName(), ms, props);
 
-    props = new Hashtable();
+    props = new Hashtable<String, Object>();
     props.put("service.pid", "factory1");
     bc.registerService(ManagedServiceFactory.class.getName(), mf, props);
   }
 
-  public void stop(BundleContext bc) {
+  public void stop(BundleContext bc)
+  {
     try {
-      if(log != null) {
+      if (log != null) {
         log = null;
       }
 
@@ -136,8 +147,8 @@ public class Activator implements BundleActivator {
       mtpTracker.close();
       mtpTracker = null;
 
-      this.bc = null;
-    } catch (Exception e) {
+      Activator.bc = null;
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }

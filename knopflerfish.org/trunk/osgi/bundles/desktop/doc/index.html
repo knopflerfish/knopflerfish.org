@@ -69,7 +69,7 @@
 	<li>Manifest</li>
 	<li>Bundle closure</li>
 	<li>Services, i.e imported/exported services</li>
-	<li>Packages, i.e. imported/exported packages</li>
+	<li>Capabilities and wires, i.e. provided and required capabilites</li>
 	<li>SCR, i.e. declarative service components</li>
 	<li>Log, i.e. bundle logs</li>
 	<li>Events</li>
@@ -81,8 +81,8 @@
     <dd>
       The bottom console area allows interaction with the
       text console. This console acts exactly as
-      the <a href="../console/index.html">consoltty</a> bundle, but does not require a shell or
-      DOS window to run. 
+      the <a href="../console/index.html">consoltty</a> bundle, but
+      does not require a shell or DOS window to run. 
     </dd>
   </dl>
 <p>
@@ -220,18 +220,20 @@ View -&gt; Graph
     <th>Value type</th>
     <th>Default value</th>
   </tr>
+
   <tr>
-    <td>org.knopflerfish.bundle.desktop.event.EventTableModel.capacity</td>
+    <td>org.knopflerfish.bundle.log.window.impl.LogTableModel.capacity</td>
     <td>
 
-	The maximum number of events to keep in memory in one event
+	The maximum number of log entries to keep in memory in one log
 	view. Use a negative value (i.e., a value smaller than 1) to
-	indicate that old event shall never be removed.
+	indicate that old entries shall never be removed.
 
     </td>
     <td>int</td>
     <td>342</td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.desktop.display.large_icons.sort</td>
     <td>
@@ -255,6 +257,54 @@ View -&gt; Graph
     <td>String</td>
     <td>id</td>
   </tr>
+
+  <tr>
+    <td>org.knopflerfish.desktop.displays</td>
+    <td>
+
+	A white-space separated list of built in desktop displays to
+	instantiate on startup. Each item in the list is the full
+	class name of a displayer.
+
+    </td>
+    <td>String</td>
+    <td>
+	org.knopflerfish.bundle.desktop.swing.LargeIconsDisplayer
+	org.knopflerfish.bundle.desktop.swing.GraphDisplayer
+	org.knopflerfish.bundle.desktop.swing.TableDisplayer
+	org.knopflerfish.bundle.desktop.swing.ManifestHTMLDisplayer
+	org.knopflerfish.bundle.desktop.swing.ClosureHTMLDisplayer
+	org.knopflerfish.bundle.desktop.swing.ServiceHTMLDisplayer
+	org.knopflerfish.bundle.desktop.swing.WiringHTMLDisplayer
+	org.knopflerfish.bundle.desktop.swing.SCRHTMLDisplayer
+	org.knopflerfish.bundle.desktop.swing.LogDisplayer
+	org.knopflerfish.bundle.desktop.swing.EventDisplayer
+	org.knopflerfish.bundle.desktop.swing.PrefsDisplayer
+    </td>
+  </tr>
+
+  <tr>
+    <td>org.knopflerfish.desktop.displays.extra</td>
+    <td>
+
+	A white-space separated list of additional built in desktop
+	displays to instantiate on startup. Each item in the list is
+	the full class name of a displayer. Use this property when you
+	want to start all the default built in displayers and some
+	extra dislayer. This way you only need to specify the
+	additional displayer and not all of them.
+
+	<p>E.g.,
+<pre>
+	org.knopflerfish.bundle.desktop.swing.PackageHTMLDisplayer
+	org.knopflerfish.bundle.desktop.swing.SpinDisplayer
+</pre>
+	</p>
+    </td>
+    <td>String</td>
+    <td></td>
+  </tr>
+
   <tr>
     <td>org.knopflerfish.desktop.display.main</td>
     <td>
@@ -266,16 +316,18 @@ View -&gt; Graph
     <td>String</td>
     <td>Large Icons</td>
   </tr>
+
   <tr>
-    <td>org.knopflerfish.bundle.log.window.impl.LogTableModel.capacity</td>
+    <td>org.knopflerfish.bundle.desktop.event.EventTableModel.capacity</td>
     <td>
 
-	The maximum number of log entries to keep in memory in one log
+	The maximum number of events to keep in memory in one event
 	view. Use a negative value (i.e., a value smaller than 1) to
-	indicate that old entries shall never be removed.
+	indicate that old event shall never be removed.
 
     </td>
     <td>int</td>
     <td>342</td>
   </tr>
+
 </table>

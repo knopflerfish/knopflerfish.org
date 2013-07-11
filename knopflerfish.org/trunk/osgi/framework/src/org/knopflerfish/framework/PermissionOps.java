@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,22 @@
 package org.knopflerfish.framework;
 
 import java.io.InputStream;
-import java.security.ProtectionDomain;
-import java.util.*;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.ProtectionDomain;
+import java.util.Collection;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Vector;
 
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.ServiceEvent;
+import org.osgi.framework.ServiceFactory;
+import org.osgi.framework.ServiceReference;
 
 /**
  * This is a wrapper class for operations that requires some kind of security
@@ -123,6 +133,9 @@ class PermissionOps {
   }
 
 
+  void checkWeaveAdminPerm(Bundle b) {
+  }
+
   //
   // Bundle permission checks
   //
@@ -174,18 +187,42 @@ class PermissionOps {
   }
 
 
-  void checkGetServicePerms(ServiceReference sr) {
+  void checkGetServicePerms(ServiceReference<?> sr) {
   }
 
 
-  boolean okGetServicePerms(ServiceReference sr) {
+  boolean okGetServicePerms(ServiceReference<?> sr) {
     return true;
   }
 
 
-  void filterGetServicePermission(Set srs) {
+  void filterGetServicePermission(Set<ServiceRegistrationImpl<?>> srs) {
   }
 
+  //
+  // Capability and Requirement checks
+  //
+
+  boolean hasProvidePermission(BundleCapabilityImpl bc) {
+    return true;
+  }
+
+
+  boolean hasRequirePermission(BundleRequirementImpl br) {
+    return true;
+  }
+
+
+  boolean hasRequirePermission(BundleRequirementImpl br, BundleCapabilityImpl bc) {
+    return true;
+  }
+
+  //
+  // AdaptPermission checks
+  //
+
+  <A> void checkAdaptPerm(BundleImpl b, Class<A> type) {
+  }
 
   //
   // BundleArchive secure operations
@@ -197,7 +234,7 @@ class PermissionOps {
   }
 
 
-  Enumeration callFindResourcesPath(final BundleArchive archive, final String path) {
+  Enumeration<String> callFindResourcesPath(final BundleArchive archive, final String path) {
     return archive.findResourcesPath(path);
   }
 
@@ -208,9 +245,9 @@ class PermissionOps {
 
   Object callSearchFor(final BundleClassLoader cl, final String name, final String pkg,
                        final String path, final BundleClassLoader.SearchAction action,
-                       final boolean onlyFirst,
-                       final BundleClassLoader requestor, final HashSet visited) {
-    return cl.searchFor(name, pkg, path, action, onlyFirst, requestor, visited);
+                       final int options,
+                       final BundleClassLoader requestor, final HashSet<BundleClassLoader> visited) {
+    return cl.searchFor(name, pkg, path, action, options, requestor, visited);
   }
 
 
@@ -254,7 +291,7 @@ class PermissionOps {
   }
 
 
-  Enumeration callFindEntries(final BundleGeneration bg, final String path,
+  Vector<URL> callFindEntries(final BundleGeneration bg, final String path,
                               final String filePattern, final boolean recurse) {
     return bg.findEntries(path, filePattern, recurse);
   }
@@ -265,13 +302,17 @@ class PermissionOps {
   }
 
 
+  Vector<URL> getBundleClassPathEntries(final BundleGeneration bg, final String name, final boolean onlyFirst) {
+    return bg.getBundleClassPathEntries(name, onlyFirst);
+  }
+
   //
   // Bundles Secure operation
   //
 
-  BundleImpl callInstall0(final Bundles bs, final String location, final InputStream in)
+  BundleImpl callInstall0(final Bundles bs, final String location, final InputStream in, final Bundle caller)
       throws BundleException {
-    return bs.install0(location, in, null);
+    return bs.install0(location, in, null, caller);
   }
 
 
@@ -284,8 +325,8 @@ class PermissionOps {
   }
 
 
-  void callServiceChanged(final FrameworkContext fwCtx, final Collection receivers,
-                          final ServiceEvent evt, final Set matchBefore) {
+  void callServiceChanged(final FrameworkContext fwCtx, final Collection<ServiceListenerEntry> receivers,
+                          final ServiceEvent evt, final Set<ServiceListenerEntry> matchBefore) {
     fwCtx.listeners.serviceChanged(receivers, evt, matchBefore);
   }
 
@@ -294,8 +335,8 @@ class PermissionOps {
   // PackageAdmin secure operations
   //
 
-  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle[] bundles) {
-    pa.refreshPackages0(bundles);
+  void callRefreshPackages0(final PackageAdminImpl pa, final Bundle[] bundles, final FrameworkListener[] fl) {
+    pa.refreshPackages0(bundles, fl);
   }
 
 
@@ -303,13 +344,20 @@ class PermissionOps {
   // ServiceRegisterationImpl secure operations
   //
 
-  Object callGetService(final ServiceRegistrationImpl sr, final Bundle b) {
-    return ((ServiceFactory)sr.service).getService(b, sr);
+  <S> S callGetService(final ServiceRegistrationImpl<S> sr, final Bundle b) {
+    @SuppressWarnings("unchecked")
+    final ServiceFactory<S> srf = (ServiceFactory<S>)sr.service;
+    return srf.getService(b, sr);
   }
 
 
-  void callUngetService(final ServiceRegistrationImpl sr, final Bundle b, final Object instance) {
-    ((ServiceFactory)sr.service).ungetService(b, sr, instance);
+  <S> void callUngetService(final ServiceRegistrationImpl<S> sr,
+                            final Bundle b,
+                            final S instance)
+  {
+    @SuppressWarnings("unchecked")
+    final ServiceFactory<S> srf = (ServiceFactory<S>)sr.service;
+    srf.ungetService(b, sr, instance);
   }
 
 
@@ -346,7 +394,7 @@ class PermissionOps {
 
   /**
    * Get bundle URL using a bundle: spec and the BundleURLStreamHandler.
-   * 
+   *
    * <p>
    * Note:<br>
    * Creating bundle: URLs by the URL(String) constructor will only work if the
@@ -363,7 +411,7 @@ class PermissionOps {
   // Privileged system calls
   //
 
-  ClassLoader getClassLoaderOf(final Class c) {
+  ClassLoader getClassLoaderOf(final Class<?> c) {
     return c.getClassLoader();
   }
 

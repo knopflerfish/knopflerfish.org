@@ -155,7 +155,7 @@ public class JUnpackWizard extends JWizard {
             }
           } catch (Exception e) {
             System.err.println("no license resource file=" + licName);
-            e.printStackTrace();
+            lic.append("No license specified in the deployment archive.");
           } finally {
             try {  in.close(); } catch (Exception ignored) {  }
           }
@@ -270,6 +270,7 @@ public class JUnpackWizard extends JWizard {
 
     if(!compSrcCB.isSelected()) {
       if(name.startsWith("osgi/bundles") ||
+         name.startsWith("osgi/ee/") ||
          name.startsWith("osgi/framework/") ||
          name.startsWith("ant/src/") ||
          name.endsWith("build.xml") ||

@@ -11,6 +11,9 @@
   <property name="bundle.build.all"   value="false"/>
   <property name="bundle.build.doc"   value="true"/>
 
+  <!-- Build for OSGi Minimum Execution Environment. -->
+  <property name="bundle.compile.EE" value="ee.minimum"/>
+
   <property name="api.pattern"
 	    value="org/kxml2/**,
 		   org/xmlpull/v1/**"/>
@@ -26,7 +29,8 @@
   </target>
 
   <path id="bundle.compile.path">
-    <!-- No external dependencies -->
+    <!-- Only needed for javadoc due to the bundle.custom.pre above. -->
+    <pathelement location="${proj.dir}/lib/xmlpull_1_1_3_1.jar"/>
   </path>
 
 

@@ -45,7 +45,6 @@ import org.knopflerfish.service.console.Session;
  *
  * @see org.knopflerfish.service.console.ConsoleService
  * @author Jan Stein
- * @version $Revision: 1.1.1.1 $
  */
 public class ReadThread extends Thread {
 

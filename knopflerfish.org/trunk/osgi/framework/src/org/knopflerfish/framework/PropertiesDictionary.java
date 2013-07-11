@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@
 
 package org.knopflerfish.framework;
 
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Enumeration;
+
 import org.osgi.framework.Constants;
 
 /**
@@ -44,10 +46,10 @@ import org.osgi.framework.Constants;
  *
  * @author Jan Stein
  */
-class PropertiesDictionary extends Dictionary
+class PropertiesDictionary extends Dictionary<String, Object>
 {
-  private String [] keys;
-  private Object [] values;
+  private final String [] keys;
+  private final Object [] values;
   private int size;
 
   private int ocIndex = -1;
@@ -55,37 +57,43 @@ class PropertiesDictionary extends Dictionary
 
   private static long nextServiceID = 1;
 
-  PropertiesDictionary(Dictionary in) {
-    int max_size = in != null ? in.size() + 2 : 2;
+  PropertiesDictionary(@SuppressWarnings("rawtypes") Dictionary in) {
+    final int max_size = in != null ? in.size() + 2 : 2;
     keys = new String[max_size];
     values = new Object[max_size];
     size = 0;
     if (in != null) {
       try {
-	for (Enumeration e = in.keys(); e.hasMoreElements();) {
-	  String key = (String)e.nextElement();
-	  if (ocIndex == -1 && key.equalsIgnoreCase(Constants.OBJECTCLASS)) {
-	    ocIndex = size;
-	  } else if (sidIndex == -1 && key.equalsIgnoreCase(Constants.SERVICE_ID)) {
-	    sidIndex = size;
-	  } else {
-	    for (int i = size - 1; i >= 0; i--) {
-	      if (key.equalsIgnoreCase(keys[i])) {
-		throw new IllegalArgumentException("Several entries for property: " + key);
-	      }
-	    }
-	  }
-	  keys[size] = key;
-	  values[size++] = in.get(key);
-	}
-      } catch (ClassCastException ignore) {
-	throw new IllegalArgumentException("Properties contains key that is not of type java.lang.String");
+        for (@SuppressWarnings("rawtypes")
+        final Enumeration e = in.keys(); e.hasMoreElements();) {
+          final String key = (String) e.nextElement();
+          if (ocIndex == -1 && key.equalsIgnoreCase(Constants.OBJECTCLASS)) {
+            ocIndex = size;
+          } else if (sidIndex == -1
+                     && key.equalsIgnoreCase(Constants.SERVICE_ID)) {
+            sidIndex = size;
+          } else {
+            for (int i = size - 1; i >= 0; i--) {
+              if (key.equalsIgnoreCase(keys[i])) {
+                throw new IllegalArgumentException(
+                                                   "Several entries for property: "
+                                                       + key);
+              }
+            }
+          }
+          keys[size] = key;
+          values[size++] = in.get(key);
+        }
+      } catch (final ClassCastException ignore) {
+        throw new IllegalArgumentException(
+                                           "Properties contains key that is not of type java.lang.String");
       }
     }
   }
 
-
-  PropertiesDictionary(Dictionary in, String[] classes, Long sid) {
+  PropertiesDictionary(@SuppressWarnings("rawtypes") Dictionary in,
+                       String[] classes, Long sid)
+  {
     this(in);
     if (ocIndex == -1) {
       keys[size] = Constants.OBJECTCLASS;
@@ -99,7 +107,7 @@ class PropertiesDictionary extends Dictionary
     values[sidIndex] = sid != null ? sid : new Long(nextServiceID++);
   }
 
-
+  @Override
   public Object get(Object key) {
     if (key == Constants.OBJECTCLASS) {
       return (ocIndex >= 0) ? values[ocIndex] : null;
@@ -116,25 +124,31 @@ class PropertiesDictionary extends Dictionary
 
 
   public String [] keyArray() {
-    String [] nkeys = new String[size];
+    final String [] nkeys = new String[size];
     System.arraycopy(keys, 0, nkeys, 0, size);
     return nkeys;
   }
 
 
+  @Override
   public int size() {
     return size;
   }
 
   // These aren't used but we implement to fulfill Dictionary class
 
-  public Enumeration elements() { throw new UnsupportedOperationException("Not implemented"); }
+  @Override
+  public Enumeration<Object> elements() { throw new UnsupportedOperationException("Not implemented"); }
 
+  @Override
   public boolean isEmpty() { throw new UnsupportedOperationException("Not implemented"); }
 
-  public Enumeration keys() { throw new UnsupportedOperationException("Not implemented"); }
+  @Override
+  public Enumeration<String> keys() { throw new UnsupportedOperationException("Not implemented"); }
 
-  public Object put(Object k, Object v) { throw new UnsupportedOperationException("Not implemented"); }
+  @Override
+  public Object put(String k, Object v) { throw new UnsupportedOperationException("Not implemented"); }
 
+  @Override
   public Object remove(Object k) { throw new UnsupportedOperationException("Not implemented"); }
 }

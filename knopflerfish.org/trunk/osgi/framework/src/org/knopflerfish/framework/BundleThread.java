@@ -34,7 +34,11 @@
 
 package org.knopflerfish.framework;
 
-import org.osgi.framework.*;
+import java.lang.reflect.Method;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleException;
 
 class BundleThread extends Thread {
   final private static int OP_IDLE = 0;
@@ -57,6 +61,26 @@ class BundleThread extends Thread {
   volatile private Object res;
   volatile private boolean doRun;
 
+  // Thread.stop() is not available in all Execution Environments...
+  final static Method stopMethod  = initStopSupported();
+  private static Method initStopSupported()
+  {
+    try {
+      return Thread.class.getMethod("stop", (Class[]) null);
+    } catch (final Throwable _t) {
+      return null;
+    }
+  }
+
+  static void checkWarnStopActionNotSupported(FrameworkContext fc)
+  {
+    final String s = fc.props.getProperty(FWProps.BUNDLETHREAD_ABORT);
+    if (ABORT_ACTION_STOP.equals(s) && null==stopMethod) {
+      System.err.println("WARNING: Bundle thread abort action stop was "
+                         +"requested but is not supported on this execution "
+                         +"environment; using 'minprio' as abort action.");
+    }
+  }
 
   BundleThread(FrameworkContext fc) {
     super(fc.threadGroup, "BundleThread waiting");
@@ -88,6 +112,7 @@ class BundleThread extends Thread {
   }
 
 
+  @Override
   public void run() {
     while (doRun) {
       synchronized (lock) {
@@ -102,7 +127,7 @@ class BundleThread extends Thread {
                 return;
               }
             }
-          } catch (InterruptedException ie) {
+          } catch (final InterruptedException ie) {
           }
         }
         if (!doRun) {
@@ -124,14 +149,14 @@ class BundleThread extends Thread {
             tmpres = bundle.stop1();
             break;
           }
-        } catch (Throwable t) {
-          fwCtx.listeners.frameworkError(bundle, t);
+        } catch (final Throwable t) {
+          fwCtx.frameworkError(bundle, t);
         }
         operation = OP_IDLE;
         res = tmpres;
       }
-      synchronized (fwCtx.packages) {
-        fwCtx.packages.notifyAll();
+      synchronized (fwCtx.resolver) {
+        fwCtx.resolver.notifyAll();
       }
     }
   }
@@ -173,7 +198,7 @@ class BundleThread extends Thread {
       lock.notifyAll();
     }
 
-    // timeout for waiting on op to finish can be set for start/stopp
+    // timeout for waiting on op to finish can be set for start/stop
     long left = 0;
     if (op == OP_START || op == OP_STOP) {
       b.aborted = null; // clear aborted status
@@ -185,9 +210,9 @@ class BundleThread extends Thread {
     long waitUntil = Util.timeMillis() + left;
     do {
       try {
-        fwCtx.packages.wait(left);
-      } catch (InterruptedException ie) {}
-      
+        fwCtx.resolver.wait(left);
+      } catch (InterruptedException ie) { }
+
       // Abort start/stop operation if bundle has been uninstalled
       if ((op == OP_START || op == OP_STOP) && b.getState() == Bundle.UNINSTALLED) {
         uninstall = true;
@@ -243,23 +268,41 @@ class BundleThread extends Thread {
 
       // Check what abort action to use
       if (ABORT_ACTION_STOP.equalsIgnoreCase(s)) {
-        stop();
+        if (null!=stopMethod) {
+          try {
+            stopMethod.invoke(this, (Object[]) null);
+          } catch (final Throwable t) {
+            fwCtx.debug.println("bundle thread abort action stop failed: "
+                                +t.getMessage());
+            setPriority(Thread.MIN_PRIORITY);
+          }
+        } else {
+          setPriority(Thread.MIN_PRIORITY);
+        }
       } else if (ABORT_ACTION_MINPRIO.equalsIgnoreCase(s)) {
         setPriority(Thread.MIN_PRIORITY);
       }
 
-      res = new BundleException("Bundle " + opType + " failed",
-          BundleException.STATECHANGE_ERROR, new Exception(reason));
+      res = new BundleException("Bundle#" + b.id + " " + opType + " failed",
+                                BundleException.STATECHANGE_ERROR,
+                                new Exception(reason));
+	    b.resetBundleThread();
       return res;
     } else {
       synchronized (fwCtx.bundleThreads) {
         fwCtx.bundleThreads.addFirst(this);
         if (op != operation) {
-          // NYI! Handle when operation has changed.
+          // TODO! Handle when operation has changed.
           // i.e. uninstall during operation?
         }
+		    b.resetBundleThread();
         return res;
       }
     }
   }
+
+  boolean isExecutingBundleChanged() {
+    return operation == OP_BUNDLE_EVENT;
+  }
+
 }

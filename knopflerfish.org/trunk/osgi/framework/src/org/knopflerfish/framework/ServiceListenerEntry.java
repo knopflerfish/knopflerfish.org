@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2010, KNOPFLERFISH project
+ * Copyright (c) 2003-20103, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,30 +34,35 @@
 
 package org.knopflerfish.framework;
 
-import java.util.List;
 import java.util.EventListener;
+import java.util.List;
 
-import org.osgi.framework.*;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.Constants;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.hooks.service.ListenerHook;
 
 /**
  * Data structure for saving service listener info. Contains
- * the optional service listener filter, in addition to the info 
+ * the optional service listener filter, in addition to the info
  * in ListenerEntry.
  */
-class ServiceListenerEntry extends ListenerEntry implements ListenerHook.ListenerInfo {
+class ServiceListenerEntry
+  extends ListenerEntry
+  implements ListenerHook.ListenerInfo
+{
   LDAPExpr ldap;
 
   /**
    * The elements of "simple" filters are cached, for easy lookup.
-   * 
+   *
    * The grammar for simple filters is as follows:
    *
    * <pre>
    * Simple = '(' attr '=' value ')'
    *        | '(' '|' Simple+ ')'
    * </pre>
-   * where <code>attr</code> is one of {@link Constants#OBJECTCLASS}, 
+   * where <code>attr</code> is one of {@link Constants#OBJECTCLASS},
    * {@link Constants#SERVICE_ID} or {@link Constants#SERVICE_PID}, and
    * <code>value</code> must not contain a wildcard character.
    * <p>
@@ -67,9 +72,9 @@ class ServiceListenerEntry extends ListenerEntry implements ListenerHook.Listene
    * ServiceListenerEntry's filter. This cache is maintained to make
    * it easy to remove this service listener.
    */
-  List[] local_cache;
+  List<Object>[] local_cache;
 
-  ServiceListenerEntry(BundleContextImpl bc, EventListener l, String filter) 
+  ServiceListenerEntry(BundleContextImpl bc, EventListener l, String filter)
     throws InvalidSyntaxException {
     super(bc, l);
     if (filter != null) {
@@ -87,7 +92,7 @@ class ServiceListenerEntry extends ListenerEntry implements ListenerHook.Listene
   public BundleContext getBundleContext() {
     return bc;
   }
-  
+
   public String getFilter() {
     return ldap != null ? ldap.toString() : null;
   }

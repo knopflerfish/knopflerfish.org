@@ -48,7 +48,7 @@ public class ComponentXImpl
   private int base = 0;
   private ComponentContext cc = null;
 
-  void activate(ComponentContext cc, Map props)
+  void activate(ComponentContext cc, Map<String, ?> props)
   {
     this.cc = cc;
     base = ((Integer)props.get("base")).intValue();
@@ -67,7 +67,6 @@ public class ComponentXImpl
     yStatus += 1;
     System.out.println("XImpl: binding Y, " +y);
   }
-
   public void unsetY(ComponentY y)
   {
     this.y = null;
@@ -80,23 +79,25 @@ public class ComponentXImpl
     y.testCall(base);
     System.out.println("XImpl: binding TestService, " +t);
   }
-
   public void unsetTest(TestService t)
   {
     y.testCall(1000 * base);
     System.out.println("XImpl: unbinding TestService, " +t);
   }
 
+  @Override
   public int getBase()
   {
     return this.base;
   }
 
+  @Override
   public int getBindYStatus()
   {
     return this.yStatus;
   }
 
+  @Override
   public void disableZ() {
     if (cc != null) {
       System.out.println("XImpl: disable Z!");
@@ -106,6 +107,7 @@ public class ComponentXImpl
     }
   }
 
+  @Override
   public void enableZ() {
     if (cc != null) {
       System.out.println("XImpl: enable Z!");

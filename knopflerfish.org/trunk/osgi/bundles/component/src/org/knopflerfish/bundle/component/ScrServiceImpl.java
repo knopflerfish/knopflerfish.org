@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2011, KNOPFLERFISH project
+ * Copyright (c) 2011-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,11 @@
  */
 package org.knopflerfish.bundle.component;
 
-import java.util.Iterator;
 import java.util.List;
 
-import org.osgi.framework.Bundle;
-
 import org.apache.felix.scr.Component;
+
+import org.osgi.framework.Bundle;
 
 public class ScrServiceImpl implements org.apache.felix.scr.ScrService
 {
@@ -54,24 +53,24 @@ public class ScrServiceImpl implements org.apache.felix.scr.ScrService
   /**
    * @see
    */
-  public Component[] getComponents() {
-    List all = scr.getAllComponents();
+  public Component[] getComponents()
+  {
+    final List<? extends Component> all = scr
+        .getAllComponents();
     if (all.size() > 0) {
-      return (Component[])all.toArray(new Component[all.size()]);
+      return all.toArray(new Component[all.size()]);
     }
     return null;
   }
-
 
   /**
    * @see
    */
   public Component getComponent(final long componentId) {
-    List all = scr.getAllComponents();
-    for (Iterator i = all.iterator(); i.hasNext(); ) {
-      Component c = (Component)i.next();
-      if (c.getId() == componentId) {
-        return c;
+    final List<? extends Component> all = scr.getAllComponents();
+    for (final Component component : all) {
+      if (component.getId() == componentId) {
+        return component;
       }
     }
     return null;
@@ -84,7 +83,7 @@ public class ScrServiceImpl implements org.apache.felix.scr.ScrService
   public Component[] getComponents(final String componentName) {
     Component[] res = scr.getComponent(componentName);
     if (res != null) {
-      res = (Component[])res.clone();
+      res = res.clone();
     }
     return res;
   }
@@ -96,7 +95,7 @@ public class ScrServiceImpl implements org.apache.felix.scr.ScrService
   public Component[] getComponents(final Bundle bundle) {
     Component[] res = scr.getComponents(bundle);
     if (res != null) {
-      res = (Component[])res.clone();
+      res = res.clone();
     }
     return res;
   }

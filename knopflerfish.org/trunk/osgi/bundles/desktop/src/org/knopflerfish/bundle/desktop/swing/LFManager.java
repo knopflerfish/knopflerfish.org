@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2008, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,15 @@
 
 package org.knopflerfish.bundle.desktop.swing;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.LookAndFeel;
 import javax.swing.UIManager;
 
 public class LFManager {
 
-  public Hashtable customLF = new Hashtable();
+  public Map<String, LookAndFeel> customLF = new HashMap<String, LookAndFeel>();
 
   boolean bUseSystemLF = true;
 
@@ -96,8 +97,7 @@ public class LFManager {
         UIManager.setLookAndFeel(systemLF);
       } else if(bUseCustomLF) {
         Activator.log.debug("Setting Knopflerfish L&F...");
-        UIManager.setLookAndFeel((LookAndFeel)
-                                 customLF.get(KnopflerfishLookAndFeel.class.getName()));
+        UIManager.setLookAndFeel(customLF.get(KnopflerfishLookAndFeel.class.getName()));
       }
     } catch (Exception e) {
       Activator.log.error("Failed to set default LF");

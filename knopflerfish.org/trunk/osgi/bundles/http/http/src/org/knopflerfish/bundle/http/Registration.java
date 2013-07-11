@@ -34,16 +34,16 @@
 
 package org.knopflerfish.bundle.http;
 
-public interface Registration {
+public interface Registration
+{
+  // public methods
 
-    // public methods
+  public RequestDispatcherImpl getRequestDispatcher(String uri);
 
-    public RequestDispatcherImpl getRequestDispatcher(String uri);
+  public void destroy();
 
-    public void destroy();
+  public void setOwner(Object o);
 
-    public void setOwner(Object o);
-
-    public Object getOwner();
+  public Object getOwner();
 
 } // Registration

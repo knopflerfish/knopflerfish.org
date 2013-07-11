@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,8 +122,8 @@ public class Util {
     return (Throwable)e.getProperty("exception");
   }
 
-  public static ServiceReference getServiceReference(Event e) {
-    return (ServiceReference)e.getProperty("service");
+  public static ServiceReference<?> getServiceReference(Event e) {
+    return (ServiceReference<?>)e.getProperty("service");
   }
 
   public static long getTime(Event e) {
@@ -159,7 +159,7 @@ public class Util {
 
 
 
-  static Set SKIP_KEYS = new HashSet() {
+  static Set<String> SKIP_KEYS = new HashSet<String>() {
     private static final long serialVersionUID = 1L;
     {
       add("log.entry");
@@ -187,9 +187,9 @@ public class Util {
       return "null";
     }
     StringBuffer sb = new StringBuffer();
-    Map map = (Map)obj;
+    Map<?,?> map = (Map<?,?>)obj;
     sb.append("<table>");
-    for(Iterator it = map.keySet().iterator(); it.hasNext(); ) {
+    for(Iterator<?> it = map.keySet().iterator(); it.hasNext(); ) {
       Object key = it.next();
       Object val = map.get(key);
       sb.append("<tr>");
@@ -227,7 +227,7 @@ public class Util {
 
     String[] names = e.getPropertyNames();
 
-    Set keys = new TreeSet();
+    Set<String> keys = new TreeSet<String>();
     for(int i = 0; i < names.length; i++) {
       // if(!SKIP_KEYS.contains(names[i])) 
         {
@@ -263,8 +263,8 @@ public class Util {
       sb.append("</td>");
     } 
 
-    for(Iterator it = keys.iterator(); it.hasNext();) {
-      String key = (String)it.next();
+    for(Iterator<String> it = keys.iterator(); it.hasNext();) {
+      String key = it.next();
       sb.append("<tr>");
       
       sb.append("<td>");

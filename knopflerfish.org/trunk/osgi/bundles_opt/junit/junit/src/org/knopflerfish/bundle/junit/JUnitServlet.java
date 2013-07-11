@@ -179,7 +179,7 @@ public class JUnitServlet extends HttpServlet {
       ")";
     
     ServiceReference[] srl = 
-      Activator.bc.getServiceReferences(null, filter);
+      Activator.bc.getServiceReferences((String)null, filter);
     
     if(srl == null || srl.length == 0) {
       out.println("No Test services found");

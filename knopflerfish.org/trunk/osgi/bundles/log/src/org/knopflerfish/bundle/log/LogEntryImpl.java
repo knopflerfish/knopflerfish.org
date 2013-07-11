@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2011, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,7 +74,7 @@ public final class LogEntryImpl implements LogEntry {
   // Log entry data.
   private final Bundle bundle;
 
-  private final ServiceReference sr;
+  private final ServiceReference<?> sr;
 
   private final int level;
 
@@ -93,12 +93,12 @@ public final class LogEntryImpl implements LogEntry {
     this(bc, null, l, m, e);
   }
 
-  public LogEntryImpl(final Bundle bc, final ServiceReference sd, final int l,
+  public LogEntryImpl(final Bundle bc, final ServiceReference<?> sd, final int l,
                       final String m) {
     this(bc, sd, l, m, null);
   }
 
-  public LogEntryImpl(final Bundle bc, final ServiceReference sd, final int l,
+  public LogEntryImpl(final Bundle bc, final ServiceReference<?> sd, final int l,
                       final String m,  final Throwable e) {
     this.bundle = bc;
     this.sr = sd;
@@ -160,7 +160,7 @@ public final class LogEntryImpl implements LogEntry {
     return bundle;
   }
 
-  public ServiceReference getServiceReference() {
+  public ServiceReference<?> getServiceReference() {
     return sr;
   }
 

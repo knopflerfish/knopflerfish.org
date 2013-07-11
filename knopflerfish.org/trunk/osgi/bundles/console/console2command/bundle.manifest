@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Console2Command
 Bundle-SymbolicName: org.knopflerfish.bundle.console2command
-Bundle-Version: 1.0.0
-Bundle-Description: Wrapper for KF console commands to OSGi 4.2 commands
+Bundle-Version: 2.0.0
+Bundle-Description: Wrapper for KF console commands to OSGi 4.3 commands
 Bundle-Vendor: Knopflerfish
 Bundle-APIVendor: Knopflerfish
 Bundle-ContactAddress: http://www.knopflerfish.org
@@ -11,10 +11,11 @@ Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
  /index.html
 Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
  /osgi/bundles/console/console2command/
-Bundle-Activator: org.knopflerfish.bundle.console2command.Activator
 Bundle-Category: command
-Import-Package: org.osgi.framework,
- org.osgi.service.log,
- org.osgi.util.tracker,
- org.osgi.service.command; version=1.0,
- org.knopflerfish.service.console; version=1.0.0
+Bundle-Activator: org.knopflerfish.bundle.console2command.Activator
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=OSGi/Minimum)(version>=1.2))"
+Import-Package: org.osgi.framework; version="[1.6,2)",
+ org.osgi.service.log; version="[1.3,2)",
+ org.osgi.util.tracker; version="[1.5,2)",
+ org.osgi.service.command; version="[1.0,2)",
+ org.knopflerfish.service.console; version="[2.1,3)"

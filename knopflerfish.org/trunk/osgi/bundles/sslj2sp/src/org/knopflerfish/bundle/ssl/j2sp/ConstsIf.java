@@ -35,22 +35,21 @@ package org.knopflerfish.bundle.ssl.j2sp;
 
 /**
  * This class is a collection of well known constants.
- * @see "JavaTM Secure Socket Extension (JSSE)
- * Reference Guide for the Java 2 SDK, Standard Edition, v1.4.2"
- * Appendix A
- * 
+ *
+ * @see "JavaTM Secure Socket Extension (JSSE) Reference Guide for the Java 2
+ *      SDK, Standard Edition, v1.4.2" Appendix A
+ *
  */
 public interface ConstsIf
 {
-    //SSL protocol types
-    public final String PROT_SSL_V3     = "SSLv3";
-    public final String PROT_TLS_V1     = "TLSv1";
-    
-    //Keystore Types
-	public final String KS_TYPE_JKS = "JKS";
-    public final String KS_TYPE_PKC12 = "PKC12";
-    
-    
-    //Keymanager Types
-    public final String KM_TYPE_SUN = "SunX509";
+  // SSL protocol types
+  public final String PROT_SSL_V3 = "SSLv3";
+  public final String PROT_TLS_V1 = "TLSv1";
+
+  // Keystore Types
+  public final String KS_TYPE_JKS = "JKS";
+  public final String KS_TYPE_PKC12 = "PKC12";
+
+  // Keymanager Types
+  public final String KM_TYPE_SUN = "SunX509";
 }

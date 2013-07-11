@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ package org.knopflerfish.bundle.desktop.prefs;
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.prefs.*;
@@ -47,14 +48,14 @@ import java.io.*;
 import org.knopflerfish.bundle.desktop.swing.Activator;
 
 /**
- * JTree that display display/edit a Preferences node and its subnodes.
+ * JTree that display display/edit a Preferences node and its sub-nodes.
  */
 public class JPrefsTree extends JTree {
   private static final long serialVersionUID = 1L;
 
   JPopupMenu popup;
 
-  Collection menuItemsRO = new HashSet();
+  Collection<JMenuItem> menuItemsRO = new HashSet<JMenuItem>();
 
   String rootName = "Preferences";
 
@@ -240,8 +241,8 @@ public class JPrefsTree extends JTree {
 
   public void setEditable(boolean b) {
     super.setEditable(b);
-    for(Iterator it = menuItemsRO.iterator(); it.hasNext(); ) {
-      JMenuItem mi = (JMenuItem)it.next();
+    for(Iterator<JMenuItem> it = menuItemsRO.iterator(); it.hasNext(); ) {
+      JMenuItem mi = it.next();
       mi.setEnabled(b);
     }
   }
@@ -260,7 +261,7 @@ public class JPrefsTree extends JTree {
 
   public void searchAndExpand(String name, int maxLevel) {
     try {
-      Collection paths = new LinkedHashSet();
+      Collection<TreePath> paths = new LinkedHashSet<TreePath>();
       TreePath tp = new TreePath(getModel().getRoot());
       search(tp, paths, name.toLowerCase(), true, 0, maxLevel);
 
@@ -271,7 +272,7 @@ public class JPrefsTree extends JTree {
   }
 
 
-  void search(TreePath tp, Collection paths,
+  void search(TreePath tp, Collection<TreePath> paths,
               String q,
               boolean bMatchValues,
               int level,
@@ -307,7 +308,7 @@ public class JPrefsTree extends JTree {
         }
       }
     }
-    for(Enumeration e = node.children(); e.hasMoreElements(); ) {
+    for(Enumeration<?> e = node.children(); e.hasMoreElements(); ) {
       Object child = e.nextElement();
       search(tp.pathByAddingChild(child), paths, q, bMatchValues, level + 1, maxLevel);
     }
@@ -328,7 +329,7 @@ public class JPrefsTree extends JTree {
                                                 JOptionPane.YES_NO_OPTION);
 
       if(name != null && !"".equals(name)) {
-        Collection oldPaths = TreeUtils.getExpandedPaths(this);
+        Collection<TreePath> oldPaths = TreeUtils.getExpandedPaths(this);
         Preferences p = node.getPrefs().node(name);
         PrefsTreeNode pNode = new PrefsTreeNode(p);
         oldPaths.add(tp);
@@ -350,7 +351,7 @@ public class JPrefsTree extends JTree {
       return;
     }
     try {
-      Collection oldPaths = TreeUtils.getExpandedPaths(this);
+      Collection<TreePath> oldPaths = TreeUtils.getExpandedPaths(this);
       PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
       node.getPrefs().sync();
       node.rescan();
@@ -383,7 +384,7 @@ public class JPrefsTree extends JTree {
     }
     try {
       PrefsTreeNode node = (PrefsTreeNode)tp.getLastPathComponent();
-      Collection oldPaths = TreeUtils.getExpandedPaths(this);
+      Collection<TreePath> oldPaths = TreeUtils.getExpandedPaths(this);
       node.getPrefs().removeNode();
       setModel(getModel());
       TreeUtils.expandPaths(this, oldPaths);

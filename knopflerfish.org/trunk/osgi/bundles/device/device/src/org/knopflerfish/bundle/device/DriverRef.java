@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,23 @@ package org.knopflerfish.bundle.device;
 import org.osgi.framework.ServiceReference;
 import org.osgi.service.device.Driver;
 
-public class DriverRef {
-    int ranking;
+public class DriverRef
+{
+  int ranking;
 
-    long servid;
+  long servid;
 
-    String id;
+  String id;
 
-    ServiceReference sr;
+  ServiceReference<?> sr;
 
-    Driver drv;
+  Driver drv;
+
+  @Override
+  public String toString()
+  {
+    return "DriverRef: id=" +id +", ranking=" +ranking +", sr=" +sr;
+  }
+
+
 }

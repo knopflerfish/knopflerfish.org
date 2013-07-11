@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,20 +97,20 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
   DefaultListModel allTopics;
   DefaultListModel allKeys;
 
-  Set selectedKeys;
+  Set<String> selectedKeys;
 
   boolean popupOK = false;
 
   public JEventPanel(DefaultListModel allTopics,
                      DefaultListModel allKeys,
-                     Set              selectedKeys,
+                     Set<String>      selectedKeys,
                      EventTableModel   model,
                      JEventEntryDetail logEntryDetail,
                      boolean         bSort) {
     super(new BorderLayout());
     this.allTopics = allTopics;
     this.allKeys   = allKeys;
-    this.selectedKeys = new LinkedHashSet();
+    this.selectedKeys = new LinkedHashSet<String>();
     this.selectedKeys.addAll(selectedKeys);
     this.model = model;
 
@@ -321,7 +321,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
     popupOK = false;
   }
 
-  ArrayList cbList = new ArrayList();
+  ArrayList<JCheckBoxMenuItem> cbList = new ArrayList<JCheckBoxMenuItem>();
 
   void makePopup() {
     if(popupOK) {
@@ -334,13 +334,13 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
 
     cbList.clear();
 
-    Set keys = new TreeSet();
+    Set<String> keys = new TreeSet<String>();
     for(int i = 0; i < allKeys.getSize(); i++) {
       String val = allKeys.getElementAt(i).toString();
       keys.add(val);
     }
-    for(Iterator it = keys.iterator(); it.hasNext(); ) {
-      final String val = (String)it.next();
+    for(Iterator<String> it = keys.iterator(); it.hasNext(); ) {
+      final String val = it.next();
       final JCheckBoxMenuItem cb = new JCheckBoxMenuItem(val);
       if(selectedKeys.contains(val)) {
         cb.setState(true);
@@ -369,11 +369,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
   }
 
   void updateTableModel() {
-    ArrayList names = new ArrayList();
-    for(Iterator it = selectedKeys.iterator(); it.hasNext(); ) {
-      String name = (String)it.next();
-      names.add(name);
-    }
+    ArrayList<String> names = new ArrayList<String>(selectedKeys);
     model.setColumns(names);
   }
 
@@ -402,8 +398,7 @@ public class JEventPanel extends JPanel implements ClipboardOwner {
   void copyToClipBoard() {
     StringBuffer sb = new StringBuffer();
 
-    for(Iterator it = model.getEntries().iterator(); it.hasNext();) {
-      Event entry = (Event)it.next();
+    for(Event entry : model.getEntries()) {
       sb.append(entry.toString());
       sb.append("\n");
     }

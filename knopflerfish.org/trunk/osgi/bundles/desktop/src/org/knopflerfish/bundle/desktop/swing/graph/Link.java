@@ -2,7 +2,7 @@ package org.knopflerfish.bundle.desktop.swing.graph;
 
 
 
-public interface Link extends Comparable {
+public interface Link extends Comparable<Link> {
   public Node getFrom();
   public Node getTo();
   public int getDepth();

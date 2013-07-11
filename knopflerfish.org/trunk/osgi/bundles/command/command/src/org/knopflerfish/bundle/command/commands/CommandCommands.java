@@ -41,7 +41,7 @@ public class CommandCommands {
         ")";
         
     }
-    ServiceReference[] srl = bc.getServiceReferences(null, filter);
+    ServiceReference[] srl = bc.getServiceReferences((String)null, filter);
     for(int i = 0; srl != null && i < srl.length; i++) {
       Object obj = null;
       try {

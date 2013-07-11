@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2004, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,7 @@ public class CMDataReader extends XmlReader {
 
     private final static String ELEMENT_TYPE = "elementType";
 
-    private static Class classBigDecimal = null;
+    private static Class<?> classBigDecimal = null;
     static {
         try {
             classBigDecimal = Class.forName("java.math.BigDecimal");
@@ -87,7 +87,7 @@ public class CMDataReader extends XmlReader {
         }
     }
 
-    private static Class classBigInteger = null;
+    private static Class<?> classBigInteger = null;
     static {
         try {
             classBigInteger = Class.forName("java.math.BigInteger");
@@ -96,7 +96,8 @@ public class CMDataReader extends XmlReader {
         }
     }
 
-    private final static Hashtable stringToClass = new Hashtable();
+    private final static Hashtable<String,Class<?>> stringToClass
+      = new Hashtable<String, Class<?>>();
     static {
         stringToClass.put("Vector", Vector.class);
         stringToClass.put("Integer", Integer.class);
@@ -116,7 +117,8 @@ public class CMDataReader extends XmlReader {
         }
     }
 
-    private final static Hashtable stringToPrimitiveType = new Hashtable();
+    private final static Hashtable<String,Class<?>> stringToPrimitiveType
+      = new Hashtable<String, Class<?>>();
     static {
         stringToPrimitiveType.put("int", Integer.TYPE);
         stringToPrimitiveType.put("short", Short.TYPE);
@@ -128,7 +130,8 @@ public class CMDataReader extends XmlReader {
         stringToPrimitiveType.put("boolean", Boolean.TYPE);
     }
 
-    private final static Hashtable primitiveTypeToWrapperType = new Hashtable();
+    private final static Hashtable<String,Class<?>> primitiveTypeToWrapperType
+      = new Hashtable<String, Class<?>>();
     static {
         primitiveTypeToWrapperType.put("int", Integer.class);
         primitiveTypeToWrapperType.put("short", Short.class);
@@ -140,12 +143,12 @@ public class CMDataReader extends XmlReader {
         primitiveTypeToWrapperType.put("boolean", Boolean.class);
     }
 
-    private final Stack objects = new Stack();
+    private final Stack<Object> objects = new Stack<Object>();
 
     public CMDataReader() {
     }
 
-    public Hashtable readCMData(PushbackReader r) throws Exception {
+    public Hashtable<String,Object> readCMData(PushbackReader r) throws Exception {
         if (objects.size() > 0) {
             objects.removeAllElements();
         }
@@ -153,107 +156,127 @@ public class CMDataReader extends XmlReader {
         if (objects.size() != 1) {
             throwMessage("Failed creating Hashtable from cm_data stream.");
         }
-        return (Hashtable) objects.peek();
+        @SuppressWarnings("unchecked")
+        Hashtable<String,Object> res = (Hashtable<String,Object>) objects.peek();
+        return res;
     }
 
-    public Hashtable[] readCMDatas(PushbackReader r) throws Exception {
+    public Hashtable<String,Object>[] readCMDatas(PushbackReader r) throws Exception {
         if (objects.size() > 0) {
             objects.removeAllElements();
         }
         read(r);
-        Hashtable[] configs = new Hashtable[objects.size()];
+        @SuppressWarnings("unchecked")
+        Hashtable<String,Object>[] configs = new Hashtable[objects.size()];
         for (int i=0; i<objects.size(); i++) {
-            configs[i] = (Hashtable) objects.elementAt(i);
+          @SuppressWarnings("unchecked")
+          Hashtable<String,Object> h = (Hashtable<String,Object>) objects.elementAt(i);
+            configs[i] = h;
         }
         return configs;
     }
 
-    protected void startElement(String elementType, Dictionary attributes)
-            throws Exception {
-        if (VALUE.equals(elementType)) {
-            String type = (String) attributes.get(TYPE);
-            throwIfMissingAttribute(elementType, TYPE, type);
-        } else if (PROPERTY.equals(elementType)) {
-            String name = (String) attributes.get(NAME);
-            throwIfMissingAttribute(elementType, NAME, name);
-            objects.push(name);
-        } else if (PRIMITIVE_VALUE.equals(elementType)) {
-            String type = (String) attributes.get(TYPE);
-            throwIfMissingAttribute(elementType, TYPE, type);
-        } else if (ARRAY.equals(elementType)) {
-            String length = (String) attributes.get(LENGTH);
-            throwIfMissingAttribute(elementType, LENGTH, length);
-            String type = (String) attributes.get(ELEMENT_TYPE);
-            throwIfMissingAttribute(elementType, ELEMENT_TYPE, type);
-        } else if (VECTOR.equals(elementType)) {
-            String length = (String) attributes.get(LENGTH);
-            throwIfMissingAttribute(elementType, LENGTH, length);
-        } else if (FACTORY_CONFIGURATION.equals(elementType)
-                || CONFIGURATION.equals(elementType)) {
-            objects.push(new Hashtable());
-        } else {
-        }
+    @Override
+  protected void startElement(String elementType,
+                              Dictionary<String, String> attributes)
+      throws Exception
+  {
+    if (VALUE.equals(elementType)) {
+      String type = (String) attributes.get(TYPE);
+      throwIfMissingAttribute(elementType, TYPE, type);
+    } else if (PROPERTY.equals(elementType)) {
+      String name = (String) attributes.get(NAME);
+      throwIfMissingAttribute(elementType, NAME, name);
+      objects.push(name);
+    } else if (PRIMITIVE_VALUE.equals(elementType)) {
+      String type = (String) attributes.get(TYPE);
+      throwIfMissingAttribute(elementType, TYPE, type);
+    } else if (ARRAY.equals(elementType)) {
+      String length = (String) attributes.get(LENGTH);
+      throwIfMissingAttribute(elementType, LENGTH, length);
+      String type = (String) attributes.get(ELEMENT_TYPE);
+      throwIfMissingAttribute(elementType, ELEMENT_TYPE, type);
+    } else if (VECTOR.equals(elementType)) {
+      String length = (String) attributes.get(LENGTH);
+      throwIfMissingAttribute(elementType, LENGTH, length);
+    } else if (FACTORY_CONFIGURATION.equals(elementType)
+               || CONFIGURATION.equals(elementType)) {
+      objects.push(new Hashtable<String, Object>());
+    } else {
     }
+  }
 
-    protected void endElement(String elementType, Dictionary attributes,
-            String content) throws Exception {
-        if (VALUE.equals(elementType)) {
-            String type = (String) attributes.get(TYPE);
-            Object o = createValue(type, content);
-            objects.push(o);
-        } else if (PROPERTY.equals(elementType)) {
-            Object value = objects.pop();
-            Object key = objects.pop();
-            ((Dictionary) objects.peek()).put(key, value);
-        } else if (PRIMITIVE_VALUE.equals(elementType)) {
-            String type = (String) attributes.get(TYPE);
-            Object o = createWrappedPrimitiveValue(type, content);
-            objects.push(o);
-        } else if (NULL.equals(elementType)) {
-            objects.push(NULL_ELEMENT);
-        } else if (ARRAY.equals(elementType)) {
-            String componentType = (String) attributes.get(ELEMENT_TYPE);
-            int length = Integer.parseInt((String) attributes.get(LENGTH));
-            Object array = createArray(length, componentType);
-            for (int i = length - 1; -1 < i; --i) {
-                Object o = objects.pop();
-                if (o == NULL_ELEMENT) {
-                    Array.set(array, i, null);
-                } else {
-                    Array.set(array, i, o);
-                }
-            }
-            objects.push(array);
-        } else if (VECTOR.equals(elementType)) {
-            Vector v = new Vector();
-            int length = Integer.parseInt((String) attributes.get(LENGTH));
-            for (int i = 0; i < length; ++i) {
-                v.insertElementAt(objects.pop(), 0);
-            }
-            objects.push(v);
-        } else if (FACTORY_CONFIGURATION.equals(elementType)) {
-            Object o = attributes.get(FACTORY_PID);
-            if (o != null) {
-                ((Hashtable) objects.peek()).put(FACTORY_PID, o);
-            }
-        } else if (CONFIGURATION.equals(elementType)) {
-            Object o = attributes.get(SERVICE_PID);
-            if (o == null) {
-                o = attributes.get(PID);
-            }
-            if (o != null) {
-                ((Hashtable) objects.peek()).put(Constants.SERVICE_PID, o);
-            }
+  protected void endElement(String elementType,
+                            Dictionary<String, String> attributes,
+                            String content)
+      throws Exception
+  {
+    if (VALUE.equals(elementType)) {
+      String type = (String) attributes.get(TYPE);
+      Object o = createValue(type, content);
+      objects.push(o);
+    } else if (PROPERTY.equals(elementType)) {
+      Object value = objects.pop();
+      String key = (String) objects.pop();
+      @SuppressWarnings("unchecked")
+      Dictionary<String, Object> dict = (Dictionary<String, Object>) objects
+          .peek();
+      dict.put(key, value);
+    } else if (PRIMITIVE_VALUE.equals(elementType)) {
+      String type = (String) attributes.get(TYPE);
+      Object o = createWrappedPrimitiveValue(type, content);
+      objects.push(o);
+    } else if (NULL.equals(elementType)) {
+      objects.push(NULL_ELEMENT);
+    } else if (ARRAY.equals(elementType)) {
+      String componentType = (String) attributes.get(ELEMENT_TYPE);
+      int length = Integer.parseInt((String) attributes.get(LENGTH));
+      Object array = createArray(length, componentType);
+      for (int i = length - 1; -1 < i; --i) {
+        Object o = objects.pop();
+        if (o == NULL_ELEMENT) {
+          Array.set(array, i, null);
         } else {
+          Array.set(array, i, o);
         }
+      }
+      objects.push(array);
+    } else if (VECTOR.equals(elementType)) {
+      Vector<Object> v = new Vector<Object>();
+      int length = Integer.parseInt((String) attributes.get(LENGTH));
+      for (int i = 0; i < length; ++i) {
+        v.insertElementAt(objects.pop(), 0);
+      }
+      objects.push(v);
+    } else if (FACTORY_CONFIGURATION.equals(elementType)) {
+      Object o = attributes.get(FACTORY_PID);
+      if (o != null) {
+        @SuppressWarnings("unchecked")
+        Hashtable<String, Object> h = (Hashtable<String, Object>) objects
+            .peek();
+        h.put(FACTORY_PID, o);
+      }
+    } else if (CONFIGURATION.equals(elementType)) {
+      Object o = attributes.get(SERVICE_PID);
+      if (o == null) {
+        o = attributes.get(PID);
+      }
+      if (o != null) {
+        @SuppressWarnings("unchecked")
+        Hashtable<String, Object> h = (Hashtable<String, Object>) objects
+            .peek();
+        h.put(Constants.SERVICE_PID, o);
+      }
+    } else {
     }
+  }
 
     static Object createValue(String type, String arg) throws Exception {
-        Class c = toJavaType(type);
+        Class<? extends Object> c = toJavaType(type);
         return createValue(c, arg);
     }
 
-    static Object createValue(Class c, String arg) throws Exception {
+    static Object createValue(Class<? extends Object> c, String arg) throws Exception {
         if (c == String.class) {
             return arg;
         } else if (c == Character.class) {
@@ -268,7 +291,7 @@ public class CMDataReader extends XmlReader {
 
     static Object createWrappedPrimitiveValue(String type, String arg)
             throws Exception {
-        Class c = toWrapperType(type);
+        Class<? extends Object> c = toWrapperType(type);
         return createValue(c, arg);
     }
 
@@ -288,7 +311,7 @@ public class CMDataReader extends XmlReader {
             dimensions[i] = 0;
         }
 
-        Class componentType = toJavaType(elementType);
+        Class<? extends Object> componentType = toJavaType(elementType);
         if (componentType == null) {
             return null;
         }
@@ -302,15 +325,15 @@ public class CMDataReader extends XmlReader {
         return ret;
     }
 
-    private static Class toJavaType(String type) throws Exception {
-        Class c = (Class) stringToClass.get(type);
+    private static Class<? extends Object> toJavaType(String type) throws Exception {
+        Class<? extends Object> c = stringToClass.get(type);
         if (c == null) {
-            c = (Class) stringToPrimitiveType.get(type);
+            c = stringToPrimitiveType.get(type);
         }
         return c;
     }
 
-    private static Class toWrapperType(String type) throws Exception {
-        return (Class) primitiveTypeToWrapperType.get(type);
+    private static Class<? extends Object> toWrapperType(String type) throws Exception {
+        return primitiveTypeToWrapperType.get(type);
     }
 }

@@ -48,7 +48,6 @@ import java.io.Reader;
  * @see CommandGroupAdapter
  * @see ConsoleService
  * @author Gatespace AB
- * @version $Revision: 1.1.1.1 $
  */
 
 public interface CommandGroup {

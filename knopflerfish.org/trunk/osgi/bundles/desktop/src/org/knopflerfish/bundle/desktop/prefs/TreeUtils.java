@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008-2012, KNOPFLERFISH project
+ * Copyright (c) 2008-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,22 +47,22 @@ import javax.swing.tree.TreePath;
 
 public class TreeUtils {
 
-  static public Collection getExpandedPaths(JTree tree) {
-    Collection set = new TreeSet(tpLengthComparator);
+  static public Collection<TreePath> getExpandedPaths(JTree tree) {
+    Collection<TreePath> set = new TreeSet<TreePath>(tpLengthComparator);
     TreePath root = new TreePath(tree.getModel().getRoot());
     if(root != null) {
-      for(Enumeration e = tree.getExpandedDescendants(root); e != null && e.hasMoreElements(); ) {
-        TreePath tp = (TreePath)e.nextElement();
+      for(Enumeration<TreePath> e = tree.getExpandedDescendants(root); e != null && e.hasMoreElements(); ) {
+        TreePath tp = e.nextElement();
         set.add(tp);
       }
     }
     return set;
   }
   
-  static public void expandPaths(JTree tree, Collection paths) {
+  static public void expandPaths(JTree tree, Collection<TreePath> paths) {
     if(paths != null) {
-      for(Iterator it = paths.iterator(); it.hasNext(); ) {
-        TreePath tp = (TreePath)it.next();
+      for(Iterator<TreePath> it = paths.iterator(); it.hasNext(); ) {
+        TreePath tp = it.next();
         
         expandPath(tree, tp);
       }
@@ -105,10 +105,10 @@ public class TreeUtils {
   }
 
 
-  public static Comparator tpLengthComparator = new Comparator() {
-      public int compare(Object o1, Object o2) {
-        Object[] a1 = ((TreePath)o1).getPath();
-        Object[] a2 = ((TreePath)o2).getPath();
+  public static Comparator<TreePath> tpLengthComparator = new Comparator<TreePath>() {
+      public int compare(TreePath tp1, TreePath tp2) {
+        Object[] a1 = tp1.getPath();
+        Object[] a2 = tp2.getPath();
         
         int n1 = a1 != null ? a1.length : 0;
         int n2 = a2 != null ? a2.length : 0;

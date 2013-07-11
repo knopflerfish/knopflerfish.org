@@ -1,16 +1,21 @@
-<h1>Directory deployer</h1>
+<h1>Directory Deployer</h1>
 
 <p>
-Simple bundle which scans file system directories and
-installs/uninstalls bundles found or removed from these directories.
+A bundle which scans file system directories for files that it can
+install, update or uninstall. The directory deployer bundle handles
+both bundle files and configuration files.  When a file is updated the
+bundle / configuration will be updated and when a file is removed from
+the scanned directory the bundle / configuration will be removed.
 </p>
 
 <p>
-This is a quite useful tool for handle bundle deployment without using any 
-console. Just copy the bundles that should be started to the deploy 
-directory, and the directory deployer will find and start them. When the 
-files are removed, they are uninstalled.
+This is a quite useful tool for handle bundle and configuration
+deployment without using any console. Just copy the file that should
+be installed to the deploy directory, and the directory deployer will
+find and activate them. When the files are removed, they are
+uninstalled.
 </p>
+
 
 <h2>Deploy method</h2>
 
@@ -23,32 +28,35 @@ files are removed, they are uninstalled.
   </li>
 
   <li>
-      New files are installed into the framework.<br> If they are not
-      fragment bundles, they are marked for start at the end of the
-      scan.<br> Files newer than a previously deployed bundle are
-      updated.
+      New files are installed into the framework.<br> At the end of
+      the scan any bundle that was installed will be started according
+      to its activation policy. Any fragment that was installed will
+      be attached to its host (be resolving it).
   </li>
 
   <li>
-      Files that have the same location as an already installed bundle
-      is not installed again, instead, the installed bundle is re-used
-      in the created DeployedFile instance.
+      Updated files (newer than a previously deployed bundle) are not
+      installed again, instead, the installed bundle or configuration
+      is updated from the new file.
   </li>
 
   <li>
-      Check if there are bundle installed by the directory deployer
-      that does not correspond to a file found during the directory
-      scan. If such bundles are found uninstall them.
+      Check if there are bundles or configurations installed by the
+      directory deployer that does not correspond to a file found
+      during the directory scan. If any such bundle or configuration
+      is found uninstall it.
   </li>
 
   <li>
       If any bundle update was performed during the scan, perform a
-      refresh packages operation for them using the in the package
-      admin service.
+      refresh bundles operation for them using the in the framework
+      wiring API.
   </li>
 
   <li>
-      Files marked for start are started.
+      Start newly installed bundles that can be started, resolve newly
+      installed fragments. Note that there will only be one start /
+      resolve attempt made for each bundle after an install or update.
   </li>
 
   <li>
@@ -61,31 +69,79 @@ files are removed, they are uninstalled.
 
 </ol>
 
+<h2>Deployable File Types</h2>
+
+The Directory Deployer supports deploying of bundles and configurations:
+
+<ul>
+
+  <li><b><tt>*.jar</tt></b> Bundle jar files.
+
+  <li><b><tt>*.xml</tt></b> OSGi CM configurations stored in XML-files
+      using the DTD <a href="../cm/cm_data.dtd">cm_data.dtd</a>.
+
+</ul>
+      
+<p>
+
+  A sample XML-file with a configuration for the Directory Deployer
+  bundle itself can be <a href="dirdeployer.xml">downloaded here</a>.
+
+</p>
+<p>
+
+  To create a CM configuration from scratch one may use the CM-tab in
+  Knopflerfish desktop, it presents a simple GUI based on
+  configuration meta type descriptions provided by configurable
+  bundles. The CM-tab is not visible in the Desktop when starting with
+  the default set of bundles, to activate it one must install and
+  start three more bundles from the Knopflerfish distribution:
+  <tt>metatype</tt> (OSGi Metatyp APIs), <tt>kf_metatype_all</tt>
+  (Knopflerfish Metatyp Service implementation) and
+  <tt>cm_desktop</tt> (the CM-tab desktop plug in itself).
+
+</p>
+<p>
+
+  To save an existing CM configuration as cm_data XML one may use the
+  CM-tab in the Knopflerfish desktop, it provides an
+  <tt>Export...</tt> button that will export the current configuration
+  as a cm_data XML file. It is also possible to use the Knopflerfish
+  console command <tt>configuration export</tt>. See <a
+  href="../cm_cmd/index.html">CM Commands</a> for details.  Avoid
+  writing cm_data XML files by hand since the parser for the
+  <tt>cm_data</tt> XML documents is written for machine generated
+  documents so it does not give usable error messages when something
+  in the XML-document is wrong.
+
+</p>
+
+
+
 <h2>Configuration</h2>
 
 <p>
-See <a href="$(SVN_REPO_URL)/$(SVN_TAG)/osgi/bundles_opt/dirdeployer/resources/metatype.xml">metatype.xml</a>
-for specification using CM. The same properties as defined by CM are
-also read as default values from framework properties. Thus, the
-bundle can be both configured by CM and using system properties.
+
+  See <a
+  href="$(SVN_REPO_URL)/$(SVN_TAG)/osgi/bundles_opt/dirdeployer/resources/OSGI-INF/metatype/metatype.xml">metatype.xml</a>
+  for specification using CM. The same properties as defined by CM are
+  also read as default values from framework properties. Thus, the
+  bundle can be both configured by CM and using system properties.
+
 </p>
 <p>
-Quick guide to the metatype.xml format:
-<ul>
- <li>Top level <tt>xsd:complexType</tt> is service PIDs</li>
- <li><tt>xsd:element</tt> is a property</li>
- <li><tt>metatype:values</tt> defines default values</li>
-</ul>
-For details on the metatype format, see <a
-href="http://www.knopflerfish.org/XMLMetatype">http://www.knopflerfish.org/XMLMetatype/</a>
 
-<p>You can set the deployment directory in <tt>metatype.xml</tt> in
-the bundle's resource directory (defaults to <tt>./load</tt>). A
-relative deployment directory path is relative to the directory from
-which the framework is started.</p>
+  You can set the deployment directory in <tt>metatype.xml</tt> in the
+  bundle's resource directory (defaults to <tt>./load</tt>). A
+  relative deployment directory path is relative to the directory from
+  which the framework is started.
 
-The table below describes the framework properties that may be used to
-set the default values for the directory deployer configuration.
+</p>
+<p>
+
+  The table below describes the framework properties that may be used
+  to set the default values for the directory deployer configuration.
+
 <table class="man">
   <tr>
     <th>Name</th>
@@ -93,6 +149,7 @@ set the default values for the directory deployer configuration.
     <th>Type</th>
     <th>Default</th>
   </tr>
+
   <tr>
     <td>org.knopflerfish.fileinstall.dir</td>
     <td>
@@ -106,6 +163,7 @@ set the default values for the directory deployer configuration.
     <td>String</td>
     <td>./load</td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.fileinstall.poll</td>
     <td>
@@ -117,22 +175,59 @@ set the default values for the directory deployer configuration.
     <td>long</td>
     <td>1000</td>
   </tr>
+
+  <tr>
+    <td>org.knopflerfish.fileinstall.use.initial.startlevel</td>
+    <td>
+
+	<p>
+
+        When this property is true the Directory Deployer will not set
+	any start level for bundles it installs thus those bundles
+	will belong to the default start level (i.e., the current
+	initial start level according to the Framework Start Level
+	API).
+
+	</p><p>
+
+	When this property is false the Directory Deployer will assign
+	the start level given by
+	<tt>org.knopflerfish.fileinstall.startlevel</tt> to the
+	bundles it installs.
+
+	</p>
+
+    </td>
+    <td>boolean</td>
+    <td>true</td>
+  </tr>
+
   <tr>
     <td>org.knopflerfish.fileinstall.startlevel</td>
     <td>
 
-	Bundle start level to assign to all newly installed bundles.
+	Bundle start level to assign to all newly installed
+	bundles. Note that you must set
+	<tt>org.knopflerfish.fileinstall.startlevel</tt> to false for
+	this property to have an effect.
 
     </td>
     <td>int</td>
-    <td>The initial bundle startlevel as returned by the StartLeve-service.</td>
+    <td>
+
+      The initial bundle start level as returned by the
+      StartLevel-API.
+
+    </td>
   </tr>
+
   <tr>
     <td>org.knopflerfish.fileinstall.uninstallOnStop</td>
     <td>
 
 	If <code>true</code> then the directory deployer will
-        uninstall all bundles that it has installed when it stopps.
+        uninstall all bundles and configurations that it has installed
+        when it stops.
 
     </td>
     <td>boolean</td>

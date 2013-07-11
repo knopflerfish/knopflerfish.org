@@ -34,12 +34,13 @@
 
 package org.knopflerfish.framework;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 
-
-import org.osgi.framework.*;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Version;
 import org.osgi.service.packageadmin.ExportedPackage;
+import org.osgi.service.packageadmin.PackageAdmin;
 
 
 /**
@@ -58,6 +59,7 @@ import org.osgi.service.packageadmin.ExportedPackage;
  * old values, isRemovalPending() returns true, and getExportingBundle()
  * and getImportingBundles() return null.
  */
+@SuppressWarnings("deprecation")
 public class ExportedPackageImpl implements ExportedPackage {
 
   final private ExportPkg pkg;
@@ -101,17 +103,17 @@ public class ExportedPackageImpl implements ExportedPackage {
    * has become stale.
    */
   public Bundle[] getImportingBundles() {
-    Collection imps = pkg.getPackageImporters();
+    final List<ImportPkg> imps = pkg.getPackageImporters();
     if (imps != null) {
-      int size = imps.size();
-      List rl = pkg.bpkgs.getRequiredBy();
-      int rsize = rl.size() ;
-      Bundle[] res = new Bundle[size + rsize];
-      imps.toArray(res);
-      for (int i = 0; i < rsize; i++) {
-        res[size + i] = ((BundlePackages)rl.get(i)).bg.bundle;
+      final HashSet<Bundle> bs = new HashSet<Bundle>();
+      for (final ImportPkg ip : imps) {
+        bs.add(ip.bpkgs.bg.bundle);
       }
-      return res;
+      final List<BundlePackages> rl = pkg.bpkgs.getRequiredBy();
+      for (final BundlePackages bp : rl) {
+        bs.add(bp.bg.bundle);
+      }
+      return bs.toArray(new Bundle[bs.size()]);
     } else {
       return null;
     }
@@ -151,6 +153,7 @@ public class ExportedPackageImpl implements ExportedPackage {
     return pkg.version;
   }
 
+  @Override
   public String toString() {
     return pkg.name +"(" +pkg.version +")";
   }

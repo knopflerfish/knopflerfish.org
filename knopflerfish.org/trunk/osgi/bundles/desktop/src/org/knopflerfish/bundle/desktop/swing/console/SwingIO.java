@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2012, KNOPFLERFISH project
+ * Copyright (c) 2003-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,10 +53,13 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.knopflerfish.bundle.desktop.swing.Activator;
 import org.knopflerfish.bundle.desktop.swing.Util;
 import org.osgi.service.log.LogService;
 
 public class SwingIO extends JPanel {
+  private static final String ORG_KNOPFLERFISH_FRAMEWORK_MAIN_BOOT_TEXT = "org.knopflerfish.framework.main.bootText";
+
   private static final long serialVersionUID = 1L;
 
   JTextArea  text;
@@ -80,7 +83,7 @@ public class SwingIO extends JPanel {
   JScrollPane scroll;
   Label  cmdLabel;
 
-  Vector history    = new Vector();
+  Vector<String> history    = new Vector<String>();
   int    historyPos = 0;
 
   StringBuffer lineBuff = new StringBuffer();
@@ -159,21 +162,18 @@ public class SwingIO extends JPanel {
     try {
       text = new JTextArea("", 8, 80);
       text.setEditable(false);
-      String bootText =
-        "Knopflerfish OSGi console. Copyright (c) 2004 Knopflerfish.";
 
       // See if we're using the knopflerfish framework. If so, grab
-      // the boot string from the startup class
-      try {
-        Class mainClazz = Class.forName("org.knopflerfish.framework.Main");
-        bootText        = (String)mainClazz.getField("bootText").get(null);
-      } catch (Throwable e) {
-        bootText        = "";
-        //  e.printStackTrace();
-        // anything else defaults to the std boot text above
+      // the boot string from framework properties.
+      String bootText = Activator
+          .getTargetBC_getProperty(ORG_KNOPFLERFISH_FRAMEWORK_MAIN_BOOT_TEXT);
+      if (null!=bootText) {
+        bootText += "\n\n";
+      } else {
+        bootText = "";
       }
       text.setText(bootText +
-       "\n\n" +
+       "Knopflerfish OSGi console.\n" +
        "Type 'help' for help or 'alias' for a list of common commands\n\n");
       scroll = new JScrollPane(text,
                                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -185,13 +185,13 @@ public class SwingIO extends JPanel {
           public void keyPressed(KeyEvent ev) {
             if(ev.getKeyCode() == KeyEvent.VK_UP) {
               if(historyPos > 0) {
-                String line = (String)history.elementAt(historyPos-1);
+                String line = history.elementAt(historyPos-1);
                 historyPos--;
                 tfCmd.setText(line);
               }
             } else if(ev.getKeyCode() == KeyEvent.VK_DOWN) {
               if(historyPos < history.size()-1) {
-                String line = (String)history.elementAt(historyPos+1);
+                String line = history.elementAt(historyPos+1);
                 historyPos++;
                 tfCmd.setText(line);
               }
@@ -215,7 +215,7 @@ public class SwingIO extends JPanel {
                   String s2 = line.substring(1);
                   String bestStr = "";
                   for(int i = 0; i < history.size(); i++) {
-                    String s = (String)history.elementAt(i);
+                    String s = history.elementAt(i);
                     if(s.startsWith(s2) || s.length() >= bestStr.length()) {
                       bestStr = s;
                     }
