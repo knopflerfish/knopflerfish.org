@@ -23,10 +23,14 @@ MKDIR   = /bin/mkdir
 RM      = /bin/rm
 SED     = /bin/sed
 SVN     = /usr/bin/svn
+SVNVERSION = /usr/bin/svnversion
 
-#JAVA      = java
-JAVA      = /usr/local/j2sdk1.4/bin/java
-export JAVA_HOME = /usr/local/j2sdk1.4
+# Build must be done using Java SE 5 or 6 due to '-target=jsr14'
+JAVA      = java
+export JAVA_HOME = /usr
+
+#JAVA      = /usr/local/j2sdk1.4/bin/java
+#export JAVA_HOME = /usr/local/j2sdk1.4
 
 YEAR := $(shell /bin/date '+%Y')
 DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
@@ -39,9 +43,8 @@ REL_VERSION := $(shell cd ${TAGs} && ${ANT} version | \
                               -e 's/\.[0-9]*[-a-zA-Z_][-0-9aa-zA-Z_]*//')
 
 # The current SVN revision number
-REVISION := $(shell ${SVN} info ${REPO} | \
-                    ${GREP} 'Revision: ' | \
-                    ${SED} -e 's/Revision: //')
+# Suppress trailing 'M' since allways modfied due to the change log file.
+REVISION := $(shell ${SVNVERSION} ${TAGs} | ${SED} -e 's/M//g')
 
 # The version of this nightly build
 VERSION := ${REL_VERSION}.snapshot_${TAGs}_${REVISION}
@@ -51,9 +54,6 @@ ANTv = ${ANT} -Dversion=${VERSION} \
               -Dsvn.tag=${TAG} \
               -Dbuild.kind=${BUILD_KIND} \
 	      -Dbase.url=${OUT_URL}
-
-# Ant pre-configured for generating maven 2 repository (JSE 5 or higher required)
-ANTmvn = env JAVA_HOME=/usr ${ANT}
 
 
 .PHONY: help all  clean version checkout update status
@@ -98,10 +98,10 @@ build:
 
 distrib:
 	(cd ${TAGs} && ${ANTv} distrib)
-	[ -r ${TAGs}/out/tmp/toMvn.xml ] && (cd ${TAGs} && ${ANTmvn} -f out/tmp/toMvn.xml)
+	[ -r ${TAGs}/out/tmp/toMvn.xml ] && (cd ${TAGs} && ${ANT} -f out/tmp/toMvn.xml)
 
 mvnrepo:
-	[ -r ${TAGs}/out/tmp/toMvn.xml ] && (cd ${TAGs} && ${ANTmvn} -f out/tmp/toMvn.xml)
+	[ -r ${TAGs}/out/tmp/toMvn.xml ] && (cd ${TAGs} && ${ANT} -f out/tmp/toMvn.xml)
 
 clean:
 	$(RM) -rf ${TAGs}
