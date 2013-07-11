@@ -1,0 +1,8 @@
+Bundle-Name: bundleP2_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleP2_test for test
+  of version control of exported packages. It imports a package.
+  Also used for conditional permission tests.
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-Activator: org.knopflerfish.bundle.bundleP2_test.BundleActivator
+Bundle-Category: test

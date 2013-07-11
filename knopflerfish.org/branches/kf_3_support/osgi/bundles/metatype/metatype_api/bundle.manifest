@@ -1,0 +1,16 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: metatype
+Bundle-SymbolicName: org.knopflerfish.bundle.metatype
+Bundle-Version: 3.0.0
+Bundle-Category: API
+Bundle-Description: Metatype API
+Bundle-Vendor: OSGi
+Bundle-APIVendor: OSGi
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles/metatype/metatype_api/
+Export-Package: org.osgi.service.metatype; version=1.1
+Import-Package: org.osgi.framework

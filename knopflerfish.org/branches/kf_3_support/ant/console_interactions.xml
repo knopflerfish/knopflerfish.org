@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ** Copyright (c) 2003-2008, KNOPFLERFISH project
+  ** All rights reserved.
+  **
+  ** Redistribution and use in source and binary forms, with or without
+  ** modification, are permitted provided that the following conditions
+  ** are met:
+  **
+  ** - Redistributions of source code must retain the above copyright notice,
+  **   this list of conditions and the following disclaimer.
+  **
+  ** - Redistributions in binary form must reproduce the above copyright
+  **   notice, this list of conditions and the following disclaimer in
+  **   the documentation and/or other materials provided with the
+  **   distribution.
+  **
+  ** - Neither the name of the KNOPFLERFISH project nor the names of its
+  **   contributors may be used to endorse or promote products derived
+  **   from this software without specific prior written permission.
+  **
+  ** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  ** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  ** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  ** FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  ** COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  ** INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  ** (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  ** SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+  ** HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+  ** STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ** ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+  ** OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+
+<project name="console_interactions" basedir=".">
+
+  <!-- Prefix for location of the bundle to install in the -->
+  <!-- install-target.                                     -->
+  <property name="install_url_prefix"  value="file:"/>
+
+  <!-- Properties for the send_console_cmd-target. -->
+  <property name="console.host"        value="localhost"/>
+  <property name="console.port"        value="23"/>
+  <property name="console.user"        value="admin"/>
+  <property name="console.pwd"         value="admin"/>
+  <property name="console.welcome"     value="Knopflerfish OSGi console"/>
+  <property name="console.loginok"     value="'quit' to end session"/>
+
+
+  <target name="check_telnet">
+    <available classname="com.oroinc.net.telnet.TelnetCommand"
+              property="telnet.available"/>
+    <fail unless="telnet.available"
+          message="Telnet lib is not available. Please download from http://www.savarese.org/oro/downloads/index.html#NetComponents and install in $$ANT_HOME/lib. You can also try  'ant install_netcomponents'"/>
+  </target>
+
+  <target name="install_netcomponents">
+    <antcall target="download_netcomponents'" />
+    <antcall target="unpack_netcomponents'"   />
+  </target>
+
+  <target name="download_netcomponents">
+    <get src="http://www.savarese.org/oro/downloads/NetComponents-1.3.8.zip"
+         dest="${sysprops.ANT_HOME}/NetComponents-1.3.8.zip"/>
+  </target>
+
+  <target name="unpack_netcomponents">
+    <unzip src="${sysprops.ANT_HOME}/NetComponents-1.3.8.zip"
+           dest="${sysprops.ANT_HOME}/lib">
+      <patternset>
+	<include name="NetComponents-1.3.8a/NetComponents.jar"/>
+      </patternset>
+    </unzip>
+
+    <move file="${sysprops.ANT_HOME}/lib/NetComponents-1.3.8a/NetComponents.jar"
+          tofile="${sysprops.ANT_HOME}/lib/NetComponents.jar"/>
+  </target>
+
+  <target name="install"
+          depends="init"
+          description="Install &lt;bundle&gt;.jar using telnet console">
+    <antcall target="send_console_cmd">
+      <param name="cmd"
+             value="/fr install ${install_url_prefix}${all.jar}"/>
+    </antcall>
+    <!-- give it a chance to succeed -->
+    <sleep seconds="5"/>
+  </target>
+
+  <target name="install_impl"
+          depends="init"
+          description="Install &lt;bundle&gt;_impl.jar using telnet console">
+    <antcall target="send_console_cmd">
+      <param name="cmd"
+             value="/fr install ${install_url_prefix}${impl.jar}"/>
+    </antcall>
+    <!-- give it a chance to succeed -->
+    <sleep seconds="5"/>
+  </target>
+
+  <target name="stop"
+          depends="init"
+          description="Stop &lt;bundle&gt; using telnet console">
+    <antcall target="send_console_cmd">
+      <param name="cmd"
+             value="/fr stop &#34;${bmfa.Bundle-Name}&#34;"/>
+    </antcall>
+  </target>
+
+  <target name="start"
+          depends="init"
+          description="Start &lt;bundle&gt; using telnet console">
+    <antcall target="send_console_cmd">
+      <param name="cmd"
+             value="/fr start &#34;${bmfa.Bundle-Name}&#34;"/>
+    </antcall>
+  </target>
+
+  <target name="update"
+          depends="init"
+          description="Update &lt;bundle&gt; using telnet console">
+    <antcall target="send_console_cmd">
+      <param name="cmd"
+             value="/fr update &#34;${bmfa.Bundle-Name}&#34;"/>
+    </antcall>
+  </target>
+
+  <target name="uninstall"
+          depends="init"
+          description="Uninstall &lt;bundle&gt; using telnet console">
+    <antcall target="send_console_cmd">
+      <param name="cmd"
+           value="/fr uninstall &#34;${bmfa.Bundle-Name}&#34;"/>
+    </antcall>
+  </target>
+
+  <target name="send_console_cmd" depends="check_telnet">
+    <telnet port="${console.port}" server="${console.host}" timeout="20">
+      <read string="${console.welcome}"/>
+      <read>ogin:</read>
+      <write echo="true">${console.user}</write>
+      <read>assword:</read>
+      <write echo="false">${console.pwd}</write>
+      <read string="${console.loginok}"/>
+      <write>${cmd}</write>
+      <read/>
+    </telnet>
+  </target>
+
+
+  <target name="junit_ext"
+          description="Runs remote JUnit test using external runner">
+    <fail unless="test.id" message="test.id must be set to test suite id"/>
+    <java classname="${junit.runner.class}" fork="yes">
+      <classpath>
+	<path location="${jars.dir}/junit/junit_all-1.0.0.jar"/>
+	<path refid="bundle.compile.path"/>
+      </classpath>
+      <sysproperty key="suite.url"
+                   value="http://${http.host}:${http.port}/junit?id=${test.id}"/>
+      <arg value="org.knopflerfish.service.junit.client.JUnitClient"/>
+    </java>
+  </target>
+
+  <target name="junit_ant"
+          description="Runs remote JUnit test using Ant junit task">
+    <fail unless="test.id" message="test.id must be set to test suite id"/>
+    <echo message = "JUnit output file is '${junit.outfile}'"/>
+    <junit fork="yes" showoutput="true" printsummary="true">
+      <sysproperty key="suite.url"
+                   value="http://${http.host}:${http.port}/junit?id=${test.id}"/>
+      <classpath>
+	<path location="${jars.dir}/junit/junit_all-1.0.0.jar"/>
+	<path refid="bundle.compile.path"/>
+      </classpath>
+      <formatter type="${junit.formatter}"/>
+      <test name="org.knopflerfish.service.junit.client.JUnitClient"
+            outfile="${junit.outfile}"/>
+    </junit>
+  </target>
+
+</project>

@@ -1,0 +1,14 @@
+Bundle-Name: bundleC_test
+Bundle-SymbolicName: org.knopflerfish.bundle.bundleC_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleC_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleC_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleC_test
+Import-Package: org.knopflerfish.service.bundleC_test,org.osgi.framework
+Bundle-UUID: org.knopflerfish:bundleC_test:1.0.0:all
+
+

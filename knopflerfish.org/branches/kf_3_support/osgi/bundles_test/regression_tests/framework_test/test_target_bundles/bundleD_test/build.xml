@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<project name="bundleD_test" default="all">
+  <!-- Bundle with empty manifest -->
+
+  <dirname property="proj.dir" file="${ant.file.bundleD_test}"/>
+  <import  file="${proj.dir}/../../../test_import.xml"/>
+
+  <property name="bundle.version" value="1.0.0"/>
+
+  <property name="classes.out.dir"
+	    location="${topdir}/out/${ant.project.name}/classes"/>
+  <property name="jar.out.dir" 
+            location="${topdir}/jars/${ant.project.name}"/>
+  <property name="src.dir" location="src"/>
+  <property name="resources.dir" location="resources"/>
+  <property name="javac.target" value="1.2"/>
+  <property name="javac.source" value="1.2"/>
+  <property name="jar.file"
+            location="${jar.out.dir}/${ant.project.name}-${bundle.version}.jar"/>
+  <path id="bundle.path">
+    <pathelement location="${jars.dir}/../framework.jar"/>
+    <pathelement location="${osgi.jars.dir}/../framework.jar"/>
+    <pathelement location="${osgi.dir}/framework.jar"/>
+  </path>
+
+  <target name="all">
+    <echo message="${ant.project.name}"/>
+    <antcall target="compile"/>
+    <antcall target="jar"/>
+  </target>
+
+  <target name="compile">
+    <mkdir dir="${classes.out.dir}"/>
+    <javac destdir="${classes.out.dir}" 
+           debug="on"
+           includeAntRuntime="false"
+           srcdir="${src.dir}"
+           target="${javac.target}"
+           source="${javac.source}"
+           classpathref="bundle.path"
+           includes="**/*.java">
+    </javac>
+  </target>
+
+  <target name="jar">
+    <mkdir dir="${jar.out.dir}"/>
+    <mkdir dir="${resources.dir}"/><!-- Ensure that dir exists -->
+    <jar basedir="${classes.out.dir}" jarfile="${jar.file}">
+      <fileset dir="${resources.dir}"/>
+    </jar>  
+  </target>
+
+  <target name="clean">
+    <delete dir="${jar.out.dir}"/>
+    <delete dir="${classes.out.dir}"/>
+  </target>
+
+</project>

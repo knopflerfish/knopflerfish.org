@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="cm_desktop" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.cm_desktop}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "ee.check.foundation"   value = "false"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/desktop/**"/>
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="cm_api-N.N.N.jar"/>
+   <pathelement location="util-N.N.N.jar"/>
+   <pathelement location="desktop_api-N.N.N.jar"/>
+   <pathelement location="metatype-N.N.N.jar"/>
+   <pathelement location="kf_metatype-N.N.N.jar"/>
+  </path>
+  
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>

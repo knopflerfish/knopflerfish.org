@@ -1,0 +1,13 @@
+Bundle-Name: bundleD1_test
+Bundle-SymbolicName: bundleD1_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleD1_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleD1_test.BundleActivator
+Bundle-Category: test
+Export-Package: org.knopflerfish.service.bundleD1_test
+Import-Package: 
+Bundle-UUID: org.knopflerfish:bundleD1_test:1.0.0:all
+

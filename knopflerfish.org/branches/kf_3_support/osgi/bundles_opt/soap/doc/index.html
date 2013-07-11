@@ -1,0 +1,90 @@
+<h1>SOAP and WebServices in Knopflerfish</h1>
+
+<div class="abstract">
+<p>
+There are three different SOAP implementations for Knopflerfish:
+<ul>
+  <li>Axis (also known as Axis 1),</li>
+  <li>kSOAP,</li>
+  <li>Axis2.</li>
+</p>
+</div>
+
+<a name="axis1"><h2>Axis 1</h2></a>
+
+<p>
+The Knopflerfish Axis 1 port provides SOAP/Web service access to any
+OSGi bundle, both for exporting OSGi services as Web Services and for
+importing web services into an OSGI framework.
+
+</p><p>
+
+The Knopflerfish Axis 1 port is the oldest one. The bundle is around
+1.3&nbsp;M&nbsp;bytes in size. The following bundles are part of it:
+<ul>
+<li><tt><a href="../axis-osgi/index.html">axis-osgi</a></tt>
+    - The SOAP server implementation.</li>
+<li><tt><a href="../soapobject/index.html">soapobject</a></tt>
+    - Example bundle that publishes a WebService, <tt>remoteFW</tt>.</li>
+<li><tt><a href="soapclient.html">soapclient</a></tt>
+    - Example of a soap client that uses the <tt>remoteFW</tt>.</li>
+<li><tt><a href="../soap_desktop/index.html">soap_desktop</a></tt></tt>
+    - A SOAP service browser for the KF Swing Desktop.</li>
+<li><tt><a href="../soap_remotefw/index.html">soap_remotefw</a></tt>
+    - A complete remote OSGi framework, using SOAP.
+      Acting either in client mode or in server mode.</li>
+<li><tt>demos</tt> - SOAP demo bundles are available on <a target="_top"
+href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/demos/">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_opt/soap/demos/</a>.</li>
+</ul>
+</p>
+
+
+<a name="ksoap"><h2>kSOAP</h2></a>
+
+<p>
+The kSOAP implementation is smaller than Axis 1 (only
+138&nbsp;k&nbsp;bytes) The following subdirectories are part of it:
+<ul>
+<li><tt><a href="../ksoap-osgi/index.html">ksoap-osgi</a></tt>
+    - The kSOAP server implementation.</li>
+<li><tt><a href="../ksoap_remotefw/index.html">ksoap_remotefw</a></tt>
+    - A complete remote OSGi framework, using SOAP.
+      Acting either in client mode or in server mode.</li>
+</ul>
+</p>
+
+
+<a name="axis2"><h2>Axis 2</h2></a>
+
+<p>
+The Knopflerfish Axis2 port is the most recent one. Event though it is
+a stripped down version of the Axis2 Web Application it is fairly
+large, around 7&nbsp;M&nbsp;bytes. The following bundles are part of
+it:
+<ul>
+<li><tt><a href="../axis2-osgi/index.html">axis2-osgi</a></tt>
+    - The Axis2 SOAP server implementation.</li>
+<li><tt>xerces</tt>
+    - Apache Xerces-J XML parsing support needed by the
+    <tt>axis2-osi</tt> bundle.</li>
+<li><tt>xalan</tt>
+    - Apache Xalan-J XML transformation support needed by the
+    <tt>axis2-osgi</tt> bundle.</li>
+<li><tt>axis2_soapobject</tt>
+    - A bundle that publishes a Web-Service. Part of the KF-regression
+    test-suite. Source code is available at <a target="_top"
+href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapobject/</a></li>
+<li><tt>axis2_soapclient_adb</tt>
+    - A SOAP client (using unwrapped ADB
+     style stub) bundle that accesses the service published by
+    <tt>axis2_soapobject</tt>. Part of the KF-regression
+    test-suite. Source code is available at <a target="_top"
+href="https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/">https://www.knopflerfish.org/svn/knopflerfish.org/trunk/osgi/bundles_test/regression_tests/axis2_soapclient_adb/</a></li>
+</ul>
+</p>
+
+<h2>Bundle Jar docs</h2>
+$(BUNDLE_JARDOCS)
+
+<h2>Exported Packages</h2>
+$(BUNDLE_EXPORT_PACKAGE)

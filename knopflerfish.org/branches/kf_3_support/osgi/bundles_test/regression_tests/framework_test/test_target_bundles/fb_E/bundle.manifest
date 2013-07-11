@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-Version: 2.0.0
+Bundle-Name: fb_E
+Bundle-SymbolicName: test.fb_B
+Import-Package: org.osgi.framework, test_fapi
+Fragment-Host: test.fb_A

@@ -1,0 +1,33 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: JUnit
+Bundle-SymbolicName: org.knopflerfish.bundle.junit
+Bundle-Version: 3.0.0
+Bundle-Category: service
+Bundle-Description: JUnit support
+Bundle-Vendor: JUnit/Knopflerfish
+Bundle-APIVendor: JUnit
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/
+ bundledoc/index.html?docpage=junit
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/junit/junit/
+Bundle-Activator: org.knopflerfish.bundle.junit.Activator
+Bundle-Classpath: .,junit.jar
+Export-Package: org.knopflerfish.service.junit; version=1.0.0,
+ junit.framework; version=3.8.1
+Import-Package: org.osgi.framework,
+ org.osgi.util.tracker,
+ javax.servlet; resolution:=optional,
+ javax.servlet.http; resolution:=optional,
+ javax.swing; resolution:=optional,
+ javax.swing.border; resolution:=optional,
+ javax.swing.event; resolution:=optional,
+ javax.swing.text; resolution:=optional,
+ javax.swing.tree; resolution:=optional,
+ javax.xml.parsers; resolution:=optional,
+ junit.framework; version=3.8.1,
+ org.knopflerfish.service.console; resolution:=optional,
+ org.knopflerfish.service.junit; version=1.0.0,
+ org.osgi.service.http; resolution:=optional,
+ org.w3c.dom; resolution:=optional

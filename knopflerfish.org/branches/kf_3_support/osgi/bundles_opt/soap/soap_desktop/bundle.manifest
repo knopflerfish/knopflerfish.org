@@ -1,0 +1,27 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: SOAP-desktop
+Bundle-SymbolicName: org.knopflerfish.bundle.soap_desktop
+Bundle-Version: 3.0.0
+Bundle-Category: service
+Bundle-Description: SOAP Services desktop plugin
+Bundle-Vendor: Knopflerfish
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-DocURL: http://www.knopflerfish.org/releases/current/docs/bundledoc
+ /index.html?soap_desktop
+Bundle-SubversionURL: https://www.knopflerfish.org/svn/knopflerfish.org/trunk
+ /osgi/bundles_opt/soap/soap_desktop/
+Bundle-Activator: org.knopflerfish.bundle.soap.desktop.Activator
+Import-Package: org.osgi.framework,
+ javax.swing,
+ javax.swing.border,
+ javax.swing.table,
+ javax.wsdl,
+ javax.wsdl.extensions,
+ javax.wsdl.factory,
+ javax.wsdl.xml,
+ javax.xml.namespace,
+ javax.xml.rpc,
+ org.apache.axis.client,
+ org.knopflerfish.service.desktop,
+ org.w3c.dom

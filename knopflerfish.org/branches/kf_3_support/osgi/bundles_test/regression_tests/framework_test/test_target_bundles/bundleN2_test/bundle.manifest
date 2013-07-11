@@ -1,0 +1,9 @@
+Bundle-Name: bundleN2_test
+Bundle-SymbolicName: bundleN2_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for broken native code header
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Category: test
+Bundle-NativeCode: foo ; osname=linux ; osname=macos ;

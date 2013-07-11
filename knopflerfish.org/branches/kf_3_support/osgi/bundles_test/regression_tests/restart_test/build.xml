@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="restart_test" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.restart_test}"/>
+  <import  file="${proj.dir}/../test_import.xml"/>
+
+  <property name = "bundle.build.all"  value="false"/>
+  <property name = "bundle.build.api"  value="false"/>
+  <property name = "bundle.build.lib"  value="false"/>
+  <property name = "bundle.build.impl" value="true"/>
+  <property name = "bundle.build.doc"  value="false"/>
+
+  <property name  = "impl.pattern"
+            value = "org/knopflerfish/bundle/**"/>
+
+  <path id = "bundle.compile.path">
+    <pathelement location="junit_all-N.N.N.jar"/>
+    <pathelement location="${osgi.dir}/bundles_opt/junit/junit/resources/junit.jar"/>
+  </path>
+
+  <property name="resources.dir" location="${proj.dir}/resources"/>
+  <property name="ttb.outdir" location="${root.out.dir}/${ant.project.name}/ttb"/>
+
+  <property name="do.bundle.custom.pre" value="true"/>
+  <target name="bundle.custom.pre">
+    <antcall target="bundleA_test"/>
+    <antcall target="bundleB_test"/>
+    <antcall target="bundleC_test"/>
+    <antcall target="bundleF_test"/>
+  </target>
+
+  <target name="bundleA_test">
+    <ant dir="test_target_bundles/bundleA_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleA_test"/>
+    </ant>
+  </target>
+  <target name="bundleB_test">
+    <ant dir="test_target_bundles/bundleB_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleB_test"/>
+    </ant>
+  </target>
+  <target name="bundleC_test">
+    <ant dir="test_target_bundles/bundleC_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleC_test"/>
+    </ant>
+  </target>
+  <target name="bundleF_test">
+    <ant dir="test_target_bundles/bundleF_test" target="all"
+	 inheritAll="false">
+      <property name="jardir"  location="${resources.dir}"/>
+      <property name="outdir"  location="${ttb.outdir}/bundleF_test"/>
+    </ant>
+  </target>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

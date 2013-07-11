@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="cm_cmd" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.cm_cmd}"/>
+  <property name="topdir"       location="${proj.dir}/../../.."/>
+
+  <property name = "bundle.build.impl"  value = "true"/>
+  <property name = "bundle.build.api"   value = "false"/>
+  <property name = "bundle.build.all"   value = "false"/>
+  <property name = "bundle.build.doc"   value = "true"/>
+
+  <property name="impl.pattern" value="org/knopflerfish/bundle/cm/**"/> 
+
+  <path id="bundle.compile.path">
+   <pathelement location="log_api-N.N.N.jar"/>
+   <pathelement location="cm_all-N.N.N.jar"/>
+   <pathelement location="util-N.N.N.jar"/>
+   <pathelement location="console_api-N.N.N.jar"/>
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+</project>
