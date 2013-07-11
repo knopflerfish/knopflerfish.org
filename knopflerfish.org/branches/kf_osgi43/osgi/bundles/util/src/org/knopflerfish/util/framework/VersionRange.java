@@ -106,7 +106,7 @@ public class VersionRange implements Comparable<VersionRange>
    * E.g. from a require capability filter like
    *
    * <pre>
-   * Ê(&(osgi.wiring.package=org.kxml.io)(&(version>=0.0.0)(!(version>=1.0.0))))
+   *  (&amp;(osgi.wiring.package=org.kxml.io)(&amp;(version>=0.0.0)(!(version>=1.0.0))))
    * </pre>
    *
    * @param filter
@@ -117,7 +117,7 @@ public class VersionRange implements Comparable<VersionRange>
    *          if no version is found in the filter then this controls whether to
    *          return the default version range or throw
    *          {@link IllegalArgumentException}.
-   * @return version range from filter.
+   *
    * @throws IllegalArgumentException
    *           when no version range was found in the filter.
    */
