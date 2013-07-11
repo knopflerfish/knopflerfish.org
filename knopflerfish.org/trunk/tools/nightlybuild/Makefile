@@ -13,6 +13,14 @@ OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
 CHANGE_LOG=${KF_HOME}/ChangeLog_${TAGs}
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/${TAG}
 
+# Build must be done using Java SE 5 or 6 due to '-target=jsr14'
+JAVA      = java
+export JAVA_HOME = /usr
+
+#JAVA      = /usr/local/j2sdk1.4/bin/java
+#export JAVA_HOME = /usr/local/j2sdk1.4
+
+
 #ANT	= /usr/bin/ant
 ANT	= /home/knopflerfish/ant/apache-ant-1.9.1/bin/ant
 AWK     = /usr/bin/awk
@@ -25,13 +33,6 @@ RM      = /bin/rm
 SED     = /bin/sed
 SVN     = /usr/bin/svn
 SVNVERSION = /usr/bin/svnversion
-
-# Build must be done using Java SE 5 or 6 due to '-target=jsr14'
-JAVA      = java
-export JAVA_HOME = /usr
-
-#JAVA      = /usr/local/j2sdk1.4/bin/java
-#export JAVA_HOME = /usr/local/j2sdk1.4
 
 YEAR := $(shell /bin/date '+%Y')
 DATE := $(shell /bin/date '+%Y-%m-%d %H:%M')
