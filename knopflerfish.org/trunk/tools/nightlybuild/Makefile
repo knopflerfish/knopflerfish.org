@@ -13,7 +13,8 @@ OUT_URL=http://www.knopflerfish.org/${WWW_PATH}
 CHANGE_LOG=${KF_HOME}/ChangeLog_${TAGs}
 REPO=https://www.knopflerfish.org/svn/knopflerfish.org/${TAG}
 
-ANT	= /usr/bin/ant
+#ANT	= /usr/bin/ant
+ANT	= /home/knopflerfish/ant/apache-ant-1.9.1/bin/ant
 AWK     = /usr/bin/awk
 CAT     = /bin/cat
 CP      = /bin/cp 
