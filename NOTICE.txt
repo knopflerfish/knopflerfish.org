@@ -77,22 +77,6 @@ THE POSSIBILITY OF SUCH DAMAGE.
 ======================================================================
 
 ----------------------------------------------------------------------
--	Axis Bundle Notice
-----------------------------------------------------------------------
-This product includes the axis bundle which includes software
-developed by the Apache Axis project released under Apache Software
-License, Version 1.1. (c) 1999-2003.
-
-----------------------------------------------------------------------
--	Axis 2 Bundle Notice
-----------------------------------------------------------------------
-This product includes the axis2 bundle which includes software
-developed by the Apache Axis project released under Apache Software
-License, Version 2.0. (c) 2001-2004
-
-http://ws.apache.org/axis2/
-
-----------------------------------------------------------------------
 -	Bundlerepository Bundle Notice
 ----------------------------------------------------------------------
 This product includes the bundlerepository bundle which includes
@@ -137,15 +121,6 @@ This product includes the junit bundles which includes
 software developed by the JUnit project released under a Common Public
 License, Version 1.0
 http://junit.sourceforge.net/
-
-----------------------------------------------------------------------
--	kSOAP Bundle Notice
-----------------------------------------------------------------------
-This product includes the ksoap-osgi bundles which includes software
-developed by the kSOAP project.
-http://www.ksoap.org
-
-Copyright (c) 2002,2004, Stefan Haustein, Oberhausen, Rhld., Germany
 
 ----------------------------------------------------------------------
 -	kxml Bundle Notice
