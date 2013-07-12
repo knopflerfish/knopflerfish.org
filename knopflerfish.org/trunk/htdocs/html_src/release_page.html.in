@@ -54,7 +54,13 @@
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_training.shtml">Training</a></dd>
 	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com"><img src="docs/images/makewave_logo_126x16.gif" border="0"></a><br>
-	  <dd><em><b>Services for the OSGi Business User</b></em></dd>
+	  <dd>
+	    <div style="font-size: 0.75em; color: #444444;
+			font-family: Helvetica, Sans-Serif;
+			margin-left: -10px;">
+	      <em><b>OSGi for Business Use</b></em>
+	    </div>
+	  </dd>
       </div>
 
       <div id="mainblock">
