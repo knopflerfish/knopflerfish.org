@@ -1,0 +1,3 @@
+(org.osgi.framework.PackagePermission "org.osgi.framework" "import")
+(org.osgi.framework.PackagePermission "com.makewave.cpaexample.service.user" "import")
+(org.osgi.framework.ServicePermission "com.makewave.cpaexample.service.user.UserService" "get")

@@ -1,0 +1,87 @@
+<h1>The Knopflerfish Event Admin Service</h1>
+
+<div class="abstract">
+  The Knopflerfish OSGi Event Admin Service is an implementation of
+  the Event Admin Service specified in the OSGi compendium
+  specification.
+</div>
+
+
+<h2>Description</h2>
+<p>
+  The Knopflerfish OSGi Event Admin Service is an implementation of
+  the Event Admin Service in the OSGi Service Compendium that provides
+  parallel delivery of events posted by different threads.
+</p>
+
+
+<h2>Configuration properties</h2>
+
+<table class="man">
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <th>Type</th>
+    <th>Default</th>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.eventadmin.timeout</td>
+    <td>
+
+	The timeout in milliseconds to apply to calls to the
+	<code>handleEvent(Event)</code> of individual event handlers.
+	The value <code>0</code> means no timeout.
+
+    </td>
+    <td>long &ge; 0</td>
+    <td>0</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.eventadmin.timewarning</td>
+    <td>
+
+	When set to a value <code>&gt; 0</code> then measure the time
+	of each call to the <code>handleEvent(Event)</code> of event
+	handlers. If the call lasts longer than the value of this
+	property then log this event handler delivery call and its
+	duration in the OSGi log using a log entry with severity ERROR.
+
+	<p>Time warnings are only supported when the event handler
+	call timeout described above is unset (i.e., set to 0).</p>
+
+    </td>
+    <td>long &ge; 0</td>
+    <td>0</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.eventadmin.queuehandler.multiple</td>
+    <td>
+
+	If multiple event delivery queues should be used or not.  If set
+	to <code>true</code> each thread calling the
+	<code>EventAdmin.postEvent()</code>-method will be assigned
+	its own queue for delivering its events.
+
+    </td>
+    <td>boolean</td>
+    <td>true</td>
+  </tr>
+  <tr>
+    <td>org.knopflerfish.eventadmin.queuehandler.timeout</td>
+    <td>
+
+	The timeout (milliseconds) before an event delivering queue
+	that has nothing to do is disposed.  That is if there has been
+	no events for the queue to deliver for more than this number
+	of milliseconds then the queue will be terminated. If the
+	thread posts another event later on a new delivery queue
+	instance will be created.
+
+	<p>This timeout is only in use when multiple even delivery
+	queues are enabled.</p>
+
+    </td>
+    <td>long &ge; 0</td>
+    <td>1100</td>
+  </tr>
+</table>
