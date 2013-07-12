@@ -38,7 +38,15 @@
 <project name="knopflerfish" default="default">
 
   <!-- The default version of this build -->
-  <property name="version"            value="4.0.0.svn-XXXX"/>
+  <property name="version"            value="4.0.0"/>
+
+  <!-- The release date of this release -->
+  <!-- *** Un-comment and set here on release branch. *** -->
+  <!-- Defaults to current date, set here if another value is wanted. -->
+  <property name="release.date"     value="2013-07-12"/>
+
+  <!-- The previous official release version for this build -->
+  <property name="version.previous"   value="3.6.0"/>
 
   <!-- The URL to the root of the SVN-repository -->
   <property name="svn.repo.url"
@@ -92,6 +100,12 @@
   <property name="base.url" value="http://www.knopflerfish.org/releases"/>
 
   <property name="jarunpacker.dir" location="tools/jarunpacker"/>
+
+  <!-- Current date is default for the relesase.date property -->
+  <tstamp>
+    <format property="release.date"
+            pattern="yyyy-MM-dd"/>
+  </tstamp>
 
   <!-- Load support for KF bundle related ant tasks. -->
   <property name="ant.dir" location="ant"/>
