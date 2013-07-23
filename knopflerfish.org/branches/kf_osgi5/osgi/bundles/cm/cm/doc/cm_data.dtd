@@ -1,0 +1,111 @@
+<!-- DTD for describing configuration instances for the OSGi -->
+<!-- Configuration Management, i.e. PIDs and their name value pairs -->
+<!-- Copyright Gatespace AB 2001 -->
+<!-- The public ID of this DTD is '-//Gatespace//DTD cm_data 0.1//EN' -->
+<!-- $Revision: 1.6 $ -->
+
+
+<!ENTITY  % TYPE "(String|Integer|Long|Float|Double|Byte|Short|BigInteger|BigDecimal|Character|Boolean)">
+<!ENTITY  % PRIMITIVE "(long|int|short|char|byte|double|float|boolean)">
+
+
+<!-- Root element of cm_data files. -->
+<!ELEMENT cm_data (include|configuration|factoryconfiguration|filter)*>
+<!ATTLIST cm_data
+          version  CDATA #REQUIRED >
+
+
+<!-- Include another cm_data file, pointed to by the url -->
+<!-- attribute. Partial URLs are completed relative to the file they -->
+<!-- occur in.-->
+<!ELEMENT include EMPTY >
+<!ATTLIST include
+          url    CDATA #REQUIRED >
+
+
+<!-- Modify a configuration given its pid. There are three modes of -->
+<!-- operation for this element:-->
+<!--    new     Creates a new configuration for the specified -->
+<!--            pid with contents according to this element.-->
+<!--            Old configuration data for this pid will be discarded. -->
+<!--    update  Updates data for the properties specified in this element. -->
+<!--    delete  Deletes the configuration with the specified pid. All -->
+<!--            properties inside an element with mode delete are ignored. -->
+<!ELEMENT configuration (property)* >
+<!ATTLIST configuration
+          pid    CDATA #REQUIRED
+          mode   (new|update|delete)  "update" >
+
+
+<!-- Modify a factory configuration given its pid. There are two -->
+<!-- modes of operation for this element:-->
+<!--    new     Creates a new factory configuration for the specified -->
+<!--            factory pid with contents according to this element.-->
+<!--    update  Updates data for the instance of the factory that is -->
+<!--            matched by the specified filter. -->
+<!-- The ldapfilter value must be specified for mode update. It shall -->
+<!-- be a LDAP filter string expression that matches at most one -->
+<!-- configuration instance belonging to the factory specified by the -->
+<!-- factory pid. Matching on the factory pid is not needed in the -->
+<!-- filter string since that is added by the XML handler.-->
+<!-- To delete a factory configuration use the configuration -->
+<!-- element with the pid of the factory configuration instance.-->
+<!ELEMENT factoryconfiguration (property)* >
+<!ATTLIST factoryconfiguration
+          factorypid    CDATA #REQUIRED
+          mode   (new|update)  "new"
+          ldapfilter    CDATA #IMPLIED >
+
+
+<!-- Modify a set of configurations that matches a given (LDAP) filter -->
+<!-- expression. There are two modes of operation for this element:-->
+<!--    update  Updates data for the properties specified in this element. -->
+<!--    delete  Delete the configurations that matches the filter.-->
+<!-- The ldapfilter value must be a LDAP filter string expression that -->
+<!-- can be used as the argument to ConfigurationAdmin.listConfigurations().-->
+<!-- An empty ldapfilter will match all available configurations.-->
+<!ELEMENT filter (property)* >
+<!ATTLIST filter
+          ldapfilter CDATA            #REQUIRED
+          mode       (update|delete)  "update" >
+
+
+<!-- Description of one property in a configuration. The name of the -->
+<!-- property is a required attribute. The element must contain -->
+<!-- precisely one value (either a single object or an array or vector). -->
+<!ELEMENT property (value|vector|array) >
+<!ATTLIST property
+          name CDATA #REQUIRED >
+
+<!-- Element describing a single object value.-->
+<!-- The contents of the element is the value.-->
+<!ELEMENT value (#PCDATA)* >
+<!ATTLIST value
+          type %TYPE; #REQUIRED >
+
+<!-- Element describing a single primitive value (may only occure in -->
+<!-- arrays).-->
+<!-- The contents of the element is the value.-->
+<!ELEMENT primitiveValue (#PCDATA)* >
+<!ATTLIST primitiveValue
+          type %PRIMITIVE; #REQUIRED >
+
+<!-- Element describing a vector value.-->
+<!-- The contents of the element is either value, array or vector -->
+<!-- elements. All the contained elements MUST be of the same type.-->
+<!ELEMENT vector (value*|vector*|array*)>
+<!ATTLIST vector
+          length CDATA  #IMPLIED >
+
+<!-- Element describing a vector value.-->
+<!-- The contents of the element is either value, primitiveValue, -->
+<!-- array or vector elements. All the contained elements MUST be of -->
+<!-- the same type. The number of contained elements must be equal to -->
+<!-- the specified size. -->
+<!-- The element type is one of the names specifeid by %TYPE;, -->
+<!-- %PRIMITIVE; or Vector followed by zero or more '[]'. -->
+<!-- Where '[]' indicates that the elements are arrays. -->
+<!ELEMENT array (value*|primitiveValue*|vector*|array*)>
+<!ATTLIST array
+          length       CDATA #REQUIRED
+          elementType  CDATA #REQUIRED >

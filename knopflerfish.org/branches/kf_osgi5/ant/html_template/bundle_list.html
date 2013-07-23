@@ -1,0 +1,51 @@
+<html>
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+  <link href="style.css" rel="stylesheet" type="text/css">
+  <style type="text/css"> 
+      BODY {
+      background: #fff;
+      margin-top:    5px;
+      margin-left:  15px;
+      margin-right: 10px;
+      }
+
+      H2 {
+        color:#802060;
+        font-size:13px;
+        font-weight:bold;
+        margin:6px 0px 6px 0px;	     
+        padding:6px 0px 6px 0px;
+      }
+
+      #bundle_list {
+        margin-left: 8px;
+      }
+
+      #bundle_list A {
+        color: #000;
+        text-decoration: none;
+      }
+	      
+      #bundle_list A:hover {
+        color: #805362;	      
+        text-decoration: underline;
+        font-weight:      bold;
+      }
+  </style>
+</head>
+
+<body>
+${bundle.list.header}
+<a target="_top" href="../index.html">Knopflerfish Documentation</a><br>
+<a target="bundle_main" href="main.html">Bundle Jar Documentation</a><br>
+<a target="bundle_main" href="package_list.html">Bundle Packages</a><br>
+<p></p>
+<div id="bundle_list">
+${bundle.list}
+</div>
+</body>
+
+</html>
+

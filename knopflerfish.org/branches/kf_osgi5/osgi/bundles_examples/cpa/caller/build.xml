@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="cpaexample_caller" default="all">
+
+  <dirname property="proj.dir" file="${ant.file.cpaexample_caller}"/>
+  <import file="${proj.dir}/../../examples_include.xml"/>
+  
+  <!-- Select the kind of bundle(s) to build. -->
+  <property name="bundle.build.api"  value="false"/>
+  <property name="bundle.build.impl" value="true"/>
+  <property name="bundle.build.lib"  value="false"/>
+  <property name="bundle.build.all"  value="false"/>
+
+
+  <!-- All private code to be included in the bundle must match this pattern.-->
+  <property name="impl.pattern"
+    value="org/knopflerfish/cpaexample/**"/>
+
+
+  <!-- Compile-time dependecies on other bundles in the distribution. -->
+  <!-- The bundle with the highest version that matches against those
+       included in this distribution will be used. -->
+  <path id="bundle.compile.path">
+    <pathelement location="cpaexample_user_all-N.N.N.jar"/>
+  </path>
+
+  <import file="${ant.dir}/bundlebuild.xml"/>
+
+</project>

@@ -1,0 +1,98 @@
+<h1>Util</h1>
+
+<div class="abstract">
+  Library of miscellaneous utility classes.
+</div>
+
+
+<h2>Content</h2>
+<ul>
+  <li><a href="#executable">Native Executable</a></li>
+</ul>      
+
+<a name="executable"></a>
+<h2>Native Executable</h2>
+
+<p>
+The bundle activator utility class ExecutableBundleActivator can be used
+if you need to package an executable binary in your bundle that should be
+extracted and started when the bundle starts.
+</p>
+
+<p>
+  Depending on your needs you can either write your own bundle activator
+  that extends ExecutableBundleActivator or use it directly without writing
+  any Java code at all. If you use it directly, all you need to do is to
+  add custom headers to your manifest that controls the behavior of
+  ExecutableBundleActivator.
+</p>
+
+<p>
+  The following are the required headers for a simple example.
+<pre>
+ Manifest-Version: 1.0
+ Bundle-ManifestVersion: 2
+ Bundle-SymbolicName: org.knopflerfish.bundle.ebaexample
+ Bundle-Activator: org.knopflerfish.util.framework.ExecutableBundleActivator
+ Import-Package = org.knopflerfish.util.framework,org.osgi.framework
+ Bundle-Start-Executable: notepad.exe ; processor=x86 ; osname=WindowsXP
+</pre>
+</p>
+
+<p>
+In this case there is only one custom header, Bundle-Start-Executable. It
+declares that if the native environment matches OS = Windows XP and
+processor architecture = x86, the resource named notepad.exe should be
+extracted from the bundle, written to the local file system and launched
+using java.lang.Runtime.exec() when the bundle is started.
+</p>
+
+<p>
+The exec:ed process will be terminated when the bundle stops. If the
+process is terminated, the bundle will be stopped (this is the default 
+behavior).
+</p>
+
+<p>
+Complete list of custom headers for this utility class:
+<dl>
+  <dt><b>Bundle-Start-Executable</b></dt>
+  <dd>List of native environments (OS, processor, etc) and native
+      executables for those environments. If there is a match for the
+      current native environment, the executable is copied to the local
+      file system and started in the start method of
+      ExecutableBundleActivator.
+      The syntax for this header is the same as for the OSGi specified
+      <tt>Bundle-NativeCode</tt> header but instead of naming a shared
+      library you name a native executable. The <tt>Bundle-NativeCode</tt>
+      header is described in the core OSGi specification chapter 3.9.</dd>
+  <dt><b>Bundle-Start-Executable-Args</b></dt>
+  <dd>Arguments (separated with spaces) for the bundle start executable.
+  </dd>
+  <dt><b>Bundle-Stop-Executable</b></dt>
+  <dd>Similar to <tt>Bundle-Start-Executable</tt> but the executable
+      is launched when the bundle stops.</dd>
+  <dt><b>Bundle-Stop-Executable-Args</b></dt>
+  <dd>Arguments (separated with spaces) for the bundle stop executable.
+  </dd>
+  <dt><b>Bundle-Extract-Files</b></dt>
+  <dd>List of extra resources (separated with comma) that should be
+  copied from the bundle jar file to the local file system.</dd>
+  <dt><b>Bundle-Start-Executable-Exit-Means-Bundle-Stop</b></dt>
+  <dd>Set this to false if you do not want the bundle to be stopped when
+      the process that was launched in start() is terminated.</dd>
+</dl>
+
+<p>
+In many cases you want to write your own activator that extends
+ExecutableBundleActivator. You can then for example override logging
+which is on and to stdout by default. Also, you need to write your own
+activator if you want your bundle to do more than starting a native
+executable.
+</p>
+
+<p>
+Files that are extracted (executables and other resources) are written to
+the bundle's persistent storage area. Cleanup of the files takes place
+when the bundle is uninstalled.
+<p>

@@ -1,0 +1,12 @@
+Bundle-Name: bundleR_test
+Bundle-SymbolicName: bundleR_test
+Bundle-Version: 1.0.0
+Bundle-Description: Test bundle for framework, bundleR_test
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.bundleR_test.BundleActivator
+Bundle-Category: test
+Import-Package: org.osgi.framework, org.knopflerfish.bundle.bundleR1_t
+ est.public
+Bundle-UUID: org.knopflerfish:bundleR_test:1.0.0:all

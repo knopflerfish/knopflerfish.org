@@ -1,0 +1,52 @@
+<h1>Framework Commands</h1>
+<div class="abstract">
+  The Knopflerfish framework console bundle
+</div>
+
+<h2>Description</h2>
+
+The Framework commands bundle includes a rich set of commands through which the Knopflerfish framework can be controlled. This includes bundle management (install, start, stop etc), OSGi service information, to package and permission management.
+
+<h2>Framework Command Group</h2>
+The console command group is <b>framework</b>
+<p>
+The available commands are:
+<pre class="code">
+Available framework commands:
+  addpermission [-help] -b #bundle# | -d | -l #location# &lt;type&gt; [&lt;name&gt; [&lt;actions&gt;]] - Add permissions to bundle
+  bundlelevel [-help] &lt;level&gt; [&lt;bundle&gt;] ... - Set startlevel(s) for bundles
+  bundles [-help] [-1] [-i] [-l] [-s] [-t] [&lt;bundle&gt;] ... - List bundles
+  call [-help] [-f #filter#] &lt;interface&gt; &lt;method&gt; [&lt;args&gt;] ... - Call a method with zero or more java.lang.String
+  capability [-help] [-d] [-i] [-l] [-r] [-p] [&lt;bundle&gt;] ... - Show information about active capablities in the current wiring for a bundle
+  cd [-help] [-reset] [-a] [&lt;base URL&gt;] ... - Shows or sets the base URLs used to complete bundle location
+  certificates [-help] [ -i ] &lt;bundle&gt; ... - List certificates for bundles
+  closure [-help] &lt;bundle&gt; - Display the closure for a bundle
+  condpermission [-help] [&lt;name&gt;] ... - Get conditional permissions
+  deletepermission [-help] [-r] -b #bundle# | -d | -l #location# &lt;type&gt; &lt;name&gt; &lt;actions&gt; - Delete permissions from a bundle
+  findbundles [-help] &lt;symbolic name&gt; - Find bundles with a given symbolic name
+  frominstall [-help] &lt;url&gt; [&lt;location&gt;] - Install a bundle with a specific location from an URL
+  fromupdate [-help] &lt;bundle&gt; &lt;url&gt; - Update a bundle from a specific URL
+  headers [-help] [-i] [-l #locale#] &lt;bundle&gt; ... - Show bundle header values
+  install [-help] [-s] &lt;location&gt; ... - Install one or more bundles
+  meminfo [-help] [-gc] [-b | -m] - Display java memory information, in kilobytes
+  package [-help] [-l] -b | -p [&lt;selection&gt;] ... - Show java package information
+  pending [-help] [-i] [-l] - Show the bundles that have non-current, in use bune.dle wirings
+  permissions [-help] [-d] [&lt;selection&gt;] ... - Show permission information
+  property [-help] [-s] [-f] [&lt;property&gt;] ... - Lists Framework and System properties with values.
+  refresh [-help] [&lt;bundle&gt;] ... - Refresh all exported java packages belong to specified bundle
+  resolve [-help] [&lt;bundle&gt;] ... - Resolve one or more bundles
+  services [-help] [-i] [-l] [-sid #id#] [-f #filter#] [-r] [-u] [&lt;bundle&gt;] ... - List registered services
+  setcondpermission [-help] [-name #name] &lt;conditional_permission_info&gt;... - Set conditional permission
+  showstate [-help] [&lt;pid&gt;] ... - Show the state of a service, if the service provides state information
+  shutdown [-help] [-r] - Shutdown framework
+  start [-help] [-t] [-e] &lt;bundle&gt; ... - Persistently start one or more bundles according to their 
+  startlevel [-help] [&lt;level&gt;] - Shows or sets the global startlevel
+  stop [-help] [-t] &lt;bundle&gt; ... - Persitently stop one or more bundles
+  threads [-help] [-a] [-s] [&lt;name&gt;] ... - Display threads within this framework
+  uninstall [-help] &lt;bundle&gt; ... - Uninstall one or more bundles
+  update [-help] &lt;bundle&gt; ... - Update one or more bundles
+  wiring [-help] [-i] [-l] [-r] [-p] [&lt;bundle&gt;] ... - Show information about active wires in the current wiring for a bundle
+</pre>
+
+<h2>See Also</h2>
+<a href="../console/index.html">Console</a>

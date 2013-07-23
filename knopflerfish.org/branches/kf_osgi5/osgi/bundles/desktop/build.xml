@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="desktop" default="all">
+
+  <dirname  property="proj.dir" file="${ant.file.desktop}"/>
+  <property name="topdir"       location="${proj.dir}/../.."/>
+
+  <property name="bundle.extraimports"
+	    value="javax.swing.plaf.basic,
+		   com.apple.eawt"/>
+
+  <property name="bundle.build.doc"      value="true"/>
+
+  <!-- Build for Java 2 Standard Edition 1.5 Execution Environment. -->
+  <!-- Uses java.awt, javax.swing, ... -->
+  <property name="bundle.compile.EE" value="ee.JavaSE_1.5"/>
+
+  <property name="api.pattern"
+            value="org/knopflerfish/service/desktop/**"/> 
+
+  <property name="impl.pattern"
+            value="org/knopflerfish/bundle/desktop/**,
+		   org/knopflerfish/bundle/log/window/impl/**,
+		   org/knopflerfish/framework/**"/> 
+
+  <property name="all-api.pattern"
+            value="org/apache/felix/scr/**,
+		   org/knopflerfish/service/**,
+		   org/knopflerfish/shared/cm/**,
+                   org/knopflerfish/util/**,
+                   org/osgi/service/**"/> 
+
+  <property name="do.bundle.custom.pre" value="true"/>
+
+  <target name="bundle.custom.pre">
+
+    <!-- Embedd APIs for OSGi services that the desktop depends on -->
+    <bundle_locator bundleNames="remotefw_api,
+                                 console_api,
+                                 log_api,
+                                 util,
+                                 cm_api,
+                                 event_api,
+                                 prefs_api,
+                                 component_api">
+      <fileset dir="${jars.dir}">
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
+        <include name="**/*.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.remotefw_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.console_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.log_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.util}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.cm_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+      
+      <zipfileset src="${bap.event_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+
+      <zipfileset src="${bap.prefs_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+
+      <zipfileset src="${bap.component_api}">
+        <patternset>
+          <exclude name="META-INF/**/*"/>
+          <exclude name="**/*.dex"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+
+    <!-- Reuse the manifest entry parser from the KF framework. -->
+    <bundle_locator bundleNames="framework">
+      <fileset dir="${jars.dir}/../">
+        <include name="framework.jar"/>
+      </fileset>
+      <fileset dir="${osgi.jars.dir}/../">
+        <include name="framework.jar"/>
+      </fileset>
+      <fileset dir="${osgi.dir}/">
+        <include name="framework.jar"/>
+      </fileset>
+    </bundle_locator>
+    <copy todir="${classes.out.dir}">
+      <zipfileset src="${bap.framework}">
+        <patternset>
+          <include name="org/knopflerfish/framework/Util*"/>
+          <include name="org/knopflerfish/framework/FileTree*"/>
+        </patternset>
+      </zipfileset>
+    </copy>
+
+  </target>
+
+  <property name="do.bundle.custom.post" value="true"/>
+
+  <path id="bundle.compile.path">
+  </path>
+
+  <import file="${topdir}/../ant/bundlebuild.xml"/>
+
+  <!-- The following uses ant.dir and must thus be placed after the -->
+  <!-- import of bundlebuild.xml that defines it.                   -->
+
+  <!-- The save action needs the jarunpacker.jar -->
+  <!-- Add it to the all and impl jars. -->
+  <property name="jarunpacker.dir"
+	    location="${ant.dir}/../tools/jarunpacker"/>
+  <property name="jarunpacker.out.dir"
+	    location="${jarunpacker.dir}/out/jarunpacker"/>
+  <property name="jarunpacker.jar"
+	    location="${jarunpacker.out.dir}/jarunpacker.jar"/>
+  <available property="jarunpacker.exists"
+	     file="${jarunpacker.jar}"/>
+
+  <target name="bundle.custom.post" if="jarunpacker.exists">
+    <jar jarfile="${all.jar}" update="true">
+      <fileset dir="${jarunpacker.out.dir}">
+	<include name="jarunpacker.jar"/>
+      </fileset>
+      <fileset dir="${jarunpacker.dir}">
+	<include name="strings.properties"/>
+      </fileset>
+    </jar>
+    <jar jarfile="${impl.jar}" update="true">
+      <fileset dir="${jarunpacker.out.dir}">
+	<include name="jarunpacker.jar"/>
+      </fileset>
+      <fileset dir="${jarunpacker.dir}">
+	<include name="strings.properties"/>
+      </fileset>
+    </jar>
+  </target>
+
+
+
+</project>

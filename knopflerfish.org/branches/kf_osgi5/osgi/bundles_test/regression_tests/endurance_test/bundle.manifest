@@ -1,0 +1,15 @@
+Bundle-ManifestVersion: 2
+Bundle-Name: endurance_test
+Bundle-SymbolicName: endurance_test
+Bundle-Version: 1.0.0
+Bundle-Vendor: Knopflerfish/Makewave AB
+Bundle-DocURL: http://www.knopflerfish.org
+Bundle-ContactAddress: http://www.knopflerfish.org
+Bundle-Activator: org.knopflerfish.bundle.endurance_test.Activator
+Bundle-Category: test
+Export-Package: org.knopflerfish.bundle.endurance_test
+Import-Package: org.knopflerfish.bundle.endurance_test,
+ org.osgi.service.log,
+ org.osgi.util.tracker,
+ org.osgi.framework
+DynamicImport-Package: *

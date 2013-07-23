@@ -1,0 +1,16 @@
+<html>
+<head>
+<title> SSItestA </title>
+</head>
+
+<body bgcolor="ffffcc">
+<h3>SSItestA</h3>
+Test A
+<p>
+Include begin of B
+<p>
+<!--#include file="ssitestB.shtml" -->
+<p>
+Include end of B
+</body>
+</html>

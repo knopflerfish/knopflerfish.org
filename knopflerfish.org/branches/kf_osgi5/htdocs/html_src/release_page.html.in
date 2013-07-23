@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+  <head>
+    <meta http-equiv = "Content-Type"
+	  content    = "text/html; charset=ISO-8859-1"/>
+    
+    <meta http-equiv = "CACHE-CONTROL"
+	  content    = "NO-CACHE"/>
+
+    <meta name       = "description"
+	  content    = "The Knopflerfish OSGi framework is a complete OSGi R4 framework"/>
+    
+    <meta name       = "title"
+	  content    = "Knopflerfish OSGi @VERSION@"/>
+
+    <title>Knopflerfish OSGi @VERSION@</title>
+
+    <LINK href="docs/css/knopflerfish.css" rel="stylesheet" type="text/css">
+
+  </head>
+
+
+  <body>
+    <div id="main">
+      <a name="top"></a>
+      <div id="header">
+	<div id="header_logo">
+	  <a href="index.html"><img src="docs/images/kf300_black.png" border="0" alt="knopflerfish logo"/></a>
+	</div>
+	<div id="header_fade">
+	</div>
+      </div>
+      <div id="leftmenu">
+	<dl class="leftmenu2">
+	  <dt class="leftmenu2"><a class="navigation_disabled" href="index.html">Knopflerfish @VERSION@</a></dt>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="docs/changelog.html">Change log</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="docs/release_notes.html">Release note</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="docs/index.html">Documentation</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="junit_grunt/index.xml">Test results (XML)</a></dd>
+	</dl>
+
+	<dl class="leftmenu2">
+	  <dt class="leftmenu2"><a class="navigation_enabled" href="http://www.knopflerfish.org/">www.knopflerfish.org</a></dt>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="https://sourceforge.net/forum/forum.php?forum_id=328005">KF Forum</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://sourceforge.net/tracker/?atid=567241&group_id=82798&func=browse">Bug tracker</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="repository.html">Bundle repository</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="@REPO_URL@/@TAG@">Source (subversion)</a></dd>
+	</dl>
+
+	<dl class="leftmenu2_last">
+	  <dt class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/">Maintained by Makewave</a></dt>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/knopflerfish_pro_osgi.shtml">Knopflerfish Pro</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_expert.shtml">Professional Services</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com/site.en/products/osgi_training.shtml">Training</a></dd>
+	  <dd class="leftmenu2"><a class="navigation_enabled" href="http://www.makewave.com"><img src="docs/images/makewave_logo_126x16.gif" border="0"></a><br>
+	  <dd>
+	    <div style="font-size: 0.75em; color: #444444;
+			font-family: Helvetica, Sans-Serif;
+			margin-left: -10px;">
+	      <em>OSGi for Business Use</em>
+	    </div>
+	  </dd>
+      </div>
+
+      <div id="mainblock">
+	<a name="release_page"></a>
+
+	<h2>Knopflerfish @VERSION@</h2>
+
+	This is the release page for Knopflerfish @VERSION@
+	@BUILD_KIND@ from @REPO_URL@/@TAG@, made on @DATE@.
+
+	<h3>Downloads</h3>
+
+	<table cellpadding="2">
+	  <tr>
+	    <th>Name</th>
+	    <th>Size</th>
+	    <th>Description</th>
+	  </tr>
+
+	  <tr>
+	    <td>
+	      <a href="knopflerfish_osgi_sdk_@VERSION@.jar">
+		knopflerfish_osgi_sdk_@VERSION@.jar</a>
+	    </td>
+	    <td>
+	      @DISTRIB_SDK_FILE_LENGTH@
+	    </td>
+	    <td>
+	      Complete OSGi development kit, including precompiled
+	      framework and bundles, source code and docs.
+	      Self-extracting.
+	    </td>
+	  </tr>
+
+	  <tr>
+	    <td>
+	      <a href="knopflerfish_osgi_tiny_@VERSION@.zip">
+		knopflerfish_osgi_tiny_@VERSION@.zip</a><br> 
+	    </td>
+	    <td>
+	      @DISTRIB_TINY_FILE_LENGTH@
+	    </td>
+	    <td>
+	      Remotely loading framework, no source, no docs, just
+	      framework.jar and config files that will load all
+	      bundles from the web.
+	    </td>
+	  </tr>
+		
+	</table>
+
+	<p>
+	  <a class=top href="#top">top</a>
+      </div>
+      <div id="footer">
+	<div id="copyright">
+	  Copyright &copy; 2003-@YEAR@ The Knopflerfish Project. All rights reserved.
+	</div>
+      </div>
+    </div>
+  </body>
+</html>

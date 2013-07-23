@@ -1,0 +1,50 @@
+<html>
+
+  <head>
+    <LINK href="../css/knopflerfish.css" rel="stylesheet" type="text/css">
+    <LINK href="../css/kf_man.css" rel="stylesheet" type="text/css">
+
+    <style type="text/css">
+      BODY {
+        background: #fff;
+        margin-top:    5px;
+        margin-left:  10px;
+        margin-right: 10px;
+      }
+      H2 {
+        color:#802060;
+        font-size:13px;
+        font-weight:bold;
+        margin:6px 0px 6px 0px;	     
+        padding:6px 0px 6px 0px;
+        border-style:none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>$(TITLE)</h2>
+    <div id="man_leftmenu">
+    <dl class="leftmenu2">
+      <dt class="leftmenu2">Navigation</dt>
+      <dd class="leftmenu2"><a target="_top" href="../index.html">Knopflerfish Documentation</a></dd>
+      <dd class="leftmenu2"><a target="bundledoc_main" href="bundledoc_main.html">Bundle Doc Home</a></dd>
+    </dl>
+
+    <dl class="leftmenu2">
+      <dt class="leftmenu2">Knopflerfish Framework and Extension Bundles</dt>
+$(framework)
+    </dl>
+
+    <dl class="leftmenu2">
+      <dt class="leftmenu2">Knopflerfish OSGi Bundles</dt>
+$(OSGiBundle)
+    </dl>
+
+    <dl class="leftmenu2">
+      <dt class="leftmenu2">Knopflerfish Bundles</dt> 
+$(KfBundle)
+    </dl>
+    </div>
+  </body>
+</html>
