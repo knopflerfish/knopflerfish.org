@@ -168,13 +168,17 @@ class RequireBundle
     return bundleRange.withinRange(rb.bundleRange);
   }
 
+
   // BundleRequirement method
+  @Override
   public String getNamespace()
   {
     return BundleRevision.BUNDLE_NAMESPACE;
   }
 
+
   // BundleRequirement method
+  @Override
   public Map<String, String> getDirectives()
   {
     final Map<String,String> res = new HashMap<String, String>(4);
@@ -192,6 +196,7 @@ class RequireBundle
     }
     return res;
   }
+
 
   private Filter toFilter()
   {
@@ -231,20 +236,32 @@ class RequireBundle
     }
   }
 
+
   // BundleRequirement method
   @SuppressWarnings("unchecked")
+  @Override
   public Map<String, Object> getAttributes()
   {
     return Collections.EMPTY_MAP;
   }
 
+
   // BundleRequirement method
+  @Override
   public BundleRevision getRevision()
   {
     return requestor.bg.bundleRevision;
   }
 
+
+  @Override
+  public BundleRevision getResource() {
+    return requestor.bg.bundleRevision;
+  }
+
+
   // BundleRequirement method
+  @Override
   public boolean matches(BundleCapability capability)
   {
     if (BundleRevision.BUNDLE_NAMESPACE.equals(capability.getNamespace())) {
@@ -253,6 +270,8 @@ class RequireBundle
     return false;
   }
 
+
+  @Override
   public int compareTo(RequireBundle o)
   {
     return this.orderal - o.orderal;

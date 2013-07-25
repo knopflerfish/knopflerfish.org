@@ -393,6 +393,8 @@ public class SystemBundle extends BundleImpl implements Framework {
       if (fwCtx.startLevelController != null) {
         res = fwCtx.startLevelController.frameworkStartLevel(this);
       }
+    } else if (Framework.class.equals(type)) {
+      res = this;
     } else {
       // TODO filter which adaptation we can do?!
       res = adaptSecure(type);
@@ -542,6 +544,10 @@ public class SystemBundle extends BundleImpl implements Framework {
             }
             addSysPackagesFromFile(sp, "packages1.7.txt");
           }
+        } else {
+          if (sp.charAt(sp.length() - 1) == ',') {
+            sp.deleteCharAt(sp.length() - 1);
+          }
         }
         addSystemPackages(sp);
       }
@@ -616,68 +622,35 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    * Add all built-in system packages to a stringbuffer.
    */
-  @SuppressWarnings("deprecation")
   private void addSystemPackages(StringBuffer sp) {
-    if (sp.length() > 0 && ',' != sp.charAt(sp.length() - 1)) {
-      sp.append(",");
-    }
-    // Set up org.osgi.framework package
-    String name = Bundle.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append(name + ";" + Constants.VERSION_ATTRIBUTE + "=" + FrameworkContext.SPEC_VERSION);
-
-    sp.append(",org.osgi.framework.launch;" + Constants.VERSION_ATTRIBUTE + "="
-        + FrameworkContext.LAUNCH_VERSION);
-    sp.append(",org.osgi.framework.hooks.service;" + Constants.VERSION_ATTRIBUTE + "="
-        + FrameworkContext.HOOKS_VERSION);
-
-    // Set up packageadmin package
-    name = org.osgi.service.packageadmin.PackageAdmin.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + PackageAdminImpl.SPEC_VERSION);
-
-    // Set up wiring package
-    name = FrameworkWiring.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + FrameworkWiringImpl.SPEC_VERSION);
-
-    // Set up permissionadmin package
-    name = PermissionAdmin.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + PermissionAdminImpl.SPEC_VERSION);
-
-    // Set up conditionalpermissionadmin package
-    name = ConditionalPermissionAdmin.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + ConditionalPermissionAdminImpl.SPEC_VERSION);
-
-    // Set up startlevel service package
-    name = org.osgi.service.startlevel.StartLevel.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + StartLevelController.SPEC_VERSION);
-
-    // Set up startlevel API package
-    name = FrameworkStartLevel.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "="
-        + StartLevelController.API_SPEC_VERSION);
-
-    // Set up tracker package
-    name = ServiceTracker.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "=" + "1.5");
-
-    // Set up URL package
-    name = org.osgi.service.url.URLStreamHandlerService.class.getName();
-    name = name.substring(0, name.lastIndexOf('.'));
-    sp.append("," + name + ";" + Constants.VERSION_ATTRIBUTE + "=" + "1.0");
+    addPackageInfo(sp, "org.osgi.framework");
+    addPackageInfo(sp, "org.osgi.framework.hooks.bundle");
+    addPackageInfo(sp, "org.osgi.framework.hooks.resolver");
+    addPackageInfo(sp, "org.osgi.framework.hooks.service");
+    addPackageInfo(sp, "org.osgi.framework.hooks.weaving");
+    addPackageInfo(sp, "org.osgi.framework.launch");
+    addPackageInfo(sp, "org.osgi.framework.namespace");
+    addPackageInfo(sp, "org.osgi.framework.startlevel");
+    addPackageInfo(sp, "org.osgi.framework.wiring");
+    addPackageInfo(sp, "org.osgi.resource");
+    addPackageInfo(sp, "org.osgi.service.condpermadmin");
+    addPackageInfo(sp, "org.osgi.service.packageadmin");
+    addPackageInfo(sp, "org.osgi.service.permissionadmin");
+    addPackageInfo(sp, "org.osgi.service.startlevel");
+    addPackageInfo(sp, "org.osgi.service.url");
+    addPackageInfo(sp, "org.osgi.util.tracker");
   }
 
+  private void addPackageInfo(StringBuffer sp, String pkg) {
+    if (sp.length() > 0) {
+      sp.append(",");
+    }
+    sp.append(pkg);
+    sp.append(";");
+    sp.append(Constants.VERSION_ATTRIBUTE);
+    sp.append("=");
+    sp.append(FWProps.getPackageVersion(pkg));
+  }
 
   /**
    * Read a file with package names and add them to a stringbuffer. The file is
@@ -731,8 +704,10 @@ public class SystemBundle extends BundleImpl implements Framework {
       for (line = in.readLine(); line != null; line = in.readLine()) {
         line = line.trim();
         if (line.length() > 0 && !line.startsWith("#")) {
+          if (sp.length() > 0) {
+            sp.append(",");
+          }
           sp.append(line);
-          sp.append(",");
         }
       }
     } catch (final IOException e) {

@@ -202,7 +202,7 @@ class ServiceListenerState {
    * to cache.
    */
   public void checkSimple(ServiceListenerEntry sle) {
-    if (sle.ldap == null || listeners.nocacheldap) {
+    if (sle.noFiltering || listeners.nocacheldap) {
       complicatedListeners.add(sle);
     } else {
       @SuppressWarnings("unchecked")
@@ -240,7 +240,7 @@ class ServiceListenerState {
     // Check complicated or empty listener filters
     int n = 0;
     for (final ServiceListenerEntry sle : complicatedListeners) {
-      if (sle.ldap == null || sle.ldap.evaluate(sr.getProperties(), false)) {
+      if (sle.noFiltering || sle.ldap.evaluate(sr.getProperties(), false)) {
         set.add(sle);
       }
       ++n;

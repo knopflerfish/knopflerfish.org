@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.security.AccessControlContext;
 import java.security.Permission;
 import java.security.PermissionCollection;
 import java.security.cert.X509Certificate;
@@ -1838,6 +1839,10 @@ public class BundleImpl implements Bundle {
     } else if (fwCtx.startLevelController != null &&
 	           BundleStartLevel.class.equals(type)) {
       res = fwCtx.startLevelController.bundleStartLevel(this);
+    } else if (BundleContext.class.equals(type)) {
+      res = bundleContext;
+    } else if (AccessControlContext.class.equals(type)) {
+      res = secure.getAccessControlContext(this);
     }
     return (A) res;
   }

@@ -95,22 +95,32 @@ public class BundleCapabilityImpl implements BundleCapability {
     directives = bc.getDirectives();
   }
 
+  @Override
   public String getNamespace() {
     return nameSpace;
   }
 
+  @Override
   public Map<String, String> getDirectives() {
     return Collections.unmodifiableMap(directives);
   }
 
+  @Override
   public Map<String, Object> getAttributes() {
     return attributes;
   }
 
+  @Override
   public BundleRevision getRevision() {
     return owner.bundleRevision;
   }
 
+  @Override
+  public BundleRevision getResource() {
+	return owner.bundleRevision;
+  }
+
+  @Override
   public String toString() {
     return "BundleCapability[nameSpace=" + nameSpace + ", attributes=" + attributes +
         ", directives=" + directives + ", revision=" + getRevision() + "]";

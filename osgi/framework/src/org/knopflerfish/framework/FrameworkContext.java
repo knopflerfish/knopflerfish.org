@@ -65,21 +65,6 @@ import org.knopflerfish.framework.permissions.KFSecurityManager;
 public class FrameworkContext  {
 
   /**
-   * Specification version for this framework.
-   */
-  static final String SPEC_VERSION = "1.6";
-
-  /**
-   * Specification version for org.osgi.framework.launch
-   */
-  static final String LAUNCH_VERSION = "1.0";
-
-  /**
-   * Specification version for org.osgi.framework.hooks.service
-   */
-  static final String HOOKS_VERSION = "1.1";
-
-  /**
    * Debug handle.
    */
   public Debug debug;

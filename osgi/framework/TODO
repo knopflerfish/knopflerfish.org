@@ -1,0 +1,25 @@
+I Refactor Archive.java in bundlestorage when it come to searching for entries.
+
+I Refactor classloader to better handle recursive listEntries.
+
+I Check ResolveHooks and packages lock
+
+* Check CapabilityPermission checks
+
+* Implied CapabilityPermission REQUIRE osgi.ee
+
+* Check illegal headers in Extension Bundles
+
+I Use new VersionRange class?
+
+I More SystemBundle headers
+
+* Check what non JKS cert storage implies
+
+* Check property "org.osgi.framework.bsnversion"
+
+* Resource and Namespace API implications?
+
+* Bundle Collision Hook
+
+* 

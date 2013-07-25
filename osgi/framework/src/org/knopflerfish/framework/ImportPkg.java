@@ -382,12 +382,14 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
 
   // BundleRequirement method
+  @Override
   public String getNamespace() {
     return BundleRevision.PACKAGE_NAMESPACE;
   }
 
 
   // BundleRequirement method
+  @Override
   public Map<String, String> getDirectives() {
     final Map<String,String> res = new HashMap<String, String>(4);
 
@@ -462,7 +464,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   }
 
   // BundleRequirement method
-  public Map<String, Object> getAttributes() {
+  @Override
+ public Map<String, Object> getAttributes() {
     @SuppressWarnings("unchecked")
     final
     Map<String, Object> res = Collections.EMPTY_MAP;
@@ -471,12 +474,20 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
 
 
   // BundleRequirement method
+  @Override
   public BundleRevision getRevision() {
     return bpkgs.bg.bundleRevision;
   }
 
 
+  @Override
+  public BundleRevision getResource() {
+    return bpkgs.bg.bundleRevision;
+  }
+
+
   // BundleRequirement method
+  @Override
   public boolean matches(BundleCapability capability) {
     if (BundleRevision.PACKAGE_NAMESPACE.equals(capability.getNamespace())) {
       return toFilter().matches(capability.getAttributes());
@@ -494,6 +505,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
    * @return Less than zero, zero or greater than zero of this object is smaller
    *  than, equals to or greater than {@code o}.
    */
+  @Override
   public int compareTo(ImportPkg o)
   {
     return this.orderal - o.orderal;

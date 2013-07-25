@@ -37,6 +37,7 @@ package org.knopflerfish.framework;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.AccessControlContext;
 import java.security.ProtectionDomain;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -304,6 +305,11 @@ class PermissionOps {
 
   Vector<URL> getBundleClassPathEntries(final BundleGeneration bg, final String name, final boolean onlyFirst) {
     return bg.getBundleClassPathEntries(name, onlyFirst);
+  }
+
+
+  AccessControlContext getAccessControlContext(BundleImpl bundle) {
+    return null;
   }
 
   //
