@@ -75,9 +75,24 @@ public class FrameworkContext  {
   static final String LAUNCH_VERSION = "1.0";
 
   /**
+   * Specification version for org.osgi.framework.hooks.bundle
+   */
+  static final String HOOKS_BUNDLE_VERSION = "1.0";
+
+  /**
+   * Specification version for org.osgi.framework.hooks.resolver
+   */
+  static final String HOOKS_RESOLVER_VERSION = "1.0";
+
+  /**
    * Specification version for org.osgi.framework.hooks.service
    */
-  static final String HOOKS_VERSION = "1.1";
+  static final String HOOKS_SERVICE_VERSION = "1.1";
+
+  /**
+   * Specification version for org.osgi.framework.hooks.weaving
+   */
+  static final String HOOKS_WEAVING_VERSION = "1.0";
 
   /**
    * Debug handle.

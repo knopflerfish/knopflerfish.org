@@ -628,8 +628,14 @@ public class SystemBundle extends BundleImpl implements Framework {
 
     sp.append(",org.osgi.framework.launch;" + Constants.VERSION_ATTRIBUTE + "="
         + FrameworkContext.LAUNCH_VERSION);
+    sp.append(",org.osgi.framework.hooks.bundle;" + Constants.VERSION_ATTRIBUTE + "="
+        + FrameworkContext.HOOKS_BUNDLE_VERSION);
+    sp.append(",org.osgi.framework.hooks.resolver;" + Constants.VERSION_ATTRIBUTE + "="
+        + FrameworkContext.HOOKS_RESOLVER_VERSION);
     sp.append(",org.osgi.framework.hooks.service;" + Constants.VERSION_ATTRIBUTE + "="
-        + FrameworkContext.HOOKS_VERSION);
+        + FrameworkContext.HOOKS_SERVICE_VERSION);
+    sp.append(",org.osgi.framework.hooks.weaving;" + Constants.VERSION_ATTRIBUTE + "="
+        + FrameworkContext.HOOKS_WEAVING_VERSION);
 
     // Set up packageadmin package
     name = org.osgi.service.packageadmin.PackageAdmin.class.getName();
