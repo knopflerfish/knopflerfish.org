@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009-2011, KNOPFLERFISH project
+ * Copyright (c) 2009-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,14 +57,14 @@ public class SelfSignedValidator implements Validator {
 
   /**
    * Check if a certificate chain is to be trusted. We expect the input to be a
-   * correc chain.
+   * correct chain.
    * 
    * @return true, if validator trusts certificate chain, otherwise false.
    */
-  public boolean validateCertificateChain(List /* X509Certificate */chain) {
+  public boolean validateCertificateChain(List<X509Certificate> chain) {
     try {
-      for (Iterator i = chain.iterator(); i.hasNext();) {
-        ((X509Certificate) i.next()).checkValidity();
+      for (X509Certificate cert : chain) {
+        cert.checkValidity();
       }
     } catch (CertificateException _) {
       return false;

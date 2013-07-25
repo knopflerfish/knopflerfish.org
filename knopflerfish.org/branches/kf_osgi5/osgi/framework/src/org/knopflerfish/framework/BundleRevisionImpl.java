@@ -42,6 +42,8 @@ import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
 import org.osgi.framework.wiring.BundleWiring;
+import org.osgi.resource.Capability;
+import org.osgi.resource.Requirement;
 
 public class BundleRevisionImpl
   extends BundleReferenceImpl
@@ -57,27 +59,26 @@ public class BundleRevisionImpl
   private BundleWiring bundleWiring = null;
 
 
-  BundleRevisionImpl(BundleGeneration gen)
-  {
+  BundleRevisionImpl(BundleGeneration gen) {
     super(gen.bundle);
     this.gen = gen;
   }
 
 
-  public String getSymbolicName()
-  {
+  @Override
+  public String getSymbolicName() {
     return gen.symbolicName;
   }
 
 
-  public Version getVersion()
-  {
+  @Override
+  public Version getVersion() {
     return gen.version;
   }
 
 
-  public List<BundleCapability> getDeclaredCapabilities(String namespace)
-  {
+  @Override
+  public List<BundleCapability> getDeclaredCapabilities(String namespace) {
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
     final int ns = whichNameSpaces(namespace);
 
@@ -116,8 +117,8 @@ public class BundleRevisionImpl
   }
 
 
-  public List<BundleRequirement> getDeclaredRequirements(String namespace)
-  {
+  @Override
+  public List<BundleRequirement> getDeclaredRequirements(String namespace) {
     final ArrayList<BundleRequirement> res = new ArrayList<BundleRequirement>();
     final int ns = whichNameSpaces(namespace);
 
@@ -153,18 +154,33 @@ public class BundleRevisionImpl
   }
 
 
-  public int getTypes()
-  {
+  @SuppressWarnings("unchecked")
+  @Override
+  public List<Capability> getCapabilities(String namespace) {
+    return (List<Capability>)(List<?>)getDeclaredCapabilities(namespace);
+  }
+
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public List<Requirement> getRequirements(String namespace) {
+    return (List<Requirement>)(List<?>)getDeclaredRequirements(namespace);
+  }
+
+
+  @Override
+  public int getTypes() {
     return gen.isFragment() ? TYPE_FRAGMENT : 0;
   }
 
 
-  public BundleWiring getWiring()
-  {
+  @Override
+  public BundleWiring getWiring() {
     return bundleWiring;
   }
 
 
+  @Override
   public String toString() {
     return "BundleRevision[" + getSymbolicName() + ":" + getVersion() + "]";
   }
@@ -173,15 +189,17 @@ public class BundleRevisionImpl
   BundleGeneration getBundleGeneration() {
     return gen;
   }
-
   
+
   void setWired() {
     bundleWiring = new BundleWiringImpl(this);
   }
 
+
   void clearWiring() {
     bundleWiring = null;
   }
+
 
   static int whichNameSpaces(String namespace) {
     int ns;
@@ -198,6 +216,5 @@ public class BundleRevisionImpl
     }
     return ns;
   }
-
 
 }

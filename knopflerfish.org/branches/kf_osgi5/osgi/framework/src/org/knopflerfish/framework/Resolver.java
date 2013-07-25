@@ -554,7 +554,7 @@ class Resolver {
         List<BundleWireImpl> bwl = bbg.getCapabilityWires();
         if (bwl != null) {
           for (final BundleWireImpl bcw : bwl) {
-            BundleImpl bbr = bcw.getRequirer().bundle;
+            BundleImpl bbr = bcw.getRequirerGeneration().bundle;
             if (!bundles.contains(bbr)) {
               moreBundles.add(bbr);
               if (framework.debug.resolver) {

@@ -40,6 +40,7 @@ import java.util.List;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.UnfilteredServiceListener;
 import org.osgi.framework.hooks.service.ListenerHook;
 
 /**
@@ -51,7 +52,8 @@ class ServiceListenerEntry
   extends ListenerEntry
   implements ListenerHook.ListenerInfo
 {
-  LDAPExpr ldap;
+  final LDAPExpr ldap;
+  final boolean noFiltering;
 
   /**
    * The elements of "simple" filters are cached, for easy lookup.
@@ -79,14 +81,17 @@ class ServiceListenerEntry
     super(bc, l);
     if (filter != null) {
       ldap = new LDAPExpr(filter);
+      noFiltering = l instanceof UnfilteredServiceListener;
     } else {
       ldap = null;
+      noFiltering = true;
     }
   }
 
   ServiceListenerEntry(BundleContextImpl bc, EventListener l) {
     super(bc, l);
     ldap = null;
+    noFiltering = true;
   }
 
   public BundleContext getBundleContext() {

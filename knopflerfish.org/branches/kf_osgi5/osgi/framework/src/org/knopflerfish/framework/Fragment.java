@@ -183,11 +183,13 @@ class Fragment
     return lbg;
   }
 
+  @Override
   public String getNamespace() {
     return BundleRevision.HOST_NAMESPACE;
   }
 
 
+  @Override
   public Map<String, String> getDirectives() {
     final Map<String,String> res = new HashMap<String, String>(4);
 
@@ -251,16 +253,25 @@ class Fragment
 
 
   @SuppressWarnings("unchecked")
+  @Override
   public Map<String, Object> getAttributes() {
     return Collections.EMPTY_MAP;
   }
 
 
+  @Override
   public BundleRevision getRevision() {
     return gen.bundleRevision;
   }
 
 
+  @Override
+  public BundleRevision getResource() {
+    return gen.bundleRevision;
+  }
+
+
+  @Override
   public boolean matches(BundleCapability capability) {
     if (BundleRevision.HOST_NAMESPACE.equals(capability.getNamespace())) {
       return toFilter().matches(capability.getAttributes());

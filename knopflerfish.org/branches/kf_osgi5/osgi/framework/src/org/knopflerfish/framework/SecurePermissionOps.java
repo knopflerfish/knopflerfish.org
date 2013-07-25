@@ -700,6 +700,12 @@ class SecurePermissionOps
     });
   }
 
+  @Override
+  AccessControlContext getAccessControlContext(BundleImpl bundle) {
+    ProtectionDomain pd = bundle.current().getProtectionDomain();
+    return pd != null ?new AccessControlContext(new ProtectionDomain[] {pd}) : null;
+  }
+
   //
   // Bundles Secure operation
   //

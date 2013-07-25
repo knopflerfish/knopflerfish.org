@@ -103,40 +103,46 @@ public class BundleRequirementImpl
     attributes = Collections.unmodifiableMap(he.getAttributes());
   }
 
-
+  @Override
   public String getNamespace()
   {
     return nameSpace;
   }
 
-
+  @Override
   public Map<String, String> getDirectives()
   {
     return directives;
   }
 
-
+  @Override
   public Map<String, Object> getAttributes()
   {
     return attributes;
   }
 
-
+  @Override
   public BundleRevision getRevision()
   {
     return gen.bundleRevision;
   }
 
 
-  public boolean matches(BundleCapability capability)
-  {
+  @Override
+  public BundleRevision getResource() {
+	return gen.bundleRevision;
+  }
+
+
+  @Override
+  public boolean matches(BundleCapability capability) {
     if (nameSpace.equals(capability.getNamespace())) {
       return null==filter ? true : filter.matches(capability.getAttributes());
     }
     return false;
   }
 
-
+  @Override
   public String toString() {
     final StringBuffer sb = new StringBuffer(40);
 
