@@ -427,7 +427,6 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    *         otherwise return null.
    */
   String checkCircularReferences(Component component,
-                                 String pid,
                                  ArrayList<Component> path) {
     final int len = path.size();
     if (len > 0 && path.get(0) == component) {
@@ -448,21 +447,13 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
           if (!rs[i].isOptional()) {
             final Component [] cs = serviceComponents.get(rs[i].refDesc.interfaceName);
             if (cs != null) {
-              // Components for service found
-              // Get target filter to
-              // NYI! optimize when several pids has same filter
-              final Filter f = rs[i].getListener(pid).getTargetFilter();
               // Loop through all found components
-              for (final Component element : cs) {
-                final String [] pids = element.getAllServicePids();
+              for (final Component c : cs) {
+                final String [] pids = c.getAllServicePids();
                 // Loop through service property configurations
-                for (final String pid2 : pids) {
-                  if (f == null || f.match(element.getServiceProperties(pid2))) {
-                    final String res = checkCircularReferences(element, pid2, path);
-                    if (res != null) {
-                      return res;
-                    }
-                  }
+                final String res = checkCircularReferences(c, path);
+                if (res != null) {
+                  return res;
                 }
               }
             }

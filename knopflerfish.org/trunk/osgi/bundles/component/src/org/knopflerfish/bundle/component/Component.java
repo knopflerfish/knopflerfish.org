@@ -78,7 +78,6 @@ public abstract class Component implements org.apache.felix.scr.Component {
   Long id = new Long(-1);
   private int unresolvedConstraints;
   HashMap<String, Dictionary<String,Object>> cmDicts;
-  HashMap<String, PropertyDictionary> servProps = null;
   HashMap<String, ComponentConfiguration []> compConfigs = new HashMap<String, ComponentConfiguration []>();
   boolean cmConfigOptional;
   ComponentMethod activateMethod;
@@ -440,17 +439,11 @@ public abstract class Component implements org.apache.felix.scr.Component {
       state = STATE_ENABLED;
       if (compDesc.getServices() != null) {
         // No satisfied, check if we have circular problems.
-        // Only applicable if register a service.
+        // Only applicable if component registers a service.
         Activator.logDebug("Check circular: " + toString());
-        final String [] pids = getAllServicePids();
-        // Loop through service property configurations
-        String res;
-        for (final String pid : pids) {
-          res = scr.checkCircularReferences(this, pid, new ArrayList<Component>());
-          if (res != null) {
-            Activator.logError(bc, res, null);
-            break;
-          }
+        String res = scr.checkCircularReferences(this, new ArrayList<Component>());
+        if (res != null) {
+          Activator.logError(bc, res, null);
         }
       }
     }
@@ -507,11 +500,6 @@ public abstract class Component implements org.apache.felix.scr.Component {
     // First mandatory config, remove constraint
     final boolean first = cmDicts.isEmpty() && !cmConfigOptional;
     cmDicts.put(pid, c.getProperties());
-    // Discard cached service props
-    final HashMap<String, PropertyDictionary> sp = servProps;
-    if (sp != null) {
-      sp.remove(pid);
-    }
     ComponentConfiguration [] cc;
     synchronized (lock) {
       cc = compConfigs.remove(NO_PID);
@@ -550,10 +538,6 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   void cmConfigDeleted(String pid) {
     cmDicts.remove(pid);
-    final HashMap<String, PropertyDictionary> sp = servProps;
-    if (sp != null) {
-      sp.remove(pid);
-    }
     ComponentConfiguration [] cc;
     synchronized (lock) {
       if (refs != null) {
@@ -641,8 +625,6 @@ public abstract class Component implements org.apache.felix.scr.Component {
     } else if (compConfigs.get(NO_PID) == null) {
       res.add(newComponentConfiguration(NO_PID, null));
     }
-    // Release servProps since we don't need them anymore
-    servProps = null;
     return res.toArray(new ComponentConfiguration [res.size()]);
   }
 
@@ -655,11 +637,8 @@ public abstract class Component implements org.apache.felix.scr.Component {
   {
     final Dictionary<String, Object> cmDict = cmDicts != null ? cmDicts
         .get(cmPid) : null;
-    final PropertyDictionary sd = servProps != null ? servProps.get(cmPid)
-        : null;
     final ComponentConfiguration cc = new ComponentConfiguration(this, cmPid,
-                                                                 cmDict, sd,
-                                                                 instanceProps);
+                                                                 cmDict, instanceProps);
     synchronized (compConfigs) {
       ComponentConfiguration [] next;
       ComponentConfiguration [] old = compConfigs.get(cc.getCMPid());
@@ -811,29 +790,6 @@ public abstract class Component implements org.apache.felix.scr.Component {
    */
   Reference [] getRawReferences() {
     return refs;
-  }
-
-
-  /**
-   * Get service property dictionary that could
-   * be registered by this component, based on
-   * current CM data.
-   */
-  PropertyDictionary getServiceProperties(String pid) {
-    PropertyDictionary pd;
-    HashMap<String, PropertyDictionary> sp = servProps;
-    if (sp != null) {
-      pd = sp.get(pid);
-      if (pd != null) {
-        return pd;
-      }
-    } else {
-      sp = servProps = new HashMap<String, PropertyDictionary>();
-    }
-    final Dictionary<String, Object> cmDict =  cmDicts != null ? cmDicts.get(pid) : null;
-    pd = new PropertyDictionary(this, cmDict, null, true);
-    sp.put(pid, pd);
-    return pd;
   }
 
 
