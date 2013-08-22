@@ -23,9 +23,12 @@
 <div class="release_notes">
 
   <div class="note_group">
-    <div class="note_name"> Framework X.X.X</div>
+    <div class="note_name"> Framework 6.0.3</div>
     <div class="note_item">
-
+      The system bundle didn't by default export the packages
+      org.osgi.framework.hooks.bundle;version=1.0,
+      org.osgi.framework.hooks.weaving;version=1.0 and
+      org.osgi.framework.hooks.resolver;version=1.0.
     </div>
   </div>
 </div>
@@ -35,6 +38,19 @@
 <div class="release_notes">
 
   <div class="note_group">
+    <div class="note_name">SCR(component) 4.0.3</div>
+    <div class="note_item">
+      Fixed bug that caused the instance properties to be ignored
+      for certain factory components.
+    </div>
+    <div class="note_item">
+      Fixed dead-lock during component activation.
+    </div>
+    <div class="note_item">
+      Widen the search for circular component activations to include
+      components that might be activated depending on CM and/or instance
+      properties.
+    </div>
   </div>
   
 </div>
