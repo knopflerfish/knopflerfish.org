@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006-2012, KNOPFLERFISH project
+ * Copyright (c) 2006-2013, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -405,7 +405,6 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
    *         otherwise return null.
    */
   String checkCircularReferences(Component component,
-                                 String pid,
                                  ArrayList path) {
     int len = path.size();
     if (len > 0 && path.get(0) == component) {
@@ -426,21 +425,11 @@ class SCR implements SynchronousBundleListener, ConfigurationListener
           if (!rs[i].isOptional()) {
             Component [] cs = (Component [])serviceComponents.get(rs[i].refDesc.interfaceName);
             if (cs != null) {
-              // Components for service found
-              // Get target filter to
-              // NYI! optimize when several pids has same filter
-              Filter f = rs[i].getListener(pid).getTargetFilter();
               // Loop through all found components
               for (int cx = 0; cx < cs.length; cx++) {
-                String [] pids = cs[cx].getAllServicePids();
-                // Loop through service property configurations
-                for (int px = 0; px < pids.length; px++) {
-                  if (f == null || f.match(cs[cx].getServiceProperties(pids[px]))) {
-                    String res = checkCircularReferences(cs[cx], pids[px], path);
-                    if (res != null) {
-                      return res;
-                    }
-                  }
+                String res = checkCircularReferences(cs[cx], path);
+                if (res != null) {
+                  return res;
                 }
               }
             }
