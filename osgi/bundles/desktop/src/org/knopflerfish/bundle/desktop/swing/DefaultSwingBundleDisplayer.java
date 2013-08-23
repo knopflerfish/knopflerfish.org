@@ -183,8 +183,6 @@ public abstract class DefaultSwingBundleDisplayer
   void getAllBundles()
   {
     try {
-      final int delay = 0;
-
       final Bundle[] bl = Activator.getBundles();
 
       // do something reasonable with bundles already installed
@@ -199,9 +197,6 @@ public abstract class DefaultSwingBundleDisplayer
           break;
         }
         bundleChanged(ev);
-        if (delay > 0) {
-          Thread.sleep(delay);
-        }
       }
     } catch (final Exception e) {
       e.printStackTrace();
@@ -240,6 +235,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   long lastBID = -1;
 
+  @Override
   public void valueChanged(long bid)
   {
     boolean bHasVisible = false;
@@ -262,6 +258,7 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   // BundleListener interface, only called when bUseListeners = true
+  @Override
   public void bundleChanged(BundleEvent ev)
   {
     if (!bAlive) {
@@ -276,6 +273,7 @@ public abstract class DefaultSwingBundleDisplayer
   }
 
   // ServiceListener interface, only called when bUseListeners = true
+  @Override
   public void serviceChanged(ServiceEvent ev)
   {
     if (!bAlive) {
@@ -293,6 +291,7 @@ public abstract class DefaultSwingBundleDisplayer
   void updateComponents(final Bundle[] bl)
   {
     SwingUtilities.invokeLater(new Runnable() {
+      @Override
       public void run()
       {
         for (final JComponent comp : components) {
@@ -320,6 +319,7 @@ public abstract class DefaultSwingBundleDisplayer
     return bl;
   }
 
+  @Override
   public void setBundleSelectionModel(BundleSelectionModel model)
   {
     if (bundleSelModel != null) {
@@ -336,6 +336,7 @@ public abstract class DefaultSwingBundleDisplayer
 
   Set<JComponent> components = new HashSet<JComponent>();
 
+  @Override
   public JComponent createJComponent()
   {
     final JComponent comp = newJComponent();
@@ -346,6 +347,7 @@ public abstract class DefaultSwingBundleDisplayer
     return comp;
   }
 
+  @Override
   public void disposeJComponent(JComponent comp)
   {
     components.remove(comp);
@@ -359,21 +361,25 @@ public abstract class DefaultSwingBundleDisplayer
     }
   }
 
+  @Override
   public Icon getLargeIcon()
   {
     return null;
   }
 
+  @Override
   public Icon getSmallIcon()
   {
     return null;
   }
 
+  @Override
   public void setTargetBundleContext(BundleContext bc)
   {
     this.bc = bc;
   }
 
+  @Override
   public void showBundle(Bundle b)
   {
   }

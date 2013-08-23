@@ -48,7 +48,8 @@ public class Timer {
   static private Method nanoTimeMethod;
 
   static {
-    AccessController.doPrivileged(new PrivilegedAction() {
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+      @Override
       public Object run() {
         nanoTimeMethod = getMethod(System.class, "nanoTime", new Class[] { });
         return null;
@@ -59,7 +60,7 @@ public class Timer {
   /**
    * Get method from class
    */
-  public static Method getMethod(Class c, String name, Class [] args) {
+  public static Method getMethod(Class<?> c, String name, Class<?> [] args) {
     Method m = null;
     while (true) {
       try {
@@ -87,7 +88,7 @@ public class Timer {
         if (res != null) {
           return ((Long)res).longValue() / 1000000L;
         }
-      } catch (IllegalAccessException _ignore) { 
+      } catch (IllegalAccessException _ignore) {
       } catch (InvocationTargetException _ignore) { }
     }
     return System.currentTimeMillis();
