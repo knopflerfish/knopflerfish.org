@@ -66,12 +66,6 @@ import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.FrameworkWiring;
-import org.osgi.service.condpermadmin.ConditionalPermissionAdmin;
-import org.osgi.service.permissionadmin.PermissionAdmin;
-import org.osgi.util.tracker.ServiceTracker;
-
-import org.knopflerfish.framework.permissions.ConditionalPermissionAdminImpl;
-import org.knopflerfish.framework.permissions.PermissionAdminImpl;
 
 /**
  * Implementation of the System Bundle object.
@@ -136,6 +130,7 @@ public class SystemBundle extends BundleImpl implements Framework {
    *
    * @see org.osgi.framework.Framework#init
    */
+  @Override
   public void init() throws BundleException {
     secure.checkExecuteAdminPerm(this);
 
@@ -221,6 +216,7 @@ public class SystemBundle extends BundleImpl implements Framework {
   /**
    *
    */
+  @Override
   public FrameworkEvent waitForStop(long timeout) throws InterruptedException {
     synchronized (lock) {
       // Already stopped?
@@ -661,8 +657,9 @@ public class SystemBundle extends BundleImpl implements Framework {
    * @param sysPkgFile Name of the file to load packages to be exported from.
    */
   private void addSysPackagesFromFile(StringBuffer sp, String sysPkgFile) {
-    if (null == sysPkgFile || 0 == sysPkgFile.length())
+    if (null == sysPkgFile || 0 == sysPkgFile.length()) {
       return;
+    }
 
     if (fwCtx.debug.resolver) {
       fwCtx.debug.println("Will add system packages from file " + sysPkgFile);
