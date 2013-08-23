@@ -34,8 +34,6 @@
 
 package org.knopflerfish.framework;
 
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -90,10 +88,10 @@ public class FWProps {
   /**
    * Property specifying the amount of time in seconds that the framework waits for a
    * BundleActivator.start() or .stop() call to complete and return. The default value is 0 which
-   * means to wait indefinitely. 
+   * means to wait indefinitely.
    */
   public final static String BUNDLETHREAD_TIMEOUT = "org.knopflerfish.framework.bundlethread.timeout";
-  
+
   /**
    * Name of system property for basic system packages to be exported. The
    * normal OSGi exports will be added to this list.
