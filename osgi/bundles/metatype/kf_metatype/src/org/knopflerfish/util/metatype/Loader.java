@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003-2013, KNOPFLERFISH project
+ * Copyright (c) 2003-2014, KNOPFLERFISH project
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -1355,8 +1356,8 @@ public class Loader
   private static MetaData currentMetaData;
   private static OCD currentOCD;
   private static AD currentAD;
-  private static Vector<String> currentOptionLabels = new Vector<String>();
-  private static Vector<String> currentOptionValues = new Vector<String>();
+  private static List<String> currentOptionLabels = new ArrayList<String>();
+  private static List<String> currentOptionValues = new ArrayList<String>();
 
   private static String currentDesignatePid;
   private static String currentDesignateFactoryPid;
@@ -1364,7 +1365,7 @@ public class Loader
 
   private static ServiceTracker<?, ?> confAdminTracker;
   private static Configuration currentConf;
-  private static Vector<AE> currentAttributes;
+  private static List<AE> currentAttributes;
   private static AE currentAE;
 
   private static Bundle currentBundle;
@@ -1629,7 +1630,7 @@ public class Loader
         }
       }
 
-      currentAttributes = new Vector<AE>();
+      currentAttributes = new ArrayList<AE>();
     } else if (OPTION.equals(element)) {
 
       final String label = attrs.get(ATTR_LABEL);
@@ -1690,10 +1691,25 @@ public class Loader
         optionValues = currentOptionValues.toArray(new String[number]);
         // same number
         optionLabels = currentOptionLabels.toArray(new String[number]);
+
+        // Must check that all default values are valid option values.
+        if (currentAD.defValue != null) {
+          // Any default value that is not a valid option value must be removed.
+          List<String> defValues = new ArrayList<String>(Arrays.asList(currentAD.defValue));
+          System.out.println("Option values: " +currentOptionValues);
+          System.out.println("Default values before: " +defValues);
+          defValues.retainAll(currentOptionValues);
+          if (defValues.size()==0) {
+            currentAD.defValue = null;
+          } else {
+            currentAD.defValue = defValues.toArray(new String[defValues.size()]);
+          }
+          System.out.println("Default values after: " +defValues);
+        }
       }
       currentAD.setOptions(optionValues, optionLabels);
-      currentOptionValues.removeAllElements();
-      currentOptionLabels.removeAllElements();
+      currentOptionValues.clear();
+      currentOptionLabels.clear();
       currentAD = null;
     } else if (DESIGNATE.equals(element)) {
       // MetaInfo
