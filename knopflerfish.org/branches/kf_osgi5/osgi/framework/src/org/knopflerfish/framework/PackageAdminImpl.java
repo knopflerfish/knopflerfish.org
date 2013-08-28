@@ -346,13 +346,18 @@ public class PackageAdminImpl implements PackageAdmin {
     for (final BundleImpl rb : slist) {
       rb.getUpdatedState(triggers);
     }
-    fwCtx.resolverHooks.endResolve(triggers);
+    try {
+      fwCtx.resolverHooks.endResolve(triggers);
+    } catch (final BundleException be) {
+      // TODO Fix correct bundle
+      fwCtx.frameworkError(fwCtx.systemBundle, be);
+    }
     for (final BundleImpl rb : slist) {
       if (rb.getState() == Bundle.RESOLVED) {
         try {
           rb.start();
         } catch (final BundleException be) {
-          rb.fwCtx.frameworkError(rb, be);
+          fwCtx.frameworkError(rb, be);
         }
       }
     }
@@ -393,7 +398,12 @@ public class PackageAdminImpl implements PackageAdmin {
             res = false;
           }
         }
-        fwCtx.resolverHooks.endResolve(triggers);
+        try {
+          fwCtx.resolverHooks.endResolve(triggers);
+        } catch (BundleException be) {
+          // TODO Fix correct bundle
+          fwCtx.frameworkError(fwCtx.systemBundle, be);
+        }
       }
       return res;
     }

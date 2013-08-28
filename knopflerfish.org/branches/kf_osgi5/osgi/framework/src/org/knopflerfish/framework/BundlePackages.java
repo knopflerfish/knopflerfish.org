@@ -319,8 +319,8 @@ class BundlePackages {
    *         for fail can be fetched with getResolveFailReason().
    * @throws BundleException Resolver hook complaint.
    */
-  boolean resolvePackages() throws BundleException {
-    failReason = bg.bundle.fwCtx.resolver.resolve(bg, this);
+  boolean resolvePackages(BundleImpl[] triggers) throws BundleException {
+    failReason = bg.bundle.fwCtx.resolver.resolve(bg, this, triggers);
     if (failReason == null) {
       okImports = new ArrayList<ImportPkg>(imports.size());
       for (final Iterator<ImportPkg> i = getImports(); i.hasNext();) {
@@ -450,7 +450,11 @@ class BundlePackages {
       fwCtx.frameworkError(bg.bundle, be);
     }
     if (trigger != null) {
-      fwCtx.resolverHooks.endResolve(trigger);      
+      try {
+        fwCtx.resolverHooks.endResolve(trigger);      
+      } catch (BundleException be) {
+        fwCtx.frameworkError(bg.bundle, be);
+      }
     }
     return res;
   }
@@ -896,7 +900,7 @@ class BundlePackages {
     nfbpkgs.registerPackages();
     if (resolvedHost) {
       try {
-        failReason = bg.bundle.fwCtx.resolver.resolve(bg, nfbpkgs);
+        failReason = bg.bundle.fwCtx.resolver.resolve(bg, nfbpkgs, null);
       } catch (BundleException be) {
         nfbpkgs.unregisterPackages(true);
         throw be;

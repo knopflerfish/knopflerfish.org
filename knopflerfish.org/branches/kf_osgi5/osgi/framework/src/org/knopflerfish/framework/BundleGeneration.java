@@ -526,11 +526,11 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   /**
    *
    */
-  boolean resolvePackages() throws BundleException {
+  boolean resolvePackages(BundleImpl[] triggers) throws BundleException {
     ArrayList<BundleGeneration> detached = null;
     attachFragments();
     while (true) {
-      if (bpkgs.resolvePackages()) {
+      if (bpkgs.resolvePackages(triggers)) {
         if (detached != null) {
           // TODO should we report fragment that failed to attach
           for (int i = detached.size() - 2; i >= 0; i--) {

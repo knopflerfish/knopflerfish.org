@@ -575,7 +575,7 @@ public class SystemBundle extends BundleImpl implements Framework {
     generations.add(gen);
     gen.bpkgs.registerPackages();
     try {
-      gen.bpkgs.resolvePackages();
+      gen.bpkgs.resolvePackages(null);
     } catch (final BundleException _ignore) {
       // Shouldn't happend, hooks not active;
     }
