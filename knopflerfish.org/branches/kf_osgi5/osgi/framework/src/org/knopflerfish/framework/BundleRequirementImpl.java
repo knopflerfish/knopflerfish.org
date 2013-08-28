@@ -37,15 +37,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.Version;
+import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
-
-import org.knopflerfish.framework.Util.HeaderEntry;
 
 public class BundleRequirementImpl
   implements BundleRequirement
@@ -101,6 +102,89 @@ public class BundleRequirementImpl
     }
     directives = Collections.unmodifiableMap(he.getDirectives());
     attributes = Collections.unmodifiableMap(he.getAttributes());
+  }
+
+  /**
+   * Creates a {@link BundleRequirement} from a
+   * "Bundle-RequiredExecutionEnvironment" manifest header.
+   *
+   * @param gen
+   *          the owning bundle revision.
+   * @param ee
+   *          the entry from the "Bundle-RequiredExecutionEnvironment" manifest header.
+   */
+  @SuppressWarnings("unchecked")
+  BundleRequirementImpl(final BundleGeneration gen, final String ee)
+  {
+    this.gen = gen;
+    nameSpace = ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE;
+
+    final StringBuffer filterStrB = new StringBuffer();
+    final String[] l = Util.splitwords(ee, ",");
+    if (l.length > 1) {
+      filterStrB.append("(|");
+    }
+    for (final String e : l) {
+      final String[] es = Util.splitwords(e, "-");
+      try {
+        if (es.length == 2) {
+          final int si = es[1].indexOf('/');
+          new Version(si == -1 ? es[1] : es[1].substring(0, si));
+          filterStrB.append("(&(").append(nameSpace).append('=');
+          if (es[0].equalsIgnoreCase("J2SE")) {
+            es[0]="JavaSE";
+          }
+          filterStrB.append(es[0]);
+          if (si != -1) {
+            filterStrB.append(es[1].substring(si));
+          }
+          filterStrB.append(")(version=").append(es[1]).append("))");
+          continue;
+        } else if (es.length > 2) {
+          final StringBuffer esStrB = new StringBuffer(es[0]);
+          Version v = null;
+          for (int i = 1; i < es.length; i++) {
+            if (Character.isDigit(es[i].charAt(0))) {
+              if (v == null) {
+                final int si = es[i].indexOf('/');
+                v = new Version(si == -1 ? es[i] : es[i].substring(0, si));
+                if (si != -1) {
+                  esStrB.append(es[1].substring(si));
+                } else if (i != es.length - 1) {
+                  throw new IllegalArgumentException("Version not at end");                  
+                }
+              } else {
+                if (v.equals(new Version(es[i])) && i == es.length - 1) {
+                  break;
+                }
+                throw new IllegalArgumentException("Version mismatch");
+              }
+            } else {
+              esStrB.append('-').append(es[i]);
+            }
+          }
+          if (v != null) {
+            filterStrB.append("(&(").append(nameSpace).append('=');
+            filterStrB.append(esStrB).append(")(version=");
+            filterStrB.append(v).append("))");
+            continue;
+          }
+        }
+      } catch (IllegalArgumentException _ignore) { }
+      filterStrB.append('(').append(nameSpace).append('=');
+      filterStrB.append(e).append(')');
+    }
+    if (l.length > 1) {
+      filterStrB.append(')');
+    }
+    
+    try {
+      filter = FrameworkUtil.createFilter(filterStrB.toString());
+    } catch (final InvalidSyntaxException ise) {
+      throw new RuntimeException("Internal error");
+    }
+    directives = Collections.singletonMap("filter", filter.toString());
+    attributes = Collections.EMPTY_MAP;
   }
 
   @Override

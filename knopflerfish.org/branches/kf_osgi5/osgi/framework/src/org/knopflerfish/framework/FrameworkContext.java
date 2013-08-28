@@ -39,20 +39,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import org.osgi.framework.Bundle;
-import org.osgi.framework.Constants;
-import org.osgi.framework.FrameworkEvent;
-import org.osgi.framework.FrameworkListener;
 
 import org.knopflerfish.framework.Util.HeaderEntry;
 import org.knopflerfish.framework.permissions.ConditionalPermissionSecurityManager;
 import org.knopflerfish.framework.permissions.KFSecurityManager;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkEvent;
+import org.osgi.framework.FrameworkListener;
 
 
 /**
@@ -167,14 +164,6 @@ public class FrameworkContext  {
   boolean firstInit = true;
 
   /**
-   * Cached value of
-   * props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT)
-   * Used and updated by isValidEE()
-   */
-  private final Set<String>    eeCacheSet = new HashSet<String>();
-  private String eeCache = null;
-
-  /**
    * Framework id.
    */
   final int id;
@@ -205,6 +194,11 @@ public class FrameworkContext  {
   PackageAdminImpl packageAdmin = null;
 
   /**
+   * Mode for BSN collision checks.
+   */
+  String bsnversionMode;
+
+  /**
    * Factory for handling service-based URLs
    */
   volatile static ServiceURLStreamHandlerFactory systemUrlStreamHandlerFactory;
@@ -228,9 +222,6 @@ public class FrameworkContext  {
    * Reference counter for security manager.
    */
   static int smUse = 0;
-
-
-  boolean bsnversionSingle;
 
 
   /**
@@ -359,8 +350,16 @@ public class FrameworkContext  {
 
     props.props.put(Constants.FRAMEWORK_UUID, getUUID());
 
-    bsnversionSingle = Constants.FRAMEWORK_BSNVERSION_SINGLE
-        .equals(props.getProperty(Constants.FRAMEWORK_BSNVERSION));
+    String bsnProp = props.getProperty(Constants.FRAMEWORK_BSNVERSION).trim().toLowerCase();
+
+    if (bsnProp.equals(Constants.FRAMEWORK_BSNVERSION_MANAGED) ||
+        bsnProp.equals(Constants.FRAMEWORK_BSNVERSION_MULTIPLE) ||
+        bsnProp.equals(Constants.FRAMEWORK_BSNVERSION_SINGLE)) {
+      bsnversionMode = bsnProp;
+    } else {
+      bsnversionMode = Constants.FRAMEWORK_BSNVERSION_MANAGED;
+      debug.println("Unknown property value: " + Constants.FRAMEWORK_BSNVERSION + " = " + bsnProp);
+    }
 
     final String storageClass = "org.knopflerfish.framework.bundlestorage." +
       props.getProperty(FWProps.BUNDLESTORAGE_PROP) + ".BundleStorageImpl";
@@ -612,42 +611,6 @@ public class FrameworkContext  {
     if (b == null || !(b instanceof BundleImpl) || this != ((BundleImpl)b).fwCtx) {
       throw new IllegalArgumentException("Bundle does not belong to this framework: " + b);
     }
-  }
-
-
-  /**
-   * Check if an execution environment string is accepted
-   *
-   */
-  boolean isValidEE(String ee) {
-    ee = ee.trim();
-    if(ee == null || "".equals(ee)) {
-      return true;
-    }
-
-    @SuppressWarnings("deprecation")
-    final String fwEE = props.getProperty(Constants.FRAMEWORK_EXECUTIONENVIRONMENT);
-
-    if(fwEE == null) {
-      // If EE is not set, allow everything
-      return true;
-    } else if (!fwEE.equals(eeCache)) {
-      eeCacheSet.clear();
-
-      final String[] l = Util.splitwords(fwEE, ",");
-      for (final String element : l) {
-        eeCacheSet.add(element);
-      }
-      eeCache = fwEE;
-    }
-
-    final String[] eel   = Util.splitwords(ee, ",");
-    for (final String element : eel) {
-      if(eeCacheSet.contains(element)) {
-        return true;
-      }
-    }
-    return false;
   }
 
 

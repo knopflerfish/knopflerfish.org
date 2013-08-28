@@ -60,6 +60,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.hooks.bundle.CollisionHook;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 
@@ -183,6 +184,8 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
 
   final BundleRevisionImpl bundleRevision;
 
+  final private BundleCapability identity;
+
   /**
    * Construct a new BundleGeneration for the System Bundle.
    *
@@ -210,6 +213,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     bundleRevision = new BundleRevisionImpl(this);
     classLoader = b.getClassLoader();
     processCapabilities(capabilityStr);
+    identity = new BundleCapabilityImpl(this);
   }
 
 
@@ -230,7 +234,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
    *              extension.
    * @exception IllegalArgumentException Faulty manifest for bundle
    */
-  BundleGeneration(BundleImpl b, BundleArchive ba, BundleGeneration prev) throws BundleException {
+  BundleGeneration(BundleImpl b, BundleArchive ba, BundleGeneration prev, Bundle caller) throws BundleException {
     bundle = b;
     generation = (prev != null ? prev.generation : -1) + 1;
     archive = ba;
@@ -238,27 +242,13 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     // TODO, v2Manifest unnecessary to cache?
     final String mv = archive.getAttribute(Constants.BUNDLE_MANIFESTVERSION);
     v2Manifest = mv != null && mv.trim().equals("2");
-    List<HeaderEntry> hes = Util
-        .parseManifestHeader(Constants.BUNDLE_SYMBOLICNAME, archive
-            .getAttribute(Constants.BUNDLE_SYMBOLICNAME), true, true, true);
-    HeaderEntry he = null;
-    if (!hes.isEmpty()) {
-      he = hes.get(0);
-      symbolicName = he.getKey();
-    } else {
-      if (v2Manifest) {
-        throw new IllegalArgumentException("Bundle has no symbolic name, location="
-            + bundle.location);
-      } else {
-        symbolicName = null;
-      }
-    }
+    
     final String mbv = archive.getAttribute(Constants.BUNDLE_VERSION);
     Version newVer = Version.emptyVersion;
     if (mbv != null) {
       try {
         newVer = new Version(mbv);
-      } catch (final Throwable ee) {
+      } catch (final Exception ee) {
         if (v2Manifest) {
           throw new IllegalArgumentException("Bundle does not specify a valid "
               + Constants.BUNDLE_VERSION + " header. Got exception: " + ee.getMessage());
@@ -267,28 +257,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     }
     version = newVer;
 
-    if (he != null) {
-      singleton = "true".equals(he.getDirectives().get(Constants.SINGLETON_DIRECTIVE));
-      final String tmp = he.getDirectives().get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
-      attachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
-      // TODO! Should we allow update to same version?
-      if (bundle.fwCtx.bsnversionSingle) {
-        final BundleImpl snb = b.fwCtx.bundles.getBundle(symbolicName, version);
-        if (snb != null && snb != bundle) {
-          throw new BundleException("Bundle#" + b.id +
-                                    ", a bundle with same symbolic name and version "
-                                    + "is already installed (" + symbolicName + ", "
-                                    + version, BundleException.DUPLICATE_BUNDLE_ERROR);
-        }
-      }
-      symbolicNameParameters = he;
-    } else {
-      attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
-      singleton = false;
-      symbolicNameParameters = null;
-    }
-
-    hes = Util.parseManifestHeader(Constants.FRAGMENT_HOST, archive
+    List<HeaderEntry> hes = Util.parseManifestHeader(Constants.FRAGMENT_HOST, archive
         .getAttribute(Constants.FRAGMENT_HOST), true, true, true);
     if (!hes.isEmpty()) {
       fragment = new Fragment(this, hes.get(0));
@@ -299,7 +268,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     hes = Util.parseManifestHeader(Constants.BUNDLE_ACTIVATIONPOLICY, archive
         .getAttribute(Constants.BUNDLE_ACTIVATIONPOLICY), true, true, true);
     if (!hes.isEmpty()) {
-      he = hes.get(0);
+      HeaderEntry he = hes.get(0);
       lazyActivation = Constants.ACTIVATION_LAZY.equals(he.getKey());
       if (lazyActivation) {
         if (he.getDirectives().containsKey(Constants.INCLUDE_DIRECTIVE)) {
@@ -348,6 +317,18 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       nsReqs.add(bri);
     }
 
+    @SuppressWarnings("deprecation")
+    String ee = archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
+    if (ee != null) {
+      final BundleRequirementImpl bri = new BundleRequirementImpl(this, ee);
+      List<BundleRequirementImpl> nsReqs = requirements.get(bri.getNamespace());
+      if (null == nsReqs) {
+        nsReqs = new ArrayList<BundleRequirementImpl>();
+        requirements.put(bri.getNamespace(), nsReqs);
+      }
+      nsReqs.add(bri);
+    }
+
     processCapabilities(archive.getAttribute(Constants.PROVIDE_CAPABILITY));
 
     bpkgs = new BundlePackages(this);
@@ -369,6 +350,51 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     }
     bundleRevision = new BundleRevisionImpl(this);
     timeStamp = lastModified;
+
+    hes = Util
+        .parseManifestHeader(Constants.BUNDLE_SYMBOLICNAME, archive
+            .getAttribute(Constants.BUNDLE_SYMBOLICNAME), true, true, true);
+    HeaderEntry he = null;
+    if (!hes.isEmpty()) {
+      he = hes.get(0);
+      symbolicName = he.getKey();
+    } else {
+      if (v2Manifest) {
+        throw new IllegalArgumentException("Bundle has no symbolic name, location="
+            + bundle.location);
+      } else {
+        symbolicName = null;
+      }
+    }
+    if (he != null) {
+      singleton = "true".equals(he.getDirectives().get(Constants.SINGLETON_DIRECTIVE));
+      final String tmp = he.getDirectives().get(Constants.FRAGMENT_ATTACHMENT_DIRECTIVE);
+      attachPolicy = tmp == null ? Constants.FRAGMENT_ATTACHMENT_ALWAYS : tmp;
+      symbolicNameParameters = he;
+      if (!bundle.fwCtx.bsnversionMode.equals(Constants.FRAMEWORK_BSNVERSION_MULTIPLE)) {
+        final Collection<Bundle> snbl = b.fwCtx.bundles.getBundles(symbolicName, version);
+        if (!snbl.isEmpty() && (snbl.size() > 1 || !snbl.contains(bundle))) {
+          boolean fail;
+          if (bundle.fwCtx.bsnversionMode.equals(Constants.FRAMEWORK_BSNVERSION_MANAGED)) {
+            bundle.fwCtx.bundleHooks.filterCollisions(prev != null ? CollisionHook.UPDATING : CollisionHook.INSTALLING, caller, snbl);
+            fail = !snbl.isEmpty() && (snbl.size() > 1 || !snbl.contains(bundle));
+          } else {
+            fail = true;
+          }
+          if (fail) {
+            throw new BundleException("Bundle#" + b.id +
+                                      ", a bundle with same symbolic name and version "
+                                      + "is already installed (" + symbolicName + ", "
+                                      + version, BundleException.DUPLICATE_BUNDLE_ERROR);
+          }
+        }
+      }
+    } else {
+      attachPolicy = Constants.FRAGMENT_ATTACHMENT_ALWAYS;
+      singleton = false;
+      symbolicNameParameters = null;
+    }
+    identity = symbolicName != null ? new BundleCapabilityImpl(this) : null;
   }
 
 
@@ -397,6 +423,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
     cachedRawHeaders = prev.cachedRawHeaders;
     classLoader = null;
     bundleRevision = null;
+    identity = null;
   }
 
 
@@ -1217,6 +1244,11 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
       }
     }
     return res;
+  }
+
+
+  BundleCapability getIdentityCapability() {
+    return identity;
   }
 
 }

@@ -86,6 +86,12 @@ public class BundleWiringImpl implements BundleWiring {
     BundleGeneration gen = bundleRevision.getBundleGeneration();
     final int ns = BundleRevisionImpl.whichNameSpaces(namespace);
     final ArrayList<BundleCapability> res = new ArrayList<BundleCapability>();
+    if ((ns & BundleRevisionImpl.NS_IDENTITY) != 0) {
+      final BundleCapability bc = gen.getIdentityCapability();
+      if (bc != null) {
+        res.add(bc);
+      }
+    }
     if (!gen.isFragment()) {
       if ((ns & BundleRevisionImpl.NS_BUNDLE) != 0) {
         final BundleCapability bc = gen.getBundleCapability();
@@ -155,7 +161,7 @@ public class BundleWiringImpl implements BundleWiring {
       if ((ns & BundleRevisionImpl.NS_PACKAGE) != 0) {
         res.addAll(gen.bpkgs.getPackageRequirements());
       }
-      if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+      if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
         final Map<String, List<BundleRequirementImpl>> reqs = gen.getOtherRequirements();
         Collection<List<BundleRequirementImpl>> clbr = null;
         if (null != namespace) {
@@ -225,7 +231,7 @@ public class BundleWiringImpl implements BundleWiring {
         }
       }
     }
-    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+    if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
       List<BundleWireImpl> other = gen.getCapabilityWires();
       if (other != null) {
         for (BundleWireImpl bw : other) {
@@ -288,7 +294,7 @@ public class BundleWiringImpl implements BundleWiring {
         res.add(new BundleWireImpl(cip.provider, cip.provider.bpkgs.bg, cip.parent, gen));
       }
     }
-    if ((ns & BundleRevisionImpl.NS_OTHER) != 0) {
+    if ((ns & (BundleRevisionImpl.NS_IDENTITY|BundleRevisionImpl.NS_OTHER)) != 0) {
       List<BundleWireImpl> other = gen.getRequirementWires();
       if (other != null) {
         for (BundleWireImpl bw : other) {

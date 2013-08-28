@@ -354,7 +354,7 @@ public class FWProps {
   protected void initProperties(FrameworkContext fwCtx) {
     setPropertyIfNotSet(Constants.FRAMEWORK_BOOTDELEGATION, "");
     setPropertyIfNotSet(Constants.FRAMEWORK_BSNVERSION,
-                        Constants.FRAMEWORK_BSNVERSION_SINGLE);
+                        Constants.FRAMEWORK_BSNVERSION_MANAGED);
     setPropertyIfNotSet(Constants.FRAMEWORK_BUNDLE_PARENT,
                         Constants.FRAMEWORK_BUNDLE_PARENT_BOOT);
     setPropertyIfNotSet(Constants.FRAMEWORK_EXECPERMISSION, "");

@@ -35,10 +35,10 @@
 package org.knopflerfish.framework;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.knopflerfish.framework.Util.HeaderEntry;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
@@ -46,8 +46,6 @@ import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
-
-import org.knopflerfish.framework.Util.HeaderEntry;
 
 
 class RequireBundle
@@ -64,6 +62,7 @@ class RequireBundle
   final VersionRange bundleRange;
   BundlePackages bpkgs = null;
   final Map<String,Object> attributes;
+  final Map<String,String> directives;
 
 
   /**
@@ -81,6 +80,7 @@ class RequireBundle
     this.resolution = parent.resolution;
     this.bundleRange= parent.bundleRange;
     this.attributes = parent.attributes;
+    this.directives = parent.directives;
   }
 
   /**
@@ -96,8 +96,8 @@ class RequireBundle
     this.requestor = requestor;
     this.name = he.getKey();
 
-    final String visibility = he.getDirectives()
-        .get(Constants.VISIBILITY_DIRECTIVE);
+    final Map<String,String> dirs = he.getDirectives();
+    final String visibility = dirs.get(Constants.VISIBILITY_DIRECTIVE);
     if (visibility != null) {
       this.visibility = visibility.intern();
       if (this.visibility!=Constants.VISIBILITY_PRIVATE &&
@@ -117,8 +117,7 @@ class RequireBundle
       this.visibility = Constants.VISIBILITY_PRIVATE;
     }
 
-    final String resolution = he.getDirectives()
-        .get(Constants.RESOLUTION_DIRECTIVE);
+    final String resolution = dirs.get(Constants.RESOLUTION_DIRECTIVE);
     if (resolution != null) {
       this.resolution = resolution.intern();
       if (this.resolution!=Constants.RESOLUTION_MANDATORY &&
@@ -138,16 +137,18 @@ class RequireBundle
       this.resolution = Constants.RESOLUTION_MANDATORY;
     }
 
-    final String range = (String) he.getAttributes()
-        .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
+    this.attributes = he.getAttributes();
+    final String range = (String) attributes.remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     if (range != null) {
       this.bundleRange = new VersionRange(range);
     } else {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
-
-    this.attributes = Collections.unmodifiableMap(he.getAttributes());
-
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      dirs.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    this.directives = Collections.unmodifiableMap(dirs);
   }
 
 
@@ -181,20 +182,7 @@ class RequireBundle
   @Override
   public Map<String, String> getDirectives()
   {
-    final Map<String,String> res = new HashMap<String, String>(4);
-
-    res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
-    res.put(Constants.VISIBILITY_DIRECTIVE, visibility);
-
-    // For BUNDLE_NAMESPACE effective defaults to resolve and no other value
-    // is allowed so leave it out.
-    // res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
-
-    final Filter filter = toFilter();
-    if (null!=filter) {
-      res.put(Constants.FILTER_DIRECTIVE, filter.toString());
-    }
-    return res;
+    return directives;
   }
 
 
@@ -230,9 +218,7 @@ class RequireBundle
     try {
       return FrameworkUtil.createFilter(sb.toString());
     } catch (final InvalidSyntaxException _ise) {
-      // Should not happen...
-      System.err.println("createFilter: '" +sb.toString() +"': " +_ise.getMessage());
-      return null;
+      throw new RuntimeException("Internal error, createFilter: '" +sb.toString() +"': " +_ise.getMessage());
     }
   }
 
