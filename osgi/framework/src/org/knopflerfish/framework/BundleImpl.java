@@ -184,14 +184,14 @@ public class BundleImpl implements Bundle {
    *              extension.
    * @exception IllegalArgumentException Faulty manifest for bundle
    */
-  BundleImpl(FrameworkContext fw, BundleArchive ba, Object checkContext) throws BundleException {
+  BundleImpl(FrameworkContext fw, BundleArchive ba, Object checkContext, Bundle caller) throws BundleException {
     fwCtx = fw;
     secure = fwCtx.perm;
     id = ba.getBundleId();
     location = ba.getBundleLocation();
     state = INSTALLED;
     generations = new Vector<BundleGeneration>(2);
-    final BundleGeneration gen = new BundleGeneration(this, ba, null);
+    final BundleGeneration gen = new BundleGeneration(this, ba, null, caller);
     generations.add(gen);
     gen.checkPermissions(checkContext);
     doExportImport();
@@ -379,8 +379,7 @@ public class BundleImpl implements Bundle {
     try {
       if (ba != null) {
         @SuppressWarnings("unchecked")
-        final
-		Class<BundleActivator> c =
+        final Class<BundleActivator> c =
             (Class<BundleActivator>) getClassLoader().loadClass(ba.trim());
         error_type = BundleException.ACTIVATOR_ERROR;
         bactivator = c.newInstance();
@@ -787,7 +786,7 @@ public class BundleImpl implements Bundle {
       }
 
       newArchive = fwCtx.storage.updateBundleArchive(archive, bin);
-      newGeneration = new BundleGeneration(this, newArchive, current);
+      newGeneration = new BundleGeneration(this, newArchive, current, this);
       newGeneration.checkPermissions(checkContext);
       newArchive.setStartLevel(oldStartLevel);
       fwCtx.storage.replaceBundleArchive(archive, newGeneration.archive);
@@ -1224,20 +1223,6 @@ public class BundleImpl implements Bundle {
             final BundleGeneration current = current();
             if (triggers != null) {
               fwCtx.resolverHooks.beginResolve(triggers);
-            }
-            @SuppressWarnings("deprecation")
-            final
-            String ee = current.archive.getAttribute(Constants.BUNDLE_REQUIREDEXECUTIONENVIRONMENT);
-            if (ee != null) {
-              if (fwCtx.debug.resolver) {
-                fwCtx.debug.println("bundle #" + current.archive.getBundleId() + " has EE=" + ee);
-              }
-              if (!fwCtx.isValidEE(ee)) {
-                throw new BundleException("Bundle#" + id +
-                                          ", unable to resolve: Execution environment '"
-                                          + ee + "' is not supported",
-                                          BundleException.RESOLVE_ERROR);
-              }
             }
             if (current.isFragment()) {
               final List<BundleGeneration> hosts = current.fragment.targets();

@@ -78,6 +78,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   final VersionRange packageRange;
   final VersionRange bundleRange;
   final Map<String,Object> attributes;
+  final Map<String,String> directives;
   final ImportPkg parent;
 
   // Link to pkg entry
@@ -108,7 +109,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     if (name.startsWith("java.")) {
       throw new IllegalArgumentException("You can not import a java.* package");
     }
-    final String res = he.getDirectives().get(Constants.RESOLUTION_DIRECTIVE);
+    final Map<String, String> dirs = he.getDirectives();
+    final String res = dirs.get(Constants.RESOLUTION_DIRECTIVE);
     if (dynamic) {
       if (res != null) {
         throw new IllegalArgumentException("Directives not supported for "
@@ -157,6 +159,11 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
       this.bundleRange = VersionRange.defaultVersionRange;
     }
     this.attributes = Collections.unmodifiableMap(he.getAttributes());
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      dirs.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    this.directives = Collections.unmodifiableMap(dirs);
     this.parent = null;
   }
 
@@ -172,6 +179,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
     this.attributes = ip.attributes;
+    this.directives = ip.directives;
     this.parent = ip;
   }
 
@@ -187,6 +195,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     this.packageRange = ip.packageRange;
     this.bundleRange = ip.bundleRange;
     this.attributes = ip.attributes;
+    this.directives = ip.directives;
     this.parent = ip.parent;
   }
 
@@ -206,6 +215,13 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     }
     this.bundleRange = VersionRange.defaultVersionRange;
     this.attributes = p.attributes;
+    // TODO, should we import unknown directives?
+    final Map<String,String> dirs = new HashMap<String, String>();
+    final Filter filter = toFilter();
+    if (null!=filter) {
+      dirs.put(Constants.FILTER_DIRECTIVE, filter.toString());
+    }
+    this.directives = Collections.unmodifiableMap(dirs);
     this.parent = null;
   }
 
@@ -391,19 +407,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
   // BundleRequirement method
   @Override
   public Map<String, String> getDirectives() {
-    final Map<String,String> res = new HashMap<String, String>(4);
-
-    res.put(Constants.RESOLUTION_DIRECTIVE, resolution);
-
-    // For PACKAGE_NAMESPACE effective defaults to resolve and no other value
-    // is allowed so leave it out.
-    // res.put(Constants.EFFECTIVE_DIRECTIVE, Constants.EFFECTIVE_RESOLVE);
-
-    final Filter filter = toFilter();
-    if (null!=filter) {
-      res.put(Constants.FILTER_DIRECTIVE, filter.toString());
-    }
-    return res;
+    return directives;
   }
 
 

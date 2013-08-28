@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.osgi.framework.Version;
+import org.osgi.framework.namespace.IdentityNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -50,10 +51,11 @@ public class BundleRevisionImpl
   implements BundleRevision
 {
 
-  static final int NS_BUNDLE =  1;
-  static final int NS_HOST =    2;
-  static final int NS_PACKAGE = 4;
-  static final int NS_OTHER =   8;
+  static final int NS_BUNDLE =    1;
+  static final int NS_HOST =      2;
+  static final int NS_IDENTITY =  4;
+  static final int NS_PACKAGE =   8;
+  static final int NS_OTHER =    16;
 
   final BundleGeneration gen;
   private BundleWiring bundleWiring = null;
@@ -90,6 +92,13 @@ public class BundleRevisionImpl
     }
     if ((ns & NS_HOST) != 0) {
       final BundleCapability bc = gen.getHostCapability();
+      if (bc!=null) {
+        res.add(bc);
+      }
+    }
+
+    if ((ns & NS_IDENTITY) != 0) {
+      final BundleCapability bc = gen.getIdentityCapability();
       if (bc!=null) {
         res.add(bc);
       }
@@ -136,7 +145,7 @@ public class BundleRevisionImpl
       res.addAll(gen.bpkgs.getDeclaredPackageRequirements());
     }
 
-    if ((ns & NS_OTHER) != 0) {
+    if ((ns & (NS_IDENTITY|NS_OTHER)) != 0) {
       final Map<String, List<BundleRequirementImpl>> reqs = gen.getDeclaredRequirements();
       if (null != namespace) {
         final List<BundleRequirementImpl> lbr = reqs.get(namespace);
@@ -204,11 +213,13 @@ public class BundleRevisionImpl
   static int whichNameSpaces(String namespace) {
     int ns;
     if (namespace == null) {
-      ns = NS_BUNDLE|NS_HOST|NS_PACKAGE|NS_OTHER;
+      ns = NS_BUNDLE|NS_HOST|NS_IDENTITY|NS_PACKAGE|NS_OTHER;
     } else if (BundleRevision.BUNDLE_NAMESPACE.equals(namespace)) {
       ns = NS_BUNDLE;
     } else if (BundleRevision.HOST_NAMESPACE.equals(namespace)) {
       ns = NS_HOST;
+    } else if (IdentityNamespace.IDENTITY_NAMESPACE.equals(namespace)) {
+      ns = NS_IDENTITY;
     } else if (BundleRevision.PACKAGE_NAMESPACE.equals(namespace)) {
       ns = NS_PACKAGE;
     } else {

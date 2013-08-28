@@ -125,6 +125,7 @@ public class ResolverHooks {
           try {
             if (rhf.begin(triggerCollection)) {
               active.add(rhf);
+              currentTriggers = triggers;
             }
           } catch (RuntimeException re) {
             throw new BundleException("Resolver hook throw an exception, bid="
@@ -140,7 +141,6 @@ public class ResolverHooks {
       } else {
         resolvableBundles = new HashMap<BundleGeneration, Boolean>();
       }
-      currentTriggers = triggers;
     }
   }
 
