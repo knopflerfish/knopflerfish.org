@@ -145,18 +145,19 @@ public class ResolverHooks {
   }
 
 
-  synchronized void endResolve(final BundleImpl [] triggers) {
+  synchronized void endResolve(final BundleImpl [] triggers) throws BundleException {
     if (triggers == currentTriggers) {
+      BundleException saved = null;
       if (active != null) {
         blockResolveForHooks();
         for (TrackedResolverHookFactory rhf : active) {
           final ResolverHook rh = rhf.getResolverHook();
-          if (null != rh) {
-            try {
-              rh.end();
-            } catch (RuntimeException re) {
-              fwCtx.frameworkWarning(rhf.bundle, re);
-            }
+          try {
+            rh.end();
+          } catch (RuntimeException re) {
+            saved  = new BundleException("Resolver end hook throw an exception, bid="
+                + rhf.bundle.getBundleId(),
+                BundleException.REJECTED_BY_HOOK, re);
           }
         }
         unblockResolveForHooks();
@@ -164,6 +165,9 @@ public class ResolverHooks {
         resolvableBundles = null;
       }
       currentTriggers = null;
+      if (saved != null) {
+        throw saved;
+      }
     }
   }
 

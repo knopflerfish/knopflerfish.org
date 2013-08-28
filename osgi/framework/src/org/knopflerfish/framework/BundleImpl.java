@@ -1247,7 +1247,7 @@ public class BundleImpl implements Bundle {
                 }
               }
             } else {
-              if (current.resolvePackages()) {
+              if (current.resolvePackages(triggers)) {
                 current.setWired();
                 state = RESOLVED;
                 operation = RESOLVING;
@@ -1264,16 +1264,23 @@ public class BundleImpl implements Bundle {
               }
             }
             if (triggers != null && triggers.length == 1) {
-              fwCtx.resolverHooks.endResolve(triggers);
+              BundleImpl[] t = triggers;
+              triggers = null;
+              fwCtx.resolverHooks.endResolve(t);
             }
           }
         }
       } catch (final BundleException be) {
-        if (triggers != null && triggers.length == 1) {
-          fwCtx.resolverHooks.endResolve(triggers);
-        }
         resolveFailException = be;
         fwCtx.frameworkError(this, be);
+        if (triggers != null && triggers.length == 1) {
+          try {
+            fwCtx.resolverHooks.endResolve(triggers);
+          } catch (final BundleException be2) {
+            resolveFailException = be2;
+            fwCtx.frameworkError(this, be2);
+          }
+        }
       }
     }
     return state;
@@ -1674,7 +1681,6 @@ public class BundleImpl implements Bundle {
    */
   public Enumeration<URL> getResources(String name) throws IOException {
     checkUninstalled();
-    // NYI! Fix BundleGeneration
     final BundleGeneration current = current();
     if (secure.okResourceAdminPerm(this) && !current.isFragment()) {
       Enumeration<URL> e = null;
