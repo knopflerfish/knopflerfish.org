@@ -6,18 +6,6 @@ I Refactor classloader to better handle recursive listEntries.
 
 I Check ResolveHooks and packages lock
 
-M Check CapabilityPermission checks
-
-M Implied CapabilityPermission REQUIRE osgi.ee
-
-M Check illegal headers in Extension Bundles
-
-I Use new VersionRange class?
-
 I More SystemBundle headers
-
-M Check what non JKS cert storage implies
-
-M Resource and Namespace API implications?
 
  

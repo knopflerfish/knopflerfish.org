@@ -46,6 +46,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.VersionRange;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -125,8 +126,7 @@ class Fragment
 
     final String range = (String) headerEntry.getAttributes()
         .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
-    this.versionRange = range == null ? VersionRange.defaultVersionRange
-        : new VersionRange(range);
+    this.versionRange = range == null ? null : new VersionRange(range);
 
     this.attributes = headerEntry.getAttributes();
     final Filter filter = toFilter();
@@ -170,7 +170,7 @@ class Fragment
   boolean isTarget(BundleGeneration bg)
   {
     return hostName.equals(bg.symbolicName)
-           && versionRange.withinRange(bg.version)
+           && (versionRange == null || versionRange.includes(bg.version))
            && bg.bsnAttrMatch(attributes);
   }
 
@@ -216,8 +216,8 @@ class Fragment
     sb.append(')');
 
     if (versionRange != null) {
-      multipleConditions |= versionRange
-          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
+      sb.append(versionRange.toFilterString(Constants.BUNDLE_VERSION_ATTRIBUTE));
+      multipleConditions = true;
     }
 
     for (final Entry<String,Object> entry : attributes.entrySet()) {

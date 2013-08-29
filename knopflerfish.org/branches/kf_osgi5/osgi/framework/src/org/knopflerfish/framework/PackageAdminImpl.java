@@ -44,6 +44,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
+import org.osgi.framework.VersionRange;
 import org.osgi.service.packageadmin.ExportedPackage;
 import org.osgi.service.packageadmin.PackageAdmin;
 import org.osgi.service.packageadmin.RequiredBundle;
@@ -428,7 +429,7 @@ public class PackageAdminImpl implements PackageAdmin {
 
   public Bundle[] getBundles(String symbolicName, String versionRange) {
     final VersionRange vr = versionRange != null ? new VersionRange(versionRange.trim()) :
-        VersionRange.defaultVersionRange;
+        null;
     final List<BundleGeneration> bgs = fwCtx.bundles.getBundles(symbolicName, vr);
     final int size = bgs.size();
     if (size > 0) {
