@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2011). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.cm;
 
 import java.util.Dictionary;
@@ -105,7 +106,7 @@ import java.util.Dictionary;
  * registering bundle. However, when security is on, a Managed Service can have
  * Configuration Permission to also be updated for other locations.
  * 
- * @version $Id: 0d0730523d7678b1f5e35d0d66a57263aa308c9c $
+ * @author $Id: 396a171acbab5e3842ae9d927ab8b3dbd4126f30 $
  */
 public interface ManagedService {
 	/**
@@ -148,6 +149,5 @@ public interface ManagedService {
 	 * @security ConfigurationPermission[c.location,TARGET] Required by the
 	 *           bundle that registered this service
 	 */
-	public void updated(Dictionary<String, ? > properties)
-			throws ConfigurationException;
+	public void updated(Dictionary<String, ?> properties) throws ConfigurationException;
 }
