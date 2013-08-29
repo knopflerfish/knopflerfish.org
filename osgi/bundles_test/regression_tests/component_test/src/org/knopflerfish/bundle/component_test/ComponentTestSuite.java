@@ -1065,10 +1065,18 @@ public class ComponentTestSuite extends TestSuite implements ComponentATest
         refs = bc.getServiceReferences("org.knopflerfish.service.componentF_test.ComponentX", null);
         assertNotNull("Should get serviceRef X", refs);
         assertEquals("Should get two serviceRef X", 2, refs.length);
+        
+        refs = bc.getServiceReferences("org.knopflerfish.service.componentF_test.ComponentX", "(base=1)");
+        assertNotNull("Should get serviceRef X", refs);
+        assertEquals("Should get one serviceRef X", 1, refs.length);
         org.knopflerfish.service.componentF_test.ComponentX x =
           (org.knopflerfish.service.componentF_test.ComponentX)bc.getService(refs[0]);
         assertEquals("X1 should have been bind(Y) bumped", 1, x.getBindYStatus());
-        x = (org.knopflerfish.service.componentF_test.ComponentX)bc.getService(refs[1]);
+
+        Collection<ServiceReference<org.knopflerfish.service.componentF_test.ComponentX>> refc =
+          bc.getServiceReferences(org.knopflerfish.service.componentF_test.ComponentX.class, "(base=10)");
+        assertEquals("Should get one serviceRef X", 1, refc.size());
+        x = bc.getService(refc.iterator().next());
         assertEquals("X2 should have been bind(Y) bumped", 1, x.getBindYStatus());
 
         assertEquals("Still no test calls", 0, y.getTestStatus());
