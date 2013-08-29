@@ -1,6 +1,6 @@
 Bundle-Name: component_test
 Bundle-SymbolicName: component_test
-Bundle-Version: 1.4.0
+Bundle-Version: 1.4.1
 Bundle-Description: Test bundle for the DS service
 Bundle-Vendor: Knopflerfish/Makewave AB
 Bundle-DocURL: http://www.knopflerfish.org

@@ -58,7 +58,6 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
   final int id;
 
   private PropertyDictionary ccProps = null;
-  private Dictionary<String, Object> sProps = null;
   private String cmPid = null;
   private Dictionary<String, Object> cmDict = null;
   private final Dictionary<String, Object> instanceProps;
@@ -78,13 +77,11 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
   ComponentConfiguration(Component c,
                          String cmPid,
                          Dictionary<String, Object> cmDict,
-                         Dictionary<String, Object> sProps,
                          Dictionary<String, Object> instanceProps)
   {
     this.component = c;
     this.cmPid = cmPid;
     this.cmDict = cmDict;
-    this.sProps = sProps;
     this.instanceProps = instanceProps;
     factoryContexts = c.compDesc.isServiceFactory()
         ? new Hashtable<Bundle, ComponentContextImpl>() : null;
@@ -351,14 +348,7 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
     final ComponentDescription cd = component.compDesc;
     final String [] services = cd.getServices();
     if (services != null) {
-      Dictionary<String, Object> sp;
-      if (sProps != null) {
-        sp = sProps;
-        sProps = null;
-      } else {
-        sp = getServiceProperties();
-      }
-      serviceRegistration = component.bc.registerService(services, this, sp);
+      serviceRegistration = component.bc.registerService(services, this, getServiceProperties());
       synchronized (this) {
         if (state == STATE_ACTIVATING) {
           state = STATE_REGISTERED;
@@ -435,7 +425,6 @@ public class ComponentConfiguration implements ServiceFactory<Object>, Comparabl
       cmPid = pid;
       cmDict = dict;
       ccProps = null;
-      sProps = null;
       if (state == STATE_ACTIVE) { // TODO check this for FactoryComponents
         if (dict == null) {
           // Always dispose when an used config is deleted!?

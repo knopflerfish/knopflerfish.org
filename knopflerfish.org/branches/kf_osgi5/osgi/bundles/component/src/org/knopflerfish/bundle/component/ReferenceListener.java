@@ -430,6 +430,7 @@ class ReferenceListener implements ServiceListener
         boolean wasSelected = false;
         ServiceReference<?> s;
         int op = NO_OP;
+        int sr_size = 0;
         synchronized (serviceRefs) {
           if (sEventQueue.isEmpty()) {
             if (se == null) {
@@ -446,10 +447,8 @@ class ReferenceListener implements ServiceListener
           case ServiceEvent.MODIFIED:
           case ServiceEvent.REGISTERED:
             if (serviceRefs.add(s)) {
-              // TODO check should we always call when != 1?
-              if (serviceRefs.size() != 1 || !ref.refAvailable()) {
-                op = ADD_OP;
-              }
+              op = ADD_OP;
+              sr_size = serviceRefs.size();
             } else {
               op = UPDATE_OP;
             }
@@ -461,15 +460,8 @@ class ReferenceListener implements ServiceListener
               wasSelected = true;
             }
             unbinding.add(s);
-            if (serviceRefs.size() != 0 || !ref.refUnavailable()) {
-              if (ref.isMultiple() || wasSelected) {
-                op = DELETE_OP;
-              }
-            }
-            if (op != DELETE_OP)  {
-              unbinding.remove(s);
-              setSelected(null);
-            }
+            op = DELETE_OP;
+            sr_size = serviceRefs.size();
             break;
           default:
             // To keep compiler happy
@@ -478,12 +470,24 @@ class ReferenceListener implements ServiceListener
         }
         switch (op) {
         case ADD_OP:
-          refAdded(s);
+          // TODO check should we always call when != 1?
+          if (sr_size != 1 || !ref.refAvailable()) {
+            refAdded(s);
+          }
           break;
         case DELETE_OP:
-          refDeleted(s);
+          boolean deleted = false;
+          if (sr_size != 0 || !ref.refUnavailable()) {
+            if (ref.isMultiple() || wasSelected) {
+              refDeleted(s);
+              deleted = true;
+            }
+          }
           synchronized (serviceRefs) {
             unbinding.remove(s);
+            if (!deleted) {
+              setSelected(null);
+            }
           }
           break;
         case UPDATE_OP:
