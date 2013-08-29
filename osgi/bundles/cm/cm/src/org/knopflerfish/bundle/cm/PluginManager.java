@@ -46,7 +46,7 @@ import org.osgi.service.cm.ConfigurationPlugin;
 
 /**
  * This class is responsible for managing ConfigurationPlugins.
- * 
+ *
  * @author Per Gustafson
  * @version 1.0
  */
@@ -95,7 +95,7 @@ final class PluginManager
 
   /**
    * Handle ConfigurationPlugin ServiceEvents.
-   * 
+   *
    * @param serviceReference
    *          ServiceReference of the plugin the event concerns
    * @param eventType
@@ -146,7 +146,7 @@ final class PluginManager
   /**
    * Insert a ServiceReference to a ConfigurationPlugin in the correct Vector
    * based on its ranking.
-   * 
+   *
    * @param serviceReference
    *          The ServiceReference.
    * @param ranking
@@ -169,7 +169,7 @@ final class PluginManager
 
   /**
    * Insert a ServiceReference in a Vector sorted on cm.ranking property.
-   * 
+   *
    * @param serviceReference
    *          The ServiceReference.
    * @param pluginsVector
@@ -195,7 +195,7 @@ final class PluginManager
   /**
    * * Remove a ServiceReference to a ConfigurationPlugin given * a service.id
    * and a ranking. * *
-   * 
+   *
    * @param serviceId
    *          The service.id of the ConfigurationPlugin. *
    * @param ranking
@@ -230,7 +230,7 @@ final class PluginManager
 
   /**
    * Call all applicable ConfigurationPlugins given a pid and a dictionary.
-   * 
+   *
    * @param targetServiceReference The managed service (factory) that is the
    *                               target of this update.
    * @param dictionary
@@ -240,20 +240,21 @@ final class PluginManager
   public synchronized ConfigurationDictionary callPluginsAndCreateACopy(ServiceReference<?> targetServiceReference,
                                                                         ConfigurationDictionary dictionary)
   {
-    if (targetServiceReference == null) {
-      return dictionary;
-    }
     if (dictionary == null) {
       return null;
     }
-    callPlugins(targetServiceReference, dictionary, preModificationPlugins,
-                false);
 
-    dictionary = callPlugins(targetServiceReference, dictionary,
-                             modifyingPlugins, true);
+    if (targetServiceReference != null) {
+      callPlugins(targetServiceReference, dictionary, preModificationPlugins,
+                  false);
 
-    callPlugins(targetServiceReference, dictionary, postModificationPlugins,
-                false);
+      dictionary = callPlugins(targetServiceReference, dictionary,
+                               modifyingPlugins, true);
+
+      callPlugins(targetServiceReference, dictionary, postModificationPlugins,
+                  false);
+
+    }
 
     if (dictionary != null) {
       dictionary = dictionary.createCopyIfRealAndRemoveLocation();
@@ -263,7 +264,7 @@ final class PluginManager
 
   /**
    * Call all plugins contained in a Vector and optionally allow modifications.
-   * 
+   *
    * @param targetServiceReference
    *          Reference to the target ManagedService(Factory).
    * @param dictionary
@@ -290,7 +291,7 @@ final class PluginManager
       // matches the pid of the target service
       String cmTarget = (String) pluginReference.getProperty(CM_TARGET);
       if (cmTarget == null || cmTarget.equals(pid)) {
-        ConfigurationPlugin plugin = (ConfigurationPlugin) Activator.bc
+        ConfigurationPlugin plugin = Activator.bc
             .getService(pluginReference);
         if (plugin == null) {
           continue;
@@ -314,7 +315,7 @@ final class PluginManager
   /**
    * Verify that a dictionary that has been modified by a plugin still is valid.
    * Might restore some keys.
-   * 
+   *
    * @param dictionary
    *          The dictionary to validate.
    * @return true if valid, false otherwise.

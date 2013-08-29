@@ -53,7 +53,7 @@ final class Update
 
   /**
    * Create an update configuration job.
-   * 
+   *
    * @param sr The target service to be notified
    * @param pid The PID of the configuration.
    * @param factoryPid The factory PID for factory configurations.
@@ -79,9 +79,6 @@ final class Update
       return;
     }
     processedConfiguration = pm.callPluginsAndCreateACopy(sr, configuration);
-    if (processedConfiguration != null) {
-      processedConfiguration.removeLocation();
-    }
     if (factoryPid == null) {
       update((ManagedService) targetService);
     } else {
@@ -104,9 +101,7 @@ final class Update
     if (targetService == null) {
       return;
     }
-    if (configuration == null) {
-      targetService.deleted(pid);
-    } else if (processedConfiguration == null) {
+    if (processedConfiguration == null) {
       targetService.deleted(pid);
     } else {
       targetService.updated(pid, processedConfiguration);

@@ -71,7 +71,6 @@ import org.knopflerfish.service.console.CommandGroupAdapter;
 import org.knopflerfish.service.console.Session;
 import org.knopflerfish.shared.cm.CMDataReader;
 import org.knopflerfish.shared.cm.CMDataWriter;
-import org.knopflerfish.shared.cm.DictionaryUtils;
 import org.knopflerfish.util.sort.Sort;
 
 // ******************** CMCommands ********************
@@ -98,6 +97,13 @@ public class CMCommands
    **************************************************************************/
   private static final String EDITED =
     "org.knopflerfish.bundle.cm.commands.impl.edited";
+
+  /***************************************************************************
+   * Key in the session properties dictionary used to store the change count
+   * of the edited configuration when starting an edit operation.*
+   **************************************************************************/
+  private static final String EDITED_VERSION =
+    "org.knopflerfish.bundle.cm.commands.impl.edited.version";
 
   /***************************************************************************
    * Key in the session properties dictionary used to store the * result of the
@@ -226,7 +232,7 @@ public class CMCommands
         if (d == null) {
           out.println("No properties set in " + cs[i].getPid());
         } else {
-          out.println("Properties for " + cs[i].getPid());
+          out.println("Properties for " + cs[i].getPid() + " changeCount: " + cs[i].getChangeCount() );
           printDictionary(out, d);
         }
       }
@@ -257,7 +263,7 @@ public class CMCommands
   {
     int retcode = 1; // 1 initially not set to 0 until end of try block
     setCurrent(session, null);
-    setEditingDict(session, null);
+    setEditingDict(session, null, 0);
     ConfigurationAdmin srvCA = null;
     try {
       srvCA = getCA();
@@ -320,7 +326,7 @@ public class CMCommands
         final Configuration current = getCurrent(session);
         if (current != null && current.getPid().equals(cs[0].getPid())) {
           setCurrent(session, null);
-          setEditingDict(session, null);
+          setEditingDict(session, null, 0);
         }
         cs[0].delete();
       } else {
@@ -360,7 +366,7 @@ public class CMCommands
                      Session session)
   {
     int retcode = 1; // 1 initially not set to 0 until end of try block
-    setEditingDict(session, null);
+    setEditingDict(session, null, 0);
     setCurrent(session, null);
 
     ConfigurationAdmin srvCA = null;
@@ -415,6 +421,9 @@ public class CMCommands
     if (cfg == null) {
       out.println("No configuration open currently");
     } else {
+      out.println("The current "
+                  + (cfg.getFactoryPid() != null ? "factory " : "")
+                  + "configuration is " + cfg.getPid());
       if (isEditing(session)) {
         printDictionary(out, getEditingDict(session));
       } else {
@@ -450,7 +459,10 @@ public class CMCommands
       }
       srvCA = getCA();
 
-      if (forceOptionNotSpecified && configurationHasChanged(srvCA, cfg)) {
+      long oldVersion = getEditingVersion(session);
+      long currentVersion = cfg.getChangeCount();
+
+      if (forceOptionNotSpecified && currentVersion > oldVersion) {
         throw new Exception(
                             "The configuration has changed in CM since it was opened."
                                 + "Use -force option if you want to force saving of your changes.");
@@ -458,7 +470,7 @@ public class CMCommands
 
       if (isEditing(session)) {
         cfg.update(getEditingDict(session));
-        setEditingDict(session, null);
+        setEditingDict(session, null, 0);
       } else {
         throw new Exception("No changes to save");
       }
@@ -590,6 +602,7 @@ public class CMCommands
       final URL url = new URL(spec);
 
       AccessController.doPrivileged(new PrivilegedExceptionAction<Object>() {
+        @Override
         public Object run()
             throws Exception
         {
@@ -697,6 +710,7 @@ public class CMCommands
         pw =
           AccessController
               .doPrivileged(new PrivilegedExceptionAction<PrintWriter>() {
+                @Override
                 public PrintWriter run()
                     throws Exception
                 {
@@ -742,6 +756,7 @@ public class CMCommands
         srvCA =
           AccessController
               .doPrivileged(new PrivilegedExceptionAction<ConfigurationAdmin>() {
+                @Override
                 public ConfigurationAdmin run()
                     throws Exception
                 {
@@ -820,19 +835,19 @@ public class CMCommands
       if (dict == null) {
         dict = new Hashtable<String, Object>();
       }
-      setEditingDict(session, dict);
+      setEditingDict(session, dict, cfg.getChangeCount());
     }
     return dict;
   }
 
-  private boolean configurationHasChanged(ConfigurationAdmin ca,
-                                          Configuration c1)
-      throws Exception
+  /***************************************************************************
+   * Helper method that gets the editing version of the current configuration
+   * from the session.
+   **************************************************************************/
+  private long getEditingVersion(Session session)
   {
-    final String pid = c1.getPid();
-    final Configuration c2 = ca.getConfiguration(pid, null);
-    return DictionaryUtils.dictionariesAreNotEqual(c1.getProperties(),
-                                                   c2.getProperties());
+    Long version = (Long) session.getProperties().get(EDITED_VERSION);
+    return (version == null) ? 0L : version.longValue();
   }
 
   private Configuration[] getConfigurations(Session session,
@@ -971,14 +986,18 @@ public class CMCommands
 
   /***************************************************************************
    * Helper method that sets the editing dictionary of the current configuration
-   * in the session.*
+   * in the session.
+   * @param dict the configuration dictionary to edit.
+   * @param version The change count from the configuration.
    **************************************************************************/
-  private void setEditingDict(Session session, Dictionary<String, Object> dict)
+  private void setEditingDict(Session session, Dictionary<String, Object> dict, long version)
   {
     if (dict == null) {
       session.getProperties().remove(EDITED);
+      session.getProperties().remove(EDITED_VERSION);
     } else {
       session.getProperties().put(EDITED, dict);
+      session.getProperties().put(EDITED_VERSION, new Long(version));
     }
   }
 
@@ -1171,6 +1190,7 @@ public class CMCommands
   }
 
   // //////////////////////////////////
+  @Override
   public void serviceChanged(ServiceEvent event)
   {
     switch (event.getType()) {

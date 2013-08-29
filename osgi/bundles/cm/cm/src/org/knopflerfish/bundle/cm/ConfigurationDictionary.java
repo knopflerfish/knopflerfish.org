@@ -43,12 +43,13 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * This class implements the data-type restrictions, and case insensitive
  * lookup, required of configuration dictionaries in the CM.
- * 
+ *
  * @author Gatespace AB *
  */
 
@@ -57,6 +58,7 @@ final class ConfigurationDictionary
 {
 
   private final static String IS_NULL_DICTIONARY = "org.knopflerfish.is.null.dictionary";
+  private final static String KEY_CHANGE_COUNT = "org.knopflerfish.bundle.cm.changeCount";
 
   /**
    * * Use BigDecimal if available.
@@ -134,6 +136,7 @@ final class ConfigurationDictionary
    */
   final Hashtable<String, Object> originalCase;
 
+
   public ConfigurationDictionary()
   {
     this(new Hashtable<String, Object>());
@@ -142,7 +145,7 @@ final class ConfigurationDictionary
 
   /**
    * * Construct a ConfigurationDictionary given an ordinary Dictionary. * *
-   * 
+   *
    * @param dictionary
    *          The original dictionary.
    */
@@ -170,7 +173,6 @@ final class ConfigurationDictionary
   @Override
   public Object get(Object key)
   {
-
     Object val = originalCase.get(key);
 
     if (val != null) {
@@ -294,7 +296,7 @@ final class ConfigurationDictionary
   {
     Enumeration<String> keys = originalCase.keys();
     while (keys.hasMoreElements()) {
-      String originalKey = (String) keys.nextElement();
+      String originalKey = keys.nextElement();
       updateLowercaseToOriginalCase(originalKey);
     }
   }
@@ -313,23 +315,24 @@ final class ConfigurationDictionary
   static public ConfigurationDictionary createDeepCopy(Dictionary<String, ?> properties)
   {
     final Hashtable<String, Object> h = copyDictionary(properties);
-    return new ConfigurationDictionary(h);
+    final ConfigurationDictionary res = new ConfigurationDictionary(h);
+    return res;
   }
 
-  static public Hashtable<String, Object> copyDictionary(Dictionary<String,?> properties)
+  static public Hashtable<String, Object> copyDictionary(final Dictionary<String,?> properties)
   {
     if (properties == null) {
       return null;
     }
 
-    Hashtable<String, Object> out = new Hashtable<String, Object>();
-    Enumeration<String> keys = properties.keys();
+    final Hashtable<String, Object> res = new Hashtable<String, Object>();
+    final Enumeration<String> keys = properties.keys();
     while (keys.hasMoreElements()) {
-      String key = keys.nextElement();
-      Object val = copyValue(properties.get(key));
-      out.put(key, val);
+      final String key = keys.nextElement();
+      final Object val = copyValue(properties.get(key));
+      res.put(key, val);
     }
-    return out;
+    return res;
   }
 
   static private Object copyValue(Object in)
@@ -486,9 +489,62 @@ final class ConfigurationDictionary
     }
   }
 
+  /**
+   * Removes properties from this dictionary that should not be included in a
+   * Configuration-object handed out to Managed Services.
+   */
   public void removeLocation()
   {
     remove(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
     remove(ConfigurationAdminFactory.DYNAMIC_BUNDLE_LOCATION);
+    remove(KEY_CHANGE_COUNT);
   }
+
+  /**
+   * Get the location that this configuration dictionary is bound to.
+   * @return current location.
+   */
+  String getLocation() {
+    return (String) get(ConfigurationAdmin.SERVICE_BUNDLELOCATION);
+  }
+
+  /**
+   * Get the PID that this configuration dictionary is bound to.
+   * @return current PID.
+   */
+  String getPid() {
+    return (String) get(Constants.SERVICE_PID);
+  }
+
+  /**
+   * Get the factory PID that this configuration dictionary is bound to.
+   * @return current factory PID or {@code null} if not a factory configuration.
+   */
+  String getFactoryPid() {
+    return (String) get(ConfigurationAdmin.SERVICE_FACTORYPID);
+  }
+
+  private final Object changeCountLock = new Object();
+  public long getChangeCount()
+  {
+    synchronized (changeCountLock) {
+      final Long cc = (Long) originalCase.get(KEY_CHANGE_COUNT);
+      return cc == null ? 0L : cc.longValue();
+    }
+  }
+
+  void setChangeCount(long changeCount)
+  {
+    synchronized (changeCountLock) {
+      put(KEY_CHANGE_COUNT, new Long(changeCount));
+    }
+  }
+
+  void incrementChangeCount()
+  {
+    synchronized (changeCountLock) {
+      setChangeCount(getChangeCount()+1);
+    }
+  }
+
 }

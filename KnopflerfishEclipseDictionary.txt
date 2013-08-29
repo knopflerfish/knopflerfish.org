@@ -49,3 +49,4 @@ metatype
 displayers
 telnet
 deployer
+multi
