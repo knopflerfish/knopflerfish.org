@@ -43,6 +43,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.VersionRange;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -142,7 +143,7 @@ class RequireBundle
     if (range != null) {
       this.bundleRange = new VersionRange(range);
     } else {
-      this.bundleRange = VersionRange.defaultVersionRange;
+      this.bundleRange = null;
     }
     final Filter filter = toFilter();
     if (null!=filter) {
@@ -166,7 +167,7 @@ class RequireBundle
         !rb.resolution.equals(Constants.RESOLUTION_MANDATORY)) {
       return false;
     }
-    return bundleRange.withinRange(rb.bundleRange);
+    return !bundleRange.intersection(rb.bundleRange).isEmpty();
   }
 
 
@@ -198,8 +199,8 @@ class RequireBundle
     sb.append(')');
 
     if (bundleRange != null) {
-      multipleConditions |= bundleRange
-          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
+      sb.append(bundleRange.toFilterString(Constants.BUNDLE_VERSION_ATTRIBUTE));
+      multipleConditions = true;
     }
 
     for (final Entry<String,Object> entry : attributes.entrySet()) {

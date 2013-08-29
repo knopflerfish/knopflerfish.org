@@ -61,6 +61,7 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
 import org.osgi.framework.hooks.bundle.CollisionHook;
+import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRevision;
 
@@ -309,10 +310,15 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
         .getAttribute(Constants.REQUIRE_CAPABILITY), true, true, false);
     for (final HeaderEntry e : hes) {
       final BundleRequirementImpl bri = new BundleRequirementImpl(this, e);
-      List<BundleRequirementImpl> nsReqs = requirements.get(bri.getNamespace());
+      final String ns = bri.getNamespace();
+      List<BundleRequirementImpl> nsReqs = requirements.get(ns);
       if (null == nsReqs) {
+        if (isExtension() && !ns.equals(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE)) {
+          throw new IllegalArgumentException("An extension bundle can only specify capability requirements in the " +
+              ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE + " namespace. Not in " + ns);
+        }
         nsReqs = new ArrayList<BundleRequirementImpl>();
-        requirements.put(bri.getNamespace(), nsReqs);
+        requirements.put(ns, nsReqs);
       }
       nsReqs.add(bri);
     }
@@ -471,7 +477,7 @@ public class BundleGeneration implements Comparable<BundleGeneration> {
   //
 
   /**
-   * Finnish construction by doing protectDomain creation and permission checks.
+   * Finish construction by doing protectDomain creation and permission checks.
    *
    * @return Bundles classloader.
    */

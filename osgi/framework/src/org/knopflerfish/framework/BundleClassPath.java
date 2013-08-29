@@ -49,6 +49,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
+import org.osgi.framework.VersionRange;
 
 /**
  * Bundle Class Path handler.
@@ -386,9 +387,9 @@ public class BundleClassPath {
         if (ver != null) {
           boolean okVer = false;
           for (final String string : ver) {
-            // NYI! Handle format Exception
+            // TODO! Handle format Exception
             matchVer = new VersionRange(string);
-            if (matchVer.withinRange(osVer)) {
+            if (matchVer.includes(osVer)) {
               okVer = true;
               break;
             }
@@ -443,7 +444,7 @@ public class BundleClassPath {
             if (matchVer == null) {
               continue;
             }
-            final int d = bestVer.compareTo(matchVer);
+            final int d = bestVer.getLeft().compareTo(matchVer.getLeft());
             if (d == 0) {
               verEqual = true;
             } else if (d > 0) {

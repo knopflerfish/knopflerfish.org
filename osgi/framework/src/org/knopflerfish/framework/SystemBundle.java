@@ -64,6 +64,7 @@ import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
+import org.osgi.framework.namespace.ExecutionEnvironmentNamespace;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.FrameworkWiring;
 
@@ -828,7 +829,10 @@ public class SystemBundle extends BundleImpl implements Framework {
       if (sb.length() > 0) {
         sb.append(',');
       }
-      sb.append("osgi.ee;osgi.ee=");
+      sb.append(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE);
+      sb.append(';');
+      sb.append(ExecutionEnvironmentNamespace.EXECUTION_ENVIRONMENT_NAMESPACE);
+      sb.append('=');
       sb.append(entry.getKey());
       if (!entry.getValue().isEmpty()) {
         sb.append(";version:List<Version>=\"");

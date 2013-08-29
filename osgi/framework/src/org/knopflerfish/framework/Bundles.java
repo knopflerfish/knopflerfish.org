@@ -51,6 +51,7 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.Version;
+import org.osgi.framework.VersionRange;
 
 /**
  * Here we handle all the bundles that are installed in the framework.
@@ -309,7 +310,7 @@ public class Bundles {
     final List<BundleGeneration> res = getBundleGenerations(name);
     for (int i = 0; i < res.size(); ) {
       final BundleGeneration bg = res.remove(i);
-      if (range.withinRange(bg.version)) {
+      if (range == null || range.includes(bg.version)) {
         int j = i;
         while (--j >= 0) {
           if (bg.version.compareTo(res.get(j).version) <= 0) {

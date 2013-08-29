@@ -45,6 +45,7 @@ import org.osgi.framework.Filter;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.Version;
+import org.osgi.framework.VersionRange;
 import org.osgi.framework.wiring.BundleCapability;
 import org.osgi.framework.wiring.BundleRequirement;
 import org.osgi.framework.wiring.BundleRevision;
@@ -149,14 +150,14 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     } else if (versionStr != null) {
       this.packageRange = new VersionRange(versionStr);
     } else {
-      this.packageRange = VersionRange.defaultVersionRange;
+      this.packageRange = null;
     }
     final String rangeStr = (String) he.getAttributes()
         .remove(Constants.BUNDLE_VERSION_ATTRIBUTE);
     if (rangeStr != null) {
       this.bundleRange = new VersionRange(rangeStr);
     } else {
-      this.bundleRange = VersionRange.defaultVersionRange;
+      this.bundleRange = null;
     }
     this.attributes = Collections.unmodifiableMap(he.getAttributes());
     final Filter filter = toFilter();
@@ -209,11 +210,11 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     this.resolution = Constants.RESOLUTION_MANDATORY;
     this.bundleSymbolicName = null;
     if (p.version == Version.emptyVersion) {
-      this.packageRange = VersionRange.defaultVersionRange;
+      this.packageRange = null;
     } else {
       this.packageRange = new VersionRange(p.version.toString());
     }
-    this.bundleRange = VersionRange.defaultVersionRange;
+    this.bundleRange = null;
     this.attributes = p.attributes;
     // TODO, should we import unknown directives?
     final Map<String,String> dirs = new HashMap<String, String>();
@@ -251,7 +252,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
    *         positive if this object is larger then obj.
    */
   public boolean okPackageVersion(Version ver) {
-    return packageRange.withinRange(ver);
+    return packageRange == null || packageRange.includes(ver);
   }
 
 
@@ -270,7 +271,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     if (!okPackageVersion(ep.version) ||
         (bundleSymbolicName != null &&
          !bundleSymbolicName.equals(ep.bpkgs.bg.symbolicName)) ||
-        !bundleRange.withinRange(ep.bpkgs.bg.version)) {
+         (bundleRange != null &&
+         !bundleRange.includes(ep.bpkgs.bg.version))) {
       return false;
     }
     /* Other attributes */
@@ -329,10 +331,10 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     // This is handle when resolving package.
     // If one import is mandatory then all must match.
 
-    if (!packageRange.intersectRange(ip.packageRange)) {
+    if (packageRange != null && packageRange.intersection(ip.packageRange).isEmpty()) {
       return false;
     }
-    return bundleRange.intersectRange(ip.bundleRange);
+    return bundleRange == null || !bundleRange.intersection(ip.bundleRange).isEmpty();
   }
 
 
@@ -343,7 +345,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
    */
   public String pkgString() {
     // NYI! More info?
-    if (packageRange.isSpecified()) {
+    if (packageRange != null) {
       return name + ";" + Constants.VERSION_ATTRIBUTE + "=" + packageRange;
     } else {
       return name;
@@ -377,7 +379,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     if (mandatory != null) {
       for (final String a : mandatory) {
         if (Constants.VERSION_ATTRIBUTE.equals(a)) {
-          if (!packageRange.isSpecified()) {
+          if (packageRange == null) {
             return false;
           }
         } else if (Constants.BUNDLE_SYMBOLICNAME_ATTRIBUTE.equals(a)) {
@@ -385,7 +387,7 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
             return false;
           }
         } else if (Constants.BUNDLE_VERSION_ATTRIBUTE.equals(a)) {
-          if (!bundleRange.isSpecified()) {
+          if (bundleRange == null) {
             return false;
           }
         } else if (!attributes.containsKey(a)) {
@@ -427,8 +429,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     sb.append(')');
 
     if (packageRange != null) {
-      multipleConditions |= packageRange
-          .appendFilterString(sb, Constants.VERSION_ATTRIBUTE);
+      sb.append(packageRange.toFilterString(Constants.VERSION_ATTRIBUTE));
+      multipleConditions = true;
     }
 
     if (bundleSymbolicName != null) {
@@ -441,8 +443,8 @@ class ImportPkg implements BundleRequirement, Comparable<ImportPkg> {
     }
 
     if (bundleRange != null) {
-      multipleConditions |= bundleRange
-          .appendFilterString(sb, Constants.BUNDLE_VERSION_ATTRIBUTE);
+      sb.append(bundleRange.toFilterString(Constants.BUNDLE_VERSION_ATTRIBUTE));
+      multipleConditions = true;
     }
 
     for (final Entry<String,Object> entry : attributes.entrySet()) {
