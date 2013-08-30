@@ -127,7 +127,7 @@
            outDir="${root.out.dir}/xargs">
       <bundles>
         <fileset dir="${jars.dir}"
-                 excludes="**/*-source.jar,**/*-javdoc.jar"
+                 excludes="**/*-source.jar,**/*-javadoc.jar"
                  includes="**/*.jar"/>
       </bundles>
     </xargs>

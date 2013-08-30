@@ -551,6 +551,7 @@ public class MakeHTMLTask
         final FilenameSelector fns = new FilenameSelector();
         fns.setName(proj.getProperty("jardir.name") + "/**/*.jar");
         fileSet.add(fns);
+        fileSet.setExcludes("**/*-source.jar,**/*-javadoc.jar");
         fileSets.add(fileSet);
         log("Found build results (bundlebuild): " + fileSet, Project.MSG_DEBUG);
       }
@@ -573,10 +574,12 @@ public class MakeHTMLTask
     }
 
     // FileSet defined with id (for bundle overview documentation).
-    final FileSet docbuildeFileSet = (FileSet) proj.getReference("docbuild.jarfiles");
+    final FileSet docbuildeFileSet
+      = (FileSet) proj.getReference("docbuild.jarfiles");
     if (null!=docbuildeFileSet) {
       fileSets.add(docbuildeFileSet);
-      log("Found build results (docbuild.jarfiles): " + docbuildeFileSet, Project.MSG_DEBUG);
+      log("Found build results (docbuild.jarfiles): " + docbuildeFileSet,
+          Project.MSG_DEBUG);
     }
 
     if (0 < fileSets.size()) {

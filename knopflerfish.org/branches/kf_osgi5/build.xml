@@ -334,6 +334,8 @@
       <!-- and all bunldes in the jars-directory -->
       <fileset dir="${distrib.osgi.dir}/jars">
         <include name="**/*.jar"/>
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
       </fileset>
     </bundleMvnAnt>
 
@@ -859,6 +861,8 @@
       <fileset dir="${obr.base.dir}">
         <include name="**/*.jar"/>
         <exclude name="**/*_api-*.jar"/>
+        <exclude name="**/*-source.jar"/>
+        <exclude name="**/*-javadoc.jar"/>
       </fileset>
     </bundleobr>
     <!-- Generate HTML-page from repository.xml -->

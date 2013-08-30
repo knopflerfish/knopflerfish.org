@@ -479,6 +479,7 @@ public class BundleLocator extends Task {
                 Project.MSG_VERBOSE);
             FileSet fs = new FileSet();
             fs.setDir(dir);
+            fs.setExcludes("**/*-source.jar,**/*-javadoc.jar");
             fs.setIncludes("**/*.jar");
             fs.setProject(getProject());
             filesets.add(fs);
