@@ -69,15 +69,32 @@
   <div class="note_group">
     <div class="note_name">CM-Commands 5.0.0</div>
     <div class="note_item">
+
       Updated to require and use the Configaurtion Admin version 1.5.
       I.e., 
       <ul>
-	<li>Presents the change count when listing configurations,
+	<li>Presents the change count when showing a configuration,
 
         <li>uses the change count to detect if a save will overwrite
-	    changed to the configuration done by some other management
+	    changes to the configuration done by some other management
 	    agent.
       </ul>
+
+    </div>
+    <div class="note_item">
+
+      The <code>create</code> command has been extended to take the
+      PID of a configuration used as template for the new
+      configuration. This command now also check that the new PID is
+      not already in use.
+
+    </div>
+    <div class="note_item">
+
+      The <code>show</code> and the <code>current</code> commands has
+      a new option, <code>-t</code> that when present includes the
+      type of each property in the printout.
+
     </div>
   </div>
   
