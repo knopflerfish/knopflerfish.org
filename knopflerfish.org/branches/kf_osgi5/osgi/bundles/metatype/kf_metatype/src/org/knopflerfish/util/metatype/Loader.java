@@ -1696,15 +1696,12 @@ public class Loader
         if (currentAD.defValue != null) {
           // Any default value that is not a valid option value must be removed.
           List<String> defValues = new ArrayList<String>(Arrays.asList(currentAD.defValue));
-          System.out.println("Option values: " +currentOptionValues);
-          System.out.println("Default values before: " +defValues);
           defValues.retainAll(currentOptionValues);
           if (defValues.size()==0) {
             currentAD.defValue = null;
           } else {
             currentAD.defValue = defValues.toArray(new String[defValues.size()]);
           }
-          System.out.println("Default values after: " +defValues);
         }
       }
       currentAD.setOptions(optionValues, optionLabels);
