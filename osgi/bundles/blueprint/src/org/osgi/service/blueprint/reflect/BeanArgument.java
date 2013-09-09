@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.reflect;
 
 /**
  * Metadata for a factory method or constructor argument of a bean. The
  * arguments of a bean are obtained from {@link BeanMetadata#getArguments()}.
  * 
- * This is specified by the <code>argument</code> elements of a bean.
+ * This is specified by the {@code argument} elements of a bean.
  * 
  * @ThreadSafe
- * @version $Revision: 8083 $
+ * @author $Id: 523de7bd6539ff62ab33d50f15a22c8579deb5c4 $
  */
 public interface BeanArgument {
 
 	/**
 	 * Return the Metadata for the argument value.
 	 * 
-	 * This is specified by the <code>value</code> attribute.
+	 * This is specified by the {@code value} attribute.
 	 * 
 	 * @return The Metadata for the argument value.
 	 */
@@ -39,21 +40,21 @@ public interface BeanArgument {
 	 * Return the name of the value type to match the argument and convert the
 	 * value into when invoking the constructor or factory method.
 	 * 
-	 * This is specified by the <code>type</code> attribute.
+	 * This is specified by the {@code type} attribute.
 	 * 
 	 * @return The name of the value type to convert the value into, or
-	 *         <code>null</code> if no type is specified.
+	 *         {@code null} if no type is specified.
 	 */
 	String getValueType();
 
 	/**
 	 * Return the zero-based index into the parameter list of the factory method
 	 * or constructor to be invoked for this argument. This is determined by
-	 * specifying the <code>index</code> attribute for the bean. If not
-	 * explicitly set, this will return -1 and the initial ordering is defined
-	 * by its position in the {@link BeanMetadata#getArguments()} list.
+	 * specifying the {@code index} attribute for the bean. If not explicitly
+	 * set, this will return -1 and the initial ordering is defined by its
+	 * position in the {@link BeanMetadata#getArguments()} list.
 	 * 
-	 * This is specified by the <code>index</code> attribute.
+	 * This is specified by the {@code index} attribute.
 	 * 
 	 * @return The zero-based index of the parameter, or -1 if no index is
 	 *         specified.

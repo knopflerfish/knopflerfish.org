@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.container;
 
 /**
  * Type converter to convert an object to a target type.
  * 
  * @ThreadSafe
- * @version $Revision: 8083 $
+ * @author $Id: baf2391dfd6e84d36ca0a50d4743da4dd62e5f41 $
  */
 public interface Converter {
 
@@ -27,25 +28,24 @@ public interface Converter {
 	 * Return if this converter is able to convert the specified object to the
 	 * specified type.
 	 * 
-	 * @param sourceObject The source object <code>s</code> to convert.
-	 * @param targetType The target type <code>T</code>.
+	 * @param sourceObject The source object {@code s} to convert.
+	 * @param targetType The target type {@code T}.
 	 * 
-	 * @return <code>true</code> if the conversion is possible,
-	 *         <code>false</code> otherwise.
+	 * @return {@code true} if the conversion is possible, {@code false}
+	 *         otherwise.
 	 */
 	boolean canConvert(Object sourceObject, ReifiedType targetType);
 
 	/**
 	 * Convert the specified object to an instance of the specified type.
 	 * 
-	 * @param sourceObject The source object <code>s</code> to convert.
-	 * @param targetType The target type <code>T</code>.
+	 * @param sourceObject The source object {@code s} to convert.
+	 * @param targetType The target type {@code T}.
 	 * @return An instance with a type that is assignable from targetType's raw
 	 *         class
 	 * @throws Exception If the conversion cannot succeed. This exception should
-	 *         not be thrown when the {@link #canConvert canConvert} method has
-	 *         returned <code>true</code>.
+	 *         not be thrown when the {@link #canConvert(Object, ReifiedType)
+	 *         canConvert} method has returned {@code true}.
 	 */
-	Object convert(Object sourceObject, ReifiedType targetType)
-			throws Exception;
+	Object convert(Object sourceObject, ReifiedType targetType) throws Exception;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2001, 2008). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2001, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.device;
 
 import org.osgi.framework.ServiceReference;
@@ -23,18 +24,17 @@ import org.osgi.framework.ServiceReference;
  * least one Driver service matches, the device manager must choose one. If
  * there is a Driver Selector service registered with the Framework, the device
  * manager will ask it to make the selection. If there is no Driver Selector
- * service, or if it returns an invalid result, or throws an
- * <code>Exception</code>, the device manager uses the default selection
- * strategy.
+ * service, or if it returns an invalid result, or throws an {@code Exception},
+ * the device manager uses the default selection strategy.
  * 
- * @version $Revision: 5654 $
+ * @author $Id: 179ecc7fc79d13bbf5d829d64b69baccd58c4b93 $
  * @since 1.1
  * @ThreadSafe
  */
 public interface DriverSelector {
 	/**
-	 * Return value from <code>DriverSelector.select</code>, if no Driver
-	 * service should be attached to the Device service. The value is -1.
+	 * Return value from {@code DriverSelector.select}, if no Driver service
+	 * should be attached to the Device service. The value is -1.
 	 */
 	public static final int	SELECT_NONE	= -1;
 
@@ -42,13 +42,13 @@ public interface DriverSelector {
 	 * Select one of the matching Driver services. The device manager calls this
 	 * method if there is at least one driver bidding for a device. Only Driver
 	 * services that have responded with nonzero (not {@link Device#MATCH_NONE})
-	 * <code></code> match values will be included in the list.
+	 * {@code } match values will be included in the list.
 	 * 
-	 * @param reference the <code>ServiceReference</code> object of the Device
+	 * @param reference the {@code ServiceReference} object of the Device
 	 *        service.
 	 * @param matches the array of all non-zero matches.
-	 * @return index into the array of <code>Match</code> objects, or
-	 *         <code>SELECT_NONE</code> if no Driver service should be attached
+	 * @return index into the array of {@code Match} objects, or
+	 *         {@code SELECT_NONE} if no Driver service should be attached
 	 */
 	public int select(ServiceReference reference, Match[] matches);
 }

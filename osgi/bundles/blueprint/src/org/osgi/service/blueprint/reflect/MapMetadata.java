@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.reflect;
 
 import java.util.List;
@@ -21,29 +22,29 @@ import java.util.List;
  * Metadata for a Map based value.
  * 
  * <p>
- * This is specified by the <code>map</code> element.
+ * This is specified by the {@code map} element.
  * 
  * @ThreadSafe
- * @version $Revision: 8083 $
+ * @author $Id: 36d46242e900e276b1b9996ab3332bfb1ca412d2 $
  */
 public interface MapMetadata extends NonNullMetadata {
 	/**
 	 * Return the name of the type of the map keys.
 	 * 
-	 * This is specified by the <code>key-type</code> attribute of the map.
+	 * This is specified by the {@code key-type} attribute of the map.
 	 * 
-	 * @return The name of the type of the map keys, or <code>null</code> if
-	 *         none is specified.
+	 * @return The name of the type of the map keys, or {@code null} if none is
+	 *         specified.
 	 */
 	String getKeyType();
 
 	/**
 	 * Return the name of the type of the map values.
 	 * 
-	 * This is specified by the <code>value-type</code> attribute of the map.
+	 * This is specified by the {@code value-type} attribute of the map.
 	 * 
-	 * @return The name of the type of the map values, or <code>null</code> if
-	 *         none is specified.
+	 * @return The name of the type of the map values, or {@code null} if none
+	 *         is specified.
 	 */
 	String getValueType();
 
@@ -54,5 +55,5 @@ public interface MapMetadata extends NonNullMetadata {
 	 *         the map. The List is empty if no entries are specified for the
 	 *         map.
 	 */
-	List /* <MapEntry> */getEntries();
+	List<MapEntry> getEntries();
 }

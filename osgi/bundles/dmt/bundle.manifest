@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: dmt
 Bundle-SymbolicName: org.knopflerfish.bundle.dmt
-Bundle-Version: 4.0.0
+Bundle-Version: 5.0.0
 Bundle-Category: API
 Bundle-Description: DMT
 Bundle-Vendor: OSGi
