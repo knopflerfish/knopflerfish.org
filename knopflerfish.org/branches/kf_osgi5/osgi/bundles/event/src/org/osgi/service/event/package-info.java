@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2012). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,9 @@
  * <p>
  * {@code  Import-Package: org.osgi.service.event; version="[1.3,1.4)"}
  * 
- * @version $Id: ce0d325e118d7610d5eea38f021525f4855b85c6 $
+ * @version 1.3
+ * @author $Id: 11bbb27d13a54a406b55338df71482d0360daaba $
  */
 
 package org.osgi.service.event;
+

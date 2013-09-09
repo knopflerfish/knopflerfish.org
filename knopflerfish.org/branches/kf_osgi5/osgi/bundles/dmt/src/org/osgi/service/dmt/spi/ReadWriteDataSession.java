@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2011). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.dmt.spi;
 
 import org.osgi.service.dmt.DmtData;
@@ -61,7 +62,7 @@ import org.osgi.service.dmt.MetaNode;
  * fit into any other category, the {@link DmtException#COMMAND_FAILED} code
  * should be used.
  * 
- * @version $Id: 29681a6258518e5514d42c5aba0d3524c61d783e $
+ * @author $Id: 8237e8ee3cf4e7e5156de813f614986b808bd0f3 $
  */
 public interface ReadWriteDataSession extends ReadableDataSession {
 
@@ -79,24 +80,23 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code nodePath} points to a
 	 *         non-existing node, or if {@code newNodePath} points to a node
-	 *         that cannot exist in the tree
+	 *         that cannot exist in the tree</li>
 	 *         <li>{@code NODE_ALREADY_EXISTS} if {@code newNodePath} points to
-	 *         a node that already exists
+	 *         a node that already exists</li>
 	 *         <li>{@code METADATA_MISMATCH} if the node could not be copied
-	 *         because of meta-data restrictions
+	 *         because of meta-data restrictions</li>
 	 *         <li>{@code FEATURE_NOT_SUPPORTED} if the copy operation is not
-	 *         supported by the plugin
+	 *         supported by the plugin</li>
 	 *         <li>{@code DATA_STORE_FAILURE} if an error occurred while
-	 *         accessing the data store
+	 *         accessing the data store</li>
 	 *         <li>{@code COMMAND_FAILED} if some unspecified error is
-	 *         encountered while attempting to complete the command
+	 *         encountered while attempting to complete the command</li>
 	 *         </ul>
 	 * @throws SecurityException if the caller does not have the necessary
 	 *         permissions to execute the underlying management operation
 	 * @see DmtSession#copy(String, String, boolean)
 	 */
-	void copy(String[] nodePath, String[] newNodePath, boolean recursive)
-			throws DmtException;
+	void copy(String[] nodePath, String[] newNodePath, boolean recursive) throws DmtException;
 
 	/**
 	 * Create an interior node with a given type. The type of interior node, if
@@ -108,15 +108,15 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code nodePath} points to a node
-	 *         that cannot exist in the tree
+	 *         that cannot exist in the tree</li>
 	 *         <li>{@code NODE_ALREADY_EXISTS} if {@code nodeUri} points to a
-	 *         node that already exists
+	 *         node that already exists</li>
 	 *         <li>{@code METADATA_MISMATCH} if the node could not be created
-	 *         because of meta-data restrictions
+	 *         because of meta-data restrictions</li>
 	 *         <li>{@code DATA_STORE_FAILURE} if an error occurred while
-	 *         accessing the data store
+	 *         accessing the data store</li>
 	 *         <li>{@code COMMAND_FAILED} if some unspecified error is
-	 *         encountered while attempting to complete the command
+	 *         encountered while attempting to complete the command</li>
 	 *         </ul>
 	 * @throws SecurityException if the caller does not have the necessary
 	 *         permissions to execute the underlying management operation
@@ -136,15 +136,15 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code nodePath} points to a node
-	 *         that cannot exist in the tree
+	 *         that cannot exist in the tree</li>
 	 *         <li>{@code NODE_ALREADY_EXISTS} if {@code nodePath} points to a
-	 *         node that already exists
+	 *         node that already exists</li>
 	 *         <li>{@code METADATA_MISMATCH} if the node could not be created
-	 *         because of meta-data restrictions
+	 *         because of meta-data restrictions</li>
 	 *         <li>{@code DATA_STORE_FAILURE} if an error occurred while
-	 *         accessing the data store
+	 *         accessing the data store</li>
 	 *         <li>{@code COMMAND_FAILED} if some unspecified error is
-	 *         encountered while attempting to complete the command
+	 *         encountered while attempting to complete the command</li>
 	 *         </ul>
 	 * @throws SecurityException if the caller does not have the necessary
 	 *         permissions to execute the underlying management operation
@@ -152,8 +152,7 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 * @see DmtSession#createLeafNode(String, DmtData)
 	 * @see DmtSession#createLeafNode(String, DmtData, String)
 	 */
-	void createLeafNode(String[] nodePath, DmtData value, String mimeType)
-			throws DmtException;
+	void createLeafNode(String[] nodePath, DmtData value, String mimeType) throws DmtException;
 
 	/**
 	 * Delete the given node. Deleting interior nodes is recursive, the whole
@@ -163,13 +162,13 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code nodePath} points to a
-	 *         non-existing node
+	 *         non-existing node</li>
 	 *         <li>{@code METADATA_MISMATCH} if the node could not be deleted
-	 *         because of meta-data restrictions
+	 *         because of meta-data restrictions</li>
 	 *         <li>{@code DATA_STORE_FAILURE} if an error occurred while
-	 *         accessing the data store
+	 *         accessing the data store</li>
 	 *         <li>{@code COMMAND_FAILED} if some unspecified error is
-	 *         encountered while attempting to complete the command
+	 *         encountered while attempting to complete the command</li>
 	 *         </ul>
 	 * @throws SecurityException if the caller does not have the necessary
 	 *         permissions to execute the underlying management operation
@@ -189,15 +188,15 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code nodePath} points to a
-	 *         non-existing node, or if the new node is not defined in the tree
+	 *         non-existing node, or if the new node is not defined in the tree</li>
 	 *         <li>{@code NODE_ALREADY_EXISTS} if there already exists a sibling
-	 *         of {@code nodePath} with the name {@code newName}
+	 *         of {@code nodePath} with the name {@code newName}</li>
 	 *         <li>{@code METADATA_MISMATCH} if the node could not be renamed
-	 *         because of meta-data restrictions
+	 *         because of meta-data restrictions</li>
 	 *         <li>{@code DATA_STORE_FAILURE} if an error occurred while
-	 *         accessing the data store
+	 *         accessing the data store</li>
 	 *         <li>{@code COMMAND_FAILED} if some unspecified error is
-	 *         encountered while attempting to complete the command
+	 *         encountered while attempting to complete the command</li>
 	 *         </ul>
 	 * @throws SecurityException if the caller does not have the necessary
 	 *         permissions to execute the underlying management operation
@@ -214,15 +213,15 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code nodePath} points to a
-	 *         non-existing node
+	 *         non-existing node</li>
 	 *         <li>{@code METADATA_MISMATCH} if the title could not be set
-	 *         because of meta-data restrictions
+	 *         because of meta-data restrictions</li>
 	 *         <li>{@code FEATURE_NOT_SUPPORTED} if the Title property is not
-	 *         supported by the plugin
+	 *         supported by the plugin</li>
 	 *         <li>{@code DATA_STORE_FAILURE} if an error occurred while
-	 *         accessing the data store
+	 *         accessing the data store</li>
 	 *         <li>{@code COMMAND_FAILED} if some unspecified error is
-	 *         encountered while attempting to complete the command
+	 *         encountered while attempting to complete the command</li>
 	 *         </ul>
 	 * @throws SecurityException if the caller does not have the necessary
 	 *         permissions to execute the underlying management operation
@@ -245,11 +244,12 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code nodePath} points to a
-	 *         non-existing node <li>{@code METADATA_MISMATCH} if the type could
-	 *         not be set because of meta-data restrictions <li>
+	 *         non-existing node</li><li>{@code METADATA_MISMATCH} if the type
+	 *         could not be set because of meta-data restrictions</li><li>
 	 *         {@code DATA_STORE_FAILURE} if an error occurred while accessing
-	 *         the data store <li>{@code COMMAND_FAILED} if some unspecified
+	 *         the data store</li><li>{@code COMMAND_FAILED} if some unspecified
 	 *         error is encountered while attempting to complete the command
+	 *         </li>
 	 *         </ul>
 	 * @throws SecurityException if the caller does not have the necessary
 	 *         permissions to execute the underlying management operation
@@ -271,13 +271,14 @@ public interface ReadWriteDataSession extends ReadableDataSession {
 	 * @throws DmtException with the following possible error codes:
 	 *         <ul>
 	 *         <li>{@code NODE_NOT_FOUND} if {@code nodePath} points to a
-	 *         non-existing node <li>{@code METADATA_MISMATCH} if the value
-	 *         could not be set because of meta-data restrictions <li>
+	 *         non-existing node</li><li>{@code METADATA_MISMATCH} if the value
+	 *         could not be set because of meta-data restrictions</li><li>
 	 *         {@code FEATURE_NOT_SUPPORTED} if the specified node is an
-	 *         interior node and does not support Java object values <li>
+	 *         interior node and does not support Java object values</li><li>
 	 *         {@code DATA_STORE_FAILURE} if an error occurred while accessing
-	 *         the data store <li>{@code COMMAND_FAILED} if some unspecified
+	 *         the data store</li><li>{@code COMMAND_FAILED} if some unspecified
 	 *         error is encountered while attempting to complete the command
+	 *         </li>
 	 *         </ul>
 	 * @throws SecurityException if the caller does not have the necessary
 	 *         permissions to execute the underlying management operation

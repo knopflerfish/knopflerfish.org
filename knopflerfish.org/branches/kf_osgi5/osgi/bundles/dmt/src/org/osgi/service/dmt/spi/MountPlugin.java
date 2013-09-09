@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2010, 2011). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2010, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ package org.osgi.service.dmt.spi;
  * to register this interface as a service, the Dmt Admin should use an
  * {@code instanceof} to detect that a Plugin is also a Mount Plugin.
  * 
- * @version $Id: 06b728947c978ac3c2c58446357ff73c6d07878d $
+ * @author $Id: 3b2e26b8c8ae474f844bf92bd1213682871ade8e $
  * @since 2.0
  */
 public interface MountPlugin {
@@ -40,8 +40,7 @@ public interface MountPlugin {
 	 * {@link #mountPointRemoved(MountPoint)} method. Corresponding mount points
 	 * must compare equal and have an appropriate hash code.
 	 * 
-	 * @param mountPoint
-	 *            the newly mapped mount point
+	 * @param mountPoint the newly mapped mount point
 	 */
 	void mountPointAdded(MountPoint mountPoint);
 
@@ -54,9 +53,8 @@ public interface MountPlugin {
 	 * NOTE: attempts to invoke the {@code postEvent} method on the provided
 	 * {@code MountPoint} must be ignored.
 	 * 
-	 * @param mountPoint
-	 *            The unmapped mount point array of {@code MountPoint} objects
-	 *            that have been removed from the mapping
+	 * @param mountPoint The unmapped mount point array of {@code MountPoint}
+	 *        objects that have been removed from the mapping
 	 */
 	void mountPointRemoved(MountPoint mountPoint);
 }

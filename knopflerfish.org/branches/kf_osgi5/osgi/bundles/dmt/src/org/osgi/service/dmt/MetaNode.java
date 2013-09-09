@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2004, 2011). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2004, 2013). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.dmt;
 
 /**
@@ -53,7 +54,7 @@ package org.osgi.service.dmt;
  * meta information is not defined for the node or providing this information is
  * not supported. Methods of this class do not throw exceptions.
  * 
- * @version $Id: 3cc025f1da8c465b1d84cec5771f4bb0165f64ce $
+ * @author $Id: 257646110da999053cc1cb95d8f07f550794a9a5 $
  */
 public interface MetaNode {
 

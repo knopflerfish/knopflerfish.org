@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2005, 2008). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2005, 2012). All Rights Reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,13 @@
 package org.osgi.service.deploymentadmin;
 
 import java.net.URL;
-
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 
 /**
- * The <code>DeploymentPackage</code> object represents a deployment package
- * (already installed or being currently processed). A Deployment Package groups
+ * The {@code DeploymentPackage} object represents a deployment package (already
+ * installed or being currently processed). A Deployment Package groups
  * resources as a unit of management. A deployment package is something that can
  * be installed, updated, and uninstalled as a unit. A deployment package is a
  * reified concept, like a bundle, in an OSGi Service Platform. It is not known
@@ -52,9 +51,9 @@ import org.osgi.framework.Version;
  * <p>
  * 
  * If a deployment package is being updated the old version is visible through
- * the <code>DeploymentPackage</code> interface until the update process ends.
- * After the package is updated the updated version is visible and the old one
- * is not accessible any more.
+ * the {@code DeploymentPackage} interface until the update process ends. After
+ * the package is updated the updated version is visible and the old one is not
+ * accessible any more.
  */
 public interface DeploymentPackage {
 	/**
@@ -63,29 +62,29 @@ public interface DeploymentPackage {
 	 * 
 	 * @since 1.1
 	 */
-	String EVENT_DEPLOYMENTPACKAGE_NAME = "deploymentpackage.name";
+	String	EVENT_DEPLOYMENTPACKAGE_NAME			= "deploymentpackage.name";
 
 	/**
 	 * The human readable name of the DP localized to the default locale.
 	 * 
 	 * @since 1.1
 	 */
-	String EVENT_DEPLOYMENTPACKAGE_READABLENAME = "deploymentpackage.readablename";
+	String	EVENT_DEPLOYMENTPACKAGE_READABLENAME	= "deploymentpackage.readablename";
 
 	/**
 	 * The currently installed version of the Deployment Package. The attribute
 	 * is not present, if no version is installed:
 	 * <ul>
 	 * <li>in the INSTALL event, when an installDeploymentPackage was called and
-	 * no earlier version is present
+	 * no earlier version is present</li>
 	 * <li>in the COMPLETE event after the _successfully_ completing an
-	 * uninstallDeploymentPackage call
+	 * uninstallDeploymentPackage call</li>
 	 * </ul>
 	 * The value for this event must be a Version object.
 	 * 
 	 * @since 1.1
 	 */
-	String EVENT_DEPLOYMENTPACKAGE_CURRENTVERSION = "deploymentpackage.currentversion";
+	String	EVENT_DEPLOYMENTPACKAGE_CURRENTVERSION	= "deploymentpackage.currentversion";
 
 	/**
 	 * The version of DP after the successful completion of the install
@@ -95,7 +94,7 @@ public interface DeploymentPackage {
 	 * 
 	 * @since 1.1
 	 */
-	String EVENT_DEPLOYMENTPACKAGE_NEXTVERSION = "deploymentpackage.nextversion";
+	String	EVENT_DEPLOYMENTPACKAGE_NEXTVERSION		= "deploymentpackage.nextversion";
 
 	/**
 	 * Gives back the state of the deployment package whether it is stale or
@@ -111,10 +110,10 @@ public interface DeploymentPackage {
 	 * <li>{@link #uninstallForced()}</li>
 	 * </ul>
 	 * 
-	 * @return <code>true</code> if the deployment package is stale.
-	 *         <code>false</code> otherwise
-	 * @see #uninstall
-	 * @see #uninstallForced
+	 * @return {@code true} if the deployment package is stale. {@code false}
+	 *         otherwise
+	 * @see #uninstall()
+	 * @see #uninstallForced()
 	 */
 	boolean isStale();
 
@@ -129,11 +128,11 @@ public interface DeploymentPackage {
 	 * Returns the Deployment Package human readable name.
 	 * 
 	 * This method returns the localized human readable name as set with the
-	 * <code>DeploymentPackage-Name</code> manifest header using the default
-	 * locale. If no header is set, this method will return <code>null</code>.
+	 * {@code DeploymentPackage-Name} manifest header using the default locale.
+	 * If no header is set, this method will return {@code null}.
 	 * 
-	 * @return The human readable name of the deployment package or
-	 *         <code>null</code> if header is not set.
+	 * @return The human readable name of the deployment package or {@code null}
+	 *         if header is not set.
 	 * @since 1.1
 	 */
 	String getDisplayName();
@@ -150,10 +149,9 @@ public interface DeploymentPackage {
 	 * specified in the manifest of this deployment package. Its size is equal
 	 * to the number of the bundles in the deployment package.
 	 * 
-	 * @return array of <code>BundleInfo</code> objects
-	 * @throws SecurityException
-	 *             if the caller doesn't have the appropriate
-	 *             {@link DeploymentAdminPermission} with "metadata" action
+	 * @return array of {@code BundleInfo} objects
+	 * @throws SecurityException if the caller doesn't have the appropriate
+	 *         {@link DeploymentAdminPermission} with "metadata" action
 	 */
 	BundleInfo[] getBundleInfos();
 
@@ -161,15 +159,15 @@ public interface DeploymentPackage {
 	 * Returns a URL pointing to an image that represents the icon for this
 	 * Deployment Package.
 	 * 
-	 * The <code>DeploymentPackage-Icon</code> header can set an icon for the
-	 * the deployment package. This method returns an absolute URL that is
-	 * defined by this header. The Deployment Admin service must provide this
-	 * icon as a local resource. That is, the Deployment Admin must make a local
-	 * copy of the specified icon. The returned <code>URL</code>'s must point to
-	 * a local resource.
+	 * The {@code DeploymentPackage-Icon} header can set an icon for the the
+	 * deployment package. This method returns an absolute URL that is defined
+	 * by this header. The Deployment Admin service must provide this icon as a
+	 * local resource. That is, the Deployment Admin must make a local copy of
+	 * the specified icon. The returned {@code URL}'s must point to a local
+	 * resource.
 	 * 
 	 * @return An absolute URL to a local (device resident) image resource or
-	 *         <code>null</code> if not found
+	 *         {@code null} if not found
 	 * @since 1.1
 	 */
 	URL getIcon();
@@ -177,8 +175,8 @@ public interface DeploymentPackage {
 	/**
 	 * Returns the bundle instance, which is part of this deployment package,
 	 * that corresponds to the bundle's symbolic name passed in the
-	 * <code>symbolicName</code> parameter. This method will return null for
-	 * request for bundles that are not part of this deployment package.
+	 * {@code symbolicName} parameter. This method will return null for request
+	 * for bundles that are not part of this deployment package.
 	 * <p>
 	 * 
 	 * As this instance is transient (i.e. a bundle can be removed at any time
@@ -186,15 +184,11 @@ public interface DeploymentPackage {
 	 * return null if the bundle is part of this deployment package, but is not
 	 * currently defined to the framework.
 	 * 
-	 * @param symbolicName
-	 *            the symbolic name of the requested bundle
-	 * @return The <code>Bundle</code> instance for a given bundle symbolic
-	 *         name.
-	 * @throws SecurityException
-	 *             if the caller doesn't have the appropriate
-	 *             {@link DeploymentAdminPermission} with "metadata" action
-	 * @throws IllegalStateException
-	 *             if the package is stale
+	 * @param symbolicName the symbolic name of the requested bundle
+	 * @return The {@code Bundle} instance for a given bundle symbolic name.
+	 * @throws SecurityException if the caller doesn't have the appropriate
+	 *         {@link DeploymentAdminPermission} with "metadata" action
+	 * @throws IllegalStateException if the package is stale
 	 */
 	Bundle getBundle(String symbolicName);
 
@@ -206,9 +200,9 @@ public interface DeploymentPackage {
 	 * <p>
 	 * 
 	 * E.g. if the "Name" section of the resource (or individual-section as the
-	 * <a
-	 * href="http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Manifest%20Specification">Manifest
-	 * Specification</a> calls it) in the manifest is the following
+	 * <a href=
+	 * "http://java.sun.com/j2se/1.4.2/docs/guide/jar/jar.html#Manifest%20Specification"
+	 * >Manifest Specification</a> calls it) in the manifest is the following
 	 * 
 	 * <pre>
 	 *     Name: foo/readme.txt
@@ -220,9 +214,8 @@ public interface DeploymentPackage {
 	 * 
 	 * @return The string array corresponding to resources. It cannot be null
 	 *         but its length can be zero.
-	 * @throws SecurityException
-	 *             if the caller doesn't have the appropriate
-	 *             {@link DeploymentAdminPermission} with "metadata" action
+	 * @throws SecurityException if the caller doesn't have the appropriate
+	 *         {@link DeploymentAdminPermission} with "metadata" action
 	 */
 	String[] getResources();
 
@@ -239,12 +232,11 @@ public interface DeploymentPackage {
 	 * will return a reference to the updated service, not to the instance that
 	 * was used at deployment time.
 	 * 
-	 * @param resource
-	 *            the name of the resource (it is the same as the value of the
-	 *            "Name" attribute in the deployment package's manifest)
-	 * @return resource processor for the resource or <code>null</code>.
-	 * @throws SecurityException if the caller doesn't have the appropriate {@link DeploymentAdminPermission} 
-	 *         with "metadata" action
+	 * @param resource the name of the resource (it is the same as the value of
+	 *        the "Name" attribute in the deployment package's manifest)
+	 * @return resource processor for the resource or {@code null}.
+	 * @throws SecurityException if the caller doesn't have the appropriate
+	 *         {@link DeploymentAdminPermission} with "metadata" action
 	 * @throws IllegalStateException if the package is stale
 	 */
 	ServiceReference getResourceProcessor(String resource);
@@ -259,13 +251,11 @@ public interface DeploymentPackage {
 	 * Service Platform, Mobile Specification Release 4 - Localization related
 	 * chapters).
 	 * 
-	 * @param header
-	 *            the requested header
-	 * @return the value of the header or <code>null</code> if the header does
-	 *         not exist
-	 * @throws SecurityException
-	 *             if the caller doesn't have the appropriate
-	 *             {@link DeploymentAdminPermission} with "metadata" action
+	 * @param header the requested header
+	 * @return the value of the header or {@code null} if the header does not
+	 *         exist
+	 * @throws SecurityException if the caller doesn't have the appropriate
+	 *         {@link DeploymentAdminPermission} with "metadata" action
 	 */
 	String getHeader(String header);
 
@@ -279,35 +269,29 @@ public interface DeploymentPackage {
 	 * Service Platform, Mobile Specification Release 4 - Localization related
 	 * chapters).
 	 * 
-	 * @param resource
-	 *            the name of the resource (it is the same as the value of the
-	 *            "Name" attribute in the deployment package's manifest)
-	 * @param header
-	 *            the requested header
-	 * @return the value of the header or <code>null</code> if the resource or
-	 *         the header doesn't exist
-	 * @throws SecurityException
-	 *             if the caller doesn't have the appropriate
-	 *             {@link DeploymentAdminPermission} with "metadata" action
+	 * @param resource the name of the resource (it is the same as the value of
+	 *        the "Name" attribute in the deployment package's manifest)
+	 * @param header the requested header
+	 * @return the value of the header or {@code null} if the resource or the
+	 *         header doesn't exist
+	 * @throws SecurityException if the caller doesn't have the appropriate
+	 *         {@link DeploymentAdminPermission} with "metadata" action
 	 */
 	String getResourceHeader(String resource, String header);
 
 	/**
 	 * Uninstalls the deployment package. After uninstallation, the deployment
 	 * package object becomes stale. This can be checked by using
-	 * {@link #isStale()}, which will return <code>true</code> when stale.
+	 * {@link #isStale()}, which will return {@code true} when stale.
 	 * <p>
 	 * 
-	 * @throws DeploymentException
-	 *             if the deployment package could not be successfully
-	 *             uninstalled. For detailed error code description see
-	 *             {@link DeploymentException}.
-	 * @throws SecurityException
-	 *             if the caller doesn't have the appropriate
-	 *             {@link DeploymentAdminPermission}("&lt;filter&gt;",
-	 *             "uninstall") permission.
-	 * @throws IllegalStateException
-	 *             if the package is stale
+	 * @throws DeploymentException if the deployment package could not be
+	 *         successfully uninstalled. For detailed error code description see
+	 *         {@link DeploymentException}.
+	 * @throws SecurityException if the caller doesn't have the appropriate
+	 *         {@link DeploymentAdminPermission}("&lt;filter&gt;", "uninstall")
+	 *         permission.
+	 * @throws IllegalStateException if the package is stale
 	 */
 	void uninstall() throws DeploymentException;
 
@@ -316,27 +300,23 @@ public interface DeploymentPackage {
 	 * couldn't be uninstalled using traditional means ({@link #uninstall()})
 	 * due to exceptions. After uninstallation, the deployment package object
 	 * becomes stale. This can be checked by using {@link #isStale()}, which
-	 * will return <code>true</code> when stale.
+	 * will return {@code true} when stale.
 	 * <p>
 	 * 
 	 * The method forces removal of the Deployment Package from the repository
 	 * maintained by the Deployment Admin service. This method follows the same
-	 * steps as {@link #uninstall}. However, any errors or the absence of
+	 * steps as {@link #uninstall()}. However, any errors or the absence of
 	 * Resource Processor services are ignored, they must not cause a roll back.
 	 * These errors should be logged.
 	 * 
 	 * @return true if the operation was successful
-	 * @throws DeploymentException
-	 *             only {@link DeploymentException#CODE_TIMEOUT} and
-	 *             {@link DeploymentException#CODE_CANCELLED} can be thrown. For
-	 *             detailed error code description see
-	 *             {@link DeploymentException}.
-	 * @throws SecurityException
-	 *             if the caller doesn't have the appropriate
-	 *             {@link DeploymentAdminPermission}("&lt;filter&gt;",
-	 *             "uninstall_forced") permission.
-	 * @throws IllegalStateException
-	 *             if the package is stale
+	 * @throws DeploymentException only {@link DeploymentException#CODE_TIMEOUT}
+	 *         and {@link DeploymentException#CODE_CANCELLED} can be thrown. For
+	 *         detailed error code description see {@link DeploymentException}.
+	 * @throws SecurityException if the caller doesn't have the appropriate
+	 *         {@link DeploymentAdminPermission}("&lt;filter&gt;",
+	 *         "uninstall_forced") permission.
+	 * @throws IllegalStateException if the package is stale
 	 */
 	boolean uninstallForced() throws DeploymentException;
 
@@ -352,10 +332,9 @@ public interface DeploymentPackage {
 	 * deployment packages are equal if they have the same deployment package
 	 * symbolic name and version.
 	 * 
-	 * @param other
-	 *            the reference object with which to compare.
-	 * @return true if this object is the same as the <code>other<code> argument; false
-	 *         otherwise.
+	 * @param other the reference object with which to compare.
+	 * @return true if this object is the same as the {@code other} argument;
+	 *         false otherwise.
 	 */
 	boolean equals(Object other);
 

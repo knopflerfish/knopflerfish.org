@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2000, 2008). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2000, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.device;
 
 import org.osgi.framework.ServiceReference;
 
 /**
- * A <code>Driver</code> service object must be registered by each Driver bundle
+ * A {@code Driver} service object must be registered by each Driver bundle
  * wishing to attach to Device services provided by other drivers. For each
  * newly discovered {@link Device} object, the device manager enters a bidding
- * phase. The <code>Driver</code> object whose {@link #match} method bids the
- * highest for a particular <code>Device</code> object will be instructed by the
- * device manager to attach to the <code>Device</code> object.
+ * phase. The {@code Driver} object whose {@link #match(ServiceReference)}
+ * method bids the highest for a particular {@code Device} object will be
+ * instructed by the device manager to attach to the {@code Device} object.
  * 
- * @version $Revision: 5654 $
+ * @author $Id: db46dfadf76ffbc519a691834c80673acc90603f $
  * @see Device
  * @see DriverLocator
  * @ThreadSafe
@@ -42,8 +43,8 @@ public interface Driver {
 	 * <p>
 	 * The return value must be one of the possible match values defined in the
 	 * device category definition for the given Device service, or
-	 * <code>Device.MATCH_NONE</code> if the category of the Device service is
-	 * not recognized.
+	 * {@code Device.MATCH_NONE} if the category of the Device service is not
+	 * recognized.
 	 * 
 	 * <p>
 	 * In order to make its decision, this Driver service may examine the
@@ -60,12 +61,12 @@ public interface Driver {
 	 * The match function is called by the device manager during the matching
 	 * process.
 	 * 
-	 * @param reference the <code>ServiceReference</code> object of the device
-	 *        to match
+	 * @param reference the {@code ServiceReference} object of the device to
+	 *        match
 	 * 
 	 * @return value indicating how well this driver can support the given
-	 *         Device service, or <code>Device.MATCH_NONE</code> if it cannot
-	 *         support the Device service at all
+	 *         Device service, or {@code Device.MATCH_NONE} if it cannot support
+	 *         the Device service at all
 	 * 
 	 * @throws java.lang.Exception if this Driver service cannot examine the
 	 *         Device service
@@ -74,16 +75,16 @@ public interface Driver {
 
 	/**
 	 * Attaches this Driver service to the Device service represented by the
-	 * given <code>ServiceReference</code> object.
+	 * given {@code ServiceReference} object.
 	 * 
 	 * <p>
-	 * A return value of <code>null</code> indicates that this Driver service
-	 * has successfully attached to the given Device service. If this Driver
-	 * service is unable to attach to the given Device service, but knows of a
-	 * more suitable Driver service, it must return the <code>DRIVER_ID</code>
-	 * of that Driver service. This allows for the implementation of referring
-	 * drivers whose only purpose is to refer to other drivers capable of
-	 * handling a given Device service.
+	 * A return value of {@code null} indicates that this Driver service has
+	 * successfully attached to the given Device service. If this Driver service
+	 * is unable to attach to the given Device service, but knows of a more
+	 * suitable Driver service, it must return the {@code DRIVER_ID} of that
+	 * Driver service. This allows for the implementation of referring drivers
+	 * whose only purpose is to refer to other drivers capable of handling a
+	 * given Device service.
 	 * 
 	 * <p>
 	 * After having attached to the Device service, this driver may register the
@@ -93,12 +94,12 @@ public interface Driver {
 	 * <p>
 	 * This method is called by the device manager.
 	 * 
-	 * @param reference the <code>ServiceReference</code> object of the device
-	 *        to attach to
+	 * @param reference the {@code ServiceReference} object of the device to
+	 *        attach to
 	 * 
-	 * @return <code>null</code> if this Driver service has successfully
-	 *         attached to the given Device service, or the
-	 *         <code>DRIVER_ID</code> of a more suitable driver
+	 * @return {@code null} if this Driver service has successfully attached to
+	 *         the given Device service, or the {@code DRIVER_ID} of a more
+	 *         suitable driver
 	 * 
 	 * @throws java.lang.Exception if the driver cannot attach to the given
 	 *         device and does not know of a more suitable driver

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) OSGi Alliance (2008, 2009). All Rights Reserved.
+ * Copyright (c) OSGi Alliance (2008, 2013). All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.osgi.service.blueprint.reflect;
 
 /**
@@ -20,14 +21,13 @@ package org.osgi.service.blueprint.reflect;
  * Container.
  * 
  * @ThreadSafe
- * @version $Revision: 8083 $
+ * @author $Id: a67274cc8e5033dddc8477a046d116d511c1a4d3 $
  */
 public interface RefMetadata extends Target, NonNullMetadata {
 	/**
 	 * Return the id of the referenced component.
 	 * 
-	 * This is specified by the <code>component-id</code> attribute of a
-	 * component.
+	 * This is specified by the {@code component-id} attribute of a component.
 	 * 
 	 * @return The id of the referenced component.
 	 */
